@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Keyboards;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -116,7 +116,7 @@ const
 
 { Gestalt selector and values for the Keyboard API }
 const
-	gestaltKeyboardsAttr = $6B626473 (* 'kbds' *);
+	gestaltKeyboardsAttr = FourCharCode('kbds');
 	gestaltKBPS2Keyboards = 1;
 	gestaltKBPS2SetIDToAny = 2;
 	gestaltKBPS2SetTranslationTable = 4;
@@ -240,17 +240,17 @@ const
 {
    * A JIS keyboard layout type.
    }
-	kKeyboardJIS = $4A495320 (* 'JIS ' *);
+	kKeyboardJIS = FourCharCode('JIS ');
 
   {
    * An ANSI keyboard layout type.
    }
-	kKeyboardANSI = $414E5349 (* 'ANSI' *);
+	kKeyboardANSI = FourCharCode('ANSI');
 
   {
    * An ISO keyboard layout type.
    }
-	kKeyboardISO = $49534F20 (* 'ISO ' *);
+	kKeyboardISO = FourCharCode('ISO ');
 
   {
    * An unknown physical keyboard layout type.

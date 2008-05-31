@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit FinderRegistry;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -122,26 +122,26 @@ uses MacTypes,AERegistry,OSA;
 }
 
 const
-	kAEFinderSuite				= $666E6472 (* 'fndr' *);
+	kAEFinderSuite				= FourCharCode('fndr');
 
 	{
 	  //////////////////////////////////////
 	   Finder Events
 	  //////////////////////////////////////
 	}
-	kAECleanUp					= $66636C75 (* 'fclu' *);
-	kAEEject					= $656A6374 (* 'ejct' *);
-	kAEEmpty					= $656D7074 (* 'empt' *);
-	kAEErase					= $66657261 (* 'fera' *);
-	kAEGestalt					= $6773746C (* 'gstl' *);
-	kAEPutAway					= $70747779 (* 'ptwy' *);
-	kAERebuildDesktopDB			= $72646462 (* 'rddb' *);
-	kAESync						= $66757064 (* 'fupd' *);
-	kAEInterceptOpen			= $666F706E (* 'fopn' *);
+	kAECleanUp					= FourCharCode('fclu');
+	kAEEject					= FourCharCode('ejct');
+	kAEEmpty					= FourCharCode('empt');
+	kAEErase					= FourCharCode('fera');
+	kAEGestalt					= FourCharCode('gstl');
+	kAEPutAway					= FourCharCode('ptwy');
+	kAERebuildDesktopDB			= FourCharCode('rddb');
+	kAESync						= FourCharCode('fupd');
+	kAEInterceptOpen			= FourCharCode('fopn');
 
 	{  "Sort" from the database suite: }
-	kAEDatabaseSuite			= $44415441 (* 'DATA' *);
-	kAESort						= $534F5254 (* 'SORT' *);
+	kAEDatabaseSuite			= FourCharCode('DATA');
+	kAESort						= FourCharCode('SORT');
 
 	{
 	  ////////////////////////////////////////////////////////////////////////
@@ -151,7 +151,7 @@ const
 	  ////////////////////////////////////////////////////////////////////////
 	}
 
-	cInternalFinderObject		= $6F626A20 (* 'obj ' *);						{  cReference - used to distinguish objects used inside the Finder only }
+	cInternalFinderObject		= FourCharCode('obj ');						{  cReference - used to distinguish objects used inside the Finder only }
 
 	{
 	   Main Finder class definitions
@@ -160,49 +160,49 @@ const
 																{  We do not use class cItem from AERegistry.r. Instead our class Item is a cObject }
 																{          cItem                        = 'citm',   // defined in AERegistry.r }
 																{           cFile                    = 'file',  // defined in AERegistry.r }
-	cAliasFile					= $616C6961 (* 'alia' *);
-	cApplicationFile			= $61707066 (* 'appf' *);
-	cControlPanelFile			= $63636476 (* 'ccdv' *);
-	cDeskAccessoryFile			= $64616669 (* 'dafi' *);
-	cDocumentFile				= $646F6366 (* 'docf' *);
-	cFontFile					= $666E7466 (* 'fntf' *);
-	cSoundFile					= $736E6466 (* 'sndf' *);
-	cClippingFile				= $636C7066 (* 'clpf' *);
-	cContainer					= $63746E72 (* 'ctnr' *);
-	cDesktop					= $6364736B (* 'cdsk' *);
-	cSharableContainer			= $73637472 (* 'sctr' *);
-	cDisk						= $63646973 (* 'cdis' *);
-	cFolder						= $63666F6C (* 'cfol' *);
-	cSuitcase					= $73746373 (* 'stcs' *);
-	cAccessorySuitcase			= $64737574 (* 'dsut' *);
-	cFontSuitcase				= $66737574 (* 'fsut' *);
-	cTrash						= $63747273 (* 'ctrs' *);
-	cDesktopPrinter				= $64736B70 (* 'dskp' *);
-	cPackage					= $7061636B (* 'pack' *);
-	cContentSpace				= $64776E64 (* 'dwnd' *);						{           cWindow                    = 'cwin',       // defined in AERegistry.r }
-	cContainerWindow			= $63776E64 (* 'cwnd' *);
-	cInfoWindow					= $69776E64 (* 'iwnd' *);
-	cSharingWindow				= $73776E64 (* 'swnd' *);
-	cStatusWindow				= $71776E64 (* 'qwnd' *);
-	cClippingWindow				= $6C776E64 (* 'lwnd' *);
-	cPreferencesWindow			= $70776E64 (* 'pwnd' *);
-	cDTPWindow					= $64747077 (* 'dtpw' *);
-	cProcess					= $70726373 (* 'prcs' *);
-	cAccessoryProcess			= $70636461 (* 'pcda' *);
-	cApplicationProcess			= $70636170 (* 'pcap' *);
-	cGroup						= $73677270 (* 'sgrp' *);
-	cUser						= $63757365 (* 'cuse' *);						{          cApplication                  = 'capp',     // defined in AERegistry.r }
-	cSharingPrivileges			= $70726976 (* 'priv' *);
-	cPreferences				= $63707266 (* 'cprf' *);
-	cLabel						= $636C626C (* 'clbl' *);
-	cSound						= $736E6420 (* 'snd ' *);
-	cAliasList					= $616C7374 (* 'alst' *);
-	cSpecialFolders				= $7370666C (* 'spfl' *);						{  For use by viewer search engines: }
-	cOnlineDisk					= $636F6473 (* 'cods' *);
-	cOnlineLocalDisk			= $636C6473 (* 'clds' *);
-	cOnlineRemoteDisk			= $63726473 (* 'crds' *);						{  Miscellaneous class definitions }
-	cEntireContents				= $65637473 (* 'ects' *);
-	cIconFamily					= $6966616D (* 'ifam' *);
+	cAliasFile					= FourCharCode('alia');
+	cApplicationFile			= FourCharCode('appf');
+	cControlPanelFile			= FourCharCode('ccdv');
+	cDeskAccessoryFile			= FourCharCode('dafi');
+	cDocumentFile				= FourCharCode('docf');
+	cFontFile					= FourCharCode('fntf');
+	cSoundFile					= FourCharCode('sndf');
+	cClippingFile				= FourCharCode('clpf');
+	cContainer					= FourCharCode('ctnr');
+	cDesktop					= FourCharCode('cdsk');
+	cSharableContainer			= FourCharCode('sctr');
+	cDisk						= FourCharCode('cdis');
+	cFolder						= FourCharCode('cfol');
+	cSuitcase					= FourCharCode('stcs');
+	cAccessorySuitcase			= FourCharCode('dsut');
+	cFontSuitcase				= FourCharCode('fsut');
+	cTrash						= FourCharCode('ctrs');
+	cDesktopPrinter				= FourCharCode('dskp');
+	cPackage					= FourCharCode('pack');
+	cContentSpace				= FourCharCode('dwnd');						{           cWindow                    = 'cwin',       // defined in AERegistry.r }
+	cContainerWindow			= FourCharCode('cwnd');
+	cInfoWindow					= FourCharCode('iwnd');
+	cSharingWindow				= FourCharCode('swnd');
+	cStatusWindow				= FourCharCode('qwnd');
+	cClippingWindow				= FourCharCode('lwnd');
+	cPreferencesWindow			= FourCharCode('pwnd');
+	cDTPWindow					= FourCharCode('dtpw');
+	cProcess					= FourCharCode('prcs');
+	cAccessoryProcess			= FourCharCode('pcda');
+	cApplicationProcess			= FourCharCode('pcap');
+	cGroup						= FourCharCode('sgrp');
+	cUser						= FourCharCode('cuse');						{          cApplication                  = 'capp',     // defined in AERegistry.r }
+	cSharingPrivileges			= FourCharCode('priv');
+	cPreferences				= FourCharCode('cprf');
+	cLabel						= FourCharCode('clbl');
+	cSound						= FourCharCode('snd ');
+	cAliasList					= FourCharCode('alst');
+	cSpecialFolders				= FourCharCode('spfl');						{  For use by viewer search engines: }
+	cOnlineDisk					= FourCharCode('cods');
+	cOnlineLocalDisk			= FourCharCode('clds');
+	cOnlineRemoteDisk			= FourCharCode('crds');						{  Miscellaneous class definitions }
+	cEntireContents				= FourCharCode('ects');
+	cIconFamily					= FourCharCode('ifam');
 
 
 	{
@@ -213,55 +213,55 @@ const
 
 	{  Properties of class cItem (really cObject) }
 																{     pBounds                        = 'pbnd',       // defined in AERegistry.r }
-	pComment					= $636F6D74 (* 'comt' *);
-	pContainer					= $63746E72 (* 'ctnr' *);
-	pContentSpace				= $64776E64 (* 'dwnd' *);
-	pCreationDateOld			= $63727464 (* 'crtd' *);						{  to support pre-Finder 8 scripts }
-	pCreationDate				= $61736364 (* 'ascd' *);						{  from File Commands OSAX }
-	pDescription				= $64736372 (* 'dscr' *);
-	pDisk						= $63646973 (* 'cdis' *);
-	pFolderOld					= $63666F6C (* 'cfol' *);						{  to support pre-Finder 8 scripts }
-	pFolder						= $61736472 (* 'asdr' *);						{  from File Commands OSAX }
-	pIconBitmap					= $69696D67 (* 'iimg' *);						{     pID                           = 'ID  ',        // defined in AERegistry.r }
-	pInfoWindow					= $69776E64 (* 'iwnd' *);
-	pKind						= $6B696E64 (* 'kind' *);
-	pLabelIndex					= $6C616269 (* 'labi' *);
-	pModificationDateOld		= $6D6F6464 (* 'modd' *);						{  to support pre-Finder 8 scripts }
-	pModificationDate			= $61736D6F (* 'asmo' *);						{  from File Commands OSAX }
+	pComment					= FourCharCode('comt');
+	pContainer					= FourCharCode('ctnr');
+	pContentSpace				= FourCharCode('dwnd');
+	pCreationDateOld			= FourCharCode('crtd');						{  to support pre-Finder 8 scripts }
+	pCreationDate				= FourCharCode('ascd');						{  from File Commands OSAX }
+	pDescription				= FourCharCode('dscr');
+	pDisk						= FourCharCode('cdis');
+	pFolderOld					= FourCharCode('cfol');						{  to support pre-Finder 8 scripts }
+	pFolder						= FourCharCode('asdr');						{  from File Commands OSAX }
+	pIconBitmap					= FourCharCode('iimg');						{     pID                           = 'ID  ',        // defined in AERegistry.r }
+	pInfoWindow					= FourCharCode('iwnd');
+	pKind						= FourCharCode('kind');
+	pLabelIndex					= FourCharCode('labi');
+	pModificationDateOld		= FourCharCode('modd');						{  to support pre-Finder 8 scripts }
+	pModificationDate			= FourCharCode('asmo');						{  from File Commands OSAX }
 																{     pName                      = 'pnam',         // defined in AERegistry.r }
-	pPhysicalSize				= $70687973 (* 'phys' *);
-	pPosition					= $706F736E (* 'posn' *);
-	pIsSelected					= $6973736C (* 'issl' *);
-	pSize						= $7074737A (* 'ptsz' *);						{  pPointSize defined in AERegistry.r }
-	pWindow						= $6377696E (* 'cwin' *);
-	pPreferencesWindow			= $70776E64 (* 'pwnd' *);
+	pPhysicalSize				= FourCharCode('phys');
+	pPosition					= FourCharCode('posn');
+	pIsSelected					= FourCharCode('issl');
+	pSize						= FourCharCode('ptsz');						{  pPointSize defined in AERegistry.r }
+	pWindow						= FourCharCode('cwin');
+	pPreferencesWindow			= FourCharCode('pwnd');
 
 
 	{  Properties of class cFile (subclass of cItem) }
-	pFileCreator				= $66637274 (* 'fcrt' *);
-	pFileType					= $61737479 (* 'asty' *);						{  from File Commands OSAX }
-	pFileTypeOld				= $66697470 (* 'fitp' *);						{  to support pre-Finder 8 scripts }
-	pIsLocked					= $61736C6B (* 'aslk' *);						{  from File Commands OSAX }
-	pIsLockedOld				= $69736C6B (* 'islk' *);						{  to support pre-Finder 8 scripts }
+	pFileCreator				= FourCharCode('fcrt');
+	pFileType					= FourCharCode('asty');						{  from File Commands OSAX }
+	pFileTypeOld				= FourCharCode('fitp');						{  to support pre-Finder 8 scripts }
+	pIsLocked					= FourCharCode('aslk');						{  from File Commands OSAX }
+	pIsLockedOld				= FourCharCode('islk');						{  to support pre-Finder 8 scripts }
 																{     pIsStationeryPad               = 'pspd',         // defined in AERegistry.r                 }
 																{     pVersion                    = 'vers',       // defined in AERegistry.r }
-	pProductVersion				= $76657232 (* 'ver2' *);
+	pProductVersion				= FourCharCode('ver2');
 
 
 	{  Properties of class cAliasFile (subclass of cFile) }
-	pOriginalItem				= $6F726967 (* 'orig' *);
+	pOriginalItem				= FourCharCode('orig');
 
 	{  Properties of class cApplicationFile (subclass of cFile) }
-	pMinAppPartition			= $6D707274 (* 'mprt' *);
-	pAppPartition				= $61707074 (* 'appt' *);
-	pSuggestedAppPartition		= $73707274 (* 'sprt' *);
-	pIsScriptable				= $69736162 (* 'isab' *);
+	pMinAppPartition			= FourCharCode('mprt');
+	pAppPartition				= FourCharCode('appt');
+	pSuggestedAppPartition		= FourCharCode('sprt');
+	pIsScriptable				= FourCharCode('isab');
 
 	{  Properties of class cURLFile (subclass of cFile) }
-	pInternetLocation			= $696C6F63 (* 'iloc' *);
+	pInternetLocation			= FourCharCode('iloc');
 
 	{  Properties of class cSoundFile (subclass of cFile) }
-	pSound						= $736E6420 (* 'snd ' *);
+	pSound						= FourCharCode('snd ');
 
 
 	{
@@ -270,60 +270,60 @@ const
 	   control panel. These properties are only offered here for backward compatability.
 	   To set the full range of Finder Preferences, use the Preferences object.
 	}
-	pShowFolderSize				= $7366737A (* 'sfsz' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowComment				= $73636F6D (* 'scom' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowDate					= $73646174 (* 'sdat' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowCreationDate			= $73636461 (* 'scda' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowKind					= $736B6E64 (* 'sknd' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowLabel					= $736C626C (* 'slbl' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowSize					= $7373697A (* 'ssiz' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pShowVersion				= $73767273 (* 'svrs' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pSortDirection				= $736F7264 (* 'sord' *);
-	pShowDiskInfo				= $7364696E (* 'sdin' *);						{  Always on in Finder 8.0 HIS }
-	pListViewIconSize			= $6C766973 (* 'lvis' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pGridIcons					= $66677264 (* 'fgrd' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pStaggerIcons				= $66737467 (* 'fstg' *);						{  No longer part of the Finder 8.0 HIS }
-	pViewFont					= $76666E74 (* 'vfnt' *);
-	pViewFontSize				= $7666737A (* 'vfsz' *);
+	pShowFolderSize				= FourCharCode('sfsz');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowComment				= FourCharCode('scom');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowDate					= FourCharCode('sdat');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowCreationDate			= FourCharCode('scda');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowKind					= FourCharCode('sknd');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowLabel					= FourCharCode('slbl');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowSize					= FourCharCode('ssiz');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pShowVersion				= FourCharCode('svrs');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pSortDirection				= FourCharCode('sord');
+	pShowDiskInfo				= FourCharCode('sdin');						{  Always on in Finder 8.0 HIS }
+	pListViewIconSize			= FourCharCode('lvis');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pGridIcons					= FourCharCode('fgrd');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pStaggerIcons				= FourCharCode('fstg');						{  No longer part of the Finder 8.0 HIS }
+	pViewFont					= FourCharCode('vfnt');
+	pViewFontSize				= FourCharCode('vfsz');
 
 	{  Properties of class cContainer (subclass of cItem) }
-	pCompletelyExpanded			= $70657863 (* 'pexc' *);
-	pContainerWindow			= $63776E64 (* 'cwnd' *);
-	pEntireContents				= $65637473 (* 'ects' *);
-	pExpandable					= $70657861 (* 'pexa' *);
-	pExpanded					= $70657870 (* 'pexp' *);
-	pPreviousView				= $73766577 (* 'svew' *);						{     pSelection                    = 'sele',       // defined in AERegistry.r }
-	pView						= $70766577 (* 'pvew' *);
-	pIconSize					= $6C766973 (* 'lvis' *);						{  defined above }
-	pKeepArranged				= $61727267 (* 'arrg' *);						{  OBSOLETE in Finder 9 or later }
-	pKeepArrangedBy				= $61726279 (* 'arby' *);						{  OBSOLETE in Finder 9 or later }
+	pCompletelyExpanded			= FourCharCode('pexc');
+	pContainerWindow			= FourCharCode('cwnd');
+	pEntireContents				= FourCharCode('ects');
+	pExpandable					= FourCharCode('pexa');
+	pExpanded					= FourCharCode('pexp');
+	pPreviousView				= FourCharCode('svew');						{     pSelection                    = 'sele',       // defined in AERegistry.r }
+	pView						= FourCharCode('pvew');
+	pIconSize					= FourCharCode('lvis');						{  defined above }
+	pKeepArranged				= FourCharCode('arrg');						{  OBSOLETE in Finder 9 or later }
+	pKeepArrangedBy				= FourCharCode('arby');						{  OBSOLETE in Finder 9 or later }
 
 	{  Properties of class cDesktop (subclass of cContainer) }
-	pStartupDisk				= $7364736B (* 'sdsk' *);
-	pTrash						= $74727368 (* 'trsh' *);
+	pStartupDisk				= FourCharCode('sdsk');
+	pTrash						= FourCharCode('trsh');
 
 	{  Properties of class cSharableContainer (subclass of cContainer) }
-	pOwner						= $736F776E (* 'sown' *);
-	pOwnerPrivileges			= $6F776E72 (* 'ownr' *);
-	pGroup						= $73677270 (* 'sgrp' *);
-	pGroupPrivileges			= $67707072 (* 'gppr' *);
-	pGuestPrivileges			= $67737470 (* 'gstp' *);
-	pArePrivilegesInherited		= $69707276 (* 'iprv' *);
-	pExported					= $73657870 (* 'sexp' *);
-	pMounted					= $736D6F75 (* 'smou' *);
-	pSharingProtection			= $7370726F (* 'spro' *);
-	pSharing					= $73686172 (* 'shar' *);
-	pSharingWindow				= $73776E64 (* 'swnd' *);
+	pOwner						= FourCharCode('sown');
+	pOwnerPrivileges			= FourCharCode('ownr');
+	pGroup						= FourCharCode('sgrp');
+	pGroupPrivileges			= FourCharCode('gppr');
+	pGuestPrivileges			= FourCharCode('gstp');
+	pArePrivilegesInherited		= FourCharCode('iprv');
+	pExported					= FourCharCode('sexp');
+	pMounted					= FourCharCode('smou');
+	pSharingProtection			= FourCharCode('spro');
+	pSharing					= FourCharCode('shar');
+	pSharingWindow				= FourCharCode('swnd');
 
 	{  Properties of class cDisk (subclass of cSharableContainer) }
-	pCapacity					= $63617061 (* 'capa' *);
-	pEjectable					= $6973656A (* 'isej' *);
-	pFreeSpace					= $66727370 (* 'frsp' *);
-	pLocal						= $69737276 (* 'isrv' *);
-	pIsStartup					= $69737464 (* 'istd' *);
+	pCapacity					= FourCharCode('capa');
+	pEjectable					= FourCharCode('isej');
+	pFreeSpace					= FourCharCode('frsp');
+	pLocal						= FourCharCode('isrv');
+	pIsStartup					= FourCharCode('istd');
 
 	{  Properties of class cTrash (subclass of cSharableContainer) }
-	pWarnOnEmpty				= $7761726E (* 'warn' *);
+	pWarnOnEmpty				= FourCharCode('warn');
 
 	{  Properties of class cWindow (subclass of cContentSpace) }
 																{     pBounds                        = 'pbnd',   // defined in AERegistry.r }
@@ -337,30 +337,30 @@ const
 																{     pVisible                    = 'pvis',   // defined in AERegistry.r }
 																{     pIsZoomable                    = 'iszm',     // defined in AERegistry.r }
 																{     pIsZoomed                    = 'pzum',     // defined in AERegistry.r }
-	pIsZoomedFull				= $7A756D66 (* 'zumf' *);
-	pIsPopup					= $64727772 (* 'drwr' *);
-	pIsPulledOpen				= $70756C6C (* 'pull' *);						{  only applies to popup windows }
-	pIsCollapsed				= $77736864 (* 'wshd' *);						{  only applies to normal windows }
+	pIsZoomedFull				= FourCharCode('zumf');
+	pIsPopup					= FourCharCode('drwr');
+	pIsPulledOpen				= FourCharCode('pull');						{  only applies to popup windows }
+	pIsCollapsed				= FourCharCode('wshd');						{  only applies to normal windows }
 
 	{  Properties of class cContainerWindow (subclass of cWindow) }
-	pObject						= $636F626A (* 'cobj' *);
+	pObject						= FourCharCode('cobj');
 
 	{  Properties of class cSharingWindow (subclass of cWindow) }
-	pSharableContainer			= $73637472 (* 'sctr' *);
+	pSharableContainer			= FourCharCode('sctr');
 
 	{  Properties of class cInfoWindow (subclass of cWindow) }
-	pInfoPanel					= $70616E6C (* 'panl' *);
+	pInfoPanel					= FourCharCode('panl');
 
 
 	{  Properties of networking support }
-	pFileShareOn				= $66736872 (* 'fshr' *);
-	pFileShareStartingUp		= $66737570 (* 'fsup' *);
-	pProgramLinkingOn			= $69616320 (* 'iac ' *);
+	pFileShareOn				= FourCharCode('fshr');
+	pFileShareStartingUp		= FourCharCode('fsup');
+	pProgramLinkingOn			= FourCharCode('iac ');
 
 	{  Properties of class cPreferencesWindow (subclass of cWindow) }
 																{     pShowFolderSize                   = 'sfsz',         // defined above for Views CP }
 																{     pShowComment                = 'scom',      // defined above for Views CP }
-	pShowModificationDate		= $73646174 (* 'sdat' *);						{  pShowDate defined above for Views CP }
+	pShowModificationDate		= FourCharCode('sdat');						{  pShowDate defined above for Views CP }
 																{     pShowKind                    = 'sknd',        // defined above for Views CP }
 																{     pShowLabel                    = 'slbl',         // defined above for Views CP }
 																{     pShowSize                    = 'ssiz',        // defined above for Views CP }
@@ -373,55 +373,55 @@ const
 																{     pStaggerIcons                 = 'fstg',       // defined above for Views CP }
 																{     pViewFont                    = 'vfnt',        // defined above for Views CP }
 																{     pViewFontSize                 = 'vfsz',       // defined above for Views CP }
-	pUseRelativeDate			= $75726474 (* 'urdt' *);						{  Moved to a per-folder basis in Finder 8.0 HIS }
-	pDelayBeforeSpringing		= $64656C61 (* 'dela' *);
-	pSpringOpenFolders			= $73707267 (* 'sprg' *);
-	pUseShortMenus				= $75736D65 (* 'usme' *);
-	pUseWideGrid				= $75737767 (* 'uswg' *);
-	pLabel1						= $6C626C31 (* 'lbl1' *);
-	pLabel2						= $6C626C32 (* 'lbl2' *);
-	pLabel3						= $6C626C33 (* 'lbl3' *);
-	pLabel4						= $6C626C34 (* 'lbl4' *);
-	pLabel5						= $6C626C35 (* 'lbl5' *);
-	pLabel6						= $6C626C36 (* 'lbl6' *);
-	pLabel7						= $6C626C37 (* 'lbl7' *);
-	pDefaultIconViewIconSize	= $6969737A (* 'iisz' *);
-	pDefaultButtonViewIconSize	= $6269737A (* 'bisz' *);
-	pDefaultListViewIconSize	= $6C69737A (* 'lisz' *);						{  old use of this name is now pIconSize }
-	pIconViewArrangement		= $69617272 (* 'iarr' *);
-	pButtonViewArrangement		= $62617272 (* 'barr' *);
+	pUseRelativeDate			= FourCharCode('urdt');						{  Moved to a per-folder basis in Finder 8.0 HIS }
+	pDelayBeforeSpringing		= FourCharCode('dela');
+	pSpringOpenFolders			= FourCharCode('sprg');
+	pUseShortMenus				= FourCharCode('usme');
+	pUseWideGrid				= FourCharCode('uswg');
+	pLabel1						= FourCharCode('lbl1');
+	pLabel2						= FourCharCode('lbl2');
+	pLabel3						= FourCharCode('lbl3');
+	pLabel4						= FourCharCode('lbl4');
+	pLabel5						= FourCharCode('lbl5');
+	pLabel6						= FourCharCode('lbl6');
+	pLabel7						= FourCharCode('lbl7');
+	pDefaultIconViewIconSize	= FourCharCode('iisz');
+	pDefaultButtonViewIconSize	= FourCharCode('bisz');
+	pDefaultListViewIconSize	= FourCharCode('lisz');						{  old use of this name is now pIconSize }
+	pIconViewArrangement		= FourCharCode('iarr');
+	pButtonViewArrangement		= FourCharCode('barr');
 
 	{
 	   The next bunch are the various arrangements that make up
 	   enumArrangement
 	}
-	pNoArrangement				= $6E617272 (* 'narr' *);
-	pSnapToGridArrangement		= $67726461 (* 'grda' *);
-	pByNameArrangement			= $6E616D61 (* 'nama' *);
-	pByModificationDateArrangement = $6D647461 (* 'mdta' *);
-	pByCreationDateArrangement	= $63647461 (* 'cdta' *);
-	pBySizeArrangement			= $73697A61 (* 'siza' *);
-	pByKindArrangement			= $6B696E61 (* 'kina' *);
-	pByLabelArrangement			= $6C616261 (* 'laba' *);
+	pNoArrangement				= FourCharCode('narr');
+	pSnapToGridArrangement		= FourCharCode('grda');
+	pByNameArrangement			= FourCharCode('nama');
+	pByModificationDateArrangement = FourCharCode('mdta');
+	pByCreationDateArrangement	= FourCharCode('cdta');
+	pBySizeArrangement			= FourCharCode('siza');
+	pByKindArrangement			= FourCharCode('kina');
+	pByLabelArrangement			= FourCharCode('laba');
 
 	{   #define pObject                                 cObject         // defined above }
 
 	{  Properties of class cProcess (subclass of cObject) }
 																{     pName                      = 'pnam',         // defined in AERegistry.r }
-	pFile						= $66696C65 (* 'file' *);						{     pCreatorType                = 'fcrt',      // defined above }
+	pFile						= FourCharCode('file');						{     pCreatorType                = 'fcrt',      // defined above }
 																{     pFileType                    = 'asty',        // defined above }
 																{     pIsFrontProcess                   = 'pisf',         // defined in AERegistry.r }
 																{     pAppPartition                 = 'appt',       // defined above }
-	pPartitionSpaceUsed			= $70757364 (* 'pusd' *);						{     pIsScriptable                 = 'isab',       // defined in AERegistry.r }
+	pPartitionSpaceUsed			= FourCharCode('pusd');						{     pIsScriptable                 = 'isab',       // defined in AERegistry.r }
 																{     pVisible                    = 'pvis'      // defined in AERegistry.r }
-	pLocalAndRemoteEvents		= $72657674 (* 'revt' *);
-	pHasScriptingTerminology	= $68736372 (* 'hscr' *);
+	pLocalAndRemoteEvents		= FourCharCode('revt');
+	pHasScriptingTerminology	= FourCharCode('hscr');
 
 	{  Properties of class cAccessoryProcess (subclass of cProcess) }
-	pDeskAccessoryFile			= $64616669 (* 'dafi' *);
+	pDeskAccessoryFile			= FourCharCode('dafi');
 
 	{  Properties of class cApplicationProcess (subclass of cProcess) }
-	pApplicationFile			= $61707066 (* 'appf' *);
+	pApplicationFile			= FourCharCode('appf');
 
 	{
 	   Properties of class cGroup (subclass of cObject)
@@ -442,48 +442,48 @@ const
 																{     pName }
 																{     pPosition }
 																{     pWindow                        = cWindow,        // defined above }
-	pCanConnect					= $63636F6E (* 'ccon' *);
-	pCanChangePassword			= $63637077 (* 'ccpw' *);
-	pCanDoProgramLinking		= $63696163 (* 'ciac' *);
-	pIsOwner					= $69736F77 (* 'isow' *);
-	pARADialIn					= $61726164 (* 'arad' *);
-	pShouldCallBack				= $63616C62 (* 'calb' *);
-	pCallBackNumber				= $63626E6D (* 'cbnm' *);
+	pCanConnect					= FourCharCode('ccon');
+	pCanChangePassword			= FourCharCode('ccpw');
+	pCanDoProgramLinking		= FourCharCode('ciac');
+	pIsOwner					= FourCharCode('isow');
+	pARADialIn					= FourCharCode('arad');
+	pShouldCallBack				= FourCharCode('calb');
+	pCallBackNumber				= FourCharCode('cbnm');
 
 	{
 	   Properties of class cApplication (subclass of cObject)
 	   NOTE: properties for the special folders must match their respective kXXXFolderType constants
 	}
-	pAboutMacintosh				= $61626278 (* 'abbx' *);
-	pAppleMenuItemsFolder		= $616D6E75 (* 'amnu' *);						{  kAppleMenuFolderType }
+	pAboutMacintosh				= FourCharCode('abbx');
+	pAppleMenuItemsFolder		= FourCharCode('amnu');						{  kAppleMenuFolderType }
 																{     pClipboard                    = 'pcli',         // defined in AERegistry.r }
-	pControlPanelsFolder		= $6374726C (* 'ctrl' *);						{  kControlPanelFolderType }
-	pDesktop					= $6465736B (* 'desk' *);						{  kDesktopFolderType }
-	pExtensionsFolder			= $6578746E (* 'extn' *);						{  kExtensionFolderType }
+	pControlPanelsFolder		= FourCharCode('ctrl');						{  kControlPanelFolderType }
+	pDesktop					= FourCharCode('desk');						{  kDesktopFolderType }
+	pExtensionsFolder			= FourCharCode('extn');						{  kExtensionFolderType }
 																{     pFileShareOn                = 'fshr',      // defined above }
-	pFinderPreferences			= $70667270 (* 'pfrp' *);
-	pFontsFolder				= $666F6E74 (* 'font' *);
-	pFontsFolderPreAllegro		= $66666E74 (* 'ffnt' *);						{  DO NOT USE THIS - FOR BACKWARDS COMPAT ONLY }
+	pFinderPreferences			= FourCharCode('pfrp');
+	pFontsFolder				= FourCharCode('font');
+	pFontsFolderPreAllegro		= FourCharCode('ffnt');						{  DO NOT USE THIS - FOR BACKWARDS COMPAT ONLY }
 																{     pIsFrontProcess                   = 'pisf',         // defined in AERegistry.r }
 																{     pInsertionLoc                 = 'pins',       // defined in AERegistry.r }
-	pLargestFreeBlock			= $6D667265 (* 'mfre' *);
-	pPreferencesFolder			= $70726566 (* 'pref' *);						{  kPreferencesFolderType }
+	pLargestFreeBlock			= FourCharCode('mfre');
+	pPreferencesFolder			= FourCharCode('pref');						{  kPreferencesFolderType }
 																{     pProductVersion                   = 'ver2',         // defined above }
 																{     pUserSelection                  = 'pusl',        // defined in AERegistry.r }
 																{     pFileShareStartingUp             = 'fsup',        // defined above }
-	pShortCuts					= $73637574 (* 'scut' *);
-	pShutdownFolder				= $73686466 (* 'shdf' *);
-	pStartupItemsFolder			= $73747274 (* 'strt' *);						{  kStartupFolderType }
-	pSystemFolder				= $6D616373 (* 'macs' *);						{  kSystemFolderType }
-	pTemporaryFolder			= $74656D70 (* 'temp' *);						{  kTemporaryFolderType }
+	pShortCuts					= FourCharCode('scut');
+	pShutdownFolder				= FourCharCode('shdf');
+	pStartupItemsFolder			= FourCharCode('strt');						{  kStartupFolderType }
+	pSystemFolder				= FourCharCode('macs');						{  kSystemFolderType }
+	pTemporaryFolder			= FourCharCode('temp');						{  kTemporaryFolderType }
 																{     pVersion                    = 'vers',       // defined in AERegistry.r }
-	pViewPreferences			= $70767770 (* 'pvwp' *);						{     pVisible                    = 'pvis',       // defined in AERegistry.r }
-	pStartingUp					= $6177616B (* 'awak' *);						{  private property to tell whether the Finder is fully up and running }
+	pViewPreferences			= FourCharCode('pvwp');						{     pVisible                    = 'pvis',       // defined in AERegistry.r }
+	pStartingUp					= FourCharCode('awak');						{  private property to tell whether the Finder is fully up and running }
 
 	{  Properties of class cSharingPrivileges (subclass of cObject) }
-	pSeeFiles					= $70727672 (* 'prvr' *);
-	pSeeFolders					= $70727673 (* 'prvs' *);
-	pMakeChanges				= $70727677 (* 'prvw' *);
+	pSeeFiles					= FourCharCode('prvr');
+	pSeeFolders					= FourCharCode('prvs');
+	pMakeChanges				= FourCharCode('prvw');
 
 	{
 	   Properties of class cPreferences (subclass of cObject)
@@ -530,10 +530,10 @@ const
 	}
 
 	{  Misc Properties }
-	pSmallIcon					= $736D6963 (* 'smic' *);
-	pSmallButton				= $736D6275 (* 'smbu' *);
-	pLargeButton				= $6C676275 (* 'lgbu' *);
-	pGrid						= $67726964 (* 'grid' *);
+	pSmallIcon					= FourCharCode('smic');
+	pSmallButton				= FourCharCode('smbu');
+	pLargeButton				= FourCharCode('lgbu');
+	pGrid						= FourCharCode('grid');
 
 	{
 	  //////////////////////////////////////
@@ -541,66 +541,66 @@ const
 	  //////////////////////////////////////
 	}
 
-	enumViewBy					= $76776279 (* 'vwby' *);
-	enumGestalt					= $6773656E (* 'gsen' *);
-	enumConflicts				= $63666C63 (* 'cflc' *);
-	enumExistingItems			= $65787369 (* 'exsi' *);
-	enumOlderItems				= $6F6C6472 (* 'oldr' *);
+	enumViewBy					= FourCharCode('vwby');
+	enumGestalt					= FourCharCode('gsen');
+	enumConflicts				= FourCharCode('cflc');
+	enumExistingItems			= FourCharCode('exsi');
+	enumOlderItems				= FourCharCode('oldr');
 
-	enumDate					= $656E6461 (* 'enda' *);
-	enumAnyDate					= $616E7964 (* 'anyd' *);
-	enumToday					= $74646179 (* 'tday' *);
-	enumYesterday				= $79646179 (* 'yday' *);
-	enumThisWeek				= $7477656B (* 'twek' *);
-	enumLastWeek				= $6C77656B (* 'lwek' *);
-	enumThisMonth				= $746D6F6E (* 'tmon' *);
-	enumLastMonth				= $6C6D6F6E (* 'lmon' *);
-	enumThisYear				= $74796572 (* 'tyer' *);
-	enumLastYear				= $6C796572 (* 'lyer' *);
-	enumBeforeDate				= $62666474 (* 'bfdt' *);
-	enumAfterDate				= $61666474 (* 'afdt' *);
-	enumBetweenDate				= $62746474 (* 'btdt' *);
-	enumOnDate					= $6F6E6474 (* 'ondt' *);
+	enumDate					= FourCharCode('enda');
+	enumAnyDate					= FourCharCode('anyd');
+	enumToday					= FourCharCode('tday');
+	enumYesterday				= FourCharCode('yday');
+	enumThisWeek				= FourCharCode('twek');
+	enumLastWeek				= FourCharCode('lwek');
+	enumThisMonth				= FourCharCode('tmon');
+	enumLastMonth				= FourCharCode('lmon');
+	enumThisYear				= FourCharCode('tyer');
+	enumLastYear				= FourCharCode('lyer');
+	enumBeforeDate				= FourCharCode('bfdt');
+	enumAfterDate				= FourCharCode('afdt');
+	enumBetweenDate				= FourCharCode('btdt');
+	enumOnDate					= FourCharCode('ondt');
 
-	enumAllDocuments			= $616C6C64 (* 'alld' *);
-	enumFolders					= $666F6C64 (* 'fold' *);
-	enumAliases					= $616C6961 (* 'alia' *);
-	enumStationery				= $73746174 (* 'stat' *);
+	enumAllDocuments			= FourCharCode('alld');
+	enumFolders					= FourCharCode('fold');
+	enumAliases					= FourCharCode('alia');
+	enumStationery				= FourCharCode('stat');
 
-	enumWhere					= $77686572 (* 'wher' *);
-	enumAllLocalDisks			= $616C646B (* 'aldk' *);
-	enumAllRemoteDisks			= $6172646B (* 'ardk' *);
-	enumAllDisks				= $616C6C64 (* 'alld' *);
-	enumAllOpenFolders			= $616F666F (* 'aofo' *);
+	enumWhere					= FourCharCode('wher');
+	enumAllLocalDisks			= FourCharCode('aldk');
+	enumAllRemoteDisks			= FourCharCode('ardk');
+	enumAllDisks				= FourCharCode('alld');
+	enumAllOpenFolders			= FourCharCode('aofo');
 
 
-	enumIconSize				= $6973697A (* 'isiz' *);
-	enumSmallIconSize			= $736D6963 (* 'smic' *);
-	enumMiniIconSize			= $6D696963 (* 'miic' *);
-	enumLargeIconSize			= $6C676963 (* 'lgic' *);
+	enumIconSize				= FourCharCode('isiz');
+	enumSmallIconSize			= FourCharCode('smic');
+	enumMiniIconSize			= FourCharCode('miic');
+	enumLargeIconSize			= FourCharCode('lgic');
 
-	enumSortDirection			= $736F6472 (* 'sodr' *);
-	enumSortDirectionNormal		= $736E726D (* 'snrm' *);
-	enumSortDirectionReverse	= $73727673 (* 'srvs' *);
+	enumSortDirection			= FourCharCode('sodr');
+	enumSortDirectionNormal		= FourCharCode('snrm');
+	enumSortDirectionReverse	= FourCharCode('srvs');
 
-	enumArrangement				= $65617272 (* 'earr' *);
+	enumArrangement				= FourCharCode('earr');
 
 	{  Get Info Window panel enumeration }
-	enumInfoWindowPanel			= $69706E6C (* 'ipnl' *);
-	enumGeneralPanel			= $67706E6C (* 'gpnl' *);
-	enumSharingPanel			= $73706E6C (* 'spnl' *);
-	enumStatusNConfigPanel		= $73636E6C (* 'scnl' *);
-	enumFontsPanel				= $66706E6C (* 'fpnl' *);
-	enumMemoryPanel				= $6D706E6C (* 'mpnl' *);
+	enumInfoWindowPanel			= FourCharCode('ipnl');
+	enumGeneralPanel			= FourCharCode('gpnl');
+	enumSharingPanel			= FourCharCode('spnl');
+	enumStatusNConfigPanel		= FourCharCode('scnl');
+	enumFontsPanel				= FourCharCode('fpnl');
+	enumMemoryPanel				= FourCharCode('mpnl');
 
 
 	{  Preferences panel enumeration }
-	enumPrefsWindowPanel		= $70706C65 (* 'pple' *);
-	enumPrefsGeneralPanel		= $70676E70 (* 'pgnp' *);
-	enumPrefsLabelPanel			= $706C6270 (* 'plbp' *);
-	enumPrefsIconViewPanel		= $70697670 (* 'pivp' *);
-	enumPrefsButtonViewPanel	= $70627670 (* 'pbvp' *);
-	enumPrefsListViewPanel		= $706C7670 (* 'plvp' *);
+	enumPrefsWindowPanel		= FourCharCode('pple');
+	enumPrefsGeneralPanel		= FourCharCode('pgnp');
+	enumPrefsLabelPanel			= FourCharCode('plbp');
+	enumPrefsIconViewPanel		= FourCharCode('pivp');
+	enumPrefsButtonViewPanel	= FourCharCode('pbvp');
+	enumPrefsListViewPanel		= FourCharCode('plvp');
 
 	{
 	  //////////////////////////////////////
@@ -608,19 +608,19 @@ const
 	  //////////////////////////////////////
 	}
 
-	typeIconFamily				= $6966616D (* 'ifam' *);						{  An AEList of typeIconAndMask, type8BitIcon, & c. }
-	typeIconAndMask				= $49434E23 (* 'ICN#' *);
-	type8BitMask				= $6C386D6B (* 'l8mk' *);
-	type32BitIcon				= $696C3332 (* 'il32' *);
-	type8BitIcon				= $69636C38 (* 'icl8' *);
-	type4BitIcon				= $69636C34 (* 'icl4' *);
-	typeSmallIconAndMask		= $69637323 (* 'ics#' *);
-	typeSmall8BitMask			= $73386D6B (* 's8mk' *);
-	typeSmall32BitIcon			= $69733332 (* 'is32' *);
-	typeSmall8BitIcon			= $69637338 (* 'ics8' *);
-	typeSmall4BitIcon			= $69637334 (* 'ics4' *);
-	typeRelativeTime			= $7274696D (* 'rtim' *);
-	typeConceptualTime			= $74696D63 (* 'timc' *);
+	typeIconFamily				= FourCharCode('ifam');						{  An AEList of typeIconAndMask, type8BitIcon, & c. }
+	typeIconAndMask				= FourCharCode('ICN#');
+	type8BitMask				= FourCharCode('l8mk');
+	type32BitIcon				= FourCharCode('il32');
+	type8BitIcon				= FourCharCode('icl8');
+	type4BitIcon				= FourCharCode('icl4');
+	typeSmallIconAndMask		= FourCharCode('ics#');
+	typeSmall8BitMask			= FourCharCode('s8mk');
+	typeSmall32BitIcon			= FourCharCode('is32');
+	typeSmall8BitIcon			= FourCharCode('ics8');
+	typeSmall4BitIcon			= FourCharCode('ics4');
+	typeRelativeTime			= FourCharCode('rtim');
+	typeConceptualTime			= FourCharCode('timc');
 
 	{
 	  //////////////////////////////////////
@@ -628,25 +628,25 @@ const
 	  //////////////////////////////////////
 	}
 
-	keyIconAndMask				= $49434E23 (* 'ICN#' *);
-	key32BitIcon				= $696C3332 (* 'il32' *);
-	key8BitIcon					= $69636C38 (* 'icl8' *);
-	key4BitIcon					= $69636C34 (* 'icl4' *);
-	key8BitMask					= $6C386D6B (* 'l8mk' *);
-	keySmallIconAndMask			= $69637323 (* 'ics#' *);
-	keySmall8BitIcon			= $69637338 (* 'ics8' *);
-	keySmall4BitIcon			= $69637334 (* 'ics4' *);
-	keySmall32BitIcon			= $69733332 (* 'is32' *);
-	keySmall8BitMask			= $73386D6B (* 's8mk' *);
-	keyMini1BitMask				= $69636D23 (* 'icm#' *);
-	keyMini4BitIcon				= $69636D34 (* 'icm4' *);
-	keyMini8BitIcon				= $69636D38 (* 'icm8' *);
-	keyAEUsing					= $7573696E (* 'usin' *);
-	keyAEReplacing				= $616C7270 (* 'alrp' *);
-	keyAENoAutoRouting			= $726F7574 (* 'rout' *);
-	keyLocalPositionList		= $6D76706C (* 'mvpl' *);
-	keyGlobalPositionList		= $6D767067 (* 'mvpg' *);
-	keyRedirectedDocumentList	= $6670646C (* 'fpdl' *);
+	keyIconAndMask				= FourCharCode('ICN#');
+	key32BitIcon				= FourCharCode('il32');
+	key8BitIcon					= FourCharCode('icl8');
+	key4BitIcon					= FourCharCode('icl4');
+	key8BitMask					= FourCharCode('l8mk');
+	keySmallIconAndMask			= FourCharCode('ics#');
+	keySmall8BitIcon			= FourCharCode('ics8');
+	keySmall4BitIcon			= FourCharCode('ics4');
+	keySmall32BitIcon			= FourCharCode('is32');
+	keySmall8BitMask			= FourCharCode('s8mk');
+	keyMini1BitMask				= FourCharCode('icm#');
+	keyMini4BitIcon				= FourCharCode('icm4');
+	keyMini8BitIcon				= FourCharCode('icm8');
+	keyAEUsing					= FourCharCode('usin');
+	keyAEReplacing				= FourCharCode('alrp');
+	keyAENoAutoRouting			= FourCharCode('rout');
+	keyLocalPositionList		= FourCharCode('mvpl');
+	keyGlobalPositionList		= FourCharCode('mvpg');
+	keyRedirectedDocumentList	= FourCharCode('fpdl');
 
 	{
 	  //////////////////////////////////////
@@ -654,9 +654,9 @@ const
 	  //////////////////////////////////////
 	}
 
-	keyASPrepositionHas			= $68617320 (* 'has ' *);
-	keyAll						= $6B79616C (* 'kyal' *);
-	keyOldFinderItems			= $6673656C (* 'fsel' *);
+	keyASPrepositionHas			= FourCharCode('has ');
+	keyAll						= FourCharCode('kyal');
+	keyOldFinderItems			= FourCharCode('fsel');
 
 	{
 	  //////////////////////////////////////
@@ -664,8 +664,8 @@ const
 	  //////////////////////////////////////
 	}
 
-	formAlias					= $616C6973 (* 'alis' *);
-	formCreator					= $66637274 (* 'fcrt' *);
+	formAlias					= FourCharCode('alis');
+	formCreator					= FourCharCode('fcrt');
 
 
 	{

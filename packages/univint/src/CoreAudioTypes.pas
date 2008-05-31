@@ -14,7 +14,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -22,12 +22,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit CoreAudioTypes;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -307,30 +307,30 @@ const
                         Apple Lossless, has no flags.
 }
 const
-	kAudioFormatLinearPCM = $6C70636D (* 'lpcm' *);
-	kAudioFormatAC3 = $61632D33 (* 'ac-3' *);
-	kAudioFormat60958AC3 = $63616333 (* 'cac3' *);
-	kAudioFormatAppleIMA4 = $696D6134 (* 'ima4' *);
-	kAudioFormatMPEG4AAC = $61616320 (* 'aac ' *);
-	kAudioFormatMPEG4CELP = $63656C70 (* 'celp' *);
-	kAudioFormatMPEG4HVXC = $68767863 (* 'hvxc' *);
-	kAudioFormatMPEG4TwinVQ = $74777671 (* 'twvq' *);
-	kAudioFormatMACE3 = $4D414333 (* 'MAC3' *);
-	kAudioFormatMACE6 = $4D414336 (* 'MAC6' *);
-	kAudioFormatULaw = $756C6177 (* 'ulaw' *);
-	kAudioFormatALaw = $616C6177 (* 'alaw' *);
-	kAudioFormatQDesign = $51444D43 (* 'QDMC' *);
-	kAudioFormatQDesign2 = $51444D32 (* 'QDM2' *);
-	kAudioFormatQUALCOMM = $51636C70 (* 'Qclp' *);
-	kAudioFormatMPEGLayer1 = $2E6D7031 (* '.mp1' *);
-	kAudioFormatMPEGLayer2 = $2E6D7032 (* '.mp2' *);
-	kAudioFormatMPEGLayer3 = $2E6D7033 (* '.mp3' *);
-	kAudioFormatDVAudio = $64766361 (* 'dvca' *);
-	kAudioFormatVariableDurationDVAudio = $76647661 (* 'vdva' *);
-	kAudioFormatTimeCode = $74696D65 (* 'time' *);
-	kAudioFormatMIDIStream = $6D696469 (* 'midi' *);
-	kAudioFormatParameterValueStream = $61707673 (* 'apvs' *);
-	kAudioFormatAppleLossless = $616C6163 (* 'alac' *);
+	kAudioFormatLinearPCM = FourCharCode('lpcm');
+	kAudioFormatAC3 = FourCharCode('ac-3');
+	kAudioFormat60958AC3 = FourCharCode('cac3');
+	kAudioFormatAppleIMA4 = FourCharCode('ima4');
+	kAudioFormatMPEG4AAC = FourCharCode('aac ');
+	kAudioFormatMPEG4CELP = FourCharCode('celp');
+	kAudioFormatMPEG4HVXC = FourCharCode('hvxc');
+	kAudioFormatMPEG4TwinVQ = FourCharCode('twvq');
+	kAudioFormatMACE3 = FourCharCode('MAC3');
+	kAudioFormatMACE6 = FourCharCode('MAC6');
+	kAudioFormatULaw = FourCharCode('ulaw');
+	kAudioFormatALaw = FourCharCode('alaw');
+	kAudioFormatQDesign = FourCharCode('QDMC');
+	kAudioFormatQDesign2 = FourCharCode('QDM2');
+	kAudioFormatQUALCOMM = FourCharCode('Qclp');
+	kAudioFormatMPEGLayer1 = FourCharCode('.mp1');
+	kAudioFormatMPEGLayer2 = FourCharCode('.mp2');
+	kAudioFormatMPEGLayer3 = FourCharCode('.mp3');
+	kAudioFormatDVAudio = FourCharCode('dvca');
+	kAudioFormatVariableDurationDVAudio = FourCharCode('vdva');
+	kAudioFormatTimeCode = FourCharCode('time');
+	kAudioFormatMIDIStream = FourCharCode('midi');
+	kAudioFormatParameterValueStream = FourCharCode('apvs');
+	kAudioFormatAppleLossless = FourCharCode('alac');
 
 {!
     @enum           Standard Flag Values for AudioStreamBasicDescription

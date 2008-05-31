@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AIFF;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,22 +111,22 @@ uses MacTypes;
 
 
 const
-	AIFFID						= $41494646 (* 'AIFF' *);
-	AIFCID						= $41494643 (* 'AIFC' *);
-	FormatVersionID				= $46564552 (* 'FVER' *);
-	CommonID					= $434F4D4D (* 'COMM' *);
-	FORMID						= $464F524D (* 'FORM' *);
-	SoundDataID					= $53534E44 (* 'SSND' *);
-	MarkerID					= $4D41524B (* 'MARK' *);
-	InstrumentID				= $494E5354 (* 'INST' *);
-	MIDIDataID					= $4D494449 (* 'MIDI' *);
-	AudioRecordingID			= $41455344 (* 'AESD' *);
-	ApplicationSpecificID		= $4150504C (* 'APPL' *);
-	CommentID					= $434F4D54 (* 'COMT' *);
-	NameID						= $4E414D45 (* 'NAME' *);
-	AuthorID					= $41555448 (* 'AUTH' *);
-	CopyrightID					= $28632920 (* '(c) ' *);
-	AnnotationID				= $414E4E4F (* 'ANNO' *);
+	AIFFID						= FourCharCode('AIFF');
+	AIFCID						= FourCharCode('AIFC');
+	FormatVersionID				= FourCharCode('FVER');
+	CommonID					= FourCharCode('COMM');
+	FORMID						= FourCharCode('FORM');
+	SoundDataID					= FourCharCode('SSND');
+	MarkerID					= FourCharCode('MARK');
+	InstrumentID				= FourCharCode('INST');
+	MIDIDataID					= FourCharCode('MIDI');
+	AudioRecordingID			= FourCharCode('AESD');
+	ApplicationSpecificID		= FourCharCode('APPL');
+	CommentID					= FourCharCode('COMT');
+	NameID						= FourCharCode('NAME');
+	AuthorID					= FourCharCode('AUTH');
+	CopyrightID					= FourCharCode('(c) ');
+	AnnotationID				= FourCharCode('ANNO');
 
 	NoLooping					= 0;
 	ForwardLooping				= 1;
@@ -142,39 +142,40 @@ const
 	MACE3to1Name				= 'MACE 3-to-1';
 	MACE6to1Name				= 'MACE 6-to-1';
 																{  Compression Types  }
-	NoneType					= $4E4F4E45 (* 'NONE' *);
-	ACE2Type					= $41434532 (* 'ACE2' *);
-	ACE8Type					= $41434538 (* 'ACE8' *);
-	MACE3Type					= $4D414333 (* 'MAC3' *);
-	MACE6Type					= $4D414336 (* 'MAC6' *);
+	NoneType					= FourCharCode('NONE');
+	ACE2Type					= FourCharCode('ACE2');
+	ACE8Type					= FourCharCode('ACE8');
+	MACE3Type					= FourCharCode('MAC3');
+	MACE6Type					= FourCharCode('MAC6');
 
 
 type
-	ID									= UInt32;
+{ changed from ID to ChunkID, as ID is used in objc.pas (sorry) }
+	ChunkID									= UInt32; {ID}
 	MarkerIdType						= SInt16;
 	ChunkHeaderPtr = ^ChunkHeader;
 	ChunkHeader = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 	end;
 
 	ContainerChunkPtr = ^ContainerChunk;
 	ContainerChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
-		formType:				ID;
+		formType:				ChunkID;
 	end;
 
 	FormatVersionChunkPtr = ^FormatVersionChunk;
 	FormatVersionChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		timestamp:				UInt32;
 	end;
 
 	CommonChunkPtr = ^CommonChunk;
 	CommonChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		numChannels:			SInt16;
 		numSampleFrames:		UInt32;
@@ -184,19 +185,19 @@ type
 
 	ExtCommonChunkPtr = ^ExtCommonChunk;
 	ExtCommonChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		numChannels:			SInt16;
 		numSampleFrames:		UInt32;
 		sampleSize:				SInt16;
 		sampleRate:				extended80;
-		compressionType:		ID;
+		compressionType:		ChunkID;
 		compressionName:		SInt8;									{  variable length array, Pascal string  }
 	end;
 
 	SoundDataChunkPtr = ^SoundDataChunk;
 	SoundDataChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		offset:					UInt32;
 		blockSize:				UInt32;
@@ -211,7 +212,7 @@ type
 
 	MarkerChunkPtr = ^MarkerChunk;
 	MarkerChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		numMarkers:				UInt16;
 		Markers:				array [0..0] of Marker;					{  variable length array  }
@@ -226,7 +227,7 @@ type
 
 	InstrumentChunkPtr = ^InstrumentChunk;
 	InstrumentChunk = packed record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		baseFrequency:			UInt8;
 		detune:					UInt8;
@@ -241,21 +242,21 @@ type
 
 	MIDIDataChunkPtr = ^MIDIDataChunk;
 	MIDIDataChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		MIDIdata:				SInt8;									{  variable length array  }
 	end;
 
 	AudioRecordingChunkPtr = ^AudioRecordingChunk;
 	AudioRecordingChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		AESChannelStatus:		packed array [0..23] of UInt8;
 	end;
 
 	ApplicationSpecificChunkPtr = ^ApplicationSpecificChunk;
 	ApplicationSpecificChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		applicationSignature:	OSType;
 		data:					SInt8;									{  variable length array  }
@@ -271,7 +272,7 @@ type
 
 	CommentsChunkPtr = ^CommentsChunk;
 	CommentsChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		numComments:			UInt16;
 		comments:				array [0..0] of Comment;				{  variable length array  }
@@ -279,7 +280,7 @@ type
 
 	TextChunkPtr = ^TextChunk;
 	TextChunk = record
-		ckID:					ID;
+		ckID:					ChunkID;
 		ckSize:					SInt32;
 		text:					SInt8;									{  variable length array, Pascal string  }
 	end;

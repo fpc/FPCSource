@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Components;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,9 +111,9 @@ uses MacTypes,MacErrors,MixedMode,Files;
 
 
 const
-	kAppleManufacturer			= $6170706C (* 'appl' *);						{  Apple supplied components  }
-	kComponentResourceType		= $74686E67 (* 'thng' *);						{  a components resource type  }
-	kComponentAliasResourceType	= $74686761 (* 'thga' *);						{  component alias resource type  }
+	kAppleManufacturer			= FourCharCode('appl');						{  Apple supplied components  }
+	kComponentResourceType		= FourCharCode('thng');						{  a components resource type  }
+	kComponentAliasResourceType	= FourCharCode('thga');						{  component alias resource type  }
 
 	kAnyComponentType			= 0;
 	kAnyComponentSubType		= 0;

@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Events;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -367,14 +367,9 @@ function GetCaretTime: UInt32; external name '_GetCaretTime';
 
 { 
     QuickTime 3.0 supports GetKeys() on unix and win32
-    But, on little endian machines you will have to be
-    careful about bit numberings and/or use a KeyMapByteArray
-    instead
 }
 type
-    KeyMap = array [0..3] of BigEndianLong;
-
-
+    KeyMap = packed array [0..127] of boolean;
 {
  *  GetKeys()
  *  
@@ -386,9 +381,14 @@ type
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure GetKeys( var theKeys: KeyMap ); external name '_GetKeys';
+procedure __GetKeys( var theKeys: KeyMap ); external name '_GetKeys';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+{
+		With GPC and FPC on PowerPC, the bytes of the KeyMap must be swapped
+}
+
+procedure GetKeys( var theKeys: KeyMap );
 
 { Obsolete event types & masks }
 const
@@ -883,6 +883,30 @@ procedure LMSetKbdType( value: UInt8 ); external name '_LMSetKbdType';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+implementation
+
+
+
+{$ifc TARGET_RT_BIG_ENDIAN}
+
+procedure GetKeys( var theKeys: KeyMap );
+var
+	theReverseKeys: KeyMap;
+	theKey: 0..127;
+begin
+	__GetKeys( theReverseKeys);
+	for theKey:= 0 to 127 do
+		theKeys[ theKey]:= theReverseKeys[ ((theKey div 8) * 8) + (7 - (theKey mod 8))]
+end;
+
+{$elsec}
+
+procedure GetKeys( var theKeys: KeyMap );
+begin
+	__GetKeys( theKeys)
+end;
+
+{$endc}
 
 
 end.

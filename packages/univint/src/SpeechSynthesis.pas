@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit SpeechSynthesis;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -110,10 +110,10 @@ uses MacTypes,MixedMode,Files;
 
 
 const
-	kTextToSpeechSynthType		= $74747363 (* 'ttsc' *);
-	kTextToSpeechVoiceType		= $74747664 (* 'ttvd' *);
-	kTextToSpeechVoiceFileType	= $74747666 (* 'ttvf' *);
-	kTextToSpeechVoiceBundleType = $74747662 (* 'ttvb' *);
+	kTextToSpeechSynthType		= FourCharCode('ttsc');
+	kTextToSpeechVoiceType		= FourCharCode('ttvd');
+	kTextToSpeechVoiceFileType	= FourCharCode('ttvf');
+	kTextToSpeechVoiceBundleType = FourCharCode('ttvb');
 
 	kNoEndingProsody			= 1;
 	kNoSpeechInterrupt			= 2;
@@ -127,44 +127,44 @@ const
 	{	------------------------------------------	}
 	{	 GetSpeechInfo & SetSpeechInfo selectors  	}
 	{	------------------------------------------	}
-	soStatus					= $73746174 (* 'stat' *);
-	soErrors					= $6572726F (* 'erro' *);
-	soInputMode					= $696E7074 (* 'inpt' *);
-	soCharacterMode				= $63686172 (* 'char' *);
-	soNumberMode				= $6E6D6272 (* 'nmbr' *);
-	soRate						= $72617465 (* 'rate' *);
-	soPitchBase					= $70626173 (* 'pbas' *);
-	soPitchMod					= $706D6F64 (* 'pmod' *);
-	soVolume					= $766F6C6D (* 'volm' *);
-	soSynthType					= $76657273 (* 'vers' *);
-	soRecentSync				= $73796E63 (* 'sync' *);
-	soPhonemeSymbols			= $70687379 (* 'phsy' *);
-	soCurrentVoice				= $63766F78 (* 'cvox' *);
-	soCommandDelimiter			= $646C696D (* 'dlim' *);
-	soReset						= $72736574 (* 'rset' *);
-	soCurrentA5					= $6D794135 (* 'myA5' *);
-	soRefCon					= $72656663 (* 'refc' *);
-	soTextDoneCallBack			= $74646362 (* 'tdcb' *);						{  use with SpeechTextDoneProcPtr }
-	soSpeechDoneCallBack		= $73646362 (* 'sdcb' *);						{  use with SpeechDoneProcPtr }
-	soSyncCallBack				= $73796362 (* 'sycb' *);						{  use with SpeechSyncProcPtr }
-	soErrorCallBack				= $65726362 (* 'ercb' *);						{  use with SpeechErrorProcPtr }
-	soPhonemeCallBack			= $70686362 (* 'phcb' *);						{  use with SpeechPhonemeProcPtr }
-	soWordCallBack				= $77646362 (* 'wdcb' *);
-	soSynthExtension			= $78746E64 (* 'xtnd' *);
-	soSoundOutput				= $736E646F (* 'sndo' *);
+	soStatus					= FourCharCode('stat');
+	soErrors					= FourCharCode('erro');
+	soInputMode					= FourCharCode('inpt');
+	soCharacterMode				= FourCharCode('char');
+	soNumberMode				= FourCharCode('nmbr');
+	soRate						= FourCharCode('rate');
+	soPitchBase					= FourCharCode('pbas');
+	soPitchMod					= FourCharCode('pmod');
+	soVolume					= FourCharCode('volm');
+	soSynthType					= FourCharCode('vers');
+	soRecentSync				= FourCharCode('sync');
+	soPhonemeSymbols			= FourCharCode('phsy');
+	soCurrentVoice				= FourCharCode('cvox');
+	soCommandDelimiter			= FourCharCode('dlim');
+	soReset						= FourCharCode('rset');
+	soCurrentA5					= FourCharCode('myA5');
+	soRefCon					= FourCharCode('refc');
+	soTextDoneCallBack			= FourCharCode('tdcb');						{  use with SpeechTextDoneProcPtr }
+	soSpeechDoneCallBack		= FourCharCode('sdcb');						{  use with SpeechDoneProcPtr }
+	soSyncCallBack				= FourCharCode('sycb');						{  use with SpeechSyncProcPtr }
+	soErrorCallBack				= FourCharCode('ercb');						{  use with SpeechErrorProcPtr }
+	soPhonemeCallBack			= FourCharCode('phcb');						{  use with SpeechPhonemeProcPtr }
+	soWordCallBack				= FourCharCode('wdcb');
+	soSynthExtension			= FourCharCode('xtnd');
+	soSoundOutput				= FourCharCode('sndo');
 
 
 	{	------------------------------------------	}
 	{	 Speaking Mode Constants                  	}
 	{	------------------------------------------	}
-	modeText					= $54455854 (* 'TEXT' *);						{  input mode constants              }
-	modePhonemes				= $50484F4E (* 'PHON' *);
-	modeNormal					= $4E4F524D (* 'NORM' *);						{  character mode and number mode constants  }
-	modeLiteral					= $4C54524C (* 'LTRL' *);
+	modeText					= FourCharCode('TEXT');						{  input mode constants              }
+	modePhonemes				= FourCharCode('PHON');
+	modeNormal					= FourCharCode('NORM');						{  character mode and number mode constants  }
+	modeLiteral					= FourCharCode('LTRL');
 
 
-	soVoiceDescription			= $696E666F (* 'info' *);
-	soVoiceFile					= $66726566 (* 'fref' *);
+	soVoiceDescription			= FourCharCode('info');
+	soVoiceFile					= FourCharCode('fref');
 
 
 type

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit SFNTTypes;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -135,7 +135,7 @@ const
 	sizeof_sfntDirectory		= 12;
 
 	{	 Cmap - character id to glyph id mapping 	}
-	cmapFontTableTag			= $636D6170 (* 'cmap' *);
+	cmapFontTableTag			= FourCharCode('cmap');
 
 	kFontUnicodePlatform		= 0;
 	kFontMacintoshPlatform		= 1;
@@ -354,7 +354,7 @@ const
 	sizeof_sfntCMapHeader		= 4;
 
 	{	 Name table 	}
-	nameFontTableTag			= $6E616D65 (* 'name' *);
+	nameFontTableTag			= FourCharCode('name');
 
 	kFontCopyrightName			= 0;
 	kFontFamilyName				= 1;
@@ -407,7 +407,7 @@ const
 	sizeof_sfntNameHeader		= 6;
 
 	{	 Fvar table - font variations 	}
-	variationFontTableTag		= $66766172 (* 'fvar' *);
+	variationFontTableTag		= FourCharCode('fvar');
 
 	{	 These define each font variation 	}
 
@@ -462,7 +462,7 @@ const
 	sizeof_sfntVariationHeader	= 16;
 
 	{	 Fdsc table - font descriptor 	}
-	descriptorFontTableTag		= $66647363 (* 'fdsc' *);
+	descriptorFontTableTag		= FourCharCode('fdsc');
 
 
 type
@@ -484,7 +484,7 @@ const
 	sizeof_sfntDescriptorHeader	= 8;
 
 	{	 Feat Table - layout feature table 	}
-	featureFontTableTag			= $66656174 (* 'feat' *);
+	featureFontTableTag			= FourCharCode('feat');
 
 
 type
@@ -523,7 +523,7 @@ type
 	{	 OS/2 Table 	}
 
 const
-	os2FontTableTag				= $4F532F32 (* 'OS/2' *);
+	os2FontTableTag				= FourCharCode('OS/2');
 
 	{	  Special invalid glyph ID value, useful as a sentinel value, for example 	}
 	nonGlyphID					= 65535;

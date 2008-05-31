@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QuickTimeStreaming;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -160,49 +160,49 @@ type
 	-----------------------------------------	}
 
 const
-	kQTSGetURLLink				= $67756C6C (* 'gull' *);						{  QTSGetURLLinkRecord*  }
+	kQTSGetURLLink				= FourCharCode('gull');						{  QTSGetURLLinkRecord*  }
 
 	{	 get and set 	}
-	kQTSTargetBufferDurationInfo = $62756672 (* 'bufr' *);						{  Fixed* in seconds; expected, not actual  }
-	kQTSDurationInfo			= $64757261 (* 'dura' *);						{  QTSDurationAtom*  }
-	kQTSSoundLevelMeteringEnabledInfo = $6D74726E (* 'mtrn' *);					{  Boolean*  }
-	kQTSSoundLevelMeterInfo		= $6C65766D (* 'levm' *);						{  LevelMeterInfoPtr  }
-	kQTSSourceTrackIDInfo		= $6F746964 (* 'otid' *);						{  UInt32*  }
-	kQTSSourceLayerInfo			= $6F6C7972 (* 'olyr' *);						{  UInt16*  }
-	kQTSSourceLanguageInfo		= $6F6C6E67 (* 'olng' *);						{  UInt16*  }
-	kQTSSourceTrackFlagsInfo	= $6F74666C (* 'otfl' *);						{  SInt32*  }
-	kQTSSourceDimensionsInfo	= $6F64696D (* 'odim' *);						{  QTSDimensionParams*  }
-	kQTSSourceVolumesInfo		= $6F766F6C (* 'ovol' *);						{  QTSVolumesParams*  }
-	kQTSSourceMatrixInfo		= $6F6D6174 (* 'omat' *);						{  MatrixRecord*  }
-	kQTSSourceClipRectInfo		= $6F636C70 (* 'oclp' *);						{  Rect*  }
-	kQTSSourceGraphicsModeInfo	= $6F67726D (* 'ogrm' *);						{  QTSGraphicsModeParams*  }
-	kQTSSourceScaleInfo			= $6F73636C (* 'oscl' *);						{  Point*  }
-	kQTSSourceBoundingRectInfo	= $6F726374 (* 'orct' *);						{  Rect*  }
-	kQTSSourceUserDataInfo		= $6F756474 (* 'oudt' *);						{  UserData  }
-	kQTSSourceInputMapInfo		= $6F696D70 (* 'oimp' *);						{  QTAtomContainer  }
-	kQTSInfo_DataProc			= $64617470 (* 'datp' *);						{  QTSDataProcParams*  }
-	kQTSInfo_SendDataExtras		= $64657874 (* 'dext' *);						{  QTSSendDataExtrasParams*  }
-	kQTSInfo_HintTrackID		= $68746964 (* 'htid' *);						{  long*  }
-	kQTSInfo_URL				= $75726C20 (* 'url ' *);						{  Handle*, cstring in handle  }
-	kQTSInfo_Authentication		= $61757570 (* 'auup' *);						{  QTSAuthenticationParams  }
-	kQTSInfo_MediaPacketizer	= $726D706B (* 'rmpk' *);						{  ComponentInstance  }
+	kQTSTargetBufferDurationInfo = FourCharCode('bufr');						{  Fixed* in seconds; expected, not actual  }
+	kQTSDurationInfo			= FourCharCode('dura');						{  QTSDurationAtom*  }
+	kQTSSoundLevelMeteringEnabledInfo = FourCharCode('mtrn');					{  Boolean*  }
+	kQTSSoundLevelMeterInfo		= FourCharCode('levm');						{  LevelMeterInfoPtr  }
+	kQTSSourceTrackIDInfo		= FourCharCode('otid');						{  UInt32*  }
+	kQTSSourceLayerInfo			= FourCharCode('olyr');						{  UInt16*  }
+	kQTSSourceLanguageInfo		= FourCharCode('olng');						{  UInt16*  }
+	kQTSSourceTrackFlagsInfo	= FourCharCode('otfl');						{  SInt32*  }
+	kQTSSourceDimensionsInfo	= FourCharCode('odim');						{  QTSDimensionParams*  }
+	kQTSSourceVolumesInfo		= FourCharCode('ovol');						{  QTSVolumesParams*  }
+	kQTSSourceMatrixInfo		= FourCharCode('omat');						{  MatrixRecord*  }
+	kQTSSourceClipRectInfo		= FourCharCode('oclp');						{  Rect*  }
+	kQTSSourceGraphicsModeInfo	= FourCharCode('ogrm');						{  QTSGraphicsModeParams*  }
+	kQTSSourceScaleInfo			= FourCharCode('oscl');						{  Point*  }
+	kQTSSourceBoundingRectInfo	= FourCharCode('orct');						{  Rect*  }
+	kQTSSourceUserDataInfo		= FourCharCode('oudt');						{  UserData  }
+	kQTSSourceInputMapInfo		= FourCharCode('oimp');						{  QTAtomContainer  }
+	kQTSInfo_DataProc			= FourCharCode('datp');						{  QTSDataProcParams*  }
+	kQTSInfo_SendDataExtras		= FourCharCode('dext');						{  QTSSendDataExtrasParams*  }
+	kQTSInfo_HintTrackID		= FourCharCode('htid');						{  long*  }
+	kQTSInfo_URL				= FourCharCode('url ');						{  Handle*, cstring in handle  }
+	kQTSInfo_Authentication		= FourCharCode('auup');						{  QTSAuthenticationParams  }
+	kQTSInfo_MediaPacketizer	= FourCharCode('rmpk');						{  ComponentInstance  }
 
 	{	 get only 	}
-	kQTSStatisticsInfo			= $73746174 (* 'stat' *);						{  QTSStatisticsParams*  }
-	kQTSMinStatusDimensionsInfo	= $6D737464 (* 'mstd' *);						{  QTSDimensionParams*  }
-	kQTSNormalStatusDimensionsInfo = $6E737464 (* 'nstd' *);					{  QTSDimensionParams*  }
-	kQTSTotalDataRateInfo		= $64727474 (* 'drtt' *);						{  UInt32*, add to what's there  }
-	kQTSTotalDataRateInInfo		= $64727469 (* 'drti' *);						{  UInt32*, add to what's there  }
-	kQTSTotalDataRateOutInfo	= $6472746F (* 'drto' *);						{  UInt32*, add to what's there  }
-	kQTSLostPercentInfo			= $6C706374 (* 'lpct' *);						{  QTSLostPercentParams*, add to what's there  }
-	kQTSNumViewersInfo			= $6E766977 (* 'nviw' *);						{  UInt32*  }
-	kQTSMediaTypeInfo			= $6D747970 (* 'mtyp' *);						{  OSType*  }
-	kQTSNameInfo				= $6E616D65 (* 'name' *);						{  QTSNameParams*  }
-	kQTSCanHandleSendDataType	= $63687364 (* 'chsd' *);						{  QTSCanHandleSendDataTypeParams*  }
-	kQTSAnnotationsInfo			= $6D657461 (* 'meta' *);						{  QTAtomContainer  }
-	kQTSRemainingBufferTimeInfo	= $62746D73 (* 'btms' *);						{  UInt32* remaining buffer time before playback, in microseconds  }
-	kQTSInfo_SettingsText		= $73747478 (* 'sttx' *);						{  QTSSettingsTextParams*  }
-	kQTSInfo_AverageFrameRate	= $66707320 (* 'fps ' *);						{  UnsignedFixed*  }
+	kQTSStatisticsInfo			= FourCharCode('stat');						{  QTSStatisticsParams*  }
+	kQTSMinStatusDimensionsInfo	= FourCharCode('mstd');						{  QTSDimensionParams*  }
+	kQTSNormalStatusDimensionsInfo = FourCharCode('nstd');					{  QTSDimensionParams*  }
+	kQTSTotalDataRateInfo		= FourCharCode('drtt');						{  UInt32*, add to what's there  }
+	kQTSTotalDataRateInInfo		= FourCharCode('drti');						{  UInt32*, add to what's there  }
+	kQTSTotalDataRateOutInfo	= FourCharCode('drto');						{  UInt32*, add to what's there  }
+	kQTSLostPercentInfo			= FourCharCode('lpct');						{  QTSLostPercentParams*, add to what's there  }
+	kQTSNumViewersInfo			= FourCharCode('nviw');						{  UInt32*  }
+	kQTSMediaTypeInfo			= FourCharCode('mtyp');						{  OSType*  }
+	kQTSNameInfo				= FourCharCode('name');						{  QTSNameParams*  }
+	kQTSCanHandleSendDataType	= FourCharCode('chsd');						{  QTSCanHandleSendDataTypeParams*  }
+	kQTSAnnotationsInfo			= FourCharCode('meta');						{  QTAtomContainer  }
+	kQTSRemainingBufferTimeInfo	= FourCharCode('btms');						{  UInt32* remaining buffer time before playback, in microseconds  }
+	kQTSInfo_SettingsText		= FourCharCode('sttx');						{  QTSSettingsTextParams*  }
+	kQTSInfo_AverageFrameRate	= FourCharCode('fps ');						{  UnsignedFixed*  }
 
 
 type
@@ -242,8 +242,8 @@ type
 {$endc}	
 
 const
-	kQTSSettingsTextSummary		= $73657431 (* 'set1' *);
-	kQTSSettingsTextDetails		= $73657464 (* 'setd' *);
+	kQTSSettingsTextSummary		= FourCharCode('set1');
+	kQTSSettingsTextDetails		= FourCharCode('setd');
 
 
 type
@@ -306,8 +306,8 @@ type
 const
 	kQTSDataProcParamsVersion1	= 1;
 
-	kQTSDataProcType_MediaSample = $6D646961 (* 'mdia' *);
-	kQTSDataProcType_HintSample	= $68696E74 (* 'hint' *);
+	kQTSDataProcType_MediaSample = FourCharCode('mdia');
+	kQTSDataProcType_HintSample	= FourCharCode('hint');
 
 
 type
@@ -323,8 +323,8 @@ type
 
 
 const
-	kQTSDataProcSelector_SampleData = $73616D70 (* 'samp' *);
-	kQTSDataProcSelector_UserData = $75736572 (* 'user' *);
+	kQTSDataProcSelector_SampleData = FourCharCode('samp');
+	kQTSDataProcSelector_UserData = FourCharCode('user');
 
 	kQTSSampleDataCallbackParamsVersion1 = 1;
 
@@ -393,7 +393,7 @@ type
 	{	 characteristics in Movies.h work here too 	}
 
 const
-	kQTSSupportsPerStreamControlCharacteristic = $70736374 (* 'psct' *);
+	kQTSSupportsPerStreamControlCharacteristic = FourCharCode('psct');
 
 
 type
@@ -443,29 +443,29 @@ const
 	        Notifications
 	============================================================================	}
 	{	 ------ notification types ------ 	}
-	kQTSNullNotification		= $6E756C6C (* 'null' *);						{  NULL  }
-	kQTSErrorNotification		= $65727220 (* 'err ' *);						{  QTSErrorParams*, optional  }
-	kQTSNewPresDetectedNotification = $6E657770 (* 'newp' *);					{  QTSNewPresDetectedParams*  }
-	kQTSPresBeginChangingNotification = $70726362 (* 'prcb' *);					{  NULL  }
-	kQTSPresDoneChangingNotification = $70726364 (* 'prcd' *);					{  NULL  }
-	kQTSPresentationChangedNotification = $70726368 (* 'prch' *);				{  NULL  }
-	kQTSNewStreamNotification	= $73746E77 (* 'stnw' *);						{  QTSNewStreamParams*  }
-	kQTSStreamBeginChangingNotification = $73746362 (* 'stcb' *);				{  QTSStream  }
-	kQTSStreamDoneChangingNotification = $73746364 (* 'stcd' *);				{  QTSStream  }
-	kQTSStreamChangedNotification = $73746368 (* 'stch' *);						{  QTSStreamChangedParams*  }
-	kQTSStreamGoneNotification	= $7374676E (* 'stgn' *);						{  QTSStreamGoneParams*  }
-	kQTSPreviewAckNotification	= $7076616B (* 'pvak' *);						{  QTSStream  }
-	kQTSPrerollAckNotification	= $7061636B (* 'pack' *);						{  QTSStream  }
-	kQTSStartAckNotification	= $7361636B (* 'sack' *);						{  QTSStream  }
-	kQTSStopAckNotification		= $7861636B (* 'xack' *);						{  QTSStream  }
-	kQTSStatusNotification		= $73746174 (* 'stat' *);						{  QTSStatusParams*  }
-	kQTSURLNotification			= $75726C20 (* 'url ' *);						{  QTSURLParams*  }
-	kQTSDurationNotification	= $64757261 (* 'dura' *);						{  QTSDurationAtom*  }
-	kQTSNewPresentationNotification = $6E707273 (* 'nprs' *);					{  QTSPresentation  }
-	kQTSPresentationGoneNotification = $78707273 (* 'xprs' *);					{  QTSPresentation  }
-	kQTSPresentationDoneNotification = $70646F6E (* 'pdon' *);					{  NULL  }
-	kQTSBandwidthAlertNotification = $6277616C (* 'bwal' *);					{  QTSBandwidthAlertParams*  }
-	kQTSAnnotationsChangedNotification = $6D657461 (* 'meta' *);				{  NULL  }
+	kQTSNullNotification		= FourCharCode('null');						{  NULL  }
+	kQTSErrorNotification		= FourCharCode('err ');						{  QTSErrorParams*, optional  }
+	kQTSNewPresDetectedNotification = FourCharCode('newp');					{  QTSNewPresDetectedParams*  }
+	kQTSPresBeginChangingNotification = FourCharCode('prcb');					{  NULL  }
+	kQTSPresDoneChangingNotification = FourCharCode('prcd');					{  NULL  }
+	kQTSPresentationChangedNotification = FourCharCode('prch');				{  NULL  }
+	kQTSNewStreamNotification	= FourCharCode('stnw');						{  QTSNewStreamParams*  }
+	kQTSStreamBeginChangingNotification = FourCharCode('stcb');				{  QTSStream  }
+	kQTSStreamDoneChangingNotification = FourCharCode('stcd');				{  QTSStream  }
+	kQTSStreamChangedNotification = FourCharCode('stch');						{  QTSStreamChangedParams*  }
+	kQTSStreamGoneNotification	= FourCharCode('stgn');						{  QTSStreamGoneParams*  }
+	kQTSPreviewAckNotification	= FourCharCode('pvak');						{  QTSStream  }
+	kQTSPrerollAckNotification	= FourCharCode('pack');						{  QTSStream  }
+	kQTSStartAckNotification	= FourCharCode('sack');						{  QTSStream  }
+	kQTSStopAckNotification		= FourCharCode('xack');						{  QTSStream  }
+	kQTSStatusNotification		= FourCharCode('stat');						{  QTSStatusParams*  }
+	kQTSURLNotification			= FourCharCode('url ');						{  QTSURLParams*  }
+	kQTSDurationNotification	= FourCharCode('dura');						{  QTSDurationAtom*  }
+	kQTSNewPresentationNotification = FourCharCode('nprs');					{  QTSPresentation  }
+	kQTSPresentationGoneNotification = FourCharCode('xprs');					{  QTSPresentation  }
+	kQTSPresentationDoneNotification = FourCharCode('pdon');					{  NULL  }
+	kQTSBandwidthAlertNotification = FourCharCode('bwal');					{  QTSBandwidthAlertParams*  }
+	kQTSAnnotationsChangedNotification = FourCharCode('meta');				{  NULL  }
 
 
 	{	 flags for QTSErrorParams 	}
@@ -1396,9 +1396,9 @@ type
 	{	 general statistics types 	}
 
 const
-	kQTSAllStatisticsType		= $616C6C20 (* 'all ' *);
-	kQTSShortStatisticsType		= $73687274 (* 'shrt' *);
-	kQTSSummaryStatisticsType	= $73756D6D (* 'summ' *);
+	kQTSAllStatisticsType		= FourCharCode('all ');
+	kQTSShortStatisticsType		= FourCharCode('shrt');
+	kQTSSummaryStatisticsType	= FourCharCode('summ');
 
 	{	 statistics flags 	}
 	kQTSGetNameStatisticsFlag	= $00000001;
@@ -1408,36 +1408,36 @@ const
 	kQTSUpdateAllIfNecessaryStatisticsFlag = $00010000;
 
 	{	 statistics atom types 	}
-	kQTSStatisticsStreamAtomType = $7374726D (* 'strm' *);
-	kQTSStatisticsNameAtomType	= $6E616D65 (* 'name' *);						{  chars only, no length or terminator  }
-	kQTSStatisticsDataFormatAtomType = $66726D74 (* 'frmt' *);					{  OSType  }
-	kQTSStatisticsDataAtomType	= $64617461 (* 'data' *);
-	kQTSStatisticsUnitsAtomType	= $756E6974 (* 'unit' *);						{  OSType  }
-	kQTSStatisticsUnitsNameAtomType = $756E696E (* 'unin' *);					{  chars only, no length or terminator  }
+	kQTSStatisticsStreamAtomType = FourCharCode('strm');
+	kQTSStatisticsNameAtomType	= FourCharCode('name');						{  chars only, no length or terminator  }
+	kQTSStatisticsDataFormatAtomType = FourCharCode('frmt');					{  OSType  }
+	kQTSStatisticsDataAtomType	= FourCharCode('data');
+	kQTSStatisticsUnitsAtomType	= FourCharCode('unit');						{  OSType  }
+	kQTSStatisticsUnitsNameAtomType = FourCharCode('unin');					{  chars only, no length or terminator  }
 
 	{	 statistics data formats 	}
-	kQTSStatisticsSInt32DataFormat = $73693332 (* 'si32' *);
-	kQTSStatisticsUInt32DataFormat = $75693332 (* 'ui32' *);
-	kQTSStatisticsSInt16DataFormat = $73693136 (* 'si16' *);
-	kQTSStatisticsUInt16DataFormat = $75693136 (* 'ui16' *);
-	kQTSStatisticsFixedDataFormat = $66697864 (* 'fixd' *);
-	kQTSStatisticsUnsignedFixedDataFormat = $75666978 (* 'ufix' *);
-	kQTSStatisticsStringDataFormat = $73747267 (* 'strg' *);
-	kQTSStatisticsOSTypeDataFormat = $6F737470 (* 'ostp' *);
-	kQTSStatisticsRectDataFormat = $72656374 (* 'rect' *);
-	kQTSStatisticsPointDataFormat = $706F6E74 (* 'pont' *);
+	kQTSStatisticsSInt32DataFormat = FourCharCode('si32');
+	kQTSStatisticsUInt32DataFormat = FourCharCode('ui32');
+	kQTSStatisticsSInt16DataFormat = FourCharCode('si16');
+	kQTSStatisticsUInt16DataFormat = FourCharCode('ui16');
+	kQTSStatisticsFixedDataFormat = FourCharCode('fixd');
+	kQTSStatisticsUnsignedFixedDataFormat = FourCharCode('ufix');
+	kQTSStatisticsStringDataFormat = FourCharCode('strg');
+	kQTSStatisticsOSTypeDataFormat = FourCharCode('ostp');
+	kQTSStatisticsRectDataFormat = FourCharCode('rect');
+	kQTSStatisticsPointDataFormat = FourCharCode('pont');
 
 	{	 statistics units types 	}
 	kQTSStatisticsNoUnitsType	= 0;
-	kQTSStatisticsPercentUnitsType = $70636E74 (* 'pcnt' *);
-	kQTSStatisticsBitsPerSecUnitsType = $62707320 (* 'bps ' *);
-	kQTSStatisticsFramesPerSecUnitsType = $66707320 (* 'fps ' *);
+	kQTSStatisticsPercentUnitsType = FourCharCode('pcnt');
+	kQTSStatisticsBitsPerSecUnitsType = FourCharCode('bps ');
+	kQTSStatisticsFramesPerSecUnitsType = FourCharCode('fps ');
 
 	{	 specific statistics types 	}
-	kQTSTotalDataRateStat		= $64727474 (* 'drtt' *);
-	kQTSTotalDataRateInStat		= $64727469 (* 'drti' *);
-	kQTSTotalDataRateOutStat	= $6472746F (* 'drto' *);
-	kQTSNetworkIDStringStat		= $6E696473 (* 'nids' *);
+	kQTSTotalDataRateStat		= FourCharCode('drtt');
+	kQTSTotalDataRateInStat		= FourCharCode('drti');
+	kQTSTotalDataRateOutStat	= FourCharCode('drto');
+	kQTSNetworkIDStringStat		= FourCharCode('nids');
 
 	{
 	 *  QTSNewStatHelper()
@@ -1559,31 +1559,31 @@ function QTSInsertStatisticUnits(inContainer: QTAtomContainer; inParentAtom: QTA
 { universal data types }
 
 const
-	kQTSNullDataType			= $4E554C4C (* 'NULL' *);
-	kQTSUnknownDataType			= $6875683F (* 'huh?' *);
-	kQTSAtomContainerDataType	= $71746163 (* 'qtac' *);						{  QTAtomContainer  }
-	kQTSAtomDataType			= $71746174 (* 'qtat' *);						{  QTSAtomContainerDataStruct*  }
-	kQTSAliasDataType			= $616C6973 (* 'alis' *);
-	kQTSFileDataType			= $66737063 (* 'fspc' *);						{  FSSpec*  }
-	kQTSFileSpecDataType		= $66737063 (* 'fspc' *);						{  FSSpec*  }
-	kQTSHandleDataType			= $686E646C (* 'hndl' *);						{  Handle*  }
-	kQTSDataRefDataType			= $64726566 (* 'dref' *);						{  DataReferencePtr  }
+	kQTSNullDataType			= FourCharCode('NULL');
+	kQTSUnknownDataType			= FourCharCode('huh?');
+	kQTSAtomContainerDataType	= FourCharCode('qtac');						{  QTAtomContainer  }
+	kQTSAtomDataType			= FourCharCode('qtat');						{  QTSAtomContainerDataStruct*  }
+	kQTSAliasDataType			= FourCharCode('alis');
+	kQTSFileDataType			= FourCharCode('fspc');						{  FSSpec*  }
+	kQTSFileSpecDataType		= FourCharCode('fspc');						{  FSSpec*  }
+	kQTSHandleDataType			= FourCharCode('hndl');						{  Handle*  }
+	kQTSDataRefDataType			= FourCharCode('dref');						{  DataReferencePtr  }
 
 	{	 these data types are specific to presentations 	}
-	kQTSRTSPDataType			= $72747370 (* 'rtsp' *);
-	kQTSSDPDataType				= $73647020 (* 'sdp ' *);
+	kQTSRTSPDataType			= FourCharCode('rtsp');
+	kQTSSDPDataType				= FourCharCode('sdp ');
 
 	{	-----------------------------------------
 	    Atom IDs
 	-----------------------------------------	}
-	kQTSAtomType_Presentation	= $70726573 (* 'pres' *);
-	kQTSAtomType_PresentationHeader = $70686472 (* 'phdr' *);					{  QTSPresentationHeaderAtom  }
-	kQTSAtomType_MediaStream	= $6D737472 (* 'mstr' *);
-	kQTSAtomType_MediaStreamHeader = $6D736864 (* 'mshd' *);					{  QTSMediaStreamHeaderAtom  }
-	kQTSAtomType_MediaDescriptionText = $6D646573 (* 'mdes' *);					{  chars, no length  }
-	kQTSAtomType_ClipRect		= $636C6970 (* 'clip' *);						{  QTSClipRectAtom  }
-	kQTSAtomType_Duration		= $64757261 (* 'dura' *);						{  QTSDurationAtom  }
-	kQTSAtomType_BufferTime		= $62756672 (* 'bufr' *);						{  QTSBufferTimeAtom  }
+	kQTSAtomType_Presentation	= FourCharCode('pres');
+	kQTSAtomType_PresentationHeader = FourCharCode('phdr');					{  QTSPresentationHeaderAtom  }
+	kQTSAtomType_MediaStream	= FourCharCode('mstr');
+	kQTSAtomType_MediaStreamHeader = FourCharCode('mshd');					{  QTSMediaStreamHeaderAtom  }
+	kQTSAtomType_MediaDescriptionText = FourCharCode('mdes');					{  chars, no length  }
+	kQTSAtomType_ClipRect		= FourCharCode('clip');						{  QTSClipRectAtom  }
+	kQTSAtomType_Duration		= FourCharCode('dura');						{  QTSDurationAtom  }
+	kQTSAtomType_BufferTime		= FourCharCode('bufr');						{  QTSBufferTimeAtom  }
 
 
 type
@@ -1666,15 +1666,15 @@ const
 	{	-----------------------------------------
 	    QuickTime Preferences Types
 	-----------------------------------------	}
-	kQTSConnectionPrefsType		= $7374636D (* 'stcm' *);						{  root atom that all other atoms are contained in }
+	kQTSConnectionPrefsType		= FourCharCode('stcm');						{  root atom that all other atoms are contained in }
 																{     kQTSNotUsedForProxyPrefsType = 'nopr',     //        comma-delimited list of URLs that are never used for proxies }
-	kQTSConnectionMethodPrefsType = $6D746864 (* 'mthd' *);						{       connection method (OSType that matches one of the following three) }
-	kQTSDirectConnectPrefsType	= $64726374 (* 'drct' *);						{        used if direct connect (QTSDirectConnectPrefsRecord) }
+	kQTSConnectionMethodPrefsType = FourCharCode('mthd');						{       connection method (OSType that matches one of the following three) }
+	kQTSDirectConnectPrefsType	= FourCharCode('drct');						{        used if direct connect (QTSDirectConnectPrefsRecord) }
 																{     kQTSRTSPProxyPrefsType =     'rtsp',   //   used if RTSP Proxy (QTSProxyPrefsRecord) }
-	kQTSSOCKSPrefsType			= $736F636B (* 'sock' *);						{        used if SOCKS Proxy (QTSProxyPrefsRecord) }
+	kQTSSOCKSPrefsType			= FourCharCode('sock');						{        used if SOCKS Proxy (QTSProxyPrefsRecord) }
 
-	kQTSDirectConnectHTTPProtocol = $68747470 (* 'http' *);
-	kQTSDirectConnectRTSPProtocol = $72747370 (* 'rtsp' *);
+	kQTSDirectConnectHTTPProtocol = FourCharCode('http');
+	kQTSDirectConnectRTSPProtocol = FourCharCode('rtsp');
 
 
 type
@@ -1748,21 +1748,21 @@ type
 
 
 const
-	kQTSTransAndProxyAtomType	= $73747270 (* 'strp' *);						{  transport/proxy prefs root atom }
-	kQTSConnectionPrefsVersion	= $76657273 (* 'vers' *);						{    prefs format version }
-	kQTSTransportPrefsAtomType	= $74726E73 (* 'trns' *);						{    tranport prefs root atom }
-	kQTSConnectionAtomType		= $636F6E6E (* 'conn' *);						{      connection prefs atom type, one for each transport type }
-	kQTSUDPTransportType		= $75647020 (* 'udp ' *);						{      udp transport prefs }
-	kQTSHTTPTransportType		= $68747470 (* 'http' *);						{      http transport prefs }
-	kQTSTCPTransportType		= $74637020 (* 'tcp ' *);						{      tcp transport prefs     }
-	kQTSProxyPrefsAtomType		= $70727879 (* 'prxy' *);						{    proxy prefs root atom }
-	kQTSHTTPProxyPrefsType		= $68747470 (* 'http' *);						{      http proxy settings }
-	kQTSRTSPProxyPrefsType		= $72747370 (* 'rtsp' *);						{      rtsp proxy settings }
-	kQTSSOCKSProxyPrefsType		= $736F636B (* 'sock' *);						{      socks proxy settings }
-	kQTSProxyUserInfoPrefsType	= $75736572 (* 'user' *);						{    proxy username/password root atom }
-	kQTSDontProxyPrefsAtomType	= $6E6F7072 (* 'nopr' *);						{    no-proxy prefs root atom }
-	kQTSDontProxyDataType		= $64617461 (* 'data' *);						{      no proxy settings }
-	kQTSInstantOnPrefsAtomType	= $696E6F6E (* 'inon' *);						{  instant on prefs }
+	kQTSTransAndProxyAtomType	= FourCharCode('strp');						{  transport/proxy prefs root atom }
+	kQTSConnectionPrefsVersion	= FourCharCode('vers');						{    prefs format version }
+	kQTSTransportPrefsAtomType	= FourCharCode('trns');						{    tranport prefs root atom }
+	kQTSConnectionAtomType		= FourCharCode('conn');						{      connection prefs atom type, one for each transport type }
+	kQTSUDPTransportType		= FourCharCode('udp ');						{      udp transport prefs }
+	kQTSHTTPTransportType		= FourCharCode('http');						{      http transport prefs }
+	kQTSTCPTransportType		= FourCharCode('tcp ');						{      tcp transport prefs     }
+	kQTSProxyPrefsAtomType		= FourCharCode('prxy');						{    proxy prefs root atom }
+	kQTSHTTPProxyPrefsType		= FourCharCode('http');						{      http proxy settings }
+	kQTSRTSPProxyPrefsType		= FourCharCode('rtsp');						{      rtsp proxy settings }
+	kQTSSOCKSProxyPrefsType		= FourCharCode('sock');						{      socks proxy settings }
+	kQTSProxyUserInfoPrefsType	= FourCharCode('user');						{    proxy username/password root atom }
+	kQTSDontProxyPrefsAtomType	= FourCharCode('nopr');						{    no-proxy prefs root atom }
+	kQTSDontProxyDataType		= FourCharCode('data');						{      no proxy settings }
+	kQTSInstantOnPrefsAtomType	= FourCharCode('inon');						{  instant on prefs }
 
 	{
 	 *  QTSPrefsAddProxySetting()

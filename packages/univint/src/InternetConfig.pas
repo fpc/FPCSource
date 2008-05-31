@@ -19,7 +19,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -27,12 +27,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit InternetConfig;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -226,23 +226,23 @@ const
 
 	kICNoUserInteractionMask	= $00000001;
 
-	kICFileType					= $49434170 (* 'ICAp' *);
-	kICCreator					= $49434170 (* 'ICAp' *);
+	kICFileType					= FourCharCode('ICAp');
+	kICCreator					= FourCharCode('ICAp');
 
 	{	***********************************************************************************************
 	  Apple event constants
 	 ***********************************************************************************************	}
 
-	kInternetEventClass			= $4755524C (* 'GURL' *);
-	kAEGetURL					= $4755524C (* 'GURL' *);
-	kAEFetchURL					= $4655524C (* 'FURL' *);
-	keyAEAttaching				= $41746368 (* 'Atch' *);
+	kInternetEventClass			= FourCharCode('GURL');
+	kAEGetURL					= FourCharCode('GURL');
+	kAEFetchURL					= FourCharCode('FURL');
+	keyAEAttaching				= FourCharCode('Atch');
 
 	{	 AERegistry.i defines a compatible keyAEDestination 	}
 
-	kICEditPreferenceEventClass	= $49434170 (* 'ICAp' *);
-	kICEditPreferenceEvent		= $49434170 (* 'ICAp' *);
-	keyICEditPreferenceDestination = $64657374 (* 'dest' *);
+	kICEditPreferenceEventClass	= FourCharCode('ICAp');
+	kICEditPreferenceEvent		= FourCharCode('ICAp');
+	keyICEditPreferenceDestination = FourCharCode('dest');
 
 	{	***********************************************************************************************
 	  constants for use with ICGetVersion
@@ -612,7 +612,7 @@ const
 	{	
 	    TEXT -- default response for finger servers   
 		}
-	kICPlan						= $506C616E (* 'Plan' *);
+	kICPlan						= FourCharCode('Plan');
 	{	
 	    ICFontRecord -- font used to print ScreenFont   
 		}
@@ -2360,9 +2360,9 @@ const
 	  component identifiers
 	 ***********************************************************************************************	}
 
-	kICComponentType			= $50524546 (* 'PREF' *);
-	kICComponentSubType			= $49434170 (* 'ICAp' *);
-	kICComponentManufacturer	= $4A505145 (* 'JPQE' *);
+	kICComponentType			= FourCharCode('PREF');
+	kICComponentSubType			= FourCharCode('ICAp');
+	kICComponentManufacturer	= FourCharCode('JPQE');
 
 	{	***********************************************************************************************
 	  The following type is now obsolete.
@@ -2396,8 +2396,8 @@ const
 	ICattr_volatile_mask		= $00000002;
 	icNoUserInteraction_bit		= 0;
 	icNoUserInteraction_mask	= $00000001;
-	ICfiletype					= $49434170 (* 'ICAp' *);
-	ICcreator					= $49434170 (* 'ICAp' *);
+	ICfiletype					= FourCharCode('ICAp');
+	ICcreator					= FourCharCode('ICAp');
 
 	{	
 	    ICFileInfo was originally used to define the format of a key.
@@ -2444,8 +2444,8 @@ const
 	    them in only if you're using OLDROUTINENAMES.  Please switch
 	    to the new names given above.
 		}
-	internetConfigurationComponentType = $50524546 (* 'PREF' *);				{  the component type  }
-	internetConfigurationComponentSubType = $49434170 (* 'ICAp' *);				{  the component subtype  }
+	internetConfigurationComponentType = FourCharCode('PREF');				{  the component type  }
+	internetConfigurationComponentSubType = FourCharCode('ICAp');				{  the component subtype  }
 	internetConfigurationComponentInterfaceVersion0 = $00000000; {  IC >= 1.0  }
 	internetConfigurationComponentInterfaceVersion1 = $00010000; {  IC >= 1.1  }
 	internetConfigurationComponentInterfaceVersion2 = $00020000; {  IC >= 1.2  }

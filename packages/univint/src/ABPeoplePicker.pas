@@ -9,7 +9,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -17,12 +17,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ABPeoplePicker;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -230,7 +230,7 @@ procedure ABPickerDeselectAll( inPicker: ABPickerRef ); external name '_ABPicker
 
 const
     // Carbon Event class for People Picker
-    kEventClassABPeoplePicker = $61627070 (* 'abpp' *);
+    kEventClassABPeoplePicker = FourCharCode('abpp');
 
 const
     // Carbon Event kinds for People Picker
@@ -244,7 +244,7 @@ const
 
 const
     // Carbon Event parameter name
-    kEventParamABPickerRef	=  $61627070 (* 'abpp' *);
+    kEventParamABPickerRef	=  FourCharCode('abpp');
 
     // Set the event handler for People Picker events.
 // AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER

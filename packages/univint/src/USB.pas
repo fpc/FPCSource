@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit USB;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -1628,13 +1628,13 @@ const
 	kUSBPrinterBidirectionalProtocol = $02;
 
 
-	kServiceCategoryUSB			= $75736220 (* 'usb ' *);						{  USB }
+	kServiceCategoryUSB			= FourCharCode('usb ');						{  USB }
 
-	kUSBDriverFileType			= $6E647276 (* 'ndrv' *);
-	kUSBDriverRsrcType			= $75736264 (* 'usbd' *);
-	kUSBShimRsrcType			= $75736273 (* 'usbs' *);
+	kUSBDriverFileType			= FourCharCode('ndrv');
+	kUSBDriverRsrcType			= FourCharCode('usbd');
+	kUSBShimRsrcType			= FourCharCode('usbs');
 
-	kTheUSBDriverDescriptionSignature = $75736264 (* 'usbd' *);
+	kTheUSBDriverDescriptionSignature = FourCharCode('usbd');
 
 	kInitialUSBDriverDescriptor	= 0;
 
@@ -1765,7 +1765,7 @@ type
 	{  Shim Defines }
 
 const
-	kTheUSBShimDescriptionSignature = $75736273 (* 'usbs' *);
+	kTheUSBShimDescriptionSignature = FourCharCode('usbs');
 
 
 type

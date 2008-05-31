@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit TSMTE;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -117,7 +117,7 @@ uses MacTypes,TextEdit,Dialogs,AppleEvents,TextServices;
 
 { signature, interface types}
 const
-	kTSMTESignature = $746D5445 (* 'tmTE' *);
+	kTSMTESignature = FourCharCode('tmTE');
 	kTSMTEInterfaceType = kTSMTEDocumentInterfaceType;
 
 {

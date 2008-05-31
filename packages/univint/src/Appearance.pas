@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Appearance;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -112,20 +112,20 @@ uses MacTypes,CFBase,CGContext,Collections,Processes,QuickdrawText,TextCommon,Qu
 {$ALIGN MAC68K}
 
 const
-	kAppearanceEventClass = $61707072 (* 'appr' *); { Event Class }
-	kAEAppearanceChanged = $74686D65 (* 'thme' *); { Appearance changed (e.g. platinum to hi-tech) }
-	kAESystemFontChanged = $73797366 (* 'sysf' *); { system font changed }
-	kAESmallSystemFontChanged = $7373666E (* 'ssfn' *); { small system font changed }
-	kAEViewsFontChanged = $76666E74 (* 'vfnt' *); { views font changed }
+	kAppearanceEventClass = FourCharCode('appr'); { Event Class }
+	kAEAppearanceChanged = FourCharCode('thme'); { Appearance changed (e.g. platinum to hi-tech) }
+	kAESystemFontChanged = FourCharCode('sysf'); { system font changed }
+	kAESmallSystemFontChanged = FourCharCode('ssfn'); { small system font changed }
+	kAEViewsFontChanged = FourCharCode('vfnt'); { views font changed }
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 { Appearance Manager file types                                                    }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kThemeDataFileType = $74686D65 (* 'thme' *); { file type for theme files }
-	kThemePlatinumFileType = $706C746E (* 'pltn' *); { file type for platinum appearance }
-	kThemeCustomThemesFileType = $7363656E (* 'scen' *); { file type for user themes }
-	kThemeSoundTrackFileType = $74736E64 (* 'tsnd' *);
+	kThemeDataFileType = FourCharCode('thme'); { file type for theme files }
+	kThemePlatinumFileType = FourCharCode('pltn'); { file type for platinum appearance }
+	kThemeCustomThemesFileType = FourCharCode('scen'); { file type for user themes }
+	kThemeSoundTrackFileType = FourCharCode('tsnd');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 { Appearance Manager Supported Themes                                              }
@@ -733,33 +733,33 @@ type
 {           is completely inert on X, and will return unimpErr.                            }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kThemeNameTag = $6E616D65 (* 'name' *); { Str255}
-	kThemeVariantNameTag = $7661726E (* 'varn' *); { Str255}
-	kThemeVariantBaseTintTag = $74696E74 (* 'tint' *); { RGBColor (10.1 and later)}
-	kThemeHighlightColorTag = $68636F6C (* 'hcol' *); { RGBColor}
-	kThemeScrollBarArrowStyleTag = $73626172 (* 'sbar' *); { ThemeScrollBarArrowStyle}
-	kThemeScrollBarThumbStyleTag = $73627468 (* 'sbth' *); { ThemeScrollBarThumbStyle}
-	kThemeSoundsEnabledTag = $736E6473 (* 'snds' *); { Boolean}
-	kThemeDblClickCollapseTag = $636F6C6C (* 'coll' *); { Boolean}
+	kThemeNameTag = FourCharCode('name'); { Str255}
+	kThemeVariantNameTag = FourCharCode('varn'); { Str255}
+	kThemeVariantBaseTintTag = FourCharCode('tint'); { RGBColor (10.1 and later)}
+	kThemeHighlightColorTag = FourCharCode('hcol'); { RGBColor}
+	kThemeScrollBarArrowStyleTag = FourCharCode('sbar'); { ThemeScrollBarArrowStyle}
+	kThemeScrollBarThumbStyleTag = FourCharCode('sbth'); { ThemeScrollBarThumbStyle}
+	kThemeSoundsEnabledTag = FourCharCode('snds'); { Boolean}
+	kThemeDblClickCollapseTag = FourCharCode('coll'); { Boolean}
 
 const
-	kThemeAppearanceFileNameTag = $74686D65 (* 'thme' *); { Str255}
-	kThemeSystemFontTag = $6C677366 (* 'lgsf' *); { Str255}
-	kThemeSmallSystemFontTag = $736D7366 (* 'smsf' *); { Str255}
-	kThemeViewsFontTag = $76666E74 (* 'vfnt' *); { Str255}
-	kThemeViewsFontSizeTag = $7666737A (* 'vfsz' *); { SInt16}
-	kThemeDesktopPatternNameTag = $7061746E (* 'patn' *); { Str255}
-	kThemeDesktopPatternTag = $70617474 (* 'patt' *); { <variable-length data> (flattened pattern)}
-	kThemeDesktopPictureNameTag = $64706E6D (* 'dpnm' *); { Str255}
-	kThemeDesktopPictureAliasTag = $6470616C (* 'dpal' *); { <alias handle>}
-	kThemeDesktopPictureAlignmentTag = $6470616E (* 'dpan' *); { UInt32 (see the Picture Alignments below)}
-	kThemeHighlightColorNameTag = $68636E6D (* 'hcnm' *); { Str255}
-	kThemeExamplePictureIDTag = $65706963 (* 'epic' *); { SInt16}
-	kThemeSoundTrackNameTag = $736E6474 (* 'sndt' *); { Str255}
-	kThemeSoundMaskTag = $736D736B (* 'smsk' *); { UInt32}
-	kThemeUserDefinedTag = $75736572 (* 'user' *); { Boolean (this should _always_ be true if present - used by Control Panel).}
-	kThemeSmoothFontEnabledTag = $736D6F6F (* 'smoo' *); { Boolean}
-	kThemeSmoothFontMinSizeTag = $736D6F73 (* 'smos' *); { UInt16 (must be >= 12 and <= 24)}
+	kThemeAppearanceFileNameTag = FourCharCode('thme'); { Str255}
+	kThemeSystemFontTag = FourCharCode('lgsf'); { Str255}
+	kThemeSmallSystemFontTag = FourCharCode('smsf'); { Str255}
+	kThemeViewsFontTag = FourCharCode('vfnt'); { Str255}
+	kThemeViewsFontSizeTag = FourCharCode('vfsz'); { SInt16}
+	kThemeDesktopPatternNameTag = FourCharCode('patn'); { Str255}
+	kThemeDesktopPatternTag = FourCharCode('patt'); { <variable-length data> (flattened pattern)}
+	kThemeDesktopPictureNameTag = FourCharCode('dpnm'); { Str255}
+	kThemeDesktopPictureAliasTag = FourCharCode('dpal'); { <alias handle>}
+	kThemeDesktopPictureAlignmentTag = FourCharCode('dpan'); { UInt32 (see the Picture Alignments below)}
+	kThemeHighlightColorNameTag = FourCharCode('hcnm'); { Str255}
+	kThemeExamplePictureIDTag = FourCharCode('epic'); { SInt16}
+	kThemeSoundTrackNameTag = FourCharCode('sndt'); { Str255}
+	kThemeSoundMaskTag = FourCharCode('smsk'); { UInt32}
+	kThemeUserDefinedTag = FourCharCode('user'); { Boolean (this should _always_ be true if present - used by Control Panel).}
+	kThemeSmoothFontEnabledTag = FourCharCode('smoo'); { Boolean}
+	kThemeSmoothFontMinSizeTag = FourCharCode('smos'); { UInt16 (must be >= 12 and <= 24)}
 
 { Picture Aligmnents that might be reported in the data for kThemeDesktopPictureAlignmentTag}
 const
@@ -1981,20 +1981,20 @@ const
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
 	kThemeDragSoundNone = 0;
-	kThemeDragSoundMoveWindow = $776D6F76 (* 'wmov' *);
-	kThemeDragSoundGrowWindow = $7767726F (* 'wgro' *);
-	kThemeDragSoundMoveUtilWindow = $756D6F76 (* 'umov' *);
-	kThemeDragSoundGrowUtilWindow = $7567726F (* 'ugro' *);
-	kThemeDragSoundMoveDialog = $646D6F76 (* 'dmov' *);
-	kThemeDragSoundMoveAlert = $616D6F76 (* 'amov' *);
-	kThemeDragSoundMoveIcon = $696D6F76 (* 'imov' *);
-	kThemeDragSoundSliderThumb = $736C7468 (* 'slth' *);
-	kThemeDragSoundSliderGhost = $736C6768 (* 'slgh' *);
-	kThemeDragSoundScrollBarThumb = $73627468 (* 'sbth' *);
-	kThemeDragSoundScrollBarGhost = $73626768 (* 'sbgh' *);
-	kThemeDragSoundScrollBarArrowDecreasing = $73626164 (* 'sbad' *);
-	kThemeDragSoundScrollBarArrowIncreasing = $73626169 (* 'sbai' *);
-	kThemeDragSoundDragging = $64726167 (* 'drag' *);
+	kThemeDragSoundMoveWindow = FourCharCode('wmov');
+	kThemeDragSoundGrowWindow = FourCharCode('wgro');
+	kThemeDragSoundMoveUtilWindow = FourCharCode('umov');
+	kThemeDragSoundGrowUtilWindow = FourCharCode('ugro');
+	kThemeDragSoundMoveDialog = FourCharCode('dmov');
+	kThemeDragSoundMoveAlert = FourCharCode('amov');
+	kThemeDragSoundMoveIcon = FourCharCode('imov');
+	kThemeDragSoundSliderThumb = FourCharCode('slth');
+	kThemeDragSoundSliderGhost = FourCharCode('slgh');
+	kThemeDragSoundScrollBarThumb = FourCharCode('sbth');
+	kThemeDragSoundScrollBarGhost = FourCharCode('sbgh');
+	kThemeDragSoundScrollBarArrowDecreasing = FourCharCode('sbad');
+	kThemeDragSoundScrollBarArrowIncreasing = FourCharCode('sbai');
+	kThemeDragSoundDragging = FourCharCode('drag');
 
 type
 	ThemeDragSoundKind = OSType;
@@ -2006,122 +2006,122 @@ type
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
 	kThemeSoundNone = 0;
-	kThemeSoundMenuOpen = $6D6E756F (* 'mnuo' *); { menu sounds }
-	kThemeSoundMenuClose = $6D6E7563 (* 'mnuc' *);
-	kThemeSoundMenuItemHilite = $6D6E7569 (* 'mnui' *);
-	kThemeSoundMenuItemRelease = $6D6E7573 (* 'mnus' *);
-	kThemeSoundWindowClosePress = $77636C70 (* 'wclp' *); { window sounds }
-	kThemeSoundWindowCloseEnter = $77636C65 (* 'wcle' *);
-	kThemeSoundWindowCloseExit = $77636C78 (* 'wclx' *);
-	kThemeSoundWindowCloseRelease = $77636C72 (* 'wclr' *);
-	kThemeSoundWindowZoomPress = $777A6D70 (* 'wzmp' *);
-	kThemeSoundWindowZoomEnter = $777A6D65 (* 'wzme' *);
-	kThemeSoundWindowZoomExit = $777A6D78 (* 'wzmx' *);
-	kThemeSoundWindowZoomRelease = $777A6D72 (* 'wzmr' *);
-	kThemeSoundWindowCollapsePress = $77636F70 (* 'wcop' *);
-	kThemeSoundWindowCollapseEnter = $77636F65 (* 'wcoe' *);
-	kThemeSoundWindowCollapseExit = $77636F78 (* 'wcox' *);
-	kThemeSoundWindowCollapseRelease = $77636F72 (* 'wcor' *);
-	kThemeSoundWindowDragBoundary = $77646264 (* 'wdbd' *);
-	kThemeSoundUtilWinClosePress = $75636C70 (* 'uclp' *); { utility window sounds }
-	kThemeSoundUtilWinCloseEnter = $75636C65 (* 'ucle' *);
-	kThemeSoundUtilWinCloseExit = $75636C78 (* 'uclx' *);
-	kThemeSoundUtilWinCloseRelease = $75636C72 (* 'uclr' *);
-	kThemeSoundUtilWinZoomPress = $757A6D70 (* 'uzmp' *);
-	kThemeSoundUtilWinZoomEnter = $757A6D65 (* 'uzme' *);
-	kThemeSoundUtilWinZoomExit = $757A6D78 (* 'uzmx' *);
-	kThemeSoundUtilWinZoomRelease = $757A6D72 (* 'uzmr' *);
-	kThemeSoundUtilWinCollapsePress = $75636F70 (* 'ucop' *);
-	kThemeSoundUtilWinCollapseEnter = $75636F65 (* 'ucoe' *);
-	kThemeSoundUtilWinCollapseExit = $75636F78 (* 'ucox' *);
-	kThemeSoundUtilWinCollapseRelease = $75636F72 (* 'ucor' *);
-	kThemeSoundUtilWinDragBoundary = $75646264 (* 'udbd' *);
-	kThemeSoundWindowOpen = $776F706E (* 'wopn' *); { window close and zoom action }
-	kThemeSoundWindowClose = $77636C73 (* 'wcls' *);
-	kThemeSoundWindowZoomIn = $777A6D69 (* 'wzmi' *);
-	kThemeSoundWindowZoomOut = $777A6D6F (* 'wzmo' *);
-	kThemeSoundWindowCollapseUp = $77636F6C (* 'wcol' *);
-	kThemeSoundWindowCollapseDown = $77657870 (* 'wexp' *);
-	kThemeSoundWindowActivate = $77616374 (* 'wact' *);
-	kThemeSoundUtilWindowOpen = $756F706E (* 'uopn' *);
-	kThemeSoundUtilWindowClose = $75636C73 (* 'ucls' *);
-	kThemeSoundUtilWindowZoomIn = $757A6D69 (* 'uzmi' *);
-	kThemeSoundUtilWindowZoomOut = $757A6D6F (* 'uzmo' *);
-	kThemeSoundUtilWindowCollapseUp = $75636F6C (* 'ucol' *);
-	kThemeSoundUtilWindowCollapseDown = $75657870 (* 'uexp' *);
-	kThemeSoundUtilWindowActivate = $75616374 (* 'uact' *);
-	kThemeSoundDialogOpen = $646F706E (* 'dopn' *);
-	kThemeSoundDialogClose = $646C6763 (* 'dlgc' *);
-	kThemeSoundAlertOpen = $616F706E (* 'aopn' *);
-	kThemeSoundAlertClose = $616C7463 (* 'altc' *);
-	kThemeSoundPopupWindowOpen = $70776F70 (* 'pwop' *);
-	kThemeSoundPopupWindowClose = $7077636C (* 'pwcl' *);
-	kThemeSoundButtonPress = $62746E70 (* 'btnp' *); { button }
-	kThemeSoundButtonEnter = $62746E65 (* 'btne' *);
-	kThemeSoundButtonExit = $62746E78 (* 'btnx' *);
-	kThemeSoundButtonRelease = $62746E72 (* 'btnr' *);
-	kThemeSoundDefaultButtonPress = $64627470 (* 'dbtp' *); { default button }
-	kThemeSoundDefaultButtonEnter = $64627465 (* 'dbte' *);
-	kThemeSoundDefaultButtonExit = $64627478 (* 'dbtx' *);
-	kThemeSoundDefaultButtonRelease = $64627472 (* 'dbtr' *);
-	kThemeSoundCancelButtonPress = $63627470 (* 'cbtp' *); { cancel button }
-	kThemeSoundCancelButtonEnter = $63627465 (* 'cbte' *);
-	kThemeSoundCancelButtonExit = $63627478 (* 'cbtx' *);
-	kThemeSoundCancelButtonRelease = $63627472 (* 'cbtr' *);
-	kThemeSoundCheckboxPress = $63686B70 (* 'chkp' *); { checkboxes }
-	kThemeSoundCheckboxEnter = $63686B65 (* 'chke' *);
-	kThemeSoundCheckboxExit = $63686B78 (* 'chkx' *);
-	kThemeSoundCheckboxRelease = $63686B72 (* 'chkr' *);
-	kThemeSoundRadioPress = $72616470 (* 'radp' *); { radio buttons }
-	kThemeSoundRadioEnter = $72616465 (* 'rade' *);
-	kThemeSoundRadioExit = $72616478 (* 'radx' *);
-	kThemeSoundRadioRelease = $72616472 (* 'radr' *);
-	kThemeSoundScrollArrowPress = $73626170 (* 'sbap' *); { scroll bars }
-	kThemeSoundScrollArrowEnter = $73626165 (* 'sbae' *);
-	kThemeSoundScrollArrowExit = $73626178 (* 'sbax' *);
-	kThemeSoundScrollArrowRelease = $73626172 (* 'sbar' *);
-	kThemeSoundScrollEndOfTrack = $73627465 (* 'sbte' *);
-	kThemeSoundScrollTrackPress = $73627470 (* 'sbtp' *);
-	kThemeSoundSliderEndOfTrack = $736C7465 (* 'slte' *); { sliders }
-	kThemeSoundSliderTrackPress = $736C7470 (* 'sltp' *);
-	kThemeSoundBalloonOpen = $626C6E6F (* 'blno' *); { help balloons }
-	kThemeSoundBalloonClose = $626C6E63 (* 'blnc' *);
-	kThemeSoundBevelPress = $62657670 (* 'bevp' *); { Bevel buttons }
-	kThemeSoundBevelEnter = $62657665 (* 'beve' *);
-	kThemeSoundBevelExit = $62657678 (* 'bevx' *);
-	kThemeSoundBevelRelease = $62657672 (* 'bevr' *);
-	kThemeSoundLittleArrowUpPress = $6C617570 (* 'laup' *); { Little Arrows }
-	kThemeSoundLittleArrowDnPress = $6C616470 (* 'ladp' *);
-	kThemeSoundLittleArrowEnter = $6C617265 (* 'lare' *);
-	kThemeSoundLittleArrowExit = $6C617278 (* 'larx' *);
-	kThemeSoundLittleArrowUpRelease = $6C617572 (* 'laur' *);
-	kThemeSoundLittleArrowDnRelease = $6C616472 (* 'ladr' *);
-	kThemeSoundPopupPress = $706F7070 (* 'popp' *); { Popup Buttons }
-	kThemeSoundPopupEnter = $706F7065 (* 'pope' *);
-	kThemeSoundPopupExit = $706F7078 (* 'popx' *);
-	kThemeSoundPopupRelease = $706F7072 (* 'popr' *);
-	kThemeSoundDisclosurePress = $64736370 (* 'dscp' *); { Disclosure Buttons }
-	kThemeSoundDisclosureEnter = $64736365 (* 'dsce' *);
-	kThemeSoundDisclosureExit = $64736378 (* 'dscx' *);
-	kThemeSoundDisclosureRelease = $64736372 (* 'dscr' *);
-	kThemeSoundTabPressed = $74616270 (* 'tabp' *); { Tabs }
-	kThemeSoundTabEnter = $74616265 (* 'tabe' *);
-	kThemeSoundTabExit = $74616278 (* 'tabx' *);
-	kThemeSoundTabRelease = $74616272 (* 'tabr' *);
-	kThemeSoundDragTargetHilite = $64746869 (* 'dthi' *); { drag manager }
-	kThemeSoundDragTargetUnhilite = $64747568 (* 'dtuh' *);
-	kThemeSoundDragTargetDrop = $64746472 (* 'dtdr' *);
-	kThemeSoundEmptyTrash = $66747273 (* 'ftrs' *); { finder }
-	kThemeSoundSelectItem = $6673656C (* 'fsel' *);
-	kThemeSoundNewItem = $666E6577 (* 'fnew' *);
-	kThemeSoundReceiveDrop = $66647270 (* 'fdrp' *);
-	kThemeSoundCopyDone = $66637064 (* 'fcpd' *);
-	kThemeSoundResolveAlias = $6672616C (* 'fral' *);
-	kThemeSoundLaunchApp = $666C6170 (* 'flap' *);
-	kThemeSoundDiskInsert = $64736B69 (* 'dski' *);
-	kThemeSoundDiskEject = $64736B65 (* 'dske' *);
-	kThemeSoundFinderDragOnIcon = $66646F6E (* 'fdon' *);
-	kThemeSoundFinderDragOffIcon = $66646F66 (* 'fdof' *);
+	kThemeSoundMenuOpen = FourCharCode('mnuo'); { menu sounds }
+	kThemeSoundMenuClose = FourCharCode('mnuc');
+	kThemeSoundMenuItemHilite = FourCharCode('mnui');
+	kThemeSoundMenuItemRelease = FourCharCode('mnus');
+	kThemeSoundWindowClosePress = FourCharCode('wclp'); { window sounds }
+	kThemeSoundWindowCloseEnter = FourCharCode('wcle');
+	kThemeSoundWindowCloseExit = FourCharCode('wclx');
+	kThemeSoundWindowCloseRelease = FourCharCode('wclr');
+	kThemeSoundWindowZoomPress = FourCharCode('wzmp');
+	kThemeSoundWindowZoomEnter = FourCharCode('wzme');
+	kThemeSoundWindowZoomExit = FourCharCode('wzmx');
+	kThemeSoundWindowZoomRelease = FourCharCode('wzmr');
+	kThemeSoundWindowCollapsePress = FourCharCode('wcop');
+	kThemeSoundWindowCollapseEnter = FourCharCode('wcoe');
+	kThemeSoundWindowCollapseExit = FourCharCode('wcox');
+	kThemeSoundWindowCollapseRelease = FourCharCode('wcor');
+	kThemeSoundWindowDragBoundary = FourCharCode('wdbd');
+	kThemeSoundUtilWinClosePress = FourCharCode('uclp'); { utility window sounds }
+	kThemeSoundUtilWinCloseEnter = FourCharCode('ucle');
+	kThemeSoundUtilWinCloseExit = FourCharCode('uclx');
+	kThemeSoundUtilWinCloseRelease = FourCharCode('uclr');
+	kThemeSoundUtilWinZoomPress = FourCharCode('uzmp');
+	kThemeSoundUtilWinZoomEnter = FourCharCode('uzme');
+	kThemeSoundUtilWinZoomExit = FourCharCode('uzmx');
+	kThemeSoundUtilWinZoomRelease = FourCharCode('uzmr');
+	kThemeSoundUtilWinCollapsePress = FourCharCode('ucop');
+	kThemeSoundUtilWinCollapseEnter = FourCharCode('ucoe');
+	kThemeSoundUtilWinCollapseExit = FourCharCode('ucox');
+	kThemeSoundUtilWinCollapseRelease = FourCharCode('ucor');
+	kThemeSoundUtilWinDragBoundary = FourCharCode('udbd');
+	kThemeSoundWindowOpen = FourCharCode('wopn'); { window close and zoom action }
+	kThemeSoundWindowClose = FourCharCode('wcls');
+	kThemeSoundWindowZoomIn = FourCharCode('wzmi');
+	kThemeSoundWindowZoomOut = FourCharCode('wzmo');
+	kThemeSoundWindowCollapseUp = FourCharCode('wcol');
+	kThemeSoundWindowCollapseDown = FourCharCode('wexp');
+	kThemeSoundWindowActivate = FourCharCode('wact');
+	kThemeSoundUtilWindowOpen = FourCharCode('uopn');
+	kThemeSoundUtilWindowClose = FourCharCode('ucls');
+	kThemeSoundUtilWindowZoomIn = FourCharCode('uzmi');
+	kThemeSoundUtilWindowZoomOut = FourCharCode('uzmo');
+	kThemeSoundUtilWindowCollapseUp = FourCharCode('ucol');
+	kThemeSoundUtilWindowCollapseDown = FourCharCode('uexp');
+	kThemeSoundUtilWindowActivate = FourCharCode('uact');
+	kThemeSoundDialogOpen = FourCharCode('dopn');
+	kThemeSoundDialogClose = FourCharCode('dlgc');
+	kThemeSoundAlertOpen = FourCharCode('aopn');
+	kThemeSoundAlertClose = FourCharCode('altc');
+	kThemeSoundPopupWindowOpen = FourCharCode('pwop');
+	kThemeSoundPopupWindowClose = FourCharCode('pwcl');
+	kThemeSoundButtonPress = FourCharCode('btnp'); { button }
+	kThemeSoundButtonEnter = FourCharCode('btne');
+	kThemeSoundButtonExit = FourCharCode('btnx');
+	kThemeSoundButtonRelease = FourCharCode('btnr');
+	kThemeSoundDefaultButtonPress = FourCharCode('dbtp'); { default button }
+	kThemeSoundDefaultButtonEnter = FourCharCode('dbte');
+	kThemeSoundDefaultButtonExit = FourCharCode('dbtx');
+	kThemeSoundDefaultButtonRelease = FourCharCode('dbtr');
+	kThemeSoundCancelButtonPress = FourCharCode('cbtp'); { cancel button }
+	kThemeSoundCancelButtonEnter = FourCharCode('cbte');
+	kThemeSoundCancelButtonExit = FourCharCode('cbtx');
+	kThemeSoundCancelButtonRelease = FourCharCode('cbtr');
+	kThemeSoundCheckboxPress = FourCharCode('chkp'); { checkboxes }
+	kThemeSoundCheckboxEnter = FourCharCode('chke');
+	kThemeSoundCheckboxExit = FourCharCode('chkx');
+	kThemeSoundCheckboxRelease = FourCharCode('chkr');
+	kThemeSoundRadioPress = FourCharCode('radp'); { radio buttons }
+	kThemeSoundRadioEnter = FourCharCode('rade');
+	kThemeSoundRadioExit = FourCharCode('radx');
+	kThemeSoundRadioRelease = FourCharCode('radr');
+	kThemeSoundScrollArrowPress = FourCharCode('sbap'); { scroll bars }
+	kThemeSoundScrollArrowEnter = FourCharCode('sbae');
+	kThemeSoundScrollArrowExit = FourCharCode('sbax');
+	kThemeSoundScrollArrowRelease = FourCharCode('sbar');
+	kThemeSoundScrollEndOfTrack = FourCharCode('sbte');
+	kThemeSoundScrollTrackPress = FourCharCode('sbtp');
+	kThemeSoundSliderEndOfTrack = FourCharCode('slte'); { sliders }
+	kThemeSoundSliderTrackPress = FourCharCode('sltp');
+	kThemeSoundBalloonOpen = FourCharCode('blno'); { help balloons }
+	kThemeSoundBalloonClose = FourCharCode('blnc');
+	kThemeSoundBevelPress = FourCharCode('bevp'); { Bevel buttons }
+	kThemeSoundBevelEnter = FourCharCode('beve');
+	kThemeSoundBevelExit = FourCharCode('bevx');
+	kThemeSoundBevelRelease = FourCharCode('bevr');
+	kThemeSoundLittleArrowUpPress = FourCharCode('laup'); { Little Arrows }
+	kThemeSoundLittleArrowDnPress = FourCharCode('ladp');
+	kThemeSoundLittleArrowEnter = FourCharCode('lare');
+	kThemeSoundLittleArrowExit = FourCharCode('larx');
+	kThemeSoundLittleArrowUpRelease = FourCharCode('laur');
+	kThemeSoundLittleArrowDnRelease = FourCharCode('ladr');
+	kThemeSoundPopupPress = FourCharCode('popp'); { Popup Buttons }
+	kThemeSoundPopupEnter = FourCharCode('pope');
+	kThemeSoundPopupExit = FourCharCode('popx');
+	kThemeSoundPopupRelease = FourCharCode('popr');
+	kThemeSoundDisclosurePress = FourCharCode('dscp'); { Disclosure Buttons }
+	kThemeSoundDisclosureEnter = FourCharCode('dsce');
+	kThemeSoundDisclosureExit = FourCharCode('dscx');
+	kThemeSoundDisclosureRelease = FourCharCode('dscr');
+	kThemeSoundTabPressed = FourCharCode('tabp'); { Tabs }
+	kThemeSoundTabEnter = FourCharCode('tabe');
+	kThemeSoundTabExit = FourCharCode('tabx');
+	kThemeSoundTabRelease = FourCharCode('tabr');
+	kThemeSoundDragTargetHilite = FourCharCode('dthi'); { drag manager }
+	kThemeSoundDragTargetUnhilite = FourCharCode('dtuh');
+	kThemeSoundDragTargetDrop = FourCharCode('dtdr');
+	kThemeSoundEmptyTrash = FourCharCode('ftrs'); { finder }
+	kThemeSoundSelectItem = FourCharCode('fsel');
+	kThemeSoundNewItem = FourCharCode('fnew');
+	kThemeSoundReceiveDrop = FourCharCode('fdrp');
+	kThemeSoundCopyDone = FourCharCode('fcpd');
+	kThemeSoundResolveAlias = FourCharCode('fral');
+	kThemeSoundLaunchApp = FourCharCode('flap');
+	kThemeSoundDiskInsert = FourCharCode('dski');
+	kThemeSoundDiskEject = FourCharCode('dske');
+	kThemeSoundFinderDragOnIcon = FourCharCode('fdon');
+	kThemeSoundFinderDragOffIcon = FourCharCode('fdof');
 
 type
 	ThemeSoundKind = OSType;

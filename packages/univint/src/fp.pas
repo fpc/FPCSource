@@ -6,7 +6,7 @@
      Version:    Technology: MathLib v2
                  Release:    Universal Interfaces 3.4.2
  
-     Copyright:  © 1987-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  Â© 1987-2002 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit fp;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -960,7 +960,7 @@ function __inf: double_t; external name '___inf';
 *                                                                               *
 *                              Inquiry macros                                   *
 *                                                                               *
-*   fpclassify      Returns one of the FP_Å values.                             *
+*   fpclassify      Returns one of the FP_â‰ˆ values.                             *
 *   isnormal        Non-zero if and only if the argument x is normalized.       *
 *   isfinite        Non-zero if and only if the argument x is finite.           *
 *   isnan           Non-zero if and only if the argument x is a NaN.            *
@@ -1034,6 +1034,9 @@ function fmin(x: double_t; y: double_t): double_t; external name '_fmin';
 {******************************************************************************
 *                                Constants                                     *
 ******************************************************************************}
+
+const
+  pi = system.pi;
 
 {*******************************************************************************
 *                                                                               *

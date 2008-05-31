@@ -16,7 +16,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -24,12 +24,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Controls;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -111,10 +111,10 @@ uses MacTypes,CFBase,Files,Events,CGImage,Quickdraw,Menus,TextEdit,Drag,Icons,Co
 {  ¥ Resource Types                                                                                    }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kControlDefProcType = $43444546 (* 'CDEF' *);
-	kControlTemplateResourceType = $434E544C (* 'CNTL' *);
-	kControlColorTableResourceType = $63637462 (* 'cctb' *);
-	kControlDefProcResourceType = $43444546 (* 'CDEF' *);
+	kControlDefProcType = FourCharCode('CDEF');
+	kControlTemplateResourceType = FourCharCode('CNTL');
+	kControlColorTableResourceType = FourCharCode('cctb');
+	kControlDefProcResourceType = FourCharCode('CDEF');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Format of a ÔCNTLÕ resource                                                                       }
@@ -286,27 +286,27 @@ const
 {
    * Rect - the bounding rectangle.
    }
-	kControlCollectionTagBounds = $626F756E (* 'boun' *);
+	kControlCollectionTagBounds = FourCharCode('boun');
 
   {
    * SInt32 - the value
    }
-	kControlCollectionTagValue = $76616C75 (* 'valu' *);
+	kControlCollectionTagValue = FourCharCode('valu');
 
   {
    * SInt32 - the minimum
    }
-	kControlCollectionTagMinimum = $6D696E20 (* 'min ' *);
+	kControlCollectionTagMinimum = FourCharCode('min ');
 
   {
    * SInt32 - the maximum
    }
-	kControlCollectionTagMaximum = $6D617820 (* 'max ' *);
+	kControlCollectionTagMaximum = FourCharCode('max ');
 
   {
    * SInt32 - the view size
    }
-	kControlCollectionTagViewSize = $76696577 (* 'view' *);
+	kControlCollectionTagViewSize = FourCharCode('view');
 
   {
    * Boolean - the visible state. Only interpreted on CarbonLib
@@ -314,42 +314,42 @@ const
    * interpreted on CarbonLib 1.6 and later. Not interpreted on Mac OS
    * 10.1 and later. We recommend you do not use this tag at all.
    }
-	kControlCollectionTagVisibility = $76697369 (* 'visi' *);
+	kControlCollectionTagVisibility = FourCharCode('visi');
 
   {
    * SInt32 - the refCon
    }
-	kControlCollectionTagRefCon = $72656663 (* 'refc' *);
+	kControlCollectionTagRefCon = FourCharCode('refc');
 
   {
    * arbitrarily sized character array - the title
    }
-	kControlCollectionTagTitle = $7469746C (* 'titl' *);
+	kControlCollectionTagTitle = FourCharCode('titl');
 
   {
    * bytes as received via CFStringCreateExternalRepresentation
    }
-	kControlCollectionTagUnicodeTitle = $7574746C (* 'uttl' *);
+	kControlCollectionTagUnicodeTitle = FourCharCode('uttl');
 
   {
    * OSType - the ControlID signature
    }
-	kControlCollectionTagIDSignature = $69647369 (* 'idsi' *);
+	kControlCollectionTagIDSignature = FourCharCode('idsi');
 
   {
    * SInt32 - the ControlID id
    }
-	kControlCollectionTagIDID = $69646964 (* 'idid' *);
+	kControlCollectionTagIDID = FourCharCode('idid');
 
   {
    * UInt32 - the command
    }
-	kControlCollectionTagCommand = $636D6420 (* 'cmd ' *);
+	kControlCollectionTagCommand = FourCharCode('cmd ');
 
   {
    * SInt16 - the variant
    }
-	kControlCollectionTagVarCode = $76617263 (* 'varc' *);
+	kControlCollectionTagVarCode = FourCharCode('varc');
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -406,9 +406,9 @@ type
 {  ¥ Control Key Script Behavior                                                                       }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kControlKeyScriptBehaviorAllowAnyScript = $616E7920 (* 'any ' *); { leaves the current keyboard alone and allows user to change the keyboard.}
-	kControlKeyScriptBehaviorPrefersRoman = $70726D6E (* 'prmn' *); { switches the keyboard to roman, but allows them to change it as desired.}
-	kControlKeyScriptBehaviorRequiresRoman = $72726D6E (* 'rrmn' *); { switches the keyboard to roman and prevents the user from changing it.}
+	kControlKeyScriptBehaviorAllowAnyScript = FourCharCode('any '); { leaves the current keyboard alone and allows user to change the keyboard.}
+	kControlKeyScriptBehaviorPrefersRoman = FourCharCode('prmn'); { switches the keyboard to roman, but allows them to change it as desired.}
+	kControlKeyScriptBehaviorRequiresRoman = FourCharCode('rrmn'); { switches the keyboard to roman and prevents the user from changing it.}
 
 type
 	ControlKeyScriptBehavior = UInt32;
@@ -506,14 +506,14 @@ type
  *    Get/SetControlData Common Tags
  }
 const
-	kControlFontStyleTag = $666F6E74 (* 'font' *);
-	kControlKeyFilterTag = $666C7472 (* 'fltr' *);
+	kControlFontStyleTag = FourCharCode('font');
+	kControlKeyFilterTag = FourCharCode('fltr');
 
   {
    * Sent with a pointer to a ControlKind record to be filled in.  Only
    * valid for GetControlData.
    }
-	kControlKindTag = $6B696E64 (* 'kind' *);
+	kControlKindTag = FourCharCode('kind');
 
   {
    * Sent with a pointer to a ControlSize.  Only valid with explicitly
@@ -529,7 +529,7 @@ const
    * field will adjust to respect the size of the control. Still check
    * your return values!
    }
-	kControlSizeTag = $73697A65 (* 'size' *);
+	kControlSizeTag = FourCharCode('size');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Feature Bits                                                                              }
@@ -693,7 +693,7 @@ type
 {  CDEF should return as result of kControlMsgTestNewMsgSupport                        }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 const
-	kControlSupportsNewMessages = $206F6B20 (* ' ok ' *);
+	kControlSupportsNewMessages = FourCharCode(' ok ');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  This structure is passed into a CDEF when called with the kControlMsgHandleTracking }
@@ -2451,7 +2451,7 @@ const
 {
    * Signature of all system controls.
    }
-	kControlKindSignatureApple = $6170706C (* 'appl' *);
+	kControlKindSignatureApple = FourCharCode('appl');
 
 {
  *  GetControlKind()

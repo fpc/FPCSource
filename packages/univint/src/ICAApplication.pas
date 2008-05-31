@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ICAApplication;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -137,61 +137,61 @@ const
 	NOTE: vendor specific constants are UPPERCASE  (exception: 'TEXT')
 		}
 	{  ICAObject types and subtypes  }
-	kICADevice					= $69636476 (* 'icdv' *);						{  Also creator of device library files  }
-	kICADeviceCamera			= $636D7261 (* 'cmra' *);						{  Also file type of device library files  }
-	kICADeviceScanner			= $7363616E (* 'scan' *);						{  Also file type of device library files  }
-	kICADeviceMFP				= $6D667020 (* 'mfp ' *);						{  Also file type of device library files  }
-	kICAList					= $6F626A6C (* 'objl' *);
-	kICADirectory				= $64697265 (* 'dire' *);
-	kICAFile					= $66696C65 (* 'file' *);
-	kICAFileImage				= $696D6167 (* 'imag' *);
-	kICAFileMovie				= $6D6F6F76 (* 'moov' *);
-	kICAFileAudio				= $6175646F (* 'audo' *);
-	kICAFileFirmware			= $6669726D (* 'firm' *);
-	kICAFileOther				= $6F746865 (* 'othe' *);
+	kICADevice					= FourCharCode('icdv');						{  Also creator of device library files  }
+	kICADeviceCamera			= FourCharCode('cmra');						{  Also file type of device library files  }
+	kICADeviceScanner			= FourCharCode('scan');						{  Also file type of device library files  }
+	kICADeviceMFP				= FourCharCode('mfp ');						{  Also file type of device library files  }
+	kICAList					= FourCharCode('objl');
+	kICADirectory				= FourCharCode('dire');
+	kICAFile					= FourCharCode('file');
+	kICAFileImage				= FourCharCode('imag');
+	kICAFileMovie				= FourCharCode('moov');
+	kICAFileAudio				= FourCharCode('audo');
+	kICAFileFirmware			= FourCharCode('firm');
+	kICAFileOther				= FourCharCode('othe');
 
 	{  ICAProperties  }
-	kICAProperty				= $70726F70 (* 'prop' *);						{   }
+	kICAProperty				= FourCharCode('prop');						{   }
 																{     file properties  }
 																{   }
 																{  for images, refer to 'Digital Still Camera Image File Format Standard' Exif Version 2.1 section 2.6.4. and 2.6.5. }
-	kICAPropertyImageWidth		= $30313030 (* '0100' *);						{  UInt32  }
-	kICAPropertyImageHeight		= $30313031 (* '0101' *);						{  UInt32  }
-	kICAPropertyImageBitDepth	= $30313032 (* '0102' *);						{  UInt32  }
-	kICAPropertyImageDPI		= $30313141 (* '011A' *);						{  UInt32  }
-	kICAPropertyImageExposureTime = $38323941 (* '829A' *);
-	kICAPropertyImageFNumber	= $38323944 (* '829D' *);
-	kICAPropertyImageDateOriginal = $39303033 (* '9003' *);						{  null terminated string (YYYYMMDDThhmmss.s)  }
-	kICAPropertyImageDateDigitized = $39303034 (* '9004' *);					{  null terminated string (YYYYMMDDThhmmss.s)  }
-	kICAPropertyImageShutterSpeed = $39323031 (* '9201' *);						{   }
-	kICAPropertyImageAperture	= $39323032 (* '9202' *);						{   }
-	kICAPropertyImageFlash		= $39323039 (* '9209' *);						{  UInt16 }
-	kICAPropertyColorSpace		= $41303031 (* 'A001' *);						{  UInt16 }
-	kICAPropertyImageFilename	= $6966696C (* 'ifil' *);						{  null terminated string  }
-	kICAPropertyImageSize		= $6973697A (* 'isiz' *);						{  UInt32  }
-	kICAPropertyImageData		= $69646174 (* 'idat' *);						{  void *  }
-	kICAPropertyImageThumbnail	= $7468756D (* 'thum' *);						{  void *  }
-	kICAPropertyColorSyncProfile = $70726F66 (* 'prof' *);
+	kICAPropertyImageWidth		= FourCharCode('0100');						{  UInt32  }
+	kICAPropertyImageHeight		= FourCharCode('0101');						{  UInt32  }
+	kICAPropertyImageBitDepth	= FourCharCode('0102');						{  UInt32  }
+	kICAPropertyImageDPI		= FourCharCode('011A');						{  UInt32  }
+	kICAPropertyImageExposureTime = FourCharCode('829A');
+	kICAPropertyImageFNumber	= FourCharCode('829D');
+	kICAPropertyImageDateOriginal = FourCharCode('9003');						{  null terminated string (YYYYMMDDThhmmss.s)  }
+	kICAPropertyImageDateDigitized = FourCharCode('9004');					{  null terminated string (YYYYMMDDThhmmss.s)  }
+	kICAPropertyImageShutterSpeed = FourCharCode('9201');						{   }
+	kICAPropertyImageAperture	= FourCharCode('9202');						{   }
+	kICAPropertyImageFlash		= FourCharCode('9209');						{  UInt16 }
+	kICAPropertyColorSpace		= FourCharCode('A001');						{  UInt16 }
+	kICAPropertyImageFilename	= FourCharCode('ifil');						{  null terminated string  }
+	kICAPropertyImageSize		= FourCharCode('isiz');						{  UInt32  }
+	kICAPropertyImageData		= FourCharCode('idat');						{  void *  }
+	kICAPropertyImageThumbnail	= FourCharCode('thum');						{  void *  }
+	kICAPropertyColorSyncProfile = FourCharCode('prof');
 
 	{  Messages  }
-	kICAMessageConnect			= $6F70656E (* 'open' *);
-	kICAMessageDisconnect		= $636C6F73 (* 'clos' *);
-	kICAMessageReset			= $72657365 (* 'rese' *);
-	kICAMessageCheckDevice		= $63686B64 (* 'chkd' *);
+	kICAMessageConnect			= FourCharCode('open');
+	kICAMessageDisconnect		= FourCharCode('clos');
+	kICAMessageReset			= FourCharCode('rese');
+	kICAMessageCheckDevice		= FourCharCode('chkd');
 
 
 	{  Data type definitions, mapped to AppleEvent types  }
-	kICATypeUInt16				= $75693136 (* 'ui16' *);						{  UInt16  }
-	kICATypeUInt32				= $75693332 (* 'ui32' *);						{  UInt32  }
-	kICATypeUInt64				= $75693634 (* 'ui64' *);						{  UInt64  }
-	kICATypeSInt16				= $73693136 (* 'si16' *);						{  SInt16  }
-	kICATypeSInt32				= $73693332 (* 'si32' *);						{  SInt32  }
-	kICATypeSInt64				= $73693634 (* 'si64' *);						{  SInt64  }
-	kICATypeFixed				= $73696E67 (* 'sing' *);						{  typeIEEE32BitFloatingPoint  }
-	kICATypeBoolean				= $626F6F6C (* 'bool' *);						{  typeBoolean  }
-	kICATypeString				= $54455854 (* 'TEXT' *);						{  typeChar  }
-	kICATypeData				= $64617461 (* 'data' *);						{  void *  }
-	kICATypeThumbnail			= $7468756D (* 'thum' *);						{  ICAThumbnail }
+	kICATypeUInt16				= FourCharCode('ui16');						{  UInt16  }
+	kICATypeUInt32				= FourCharCode('ui32');						{  UInt32  }
+	kICATypeUInt64				= FourCharCode('ui64');						{  UInt64  }
+	kICATypeSInt16				= FourCharCode('si16');						{  SInt16  }
+	kICATypeSInt32				= FourCharCode('si32');						{  SInt32  }
+	kICATypeSInt64				= FourCharCode('si64');						{  SInt64  }
+	kICATypeFixed				= FourCharCode('sing');						{  typeIEEE32BitFloatingPoint  }
+	kICATypeBoolean				= FourCharCode('bool');						{  typeBoolean  }
+	kICATypeString				= FourCharCode('TEXT');						{  typeChar  }
+	kICATypeData				= FourCharCode('data');						{  void *  }
+	kICATypeThumbnail			= FourCharCode('thum');						{  ICAThumbnail }
 
 
 	{  Flags for PropertyInfo flag element  }
@@ -200,22 +200,22 @@ const
 
 
 	{  Notification types (Refer to section 12.4 of PTP spec)  }
-	kICAEventCancelTransaction	= $65636E74 (* 'ecnt' *);
-	kICAEventObjectAdded		= $656F6261 (* 'eoba' *);
-	kICAEventObjectRemoved		= $656F6272 (* 'eobr' *);
-	kICAEventStoreAdded			= $65737461 (* 'esta' *);
-	kICAEventStoreRemoved		= $65737472 (* 'estr' *);
-	kICAEventDeviceAdded		= $65646561 (* 'edea' *);
-	kICAEventDeviceRemoved		= $65646572 (* 'eder' *);
-	kICAEventDevicePropChanged	= $65647063 (* 'edpc' *);
-	kICAEventObjectInfoChanged	= $656F6963 (* 'eoic' *);
-	kICAEventDeviceInfoChanged	= $65646963 (* 'edic' *);
-	kICAEventRequestObjectTransfer = $65726F74 (* 'erot' *);
-	kICAEventStoreFull			= $65737466 (* 'estf' *);
-	kICAEventDeviceReset		= $65647672 (* 'edvr' *);
-	kICAEventStorageInfoChanged	= $65736963 (* 'esic' *);
-	kICAEventCaptureComplete	= $65637063 (* 'ecpc' *);
-	kICAEventUnreportedStatus	= $65757273 (* 'eurs' *);
+	kICAEventCancelTransaction	= FourCharCode('ecnt');
+	kICAEventObjectAdded		= FourCharCode('eoba');
+	kICAEventObjectRemoved		= FourCharCode('eobr');
+	kICAEventStoreAdded			= FourCharCode('esta');
+	kICAEventStoreRemoved		= FourCharCode('estr');
+	kICAEventDeviceAdded		= FourCharCode('edea');
+	kICAEventDeviceRemoved		= FourCharCode('eder');
+	kICAEventDevicePropChanged	= FourCharCode('edpc');
+	kICAEventObjectInfoChanged	= FourCharCode('eoic');
+	kICAEventDeviceInfoChanged	= FourCharCode('edic');
+	kICAEventRequestObjectTransfer = FourCharCode('erot');
+	kICAEventStoreFull			= FourCharCode('estf');
+	kICAEventDeviceReset		= FourCharCode('edvr');
+	kICAEventStorageInfoChanged	= FourCharCode('esic');
+	kICAEventCaptureComplete	= FourCharCode('ecpc');
+	kICAEventUnreportedStatus	= FourCharCode('eurs');
 
 
 	{  Used for partial reads via ICAGetPropertyData  }

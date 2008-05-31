@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ICACamera;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -117,48 +117,48 @@ const
 																{  Camera properties }
 																{  Refer to section 13 of the PIMA 15740 (PTP) specification for }
 																{  descriptions and usage notes for these standard properties }
-	kICAPropertyCameraBatteryLevel = $35303031 (* '5001' *);					{  UInt8   enum/range }
-	kICAPropertyCameraFunctionalMode = $35303032 (* '5002' *);					{  UInt16     enum }
-	kICAPropertyCameraImageSize	= $35303033 (* '5003' *);						{  CFString     enum/range }
-	kICAPropertyCameraCompressionSetting = $35303034 (* '5004' *);				{  UInt8   enum/range }
-	kICAPropertyCameraWhiteBalance = $35303035 (* '5005' *);					{  UInt16     enum }
-	kICAPropertyCameraRGBGain	= $35303036 (* '5006' *);						{  null terminated string enum/range }
-	kICAPropertyCameraFNumber	= $35303037 (* '5007' *);						{  UInt16     enum }
-	kICAPropertyCameraFocalLength = $35303038 (* '5008' *);						{  UInt32     enum/range }
-	kICAPropertyCameraFocusDistance = $35303039 (* '5009' *);					{  UInt16     enum/range }
-	kICAPropertyCameraFocusMode	= $35303041 (* '500A' *);						{  UInt16     enum }
-	kICAPropertyCameraExposureMeteringMode = $35303042 (* '500B' *);			{  UInt16     enum }
-	kICAPropertyCameraFlashMode	= $35303043 (* '500C' *);						{  UInt16     enum }
-	kICAPropertyCameraExposureTime = $35303044 (* '500D' *);					{  UInt32     enum/range }
-	kICAPropertyCameraExposureProgramMode = $35303045 (* '500E' *);				{  UInt16     enum }
-	kICAPropertyCameraExposureIndex = $35303046 (* '500F' *);					{  UInt16     enum/range }
-	kICAPropertyCameraExposureBiasCompensation = $35303130 (* '5010' *);		{  UInt16     enum/range }
-	kICAPropertyCameraDateTime	= $35303131 (* '5011' *);						{  null terminated string     none }
-	kICAPropertyCameraCaptureDelay = $35303132 (* '5012' *);					{  UInt32     enum/range }
-	kICAPropertyCameraStillCaptureMode = $35303133 (* '5013' *);				{  UInt16     enum }
-	kICAPropertyCameraContrast	= $35303134 (* '5014' *);						{  UInt8   enum/range }
-	kICAPropertyCameraSharpness	= $35303135 (* '5015' *);						{  UInt8   enum/range }
-	kICAPropertyCameraDigitalZoom = $35303136 (* '5016' *);						{  UInt8   enum/range }
-	kICAPropertyCameraEffectMode = $35303137 (* '5017' *);						{  UInt16     enum }
-	kICAPropertyCameraBurstNumber = $35303138 (* '5018' *);						{  UInt16     enum/range }
-	kICAPropertyCameraBurstInterval = $35303139 (* '5019' *);					{  UInt16     enum/range }
-	kICAPropertyCameraTimelapseNumber = $35303141 (* '501A' *);					{  UInt16     enum/range }
-	kICAPropertyCameraTimelapseInterval = $35303142 (* '501B' *);				{  UInt32     enum/range }
-	kICAPropertyCameraFocusMeteringMode = $35303143 (* '501C' *);				{  UInt16     enum }
+	kICAPropertyCameraBatteryLevel = FourCharCode('5001');					{  UInt8   enum/range }
+	kICAPropertyCameraFunctionalMode = FourCharCode('5002');					{  UInt16     enum }
+	kICAPropertyCameraImageSize	= FourCharCode('5003');						{  CFString     enum/range }
+	kICAPropertyCameraCompressionSetting = FourCharCode('5004');				{  UInt8   enum/range }
+	kICAPropertyCameraWhiteBalance = FourCharCode('5005');					{  UInt16     enum }
+	kICAPropertyCameraRGBGain	= FourCharCode('5006');						{  null terminated string enum/range }
+	kICAPropertyCameraFNumber	= FourCharCode('5007');						{  UInt16     enum }
+	kICAPropertyCameraFocalLength = FourCharCode('5008');						{  UInt32     enum/range }
+	kICAPropertyCameraFocusDistance = FourCharCode('5009');					{  UInt16     enum/range }
+	kICAPropertyCameraFocusMode	= FourCharCode('500A');						{  UInt16     enum }
+	kICAPropertyCameraExposureMeteringMode = FourCharCode('500B');			{  UInt16     enum }
+	kICAPropertyCameraFlashMode	= FourCharCode('500C');						{  UInt16     enum }
+	kICAPropertyCameraExposureTime = FourCharCode('500D');					{  UInt32     enum/range }
+	kICAPropertyCameraExposureProgramMode = FourCharCode('500E');				{  UInt16     enum }
+	kICAPropertyCameraExposureIndex = FourCharCode('500F');					{  UInt16     enum/range }
+	kICAPropertyCameraExposureBiasCompensation = FourCharCode('5010');		{  UInt16     enum/range }
+	kICAPropertyCameraDateTime	= FourCharCode('5011');						{  null terminated string     none }
+	kICAPropertyCameraCaptureDelay = FourCharCode('5012');					{  UInt32     enum/range }
+	kICAPropertyCameraStillCaptureMode = FourCharCode('5013');				{  UInt16     enum }
+	kICAPropertyCameraContrast	= FourCharCode('5014');						{  UInt8   enum/range }
+	kICAPropertyCameraSharpness	= FourCharCode('5015');						{  UInt8   enum/range }
+	kICAPropertyCameraDigitalZoom = FourCharCode('5016');						{  UInt8   enum/range }
+	kICAPropertyCameraEffectMode = FourCharCode('5017');						{  UInt16     enum }
+	kICAPropertyCameraBurstNumber = FourCharCode('5018');						{  UInt16     enum/range }
+	kICAPropertyCameraBurstInterval = FourCharCode('5019');					{  UInt16     enum/range }
+	kICAPropertyCameraTimelapseNumber = FourCharCode('501A');					{  UInt16     enum/range }
+	kICAPropertyCameraTimelapseInterval = FourCharCode('501B');				{  UInt32     enum/range }
+	kICAPropertyCameraFocusMeteringMode = FourCharCode('501C');				{  UInt16     enum }
 
 																{  Refer to section 5.5.3 of the PTP spec }
-	kICAPropertyCameraStorageType = $73746F72 (* 'stor' *);						{  UInt16 }
-	kICAPropertyCameraFilesystemType = $66737973 (* 'fsys' *);					{  UInt16 }
-	kICAPropertyCameraAccessCapability = $61636170 (* 'acap' *);				{  UInt16 }
-	kICAPropertyCameraMaxCapacity = $6D617863 (* 'maxc' *);						{  UInt64 }
-	kICAPropertyCameraFreeSpaceInBytes = $66726573 (* 'fres' *);				{  UInt64 }
-	kICAPropertyCameraFreeSpaceInImages = $66726569 (* 'frei' *);				{  UInt32 }
-	kICAPropertyCameraStorageDescription = $73746F64 (* 'stod' *);				{  null terminated string }
-	kICAPropertyCameraVolumeLabel = $766F6C6C (* 'voll' *);						{  null terminated string }
+	kICAPropertyCameraStorageType = FourCharCode('stor');						{  UInt16 }
+	kICAPropertyCameraFilesystemType = FourCharCode('fsys');					{  UInt16 }
+	kICAPropertyCameraAccessCapability = FourCharCode('acap');				{  UInt16 }
+	kICAPropertyCameraMaxCapacity = FourCharCode('maxc');						{  UInt64 }
+	kICAPropertyCameraFreeSpaceInBytes = FourCharCode('fres');				{  UInt64 }
+	kICAPropertyCameraFreeSpaceInImages = FourCharCode('frei');				{  UInt32 }
+	kICAPropertyCameraStorageDescription = FourCharCode('stod');				{  null terminated string }
+	kICAPropertyCameraVolumeLabel = FourCharCode('voll');						{  null terminated string }
 
 																{  ICA specific }
-	kICAPropertyCameraIcon		= $69636F6E (* 'icon' *);						{  ICAThumbnail }
-	kICAPropertyCameraSupportedMessages = $6D736773 (* 'msgs' *);				{  array of OSTypes }
+	kICAPropertyCameraIcon		= FourCharCode('icon');						{  ICAThumbnail }
+	kICAPropertyCameraSupportedMessages = FourCharCode('msgs');				{  array of OSTypes }
 
 																{  Values for kICAPropertyCameraStorageType }
 	kICAStorageFixedROM			= $0001;
@@ -177,11 +177,11 @@ const
 	kICAAccessReadOnlyWithObjectDeletion = $0002;
 
 																{  Camera messages }
-	kICAMessageCameraCaptureNewImage = $63636E69 (* 'ccni' *);
-	kICAMessageCameraDeleteOne	= $64656C31 (* 'del1' *);
-	kICAMessageCameraDeleteAll	= $64656C61 (* 'dela' *);
-	kICAMessageCameraSyncClock	= $73636C6B (* 'sclk' *);
-	kICAMessageCameraUploadData	= $6C6F6164 (* 'load' *);
+	kICAMessageCameraCaptureNewImage = FourCharCode('ccni');
+	kICAMessageCameraDeleteOne	= FourCharCode('del1');
+	kICAMessageCameraDeleteAll	= FourCharCode('dela');
+	kICAMessageCameraSyncClock	= FourCharCode('sclk');
+	kICAMessageCameraUploadData	= FourCharCode('load');
 
 {$ALIGN MAC68K}
 

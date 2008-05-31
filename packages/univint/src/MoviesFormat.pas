@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit MoviesFormat;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -548,72 +548,72 @@ type
 
 const
 																{  some system defined format IDs  }
-	MOVIE_TYPE					= $6D6F6F76 (* 'moov' *);
-	TRACK_TYPE					= $7472616B (* 'trak' *);
-	MEDIA_TYPE					= $6D646961 (* 'mdia' *);
-	VIDEO_TYPE					= $76696465 (* 'vide' *);
-	SOUND_TYPE					= $736F756E (* 'soun' *);
+	MOVIE_TYPE					= FourCharCode('moov');
+	TRACK_TYPE					= FourCharCode('trak');
+	MEDIA_TYPE					= FourCharCode('mdia');
+	VIDEO_TYPE					= FourCharCode('vide');
+	SOUND_TYPE					= FourCharCode('soun');
 
 	{	 atom id's 	}
-	MovieAID					= $6D6F6F76 (* 'moov' *);
-	MovieHeaderAID				= $6D766864 (* 'mvhd' *);
-	ClipAID						= $636C6970 (* 'clip' *);
-	RgnClipAID					= $6372676E (* 'crgn' *);
-	MatteAID					= $6D617474 (* 'matt' *);
-	MatteCompAID				= $6B6D6174 (* 'kmat' *);
-	TrackAID					= $7472616B (* 'trak' *);
-	UserDataAID					= $75647461 (* 'udta' *);
-	TrackHeaderAID				= $746B6864 (* 'tkhd' *);
-	EditsAID					= $65647473 (* 'edts' *);
-	EditListAID					= $656C7374 (* 'elst' *);
-	MediaAID					= $6D646961 (* 'mdia' *);
-	MediaHeaderAID				= $6D646864 (* 'mdhd' *);
-	MediaInfoAID				= $6D696E66 (* 'minf' *);
-	VideoMediaInfoHeaderAID		= $766D6864 (* 'vmhd' *);
-	SoundMediaInfoHeaderAID		= $736D6864 (* 'smhd' *);
-	GenericMediaInfoHeaderAID	= $676D6864 (* 'gmhd' *);
-	GenericMediaInfoAID			= $676D696E (* 'gmin' *);
-	DataInfoAID					= $64696E66 (* 'dinf' *);
-	DataRefAID					= $64726566 (* 'dref' *);
-	SampleTableAID				= $7374626C (* 'stbl' *);
-	STSampleDescAID				= $73747364 (* 'stsd' *);
-	STTimeToSampAID				= $73747473 (* 'stts' *);
-	STSyncSampleAID				= $73747373 (* 'stss' *);
-	STSampleToChunkAID			= $73747363 (* 'stsc' *);
-	STShadowSyncAID				= $73747368 (* 'stsh' *);
-	HandlerAID					= $68646C72 (* 'hdlr' *);
-	STSampleSizeAID				= $7374737A (* 'stsz' *);
-	STChunkOffsetAID			= $7374636F (* 'stco' *);
-	STChunkOffset64AID			= $636F3634 (* 'co64' *);
-	STSampleIDAID				= $73746964 (* 'stid' *);
-	DataRefContainerAID			= $64726663 (* 'drfc' *);
-	TrackReferenceAID			= $74726566 (* 'tref' *);
-	ColorTableAID				= $63746162 (* 'ctab' *);
-	LoadSettingsAID				= $6C6F6164 (* 'load' *);
-	PropertyAtomAID				= $636F6465 (* 'code' *);
-	InputMapAID					= $696D6170 (* 'imap' *);
-	MovieBufferHintsAID			= $6D626668 (* 'mbfh' *);
-	MovieDataRefAliasAID		= $6D647261 (* 'mdra' *);
-	SoundLocalizationAID		= $736C6F63 (* 'sloc' *);
-	CompressedMovieAID			= $636D6F76 (* 'cmov' *);
-	CompressedMovieDataAID		= $636D7664 (* 'cmvd' *);
-	DataCompressionAtomAID		= $64636F6D (* 'dcom' *);
-	ReferenceMovieRecordAID		= $726D7261 (* 'rmra' *);
-	ReferenceMovieDescriptorAID	= $726D6461 (* 'rmda' *);
-	ReferenceMovieDataRefAID	= $72647266 (* 'rdrf' *);
-	ReferenceMovieVersionCheckAID = $726D7663 (* 'rmvc' *);
-	ReferenceMovieDataRateAID	= $726D6472 (* 'rmdr' *);
-	ReferenceMovieComponentCheckAID = $726D6364 (* 'rmcd' *);
-	ReferenceMovieQualityAID	= $726D7175 (* 'rmqu' *);
-	ReferenceMovieLanguageAID	= $726D6C61 (* 'rmla' *);
-	ReferenceMovieCPURatingAID	= $726D6373 (* 'rmcs' *);
-	ReferenceMovieAlternateGroupAID = $726D6167 (* 'rmag' *);
-	ReferenceMovieNetworkStatusAID = $726E6574 (* 'rnet' *);
-	CloneMediaAID				= $636C6F6E (* 'clon' *);
-	FileTypeAID					= $66747970 (* 'ftyp' *);
-	SecureContentInfoAID		= $73696E66 (* 'sinf' *);
-	SecureContentSchemeTypeAID	= $7363686D (* 'schm' *);
-	SecureContentSchemeInfoAID	= $73636869 (* 'schi' *);
+	MovieAID					= FourCharCode('moov');
+	MovieHeaderAID				= FourCharCode('mvhd');
+	ClipAID						= FourCharCode('clip');
+	RgnClipAID					= FourCharCode('crgn');
+	MatteAID					= FourCharCode('matt');
+	MatteCompAID				= FourCharCode('kmat');
+	TrackAID					= FourCharCode('trak');
+	UserDataAID					= FourCharCode('udta');
+	TrackHeaderAID				= FourCharCode('tkhd');
+	EditsAID					= FourCharCode('edts');
+	EditListAID					= FourCharCode('elst');
+	MediaAID					= FourCharCode('mdia');
+	MediaHeaderAID				= FourCharCode('mdhd');
+	MediaInfoAID				= FourCharCode('minf');
+	VideoMediaInfoHeaderAID		= FourCharCode('vmhd');
+	SoundMediaInfoHeaderAID		= FourCharCode('smhd');
+	GenericMediaInfoHeaderAID	= FourCharCode('gmhd');
+	GenericMediaInfoAID			= FourCharCode('gmin');
+	DataInfoAID					= FourCharCode('dinf');
+	DataRefAID					= FourCharCode('dref');
+	SampleTableAID				= FourCharCode('stbl');
+	STSampleDescAID				= FourCharCode('stsd');
+	STTimeToSampAID				= FourCharCode('stts');
+	STSyncSampleAID				= FourCharCode('stss');
+	STSampleToChunkAID			= FourCharCode('stsc');
+	STShadowSyncAID				= FourCharCode('stsh');
+	HandlerAID					= FourCharCode('hdlr');
+	STSampleSizeAID				= FourCharCode('stsz');
+	STChunkOffsetAID			= FourCharCode('stco');
+	STChunkOffset64AID			= FourCharCode('co64');
+	STSampleIDAID				= FourCharCode('stid');
+	DataRefContainerAID			= FourCharCode('drfc');
+	TrackReferenceAID			= FourCharCode('tref');
+	ColorTableAID				= FourCharCode('ctab');
+	LoadSettingsAID				= FourCharCode('load');
+	PropertyAtomAID				= FourCharCode('code');
+	InputMapAID					= FourCharCode('imap');
+	MovieBufferHintsAID			= FourCharCode('mbfh');
+	MovieDataRefAliasAID		= FourCharCode('mdra');
+	SoundLocalizationAID		= FourCharCode('sloc');
+	CompressedMovieAID			= FourCharCode('cmov');
+	CompressedMovieDataAID		= FourCharCode('cmvd');
+	DataCompressionAtomAID		= FourCharCode('dcom');
+	ReferenceMovieRecordAID		= FourCharCode('rmra');
+	ReferenceMovieDescriptorAID	= FourCharCode('rmda');
+	ReferenceMovieDataRefAID	= FourCharCode('rdrf');
+	ReferenceMovieVersionCheckAID = FourCharCode('rmvc');
+	ReferenceMovieDataRateAID	= FourCharCode('rmdr');
+	ReferenceMovieComponentCheckAID = FourCharCode('rmcd');
+	ReferenceMovieQualityAID	= FourCharCode('rmqu');
+	ReferenceMovieLanguageAID	= FourCharCode('rmla');
+	ReferenceMovieCPURatingAID	= FourCharCode('rmcs');
+	ReferenceMovieAlternateGroupAID = FourCharCode('rmag');
+	ReferenceMovieNetworkStatusAID = FourCharCode('rnet');
+	CloneMediaAID				= FourCharCode('clon');
+	FileTypeAID					= FourCharCode('ftyp');
+	SecureContentInfoAID		= FourCharCode('sinf');
+	SecureContentSchemeTypeAID	= FourCharCode('schm');
+	SecureContentSchemeInfoAID	= FourCharCode('schi');
 
 	{  Text ATOM definitions }
 
@@ -763,10 +763,10 @@ type
 
 
 const
-	kQTFileTypeBrandQuickTimeMovie = $71742020 (* 'qt  ' *);					{  QuickTime movie files }
-	kQTFileTypeBrandISOFile		= $69736F6D (* 'isom' *);						{  ISO Base Media files }
-	kQTFileTypeBrandMPEG4v1		= $6D703431 (* 'mp41' *);						{  MPEG-4 (ISO/IEC 14496-1) version 1 files }
-	kQTFileTypeBrandMPEG4v2		= $6D703432 (* 'mp42' *);						{  MPEG-4 (ISO/IEC 14496-1) version 2 files }
+	kQTFileTypeBrandQuickTimeMovie = FourCharCode('qt  ');					{  QuickTime movie files }
+	kQTFileTypeBrandISOFile		= FourCharCode('isom');						{  ISO Base Media files }
+	kQTFileTypeBrandMPEG4v1		= FourCharCode('mp41');						{  MPEG-4 (ISO/IEC 14496-1) version 1 files }
+	kQTFileTypeBrandMPEG4v2		= FourCharCode('mp42');						{  MPEG-4 (ISO/IEC 14496-1) version 2 files }
 
 
 type

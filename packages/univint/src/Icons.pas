@@ -19,7 +19,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -27,12 +27,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Icons;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -196,51 +196,51 @@ const
 
 	{	 The following icon types can only be used as an icon element 	}
 	{	 inside a 'icns' icon family 	}
-    kIconServices256PixelDataARGB = $69633038 (* 'ic08' *);
-	kThumbnail32BitData			= $69743332 (* 'it32' *);
-	kThumbnail8BitMask			= $74386D6B (* 't8mk' *);
+    kIconServices256PixelDataARGB = FourCharCode('ic08');
+	kThumbnail32BitData			= FourCharCode('it32');
+	kThumbnail8BitMask			= FourCharCode('t8mk');
 
-	kHuge1BitMask				= $69636823 (* 'ich#' *);
-	kHuge4BitData				= $69636834 (* 'ich4' *);
-	kHuge8BitData				= $69636838 (* 'ich8' *);
-	kHuge32BitData				= $69683332 (* 'ih32' *);
-	kHuge8BitMask				= $68386D6B (* 'h8mk' *);
+	kHuge1BitMask				= FourCharCode('ich#');
+	kHuge4BitData				= FourCharCode('ich4');
+	kHuge8BitData				= FourCharCode('ich8');
+	kHuge32BitData				= FourCharCode('ih32');
+	kHuge8BitMask				= FourCharCode('h8mk');
 
 	{	 The following icon types can be used as a resource type 	}
 	{	 or as an icon element type inside a 'icns' icon family 	}
-	kLarge1BitMask				= $49434E23 (* 'ICN#' *);
-	kLarge4BitData				= $69636C34 (* 'icl4' *);
-	kLarge8BitData				= $69636C38 (* 'icl8' *);
-	kLarge32BitData				= $696C3332 (* 'il32' *);
-	kLarge8BitMask				= $6C386D6B (* 'l8mk' *);
-	kSmall1BitMask				= $69637323 (* 'ics#' *);
-	kSmall4BitData				= $69637334 (* 'ics4' *);
-	kSmall8BitData				= $69637338 (* 'ics8' *);
-	kSmall32BitData				= $69733332 (* 'is32' *);
-	kSmall8BitMask				= $73386D6B (* 's8mk' *);
-	kMini1BitMask				= $69636D23 (* 'icm#' *);
-	kMini4BitData				= $69636D34 (* 'icm4' *);
-	kMini8BitData				= $69636D38 (* 'icm8' *);
+	kLarge1BitMask				= FourCharCode('ICN#');
+	kLarge4BitData				= FourCharCode('icl4');
+	kLarge8BitData				= FourCharCode('icl8');
+	kLarge32BitData				= FourCharCode('il32');
+	kLarge8BitMask				= FourCharCode('l8mk');
+	kSmall1BitMask				= FourCharCode('ics#');
+	kSmall4BitData				= FourCharCode('ics4');
+	kSmall8BitData				= FourCharCode('ics8');
+	kSmall32BitData				= FourCharCode('is32');
+	kSmall8BitMask				= FourCharCode('s8mk');
+	kMini1BitMask				= FourCharCode('icm#');
+	kMini4BitData				= FourCharCode('icm4');
+	kMini8BitData				= FourCharCode('icm8');
 
 	{	  Icon Variants 	}
 	{	 These can be used as an element of an 'icns' icon family 	}
 	{	 or as a parameter to GetIconRefVariant 	}
-	kTileIconVariant			= $74696C65 (* 'tile' *);
-	kRolloverIconVariant		= $6F766572 (* 'over' *);
-	kDropIconVariant			= $64726F70 (* 'drop' *);
-	kOpenIconVariant			= $6F70656E (* 'open' *);
-	kOpenDropIconVariant		= $6F647270 (* 'odrp' *);
+	kTileIconVariant			= FourCharCode('tile');
+	kRolloverIconVariant		= FourCharCode('over');
+	kDropIconVariant			= FourCharCode('drop');
+	kOpenIconVariant			= FourCharCode('open');
+	kOpenDropIconVariant		= FourCharCode('odrp');
 
 	{	 Obsolete. Use names defined above. 	}
-	large1BitMask				= $49434E23 (* 'ICN#' *);
-	large4BitData				= $69636C34 (* 'icl4' *);
-	large8BitData				= $69636C38 (* 'icl8' *);
-	small1BitMask				= $69637323 (* 'ics#' *);
-	small4BitData				= $69637334 (* 'ics4' *);
-	small8BitData				= $69637338 (* 'ics8' *);
-	mini1BitMask				= $69636D23 (* 'icm#' *);
-	mini4BitData				= $69636D34 (* 'icm4' *);
-	mini8BitData				= $69636D38 (* 'icm8' *);
+	large1BitMask				= FourCharCode('ICN#');
+	large4BitData				= FourCharCode('icl4');
+	large8BitData				= FourCharCode('icl8');
+	small1BitMask				= FourCharCode('ics#');
+	small4BitData				= FourCharCode('ics4');
+	small8BitData				= FourCharCode('ics8');
+	mini1BitMask				= FourCharCode('icm#');
+	mini4BitData				= FourCharCode('icm4');
+	mini8BitData				= FourCharCode('icm8');
 
 	{	 Alignment type values. 	}
 	kAlignNone					= $00;
@@ -817,7 +817,7 @@ function PlotCIconHandle(const (*var*) theRect: Rect; align: IconAlignmentType; 
 }
 
 const
-	kSystemIconsCreator			= $6D616373 (* 'macs' *);
+	kSystemIconsCreator			= FourCharCode('macs');
 
 
 	{
@@ -827,192 +827,192 @@ const
 	}
 
 	{	 Generic Finder icons 	}
-	kClipboardIcon				= $434C4950 (* 'CLIP' *);
-	kClippingUnknownTypeIcon	= $636C7075 (* 'clpu' *);
-	kClippingPictureTypeIcon	= $636C7070 (* 'clpp' *);
-	kClippingTextTypeIcon		= $636C7074 (* 'clpt' *);
-	kClippingSoundTypeIcon		= $636C7073 (* 'clps' *);
-	kDesktopIcon				= $6465736B (* 'desk' *);
-	kFinderIcon					= $464E4452 (* 'FNDR' *);
-	kComputerIcon					= $726F6F74 (* 'root' *);
-	kFontSuitcaseIcon			= $4646494C (* 'FFIL' *);
-	kFullTrashIcon				= $66747268 (* 'ftrh' *);
-	kGenericApplicationIcon		= $4150504C (* 'APPL' *);
-	kGenericCDROMIcon			= $63646472 (* 'cddr' *);
-	kGenericControlPanelIcon	= $41505043 (* 'APPC' *);
-	kGenericControlStripModuleIcon = $73646576 (* 'sdev' *);
-	kGenericComponentIcon		= $74686E67 (* 'thng' *);
-	kGenericDeskAccessoryIcon	= $41505044 (* 'APPD' *);
-	kGenericDocumentIcon		= $646F6375 (* 'docu' *);
-	kGenericEditionFileIcon		= $65647466 (* 'edtf' *);
-	kGenericExtensionIcon		= $494E4954 (* 'INIT' *);
-	kGenericFileServerIcon		= $73727672 (* 'srvr' *);
-	kGenericFontIcon			= $6666696C (* 'ffil' *);
-	kGenericFontScalerIcon		= $73636C72 (* 'sclr' *);
-	kGenericFloppyIcon			= $666C7079 (* 'flpy' *);
-	kGenericHardDiskIcon		= $6864736B (* 'hdsk' *);
-	kGenericIDiskIcon			= $6964736B (* 'idsk' *);
-	kGenericRemovableMediaIcon	= $726D6F76 (* 'rmov' *);
-	kGenericMoverObjectIcon		= $6D6F7672 (* 'movr' *);
-	kGenericPCCardIcon			= $70636D63 (* 'pcmc' *);
-	kGenericPreferencesIcon		= $70726566 (* 'pref' *);
-	kGenericQueryDocumentIcon	= $71657279 (* 'qery' *);
-	kGenericRAMDiskIcon			= $72616D64 (* 'ramd' *);
-	kGenericSharedLibaryIcon	= $73686C62 (* 'shlb' *);
-	kGenericStationeryIcon		= $73646F63 (* 'sdoc' *);
-	kGenericSuitcaseIcon		= $73756974 (* 'suit' *);
-	kGenericURLIcon				= $6775726C (* 'gurl' *);
-	kGenericWORMIcon			= $776F726D (* 'worm' *);
-	kInternationalResourcesIcon	= $6966696C (* 'ifil' *);
-	kKeyboardLayoutIcon			= $6B66696C (* 'kfil' *);
-	kSoundFileIcon				= $7366696C (* 'sfil' *);
-	kSystemSuitcaseIcon			= $7A737973 (* 'zsys' *);
-	kTrashIcon					= $74727368 (* 'trsh' *);
-	kTrueTypeFontIcon			= $7466696C (* 'tfil' *);
-	kTrueTypeFlatFontIcon		= $73666E74 (* 'sfnt' *);
-	kTrueTypeMultiFlatFontIcon	= $74746366 (* 'ttcf' *);
-	kUserIDiskIcon				= $7564736B (* 'udsk' *);
-	kUnknownFSObjectIcon				= $756E6673 (* 'unfs' *);
-	kInternationResourcesIcon	= $6966696C (* 'ifil' *);						{  old misspelling }
+	kClipboardIcon				= FourCharCode('CLIP');
+	kClippingUnknownTypeIcon	= FourCharCode('clpu');
+	kClippingPictureTypeIcon	= FourCharCode('clpp');
+	kClippingTextTypeIcon		= FourCharCode('clpt');
+	kClippingSoundTypeIcon		= FourCharCode('clps');
+	kDesktopIcon				= FourCharCode('desk');
+	kFinderIcon					= FourCharCode('FNDR');
+	kComputerIcon					= FourCharCode('root');
+	kFontSuitcaseIcon			= FourCharCode('FFIL');
+	kFullTrashIcon				= FourCharCode('ftrh');
+	kGenericApplicationIcon		= FourCharCode('APPL');
+	kGenericCDROMIcon			= FourCharCode('cddr');
+	kGenericControlPanelIcon	= FourCharCode('APPC');
+	kGenericControlStripModuleIcon = FourCharCode('sdev');
+	kGenericComponentIcon		= FourCharCode('thng');
+	kGenericDeskAccessoryIcon	= FourCharCode('APPD');
+	kGenericDocumentIcon		= FourCharCode('docu');
+	kGenericEditionFileIcon		= FourCharCode('edtf');
+	kGenericExtensionIcon		= FourCharCode('INIT');
+	kGenericFileServerIcon		= FourCharCode('srvr');
+	kGenericFontIcon			= FourCharCode('ffil');
+	kGenericFontScalerIcon		= FourCharCode('sclr');
+	kGenericFloppyIcon			= FourCharCode('flpy');
+	kGenericHardDiskIcon		= FourCharCode('hdsk');
+	kGenericIDiskIcon			= FourCharCode('idsk');
+	kGenericRemovableMediaIcon	= FourCharCode('rmov');
+	kGenericMoverObjectIcon		= FourCharCode('movr');
+	kGenericPCCardIcon			= FourCharCode('pcmc');
+	kGenericPreferencesIcon		= FourCharCode('pref');
+	kGenericQueryDocumentIcon	= FourCharCode('qery');
+	kGenericRAMDiskIcon			= FourCharCode('ramd');
+	kGenericSharedLibaryIcon	= FourCharCode('shlb');
+	kGenericStationeryIcon		= FourCharCode('sdoc');
+	kGenericSuitcaseIcon		= FourCharCode('suit');
+	kGenericURLIcon				= FourCharCode('gurl');
+	kGenericWORMIcon			= FourCharCode('worm');
+	kInternationalResourcesIcon	= FourCharCode('ifil');
+	kKeyboardLayoutIcon			= FourCharCode('kfil');
+	kSoundFileIcon				= FourCharCode('sfil');
+	kSystemSuitcaseIcon			= FourCharCode('zsys');
+	kTrashIcon					= FourCharCode('trsh');
+	kTrueTypeFontIcon			= FourCharCode('tfil');
+	kTrueTypeFlatFontIcon		= FourCharCode('sfnt');
+	kTrueTypeMultiFlatFontIcon	= FourCharCode('ttcf');
+	kUserIDiskIcon				= FourCharCode('udsk');
+	kUnknownFSObjectIcon				= FourCharCode('unfs');
+	kInternationResourcesIcon	= FourCharCode('ifil');						{  old misspelling }
 
 	{	 Internet locations 	}
-	kInternetLocationHTTPIcon	= $696C6874 (* 'ilht' *);
-	kInternetLocationFTPIcon	= $696C6674 (* 'ilft' *);
-	kInternetLocationAppleShareIcon = $696C6166 (* 'ilaf' *);
-	kInternetLocationAppleTalkZoneIcon = $696C6174 (* 'ilat' *);
-	kInternetLocationFileIcon	= $696C6669 (* 'ilfi' *);
-	kInternetLocationMailIcon	= $696C6D61 (* 'ilma' *);
-	kInternetLocationNewsIcon	= $696C6E77 (* 'ilnw' *);
-	kInternetLocationNSLNeighborhoodIcon = $696C6E73 (* 'ilns' *);
-	kInternetLocationGenericIcon = $696C6765 (* 'ilge' *);
+	kInternetLocationHTTPIcon	= FourCharCode('ilht');
+	kInternetLocationFTPIcon	= FourCharCode('ilft');
+	kInternetLocationAppleShareIcon = FourCharCode('ilaf');
+	kInternetLocationAppleTalkZoneIcon = FourCharCode('ilat');
+	kInternetLocationFileIcon	= FourCharCode('ilfi');
+	kInternetLocationMailIcon	= FourCharCode('ilma');
+	kInternetLocationNewsIcon	= FourCharCode('ilnw');
+	kInternetLocationNSLNeighborhoodIcon = FourCharCode('ilns');
+	kInternetLocationGenericIcon = FourCharCode('ilge');
 
 	{	 Folders 	}
-	kGenericFolderIcon			= $666C6472 (* 'fldr' *);
-	kDropFolderIcon				= $64626F78 (* 'dbox' *);
-	kMountedFolderIcon			= $6D6E7464 (* 'mntd' *);
-	kOpenFolderIcon				= $6F666C64 (* 'ofld' *);
-	kOwnedFolderIcon			= $6F776E64 (* 'ownd' *);
-	kPrivateFolderIcon			= $70727666 (* 'prvf' *);
-	kSharedFolderIcon			= $7368666C (* 'shfl' *);
+	kGenericFolderIcon			= FourCharCode('fldr');
+	kDropFolderIcon				= FourCharCode('dbox');
+	kMountedFolderIcon			= FourCharCode('mntd');
+	kOpenFolderIcon				= FourCharCode('ofld');
+	kOwnedFolderIcon			= FourCharCode('ownd');
+	kPrivateFolderIcon			= FourCharCode('prvf');
+	kSharedFolderIcon			= FourCharCode('shfl');
 
 	{	 Sharing Privileges icons 	}
-	kSharingPrivsNotApplicableIcon = $73686E61 (* 'shna' *);
-	kSharingPrivsReadOnlyIcon	= $7368726F (* 'shro' *);
-	kSharingPrivsReadWriteIcon	= $73687277 (* 'shrw' *);
-	kSharingPrivsUnknownIcon	= $7368756B (* 'shuk' *);
-	kSharingPrivsWritableIcon	= $77726974 (* 'writ' *);
+	kSharingPrivsNotApplicableIcon = FourCharCode('shna');
+	kSharingPrivsReadOnlyIcon	= FourCharCode('shro');
+	kSharingPrivsReadWriteIcon	= FourCharCode('shrw');
+	kSharingPrivsUnknownIcon	= FourCharCode('shuk');
+	kSharingPrivsWritableIcon	= FourCharCode('writ');
 
 
 	{	 Users and Groups icons 	}
-	kUserFolderIcon				= $75666C64 (* 'ufld' *);
-	kWorkgroupFolderIcon		= $77666C64 (* 'wfld' *);
-	kGuestUserIcon				= $67757372 (* 'gusr' *);
-	kUserIcon					= $75736572 (* 'user' *);
-	kOwnerIcon					= $73757372 (* 'susr' *);
-	kGroupIcon					= $67727570 (* 'grup' *);
+	kUserFolderIcon				= FourCharCode('ufld');
+	kWorkgroupFolderIcon		= FourCharCode('wfld');
+	kGuestUserIcon				= FourCharCode('gusr');
+	kUserIcon					= FourCharCode('user');
+	kOwnerIcon					= FourCharCode('susr');
+	kGroupIcon					= FourCharCode('grup');
 
 	{	 Special folders 	}
-	kAppearanceFolderIcon		= $61707072 (* 'appr' *);
-	kAppleExtrasFolderIcon		= $616578C6 (* 'aexÄ' *);
-	kAppleMenuFolderIcon		= $616D6E75 (* 'amnu' *);
-	kApplicationsFolderIcon		= $61707073 (* 'apps' *);
-	kApplicationSupportFolderIcon = $61737570 (* 'asup' *);
-	kAssistantsFolderIcon		= $617374C6 (* 'astÄ' *);
-	kColorSyncFolderIcon		= $70726F66 (* 'prof' *);
-	kContextualMenuItemsFolderIcon = $636D6E75 (* 'cmnu' *);
-	kControlPanelDisabledFolderIcon = $63747244 (* 'ctrD' *);
-	kControlPanelFolderIcon		= $6374726C (* 'ctrl' *);
-	kControlStripModulesFolderIcon = $736476C6 (* 'sdvÄ' *);
-	kDocumentsFolderIcon		= $646F6373 (* 'docs' *);
-	kExtensionsDisabledFolderIcon = $65787444 (* 'extD' *);
-	kExtensionsFolderIcon		= $6578746E (* 'extn' *);
-	kFavoritesFolderIcon		= $66617673 (* 'favs' *);
-	kFontsFolderIcon			= $666F6E74 (* 'font' *);
-	kHelpFolderIcon				= $C692686C (* 'Ählp' *);
-	kInternetFolderIcon			= $696E74C6 (* 'intÄ' *);
-	kInternetPlugInFolderIcon	= $C6926E65 (* 'Änet' *);
-	kInternetSearchSitesFolderIcon = $69737366 (* 'issf' *);
-	kLocalesFolderIcon			= $C6926C6F (* 'Äloc' *);
-	kMacOSReadMeFolderIcon		= $6D6F72C6 (* 'morÄ' *);
-	kPublicFolderIcon			= $70756266 (* 'pubf' *);
-	kPreferencesFolderIcon		= $707266C6 (* 'prfÄ' *);
-	kPrinterDescriptionFolderIcon = $70706466 (* 'ppdf' *);
-	kPrinterDriverFolderIcon	= $C6927072 (* 'Äprd' *);
-	kPrintMonitorFolderIcon		= $70726E74 (* 'prnt' *);
-	kRecentApplicationsFolderIcon = $72617070 (* 'rapp' *);
-	kRecentDocumentsFolderIcon	= $72646F63 (* 'rdoc' *);
-	kRecentServersFolderIcon	= $72737276 (* 'rsrv' *);
-	kScriptingAdditionsFolderIcon = $C6927363 (* 'Äscr' *);
-	kSharedLibrariesFolderIcon	= $C6926C69 (* 'Älib' *);
-	kScriptsFolderIcon			= $736372C6 (* 'scrÄ' *);
-	kShutdownItemsDisabledFolderIcon = $73686444 (* 'shdD' *);
-	kShutdownItemsFolderIcon	= $73686466 (* 'shdf' *);
-	kSpeakableItemsFolder		= $73706B69 (* 'spki' *);
-	kStartupItemsDisabledFolderIcon = $73747244 (* 'strD' *);
-	kStartupItemsFolderIcon		= $73747274 (* 'strt' *);
-	kSystemExtensionDisabledFolderIcon = $6D616344 (* 'macD' *);
-	kSystemFolderIcon			= $6D616373 (* 'macs' *);
-	kTextEncodingsFolderIcon	= $C6927465 (* 'Ätex' *);
-	kUsersFolderIcon			= $757372C6 (* 'usrÄ' *);
-	kUtilitiesFolderIcon		= $757469C6 (* 'utiÄ' *);
-	kVoicesFolderIcon			= $66766F63 (* 'fvoc' *);
-	kSystemFolderXIcon			= $6D616378 (* 'macx' *);
+	kAppearanceFolderIcon		= FourCharCode('appr');
+	kAppleExtrasFolderIcon		= FourCharCode('aexÄ');
+	kAppleMenuFolderIcon		= FourCharCode('amnu');
+	kApplicationsFolderIcon		= FourCharCode('apps');
+	kApplicationSupportFolderIcon = FourCharCode('asup');
+	kAssistantsFolderIcon		= FourCharCode('astÄ');
+	kColorSyncFolderIcon		= FourCharCode('prof');
+	kContextualMenuItemsFolderIcon = FourCharCode('cmnu');
+	kControlPanelDisabledFolderIcon = FourCharCode('ctrD');
+	kControlPanelFolderIcon		= FourCharCode('ctrl');
+	kControlStripModulesFolderIcon = FourCharCode('sdvÄ');
+	kDocumentsFolderIcon		= FourCharCode('docs');
+	kExtensionsDisabledFolderIcon = FourCharCode('extD');
+	kExtensionsFolderIcon		= FourCharCode('extn');
+	kFavoritesFolderIcon		= FourCharCode('favs');
+	kFontsFolderIcon			= FourCharCode('font');
+	kHelpFolderIcon				= FourCharCode('Ählp');
+	kInternetFolderIcon			= FourCharCode('intÄ');
+	kInternetPlugInFolderIcon	= FourCharCode('Änet');
+	kInternetSearchSitesFolderIcon = FourCharCode('issf');
+	kLocalesFolderIcon			= FourCharCode('Äloc');
+	kMacOSReadMeFolderIcon		= FourCharCode('morÄ');
+	kPublicFolderIcon			= FourCharCode('pubf');
+	kPreferencesFolderIcon		= FourCharCode('prfÄ');
+	kPrinterDescriptionFolderIcon = FourCharCode('ppdf');
+	kPrinterDriverFolderIcon	= FourCharCode('Äprd');
+	kPrintMonitorFolderIcon		= FourCharCode('prnt');
+	kRecentApplicationsFolderIcon = FourCharCode('rapp');
+	kRecentDocumentsFolderIcon	= FourCharCode('rdoc');
+	kRecentServersFolderIcon	= FourCharCode('rsrv');
+	kScriptingAdditionsFolderIcon = FourCharCode('Äscr');
+	kSharedLibrariesFolderIcon	= FourCharCode('Älib');
+	kScriptsFolderIcon			= FourCharCode('scrÄ');
+	kShutdownItemsDisabledFolderIcon = FourCharCode('shdD');
+	kShutdownItemsFolderIcon	= FourCharCode('shdf');
+	kSpeakableItemsFolder		= FourCharCode('spki');
+	kStartupItemsDisabledFolderIcon = FourCharCode('strD');
+	kStartupItemsFolderIcon		= FourCharCode('strt');
+	kSystemExtensionDisabledFolderIcon = FourCharCode('macD');
+	kSystemFolderIcon			= FourCharCode('macs');
+	kTextEncodingsFolderIcon	= FourCharCode('Ätex');
+	kUsersFolderIcon			= FourCharCode('usrÄ');
+	kUtilitiesFolderIcon		= FourCharCode('utiÄ');
+	kVoicesFolderIcon			= FourCharCode('fvoc');
+	kSystemFolderXIcon			= FourCharCode('macx');
 
 	{	 Badges 	}
-	kAppleScriptBadgeIcon		= $73637270 (* 'scrp' *);
-	kLockedBadgeIcon			= $6C626467 (* 'lbdg' *);
-	kMountedBadgeIcon			= $6D626467 (* 'mbdg' *);
-	kSharedBadgeIcon			= $73626467 (* 'sbdg' *);
-	kAliasBadgeIcon				= $61626467 (* 'abdg' *);
-	kAlertCautionBadgeIcon		= $63626467 (* 'cbdg' *);
+	kAppleScriptBadgeIcon		= FourCharCode('scrp');
+	kLockedBadgeIcon			= FourCharCode('lbdg');
+	kMountedBadgeIcon			= FourCharCode('mbdg');
+	kSharedBadgeIcon			= FourCharCode('sbdg');
+	kAliasBadgeIcon				= FourCharCode('abdg');
+	kAlertCautionBadgeIcon		= FourCharCode('cbdg');
 
 	{	 Alert icons 	}
-	kAlertNoteIcon				= $6E6F7465 (* 'note' *);
-	kAlertCautionIcon			= $63617574 (* 'caut' *);
-	kAlertStopIcon				= $73746F70 (* 'stop' *);
+	kAlertNoteIcon				= FourCharCode('note');
+	kAlertCautionIcon			= FourCharCode('caut');
+	kAlertStopIcon				= FourCharCode('stop');
 
 	{	 Networking icons 	}
-	kAppleTalkIcon				= $61746C6B (* 'atlk' *);
-	kAppleTalkZoneIcon			= $61747A6E (* 'atzn' *);
-	kAFPServerIcon				= $61667073 (* 'afps' *);
-	kFTPServerIcon				= $66747073 (* 'ftps' *);
-	kHTTPServerIcon				= $68747073 (* 'htps' *);
-	kGenericNetworkIcon			= $676E6574 (* 'gnet' *);
-	kIPFileServerIcon			= $69737276 (* 'isrv' *);
+	kAppleTalkIcon				= FourCharCode('atlk');
+	kAppleTalkZoneIcon			= FourCharCode('atzn');
+	kAFPServerIcon				= FourCharCode('afps');
+	kFTPServerIcon				= FourCharCode('ftps');
+	kHTTPServerIcon				= FourCharCode('htps');
+	kGenericNetworkIcon			= FourCharCode('gnet');
+	kIPFileServerIcon			= FourCharCode('isrv');
 
 	{	 Toolbar icons 	}
-	kToolbarCustomizeIcon		= $74637573 (* 'tcus' *);
-	kToolbarDeleteIcon			= $7464656C (* 'tdel' *);
-	kToolbarFavoritesIcon		= $74666176 (* 'tfav' *);
-	kToolbarHomeIcon			= $74686F6D (* 'thom' *);
+	kToolbarCustomizeIcon		= FourCharCode('tcus');
+	kToolbarDeleteIcon			= FourCharCode('tdel');
+	kToolbarFavoritesIcon		= FourCharCode('tfav');
+	kToolbarHomeIcon			= FourCharCode('thom');
 
 	{	 Other icons 	}
-	kAppleLogoIcon				= $6361706C (* 'capl' *);
-	kAppleMenuIcon				= $7361706C (* 'sapl' *);
-	kBackwardArrowIcon			= $6261726F (* 'baro' *);
-	kFavoriteItemsIcon			= $66617672 (* 'favr' *);
-	kForwardArrowIcon			= $6661726F (* 'faro' *);
-	kGridIcon					= $67726964 (* 'grid' *);
-	kHelpIcon					= $68656C70 (* 'help' *);
-	kKeepArrangedIcon			= $61726E67 (* 'arng' *);
-	kLockedIcon					= $6C6F636B (* 'lock' *);
-	kNoFilesIcon				= $6E66696C (* 'nfil' *);
-	kNoFolderIcon				= $6E666C64 (* 'nfld' *);
-	kNoWriteIcon				= $6E777274 (* 'nwrt' *);
-	kProtectedApplicationFolderIcon = $70617070 (* 'papp' *);
-	kProtectedSystemFolderIcon	= $70737973 (* 'psys' *);
-	kRecentItemsIcon			= $72636E74 (* 'rcnt' *);
-	kShortcutIcon				= $73687274 (* 'shrt' *);
-	kSortAscendingIcon			= $61736E64 (* 'asnd' *);
-	kSortDescendingIcon			= $64736E64 (* 'dsnd' *);
-	kUnlockedIcon				= $756C636B (* 'ulck' *);
-	kConnectToIcon				= $636E6374 (* 'cnct' *);
-	kGenericWindowIcon			= $6777696E (* 'gwin' *);
-	kQuestionMarkIcon			= $71756573 (* 'ques' *);
-	kDeleteAliasIcon			= $64616C69 (* 'dali' *);
-	kEjectMediaIcon				= $656A6563 (* 'ejec' *);
-	kBurningIcon				= $6275726E (* 'burn' *);
-	kRightContainerArrowIcon	= $72636172 (* 'rcar' *);
+	kAppleLogoIcon				= FourCharCode('capl');
+	kAppleMenuIcon				= FourCharCode('sapl');
+	kBackwardArrowIcon			= FourCharCode('baro');
+	kFavoriteItemsIcon			= FourCharCode('favr');
+	kForwardArrowIcon			= FourCharCode('faro');
+	kGridIcon					= FourCharCode('grid');
+	kHelpIcon					= FourCharCode('help');
+	kKeepArrangedIcon			= FourCharCode('arng');
+	kLockedIcon					= FourCharCode('lock');
+	kNoFilesIcon				= FourCharCode('nfil');
+	kNoFolderIcon				= FourCharCode('nfld');
+	kNoWriteIcon				= FourCharCode('nwrt');
+	kProtectedApplicationFolderIcon = FourCharCode('papp');
+	kProtectedSystemFolderIcon	= FourCharCode('psys');
+	kRecentItemsIcon			= FourCharCode('rcnt');
+	kShortcutIcon				= FourCharCode('shrt');
+	kSortAscendingIcon			= FourCharCode('asnd');
+	kSortDescendingIcon			= FourCharCode('dsnd');
+	kUnlockedIcon				= FourCharCode('ulck');
+	kConnectToIcon				= FourCharCode('cnct');
+	kGenericWindowIcon			= FourCharCode('gwin');
+	kQuestionMarkIcon			= FourCharCode('ques');
+	kDeleteAliasIcon			= FourCharCode('dali');
+	kEjectMediaIcon				= FourCharCode('ejec');
+	kBurningIcon				= FourCharCode('burn');
+	kRightContainerArrowIcon	= FourCharCode('rcar');
 
 
 	{	  IconServicesUsageFlags 	}
@@ -1062,7 +1062,7 @@ const
 	   be a pointer an an IconFamily.  In this manner driver vendors can provide rich, detailed drive icons
 	   instead of the 1-bit variety previously supported.
 	}
-	kIconFamilyType				= $69636E73 (* 'icns' *);
+	kIconFamilyType				= FourCharCode('icns');
 
 
 type

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Dictionary;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -119,29 +119,29 @@ uses MacTypes,AEDataModel,Files,AERegistry,CodeFragments,MacErrors;
 }
 
 const
-	kDictionaryFileType			= $64696374 (* 'dict' *);
-	kDCMDictionaryHeaderSignature = $64696374 (* 'dict' *);
+	kDictionaryFileType			= FourCharCode('dict');
+	kDCMDictionaryHeaderSignature = FourCharCode('dict');
 	kDCMDictionaryHeaderVersion	= 2;
 
-	kDCMAnyFieldTag				= $2A2A2A2A (* '****' *);
-	kDCMAnyFieldType			= $2A2A2A2A (* '****' *);
+	kDCMAnyFieldTag				= FourCharCode('****');
+	kDCMAnyFieldType			= FourCharCode('****');
 
 	{	
 	    Contents of a Field Info Record (an AERecord)
 		}
-	keyDCMFieldTag				= $66746167 (* 'ftag' *);						{  typeEnumeration  }
-	keyDCMFieldType				= $66747970 (* 'ftyp' *);						{  typeEnumeration  }
-	keyDCMMaxRecordSize			= $6D72737A (* 'mrsz' *);						{  typeMagnitude  }
-	keyDCMFieldAttributes		= $66617472 (* 'fatr' *);
-	keyDCMFieldDefaultData		= $66646566 (* 'fdef' *);
-	keyDCMFieldName				= $666E616D (* 'fnam' *);						{  typeChar  }
-	keyDCMFieldFindMethods		= $66666E64 (* 'ffnd' *);						{  typeAEList of typeDCMFindMethod  }
+	keyDCMFieldTag				= FourCharCode('ftag');						{  typeEnumeration  }
+	keyDCMFieldType				= FourCharCode('ftyp');						{  typeEnumeration  }
+	keyDCMMaxRecordSize			= FourCharCode('mrsz');						{  typeMagnitude  }
+	keyDCMFieldAttributes		= FourCharCode('fatr');
+	keyDCMFieldDefaultData		= FourCharCode('fdef');
+	keyDCMFieldName				= FourCharCode('fnam');						{  typeChar  }
+	keyDCMFieldFindMethods		= FourCharCode('ffnd');						{  typeAEList of typeDCMFindMethod  }
 
 	{	
 	    Special types for fields of a Field Info Record
 		}
-	typeDCMFieldAttributes		= $66617472 (* 'fatr' *);
-	typeDCMFindMethod			= $666D7468 (* 'fmth' *);
+	typeDCMFieldAttributes		= FourCharCode('fatr');
+	typeDCMFindMethod			= FourCharCode('fmth');
 
 
 	{	
@@ -161,13 +161,13 @@ type
 		}
 
 const
-	pDCMAccessMethod			= $616D7464 (* 'amtd' *);						{  data type: typeChar ReadOnly  }
-	pDCMPermission				= $7065726D (* 'perm' *);						{  data type: typeUInt16  }
-	pDCMListing					= $6C697374 (* 'list' *);						{  data type: typeUInt16  }
-	pDCMMaintenance				= $6D746E63 (* 'mtnc' *);						{  data type: typeUInt16  }
-	pDCMLocale					= $6C6F636C (* 'locl' *);						{  data type: typeUInt32.  Optional; default = kLocaleIdentifierWildCard  }
-	pDCMClass					= $70636C73 (* 'pcls' *);						{  data type: typeUInt16  }
-	pDCMCopyright				= $696E666F (* 'info' *);						{  data type: typeChar  }
+	pDCMAccessMethod			= FourCharCode('amtd');						{  data type: typeChar ReadOnly  }
+	pDCMPermission				= FourCharCode('perm');						{  data type: typeUInt16  }
+	pDCMListing					= FourCharCode('list');						{  data type: typeUInt16  }
+	pDCMMaintenance				= FourCharCode('mtnc');						{  data type: typeUInt16  }
+	pDCMLocale					= FourCharCode('locl');						{  data type: typeUInt32.  Optional; default = kLocaleIdentifierWildCard  }
+	pDCMClass					= FourCharCode('pcls');						{  data type: typeUInt16  }
+	pDCMCopyright				= FourCharCode('info');						{  data type: typeChar  }
 
 	{	
 	    pDCMPermission property constants
@@ -191,12 +191,12 @@ const
 	{	
 	    Standard search method
 		}
-	kDCMFindMethodExactMatch	= $3D202020 (* '=   ' *);
-	kDCMFindMethodBeginningMatch = $62677774 (* 'bgwt' *);
-	kDCMFindMethodContainsMatch	= $636F6E74 (* 'cont' *);
-	kDCMFindMethodEndingMatch	= $656E6473 (* 'ends' *);
-	kDCMFindMethodForwardTrie	= $66747269 (* 'ftri' *);						{  used for morphological analysis }
-	kDCMFindMethodBackwardTrie	= $62747269 (* 'btri' *);						{  used for morphological analysis }
+	kDCMFindMethodExactMatch	= FourCharCode('=   ');
+	kDCMFindMethodBeginningMatch = FourCharCode('bgwt');
+	kDCMFindMethodContainsMatch	= FourCharCode('cont');
+	kDCMFindMethodEndingMatch	= FourCharCode('ends');
+	kDCMFindMethodForwardTrie	= FourCharCode('ftri');						{  used for morphological analysis }
+	kDCMFindMethodBackwardTrie	= FourCharCode('btri');						{  used for morphological analysis }
 
 
 type
@@ -843,23 +843,23 @@ const
 	{	
 	    Defined field tags of Apple Japanese dictionary
 		}
-	kDCMJapaneseYomiTag			= $796F6D69 (* 'yomi' *);
-	kDCMJapaneseHyokiTag		= $68796F6B (* 'hyok' *);
-	kDCMJapaneseHinshiTag		= $68696E73 (* 'hins' *);
-	kDCMJapaneseWeightTag		= $68696E64 (* 'hind' *);
-	kDCMJapanesePhoneticTag		= $68746F6E (* 'hton' *);
-	kDCMJapaneseAccentTag		= $61636E74 (* 'acnt' *);
-	kDCMJapaneseOnKunReadingTag	= $4F6E4B6E (* 'OnKn' *);
-	kDCMJapaneseFukugouInfoTag	= $66756B75 (* 'fuku' *);
+	kDCMJapaneseYomiTag			= FourCharCode('yomi');
+	kDCMJapaneseHyokiTag		= FourCharCode('hyok');
+	kDCMJapaneseHinshiTag		= FourCharCode('hins');
+	kDCMJapaneseWeightTag		= FourCharCode('hind');
+	kDCMJapanesePhoneticTag		= FourCharCode('hton');
+	kDCMJapaneseAccentTag		= FourCharCode('acnt');
+	kDCMJapaneseOnKunReadingTag	= FourCharCode('OnKn');
+	kDCMJapaneseFukugouInfoTag	= FourCharCode('fuku');
 
-	kDCMJapaneseYomiType		= $75747874 (* 'utxt' *);
-	kDCMJapaneseHyokiType		= $75747874 (* 'utxt' *);
-	kDCMJapaneseHinshiType		= $68696E73 (* 'hins' *);
-	kDCMJapaneseWeightType		= $73686F72 (* 'shor' *);
-	kDCMJapanesePhoneticType	= $75747874 (* 'utxt' *);
-	kDCMJapaneseAccentType		= $62797465 (* 'byte' *);
-	kDCMJapaneseOnKunReadingType = $75747874 (* 'utxt' *);
-	kDCMJapaneseFukugouInfoType	= $66756B75 (* 'fuku' *);
+	kDCMJapaneseYomiType		= FourCharCode('utxt');
+	kDCMJapaneseHyokiType		= FourCharCode('utxt');
+	kDCMJapaneseHinshiType		= FourCharCode('hins');
+	kDCMJapaneseWeightType		= FourCharCode('shor');
+	kDCMJapanesePhoneticType	= FourCharCode('utxt');
+	kDCMJapaneseAccentType		= FourCharCode('byte');
+	kDCMJapaneseOnKunReadingType = FourCharCode('utxt');
+	kDCMJapaneseFukugouInfoType	= FourCharCode('fuku');
 
 
 	{	

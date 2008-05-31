@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QuickTimeVR;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -116,21 +116,21 @@ type
 
 
 const
-	kQTVRControllerSubType		= $63747970 (* 'ctyp' *);
-	kQTVRQTVRType				= $71747672 (* 'qtvr' *);
-	kQTVRPanoramaType			= $70616E6F (* 'pano' *);
-	kQTVRObjectType				= $6F626A65 (* 'obje' *);
-	kQTVROldPanoType			= $5354706E (* 'STpn' *);						{  Used in QTVR 1.0 release }
-	kQTVROldObjectType			= $73746E61 (* 'stna' *);						{  Used in QTVR 1.0 release }
+	kQTVRControllerSubType		= FourCharCode('ctyp');
+	kQTVRQTVRType				= FourCharCode('qtvr');
+	kQTVRPanoramaType			= FourCharCode('pano');
+	kQTVRObjectType				= FourCharCode('obje');
+	kQTVROldPanoType			= FourCharCode('STpn');						{  Used in QTVR 1.0 release }
+	kQTVROldObjectType			= FourCharCode('stna');						{  Used in QTVR 1.0 release }
 
 {$ifc TARGET_OS_MAC}
 {$elsec}
 {$endc}  {TARGET_OS_MAC}
 
 	{  QTVR hot spot types }
-	kQTVRHotSpotLinkType		= $6C696E6B (* 'link' *);
-	kQTVRHotSpotURLType			= $75726C20 (* 'url ' *);
-	kQTVRHotSpotUndefinedType	= $756E6466 (* 'undf' *);
+	kQTVRHotSpotLinkType		= FourCharCode('link');
+	kQTVRHotSpotURLType			= FourCharCode('url ');
+	kQTVRHotSpotUndefinedType	= FourCharCode('undf');
 
 	{  Special Values for nodeID in QTVRGoToNodeID }
 	kQTVRCurrentNode			= 0;
@@ -203,9 +203,9 @@ const
 
 	{  Geometry constants used in QTVRSetBackBufferPrefs, QTVRGetBackBufferSettings, QTVRGetBackBufferMemInfo }
 	kQTVRUseMovieGeometry		= 0;
-	kQTVRVerticalCylinder		= $7663796C (* 'vcyl' *);
-	kQTVRHorizontalCylinder		= $6863796C (* 'hcyl' *);
-	kQTVRCube					= $63756265 (* 'cube' *);
+	kQTVRVerticalCylinder		= FourCharCode('vcyl');
+	kQTVRHorizontalCylinder		= FourCharCode('hcyl');
+	kQTVRCube					= FourCharCode('cube');
 
 	{  Resolution constants used in QTVRSetBackBufferPrefs, QTVRGetBackBufferSettings, QTVRGetBackBufferMemInfo }
 	kQTVRDefaultRes				= 0;

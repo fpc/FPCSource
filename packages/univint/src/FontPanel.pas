@@ -13,7 +13,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -21,12 +21,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit FontPanel;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -115,7 +115,7 @@ const
 {
    * Events related to font selection or handling.
    }
-	kEventClassFont = $666F6E74 (* 'font' *);
+	kEventClassFont = FourCharCode('font');
 
 
 {
@@ -129,7 +129,7 @@ const
    * from the window, the application will receive a
    * kEventFontPanelClosed event.
    }
-	kHICommandShowHideFontPanel = $73686670 (* 'shfp' *);
+	kHICommandShowHideFontPanel = FourCharCode('shfp');
 
 { Font Events }
 
@@ -190,13 +190,13 @@ const
 	typeFMFontStyle = typeSInt16; { Quickdraw font style}
 	typeFMFontSize = typeSInt16; { Integer font size.}
 	typeFontColor = typeRGBColor; { Font color spec (optional).}
-	kEventParamATSUFontID = $61756964 (* 'auid' *); { typeATSUFontID}
-	kEventParamATSUFontSize = $6175737A (* 'ausz' *); { typeATSUSize}
-	kEventParamFMFontFamily = $666D666D (* 'fmfm' *); { typeFMFontFamily}
-	kEventParamFMFontStyle = $666D7374 (* 'fmst' *); { typeFMFontStyle}
-	kEventParamFMFontSize = $666D737A (* 'fmsz' *); { typeFMFontSize}
-	kEventParamFontColor = $66636C72 (* 'fclr' *); { typeFontColor}
-	kEventParamDictionary = $64696374 (* 'dict' *); {    typeCFDictionaryRef}
+	kEventParamATSUFontID = FourCharCode('auid'); { typeATSUFontID}
+	kEventParamATSUFontSize = FourCharCode('ausz'); { typeATSUSize}
+	kEventParamFMFontFamily = FourCharCode('fmfm'); { typeFMFontFamily}
+	kEventParamFMFontStyle = FourCharCode('fmst'); { typeFMFontStyle}
+	kEventParamFMFontSize = FourCharCode('fmsz'); { typeFMFontSize}
+	kEventParamFontColor = FourCharCode('fclr'); { typeFontColor}
+	kEventParamDictionary = FourCharCode('dict'); {    typeCFDictionaryRef}
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Key constants to be used to access data inside the dictionary that may
@@ -349,8 +349,8 @@ sending ATSUI style data, it specifies kFontSelectionATSUIType; if it is
 sending Quickdraw style data, it specifies kFontSelectionQDType.
 }
 const
-	kFontSelectionATSUIType = $6173746C (* 'astl' *); { Use ATSUIStyle collection.}
-	kFontSelectionQDType = $7173746C (* 'qstl' *); { Use FontSelectionQDStyle record.}
+	kFontSelectionATSUIType = FourCharCode('astl'); { Use ATSUIStyle collection.}
+	kFontSelectionQDType = FourCharCode('qstl'); { Use FontSelectionQDStyle record.}
 
 {
 Supported versions of the FontSelectionQDStyle record. Clients should always set

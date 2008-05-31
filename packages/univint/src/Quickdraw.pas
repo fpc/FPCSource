@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Quickdraw;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -1407,22 +1407,22 @@ const
 
 
 	{  values for PixMap.pixelFormat }
-	k16LE555PixelFormat			= $4C353535 (* 'L555' *);						{  16 bit LE rgb 555 (PC) }
-	k16LE5551PixelFormat		= $35353531 (* '5551' *);						{  16 bit LE rgb 5551 }
-	k16BE565PixelFormat			= $42353635 (* 'B565' *);						{  16 bit BE rgb 565 }
-	k16LE565PixelFormat			= $4C353635 (* 'L565' *);						{  16 bit LE rgb 565 }
-	k24BGRPixelFormat			= $32344247 (* '24BG' *);						{  24 bit bgr  }
-	k32BGRAPixelFormat			= $42475241 (* 'BGRA' *);						{  32 bit bgra    (Matrox) }
-	k32ABGRPixelFormat			= $41424752 (* 'ABGR' *);						{  32 bit abgr     }
-	k32RGBAPixelFormat			= $52474241 (* 'RGBA' *);						{  32 bit rgba     }
-	kYUVSPixelFormat			= $79757673 (* 'yuvs' *);						{  YUV 4:2:2 byte ordering 16-unsigned = 'YUY2' }
-	kYUVUPixelFormat			= $79757675 (* 'yuvu' *);						{  YUV 4:2:2 byte ordering 16-signed }
-	kYVU9PixelFormat			= $59565539 (* 'YVU9' *);						{  YVU9 Planar    9 }
-	kYUV411PixelFormat			= $59343131 (* 'Y411' *);						{  YUV 4:1:1 Interleaved  16 }
-	kYVYU422PixelFormat			= $59565955 (* 'YVYU' *);						{  YVYU 4:2:2 byte ordering   16 }
-	kUYVY422PixelFormat			= $55595659 (* 'UYVY' *);						{  UYVY 4:2:2 byte ordering   16 }
-	kYUV211PixelFormat			= $59323131 (* 'Y211' *);						{  YUV 2:1:1 Packed   8 }
-	k2vuyPixelFormat			= $32767579 (* '2vuy' *);						{  UYVY 4:2:2 byte ordering   16 }
+	k16LE555PixelFormat			= FourCharCode('L555');						{  16 bit LE rgb 555 (PC) }
+	k16LE5551PixelFormat		= FourCharCode('5551');						{  16 bit LE rgb 5551 }
+	k16BE565PixelFormat			= FourCharCode('B565');						{  16 bit BE rgb 565 }
+	k16LE565PixelFormat			= FourCharCode('L565');						{  16 bit LE rgb 565 }
+	k24BGRPixelFormat			= FourCharCode('24BG');						{  24 bit bgr  }
+	k32BGRAPixelFormat			= FourCharCode('BGRA');						{  32 bit bgra    (Matrox) }
+	k32ABGRPixelFormat			= FourCharCode('ABGR');						{  32 bit abgr     }
+	k32RGBAPixelFormat			= FourCharCode('RGBA');						{  32 bit rgba     }
+	kYUVSPixelFormat			= FourCharCode('yuvs');						{  YUV 4:2:2 byte ordering 16-unsigned = 'YUY2' }
+	kYUVUPixelFormat			= FourCharCode('yuvu');						{  YUV 4:2:2 byte ordering 16-signed }
+	kYVU9PixelFormat			= FourCharCode('YVU9');						{  YVU9 Planar    9 }
+	kYUV411PixelFormat			= FourCharCode('Y411');						{  YUV 4:1:1 Interleaved  16 }
+	kYVYU422PixelFormat			= FourCharCode('YVYU');						{  YVYU 4:2:2 byte ordering   16 }
+	kUYVY422PixelFormat			= FourCharCode('UYVY');						{  UYVY 4:2:2 byte ordering   16 }
+	kYUV211PixelFormat			= FourCharCode('Y211');						{  YUV 2:1:1 Packed   8 }
+	k2vuyPixelFormat			= FourCharCode('2vuy');						{  UYVY 4:2:2 byte ordering   16 }
 
 
 type
@@ -5298,7 +5298,7 @@ function SetPortCustomXFerProc(port: CGrafPtr; proc: CustomXFerProcPtr; flags: U
 const
 	kCursorComponentsVersion	= $00010001;
 
-	kCursorComponentType		= $63757273 (* 'curs' *);
+	kCursorComponentType		= FourCharCode('curs');
 
 	{	 Cursor Component capabilities flags 	}
 	cursorDoesAnimate			= $00000001;

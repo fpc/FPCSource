@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit AEObjects;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -112,62 +112,62 @@ uses MacTypes,AEDataModel,OSUtils,AppleEvents,MacErrors;
 
 const
 																{ *** LOGICAL OPERATOR CONSTANTS  *** }
-	kAEAND						= $414E4420 (* 'AND ' *);						{   0x414e4420   }
-	kAEOR						= $4F522020 (* 'OR  ' *);						{   0x4f522020   }
-	kAENOT						= $4E4F5420 (* 'NOT ' *);						{   0x4e4f5420   }
+	kAEAND						= FourCharCode('AND ');						{   0x414e4420   }
+	kAEOR						= FourCharCode('OR  ');						{   0x4f522020   }
+	kAENOT						= FourCharCode('NOT ');						{   0x4e4f5420   }
 																{ *** ABSOLUTE ORDINAL CONSTANTS  *** }
-	kAEFirst					= $66697273 (* 'firs' *);						{   0x66697273   }
-	kAELast						= $6C617374 (* 'last' *);						{   0x6c617374   }
-	kAEMiddle					= $6D696464 (* 'midd' *);						{   0x6d696464   }
-	kAEAny						= $616E7920 (* 'any ' *);						{   0x616e7920   }
-	kAEAll						= $616C6C20 (* 'all ' *);						{   0x616c6c20   }
+	kAEFirst					= FourCharCode('firs');						{   0x66697273   }
+	kAELast						= FourCharCode('last');						{   0x6c617374   }
+	kAEMiddle					= FourCharCode('midd');						{   0x6d696464   }
+	kAEAny						= FourCharCode('any ');						{   0x616e7920   }
+	kAEAll						= FourCharCode('all ');						{   0x616c6c20   }
 																{ *** RELATIVE ORDINAL CONSTANTS  *** }
-	kAENext						= $6E657874 (* 'next' *);						{   0x6e657874   }
-	kAEPrevious					= $70726576 (* 'prev' *);						{   0x70726576   }
+	kAENext						= FourCharCode('next');						{   0x6e657874   }
+	kAEPrevious					= FourCharCode('prev');						{   0x70726576   }
 																{ *** KEYWORD CONSTANT    *** }
-	keyAECompOperator			= $72656C6F (* 'relo' *);						{   0x72656c6f   }
-	keyAELogicalTerms			= $7465726D (* 'term' *);						{   0x7465726d   }
-	keyAELogicalOperator		= $6C6F6763 (* 'logc' *);						{   0x6c6f6763   }
-	keyAEObject1				= $6F626A31 (* 'obj1' *);						{   0x6f626a31   }
-	keyAEObject2				= $6F626A32 (* 'obj2' *);						{   0x6f626a32   }
+	keyAECompOperator			= FourCharCode('relo');						{   0x72656c6f   }
+	keyAELogicalTerms			= FourCharCode('term');						{   0x7465726d   }
+	keyAELogicalOperator		= FourCharCode('logc');						{   0x6c6f6763   }
+	keyAEObject1				= FourCharCode('obj1');						{   0x6f626a31   }
+	keyAEObject2				= FourCharCode('obj2');						{   0x6f626a32   }
 																{     ... for Keywords for getting fields out of object specifier records.  }
-	keyAEDesiredClass			= $77616E74 (* 'want' *);						{   0x77616e74   }
-	keyAEContainer				= $66726F6D (* 'from' *);						{   0x66726f6d   }
-	keyAEKeyForm				= $666F726D (* 'form' *);						{   0x666f726d   }
-	keyAEKeyData				= $73656C64 (* 'seld' *);						{   0x73656c64   }
+	keyAEDesiredClass			= FourCharCode('want');						{   0x77616e74   }
+	keyAEContainer				= FourCharCode('from');						{   0x66726f6d   }
+	keyAEKeyForm				= FourCharCode('form');						{   0x666f726d   }
+	keyAEKeyData				= FourCharCode('seld');						{   0x73656c64   }
 
 																{     ... for Keywords for getting fields out of Range specifier records.  }
-	keyAERangeStart				= $73746172 (* 'star' *);						{   0x73746172   }
-	keyAERangeStop				= $73746F70 (* 'stop' *);						{   0x73746f70   }
+	keyAERangeStart				= FourCharCode('star');						{   0x73746172   }
+	keyAERangeStop				= FourCharCode('stop');						{   0x73746f70   }
 																{     ... special handler selectors for OSL Callbacks.  }
-	keyDisposeTokenProc			= $78746F6B (* 'xtok' *);						{   0x78746f6b   }
-	keyAECompareProc			= $636D7072 (* 'cmpr' *);						{   0x636d7072   }
-	keyAECountProc				= $636F6E74 (* 'cont' *);						{   0x636f6e74   }
-	keyAEMarkTokenProc			= $6D6B6964 (* 'mkid' *);						{   0x6d6b6964   }
-	keyAEMarkProc				= $6D61726B (* 'mark' *);						{   0x6d61726b   }
-	keyAEAdjustMarksProc		= $61646A6D (* 'adjm' *);						{   0x61646a6d   }
-	keyAEGetErrDescProc			= $696E6463 (* 'indc' *);						{   0x696e6463   }
+	keyDisposeTokenProc			= FourCharCode('xtok');						{   0x78746f6b   }
+	keyAECompareProc			= FourCharCode('cmpr');						{   0x636d7072   }
+	keyAECountProc				= FourCharCode('cont');						{   0x636f6e74   }
+	keyAEMarkTokenProc			= FourCharCode('mkid');						{   0x6d6b6964   }
+	keyAEMarkProc				= FourCharCode('mark');						{   0x6d61726b   }
+	keyAEAdjustMarksProc		= FourCharCode('adjm');						{   0x61646a6d   }
+	keyAEGetErrDescProc			= FourCharCode('indc');						{   0x696e6463   }
 
 	{	***   VALUE and type CONSTANTS    ***	}
 																{     ... possible values for the keyAEKeyForm field of an object specifier.  }
-	formAbsolutePosition		= $696E6478 (* 'indx' *);						{   0x696e6478   }
-	formRelativePosition		= $72656C65 (* 'rele' *);						{   0x72656c65   }
-	formTest					= $74657374 (* 'test' *);						{   0x74657374   }
-	formRange					= $72616E67 (* 'rang' *);						{   0x72616e67   }
-	formPropertyID				= $70726F70 (* 'prop' *);						{   0x70726f70   }
-	formName					= $6E616D65 (* 'name' *);						{   0x6e616d65   }
+	formAbsolutePosition		= FourCharCode('indx');						{   0x696e6478   }
+	formRelativePosition		= FourCharCode('rele');						{   0x72656c65   }
+	formTest					= FourCharCode('test');						{   0x74657374   }
+	formRange					= FourCharCode('rang');						{   0x72616e67   }
+	formPropertyID				= FourCharCode('prop');						{   0x70726f70   }
+	formName					= FourCharCode('name');						{   0x6e616d65   }
 																{     ... relevant types (some of these are often pared with forms above).  }
-	typeObjectSpecifier			= $6F626A20 (* 'obj ' *);						{   0x6f626a20   }
-	typeObjectBeingExamined		= $65786D6E (* 'exmn' *);						{   0x65786d6e   }
-	typeCurrentContainer		= $63636E74 (* 'ccnt' *);						{   0x63636e74   }
-	typeToken					= $746F6B65 (* 'toke' *);						{   0x746f6b65   }
-	typeRelativeDescriptor		= $72656C20 (* 'rel ' *);						{   0x72656c20   }
-	typeAbsoluteOrdinal			= $6162736F (* 'abso' *);						{   0x6162736f   }
-	typeIndexDescriptor			= $696E6465 (* 'inde' *);						{   0x696e6465   }
-	typeRangeDescriptor			= $72616E67 (* 'rang' *);						{   0x72616e67   }
-	typeLogicalDescriptor		= $6C6F6769 (* 'logi' *);						{   0x6c6f6769   }
-	typeCompDescriptor			= $636D7064 (* 'cmpd' *);						{   0x636d7064   }
-	typeOSLTokenList			= $6F73746C (* 'ostl' *);						{   0x6F73746C   }
+	typeObjectSpecifier			= FourCharCode('obj ');						{   0x6f626a20   }
+	typeObjectBeingExamined		= FourCharCode('exmn');						{   0x65786d6e   }
+	typeCurrentContainer		= FourCharCode('ccnt');						{   0x63636e74   }
+	typeToken					= FourCharCode('toke');						{   0x746f6b65   }
+	typeRelativeDescriptor		= FourCharCode('rel ');						{   0x72656c20   }
+	typeAbsoluteOrdinal			= FourCharCode('abso');						{   0x6162736f   }
+	typeIndexDescriptor			= FourCharCode('inde');						{   0x696e6465   }
+	typeRangeDescriptor			= FourCharCode('rang');						{   0x72616e67   }
+	typeLogicalDescriptor		= FourCharCode('logi');						{   0x6c6f6769   }
+	typeCompDescriptor			= FourCharCode('cmpd');						{   0x636d7064   }
+	typeOSLTokenList			= FourCharCode('ostl');						{   0x6F73746C   }
 
 	{	 Possible values for flags parameter to AEResolve.  They're additive 	}
 	kAEIDoMinimum				= $0000;
@@ -179,13 +179,13 @@ const
 	kAEUseRelativeIterators		= $0040;
 
 	{	*** SPECIAL CONSTANTS FOR CUSTOM WHOSE-CLAUSE RESOLUTION 	}
-	typeWhoseDescriptor			= $77686F73 (* 'whos' *);						{   0x77686f73   }
-	formWhose					= $77686F73 (* 'whos' *);						{   0x77686f73   }
-	typeWhoseRange				= $77726E67 (* 'wrng' *);						{   0x77726e67   }
-	keyAEWhoseRangeStart		= $77737472 (* 'wstr' *);						{   0x77737472   }
-	keyAEWhoseRangeStop			= $77737470 (* 'wstp' *);						{   0x77737470   }
-	keyAEIndex					= $6B696478 (* 'kidx' *);						{   0x6b696478   }
-	keyAETest					= $6B747374 (* 'ktst' *);						{   0x6b747374   }
+	typeWhoseDescriptor			= FourCharCode('whos');						{   0x77686f73   }
+	formWhose					= FourCharCode('whos');						{   0x77686f73   }
+	typeWhoseRange				= FourCharCode('wrng');						{   0x77726e67   }
+	keyAEWhoseRangeStart		= FourCharCode('wstr');						{   0x77737472   }
+	keyAEWhoseRangeStop			= FourCharCode('wstp');						{   0x77737470   }
+	keyAEIndex					= FourCharCode('kidx');						{   0x6b696478   }
+	keyAETest					= FourCharCode('ktst');						{   0x6b747374   }
 
 	{	
 	    used for rewriting tokens in place of 'ccnt' descriptors

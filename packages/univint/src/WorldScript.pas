@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit WorldScript;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -122,14 +122,14 @@ type
 	WSITableIdentifiers					= UInt32;
 
 const
-	kScriptSettingsTag			= $696E666F (* 'info' *);
-	kMetamorphosisTag			= $6D6F7274 (* 'mort' *);
-	kGlyphExpansionTag			= $67326723 (* 'g2g#' *);
-	kPropertiesTag				= $70726F70 (* 'prop' *);
-	kJustificationTag			= $6B617368 (* 'kash' *);
-	kCharToGlyphTag				= $636D6170 (* 'cmap' *);
-	kGlyphToCharTag				= $70616D63 (* 'pamc' *);
-	kFindScriptRunTag			= $66737462 (* 'fstb' *);
+	kScriptSettingsTag			= FourCharCode('info');
+	kMetamorphosisTag			= FourCharCode('mort');
+	kGlyphExpansionTag			= FourCharCode('g2g#');
+	kPropertiesTag				= FourCharCode('prop');
+	kJustificationTag			= FourCharCode('kash');
+	kCharToGlyphTag				= FourCharCode('cmap');
+	kGlyphToCharTag				= FourCharCode('pamc');
+	kFindScriptRunTag			= FourCharCode('fstb');
 
 
 	{	***           L O O K U P    T A B L E    T Y P E S       ***	}

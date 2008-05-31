@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Files;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -121,6 +121,10 @@ type
 	end;
 
 	ConstHFSUniStr255Param				= ^HFSUniStr255;
+
+type
+	DirIDTypePtr				= SInt32Ptr;
+	DirIDType					= SInt32;
 
 const
 	fsCurPerm					= $00;							{  open access permissions in ioPermssn  }
@@ -656,7 +660,7 @@ type
 		case SInt16 of
 		0: (
 			ioFlFndrInfo:		FInfo;
-			ioDirID:			UInt32;
+			ioDirID:			DirIDType;
 			ioFlStBlk:			UInt16;
 			ioFlLgLen:			SInt32;
 			ioFlPyLen:			SInt32;
@@ -667,19 +671,19 @@ type
 			ioFlMdDat:			UInt32;
 			ioFlBkDat:			UInt32;
 			ioFlXFndrInfo:		FXInfo;
-			ioFlParID:			SInt32;
+			ioFlParID:			DirIDType;
 			ioFlClpSiz:			SInt32;
 		   );
 		1: (
 			ioDrUsrWds:			DInfo;
-			ioDrDirID:			UInt32;
+			ioDrDirID:			DirIDType;
 			ioDrNmFls:			UInt16;
 			filler3:			array [1..9] of SInt16;
 			ioDrCrDat:			UInt32;
 			ioDrMdDat:			UInt32;
 			ioDrBkDat:			UInt32;
 			ioDrFndrInfo:		DXInfo;
-			ioDrParID:			SInt32;
+			ioDrParID:			DirIDType;
 		   );
 	end;
 
@@ -700,7 +704,7 @@ type
 		ioPDType:				SInt16;								{  <-- The ProDOS file type  }
 		ioPDAuxType:			SInt32;								{  <-- The ProDOS aux type  }
 		filler3:				array [0..1] of SInt32;
-		ioDirID:				UInt32;								{  --> A directory ID  }
+		ioDirID:				DirIDType;							{  --> A directory ID  }
 	end;
 
 	XCInfoPBPtr							= ^XCInfoPBRec;
@@ -714,7 +718,7 @@ type
 	FSSpecPtr = ^FSSpec;
 	FSSpec = record
 		vRefNum:				SInt16;
-		parID:					UInt32;
+		parID:					DirIDType;
 		name:					StrFileName;							{  a Str63 on MacOS }
 	end;
 
@@ -736,7 +740,7 @@ type
 
 const
 																{  the signature for AppleShare  }
-	AppleShareMediaType			= $6166706D (* 'afpm' *);
+	AppleShareMediaType			= FourCharCode('afpm');
 
 	{	
 	    VolMount stuff was once in FSM.Å
@@ -869,14 +873,14 @@ type
 		ioFiller1:				SInt8;
 		ioIconType:				SInt8;
 		ioFiller2:				SInt16;
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 		ioFileCreator:			OSType;
 		ioFileType:				OSType;
 		ioFiller3:				SInt32;
 		ioDTLgLen:				SInt32;
 		ioDTPyLen:				SInt32;
 		ioFiller4:				array [1..14] of SInt16;
-		ioAPPLParID:			SInt32;
+		ioAPPLParID:			DirIDType;
 	end;
 
 	DTPBPtr								= ^DTPBRec;
@@ -919,7 +923,7 @@ type
 		ioFlAttrib:				SInt8;
 		ioFlVersNum:			SInt8;
 		ioFlFndrInfo:			FInfo;
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 		ioFlStBlk:				UInt16;
 		ioFlLgLen:				SInt32;
 		ioFlPyLen:				SInt32;
@@ -1044,7 +1048,7 @@ type
 		ioACOwnerID:			SInt32;								{ owner ID }
 		ioACGroupID:			SInt32;								{ group ID }
 		ioACAccess:				SInt32;								{ access rights }
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 	end;
 
 	ObjParamPtr = ^ObjParam;
@@ -1077,10 +1081,10 @@ type
 		filler8:				SInt16;
 		ioNewName:				StringPtr;								{ ptr to destination pathname }
 		ioCopyName:				StringPtr;								{ ptr to optional name }
-		ioNewDirID:				UInt32;								{ destination directory ID }
+		ioNewDirID:				DirIDType;								{ destination directory ID }
 		filler14:				SInt32;
 		filler15:				SInt32;
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 	end;
 
 	WDParamPtr = ^WDParam;
@@ -1101,7 +1105,7 @@ type
 		filler11:				SInt32;
 		filler12:				SInt32;
 		filler13:				SInt32;
-		ioWDDirID:				UInt32;
+		ioWDDirID:				DirIDType;
 	end;
 
 	FIDParamPtr = ^FIDParam;
@@ -1117,10 +1121,10 @@ type
 		filler14:				SInt32;
 		ioDestNamePtr:			StringPtr;								{  dest file name  }
 		filler15:				SInt32;
-		ioDestDirID:			UInt32;								{  dest file's directory id  }
+		ioDestDirID:			DirIDType;							{  dest file's directory id  }
 		filler16:				SInt32;
 		filler17:				SInt32;
-		ioSrcDirID:				UInt32;								{  source file's directory id  }
+		ioSrcDirID:				DirIDType;							{  source file's directory id  }
 		filler18:				SInt16;
 		ioFileID:				SInt32;								{  file ID  }
 	end;
@@ -1141,7 +1145,7 @@ type
 		ioForeignPrivActCount:	SInt32;
 		ioForeignPrivReqCount:	SInt32;
 		ioFiller23:				SInt32;
-		ioForeignPrivDirID:		UInt32;
+		ioForeignPrivDirID:		DirIDType;
 		ioForeignPrivInfo1:		SInt32;
 		ioForeignPrivInfo2:		SInt32;
 		ioForeignPrivInfo3:		SInt32;
@@ -1201,7 +1205,7 @@ type
 			ioFlAttrib:			SInt8;
 			ioFlVersNum:		SInt8;
 			ioFlFndrInfo:		FInfo;
-			ioDirID:			UInt32;
+			ioDirID:			DirIDType;
 			ioFlStBlk:			UInt16;
 			ioFlLgLen:			SInt32;
 			ioFlPyLen:			SInt32;
@@ -1259,7 +1263,7 @@ type
 			filler8:			SInt16;
 			ioNewName:			StringPtr;								{ ptr to destination pathname }
 			ioCopyName:			StringPtr;								{ ptr to optional name }
-			ioNewDirID:			UInt32;								{ destination directory ID }
+			ioNewDirID:			DirIDType;								{ destination directory ID }
 		   );
 		6: (
 			ioWDCreated:		SInt16;
@@ -1270,16 +1274,16 @@ type
 			filler11:			SInt32;
 			filler12:			SInt32;
 			filler13:			SInt32;
-			ioWDDirID:			UInt32;
+			ioWDDirID:			DirIDType;
 		   );
 		7: (
 			filler14:			SInt32;
 			ioDestNamePtr:		StringPtr;								{  dest file name  }
 			filler15:			SInt32;
-			ioDestDirID:		UInt32;								{  dest file's directory id  }
+			ioDestDirID:		DirIDType;							{  dest file's directory id  }
 			filler16:			SInt32;
 			filler17:			SInt32;
-			ioSrcDirID:			UInt32;								{  source file's directory id  }
+			ioSrcDirID:			DirIDType;							{  source file's directory id  }
 			filler18:			SInt16;
 			ioFileID:			SInt32;								{  file ID  }
 		   );
@@ -1302,7 +1306,7 @@ type
 			ioForeignPrivActCount: SInt32;
 			ioForeignPrivReqCount: SInt32;
 			ioFiller23:			SInt32;
-			ioForeignPrivDirID:	UInt32;
+			ioForeignPrivDirID:	DirIDType;
 			ioForeignPrivInfo1:	SInt32;
 			ioForeignPrivInfo2:	SInt32;
 			ioForeignPrivInfo3:	SInt32;
@@ -1325,9 +1329,9 @@ type
 		filler1:				SInt32;
 		ioNewName:				StringPtr;
 		filler2:				SInt32;
-		ioNewDirID:				UInt32;
+		ioNewDirID:				DirIDType;
 		filler3:				array [1..2] of SInt32;
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 	end;
 
 	CMovePBPtr							= ^CMovePBRec;
@@ -1346,7 +1350,7 @@ type
 		ioWDProcID:				SInt32;
 		ioWDVRefNum:			SInt16;
 		filler2:				array [1..7] of SInt16;
-		ioWDDirID:				UInt32;
+		ioWDDirID:				DirIDType;
 	end;
 
 	WDPBPtr								= ^WDPBRec;
@@ -1372,7 +1376,7 @@ type
 		ioFCBCrPs:				SInt32;
 		ioFCBVRefNum:			SInt16;
 		ioFCBClpSiz:			SInt32;
-		ioFCBParID:				SInt32;
+		ioFCBParID:				DirIDType;
 	end;
 
 	FCBPBPtr							= ^FCBPBRec;
@@ -1994,7 +1998,7 @@ function FlushVol(volName: ConstStringPtr; vRefNum: SInt16): OSErr; external nam
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HSetVol(volName: ConstStringPtr; vRefNum: SInt16; dirID: UInt32): OSErr; external name '_HSetVol';
+function HSetVol(volName: ConstStringPtr; vRefNum: SInt16; dirID: DirIDType): OSErr; external name '_HSetVol';
 
 {  AddDrive() was moved to Devices.h }
 
@@ -2731,7 +2735,7 @@ function GetVCBQHdr: QHdrPtr; external name '_GetVCBQHdr';
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HGetVol(volName: StringPtr; var vRefNum: SInt16; var dirID: UInt32): OSErr; external name '_HGetVol';
+function HGetVol(volName: StringPtr; var vRefNum: SInt16; var dirID: DirIDType): OSErr; external name '_HGetVol';
 
 {
  *  HOpen()
@@ -2741,7 +2745,7 @@ function HGetVol(volName: StringPtr; var vRefNum: SInt16; var dirID: UInt32): OS
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HOpen(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpen';
+function HOpen(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpen';
 
 {
  *  HOpenDF()
@@ -2751,7 +2755,7 @@ function HOpen(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; p
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HOpenDF(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpenDF';
+function HOpenDF(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpenDF';
 
 {
  *  HOpenRF()
@@ -2761,7 +2765,7 @@ function HOpenDF(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255;
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HOpenRF(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpenRF';
+function HOpenRF(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; permission: SInt8; var refNum: SInt16): OSErr; external name '_HOpenRF';
 
 {
  *  AllocContig()
@@ -2781,7 +2785,7 @@ function AllocContig(refNum: SInt16; var count: SInt32): OSErr; external name '_
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HCreate(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; creator: OSType; fileType: OSType): OSErr; external name '_HCreate';
+function HCreate(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; creator: OSType; fileType: OSType): OSErr; external name '_HCreate';
 
 {
  *  DirCreate()
@@ -2791,7 +2795,7 @@ function HCreate(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255;
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function DirCreate(vRefNum: SInt16; parentDirID: UInt32; const (*var*) directoryName: Str255; var createdDirID: UInt32): OSErr; external name '_DirCreate';
+function DirCreate(vRefNum: SInt16; parentDirID: DirIDType; const (*var*) directoryName: Str255; var createdDirID: DirIDType): OSErr; external name '_DirCreate';
 
 {
  *  HDelete()
@@ -2801,7 +2805,7 @@ function DirCreate(vRefNum: SInt16; parentDirID: UInt32; const (*var*) directory
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HDelete(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255): OSErr; external name '_HDelete';
+function HDelete(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255): OSErr; external name '_HDelete';
 
 {
  *  HGetFInfo()
@@ -2811,7 +2815,7 @@ function HDelete(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255)
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HGetFInfo(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; var fndrInfo: FInfo): OSErr; external name '_HGetFInfo';
+function HGetFInfo(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; var fndrInfo: FInfo): OSErr; external name '_HGetFInfo';
 
 {
  *  HSetFInfo()
@@ -2821,7 +2825,7 @@ function HGetFInfo(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str25
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HSetFInfo(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; const (*var*) fndrInfo: FInfo): OSErr; external name '_HSetFInfo';
+function HSetFInfo(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; const (*var*) fndrInfo: FInfo): OSErr; external name '_HSetFInfo';
 
 {
  *  HSetFLock()
@@ -2831,7 +2835,7 @@ function HSetFInfo(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str25
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HSetFLock(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255): OSErr; external name '_HSetFLock';
+function HSetFLock(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255): OSErr; external name '_HSetFLock';
 
 {
  *  HRstFLock()
@@ -2841,7 +2845,7 @@ function HSetFLock(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str25
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRstFLock(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255): OSErr; external name '_HRstFLock';
+function HRstFLock(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255): OSErr; external name '_HRstFLock';
 
 {
  *  HRename()
@@ -2851,7 +2855,7 @@ function HRstFLock(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str25
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function HRename(vRefNum: SInt16; dirID: UInt32; const (*var*) oldName: Str255; const (*var*) newName: Str255): OSErr; external name '_HRename';
+function HRename(vRefNum: SInt16; dirID: DirIDType; const (*var*) oldName: Str255; const (*var*) newName: Str255): OSErr; external name '_HRename';
 
 {
  *  CatMove()
@@ -2861,7 +2865,7 @@ function HRename(vRefNum: SInt16; dirID: UInt32; const (*var*) oldName: Str255; 
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function CatMove(vRefNum: SInt16; dirID: UInt32; const (*var*) oldName: Str255; newDirID: UInt32; const (*var*) newName: Str255): OSErr; external name '_CatMove';
+function CatMove(vRefNum: SInt16; dirID: DirIDType; const (*var*) oldName: Str255; newDirID: DirIDType; const (*var*) newName: Str255): OSErr; external name '_CatMove';
 
 {$ifc CALL_NOT_IN_CARBON}
 {
@@ -2872,7 +2876,7 @@ function CatMove(vRefNum: SInt16; dirID: UInt32; const (*var*) oldName: Str255; 
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function OpenWD(vRefNum: SInt16; dirID: UInt32; procID: SInt32; var wdRefNum: SInt16): OSErr; external name '_OpenWD';
+function OpenWD(vRefNum: SInt16; dirID: DirIDType; procID: SInt32; var wdRefNum: SInt16): OSErr; external name '_OpenWD';
 
 {
  *  CloseWD()
@@ -2892,7 +2896,7 @@ function CloseWD(wdRefNum: SInt16): OSErr; external name '_CloseWD';
  *    CarbonLib:        not available
  *    Mac OS X:         not available
  }
-function GetWDInfo(wdRefNum: SInt16; var vRefNum: SInt16; var dirID: UInt32; var procID: SInt32): OSErr; external name '_GetWDInfo';
+function GetWDInfo(wdRefNum: SInt16; var vRefNum: SInt16; var dirID: DirIDType; var procID: SInt32): OSErr; external name '_GetWDInfo';
 
 {  shared environment  }
 {$endc}  {CALL_NOT_IN_CARBON}
@@ -3502,7 +3506,7 @@ function PBVolumeMount(paramBlock: ParmBlkPtr): OSErr; external name '_PBVolumeM
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function FSMakeFSSpec(vRefNum: SInt16; dirID: UInt32; const (*var*) fileName: Str255; var spec: FSSpec): OSErr; external name '_FSMakeFSSpec';
+function FSMakeFSSpec(vRefNum: SInt16; dirID: DirIDType; const (*var*) fileName: Str255; var spec: FSSpec): OSErr; external name '_FSMakeFSSpec';
 {
  *  FSpOpenDF()
  *  
@@ -3538,7 +3542,7 @@ function FSpCreate(const (*var*) spec: FSSpec; creator: OSType; fileType: OSType
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function FSpDirCreate(const (*var*) spec: FSSpec; scriptTag: ScriptCode; var createdDirID: UInt32): OSErr; external name '_FSpDirCreate';
+function FSpDirCreate(const (*var*) spec: FSSpec; scriptTag: ScriptCode; var createdDirID: DirIDType): OSErr; external name '_FSpDirCreate';
 {
  *  FSpDelete()
  *  
@@ -4608,7 +4612,7 @@ type
 	FSCatalogInfo = record
 		nodeFlags:				UInt16;									{  node flags  }
 		volume:					FSVolumeRefNum;							{  object's volume ref  }
-		parentDirID:			UInt32;									{  parent directory's ID  }
+		parentDirID:			DirIDType;								{  parent directory's ID  }
 		nodeID:					UInt32;									{  file/directory ID  }
 		sharingFlags:			SInt8;									{  kioFlAttribMountedBit and kioFlAttribSharePointBit  }
 		userPrivileges:			SInt8;									{  user's effective AFP privileges (same as ioACUser)  }
@@ -4648,7 +4652,7 @@ type
 		catInfo:				FSCatalogInfoPtr;
 		nameLength:				UniCharCount;							{  input name length for create/rename  }
 		name:					UniCharPtr;								{  input name for create/rename  }
-		ioDirID:				UInt32;
+		ioDirID:				DirIDType;
 		spec:					FSSpecPtr;
 		parentRef:				FSRefPtr;								{  ref of directory to move another ref to  }
 		newRef:					FSRefPtr;								{  Output ref  }
@@ -5044,7 +5048,7 @@ procedure PBCreateFileUnicodeAsync(var paramBlock: FSRefParam); external name '_
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Mac OS X:         in version 10.0 and later
  }
-function FSCreateDirectoryUnicode(const (*var*) parentRef: FSRef; nameLength: UniCharCount; name: UniCharPtr; whichInfo: FSCatalogInfoBitmap; catalogInfo: {Const}FSCatalogInfoPtr; newRef: FSRefPtr; newSpec: FSSpecPtr; newDirID: UInt32Ptr): OSErr; external name '_FSCreateDirectoryUnicode';
+function FSCreateDirectoryUnicode(const (*var*) parentRef: FSRef; nameLength: UniCharCount; name: UniCharPtr; whichInfo: FSCatalogInfoBitmap; catalogInfo: {Const}FSCatalogInfoPtr; newRef: FSRefPtr; newSpec: FSSpecPtr; newDirID: DirIDTypePtr): OSErr; external name '_FSCreateDirectoryUnicode';
 {
  *  PBCreateDirectoryUnicodeSync()
  *  

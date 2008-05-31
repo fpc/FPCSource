@@ -17,7 +17,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -25,12 +25,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QTSMovie;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -110,7 +110,7 @@ uses MacTypes,Components,Movies,QuickTimeStreaming;
 
 
 const
-	kQTSStreamMediaType			= $7374726D (* 'strm' *);
+	kQTSStreamMediaType			= FourCharCode('strm');
 
 
 type
@@ -148,12 +148,12 @@ const
 	-----------------------------------------	}
 	{	 all indexes start at 1 	}
 
-	kQTSMediaPresentationInfo	= $70726573 (* 'pres' *);						{  QTSMediaPresentationParams*  }
-	kQTSMediaNotificationInfo	= $6E6F7469 (* 'noti' *);						{  QTSMediaNotificationParams*  }
-	kQTSMediaTotalDataRateInfo	= $64747274 (* 'dtrt' *);						{  UInt32*, bits/sec  }
-	kQTSMediaLostPercentInfo	= $6C737063 (* 'lspc' *);						{  Fixed*  }
-	kQTSMediaNumStreamsInfo		= $6E737472 (* 'nstr' *);						{  UInt32*  }
-	kQTSMediaIndSampleDescriptionInfo = $69736463 (* 'isdc' *);					{  QTSMediaIndSampleDescriptionParams*  }
+	kQTSMediaPresentationInfo	= FourCharCode('pres');						{  QTSMediaPresentationParams*  }
+	kQTSMediaNotificationInfo	= FourCharCode('noti');						{  QTSMediaNotificationParams*  }
+	kQTSMediaTotalDataRateInfo	= FourCharCode('dtrt');						{  UInt32*, bits/sec  }
+	kQTSMediaLostPercentInfo	= FourCharCode('lspc');						{  Fixed*  }
+	kQTSMediaNumStreamsInfo		= FourCharCode('nstr');						{  UInt32*  }
+	kQTSMediaIndSampleDescriptionInfo = FourCharCode('isdc');					{  QTSMediaIndSampleDescriptionParams*  }
 
 
 type
@@ -234,9 +234,9 @@ function QTSMediaGetIndStreamInfo(mh: MediaHandler; inIndex: SInt32; inSelector:
 ============================================================================}
 
 const
-	kQTSHintMediaType			= $68696E74 (* 'hint' *);
+	kQTSHintMediaType			= FourCharCode('hint');
 
-	kQTSHintTrackReference		= $68696E74 (* 'hint' *);
+	kQTSHintTrackReference		= FourCharCode('hint');
 
 
 {$ALIGN MAC68K}

@@ -50,7 +50,7 @@
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -58,12 +58,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit HIToolbar;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -271,21 +271,21 @@ const
    * to this command ID and it will be handled and updated
    * automatically for you.
    }
-	kHICommandCustomizeToolbar = $74636667 (* 'tcfg' *);
+	kHICommandCustomizeToolbar = FourCharCode('tcfg');
 
   {
    * This command causes a window's toolbar to be shown. You can set a
    * menu item's command to this ID and it will be handled and updated
    * automatically for you.
    }
-	kHICommandShowToolbar = $74627368 (* 'tbsh' *);
+	kHICommandShowToolbar = FourCharCode('tbsh');
 
   {
    * This command causes a window's toolbar to be hidden. You can set a
    * menu item's command to this ID and it will be handled and updated
    * automatically for you.
    }
-	kHICommandHideToolbar = $74626864 (* 'tbhd' *);
+	kHICommandHideToolbar = FourCharCode('tbhd');
 
   {
    * This command, when specified as a toolbar item’s command ID, will
@@ -295,7 +295,7 @@ const
    * kEventCommandProcess event will be generated instead, containing
    * the item’s command ID.
    }
-	kHIToolbarCommandPressAction = $74627072 (* 'tbpr' *);
+	kHIToolbarCommandPressAction = FourCharCode('tbpr');
 
 
 {
@@ -316,12 +316,12 @@ const
 }
 { Toolbar event parameters and types}
 const
-	kEventParamToolbar = $74626172 (* 'tbar' *); { typeHIToolbarRef}
-	kEventParamToolbarItem = $74626974 (* 'tbit' *); { typeHIToolbarItemRef}
-	kEventParamToolbarItemIdentifier = $74626969 (* 'tbii' *); { typeCFStringRef}
-	kEventParamToolbarItemConfigData = $74626964 (* 'tbid' *); { typeCFTypeRef}
-	typeHIToolbarRef = $74626172 (* 'tbar' *); { HIToolbarRef}
-	typeHIToolbarItemRef = $74626974 (* 'tbit' *); { HIToolbarItemRef}
+	kEventParamToolbar = FourCharCode('tbar'); { typeHIToolbarRef}
+	kEventParamToolbarItem = FourCharCode('tbit'); { typeHIToolbarItemRef}
+	kEventParamToolbarItemIdentifier = FourCharCode('tbii'); { typeCFStringRef}
+	kEventParamToolbarItemConfigData = FourCharCode('tbid'); { typeCFTypeRef}
+	typeHIToolbarRef = FourCharCode('tbar'); { HIToolbarRef}
+	typeHIToolbarItemRef = FourCharCode('tbit'); { HIToolbarItemRef}
 
 {
  *  kEventClassToolbar / kEventToolbarGetDefaultIdentifiers
@@ -896,10 +896,10 @@ const
     kEventToolbarItemViewExitConfigMode     = 6
 }
 const
-	kEventParamToolbarDisplayMode = $7462646D (* 'tbdm' *); { typeHIToolbarDisplayMode}
-	kEventParamToolbarDisplaySize = $74626473 (* 'tbds' *); { typeHIToolbarDisplaySize}
-	typeHIToolbarDisplayMode = $7462646D (* 'tbdm' *); { HIToolbarDisplayMode}
-	typeHIToolbarDisplaySize = $74626473 (* 'tbds' *); { HIToolbarDisplaySize}
+	kEventParamToolbarDisplayMode = FourCharCode('tbdm'); { typeHIToolbarDisplayMode}
+	kEventParamToolbarDisplaySize = FourCharCode('tbds'); { typeHIToolbarDisplaySize}
+	typeHIToolbarDisplayMode = FourCharCode('tbdm'); { HIToolbarDisplayMode}
+	typeHIToolbarDisplaySize = FourCharCode('tbds'); { HIToolbarDisplaySize}
 
 {
  *  kEventClassToolbarItemView / kEventToolbarItemViewConfigForMode

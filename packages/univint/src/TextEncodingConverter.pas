@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit TextEncodingConverter;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -116,11 +116,11 @@ type
 	{	 plugin signatures 	}
 
 const
-	kTECSignature				= $656E6376 (* 'encv' *);
-	kTECUnicodePluginSignature	= $70756E69 (* 'puni' *);
-	kTECJapanesePluginSignature	= $706A706E (* 'pjpn' *);
-	kTECChinesePluginSignature	= $707A686F (* 'pzho' *);
-	kTECKoreanPluginSignature	= $706B6F72 (* 'pkor' *);
+	kTECSignature				= FourCharCode('encv');
+	kTECUnicodePluginSignature	= FourCharCode('puni');
+	kTECJapanesePluginSignature	= FourCharCode('pjpn');
+	kTECChinesePluginSignature	= FourCharCode('pzho');
+	kTECKoreanPluginSignature	= FourCharCode('pkor');
 
 
 	{	 converter object reference 	}

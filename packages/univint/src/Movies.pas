@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Movies;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -115,86 +115,86 @@ uses MacTypes,Files,QDOffscreen,TextEdit,Controls,Dialogs,Quickdraw,Aliases,Even
 { gestalt codes are in Gestalt.[hpa] }
 
 const
-	MovieFileType				= $4D6F6F56 (* 'MooV' *);
-	MovieScrapType				= $6D6F6F76 (* 'moov' *);
+	MovieFileType				= FourCharCode('MooV');
+	MovieScrapType				= FourCharCode('moov');
 
-	MovieResourceType			= $6D6F6F76 (* 'moov' *);
-	MovieForwardPointerResourceType = $666F7265 (* 'fore' *);
-	MovieBackwardPointerResourceType = $6261636B (* 'back' *);
+	MovieResourceType			= FourCharCode('moov');
+	MovieForwardPointerResourceType = FourCharCode('fore');
+	MovieBackwardPointerResourceType = FourCharCode('back');
 
-	MovieResourceAtomType		= $6D6F6F76 (* 'moov' *);
-	MovieDataAtomType			= $6D646174 (* 'mdat' *);
-	FreeAtomType				= $66726565 (* 'free' *);
-	SkipAtomType				= $736B6970 (* 'skip' *);
-	WideAtomPlaceholderType		= $77696465 (* 'wide' *);
+	MovieResourceAtomType		= FourCharCode('moov');
+	MovieDataAtomType			= FourCharCode('mdat');
+	FreeAtomType				= FourCharCode('free');
+	SkipAtomType				= FourCharCode('skip');
+	WideAtomPlaceholderType		= FourCharCode('wide');
 
-	MediaHandlerType			= $6D686C72 (* 'mhlr' *);
-	DataHandlerType				= $64686C72 (* 'dhlr' *);
+	MediaHandlerType			= FourCharCode('mhlr');
+	DataHandlerType				= FourCharCode('dhlr');
 
-	VideoMediaType				= $76696465 (* 'vide' *);
-	SoundMediaType				= $736F756E (* 'soun' *);
-	TextMediaType				= $74657874 (* 'text' *);
-	BaseMediaType				= $676E7263 (* 'gnrc' *);
-	MPEGMediaType				= $4D504547 (* 'MPEG' *);
-	MusicMediaType				= $6D757369 (* 'musi' *);
-	TimeCodeMediaType			= $746D6364 (* 'tmcd' *);
-	SpriteMediaType				= $73707274 (* 'sprt' *);
-	FlashMediaType				= $666C7368 (* 'flsh' *);
-	MovieMediaType				= $6D6F6F76 (* 'moov' *);
-	TweenMediaType				= $7477656E (* 'twen' *);
-	ThreeDeeMediaType			= $71643364 (* 'qd3d' *);
-	SkinMediaType				= $736B696E (* 'skin' *);
-	HandleDataHandlerSubType	= $686E646C (* 'hndl' *);
-	PointerDataHandlerSubType	= $70747220 (* 'ptr ' *);
-	NullDataHandlerSubType		= $6E756C6C (* 'null' *);
-	ResourceDataHandlerSubType	= $72737263 (* 'rsrc' *);
-	URLDataHandlerSubType		= $75726C20 (* 'url ' *);
-	WiredActionHandlerType		= $77697265 (* 'wire' *);
+	VideoMediaType				= FourCharCode('vide');
+	SoundMediaType				= FourCharCode('soun');
+	TextMediaType				= FourCharCode('text');
+	BaseMediaType				= FourCharCode('gnrc');
+	MPEGMediaType				= FourCharCode('MPEG');
+	MusicMediaType				= FourCharCode('musi');
+	TimeCodeMediaType			= FourCharCode('tmcd');
+	SpriteMediaType				= FourCharCode('sprt');
+	FlashMediaType				= FourCharCode('flsh');
+	MovieMediaType				= FourCharCode('moov');
+	TweenMediaType				= FourCharCode('twen');
+	ThreeDeeMediaType			= FourCharCode('qd3d');
+	SkinMediaType				= FourCharCode('skin');
+	HandleDataHandlerSubType	= FourCharCode('hndl');
+	PointerDataHandlerSubType	= FourCharCode('ptr ');
+	NullDataHandlerSubType		= FourCharCode('null');
+	ResourceDataHandlerSubType	= FourCharCode('rsrc');
+	URLDataHandlerSubType		= FourCharCode('url ');
+	WiredActionHandlerType		= FourCharCode('wire');
 
-	VisualMediaCharacteristic	= $65796573 (* 'eyes' *);
-	AudioMediaCharacteristic	= $65617273 (* 'ears' *);
-	kCharacteristicCanSendVideo	= $76736E64 (* 'vsnd' *);
-	kCharacteristicProvidesActions = $6163746E (* 'actn' *);
-	kCharacteristicNonLinear	= $6E6F6E6C (* 'nonl' *);
-	kCharacteristicCanStep		= $73746570 (* 'step' *);
-	kCharacteristicHasNoDuration = $6E6F7469 (* 'noti' *);
-	kCharacteristicHasSkinData	= $736B696E (* 'skin' *);
-	kCharacteristicProvidesKeyFocus = $6B657966 (* 'keyf' *);
+	VisualMediaCharacteristic	= FourCharCode('eyes');
+	AudioMediaCharacteristic	= FourCharCode('ears');
+	kCharacteristicCanSendVideo	= FourCharCode('vsnd');
+	kCharacteristicProvidesActions = FourCharCode('actn');
+	kCharacteristicNonLinear	= FourCharCode('nonl');
+	kCharacteristicCanStep		= FourCharCode('step');
+	kCharacteristicHasNoDuration = FourCharCode('noti');
+	kCharacteristicHasSkinData	= FourCharCode('skin');
+	kCharacteristicProvidesKeyFocus = FourCharCode('keyf');
 
-	kUserDataMovieControllerType = $63747970 (* 'ctyp' *);
-	kUserDataName				= $6E616D65 (* 'name' *);
-	kUserDataTextAlbum			= $C2A9616C (* '©alb' *);
-	kUserDataTextArtist			= $C2A94152 (* '©ART' *);
-	kUserDataTextAuthor			= $C2A96175 (* '©aut' *);
-	kUserDataTextChapter		= $C2A96368 (* '©chp' *);
-	kUserDataTextComment		= $C2A9636D (* '©cmt' *);
-	kUserDataTextComposer		= $C2A9636F (* '©com' *);
-	kUserDataTextCopyright		= $C2A96370 (* '©cpy' *);
-	kUserDataTextCreationDate	= $C2A96461 (* '©day' *);
-	kUserDataTextDescription	= $C2A96465 (* '©des' *);
-	kUserDataTextDirector		= $C2A96469 (* '©dir' *);
-	kUserDataTextDisclaimer		= $C2A96469 (* '©dis' *);
-	kUserDataTextEncodedBy		= $C2A9656E (* '©enc' *);
-	kUserDataTextFullName		= $C2A96E61 (* '©nam' *);
-	kUserDataTextGenre			= $C2A96765 (* '©gen' *);
-	kUserDataTextHostComputer	= $C2A96873 (* '©hst' *);
-	kUserDataTextInformation	= $C2A9696E (* '©inf' *);
-	kUserDataTextKeywords		= $C2A96B65 (* '©key' *);
-	kUserDataTextMake			= $C2A96D61 (* '©mak' *);
-	kUserDataTextModel			= $C2A96D6F (* '©mod' *);
-	kUserDataTextOriginalArtist	= $C2A96F70 (* '©ope' *);
-	kUserDataTextOriginalFormat	= $C2A9666D (* '©fmt' *);
-	kUserDataTextOriginalSource	= $C2A97372 (* '©src' *);
-	kUserDataTextPerformers		= $C2A97072 (* '©prf' *);
-	kUserDataTextProducer		= $C2A97072 (* '©prd' *);
-	kUserDataTextProduct		= $C2A95052 (* '©PRD' *);
-	kUserDataTextSoftware		= $C2A97377 (* '©swr' *);
-	kUserDataTextSpecialPlaybackRequirements = $C2A97265 (* '©req' *);
-	kUserDataTextTrack			= $C2A97472 (* '©trk' *);
-	kUserDataTextWarning		= $C2A97772 (* '©wrn' *);
-	kUserDataTextWriter			= $C2A97772 (* '©wrt' *);
-	kUserDataTextURLLink		= $C2A97572 (* '©url' *);
-	kUserDataTextEditDate1		= $C2A96564 (* '©ed1' *);
+	kUserDataMovieControllerType = FourCharCode('ctyp');
+	kUserDataName				= FourCharCode('name');
+	kUserDataTextAlbum			= FourCharCode('©alb');
+	kUserDataTextArtist			= FourCharCode('©ART');
+	kUserDataTextAuthor			= FourCharCode('©aut');
+	kUserDataTextChapter		= FourCharCode('©chp');
+	kUserDataTextComment		= FourCharCode('©cmt');
+	kUserDataTextComposer		= FourCharCode('©com');
+	kUserDataTextCopyright		= FourCharCode('©cpy');
+	kUserDataTextCreationDate	= FourCharCode('©day');
+	kUserDataTextDescription	= FourCharCode('©des');
+	kUserDataTextDirector		= FourCharCode('©dir');
+	kUserDataTextDisclaimer		= FourCharCode('©dis');
+	kUserDataTextEncodedBy		= FourCharCode('©enc');
+	kUserDataTextFullName		= FourCharCode('©nam');
+	kUserDataTextGenre			= FourCharCode('©gen');
+	kUserDataTextHostComputer	= FourCharCode('©hst');
+	kUserDataTextInformation	= FourCharCode('©inf');
+	kUserDataTextKeywords		= FourCharCode('©key');
+	kUserDataTextMake			= FourCharCode('©mak');
+	kUserDataTextModel			= FourCharCode('©mod');
+	kUserDataTextOriginalArtist	= FourCharCode('©ope');
+	kUserDataTextOriginalFormat	= FourCharCode('©fmt');
+	kUserDataTextOriginalSource	= FourCharCode('©src');
+	kUserDataTextPerformers		= FourCharCode('©prf');
+	kUserDataTextProducer		= FourCharCode('©prd');
+	kUserDataTextProduct		= FourCharCode('©PRD');
+	kUserDataTextSoftware		= FourCharCode('©swr');
+	kUserDataTextSpecialPlaybackRequirements = FourCharCode('©req');
+	kUserDataTextTrack			= FourCharCode('©trk');
+	kUserDataTextWarning		= FourCharCode('©wrn');
+	kUserDataTextWriter			= FourCharCode('©wrt');
+	kUserDataTextURLLink		= FourCharCode('©url');
+	kUserDataTextEditDate1		= FourCharCode('©ed1');
 
 	kUserDataUnicodeBit			= $00000080;
 
@@ -461,9 +461,9 @@ const
 	kTextEditState				= 21;							{  short / short * }
 	kTextLength					= 22;							{        / long * }
 
-	k3DMediaRendererEntry		= $72656E64 (* 'rend' *);
-	k3DMediaRendererName		= $6E616D65 (* 'name' *);
-	k3DMediaRendererCode		= $72636F64 (* 'rcod' *);
+	k3DMediaRendererEntry		= FourCharCode('rend');
+	k3DMediaRendererName		= FourCharCode('name');
+	k3DMediaRendererCode		= FourCharCode('rcod');
 
 	{	 progress messages 	}
 	movieProgressOpen			= 0;
@@ -822,60 +822,60 @@ const
 	kLastAction					= 13319;
 
 	{  target atom types }
-	kTargetMovie				= $6D6F6F76 (* 'moov' *);						{  no data  }
-	kTargetMovieName			= $6D6F6E61 (* 'mona' *);						{  (PString movieName)  }
-	kTargetMovieID				= $6D6F6964 (* 'moid' *);						{  (long movieID)  }
-	kTargetRootMovie			= $6D6F726F (* 'moro' *);						{  no data  }
-	kTargetParentMovie			= $6D6F7061 (* 'mopa' *);						{  no data  }
-	kTargetChildMovieTrackName	= $6D6F746E (* 'motn' *);						{  (PString childMovieTrackName)  }
-	kTargetChildMovieTrackID	= $6D6F7469 (* 'moti' *);						{  (long childMovieTrackID)  }
-	kTargetChildMovieTrackIndex	= $6D6F7478 (* 'motx' *);						{  (long childMovieTrackIndex)  }
-	kTargetChildMovieMovieName	= $6D6F6D6E (* 'momn' *);						{  (PString childMovieName)  }
-	kTargetChildMovieMovieID	= $6D6F6D69 (* 'momi' *);						{  (long childMovieID)  }
-	kTargetTrackName			= $74726E61 (* 'trna' *);						{  (PString trackName)  }
-	kTargetTrackID				= $74726964 (* 'trid' *);						{  (long trackID)  }
-	kTargetTrackType			= $74727479 (* 'trty' *);						{  (OSType trackType)  }
-	kTargetTrackIndex			= $7472696E (* 'trin' *);						{  (long trackIndex)  }
-	kTargetSpriteName			= $73706E61 (* 'spna' *);						{  (PString spriteName)  }
-	kTargetSpriteID				= $73706964 (* 'spid' *);						{  (QTAtomID spriteID)  }
-	kTargetSpriteIndex			= $7370696E (* 'spin' *);						{  (short spriteIndex)  }
-	kTargetQD3DNamedObjectName	= $6E616E61 (* 'nana' *);						{  (CString objectName)  }
-	kTargetCurrentQTEventParams	= $65767061 (* 'evpa' *);						{  no data  }
+	kTargetMovie				= FourCharCode('moov');						{  no data  }
+	kTargetMovieName			= FourCharCode('mona');						{  (PString movieName)  }
+	kTargetMovieID				= FourCharCode('moid');						{  (long movieID)  }
+	kTargetRootMovie			= FourCharCode('moro');						{  no data  }
+	kTargetParentMovie			= FourCharCode('mopa');						{  no data  }
+	kTargetChildMovieTrackName	= FourCharCode('motn');						{  (PString childMovieTrackName)  }
+	kTargetChildMovieTrackID	= FourCharCode('moti');						{  (long childMovieTrackID)  }
+	kTargetChildMovieTrackIndex	= FourCharCode('motx');						{  (long childMovieTrackIndex)  }
+	kTargetChildMovieMovieName	= FourCharCode('momn');						{  (PString childMovieName)  }
+	kTargetChildMovieMovieID	= FourCharCode('momi');						{  (long childMovieID)  }
+	kTargetTrackName			= FourCharCode('trna');						{  (PString trackName)  }
+	kTargetTrackID				= FourCharCode('trid');						{  (long trackID)  }
+	kTargetTrackType			= FourCharCode('trty');						{  (OSType trackType)  }
+	kTargetTrackIndex			= FourCharCode('trin');						{  (long trackIndex)  }
+	kTargetSpriteName			= FourCharCode('spna');						{  (PString spriteName)  }
+	kTargetSpriteID				= FourCharCode('spid');						{  (QTAtomID spriteID)  }
+	kTargetSpriteIndex			= FourCharCode('spin');						{  (short spriteIndex)  }
+	kTargetQD3DNamedObjectName	= FourCharCode('nana');						{  (CString objectName)  }
+	kTargetCurrentQTEventParams	= FourCharCode('evpa');						{  no data  }
 
 	{  action container atom types }
-	kQTEventType				= $65766E74 (* 'evnt' *);
-	kAction						= $6163746E (* 'actn' *);
-	kWhichAction				= $77686963 (* 'whic' *);
-	kActionParameter			= $7061726D (* 'parm' *);
-	kActionTarget				= $74617267 (* 'targ' *);
-	kActionFlags				= $666C6167 (* 'flag' *);
-	kActionParameterMinValue	= $6D696E76 (* 'minv' *);
-	kActionParameterMaxValue	= $6D617876 (* 'maxv' *);
-	kActionListAtomType			= $6C697374 (* 'list' *);
-	kExpressionContainerAtomType = $65787072 (* 'expr' *);
-	kConditionalAtomType		= $74657374 (* 'test' *);
-	kOperatorAtomType			= $6F706572 (* 'oper' *);
-	kOperandAtomType			= $6F70726E (* 'oprn' *);
-	kCommentAtomType			= $77687920 (* 'why ' *);
-	kCustomActionHandler		= $63757374 (* 'cust' *);
-	kCustomHandlerID			= $69642020 (* 'id  ' *);
-	kCustomHandlerDesc			= $64657363 (* 'desc' *);
-	kQTEventRecordAtomType		= $65726563 (* 'erec' *);
+	kQTEventType				= FourCharCode('evnt');
+	kAction						= FourCharCode('actn');
+	kWhichAction				= FourCharCode('whic');
+	kActionParameter			= FourCharCode('parm');
+	kActionTarget				= FourCharCode('targ');
+	kActionFlags				= FourCharCode('flag');
+	kActionParameterMinValue	= FourCharCode('minv');
+	kActionParameterMaxValue	= FourCharCode('maxv');
+	kActionListAtomType			= FourCharCode('list');
+	kExpressionContainerAtomType = FourCharCode('expr');
+	kConditionalAtomType		= FourCharCode('test');
+	kOperatorAtomType			= FourCharCode('oper');
+	kOperandAtomType			= FourCharCode('oprn');
+	kCommentAtomType			= FourCharCode('why ');
+	kCustomActionHandler		= FourCharCode('cust');
+	kCustomHandlerID			= FourCharCode('id  ');
+	kCustomHandlerDesc			= FourCharCode('desc');
+	kQTEventRecordAtomType		= FourCharCode('erec');
 
 	{  QTEvent types  }
-	kQTEventMouseClick			= $636C696B (* 'clik' *);
-	kQTEventMouseClickEnd		= $63656E64 (* 'cend' *);
-	kQTEventMouseClickEndTriggerButton = $74726967 (* 'trig' *);
-	kQTEventMouseEnter			= $656E7472 (* 'entr' *);
-	kQTEventMouseExit			= $65786974 (* 'exit' *);
-	kQTEventMouseMoved			= $6D6F7665 (* 'move' *);
-	kQTEventFrameLoaded			= $6672616D (* 'fram' *);
-	kQTEventIdle				= $69646C65 (* 'idle' *);
-	kQTEventKey					= $6B657920 (* 'key ' *);						{  qtevent.param1 = key, qtevent.param2 = modifiers, qtEvent.param3 = scanCode  }
-	kQTEventMovieLoaded			= $6C6F6164 (* 'load' *);
-	kQTEventRequestToModifyMovie = $7265716D (* 'reqm' *);
-	kQTEventListReceived		= $6C697374 (* 'list' *);
-	kQTEventKeyUp				= $6B657955 (* 'keyU' *);						{  qtevent.param1 = key, qtevent.param2 = modifiers, qtEvent.param3 = scanCode  }
+	kQTEventMouseClick			= FourCharCode('clik');
+	kQTEventMouseClickEnd		= FourCharCode('cend');
+	kQTEventMouseClickEndTriggerButton = FourCharCode('trig');
+	kQTEventMouseEnter			= FourCharCode('entr');
+	kQTEventMouseExit			= FourCharCode('exit');
+	kQTEventMouseMoved			= FourCharCode('move');
+	kQTEventFrameLoaded			= FourCharCode('fram');
+	kQTEventIdle				= FourCharCode('idle');
+	kQTEventKey					= FourCharCode('key ');						{  qtevent.param1 = key, qtevent.param2 = modifiers, qtEvent.param3 = scanCode  }
+	kQTEventMovieLoaded			= FourCharCode('load');
+	kQTEventRequestToModifyMovie = FourCharCode('reqm');
+	kQTEventListReceived		= FourCharCode('list');
+	kQTEventKeyUp				= FourCharCode('keyU');						{  qtevent.param1 = key, qtevent.param2 = modifiers, qtEvent.param3 = scanCode  }
 
 	{  flags for the kActionFlags atom  }
 	kActionFlagActionIsDelta	= $00000002;
@@ -902,23 +902,23 @@ const
 	kQTRegistrationDialogForceDialog = $04;
 
 	{  constants for kOperatorAtomType IDs (operator types) }
-	kOperatorAdd				= $61646420 (* 'add ' *);
-	kOperatorSubtract			= $73756220 (* 'sub ' *);
-	kOperatorMultiply			= $6D756C74 (* 'mult' *);
-	kOperatorDivide				= $64697620 (* 'div ' *);
-	kOperatorOr					= $6F722020 (* 'or  ' *);
-	kOperatorAnd				= $616E6420 (* 'and ' *);
-	kOperatorNot				= $6E6F7420 (* 'not ' *);
-	kOperatorLessThan			= $3C202020 (* '<   ' *);
-	kOperatorLessThanEqualTo	= $3C3D2020 (* '<=  ' *);
-	kOperatorEqualTo			= $3D202020 (* '=   ' *);
-	kOperatorNotEqualTo			= $213D2020 (* '!=  ' *);
-	kOperatorGreaterThan		= $3E202020 (* '>   ' *);
-	kOperatorGreaterThanEqualTo	= $3E3D2020 (* '>=  ' *);
-	kOperatorModulo				= $6D6F6420 (* 'mod ' *);
-	kOperatorIntegerDivide		= $69646976 (* 'idiv' *);
-	kOperatorAbsoluteValue		= $61627320 (* 'abs ' *);
-	kOperatorNegate				= $6E656720 (* 'neg ' *);
+	kOperatorAdd				= FourCharCode('add ');
+	kOperatorSubtract			= FourCharCode('sub ');
+	kOperatorMultiply			= FourCharCode('mult');
+	kOperatorDivide				= FourCharCode('div ');
+	kOperatorOr					= FourCharCode('or  ');
+	kOperatorAnd				= FourCharCode('and ');
+	kOperatorNot				= FourCharCode('not ');
+	kOperatorLessThan			= FourCharCode('<   ');
+	kOperatorLessThanEqualTo	= FourCharCode('<=  ');
+	kOperatorEqualTo			= FourCharCode('=   ');
+	kOperatorNotEqualTo			= FourCharCode('!=  ');
+	kOperatorGreaterThan		= FourCharCode('>   ');
+	kOperatorGreaterThanEqualTo	= FourCharCode('>=  ');
+	kOperatorModulo				= FourCharCode('mod ');
+	kOperatorIntegerDivide		= FourCharCode('idiv');
+	kOperatorAbsoluteValue		= FourCharCode('abs ');
+	kOperatorNegate				= FourCharCode('neg ');
 
 	{  constants for kOperandPlatformRunningOn }
 	kPlatformMacintosh			= 1;
@@ -929,7 +929,7 @@ const
 	kSystemIsWindowsNT			= $00020000;
 
 	{  constants for MediaPropertiesAtom }
-	kMediaPropertyNonLinearAtomType = $6E6F6E6C (* 'nonl' *);
+	kMediaPropertyNonLinearAtomType = FourCharCode('nonl');
 	kMediaPropertyHasActions	= 105;
 
 	{	 TimeBase and TimeRecord moved to MacTypes.h 	}
@@ -1618,9 +1618,9 @@ const
 	kMovieControlOptionManuallyIdled = $00000020;
 
 	{  Item tags for use in GetControlData() (some with SetControlData()) calls on Movie Controls }
-	kMovieControlDataMovieController = $6D632020 (* 'mc  ' *);
-	kMovieControlDataMovie		= $6D6F6F76 (* 'moov' *);
-	kMovieControlDataManualIdling = $6D616E75 (* 'manu' *);
+	kMovieControlDataMovieController = FourCharCode('mc  ');
+	kMovieControlDataMovie		= FourCharCode('moov');
+	kMovieControlDataManualIdling = FourCharCode('manu');
 
 	{	
 	** CreateMovieControl() -   This is the public API routine that creates a Movie Control. Given a window and location
@@ -3655,8 +3655,8 @@ const
 	 	}
 function GetMovieImporterForDataRef(dataRefType: OSType; dataRef: Handle; flags: SInt32; var importer: Component): OSErr; external name '_GetMovieImporterForDataRef';
 const
-	kQTGetMIMETypeInfoIsQuickTimeMovieType = $6D6F6F76 (* 'moov' *);			{  info is a pointer to a Boolean }
-	kQTGetMIMETypeInfoIsUnhelpfulType = $64756D62 (* 'dumb' *);					{  info is a pointer to a Boolean }
+	kQTGetMIMETypeInfoIsQuickTimeMovieType = FourCharCode('moov');			{  info is a pointer to a Boolean }
+	kQTGetMIMETypeInfoIsUnhelpfulType = FourCharCode('dumb');					{  info is a pointer to a Boolean }
 
 	{
 	 *  QTGetMIMETypeInfo()
@@ -3934,8 +3934,8 @@ function NewUserDataFromHandle(h: Handle; var theUserData: UserData): OSErr; ext
  }
 function PutUserDataIntoHandle(theUserData: UserData; h: Handle): OSErr; external name '_PutUserDataIntoHandle';
 const
-	kQTCopyUserDataReplace		= $72706C63 (* 'rplc' *);						{  Delete all destination user data items and then add source user data items  }
-	kQTCopyUserDataMerge		= $6D657267 (* 'merg' *);						{  Add source user data items to destination user data  }
+	kQTCopyUserDataReplace		= FourCharCode('rplc');						{  Delete all destination user data items and then add source user data items  }
+	kQTCopyUserDataMerge		= FourCharCode('merg');						{  Add source user data items to destination user data  }
 
 	{
 	 *  CopyMovieUserData()
@@ -4785,9 +4785,9 @@ const
 	kRefConPropertyHasFocus		= 2;							{  Boolean  }
 
 	{  media properties }
-	kTrackFocusCanEditFlag		= $6B656474 (* 'kedt' *);
-	kTrackDefaultFocusFlags		= $6B666F63 (* 'kfoc' *);
-	kTrackFocusDefaultRefcon	= $6B726566 (* 'kref' *);
+	kTrackFocusCanEditFlag		= FourCharCode('kedt');
+	kTrackDefaultFocusFlags		= FourCharCode('kfoc');
+	kTrackFocusDefaultRefcon	= FourCharCode('kref');
 
 	{  focus flags }
 	kTrackFocusOn				= 1;
@@ -4796,7 +4796,7 @@ const
 	{	****
 	    Flash track properties
 	****	}
-	kFlashTrackPropertyAcceptAllClicks = $636C696B (* 'clik' *);				{  type of media property atom; data is a Boolean  }
+	kFlashTrackPropertyAcceptAllClicks = FourCharCode('clik');				{  type of media property atom; data is a Boolean  }
 
 	{	****
 	    Sprite Toolbox
@@ -5466,9 +5466,9 @@ function SetQuickTimePreference(preferenceType: OSType; preferenceAtom: QTAtomCo
 {  atom types for entries in the effects list }
 
 const
-	kEffectNameAtom				= $6E616D65 (* 'name' *);						{  name of effect  }
-	kEffectTypeAtom				= $74797065 (* 'type' *);						{  codec sub-type for effect  }
-	kEffectManufacturerAtom		= $6D616E75 (* 'manu' *);						{  codec manufacturer for effect  }
+	kEffectNameAtom				= FourCharCode('name');						{  name of effect  }
+	kEffectTypeAtom				= FourCharCode('type');						{  codec sub-type for effect  }
+	kEffectManufacturerAtom		= FourCharCode('manu');						{  codec manufacturer for effect  }
 
 
 type
@@ -5988,7 +5988,7 @@ function QTAddMovieError(movieH: Movie; c: Component; errorCode: SInt32; stringR
 ****}
 
 const
-	kAccessKeyAtomType			= $61636B79 (* 'acky' *);
+	kAccessKeyAtomType			= FourCharCode('acky');
 
 	kAccessKeySystemFlag		= $00000001;
 
@@ -6154,8 +6154,8 @@ function QTGetDataRefMaxFileOffset(movieH: Movie; dataRefType: OSType; dataRef: 
 ****}
 
 const
-	ConnectionSpeedPrefsType	= $63737064 (* 'cspd' *);
-	BandwidthManagementPrefsType = $62776D67 (* 'bwmg' *);
+	ConnectionSpeedPrefsType	= FourCharCode('cspd');
+	BandwidthManagementPrefsType = FourCharCode('bwmg');
 
 
 type
@@ -6778,8 +6778,8 @@ const
 	kITextRemoveEverythingBut	= $00;
 	kITextRemoveLeaveSuggestedAlternate = $02;
 
-	kITextAtomType				= $69747874 (* 'itxt' *);
-	kITextStringAtomType		= $74657874 (* 'text' *);
+	kITextAtomType				= FourCharCode('itxt');
+	kITextStringAtomType		= FourCharCode('text');
 
 	{
 	 *  ITextAddString()
@@ -6824,21 +6824,21 @@ function QTTextToNativeText(theText: Handle; encoding: SInt32; flags: SInt32): O
 {  QTParseTextHREF inContainer atoms }
 
 const
-	kQTParseTextHREFText		= $74657874 (* 'text' *);						{  string }
-	kQTParseTextHREFBaseURL		= $6275726C (* 'burl' *);						{  string }
-	kQTParseTextHREFClickPoint	= $636C696B (* 'clik' *);						{  Point; if present, QTParseTextHREF will expand URLs to support server-side image maps }
-	kQTParseTextHREFUseAltDelim	= $616C7464 (* 'altd' *);						{  boolean; if no kQTParseTextHREFDelimiter, delim is ':' }
-	kQTParseTextHREFDelimiter	= $64656C6D (* 'delm' *);						{  character }
-	kQTParseTextHREFRecomposeHREF = $72687266 (* 'rhrf' *);						{  Boolean; if true, QTParseTextHREF returns recomposed HREF with URL expanded as appropriate }
+	kQTParseTextHREFText		= FourCharCode('text');						{  string }
+	kQTParseTextHREFBaseURL		= FourCharCode('burl');						{  string }
+	kQTParseTextHREFClickPoint	= FourCharCode('clik');						{  Point; if present, QTParseTextHREF will expand URLs to support server-side image maps }
+	kQTParseTextHREFUseAltDelim	= FourCharCode('altd');						{  boolean; if no kQTParseTextHREFDelimiter, delim is ':' }
+	kQTParseTextHREFDelimiter	= FourCharCode('delm');						{  character }
+	kQTParseTextHREFRecomposeHREF = FourCharCode('rhrf');						{  Boolean; if true, QTParseTextHREF returns recomposed HREF with URL expanded as appropriate }
 
 	{  QTParseTextHREF outContainer atoms }
-	kQTParseTextHREFURL			= $75726C20 (* 'url ' *);						{  string }
-	kQTParseTextHREFTarget		= $74617267 (* 'targ' *);						{  string }
-	kQTParseTextHREFChapter		= $63686170 (* 'chap' *);						{  string }
-	kQTParseTextHREFIsAutoHREF	= $6175746F (* 'auto' *);						{  Boolean }
-	kQTParseTextHREFIsServerMap	= $736D6170 (* 'smap' *);						{  Boolean }
-	kQTParseTextHREFHREF		= $68726566 (* 'href' *);						{  string; recomposed HREF with URL expanded as appropriate, suitable for mcActionLinkToURL }
-	kQTParseTextHREFEMBEDArgs	= $6D626564 (* 'mbed' *);						{  string; text between 'E<' and '>' to be used as new movie's embed tags }
+	kQTParseTextHREFURL			= FourCharCode('url ');						{  string }
+	kQTParseTextHREFTarget		= FourCharCode('targ');						{  string }
+	kQTParseTextHREFChapter		= FourCharCode('chap');						{  string }
+	kQTParseTextHREFIsAutoHREF	= FourCharCode('auto');						{  Boolean }
+	kQTParseTextHREFIsServerMap	= FourCharCode('smap');						{  Boolean }
+	kQTParseTextHREFHREF		= FourCharCode('href');						{  string; recomposed HREF with URL expanded as appropriate, suitable for mcActionLinkToURL }
+	kQTParseTextHREFEMBEDArgs	= FourCharCode('mbed');						{  string; text between 'E<' and '>' to be used as new movie's embed tags }
 
 	{
 	 *  QTParseTextHREF()
@@ -6855,27 +6855,27 @@ function QTParseTextHREF(href: CStringPtr; hrefLen: SInt32; inContainer: QTAtomC
 *************************}
 
 const
-	kTrackReferenceChapterList	= $63686170 (* 'chap' *);
-	kTrackReferenceTimeCode		= $746D6364 (* 'tmcd' *);
-	kTrackReferenceModifier		= $73737263 (* 'ssrc' *);
+	kTrackReferenceChapterList	= FourCharCode('chap');
+	kTrackReferenceTimeCode		= FourCharCode('tmcd');
+	kTrackReferenceModifier		= FourCharCode('ssrc');
 
 	{	************************
 	* modifier track types
 	*************************	}
 	kTrackModifierInput			= $696E;						{  is really 'in' }
 	kTrackModifierType			= $7479;						{  is really 'ty' }
-	kTrackModifierReference		= $73737263 (* 'ssrc' *);
-	kTrackModifierObjectID		= $6F626964 (* 'obid' *);
-	kTrackModifierInputName		= $6E616D65 (* 'name' *);
+	kTrackModifierReference		= FourCharCode('ssrc');
+	kTrackModifierObjectID		= FourCharCode('obid');
+	kTrackModifierInputName		= FourCharCode('name');
 
-	kInputMapSubInputID			= $73756269 (* 'subi' *);
+	kInputMapSubInputID			= FourCharCode('subi');
 
 	kTrackModifierTypeMatrix	= 1;
 	kTrackModifierTypeClip		= 2;
 	kTrackModifierTypeGraphicsMode = 5;
 	kTrackModifierTypeVolume	= 3;
 	kTrackModifierTypeBalance	= 4;
-	kTrackModifierTypeImage		= $76696465 (* 'vide' *);						{  was kTrackModifierTypeSpriteImage }
+	kTrackModifierTypeImage		= FourCharCode('vide');						{  was kTrackModifierTypeSpriteImage }
 	kTrackModifierObjectMatrix	= 6;
 	kTrackModifierObjectGraphicsMode = 7;
 	kTrackModifierType3d4x4Matrix = 8;
@@ -6885,10 +6885,10 @@ const
 	kTrackModifierObjectLayer	= 12;
 	kTrackModifierObjectVisible	= 13;
 	kTrackModifierAngleAspectCamera = 14;
-	kTrackModifierPanAngle		= $70616E20 (* 'pan ' *);
-	kTrackModifierTiltAngle		= $74696C74 (* 'tilt' *);
-	kTrackModifierVerticalFieldOfViewAngle = $666F7620 (* 'fov ' *);
-	kTrackModifierObjectQTEventSend = $65766E74 (* 'evnt' *);
+	kTrackModifierPanAngle		= FourCharCode('pan ');
+	kTrackModifierTiltAngle		= FourCharCode('tilt');
+	kTrackModifierVerticalFieldOfViewAngle = FourCharCode('fov ');
+	kTrackModifierObjectQTEventSend = FourCharCode('evnt');
 	kTrackModifierObjectCanBeHitTested = 15;
 
 
@@ -6917,48 +6917,48 @@ const
 	kTweenTypeQTFloatSingle		= 10;
 	kTweenTypeQTFloatDouble		= 11;
 	kTweenTypeFixedPoint		= 12;
-	kTweenType3dScale			= $33736361 (* '3sca' *);
-	kTweenType3dTranslate		= $33747261 (* '3tra' *);
-	kTweenType3dRotate			= $33726F74 (* '3rot' *);
-	kTweenType3dRotateAboutPoint = $33726170 (* '3rap' *);
-	kTweenType3dRotateAboutAxis	= $33726178 (* '3rax' *);
-	kTweenType3dRotateAboutVector = $33727663 (* '3rvc' *);
-	kTweenType3dQuaternion		= $33717561 (* '3qua' *);
-	kTweenType3dMatrix			= $336D6174 (* '3mat' *);
-	kTweenType3dCameraData		= $3363616D (* '3cam' *);
-	kTweenType3dAngleAspectCameraData = $33636161 (* '3caa' *);
-	kTweenType3dSoundLocalizationData = $33736C63 (* '3slc' *);
-	kTweenTypePathToMatrixTranslation = $67786D74 (* 'gxmt' *);
-	kTweenTypePathToMatrixRotation = $67787072 (* 'gxpr' *);
-	kTweenTypePathToMatrixTranslationAndRotation = $67786D72 (* 'gxmr' *);
-	kTweenTypePathToFixedPoint	= $67786670 (* 'gxfp' *);
-	kTweenTypePathXtoY			= $67787879 (* 'gxxy' *);
-	kTweenTypePathYtoX			= $67787978 (* 'gxyx' *);
-	kTweenTypeAtomList			= $61746F6D (* 'atom' *);
-	kTweenTypePolygon			= $706F6C79 (* 'poly' *);
-	kTweenTypeMultiMatrix		= $6D756C6D (* 'mulm' *);
-	kTweenTypeSpin				= $7370696E (* 'spin' *);
-	kTweenType3dMatrixNonLinear	= $336E6C72 (* '3nlr' *);
-	kTweenType3dVRObject		= $3376726F (* '3vro' *);
+	kTweenType3dScale			= FourCharCode('3sca');
+	kTweenType3dTranslate		= FourCharCode('3tra');
+	kTweenType3dRotate			= FourCharCode('3rot');
+	kTweenType3dRotateAboutPoint = FourCharCode('3rap');
+	kTweenType3dRotateAboutAxis	= FourCharCode('3rax');
+	kTweenType3dRotateAboutVector = FourCharCode('3rvc');
+	kTweenType3dQuaternion		= FourCharCode('3qua');
+	kTweenType3dMatrix			= FourCharCode('3mat');
+	kTweenType3dCameraData		= FourCharCode('3cam');
+	kTweenType3dAngleAspectCameraData = FourCharCode('3caa');
+	kTweenType3dSoundLocalizationData = FourCharCode('3slc');
+	kTweenTypePathToMatrixTranslation = FourCharCode('gxmt');
+	kTweenTypePathToMatrixRotation = FourCharCode('gxpr');
+	kTweenTypePathToMatrixTranslationAndRotation = FourCharCode('gxmr');
+	kTweenTypePathToFixedPoint	= FourCharCode('gxfp');
+	kTweenTypePathXtoY			= FourCharCode('gxxy');
+	kTweenTypePathYtoX			= FourCharCode('gxyx');
+	kTweenTypeAtomList			= FourCharCode('atom');
+	kTweenTypePolygon			= FourCharCode('poly');
+	kTweenTypeMultiMatrix		= FourCharCode('mulm');
+	kTweenTypeSpin				= FourCharCode('spin');
+	kTweenType3dMatrixNonLinear	= FourCharCode('3nlr');
+	kTweenType3dVRObject		= FourCharCode('3vro');
 
-	kTweenEntry					= $7477656E (* 'twen' *);
-	kTweenData					= $64617461 (* 'data' *);
-	kTweenType					= $74776E74 (* 'twnt' *);
-	kTweenStartOffset			= $74777374 (* 'twst' *);
-	kTweenDuration				= $74776475 (* 'twdu' *);
-	kTweenFlags					= $666C6167 (* 'flag' *);
-	kTweenOutputMin				= $6F6D696E (* 'omin' *);
-	kTweenOutputMax				= $6F6D6178 (* 'omax' *);
-	kTweenSequenceElement		= $73657165 (* 'seqe' *);
-	kTween3dInitialCondition	= $69636E64 (* 'icnd' *);
-	kTweenInterpolationID		= $696E7472 (* 'intr' *);
-	kTweenRegionData			= $71647267 (* 'qdrg' *);
-	kTweenPictureData			= $50494354 (* 'PICT' *);
-	kListElementType			= $74797065 (* 'type' *);
-	kListElementDataType		= $64617479 (* 'daty' *);
-	kNameAtom					= $6E616D65 (* 'name' *);
-	kInitialRotationAtom		= $696E726F (* 'inro' *);
-	kNonLinearTweenHeader		= $6E6C7468 (* 'nlth' *);
+	kTweenEntry					= FourCharCode('twen');
+	kTweenData					= FourCharCode('data');
+	kTweenType					= FourCharCode('twnt');
+	kTweenStartOffset			= FourCharCode('twst');
+	kTweenDuration				= FourCharCode('twdu');
+	kTweenFlags					= FourCharCode('flag');
+	kTweenOutputMin				= FourCharCode('omin');
+	kTweenOutputMax				= FourCharCode('omax');
+	kTweenSequenceElement		= FourCharCode('seqe');
+	kTween3dInitialCondition	= FourCharCode('icnd');
+	kTweenInterpolationID		= FourCharCode('intr');
+	kTweenRegionData			= FourCharCode('qdrg');
+	kTweenPictureData			= FourCharCode('PICT');
+	kListElementType			= FourCharCode('type');
+	kListElementDataType		= FourCharCode('daty');
+	kNameAtom					= FourCharCode('name');
+	kInitialRotationAtom		= FourCharCode('inro');
+	kNonLinearTweenHeader		= FourCharCode('nlth');
 
 	{  kTweenFlags }
 	kTweenReturnDelta			= $00000001;
@@ -6978,12 +6978,12 @@ type
 	****	}
 
 const
-	kQTRestrictionClassSave		= $73617665 (* 'save' *);
+	kQTRestrictionClassSave		= FourCharCode('save');
 	kQTRestrictionSaveDontAddMovieResource = $00000001;
 	kQTRestrictionSaveDontFlatten = $00000002;
 	kQTRestrictionSaveDontExport = $00000004;
 	kQTRestrictionSaveDontExtract = $00000008;					{  don't allow any form of extraction of content }
-	kQTRestrictionClassEdit		= $65646974 (* 'edit' *);
+	kQTRestrictionClassEdit		= FourCharCode('edit');
 	kQTRestrictionEditDontCopy	= $00000001;					{  disable copy  }
 	kQTRestrictionEditDontCut	= $00000002;					{  disable cut  }
 	kQTRestrictionEditDontPaste	= $00000004;					{  disable paste  }
@@ -7181,8 +7181,8 @@ function TextMediaFindNextText(mh: MediaHandler; text: Ptr; size: SInt32; findFl
  }
 function TextMediaHiliteTextSample(mh: MediaHandler; sampleTime: TimeValue; hiliteStart: SInt16; hiliteEnd: SInt16; var rgbHiliteColor: RGBColor): ComponentResult; external name '_TextMediaHiliteTextSample';
 const
-	dropShadowOffsetType		= $6472706F (* 'drpo' *);
-	dropShadowTranslucencyType	= $64727074 (* 'drpt' *);
+	dropShadowOffsetType		= FourCharCode('drpo');
+	dropShadowTranslucencyType	= FourCharCode('drpt');
 
 	{
 	 *  TextMediaSetTextSampleData()
@@ -7208,26 +7208,26 @@ const
 	spriteHitTestTreatAllSpritesAsHitTestable = $00000020;		{  set if you want to override each sprites hittestable property as true }
 
 	{	 atom types for sprite media 	}
-	kSpriteAtomType				= $73707274 (* 'sprt' *);
-	kSpriteImagesContainerAtomType = $696D6374 (* 'imct' *);
-	kSpriteImageAtomType		= $696D6167 (* 'imag' *);
-	kSpriteImageDataAtomType	= $696D6461 (* 'imda' *);
-	kSpriteImageDataRefAtomType	= $696D7265 (* 'imre' *);
-	kSpriteImageDataRefTypeAtomType = $696D7274 (* 'imrt' *);
-	kSpriteImageGroupIDAtomType	= $696D6772 (* 'imgr' *);
-	kSpriteImageRegistrationAtomType = $696D7267 (* 'imrg' *);
-	kSpriteImageDefaultImageIndexAtomType = $64656669 (* 'defi' *);
-	kSpriteSharedDataAtomType	= $64666C74 (* 'dflt' *);
-	kSpriteNameAtomType			= $6E616D65 (* 'name' *);
-	kSpriteImageNameAtomType	= $6E616D65 (* 'name' *);
-	kSpriteUsesImageIDsAtomType	= $75736573 (* 'uses' *);						{  leaf data is an array of QTAtomID's, one per image used }
-	kSpriteBehaviorsAtomType	= $62656861 (* 'beha' *);
-	kSpriteImageBehaviorAtomType = $696D6167 (* 'imag' *);
-	kSpriteCursorBehaviorAtomType = $63727372 (* 'crsr' *);
-	kSpriteStatusStringsBehaviorAtomType = $73737472 (* 'sstr' *);
-	kSpriteVariablesContainerAtomType = $76617273 (* 'vars' *);
-	kSpriteStringVariableAtomType = $73747276 (* 'strv' *);
-	kSpriteFloatingPointVariableAtomType = $666C6F76 (* 'flov' *);
+	kSpriteAtomType				= FourCharCode('sprt');
+	kSpriteImagesContainerAtomType = FourCharCode('imct');
+	kSpriteImageAtomType		= FourCharCode('imag');
+	kSpriteImageDataAtomType	= FourCharCode('imda');
+	kSpriteImageDataRefAtomType	= FourCharCode('imre');
+	kSpriteImageDataRefTypeAtomType = FourCharCode('imrt');
+	kSpriteImageGroupIDAtomType	= FourCharCode('imgr');
+	kSpriteImageRegistrationAtomType = FourCharCode('imrg');
+	kSpriteImageDefaultImageIndexAtomType = FourCharCode('defi');
+	kSpriteSharedDataAtomType	= FourCharCode('dflt');
+	kSpriteNameAtomType			= FourCharCode('name');
+	kSpriteImageNameAtomType	= FourCharCode('name');
+	kSpriteUsesImageIDsAtomType	= FourCharCode('uses');						{  leaf data is an array of QTAtomID's, one per image used }
+	kSpriteBehaviorsAtomType	= FourCharCode('beha');
+	kSpriteImageBehaviorAtomType = FourCharCode('imag');
+	kSpriteCursorBehaviorAtomType = FourCharCode('crsr');
+	kSpriteStatusStringsBehaviorAtomType = FourCharCode('sstr');
+	kSpriteVariablesContainerAtomType = FourCharCode('vars');
+	kSpriteStringVariableAtomType = FourCharCode('strv');
+	kSpriteFloatingPointVariableAtomType = FourCharCode('flov');
 
 
 type
@@ -7664,51 +7664,51 @@ function FlashMediaGetSupportedSwfVersion(mh: MediaHandler; var swfVersion: UInt
 {  sample format atoms }
 
 const
-	kMovieMediaDataReference	= $6D6D6472 (* 'mmdr' *);						{  data reference }
-	kMovieMediaDefaultDataReferenceID = $64647269 (* 'ddri' *);					{  atom id }
-	kMovieMediaSlaveTime		= $736C7469 (* 'slti' *);						{  boolean }
-	kMovieMediaSlaveAudio		= $736C6175 (* 'slau' *);						{  boolean }
-	kMovieMediaSlaveGraphicsMode = $736C6772 (* 'slgr' *);						{  boolean }
-	kMovieMediaAutoPlay			= $706C6179 (* 'play' *);						{  boolean }
-	kMovieMediaLoop				= $6C6F6F70 (* 'loop' *);						{  UInt8 (0=no loop, 1=loop, 2=palindrome loop) }
-	kMovieMediaUseMIMEType		= $6D696D65 (* 'mime' *);						{  string indicating the MIME type to use for the dataref (usually not required) }
-	kMovieMediaTitle			= $7469746C (* 'titl' *);						{  string of the media's title (tooltips) }
-	kMovieMediaAltText			= $616C7474 (* 'altt' *);						{  string of alternate text if media isn't loaded }
-	kMovieMediaClipBegin		= $636C7062 (* 'clpb' *);						{  MovieMediaTimeRecord of start time of embedded media }
-	kMovieMediaClipDuration		= $636C7064 (* 'clpd' *);						{  MovieMediaTimeRecord of duration of embedded media }
-	kMovieMediaRegionAtom		= $72656769 (* 'regi' *);						{  contains subatoms that describe layout }
-	kMovieMediaSlaveTrackDuration = $736C7472 (* 'sltr' *);						{  Boolean indicating that media handler should adjust track and media based on actual embedded movie duration }
-	kMovieMediaEnableFrameStepping = $656E6673 (* 'enfs' *);					{  boolean. if true stepping on external movie steps frames within embedded movie. }
-	kMovieMediaBackgroundColor	= $626B636C (* 'bkcl' *);						{  RGBColor. }
-	kMovieMediaPrerollTime		= $70726572 (* 'prer' *);						{  SInt32 indicating preroll time }
+	kMovieMediaDataReference	= FourCharCode('mmdr');						{  data reference }
+	kMovieMediaDefaultDataReferenceID = FourCharCode('ddri');					{  atom id }
+	kMovieMediaSlaveTime		= FourCharCode('slti');						{  boolean }
+	kMovieMediaSlaveAudio		= FourCharCode('slau');						{  boolean }
+	kMovieMediaSlaveGraphicsMode = FourCharCode('slgr');						{  boolean }
+	kMovieMediaAutoPlay			= FourCharCode('play');						{  boolean }
+	kMovieMediaLoop				= FourCharCode('loop');						{  UInt8 (0=no loop, 1=loop, 2=palindrome loop) }
+	kMovieMediaUseMIMEType		= FourCharCode('mime');						{  string indicating the MIME type to use for the dataref (usually not required) }
+	kMovieMediaTitle			= FourCharCode('titl');						{  string of the media's title (tooltips) }
+	kMovieMediaAltText			= FourCharCode('altt');						{  string of alternate text if media isn't loaded }
+	kMovieMediaClipBegin		= FourCharCode('clpb');						{  MovieMediaTimeRecord of start time of embedded media }
+	kMovieMediaClipDuration		= FourCharCode('clpd');						{  MovieMediaTimeRecord of duration of embedded media }
+	kMovieMediaRegionAtom		= FourCharCode('regi');						{  contains subatoms that describe layout }
+	kMovieMediaSlaveTrackDuration = FourCharCode('sltr');						{  Boolean indicating that media handler should adjust track and media based on actual embedded movie duration }
+	kMovieMediaEnableFrameStepping = FourCharCode('enfs');					{  boolean. if true stepping on external movie steps frames within embedded movie. }
+	kMovieMediaBackgroundColor	= FourCharCode('bkcl');						{  RGBColor. }
+	kMovieMediaPrerollTime		= FourCharCode('prer');						{  SInt32 indicating preroll time }
 
 	{  fit types }
 	kMovieMediaFitNone			= 0;
-	kMovieMediaFitScroll		= $7363726F (* 'scro' *);
-	kMovieMediaFitClipIfNecessary = $68696464 (* 'hidd' *);
-	kMovieMediaFitFill			= $66696C6C (* 'fill' *);
-	kMovieMediaFitMeet			= $6D656574 (* 'meet' *);
-	kMovieMediaFitSlice			= $736C6963 (* 'slic' *);
+	kMovieMediaFitScroll		= FourCharCode('scro');
+	kMovieMediaFitClipIfNecessary = FourCharCode('hidd');
+	kMovieMediaFitFill			= FourCharCode('fill');
+	kMovieMediaFitMeet			= FourCharCode('meet');
+	kMovieMediaFitSlice			= FourCharCode('slic');
 
 	{  sub atoms for region atom }
-	kMovieMediaSpatialAdjustment = $66697420 (* 'fit ' *);						{  OSType from kMovieMediaFit* }
-	kMovieMediaRectangleAtom	= $72656374 (* 'rect' *);
-	kMovieMediaTop				= $746F7020 (* 'top ' *);
-	kMovieMediaLeft				= $6C656674 (* 'left' *);
-	kMovieMediaWidth			= $77642020 (* 'wd  ' *);
-	kMovieMediaHeight			= $68742020 (* 'ht  ' *);
+	kMovieMediaSpatialAdjustment = FourCharCode('fit ');						{  OSType from kMovieMediaFit* }
+	kMovieMediaRectangleAtom	= FourCharCode('rect');
+	kMovieMediaTop				= FourCharCode('top ');
+	kMovieMediaLeft				= FourCharCode('left');
+	kMovieMediaWidth			= FourCharCode('wd  ');
+	kMovieMediaHeight			= FourCharCode('ht  ');
 
 	{  contained movie properties }
-	kMoviePropertyDuration		= $64757261 (* 'dura' *);						{  TimeValue * }
-	kMoviePropertyTimeScale		= $74696D73 (* 'tims' *);						{  TimeValue * }
-	kMoviePropertyTime			= $74696D76 (* 'timv' *);						{  TimeValue * }
-	kMoviePropertyNaturalBounds	= $6E617462 (* 'natb' *);						{  Rect * }
-	kMoviePropertyMatrix		= $6D747278 (* 'mtrx' *);						{  Matrix * }
-	kMoviePropertyTrackList		= $746C7374 (* 'tlst' *);						{  long *** }
+	kMoviePropertyDuration		= FourCharCode('dura');						{  TimeValue * }
+	kMoviePropertyTimeScale		= FourCharCode('tims');						{  TimeValue * }
+	kMoviePropertyTime			= FourCharCode('timv');						{  TimeValue * }
+	kMoviePropertyNaturalBounds	= FourCharCode('natb');						{  Rect * }
+	kMoviePropertyMatrix		= FourCharCode('mtrx');						{  Matrix * }
+	kMoviePropertyTrackList		= FourCharCode('tlst');						{  long *** }
 
 
-	kTrackPropertyMediaType		= $6D747970 (* 'mtyp' *);						{  OSType }
-	kTrackPropertyInstantiation	= $696E7374 (* 'inst' *);						{  MovieMediaInstantiationInfoRecord }
+	kTrackPropertyMediaType		= FourCharCode('mtyp');						{  OSType }
+	kTrackPropertyInstantiation	= FourCharCode('inst');						{  MovieMediaInstantiationInfoRecord }
 
 
 type
@@ -7940,7 +7940,7 @@ function Media3DGetViewObject(mh: MediaHandler; tq3viewObject: UnivPtr): Compone
 ***************************************}
 
 const
-	MovieControllerComponentType = $706C6179 (* 'play' *);
+	MovieControllerComponentType = FourCharCode('play');
 
 
 	kMovieControllerQTVRFlag	= $01;

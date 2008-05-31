@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit ATSUnicodeFlattening;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -118,7 +118,7 @@ uses MacTypes,ATSUnicodeTypes,SFNTTypes;
 
 type ATSUFlattenedDataStreamFormat = UInt32;
 const
-  kATSUDataStreamUnicodeStyledText = $7573746C (* 'ustl' *);
+  kATSUDataStreamUnicodeStyledText = FourCharCode('ustl');
 
 
 {
@@ -484,7 +484,7 @@ type ATSFlatDataFontSpeciferType = UInt32;
 const
                                         { this specifier allows the storage of font data based on name data. This}
                                         { uses the stuctures below to store the actual data itself.}
-  kATSFlattenedFontSpecifierRawNameData = $6E616D64 (* 'namd' *);
+  kATSFlattenedFontSpecifierRawNameData = FourCharCode('namd');
 
 {
    this is the main header for the font data. It dictates what type of data

@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit KeychainCore;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -195,10 +195,10 @@ const
 	kWrPermKCStatus				= 4;
 
 
-	kCertificateKCItemClass		= $63657274 (* 'cert' *);						{  Certificate  }
-	kAppleSharePasswordKCItemClass = $61736870 (* 'ashp' *);					{  Appleshare password  }
-	kInternetPasswordKCItemClass = $696E6574 (* 'inet' *);						{  Internet password  }
-	kGenericPasswordKCItemClass	= $67656E70 (* 'genp' *);						{  Generic password  }
+	kCertificateKCItemClass		= FourCharCode('cert');						{  Certificate  }
+	kAppleSharePasswordKCItemClass = FourCharCode('ashp');					{  Appleshare password  }
+	kInternetPasswordKCItemClass = FourCharCode('inet');						{  Internet password  }
+	kGenericPasswordKCItemClass	= FourCharCode('genp');						{  Generic password  }
 
 
 type
@@ -206,82 +206,82 @@ type
 
 const
 																{  Common attributes  }
-	kClassKCItemAttr			= $636C6173 (* 'clas' *);						{  Item class (KCItemClass)  }
-	kCreationDateKCItemAttr		= $63646174 (* 'cdat' *);						{  Date the item was created (UInt32)  }
-	kModDateKCItemAttr			= $6D646174 (* 'mdat' *);						{  Last time the item was updated (UInt32)  }
-	kDescriptionKCItemAttr		= $64657363 (* 'desc' *);						{  User-visible description string (string)  }
-	kCommentKCItemAttr			= $69636D74 (* 'icmt' *);						{  User's comment about the item (string)  }
-	kCreatorKCItemAttr			= $63727472 (* 'crtr' *);						{  Item's creator (OSType)  }
-	kTypeKCItemAttr				= $74797065 (* 'type' *);						{  Item's type (OSType)  }
-	kScriptCodeKCItemAttr		= $73637270 (* 'scrp' *);						{  Script code for all strings (ScriptCode)  }
-	kLabelKCItemAttr			= $6C61626C (* 'labl' *);						{  Item label (string)  }
-	kInvisibleKCItemAttr		= $696E7669 (* 'invi' *);						{  Invisible (boolean)  }
-	kNegativeKCItemAttr			= $6E656761 (* 'nega' *);						{  Negative (boolean)  }
-	kCustomIconKCItemAttr		= $63757369 (* 'cusi' *);						{  Custom icon (boolean)  }
-	kAccountKCItemAttr			= $61636374 (* 'acct' *);						{  User account (string)  }
+	kClassKCItemAttr			= FourCharCode('clas');						{  Item class (KCItemClass)  }
+	kCreationDateKCItemAttr		= FourCharCode('cdat');						{  Date the item was created (UInt32)  }
+	kModDateKCItemAttr			= FourCharCode('mdat');						{  Last time the item was updated (UInt32)  }
+	kDescriptionKCItemAttr		= FourCharCode('desc');						{  User-visible description string (string)  }
+	kCommentKCItemAttr			= FourCharCode('icmt');						{  User's comment about the item (string)  }
+	kCreatorKCItemAttr			= FourCharCode('crtr');						{  Item's creator (OSType)  }
+	kTypeKCItemAttr				= FourCharCode('type');						{  Item's type (OSType)  }
+	kScriptCodeKCItemAttr		= FourCharCode('scrp');						{  Script code for all strings (ScriptCode)  }
+	kLabelKCItemAttr			= FourCharCode('labl');						{  Item label (string)  }
+	kInvisibleKCItemAttr		= FourCharCode('invi');						{  Invisible (boolean)  }
+	kNegativeKCItemAttr			= FourCharCode('nega');						{  Negative (boolean)  }
+	kCustomIconKCItemAttr		= FourCharCode('cusi');						{  Custom icon (boolean)  }
+	kAccountKCItemAttr			= FourCharCode('acct');						{  User account (string)  }
 																{  Unique Generic password attributes  }
-	kServiceKCItemAttr			= $73766365 (* 'svce' *);						{  Service (string)  }
-	kGenericKCItemAttr			= $67656E61 (* 'gena' *);						{  User-defined attribute (untyped bytes)  }
+	kServiceKCItemAttr			= FourCharCode('svce');						{  Service (string)  }
+	kGenericKCItemAttr			= FourCharCode('gena');						{  User-defined attribute (untyped bytes)  }
 																{  Unique Internet password attributes  }
-	kSecurityDomainKCItemAttr	= $73646D6E (* 'sdmn' *);						{  Security domain (string)  }
-	kServerKCItemAttr			= $73727672 (* 'srvr' *);						{  Server's domain name or IP address (string)  }
-	kAuthTypeKCItemAttr			= $61747970 (* 'atyp' *);						{  Authentication Type (KCAuthType)  }
-	kPortKCItemAttr				= $706F7274 (* 'port' *);						{  Port (UInt16)  }
-	kPathKCItemAttr				= $70617468 (* 'path' *);						{  Path (string)  }
+	kSecurityDomainKCItemAttr	= FourCharCode('sdmn');						{  Security domain (string)  }
+	kServerKCItemAttr			= FourCharCode('srvr');						{  Server's domain name or IP address (string)  }
+	kAuthTypeKCItemAttr			= FourCharCode('atyp');						{  Authentication Type (KCAuthType)  }
+	kPortKCItemAttr				= FourCharCode('port');						{  Port (UInt16)  }
+	kPathKCItemAttr				= FourCharCode('path');						{  Path (string)  }
 																{  Unique Appleshare password attributes  }
-	kVolumeKCItemAttr			= $766C6D65 (* 'vlme' *);						{  Volume (string)  }
-	kAddressKCItemAttr			= $61646472 (* 'addr' *);						{  Server address (IP or domain name) or zone name (string)  }
-	kSignatureKCItemAttr		= $73736967 (* 'ssig' *);						{  Server signature block (AFPServerSignature)  }
+	kVolumeKCItemAttr			= FourCharCode('vlme');						{  Volume (string)  }
+	kAddressKCItemAttr			= FourCharCode('addr');						{  Server address (IP or domain name) or zone name (string)  }
+	kSignatureKCItemAttr		= FourCharCode('ssig');						{  Server signature block (AFPServerSignature)  }
 																{  Unique AppleShare and Internet attributes  }
-	kProtocolKCItemAttr			= $7074636C (* 'ptcl' *);						{  Protocol (KCProtocolType)  }
+	kProtocolKCItemAttr			= FourCharCode('ptcl');						{  Protocol (KCProtocolType)  }
 																{  Certificate attributes  }
-	kSubjectKCItemAttr			= $7375626A (* 'subj' *);						{  Subject distinguished name (DER-encoded data)  }
-	kCommonNameKCItemAttr		= $636E2020 (* 'cn  ' *);						{  Common Name (UTF8-encoded string)  }
-	kIssuerKCItemAttr			= $69737375 (* 'issu' *);						{  Issuer distinguished name (DER-encoded data)  }
-	kSerialNumberKCItemAttr		= $736E6272 (* 'snbr' *);						{  Certificate serial number (DER-encoded data)  }
-	kEMailKCItemAttr			= $6D61696C (* 'mail' *);						{  E-mail address (ASCII-encoded string)  }
-	kPublicKeyHashKCItemAttr	= $68706B79 (* 'hpky' *);						{  Hash of public key (KCPublicKeyHash), 20 bytes max.  }
-	kIssuerURLKCItemAttr		= $6975726C (* 'iurl' *);						{  URL of the certificate issuer (ASCII-encoded string)  }
+	kSubjectKCItemAttr			= FourCharCode('subj');						{  Subject distinguished name (DER-encoded data)  }
+	kCommonNameKCItemAttr		= FourCharCode('cn  ');						{  Common Name (UTF8-encoded string)  }
+	kIssuerKCItemAttr			= FourCharCode('issu');						{  Issuer distinguished name (DER-encoded data)  }
+	kSerialNumberKCItemAttr		= FourCharCode('snbr');						{  Certificate serial number (DER-encoded data)  }
+	kEMailKCItemAttr			= FourCharCode('mail');						{  E-mail address (ASCII-encoded string)  }
+	kPublicKeyHashKCItemAttr	= FourCharCode('hpky');						{  Hash of public key (KCPublicKeyHash), 20 bytes max.  }
+	kIssuerURLKCItemAttr		= FourCharCode('iurl');						{  URL of the certificate issuer (ASCII-encoded string)  }
 																{  Shared by keys and certificates  }
-	kEncryptKCItemAttr			= $656E6372 (* 'encr' *);						{  Encrypt (Boolean)  }
-	kDecryptKCItemAttr			= $64656372 (* 'decr' *);						{  Decrypt (Boolean)  }
-	kSignKCItemAttr				= $7369676E (* 'sign' *);						{  Sign (Boolean)  }
-	kVerifyKCItemAttr			= $76657269 (* 'veri' *);						{  Verify (Boolean)  }
-	kWrapKCItemAttr				= $77726170 (* 'wrap' *);						{  Wrap (Boolean)  }
-	kUnwrapKCItemAttr			= $756E7772 (* 'unwr' *);						{  Unwrap (Boolean)  }
-	kStartDateKCItemAttr		= $73646174 (* 'sdat' *);						{  Start Date (UInt32)  }
-	kEndDateKCItemAttr			= $65646174 (* 'edat' *);						{  End Date (UInt32)  }
+	kEncryptKCItemAttr			= FourCharCode('encr');						{  Encrypt (Boolean)  }
+	kDecryptKCItemAttr			= FourCharCode('decr');						{  Decrypt (Boolean)  }
+	kSignKCItemAttr				= FourCharCode('sign');						{  Sign (Boolean)  }
+	kVerifyKCItemAttr			= FourCharCode('veri');						{  Verify (Boolean)  }
+	kWrapKCItemAttr				= FourCharCode('wrap');						{  Wrap (Boolean)  }
+	kUnwrapKCItemAttr			= FourCharCode('unwr');						{  Unwrap (Boolean)  }
+	kStartDateKCItemAttr		= FourCharCode('sdat');						{  Start Date (UInt32)  }
+	kEndDateKCItemAttr			= FourCharCode('edat');						{  End Date (UInt32)  }
 
 
 type
 	KCItemAttr							= FourCharCode;
 
 const
-	kKCAuthTypeNTLM				= $6E746C6D (* 'ntlm' *);
-	kKCAuthTypeMSN				= $6D736E61 (* 'msna' *);
-	kKCAuthTypeDPA				= $64706161 (* 'dpaa' *);
-	kKCAuthTypeRPA				= $72706161 (* 'rpaa' *);
-	kKCAuthTypeHTTPDigest		= $68747464 (* 'httd' *);
-	kKCAuthTypeDefault			= $64666C74 (* 'dflt' *);
+	kKCAuthTypeNTLM				= FourCharCode('ntlm');
+	kKCAuthTypeMSN				= FourCharCode('msna');
+	kKCAuthTypeDPA				= FourCharCode('dpaa');
+	kKCAuthTypeRPA				= FourCharCode('rpaa');
+	kKCAuthTypeHTTPDigest		= FourCharCode('httd');
+	kKCAuthTypeDefault			= FourCharCode('dflt');
 
 
 type
 	KCAuthType							= FourCharCode;
 
 const
-	kKCProtocolTypeFTP			= $66747020 (* 'ftp ' *);
-	kKCProtocolTypeFTPAccount	= $66747061 (* 'ftpa' *);
-	kKCProtocolTypeHTTP			= $68747470 (* 'http' *);
-	kKCProtocolTypeIRC			= $69726320 (* 'irc ' *);
-	kKCProtocolTypeNNTP			= $6E6E7470 (* 'nntp' *);
-	kKCProtocolTypePOP3			= $706F7033 (* 'pop3' *);
-	kKCProtocolTypeSMTP			= $736D7470 (* 'smtp' *);
-	kKCProtocolTypeSOCKS		= $736F7820 (* 'sox ' *);
-	kKCProtocolTypeIMAP			= $696D6170 (* 'imap' *);
-	kKCProtocolTypeLDAP			= $6C646170 (* 'ldap' *);
-	kKCProtocolTypeAppleTalk	= $61746C6B (* 'atlk' *);
-	kKCProtocolTypeAFP			= $61667020 (* 'afp ' *);
-	kKCProtocolTypeTelnet		= $74656C6E (* 'teln' *);
+	kKCProtocolTypeFTP			= FourCharCode('ftp ');
+	kKCProtocolTypeFTPAccount	= FourCharCode('ftpa');
+	kKCProtocolTypeHTTP			= FourCharCode('http');
+	kKCProtocolTypeIRC			= FourCharCode('irc ');
+	kKCProtocolTypeNNTP			= FourCharCode('nntp');
+	kKCProtocolTypePOP3			= FourCharCode('pop3');
+	kKCProtocolTypeSMTP			= FourCharCode('smtp');
+	kKCProtocolTypeSOCKS		= FourCharCode('sox ');
+	kKCProtocolTypeIMAP			= FourCharCode('imap');
+	kKCProtocolTypeLDAP			= FourCharCode('ldap');
+	kKCProtocolTypeAppleTalk	= FourCharCode('atlk');
+	kKCProtocolTypeAFP			= FourCharCode('afp ');
+	kKCProtocolTypeTelnet		= FourCharCode('teln');
 
 
 type

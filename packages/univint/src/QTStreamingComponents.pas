@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit QTStreamingComponents;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -114,16 +114,16 @@ uses MacTypes,Dialogs,Components,Movies,QuickTimeStreaming;
 ============================================================================}
 
 const
-	kQTSSourcerType				= $73726372 (* 'srcr' *);
+	kQTSSourcerType				= FourCharCode('srcr');
 
 
 type
 	QTSSourcer							= ComponentInstance;
 
 const
-	kQTSSGChannelSourcerType	= $73676368 (* 'sgch' *);
-	kQTSMovieTrackSourcerType	= $7472616B (* 'trak' *);
-	kQTSPushDataSourcerType		= $70757368 (* 'push' *);
+	kQTSSGChannelSourcerType	= FourCharCode('sgch');
+	kQTSMovieTrackSourcerType	= FourCharCode('trak');
+	kQTSPushDataSourcerType		= FourCharCode('push');
 
 	{	 flags for sourcer data 	}
 	kQTSSourcerDataFlag_SyncSample = $00000001;
@@ -156,44 +156,44 @@ function QTSNewSourcer(params: UnivPtr; const (*var*) inInitParams: QTSSourcerIn
 { info selectors for sourcers - get and set }
 
 const
-	kQTSInfo_Track				= $7472616B (* 'trak' *);						{  QTSTrackParams*  }
-	kQTSInfo_Loop				= $6C6F6F70 (* 'loop' *);						{  QTSLoopParams*  }
-	kQTSInfo_SourcerTiming		= $7374696D (* 'stim' *);						{  QTSSourcerTimingParams*  }
-	kQTSInfo_TargetFrameRate	= $74667073 (* 'tfps' *);						{  Fixed * in frames per second  }
-	kQTSInfo_PushData			= $70757368 (* 'push' *);						{  QTSPushDataParams*  }
-	kQTSInfo_SourcerCallbackProc = $73636270 (* 'scbp' *);						{  QTSSourcerCallbackProcParams*  }
-	kQTSInfo_TargetDataRate		= $74647274 (* 'tdrt' *);						{  UInt32 * in bytes per second  }
-	kQTSInfo_AudioAutoGainOnOff	= $61676320 (* 'agc ' *);						{  Boolean*  - error if unavailable }
-	kQTSInfo_AudioGain			= $6761696E (* 'gain' *);						{  Fixed* kFixed1 is unity gain  }
-	kQTSInfo_CroppedInputRect	= $63727072 (* 'crpr' *);						{  Rect* - defined relative to kQTSInfo_FullInputRect below  }
-	kQTSInfo_SpatialSettings	= $7370746C (* 'sptl' *);						{  pointer to SCSpatialSettings struct }
-	kQTSInfo_TemporalSettings	= $7470726C (* 'tprl' *);						{  pointer to SCTemporalSettings struct }
-	kQTSInfo_DataRateSettings	= $64726174 (* 'drat' *);						{  pointer to SCDataRateSettings struct }
-	kQTSInfo_CodecFlags			= $63666C67 (* 'cflg' *);						{  pointer to CodecFlags }
-	kQTSInfo_CodecSettings		= $63646563 (* 'cdec' *);						{  pointer to Handle }
-	kQTSInfo_ForceKeyValue		= $6B73696D (* 'ksim' *);						{  pointer to long }
-	kQTSInfo_SoundSampleRate	= $73737274 (* 'ssrt' *);						{  pointer to UnsignedFixed }
-	kQTSInfo_SoundSampleSize	= $73737373 (* 'ssss' *);						{  pointer to short }
-	kQTSInfo_SoundChannelCount	= $73736363 (* 'sscc' *);						{  pointer to short }
-	kQTSInfo_SoundCompression	= $73736374 (* 'ssct' *);						{  pointer to OSType }
-	kQTSInfo_CompressionList	= $6374796C (* 'ctyl' *);						{  pointer to OSType Handle }
-	kQTSInfo_VideoHue			= $68756520 (* 'hue ' *);						{  UInt16*  }
-	kQTSInfo_VideoSaturation	= $73617472 (* 'satr' *);						{  UInt16*  }
-	kQTSInfo_VideoContrast		= $74727374 (* 'trst' *);						{  UInt16*  }
-	kQTSInfo_VideoBrightness	= $62726974 (* 'brit' *);						{  UInt16*  }
-	kQTSInfo_VideoSharpness		= $73687270 (* 'shrp' *);						{  UInt16*  }
-	kQTSInfo_TimeScale			= $7363616C (* 'scal' *);						{  UInt32*  }
-	kQTSInfo_SGChannelDeviceName = $696E6E6D (* 'innm' *);						{  Handle*  }
-	kQTSInfo_SGChannelDeviceList = $7372646C (* 'srdl' *);						{  SGDeviceList*  }
-	kQTSInfo_SGChannelDeviceInput = $73646969 (* 'sdii' *);						{  short*  }
-	kQTSInfo_SGChannelSettings	= $73657367 (* 'sesg' *);						{  QTSSGChannelSettingsParams  }
-	kQTSInfo_PreviewWhileRecordingMode = $73727072 (* 'srpr' *);				{  Boolean*  }
-	kQTSInfo_CompressionParams	= $73636370 (* 'sccp' *);						{  QTAtomContainer*  }
+	kQTSInfo_Track				= FourCharCode('trak');						{  QTSTrackParams*  }
+	kQTSInfo_Loop				= FourCharCode('loop');						{  QTSLoopParams*  }
+	kQTSInfo_SourcerTiming		= FourCharCode('stim');						{  QTSSourcerTimingParams*  }
+	kQTSInfo_TargetFrameRate	= FourCharCode('tfps');						{  Fixed * in frames per second  }
+	kQTSInfo_PushData			= FourCharCode('push');						{  QTSPushDataParams*  }
+	kQTSInfo_SourcerCallbackProc = FourCharCode('scbp');						{  QTSSourcerCallbackProcParams*  }
+	kQTSInfo_TargetDataRate		= FourCharCode('tdrt');						{  UInt32 * in bytes per second  }
+	kQTSInfo_AudioAutoGainOnOff	= FourCharCode('agc ');						{  Boolean*  - error if unavailable }
+	kQTSInfo_AudioGain			= FourCharCode('gain');						{  Fixed* kFixed1 is unity gain  }
+	kQTSInfo_CroppedInputRect	= FourCharCode('crpr');						{  Rect* - defined relative to kQTSInfo_FullInputRect below  }
+	kQTSInfo_SpatialSettings	= FourCharCode('sptl');						{  pointer to SCSpatialSettings struct }
+	kQTSInfo_TemporalSettings	= FourCharCode('tprl');						{  pointer to SCTemporalSettings struct }
+	kQTSInfo_DataRateSettings	= FourCharCode('drat');						{  pointer to SCDataRateSettings struct }
+	kQTSInfo_CodecFlags			= FourCharCode('cflg');						{  pointer to CodecFlags }
+	kQTSInfo_CodecSettings		= FourCharCode('cdec');						{  pointer to Handle }
+	kQTSInfo_ForceKeyValue		= FourCharCode('ksim');						{  pointer to long }
+	kQTSInfo_SoundSampleRate	= FourCharCode('ssrt');						{  pointer to UnsignedFixed }
+	kQTSInfo_SoundSampleSize	= FourCharCode('ssss');						{  pointer to short }
+	kQTSInfo_SoundChannelCount	= FourCharCode('sscc');						{  pointer to short }
+	kQTSInfo_SoundCompression	= FourCharCode('ssct');						{  pointer to OSType }
+	kQTSInfo_CompressionList	= FourCharCode('ctyl');						{  pointer to OSType Handle }
+	kQTSInfo_VideoHue			= FourCharCode('hue ');						{  UInt16*  }
+	kQTSInfo_VideoSaturation	= FourCharCode('satr');						{  UInt16*  }
+	kQTSInfo_VideoContrast		= FourCharCode('trst');						{  UInt16*  }
+	kQTSInfo_VideoBrightness	= FourCharCode('brit');						{  UInt16*  }
+	kQTSInfo_VideoSharpness		= FourCharCode('shrp');						{  UInt16*  }
+	kQTSInfo_TimeScale			= FourCharCode('scal');						{  UInt32*  }
+	kQTSInfo_SGChannelDeviceName = FourCharCode('innm');						{  Handle*  }
+	kQTSInfo_SGChannelDeviceList = FourCharCode('srdl');						{  SGDeviceList*  }
+	kQTSInfo_SGChannelDeviceInput = FourCharCode('sdii');						{  short*  }
+	kQTSInfo_SGChannelSettings	= FourCharCode('sesg');						{  QTSSGChannelSettingsParams  }
+	kQTSInfo_PreviewWhileRecordingMode = FourCharCode('srpr');				{  Boolean*  }
+	kQTSInfo_CompressionParams	= FourCharCode('sccp');						{  QTAtomContainer*  }
 
 	{	 info selectors for sourcers - get only	}
-	kQTSInfo_SGChannel			= $73676368 (* 'sgch' *);						{  SGChannel*  }
-	kQTSInfo_SGChannelInputName	= $73726E6D (* 'srnm' *);						{  Handle*  }
-	kQTSInfo_FullInputRect		= $66756C72 (* 'fulr' *);						{  Rect*  }
+	kQTSInfo_SGChannel			= FourCharCode('sgch');						{  SGChannel*  }
+	kQTSInfo_SGChannelInputName	= FourCharCode('srnm');						{  Handle*  }
+	kQTSInfo_FullInputRect		= FourCharCode('fulr');						{  Rect*  }
 
 	{	 loop flags 	}
 	kQTSLoopFlag_Loop			= $00000001;
@@ -284,7 +284,7 @@ type
 	{  track sourcer callback selectors }
 
 const
-	kQTSSourcerCallback_Done	= $646F6E65 (* 'done' *);						{  QTSSourcerDoneParams*  }
+	kQTSSourcerCallback_Done	= FourCharCode('done');						{  QTSSourcerDoneParams*  }
 
 
 	{  push data sourcer callback selectors }
@@ -423,8 +423,8 @@ function QTSSourcerSetInfo(inSourcer: QTSSourcer; inSelector: OSType; ioParams: 
  }
 function QTSSourcerGetInfo(inSourcer: QTSSourcer; inSelector: OSType; ioParams: UnivPtr): ComponentResult; external name '_QTSSourcerGetInfo';
 const
-	kQTSInfo_InputDeviceName	= $696E6E6D (* 'innm' *);						{  Handle*  }
-	kQTSInfo_InputSourceName	= $73726E6D (* 'srnm' *);						{  Handle*  }
+	kQTSInfo_InputDeviceName	= FourCharCode('innm');						{  Handle*  }
+	kQTSInfo_InputSourceName	= FourCharCode('srnm');						{  Handle*  }
 
 
 	{	============================================================================
@@ -539,45 +539,45 @@ const
 	-----------------------------------------
 		}
 	{	 ----- these are get and set ----- 	}
-	kRTPInfo_SSRC				= $73737263 (* 'ssrc' *);						{  UInt32*  }
-	kRTPInfo_NextSeqNum			= $726E736E (* 'rnsn' *);						{  UInt16*  }
+	kRTPInfo_SSRC				= FourCharCode('ssrc');						{  UInt32*  }
+	kRTPInfo_NextSeqNum			= FourCharCode('rnsn');						{  UInt16*  }
 
 	{	-----------------------------------------
 	    RTP Statistics
 	-----------------------------------------	}
-	kRTPTotalReceivedPktsStat	= $74726370 (* 'trcp' *);
-	kRTPTotalLostPktsStat		= $746C7370 (* 'tlsp' *);
-	kRTPTotalProcessedPktsStat	= $74707270 (* 'tprp' *);
-	kRTPTotalDroppedPktsStat	= $74647270 (* 'tdrp' *);
-	kRTPBadHeaderDroppedPktsStat = $62686470 (* 'bhdp' *);
-	kRTPOurHeaderDroppedPktsStat = $6F686470 (* 'ohdp' *);
-	kRTPNotReceivingSenderDroppedPktsStat = $6E736470 (* 'nsdp' *);
-	kRTPNotProcessingDroppedPktsStat = $6E706470 (* 'npdp' *);
-	kRTPBadSeqDroppedPktsStat	= $62736470 (* 'bsdp' *);
-	kRTPArriveTooLatePktsStat	= $6172746C (* 'artl' *);
-	kRTPWaitForSeqDroppedPktsStat = $77736470 (* 'wsdp' *);
-	kRTPBadStateDroppedPktsStat	= $73746470 (* 'stdp' *);
-	kRTPBadPayloadDroppedPktsStat = $62706470 (* 'bpdp' *);
-	kRTPNoTimeScaleDroppedPktsStat = $6E746470 (* 'ntdp' *);
-	kRTPDupSeqNumDroppedPktsStat = $64736470 (* 'dsdp' *);
-	kRTPLostPktsPercentStat		= $6C737070 (* 'lspp' *);
-	kRTPDroppedPktsPercentStat	= $64707070 (* 'dppp' *);
-	kRTPTotalUnprocessedPktsPercentStat = $74757070 (* 'tupp' *);
-	kRTPRTCPDataRateStat		= $72726364 (* 'rrcd' *);
-	kRTPPayloadIDStat			= $72706964 (* 'rpid' *);
-	kRTPPayloadNameStat			= $72706E6D (* 'rpnm' *);
-	kRTPNumPktsInQueueStat		= $726E7071 (* 'rnpq' *);
-	kRTPTotalPktsInQueueStat	= $72747071 (* 'rtpq' *);
-	kRTPTotalOutOfOrderPktsStat	= $72746F6F (* 'rtoo' *);
-	kRTPRetransmissionStat		= $72727478 (* 'rrtx' *);
+	kRTPTotalReceivedPktsStat	= FourCharCode('trcp');
+	kRTPTotalLostPktsStat		= FourCharCode('tlsp');
+	kRTPTotalProcessedPktsStat	= FourCharCode('tprp');
+	kRTPTotalDroppedPktsStat	= FourCharCode('tdrp');
+	kRTPBadHeaderDroppedPktsStat = FourCharCode('bhdp');
+	kRTPOurHeaderDroppedPktsStat = FourCharCode('ohdp');
+	kRTPNotReceivingSenderDroppedPktsStat = FourCharCode('nsdp');
+	kRTPNotProcessingDroppedPktsStat = FourCharCode('npdp');
+	kRTPBadSeqDroppedPktsStat	= FourCharCode('bsdp');
+	kRTPArriveTooLatePktsStat	= FourCharCode('artl');
+	kRTPWaitForSeqDroppedPktsStat = FourCharCode('wsdp');
+	kRTPBadStateDroppedPktsStat	= FourCharCode('stdp');
+	kRTPBadPayloadDroppedPktsStat = FourCharCode('bpdp');
+	kRTPNoTimeScaleDroppedPktsStat = FourCharCode('ntdp');
+	kRTPDupSeqNumDroppedPktsStat = FourCharCode('dsdp');
+	kRTPLostPktsPercentStat		= FourCharCode('lspp');
+	kRTPDroppedPktsPercentStat	= FourCharCode('dppp');
+	kRTPTotalUnprocessedPktsPercentStat = FourCharCode('tupp');
+	kRTPRTCPDataRateStat		= FourCharCode('rrcd');
+	kRTPPayloadIDStat			= FourCharCode('rpid');
+	kRTPPayloadNameStat			= FourCharCode('rpnm');
+	kRTPNumPktsInQueueStat		= FourCharCode('rnpq');
+	kRTPTotalPktsInQueueStat	= FourCharCode('rtpq');
+	kRTPTotalOutOfOrderPktsStat	= FourCharCode('rtoo');
+	kRTPRetransmissionStat		= FourCharCode('rrtx');
 
 
 	{	-----------------------------------------
 	    Payload Info
 	-----------------------------------------	}
-	kRTPPayloadSpeedTag			= $73706564 (* 'sped' *);						{  0-255, 255 is fastest }
-	kRTPPayloadLossRecoveryTag	= $6C6F7373 (* 'loss' *);						{  0-255, 0 can't handle any loss, 128 can handle 50% packet loss }
-	kRTPPayloadConformanceTag	= $636F6E66 (* 'conf' *);						{  more than one of these can be present }
+	kRTPPayloadSpeedTag			= FourCharCode('sped');						{  0-255, 255 is fastest }
+	kRTPPayloadLossRecoveryTag	= FourCharCode('loss');						{  0-255, 0 can't handle any loss, 128 can handle 50% packet loss }
+	kRTPPayloadConformanceTag	= FourCharCode('conf');						{  more than one of these can be present }
 
 
 type
@@ -623,21 +623,21 @@ type
 	RTPReassembler						= ComponentInstance;
 
 const
-	kRTPReassemblerType			= $72747072 (* 'rtpr' *);
+	kRTPReassemblerType			= FourCharCode('rtpr');
 
-	kRTPBaseReassemblerType		= $676E7263 (* 'gnrc' *);
-	kRTP261ReassemblerType		= $68323631 (* 'h261' *);
-	kRTP263ReassemblerType		= $68323633 (* 'h263' *);
-	kRTP263PlusReassemblerType	= $3236332B (* '263+' *);
-	kRTPAudioReassemblerType	= $736F756E (* 'soun' *);
-	kRTPQTReassemblerType		= $7174696D (* 'qtim' *);
-	kRTPPureVoiceReassemblerType = $51636C70 (* 'Qclp' *);
-	kRTPJPEGReassemblerType		= $6A706567 (* 'jpeg' *);
-	kRTPQDesign2ReassemblerType	= $51444D32 (* 'QDM2' *);
-	kRTPSorensonReassemblerType	= $53565131 (* 'SVQ1' *);
-	kRTPMP3ReassemblerType		= $6D703320 (* 'mp3 ' *);
-	kRTPMPEG4AudioReassemblerType = $6D703461 (* 'mp4a' *);
-	kRTPMPEG4VideoReassemblerType = $6D703476 (* 'mp4v' *);
+	kRTPBaseReassemblerType		= FourCharCode('gnrc');
+	kRTP261ReassemblerType		= FourCharCode('h261');
+	kRTP263ReassemblerType		= FourCharCode('h263');
+	kRTP263PlusReassemblerType	= FourCharCode('263+');
+	kRTPAudioReassemblerType	= FourCharCode('soun');
+	kRTPQTReassemblerType		= FourCharCode('qtim');
+	kRTPPureVoiceReassemblerType = FourCharCode('Qclp');
+	kRTPJPEGReassemblerType		= FourCharCode('jpeg');
+	kRTPQDesign2ReassemblerType	= FourCharCode('QDM2');
+	kRTPSorensonReassemblerType	= FourCharCode('SVQ1');
+	kRTPMP3ReassemblerType		= FourCharCode('mp3 ');
+	kRTPMPEG4AudioReassemblerType = FourCharCode('mp4a');
+	kRTPMPEG4VideoReassemblerType = FourCharCode('mp4v');
 
 
 type
@@ -672,7 +672,7 @@ const
 
 
 	{  get/set info selectors }
-	kRTPRssmInfo_MoreInitParams	= $72726D69 (* 'rrmi' *);
+	kRTPRssmInfo_MoreInitParams	= FourCharCode('rrmi');
 
 
 type
@@ -727,11 +727,11 @@ type
 	{  characteristics }
 
 const
-	kRTPCharacteristic_RequiresOrderedPackets = $72726F70 (* 'rrop' *);
-	kRTPCharacteristic_TimeStampsNotMonoIncreasing = $74736D69 (* 'tsmi' *);
+	kRTPCharacteristic_RequiresOrderedPackets = FourCharCode('rrop');
+	kRTPCharacteristic_TimeStampsNotMonoIncreasing = FourCharCode('tsmi');
 
 
-	kRTPReassemblerInfoResType	= $72736D69 (* 'rsmi' *);
+	kRTPReassemblerInfoResType	= FourCharCode('rsmi');
 
 
 type
@@ -1144,25 +1144,25 @@ function RTPRssmDecrChunkRefCount(rtpr: RTPReassembler; var inChunk: SHChunkReco
 ============================================================================}
 
 const
-	kRTPMediaPacketizerType		= $7274706D (* 'rtpm' *);
+	kRTPMediaPacketizerType		= FourCharCode('rtpm');
 
 
 type
 	RTPMediaPacketizer					= ComponentInstance;
 
 const
-	kRTPBaseMediaPacketizerType	= $676E7263 (* 'gnrc' *);
-	kRTP261MediaPacketizerType	= $68323631 (* 'h261' *);
-	kRTP263PlusMediaPacketizerType = $3236332B (* '263+' *);
-	kRTPAudioMediaPacketizerType = $736F756E (* 'soun' *);
-	kRTPQTMediaPacketizerType	= $7174696D (* 'qtim' *);
-	kRTPPureVoiceMediaPacketizerType = $51636C70 (* 'Qclp' *);
-	kRTPJPEGMediaPacketizerType	= $6A706567 (* 'jpeg' *);
-	kRTPQDesign2MediaPacketizerType = $51444D32 (* 'QDM2' *);
-	kRTPSorensonMediaPacketizerType = $53565131 (* 'SVQ1' *);
-	kRTPMP3MediaPacketizerType	= $6D703320 (* 'mp3 ' *);
-	kRTPMPEG4AudioMediaPacketizerType = $6D703461 (* 'mp4a' *);
-	kRTPMPEG4VideoMediaPacketizerType = $6D703476 (* 'mp4v' *);
+	kRTPBaseMediaPacketizerType	= FourCharCode('gnrc');
+	kRTP261MediaPacketizerType	= FourCharCode('h261');
+	kRTP263PlusMediaPacketizerType = FourCharCode('263+');
+	kRTPAudioMediaPacketizerType = FourCharCode('soun');
+	kRTPQTMediaPacketizerType	= FourCharCode('qtim');
+	kRTPPureVoiceMediaPacketizerType = FourCharCode('Qclp');
+	kRTPJPEGMediaPacketizerType	= FourCharCode('jpeg');
+	kRTPQDesign2MediaPacketizerType = FourCharCode('QDM2');
+	kRTPSorensonMediaPacketizerType = FourCharCode('SVQ1');
+	kRTPMP3MediaPacketizerType	= FourCharCode('mp3 ');
+	kRTPMPEG4AudioMediaPacketizerType = FourCharCode('mp4a');
+	kRTPMPEG4VideoMediaPacketizerType = FourCharCode('mp4v');
 
 
 type
@@ -1315,27 +1315,27 @@ type
 	{	 info selectors - get only 	}
 
 const
-	kRTPMPPayloadTypeInfo		= $72747070 (* 'rtpp' *);						{  RTPMPPayloadTypeParams*  }
-	kRTPMPRTPTimeScaleInfo		= $72747074 (* 'rtpt' *);						{  TimeScale*  }
-	kRTPMPRequiredSampleDescriptionInfo = $73647363 (* 'sdsc' *);				{  SampleDescriptionHandle*  }
-	kRTPMPMinPayloadSize		= $6D696E73 (* 'mins' *);						{  UInt32* in bytes, does not include rtp header; default is 0  }
-	kRTPMPMinPacketDuration		= $6D696E64 (* 'mind' *);						{  UInt3* in milliseconds; default is no min required  }
-	kRTPMPSuggestedRepeatPktCountInfo = $73727063 (* 'srpc' *);					{  UInt32*  }
-	kRTPMPSuggestedRepeatPktSpacingInfo = $73727073 (* 'srps' *);				{  UInt32* in milliseconds  }
-	kRTPMPMaxPartialSampleSizeInfo = $6D707373 (* 'mpss' *);					{  UInt32* in bytes  }
-	kRTPMPPreferredBufferDelayInfo = $70726264 (* 'prbd' *);					{  UInt32* in milliseconds  }
-	kRTPMPPayloadNameInfo		= $6E616D65 (* 'name' *);						{  StringPtr  }
-	kRTPInfo_FormatString		= $666D7470 (* 'fmtp' *);						{  char **, caller allocates ptr, callee disposes  }
+	kRTPMPPayloadTypeInfo		= FourCharCode('rtpp');						{  RTPMPPayloadTypeParams*  }
+	kRTPMPRTPTimeScaleInfo		= FourCharCode('rtpt');						{  TimeScale*  }
+	kRTPMPRequiredSampleDescriptionInfo = FourCharCode('sdsc');				{  SampleDescriptionHandle*  }
+	kRTPMPMinPayloadSize		= FourCharCode('mins');						{  UInt32* in bytes, does not include rtp header; default is 0  }
+	kRTPMPMinPacketDuration		= FourCharCode('mind');						{  UInt3* in milliseconds; default is no min required  }
+	kRTPMPSuggestedRepeatPktCountInfo = FourCharCode('srpc');					{  UInt32*  }
+	kRTPMPSuggestedRepeatPktSpacingInfo = FourCharCode('srps');				{  UInt32* in milliseconds  }
+	kRTPMPMaxPartialSampleSizeInfo = FourCharCode('mpss');					{  UInt32* in bytes  }
+	kRTPMPPreferredBufferDelayInfo = FourCharCode('prbd');					{  UInt32* in milliseconds  }
+	kRTPMPPayloadNameInfo		= FourCharCode('name');						{  StringPtr  }
+	kRTPInfo_FormatString		= FourCharCode('fmtp');						{  char **, caller allocates ptr, callee disposes  }
 
 	{	-----------------------------------------
 	    RTP Media Packetizer Characteristics
 	-----------------------------------------	}
 	{	 also supports relevant ones in Movies.h and QTSToolbox.h 	}
-	kRTPMPNoSampleDataRequiredCharacteristic = $6E736472 (* 'nsdr' *);
-	kRTPMPHasUserSettingsDialogCharacteristic = $73646C67 (* 'sdlg' *);
-	kRTPMPPrefersReliableTransportCharacteristic = $72656C79 (* 'rely' *);
-	kRTPMPRequiresOutOfBandDimensionsCharacteristic = $726F6264 (* 'robd' *);
-	kRTPMPReadsPartialSamplesCharacteristic = $72707370 (* 'rpsp' *);
+	kRTPMPNoSampleDataRequiredCharacteristic = FourCharCode('nsdr');
+	kRTPMPHasUserSettingsDialogCharacteristic = FourCharCode('sdlg');
+	kRTPMPPrefersReliableTransportCharacteristic = FourCharCode('rely');
+	kRTPMPRequiresOutOfBandDimensionsCharacteristic = FourCharCode('robd');
+	kRTPMPReadsPartialSamplesCharacteristic = FourCharCode('rpsp');
 
 	{	-----------------------------------------
 	    RTP Media Packetizer selectors
@@ -1676,7 +1676,7 @@ function RTPMPSetSettings(rtpm: RTPMediaPacketizer; inSettings: QTAtomSpecPtr; i
 ============================================================================}
 
 const
-	kRTPPacketBuilderType		= $72747062 (* 'rtpb' *);
+	kRTPPacketBuilderType		= FourCharCode('rtpb');
 
 
 type

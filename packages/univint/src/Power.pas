@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit Power;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -316,11 +316,11 @@ const
 
 	{	 Power Mgt Apple Event types and errors 	}
 																{  power mgt class }
-	kAEMacPowerMgtEvt			= $706D6774 (* 'pmgt' *);						{  event ids }
-	kAEMacToWake				= $77616B65 (* 'wake' *);
-	kAEMacLowPowerSaveData		= $706D7364 (* 'pmsd' *);
-	kAEMacEmergencySleep		= $656D736C (* 'emsl' *);
-	kAEMacEmergencyShutdown		= $656D7364 (* 'emsd' *);
+	kAEMacPowerMgtEvt			= FourCharCode('pmgt');						{  event ids }
+	kAEMacToWake				= FourCharCode('wake');
+	kAEMacLowPowerSaveData		= FourCharCode('pmsd');
+	kAEMacEmergencySleep		= FourCharCode('emsl');
+	kAEMacEmergencyShutdown		= FourCharCode('emsd');
 
 
 	{

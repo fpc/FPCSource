@@ -18,7 +18,7 @@
 
 {
     Modified for use with Free Pascal
-    Version 200
+    Version 210
     Please report any bugs to <gpc@microbizz.nl>
 }
 
@@ -26,12 +26,12 @@
 {$packenum 1}
 {$macro on}
 {$inline on}
-{$CALLING MWPASCAL}
+{$calling mwpascal}
 
 unit PEFBinaryFormat;
 interface
 {$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0200}
+{$setc GAP_INTERFACES_VERSION := $0210}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -186,8 +186,8 @@ type
 
 
 const
-	kPEFTag1					= $4A6F7921 (* 'Joy!' *);						{  For non-Apple compilers: 0x4A6F7921. }
-	kPEFTag2					= $70656666 (* 'peff' *);						{  For non-Apple compilers: 0x70656666. }
+	kPEFTag1					= FourCharCode('Joy!');						{  For non-Apple compilers: 0x4A6F7921. }
+	kPEFTag2					= FourCharCode('peff');						{  For non-Apple compilers: 0x70656666. }
 	kPEFVersion					= $00000001;
 
 
