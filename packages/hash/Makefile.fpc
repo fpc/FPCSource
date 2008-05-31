@@ -4,7 +4,7 @@
 
 [package]
 name=hash
-version=2.2.1rc1
+version=2.2.2rc1
 
 [target]
 units=md5 crc ntlm uuid

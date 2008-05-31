@@ -4,7 +4,7 @@
 
 [package]
 name=xforms
-version=2.2.1rc1
+version=2.2.2rc1
 
 [target]
 units=xforms

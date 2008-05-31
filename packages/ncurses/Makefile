@@ -258,7 +258,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=ncurses
-override PACKAGE_VERSION=2.2.1rc1
+override PACKAGE_VERSION=2.2.2rc1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=ncurses panel ncrt ocrt menu form
 endif
