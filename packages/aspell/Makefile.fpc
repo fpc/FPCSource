@@ -4,7 +4,7 @@
 
 [package]
 name=aspell
-version=1.0.0
+version=2.2.1rc1
 
 [target]
 units=aspell spellcheck

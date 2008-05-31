@@ -4,7 +4,7 @@
 
 [package]
 name=fpc
-version=2.2.1
+version=2.2.1rc1
 
 [target]
 dirs=compiler rtl utils packages ide installer

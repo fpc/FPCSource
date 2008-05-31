@@ -4,7 +4,7 @@
 
 [package]
 name=ptc
-version=0.99.5
+version=2.2.1rc1
 
 [target]
 units=ptc

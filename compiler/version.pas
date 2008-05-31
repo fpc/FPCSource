@@ -30,7 +30,7 @@ interface
        version_nr = '2';
        release_nr = '2';
        patch_nr   = '1';
-       minorpatch = '';
+       minorpatch = 'rc1';
 
        { word version for ppu file }
        wordversion = ((ord(version_nr)-ord('0')) shl 14)+

@@ -4,7 +4,7 @@
 
 [package]
 name=rtl
-version=2.2.1
+version=2.2.1rc1
 
 [target]
 dirs_linux=linux

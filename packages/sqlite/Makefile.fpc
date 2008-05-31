@@ -4,7 +4,7 @@
 
 [package]
 name=sqlite
-version=2.0.0
+version=2.2.1rc1
 
 [target]
 units=sqlite sqlite3 sqlite3dyn sqlitedb sqlite3db
