@@ -303,4 +303,43 @@ Const
   MSG_NOSIGNAL = $4000;              { Do not generate SIGPIPE }
   MSG_MORE     = $8000;              { Sender will send more }
   MSG_EOF      = MSG_FIN;
+  
+     TCP_NODELAY = 1;
+  { Limit MSS  }
+     TCP_MAXSEG = 2;
+  { Never send partially complete segments  }
+     TCP_CORK = 3;
+  { Start keeplives after this period  }
+     TCP_KEEPIDLE = 4;
+  { Interval between keepalives  }
+     TCP_KEEPINTVL = 5;
+  { Number of keepalives before death  }
+     TCP_KEEPCNT = 6;
+  { Number of SYN retransmits  }
+     TCP_SYNCNT = 7;
+  { Life time of orphaned FIN-WAIT-2 state  }
+     TCP_LINGER2 = 8;
+  { Wake up listener only when data arrive  }
+     TCP_DEFER_ACCEPT = 9;
+  { Bound advertised window  }
+     TCP_WINDOW_CLAMP = 10;
+  { Information about this connection.  }
+     TCP_INFO = 11;
+  { Block/reenable quick acks  }
+     TCP_QUICKACK = 12;
+  { Congestion control algorithm  }
+     TCP_CONGESTION = 13;
+  { TCP MD5 Signature (RFC2385)  }
+     TCP_MD5SIG = 14;
+  
+     UDP_CORK = 1;
+  { Set the socket to accept encapsulated packets  }
+     UDP_ENCAP = 100;
+  { UDP encapsulation types  }
+  { draft-ietf-ipsec-nat-t-ike-00/01  }
+     UDP_ENCAP_ESPINUDP_NON_IKE = 1;
+  { draft-ietf-ipsec-udp-encaps-06  }
+     UDP_ENCAP_ESPINUDP = 2;
+  { rfc2661  }
+     UDP_ENCAP_L2TPINUDP = 3;
 
