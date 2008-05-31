@@ -46,7 +46,9 @@ resourcestring
   SDocClasses                = 'Classes';
   SDocProceduresAndFunctions = 'Procedures and functions';
   SDocVariables              = 'Variables';
-
+  SDocIdentifierIndex        = 'Index';
+  SDocModuleIndex            = 'Index of all identifiers in unit ''%s''';
+  SDocPackageIndex           = 'Index of all identifiers in package ''%s''';
   SDocUnitOverview           = 'Overview of unit ''%s''';
   SDocOverview               = 'Overview';
   SDocSearch                 = 'Search';
@@ -101,6 +103,9 @@ resourcestring
   // HTML usage
   SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
   SHTMLUsageFooterDate = 'Append footer with date. fmt is Optional format for FormatDateTime';
+  SHTMLUsageCharset = 'Set the HTML character set';
+  SHTMLHtmlSearch = 'Add search page with given name to the menu bar';
+  SHTMLIndexColcount = 'Use N columns in the identifier index pages';
   
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';

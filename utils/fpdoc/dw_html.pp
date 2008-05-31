@@ -31,6 +31,7 @@ const
   VarsSubindex = 6;
   // Maybe needed later for topic overview ??
   TopicsSubIndex = 7;
+  IndexSubIndex = 8;
 
   // Subpage indices for classes
   PropertiesByInheritanceSubindex = 1;
@@ -107,6 +108,8 @@ type
     FooterFile: string;
     FIDF : Boolean;
     FDateFormat: String;
+    FIndexColCount : Integer;
+    FSearchPage : String;
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
@@ -213,9 +216,12 @@ type
     Procedure AppendSeeAlsoSection(AElement : TPasElement;DocNode : TDocNode);
     Procedure AppendExampleSection(AElement : TPasElement;DocNode : TDocNode);
     procedure AppendFooter;
-
+    procedure CreateIndexPage(L : TStringList);
+    procedure CreateModuleIndexPage(AModule: TPasModule);
     procedure CreatePageBody(AElement: TPasElement; ASubpageIndex: Integer); virtual;
     procedure CreatePackagePageBody;
+    procedure CreatePackageIndex;
+    procedure AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
     Procedure CreateTopicPageBody(AElement : TTopicElement);
     procedure CreateModulePageBody(AModule: TPasModule; ASubpageIndex: Integer);
     procedure CreateConstPageBody(AConst: TPasConst);
@@ -239,7 +245,10 @@ type
     procedure WriteHTMLPages; virtual;
     procedure WriteXHTMLPages;
 
-    SearchPage: String;
+    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
+    Procedure WriteDoc; override;
+    class procedure Usage(List: TStrings); override;
+    Property SearchPage: String Read FSearchPage Write FSearchPage;
     property Allocator: TFileAllocator read FAllocator;
     property Package: TPasPackage read FPackage;
     property PageCount: Integer read GetPageCount;
@@ -247,9 +256,7 @@ type
     Property DateFormat : String Read FDateFormat Write FDateFormat;
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
     Property CharSet : String Read FCharSet Write FCharSet;
-    Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
-    Procedure WriteDoc; override;
-    class procedure Usage(List: TStrings); override;
+    Property IndexColCount : Integer Read FIndexColCount write FIndexColCount;
   end;
 
   THTMWriter = class(THTMLWriter)
@@ -493,6 +500,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     DidAutolink: Boolean;
   begin
     AddPage(AModule, 0);
+    AddPage(AModule,IndexSubIndex);
     AddTopicPages(AModule);
     with AModule do
     begin
@@ -574,6 +582,7 @@ var
   i: Integer;
 begin
   inherited ;
+  IndexColCount:=3;
   Charset:='iso-8859-1';
   CreateAllocator;
   FPackage := APackage;
@@ -585,6 +594,7 @@ begin
   if Length(Package.Name) > 1 then
     begin
     AddPage(Package, 0);
+    AddPage(Package,IndexSubIndex);
     AddTopicPages(Package);
     end;
 
@@ -1815,7 +1825,7 @@ begin
   ParaEl := CreateEl(CreateTD(TREl), 'b');
 
   if Assigned(Module) then
-  begin
+    begin
     AddLink(0, SDocOverview);
     if Module.InterfaceSection.ResStrings.Count > 0 then
       AddLink(ResstrSubindex, SDocResStrings);
@@ -1829,7 +1839,20 @@ begin
       AddLink(ProcsSubindex, SDocProceduresAndFunctions);
     if Module.InterfaceSection.Variables.Count > 0 then
       AddLink(VarsSubindex, SDocVariables);
-  end;
+    AddLink(IndexSubIndex,SDocIdentifierIndex);  
+    end
+  else
+    begin
+    // Manually add link for package page
+    AppendText(ParaEl, '[');
+    if (IndexSubIndex = ASubpageIndex) then
+      AppendText(ParaEl, SDocIdentifierIndex)
+    else
+      AppendText(
+        CreateLink(ParaEl, ResolveLinkWithinPackage(Package, IndexSubIndex)),
+        SDocIdentifierIndex);
+    AppendText(ParaEl, ']');
+    end;
 
   if Length(SearchPage) > 0 then
   begin
@@ -2055,7 +2078,13 @@ begin
   BaseDirectory := Allocator.GetRelativePathToTop(AElement);
 
   if AElement.ClassType = TPasPackage then
-    CreatePackagePageBody
+    begin
+    Module:=Nil;
+    If (ASubPageIndex=0) then
+      CreatePackagePageBody
+    else
+      CreatePackageIndex  
+    end
   else
     begin
     Element := AElement;
@@ -2079,6 +2108,147 @@ begin
       CreateProcPageBody(TPasProcedure(AElement))
     else if AElement.ClassType = TTopicELement then
       CreateTopicPageBody(TTopicElement(AElement))
+  end;
+end;
+
+procedure THTMLWriter.CreateIndexPage(L : TStringList);
+
+Var
+  Lists  : Array['A'..'Z'] of TStringList;
+  CL : TStringList;
+  TableEl, TREl, EL: TDOMElement;
+  E : TPasElement;
+  I,Rows,J,Index : Integer;
+  S : String;
+  C : Char;
+
+begin
+  For C:='A' to 'Z' do
+    Lists[C]:=Nil;
+  L.Sort;
+  // Divide over alphabet
+  For I:=0 to L.Count-1 do
+    begin
+    S:=L[i];
+    E:=TPasElement(L.Objects[i]);
+    If not (E is TPasUnresolvedTypeRef) then
+      begin
+      If (S<>'') then 
+        begin
+        C:=Upcase(S[1]);
+        If Lists[C]=Nil then
+          begin
+          CL:=TStringList.Create;
+          Lists[C]:=CL;
+          end;
+        end;
+      CL.AddObject(S,E);
+      end;  
+    end;  
+  Try  
+  // Create a quick jump table to all available letters.    
+  TableEl := CreateTable(BodyElement);
+  TableEl['border']:='1';
+  TableEl['width']:='50%';
+  TREl := CreateTR(TableEl);
+  for C:='A' to 'Z' do
+    If (Lists[C]<>Nil) then
+      begin
+      El:=CreateTD_vtop(TREl);
+      AppendText(CreateLink(El,'#SECTION'+C),C);
+      If C<>'Z' then
+       AppendNBsp(El,1);
+      end;
+  // Now emit all identifiers.    
+  TableEl:=Nil;
+  For C:='A' to 'Z' do
+    begin
+    CL:=Lists[C];
+    If CL<>Nil then
+      begin
+      El:=CreateH2(BodyElement);
+      AppendText(El,C);
+      CreateAnchor(El,'SECTION'+C);
+      TableEl := CreateTable(BodyElement);
+      TableEl['Width']:='80%';
+      // Determine number of rows needed
+      Rows:=(CL.Count div IndexColCount);
+      If ((CL.Count Mod IndexColCount)<>0) then
+        Inc(Rows);
+      // Fill rows  
+      For I:=0 to Rows-1 do
+        begin
+        TREl := CreateTR(TableEl);
+        For J:=0 to IndexColCount-1 do 
+          begin
+          El:=CreateTD_vtop(TREl);
+          Index:=(J*Rows)+I;
+          If (Index<CL.Count) then
+            begin
+            S:=CL[Index];
+            E:=TPasElement(CL.Objects[Index]);
+            AppendHyperlink(El,E);
+            end;
+          end;  
+        end;  
+      end; // have List
+    end;  // For C:=
+  Finally
+    for C:='A' to 'Z' do
+      FreeAndNil(Lists[C]);
+  end;  
+end;
+
+procedure THTMLWriter.AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
+
+  Procedure AddElementsFromList(L : TStrings; List : TList);
+  
+  Var
+    I : Integer;
+    El : TPasElement;
+    
+  begin
+    For I:=0 to List.Count-1 do
+      begin
+      El:=TPasElement(List[I]);
+      L.AddObject(El.Name,El);
+      end;
+  end;
+  
+begin
+  AddElementsFromList(L,AModule.InterfaceSection.Consts);
+  AddElementsFromList(L,AModule.InterfaceSection.Types);
+  AddElementsFromList(L,AModule.InterfaceSection.Functions);
+  AddElementsFromList(L,AModule.InterfaceSection.Classes);
+  AddElementsFromList(L,AModule.InterfaceSection.Variables);
+  AddElementsFromList(L,AModule.InterfaceSection.ResStrings);
+end;
+
+
+procedure THTMLWriter.CreatePackageIndex;
+
+
+Var
+  L : TStringList;
+  I : Integer;
+  M : TPasModule;
+  E : TPasElement;
+      
+begin
+  L:=TStringList.Create;
+  try
+    L.Capacity:=PageInfos.Count; // Too much, but that doesn't hurt.
+    For I:=0 to Package.Modules.Count-1 do
+      begin
+      M:=TPasModule(Package.Modules[i]);
+      L.AddObject(M.Name,M);
+      AddModuleIdentifiers(M,L);
+      end;
+    AppendMenuBar(IndexSubIndex);
+    AppendTitle(Format(SDocPackageIndex, [Copy(Package.Name, 2, 256)]));
+    CreateIndexPage(L);
+  Finally
+    L.Free;
   end;
 end;
 
@@ -2153,6 +2323,23 @@ begin
       end;
     DocNode:=DocNode.NextSibling;
     end;
+end;
+
+procedure THTMLWriter.CreateModuleIndexPage(AModule: TPasModule);
+
+Var
+  L : TStringList;
+
+begin
+  L:=TStringList.Create;
+  try
+    AddModuleIdentifiers(AModule,L);
+    AppendMenuBar(IndexSubIndex);
+    AppendTitle(Format(SDocModuleIndex, [AModule.Name]));
+    CreateIndexPage(L);
+  Finally
+    L.Free;
+  end;  
 end;
 
 procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
@@ -2264,6 +2451,7 @@ procedure THTMLWriter.CreateModulePageBody(AModule: TPasModule;
       AppendText(ParaEl, Decl.Value);
     end;
   end;
+  
 
 begin
   case ASubpageIndex of
@@ -2281,6 +2469,8 @@ begin
       CreateSimpleSubpage(SDocProceduresAndFunctions, AModule.InterfaceSection.Functions);
     VarsSubindex:
       CreateSimpleSubpage(SDocVariables, AModule.InterfaceSection.Variables);
+    IndexSubIndex: 
+      CreateModuleIndexPage(AModule);
   end;
 end;
 
@@ -3012,6 +3202,8 @@ begin
     FooterFile := Arg
   else if Cmd = '--charset' then
     CharSet := Arg
+  else if Cmd = '--index-colcount' then
+    IndexColCount := StrToIntDef(Arg,IndexColCount)
   else if Cmd = '--footer-date' then
     begin
     FIDF:=True;
@@ -3033,6 +3225,12 @@ begin
   List.Add(SHTMLUsageFooter);
   List.Add('--footer-date[=Fmt]');
   List.Add(SHTMLUsageFooterDate);
+  List.Add('--charset=set');
+  List.Add(SHTMLUsageCharset);
+  List.Add('--html-search=pagename');
+  List.Add(SHTMLHtmlSearch);
+  List.Add('--index-colcount=N');
+  List.Add(SHTMLIndexColcount);
 end;
 
 // private methods
