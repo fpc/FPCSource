@@ -105,7 +105,7 @@ type
     procedure DescrEndItalic; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
-    procedure DescrWriteImageEl(const AFileName, ACaption : DOMString); virtual; abstract;
+    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; abstract;
     procedure DescrWriteFileEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteKeywordEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteVarEl(const AText: DOMString); virtual; abstract;
@@ -977,7 +977,10 @@ begin
     Result := True;
   end else if Node.NodeName = 'img' then
   begin
+    begin
     ConvertImage(Node as TDomElement);
+    Result:=True;
+    end;
   end else  
     Result := False;
 end;
@@ -985,13 +988,14 @@ end;
 Procedure TFPDocWriter.ConvertImage(El : TDomElement);
 
 Var
-  FN,Cap : DOMString;
+  FN,Cap,LinkName : DOMString;
 
 begin
   FN:=El['file'];
   Cap:=El['caption'];
-  ChangeFileExt(FN,ImageExtension);
-  DescrWriteImageEl(FN,Cap);
+  LinkName:=El['name'];
+  FN:=ChangeFileExt(FN,ImageExtension);
+  DescrWriteImageEl(FN,Cap,LinkName);
 end;
 
 

@@ -142,7 +142,7 @@ type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
-    procedure DescrWriteImageEl(const AFileName, ACaption : DOMString); override;
+    procedure DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString); override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -962,10 +962,10 @@ begin
   PopOutputNode;
 end;
 
-procedure THTMLWriter.DescrWriteImageEl(const AFileName, ACaption : DOMString);
+procedure THTMLWriter.DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString);
 
 Var
-  Pel,Cel : TDOMNode;
+  Pel,Cel,Lel : TDOMNode;
   El :TDomElement;
   D : String;
   L : Integer;
@@ -978,7 +978,10 @@ begin
     begin
     Cel:=CreateTable(CurOutputNode);
     Pel:=CreateTD(CreateTR(Cel));
-    AppendText(CreateTD(CreateTR(Cel)),ACaption);
+    Cel:=CreateTD(CreateTR(Cel));
+    If (ALinkName<>'') then
+      Cel:=CreateAnchor(Cel,ALinkName);
+    AppendText(Cel,ACaption);
     end;
   // Determine URL for image.  
   D:=BaseImageURL;
@@ -2279,7 +2282,8 @@ Var
   I : Integer;
   M : TPasModule;
   E : TPasElement;
-      
+  S : String;    
+  
 begin
   L:=TStringList.Create;
   try
@@ -2291,7 +2295,10 @@ begin
       AddModuleIdentifiers(M,L);
       end;
     AppendMenuBar(IndexSubIndex);
-    AppendTitle(Format(SDocPackageIndex, [Copy(Package.Name, 2, 256)]));
+    S:=Package.Name;
+    If Length(S)>0 then
+      Delete(S,1,1);
+    AppendTitle(Format(SDocPackageIndex, [S]));
     CreateIndexPage(L);
   Finally
     L.Free;
@@ -3250,6 +3257,8 @@ begin
     CharSet := Arg
   else if Cmd = '--index-colcount' then
     IndexColCount := StrToIntDef(Arg,IndexColCount)
+  else if Cmd = '--image-url' then
+    FBaseImageURL  := Arg
   else if Cmd = '--footer-date' then
     begin
     FIDF:=True;
@@ -3277,6 +3286,8 @@ begin
   List.Add(SHTMLHtmlSearch);
   List.Add('--index-colcount=N');
   List.Add(SHTMLIndexColcount);
+  List.Add('--image-url=url');
+  List.Add(SHTMLImageUrl);
 end;
 
 // private methods

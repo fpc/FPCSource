@@ -106,7 +106,8 @@ resourcestring
   SHTMLUsageCharset = 'Set the HTML character set';
   SHTMLHtmlSearch = 'Add search page with given name to the menu bar';
   SHTMLIndexColcount = 'Use N columns in the identifier index pages';
-  
+  SHTMLImageUrl = 'Prefix image URLs with url';
+    
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';
   SCHMUsageIndex   = 'Use [File] as the index. Usually a .hhk file.';
