@@ -110,6 +110,7 @@ type
     FDateFormat: String;
     FIndexColCount : Integer;
     FSearchPage : String;
+    FBaseImageURL : String;
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
@@ -141,6 +142,7 @@ type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrWriteImageEl(const AFileName, ACaption : DOMString); override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -257,6 +259,7 @@ type
     property OnTest: TNotifyEvent read FOnTest write SetOnTest;
     Property CharSet : String Read FCharSet Write FCharSet;
     Property IndexColCount : Integer Read FIndexColCount write FIndexColCount;
+    Property BaseImageURL : String Read FBaseImageURL Write FBaseImageURL;
   end;
 
   THTMWriter = class(THTMLWriter)
@@ -957,6 +960,47 @@ end;
 procedure THTMLWriter.DescrEndEmph;
 begin
   PopOutputNode;
+end;
+
+procedure THTMLWriter.DescrWriteImageEl(const AFileName, ACaption : DOMString);
+
+Var
+  Pel,Cel : TDOMNode;
+  El :TDomElement;
+  D : String;
+  L : Integer;
+   
+begin
+  // Determine parent node.
+  If (ACaption='') then
+    Pel:=CurOutputNode
+  else
+    begin
+    Cel:=CreateTable(CurOutputNode);
+    Pel:=CreateTD(CreateTR(Cel));
+    AppendText(CreateTD(CreateTR(Cel)),ACaption);
+    end;
+  // Determine URL for image.  
+  D:=BaseImageURL;
+  If (D='') then
+    begin
+    If (Module=Nil) then
+      D:=Allocator.GetRelativePathToTop(Package)
+    else 
+      D:=Allocator.GetRelativePathToTop(Module);
+    L:=Length(D);  
+    If (L>0) and (D[L]<>'/') then
+      D:=D+'/';
+    D:=D+'images/';
+    end
+  else  
+    L:=Length(D);  
+    If (L>0) and (D[L]<>'/') then
+      D:=D+'/';
+  // Create image node.  
+  El:=CreateEl(Pel,'img');
+  EL['src']:=D+AFileName;
+  El['alt']:=ACaption;
 end;
 
 procedure THTMLWriter.DescrWriteFileEl(const AText: DOMString);
@@ -2126,6 +2170,7 @@ begin
   For C:='A' to 'Z' do
     Lists[C]:=Nil;
   L.Sort;
+  Cl:=Nil;
   // Divide over alphabet
   For I:=0 to L.Count-1 do
     begin
@@ -2142,7 +2187,8 @@ begin
           Lists[C]:=CL;
           end;
         end;
-      CL.AddObject(S,E);
+      if assigned(cl) then  
+        CL.AddObject(S,E);
       end;  
     end;  
   Try  
