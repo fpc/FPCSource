@@ -180,7 +180,11 @@ begin
 {$endif powerpc64}
 
 {$ifdef arm}
+{$ifdef FPC_ARMEL}
+     defdynlinker:='/lib/ld-linux.so.3';
+{$else FPC_ARMEL}
      defdynlinker:='/lib/ld-linux.so.2';
+{$endif FPC_ARMEL}
 {$endif arm}
 
      {
