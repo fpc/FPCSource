@@ -105,7 +105,7 @@ type
     procedure DescrEndItalic; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
-    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; abstract;
+    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; 
     procedure DescrWriteFileEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteKeywordEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteVarEl(const AText: DOMString); virtual; abstract;
@@ -362,6 +362,12 @@ begin
       Result:=TTopicElement(FTopics[i]);
     Dec(I);
     end;
+end;
+
+Procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); 
+
+begin
+  system.writeln(ClassName,': No support for images yet: ',AFileName,' (caption: "',ACaption,'")');
 end;
 
 { ---------------------------------------------------------------------
