@@ -1464,7 +1464,9 @@ begin
           end;
         end;
       end;
-    end else
+    end else if Element is TPasEnumValue then
+      s := ResolveLinkID(Element.Parent.PathName)
+    else  
       s := ResolveLinkID(Element.PathName);
 
     if Length(s) > 0 then
@@ -2261,6 +2263,8 @@ procedure THTMLWriter.AddModuleIdentifiers(AModule : TPasModule; L : TStrings);
       begin
       El:=TPasElement(List[I]);
       L.AddObject(El.Name,El);
+      If el is TPasEnumType then
+        AddElementsFromList(L,TPasEnumType(el).Values);
       end;
   end;
   
