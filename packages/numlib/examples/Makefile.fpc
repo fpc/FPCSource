@@ -4,7 +4,7 @@
 
 [package]
 name=iom
-version=2.2.2rc1
+version=2.2.3
  
 [target]
 programs=invgenex invgpdex invgsyex iomremex iomrevex iomrewrsex iomwrmex iomwrvex

@@ -258,7 +258,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-image
-override PACKAGE_VERSION=2.2.2rc1
+override PACKAGE_VERSION=2.2.3
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg pcxcomn fpreadpcx fpwritepcx targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer extinterpolation  freetypeh freetype ftfont
 endif
