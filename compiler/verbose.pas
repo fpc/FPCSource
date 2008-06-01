@@ -375,25 +375,27 @@ implementation
       { fix status }
         status.currentline:=current_filepos.line;
         status.currentcolumn:=current_filepos.column;
-        module:=get_module(current_filepos.moduleindex);
-        if assigned(module) and
-           assigned(module.sourcefiles) and
-           ((module.unit_index<>lastmoduleidx) or
-            (current_filepos.fileindex<>lastfileidx)) then
-         begin
-           { update status record }
-           status.currentmodule:=module.modulename^;
-					 status.currentmodulestate:=ModuleStateStr[module.state];
-           status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
-           status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+        if (current_filepos.moduleindex <> lastmoduleidx) or
+           (current_filepos.fileindex <> lastfileidx) then
+        begin
+          module:=get_module(current_filepos.moduleindex);
+          if assigned(module) and assigned(module.sourcefiles) then
+            begin
+              { update status record }
+              status.currentmodule:=module.modulename^;
+              status.currentmodulestate:=ModuleStateStr[module.state];
+              status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
+              status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
 
-           { update lastfileidx only if name known PM }
-           if status.currentsource<>'' then
-             lastfileidx:=current_filepos.fileindex
-           else
-             lastfileidx:=0;
-           lastmoduleidx:=module.unit_index;
-         end;
+              { update lastfileidx only if name known PM }
+              if status.currentsource<>'' then
+                lastfileidx:=current_filepos.fileindex
+              else
+                lastfileidx:=0;
+
+              lastmoduleidx:=module.unit_index;
+            end;
+        end;
       end;
 
 
