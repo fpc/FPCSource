@@ -278,6 +278,7 @@ end;
   ---------------------------------------------------------------------}
 
 Const
+  SBCD = 'BCD';
   SBoolean = 'Boolean';
   SDateTime = 'TDateTime';
   SFloat = 'Float';
@@ -608,6 +609,11 @@ begin
     Result:=-1;
 end;
 
+function TField.GetAsBCD: TBCD;
+begin
+  raise AccessError(SBCD);
+end;
+
 function TField.GetLookup: Boolean;
 begin
   Result := FieldKind = fkLookup;
@@ -630,6 +636,11 @@ begin
     FAlignment := Avalue;
     PropertyChanged(false);
     end;
+end;
+
+procedure TField.SetAsBCD(const AValue: TBCD);
+begin
+  Raise AccessError(SBCD);
 end;
 
 procedure TField.SetIndex(const AValue: Integer);

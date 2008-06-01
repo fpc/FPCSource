@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils,Variants;
+uses Classes,Sysutils,Variants,FmtBCD;
 
 const
 
@@ -319,6 +319,7 @@ type
     procedure Change; virtual;
     procedure DataChanged;
     procedure FreeBuffers; virtual;
+    function GetAsBCD: TBCD; virtual;
     function GetAsBoolean: Boolean; virtual;
     function GetAsCurrency: Currency; virtual;
     function GetAsLargeInt: LargeInt; virtual;
@@ -344,6 +345,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure PropertyChanged(LayoutAffected: Boolean);
     procedure ReadState(Reader: TReader); override;
+    procedure SetAsBCD(const AValue: TBCD); virtual;
     procedure SetAsBoolean(AValue: Boolean); virtual;
     procedure SetAsCurrency(AValue: Currency); virtual;
     procedure SetAsDateTime(AValue: TDateTime); virtual;
@@ -377,6 +379,7 @@ type
     procedure SetData(Buffer: Pointer; NativeFormat : Boolean); overload;
     procedure SetFieldType(AValue: TFieldType); virtual;
     procedure Validate(Buffer: Pointer);
+    property AsBCD: TBCD read GetAsBCD write SetAsBCD;
     property AsBoolean: Boolean read GetAsBoolean write SetAsBoolean;
     property AsCurrency: Currency read GetAsCurrency write SetAsCurrency;
     property AsDateTime: TDateTime read GetAsDateTime write SetAsDateTime;
@@ -1937,7 +1940,7 @@ function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : boole
 
 implementation
 
-uses dbconst,typinfo, fmtbcd;
+uses dbconst,typinfo;
 
 { ---------------------------------------------------------------------
     Auxiliary functions
