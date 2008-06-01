@@ -7486,6 +7486,7 @@ tests/test/uinline4b.pp svneol=native#text/plain
 tests/test/umacpas1.pp svneol=native#text/plain
 tests/test/umainnam.pp svneol=native#text/plain
 tests/test/units/classes/tmakeobjinst.pp svneol=native#text/plain
+tests/test/units/classes/tsetstream.pp svneol=native#text/plain
 tests/test/units/crt/tcrt.pp svneol=native#text/plain
 tests/test/units/crt/tctrlc.pp svneol=native#text/plain
 tests/test/units/dos/hello.pp svneol=native#text/plain
