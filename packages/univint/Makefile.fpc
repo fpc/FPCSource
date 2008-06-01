@@ -30,7 +30,7 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   CFXMLParser CGAffineTransforms CGBase CGBitmapContext \
   CGColor CGColorSpace CGContext CGDataConsumer CGDataProvider \
   CGDirectDisplay CGDirectPalette CGDisplayConfiguration \
-  CGDisplayFade CGErrors CGEvent CGEventSource CGEventTypes \
+  CGErrors CGEvent CGEventSource CGEventTypes \
   CGFont CGFunction CGGLContext CGGeometry CGImage CGLayer \
   CGPDFArray CGPDFContentStream CGPDFContext CGPDFDictionary \
   CGPDFDocument CGPDFObject CGPDFOperatorTable CGPDFPage \
