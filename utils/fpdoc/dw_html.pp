@@ -122,7 +122,7 @@ type
     function CreateH1(Parent: TDOMNode): THTMLElement;
     function CreateH2(Parent: TDOMNode): THTMLElement;
     function CreateH3(Parent: TDOMNode): THTMLElement;
-    function CreateTable(Parent: TDOMNode): THTMLElement;
+    function CreateTable(Parent: TDOMNode; const AClass: DOMString = ''): THTMLElement;
     function CreateContentTable(Parent: TDOMNode): THTMLElement;
     function CreateTR(Parent: TDOMNode): THTMLElement;
     function CreateTD(Parent: TDOMNode): THTMLElement;
@@ -860,11 +860,13 @@ begin
   Result := CreateEl(Parent, 'h3');
 end;
 
-function THTMLWriter.CreateTable(Parent: TDOMNode): THTMLElement;
+function THTMLWriter.CreateTable(Parent: TDOMNode; const AClass: DOMString = ''): THTMLElement;
 begin
   Result := CreateEl(Parent, 'table');
   Result['cellspacing'] := '0';
   Result['cellpadding'] := '0';
+  if AClass <> '' then
+    Result['class'] := AClass;
 end;
 
 function THTMLWriter.CreateContentTable(Parent: TDOMNode): THTMLElement;
@@ -913,7 +915,6 @@ begin
   Result := CreateEl(Parent, 'span');
   Result['class'] := 'warning';
 end;
-
 
 procedure THTMLWriter.PushOutputNode(ANode: TDOMNode);
 begin
@@ -976,9 +977,12 @@ begin
     Pel:=CurOutputNode
   else
     begin
-    Cel:=CreateTable(CurOutputNode);
+    Cel:=CreateTable(CurOutputNode, 'imagetable');
     Pel:=CreateTD(CreateTR(Cel));
     Cel:=CreateTD(CreateTR(Cel));
+    El := CreateEl(Cel, 'span');
+    El['class'] := 'imagecaption';
+    Cel := El;
     If (ALinkName<>'') then
       Cel:=CreateAnchor(Cel,ALinkName);
     AppendText(Cel,ACaption);
