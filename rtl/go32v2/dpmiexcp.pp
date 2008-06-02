@@ -500,7 +500,11 @@ end;
 
 {$ifdef CREATE_C_FUNCTIONS}
 function c_setjmp(var rec : dpmi_jmp_buf) : longint;cdecl;[public, alias : '_setjmp'];
-  begin
+begin
+  asm
+        { unset the frame pointer just set }
+        movl    %ebp,%esp
+        popl    %ebp
 {$ifndef REGCALL}
   { here we need to be subtle :
     - we need to return with the arg still on the stack
@@ -509,40 +513,32 @@ function c_setjmp(var rec : dpmi_jmp_buf) : longint;cdecl;[public, alias : '_set
 
     For this we shift the return address down and
     duplicate the rec on stack }
-     asm
-        movl    %ebp,%esp
-        popl    %ebp
         subl    $8,%esp
         movl    %eax,(%esp)
         movl    8(%esp),%eax
         movl    %eax,4(%esp)
         movl    12(%esp),%eax
         movl    %eax,8(%esp)
+    { stack is now:
+          (%esp)   eax           <= we're popping it in the next instruction
+         4(%esp)   return addr
+         8(%esp)   rec           <= automatically removed by dpmi_setjmp
+        12(%esp)   rec           <= the caller will remove this
+    }
         popl    %eax
         jmp     dpmi_setjmp
-     end;
 {$ELSE REGCALL}
     { this is easier with regcall convention
-      because dpmi_setjmp expects rec arg in $eax }
-     asm
-        movl     rec,%eax
-        movl    %ebp,%esp
-        popl    %ebp
-        pushl   %eax
-        { stack is now:
-           (%esp): saved eax
-          4(%esp): return addr
-          8(%esp): rec addr
-          we need just
-          (%esp): return addr }
-        movl    4(%esp),%eax
-        movl    %eax,8(%esp)
-        popl    %eax
-        addl    $4,%esp
+      because dpmi_setjmp expects rec arg in $eax
+
+      We don't need to touch the stack. We must leave the parameter
+      there since this is a cdecl function (the caller will remove it)
+    }
+        movl    4(%esp), %eax
         jmp     dpmi_setjmp
-     end;
 {$ENDIF REGCALL}
   end;
+end;
 {$endif CREATE_C_FUNCTIONS}
 
 {$ifdef CREATE_C_FUNCTIONS}
