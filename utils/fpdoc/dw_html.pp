@@ -2131,7 +2131,7 @@ begin
     Module:=Nil;
     If (ASubPageIndex=0) then
       CreatePackagePageBody
-    else
+    else if ASubPageIndex=IndexSubIndex then
       CreatePackageIndex  
     end
   else
@@ -2164,6 +2164,8 @@ procedure THTMLWriter.CreateIndexPage(L : TStringList);
 
 Var
   Lists  : Array['A'..'Z'] of TStringList;
+  LOther : TStringList;
+  
   CL : TStringList;
   TableEl, TREl, EL: TDOMElement;
   E : TPasElement;
@@ -2186,7 +2188,9 @@ begin
       If (S<>'') then 
         begin
         C:=Upcase(S[1]);
-        If Lists[C]=Nil then
+        If C='_' then
+          C:='A';
+        If (C in ['A'..'Z']) and (Lists[C]=Nil) then
           begin
           CL:=TStringList.Create;
           Lists[C]:=CL;
@@ -2279,7 +2283,6 @@ end;
 
 
 procedure THTMLWriter.CreatePackageIndex;
-
 
 Var
   L : TStringList;
