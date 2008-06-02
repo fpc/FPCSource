@@ -2,7 +2,7 @@
   Dummy process.inc
 }
 
-{$if defined(VER2_2_1) or defined(VER2_3_1)}
+{$if defined(VER2_2) or defined(VER2_3_1)}
 {$warning Temporary workaround - unit does nothing}
 {$else}
 {$fatal Proper implementation of TProcess needed}
