@@ -194,16 +194,20 @@ begin
   ScriptRes.Add('  }');
   ScriptRes.Add('    .data  ALIGN(0x200) : {');
   ScriptRes.Add('      djgpp_first_ctor = . ;');
+  ScriptRes.Add('      *(SORT(.ctors.*))');
   ScriptRes.Add('      *(.ctor)');
+  ScriptRes.Add('      *(.ctors)');
   ScriptRes.Add('      djgpp_last_ctor = . ;');
   ScriptRes.Add('      djgpp_first_dtor = . ;');
+  ScriptRes.Add('      *(SORT(.dtors.*))');
   ScriptRes.Add('      *(.dtor)');
+  ScriptRes.Add('      *(.dtors)');
   ScriptRes.Add('      djgpp_last_dtor = . ;');
   ScriptRes.Add('      *(.data)');
   ScriptRes.Add('      *(.fpc*)');
   ScriptRes.Add('      *(.gcc_exc)');
   ScriptRes.Add('      ___EH_FRAME_BEGIN__ = . ;');
-  ScriptRes.Add('      *(.eh_fram)');
+  ScriptRes.Add('      *(.eh_fram*)');
   ScriptRes.Add('      ___EH_FRAME_END__ = . ;');
   ScriptRes.Add('      LONG(0)');
   ScriptRes.Add('       edata  =  . ; _edata = .;');
@@ -218,6 +222,19 @@ begin
   ScriptRes.Add('       end = . ; _end = .;');
   ScriptRes.Add('       . = ALIGN(0x200);');
   ScriptRes.Add('    }');
+  ScriptRes.Add('    /* Stabs debugging sections.  */');
+  ScriptRes.Add('    .stab 0 : { *(.stab) }');
+  ScriptRes.Add('    .stabstr 0 : { *(.stabstr) }');
+  ScriptRes.Add('    /* DWARF 2 */');
+  ScriptRes.Add('    .debug_aranges  0 : { *(.debug_aranges) }');
+  ScriptRes.Add('    .debug_pubnames 0 : { *(.debug_pubnames) }');
+  ScriptRes.Add('    .debug_info     0 : { *(.debug_info) *(.gnu.linkonce.wi.*) }');
+  ScriptRes.Add('    .debug_abbrev   0 : { *(.debug_abbrev) }');
+  ScriptRes.Add('    .debug_line     0 : { *(.debug_line) }');
+  ScriptRes.Add('    .debug_frame    0 : { *(.debug_frame) }');
+  ScriptRes.Add('    .debug_str      0 : { *(.debug_str) }');
+  ScriptRes.Add('    .debug_loc      0 : { *(.debug_loc) }');
+  ScriptRes.Add('    .debug_macinfo  0 : { *(.debug_macinfo) }');
   ScriptRes.Add('  }');
 
   { Write path to search libraries }
