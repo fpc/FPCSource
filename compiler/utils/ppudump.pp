@@ -109,7 +109,7 @@ type
   ttarget =
   (
         target_none,               { 0 }
-        target_i386_GO32V1,        { 1 }
+        obsolete_target_i386_GO32V1,{ 1 }
         target_i386_GO32V2,        { 2 }
         target_i386_linux,         { 3 }
         target_i386_OS2,           { 4 }
@@ -123,19 +123,19 @@ type
         target_alpha_linux,        { 12 }
         target_powerpc_linux,      { 13 }
         target_powerpc_macos,      { 14 }
-        target_i386_sunos,         { 15 }
+        target_i386_solaris,       { 15 }
         target_i386_beos,          { 16 }
         target_i386_netbsd,        { 17 }
         target_m68k_netbsd,        { 18 }
         target_i386_Netware,       { 19 }
         target_i386_qnx,           { 20 }
         target_i386_wdosx,         { 21 }
-        target_sparc_sunos,        { 22 }
+        target_sparc_solaris,      { 22 }
         target_sparc_linux,        { 23 }
         target_i386_openbsd,       { 24 }
         target_m68k_openbsd,       { 25 }
-        system_x86_64_linux,       { 26 }
-        system_powerpc_macosx,     { 27 }
+        target_x86_64_linux,       { 26 }
+        target_powerpc_darwin,     { 27 }
         target_i386_emx,           { 28 }
         target_powerpc_netbsd,     { 29 }
         target_powerpc_openbsd,    { 30 }
@@ -144,19 +144,39 @@ type
         target_powerpc_MorphOS,    { 33 }
         target_x86_64_freebsd,     { 34 }
         target_i386_netwlibc,      { 35 }
-        system_powerpc_Amiga,      { 36 }
-        system_x86_64_win64,       { 37 }
-        system_arm_wince,          { 38 }
-        system_ia64_win64,         { 39 }
-        system_i386_wince,         { 40 }
-        system_x86_6432_linux,     { 41 }
-        system_arm_gba,            { 42 }
-        system_arm_nds             { 43 }
+        target_powerpc_Amiga,      { 36 }
+        target_x86_64_win64,       { 37 }
+        target_arm_wince,          { 38 }
+        target_ia64_win64,         { 39 }
+        target_i386_wince,         { 40 }
+        target_x86_6432_linux,     { 41 }
+        target_arm_gba,            { 42 }
+        target_powerpc64_linux,    { 43 }
+        target_i386_darwin,        { 44 }
+        target_arm_palmos,         { 45 }
+        target_powerpc64_darwin,   { 46 }
+        target_arm_nds,            { 47 }
+        target_i386_embedded,      { 48 }
+        target_m68k_embedded,      { 49 }
+        target_alpha_embedded,     { 50 }
+        target_powerpc_embedded,   { 51 }
+        target_sparc_embedded,     { 52 }
+        target_vm_embedded,        { 53 }
+        target_iA64_embedded,      { 54 }
+        target_x86_64_embedded,    { 55 }
+        target_mips_embedded,      { 56 }
+        target_arm_embedded,       { 57 }
+        target_powerpc64_embedded, { 58 }
+        target_i386_symbian,       { 59 }
+        target_arm_symbian,        { 60 }
+        target_x86_64_darwin,      { 61 }
+        target_avr_embedded,       { 62 }
+        target_i386_haiku          { 63 }             
   );
 const
   Targets : array[ttarget] of string[17]=(
   { 0 }   'none',
-  { 1 }   'GO32V1',
+  { 1 }   'GO32V1 (obsolete)',
   { 2 }   'GO32V2',
   { 3 }   'Linux-i386',
   { 4 }   'OS/2',
@@ -198,7 +218,27 @@ const
   { 40 }  'WinCE-i386',
   { 41 }  'Linux-x64',
   { 42 }  'GBA-arm',
-  { 43 }  'NDS-arm'
+  { 43 }  'Linux-powerpc64',
+  { 44 }  'Darwin-i386',
+  { 45 }  'PalmOS-arm',
+  { 46 }  'MacOSX-powerpc64',
+  { 47 }  'NDS-arm',
+  { 48 }  'Embedded-i386',
+  { 49 }  'Embedded-m68k',
+  { 50 }  'Embedded-alpha',
+  { 51 }  'Embedded-powerpc',
+  { 52 }  'Embedded-sparc',
+  { 53 }  'Embedded-vm',
+  { 54 }  'Embedded-iA64',
+  { 55 }  'Embedded-x64',
+  { 56 }  'Embedded-mips',
+  { 57 }  'Embedded-arm',
+  { 58 }  'Embedded-powerpc64',
+  { 59 }  'Symbian-i386',
+  { 60 }  'Symbian-arm',
+  { 61 }  'MacOSX-x64',
+  { 62 }  'Embedded-avr',
+  { 63 }  'Haiku-i386'        
   );
 begin
   if w<=ord(high(ttarget)) then
