@@ -98,7 +98,7 @@ program install;
 
 
      maxpacks=30;
-     maxpackages=25;
+     maxpackages=27;
      maxdefcfgs=1024;
 
      HTMLIndexExt = '.htx';

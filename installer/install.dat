@@ -34,7 +34,7 @@ package=aslddos.zip,GNU ~L~inker and GNU Assembler for Go32v2 (required)
 # Dos 3
 package=idedos.zip,~I~DE with integrated debugger/compiler (BETA)
 # Dos 4
-package=utildos.zip,~E~xtra Utilities
+package=utilsdos.zip[utildos.zip],~E~xtra Utilities
 # Dos 5
 package=makedos.zip,GNU ~U~tilities (needed for Makefile usage)
 # Dos 6
@@ -48,44 +48,39 @@ package=uregexprdos.zip[uregdos.zip],Regular expression units
 # Dos 10
 package=uunzipdos.zip[uzipdos.zip],Unzip units
 # Dos 11
-package=unetdbdos.zip[undbdos.zip],NetDB units
-# Dos 12
 package=upasjpegdos.zip[upjpdos.zip],Pas~J~PEG units
-# Dos 13
+# Dos 12
 package=uhashdos.zip,Hash calculation units
-# Dos 14
+# Dos 13
 package=ufvdos.zip,Free ~V~ision (FV)
-# Dos 15
+# Dos 14
 package=ugraphdos.zip[ugrphdos.zip],Unit Graph
+# Dos 15
+package=ufcl-basedos.zip[ufclbdos.zip],Free Component Library (FCL)-base part
 # Dos 16
-package=ufcl-basedos.zip[ufclbdos.zip],Free Component Libary (FCL)-base part
+package=ufcl-dbdos.zip[ufclddos.zip],Free Component Library (FCL)-datasets
 # Dos 17
-package=ufcl-dbdos.zip[ufclddos.zip],Free Component Libary (FCL)-datasets
+package=ufcl-fpcunitdos.zip[ufcludos.zip],Free Component Library (FCL)-FPCUnit
 # Dos 18
-package=ufcl-fpcunitdos.zip[ufcludos.zip],Free Component Libary (FCL)-FPCUnit
+package=ufcl-imagedos.zip[ufclidos.zip],Free Component Library (FCL)-images
 # Dos 19
-package=ufcl-imagedos.zip[ufclidos.zip],Free Component Libary (FCL)-images
+package=ufcl-netdos.zip[ufclndos.zip],Free Component Library (FCL)-network
 # Dos 20
-package=ufcl-netdos.zip[ufclndos.zip],Free Component Libary (FCL)-network
+package=ufcl-passrcdos.zip[ufclsdos.zip],Free Component Library (FCL)-Pascal source processing
 # Dos 21
-package=ufcl-passrcdos.zip[ufclsdos.zip],Free Component Libary (FCL)-Pascal source processing
+package=ufcl-registrydos.zip[ufclrdos.zip],Free Component Library (FCL)-registry
 # Dos 22
-package=ufcl-registrydos.zip[ufclrdos.zip],Free Component Libary (FCL)-registry
+package=ufcl-xmldos.zip[ufclxdos.zip],Free Component Library (FCL)-XML
 # Dos 23
-package=ufcl-xmldos.zip[ufclxdos.zip],Free Component Libary (FCL)-XML
-# Dos 24
-package=ufcl-webdos.zip[ufclwdos.zip],Free Component Libary (FCL)-Web
-# Dos 25
 package=ufpmkunitdos.zip[ufpmkdos.zip],Units required for building fpmake.exe
+# Dos 24
+package=ufcl-jsondos.zip[ufcljdos.zip],Free Component Library (FCL)-JSON interface
+# Dos 25
+package=ufcl-processdos.zip[ufclpdos.zip],Free Component Library (FCL)-process management
 # Dos 26
-package=ufcl-jsondos.zip[ufcljdos.zip],Free Component Libary (FCL)-JSON interface
-# Dos 27
-package=ufcl-asyncdos.zip[ufclados.zip],Free Component Libary (FCL)-asynchronous events
-# Dos 28
-package=ufcl-processdos.zip[ufclpdos.zip],Free Component Libary (FCL)-process management
-# Dos 29
 package=uchmdos.zip,Support for .chm files handling
-
+# Dos 27
+package=ulibgddos.zip[ulgddos.zip],GD library interface unit
 
 #
 # Win32 packages
@@ -168,39 +163,39 @@ package=units-unzip.i386-win32.zip,Unzip units
 # Win32-2 9
 package=units-zlib.i386-win32.zip,ZLib interface units
 # Win32-2 10
-package=units-netdb.i386-win32.zip,NetDB units
-# Win32-2 11
 package=units-pasjpeg.i386-win32.zip,Pas~J~PEG units
-# Win32-2 12
+# Win32-2 11
 package=units-hash.i386-win32.zip,Hash calculation units
-# Win32-2 13
+# Win32-2 12
 package=units-oracle.i386-win32.zip,Oracle interface units
+# Win32-2 13
+package=units-fcl-base.i386-win32.zip,Free Component Library (FCL)-base part
 # Win32-2 14
-package=units-fcl-base.i386-win32.zip,Free Component Libary (FCL)-base part
+package=units-fcl-db.i386-win32.zip,Free Component Library (FCL)-datasets
 # Win32-2 15
-package=units-fcl-db.i386-win32.zip,Free Component Libary (FCL)-datasets
+package=units-fcl-fpcunit.i386-win32.zip,Free Component Library (FCL)-FPCUnit
 # Win32-2 16
-package=units-fcl-fpcunit.i386-win32.zip,Free Component Libary (FCL)-FPCUnit
+package=units-fcl-image.i386-win32.zip,Free Component Library (FCL)-images
 # Win32-2 17
-package=units-fcl-image.i386-win32.zip,Free Component Libary (FCL)-images
+package=units-fcl-net.i386-win32.zip,Free Component Library (FCL)-network
 # Win32-2 18
-package=units-fcl-net.i386-win32.zip,Free Component Libary (FCL)-network
+package=units-fcl-passrc.i386-win32.zip,Free Component Library (FCL)-Pascal sources processing
 # Win32-2 19
-package=units-fcl-passrc.i386-win32.zip,Free Component Libary (FCL)-Pascal sources processing
+package=units-fcl-registry.i386-win32.zip,Free Component Library (FCL)-registry
 # Win32-2 20
-package=units-fcl-registry.i386-win32.zip,Free Component Libary (FCL)-registry
+package=units-fcl-web.i386-win32.zip,Free Component Library (FCL)-Web
 # Win32-2 21
-package=units-fcl-web.i386-win32.zip,Free Component Libary (FCL)-Web
+package=units-fcl-xml.i386-win32.zip,Free Component Library (FCL)-XML
 # Win32-2 22
-package=units-fcl-xml.i386-win32.zip,Free Component Libary (FCL)-XML
+package=units-fcl-json.i386-win32.zip,Free Component Library (FCL)-JSON interface
 # Win32-2 23
-package=units-fcl-json.i386-win32.zip,Free Component Libary (FCL)-JSON interface
+package=units-fcl-async.i386-win32.zip,Free Component Library (FCL)-asynchronous events
 # Win32-2 24
-package=units-fcl-async.i386-win32.zip,Free Component Libary (FCL)-asynchronous events
+package=units-fcl-process.i386-win32.zip,Free Component Library (FCL)-process management
 # Win32-2 25
-package=units-fcl-process.i386-win32.zip,Free Component Libary (FCL)-process management
-# Win32-2 26
 package=units-chm.i386-win32.zip,Support for .chm files handling
+# Win32-2 26
+package=units-libgd.i386-win32.zip,GD library interface unit
 
 
 #
@@ -292,17 +287,18 @@ package=utclos2.zip,TCL interface units
 # OS/2-2 15
 package=uzlibos2.zip,ZLib interface units
 # OS/2-2 16
-package=unetdbos2.zip[undbos2.zip],NetDB units
-# OS/2-2 17
 package=ufpmkunitos2.zip[ufpmkos2.zip],Units required for building fpmake.exe
+# OS/2-2 17
+package=ufcl-jsonos2.zip[ufcljos2.zip],Free Component Library (FCL)-JSON interface
 # OS/2-2 18
-package=ufcl-jsonos2.zip[ufcljos2.zip],Free Component Libary (FCL)-JSON interface
+package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Library (FCL)-asynchronous events
 # OS/2-2 19
-package=ufcl-asyncos2.zip[ufclaos2.zip],Free Component Libary (FCL)-asynchronous events
+package=ufcl-processos2.zip[ufclpos2.zip],Free Component Library (FCL)-process management
 # OS/2-2 20
-package=ufcl-processos2.zip[ufclpos2.zip],Free Component Libary (FCL)-process management
-# OS/2-2 21
 package=uchmos2.zip,Support for .chm files handling
+# OS/2-2 21
+package=ulibgdos2.zip[ulgdos2.zip],GD library interface unit
+
 
 
 #
@@ -394,17 +390,17 @@ package=utclemx.zip,TCL interface units
 # EMX-2 15
 package=uzlibemx.zip,ZLib interface units
 # EMX-2 16
-package=unetdbemx.zip[undbemx.zip],NetDB units
-# EMX-2 17
 package=ufpmkunitemx.zip[ufpmkemx.zip],Units required for building fpmake.exe
+# EMX-2 17
+package=ufcl-jsonemx.zip[ufcljemx.zip],Free Component Library (FCL)-JSON interface
 # EMX-2 18
-package=ufcl-jsonemx.zip[ufcljemx.zip],Free Component Libary (FCL)-JSON interface
+package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Library (FCL)-asynchronous events
 # EMX-2 19
-package=ufcl-asyncemx.zip[ufclaemx.zip],Free Component Libary (FCL)-asynchronous events
+package=ufcl-processemx.zip[ufclpemx.zip],Free Component Library (FCL)-process management
 # EMX-2 20
-package=ufcl-processemx.zip[ufclpemx.zip],Free Component Libary (FCL)-process management
-# EMX-2 21
 package=uchmemx.zip,Support for .chm files handling
+# EMX-2 21
+package=ulibgdemx.zip[ulgdemx.zip],GD library interface unit
 
 
 #
@@ -453,10 +449,8 @@ package=units-rexx.source.zip[urexxsrc.zip],REXX SAA interface units
 # Source 13
 package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 # Source 14
-package=units-netdb.source.zip[undbsrc.zip],NetDB units
-# Source 15
 package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
-# Source 16
+# Source 15
 package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface units
 
 #
@@ -488,7 +482,7 @@ package=units-os2units.source.zip[uos2src.zip],Units interfacing libraries deliv
 # Source-2 11
 package=units-pasjpeg.source.zip[upjpsrc.zip],PasJPEG units
 # Source-2 12
-package=units-fv.source.zip[fvsrc.zip],Free ~V~ision (FV)
+package=units-fv.source.zip[ufvsrc.zip],Free ~V~ision (FV)
 # Source-2 13
 package=units-libpng.source.zip[ulpngsrc.zip],LibPNG interface units
 # Source-2 14
@@ -500,13 +494,16 @@ package=units-sqlite.source.zip[usqltsrc.zip],SQLite interface units
 # Source-2 17
 package=units-fpmkunit.source.zip[ufpmksrc.zip],Units required for building fpmake.exe
 # Source-2 18
-package=fcl-json.source.zip[ufcljsrc.zip],Free Component Libary (FCL)-JSON interface
+package=fcl-json.source.zip[ufcljsrc.zip],Free Component Library (FCL)-JSON interface
 # Source-2 19
-package=fcl-async.source.zip[ufclasrc.zip],Free Component Libary (FCL)-asynchronous events
+package=fcl-async.source.zip[ufclasrc.zip],Free Component Library (FCL)-asynchronous events
 # Source-2 20
-package=fcl-process.source.zip[ufclpsrc.zip],Free Component Libary (FCL)-process management
+package=fcl-process.source.zip[ufclpsrc.zip],Free Component Library (FCL)-process management
 # Source-2 21
 package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
+# Source-2 22
+package=units-libgd.source.zip[ulgdsrc.zip],GD library interface unit
+
 
 #
 # Source packages 3rd part
