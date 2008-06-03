@@ -4086,7 +4086,6 @@ packages/univint/src/CGDataProvider.pas svneol=native#text/plain
 packages/univint/src/CGDirectDisplay.pas svneol=native#text/plain
 packages/univint/src/CGDirectPalette.pas svneol=native#text/plain
 packages/univint/src/CGDisplayConfiguration.pas svneol=native#text/plain
-packages/univint/src/CGDisplayFade.pas svneol=native#text/plain
 packages/univint/src/CGDisplayFades.pas svneol=native#text/plain
 packages/univint/src/CGErrors.pas svneol=native#text/plain
 packages/univint/src/CGEvent.pas svneol=native#text/plain
