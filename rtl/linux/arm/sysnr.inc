@@ -21,7 +21,11 @@
 }
 
 Const
-  syscall_nr_base = $900000;
+{$ifdef FPC_ABI_EABI}
+  syscall_nr_base = $0;
+{$else FPC_ABI_EABI}
+   syscall_nr_base = $900000;
+{$endif FPC_ABI_EABI}
 
   syscall_nr_exit                       =  syscall_nr_base+ 1;
   syscall_nr_fork                       =  syscall_nr_base+ 2;
