@@ -698,7 +698,7 @@ ide/wvphelp.pas svneol=native#text/plain
 ide/wwinhelp.pas svneol=native#text/plain
 installer/Makefile svneol=native#text/plain
 installer/Makefile.fpc svneol=native#text/plain
-installer/install.dat -text
+installer/install.dat svneol=native#text/plain
 installer/install.def -text
 installer/install.pas svneol=native#text/plain
 installer/insthelp.pas svneol=native#text/plain
