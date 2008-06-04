@@ -7,10 +7,10 @@ name=winceunits
 version=2.2.0
 
 [target]
-units_wince=buildwinceunits comobj
+units_wince=comobj buildwinceunits
 implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi \
                     gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
-                    sipapi cpl \
+                    sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth \
                     activex ole2 comconst
 
 units_win32=rapi cesync
