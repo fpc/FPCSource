@@ -53,7 +53,7 @@ if [ -w "$sysdir" ] ; then
   thefile="$sysdir"/fpc.cfg
 else
   echo No write premission in $sysdir.
-  thefile"=$HOME"/.fpc.cfg
+  thefile="$HOME"/.fpc.cfg
 fi
 #
 if [ -f $thefile ] ; then
