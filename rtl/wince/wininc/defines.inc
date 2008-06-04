@@ -1323,6 +1323,10 @@
      CP_ACP = 0;
      CP_MACCP = 2;
      CP_OEMCP = 1;
+     { WinCE 5.0+}
+     CP_UTF7 = 65000;
+     CP_UTF8 = 65001;
+     
   { GetDateFormat  }
   { already defined above !!
   #define DATE_SHORTDATE        (1)
