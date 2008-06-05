@@ -45,7 +45,7 @@ end;
 
 function FpSysCall(sysnr,param1:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL1'];
 {
-  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
+  Perform syscall and set errno variable if needed.
 }
 asm
   str   r7,[sp,#-4]!
@@ -65,7 +65,7 @@ end;
 
 function FpSysCall(sysnr,param1,param2:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL2'];
 {
-  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
+  Perform syscall and set errno variable if needed.
 }
 asm
   str   r7,[sp,#-4]!
@@ -86,7 +86,7 @@ end;
 
 function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; nostackframe; [public,alias:'FPC_SYSCALL3'];
 {
-  Jump to FPC_SYSCALL0 because code for FPC_SYSCALL0-FPC_SYSCALL3 is the same.
+  Perform syscall and set errno variable if needed.
 }
 asm
   str   r7,[sp,#-4]!
@@ -108,7 +108,7 @@ end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler; [public,alias:'FPC_SYSCALL4'];
 {
-  This function loads some parameters from stack and calls FPC_SYSCALL0.
+  Perform syscall and set errno variable if needed.
 }
 asm
   str   r7,[sp,#-4]!
@@ -131,7 +131,7 @@ end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL5'];
 {
-  This function loads some parameters from stack and calls FPC_SYSCALL0.
+  Perform syscall and set errno variable if needed.
 }
 asm
   stmfd sp!,{r4,r7}
@@ -155,7 +155,7 @@ end;
 
 function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):TSysResult; assembler;[public,alias:'FPC_SYSCALL6'];
 {
-  This function loads some parameters from stack and calls FPC_SYSCALL0.
+  Perform syscall and set errno variable if needed.
 }
 asm
   stmfd sp!,{r4,r5,r7}
