@@ -297,6 +297,50 @@
      WCTYPE_T = WCHAR_T;    //+stdlib
      TIME_T=ULONG;          //+stdlib
      WPARAM = ptruint;      //windef UINT_PTR
+
+// The left side of these typedefs are machine and compiler dependent.
+// From types.h
+type
+     INT8   = ShortInt;
+     UINT8  = byte;
+     INT16  = SmallInt;
+     UINT16 = word;
+     INT32  = longint;
+     UINT32 = LongWord;
+// INT64
+     UINT64 = QWord;
+
+type
+     _INT128 = packed record
+       u0,u1,u2:UINT32;
+       u3:INT32;
+     end;
+     INT128 = _INT128;
+
+     _UINT128 = packed record
+       u0,u1,u2,u3:UINT32;
+     end;
+     UINT128 = _UINT128;
+
+type
+     PINT8 = ^INT8;
+     PUINT8 = ^UINT8;
+     PINT16 = ^INT16;
+     PUINT16 = ^UINT16;
+     PINT32 = ^INT32;
+     PUINT32 = ^UINT32;
+//     PINT64
+     PUINT64 = ^UINT64;
+     PINT128 = ^INT128;
+     PUINT128 = ^UINT128;
+
+type
+     PPVOID = ^pointer;
+
+type
+     WIN32_ERROR_CODE = DWORD;
+
+
 {
   Enumerations
 }
@@ -998,5 +1042,6 @@ type
     end;
 
 {$endif read_implementation}
+
 
 
