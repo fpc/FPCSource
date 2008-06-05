@@ -666,7 +666,7 @@ begin
 end;
 
 
-function fpc_safecallcheck(res : hresult) : hresult;[public,alias:'FPC_SAFECALLCHECK']; compilerproc; register;
+function fpc_safecallcheck(res : hresult) : hresult;[public,alias:'FPC_SAFECALLCHECK']; compilerproc; {$ifdef CPU86} register; {$endif}
 begin
   if res<0 then
     begin
@@ -884,7 +884,7 @@ begin
 end;
 
 
-Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; register;
+Procedure HandleErrorAddrFrame (Errno : longint;addr,frame : Pointer);[public,alias:'FPC_BREAK_ERROR']; {$ifdef CPU86} register; {$endif}
 begin
   If pointer(ErrorProc)<>Nil then
     ErrorProc(Errno,addr,frame);
