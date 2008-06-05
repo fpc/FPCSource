@@ -23,7 +23,8 @@ interface
 uses
   aygshell,commctrl,commdlg,iphlpapi,notify,oleauto,power,shellapi,simmgr,tapi,
   gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl,
-  sipapi, cpl, bt_api, bt_sdp, bthapi, bthutil, pimstore, ril, sms, ws2bth;
+  sipapi, cpl, bt_api, bt_sdp, bthapi, bthutil, pimstore, ril, sms, ws2bth,
+  keybd, nled, phone;
 
 implementation
 
