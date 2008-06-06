@@ -421,9 +421,9 @@ unit agppcgas;
          idtxt  : 'AS';
          asmbin : 'as';
 {$ifdef cpu64bit}
-         asmcmd : '-o $OBJ $ASM';
+         asmcmd : '-a64 -o $OBJ $ASM';
 {$else cpu64bit}
-         asmcmd: '-a64 -o $OBJ $ASM';
+         asmcmd: '-o $OBJ $ASM';
 {$endif cpu64bit}
          supported_target : system_any;
          flags : [af_allowdirect,af_needar,af_smartlink_sections];
