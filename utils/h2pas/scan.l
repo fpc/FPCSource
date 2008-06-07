@@ -1005,7 +1005,7 @@ D [0-9]
 "int16"                 if NotInCPlusBlock then return(INT16) else skip_until_eol;
 "int32"                 if NotInCPlusBlock then return(INT32) else skip_until_eol;
 "int64"                 if NotInCPlusBlock then return(INT64) else skip_until_eol;
-"float"                 if NotInCPlusBlock then return(REAL) else skip_until_eol;
+"float"                 if NotInCPlusBlock then return(FLOAT) else skip_until_eol;
 "const"                 if NotInCPlusBlock then return(_CONST) else skip_until_eol;
 "CONST"                 if NotInCPlusBlock then return(_CONST) else skip_until_eol;
 "FAR"                   if NotInCPlusBlock then return(_FAR) else skip_until_eol;

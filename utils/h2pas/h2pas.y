@@ -42,7 +42,7 @@ program h2pas;
 
      INT64_STR  = 'int64';
      QWORD_STR  = 'qword';
-     REAL_STR   = 'double';
+     FLOAT_STR  = 'single';
      WCHAR_STR  = 'widechar';
 
   {ctypes strings}
@@ -1290,7 +1290,7 @@ program h2pas;
 %token LGKLAMMER RGKLAMMER
 %token STRUCT UNION ENUM
 %token ID NUMBER CSTRING
-%token SHORT UNSIGNED LONG INT REAL _CHAR
+%token SHORT UNSIGNED LONG INT FLOAT _CHAR
 %token VOID _CONST
 %token _FAR _HUGE _NEAR
 %token NEW_LINE SPACE_DEFINE
@@ -2440,9 +2440,12 @@ special_type_name :
      else
        $$:=new(presobject,init_intid(INT64_STR));
      } |
-     REAL
+     FLOAT
      {
-       $$:=new(presobject,init_intid(REAL_STR));
+     if UseCTypesUnit then
+       $$:=new(presobject,init_id(cfloat_STR))
+     else
+       $$:=new(presobject,init_intid(FLOAT_STR));
      } |
      VOID
      {
