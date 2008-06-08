@@ -522,7 +522,7 @@ unit i_linux;
                             tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'LINUXUNITS';
-            extradefines : 'UNIX;HASUNIX';
+            extradefines : 'UNIX;HASUNIX;CPUARMEL';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';
