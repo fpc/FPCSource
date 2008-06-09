@@ -147,7 +147,7 @@ filecheck=*.i386-win32.zip
 # Win32-2 1
 package=units-opengl.i386-win32.zip,OpenGL units
 # Win32-2 2
-package=units-gtk.i386-win32.zip,GTK units
+package=units-gtk1.i386-win32.zip,GTK1 units
 # Win32-2 3
 package=units-ibase.i386-win32.zip,Interbase interface units
 # Win32-2 4
@@ -275,7 +275,7 @@ package=uunzipos2.zip[uzipos2.zip],Unzip units
 # OS/2-2 9
 package=ux11os2.zip,X11 interface units
 # OS/2-2 10
-package=ugtkos2.zip,GTK interface units
+package=ugtk1os2.zip,GTK1 interface units
 # OS/2-2 11
 package=ufpgtkos2.zip[ufpgtos2.zip],fpGTK units
 # OS/2-2 12
@@ -378,7 +378,7 @@ package=uunzipemx.zip[uzipemx.zip],Unzip units
 # EMX-2 9
 package=ux11emx.zip,X11 interface units
 # EMX-2 10
-package=ugtkemx.zip,GTK interface units
+package=ugtk1emx.zip,GTK1 interface units
 # EMX-2 11
 package=ufpgtkemx.zip,fpGTK units
 # EMX-2 12
@@ -461,7 +461,7 @@ filecheck=*.source.zip[*src.zip]
 # Source-2 1
 package=units-opengl.source.zip[uoglsrc.zip],OpenGL interface units
 # Source-2 2
-package=units-gtk.source.zip[ugtksrc.zip],GTK interface units
+package=units-gtk1.source.zip[ugtksrc.zip],GTK1 interface units
 # Source-2 3
 package=units-odbc.source.zip[uodbcsrc.zip],ODBC interface units
 # Source-2 4
