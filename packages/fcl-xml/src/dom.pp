@@ -211,6 +211,7 @@ type
     function GetNamespaceURI: DOMString; virtual;
     function GetPrefix: DOMString; virtual;
     procedure SetPrefix(const Value: DOMString); virtual;
+    function GetOwnerDocument: TDOMDocument; virtual;
   public
     constructor Create(AOwner: TDOMDocument);
     destructor Destroy; override;
@@ -228,21 +229,18 @@ type
     property PreviousSibling: TDOMNode read FPreviousSibling;
     property NextSibling: TDOMNode read FNextSibling;
     property Attributes: TDOMNamedNodeMap read GetAttributes;
-    // DOM 2: is now nil for documents and unused DocTypes
-    property OwnerDocument: TDOMDocument read FOwnerDocument;
+    property OwnerDocument: TDOMDocument read GetOwnerDocument;
 
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; virtual;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; virtual;
     function DetachChild(OldChild: TDOMNode): TDOMNode; virtual;
     function RemoveChild(OldChild: TDOMNode): TDOMNode;
-    function AppendChild(NewChild: TDOMNode): TDOMNode; virtual;
+    function AppendChild(NewChild: TDOMNode): TDOMNode;
     function HasChildNodes: Boolean; virtual;
     function CloneNode(deep: Boolean): TDOMNode; overload;
 
     // DOM level 2
-    (*
-    function Supports(const Feature, Version: DOMString): Boolean;
-    *)
+    function IsSupported(const Feature, Version: DOMString): Boolean;
     function HasAttributes: Boolean; virtual;
     procedure Normalize; virtual;
 
@@ -279,7 +277,6 @@ type
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
     function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; override;
     function DetachChild(OldChild: TDOMNode): TDOMNode; override;
-    function AppendChild(NewChild: TDOMNode): TDOMNode; override;
     function HasChildNodes: Boolean; override;
     function FindNode(const ANodeName: DOMString): TDOMNode; override;
   end;
@@ -302,6 +299,7 @@ type
     destructor Destroy; override;
     property Item[index: LongWord]: TDOMNode read GetItem; default;
     property Count: LongWord read GetCount;
+    property Length: LongWord read GetCount;
   end;
 
   { an extension to DOM interface, used to build recursive lists of elements }
@@ -416,6 +414,9 @@ type
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+    function GetTextContent: DOMString; override;
+    function GetOwnerDocument: TDOMDocument; override;
+    procedure SetTextContent(const value: DOMString); override;
     function IndexOfNS(const nsURI: DOMString): Integer;
     function FindID(const aID: DOMString; out Index: LongWord): Boolean;
     procedure ClearIDList;
@@ -877,8 +878,7 @@ end;
 
 function TDOMNode.AppendChild(NewChild: TDOMNode): TDOMNode;
 begin
-  raise EDOMHierarchyRequest.Create('Node.AppendChild');
-  Result:=nil;
+  Result := InsertBefore(NewChild, nil);
 end;
 
 function TDOMNode.HasChildNodes: Boolean;
@@ -907,6 +907,11 @@ end;
 function TDOMNode.GetRevision: Integer;
 begin
   Result := FOwnerDocument.FRevision;
+end;
+
+function TDOMNode.IsSupported(const Feature, Version: DOMString): Boolean;
+begin
+  Result := FOwnerDocument.Impl.HasFeature(Feature, Version);
 end;
 
 function TDOMNode.HasAttributes: Boolean;
@@ -981,6 +986,11 @@ end;
 procedure TDOMNode.SetPrefix(const Value: DOMString);
 begin
   // do nothing, override for Elements and Attributes
+end;
+
+function TDOMNode.GetOwnerDocument: TDOMDocument;
+begin
+  Result := FOwnerDocument;
 end;
 
 function CompareDOMStrings(const s1, s2: DOMPChar; l1, l2: integer): integer;
@@ -1063,20 +1073,19 @@ var
   NewChildType: Integer;
 begin
   Result := NewChild;
-
-  if not Assigned(RefChild) then
-  begin
-    AppendChild(NewChild);
-    exit;
-  end;
+  NewChildType := NewChild.NodeType;
 
   if NewChild.FOwnerDocument <> FOwnerDocument then
-    raise EDOMWrongDocument.Create('NodeWC.InsertBefore');
+  begin
+    if (NewChildType <> DOCUMENT_TYPE_NODE) or
+    (NewChild.FOwnerDocument <> nil) then
+      raise EDOMWrongDocument.Create('NodeWC.InsertBefore');
+  end;
 
-  if RefChild.ParentNode <> Self then
+  if Assigned(RefChild) and (RefChild.ParentNode <> Self) then
     raise EDOMNotFound.Create('NodeWC.InsertBefore');
 
-  NewChildType := NewChild.NodeType;
+  // TODO: skip checking Fragments as well? (Fragment itself cannot be in the tree)  
   if not (NewChildType in [TEXT_NODE, CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE]) and (NewChild.FirstChild <> nil) then
   begin
     Tmp := Self;
@@ -1087,45 +1096,26 @@ begin
       Tmp := Tmp.ParentNode;
     end;
   end;
+  if NewChild = RefChild then    // inserting node before itself is a no-op
+    Exit;
 
   Inc(FOwnerDocument.FRevision); // invalidate nodelists
 
-  // DONE: Implemented InsertBefore for DocumentFragments (except ChildNodeTree)
   if NewChildType = DOCUMENT_FRAGMENT_NODE then
   begin
-    // Is fragment empty?
     Tmp := NewChild.FirstChild;
-    if not Assigned(Tmp) then
-      Exit;
-    // reparent nodes
-    while Assigned(Tmp) do
+    if Assigned(Tmp) then
     begin
-      Tmp.FParentNode := Self;
-      Tmp := Tmp.NextSibling;
+      while Assigned(Tmp) do
+      begin
+        if not (Tmp.NodeType in ValidChildren[NodeType]) then
+          raise EDOMHierarchyRequest.Create('NodeWC.InsertBefore');
+        Tmp := Tmp.NextSibling;
+      end;
+    
+      while Assigned(TDOMDocumentFragment(NewChild).FFirstChild) do
+        InsertBefore(TDOMDocumentFragment(NewChild).FFirstChild, RefChild);
     end;
-
-    // won't get here if RefChild = nil...
-    if (RefChild = nil) or (RefChild.FPreviousSibling = nil) then
-    begin  // insert at the beginning  <- AppendChild ??? ->
-      // no, AppendChild will insert after RefChild and we need it before
-      if Assigned(FFirstChild) then
-        FFirstChild.FPreviousSibling := NewChild.LastChild;
-      NewChild.LastChild.FNextSibling := FirstChild;
-      if not Assigned(FLastChild) then
-        FLastChild := NewChild.LastChild;
-      FFirstChild := NewChild.FirstChild;
-    end
-    else  // insert to the middle
-    begin
-      NewChild.LastChild.FNextSibling := RefChild;
-      NewChild.FirstChild.FPreviousSibling := RefChild.FPreviousSibling;
-      RefChild.FPreviousSibling.FNextSibling := NewChild.FirstChild;
-      RefChild.FPreviousSibling := NewChild.LastChild;
-    end;
-    // finally, detach nodes from the fragment
-    TDOMDocumentFragment(NewChild).FFirstChild := nil;
-    TDOMDocumentFragment(NewChild).FLastChild := nil;
-    // TODO: ChildNodeTree...
     Exit;
   end;
 
@@ -1136,15 +1126,27 @@ begin
     NewChild.FParentNode.DetachChild(NewChild);
 
   NewChild.FNextSibling := RefChild;
-  if RefChild = FFirstChild then
-    FFirstChild := NewChild
-  else
+  if RefChild = nil then  // append to the end
   begin
-    RefChild.FPreviousSibling.FNextSibling := NewChild;
-    NewChild.FPreviousSibling := RefChild.FPreviousSibling;
+    if Assigned(FFirstChild) then
+    begin
+      FLastChild.FNextSibling := NewChild;
+      NewChild.FPreviousSibling := FLastChild;
+    end else
+      FFirstChild := NewChild;
+    FLastChild := NewChild;
+  end
+  else   // insert before RefChild
+  begin
+    if RefChild = FFirstChild then
+      FFirstChild := NewChild
+    else
+    begin
+      RefChild.FPreviousSibling.FNextSibling := NewChild;
+      NewChild.FPreviousSibling := RefChild.FPreviousSibling;
+    end;
+    RefChild.FPreviousSibling := NewChild;
   end;
-
-  RefChild.FPreviousSibling := NewChild;
   NewChild.FParentNode := Self;
   AddToChildNodeTree(NewChild);
 end;
@@ -1183,76 +1185,6 @@ begin
   OldChild.FNextSibling := nil;
   OldChild.FParentNode := nil;
   Result := OldChild;
-end;
-
-function TDOMNode_WithChildren.AppendChild(NewChild: TDOMNode): TDOMNode;
-var
-  Tmp: TDOMNode;
-  NewChildType: Integer;
-begin
-  if NewChild.FOwnerDocument <> FOwnerDocument then
-    raise EDOMWrongDocument.Create('NodeWC.AppendChild');
-
-  // Don't walk the tree if NewChild apriori cannot be our parent.
-  // This saves a lot of CPU cache misses.
-  NewChildType := NewChild.NodeType;
-  if not (NewChildType in [TEXT_NODE, CDATA_SECTION_NODE, COMMENT_NODE, PROCESSING_INSTRUCTION_NODE]) and (NewChild.FirstChild <> nil) then
-  begin
-    Tmp := Self;
-    while Assigned(Tmp) do
-    begin
-      if Tmp = NewChild then
-        raise EDOMHierarchyRequest.Create('NodeWC.AppendChild (cycle in tree)');
-      Tmp := Tmp.ParentNode;
-    end;
-  end;
-  Inc(FOwnerDocument.FRevision); // invalidate nodelists
-
-  // DONE: supported AppendChild for DocumentFragments (except ChildNodeTree)
-  if NewChildType = DOCUMENT_FRAGMENT_NODE then
-  begin
-    Tmp := NewChild.FirstChild;
-    // Is fragment empty?
-    if Assigned(Tmp) then
-    begin
-      // reparent nodes
-      while Assigned(Tmp) do
-      begin
-        Tmp.FParentNode := Self;
-        Tmp := Tmp.NextSibling;
-      end;
-
-      if Assigned(FLastChild) then
-        FLastChild.FNextSibling := NewChild.FirstChild;
-      NewChild.FirstChild.FPreviousSibling := LastChild;
-      if not Assigned(FFirstChild) then
-        FFirstChild := NewChild.FirstChild;
-      FLastChild := NewChild.LastChild;
-      // detach nodes from fragment
-      TDOMDocumentFragment(NewChild).FFirstChild := nil;
-      TDOMDocumentFragment(NewChild).FLastChild := nil;
-      // TODO: ChildNodeTree...
-    end;
-  end
-  else
-  begin
-    if not (NewChildType in ValidChildren[NodeType]) then
-      raise EDOMHierarchyRequest.Create('NodeWC.AppendChild');
-
-    if Assigned(NewChild.FParentNode) then
-      NewChild.FParentNode.DetachChild(NewChild);
-
-    if Assigned(FFirstChild) then
-    begin
-      FLastChild.FNextSibling := NewChild;
-      NewChild.FPreviousSibling := FLastChild;
-    end else
-      FFirstChild := NewChild;
-    FLastChild := NewChild;
-    NewChild.FParentNode := Self;
-    AddToChildNodeTree(NewChild);
-  end;
-  Result := NewChild;
 end;
 
 function TDOMNode_WithChildren.HasChildNodes: Boolean;
@@ -1625,7 +1557,7 @@ end;
 
 function TDOMCharacterData.SubstringData(offset, count: LongWord): DOMString;
 begin
-  if (offset > Length) then
+  if offset > Length then
     raise EDOMIndexSize.Create('CharacterData.SubstringData');
   Result := Copy(FNodeValue, offset + 1, count);
 end;
@@ -1637,20 +1569,16 @@ end;
 
 procedure TDOMCharacterData.InsertData(offset: LongWord; const arg: DOMString);
 begin
-  if (offset > Length) then
+  if offset > Length then
     raise EDOMIndexSize.Create('CharacterData.InsertData');
-  // TODO: use System.Insert?
-  FNodeValue := Copy(FNodeValue, 1, offset) + arg +
-    Copy(FNodeValue, offset + 1, Length);
+  Insert(arg, FNodeValue, offset+1);
 end;
 
 procedure TDOMCharacterData.DeleteData(offset, count: LongWord);
 begin
-  if (offset > Length) then
+  if offset > Length then
     raise EDOMIndexSize.Create('CharacterData.DeleteData');
-  // TODO: use System.Delete?
-  FNodeValue := Copy(FNodeValue, 1, offset) +
-    Copy(FNodeValue, offset + count + 1, Length);
+  Delete(FNodeValue, offset+1, count);
 end;
 
 procedure TDOMCharacterData.ReplaceData(offset, count: LongWord; const arg: DOMString);
@@ -1687,17 +1615,11 @@ end;
 
 function TDOMImplementation.HasFeature(const feature, version: DOMString):
   Boolean;
+var
+  s: string;
 begin
-  // very basic
-  if (feature = 'XML') then
-  begin
-    if (version = '') or (version = '1.0') then
-      Result := True
-    else
-      Result := False;
-  end
-  else
-    Result := False;
+  s := feature;   // force Ansi, features do not contain non-ASCII chars
+  Result := SameText(s, 'XML') and ((version = '') or (version = '1.0'));
 end;
 
 function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
@@ -1707,12 +1629,9 @@ begin
   Result := TDOMDocumentType.Create(nil);
   Result.FName := QualifiedName;
 
-  // cannot have PublicID without SystemID
-  if SystemID <> '' then
-  begin
-    Result.FPublicID := PublicID;
-    Result.FSystemID := SystemID;
-  end;
+  // DOM does not restrict PublicID without SystemID (unlike XML spec)
+  Result.FPublicID := PublicID;
+  Result.FSystemID := SystemID;
 end;
 
 function TDOMImplementation.CreateDocument(const NamespaceURI,
@@ -1843,6 +1762,21 @@ end;
 function TDOMDocument.GetNodeName: DOMString;
 begin
   Result := '#document';
+end;
+
+function TDOMDocument.GetTextContent: DOMString;
+begin
+  Result := '';
+end;
+
+procedure TDOMDocument.SetTextContent(const value: DOMString);
+begin
+  // Document ignores setting TextContent
+end;
+
+function TDOMDocument.GetOwnerDocument: TDOMDocument;
+begin
+  Result := nil;
 end;
 
 function TDOMDocument.GetDocumentElement: TDOMElement;
@@ -2015,12 +1949,21 @@ end;
 
 function TXMLDocument.CreateEntityReference(const name: DOMString):
   TDOMEntityReference;
+var
+  dType: TDOMDocumentType;
+  ent: TDOMEntity;
 begin
   if not IsXmlName(name, FXML11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateEntityReference');
   Result := TDOMEntityReference.Create(Self);
   Result.FName := name;
-  // TODO: if entity is known, its child list must be cloned or so.
+  dType := DocType;
+  if Assigned(dType) then
+  begin
+    TDOMNode(ent) := dType.Entities.GetNamedItem(name);
+    if Assigned(ent) then
+      ent.CloneChildren(Result, Self);
+  end;
 end;
 
 procedure TXMLDocument.SetXMLVersion(const aValue: DOMString);
@@ -2311,7 +2254,8 @@ begin
   Result.FNodeValue := Copy(FNodeValue, offset + 1, Length);
   Result.FMayBeIgnorable := FMayBeIgnorable;
   FNodeValue := Copy(FNodeValue, 1, offset);
-  FParentNode.InsertBefore(Result, FNextSibling);
+  if Assigned(FParentNode) then
+    FParentNode.InsertBefore(Result, FNextSibling);
 end;
 
 
@@ -2442,7 +2386,9 @@ begin
   TDOMEntity(Result).FName := FName;
   TDOMEntity(Result).FSystemID := FSystemID;
   TDOMEntity(Result).FPublicID := FPublicID;
-  TDOMEntity(Result).FNotationName := FNotationName;  
+  TDOMEntity(Result).FNotationName := FNotationName;
+  if deep then
+    CloneChildren(Result, aCloneOwner);
 end;
 
 // -------------------------------------------------------
@@ -2462,8 +2408,6 @@ end;
 function TDOMEntityReference.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   Result := ACloneOwner.CreateEntityReference(FName);
-  // TODO -cConformance: this is done in CreateEntityReference?
-  CloneChildren(Result, ACloneOwner);
 end;
 
 // -------------------------------------------------------

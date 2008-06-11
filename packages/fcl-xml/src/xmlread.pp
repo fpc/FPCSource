@@ -73,8 +73,12 @@ type
   end;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
-  TXMLContextAction = (xaAppendAsChildren, xaReplaceChildren, xaInsertBefore,
-                       xaInsertAfter, xaReplace);
+  TXMLContextAction = (
+    xaAppendAsChildren = 1,
+    xaReplaceChildren,
+    xaInsertBefore,
+    xaInsertAfter,
+    xaReplace);
 
   TXMLErrorEvent = procedure(Error: EXMLReadError) of object;
 
@@ -395,6 +399,7 @@ type
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
     procedure DoAttrText(ch: PWideChar; Count: Integer);    
     procedure DTDReloadHook;
+    procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     // Some SAX-alike stuff (at a very early stage)
     procedure DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean=False);
     procedure DoComment(ch: PWideChar; Count: Integer);
@@ -433,6 +438,8 @@ type
     destructor Destroy; override;
   end;
 
+const
+  NullLocation: TLocation = (Line: 0; LinePos: 0);
 
 function Decode_UCS2(Src: TXMLDecodingSource): WideChar;
 begin
@@ -606,20 +613,8 @@ var
 begin
   with TXMLReader.Create(Self) do
   try
-    InputSrc := nil;
-    if Assigned(Src) then
-    begin
-      if Assigned(Src.FStream) then
-        InputSrc := TXMLStreamInputSource.Create(Src.FStream, False)
-      else if Src.FStringData <> '' then
-        InputSrc := TXMLStreamInputSource.Create(TStringStream.Create(Src.FStringData), True)
-      else if (Src.SystemID <> '') then
-        ResolveEntity(Src.SystemID, Src.PublicID, InputSrc);
-    end;
-    if Assigned(InputSrc) then
-      ProcessXML(InputSrc)
-    else
-      FatalError('No input source specified');
+    ConvertSource(Src, InputSrc);  // handles 'no-input-specified' case
+    ProcessXML(InputSrc)
   finally
     ADoc := TXMLDocument(doc);
     Free;
@@ -643,9 +638,46 @@ end;
 
 function TDOMParser.ParseWithContext(Src: TXMLInputSource;
   Context: TDOMNode; Action: TXMLContextAction): TDOMNode;
+var
+  InputSrc: TXMLCharSource;
+  Frag: TDOMDocumentFragment;
+  node: TDOMNode;
 begin
-  // TODO: implement
-  Result := nil;
+  if Action in [xaInsertBefore, xaInsertAfter, xaReplace] then
+    node := Context.ParentNode
+  else
+    node := Context;
+  // TODO: replacing document isn't yet supported  
+  if (Action = xaReplaceChildren) and (node.NodeType = DOCUMENT_NODE) then
+    raise EDOMNotSupported.Create('DOMParser.ParseWithContext');
+
+  if not (node.NodeType in [ELEMENT_NODE, DOCUMENT_FRAGMENT_NODE]) then
+    raise EDOMHierarchyRequest.Create('DOMParser.ParseWithContext');
+
+  with TXMLReader.Create(Self) do
+  try
+    ConvertSource(Src, InputSrc);    // handles 'no-input-specified' case
+    Frag := Context.OwnerDocument.CreateDocumentFragment;
+    try
+      ProcessFragment(InputSrc, Frag);
+      Result := Frag.FirstChild;
+      case Action of
+        xaAppendAsChildren: Context.AppendChild(Frag);
+
+        xaReplaceChildren: begin
+          Context.TextContent := '';     // removes children
+          Context.ReplaceChild(Frag, Context.FirstChild);
+        end;
+        xaInsertBefore: node.InsertBefore(Frag, Context);
+        xaInsertAfter:  node.InsertBefore(Frag, Context.NextSibling);
+        xaReplace:      node.ReplaceChild(Frag, Context);
+      end;
+    finally
+      Frag.Free;
+    end;
+  finally
+    Free;
+  end;
 end;
 
 // TODO: These classes still cannot be considered as the final solution...
@@ -822,7 +854,7 @@ begin
   FDecoder := @Decode_UTF8;
   FFixedUCS2 := '';
   if FCharBufEnd-FCharBuf > 1 then
-    begin
+  begin
     if (FCharBuf[0] = #$FE) and (FCharBuf[1] = #$FF) then
     begin
       FFixedUCS2 := 'UTF-16BE';
@@ -931,7 +963,36 @@ begin
   end;
 end;
 
+{ helper that closes handle upon destruction }
+type
+  THandleOwnerStream = class(THandleStream)
+  public
+    destructor Destroy; override;
+  end;
+
+destructor THandleOwnerStream.Destroy;
+begin
+  if Handle >= 0 then FileClose(Handle);
+  inherited Destroy;
+end;
+
 { TXMLReader }
+
+procedure TXMLReader.ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
+begin
+  SrcOut := nil;
+  if Assigned(SrcIn) then
+  begin
+    if Assigned(SrcIn.FStream) then
+      SrcOut := TXMLStreamInputSource.Create(SrcIn.FStream, False)
+    else if SrcIn.FStringData <> '' then
+      SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.FStringData), True)
+    else if (SrcIn.SystemID <> '') then
+      ResolveEntity(SrcIn.SystemID, SrcIn.PublicID, SrcOut);
+  end;
+  if (SrcOut = nil) and (FSource = nil) then
+    DoErrorPos(esFatal, 'No input source specified', NullLocation);
+end;
 
 procedure TXMLReader.StoreLocation(out Loc: TLocation);
 begin
@@ -944,32 +1005,34 @@ var
   AbsSysID: WideString;
   Filename: string;
   Stream: TStream;
+  fd: THandle;
 begin
-  Result := True;
-  if Assigned(FSource) then
-    Result := ResolveRelativeURI(FSource.SystemID, SystemID, AbsSysID)
+  Source := nil;
+  Result := False;
+  if not Assigned(FSource) then
+    AbsSysID := SystemID
   else
-    AbsSysID := SystemID;
-
-  if Result then
+    if not ResolveRelativeURI(FSource.SystemID, SystemID, AbsSysID) then
+      Exit;
+  { TODO: alternative resolvers
+    These may be 'internal' resolvers or a handler set by application.
+    Internal resolvers should probably produce a TStream
+    ( so that internal classes need not be exported ).
+    External resolver will produce TXMLInputSource that should be converted.
+    External resolver must NOT be called for root entity.
+    External resolver can return nil, in which case we do the default }
+  if URIToFilename(AbsSysID, Filename) then
   begin
-    Source := nil;
-    Result := False;
-    // TODO: alternative resolvers
-    if URIToFilename(AbsSysID, Filename) then
+    fd := FileOpen(Filename, fmOpenRead + fmShareDenyWrite);
+    if fd <> THandle(-1) then
     begin
-      try
-        Stream := TFileStream.Create(Filename, fmOpenRead + fmShareDenyWrite);
-        Source := TXMLStreamInputSource.Create(Stream, True);
-        Source.SystemID := AbsSysID;
-        Source.PublicID := PublicID;
-        Result := True;
-      except
-        on E: Exception do
-          ValidationError('%s', [E.Message]);
-      end;
+      Stream := THandleOwnerStream.Create(fd);
+      Source := TXMLStreamInputSource.Create(Stream, True);
+      Source.SystemID := AbsSysID;    // <- Revisit: Really need absolute sysID?
+      Source.PublicID := PublicID;
     end;
   end;
+  Result := Assigned(Source);
 end;
 
 procedure TXMLReader.Initialize(ASource: TXMLCharSource);
@@ -1034,13 +1097,17 @@ procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; c
 var
   E: EXMLReadError;
 begin
-  E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, ErrPos.Line, ErrPos.LinePos, descr]);
+  if Assigned(FSource) then
+    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, ErrPos.Line, ErrPos.LinePos, descr])
+  else
+    E := EXMLReadError.Create(descr);
   E.FSeverity := Severity;
   E.FErrorMessage := descr;
   E.FLine := ErrPos.Line;
   E.FLinePos := ErrPos.LinePos;
   CallErrorHandler(E);
   // No 'finally'! If user handler raises exception, control should not get here
+  // and the exception will be freed in CallErrorHandler (below)
   E.Free;
 end;
 
@@ -1175,7 +1242,8 @@ destructor TXMLReader.Destroy;
 begin
   FreeMem(FName.Buffer);
   FreeMem(FValue.Buffer);
-  while ContextPop do;     // clean input stack
+  if Assigned(FSource) then
+    while ContextPop do;     // clean input stack
   FSource.Free;
   FPEMap.Free;
   ClearRefs(FNotationRefs);
@@ -1206,7 +1274,7 @@ begin
     FatalError('Root element is missing');
 
   if FValidate and Assigned(FDocType) then
-      ValidateIdRefs;
+    ValidateIdRefs;
 end;
 
 procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
@@ -1406,7 +1474,11 @@ begin
   begin
     Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, Src);
     if not Result then
+    begin
+      // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
+      ValidationError('Unable to resolve external entity ''%s''', [AEntity.NodeName]);
       Exit;
+    end;
   end
   else
   begin
@@ -1450,7 +1522,7 @@ procedure TXMLReader.IncludeEntity(InAttr: Boolean);
 var
   AEntity: TDOMEntityEx;
   RefName: WideString;
-  Node, Child: TDOMNode;
+  Child: TDOMNode;
 begin
   AEntity := nil;
   SetString(RefName, FName.Buffer, FName.Length);
@@ -1495,17 +1567,17 @@ begin
       end;
     end;
   end;
-  Node := FCursor;
   if (not FExpandEntities) or (not AEntity.FResolved) then
   begin
-    Node := doc.CreateEntityReference(RefName);
-    FCursor.AppendChild(Node);
+    // This will clone Entity children
+    FCursor.AppendChild(doc.CreateEntityReference(RefName));
+    Exit;
   end;
 
   Child := AEntity.FirstChild;  // clone the entity node tree
   while Assigned(Child) do
   begin
-    Node.AppendChild(Child.CloneNode(True));
+    FCursor.AppendChild(Child.CloneNode(True));
     Child := Child.NextSibling;
   end;
 end;
@@ -1839,16 +1911,21 @@ begin
   end;
   ExpectChar('>');
 
-  if (FDocType.SystemID <> '') and ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
+  if (FDocType.SystemID <> '') then
   begin
-    ContextPush(Src);
-    try
-      Src.DTDSubsetType := dsExternal;
-      ParseMarkupDecl;
-    finally
-      Src.DTDSubsetType := dsNone;
-      ContextPop;
-    end;
+    if ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
+    begin
+      ContextPush(Src);
+      try
+        Src.DTDSubsetType := dsExternal;
+        ParseMarkupDecl;
+      finally
+        Src.DTDSubsetType := dsNone;
+        ContextPop;
+      end;
+    end
+    else
+      ValidationError('Unable to resolve external DTD subset', []);
   end;
   FCursor := Doc;
   ValidateDTD;
@@ -2847,13 +2924,10 @@ begin
     ValidationError('Comments are not allowed within EMPTY elements', []);
 
   // DOM builder part
-  if (not FIgnoreComments) then
+  if (not FIgnoreComments) and Assigned(FCursor) then
   begin
     Node := Doc.CreateCommentBuf(ch, Count);
-    if Assigned(FCursor) then
-      FCursor.AppendChild(Node)
-    else
-      Doc.InsertBefore(Node, FDocType);
+    FCursor.AppendChild(Node);
   end;
 end;
 
