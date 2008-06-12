@@ -6,7 +6,7 @@
 programs=h2pas h2paspp
 
 [clean]
-units=options lexlib scan yacclib converu
+units=h2poptions h2plexlib scan h2pyacclib converu
 
 [compiler]
 options=-Sg
@@ -39,7 +39,7 @@ export PLEX:=$(firstword $(PLEX))
 endif
 endif
 
-h2pas$(EXEEXT): h2pas.pas scan.pas options.pas
+h2pas$(EXEEXT): h2pas.pas scan.pas h2poptions.pas
 
 #
 # Lex and Yacc (only if pyacc is found)

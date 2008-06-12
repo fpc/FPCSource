@@ -16,7 +16,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-unit options;
+unit h2poptions;
 interface
 
 const
@@ -101,7 +101,7 @@ begin
   begin
     Dec(i);
   end;
-  ExtractFileName := Copy(AFilePath,i+1,Length(AFilePath)); 
+  ExtractFileName := Copy(AFilePath,i+1,Length(AFilePath));
 end;
 
 {*****************************************************************************

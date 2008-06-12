@@ -232,7 +232,7 @@ type
   implementation
 
     uses
-       options,converu;
+       h2poptions,converu;
 
     const
        newline = #10;

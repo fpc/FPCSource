@@ -9514,8 +9514,8 @@ utils/h2pas/h2pas.pas svneol=native#text/plain
 utils/h2pas/h2pas.y -text
 utils/h2pas/h2paspp.pas svneol=native#text/plain
 utils/h2pas/h2plexlib.pas svneol=native#text/plain
+utils/h2pas/h2poptions.pas svneol=native#text/plain
 utils/h2pas/h2pyacclib.pas svneol=native#text/plain
-utils/h2pas/options.pas svneol=native#text/plain
 utils/h2pas/scan.l -text
 utils/h2pas/scan.pas svneol=native#text/plain
 utils/h2pas/testit.h -text
