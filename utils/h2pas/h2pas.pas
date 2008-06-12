@@ -28,7 +28,7 @@ program h2pas;
 
    uses
      SysUtils,types, classes,
-     options,scan,converu,lexlib,yacclib;
+     options,scan,converu,h2plexlib,h2pyacclib;
 
    type
      YYSTYPE = presobject;

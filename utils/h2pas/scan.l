@@ -25,7 +25,7 @@ unit scan;
 
   uses
    strings,
-   lexlib,yacclib;
+   h2plexlib,h2pyacclib;
 
     const
        version = '1.0.0';

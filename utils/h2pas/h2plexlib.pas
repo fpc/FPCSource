@@ -1,5 +1,5 @@
 
-unit LexLib;
+unit h2pLexLib;
 
 (* Standard Lex library unit for TP Lex Version 3.0.
    2-11-91 AG *)
