@@ -36,11 +36,21 @@ Software IEC/IEEE floating-point exception flags.
     float_flag_overflow  =  8;
     float_flag_underflow = 16;
     float_flag_inexact   = 32;
-   { declarations of the math routines }
+
+{*
+-------------------------------------------------------------------------------
+Software IEC/IEEE floating-point rounding mode.
+-------------------------------------------------------------------------------
+*}
+    float_round_nearest_even = 0;
+    float_round_down         = 1;
+    float_round_up           = 2;
+    float_round_to_zero      = 3;
 
 threadvar
   softfloat_exception_mask : Byte;
   softfloat_exception_flags : Byte;
+  softfloat_rounding_mode : Byte;
 
 procedure float_raise(i: shortint);
 
