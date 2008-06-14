@@ -507,7 +507,7 @@ var
     roundIncrement, roundBits: int8;
     z: int32;
 begin
-    roundingMode := softsoftfloat_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := ord( roundingMode = float_round_nearest_even );
     roundIncrement := $40;
     if ( roundNearestEven=0 ) then
