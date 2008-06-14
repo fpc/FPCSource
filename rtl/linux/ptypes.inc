@@ -136,18 +136,35 @@ Type
   ptimespec   = ^timespec;
   TTimeSpec   = timespec;
 
+  {$ifdef cpu64}
   TStatfs = packed record
     fstype,            { File system type }
-    bsize, //   : cint;    { Optimal block trensfer size }
+    bsize   : clong;    { Optimal block trensfer size }
     blocks,            { Data blocks in system }
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
-    ffree   : clong;             { Free file nodes in system }
+    ffree   : culong;             { Free file nodes in system }
     fsid    : array[0..1] of cint;          { File system ID }
     namelen : clong; { Maximum name length in system }
-    spare   : array [0..5] of clong; { For later use }
+    frsize  : clong;
+    spare   : array [0..4] of clong; { For later use }
   end;
+  {$else}
+  TStatfs = packed record
+    fstype,            { File system type }
+    bsize   : cint;    { Optimal block trensfer size }
+    blocks,            { Data blocks in system }
+    bfree,             { free blocks in system }
+    bavail,            { Available free blocks to non-root users }
+    files,             { File nodes in system }
+    ffree   : culong;  { Free file nodes in system }
+    fsid    : array[0..1] of cint;          { File system ID }
+    namelen,           { Maximum name length in system }
+    frsize  : cint;
+    spare   : array [0..4] of cint; { For later use }
+  end;
+  {$endif}
   PStatFS=^TStatFS;
 
   mbstate_value_t = record
