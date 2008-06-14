@@ -138,7 +138,7 @@ Type
 
   TStatfs = packed record
     fstype,            { File system type }
-    bsize   : cint;    { Optimal block trensfer size }
+    bsize, //   : cint;    { Optimal block trensfer size }
     blocks,            { Data blocks in system }
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
