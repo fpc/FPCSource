@@ -489,6 +489,8 @@ begin
   dosregs.ax:=$714e;
   msdos(dosregs);
   LoadDosError;
+  if DosError=2 then
+    DosError:=18;
 {$ifdef DEBUG_LFN}
   if (DosError=0) and LogLFN then
     begin
@@ -811,6 +813,12 @@ end;
 
 procedure setfattr(var f;attr : word);
 begin
+  { Fail for setting VolumeId. }
+  if ((attr and VolumeID)<>0) then
+  begin
+    doserror:=5;
+    exit;
+  end;
   copytodos(filerec(f).name,strlen(filerec(f).name)+1);
   dosregs.edx:=tb_offset;
   dosregs.ds:=tb_segment;
