@@ -962,7 +962,7 @@ invalid:
           else
             result:=tr;
     end;
-{$endif FPC_SYSTEM_HAS_EXP}
+{$endif FPC_SYSTEM_HAS_ROUND}
 
 
 {$ifndef FPC_SYSTEM_HAS_LN}
