@@ -1575,7 +1575,13 @@ implementation
                     { ... to startbit }
                     tosreg.startbit := sref.startbit;
                   end;
-                a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
+                case slopt of
+                  SL_SETZERO,
+                  SL_SETMAX:
+                    a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
+                  else                 
+                    a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
+                end;
                 valuereg := makeregsize(list,valuereg,loadsize);
                 a_load_reg_ref(list,loadsize,loadsize,valuereg,sref.ref);
 
@@ -1601,7 +1607,13 @@ implementation
                 fromsreg.bitlen := sref.bitlen-fromsreg.bitlen;
                 tosreg.bitlen := fromsreg.bitlen;
 
-                a_load_subsetreg_subsetreg(list,fromsize,subsetsize,fromsreg,tosreg);
+                case slopt of
+                  SL_SETZERO,
+                  SL_SETMAX:
+                    a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
+                  else                 
+                    a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
+                end;
                 extra_value_reg := makeregsize(list,extra_value_reg,loadsize);
                 a_load_reg_ref(list,loadsize,loadsize,extra_value_reg,tmpref);
                 exit;
