@@ -117,6 +117,6 @@ end;
 procedure ClearExceptions(RaisePending: Boolean = true);
 begin
   { RaisePending has no effect on PPC, always raises them at the correct location }
-  setFPSCR(getFPSCR and (not AllConfigBits));
+  setFPSCR(getFPSCR and (not ExceptionsPendingMask));
 end;
 
