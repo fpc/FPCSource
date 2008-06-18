@@ -95,7 +95,7 @@ implementation
       cutils,verbose,constexp,globals,
       symconst,symdef,
       defutil,defcmp,
-      nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,
+      nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
       cpubase,cgbase,procinfo,
       pass_1;
 
@@ -703,6 +703,104 @@ implementation
               nothingn,
               niln:
                 exit;
+              inlinen:
+                begin
+                  { this code assumes that the inline node has   }
+                  { already been firstpassed, and consequently   }
+                  { that inline nodes which are transformed into }
+                  { calls already have been transformed          }
+                  case tinlinenode(p).inlinenumber of
+                    in_lo_qword,
+                    in_hi_qword,
+                    in_lo_long,
+                    in_hi_long,
+                    in_lo_word,
+                    in_hi_word,
+                    in_length_x,
+                    in_assigned_x,
+                    in_pred_x,
+                    in_succ_x,
+                    in_round_real,
+                    in_trunc_real,
+                    in_int_real,
+                    in_frac_real,
+                    in_cos_real,
+                    in_sin_real,
+                    in_arctan_real,
+                    in_pi_real,
+                    in_abs_real,
+                    in_sqr_real,
+                    in_sqrt_real,
+                    in_ln_real,
+          {$ifdef SUPPORT_UNALIGNED}
+                    in_unaligned_x,
+          {$endif SUPPORT_UNALIGNED}
+                    in_prefetch_var:
+                      begin
+                        inc(result);
+                        p:=tunarynode(p).left;
+                      end;
+                    in_abs_long:
+                      begin
+                        inc(result,10);
+                        if (result >= NODE_COMPLEXITY_INF) then
+                          begin
+                            result:=NODE_COMPLEXITY_INF;
+                            exit;
+                          end;
+                        p:=tunarynode(p).left;
+                      end;
+                    in_sizeof_x,
+                    in_typeof_x:
+                      begin
+                        inc(result);
+                        if (tinlinenode(p).left.nodetype<>typen) then
+                          { get instance vmt }
+                          p:=tunarynode(p).left
+                        else
+                          { type vmt = global symbol, result is }
+                          { already increased above             }
+                          exit;
+                      end;
+          {$ifdef SUPPORT_MMX}
+                    in_mmx_pcmpeqb..in_mmx_pcmpgtw,
+          {$endif SUPPORT_MMX}
+                    { load from global symbol }
+                    in_typeinfo_x,
+                    { load frame pointer }
+                    in_get_frame,
+                    in_get_caller_frame,
+                    in_get_caller_addr:
+                      begin
+                        inc(result);
+                        exit;
+                      end;
+          
+                    in_inc_x,
+                    in_dec_x,
+                    in_include_x_y,
+                    in_exclude_x_y,
+                    in_assert_x_y :
+                      begin
+                        { operation (add, sub, or, and }
+                        inc(result);
+                        { left expression }
+                        inc(result,node_complexity(tbinarynode(p).left));
+                        if (result >= NODE_COMPLEXITY_INF) then
+                          begin
+                            result := NODE_COMPLEXITY_INF;
+                            exit;
+                          end;
+                        p := tbinarynode(p).right;
+                      end;
+                    else
+                      begin
+                        result := NODE_COMPLEXITY_INF;
+                        exit;
+                      end;
+                  end;
+                  
+                end;
               else
                 begin
                   result := NODE_COMPLEXITY_INF;
