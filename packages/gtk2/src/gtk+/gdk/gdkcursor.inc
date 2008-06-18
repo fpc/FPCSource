@@ -99,6 +99,8 @@ const
      GDK_LAST_CURSOR=GDK_XTERM+1;
 
 function GDK_TYPE_CURSOR : GType;
+function GDK_CURSOR(anObject : pointer) : PGdkCursor;
+function GDK_IS_CURSOR(anObject : pointer) : boolean;
 
 { Cursors }
 
@@ -135,4 +137,13 @@ begin
   GDK_TYPE_CURSOR:=gdk_cursor_get_type;
 end;
 
+function GDK_CURSOR(anObject : pointer) : PGdkCursor;
+begin
+  GDK_CURSOR:=PGdkCursor(G_TYPE_CHECK_INSTANCE_CAST(anObject,GDK_TYPE_CURSOR));
+end;
+
+function GDK_IS_CURSOR(anObject : pointer) : boolean;
+begin
+  GDK_IS_CURSOR:=G_TYPE_CHECK_INSTANCE_TYPE(anObject,GDK_TYPE_CURSOR);
+end;
 {$ENDIF}
