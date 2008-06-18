@@ -742,7 +742,7 @@ implementation
                       end;
                     in_abs_long:
                       begin
-                        inc(result,10);
+                        inc(result,3);
                         if (result >= NODE_COMPLEXITY_INF) then
                           begin
                             result:=NODE_COMPLEXITY_INF;
