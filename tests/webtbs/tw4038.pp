@@ -11,11 +11,19 @@ begin
 {$ifdef unix}
   s:='/bin/echo';
 {$else}
-{$ifdef windows}
+ {$ifdef windows}
   s:='gecho';
-{$else windows}
+ {$else windows}
+  {$ifdef go32v2}
+  s:=FileSearch('gecho.exe',GetEnvironmentVariable('PATH'));
+  {$else go32v2}
+   {$IFDEF OS2}
+  s:=FileSearch('gecho.exe',GetEnvironmentVariable('PATH'));
+   {$ELSE OS2}
   s:='echo';
-{$endif windows}
+   {$ENDIF OS2}
+  {$endif go32v2}
+ {$endif windows}
 {$endif}
   writeln(executeprocess(s,'works1 works2 works3'));
   writeln(executeprocess(s,'works1 works2 works3'));
