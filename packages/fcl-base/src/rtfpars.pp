@@ -85,6 +85,7 @@ TRTFParser = class(TObject)
     Procedure UngetToken;
     Procedure SetToken (Aclass, major, minor, param : Integer; text : string);
     Procedure ExpandStyle (n : Integer);
+    Function GetRtfBuf : String;
     { Properties }
     Property Colors [Index : Integer]: PRTFColor Read GetColor;
     Property ClassCallBacks [AClass : Integer]: TRTFFuncptr
@@ -728,6 +729,13 @@ While true do
      Error ('FTErr - missing font name');
   fp^.rtffname:=bp;
   { Read alternate font}
+  if rtfclass=rtfgroup then
+    begin
+    SkipGroup;
+    if Not rtfMajor=ord(';') then
+      Error('Alternate font badly terminated');
+    GetToken;
+    end;
   if (old=0) then       { need to see "End;" here }
     Begin
     GetToken;
@@ -993,6 +1001,11 @@ while se<>nil do
   End;
 s^.rtfExpanding:=0;     { done - clear expansion flag }
 End;
+
+function TRTFParser.GetRtfBuf: String;
+begin
+  Result:=rtfTextBuf;
+end;
 
 { ---------------------------------------------------------------------
        Initialize lookup table hash values.
