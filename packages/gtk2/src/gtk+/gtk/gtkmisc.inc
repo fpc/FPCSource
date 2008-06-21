@@ -34,9 +34,9 @@ function GTK_MISC_GET_CLASS(obj: pointer) : PGtkMiscClass;
 
 function gtk_misc_get_type:TGtkType; cdecl; external gtklib;
 procedure gtk_misc_set_alignment(misc:PGtkMisc; xalign:gfloat; yalign:gfloat); cdecl; external gtklib;
-procedure gtk_misc_get_alignment(misc:PGtkMisc; var xalign:Pgfloat; var yalign:Pgfloat); cdecl; external gtklib;
+procedure gtk_misc_get_alignment(misc:PGtkMisc; xalign:Pgfloat; yalign:Pgfloat); cdecl; external gtklib;
 procedure gtk_misc_set_padding(misc:PGtkMisc; xpad:gint; ypad:gint); cdecl; external gtklib;
-procedure gtk_misc_get_padding(misc:PGtkMisc; var xpad:Pgint; var ypad:Pgint); cdecl; external gtklib;
+procedure gtk_misc_get_padding(misc:PGtkMisc;  xpad:Pgint;  ypad:Pgint); cdecl; external gtklib;
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

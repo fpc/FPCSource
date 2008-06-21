@@ -16,9 +16,21 @@
 #
 # FreeBSD  ELF startup code for Free Pascal for dynamical linking to libc.
 #
+# To avoid needing a "COMPAT" system, patch this file to change the number 
+# according to what is retured by the "file" command on a normal binary:
+#
+# `file gcc` gives
+#
+# gcc: ELF 32-bit LSB executable, Intel 80386, version 1 (FreeBSD), for 
+# FreeBSD 7.0 ($IDVERSION), statically linked, FreeBSD-style, stripped
+# 
+# freebsd 5.4 504000
+# freebsd 6.3 (prerelease) : 603100
+# freebsd 7.0 700055
+#
 
         .file   "cprt0.as"
-        .ident  "FreePascal 2.0.x series with FreeBSD 5/6 patch"
+        .ident  "FreePascal 2.2.x series dynlinked to libc"
 .section        .note.ABI-tag,"a",@progbits
         .p2align 2
         .type   abitag, @object
