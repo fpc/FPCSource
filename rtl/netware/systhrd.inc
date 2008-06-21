@@ -121,14 +121,6 @@ type
 
 
 
-procedure DoneThread;
-
-  begin
-     { release thread vars }
-     SysReleaseThreadVars;
-  end;
-
-
 function ThreadMain(param : pointer) : dword; cdecl;
 
   var

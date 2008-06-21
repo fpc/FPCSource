@@ -186,12 +186,6 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        CReleaseThreadVars;
-      end;
-
 
     function ThreadMain(param : pointer) : pointer;cdecl;
       var

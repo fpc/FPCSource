@@ -95,13 +95,6 @@
         stklen : cardinal;
       end;
 
-    procedure DoneThread;
-      begin
-        { Release Threadvars }
-        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
-        SysReleaseThreadVars;
-      end;
-
 
     function ThreadMain(param : pointer) : pointer;cdecl;
       var
@@ -120,6 +113,7 @@
         { Start thread function }
         WRITE_DEBUG('Jumping to thread function'#13#10);
         ThreadMain:=pointer(ti.f(ti.p));
+        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
         DoneThread;
         //pthread_detach(pointer(pthread_self));
         pthread_exit (nil);
@@ -169,6 +163,7 @@
 
     procedure SysEndThread(ExitCode : DWord);
       begin
+        WRITE_DEBUG('DoneThread, releasing threadvars'#13#10);
         DoneThread;
         pthread_detach(pointer(pthread_self));
         pthread_exit(pointer(ExitCode));
