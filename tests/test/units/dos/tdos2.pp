@@ -558,59 +558,62 @@ Begin
    WriteLn(s+'Success.');
 
 {$ifdef go32v2}
- s:='Searching using ??? wildcard (normal files + all special files)...';
- FindFirst('???',AnyFile,Search);
- FoundDot := False;
- FoundDotDot := False;
- WriteLn(#9'Resources found (full path should not be displayed):');
- while DosError = 0 do
- Begin
-    If Search.Name = '.' then
-    Begin
-      If Search.Attr and Directory <> 0 then
-         FoundDot := TRUE;
-    End;
-    if Search.Name = '..' then
-    Begin
-      If Search.Attr and Directory <> 0 then
-         FoundDotDot := TRUE;
-    End;
-    WriteLn(#9+Search.Name);
-    FindNext(Search);
- end;
- if not FoundDot then
-   WriteLn(s+'FAILURE. Did not find special ''''.'''' directory')
- else
- if not FoundDotDot then
-   WriteLn(s+'FAILURE. Did not find special ''''..'''' directory')
- else
-   WriteLn(s+'Success.');
-{$IFDEF FPC}
-  FindClose(Search);
-{$ENDIF}
- { search for volume ID }
- s:='Searching using * wildcard in ROOT (normal files + volume ID)...';
- FindFirst(RootPath+'*',Directory+VolumeID,Search);
- Failure := TRUE;
- WriteLn(#9'Resources found (full path should not be displayed):');
- while DosError = 0 do
- Begin
-    If Search.Attr and VolumeID <> 0 then
-    Begin
-      Failure := FALSE;
-      WriteLn(#9'Volume ID: '+Search.Name);
-    End
-    else
+ if not LFNSupport then
+ begin
+   s:='Searching using ??? wildcard (normal files + all special files)...';
+   FindFirst('???',AnyFile,Search);
+   FoundDot := False;
+   FoundDotDot := False;
+   WriteLn(#9'Resources found (full path should not be displayed):');
+   while DosError = 0 do
+   Begin
+      If Search.Name = '.' then
+      Begin
+        If Search.Attr and Directory <> 0 then
+           FoundDot := TRUE;
+      End;
+      if Search.Name = '..' then
+      Begin
+        If Search.Attr and Directory <> 0 then
+           FoundDotDot := TRUE;
+      End;
       WriteLn(#9+Search.Name);
-    FindNext(Search);
+      FindNext(Search);
+   end;
+   if not FoundDot then
+     WriteLn(s+'FAILURE. Did not find special ''''.'''' directory')
+   else
+   if not FoundDotDot then
+     WriteLn(s+'FAILURE. Did not find special ''''..'''' directory')
+   else
+     WriteLn(s+'Success.');
+  {$IFDEF FPC}
+    FindClose(Search);
+  {$ENDIF}
+   { search for volume ID }
+   s:='Searching using *.* wildcard in ROOT (normal files + volume ID)...';
+   FindFirst(RootPath+'*.*',Directory+VolumeID,Search);
+   Failure := TRUE;
+   WriteLn(#9'Resources found (full path should not be displayed):');
+   while DosError = 0 do
+   Begin
+      If Search.Attr and VolumeID <> 0 then
+      Begin
+        Failure := FALSE;
+        WriteLn(#9'Volume ID: '+Search.Name);
+      End
+      else
+        WriteLn(#9+Search.Name);
+      FindNext(Search);
+   end;
+   If Failure then
+     WriteLn(s+'FAILURE. Did not find volume name')
+   else
+     WriteLn(s+'Success.');
+  {$IFDEF FPC}
+    FindClose(Search);
+  {$ENDIF}
  end;
- If Failure then
-   WriteLn(s+'FAILURE. Did not find volume name')
- else
-   WriteLn(s+'Success.');
-{$IFDEF FPC}
-  FindClose(Search);
-{$ENDIF}
 {$endif}
 
 end;
@@ -660,13 +663,16 @@ Begin
  WriteLn('PARAMSTR(0) = ', ParamStr(0));
  WriteLn('DRIVE + NAME + EXT = ',d+n+e);
 {$ifdef go32v2}
- Write('Testing invalid path (..)...');
- P:='..';
- FSPlit(P,D,N,E);
- IF (length(D) <> 0) OR (length(N) <>0) OR (E <> P) THEN
-   WriteLn('FAILURE. Length of drive and name should be zero and Ext should return Path')
- else
-   WriteLn('Success.');
+ if not LFNSupport then
+ begin
+   Write('Testing invalid path (..)...');
+   P:='..';
+   FSPlit(P,D,N,E);
+   IF (length(D) <> 0) OR (length(N) <>0) OR (E <> P) THEN
+     WriteLn('FAILURE. Length of drive and name should be zero and Ext should return Path')
+   else
+     WriteLn('Success.');
+ end;
 {$endif}
  Write('Testing invalid path (*)...');
  P:='*';
@@ -677,7 +683,24 @@ Begin
    WriteLn('Success.');
 end;
 
-
+{$ifdef go32v2}
+procedure TestWithLFN;
+begin
+ WriteLn('----------------------------------------------------------------------');
+ WriteLn('                           Running LFN tests                          ');
+ WriteLn('----------------------------------------------------------------------');
+ TestFind;
+ PauseScreen;
+ TestSplit;
+ //Force RTL to use non-LFN calls
+ FileNameCaseSensitive:=false;
+ AllFilesMask := '*.*';
+ LFNSupport:=false;
+ WriteLn('----------------------------------------------------------------------');
+ WriteLn('                         Running non-LFN tests                        ');
+ WriteLn('----------------------------------------------------------------------');
+end;
+{$endif}
 
 var
  F: File;
@@ -700,6 +723,9 @@ Begin
  Close(F);
  MkDir(TestDir);
  TestFTime;
+ {$ifdef go32v2}
+ TestWithLFN;
+ {$endif}
  TestFind;
  PauseScreen;
  TestSplit;

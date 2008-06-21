@@ -327,89 +327,211 @@ end;
                                --- Disk ---
 ******************************************************************************}
 
+type
+  ExtendedFat32FreeSpaceRec = packed record
+    RetSize           : word;      { $00 }
+    Strucversion      : word;      { $02 }
+    SecPerClus,                    { $04 }
+    BytePerSec,                    { $08 }
+    AvailClusters,                 { $0C }
+    TotalClusters,                 { $10 }
+    AvailPhysSect,                 { $14 }
+    TotalPhysSect,                 { $18 }
+    AvailAllocUnits,               { $1C }
+    TotalAllocUnits   : longword;  { $20 }
+    Dummy,                         { $24 }
+    Dummy2            : longword;  { $28 }
+  end;                             { $2C }
 
-TYPE  ExtendedFat32FreeSpaceRec=packed Record
-         RetSize           : WORD; { (ret) size of returned structure}
-         Strucversion      : WORD; {(call) structure version (0000h)
-                                    (ret) actual structure version (0000h)}
-         SecPerClus,               {number of sectors per cluster}
-         BytePerSec,               {number of bytes per sector}
-         AvailClusters,            {number of available clusters}
-         TotalClusters,            {total number of clusters on the drive}
-         AvailPhysSect,            {physical sectors available on the drive}
-         TotalPhysSect,            {total physical sectors on the drive}
-         AvailAllocUnits,          {Available allocation units}
-         TotalAllocUnits : DWORD;  {Total allocation units}
-         Dummy,Dummy2    : DWORD;  {8 bytes reserved}
-         END;
+const
+  IOCTL_INPUT = 3;       //For request header command field
+  CDFUNC_SECTSIZE = 7;   //For cdrom control block func field
+  CDFUNC_VOLSIZE  = 8;   //For cdrom control block func field
 
-function do_diskdata(drive : byte; Free : BOOLEAN) : Int64;
-VAR
-  S    : String;
-  Rec  : ExtendedFat32FreeSpaceRec;
+type
+  TRequestHeader = packed record
+    length     : byte;         { $00 }
+    subunit    : byte;         { $01 }
+    command    : byte;         { $02 }
+    status     : word;         { $03 }
+    reserved1  : longword;     { $05 }
+    reserved2  : longword;     { $09 }
+    media_desc : byte;         { $0D }
+    transf_ofs : word;         { $0E }
+    transf_seg : word;         { $10 }
+    numbytes   : word;         { $12 }
+  end;                         { $14 }
 
-  procedure OldDosDiskData; inline;
+  TCDSectSizeReq = packed record
+    func    : byte;            { $00 }
+    mode    : byte;            { $01 }
+    secsize : word;            { $02 }
+  end;                         { $04 }
+
+  TCDVolSizeReq = packed record
+    func    : byte;            { $00 }
+    size    : longword;        { $01 }
+  end;                         { $05 }
+
+
+function do_diskdata(drive : byte; Free : boolean) : Int64;
+var
+  blocksize, freeblocks, totblocks : longword;
+
+  { Get disk data via old int21/36 (GET FREE DISK SPACE). It's always supported
+    even if it returns wrong values for volumes > 2GB and for cdrom drives when
+    in pure DOS. Note that it's also the only way to get some data on WinNTs. }
+  function DiskData_36 : boolean;
   begin
-   dosregs.dl:=drive;
-   dosregs.ah:=$36;
-   msdos(dosregs);
-   if dosregs.ax<>$FFFF then
-    begin
-     if Free then
-      Do_DiskData:=int64(dosregs.ax)*dosregs.bx*dosregs.cx
-     else
-      Do_DiskData:=int64(dosregs.ax)*dosregs.cx*dosregs.dx;
-    end
-   else
-    do_diskdata:=-1;
+    DiskData_36:=false;
+    dosregs.dl:=drive;
+    dosregs.ah:=$36;
+    msdos(dosregs);
+    if dosregs.ax=$FFFF then exit;
+
+    blocksize:=dosregs.ax*dosregs.cx;
+    freeblocks:=dosregs.bx;
+    totblocks:=dosregs.dx;
+    Diskdata_36:=true;
   end;
 
-BEGIN
- if LFNSupport then
+  { Get disk data via int21/7303 (FAT32 - GET EXTENDED FREE SPACE ON DRIVE).
+    It is supported by win9x even in pure DOS }
+  function DiskData_7303 : boolean;
+  var
+    s : shortstring;
+    rec : ExtendedFat32FreeSpaceRec;
   begin
-   S:='C:\'#0;
-   if Drive=0 then
+    DiskData_7303:=false;
+    s:=chr(drive+$40)+':\'+#0;
+
+    rec.Strucversion:=0;
+    rec.RetSize := 0;
+    dosmemput(tb_segment,tb_offset,Rec,sizeof(ExtendedFat32FreeSpaceRec));
+    dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,s[1],4);
+    dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
+    dosregs.ds:=tb_segment;
+    dosregs.di:=tb_offset;
+    dosregs.es:=tb_segment;
+    dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
+    dosregs.ax:=$7303;
+    msdos(dosregs);
+    if (dosregs.flags and fcarry) <> 0 then
+      exit;
+    copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
+    if Rec.RetSize = 0 then
+      exit;
+
+    blocksize:=rec.SecPerClus*rec.BytePerSec;
+    freeblocks:=rec.AvailAllocUnits;
+    totblocks:=rec.TotalAllocUnits;
+    DiskData_7303:=true;
+  end;
+
+  { Get disk data asking to MSCDEX. Pure DOS returns wrong values with
+    int21/7303 or int21/36 if the drive is a CDROM drive }
+  function DiskData_CDROM : boolean;
+  var req : TRequestHeader;
+      sectreq : TCDSectSizeReq;
+      sizereq : TCDVolSizeReq;
+      i : integer;
+      status,byteswritten : word;
+      drnum : byte;
+  begin
+    DiskData_CDROM:=false;
+    drnum:=drive-1; //for MSCDEX, 0 = a, 1 = b etc, unlike int21/36
+
+    { Is this a CDROM drive? }
+    dosregs.ax:=$150b;
+    dosregs.cx:=drnum;
+    realintr($2f,dosregs);
+    if (dosregs.bx<>$ADAD) or (dosregs.ax=0) then
+      exit; // no, it isn't
+
+    { Prepare the request header to send to the cdrom driver }
+    FillByte(req,sizeof(req),0);
+    req.length:=sizeof(req);
+    req.command:=IOCTL_INPUT;
+    req.transf_ofs:=tb_offset+sizeof(req); //CDROM control block will follow
+    req.transf_seg:=tb_segment;            //the request header
+    req.numbytes:=sizeof(sectreq);
+
+    { We're asking the sector size }
+    sectreq.func:=CDFUNC_SECTSIZE;
+    sectreq.mode:=0; //cooked
+    sectreq.secsize:=0;
+
+    for i:=1 to 2 do
     begin
-     GetDir(Drive,S);
-     Setlength(S,4);
-     S[4]:=#0;
-    end
-   else
-    S[1]:=chr(Drive+64);
-   Rec.Strucversion:=0;
-   Rec.RetSize := 0;
-   dosmemput(tb_segment,tb_offset,Rec,SIZEOF(ExtendedFat32FreeSpaceRec));
-   dosmemput(tb_segment,tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1,S[1],4);
-   dosregs.dx:=tb_offset+Sizeof(ExtendedFat32FreeSpaceRec)+1;
-   dosregs.ds:=tb_segment;
-   dosregs.di:=tb_offset;
-   dosregs.es:=tb_segment;
-   dosregs.cx:=Sizeof(ExtendedFat32FreeSpaceRec);
-   dosregs.ax:=$7303;
-   msdos(dosregs);
-   if (dosregs.flags and fcarry) = 0 then {No error clausule in int except cf}
-    begin
-     copyfromdos(rec,Sizeof(ExtendedFat32FreeSpaceRec));
-     if Rec.RetSize = 0 then (* Error - "FAT32" function not supported! *)
-      OldDosDiskData
-     else
-      if Free then
-       Do_DiskData:=int64(rec.AvailAllocUnits)*rec.SecPerClus*rec.BytePerSec
-      else
-       Do_DiskData:=int64(rec.TotalAllocUnits)*rec.SecPerClus*rec.BytePerSec;
-    end
-   else
-    Do_DiskData:=-1;
-  end
- else
-  OldDosDiskData;
+      { Send the request to the cdrom driver }
+      dosmemput(tb_segment,tb_offset,req,sizeof(req));
+      dosmemput(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
+      dosregs.ax:=$1510;
+      dosregs.cx:=drnum;
+      dosregs.es:=tb_segment;
+      dosregs.bx:=tb_offset;
+      realintr($2f,dosregs);
+      dosmemget(tb_segment,tb_offset+3,status,2);
+      { status = $800F means "disk changed". Try once more. }
+      if (status and $800F) <> $800F then break;
+    end;
+    dosmemget(tb_segment,tb_offset+$12,byteswritten,2);
+    if (status<>$0100) or (byteswritten<>sizeof(sectreq)) then
+      exit; //An error occurred
+    dosmemget(tb_segment,tb_offset+sizeof(req),sectreq,sizeof(sectreq));
+
+  { Update the request header for the next request }
+    req.numbytes:=sizeof(sizereq);
+
+    { We're asking the volume size (in blocks) }
+    sizereq.func:=CDFUNC_VOLSIZE;
+    sizereq.size:=0;
+
+    { Send the request to the cdrom driver }
+    dosmemput(tb_segment,tb_offset,req,sizeof(req));
+    dosmemput(tb_segment,tb_offset+sizeof(req),sizereq,sizeof(sizereq));
+    dosregs.ax:=$1510;
+    dosregs.cx:=drnum;
+    dosregs.es:=tb_segment;
+    dosregs.bx:=tb_offset;
+    realintr($2f,dosregs);
+    dosmemget(tb_segment,tb_offset,req,sizeof(req));
+    if (req.status<>$0100) or (req.numbytes<>sizeof(sizereq)) then
+      exit; //An error occurred
+    dosmemget(tb_segment,tb_offset+sizeof(req)+1,sizereq.size,4);
+
+    blocksize:=sectreq.secsize;
+    freeblocks:=0; //always 0 for a cdrom
+    totblocks:=sizereq.size;
+    DiskData_CDROM:=true;
+  end;
+
+begin
+  if drive=0 then
+  begin
+    dosregs.ax:=$1900;    //get current default drive
+    msdos(dosregs);
+    drive:=dosregs.al+1;
+  end;
+
+  if not DiskData_CDROM then
+  if not DiskData_7303 then
+  if not DiskData_36 then
+  begin
+    do_diskdata:=-1;
+    exit;
+  end;
+  do_diskdata:=blocksize;
+  if free then
+    do_diskdata:=do_diskdata*freeblocks
+  else
+    do_diskdata:=do_diskdata*totblocks;
 end;
 
 function diskfree(drive : byte) : int64;
 begin
    diskfree:=Do_DiskData(drive,TRUE);
 end;
-
 
 function disksize(drive : byte) : int64;
 begin
