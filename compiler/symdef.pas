@@ -226,6 +226,9 @@ interface
           dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
           childofderef   : tderef;
+          cloneddef      : tobjectdef;
+          cloneddefderef : tderef;
+
           objname,
           objrealname    : pshortstring;
           objectoptions  : tobjectoptions;
@@ -3699,7 +3702,10 @@ implementation
          else
            ImplementedInterfaces:=nil;
 
-         tObjectSymtable(symtable).ppuload(ppufile);
+         if oo_copied_class in objectoptions then
+           ppufile.getderef(cloneddefderef)
+         else
+           tObjectSymtable(symtable).ppuload(ppufile);
 
          { handles the predefined class tobject  }
          { the last TOBJECT which is loaded gets }
@@ -3714,6 +3720,7 @@ implementation
            interface_iunknown:=self;
          writing_class_record_dbginfo:=false;
        end;
+
 
     destructor tobjectdef.destroy;
       begin
@@ -3754,7 +3761,7 @@ implementation
           tobjectdef(result).objname:=stringdup(objname^);
         if assigned(objrealname) then
           tobjectdef(result).objrealname:=stringdup(objrealname^);
-        tobjectdef(result).objectoptions:=objectoptions;
+        tobjectdef(result).objectoptions:=objectoptions+[oo_copied_class];
         tobjectdef(result).vmt_offset:=vmt_offset;
         if assigned(iidguid) then
           begin
@@ -3807,9 +3814,13 @@ implementation
                end;
            end;
 
+         if oo_copied_class in objectoptions then
+           ppufile.putderef(cloneddefderef);
+
          ppufile.writeentry(ibobjectdef);
 
-         tObjectSymtable(symtable).ppuwrite(ppufile);
+         if not(oo_copied_class in objectoptions) then
+           tObjectSymtable(symtable).ppuwrite(ppufile);
       end;
 
 
@@ -3832,7 +3843,11 @@ implementation
       begin
          inherited buildderef;
          childofderef.build(childof);
-         tstoredsymtable(symtable).buildderef;
+         if oo_copied_class in objectoptions then
+           cloneddefderef.build(symtable.defowner)
+         else
+           tstoredsymtable(symtable).buildderef;
+
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
@@ -3847,7 +3862,13 @@ implementation
       begin
          inherited deref;
          childof:=tobjectdef(childofderef.resolve);
-         tstoredsymtable(symtable).deref;
+         if oo_copied_class in objectoptions then
+           begin
+             cloneddef:=tobjectdef(cloneddefderef.resolve);
+             symtable:=cloneddef.symtable.getcopy;
+           end
+         else
+           tstoredsymtable(symtable).deref;
          if objecttype in [odt_class,odt_interfacecorba] then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do

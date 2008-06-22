@@ -301,7 +301,8 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid
+    oo_has_valid_guid,
+    oo_copied_class
   );
   tobjectoptions=set of tobjectoption;
 
