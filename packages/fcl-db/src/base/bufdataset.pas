@@ -1196,7 +1196,6 @@ begin
       ftWideMemo : result := sizeof(TBufBlobField)
   else Result := 10
   end;
-  result:=Align(result,4);
 {$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
   result:=Align(result,4);
 {$ENDIF}
