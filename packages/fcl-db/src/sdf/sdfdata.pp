@@ -162,8 +162,8 @@ type
     FRecBufSize         :Integer;
     FRecordSize         :Integer;
     FLastBookmark       :PtrInt;
-    FRecInfoOfs         :Word;
-    FBookmarkOfs        :Word;
+    FRecInfoOfs         :Integer;
+    FBookmarkOfs        :Integer;
     FSaveChanges        :Boolean;
   protected
     function AllocRecordBuffer: PChar; override;
