@@ -462,7 +462,7 @@ implementation
                            eq:=te_convert_l1
                          else
                            { size of widechar array is double due the sizeof a widechar }
-                           if not(is_shortstring(def_to) and (def_from.size>255*sizeof(widechar))) then
+                           if not(is_shortstring(def_to) and (is_open_widechararray(def_from) or (def_from.size>255*sizeof(widechar)))) then
                              eq:=te_convert_l3
                          else
                            eq:=te_convert_l2;
