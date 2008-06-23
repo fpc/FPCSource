@@ -106,6 +106,12 @@ case $HOSTOS in
         GCCDIR4="$GCCDIR"
         setgccdirarch cpux86_64 -m64
         ;;
+      powerpc|powerpc64)
+      # Allow for the possibility of both 32 and 64 bit compilation on same system
+        setgccdirarch cpupowerpc -m32
+	GCCDIR4="$GCCDIR"
+	setgccdirarch cpupowerpc64 -m64
+	;;
       # Add cases for other linux dual architectures here
       *) singlearch # Default          
         ;;
