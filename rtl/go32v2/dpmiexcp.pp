@@ -1544,6 +1544,23 @@ begin
 {$endif CREATE_C_FUNCTIONS}
 end.
 {$else IN_SYSTEM}
+
+{ Default handler for SIGINT. Default action is to quit silently.
+  However, if a CtrlBreakHandler has been installed, call it and continue if
+  it returned true.
+  If you want RTE 217 to be generated, use HandleException instead as the
+  SIGINT handler }
+function SIGINT_Handler(x:longint):longint;cdecl;
+var
+  iscbreak : boolean;
+begin
+  iscbreak:=assigned(djgpp_exception_state_ptr) and
+    (djgpp_exception_state_ptr^.__signum=$1b);
+  if assigned(CtrlBreakHandler) and CtrlBreakHandler(iscbreak) then
+    exit(0); //no need to do cleanups, dpmi_longjmp will do it for us
+  halt;
+end;
+
 const
   FPU_ControlWord : word = $1332;
 function HandleException(sig : longint) : longint;cdecl;
@@ -1608,8 +1625,9 @@ begin
    17,                     {'Alignment Check',}
    18,                     {'Machine Check',}
    19,                     {'SSE FP error'}
-   SIGSEGV,SIGTRAP,SIGTIMR,SIGINT,SIGQUIT,SIGILL:
+   SIGSEGV,SIGTRAP,SIGTIMR,SIGQUIT,SIGILL:
      ErrorOfSig:=216;
+   $1b, $79, SIGINT : ErrorOfSig:=217;
   end;
   if assigned(djgpp_exception_state_ptr) then
     Begin
@@ -1633,7 +1651,7 @@ begin
   Signal(SIGNOFP,@HandleException);
   Signal(SIGTRAP,@HandleException);
   Signal(SIGTIMR,@HandleException);
-  Signal(SIGINT,@HandleException);
+  Signal(SIGINT,@SIGINT_Handler);
   Signal(SIGQUIT,@HandleException);
   Signal(SIGILL,@HandleException);
 end;
