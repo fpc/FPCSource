@@ -312,6 +312,13 @@ implementation
           (target_info.system=system_i386_win32) then
           secname:='.tls';
 
+        { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
+          Thus, data which normally goes into .rodata and .rodata_norel sections must 
+          end up in .data section }
+        if (atype in [sec_rodata,sec_rodata_norel]) and
+          (target_info.system=system_i386_go32v2) then
+          secname:='.data';
+
         { For bss we need to set some flags that are target dependent,
           it is easier to disable it for smartlinking. It doesn't take up
           filespace }
