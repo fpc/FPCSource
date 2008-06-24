@@ -148,7 +148,9 @@ type
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization
+    df_specialization,
+    { def has been copied from another def so symtable is not owned }
+    df_copied_def
   );
   tdefoptions=set of tdefoption;
 
@@ -301,8 +303,7 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid,
-    oo_copied_class
+    oo_has_valid_guid
   );
   tobjectoptions=set of tobjectoption;
 

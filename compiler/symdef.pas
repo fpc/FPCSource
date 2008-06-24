@@ -170,6 +170,8 @@ interface
 
        tabstractrecorddef= class(tstoreddef)
           symtable : TSymtable;
+          cloneddef      : tabstractrecorddef;
+          cloneddefderef : tderef;
           procedure reset;override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
@@ -226,8 +228,6 @@ interface
           dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
           childofderef   : tderef;
-          cloneddef      : tobjectdef;
-          cloneddefderef : tderef;
 
           objname,
           objrealname    : pshortstring;
@@ -2447,7 +2447,9 @@ implementation
       begin
          inherited create(recorddef);
          symtable:=p;
-         symtable.defowner:=self;
+         { we can own the symtable only if nobody else owns a copy so far }
+         if symtable.refcount=1 then
+           symtable.defowner:=self;
          isunion:=false;
       end;
 
@@ -2455,15 +2457,20 @@ implementation
     constructor trecorddef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(recorddef,ppufile);
-         symtable:=trecordsymtable.create(0);
-         trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
-         trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
-         trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
-         trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
-         { requires usefieldalignment to be set }
-         trecordsymtable(symtable).datasize:=ppufile.getaint;
-         trecordsymtable(symtable).ppuload(ppufile);
-         symtable.defowner:=self;
+         if df_copied_def in defoptions then
+           ppufile.getderef(cloneddefderef)
+         else
+           begin
+             symtable:=trecordsymtable.create(0);
+             trecordsymtable(symtable).fieldalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).recordalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).padalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).usefieldalignment:=shortint(ppufile.getbyte);
+             trecordsymtable(symtable).datasize:=ppufile.getaint;
+             trecordsymtable(symtable).ppuload(ppufile);
+             { requires usefieldalignment to be set }
+             symtable.defowner:=self;
+           end;
          isunion:=false;
       end;
 
@@ -2483,6 +2490,7 @@ implementation
       begin
         result:=trecorddef.create(symtable.getcopy);
         trecorddef(result).isunion:=isunion;
+        include(trecorddef(result).defoptions,df_copied_def);
       end;
 
 
@@ -2495,7 +2503,10 @@ implementation
     procedure trecorddef.buildderef;
       begin
          inherited buildderef;
-         tstoredsymtable(symtable).buildderef;
+         if df_copied_def in defoptions then
+           cloneddefderef.build(symtable.defowner)
+         else
+           tstoredsymtable(symtable).buildderef;
       end;
 
 
@@ -2503,7 +2514,13 @@ implementation
       begin
          inherited deref;
          { now dereference the definitions }
-         tstoredsymtable(symtable).deref;
+         if df_copied_def in defoptions then
+           begin
+             cloneddef:=trecorddef(cloneddefderef.resolve);
+             symtable:=cloneddef.symtable.getcopy;
+           end
+         else
+           tstoredsymtable(symtable).deref;
          { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
@@ -2517,13 +2534,21 @@ implementation
     procedure trecorddef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
-         ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
-         ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
-         ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
-         ppufile.putaint(trecordsymtable(symtable).datasize);
+         if df_copied_def in defoptions then
+           ppufile.putderef(cloneddefderef)
+         else
+           begin
+             ppufile.putbyte(byte(trecordsymtable(symtable).fieldalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).recordalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).padalignment));
+             ppufile.putbyte(byte(trecordsymtable(symtable).usefieldalignment));
+             ppufile.putaint(trecordsymtable(symtable).datasize);
+           end;
+
          ppufile.writeentry(ibrecorddef);
-         trecordsymtable(symtable).ppuwrite(ppufile);
+
+         if not(df_copied_def in defoptions) then
+           trecordsymtable(symtable).ppuwrite(ppufile);
       end;
 
 
@@ -3702,7 +3727,7 @@ implementation
          else
            ImplementedInterfaces:=nil;
 
-         if oo_copied_class in objectoptions then
+         if df_copied_def in defoptions then
            ppufile.getderef(cloneddefderef)
          else
            tObjectSymtable(symtable).ppuload(ppufile);
@@ -3756,12 +3781,15 @@ implementation
         i : longint;
       begin
         result:=tobjectdef.create(objecttype,objname^,childof);
+        { the constructor allocates a symtable which we release to avoid memory leaks }
+        tobjectdef(result).symtable.free;
         tobjectdef(result).symtable:=symtable.getcopy;
         if assigned(objname) then
           tobjectdef(result).objname:=stringdup(objname^);
         if assigned(objrealname) then
           tobjectdef(result).objrealname:=stringdup(objrealname^);
-        tobjectdef(result).objectoptions:=objectoptions+[oo_copied_class];
+        tobjectdef(result).objectoptions:=objectoptions;
+        include(tobjectdef(result).defoptions,df_copied_def);
         tobjectdef(result).vmt_offset:=vmt_offset;
         if assigned(iidguid) then
           begin
@@ -3814,12 +3842,12 @@ implementation
                end;
            end;
 
-         if oo_copied_class in objectoptions then
+         if df_copied_def in defoptions then
            ppufile.putderef(cloneddefderef);
 
          ppufile.writeentry(ibobjectdef);
 
-         if not(oo_copied_class in objectoptions) then
+         if not(df_copied_def in defoptions) then
            tObjectSymtable(symtable).ppuwrite(ppufile);
       end;
 
@@ -3843,7 +3871,7 @@ implementation
       begin
          inherited buildderef;
          childofderef.build(childof);
-         if oo_copied_class in objectoptions then
+         if df_copied_def in defoptions then
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
@@ -3862,7 +3890,7 @@ implementation
       begin
          inherited deref;
          childof:=tobjectdef(childofderef.resolve);
-         if oo_copied_class in objectoptions then
+         if df_copied_def in defoptions then
            begin
              cloneddef:=tobjectdef(cloneddefderef.resolve);
              symtable:=cloneddef.symtable.getcopy;
