@@ -255,6 +255,7 @@ begin
   FRecBufferSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
+  BookmarkSize := sizeof(TMTRecInfo);
   FIsOpen:=False;
 end;
 
@@ -310,6 +311,9 @@ begin
  else
   RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
  end;
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+ Result:=Align(Result,4);
+{$ENDIF}
 end;
 
 function TMemDataset.MDSGetActiveBuffer(var Buffer: PChar): Boolean;
@@ -842,7 +846,10 @@ begin
  FFieldOffsets:=getmem(Count*sizeof(integer));
  FFieldSizes:=getmem(Count*sizeof(integer));
  FRecSize:= (Count+7) div 8; //null mask
- for i:= 0 to Count-1 do 
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+ FRecSize:=Align(FRecSize,4);
+{$ENDIF}
+ for i:= 0 to Count-1 do
    begin
    ffieldoffsets[i] := frecsize;
    ffieldsizes[i] := MDSGetbufferSize(i+1);
