@@ -165,6 +165,7 @@ uses
   sqldbtoolsunit,
   dbftoolsunit,
   memdstoolsunit,
+  SdfDSToolsUnit,
   inifiles;
 
 constructor TDBConnector.create;
