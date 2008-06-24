@@ -675,7 +675,6 @@ begin
       if p > Field.Size then
         p := Field.Size;
       Move(Buffer^, RecBuf[0], p);
-      ActiveBuffer[RecordSize-1] := #0;
     end;
   end
   else // fkCalculated, fkLookup
