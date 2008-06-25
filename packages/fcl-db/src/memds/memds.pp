@@ -45,6 +45,8 @@ type
     BookmarkFlag: TBookmarkFlag;
   end;
 
+  { TMemDataset }
+
   TMemDataset=class(TDataSet)
   private
     FOpenStream : TStream;
@@ -57,6 +59,7 @@ type
     FRecBufferSize: integer;
     FCurrRecNo: integer;
     FIsOpen: boolean;
+    FTableIsCreated: boolean;
     FFilterBuffer: PChar;
     ffieldoffsets: PInteger;
     ffieldsizes: PInteger;
@@ -115,6 +118,7 @@ type
   public
     constructor Create(AOwner:tComponent); override;
     destructor Destroy; override;
+    function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     procedure CreateTable;
 
     Function  DataSize : Integer;
@@ -251,13 +255,26 @@ begin
   FRecBufferSize:=0;
   FRecInfoOffset:=0;
   FCurrRecNo:=-1;
+  BookmarkSize := sizeof(TMTRecInfo);
   FIsOpen:=False;
 end;
 
 Destructor TMemDataset.Destroy;
 begin
   FStream.Free;
+  FreeMem(FFieldOffsets);
+  FreeMem(FFieldSizes);
   inherited Destroy;
+end;
+
+function TMemDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
+var
+  ReqBookmark: integer;
+begin
+  Result := False;
+  if ABookMark=nil then exit;
+  ReqBookmark:=PInteger(ABookmark)^;
+  Result := (ReqBookmark>=0) and (ReqBookmark<FRecCount);
 end;
 
 function TMemDataset.MDSGetRecordOffset(ARecNo: integer): longint;
@@ -287,12 +304,16 @@ begin
   ftFloat:    result:=SizeOf(Double);
   ftLargeInt: result:=SizeOf(int64);
   ftSmallInt: result:=SizeOf(SmallInt);
-  ftInteger:  result:=SizeOf(Integer);
-  ftDate:     result:=SizeOf(TDateTime);
-  ftTime:     result:=SizeOf(TDateTime);
+  ftInteger:  result:=SizeOf(longint);
+  ftDateTime,
+    ftTime,
+    ftDate:   result:=SizeOf(TDateTime);
  else
   RaiseError(SErrFieldTypeNotSupported,[FieldDefs.Items[FieldNo-1].Name]);
  end;
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+ Result:=Align(Result,4);
+{$ENDIF}
 end;
 
 function TMemDataset.MDSGetActiveBuffer(var Buffer: PChar): Boolean;
@@ -456,6 +477,7 @@ procedure TMemDataset.InternalOpen;
 
 
 begin
+  if not FTableIsCreated then CreateTable;
   If (FFileName<>'') then
     FOpenStream:=TFileStream.Create(FFileName,fmOpenRead);
   Try
@@ -610,8 +632,6 @@ begin
  if DefaultFields then begin
   DestroyFields;
  end;
- FreeMem(FFieldOffsets);
- FreeMem(FFieldSizes);
 end;
 
 procedure TMemDataset.InternalPost;
@@ -819,10 +839,17 @@ var
   i,count : integer;
 begin
  Count := fielddefs.count;
+ // Avoid mem-leak if CreateTable is called twice
+ FreeMem(ffieldoffsets);
+ Freemem(ffieldsizes);
+
  FFieldOffsets:=getmem(Count*sizeof(integer));
  FFieldSizes:=getmem(Count*sizeof(integer));
  FRecSize:= (Count+7) div 8; //null mask
- for i:= 0 to Count-1 do 
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+ FRecSize:=Align(FRecSize,4);
+{$ENDIF}
+ for i:= 0 to Count-1 do
    begin
    ffieldoffsets[i] := frecsize;
    ffieldsizes[i] := MDSGetbufferSize(i+1);
@@ -833,6 +860,7 @@ end;
 procedure TMemDataset.CreateTable;
 
 begin
+  CheckInactive;
   FStream.Clear;
   FRecCount:=0;
   FCurrRecNo:=-1;
@@ -841,6 +869,7 @@ begin
   FRecInfoOffset:=FRecSize;
   FRecSize:=FRecSize+SizeRecInfo;
   FRecBufferSize:=FRecSize;
+  FTableIsCreated:=True;
 end;
 
 procedure TMemDataset.InternalAddRecord(Buffer: Pointer; DoAppend: Boolean);

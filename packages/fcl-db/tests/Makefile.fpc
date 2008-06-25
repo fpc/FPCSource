@@ -7,7 +7,7 @@ main=fcl
 
 [target]
 examples=dbtestframework
-units=toolsunit dbftoolsunit memdstoolsunit sqldbtoolsunit
+units=toolsunit dbftoolsunit memdstoolsunit sqldbtoolsunit sdfdstoolsunit
 
 [install]
 fpcpackage=y

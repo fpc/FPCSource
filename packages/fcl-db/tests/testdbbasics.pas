@@ -30,7 +30,8 @@ type
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestBookmarks;
-    
+    procedure TestBookmarkValid;
+
     procedure TestLocate;
 
     procedure TestFirst;
@@ -563,6 +564,42 @@ begin
 
     GotoBookmark(BM5);
     AssertEquals(14,FieldByName('id').AsInteger);
+    end;
+end;
+
+procedure TTestDBBasics.TestBookmarkValid;
+var BM1,BM2,BM3,BM4,BM5 : TBookmark;
+begin
+  with DBConnector.GetNDataset(true,14) do
+    begin
+    BM1 := Nil;
+    AssertFalse(BookmarkValid(BM1));
+    open;
+    BM1:=GetBookmark; // id=1, BOF
+    AssertTrue(BookmarkValid(BM1));
+    next;next;
+    BM2:=GetBookmark; // id=3
+    AssertTrue(BookmarkValid(BM2));
+    next;next;next;
+    BM3:=GetBookmark; // id=6
+    AssertTrue(BookmarkValid(BM3));
+    next;next;next;next;next;next;next;next;
+    BM4:=GetBookmark; // id=14
+    AssertTrue(BookmarkValid(BM4));
+    next;
+    BM5:=GetBookmark; // id=14, EOF
+    AssertTrue(BookmarkValid(BM5));
+
+    AssertTrue(BookmarkValid(BM4));
+    AssertTrue(BookmarkValid(BM3));
+    AssertTrue(BookmarkValid(BM2));
+    AssertTrue(BookmarkValid(BM1));
+    GotoBookmark(BM2);
+    AssertTrue(BookmarkValid(BM5));
+    AssertTrue(BookmarkValid(BM4));
+    AssertTrue(BookmarkValid(BM3));
+    AssertTrue(BookmarkValid(BM2));
+    AssertTrue(BookmarkValid(BM1));
     end;
 end;
 
