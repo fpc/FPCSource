@@ -307,11 +307,11 @@ begin
       Result:=1;
       exit;
     end;
-  Repeat
+  While (Result=0) and (S1^<>#0) and (S2^<>#0) do begin
     Result:=Ord(S1^)-Ord(S2^); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  Until (Result<>0) or (S1^=#0) or (S2^=#0);
+  end;  
   if (Result=0) and (S1^<>S2^) then // loop ended because exactly one has #0
     if S1^=#0 then // shorter string is smaller
       result:=-1
@@ -335,11 +335,11 @@ begin
     Result:=1;
     exit;
     end;
-  Repeat
+  While (Result=0) and (S1^<>#0) and (S2^<>#0) do begin
     Result:=Ord(LowerCaseTable[Ord(S1[0])])-Ord(LowerCaseTable[Ord(S2[0])]); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  Until (Result<>0) or ((S1[0]=#0) or (S2[0]=#0));
+  end;
   if (Result=0) and (s1[0]<>s2[0]) then //length(s1)<>length(s2)
     if s1[0]=#0 then
       Result:=-1 //s1 shorter than s2
