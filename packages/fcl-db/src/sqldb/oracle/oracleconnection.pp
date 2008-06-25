@@ -367,7 +367,7 @@ begin
                                 else if (oscale <=4) and (OPrecision<=12) then
                                   begin
                                   FieldType := ftBCD;
-                                  FieldSize := sizeof(Currency);
+                                  FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
                                   end
