@@ -1196,7 +1196,9 @@ begin
       ftWideMemo : result := sizeof(TBufBlobField)
   else Result := 10
   end;
-
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  result:=Align(result,4);
+{$ENDIF}
 end;
 
 function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
@@ -1807,6 +1809,9 @@ var x : longint;
 
 begin
   FNullmaskSize := 1+((FieldDefs.count-1) div 8);
+{$IFDEF FPC_REQUIRES_PROPER_ALIGNMENT}
+  FNullmaskSize:=Align(FNullmaskSize,4);
+{$ENDIF}
   FRecordSize := FNullmaskSize;
   SetLength(FFieldBufPositions,FieldDefs.count);
   for x := 0 to FieldDefs.count-1 do
