@@ -152,19 +152,17 @@ const
       push es
       push ds
       cld
-      mov ecx,count
-      mov esi,source
-      mov edi,dest
-      mov ax,dseg
-      mov es,ax
-      mov ax,sseg
-      mov ds,ax
+      mov es, dseg
+      mov esi, source
+      mov edi, dest
+      mov ecx, count
+      mov ds,sseg
       rep movsb
       pop ds
       pop es
       pop esi
       pop edi
-    end ['ECX','EAX'];
+    end ['ECX'];
 {$endif tp}
 
  Procedure CallInt10(val_ax : word); assembler;
