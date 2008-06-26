@@ -65,7 +65,7 @@ unit typinfo;
 
    type
       TTypeKinds = set of TTypeKind;
-		  ShortStringBase = string[255];
+      ShortStringBase = string[255];
 
 {$PACKRECORDS 1}
       TTypeInfo = record
@@ -146,14 +146,14 @@ unit typinfo;
                RawIntfUnit: ShortString;
                IIDStr: ShortString;
               );
-			      tkDynArray:
-			        (
-			        elSize     : PtrUInt;
-			        elType2    : PPTypeInfo;
-			        varType    : Longint;
-			        elType     : PPTypeInfo;
-			        DynUnitName: ShortStringBase
-			        );
+            tkDynArray:
+              (
+              elSize     : PtrUInt;
+              elType2    : PPTypeInfo;
+              varType    : Longint;
+              elType     : PPTypeInfo;
+              DynUnitName: ShortStringBase
+              );
       end;
 
       // unsed, just for completeness
@@ -348,16 +348,26 @@ Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
       PT : PTypeData;
 
 begin
- PT:=GetTypeData(TypeInfo);
- // ^.BaseType);
- //      If PT^.MinValue<0 then Value:=Ord(Value<>0); {map to 0/1}
- PS:=@PT^.NameList;
- While Value>0 Do
-  begin
-    PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-    Dec(Value);
-  end;
- Result:=PS^;
+  PT:=GetTypeData(TypeInfo);
+  if TypeInfo^.Kind=tkBool then 
+    begin
+      case Value of
+        0,1:
+          Result:=BooleanIdents[Boolean(Value)];
+        else
+          Result:='';
+      end;
+    end
+ else
+   begin
+     PS:=@PT^.NameList;
+     While Value>0 Do
+       begin
+         PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+         Dec(Value);
+       end;
+     Result:=PS^;
+   end;
 end;
 
 
@@ -375,14 +385,26 @@ begin
   PT:=GetTypeData(TypeInfo);
   Count:=0;
   Result:=-1;
-  PS:=@PT^.NameList;
-  While (Result=-1) and (PByte(PS)^<>0) do
+  
+  if TypeInfo^.Kind=tkBool then 
     begin
-      If ShortCompareText(PS^, sName) = 0 then
-        Result:=Count;
-      PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-      Inc(Count);
-    end;
+    If CompareText(BooleanIdents[false],Name)=0 then
+      result:=0
+    else if CompareText(BooleanIdents[true],Name)=0 then
+      result:=1;
+    end
+ else
+   begin
+  
+     PS:=@PT^.NameList;
+     While (Result=-1) and (PByte(PS)^<>0) do
+       begin
+         If ShortCompareText(PS^, sName) = 0 then
+           Result:=Count;
+         PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+         Inc(Count);
+       end;
+   end;
 end;
 
 
@@ -393,17 +415,22 @@ var
   Count: SizeInt;
 begin
   PT:=GetTypeData(enum1);
-  Count:=0;
-  Result:=0;
-
-  PS:=@PT^.NameList;
-  While (PByte(PS)^<>0) do
+  if enum1^.Kind=tkBool then 
+    Result:=2
+  else
     begin
-      PS:=PShortString(pointer(PS)+PByte(PS)^+1);
-      Inc(Count);
+      Count:=0;
+      Result:=0;
+    
+      PS:=@PT^.NameList;
+      While (PByte(PS)^<>0) do
+        begin
+          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
+          Inc(Count);
+        end;
+    
+      Result := Count;
     end;
-
-  Result := Count;
 end;
 
 
