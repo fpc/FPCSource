@@ -67,7 +67,7 @@ uses
 {$ifdef unix}
 Procedure CatchSignal(Sig : Longint);cdecl;
 {$else}
-Function CatchSignal(Sig : longint):longint;
+Function CatchSignal(Sig : longint):longint; cdecl;
 {$endif}
 begin
   case Sig of
