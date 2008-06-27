@@ -944,23 +944,45 @@ invalid:
       fr: Real;
       tr: Int64;
     Begin
-       fr := abs(Frac(d));
-       tr := Trunc(d);
-       if fr > 0.5 then
-         if d >= 0 then
-           result:=tr+1
-         else
-           result:=tr-1
-       else
-       if fr < 0.5 then
-          result:=tr
-       else { fr = 0.5 }
-          { check sign to decide ... }
-          { as in Turbo Pascal...    }
-          if d >= 0.0 then
-            result:=tr+1
+      case softfloat_rounding_mode of
+        float_round_nearest_even:
+          begin
+            fr := abs(Frac(d));
+            tr := Trunc(d);
+            if fr > 0.5 then
+              if d >= 0 then
+                result:=tr+1
+              else
+                result:=tr-1
+            else
+            if fr < 0.5 then
+               result:=tr
+            else { fr = 0.5 }
+               { check sign to decide ... }
+               { as in Turbo Pascal...    }
+              begin
+                if d >= 0.0 then
+                  result:=tr+1
+                else
+                  result:=tr-1;
+                result:=2*trunc(result*0.5);
+              end;
+          end;
+        float_round_down:
+          if (d>=0) or
+             (frac(d)=0.0) then
+            result:=trunc(d)
           else
-            result:=tr;
+            result:=trunc(d-1.0);
+        float_round_up:
+          if (d>=0) and
+             (frac(d)<>0.0) then
+            result:=trunc(d+1.0)
+          else
+            result:=trunc(d);
+        float_round_to_zero:
+          result:=trunc(d);
+      end;
     end;
 {$endif FPC_SYSTEM_HAS_ROUND}
 

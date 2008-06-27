@@ -56,10 +56,26 @@ var
   mode : DWord;
 begin
   case (RoundMode) of
-    rmNearest : mode := 0;
-    rmTruncate : mode := 1;
-    rmUp : mode := 2;
-    rmDown : mode := 3;
+    rmNearest :
+      begin
+        mode := 0;
+        softfloat_rounding_mode := float_round_nearest_even;
+      end;
+    rmTruncate :
+      begin
+        mode := 1;
+        softfloat_rounding_mode := float_round_to_zero;
+      end;
+    rmUp :
+      begin
+        mode := 2;
+        softfloat_rounding_mode := float_round_up;
+      end;
+    rmDown :
+      begin
+        mode := 3;
+        softfloat_rounding_mode := float_round_down;
+      end;
   end;
   setFPSCR((getFPSCR and (not RoundModeMask)) or mode);
   result := RoundMode;
