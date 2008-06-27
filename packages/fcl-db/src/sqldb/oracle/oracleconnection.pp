@@ -367,7 +367,7 @@ begin
                                 else if (oscale <=4) and (OPrecision<=12) then
                                   begin
                                   FieldType := ftBCD;
-                                  FieldSize := sizeof(Currency);
+                                  FieldSize := oscale;
                                   OFieldType := SQLT_VNU;
                                   OFieldSize:= 22;
                                   end
@@ -455,7 +455,7 @@ begin
                                cur := cur + (101-b[i]) * intpower(100,-(i-2)+exp);
                              cur := -cur;
                              end;
-                           move(cur,buffer^,FieldDef.Size);
+                           move(cur,buffer^,SizeOf(Currency));
                            end;
       ftFloat           : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(double));
       ftInteger         : move(fieldbuffers[FieldDef.FieldNo-1].buffer^,buffer^,sizeof(integer));
