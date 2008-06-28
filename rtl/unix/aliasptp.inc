@@ -43,6 +43,7 @@ type
     size_t   = UnixType.size_t;
     TSize    = UnixType.TSize;
     pSize    = UnixType.pSize;
+    pSize_t  = UnixType.pSize_t;
     ssize_t  = UnixType.ssize_t;
     TsSize   = UnixType.TsSize;
     psSize   = UnixType.psSize;
