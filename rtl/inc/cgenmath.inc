@@ -96,49 +96,6 @@
 {$endif}
 
 
-{ Not supported everywhere (also not on Mac OS X 10.1, but that's deprecated. }
-{ It is supported on linux, but at least for linux/i386 we should call        }
-{ llroundl() instead (for extended support).                                  }
-
-{$if defined(darwin) }
-
-{$ifndef FPC_SYSTEM_HAS_ROUND}
-{$define FPC_SYSTEM_HAS_ROUND}
-
-    function c_llround(d: double): int64; cdecl; external 'c' name 'llround';
-
-    function fpc_round_real(d : ValReal) : int64;[public, alias:'FPC_ROUND'];compilerproc;
-    begin
-      case softfloat_rounding_mode of
-        float_round_nearest_even:
-          begin
-            fpc_round_real:=c_llround(d);
-            { llround always rounds half-way cases away from zero, }
-            { regardless of the current rounding mode              }
-            if (abs(frac(d))=0.5) then
-              fpc_round_real:=2*trunc(fpc_round_real*extended(0.5));
-          end;
-        float_round_down:
-          if (d>=0) or
-             (frac(d)=0.0) then
-            result:=trunc(d)
-          else
-            result:=trunc(d-1.0);
-        float_round_up:
-          if (d>=0) and
-             (frac(d)<>0.0) then
-            result:=trunc(d+1.0)
-          else
-            result:=trunc(d);
-        float_round_to_zero:
-          result:=trunc(d);
-      end;
-    end;
-{$endif not FPC_SYSTEM_HAS_ROUND}
-
-{$endif darwin}
-
-
 {$ifndef FPC_SYSTEM_HAS_LN}
 {$define FPC_SYSTEM_HAS_LN}
 
