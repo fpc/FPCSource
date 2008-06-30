@@ -301,13 +301,13 @@ function TCollection.FindItemID(ID: Integer): TCollectionItem;
 Var
           I : Longint;
 begin
-  Result:=Nil;
   For I:=0 to Fitems.Count-1 do
    begin
      Result:=TCollectionItem(FItems.items[I]);
      If Result.Id=Id then
        exit;
    end;
+  Result:=Nil;
 end;
 
 
