@@ -358,7 +358,7 @@ BEGIN
   writeln(bullet+' Free Pascal IDE Version '+VersionStr+' ['+{$i %date%}+']');
   writeln(bullet+' Compiler Version '+Full_Version_String);
 {$ifndef NODEBUG}
-  writeln(bullet+' GBD Version '+GDBVersion);
+  writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
    writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
