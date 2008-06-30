@@ -404,7 +404,7 @@ type
     property IsNull: Boolean read GetIsNull;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
-    property Size: Word read FSize write SetSize;
+    property Size: Word read FSize write FSize;
     property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
