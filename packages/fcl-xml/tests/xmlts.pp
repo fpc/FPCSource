@@ -232,6 +232,7 @@ begin
 
     if Child.NodeName = 'run-id' then
     begin
+      newChild := nil;
       if Data = 'name' then
         newChild := FTemplate.createTextNode(parser)
       else if Data = 'description' then
@@ -358,6 +359,12 @@ begin
   FErrCol := -1;
   FTestID := Element['ID'];
   TestType := Element['TYPE'];
+  if Pos(WideChar('5'), Element['EDITION']) > 0 then
+  begin
+    Inc(FSkipped);
+    Exit;
+  end;
+
   root := GetBaseURI(Element, FRootUri);
   ResolveRelativeURI(root, UTF8Encode(Element['URI']), s);
 
@@ -393,7 +400,7 @@ begin
   try
     try
       FParser.Options.Validate := FValidating;
-//      FParser.Options.Namespaces := (Element['NAMESPACE'] <> 'no');
+      FParser.Options.Namespaces := (Element['NAMESPACE'] <> 'no');
       FParser.OnError := {$IFDEF FPC}@{$ENDIF}ErrorHandler;
       FParser.ParseUri(s, TempDoc);
     except

@@ -58,7 +58,7 @@ const
 
   ns_3000  = [$41..$94, $A1..$FA] + [$07, $21..$29];
 
-  namingBitmap: array[0..$2F] of TSetOfByte = (
+  namingBitmap: array[0..$30] of TSetOfByte = (
 
   [],                              // 00 - nothing allowed
   [0..255],                        // 01 - all allowed
@@ -165,10 +165,11 @@ const
   [$70..$7D, $7F..$FF],            // 2C $0300 - NameStart
   [1..$FF],                        // 2D $3000 - NameStart
   [0..$7D, $7F..$FF],              // 2E $0300 - Names
-  [$0C..$0D, $3F..$40, $70..$FF]   // 2F $2000 - Names
+  [$0C..$0D, $3F..$40, $70..$FF],  // 2F $2000 - Names
+  [$00..$FD]                       // 30 $FF00 - both Name and NameStart
 );
 
-  Xml11HighPages: TSetOfByte = [0..$21, $2C..$D7, $F9..$FF];
+  Xml11HighPages: TSetOfByte = [0..$21, $2C..$D7, $F9..$FE];
 
   NamePages: array[0..511] of Byte = (
 $02, $03, $04, $05, $06, $07, $08, $00,
