@@ -64,12 +64,16 @@ type
     FExpandEntities: Boolean;
     FIgnoreComments: Boolean;
     FCDSectionsAsText: Boolean;
+    FResolveExternals: Boolean;
+    FNamespaces: Boolean;
   public
     property Validate: Boolean read FValidate write FValidate;
     property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
     property ExpandEntities: Boolean read FExpandEntities write FExpandEntities;
     property IgnoreComments: Boolean read FIgnoreComments write FIgnoreComments;
     property CDSectionsAsText: Boolean read FCDSectionsAsText write FCDSectionsAsText;
+    property ResolveExternals: Boolean read FResolveExternals write FResolveExternals;
+    property Namespaces: Boolean read FNamespaces write FNamespaces;
   end;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
@@ -144,6 +148,7 @@ type
     FExternallyDeclared: Boolean;
     FResolved: Boolean;
     FOnStack: Boolean;
+    FBetweenDecls: Boolean;
     FReplacementText: DOMString;
     FStartLocation: TLocation;
   end;
@@ -158,6 +163,7 @@ type
     FCursor: TObject;   // weak reference
     FLocation: TLocation;
     LFPos: PWideChar;
+    FXML11Rules: Boolean;
     FSystemID: WideString;
     FPublicID: WideString;
     FReloadHook: procedure of object;
@@ -184,7 +190,6 @@ type
     FBufStart: PWideChar;
     FDecoder: TDecoder;
     FSeenCR: Boolean;
-    FXML11Rules: Boolean;
     FFixedUCS2: string;
     FBufSize: Integer;
     FSurrogate: WideChar;
@@ -239,7 +244,7 @@ type
   TContentParticle = class(TObject)
   private
     FParent: TContentParticle;
-    FChildren: TList;
+    FChildren: TFPList;
     FIndex: Integer;
     function GetChildCount: Integer;
     function GetChild(Index: Integer): TContentParticle;
@@ -290,6 +295,7 @@ type
     FState: TXMLReadState;
     FRecognizePE: Boolean;
     FHavePERefs: Boolean;
+    FInsideDecl: Boolean;
     FDocNotValid: Boolean;
     FValue: TWideCharBuf;
     FName: TWideCharBuf;
@@ -298,8 +304,8 @@ type
     FNamePages: PByteArray;
     FDocType: TDOMDocumentTypeEx;  // a shortcut
     FPEMap: TDOMNamedNodeMap;
-    FIDRefs: TList;
-    FNotationRefs: TList;
+    FIDRefs: TFPList;
+    FNotationRefs: TFPList;
     FCurrContentType: TElementContentType;
     FSaViolation: Boolean;
     FDTDStartPos: PWideChar;
@@ -310,6 +316,8 @@ type
     FExpandEntities: Boolean;
     FIgnoreComments: Boolean;
     FCDSectionsAsText: Boolean;
+    FResolveExternals: Boolean;
+    FNamespaces: Boolean;
 
     procedure RaiseExpectedQmark;
     procedure GetChar;
@@ -324,8 +332,8 @@ type
     procedure ParseQuantity(CP: TContentParticle);
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
-    procedure AddForwardRef(aList: TList; Buf: PWideChar; Length: Integer);
-    procedure ClearRefs(aList: TList);
+    procedure AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
+    procedure ClearRefs(aList: TFPList);
     procedure ValidateIdRefs;
     procedure StandaloneError(LineOffs: Integer = 0);
     procedure CallErrorHandler(E: EXMLReadError);
@@ -341,7 +349,7 @@ type
     procedure FatalError(const descr: String; LineOffs: Integer=0); overload;
     procedure FatalError(const descr: string; const args: array of const; LineOffs: Integer=0); overload;
     procedure FatalError(Expected: WideChar); overload;
-    function  SkipWhitespace: Boolean;
+    function  SkipWhitespace(PercentAloneIsOk: Boolean = False): Boolean;
     function  SkipWhitespaceRaw: Boolean;
     procedure ExpectWhitespace;
     procedure ExpectString(const s: String);
@@ -1044,7 +1052,7 @@ begin
   E.Free;
 end;
 
-function TXMLReader.SkipWhitespace: Boolean;
+function TXMLReader.SkipWhitespace(PercentAloneIsOk: Boolean): Boolean;
 begin
   Result := False;
   repeat
@@ -1062,19 +1070,24 @@ begin
       '%': begin
         if not FRecognizePE then
           Exit;
-        GetChar;
-        if not CheckName then
+// This is the only case where look-ahead is needed
+        if FSource.FBuf > FSource.FBufEnd-2 then
+          FSource.Reload;
+        if (not PercentAloneIsOk) or
+          (Byte(FSource.FBuf[1]) in NamingBitmap[FNamePages^[hi(Word(FSource.FBuf[1]))]]) or
+          (FXML11 and (FSource.FBuf[1] >= #$D800) and (FSource.FBuf[1] <= #$DB7F)) then
         begin
-          if (FCurChar <> #32) and (FCurChar <> #10) and (FCurChar <> #9) and (FCurChar <> #13) then
-            FatalError('Expected whitespace');
-          FCurChar := '%';
-          Exit;
-        end;
-        ExpectChar(';');
-        StartPE;
-        Result := True;        // report whitespace on both ends of PE
-        Continue;
-      end;
+          Inc(FSource.FBuf);    // skip '%'
+          FCurChar := FSource.FBuf^;
+          if not CheckName then
+            RaiseNameNotFound;
+          ExpectChar(';');
+          StartPE;
+          Result := True;        // report whitespace upon entering the PE
+          Continue;
+        end
+        else Break;
+      end
     else
       Exit;
     end;  
@@ -1152,8 +1165,8 @@ begin
   inherited Create;
   BufAllocate(FName, 128);
   BufAllocate(FValue, 512);
-  FIDRefs := TList.Create;
-  FNotationRefs := TList.Create;
+  FIDRefs := TFPList.Create;
+  FNotationRefs := TFPList.Create;
 
   // Set char rules to XML 1.0
   FNamePages := @NamePages;
@@ -1169,6 +1182,8 @@ begin
   FExpandEntities := FCtrl.Options.ExpandEntities;
   FCDSectionsAsText := FCtrl.Options.CDSectionsAsText;
   FIgnoreComments := FCtrl.Options.IgnoreComments;
+  FResolveExternals := FCtrl.Options.ResolveExternals;
+  FNamespaces := FCtrl.Options.Namespaces;
 end;
 
 destructor TXMLReader.Destroy;
@@ -1189,8 +1204,7 @@ procedure TXMLReader.XML11_BuildTables;
 begin
   FNamePages := Xml11NamePages;
   FXML11 := True;
-  { switching to xml11 may occur only with DecodingSource }
-  TXMLDecodingSource(FSource).FXml11Rules := True;
+  FSource.FXml11Rules := True;
 end;
 
 procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
@@ -1432,17 +1446,26 @@ end;
 function TXMLReader.ContextPop: Boolean;
 var
   Src: TXMLCharSource;
+  Error: Boolean;
 begin
   Result := Assigned(FSource.FParent) and (FSource.DTDSubsetType = dsNone);
   if Result then
   begin
     Src := FSource.FParent;
+    Error := False;
     if Assigned(FSource.FEntity) then
+    begin
       TDOMEntityEx(FSource.FEntity).FOnStack := False;
+// [28a] PE that was started between MarkupDecls may not end inside MarkupDecl
+      Error := TDOMEntityEx(FSource.FEntity).FBetweenDecls and FInsideDecl;
+    end;
     FCursor := TDOMNode(FSource.FCursor);
     FSource.Free;
     FSource := Src;
     FCurChar := FSource.FBuf^;
+// correct position of this error is after PE reference      
+    if Error then
+      BadPENesting(esFatal);
   end;
 end;
 
@@ -1528,6 +1551,7 @@ begin
   if PEnt.FOnStack then
     FatalError('Entity ''%%%s'' recursively references itself', [PEnt.NodeName]);
 
+  PEnt.FBetweenDecls := not FInsideDecl;
   ContextPush(PEnt);
   FHavePERefs := True;
 end;
@@ -2047,7 +2071,6 @@ end;
 
 procedure TXMLReader.ParseAttlistDecl;         // [52]
 var
-  SaveCurNode: TDOMNode;
   ValueRequired: Boolean;
   Token: WideString;
   ElDef: TDOMElementDef;
@@ -2156,18 +2179,15 @@ begin
         if AttDef.FDataType = dtId then
           ValidationError('An attribute of type ID cannot have a default value',[]);
 
-        SaveCurNode := FCursor;
         FCursor := AttDef;
         // TODO: move this to ExpectAttValue?
         StoreLocation(FTokenStart);
         Inc(FTokenStart.LinePos);
 // See comments to valid-sa-094: PE expansion should be disabled in AttDef.
 // ExpectAttValue() does not recognize PEs anyway, so setting FRecognizePEs isn't needed
-        try
-          ExpectAttValue;
-        finally
-          FCursor := SaveCurNode;
-        end;
+// Saving/restoring FCursor is also redundant because it is always nil here.
+        ExpectAttValue;
+        FCursor := nil;
         if not ValidateAttrSyntax(AttDef, AttDef.NodeValue) then
           ValidationError('Default value for attribute ''%s'' has wrong syntax', [AttDef.Name]);
       end;
@@ -2188,11 +2208,11 @@ end;
 
 function TXMLReader.ParseEntityDeclValue(Delim: WideChar): Boolean;   // [9]
 var
-  Src: TXMLCharSource;
+  CurrentEntity: TObject;
 begin
-  Src := FSource;
+  CurrentEntity := FSource.FEntity;
   // "Included in literal": process until delimiter hit IN SAME context
-  while not ((FSource = Src) and CheckForChar(Delim)) do
+  while not ((FSource.FEntity = CurrentEntity) and CheckForChar(Delim)) do
   if CheckForChar('%') then
   begin
     if not CheckName then
@@ -2231,16 +2251,13 @@ var
   Entity: TDOMEntityEx;
   Map: TDOMNamedNodeMap;
 begin
-  ExpectWhitespace;
+  if not SkipWhitespace(True) then
+    FatalError('Expected whitespace');
   NDataAllowed := True;
   Map := FDocType.Entities;
   if CheckForChar('%') then                  // [72]
   begin
-    if FRecognizePE then
-      SkipWhitespace   // we know that there IS whitespace due to the check in
-                       // previous call to SkipWhitespace
-    else
-      ExpectWhitespace;
+    ExpectWhitespace;
     NDataAllowed := False;
     if FPEMap = nil then
       FPEMap := TDOMNamedNodeMap.Create(FDocType, ENTITY_NODE);
@@ -2261,10 +2278,7 @@ begin
       StoreLocation(Entity.FStartLocation);
       FValue.Length := 0;
       if not ParseEntityDeclValue(Delim) then
-      begin
-        FTokenStart := Entity.FStartLocation;
-        FatalError('Literal has no closing quote', -1);
-      end;
+        DoErrorPos(esFatal, 'Literal has no closing quote', Entity.FStartLocation);
       SetString(Entity.FReplacementText, FValue.Buffer, FValue.Length);
     end
     else
@@ -2376,6 +2390,7 @@ begin
       else
       begin
         FRecognizePE := FSource.DTDSubsetType <> dsInternal;
+        FInsideDecl := True;
         Token := GetString(['A'..'Z']);
         if Token = 'ELEMENT' then
           ParseElementDecl
@@ -2390,17 +2405,11 @@ begin
 
         SkipWhitespace;
         FRecognizePE := False;
-{
-  MarkupDecl starting in PE and ending in root is a WFC [28a]
-  MarkupDecl starting in root but ending in PE is a VC (erratum 2e-14)
-}
-      // TODO: what if statrs in PE1 and ends in PE2, and other cases? 
-      if CurrentEntity <> FSource.FEntity then
-        if Assigned(FSource.FEntity) then { ends in PE }
-          BadPENesting(esError)
-        else
-          BadPENesting(esFatal);
+
+        if CurrentEntity <> FSource.FEntity then
+          BadPENesting;
         ExpectChar('>');
+        FInsideDecl := False;
       end;
     end;
   until False;
@@ -2582,7 +2591,7 @@ begin
   PopVC;
 end;
 
-procedure TXMLReader.AddForwardRef(aList: TList; Buf: PWideChar; Length: Integer);
+procedure TXMLReader.AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
 var
   w: PForwardRef;
 begin
@@ -2594,7 +2603,7 @@ begin
   aList.Add(w);
 end;
 
-procedure TXMLReader.ClearRefs(aList: TList);
+procedure TXMLReader.ClearRefs(aList: TFPList);
 var
   I: Integer;
 begin
@@ -3014,7 +3023,7 @@ end;
 function TContentParticle.Add: TContentParticle;
 begin
   if FChildren = nil then
-    FChildren := TList.Create;
+    FChildren := TFPList.Create;
   Result := TContentParticle.Create;
   Result.FParent := Self;
   Result.FIndex := FChildren.Add(Result);
