@@ -217,7 +217,7 @@ var Col : TFPColor;
 begin
   fppal:=TFPPalette.Create(256);
   Col.Alpha:=AlphaOpaque;
-  for i:=$FF downto 0 do
+  for i:=0 to $FF do
   begin
     Col.Red:=i;
     Col.Red:=(Col.Red shl 8) + Col.Red;
