@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.2.2rc1
-version=2.2.2rc1
+title=Free Pascal Compiler 2.2.2rc2
+version=2.2.2rc2
 
 #
 # General
