@@ -1508,7 +1508,8 @@ begin
     If Assigned(AValue) then
       begin
       AValue.FreeNotification(Self);  
-      FMasterLink:=TMasterParamsDataLink.Create(Self);
+      If (FMasterLink=Nil) then
+        FMasterLink:=TMasterParamsDataLink.Create(Self);
       FMasterLink.Datasource:=AValue;
       end
     else
