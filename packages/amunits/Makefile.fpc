@@ -4,7 +4,7 @@
 
 [package]
 name=amunits
-version=2.2.2rc1
+version=2.2.2rc2
 
 [target]
 units= msgbox amigautils wbargs vartags pastoc tagsarray systemvartags         \

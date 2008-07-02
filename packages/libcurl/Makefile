@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=libcurl
-override PACKAGE_VERSION=2.2.2rc1
+override PACKAGE_VERSION=2.2.2rc2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=libcurl
 endif

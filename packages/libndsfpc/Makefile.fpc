@@ -4,7 +4,7 @@
 
 [package]
 name=libndsfpc
-version=2.2.2rc1
+version=2.2.2rc2
 
 [target]
 units=nds9 nds7 dswifi9 dswifi7 fat gbfs mikmod9  mikmod7

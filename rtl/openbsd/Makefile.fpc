@@ -38,7 +38,7 @@ sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(BSDINC)
 
 [lib]
 libname=libfprtl.so
-libversion=2.2.1
+libversion=2.2.2rc2
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
       dos crt objects printer \

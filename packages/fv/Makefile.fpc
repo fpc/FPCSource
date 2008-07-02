@@ -4,7 +4,7 @@
 
 [package]
 name=fv
-version=2.2.2rc1
+version=2.2.2rc2
 
 [target]
 units=buildfv
@@ -17,7 +17,7 @@ rsts=app dialogs editors msgbox stddlg
 
 [libs]
 libname=libfpfv.so
-libversion=2.0.0
+libversion=2.2.2rc2
 
 [compiler]
 sourcedir=src

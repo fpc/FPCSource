@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=palmunits
-override PACKAGE_VERSION=2.2.2rc1
+override PACKAGE_VERSION=2.2.2rc2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=aboutbox alarmmgr applaunchcmd attentionmgr bitmap category chars clipboard connectionmgr consolemgr control coretraps crc datamgr datetime day dlserver encrypt errorbase event_ exglib exgmgr expansionmgr fatalalert featuremgr field filestream find_ floatmgr font fontselect_ form fslib graffiti graffitireference graffitishift hal helper helperserviceclass hwrmiscflags imcutils inetmgr inspoint intlmgr irlib keyboard keymgr launcher libtraps list localemgr localize lz77mgr m68khwr memorymgr menu_ modemmgr  netbitutils netmgr notifymgr overlaymgr palmcompatibility palmlocale palmos password pdiconst pdilib penmgr phonelookup preferences privaterecords progress rect scrollbar selday seltime seltimezone seriallinkmgr serialmgr serialmgrold slotdrvrlib smslib soundmgr stringmgr sysevent sysevtmgr systemmgr systemresources sysutil table telephonymgr telephonymgrtypes telephonymgrui textmgr textservicesmgr timemgr udamgr uicolor uicontrols uiresources vfsmgr window
 endif

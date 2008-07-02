@@ -4,7 +4,7 @@
 
 [package]
 name=univint
-version=2.2.2rc1
+version=2.2.2rc2
 
 [target]
 units=MacOSAll MacOS
@@ -91,7 +91,7 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
 exampledirs=examples
 
 [libs]
-libversion=2.0.0
+libversion=2.2.2rc2
 
 # FPCMacOSAll is not a build unit, but directly includes the code of
 # most other units

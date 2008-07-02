@@ -37,7 +37,7 @@ targetdir=.
 
 [lib]
 libname=libfprtl.so
-libversion=2.0.0
+libversion=2.2.2rc2
 libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
       dos crt objects printer \

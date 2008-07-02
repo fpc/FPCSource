@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=x11
-override PACKAGE_VERSION=2.2.2rc1
+override PACKAGE_VERSION=2.2.2rc2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=x xlib xutil xresource xcms xshm xrender keysym xi xkb xkblib xatom xinerama xv xvlib cursorfont xrandr xf86dga xf86vmode
 endif

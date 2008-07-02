@@ -261,7 +261,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=gbaunits
-override PACKAGE_VERSION=2.2.2rc1
+override PACKAGE_VERSION=2.2.2rc2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=gba_bg gba_blend gba_core gba_dma gba_irq gba_sio gba_mosaic gba_regs gba_sprites gba_timer gba_types gba_video gba_window gba_bios gba_input gba_fade
 endif
