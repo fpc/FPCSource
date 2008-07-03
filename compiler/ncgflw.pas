@@ -435,8 +435,6 @@ implementation
          oldexecutionweight : longint;
       begin
          location_reset(location,LOC_VOID,OS_NO);
-         oldflowcontrol:=flowcontrol;
-         include(flowcontrol,fc_inflowcontrol);
          oldclabel:=current_procinfo.CurrContinueLabel;
          oldblabel:=current_procinfo.CurrBreakLabel;
          current_asmdata.getjumplabel(current_procinfo.CurrContinueLabel);
@@ -477,6 +475,9 @@ implementation
          { load from value }
          secondpass(right);
 
+         maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
+         oldflowcontrol:=flowcontrol;
+         include(flowcontrol,fc_inflowcontrol);
          { produce start assignment }
          case left.location.loc of
            LOC_REFERENCE,
