@@ -2029,7 +2029,7 @@ TYPE
 
      IInternalUnknown=Interface(IUnknown)
         ['{00000021-0000-0000-C000-000000000046}']
-        Function QueryInternalInterface(riid:TIID;Out ppv:Pointer):HResult;StdCall;
+        Function QueryInternalInterface(const riid:TIID;Out ppv:Pointer):HResult;StdCall;
         END;
 
 
@@ -2108,10 +2108,10 @@ TYPE
     PIMoniker = ^IMoniker;
     IMoniker = Interface (IPersistStream)
       ['{0000000f-0000-0000-C000-000000000046}']
-      Function BindToObject (const pbc:IBindCtx;const mktoleft:IMoniker; RiidResult:TIID;Out vresult):HResult;StdCall;
-//    Function RemoteBindToObject (const pbc:IBindCtx;const mktoleft:IMoniker;RiidResult:TIID;Out vresult):HResult;StdCall;
-      Function BindToStorage(Const Pbc:IBindCtx;Const mktoLeft:IMoniker; Riid:TIID;Out vobj):HResult; StdCall;
-//    Function RemoteBindToStorage(Const Pbc:IBindCtx;Const mktoLeft:IMoniker; Riid:TIID;Out vobj):HResult; StdCall;
+      Function BindToObject (const pbc:IBindCtx;const mktoleft:IMoniker; const RiidResult:TIID;Out vresult):HResult;StdCall;
+//    Function RemoteBindToObject (const pbc:IBindCtx;const mktoleft:IMoniker;const RiidResult:TIID;Out vresult):HResult;StdCall;
+      Function BindToStorage(Const Pbc:IBindCtx;Const mktoLeft:IMoniker; const Riid:TIID;Out vobj):HResult; StdCall;
+//    Function RemoteBindToStorage(Const Pbc:IBindCtx;Const mktoLeft:IMoniker;const Riid:TIID;Out vobj):HResult; StdCall;
       Function Reduce (const pbc:IBindCtx; dwReduceHowFar:DWord; mktoLeft: PIMoniker; Out mkReduced:IMoniker):HResult; StdCall;
       Function ComposeWith(Const MkRight:IMoniker;fOnlyIfNotGeneric:BOOL; OUT mkComposite:IMoniker):HResult; StdCall;
       Function Enum(fForward:Bool;Out enumMoniker:IEnumMoniker):HResult;StdCall;
@@ -3489,7 +3489,7 @@ Type
   function OleCreateStaticFromData(pSrcDataObj:IDataObject; const iid:TIID; renderopt:DWORD; pFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateStaticFromData';
 
-  function OleCreateLink(pmkLinkSrc:IMoniker; constriid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
+  function OleCreateLink(pmkLinkSrc:IMoniker; const riid:TIID; renderopt:DWORD; lpFormatEtc:LPFORMATETC; pClientSite:IOleClientSite;
              pStg:IStorage; out ppvObj):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleCreateLink';
 
   function OleCreateLinkEx(pmkLinkSrc:IMoniker; const riid:TIID; dwFlags:DWORD; renderopt:DWORD; cFormats:ULONG;
@@ -3761,7 +3761,7 @@ type
   function StgIsStorageILockBytes(_para1:ILockBytes):HRESULT;stdcall; external  'ole32.dll' name 'StgIsStorageILockBytes';
   function StgSetTimes(_para1:POLESTR; _para2:PFILETIME; _para3:PFILETIME; _para4:PFILETIME):HRESULT;stdcall; external  'ole32.dll' name 'StgSetTimes';
   function CoGetObject(pszname:lpwstr; bndop:PBind_Opts; const riid:TIID; out ppv):HRESULT; stdcall; external  'ole32.dll' name 'CoGetObject';
-  function BindMoniker(_para1:IMoniker; _para2:DWORD; _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
+  function BindMoniker(_para1:IMoniker; _para2:DWORD; const _para3:TIID; out _para4):HRESULT;stdcall; external  'ole32.dll' name 'BindMoniker';
   function MkParseDisplayName(_para1:IBindCtx; _para2:POLESTR; out _para3:PULONG; out _para4:IMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MkParseDisplayName';
   function MonikerRelativePathTo(_para1:IMoniker; _para2:IMoniker; out _para3:IMoniker; _para4:BOOL):HRESULT;stdcall; external  'ole32.dll' name 'MonikerRelativePathTo';
   function MonikerCommonPrefixWith(_para1:IMoniker; _para2:IMoniker; _para3:PIMoniker):HRESULT;stdcall; external  'ole32.dll' name 'MonikerCommonPrefixWith';
