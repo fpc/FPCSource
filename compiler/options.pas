@@ -2300,9 +2300,11 @@ begin
       { Maybe alternative configfile ? }
       if (not read_configfile) and
          (ppcaltcfg<>'') then
-        read_configfile:=check_configfile(ppcaltcfg,ppccfg);
-        if read_configfile then
-          message(option_ppc386_deprecated);
+        begin
+          read_configfile:=check_configfile(ppcaltcfg,ppccfg);
+          if read_configfile then
+            message(option_ppc386_deprecated);
+        end;
     end
   else
     read_configfile := false;
