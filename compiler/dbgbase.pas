@@ -46,6 +46,7 @@ interface
         procedure appenddef_array(list:TAsmList;def:tarraydef);virtual;
         procedure appenddef_record(list:TAsmList;def:trecorddef);virtual;
         procedure appenddef_object(list:TAsmList;def:tobjectdef);virtual;
+        procedure appenddef_classref(list:TAsmList;def: tclassrefdef);virtual;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);virtual;
         procedure appenddef_string(list:TAsmList;def:tstringdef);virtual;
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);virtual;
@@ -173,6 +174,12 @@ implementation
       end;
 
 
+    procedure TDebugInfo.appenddef_classref(list:TAsmList;def: tclassrefdef);
+      begin
+        appenddef_pointer(list,tpointerdef(pvmttype));
+      end;
+
+
     procedure TDebugInfo.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
       end;
@@ -247,7 +254,7 @@ implementation
           variantdef :
             appenddef_variant(list,tvariantdef(def));
           classrefdef :
-            appenddef_pointer(list,tpointerdef(pvmttype));
+            appenddef_classref(list,tclassrefdef(def));
           setdef :
             appenddef_set(list,tsetdef(def));
           formaldef :
