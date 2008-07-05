@@ -76,13 +76,31 @@ interface
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
        end;
 
+{$ifdef support_llvm}
+       tllvmshadowsymtableentry = class
+         constructor create(def: tdef; fieldoffset: aint);
+        private
+         ffieldoffset: aint;
+         fdef: tdef;
+        public
+         property fieldoffset: aint read ffieldoffset;
+         property def: tdef read fdef;
+       end;
+
+       tllvmshadowsymtable = class;
+{$endif support_llvm}       
+
        tabstractrecordsymtable = class(tstoredsymtable)
        public
           usefieldalignment,     { alignment to use for fields (PACKRECORDS value), C_alignment is C style }
           recordalignment,       { alignment desired when inserting this record }
           fieldalignment,        { alignment current alignment used when fields are inserted }
           padalignment : shortint;   { size to a multiple of which the symtable has to be rounded up }
+{$ifdef support_llvm}
+          llvmst: tllvmshadowsymtable;
+{$endif}
           constructor create(const n:string;usealign:shortint);
+          destructor destroy; override;
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure alignrecord(fieldoffset:aint;varalign:shortint);
@@ -113,6 +131,31 @@ interface
           constructor create(adefowner:tdef;const n:string;usealign:shortint);
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
        end;
+
+{$ifdef support_llvm}
+       { llvm record definitions cannot contain variant/union parts, }
+       { you have to flatten them first. the tllvmshadowsymtable     }
+       { contains a flattened version of a record/object symtable    }
+       tllvmshadowsymtable = class
+        private
+         equivst: tabstractrecordsymtable;
+         curroffset: aint;
+        public
+         symdeflist: TFPObjectList;
+
+         constructor create(st: tabstractrecordsymtable);
+         destructor destroy; override;
+        private
+         // generate the table
+         procedure generate;
+         // helpers
+         procedure appendsymdef(sym:tfieldvarsym);
+         procedure findvariantstarts(item: TObject; arg: pointer);
+         procedure addalignmentpadding(finalsize: aint);
+         procedure buildmapping(variantstarts: tfplist);
+         procedure buildtable(variantstarts: tfplist);
+       end;
+{$endif support_llvm}
 
        { tabstractlocalsymtable }
 
@@ -745,6 +788,15 @@ implementation
       end;
 
 
+    destructor tabstractrecordsymtable.destroy;
+      begin
+{$ifdef support_llvm}
+        llvmst.free;
+{$endif suppor_llvm}
+        inherited destroy;
+      end;
+    
+    
     procedure tabstractrecordsymtable.ppuload(ppufile:tcompilerppufile);
       begin
         inherited ppuload(ppufile);
@@ -1120,6 +1172,270 @@ implementation
            end;
       end;
 
+
+
+{$ifdef support_llvm}
+
+{****************************************************************************
+                              tLlvmShadowSymtableEntry
+****************************************************************************}
+
+    constructor tllvmshadowsymtableentry.create(def: tdef; fieldoffset: aint);
+      begin
+        fdef:=def;
+        ffieldoffset:=fieldoffset;
+      end;
+
+
+{****************************************************************************
+                              TLlvmShadowSymtable
+****************************************************************************}
+
+    constructor tllvmshadowsymtable.create(st: tabstractrecordsymtable);
+      begin
+        equivst:=st;
+        curroffset:=0;
+        symdeflist:=tfpobjectlist.create(false);
+        generate;
+      end;
+      
+
+    destructor tllvmshadowsymtable.destroy;
+      begin
+        symdeflist.free;
+      end;
+
+
+    procedure tllvmshadowsymtable.appendsymdef(sym:tfieldvarsym);
+      var
+        sizectr,
+        tmpsize: aint;
+      begin
+        case equivst.usefieldalignment of
+          C_alignment:
+            { default for llvm, don't add explicit padding }
+            symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
+          bit_alignment:
+            begin
+              { curoffset: bit address after the previous field.      }
+              { llvm has no special support for bitfields in records, }
+              { so we replace them with plain bytes.                  }
+              { as soon as a single bit of a byte is allocated, we    }
+              { allocate the byte in the llvm shadow record           }
+              if (sym.fieldoffset>curroffset) then
+                curroffset:=align(curroffset,8);
+              { fields in bitpacked records always start either right }
+              { after the previous one, or at the next byte boundary. }
+              if (curroffset<>sym.fieldoffset) then
+                internalerror(2008051002);
+              if is_ordinal(sym.vardef) and
+                 (sym.getpackedbitsize mod 8 <> 0) then
+                begin
+                  tmpsize:=sym.getpackedbitsize;
+                  sizectr:=tmpsize+7;
+                  repeat
+                    symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,sym.fieldoffset+(tmpsize+7)-sizectr));
+                    dec(sizectr,8);
+                  until (sizectr<=0);
+                  inc(curroffset,tmpsize);
+                end
+              else
+                begin
+                   symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
+                  inc(curroffset,sym.vardef.size*8);
+                end;
+            end
+          else
+            begin
+              { curoffset: address right after the previous field }
+              while (sym.fieldoffset>curroffset) do
+                begin
+                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  inc(curroffset);
+                end;
+              symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
+              inc(curroffset,sym.vardef.size);
+            end
+        end
+      end;
+
+
+    procedure tllvmshadowsymtable.addalignmentpadding(finalsize: aint);
+      begin
+        case equivst.usefieldalignment of
+          { already correct in this case }
+          bit_alignment,
+          { handled by llvm }
+          C_alignment:
+            ;
+          else
+            begin
+              { add padding fields }
+              while (finalsize>curroffset) do
+                begin
+                  symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
+                  inc(curroffset);
+                end;
+            end;
+        end;
+      end;
+
+
+    procedure tllvmshadowsymtable.findvariantstarts(item: TObject; arg: pointer);
+      var
+        variantstarts: tfplist absolute arg;
+        sym: tfieldvarsym absolute item;
+        lastoffset: aint;
+        newalignment: aint;
+      begin
+        if (tsym(item).typ<>fieldvarsym) then
+          exit;
+        { a "better" algorithm might be to use the largest }
+        { variant in case of (bit)packing, since then      }
+        { alignment doesn't matter                         }
+        if (vo_is_first_field in sym.varoptions) then
+          begin
+            { we assume that all fields are processed in order. }
+            { the most deeply nested variant always comes last  }
+            { in Pascal                                         }
+            if (variantstarts.count<>0) then
+              lastoffset:=tfieldvarsym(variantstarts[variantstarts.count-1]).fieldoffset
+            else
+              lastoffset:=-1;
+
+            if (lastoffset=sym.fieldoffset) then
+              begin
+                if (equivst.fieldalignment<>bit_alignment) then
+                  newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                else
+                  newalignment:=1;
+                if (newalignment>tfieldvarsym(variantstarts[variantstarts.count-1]).vardef.alignment) then
+                  tfieldvarsym(variantstarts[variantstarts.count-1]):=sym
+              end
+            else if (lastoffset<sym.fieldoffset) then
+              variantstarts.add(sym)
+            else
+              internalerror(2008051003);
+          end;
+      end;
+
+
+    procedure tllvmshadowsymtable.buildtable(variantstarts: tfplist);
+      var
+        lastvaroffsetprocessed: aint;
+        i, equivcount, varcount: longint;
+      begin
+        { if it's an object/class, the first entry is the parent (if there is one) }
+        if (equivst.symtabletype=objectsymtable) and
+           assigned(tobjectdef(equivst.defowner).childof) then
+          symdeflist.add(tllvmshadowsymtableentry.create(tobjectdef(equivst.defowner).childof,0));
+        equivcount:=equivst.symlist.count;
+        varcount:=0;
+        i:=0;
+        lastvaroffsetprocessed:=-1;
+        while (i<equivcount) do
+          begin
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
+              begin
+                inc(i);
+                continue;
+              end;
+            { start of a new variant? }
+            if (vo_is_first_field in tfieldvarsym(equivst.symlist[i]).varoptions) then
+              begin
+                { if we want to process the same variant offset twice, it means that we  }
+                { got to the end and are trying to process the next variant part -> stop }
+                if (tfieldvarsym(equivst.symlist[i]).fieldoffset=lastvaroffsetprocessed) then
+                  break;
+                if (varcount>=variantstarts.count) or
+                   (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                  internalerror(2008051005);
+                { new variant part -> use the one with the biggest alignment }
+                i:=equivst.symlist.indexof(tobject(variantstarts[varcount]));
+                lastvaroffsetprocessed:=tfieldvarsym(equivst.symlist[i]).fieldoffset;
+                inc(varcount);
+                if (i<0) then
+                  internalerror(2008051004);
+              end;
+            appendsymdef(tfieldvarsym(equivst.symlist[i]));
+            inc(i);
+          end;
+        addalignmentpadding(equivst.datasize);
+      end;
+
+
+    procedure tllvmshadowsymtable.buildmapping(variantstarts: tfplist);
+      var
+        i, varcount: longint;
+        shadowindex: longint;
+        equivcount : longint;
+      begin
+        varcount:=0;
+        shadowindex:=0;
+        equivcount:=equivst.symlist.count;
+        i:=0;
+        while (i < equivcount) do
+          begin
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
+              begin
+                inc(i);
+                continue;
+              end;
+            { start of a new variant? }
+            if (vo_is_first_field in tfieldvarsym(equivst.symlist[i]).varoptions) then
+              begin
+                { the variant can either come after the current one, or }
+                { be at the same level                                  }
+                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                  dec(varcount);
+                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                  internalerror(2008051006);
+                { reset the shadowindex to the start of this variant. }
+                { in case the llvmfieldnr is not (yet) set for this   }
+                { field, shadowindex will simply be reset to zero and }
+                { we'll start searching from the start of the record  }
+                shadowindex:=tfieldvarsym(variantstarts[varcount]).llvmfieldnr;
+                if (varcount<pred(variantstarts.count)) then
+                  inc(varcount);
+              end;
+
+            { find the last shadowfield whose offset <= the current field's offset }
+            while (tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset<tfieldvarsym(equivst.symlist[i]).fieldoffset) and
+                  (shadowindex<symdeflist.count-1) and
+                  (tllvmshadowsymtableentry(symdeflist[shadowindex+1]).fieldoffset>=tfieldvarsym(equivst.symlist[i]).fieldoffset) do
+              inc(shadowindex);
+            { set the field number and potential offset from that field (in case }
+            { of overlapping variants)                                           }
+            tfieldvarsym(equivst.symlist[i]).llvmfieldnr:=shadowindex;
+            tfieldvarsym(equivst.symlist[i]).offsetfromllvmfield:=
+              tfieldvarsym(equivst.symlist[i]).fieldoffset-tllvmshadowsymtableentry(symdeflist[shadowindex]).fieldoffset;
+            inc(i);
+          end;
+      end;
+
+
+    procedure tllvmshadowsymtable.generate;
+      var
+        variantstarts: tfplist;
+      begin
+        variantstarts:=tfplist.create;
+
+        { first go through the entire record and }
+        { store the fieldvarsyms of the variants }
+        { with the highest alignment             }
+        equivst.symlist.foreachcall(@findvariantstarts,pointer(variantstarts));
+
+        { now go through the regular fields and the selected variants, }
+        { and add them to the  llvm shadow record symtable             }
+        buildtable(variantstarts);
+        
+        { finally map all original fields to the llvm definition }
+        buildmapping(variantstarts);
+
+        variantstarts.free;        
+      end;
+
+{$endif support_llvm}
 
 {****************************************************************************
                           TAbstractLocalSymtable

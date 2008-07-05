@@ -151,7 +151,16 @@ interface
       end;
 
       tfieldvarsym = class(tabstractvarsym)
-          fieldoffset   : aint;   { offset in record/object }
+          fieldoffset         : aint;   { offset in record/object }
+{$ifdef support_llvm}
+          { the llvm version of the record does not support variants,   }
+          { so the llvm equivalent field may not be at the exact same   }
+          { offset -> store the difference (bits for bitpacked records, }
+          { bytes otherwise)                                            }
+          offsetfromllvmfield : aint;
+          { number of the closest field in the llvm definition }
+          llvmfieldnr         : longint;
+{$endif support_llvm}
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;

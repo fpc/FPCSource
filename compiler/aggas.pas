@@ -32,7 +32,11 @@ interface
       cclasses,
       globtype,globals,
       aasmbase,aasmtai,aasmdata,aasmcpu,
-      assemble;
+      assemble
+{$ifdef support_llvm}
+      , aasmllvm
+{$endif support_llvm}
+      ;
 
 
     type
@@ -46,6 +50,9 @@ interface
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
+{$ifdef support_llvm}
+        procedure WriteLlvmInstruction(hp: tai_llvmcpu);
+{$endif support_llvm}
        public
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
@@ -94,6 +101,9 @@ implementation
       cutils,cfileutl,systems,
       fmodule,finput,verbose,
       itcpugas,cpubase
+{$ifdef support_llvm}
+      , llvmbase
+{$endif support_llvm}
       ;
 
     const
@@ -413,6 +423,26 @@ implementation
             AsmWrite(tostr(buf[i]));
           end;
       end;
+
+{$ifdef support_llvm}
+    procedure TGNUAssembler.WriteLlvmInstruction(hp: tai_llvmcpu);
+      begin
+        { write as comment for now so it can be easily mixed }
+        { into regular assembler                             }
+        AsmWrite('# ');
+        case tai_llvmcpu(hp).llvmopcode of
+          la_type:
+            begin
+              AsmWrite(hp.oper[0]^.ref^.symbol.name);
+              AsmWrite(' = type ');
+              AsmWritePChar(hp.oper[1]^.str);
+              AsmLn;
+            end;
+          else
+            internalerror(2008070301);
+        end;
+      end;
+{$endif support_llvm}
 
 
     procedure TGNUAssembler.WriteDecodedSleb128(a: int64);
@@ -1056,6 +1086,13 @@ implementation
                  AsmWrite(tai_directive(hp).name^);
                AsmLn;
              end;
+{$ifdef support_llvm}
+           ait_llvmins:
+             begin
+               WriteLlvmInstruction(tai_llvmcpu(hp));
+             end;
+{$endif support_llvm}
+           
 
            else
              internalerror(2006012201);

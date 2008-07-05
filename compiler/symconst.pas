@@ -350,7 +350,8 @@ type
     vo_is_typed_const,
     vo_is_range_check,
     vo_is_overflow_check,
-    vo_is_typinfo_para
+    vo_is_typinfo_para,
+    vo_is_first_field   { first field of a record or variant part of a record }
   );
   tvaroptions=set of tvaroption;
 

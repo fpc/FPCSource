@@ -77,12 +77,21 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
+{$ifdef support_llvm}
+          function  llvm_mangledname:string;override;
+{$endif support_llvm}
           { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
           { generics }
           procedure initgeneric;
        private
+{$ifdef support_llvm}
+          procedure set_llvm_name_syms;
+          function get_llvm_name_sym: tasmsymbol;override;
+          function get_llvm_pointer_name_sym: tasmsymbol;override;
+          function get_llvm_class_struct_name_sym: tasmsymbol;override;
+{$endif support_llvm}
           savesize  : aint;
        end;
 
@@ -103,6 +112,9 @@ interface
           function  GetTypeName:string;override;
           function  getmangledparaname:string;override;
           procedure setsize;
+{$ifdef support_llvm}
+          function  llvm_mangledname:string;override;
+{$endif support_llvm}
        end;
 
        tvariantdef = class(tstoreddef)
@@ -116,6 +128,9 @@ interface
           procedure setsize;
           function is_publishable : boolean;override;
           function needs_inittable : boolean;override;
+{$ifdef support_llvm}
+          function  llvm_mangledname:string;override;
+{$endif support_llvm}
        end;
 
        tformaldef = class(tstoreddef)
@@ -166,6 +181,9 @@ interface
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
+{$ifdef support_llvm}
+          function  llvm_mangledname:string;override;
+{$endif support_llvm}
        end;
 
        tabstractrecorddef= class(tstoreddef)
@@ -945,6 +963,19 @@ implementation
       end;
 
 
+{$ifdef support_llvm}
+    function Tstoreddef.llvm_mangledname:string;
+      begin
+        if assigned(typesym) and
+           (owner.symtabletype in [staticsymtable,globalsymtable]) then
+          result:=make_mangledname('llvm',owner,typesym.name)
+        else
+          result:=make_mangledname('llvm',findunitsymtable(owner),'DEF'+tostr(DefId));
+        result:='%'+result;
+      end;
+{$endif support_llvm}
+
+
     procedure Tstoreddef.reset;
       begin
       end;
@@ -1098,6 +1129,40 @@ implementation
          internalerror(200512131);
        generictokenbuf:=tdynamicarray.create(256);
      end;
+
+
+{$ifdef support_llvm}
+    procedure tstoreddef.set_llvm_name_syms;
+      begin
+        if not assigned(fllvm_name_sym) then
+          begin
+            fllvm_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname,AB_LOCAL,AT_DATA);
+            if is_class_or_interface_or_dispinterface(self) then
+              fllvm_class_struct_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$struct',AB_LOCAL,AT_DATA);
+          end;
+      end;
+
+
+    function tstoreddef.get_llvm_name_sym: tasmsymbol;
+      begin
+        set_llvm_name_syms;
+        result:=fllvm_name_sym;
+      end;
+
+
+    function tstoreddef.get_llvm_pointer_name_sym: tasmsymbol;
+      begin
+        set_llvm_name_syms;
+        result:=fllvm_pointer_name_sym;
+      end;
+
+
+    function tstoreddef.get_llvm_class_struct_name_sym: tasmsymbol;
+      begin
+        set_llvm_name_syms;
+        result:=fllvm_class_struct_name_sym;
+      end;
+{$endif support_llvm}
 
 
 {****************************************************************************
@@ -1833,6 +1898,13 @@ implementation
       end;
 
 
+{$ifdef support_llvm}
+    function tfiledef.llvm_mangledname:string;
+      begin
+        result:='< ['+ tostr(savesize div 4) + 'x i32] >';
+      end;
+{$endif support_llvm}
+
 {****************************************************************************
                                TVARIANTDEF
 ****************************************************************************}
@@ -1905,6 +1977,13 @@ implementation
          is_publishable:=true;
       end;
 
+
+{$ifdef support_llvm}
+    function tvariantdef.llvm_mangledname:string;
+      begin
+        result:=search_system_type('TVARDATA').typedef.llvm_mangledname;
+      end;
+{$endif support_llvm}
 
 {****************************************************************************
                             TABSTRACtpointerdef
@@ -1995,6 +2074,14 @@ implementation
          else
           GetTypeName:='^'+pointeddef.typename;
       end;
+
+
+{$ifdef support_llvm}
+    function tpointerdef.llvm_mangledname:string;
+      begin
+        result:=pointeddef.llvm_mangledname+'*';
+      end;
+{$endif support_llvm}
 
 
 {****************************************************************************

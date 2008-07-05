@@ -76,6 +76,13 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
+{$ifdef support_llvm_typedef}
+          { (llvm) type definition }
+          ait_typedef,
+{$endif support_llvm_typedef}
+{$ifdef support_llvm}
+          ait_llvmins,
+{$endif support_llvm}
           { used to split into tiny assembler files }
           ait_cutobject,
           ait_regalloc,
@@ -160,6 +167,13 @@ interface
 {$ifdef m68k}
           'labeled_instr',
 {$endif m68k}
+{$ifdef support_llvm_typedef}
+          { (llvm) type definition }
+          'ait_typedef',
+{$endif support_llvm_typedef}
+{$ifdef support_llvm}
+          'ait_llvmins',
+{$endif support_llvm}
           'cut',
           'regalloc',
           'tempalloc',
@@ -178,6 +192,9 @@ interface
        { m68k only }
        ,top_regset
 {$endif m68k}
+{$ifdef support_llvm}
+       ,top_string
+{$endif support_llvm}
        { i386 only});
 
       { kinds of operations that an instruction can perform on an operand }
@@ -212,6 +229,9 @@ interface
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
       {$endif m68k}
+      {$ifdef support_llvm}
+          top_string : (str: pchar);
+      {$endif support_llvm}
       end;
       poper=^toper;
 
@@ -620,6 +640,17 @@ interface
         end;
         tai_align_class = class of tai_align_abstract;
 
+{$ifdef support_llvm_typedef}
+        tai_typedef = class(tai);
+           namestr: pstring;
+           defstr: ansistring;
+           constructor create(const typename: string; const typedef: ansistring);
+           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
+           destructor destroy;override;
+           procedure ppuwrite(ppufile:tcompilerppufile);override;
+        end;
+{$endif support_llvm_typedef}
+
     var
       { array with all class types for tais }
       aiclass : taiclassarray;
@@ -647,7 +678,11 @@ implementation
       SysUtils,
       verbose,
       globals,
-      fmodule;
+      fmodule
+{$ifdef support_llvm}
+      ,strings
+{$endif support_llvm}
+      ;
 
     const
       pputaimarker = 254;
@@ -2031,6 +2066,12 @@ implementation
                     add_reg_instruction_hook(self,shifterop^.rs);
                 end;
 {$endif ARM}
+{$ifdef support_llvm}
+             top_string:
+               begin
+                 str:=strnew(o.str);
+               end;
+{$endif support_llvm}
              end;
           end;
       end;
@@ -2050,6 +2091,12 @@ implementation
               top_regset:
                 dispose(regset);
 {$endif ARM}
+{$ifdef support_llvm}
+             top_string:
+               begin
+                 freemem(str);
+               end;
+{$endif support_llvm}
             end;
             typ:=top_none;
           end;
@@ -2361,6 +2408,49 @@ implementation
         ppufile.putbyte(fillop);
         ppufile.putbyte(byte(use_op));
       end;
+
+
+{$ifdef support_llvm_typedef}
+{****************************************************************************
+                                tai_typedef
+ ****************************************************************************}
+
+     constructor tai_typedef.create(const typename: string; const typedef: ansistring);
+       begin
+          inherited Create;
+          typ:=ait_typedef;
+          typestr:=strpnew(typename);
+          defstr:=typedef;
+        end
+
+
+    destructor tai_typedef.destroy;
+      begin
+        stringdispose(typestr);
+        inherited destroy;
+      end;
+
+
+    constructor tai_typedef.ppuload(t:taitype;ppufile:tcompilerppufile);
+      var
+        len: aint;
+      begin
+        inherited ppuload(t,ppufile);
+        typestr:=strpnew(ppufile.getstring);
+        len:=ppufile.getaint;
+        setlength(defstr,len);
+        ppufile.getdata(destr[1],len);
+      end;
+
+
+    procedure tai_typedef.ppuwrite(ppufile:tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+        ppufile.putstring(typestr^);
+        ppufile.putaint(length(defstr));
+        ppufile.putdata(defstr[1],length(defstr));
+      end;
+{$endif support_llvm_typedef}
 
 
 begin

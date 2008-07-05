@@ -62,6 +62,14 @@ interface
          dbg_state   : tdefdbgstatus;
          defoptions  : tdefoptions;
          defstates   : tdefstates;
+{$ifdef support_llvm}
+        protected
+         fllvm_name_sym,
+         { so we don't have to create pointerdefs all the time }
+         fllvm_pointer_name_sym,
+         fllvm_class_struct_name_sym : tasmsymbol;
+        public
+{$endif support_llvm}
          constructor create(dt:tdeftyp);
          procedure buildderef;virtual;abstract;
          procedure buildderefimpl;virtual;abstract;
@@ -72,6 +80,9 @@ interface
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
+{$ifdef support_llvm}
+         function  llvm_mangledname:string;virtual;abstract;
+{$endif support_llvm}
          function  size:aint;virtual;abstract;
          function  packedbitsize:aint;virtual;
          function  alignment:shortint;virtual;abstract;
@@ -82,6 +93,16 @@ interface
          function  needs_inittable:boolean;virtual;abstract;
          function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
+{$ifdef support_llvm}
+        protected
+         function get_llvm_name_sym: tasmsymbol;virtual;abstract;
+         function get_llvm_pointer_name_sym: tasmsymbol;virtual;abstract;
+         function get_llvm_class_struct_name_sym: tasmsymbol;virtual;abstract;
+        public
+         property llvm_name_sym: tasmsymbol read get_llvm_name_sym;
+         property llvm_pointername_sym: tasmsymbol read get_llvm_pointer_name_sym;
+         property llvm_class_struct_name_sym: tasmsymbol read get_llvm_class_struct_name_sym;
+{$endif support_llvm}
       end;
 
 {************************************************

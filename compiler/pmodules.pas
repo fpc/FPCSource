@@ -49,6 +49,9 @@ implementation
        { fix me! }
        ,cpubase
 {$endif i386}
+{$ifdef support_llvm}
+       ,llvmdef
+{$endif support_llvm}
        ;
 
 
@@ -1197,6 +1200,15 @@ implementation
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
+{$ifdef support_llvm}
+         { insert llvm type info }
+         with tllvmdefinfo.create do
+           begin
+             inserttypeinfo;
+             free;
+           end;
+{$endif support_llvm}
+
          { generate imports }
          if current_module.ImportLibraryList.Count>0 then
            importlib.generatelib;
@@ -1740,6 +1752,15 @@ implementation
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
+{$ifdef support_llvm}
+         { insert llvm type info }
+         with tllvmdefinfo.create do
+           begin
+             inserttypeinfo;
+             free;
+           end;
+{$endif support_llvm}
+
          exportlib.generatelib;
 
          { write all our exports to the import library,
@@ -2107,6 +2128,15 @@ implementation
          { generate debuginfo }
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
+
+{$ifdef support_llvm}
+         { insert llvm type info }
+         with tllvmdefinfo.create do
+           begin
+             inserttypeinfo;
+             free;
+           end;
+{$endif support_llvm}
 
          if islibrary or (target_info.system in system_unit_program_exports) then
            exportlib.generatelib;
