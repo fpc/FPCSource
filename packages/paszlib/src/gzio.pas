@@ -12,7 +12,7 @@ unit gzio;
 }
 
 interface
-
+{$mode objfpc}
 {$I zconf.inc}
 
 uses
