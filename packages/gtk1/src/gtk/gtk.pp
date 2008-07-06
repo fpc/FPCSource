@@ -73,15 +73,6 @@ uses
   {$endif}
 {$endif}
 
-Type
-  PLongint  = ^Longint;
-  PByte     = ^Byte;
-  PWord     = ^Word;
-  PINteger  = ^Integer;
-  PCardinal = ^Cardinal;
-  PReal     = ^Real;
-  PDouble   = ^Double;
-
 {$define gtk_include_files}
 
 {$define read_interface}
