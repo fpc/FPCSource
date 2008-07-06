@@ -1870,7 +1870,7 @@ implementation
         fieldoffset,
         fieldnatsize: aint;
       begin
-        if sp_static in sym.symoptions then
+        if ([sp_static,sp_hidden] * sym.symoptions <> []) then
           exit;
 
         if (tabstractrecordsymtable(sym.owner).usefieldalignment<>bit_alignment) or

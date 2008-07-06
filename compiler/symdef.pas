@@ -4055,6 +4055,8 @@ implementation
 
 
    procedure tobjectdef.insertvmt;
+     var
+       vs: tfieldvarsym;
      begin
         if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
           exit;
@@ -4073,8 +4075,10 @@ implementation
                end;
 
              vmt_offset:=tObjectSymtable(symtable).datasize;
-             tObjectSymtable(symtable).datasize:=
-               tObjectSymtable(symtable).datasize+sizeof(pint);
+             vs:=tfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
+             hidesym(vs);
+             tObjectSymtable(symtable).insert(vs);
+             tObjectSymtable(symtable).addfield(vs);
              include(objectoptions,oo_has_vmt);
           end;
      end;
