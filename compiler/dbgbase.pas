@@ -55,6 +55,9 @@ interface
         procedure appenddef_formal(list:TAsmList;def:tformaldef);virtual;
         procedure appenddef_undefined(list:TAsmList;def: tundefineddef);virtual;
         procedure appendprocdef(list:TAsmList;def:tprocdef);virtual;
+{$ifdef support_llvm}
+        procedure appendprocdef_implicit(list:TAsmList;def:tprocdef);virtual;
+{$endif support_llvm}
         { symbols }
         procedure appendsym(list:TAsmList;sym:tsym);
         procedure beforeappendsym(list:TAsmList;sym:tsym);virtual;
@@ -132,6 +135,13 @@ implementation
     procedure TDebugInfo.appendprocdef(list:TAsmList;def:tprocdef);
       begin
       end;
+
+
+{$ifdef support_llvm}
+    procedure TDebugInfo.appendprocdef_implicit(list:TAsmList;def:tprocdef);
+      begin
+      end;
+{$endif support_llvm}
 
 
     procedure TDebugInfo.beforeappenddef(list:TAsmList;def:tdef);
@@ -272,6 +282,10 @@ implementation
               { procdefs are already written in a separate step. procdef
                 support in appenddef is only needed for beforeappenddef to
                 write all local type defs }
+{$ifdef support_llvm}
+              { llvm however needs the type info for all referenced procdefs }
+              appendprocdef_implicit(list,tprocdef(def));
+{$endif support_llvm}
             end;
         else
           internalerror(200601281);

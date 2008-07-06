@@ -67,6 +67,7 @@ interface
         procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
+        procedure appendprocdef_implicit(list:TAsmList;def:tprocdef);override;
         procedure appenddef_formal(list:TAsmList;def: tformaldef);override;
         procedure appenddef_object(list:TAsmList;def: tobjectdef);override;
         procedure appenddef_set(list:TAsmList;def: tsetdef);override;
@@ -160,9 +161,6 @@ implementation
 
 
     procedure TLLVMDefInfo.appenddef_ord(list:TAsmList;def:torddef);
-      var
-        basedef      : tdef;
-        fullbytesize : byte;
       begin
         case def.ordtype of
           s8bit,
@@ -213,8 +211,6 @@ implementation
 
 
     procedure TLLVMDefInfo.appenddef_enum(list:TAsmList;def:tenumdef);
-      var
-        hp : tenumsym;
       begin
         list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i'+tostr(def.size*8)));
       end;
@@ -299,7 +295,7 @@ implementation
             endstr:= ' }'
           end;
         if not assigned(tabstractrecordsymtable(def.symtable).llvmst) then
-          tabstractrecordsymtable(def.symtable).llvmst:=tllvmshadowsymtable.create(trecordsymtable(def.symtable));
+          tabstractrecordsymtable(def.symtable).llvmst:=tllvmshadowsymtable.create(tabstractrecordsymtable(def.symtable));
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
 
         i:=0;
@@ -337,14 +333,16 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_pointer(list:TAsmList;def:tpointerdef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),def_llvm_name(def.pointeddef).name+'*'));
+        { to avoid cluttering the source with pointer types,     }
+        { pointer type names directly are "pointeddef.name+'*'". }
+        { So only register the pointeddef so it gets printed     }
+        record_def(def.pointeddef);
       end;
 
 
     procedure TLLVMDefInfo.appenddef_classref(list:TAsmList;def: tclassrefdef);
       var
         defstr: ansistring;
-        vmtbuilder: tvmtbuilder;
         i: longint;
       begin
         { a pointer to the VMT. Structure of the VMT: }
@@ -361,19 +359,19 @@ implementation
         {   IntfTable     : pointer }
         {   MsgStrTable   : pointer }
         {   Methods       : X times procvar }
-        defstr:=def_llvm_name(ptrsinttype).name+',';
+        defstr:=def_llvm_name(ptrsinttype).name+', ';
         defstr:='< '+defstr+defstr;
 { needs to be pointer to the parent class' vmt!
         if assigned(tobjectdef(def.pointeddef).childof) then
           defstr:=defstr+def_llvm_name(tobjectdef(def.pointeddef).childof).name+'*,'
         else
 }
-          defstr:=defstr+'void*,';
+          defstr:=defstr+'void*, ';
         { class name (length+string) }
-        defstr:=defstr+'['+tostr(length(tobjectdef(def.pointeddef).objrealname^)+1)+' x i8]*,';
+        defstr:=defstr+'['+tostr(length(tobjectdef(def.pointeddef).objrealname^)+1)+' x i8]*, ';
         { the other fields }
         for i:=1 to 8 do
-          defstr:=defstr+'void*,';
+          defstr:=defstr+'void*, ';
         if not assigned(tobjectdef(def.pointeddef).VMTEntries) then
           with TVMTBuilder.Create(tobjectdef(def.pointeddef)) do
             begin
@@ -381,8 +379,8 @@ implementation
               free;
             end;
         for i:= 0 to tobjectdef(def.pointeddef).VMTEntries.Count-1 do
-          defstr:=defstr+def_llvm_name(tprocdef(tobjectdef(def.pointeddef).VMTEntries[i])).name+'*,';
-        setlength(defstr,length(defstr)-1);
+          defstr:=defstr+def_llvm_name(tprocdef(tobjectdef(def.pointeddef).VMTEntries[i])).name+'*, ';
+        setlength(defstr,length(defstr)-2);
         defstr:=defstr+' >*';
         list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
       end;
@@ -481,6 +479,7 @@ implementation
         labsym : tasmsymbol;
       begin
         list.concat(tai_comment.Create(strpnew('LLVM definition '+def.typename)));
+
 (*
         labsym:=def_dwarf_lab(def);
         if ds_dwarf_dbg_info_written in def.defstates then
@@ -496,93 +495,63 @@ implementation
       end;
 
 
+    procedure TLLVMDefInfo.appendprocdef_implicit(list:TAsmList;def:tprocdef);
+
+      procedure addspecialpara(var defstr: ansistring; vo: tvaroption; const modifier: ansistring);
+        var
+          i      : longint;
+        begin
+        for i:=0 to pred(def.parast.symlist.count) do
+          with tabstractvarsym(def.parast.symlist[i]) do
+            if (vo in varoptions) then
+              begin
+                defstr:=defstr+def_llvm_name(vardef).name+modifier+', ';
+                break;
+              end;
+        end;
+
+      var
+        defstr : ansistring;
+        i      : longint;
+      begin
+        { function result-by-reference is handled as a parameter }
+        if (def.proctypeoption in [potype_constructor,potype_destructor]) or
+           not paramanager.ret_in_param(def.returndef,def.proccalloption) then
+          defstr:=def_llvm_name(tprocdef(def).returndef).name
+        else
+          defstr:='void';
+        defstr:=defstr+' (  ';
+
+        for i:=0 to def.paras.count-1 do
+          with tparavarsym(def.paras[i]) do
+            begin
+              defstr:=defstr+def_llvm_name(vardef).name;
+              if paramanager.push_addr_param(varspez,vardef,tprocdef(owner.defowner).proccalloption) then
+                begin
+                  defstr:=defstr+'*';
+                  if (vo_has_local_copy in varoptions) then
+                    defstr:=defstr+' byval'
+                  else if (vo_is_funcret in varoptions) then
+                    defstr:=defstr+' sret';
+                end;
+              defstr:=defstr+', '
+            end;
+        defstr[length(defstr)-1]:=')';
+        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
+      end;
+      
+
     procedure TLLVMDefInfo.appendprocdef(list:TAsmList;def:tprocdef);
       var
-        procendlabel   : tasmlabel;
-        funcrettype    : tasmsymbol;
-        procentry      : string;
-        dreg           : byte;
+        defstr : ansistring;
+        i      : longint;
       begin
-        if not assigned(def.procstarttai) then
-          exit;
-
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'procedure/function'));
-(*
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
-        append_entry(DW_TAG_subprogram,true,
-          [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0,
-           DW_AT_external,DW_FORM_flag,po_global in def.procoptions
-          { data continues below }
-          { problem: base reg isn't known here
-            DW_AT_frame_base,DW_FORM_block1,1
-          }
-          ]);
-        { append block data }
-        { current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(def.))); }
-
-        if not(is_void(tprocdef(def).returndef)) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(def).returndef));
-
-        { mark end of procedure }
-        current_asmdata.getlabel(procendlabel,alt_dbgtype);
-        current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
-
-        if (target_info.system = system_powerpc64_linux) then
-          procentry := '.' + def.mangledname
-        else
-          procentry := def.mangledname;
-
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
-        append_labelentry(DW_AT_high_pc,procendlabel);
-
-        if assigned(def.funcretsym) and
-           (tabstractnormalvarsym(def.funcretsym).refs>0) then
-          begin
-            if tabstractnormalvarsym(def.funcretsym).localloc.loc=LOC_REFERENCE then
-              begin
-                finish_entry;
-
-                if paramanager.ret_in_param(def.returndef,def.proccalloption) then
-                  funcrettype:=def_dwarf_ref_lab(def.returndef)
-                else
-                  funcrettype:=def_dwarf_lab(def.returndef);
-
-                append_entry(DW_TAG_formal_parameter,false,[
-                  DW_AT_name,DW_FORM_string,def.procsym.name+#0,
-                  {
-                  DW_AT_decl_file,DW_FORM_data1,0,
-                  DW_AT_decl_line,DW_FORM_data1,
-                  }
-                  { data continues below }
-                  DW_AT_location,DW_FORM_block1,1+Lengthsleb128(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset)
-                ]);
-
-                { append block data }
-                dreg:=dwarf_reg(tabstractnormalvarsym(def.funcretsym).localloc.reference.base);
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset));
-                append_labelentry_ref(DW_AT_type,funcrettype);
-              end;
-          end;
-        finish_entry;
-
-        if assigned(def.parast) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.parast);
-        { local type defs and vars should not be written
-          inside the main proc }
-        if assigned(def.localst) and
-           (def.localst.symtabletype=localsymtable) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.localst);
-
         { last write the types from this procdef }
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
         if assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
-
-        finish_children;
-*)
       end;
 
 
