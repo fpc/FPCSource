@@ -351,6 +351,8 @@ implementation
         newss   : ansistring;
         ss      : pansistring absolute arg;
       begin
+        if (sp_hidden in tsym(p).symoptions) then
+          exit;
         { static variables from objects are like global objects }
         if (Tsym(p).typ=fieldvarsym) and
            not(sp_static in Tsym(p).symoptions) then
