@@ -290,22 +290,37 @@ implementation
           begin
             { we handle the alignment/padding ourselves }
             defstr:='< ';
-            endstr:='>'
+            endstr:=' >'
           end
         else
           begin
             { let llvm do everything }
             defstr:= '{ ';
-            endstr:= '}'
+            endstr:= ' }'
           end;
         if not assigned(tabstractrecordsymtable(def.symtable).llvmst) then
           tabstractrecordsymtable(def.symtable).llvmst:=tllvmshadowsymtable.create(trecordsymtable(def.symtable));
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
-        for i:=0 to pred(symdeflist.count) do
-          defstr:=defstr+def_llvm_name(tllvmshadowsymtableentry(symdeflist[i]).def).name+', ';
+
+        i:=0;
+        if (def.typ=objectdef) and
+           assigned(tobjectdef(def).childof) and
+           is_class(tllvmshadowsymtableentry(symdeflist[0]).def) then
+          begin
+            { insert the struct for the class rather than a pointer to the struct }
+            if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
+              internalerror(2008070601);
+            defstr:=defstr+def_llvm_class_struct_name(tobjectdef(tllvmshadowsymtableentry(symdeflist[0]).def)).name+', ';
+            inc(i);
+          end;
+        while i< symdeflist.count do
+          begin
+            defstr:=defstr+def_llvm_name(tllvmshadowsymtableentry(symdeflist[i]).def).name+', ';
+            inc(i);
+          end;
         { remove last ', ' }
         setlength(defstr,length(defstr)-2);
-        defstr:=defstr+' }';
+        defstr:=defstr+endstr;
         if (def.typ <> objectdef) or
            not(tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_class]) then
           list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr))

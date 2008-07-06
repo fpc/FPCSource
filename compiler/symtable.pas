@@ -149,7 +149,7 @@ interface
          // generate the table
          procedure generate;
          // helpers
-         procedure appendsymdef(sym:tfieldvarsym);
+         procedure appenddefoffset(vardef:tdef; fieldoffset: aint; derefclass: boolean);
          procedure findvariantstarts(item: TObject; arg: pointer);
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
@@ -1206,7 +1206,7 @@ implementation
       end;
 
 
-    procedure tllvmshadowsymtable.appendsymdef(sym:tfieldvarsym);
+    procedure tllvmshadowsymtable.appenddefoffset(vardef:tdef; fieldoffset: aint; derefclass: boolean);
       var
         sizectr,
         tmpsize: aint;
@@ -1214,7 +1214,7 @@ implementation
         case equivst.usefieldalignment of
           C_alignment:
             { default for llvm, don't add explicit padding }
-            symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
+            symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
           bit_alignment:
             begin
               { curoffset: bit address after the previous field.      }
@@ -1222,39 +1222,45 @@ implementation
               { so we replace them with plain bytes.                  }
               { as soon as a single bit of a byte is allocated, we    }
               { allocate the byte in the llvm shadow record           }
-              if (sym.fieldoffset>curroffset) then
+              if (fieldoffset>curroffset) then
                 curroffset:=align(curroffset,8);
               { fields in bitpacked records always start either right }
               { after the previous one, or at the next byte boundary. }
-              if (curroffset<>sym.fieldoffset) then
+              if (curroffset<>fieldoffset) then
                 internalerror(2008051002);
-              if is_ordinal(sym.vardef) and
-                 (sym.getpackedbitsize mod 8 <> 0) then
+              if is_ordinal(vardef) and
+                 (vardef.packedbitsize mod 8 <> 0) then
                 begin
-                  tmpsize:=sym.getpackedbitsize;
+                  tmpsize:=vardef.packedbitsize;
                   sizectr:=tmpsize+7;
                   repeat
-                    symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,sym.fieldoffset+(tmpsize+7)-sizectr));
+                    symdeflist.add(tllvmshadowsymtableentry.create(u8inttype,fieldoffset+(tmpsize+7)-sizectr));
                     dec(sizectr,8);
                   until (sizectr<=0);
                   inc(curroffset,tmpsize);
                 end
               else
                 begin
-                   symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
-                  inc(curroffset,sym.vardef.size*8);
-                end;
+                  symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
+                  if not(derefclass) then
+                    inc(curroffset,vardef.size*8)
+                  else
+                    inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize*8);
+               end;
             end
           else
             begin
               { curoffset: address right after the previous field }
-              while (sym.fieldoffset>curroffset) do
+              while (fieldoffset>curroffset) do
                 begin
                   symdeflist.add(tllvmshadowsymtableentry.create(s8inttype,curroffset));
                   inc(curroffset);
                 end;
-              symdeflist.add(tllvmshadowsymtableentry.create(sym.vardef,sym.fieldoffset));
-              inc(curroffset,sym.vardef.size);
+              symdeflist.add(tllvmshadowsymtableentry.create(vardef,fieldoffset));
+              if not(derefclass) then
+                inc(curroffset,vardef.size)
+              else
+                inc(curroffset,tobjectsymtable(tobjectdef(vardef).symtable).datasize);
             end
         end
       end;
@@ -1328,7 +1334,7 @@ implementation
         { if it's an object/class, the first entry is the parent (if there is one) }
         if (equivst.symtabletype=objectsymtable) and
            assigned(tobjectdef(equivst.defowner).childof) then
-          symdeflist.add(tllvmshadowsymtableentry.create(tobjectdef(equivst.defowner).childof,0));
+          appenddefoffset(tobjectdef(equivst.defowner).childof,0,is_class(tobjectdef(equivst.defowner).childof));
         equivcount:=equivst.symlist.count;
         varcount:=0;
         i:=0;
@@ -1357,7 +1363,7 @@ implementation
                 if (i<0) then
                   internalerror(2008051004);
               end;
-            appendsymdef(tfieldvarsym(equivst.symlist[i]));
+            appenddefoffset(tfieldvarsym(equivst.symlist[i]).vardef,tfieldvarsym(equivst.symlist[i]).fieldoffset,false);
             inc(i);
           end;
         addalignmentpadding(equivst.datasize);
