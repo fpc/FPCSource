@@ -740,7 +740,8 @@ var
   Item: TCollectionItem;
 begin
   Collection.BeginUpdate;
-  Collection.Clear;
+  if not EndOfList then
+    Collection.Clear;
   while not EndOfList do begin
     ReadListBegin;
     Item := Collection.Add;
