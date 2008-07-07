@@ -7421,6 +7421,7 @@ tests/test/opt/treg3.pp svneol=native#text/plain
 tests/test/opt/treg4.pp svneol=native#text/plain
 tests/test/opt/tretopt.pp svneol=native#text/plain
 tests/test/opt/tspace.pp svneol=native#text/plain
+tests/test/packages/fcl-process/tw11570.pp svneol=native#text/plain
 tests/test/packages/fcl-registry/tregistry1.pp svneol=native#text/plain
 tests/test/packages/hash/tmdtest.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw10045.pp svneol=native#text/plain

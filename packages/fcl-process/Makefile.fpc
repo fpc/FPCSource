@@ -22,20 +22,7 @@ units_wince=simpleipc dbugmsg dbugintf
 units_qnx=simpleipc dbugmsg dbugintf
 units_os2=simpleipc dbugmsg dbugintf
 units_emx=simpleipc dbugmsg dbugintf
-rsts_beos=process simpleipc
-rsts_haiku=process simpleipc
-rsts_freebsd=process simpleipc
-rsts_darwin=process simpleipc
-rsts_solaris=process simpleipc
-rsts_netbsd=process simpleipc
-rsts_openbsd=process simpleipc
-rsts_linux=process simpleipc
-rsts_qnx=process simpleipc
-rsts_win32=simpleipc
-rsts_win64=simpleipc
-rsts_wince=simpleipc
-rsts_os2=simpleipc
-rsts_emx=simpleipc
+rsts=process simpleipc
 
 [compiler]
 options=-S2h
