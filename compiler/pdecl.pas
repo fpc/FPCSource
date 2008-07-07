@@ -519,6 +519,7 @@ implementation
               case hdef.typ of
                 pointerdef :
                   begin
+                    try_consume_hintdirective(newtype.symoptions);
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
@@ -530,13 +531,21 @@ implementation
                   begin
                     { in case of type renaming, don't parse proc directives }
                     if istyperenaming then
-                     consume(_SEMICOLON)
+                      begin
+                        try_consume_hintdirective(newtype.symoptions);
+                        consume(_SEMICOLON);
+                      end
                     else
                      begin
                        if not check_proc_directive(true) then
-                        consume(_SEMICOLON);
+                         begin
+                           try_consume_hintdirective(newtype.symoptions);
+                           consume(_SEMICOLON);
+                         end;
                        parse_var_proc_directives(tsym(newtype));
                        handle_calling_convention(tprocvardef(hdef));
+                       if try_consume_hintdirective(newtype.symoptions) then
+                         consume(_SEMICOLON);
                      end;
                   end;
                 objectdef :
@@ -559,7 +568,10 @@ implementation
                     consume(_SEMICOLON);
                   end;
                 else
-                  consume(_SEMICOLON);
+                  begin
+                    try_consume_hintdirective(newtype.symoptions);
+                    consume(_SEMICOLON);
+                  end;
               end;
             end;
 
