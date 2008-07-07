@@ -1137,6 +1137,7 @@ implementation
         if not assigned(fllvm_name_sym) then
           begin
             fllvm_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname,AB_LOCAL,AT_DATA);
+            fllvm_pointer_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'*',AB_LOCAL,AT_DATA);
             if is_class_or_interface_or_dispinterface(self) then
               fllvm_class_struct_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$struct',AB_LOCAL,AT_DATA);
           end;
