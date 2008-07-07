@@ -95,7 +95,6 @@ interface
         destructor Destroy;override;
         procedure insertmoduleinfo;override;
         procedure inserttypeinfo;override;
-        procedure referencesections(list:TAsmList);override;
       end;
 
 implementation
@@ -301,7 +300,7 @@ implementation
         i:=0;
         if (def.typ=objectdef) and
            assigned(tobjectdef(def).childof) and
-           is_class(tllvmshadowsymtableentry(symdeflist[0]).def) then
+           is_class_or_interface_or_dispinterface(tllvmshadowsymtableentry(symdeflist[0]).def) then
           begin
             { insert the struct for the class rather than a pointer to the struct }
             if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
@@ -940,11 +939,6 @@ implementation
       end;
 
 
-    procedure TLLVMDefInfo.referencesections(list:TAsmList);
-      begin
-      end;
-
-
     function TLLVMDefInfo.symname(sym: tsym): String;
       begin
         if (sym.typ=paravarsym) and
@@ -958,9 +952,6 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
-          replace it with a unsigned type with size 0 (FK)
-        }
         list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef*'));
       end;
 
@@ -998,15 +989,11 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_undefined(list:TAsmList;def: tundefineddef);
       begin
-        { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
-          replace it with a unsigned type with size 0 (FK)
-        }
         list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef'));
       end;
 
     procedure TLLVMDefInfo.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
-        { variants aren't known to dwarf2 but writting tvardata should be enough }
         appenddef_record(list,trecorddef(vardatadef));
       end;
 

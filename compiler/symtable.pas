@@ -1334,7 +1334,7 @@ implementation
         { if it's an object/class, the first entry is the parent (if there is one) }
         if (equivst.symtabletype=objectsymtable) and
            assigned(tobjectdef(equivst.defowner).childof) then
-          appenddefoffset(tobjectdef(equivst.defowner).childof,0,is_class(tobjectdef(equivst.defowner).childof));
+          appenddefoffset(tobjectdef(equivst.defowner).childof,0,is_class_or_interface_or_dispinterface(tobjectdef(equivst.defowner).childof));
         equivcount:=equivst.symlist.count;
         varcount:=0;
         i:=0;
