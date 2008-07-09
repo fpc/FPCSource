@@ -404,6 +404,7 @@ Const
   KeyRequired               = 'Required';
   KeyVisible                = 'Visible';
   KeySize                   = 'Size';
+  KeyPrecision              = 'Precision';
   KeyFieldType              = 'FieldType';
   KeyHint                   = 'Hint';
 
@@ -790,7 +791,9 @@ begin
     begin
     WriteInteger(ASection,KeyFieldType,Ord(Fieldtype));
     If IsSizeStored then
-      WriteInteger(ASection,KeySize,Ord(Size));
+      WriteInteger(ASection,KeySize,Size);
+    If IsPrecisionStored then
+      WriteInteger(ASection,KeyPrecision,Precision);
     WriteInteger(ASection,KeyAlignMent,Ord(AlignMent));
     WriteInteger(ASection,KeyDisplayWidth,DisplayWidth);
     WriteString(ASection,KeyCustomConstraint,CustomConstraint);
@@ -815,6 +818,8 @@ begin
     FieldType:=TFieldType(ReadInteger(ASection,KeyFieldType,Ord(Fieldtype)));
     If IsSizeStored then
       Size:=ReadInteger(ASection,KeySize,0);
+    If IsPrecisionStored then
+      Precision:=ReadInteger(ASection,KeyPrecision,0);
     Alignment:=TAlignment(ReadInteger(ASection,KeyAlignMent,Ord(AlignMent)));
     DisplayWidth:=ReadInteger(ASection,KeyDisplayWidth,DisplayWidth);
     CustomConstraint:=ReadString(ASection,KeyCustomConstraint,CustomConstraint);
@@ -1572,7 +1577,7 @@ begin
       Result:=Result+Format('(%d)',[FD.Size]);
     ftBCD,
     ftFMTBCD :
-      Result:=Result+Format('(%d,%d)',[FD.Precision,FD.Size]);
+      Result:=Result+Format('(%d,%d)',[FD.Size,FD.Precision]);
   end;
 end;
 
