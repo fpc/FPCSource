@@ -1166,6 +1166,7 @@ packages/fcl-db/src/codegen/fpcgdbcoll.pp svneol=native#text/plain
 packages/fcl-db/src/codegen/fpcgsqlconst.pp svneol=native#text/plain
 packages/fcl-db/src/codegen/fpcgtiopf.pp svneol=native#text/plain
 packages/fcl-db/src/codegen/fpddcodegen.pp svneol=native#text/plain
+packages/fcl-db/src/codegen/fpddpopcode.pp svneol=native#text/plain
 packages/fcl-db/src/datadict/Makefile svneol=native#text/plain
 packages/fcl-db/src/datadict/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/datadict/buildd.lpi svneol=native#text/plain
