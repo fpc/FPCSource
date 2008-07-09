@@ -197,7 +197,7 @@
      NWPSTR = Pwidechar;
 
      PWINBOOL = ^WINBOOL;
-     PBOOLEAN = ^BYTE;
+     PBOOLEAN = ^BYTE {$ifndef VER2_2} deprecated {$endif};
 
      PBYTE = System.PByte;
 
