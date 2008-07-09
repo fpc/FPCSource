@@ -798,10 +798,8 @@ implementation
 
     function tarrayconstructorrangenode.pass_1 : tnode;
       begin
-        firstpass(left);
-        firstpass(right);
-        expectloc:=LOC_CREFERENCE;
         result:=nil;
+        CGMessage(parser_e_illegal_expression);
       end;
 
 
