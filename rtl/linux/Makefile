@@ -280,7 +280,7 @@ CPU_UNITS=x86 ports cpu mmx
 SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=
+CPU_UNITS=x86 ports
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 ifeq ($(ARCH),arm)
