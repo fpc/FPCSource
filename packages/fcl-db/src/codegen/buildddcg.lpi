@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="6"/>
+    <General>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+      <ActiveEditorIndexAtStart Value="1"/>
+    </General>
+    <VersionInfo>
+      <ProjectVersion Value=""/>
+      <Language Value=""/>
+      <CharSet Value=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="7">
+      <Unit0>
+        <Filename Value="buildddcg.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="buildddcg"/>
+        <CursorPos X="18" Y="1"/>
+        <TopLine Value="1"/>
+        <EditorIndex Value="0"/>
+        <UsageCount Value="52"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="fpddpopcode.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddpopcode"/>
+        <UsageCount Value="52"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="fpcgcreatedbf.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgcreatedbf"/>
+        <UsageCount Value="52"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="fpcgdbcoll.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgdbcoll"/>
+        <UsageCount Value="52"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="fpcgsqlconst.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgsqlconst"/>
+        <UsageCount Value="52"/>
+        <SyntaxHighlighter Value="Text"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="fpcgtiopf.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgtiopf"/>
+        <CursorPos X="37" Y="474"/>
+        <TopLine Value="457"/>
+        <EditorIndex Value="1"/>
+        <UsageCount Value="52"/>
+        <Loaded Value="True"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="fpddcodegen.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddcodegen"/>
+        <CursorPos X="3" Y="638"/>
+        <TopLine Value="635"/>
+        <EditorIndex Value="2"/>
+        <UsageCount Value="52"/>
+        <Loaded Value="True"/>
+      </Unit6>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="791" Column="1" TopLine="779"/>
+      </Position1>
+      <Position2>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position2>
+      <Position3>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="241" Column="38" TopLine="216"/>
+      </Position3>
+      <Position4>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="739" Column="56" TopLine="714"/>
+      </Position4>
+      <Position5>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="769" Column="36" TopLine="744"/>
+      </Position5>
+      <Position6>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="791" Column="34" TopLine="766"/>
+      </Position6>
+      <Position7>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="820" Column="32" TopLine="795"/>
+      </Position7>
+      <Position8>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="835" Column="32" TopLine="810"/>
+      </Position8>
+      <Position9>
+        <Filename Value="fpddcodegen.pp"/>
+        <Caret Line="235" Column="15" TopLine="210"/>
+      </Position9>
+      <Position10>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="124" Column="26" TopLine="124"/>
+      </Position10>
+      <Position11>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="888" Column="1" TopLine="839"/>
+      </Position11>
+      <Position12>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="715" Column="18" TopLine="693"/>
+      </Position12>
+      <Position13>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="59" Column="30" TopLine="34"/>
+      </Position13>
+      <Position14>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="417" Column="46" TopLine="392"/>
+      </Position14>
+      <Position15>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="205" Column="9" TopLine="192"/>
+      </Position15>
+      <Position16>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="820" Column="1" TopLine="796"/>
+      </Position16>
+      <Position17>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="821" Column="49" TopLine="795"/>
+      </Position17>
+      <Position18>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position18>
+      <Position19>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="79" Column="33" TopLine="54"/>
+      </Position19>
+      <Position20>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="819" Column="31" TopLine="795"/>
+      </Position20>
+      <Position21>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="376" Column="31" TopLine="362"/>
+      </Position21>
+      <Position22>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="882" Column="28" TopLine="839"/>
+      </Position22>
+      <Position23>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="881" Column="21" TopLine="842"/>
+      </Position23>
+      <Position24>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="16" Column="1" TopLine="1"/>
+      </Position24>
+      <Position25>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="881" Column="28" TopLine="842"/>
+      </Position25>
+      <Position26>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="882" Column="23" TopLine="842"/>
+      </Position26>
+      <Position27>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position27>
+      <Position28>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="79" Column="33" TopLine="54"/>
+      </Position28>
+      <Position29>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="883" Column="5" TopLine="842"/>
+      </Position29>
+      <Position30>
+        <Filename Value="fpcgtiopf.pp"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="../../units/$(TARGETCPU)-$(TARGETOS)"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>
