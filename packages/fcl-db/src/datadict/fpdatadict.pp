@@ -431,7 +431,7 @@ Const
     'BOOL', 'FLOAT', 'DECIMAL','DECIMAL','DATE', 'TIME', 'TIMESTAMP',
     '', '', 'INT', 'BLOB', 'BLOB', 'BLOB', 'BLOB',
     '', '', '', '', 'CHAR',
-    'CHAR', 'DOUBLE PRECISION', '', '', '',
+    'CHAR', 'BIGINT', '', '', '',
     '', '', '', '', '',
     '', '', 'TIMESTAMP', 'DECIMAL','CHAR','BLOB');
     
