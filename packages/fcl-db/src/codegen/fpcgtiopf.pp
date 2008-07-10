@@ -66,7 +66,7 @@ TYpe
     procedure WriteCreateVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteDeleteVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef);
-    procedure WriteParamAssign(Strings: TStrings; F: TFieldPropDef);
+    procedure WriteAssignToParam(Strings: TStrings; F: TFieldPropDef);
     procedure WriteReadListVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteReadVisitor(Strings: TStrings; const ObjectClassName: String );
     procedure WriteSetSQL(Strings: TStrings; const ASQL: String);
@@ -196,7 +196,12 @@ Var
 
 begin
   If (caCreateClass in TiOPFOptions.ClassOptions) then
-    inherited DoGenerateInterface(Strings);
+    inherited DoGenerateInterface(Strings)
+  else
+    begin
+    Addln(Strings,'Type');
+    Addln(Strings);
+    end;
   With TiOPFOptions do
     begin
     IncIndent;
@@ -356,6 +361,7 @@ begin
   finally
     DecIndent;
   end;
+  AddLn(Strings,'');
 end;
 
 
@@ -480,7 +486,7 @@ begin
   F:=Fields.FindPropName('OID');
   S:=BeginSetupParams(Strings,C,ObjectClassName,F<>Nil);
   If (F<>Nil) then
-    WriteParamAssign(Strings,F)
+    WriteAssignToParam(Strings,F)
   else
     AddLn(Strings,'// Set up as needed');
   DecIndent;
@@ -494,7 +500,7 @@ begin
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
         WriteFieldAssign(Strings,Fields[i]);
-    Addln(Strings,'end');
+    Addln(Strings,'end;');
   finally
     DecIndent;
   end;
@@ -550,7 +556,7 @@ begin
   AddLn(Strings,R);
 end;
 
-procedure TTiOPFCodeGenerator.WriteParamAssign(Strings : TStrings; F : TFieldPropDef);
+procedure TTiOPFCodeGenerator.WriteAssignToParam(Strings : TStrings; F : TFieldPropDef);
 
 Var
   PN,FN,SFN,R,S : String;
@@ -594,7 +600,7 @@ begin
         R:=Format('// Add custom loading code here for %s from %s',[PN,FN]);
     end;
   If (S<>'') then
-    R:=Format('O.%s:=Param%s[%s];',[PN,S,SFN]);
+    R:=Format('Param%s[%s]:=O.%s;',[S,SFN,PN]);
   AddLn(Strings,R);
 end;
 
@@ -612,7 +618,7 @@ begin
   LN:=tiOPFOptions.ListClassName;
   OCN:=StripType(ObjectClassName);
   CS:=Format('SQLReadList%s',[OCN]);
-  C:=Format('TRead%sVisitor',[StripType(LN)]);
+  C:=Format('TReadList%sVisitor',[StripType(OCN)]);
   Addln(Strings,'{ %s }',[C]);
   Addln(Strings);
   // Init
@@ -629,11 +635,19 @@ begin
   DecIndent;
   EndMethod(Strings,S);
   // MapRowToObject
-  S:=BeginMapRowToObject(Strings,S,ObjectClassName);
+  S:=BeginMapRowToObject(Strings,C,ObjectClassName);
   Addln(Strings,'O:=%s.Create;',[ObjectClassName]);
-  For I:=0 to Fields.Count-1 do
-    If Fields[i].Enabled then
-      WriteFieldAssign(Strings,Fields[i]);
+  Addln(Strings,'With Query do',[ObjectClassName]);
+  IncINdent;
+  try
+    Addln(Strings,'begin');
+    For I:=0 to Fields.Count-1 do
+      If Fields[i].Enabled then
+        WriteFieldAssign(Strings,Fields[i]);
+    Addln(Strings,'end;');
+  finally
+    DecIndent;
+  end;
   Addln(Strings,'O.ObjectState:=posClean;');
   Addln(Strings,'%s(Visited).Add(O);',[LN]);
   DecIndent;
@@ -675,7 +689,7 @@ begin
     Addln(Strings,'begin');
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
-        WriteParamAssign(Strings,Fields[i]);
+        WriteAssignToParam(Strings,Fields[i]);
     Addln(Strings,'end;');
   finally
     DecIndent;
@@ -715,7 +729,7 @@ begin
   S:=BeginSetupParams(Strings,C,ObjectClassName,True);
   F:=Fields.FindPropName('OID');
   If (F<>Nil) then
-    WriteParamAssign(Strings,F)
+    WriteAssignToParam(Strings,F)
   else
     AddLn(Strings,'// Add parameter setup code here ');
   DecIndent;
@@ -752,7 +766,7 @@ begin
     Addln(Strings,'begin');
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
-        WriteParamAssign(Strings,Fields[i]);
+        WriteAssignToParam(Strings,Fields[i]);
     Addln(Strings,'end;');
   finally
     DecIndent;
