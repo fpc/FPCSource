@@ -318,7 +318,7 @@ implementation
              end;
            procsym :
              begin
-               { Return the first procdef. In case of overlaoded
+               { Return the first procdef. In case of overloaded
                  procdefs the matching procdef will be choosen
                  when the expected procvardef is known, see get_information
                  in htypechk.pas (PFV) }

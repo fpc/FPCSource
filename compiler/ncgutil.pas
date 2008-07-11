@@ -2299,7 +2299,7 @@ implementation
               staticvarsym :
                 begin
                   vs:=tabstractnormalvarsym(sym);
-                  { The code in laodnode.pass_generatecode will create the
+                  { The code in loadnode.pass_generatecode will create the
                     LOC_REFERENCE instead for all none register variables. This is
                     required because we can't store an asmsymbol in the localloc because
                     the asmsymbol is invalid after an unit is compiled. This gives
