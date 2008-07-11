@@ -6,7 +6,7 @@
 main=fcl-db
 
 [target]
-units=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll
+units=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll sqlscript
 rsts=dbwhtml dbconst dbcoll
 
 [require]

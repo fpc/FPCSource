@@ -1159,6 +1159,7 @@ packages/fcl-db/src/base/dsparams.inc svneol=native#text/plain
 packages/fcl-db/src/base/fields.inc svneol=native#text/plain
 packages/fcl-db/src/base/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/base/fpmake.pp svneol=native#text/plain
+packages/fcl-db/src/base/sqlscript.pp svneol=native#text/plain
 packages/fcl-db/src/codegen/Makefile svneol=native#text/plain
 packages/fcl-db/src/codegen/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/codegen/buildddcg.lpi svneol=native#text/plain
@@ -1327,6 +1328,7 @@ packages/fcl-db/tests/testbasics.pas svneol=native#text/plain
 packages/fcl-db/tests/testdatasources.pas svneol=native#text/plain
 packages/fcl-db/tests/testdbbasics.pas -text
 packages/fcl-db/tests/testfieldtypes.pas svneol=native#text/plain
+packages/fcl-db/tests/testsqlscript.pas svneol=native#text/plain
 packages/fcl-db/tests/toolsunit.pas -text
 packages/fcl-fpcunit/Makefile svneol=native#text/plain
 packages/fcl-fpcunit/Makefile.fpc svneol=native#text/plain
