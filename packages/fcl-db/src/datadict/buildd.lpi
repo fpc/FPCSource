@@ -94,6 +94,9 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="../../units/$(TARGETCPU)-$(TARGETOS)"/>
+    </SearchPaths>
     <CodeGeneration>
       <Generate Value="Faster"/>
     </CodeGeneration>
