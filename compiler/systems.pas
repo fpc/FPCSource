@@ -808,9 +808,10 @@ begin
     {$define default_target_set}
    {$endif}
   {$endif cpu86}
+
   { default is linux }
   {$ifndef default_target_set}
-   default_target(system_i386_linux);
+    default_target(system_i386_linux);
   {$endif default_target_set}
 {$endif i386}
 
@@ -833,12 +834,8 @@ begin
    {$endif}
    {$ifdef darwin}
     default_target(system_x86_64_darwin);
-    {$define source_system_set}
+    {$define default_target_set}
    {$endif}
-   { default is linux }
-   {$ifndef source_system_set}
-    default_target(system_x86_64_linux);
-   {$endif source_system_set}
   {$endif cpux86_64}
   { default is linux }
   {$ifndef default_target_set}
@@ -907,11 +904,11 @@ begin
   {$ifdef cpuarm}
     default_target(source_info.system);
   {$else cpuarm}
-  {$ifdef WINDOWS}
-    default_target(system_arm_wince);
-  {$else WINDOWS}
-    default_target(system_arm_linux);
-  {$endif WINDOWS}
+    {$ifdef WINDOWS}
+      default_target(system_arm_wince);
+    {$else WINDOWS}
+      default_target(system_arm_linux);
+    {$endif WINDOWS}
   {$endif cpuarm}
 {$endif arm}
 end;
