@@ -798,11 +798,11 @@ end;
 
 procedure TTestDecoratorTest.TestRun;
 var
-  suite: TTestSuite;
+  lsuite: TTestSuite;
   decorator: TTestDecorator;
 begin
-  suite := TTestSuite.Create(TEncapsulatedTestCase);
-  decorator := TTestDecorator.Create(suite);
+  lsuite := TTestSuite.Create(TEncapsulatedTestCase);
+  decorator := TTestDecorator.Create(lsuite);
   decorator.Run(res);
   AssertEquals('wrong number of executed tests', 2, res.RunTests);
   AssertEquals('wrong number of failures', 1, res.Failures.Count);
@@ -811,12 +811,12 @@ end;
 
 procedure TTestDecoratorTest.TestOneTimeSetup;
 var
-  suite: TTestSuite;
+  lsuite: TTestSuite;
   setupDecorator: TTestSetup;
 begin
   CountSetup := 0;
-  suite := TTestSuite.Create(TEncapsulatedTestCase);
-  setupDecorator := TMyTestSetup.Create(suite);
+  lsuite := TTestSuite.Create(TEncapsulatedTestCase);
+  setupDecorator := TMyTestSetup.Create(lsuite);
   setupDecorator.Run(res);
   AssertEquals('wrong number of executed tests', 2, res.RunTests);
   AssertEquals('wrong number of failures', 1, res.Failures.Count);
