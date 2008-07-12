@@ -76,14 +76,28 @@ begin
   WriteLn(Name);
 end;
 
+Procedure Usage;
+
+begin
+  WriteLn('   Usage:  chmls filename.chm [section number]');
+  Halt(1);
+end;
+
 // Start of program
 begin
-  if Paramcount < 1 then begin
-    WriteLn('   Usage:  chmls filename.chm [section number]');
-    exit;
-  end;
-  if ParamCount > 1 then Section := StrToInt(ParamStr(2));
-  
+  if (Paramcount < 1) or (Paramstr(1)='-h') or (Paramstr(1)='-?') then 
+    begin
+    usage;
+    end;
+  if ParamCount > 1 then 
+    begin
+    Section := StrToIntDef(ParamStr(2),-1);
+    If (Section=-1) then
+      begin
+      Usage;
+      Halt(1);
+      end;
+    end; 
   Stream := TFileStream.Create(ParamStr(1), fmOpenRead);
   JunkObject := TJunkObject.Create;
   ITS:= TITSFReader.Create(Stream, True);
