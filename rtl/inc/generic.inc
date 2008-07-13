@@ -1466,6 +1466,16 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
 
+{$ifdef CPU16}
+{$ifndef FPC_SYSTEM_HAS_DECLOCKED_SMALLINT}
+function declocked(var l:smallint):boolean;
+  begin
+    Dec(l);
+    declocked:=(l=0);
+  end;
+{$endif FPC_SYSTEM_HAS_DECLOCKED_SMALLINT}
+{$endif CPU16}
+
 {$ifndef FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function declocked(var l:longint):boolean;
   begin
@@ -1483,6 +1493,15 @@ function declocked(var l:int64):boolean;
   end;
 {$endif FPC_SYSTEM_HAS_DECLOCKED_INT64}
 
+
+{$ifdef CPU16}
+{$ifndef FPC_SYSTEM_HAS_INCLOCKED_SMALLINT}
+procedure inclocked(var l:smallint);
+  begin
+    Inc(l);
+  end;
+{$endif FPC_SYSTEM_HAS_INCLOCKED_SMALLINT}
+{$endif CPU16}
 
 {$ifndef FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l:longint);

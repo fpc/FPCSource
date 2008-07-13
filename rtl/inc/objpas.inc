@@ -517,7 +517,11 @@
             Offset : Longint;
           end;
 
+{$ifdef CPU16}
+          TRecElemArray = packed array[1..Maxint div sizeof(TRecElem)-1] of TRecElem;
+{$else CPU16}
           TRecElemArray = packed array[1..Maxint] of TRecElem;
+{$endif CPU16}
 
           PRecRec = ^TRecRec;
           TRecRec = record
@@ -787,7 +791,7 @@
       if getinterface(iid,obj) then
         result:=0
       else
-        result:=longint(E_NOINTERFACE); 
+        result:=longint(E_NOINTERFACE);
     end;
 
 {****************************************************************************

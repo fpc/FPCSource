@@ -40,6 +40,10 @@
   {$goto+}
 {$endif CPUPOWERPC}
 
+{$ifdef CPUAVR}
+  {$goto+}
+{$endif CPUAVR}
+
 
 { needed for insert,delete,readln }
 {$P+}
@@ -274,7 +278,11 @@ Type
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
+{$ifdef CPU16}
+  TUCS4CharArray      = array[0..32767 div sizeof(UCS4Char)-1] of UCS4Char;
+{$else CPU16}
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
+{$endif CPU16}
   PUCS4CharArray      = ^TUCS4CharArray;
   UCS4String          = array of UCS4Char;
 
@@ -370,14 +378,26 @@ const
   maxint   = maxsmallint;
 
 type
+{$ifdef CPU16}
+  IntegerArray  = array[0..maxSmallint div sizeof(Integer)-1] of Integer;
+{$else CPU16}
   IntegerArray  = array[0..$effffff] of Integer;
+{$endif CPU16}
   PIntegerArray = ^IntegerArray;
-  PointerArray = array [0..512*1024*1024 - 2] of Pointer;
+{$ifdef CPU16}
+  PointerArray = array [0..32767 div sizeof(Pointer)-1] of Pointer;
+{$else CPU16}
+  PointerArray = array [0..512*1024*1024-2] of Pointer;
+{$endif CPU16}
   PPointerArray = ^PointerArray;
 
   TBoundArray = array of SizeInt;
 
+{$ifdef CPU16}
+  TPCharArray = packed array[0..(MaxSmallint div SizeOf(PChar))-1] of PChar;
+{$else CPU16}
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
+{$endif CPU16}
   PPCharArray = ^TPCharArray;
 
 (* CtrlBreak set to true signalizes Ctrl-Break signal, otherwise Ctrl-C. *)
