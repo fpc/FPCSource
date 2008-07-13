@@ -27,13 +27,11 @@ interface
 
     uses
       globtype,
-      node,nset,pass_1,ncgset;
+      node,nset,pass_1,nx86set;
 
     type
-      ti386casenode = class(tcgcasenode)
+      ti386casenode = class(tx86casenode)
          procedure optimizevalues(var max_linear_list:aint;var max_dist:aword);override;
-         function  has_jumptable : boolean;override;
-         procedure genjumptable(hp : pcaselabel;min_,max_ : aint);override;
          procedure genlinearlist(hp : pcaselabel);override;
       end;
 
@@ -67,74 +65,6 @@ implementation
           inc(max_linear_list,9)
         else if current_settings.optimizecputype=cpu_Pentium4 then
           inc(max_linear_list,14);
-      end;
-
-
-    function ti386casenode.has_jumptable : boolean;
-      begin
-        has_jumptable:=true;
-      end;
-
-
-    procedure ti386casenode.genjumptable(hp : pcaselabel;min_,max_ : aint);
-      var
-        table : tasmlabel;
-        last : TConstExprInt;
-        indexreg : tregister;
-        href : treference;
-        jtlist: tasmlist;
-        sectype: TAsmSectiontype;
-
-        procedure genitem(list:TAsmList;t : pcaselabel);
-          var
-            i : aint;
-          begin
-            if assigned(t^.less) then
-              genitem(list,t^.less);
-            { fill possible hole }
-            for i:=last.svalue+1 to t^._low.svalue-1 do
-              list.concat(Tai_const.Create_sym(elselabel));
-            for i:=t^._low.svalue to t^._high.svalue do
-              list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
-            last:=t^._high;
-            if assigned(t^.greater) then
-              genitem(list,t^.greater);
-          end;
-
-      begin
-        last:=min_;
-        if not(jumptable_no_range) then
-          begin
-             { a <= x <= b <-> unsigned(x-a) <= (b-a) }
-             cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,opsize,aint(min_),hregister);
-             { case expr greater than max_ => goto elselabel }
-             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,opsize,OC_A,aint(max_)-aint(min_),hregister,elselabel);
-             min_:=0;
-          end;
-        current_asmdata.getjumplabel(table);
-        { make it a 32bit register }
-        indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
-        cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
-        { create reference }
-        reference_reset_symbol(href,table,0);
-        href.offset:=(-aint(min_))*4;
-        href.index:=indexreg;
-        href.scalefactor:=4;
-        emit_ref(A_JMP,S_NO,href);
-        { generate jump table }
-        if (target_info.system = system_i386_darwin) then
-          begin
-            jtlist:=current_asmdata.asmlists[al_const];
-            sectype:=sec_rodata;
-          end
-        else
-          begin
-            jtlist:=current_procinfo.aktlocaldata;
-            sectype:=sec_data;
-          end;
-        new_section(jtlist,sectype,current_procinfo.procdef.mangledname,sizeof(aint));
-        jtlist.concat(Tai_label.Create(table));
-        genitem(jtlist,hp);
       end;
 
 
