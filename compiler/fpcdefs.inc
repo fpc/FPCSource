@@ -48,6 +48,8 @@
 
 {$ifdef i386}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define x86}
   {$define cpuflags}
   {$define cpuextended}
@@ -76,12 +78,16 @@
 
 {$ifdef sparc}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cputargethasfixedstack}
 {$endif sparc}
 
 {$ifdef powerpc}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
@@ -97,6 +103,8 @@
 
 {$ifdef arm}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
@@ -105,12 +113,16 @@
 
 {$ifdef m68k}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
 {$endif m68k}
 
 {$ifdef avr}
   {$define cpu16bit}
+  {$define cpu16bitaddr}
+  {$define cpu16bitalu}
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}

@@ -38,10 +38,15 @@ interface
 {$ifdef cpu64bitaddr}
        PUint = qword;
        PInt = int64;
-{$else cpu64bitaddr}
+{$endif cpu64bitaddr}
+{$ifdef cpu32bitaddr}
        PUint = cardinal;
        PInt = longint;
-{$endif cpu64bitaddr}
+{$endif cpu32bitaddr}
+{$ifdef cpu16bitaddr}
+       PUint = word;
+       PInt = Smallint;
+{$endif cpu16bitaddr}
 
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bitalu}
@@ -50,13 +55,21 @@ interface
 
      Const
        AIntBits = 64;
-{$else cpu64bitalu}
+{$endif cpu64bitalu}
+{$ifdef cpu32bitalu}
        AWord = longword;
        AInt = longint;
 
      Const
        AIntBits = 32;
-{$endif cpu64bitalu}
+{$endif cpu32bitalu}
+{$ifdef cpu16bitalu}
+       AWord = Word;
+       AInt = Smallint;
+
+     Const
+       AIntBits = 16;
+{$endif cpu16bitalu}
 
      Type
        PAWord = ^AWord;
