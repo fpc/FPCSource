@@ -1195,17 +1195,17 @@ implementation
                         u8bit:
                           nd:=u8inttype;
                         s16bit:
-                          nd:=s8inttype;
+                          nd:=s16inttype;
                         u16bit:
-                          nd:=u8inttype;
+                          nd:=u16inttype;
                         s32bit:
-                          nd:=s8inttype;
+                          nd:=s32inttype;
                         u32bit:
-                          nd:=u8inttype;
+                          nd:=u32inttype;
                         s64bit:
-                          nd:=s8inttype;
+                          nd:=s64inttype;
                         u64bit:
-                          nd:=u8inttype;
+                          nd:=u64inttype;
                         else
                           internalerror(200802291);
                       end;
