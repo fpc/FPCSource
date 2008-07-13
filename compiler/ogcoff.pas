@@ -1012,6 +1012,13 @@ const pemagic : array[0..3] of byte = (
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE);
                       inc(data,symaddr);
                     end;
+{$ifdef x86_64}
+                  RELOC_ABSOLUTE32 :
+                    begin
+                      CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE32);
+                      inc(data,symaddr);
+                    end;
+{$endif x86_64}
                   RELOC_RELATIVE :
                     begin
                       inc(data,symaddr-len-CurrObjSec.Size);
