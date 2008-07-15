@@ -1014,9 +1014,9 @@ Function GetAppConfigDir(Global : Boolean) : String;
 
 begin
   If Global then
-    Result:=SysConfigDir
+    Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
-    Result:=XdgConfigHome;
+    Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
   if VendorName<>'' then
     Result:=IncludeTrailingPathDelimiter(Result+VendorName);
   Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
@@ -1026,9 +1026,9 @@ Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
 
 begin
   If Global then
-    Result:=SysConfigDir
+    Result:=IncludeTrailingPathDelimiter(SysConfigDir)
   else
-    Result:=XdgConfigHome;
+    Result:=IncludeTrailingPathDelimiter(XdgConfigHome);
   if SubDir then
     begin
       if VendorName<>'' then
