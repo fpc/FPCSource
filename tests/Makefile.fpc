@@ -16,10 +16,7 @@ unexport FPC_VERSION
 # Test environment setup
 #
 
-TEST_HOSTNAME:=$(shell hostname -s)
-ifeq ($(TEST_HOSTNAME),)
-TEST_HOSTNAME:=$(shell hostname)
-endif
+TEST_HOSTNAME:=$(firstword $(subst ., ,$(shell hostname)))
 
 override TEST_FPC:=$(subst \,/,$(TEST_FPC))
 
