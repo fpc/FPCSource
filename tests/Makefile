@@ -1598,7 +1598,7 @@ $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdig
 ifdef inCygWin
 	dos2unix $(TEST_OUTPUTDIR)/tar.lst
 endif
-	cd $(TEST_OUTPUTDIR) && tar cfz $(DB_TARGZ) --files-from=tar.lst
+	cd $(TEST_OUTPUTDIR) && $(TARPROG) cfz $(DB_TARGZ) --files-from=tar.lst
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
 ifdef inDOS
