@@ -292,7 +292,7 @@ begin
                   If F.Enabled then
                     begin
                     S:=AddToS(S,F.FieldName);
-                    If (F.PropertyName=SOID) then
+                    If (V=voRead) and (F.PropertyName=SOID) then
                       W:=Format('%s = :%s',[F.FieldName,F.FieldName]);
                     end;
                   end;
@@ -493,6 +493,7 @@ begin
   EndMethod(Strings,S);
   // MapRowToObject
   S:=BeginMapRowToObject(Strings,C,ObjectClassName);
+  Addln(Strings,'O:=%s(Visited);',[ObjectClassName]);
   Addln(Strings,'With Query do',[ObjectClassName]);
   IncINdent;
   try
