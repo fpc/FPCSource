@@ -1578,7 +1578,7 @@ cg_e_continue_not_allowed=06045_E_CONTINUE ikke tilladt uden for løkke-erklæri
 #
 # 07097 is the last used one
 #
-cg_f_unknown_compilerproc=06046_F_Ukendt compilerfunktion "$1". Undersøg om du bruger det korrekt køretidsbibliotek.
+cg_f_unknown_compiler=06046_F_Ukendt compilerfunktion "$1". Undersøg om du bruger det korrekt køretidsbibliotek.
 % The compiler expects that the runtime library contains some subrountines. If you see this error
 % and you didn't mess with the runtime library, it's very likely that the runtime library
 % you're using doesn't match the used compiler. If you changed the runtime library this error means
