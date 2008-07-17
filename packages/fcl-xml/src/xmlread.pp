@@ -637,7 +637,9 @@ begin
   with TXMLReader.Create(Self) do
   try
     if ResolveEntity(URI, '', Src) then
-      ProcessXML(Src);
+      ProcessXML(Src)
+    else
+      DoErrorPos(esFatal, 'The specified URI could not be resolved', NullLocation);
   finally
     ADoc := TXMLDocument(doc);
     Free;
