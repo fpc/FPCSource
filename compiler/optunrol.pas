@@ -34,6 +34,7 @@ unit optunrol;
 
     uses
       globtype,globals,constexp,
+      symsym,
       cpuinfo,
       nutils,
       nbas,nflw,ncon,ninl,ncal,nld;
@@ -112,7 +113,7 @@ unit optunrol;
                     if (counts mod unrolls<>0) and
                       ((counts mod unrolls)=unrolls-i) then
                       begin
-                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,nil);
+                        tfornode(node).entrylabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$optunrol'));
                         addstatement(unrollstatement,tfornode(node).entrylabel);
                       end;
 
