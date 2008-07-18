@@ -49,6 +49,7 @@ interface
         function def_llvm_name(def:tdef) : tasmsymbol;
         function def_llvm_pointer_name(def: tdef): tasmsymbol;
         function def_llvm_class_struct_name(def:tobjectdef) : tasmsymbol;
+        function def_llvm_vmt_name(def:tobjectdef) : tasmsymbol;
       protected
         vardatadef: trecorddef;
 
@@ -63,7 +64,6 @@ interface
         procedure appenddef_abstractrecord(list:TAsmList;def:tabstractrecorddef);
         procedure appenddef_record(list:TAsmList;def:trecorddef);override;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);override;
-        procedure appenddef_classref(list:TAsmList;def: tclassrefdef);override;
         procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
@@ -142,6 +142,13 @@ implementation
       begin
         record_def(def);
         result:=def.llvm_class_struct_name_sym;
+      end;
+
+
+    function TLLVMDefInfo.def_llvm_vmt_name(def:tobjectdef) : tasmsymbol;
+      begin
+        record_def(def);
+        result:=def.llvm_vmt_name_sym;
       end;
 
 
@@ -347,52 +354,6 @@ implementation
       end;
 
 
-    procedure TLLVMDefInfo.appenddef_classref(list:TAsmList;def: tclassrefdef);
-      var
-        defstr: ansistring;
-        i: longint;
-      begin
-        { a pointer to the VMT. Structure of the VMT: }
-        {   InstanceSize  : ptrint  }
-        {   -InstanceSize : ptrint  }
-        {   Parent        : ^parent }
-        {   ClassName     : pointer }
-        {   DynamicTable  : pointer }
-        {   MethodTable   : pointer }
-        {   FieldTable    : pointer }
-        {   TypeInfo      : pointer }
-        {   InitTable     : pointer }
-        {   AutoTable     : pointer }
-        {   IntfTable     : pointer }
-        {   MsgStrTable   : pointer }
-        {   Methods       : X times procvar }
-        defstr:=def_llvm_name(ptrsinttype).name+', ';
-        defstr:='< '+defstr+defstr;
-{ needs to be pointer to the parent class' vmt!
-        if assigned(tobjectdef(def.pointeddef).childof) then
-          defstr:=defstr+def_llvm_name(tobjectdef(def.pointeddef).childof).name+'*,'
-        else
-}
-          defstr:=defstr+'void*, ';
-        { class name (length+string) }
-        defstr:=defstr+'['+tostr(length(tobjectdef(def.pointeddef).objrealname^)+1)+' x i8]*, ';
-        { the other fields }
-        for i:=1 to 8 do
-          defstr:=defstr+'void*, ';
-        if not assigned(tobjectdef(def.pointeddef).VMTEntries) then
-          with TVMTBuilder.Create(tobjectdef(def.pointeddef)) do
-            begin
-              generate_vmt;
-              free;
-            end;
-        for i:= 0 to tobjectdef(def.pointeddef).VMTEntries.Count-1 do
-          defstr:=defstr+def_llvm_pointer_name(tprocdef(tobjectdef(def.pointeddef).VMTEntries[i])).name+', ';
-        setlength(defstr,length(defstr)-2);
-        defstr:=defstr+' >*';
-        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
-      end;
-
-
     procedure TLLVMDefInfo.appenddef_string(list:TAsmList;def:tstringdef);
 
       procedure addnormalstringdef(lendef: tdef);
@@ -472,16 +433,17 @@ implementation
               if paramanager.push_addr_param(varspez,vardef,def.proccalloption) then
                 begin
                   result:=result+'*';
+                  if (vo_is_funcret in varoptions) then
+                    result:=result+' sret';
+                end
+              else
+                begin
                   { 'byval' means that the parameter is copied onto the stack at the }
                   { right location at the caller side rather than that the calling   }
                   { conventions are used to determine whether the address or value   }
                   { of the parameter is passed                                       }
-                  { An array of const needs to be constructed on/copied to the call  }
-                  { stack                                                            }
-                  if is_array_of_const(vardef) then
-                    result:=result+' byval'
-                  else if (vo_is_funcret in varoptions) then
-                    result:=result+' sret';
+                  { I don't think we need this for something right now               }
+                  // result:=result+' byval'
                 end;
               result:=result+', '
             end;
@@ -976,6 +938,48 @@ implementation
           appenddef_abstractrecord(list,def);
         end;
 
+      procedure doappend_classvmt;
+        var
+          defstr: ansistring;
+          i: longint;
+        begin
+          { a pointer to the VMT. Structure of the VMT: }
+          {   InstanceSize  : ptrint  }
+          {   -InstanceSize : ptrint  }
+          {   Parent        : ^parent }
+          {   ClassName     : pointer }
+          {   DynamicTable  : pointer }
+          {   MethodTable   : pointer }
+          {   FieldTable    : pointer }
+          {   TypeInfo      : pointer }
+          {   InitTable     : pointer }
+          {   AutoTable     : pointer }
+          {   IntfTable     : pointer }
+          {   MsgStrTable   : pointer }
+          {   Methods       : X times procvar }
+          defstr:=def_llvm_name(ptrsinttype).name+', ';
+          defstr:='< '+defstr+defstr;
+          if assigned(def.childof) then
+            defstr:=defstr+def_llvm_vmt_name(def.childof).name+'*, '
+          else
+            defstr:=defstr+'void*, ';
+          { class name (length+string) }
+          defstr:=defstr+'['+tostr(length(def.objrealname^)+1)+' x i8]*, ';
+          { the other fields }
+          for i:=1 to 8 do
+            defstr:=defstr+'void*, ';
+          if not assigned(def.VMTEntries) then
+            with TVMTBuilder.create(def) do
+              begin
+                generate_vmt;
+                free;
+              end;
+          for i:= 0 to def.VMTEntries.Count-1 do
+            defstr:=defstr+def_llvm_pointer_name(tprocdef(def.VMTEntries[i])).name+', ';
+          setlength(defstr,length(defstr)-2);
+          defstr:=defstr+' >*';
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_vmt_name(def),defstr));
+        end;
 
       begin
         case def.objecttype of
@@ -990,6 +994,7 @@ implementation
               { implicit pointer }
               list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),def_llvm_class_struct_name(def).name+'*'));
               doappend;
+              doappend_classvmt;
             end;
           else
             internalerror(200602041);

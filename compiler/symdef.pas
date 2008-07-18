@@ -85,13 +85,13 @@ interface
           function is_fpuregable : boolean;
           { generics }
           procedure initgeneric;
-       private
+       protected
 {$ifdef support_llvm}
-          procedure set_llvm_name_syms;
+          procedure set_llvm_name_syms; virtual;
           function get_llvm_name_sym: tasmsymbol;override;
           function get_llvm_pointer_name_sym: tasmsymbol;override;
-          function get_llvm_class_struct_name_sym: tasmsymbol;override;
 {$endif support_llvm}
+       private
           savesize  : aint;
        end;
 
@@ -242,6 +242,14 @@ interface
        { tobjectdef }
 
        tobjectdef = class(tabstractrecorddef)
+{$ifdef support_llvm}
+       private
+          fllvm_class_struct_name_sym : tasmsymbol;
+          fllvm_vmt_name_sym : tasmsymbol;
+          procedure set_llvm_name_syms; override;
+          function get_llvm_class_struct_name_sym: tasmsymbol;
+          function get_llvm_vmt_name_sym: tasmsymbol;
+{$endif}
        public
           dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
@@ -285,6 +293,10 @@ interface
           procedure set_parent(c : tobjectdef);
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
+{$ifdef support_llvm}
+          property llvm_class_struct_name_sym: tasmsymbol read get_llvm_class_struct_name_sym;
+          property llvm_vmt_name_sym: tasmsymbol read get_llvm_vmt_name_sym;
+{$endif support_llvm}
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -293,6 +305,10 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function GetTypeName:string;override;
           function  is_publishable : boolean;override;
+{$ifdef support_llvm}
+       protected
+          procedure set_llvm_name_syms; override;
+{$endif}
        end;
 
        tarraydef = class(tstoreddef)
@@ -968,9 +984,9 @@ implementation
       begin
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname('llvm',owner,typesym.name)
+          result:=make_mangledname('llvm$$$',owner,typesym.name)
         else
-          result:=make_mangledname('llvm',findunitsymtable(owner),'DEF'+tostr(DefId));
+          result:=make_mangledname('llvm$$$',findunitsymtable(owner),'DEF'+tostr(DefId));
         result:='%'+result;
       end;
 {$endif support_llvm}
@@ -1138,8 +1154,6 @@ implementation
           begin
             fllvm_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname,AB_LOCAL,AT_DATA);
             fllvm_pointer_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'*',AB_LOCAL,AT_DATA);
-            if is_class_or_interface_or_dispinterface(self) then
-              fllvm_class_struct_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$struct',AB_LOCAL,AT_DATA);
           end;
       end;
 
@@ -1155,13 +1169,6 @@ implementation
       begin
         set_llvm_name_syms;
         result:=fllvm_pointer_name_sym;
-      end;
-
-
-    function tstoreddef.get_llvm_class_struct_name_sym: tasmsymbol;
-      begin
-        set_llvm_name_syms;
-        result:=fllvm_class_struct_name_sym;
       end;
 {$endif support_llvm}
 
@@ -2119,6 +2126,15 @@ implementation
          result:=true;
       end;
 
+
+{$ifdef support_llvm}
+    procedure tclassrefdef.set_llvm_name_syms;
+      begin
+        tobjectdef(pointeddef).set_llvm_name_syms;
+        fllvm_name_sym:=tobjectdef(pointeddef).llvm_vmt_name_sym;
+        fllvm_pointer_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'*',AB_LOCAL,AT_DATA);
+      end;
+{$endif support_llvm}
 
 {***************************************************************************
                                    TSETDEF
@@ -4248,6 +4264,33 @@ implementation
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
       end;
 
+
+{$ifdef support_llvm}
+    procedure tobjectdef.set_llvm_name_syms;
+      begin
+        inherited set_llvm_name_syms;
+        if not assigned(fllvm_class_struct_name_sym) and
+           is_class_or_interface_or_dispinterface(self) then
+          begin
+            fllvm_class_struct_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$struct',AB_LOCAL,AT_DATA);
+            fllvm_vmt_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$vmt',AB_LOCAL,AT_DATA);
+          end;
+      end;
+
+
+    function tobjectdef.get_llvm_class_struct_name_sym: tasmsymbol;
+      begin
+        set_llvm_name_syms;
+        result:=fllvm_class_struct_name_sym;
+      end;
+
+
+    function tobjectdef.get_llvm_vmt_name_sym: tasmsymbol;
+      begin
+        set_llvm_name_syms;
+        result:=fllvm_vmt_name_sym;
+      end;
+{$endif support_llvm}
 
 {****************************************************************************
                              TImplementedInterface

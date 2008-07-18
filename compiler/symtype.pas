@@ -66,8 +66,7 @@ interface
         protected
          fllvm_name_sym,
          { so we don't have to create pointerdefs all the time }
-         fllvm_pointer_name_sym,
-         fllvm_class_struct_name_sym : tasmsymbol;
+         fllvm_pointer_name_sym: tasmsymbol;
         public
 {$endif support_llvm}
          constructor create(dt:tdeftyp);
@@ -97,11 +96,9 @@ interface
         protected
          function get_llvm_name_sym: tasmsymbol;virtual;abstract;
          function get_llvm_pointer_name_sym: tasmsymbol;virtual;abstract;
-         function get_llvm_class_struct_name_sym: tasmsymbol;virtual;abstract;
         public
          property llvm_name_sym: tasmsymbol read get_llvm_name_sym;
          property llvm_pointername_sym: tasmsymbol read get_llvm_pointer_name_sym;
-         property llvm_class_struct_name_sym: tasmsymbol read get_llvm_class_struct_name_sym;
 {$endif support_llvm}
       end;
 
