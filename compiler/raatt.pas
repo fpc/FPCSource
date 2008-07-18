@@ -79,32 +79,26 @@ unit raatt;
 
     type
        tattreader = class(tasmreader)
-       protected
          actasmtoken    : tasmtoken;
          prevasmtoken   : tasmtoken;
-         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         function BuildConstExpression(allowref,betweenbracket:boolean): aint;
-         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
-         procedure BuildConstantOperand(oper : toperand);
+         procedure SetupTables;
          procedure BuildConstant(constsize: byte);
+         procedure BuildConstantOperand(oper : toperand);
          procedure BuildRealConstant(typ : tfloattype);
          procedure BuildStringConstant(asciiz: boolean);
-       private
-         procedure SetupTables;
-       public
+         procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
+         procedure BuildConstSymbolExpression(allowref,betweenbracket,needofs:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         function BuildConstExpression(allowref,betweenbracket:boolean): aint;
          function Assemble: tlinkedlist;override;
-       protected
          procedure handleopcode;virtual;abstract;
          function is_asmopcode(const s: string) : boolean;virtual;abstract;
-         function is_register(const s:string):boolean;virtual;
-         procedure handlepercent;virtual;
-       private
          Function is_asmdirective(const s: string):boolean;
-         procedure GetToken;
-       protected
+         function is_register(const s:string):boolean;virtual;
          function is_locallabel(const s: string):boolean;
-         procedure RecoverConsume(allowcomma:boolean);
+         procedure GetToken;
          function consume(t : tasmtoken):boolean;
+         procedure RecoverConsume(allowcomma:boolean);
+         procedure handlepercent;virtual;
        end;
        tcattreader = class of tattreader;
 
