@@ -1,0 +1,159 @@
+#
+#   Makefile.fpc for Free Pascal QNX RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=cprt0 crti crtn
+units=system dos objpas objects strings \
+      sysutils typinfo math \
+      cpu mmx getopts heaptrc lineinfo posix
+rsts=math typinfo
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=qnx
+cpu=i386
+
+[compiler]
+includedir=$(INC) $(PROCINC) $(POSIXINC) $(SYSCALLINC)
+sourcedir=$(INC) $(PROCINC) $(POSIXINC) $(SYSCALLINC)
+targetdir=.
+
+[prerules]
+RTL=..
+INC=$(RTL)/inc
+PROCINC=$(RTL)/$(CPU_TARGET)
+POSIXINC=$(RTL)/posix
+SYSCALLINC=$(RTL)/qnx/$(CPU_TARGET)
+
+UNITPREFIX=rtl
+
+# Use new feature from 1.0.5 version
+# that generates release PPU files
+# which will not be recompiled
+ifdef RELEASE
+ifeq ($(findstring 1.0.2,$(FPC_VERSION)),)
+ifeq ($(findstring 1.0.4,$(FPC_VERSION)),)
+override FPCOPT+=-Ur
+endif
+endif
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+GRAPHDIR=$(INC)/graph
+
+[rules]
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+cprt0$(OEXT) : $(CPU_TARGET)/cprt0.as
+        $(AS) -o cprt0$(OEXT) $(CPU_TARGET)/cprt0.as
+
+crti$(OEXT) : $(CPU_TARGET)/crti.s
+        $(AS) -o crti$(OEXT) $(CPU_TARGET)/crti.s
+
+crtn$(OEXT) : $(CPU_TARGET)/crtn.s
+        $(AS) -o crtn$(OEXT) $(CPU_TARGET)/crtn.s
+
+func$(OEXT) : $(CPU_TARGET)/func.as
+        $(AS) -o func$(OEXT) $(CPU_TARGET)/func.as
+
+dllprt$(OEXT) : $(CPU_TARGET)/dllprt.as
+        $(AS) -o dllprt$(OEXT) $(CPU_TARGET)/dllprt.as
+
+#
+# system Units (system, Objpas, Strings)
+#
+
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+strings$(PPUEXT) : $(INC)/strings.pp $(INC)/stringsi.inc\
+                   $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
+                   system$(PPUEXT)
+
+
+#
+# TP7 Compatible RTL Units
+#
+
+dos$(PPUEXT) : dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
+               posix$(PPUEXT) system$(PPUEXT)
+        $(COMPILER) $(POSIXINC)/dos.pp
+
+objects$(PPUEXT) : $(INC)/objects.pp $(POSIXINC)/objinc.inc system$(PPUEXT)
+        $(COMPILER) $(INC)/objects.pp
+
+#
+# Delphi Compatible Units
+#
+
+sysutils$(PPUEXT) : $(POSIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/*.inc) \
+                    objpas$(PPUEXT) dos$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(POSIXINC)/sysutils.pp
+
+typinfo$(PPUEXT): $(OBJPASDIR)/typinfo.pp objpas$(PPUEXT)
+        $(COMPILER) -Sg $(OBJPASDIR)/typinfo.pp
+
+math$(PPUEXT): $(OBJPASDIR)/math.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/math.pp
+
+gettext$(PPUEXT): $(OBJPASDIR)/gettext.pp objpas$(PPUEXT) sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/gettext.pp
+
+#varutils$(PPUEXT) : $(OBJPASDIR)/cvarutil.inc $(OBJPASDIR)/varutils.inc \
+#                    $(OBJPASDIR)/varutilh.inc varutils.pp
+#        $(COMPILER) -I$(OBJPASDIR) $(UNIXINC)/varutils.pp
+
+#
+# Other system-independent RTL Units
+#
+
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
+
+mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)
+
+getopts$(PPUEXT) : $(INC)/getopts.pp system$(PPUEXT)
+
+heaptrc$(PPUEXT) : $(INC)/heaptrc.pp system$(PPUEXT)
+        $(COMPILER) -Sg $(INC)/heaptrc.pp
+
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp system$(PPUEXT)
+
+
+#
+# Other system-dependent RTL Units
+#
+
+posix$(PPUEXT) : posix.pp \
+		 errno.inc osposix.inc osposixh.inc signal.inc system$(PPUEXT)
