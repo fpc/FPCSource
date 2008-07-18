@@ -230,6 +230,10 @@ interface
        to note that the value returned can be @var(OS_NO) }
     function def_cgsize(def: tdef): tcgsize;
 
+    {# Return the definition corresponding to an abstract code generator size enum.
+       The definition will be a base type (integer, float, vector)                  }
+    function cgsize_basedef(size: tcgsize): tdef;
+
     {# returns true, if the type passed is can be used with windows automation }
     function is_automatable(p : tdef) : boolean;
 
@@ -963,6 +967,38 @@ implementation
               { undefined size }
               result:=OS_NO;
             end;
+        end;
+      end;
+
+
+    function cgsize_basedef(size: tcgsize): tdef;
+      begin
+        case size of
+          OS_8:
+            result:=u8inttype;
+          OS_16:
+            result:=u16inttype;
+          OS_32:
+            result:=u32inttype;
+          OS_64:
+            result:=u64inttype;
+          OS_S8:
+            result:=s8inttype;
+          OS_S16:
+            result:=s16inttype;
+          OS_S32:
+            result:=s32inttype;
+          OS_S64:
+            result:=s64inttype;
+          OS_F32:
+            result:=s32floattype;
+          OS_F64:
+            result:=s64floattype;
+          OS_F80:
+            result:=s80floattype;
+          { rest: todo }
+          else
+            internalerror(2008071702);
         end;
       end;
 
