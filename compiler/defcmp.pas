@@ -1259,7 +1259,7 @@ implementation
                      end
                    { ugly, but delphi allows it }
                    else if (eq=te_incompatible) and
-                     (def_from.typ=orddef) and
+                     (def_from.typ in [orddef,enumdef]) and
                      (m_delphi in current_settings.modeswitches) and
                      (cdo_explicit in cdoptions) then
                      begin
