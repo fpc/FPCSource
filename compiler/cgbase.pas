@@ -315,6 +315,8 @@ interface
     procedure setsupreg(var r:tregister;sr:tsuperregister);{$ifdef USEINLINE}inline;{$endif}
     function generic_regname(r:tregister):string;
 
+    function isaddressregister(reg : tregister) : boolean; {$ifdef USEINLINE} inline; {$endif}
+
     {# From a constant numeric value, return the abstract code generator
        size.
     }
@@ -573,6 +575,12 @@ implementation
           else
             internalerror(200308252);
         end;
+      end;
+
+
+    function isaddressregister(reg : tregister) : boolean;
+      begin
+        result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
 

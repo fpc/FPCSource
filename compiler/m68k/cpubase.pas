@@ -335,8 +335,6 @@ unit cpubase;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
 
-    function isaddressregister(reg : tregister) : boolean;
-
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
     function dwarf_reg(r:tregister):shortint;
@@ -483,12 +481,6 @@ implementation
           result:=std_regname_table[p]
         else
           result:=generic_regname(r);
-      end;
-
-
-    function isaddressregister(reg : tregister) : boolean;
-      begin
-        result:=getregtype(reg)=R_ADDRESSREGISTER;
       end;
 
 
