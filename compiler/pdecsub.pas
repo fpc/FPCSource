@@ -901,6 +901,7 @@ implementation
         pd : tprocdef;
         isclassmethod : boolean;
         locationstr: string;
+        old_parse_generic,
         popclass : boolean;
       begin
         locationstr:='';
@@ -929,6 +930,7 @@ implementation
                     begin
                       if try_to_consume(_COLON) then
                        begin
+                         old_parse_generic:=parse_generic;
                          inc(testcurobject);
                          { Add ObjectSymtable to be able to find generic type definitions }
                          popclass:=false;
@@ -938,11 +940,13 @@ implementation
                            begin
                              symtablestack.push(pd._class.symtable);
                              popclass:=true;
+                             parse_generic:=(df_generic in pd._class.defoptions);
                            end;
                          single_type(pd.returndef,false);
                          if popclass then
                            symtablestack.pop(pd._class.symtable);
                          dec(testcurobject);
+                         parse_generic:=old_parse_generic;
 
                          if (target_info.system in [system_m68k_amiga]) then
                           begin

@@ -381,6 +381,7 @@ implementation
             if token=_ID then
               begin
                 generictype:=ttypesym.create(orgpattern,cundefinedtype);
+                include(generictype.symoptions,sp_generic_para);
                 result.add(generictype);
               end;
             consume(_ID);

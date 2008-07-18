@@ -97,6 +97,7 @@ implementation
         specializename : string;
         vmtbuilder : TVMTBuilder;
         onlyparsepara : boolean;
+        specializest : tsymtable;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -155,8 +156,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sym.typ=typesym) and
-               (ttypesym(sym).typedef.typ=undefineddef) then
+            if (sp_generic_para in sym.symoptions) then
               begin
                 if not first then
                   consume(_COMMA)
@@ -191,10 +191,18 @@ implementation
            (aktobjectdef.objname^=uspecializename) then
           tt:=aktobjectdef;
 
+        { for units specializations can already be needed in the interface, therefor we
+          will use the global symtable. Programs don't have a globalsymtable and there we
+          use the localsymtable }
+        if current_module.is_unit then
+          specializest:=current_module.globalsymtable
+        else
+          specializest:=current_module.localsymtable;
+
         { Can we reuse an already specialized type? }
         if not assigned(tt) then
           begin
-            srsym:=tsym(tsymtable(current_module.localsymtable).find(uspecializename));
+            srsym:=tsym(specializest.find(uspecializename));
             if assigned(srsym) then
               begin
                 if srsym.typ<>typesym then
@@ -236,7 +244,7 @@ implementation
                 { Firsta new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
-                current_module.localsymtable.insert(srsym);
+                specializest.insert(srsym);
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
@@ -379,7 +387,28 @@ implementation
                        again:=true;
                      end
                    else
-                     id_type(def,isforwarddef);
+                     begin
+                       id_type(def,isforwarddef);
+                       { handle types inside classes for generics, e.g. TNode.TLongint }
+                       while (token=_POINT) do
+                         begin
+                           if parse_generic then
+                             begin
+                                consume(_POINT);
+                                consume(_ID);
+                             end
+                            else if ((def.typ=objectdef) and (df_specialization in def.defoptions)) then
+                              begin
+                                symtablestack.push(tobjectdef(def).symtable);
+                                consume(_POINT);
+                                id_type(t2,isforwarddef);
+                                symtablestack.pop(tobjectdef(def).symtable);
+                                def:=t2;
+                              end
+                            else
+                              break;
+                         end;
+                     end;
                  end;
 
                else
