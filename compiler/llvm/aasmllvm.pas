@@ -33,12 +33,16 @@ uses
   llvmbase;
 
     type
-      tai_llvmcpu = class(tai_cpu_abstract)
+      taillvm = class(tai_cpu_abstract)
         // switch_end (= ']'), unreachable
         constructor create_llvm(op: tllvmop);
         constructor op_none(op : tllvmop);
+        constructor op_const_reg(op:tllvmop;_size1,_size2:tasmsymbol;_op1: aint; _op2:tregister);
+        constructor load_ref_reg_align(_type1:tasmsymbol; const ref: treference; reg: tregister; align: aint);
+        constructor store_reg_ref_align(_type1,_type2:tasmsymbol; reg: tregister; const ref: treference; align: aint);
+        constructor opcnv_reg_reg_type(op:tllvmop; reg1: tregister; fromtyp: tasmsymbol; reg2: tregister; totyp: tasmsymbol);
 
-        constructor op_ressym_string(op: tllvmop; sym: tasmsymbol; const str: ansistring);
+        constructor op_ressym_string(op: tllvmop; restyp: tasmsymbol; const str: ansistring);
         procedure loadstring(opidx:longint;_str: pchar);
         
         llvmopcode: tllvmop;
@@ -57,7 +61,7 @@ uses
                                  taicpu Constructors
 *****************************************************************************}
 
-    constructor tai_llvmcpu.create_llvm(op: tllvmop);
+    constructor taillvm.create_llvm(op: tllvmop);
       begin
         create(a_none);
         llvmopcode:=op;
@@ -65,7 +69,7 @@ uses
       end;
 
 
-    procedure tai_llvmcpu.loadstring(opidx:longint;_str: pchar);
+    procedure taillvm.loadstring(opidx:longint;_str: pchar);
       begin
         allocate_oper(opidx+1);
         with oper[opidx]^ do
@@ -78,19 +82,20 @@ uses
       end;
 
 
-    constructor tai_llvmcpu.op_ressym_string(op: tllvmop; sym: tasmsymbol; const str: ansistring);
+    constructor taillvm.op_ressym_string(op: tllvmop; restyp: tasmsymbol; const str: ansistring);
       begin
         create_llvm(op);
         ops:=2;
-        loadsymbol(0,sym,0);
+        loadsymbol(0,restyp,0);
         loadstring(1,pchar(str));
       end;
 
 
-    constructor tai_llvmcpu.op_none(op : tllvmop);
+    constructor taillvm.op_none(op : tllvmop);
       begin
         create_llvm(op);
       end;
+
 
 (*
 
@@ -125,16 +130,52 @@ uses
          loadreg(0,_op1);
          loadconst(1,_op2);
       end;
+*)
 
-     constructor taicpu.op_const_reg(op:tllvmop; _op1: aint; _op2: tregister);
+    constructor taillvm.op_const_reg(op:tllvmop; _size1, _size2: tasmsymbol; _op1: aint; _op2: tregister);
       begin
-         inherited create(op);
-         ops:=2;
-         loadconst(0,_op1);
-         loadreg(1,_op2);
+        create_llvm(op);
+        ops:=4;
+        loadsymbol(0,_size1,0);
+        loadconst(1,_op1);
+        loadsymbol(2,_size2,0);
+        loadreg(3,_op2);
       end;
 
 
+    constructor taillvm.load_ref_reg_align(_type1:tasmsymbol; const ref: treference; reg: tregister; align: aint);
+      begin
+        create_llvm(la_load);
+        ops:=4;
+        loadreg(0,reg);
+        loadsymbol(1,_type1,0);
+        loadref(2,ref);
+        loadconst(3,align);
+      end;
+
+
+    constructor taillvm.store_reg_ref_align(_type1,_type2:tasmsymbol; reg: tregister; const ref: treference; align: aint);
+      begin
+        create_llvm(la_store);
+        ops:=5;
+        loadsymbol(0,_type1,0);
+        loadreg(1,reg);
+        loadsymbol(2,_type2,0);
+        loadref(3,ref);
+        loadconst(4,align);
+      end;
+
+    constructor taillvm.opcnv_reg_reg_type(op:tllvmop; reg1: tregister; fromtyp: tasmsymbol; reg2: tregister; totyp: tasmsymbol);
+      begin
+        create_llvm(op);
+        ops:=4;
+        loadreg(0,reg1);
+        loadsymbol(1,fromtyp,0);
+        loadreg(2,reg2);
+        loadsymbol(3,totyp,0);
+      end;
+
+(*
     constructor taicpu.op_reg_ref(op : tllvmop;_op1 : tregister;const _op2 : treference);
       begin
          inherited create(op);

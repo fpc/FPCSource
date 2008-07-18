@@ -47,6 +47,7 @@ interface
         deftowritelist   : TFPObjectList;
 
         function def_llvm_name(def:tdef) : tasmsymbol;
+        function def_llvm_pointer_name(def: tdef): tasmsymbol;
         function def_llvm_class_struct_name(def:tobjectdef) : tasmsymbol;
       protected
         vardatadef: trecorddef;
@@ -130,6 +131,13 @@ implementation
       end;
 
 
+    function TLLVMDefInfo.def_llvm_pointer_name(def: tdef): tasmsymbol;
+      begin
+        record_def(def);
+        result:=def.llvm_pointername_sym;
+      end;
+
+
     function TLLVMDefInfo.def_llvm_class_struct_name(def: tobjectdef): tasmsymbol;
       begin
         record_def(def);
@@ -179,11 +187,11 @@ implementation
           bool64bit,
           scurrency:
             begin
-              list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i'+tostr(def.size*8)));
+              list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'i'+tostr(def.size*8)));
             end;
           uvoid :
             begin
-              list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'void'));
+              list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'void'));
             end
           else
             internalerror(2008032901);
@@ -195,14 +203,14 @@ implementation
       begin
         case def.floattype of
           s32real:
-            list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'float'));
+            list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'float'));
           s64real:
-            list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'double'));
+            list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'double'));
           s80real:
-            list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'x86_fp80'));
+            list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'x86_fp80'));
           s64currency,
           s64comp:
-            list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i64'));
+            list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'i64'));
           else
             internalerror(200601289);
         end;
@@ -211,7 +219,7 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_enum(list:TAsmList;def:tenumdef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i'+tostr(def.size*8)));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'i'+tostr(def.size*8)));
       end;
 
 
@@ -242,7 +250,7 @@ implementation
           endstr:=']'
         else
           endstr:=']*';
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'['+tostr(indexrange)+' x '+typename+endstr))
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'['+tostr(indexrange)+' x '+typename+endstr))
 {$else not llvm_has_packed_arrays}
       var
         arrstart, arrend, typename: ansistring;
@@ -266,11 +274,11 @@ implementation
           typename:=def_llvm_name(def.elementdef).name
 
         if is_open_array(def) then
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),arrstart+'0 x '+typename+arrend))
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),arrstart+'0 x '+typename+arrend))
         else if is_dynamic_array(def) then
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'[0 x '+typename+']'+'*'))
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'[0 x '+typename+']'+'*'))
         else
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),arrstart+tostr(def.highrange-def.lowrange+1)+' x '+typename+arrend))
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),arrstart+tostr(def.highrange-def.lowrange+1)+' x '+typename+arrend))
 {$endif not llvm_has_packed_arrays}
       end;
 
@@ -318,9 +326,9 @@ implementation
         defstr:=defstr+endstr;
         if (def.typ <> objectdef) or
            not(tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_class]) then
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr))
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr))
         else
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_class_struct_name(tobjectdef(def)),defstr))
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_class_struct_name(tobjectdef(def)),defstr))
       end;
 
 
@@ -378,10 +386,10 @@ implementation
               free;
             end;
         for i:= 0 to tobjectdef(def.pointeddef).VMTEntries.Count-1 do
-          defstr:=defstr+def_llvm_name(tprocdef(tobjectdef(def.pointeddef).VMTEntries[i])).name+'*, ';
+          defstr:=defstr+def_llvm_pointer_name(tprocdef(tobjectdef(def.pointeddef).VMTEntries[i])).name+', ';
         setlength(defstr,length(defstr)-2);
         defstr:=defstr+' >*';
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
       end;
 
 
@@ -395,7 +403,7 @@ implementation
           { (also ok for openstrings, as [0 x i8] means }
           {  "array of unspecified size" in llvm)       }
           defstr:='< '+def_llvm_name(lendef).name+', ['+tostr(def.len)+' x i8] >';
-          list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr));
         end;
 
       begin
@@ -415,20 +423,20 @@ implementation
          st_ansistring:
            begin
              { looks like a pchar }
-             list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i8*'));
+             list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'i8*'));
            end;
          st_unicodestring,
          st_widestring:
            begin
              { looks like a pwidechar }
-             list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'i16*'));
+             list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'i16*'));
            end;
         end;
       end;
 
     procedure TLLVMDefInfo.appenddef_procvar(list:TAsmList;def:tprocvardef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)+'*'));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)+'*'));
       end;
 
 
@@ -464,7 +472,13 @@ implementation
               if paramanager.push_addr_param(varspez,vardef,def.proccalloption) then
                 begin
                   result:=result+'*';
-                  if (vo_has_local_copy in varoptions) then
+                  { 'byval' means that the parameter is copied onto the stack at the }
+                  { right location at the caller side rather than that the calling   }
+                  { conventions are used to determine whether the address or value   }
+                  { of the parameter is passed                                       }
+                  { An array of const needs to be constructed on/copied to the call  }
+                  { stack                                                            }
+                  if is_array_of_const(vardef) then
                     result:=result+' byval'
                   else if (vo_is_funcret in varoptions) then
                     result:=result+' sret';
@@ -477,7 +491,7 @@ implementation
 
     procedure TLLVMDefInfo.appendprocdef_implicit(list:TAsmList;def:tprocdef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)));
       end;
       
 
@@ -653,7 +667,7 @@ implementation
         fieldoffset,
         fieldnatsize: aint;
       begin
-//        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE),'fieldvasym');
+//        list.concat(taillvm.op_ressym_string(LA_TYPE),'fieldvasym');
 (*
         if sp_static in sym.symoptions then
           exit;
@@ -711,7 +725,7 @@ implementation
 
     procedure TLLVMDefInfo.appendsym_const(list:TAsmList;sym:tconstsym);
       begin
-//        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE),'constsym');
+//        list.concat(taillvm.op_ressym_string(LA_TYPE),'constsym');
 (*
         append_entry(DW_TAG_constant,false,[
           DW_AT_name,DW_FORM_string,symname(sym)+#0
@@ -811,7 +825,7 @@ implementation
 
     procedure TLLVMDefInfo.appendsym_type(list:TAsmList;sym: ttypesym);
       begin
-//        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,'typesym');
+//        list.concat(taillvm.op_ressym_string(LA_TYPE,'typesym');
         record_def(sym.typedef);
       end;
 
@@ -822,7 +836,7 @@ implementation
         blocksize : longint;
         symlist : ppropaccesslistitem;
       begin
-//        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE),'absolutesym'));
+//        list.concat(taillvm.op_ressym_string(LA_TYPE),'absolutesym'));
       end;
 
 
@@ -952,7 +966,7 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_formal(list:TAsmList;def: tformaldef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef*'));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef*'));
       end;
 
 
@@ -974,7 +988,7 @@ implementation
           odt_class:
             begin
               { implicit pointer }
-              list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),def_llvm_class_struct_name(def).name+'*'));
+              list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),def_llvm_class_struct_name(def).name+'*'));
               doappend;
             end;
           else
@@ -984,12 +998,12 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_set(list:TAsmList;def: tsetdef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'[ '+tostr(def.size)+ 'x i8 ]'));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'[ '+tostr(def.size)+ 'x i8 ]'));
       end;
 
     procedure TLLVMDefInfo.appenddef_undefined(list:TAsmList;def: tundefineddef);
       begin
-        list.concat(tai_llvmcpu.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef'));
+        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'undef'));
       end;
 
     procedure TLLVMDefInfo.appenddef_variant(list:TAsmList;def: tvariantdef);

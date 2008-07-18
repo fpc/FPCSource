@@ -51,7 +51,7 @@ interface
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
 {$ifdef support_llvm}
-        procedure WriteLlvmInstruction(hp: tai_llvmcpu);
+        procedure WriteLlvmInstruction(hp: taillvm);
 {$endif support_llvm}
        public
         function MakeCmdLine: TCmdStr; override;
@@ -425,12 +425,12 @@ implementation
       end;
 
 {$ifdef support_llvm}
-    procedure TGNUAssembler.WriteLlvmInstruction(hp: tai_llvmcpu);
+    procedure TGNUAssembler.WriteLlvmInstruction(hp: taillvm);
       begin
         { write as comment for now so it can be easily mixed }
         { into regular assembler                             }
         AsmWrite('# ');
-        case tai_llvmcpu(hp).llvmopcode of
+        case hp.llvmopcode of
           la_type:
             begin
               AsmWrite(hp.oper[0]^.ref^.symbol.name);
@@ -1089,7 +1089,7 @@ implementation
 {$ifdef support_llvm}
            ait_llvmins:
              begin
-               WriteLlvmInstruction(tai_llvmcpu(hp));
+               WriteLlvmInstruction(taillvm(hp));
              end;
 {$endif support_llvm}
            
