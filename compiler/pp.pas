@@ -39,8 +39,6 @@ program pp;
                       MMX instructions
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles, default for TP
-  TEST_GENERIC        Test Generic version of code generator
-                      (uses generic RTL calls)
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
@@ -49,9 +47,6 @@ program pp;
   cpu64bitalu         The target cpu has 64-bit registers and a 64 bit alu
                       (required for cpu64bitaddr; optional with 32 bit addr space)
   -----------------------------------------------------------------
-
-  Required switches for a i386 compiler be compiled by Free Pascal Compiler:
-  I386
 }
 
 {$i fpcdefs.inc}
