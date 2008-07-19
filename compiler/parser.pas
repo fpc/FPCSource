@@ -68,7 +68,7 @@ implementation
          loaded_units:=TLinkedList.Create;
 
          usedunits:=TLinkedList.Create;
-         
+
          unloaded_units:=TLinkedList.Create;
 
          { global switches }
@@ -333,7 +333,7 @@ implementation
          macrosymtablestack:=TSymtablestack.create;
          systemunit:=nil;
          current_settings.defproccall:=init_settings.defproccall;
-         aktexceptblock:=0;
+         current_exceptblock:=0;
          exceptblockcounter:=0;
          current_settings.maxfpuregisters:=-1;
        { reset the unit or create a new program }
@@ -462,7 +462,7 @@ implementation
                 current_procinfo:=oldcurrent_procinfo;
                 current_filepos:=oldcurrent_filepos;
                 current_settings:=old_settings;
-                aktexceptblock:=0;
+                current_exceptblock:=0;
                 exceptblockcounter:=0;
               end;
             { Shut down things when the last file is compiled succesfull }

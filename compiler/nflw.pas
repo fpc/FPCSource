@@ -942,7 +942,7 @@ implementation
     constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
-        exceptionblock:=aktexceptblock;
+        exceptionblock:=current_exceptblock;
         labelnode:=nil;
         labelsym:=p;
       end;
@@ -1043,7 +1043,7 @@ implementation
     constructor tlabelnode.create(l:tnode;alabsym:tlabelsym);
       begin
         inherited create(labeln,l);
-        exceptionblock:=aktexceptblock;
+        exceptionblock:=current_exceptblock;
         labsym:=alabsym;
         { Register labelnode in labelsym }
         labsym.code:=self;

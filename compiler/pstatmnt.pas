@@ -646,10 +646,8 @@ implementation
 
 
     function raise_statement : tnode;
-
       var
          p,pobj,paddr,pframe : tnode;
-
       begin
          pobj:=nil;
          paddr:=nil;
@@ -677,7 +675,6 @@ implementation
 
 
     function try_statement : tnode;
-
       var
          p_try_block,p_finally_block,first,last,
          p_default,p_specific,hp : tnode;
@@ -688,8 +685,7 @@ implementation
          objname,objrealname : TIDString;
          srsym : tsym;
          srsymtable : TSymtable;
-         oldaktexceptblock: integer;
-
+         oldcurrent_exceptblock: integer;
       begin
          include(current_procinfo.flags,pi_uses_exceptions);
 
@@ -700,8 +696,8 @@ implementation
          consume(_TRY);
          first:=nil;
          inc(exceptblockcounter);
-         oldaktexceptblock := aktexceptblock;
-         aktexceptblock := exceptblockcounter;
+         oldcurrent_exceptblock := current_exceptblock;
+         current_exceptblock := exceptblockcounter;
 
          while (token<>_FINALLY) and (token<>_EXCEPT) do
            begin
@@ -724,7 +720,7 @@ implementation
          if try_to_consume(_FINALLY) then
            begin
               inc(exceptblockcounter);
-              aktexceptblock := exceptblockcounter;
+              current_exceptblock := exceptblockcounter;
               p_finally_block:=statements_til_end;
               try_statement:=ctryfinallynode.create(p_try_block,p_finally_block);
            end
@@ -734,7 +730,7 @@ implementation
               old_block_type:=block_type;
               block_type:=bt_except;
               inc(exceptblockcounter);
-              aktexceptblock := exceptblockcounter;
+              current_exceptblock := exceptblockcounter;
               ot:=generrordef;
               p_specific:=nil;
               if (idtoken=_ON) then
@@ -864,7 +860,7 @@ implementation
               block_type:=old_block_type;
               try_statement:=ctryexceptnode.create(p_try_block,p_specific,p_default);
            end;
-         aktexceptblock := oldaktexceptblock;
+         current_exceptblock := oldcurrent_exceptblock;
       end;
 
 

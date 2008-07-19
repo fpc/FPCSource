@@ -246,7 +246,7 @@ interface
        compile_level : word;
        resolving_forward : boolean;      { used to add forward reference as second ref }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
-       aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
+       current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
 
