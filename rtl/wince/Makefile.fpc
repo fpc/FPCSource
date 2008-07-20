@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) fpintres ctypes objpas macpas strings \
       lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \
@@ -16,8 +16,7 @@ units=$(SYSTEMUNIT) ctypes objpas macpas strings \
       varutils variants fmtbcd \
       matrix ucomplex \
       charset getopts winsock winsock2 sockets \
-      cmem sharemem \
-      fpintres
+      cmem sharemem
 #    initc  signals \
 #    crt graph \
 #    wincrt winmouse winevent  printer \
