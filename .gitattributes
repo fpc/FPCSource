@@ -112,7 +112,6 @@ compiler/cg64f32.pas svneol=native#text/plain
 compiler/cgbase.pas svneol=native#text/plain
 compiler/cgobj.pas svneol=native#text/plain
 compiler/cgutils.pas svneol=native#text/plain
-compiler/charset.pas svneol=native#text/plain
 compiler/cmsgs.pas svneol=native#text/plain
 compiler/comphook.pas svneol=native#text/plain
 compiler/compiler.pas svneol=native#text/plain
