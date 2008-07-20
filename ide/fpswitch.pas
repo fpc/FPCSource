@@ -794,7 +794,7 @@ begin
 end;
 
 function  TSwitches.SetCurrSelParam(const s : String) : boolean;
-  function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
+  function checkitem(P:PSwitchItem):boolean;
   begin
     { empty items are not equivalent to others !! }
     CheckItem:=((S='') and (P^.Param='')) or
@@ -819,7 +819,7 @@ procedure TSwitches.WriteItemsCfg;
 var
   Pref : char;
 
-  procedure writeitem(P:PSwitchItem);{$ifndef FPC}far;{$endif}
+  procedure writeitem(P:PSwitchItem);
   var
     s,s1 : string;
     i,j : integer;
@@ -891,7 +891,7 @@ end;
 
 function TSwitches.ReadItemsCfg(const s:string):boolean;
 
-  function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
+  function checkitem(P:PSwitchItem):boolean;
   begin
     { empty items are not equivalent to others !! }
     { but -dGDB didn't work because of this PM }
@@ -1067,7 +1067,7 @@ var
   P : PStringItem;
   S : String;
   c : char;
-  function checkitem(P:PSwitchItem):boolean;{$ifndef FPC}far;{$endif}
+  function checkitem(P:PSwitchItem):boolean;
   begin
     CheckItem:=(P^.Typ=ot_string) and (P^.Param=c);
   end;
@@ -1515,7 +1515,7 @@ end;
 
 procedure EnumSwitches(P: PSwitches);
 
-procedure HandleSwitch(P: PSwitchItem); {$ifndef FPC}far;{$endif}
+procedure HandleSwitch(P: PSwitchItem);
 begin
   case P^.ParamID of
 {    idAlign :}

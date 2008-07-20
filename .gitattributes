@@ -694,11 +694,9 @@ ide/globdir.inc svneol=native#text/plain
 ide/gplprog.pt -text
 ide/gplunit.pt -text
 ide/grep.tdf -text
-ide/maketp.bat -text
 ide/pmode.pas svneol=native#text/plain
 ide/program.pt -text
 ide/readme.ide -text
-ide/realintr.inc svneol=native#text/plain
 ide/test.pas svneol=native#text/plain
 ide/test1.pas svneol=native#text/plain
 ide/test2.pas svneol=native#text/plain

@@ -93,10 +93,6 @@ begin
          else
            DriveNumber:=Ord(FileDir[1])-ord('A')+1;
          GetDir(DriveNumber,StoreDir2);
-{$ifndef FPC}
-         ChDir(Copy(FileDir,1,2));
-           { sets InOutRes in Windows PM }
-{$endif not FPC}
        end;
      if (FileDir<>'') and ExistsDir(FileDir) then
        ChDir(TrimEndSlash(FileDir));
@@ -117,10 +113,6 @@ begin
      Dispose(D, Done);
      if DriveNumber<>0 then
        ChDir(TrimEndSlash(StoreDir2));
-{$ifndef FPC}
-     if (Length(StoreDir)>1) and (StoreDir[2]=':') then
-       ChDir(Copy(StoreDir,1,2));
-{$endif not FPC}
      ChDir(TrimEndSlash(StoreDir));
    end;
   if OpenIt then
@@ -188,7 +180,7 @@ begin
 end;
 
 function TIDEApp.AskSaveAll: boolean;
-function CanClose(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function CanClose(P: PView): boolean;
 begin
   CanClose:=not P^.Valid(cmAskSaveAll);
 end;
@@ -198,7 +190,7 @@ end;
 
 function TIDEApp.SaveAll: boolean;
 
-  procedure SendSave(P: PView); {$ifndef FPC}far;{$endif}
+  procedure SendSave(P: PView);
   begin
     Message(P,evCommand,cmSave,nil);
   end;

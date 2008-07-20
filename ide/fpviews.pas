@@ -714,7 +714,7 @@ end;
 
 
 function IsThereAnyEditor: boolean;
-function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function EditorWindow(P: PView): boolean;
 begin
   EditorWindow:=(P^.HelpCtx=hcSourceWindow);
 end;
@@ -723,7 +723,7 @@ begin
 end;
 
 procedure AskToReloadAllModifiedFiles;
-  procedure EditorWindowModifiedOnDisk(P: PView); {$ifndef FPC}far;{$endif}
+  procedure EditorWindowModifiedOnDisk(P: PView);
 begin
   if (P^.HelpCtx=hcSourceWindow) then
     PSourceWindow(P)^.Editor^.ReloadFile;
@@ -772,7 +772,7 @@ begin
 end;
 
 function IsThereAnyWindow: boolean;
-function CheckIt(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function CheckIt(P: PView): boolean;
 begin
   CheckIt:=IsWindow(P);
 end;
@@ -781,7 +781,7 @@ begin
 end;
 
 function IsThereAnyVisibleWindow: boolean;
-function CheckIt(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function CheckIt(P: PView): boolean;
 begin
   CheckIt:=IsWindow(P) and P^.GetState(sfVisible);
 end;
@@ -790,7 +790,7 @@ begin
 end;
 
 function FirstEditorWindow: PSourceWindow;
-function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function EditorWindow(P: PView): boolean;
 begin
   EditorWindow:=(P^.HelpCtx=hcSourceWindow);
 end;
@@ -802,7 +802,7 @@ function EditorWindowFile(const Name : String): PSourceWindow;
 var
   SName : string;
 
-  function EditorWindow(P: PView): boolean; {$ifndef FPC}far;{$endif}
+  function EditorWindow(P: PView): boolean;
   begin
     EditorWindow:=(TypeOf(P^)=TypeOf(TSourceWindow)) and
                   (FixFileName(PSourceWindow(P)^.Editor^.FileName)=SName);
@@ -819,7 +819,7 @@ function InDisassemblyWindow :boolean;
 var
   PW : PWindow;
 
-function CheckIt(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function CheckIt(P: PView): boolean;
 begin
   CheckIt:=IsWindow(P) and P^.GetState(sfVisible) and
      (P^.HelpCtx <> hcWatchesWindow) and
@@ -1151,7 +1151,7 @@ begin
 end;
 
 function SearchWindow(const Title: string): PWindow;
-function Match(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function Match(P: PView): boolean;
 var W: PWindow;
     OK: boolean;
 begin
@@ -1217,7 +1217,7 @@ end;
 
 function SearchCoreForFileName(AFileName: string): PCodeEditorCore;
 var EC: PCodeEditorCore;
-function Check(P: PView): boolean; {$ifndef FPC}far;{$endif}
+function Check(P: PView): boolean;
 var OK: boolean;
 begin
   OK:=P^.HelpCtx=hcSourceWindow;
@@ -3439,7 +3439,7 @@ end;
 
 procedure TTab.ChangeBounds(var Bounds: TRect);
 var D: TPoint;
-procedure DoCalcChange(P: PView); {$ifndef FPC}far;{$endif}
+procedure DoCalcChange(P: PView);
 var
   R: TRect;
 begin
@@ -3729,7 +3729,7 @@ end;
 
 destructor TTab.Done;
 var P,X: PTabDef;
-procedure DeleteViews(P: PView); {$ifndef FPC}far;{$endif}
+procedure DeleteViews(P: PView);
 begin
   if P<>nil then Delete(P);
 end;
@@ -3907,7 +3907,7 @@ end;
 
 function LastSourceEditor : PSourceWindow;
 
-  function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
+  function IsSearchedSource(P: PView) : boolean;
   begin
     if assigned(P) and
        (TypeOf(P^)=TypeOf(TSourceWindow)) then
@@ -3957,7 +3957,7 @@ function IsSearchedFile(W : PSourceWindow) : boolean;
       end;
     IsSearchedFile:=found;
   end;
-function IsSearchedSource(P: PView) : boolean; {$ifndef FPC}far;{$endif}
+function IsSearchedSource(P: PView) : boolean;
 begin
   if assigned(P) and
      (TypeOf(P^)=TypeOf(TSourceWindow)) then
@@ -4588,7 +4588,7 @@ end;
 
 
 {$ifdef VESA}
-function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean; {$ifndef FPC}far;{$endif}
+function VESASetVideoModeProc(const VideoMode: TVideoMode; Params: Longint): Boolean;
 begin
   VESASetVideoModeProc:=VESASetMode(Params);
 end;

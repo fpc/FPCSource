@@ -581,7 +581,7 @@ begin
   inherited Done;
 end;
 
-function CreateProc(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProc(const FileName,Param: string;Index : longint): PHelpFile;
 begin
   CreateProc:=New(POAHelpFile, Init(FileName,Index));
 end;

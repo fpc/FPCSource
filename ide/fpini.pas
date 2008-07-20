@@ -536,7 +536,7 @@ var INIFile: PINIFile;
     I(*,OpenFileCount*): integer;
     OK: boolean;
 
-procedure ConcatName(P: PString); {$ifndef FPC}far;{$endif}
+procedure ConcatName(P: PString);
 begin
   if (S<>'') then S:=S+';';
   S:=S+P^;

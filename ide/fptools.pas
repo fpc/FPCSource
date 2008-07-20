@@ -721,7 +721,7 @@ var
   OK: boolean;
   _IS: PINISection;
 
-  procedure ProcessSection(Sec: PINISection);{$ifndef FPC}far;{$endif}
+  procedure ProcessSection(Sec: PINISection);
   var P1,P2: TPoint;
       Typ: string;
       Count: sw_integer;
@@ -1414,7 +1414,7 @@ begin
 end;
 
 procedure DoneToolTempFiles;
-procedure DeleteIt(P: PString); {$ifndef FPC}far;{$endif}
+procedure DeleteIt(P: PString);
 begin
   DeleteFile(GetStr(P));
 end;

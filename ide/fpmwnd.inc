@@ -15,7 +15,7 @@
 
 procedure TIDEApp.CloseAll;
 
-  procedure SendClose(P: PView); {$ifndef FPC}far;{$endif}
+  procedure SendClose(P: PView);
   begin
     Message(P,evCommand,cmClose,nil);
   end;
@@ -144,7 +144,7 @@ end;
 
 procedure TWindowListDialog.UpdateList;
 var VisState: boolean;
-procedure AddIt(P: PView); {$ifndef FPC}far;{$endif}
+procedure AddIt(P: PView);
 begin
   if (P<>pointer(Desktop^.Background)) and
      (P^.GetState(sfDisabled)=false) and

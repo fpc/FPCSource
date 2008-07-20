@@ -330,9 +330,7 @@ implementation
 
 uses
   Dos,
-{$ifdef fpc}
   Video,
-{$endif fpc}
 {$ifdef DOS}
   fpusrscr,
 {$endif DOS}
@@ -342,11 +340,7 @@ uses
   Windebug,
 {$endif Windows}
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    Linux,
-  {$else}
-    termio,
-  {$endif}
+  termio,
 {$endif Unix}
   Systems,Globals,
   FPRegs,
@@ -528,14 +522,6 @@ const
   FrameName = '$r1';
 {$define FrameNameKnown}
 {$endif powerpc}
-
-{$ifdef TP}
-function HexStr(Value: longint; Len: byte): string;
-begin
-  HexStr:=IntToHex(Value,Len);
-end;
-{$endif}
-
 
 function  GDBFileName(st : string) : string;
 {$ifndef Unix}
@@ -719,9 +705,7 @@ begin
               Command('dir '+GDBFileName(GetShortName(s+Dir.Name)));
             Dos.FindNext(Dir);
           end;
-{$ifdef FPC}
         Dos.FindClose(Dir);
-{$endif def FPC}
       end;
   until i=0;
 end;
@@ -861,7 +845,7 @@ begin
       Assign(Debuggeefile,DebuggeeTTY);
       system.Reset(Debuggeefile);
       ResetOK:=IOResult=0;
-      If ResetOK and {$ifdef ver1_0}IsATTY(textrec(Debuggeefile).handle){$else}(IsATTY(textrec(Debuggeefile).handle)<>-1){$endif} then
+      If ResetOK and (IsATTY(textrec(Debuggeefile).handle)<>-1) then
         begin
           Command('tty '+DebuggeeTTY);
           TTYUsed:=true;
@@ -993,7 +977,7 @@ begin
 end;
 
 procedure TDebugController.ResetDebuggerRows;
-  procedure ResetDebuggerRow(P: PView); {$ifndef FPC}far;{$endif}
+  procedure ResetDebuggerRow(P: PView);
   begin
     if assigned(P) and
        (TypeOf(P^)=TypeOf(TSourceWindow)) then
@@ -1772,7 +1756,7 @@ end;
 
 function  TBreakpointCollection.GetGDB(index : longint) : PBreakpoint;
 
-  function IsNum(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsNum(P : PBreakpoint) : boolean;
   begin
     IsNum:=P^.GDBIndex=index;
   end;
@@ -1786,14 +1770,14 @@ end;
 
 procedure TBreakpointCollection.ShowBreakpoints(W : PFPWindow);
 
-  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure SetInSource(P : PBreakpoint);
   begin
     If assigned(P^.FileName) and
       (OSFileName(P^.FileName^)=OSFileName(FExpand(PSourceWindow(W)^.Editor^.FileName))) then
       PSourceWindow(W)^.Editor^.SetLineFlagState(P^.Line-1,lfBreakpoint,P^.state=bs_enabled);
   end;
 
-  procedure SetInDisassembly(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure SetInDisassembly(P : PBreakpoint);
     var
       PDL : PDisasLine;
       S : string;
@@ -1838,7 +1822,7 @@ end;
 
 procedure TBreakpointCollection.AdaptBreakpoints(Editor : PSourceEditor; Pos, Change : longint);
 
-  procedure AdaptInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure AdaptInSource(P : PBreakpoint);
   begin
     If assigned(P^.FileName) and
        (P^.FileName^=OSFileName(FExpand(Editor^.FileName))) then
@@ -1876,7 +1860,7 @@ end;
 
 function TBreakpointCollection.FindBreakpointAt(Editor : PSourceEditor; Line : longint) : PBreakpoint;
 
-  function IsAtLine(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsAtLine(P : PBreakpoint) : boolean;
   begin
     If assigned(P^.FileName) and
        (P^.FileName^=OSFileName(FExpand(Editor^.FileName))) and
@@ -1892,7 +1876,7 @@ end;
 
 procedure TBreakpointCollection.ShowAllBreakpoints;
 
-  procedure SetInSource(P : PBreakpoint);{$ifndef FPC}far;{$endif}
+  procedure SetInSource(P : PBreakpoint);
     var
       W : PSourceWindow;
   begin
@@ -1910,7 +1894,7 @@ end;
 
 function TBreakpointCollection.GetType(typ : BreakpointType;Const s : String) : PBreakpoint;
 
-  function IsThis(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsThis(P : PBreakpoint) : boolean;
   begin
     IsThis:=(P^.typ=typ) and (GetStr(P^.Name)=S);
   end;
@@ -1922,7 +1906,7 @@ end;
 
 function TBreakpointCollection.ToggleFileLine(FileName: String;LineNr : Longint) : boolean;
 
-  function IsThere(P : PBreakpoint) : boolean;{$ifndef FPC}far;{$endif}
+  function IsThere(P : PBreakpoint) : boolean;
   begin
     IsThere:=(P^.typ=bt_file_line) and assigned(P^.FileName) and
       (OSFileName(P^.FileName^)=FileName) and (P^.Line=LineNr);

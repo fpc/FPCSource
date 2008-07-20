@@ -68,7 +68,7 @@ uses Objects,Views,App,MsgBox,
      FPConst,FPVars,FPUtils;
 
 const
-    MaxStatusLevel = {$ifdef FPC}10{$else}1{$endif};
+    MaxStatusLevel = 10;
 
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
@@ -658,7 +658,7 @@ begin
 end;
 
 procedure CloseHelpWindows;
-procedure CloseIfHelpWindow(P: PView); {$ifndef FPC}far;{$endif}
+procedure CloseIfHelpWindow(P: PView);
 begin
   if P^.HelpCtx=hcHelpWindow then
     begin

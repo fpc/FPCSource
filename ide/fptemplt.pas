@@ -269,9 +269,7 @@ procedure InitTemplates;
         DisposeTemplate(PT);
       FindNext(SR);
     end;
-  {$ifdef FPC}
     FindClose(SR);
-  {$endif def FPC}
   end;
 
 begin
