@@ -2213,7 +2213,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.MinorOperatingSystemVersion:=0;
             peoptheader.MajorImageVersion:=dllmajor;
             peoptheader.MinorImageVersion:=dllminor;
-            if target_info.system in [system_arm_wince,system_i386_wince] then
+            if target_info.system in system_wince then
               peoptheader.MajorSubsystemVersion:=3
             else
               peoptheader.MajorSubsystemVersion:=4;
@@ -2222,7 +2222,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if target_info.system in [system_arm_wince,system_i386_wince] then
+            if target_info.system in system_wince then
               peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
             else
               if apptype=app_gui then

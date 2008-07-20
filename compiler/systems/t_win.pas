@@ -1338,7 +1338,7 @@ implementation
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
-        if target_info.system in [system_arm_wince,system_i386_wince] then
+        if target_info.system in system_wince then
           AppTypeStr:='--subsystem wince'
         else
           begin
@@ -1607,7 +1607,7 @@ implementation
         { gui=2 }
         { cui=3 }
         { wincegui=9 }
-        if target_info.system in [system_arm_wince,system_i386_wince] then
+        if target_info.system in system_wince then
           peoptheader.Subsystem:=9
         else
           case apptype of
