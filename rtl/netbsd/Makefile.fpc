@@ -207,7 +207,7 @@ fmtbcd$(PPUEXT) : $(OBJPASDIR)/fmtbcd.pp objpas$(PPUEXT) sysutils$(PPUEXT) varia
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
