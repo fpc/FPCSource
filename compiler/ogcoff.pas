@@ -2120,7 +2120,8 @@ const pemagic : array[0..3] of byte = (
         peoptheader : tcoffpeoptheader;
         textExeSec,
         dataExeSec,
-        bssExeSec   : TExeSection;
+        bssExeSec,
+        idataExeSec : TExeSection;
         hassymbols  : boolean;
 
         procedure UpdateDataDir(const secname:string;idx:longint);
@@ -2258,6 +2259,17 @@ const pemagic : array[0..3] of byte = (
             djoptheader.entry:=EntrySym.offset;
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
+          
+        { For some unknown reason WM 6.1 requires .idata section to be read only.
+          Otherwise it refuses to load DLLs greater than 64KB.
+          Earlier versions of WinCE load DLLs regardless of .idata flags. }
+        if target_info.system in [system_arm_wince,system_i386_wince] then
+          begin
+            idataExeSec:=FindExeSection('.idata');
+            if idataExeSec<>nil then
+              idataExeSec.SecOptions:=idataExeSec.SecOptions - [oso_write] + [oso_readonly];
+          end;
+
         { Section headers }
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
