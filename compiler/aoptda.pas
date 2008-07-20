@@ -62,11 +62,13 @@ Unit aoptda;
     { Analyzes the Data Flow of an assembler list. Analyses the reg contents     }
     { for the instructions between blockstart and blockend. Returns the last pai }
     { which has been processed                                                   }
+    {
     Var
         CurProp: TPaiProp;
         UsedRegs: TUsedRegs;
         p, hp, NewBlockStart : tai;
         TmpReg: TRegister;
+    }
     Begin
     {!!!!!!!!!!
       p := BlockStart;

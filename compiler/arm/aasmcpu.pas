@@ -1279,7 +1279,7 @@ implementation
        * required to have unspecified size in the instruction too...)
       }
       var
-        i,j,asize,oprs : longint;
+        i,{j,}asize{,oprs} : longint;
         siz : array[0..3] of longint;
       begin
         Matches:=100;

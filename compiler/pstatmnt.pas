@@ -1157,7 +1157,9 @@ implementation
     function assembler_block : tnode;
       var
         p : tnode;
+{$ifndef arm}
         locals : longint;
+{$endif arm}
         srsym : tsym;
       begin
          { Rename the funcret so that recursive calls are possible }

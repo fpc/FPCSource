@@ -377,11 +377,13 @@ Unit AoptObj;
         End;
 
       Function TPaiProp.RegInSequence(Reg, which: TRegister): Boolean;
+      {
       Var p: Tai;
           RegsChecked: TRegSet;
           content: TContent;
           Counter: Byte;
           TmpResult: Boolean;
+      }
       Begin
       {!!!!!!!!!!1
         RegsChecked := [];
@@ -429,8 +431,10 @@ Unit AoptObj;
                   TInstrSinceLastMod);
       { Destroys the contents of the register Reg in the PPaiProp p1, as well as }
       { the contents of registers are loaded with a memory location based on Reg }
+      {
       Var TmpWState, TmpRState: Byte;
           Counter: TRegister;
+      }
       Begin
       {!!!!!!!
         Reg := RegMaxSize(Reg);
@@ -469,8 +473,10 @@ Unit AoptObj;
       { destroys all registers which possibly contain a reference to Ref, WhichReg }
       { is the register whose contents are being written to memory (if this proc   }
       { is called because of a "mov?? %reg, (mem)" instruction)                    }
+      {
       Var RefsEq: TRefCompare;
           Counter: TRegister;
+      }
       Begin
       {!!!!!!!!!!!
         WhichReg := RegMaxSize(WhichReg);
@@ -547,7 +553,7 @@ Unit AoptObj;
       End;
 
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
-      Var Counter: TRegister;
+      {Var Counter: TRegister;}
       Begin {initializes/desrtoys all registers}
       {!!!!!!!!!
         For Counter := LoGPReg To HiGPReg Do

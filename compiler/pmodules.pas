@@ -249,7 +249,6 @@ implementation
     Procedure InsertResourceInfo(ResourcesUsed : boolean);
 
     var
-      I            : Integer;
       ResourceInfo : TAsmList;
 
     begin
@@ -1280,7 +1279,6 @@ implementation
 
     procedure insert_export(sym : TObject;arg:pointer);
       var
-        hp : texported_item;
         i : longint;
         item : TCmdStrListItem;
       begin

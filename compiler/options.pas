@@ -2080,7 +2080,9 @@ function check_configfile(const fn:string;var foundfn:string):boolean;
   end;
 
 var
+{$ifdef Unix}
   hs,
+{$endif Unix}
   configpath : string;
 begin
   foundfn:=fn;

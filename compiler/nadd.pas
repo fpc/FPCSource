@@ -2356,8 +2356,6 @@ implementation
          hp      : tnode;
 {$endif addstringopt}
          rd,ld   : tdef;
-         newstatement : tstatementnode;
-         temp    : ttempcreatenode;
          i       : longint;
          lt,rt   : tnodetype;
       begin

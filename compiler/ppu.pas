@@ -466,7 +466,7 @@ end;
 
 procedure tppufile.readdata(var b;len:integer);
 var
-  p,pmax,pbuf : pchar;
+  p,pbuf : pchar;
   left : integer;
 begin
   p:=pchar(@b);

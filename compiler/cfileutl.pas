@@ -298,7 +298,6 @@ implementation
     function TCachedDirectory.FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
       var
         entry : PCachedDirectoryEntry;
-        Attr  : Longint;
       begin
         if (tf_files_case_aware in source_info.flags) then
           begin

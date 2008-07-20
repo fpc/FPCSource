@@ -2036,7 +2036,6 @@ const pemagic : array[0..3] of byte = (
       var
         objsec : TObjSection;
         i      : longint;
-        b      : boolean;
       begin
         with texesection(p) do
           begin

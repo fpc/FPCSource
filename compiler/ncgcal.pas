@@ -510,7 +510,9 @@ implementation
         tmpcgsize,
         cgsize    : tcgsize;
         retloc    : tlocation;
+{$ifdef cpu64bitaddr}
         ref       : treference;
+{$endif cpu64bitaddr}
 {$ifndef x86}
         hregister : tregister;
 {$endif not x86}
@@ -873,7 +875,9 @@ implementation
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
+{$ifdef x86_64}
         cgpara : tcgpara;
+{$endif x86_64}
       begin
          if not assigned(procdefinition) or
             not procdefinition.has_paraloc_info then

@@ -548,7 +548,7 @@ implementation
         var
            hp1         : tai;
            lastlabel   : tasmlabel;
-           i, diff     : longint;
+           i           : longint;
            neededtyp   : taiconst_type;
         begin
           location_reset(location,LOC_CREFERENCE,OS_NO);

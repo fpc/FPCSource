@@ -57,7 +57,6 @@ interface
         floattype2ait:array[tfloattype] of taitype=
           (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
-         hp1 : tai;
          lastlabel : tasmlabel;
          realait : taitype;
          hiloswapped : boolean;

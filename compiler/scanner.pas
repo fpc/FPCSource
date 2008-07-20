@@ -472,7 +472,6 @@ implementation
     function isdef(var valuedescr: String): Boolean;
       var
         hs    : string;
-        mac   : tmacro;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -490,7 +489,6 @@ implementation
     function isnotdef(var valuedescr: String): Boolean;
       var
         hs    : string;
-        mac   : tmacro;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;

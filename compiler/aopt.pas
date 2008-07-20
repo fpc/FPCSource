@@ -109,7 +109,7 @@ Unit aopt;
     Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
     { Builds a table with the locations of the labels in the TAsmList.       }
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
-    Var p, hp1, hp2: tai;
+    Var p{, hp1, hp2}: tai;
         UsedRegs: TRegSet;
         LabelIdx : longint;
     Begin

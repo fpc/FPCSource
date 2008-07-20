@@ -2884,7 +2884,6 @@ implementation
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
       var
         i,aliasnamescount : longint;
-        item : TCmdStrListItem;
         level : byte;
       begin
          inherited ppuload(procdef,ppufile);
@@ -3908,8 +3907,6 @@ implementation
 
 
     procedure tobjectdef.buildderefimpl;
-      var
-         i : longint;
       begin
          inherited buildderefimpl;
          if not (df_copied_def in defoptions) then
