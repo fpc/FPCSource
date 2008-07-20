@@ -2669,7 +2669,7 @@ convutil$(PPUEXT) : $(OBJPASDIR)/convutil.pp
 	$(COMPILER) -Fi$(OBJPASDIR) $(OBJPASDIR)/convutil.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 	$(COMPILER) $(OBJPASDIR)/strutils.pp
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) math$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp system$(PPUEXT)
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) system$(PPUEXT)

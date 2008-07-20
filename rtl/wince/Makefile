@@ -2289,7 +2289,7 @@ convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/convutils.pp
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 	$(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/strutils.pp
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) math$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)

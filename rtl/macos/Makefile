@@ -2075,7 +2075,7 @@ objpas$(PPUEXT) : $(OBJPASDIR)/objpas.pp system$(PPUEXT)
 sysutils$(PPUEXT) : $(OBJPASDIR)/sysutils.pp objpas$(PPUEXT) system$(PPUEXT) sysconst$(PPUEXT)
 	$(COPY) $(OBJPASDIR)/sysutils.pp .
 	$(COMPILER) sysutils $(REDIR)
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) math$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 	$(COMPILER) $(INC)/macpas.pp $(REDIR)
 dos$(PPUEXT) : $(DOSDEPS) unixutil$(PPUEXT) system$(PPUEXT)
 	$(COMPILER) dos $(REDIR)
