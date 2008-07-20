@@ -2253,7 +2253,7 @@ const pemagic : array[0..3] of byte = (
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }
-        if target_info.system in [system_arm_wince,system_i386_wince] then
+        if target_info.system in system_wince then
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
