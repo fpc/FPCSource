@@ -33,6 +33,7 @@ const
 
     function  FpAccess  (pathname : pchar; amode : cint): cint; cdecl; external clib name 'access';
     function  FpChdir   (path : pchar): cint; cdecl; external clib name 'chdir';
+    Function  FpChown   (path : pChar; owner : TUid; group : TGid): cInt; cdecl; external clib name 'chown';
     function  FpClose   (fd : cint): cint; cdecl; external clib name 'close';
     Function  FpClosedir (var dirp : Dir): cInt; cdecl; external clib name 'closedir';
     function  FpClosedir (dirp : pdir): cint; cdecl; external clib name 'closedir';
