@@ -79,6 +79,17 @@ begin
   Result:=LEtoN(Result);
 end;
 
+{$IFDEF FPC_DOUBLE_HILO_SWAPPED}
+procedure SwapDoubleHiLo(var avalue: double); {$ifdef CLASSESINLINE}inline{$endif CLASSESINLINE}
+var dwo1 : dword;
+type tdoublerec = array[0..1] of dword;
+begin
+  dwo1:= tdoublerec(avalue)[0];
+  tdoublerec(avalue)[0]:=tdoublerec(avalue)[1];
+  tdoublerec(avalue)[1]:=dwo1;
+end;
+{$ENDIF FPC_DOUBLE_HILO_SWAPPED}
+
 {$ifndef FPUNONE}
 function TBinaryObjectReader.ReadExtended : extended; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
 {$IFNDEF FPC_HAS_TYPE_EXTENDED}
@@ -88,6 +99,9 @@ begin
   {$IFNDEF FPC_HAS_TYPE_EXTENDED}
   Read(ext[0],10);
   Result:=ExtendedToDouble(@(ext[0]));
+  {$IFDEF FPC_DOUBLE_HILO_SWAPPED}
+  SwapDoubleHiLo(result);
+  {$ENDIF}
   {$ELSE}
   Read(Result,sizeof(Result));
   {$ENDIF}
