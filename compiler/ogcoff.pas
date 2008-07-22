@@ -2173,7 +2173,9 @@ const pemagic : array[0..3] of byte = (
         if win32 then
           begin
             header.flag:=PE_FILE_EXECUTABLE_IMAGE or PE_FILE_LINE_NUMS_STRIPPED;
-            if target_info.system in [system_i386_win32,system_arm_wince,system_i386_wince] then
+            if target_info.system in [system_x86_64_win64] then
+              header.flag:=header.flag or PE_FILE_LARGE_ADDRESS_AWARE
+            else
               header.flag:=header.flag or PE_FILE_32BIT_MACHINE;
             if IsSharedLibrary then
               header.flag:=header.flag or PE_FILE_DLL;
@@ -2185,6 +2187,8 @@ const pemagic : array[0..3] of byte = (
               header.flag:=header.flag or PE_FILE_DEBUG_STRIPPED;
             if not hassymbols then
               header.flag:=header.flag or PE_FILE_LOCAL_SYMS_STRIPPED;
+            if SetPEFlagsSetExplicity then
+              header.flag:=header.flag or peflags;
           end
         else
           header.flag:=COFF_FLAG_AR32WR or COFF_FLAG_EXE or COFF_FLAG_NORELOCS or COFF_FLAG_NOLINES;
@@ -2233,10 +2237,6 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfStackCommit:=$1000;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
-            if SetPEFlagsSetExplicity then
-              peoptheader.LoaderFlags:=peflags
-            else
-              peoptheader.LoaderFlags:=0;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
             UpdateDataDir('.idata',PE_DATADIR_IDATA);
             UpdateDataDir('.edata',PE_DATADIR_EDATA);
