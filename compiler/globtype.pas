@@ -416,6 +416,7 @@ interface
 
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
+         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
          line      : longint;
          column    : word;
          fileindex : word;

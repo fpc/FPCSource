@@ -890,6 +890,8 @@ implementation
         { calculate info byte }
         if (p.fileindex>$ff) then
          begin
+           info:=info or $1;
+           { uncomment this code if tfileposinfo.fileindex type was changed
            if (p.fileindex<=$ffff) then
             info:=info or $1
            else
@@ -897,6 +899,7 @@ implementation
              info:=info or $2
            else
             info:=info or $3;
+           }
           end;
         if (p.line>$ff) then
          begin
@@ -910,6 +913,8 @@ implementation
           end;
         if (p.column>$ff) then
          begin
+           info:=info or $10;
+           { uncomment this code if tfileposinfo.column type was changed
            if (p.column<=$ffff) then
             info:=info or $10
            else
@@ -917,6 +922,7 @@ implementation
              info:=info or $20
            else
             info:=info or $30;
+           }
           end;
         { write data }
         putbyte(info);
