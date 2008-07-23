@@ -35,7 +35,7 @@ Unit aopt;
       TAsmOptimizer = class(TAoptObj)
 
         { _AsmL is the PAasmOutpout list that has to be optimized }
-        Constructor create(_AsmL: TAsmList); virtual;
+        Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
         Procedure Optimize;

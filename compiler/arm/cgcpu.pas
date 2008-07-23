@@ -106,7 +106,7 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint); override;
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
