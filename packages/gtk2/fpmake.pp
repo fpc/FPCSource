@@ -1208,6 +1208,14 @@ begin
           AddUnit('glib2');
         end;
 
+    T:=P.Targets.AddUnit('src/gtkext/gtk2ext.pp');
+      T.IncludePath.Add('src/gtkext');
+      with T.Dependencies do
+        begin
+          AddInclude('gtkstatusiconh.inc');
+          AddInclude('gtkstatusicon.inc');
+        end;
+
      T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
        T.IncludePath.Add('src/gtkhtml');
        with T.Dependencies do
