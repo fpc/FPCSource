@@ -351,6 +351,7 @@ Unit AoptObj;
       Function TUsedRegs.IsUsed(Reg: TRegister): Boolean;
       Begin
         //!!!!!!!!!!! IsUsed := Reg in UsedRegs
+        Result:=False; { unimplemented }
       End;
 
       Function TUsedRegs.GetUsedRegs: TRegSet;
@@ -385,6 +386,7 @@ Unit AoptObj;
           TmpResult: Boolean;
       }
       begin
+        Result:=False; { unimplemented }
       (*!!!!!!!!!!1
         RegsChecked := [];
         content := regs[which];
@@ -458,6 +460,7 @@ Unit AoptObj;
 
       Function ArrayRefsEq(const r1, r2: TReference): Boolean;
       Begin
+        Result:=False; { unimplemented }
       (*!!!!!!!!!!
         ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
       {$ifdef refsHaveSegmentReg}
@@ -658,16 +661,19 @@ Unit AoptObj;
 
       Function TPaiProp.GetWState(Reg: TRegister): TStateInt; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetWState := Regs[Reg].WState
       End;
 
       Function TPaiProp.GetRState(Reg: TRegister): TStateInt; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetRState := Regs[Reg].RState
       End;
 
       Function TPaiProp.GetRegContentType(Reg: TRegister): Byte; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetRegContentType := Regs[Reg].typ
       End;
 

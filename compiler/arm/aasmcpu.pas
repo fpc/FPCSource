@@ -1034,6 +1034,7 @@ implementation
 
     function taicpu.CheckIfValid:boolean;
       begin
+        Result:=False; { unimplemented }
       end;
 
 
@@ -1122,6 +1123,7 @@ implementation
 
     function  taicpu.InsEnd:longint;
       begin
+        Result:=0; { unimplemented }
       end;
 
 
@@ -1440,6 +1442,7 @@ implementation
 
     function  taicpu.NeedAddrPrefix(opidx:byte):boolean;
       begin
+        Result:=False; { unimplemented }
       end;
 
 
