@@ -107,6 +107,7 @@ unit cgcpu;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
         procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint); override;
+        procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
@@ -1960,6 +1961,11 @@ unit cgcpu;
               end;
               paraloc:=next;
             end;
+      end;
+
+    procedure tcgarm.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(200807237);
       end;
 
 

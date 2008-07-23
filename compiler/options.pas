@@ -2211,9 +2211,10 @@ begin
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
   def_system_macro('STR_CONCAT_PROCS');
+{$warnings off}
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
-
+{$warnings on}
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
 { using a case is pretty useless here (FK) }
