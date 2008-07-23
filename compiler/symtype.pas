@@ -777,10 +777,11 @@ implementation
 
     function tcompilerppufile.getPtrUInt:TConstPtrUInt;
       begin
-        if sizeof(TConstPtrUInt)=8 then
-          result:=tconstptruint(getint64)
-        else
+        {$if sizeof(TConstPtrUInt)=8}
+          result:=tconstptruint(getint64);
+        {$else}
           result:=TConstPtrUInt(getlongint);
+        {$endif}
       end;
 
 
@@ -971,12 +972,14 @@ implementation
 
     procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
       begin
-        if sizeof(TConstPtrUInt)=8 then
-          putint64(int64(v))
-        else if sizeof(TConstPtrUInt)=4 then
-          putlongint(longint(v))
-        else
+        {$if sizeof(TConstPtrUInt)=8}
+          putint64(int64(v));
+        {$else}
+        {$if sizeof(TConstPtrUInt)=4}
+          putlongint(longint(v));
+        {$else}
           internalerror(2002082601);
+        {$endif} {$endif}
       end;
 
 

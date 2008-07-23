@@ -780,21 +780,19 @@ implementation
         if left.nodetype=ordconstn then
           begin
             { check if we have a valid pointer constant (JM) }
-            if (sizeof(pointer) > sizeof(TConstPtrUInt)) then
-              if (sizeof(TConstPtrUInt) = 4) then
-                begin
+            {$if sizeof(pointer) > sizeof(TConstPtrUInt)}
+              {$if sizeof(TConstPtrUInt) = 4}
                   if (tordconstnode(left).value < int64(low(longint))) or
                      (tordconstnode(left).value > int64(high(cardinal))) then
                   CGMessage(parser_e_range_check_error);
-                end
-              else if (sizeof(TConstPtrUInt) = 8) then
-                begin
+              {$else} {$if sizeof(TConstPtrUInt) = 8}
                   if (tordconstnode(left).value < int64(low(int64))) or
                      (tordconstnode(left).value > int64(high(qword))) then
                   CGMessage(parser_e_range_check_error);
-                end
-              else
+              {$else}
                 internalerror(2001020801);
+              {$endif} {$endif}
+            {$endif}
             t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
             result:=t;
           end

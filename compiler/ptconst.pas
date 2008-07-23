@@ -374,13 +374,14 @@ implementation
           { const pointer ? }
           if (p.nodetype = pointerconstn) then
             begin
-              if sizeof(TConstPtrUInt)=8 then
-                list.concat(Tai_const.Create_64bit(int64(tpointerconstnode(p).value)))
-              else
-                if sizeof(TConstPtrUInt)=4 then
-                  list.concat(Tai_const.Create_32bit(longint(tpointerconstnode(p).value)))
-              else
-                internalerror(200404122);
+              {$if sizeof(TConstPtrUInt)=8}
+                list.concat(Tai_const.Create_64bit(int64(tpointerconstnode(p).value)));
+              {$else}
+                {$if sizeof(TConstPtrUInt)=4}
+                  list.concat(Tai_const.Create_32bit(longint(tpointerconstnode(p).value)));
+                {$else}
+                  internalerror(200404122);
+              {$endif} {$endif}
             end
           { nil pointer ? }
           else if p.nodetype=niln then

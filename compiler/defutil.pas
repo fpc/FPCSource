@@ -916,12 +916,13 @@ implementation
             begin
               if tprocvardef(def).is_methodpointer and
                  (not tprocvardef(def).is_addressonly) then
-                if (sizeof(pint) = 4) then
+                {$if sizeof(pint) = 4}
                   result:=OS_64
-                else if (sizeof(pint) = 8) then
+                {$else} {$if sizeof(pint) = 8}
                   result:=OS_128
-                else
+                {$else}
                   internalerror(200707141)
+                {$endif} {$endif}
               else
                 result:=OS_ADDR;
             end;

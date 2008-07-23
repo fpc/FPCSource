@@ -409,12 +409,13 @@ implementation
                     internalerror(200312011);
                   if assigned(left) then
                     begin
-                      if (sizeof(pint) = 4) then
-                         location_reset(location,LOC_CREFERENCE,OS_64)
-                      else if (sizeof(pint) = 8) then
-                         location_reset(location,LOC_CREFERENCE,OS_128)
-                      else
+                      {$if sizeof(pint) = 4}
+                         location_reset(location,LOC_CREFERENCE,OS_64);
+                      {$else} {$if sizeof(pint) = 8}
+                         location_reset(location,LOC_CREFERENCE,OS_128);
+                      {$else}
                          internalerror(20020520);
+                      {$endif} {$endif}
                       tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),tt_normal,location.reference);
                       secondpass(left);
 
