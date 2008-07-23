@@ -982,8 +982,8 @@ implementation
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
             end;
-          dispose(syms);
-          dispose(offsets);
+          freemem(syms);
+          freemem(offsets);
         end;
 
         procedure enumdef_rtti_string2ordindex(def:Tenumdef);
@@ -1074,8 +1074,8 @@ implementation
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));
             end;
-          dispose(syms);
-          dispose(offsets);
+          freemem(syms);
+          freemem(offsets);
         end;
 
     begin
