@@ -495,8 +495,8 @@ implementation
                       ((torddef(left.resultdef).low < int64(tsetdef(right.resultdef).setbase)) or
                        (torddef(left.resultdef).high > int64(tsetdef(right.resultdef).setmax)))) or
                      ((left.resultdef.typ=enumdef) and
-                      ((tenumdef(left.resultdef).min < tsetdef(right.resultdef).setbase) or
-                       (tenumdef(left.resultdef).max > tsetdef(right.resultdef).setmax))) then
+                      ((tenumdef(left.resultdef).min < aint(tsetdef(right.resultdef).setbase)) or
+                       (tenumdef(left.resultdef).max > aint(tsetdef(right.resultdef).setmax)))) then
                    begin
 
                     { we have to check if the value is < 0 or > setmax }

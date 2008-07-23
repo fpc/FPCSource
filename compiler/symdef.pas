@@ -2316,7 +2316,7 @@ implementation
         { prevent overflow, return -1 to indicate overflow }
         { also make sure we don't need 64/128 bit arithmetic to calculate offsets }
         if (cachedelecount > high(aint)) or
-           ((high(aint) div cachedelesize) < cachedelecount) or
+           ((high(aint) div cachedelesize) < aint(cachedelecount)) or
            { also lowrange*elesize must be < high(aint) to prevent overflow when
              accessing the array, see ncgmem (PFV) }
            ((high(aint) div cachedelesize) < abs(lowrange)) then
@@ -2326,9 +2326,9 @@ implementation
           end;
 
         if (ado_IsBitPacked in arrayoptions) then
-          size:=(cachedelesize * cachedelecount + 7) div 8
+          size:=(cachedelesize * aint(cachedelecount) + 7) div 8
         else
-          result:=cachedelesize*cachedelecount;
+          result:=cachedelesize*aint(cachedelecount);
       end;
 
 
