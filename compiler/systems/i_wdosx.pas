@@ -83,6 +83,7 @@ unit i_wdosx;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            abi          : abi_default;
           );
 
   implementation

@@ -85,6 +85,7 @@ unit i_watcom;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
+            abi          : abi_default;
           );
 
   implementation
