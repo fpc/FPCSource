@@ -83,7 +83,6 @@ unit cgobj;
           function getaddressregister(list:TAsmList):Tregister;virtual;
           function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
-          function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;abstract;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
