@@ -1363,7 +1363,7 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Explicitly typecast the constant to the correct range to avoid this problem.
-type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract methods
+type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.

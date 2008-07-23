@@ -1903,7 +1903,6 @@ implementation
         objectinfo : tobjectinfoitem;
         pd : tprocdef;
         i  : integer;
-        first : boolean;
       begin
         objectdf := nil;
         { verify if trying to create an instance of a class which contains
@@ -1954,17 +1953,12 @@ implementation
         if assigned(parents) then
           parents.free;
         { Finally give out a warning for each abstract method still in the list }
-        first:=true;
         for i:=0 to AbstractMethodsList.Count-1 do
           begin
             pd:=tprocdef(AbstractMethodsList[i]);
             if po_abstractmethod in pd.procoptions then
               begin
-                if first then
-                  begin
-                    Message1(type_w_instance_with_abstract,objectdf.objrealname^);
-                    first:=false;
-                  end;
+                Message2(type_w_instance_with_abstract,objectdf.objrealname^,pd.procsym.RealName);
                 MessagePos1(pd.fileinfo,sym_h_abstract_method_list,pd.fullprocname(true));
               end;
           end;
