@@ -2263,6 +2263,7 @@ implementation
                               symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;
+                      candidates.free;
                       goto errorexit;
                     end;
 
