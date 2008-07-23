@@ -2776,7 +2776,7 @@ const pemagic : array[0..3] of byte = (
               end;
             { Read Function name from DLL, prepend _ and terminate with #0 }
             DLLReader.Seek(sechdr.datapos+NameOfs);
-            DLLReader.Read(FuncName[1],sizeof(FuncName)-3);
+            DLLReader.Read((@FuncName[1])^,sizeof(FuncName)-3);
             FuncName[sizeof(FuncName)-1]:=#0;
             FuncName[0]:=chr(Strlen(@FuncName[1]));
             readdllproc(DLLName,FuncName);

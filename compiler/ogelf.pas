@@ -64,12 +64,12 @@ interface
        private
          symtabsect,
          strtabsect,
-         shstrtabsect,
-         gotpcsect,
+         shstrtabsect: TElfObjSection;
+         {gotpcsect,
          gotoffsect,
          goTSect,
          plTSect,
-         symsect  : TElfObjSection;
+         symsect   : TElfObjSection;}
          elf32data : TElfObjData;
          symidx,
          localsyms : longint;

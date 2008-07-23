@@ -894,14 +894,14 @@ implementation
     procedure TExportLibWin.generatenasmlib;
       var
          hp : texported_item;
-         p  : pchar;
-         s  : string;
+         {p  : pchar;
+         s  : string;}
       begin
          new_section(current_asmdata.asmlists[al_exports],sec_code,'',0);
          hp:=texported_item(current_module._exports.first);
          while assigned(hp) do
            begin
-             case hp.sym.typ of
+{             case hp.sym.typ of
                staticvarsym :
                  s:=tstaticvarsym(hp.sym).mangledname;
                procsym :
@@ -910,7 +910,7 @@ implementation
                  s:='';
              end;
              p:=strpnew(#9+'export '+s+' '+hp.Name^+' '+tostr(hp.index));
-             {current_asmdata.asmlists[al_exports].concat(tai_direct.create(p));}
+             current_asmdata.asmlists[al_exports].concat(tai_direct.create(p));}
              hp:=texported_item(hp.next);
            end;
       end;

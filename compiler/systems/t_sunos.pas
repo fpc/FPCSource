@@ -232,9 +232,9 @@ Function TLinkersolaris.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres      : TLinkRes;
   i            : longint;
-  cprtobj,
+{  cprtobj,
   gprtobj,
-  prtobj       : string[80];
+  prtobj       : string[80];}
   HPath        : TCmdStrListItem;
   s,s2         : TCmdStr;
   linkdynamic,
@@ -245,12 +245,12 @@ begin
   linkdynamic:=not(SharedLibFiles.empty);
 {  linkdynamic:=false; // da nicht getestet }
   linklibc:=(SharedLibFiles.Find('c')<>nil);
-  prtobj:='prt0';
+{  prtobj:='prt0';
   cprtobj:='cprt0';
-  gprtobj:='gprt0';
+  gprtobj:='gprt0';}
   if cs_profile in current_settings.moduleswitches then
    begin
-     prtobj:=gprtobj;
+{     prtobj:=gprtobj;}
      if not glibc2 then
       AddSharedLibrary('gmon');
      AddSharedLibrary('c');
@@ -259,7 +259,9 @@ begin
   else
    begin
      if linklibc then
-       prtobj:=cprtobj
+      begin
+{       prtobj:=cprtobj;}
+      end
       else
        AddSharedLibrary('c'); { quick hack: this solaris implementation needs alwys libc }
    end;

@@ -111,7 +111,7 @@ begin
           removeLastDeallocForFuncRes(asmL, p);
           doFPULoadStoreOpt := true;
         end
-      { can't be done because the store operation rounds
+      (* can't be done because the store operation rounds
       else
         { fst can't store an extended value! }
         if (taicpu(p).opsize <> S_FX) and
@@ -123,7 +123,7 @@ begin
             asml.remove(hp1);
             hp1.free;
           end
-      }
+      *)
     end;
 end;
 

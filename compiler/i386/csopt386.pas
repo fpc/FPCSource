@@ -418,7 +418,7 @@ var
   HighFound, OrgRegFound: longint;
   regcounter, regCounter2, tmpreg, base, index: tsuperregister;
   OrgRegResult: Boolean;
-  TmpResult, flagResultsNeeded, stopchecking: Boolean;
+  TmpResult, flagResultsNeeded: Boolean;
 begin {CheckSequence}
   TmpResult := False;
   FillChar(OrgRegInfo, Sizeof(OrgRegInfo), 0);
@@ -458,7 +458,6 @@ begin {CheckSequence}
       hp3 := p;
       if checkingprevsequences then
         prevreginfo := reginfo;
-      stopchecking := false;
       while (Found <> OldNrofMods) and
                                   { old  new }
              InstructionsEquivalent(hp2, hp3, reginfo) and

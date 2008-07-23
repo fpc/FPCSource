@@ -1206,10 +1206,10 @@ implementation
     }
     procedure dir_warn;
       var
-        warning_string,state : string;
+        state : string;
       begin
         current_scanner.skipspace;
-        warning_string:=current_scanner.readid;
+        current_scanner.readid;
         current_scanner.skipspace;
         state:=current_scanner.readid;
         if (upper(state)='ON') then

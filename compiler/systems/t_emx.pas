@@ -290,6 +290,7 @@ var tmp1,tmp2,tmp3:string;
     func : string;
 begin
     aout_init;
+    func:='';
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
         begin

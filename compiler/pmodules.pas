@@ -1541,18 +1541,18 @@ implementation
       var
         main_file : tinputfile;
         hp,hp2    : tmodule;
-        finalize_procinfo,
+        {finalize_procinfo,
         init_procinfo,
-        main_procinfo : tcgprocinfo;
+        main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
          parse_only:=false;
-         main_procinfo:=nil;
+         {main_procinfo:=nil;
          init_procinfo:=nil;
-         finalize_procinfo:=nil;
+         finalize_procinfo:=nil;}
 
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
@@ -1645,7 +1645,7 @@ implementation
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final then
-           init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+           {init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable)};
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }

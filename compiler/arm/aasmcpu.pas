@@ -1279,8 +1279,8 @@ implementation
        * required to have unspecified size in the instruction too...)
       }
       var
-        i,{j,}asize{,oprs} : longint;
-        siz : array[0..3] of longint;
+        i{,j,asize,oprs} : longint;
+        {siz : array[0..3] of longint;}
       begin
         Matches:=100;
         writeln(getstring,'---');
@@ -1369,8 +1369,8 @@ implementation
         { as default an untyped size can get all the sizes, this is different
           from nasm, but else we need to do a lot checking which opcodes want
           size or not with the automatic size generation }
-        asize:=longint($ffffffff);
         (*
+        asize:=longint($ffffffff);
         if (p^.flags and IF_SB)<>0 then
           asize:=OT_BITS8
         else if (p^.flags and IF_SW)<>0 then

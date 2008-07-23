@@ -451,7 +451,7 @@ procedure AddRegDeallocFor(asml: TAsmList; reg: tregister; p: tai);
 var
   hp1: tai;
   funcResRegs: tregset;
-  funcResReg: boolean;
+{  funcResReg: boolean;}
 begin
 { if not(supreg in rg.usableregsint) then
     exit;}
@@ -461,7 +461,7 @@ begin
 {  funcResRegs := funcResRegs - rg.usableregsint;}
 {  funcResRegs := funcResRegs - [RS_EDI];}
 {  funcResRegs := funcResRegs - [RS_EAX,RS_EBX,RS_ECX,RS_EDX,RS_ESI]; }
-  funcResReg := getsupreg(reg) in funcresregs;
+{  funcResReg := getsupreg(reg) in funcresregs;}
 
   hp1 := p;
 {

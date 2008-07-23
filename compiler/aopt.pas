@@ -71,7 +71,7 @@ Unit aopt;
       { Walks through the paasmlist to find the lowest and highest label number.  }
       { Returns the last Pai object of the current block                          }
       Var LabelFound: Boolean;
-          p, prev: tai;
+          p: tai;
       Begin
         LabelInfo^.LowLabel := High(AWord);
         LabelInfo^.HighLabel := 0;
@@ -79,7 +79,6 @@ Unit aopt;
         LabelInfo^.LabelTable:=nil;
         LabelFound := False;
         P := BlockStart;
-        prev := p;
         With LabelInfo^ Do
           Begin
             While Assigned(P) And
@@ -96,7 +95,6 @@ Unit aopt;
                     If (tai_Label(p).labsym.labelnr > HighLabel) Then
                       HighLabel := tai_Label(p).labsym.labelnr
                   End;
-                prev := p;
                 GetNextInstruction(p, p)
               End;
             blockend:=p;
@@ -110,10 +108,10 @@ Unit aopt;
     { Builds a table with the locations of the labels in the TAsmList.       }
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
     Var p{, hp1, hp2}: tai;
-        UsedRegs: TRegSet;
+        {UsedRegs: TRegSet;}
         LabelIdx : longint;
     Begin
-      UsedRegs := [];
+      {UsedRegs := [];}
       With LabelInfo^ Do
         If (LabelDif <> 0) Then
           Begin
