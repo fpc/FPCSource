@@ -884,8 +884,8 @@ Unit AoptObj;
 {$endif}
     function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
       begin
-        if (sym.labelnr >= labelinfo^.lowlabel) and
-           (sym.labelnr <= labelinfo^.highlabel) then   { range check, a jump can go past an assembler block! }
+        if (sym.labelnr >= aint(labelinfo^.lowlabel)) and
+           (sym.labelnr <= aint(labelinfo^.highlabel)) then   { range check, a jump can go past an assembler block! }
           getlabelwithsym := labelinfo^.labeltable^[sym.labelnr-labelinfo^.lowlabel].paiobj
         else
           getlabelwithsym := nil;

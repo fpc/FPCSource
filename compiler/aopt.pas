@@ -90,9 +90,9 @@ Unit aopt;
                    (tai_Label(p).labsym.is_used) Then
                   Begin
                     LabelFound := True;
-                    If (tai_Label(p).labsym.labelnr < LowLabel) Then
+                    If (tai_Label(p).labsym.labelnr < aint(LowLabel)) Then
                       LowLabel := tai_Label(p).labsym.labelnr;
-                    If (tai_Label(p).labsym.labelnr > HighLabel) Then
+                    If (tai_Label(p).labsym.labelnr > aint(HighLabel)) Then
                       HighLabel := tai_Label(p).labsym.labelnr
                   End;
                 GetNextInstruction(p, p)
@@ -127,7 +127,7 @@ Unit aopt;
                          (tai_Label(p).labsym.labeltype=alt_jump) then
                         begin
                           LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
-                          if LabelIdx>LabelDif then
+                          if LabelIdx>aint(LabelDif) then
                             internalerror(200604202);
                           LabelTable^[LabelIdx].PaiObj := p;
                         end;
