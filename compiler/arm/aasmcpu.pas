@@ -1560,7 +1560,7 @@ implementation
 
 
 {$ifdef dummy}
-      (*
+(*
 static void gencode (long segment, long offset, int bits,
                      insn *ins, char *codes, long insn_end)
 {
@@ -1581,7 +1581,7 @@ static void gencode (long segment, long offset, int bits,
     0x05, 0x07, 0x06,
   };
 
-(*
+
 #ifdef DEBUG
 static char *CC[] =
   {                                    /* condition code names */
@@ -1591,7 +1591,7 @@ static char *CC[] =
     "PL", "VC", "VS", "",
     "S"
 };
-*)
+
 
     has_S_code = (ins->condition & C_SSETFLAG);
     has_B_code = (ins->condition & C_BSETFLAG);
@@ -1600,7 +1600,7 @@ static char *CC[] =
     has_F_code = (ins->condition & C_FSETFLAG);
     ins->condition = (ins->condition & 0x0F);
 
-(*
+
     if (rt_debug)
       {
     printf ("gencode: instruction: %s%s", insn_names[ins->opcode],
@@ -1628,7 +1628,7 @@ static char *CC[] =
     bytes[2] = 0xE;
     bytes[3] = 0xF;
       }
-*)
+
     // First condition code in upper nibble
     if (ins->condition < C_NONE)
       {
@@ -2493,10 +2493,8 @@ static char *CC[] =
     out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
 }
 
-
 *)
-{$endif dummy
-}
+{$endif dummy}
 
 begin
   cai_align:=tai_align;

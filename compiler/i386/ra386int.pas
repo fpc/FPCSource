@@ -39,7 +39,7 @@ Unit ra386int;
     uses
       rabase,systems,rax86,aasmcpu;
 
-{
+(*
     procedure ti386intreader.handleopcode;
       var
         instr : Tx86Instruction;
@@ -55,7 +55,7 @@ Unit ra386int;
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;
-}
+*)
 
 {*****************************************************************************
                                Initialize

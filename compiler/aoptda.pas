@@ -70,7 +70,7 @@ Unit aoptda;
         TmpReg: TRegister;
     }
     Begin
-    {!!!!!!!!!!
+    (*!!!!!!!!!!
       p := BlockStart;
       UsedRegs.Create;
       UsedRegs.Update(p);
@@ -159,7 +159,7 @@ Unit aoptda;
     {      Inc(InstrCnt);}
           GetNextInstruction(p, p);
         End;
-    }
+    *)
     End;
 
 End.

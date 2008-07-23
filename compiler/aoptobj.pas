@@ -384,8 +384,8 @@ Unit AoptObj;
           Counter: Byte;
           TmpResult: Boolean;
       }
-      Begin
-      {!!!!!!!!!!1
+      begin
+      (*!!!!!!!!!!1
         RegsChecked := [];
         content := regs[which];
         p := content.StartMod;
@@ -423,7 +423,7 @@ Unit AoptObj;
             GetNextInstruction(p,p)
           End;
         RegInSequence := TmpResult
-      }
+      *)
       End;
 
 
@@ -458,14 +458,14 @@ Unit AoptObj;
 
       Function ArrayRefsEq(const r1, r2: TReference): Boolean;
       Begin
-      {!!!!!!!!!!
+      (*!!!!!!!!!!
         ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
       {$ifdef refsHaveSegmentReg}
                        (R1.Segment = R2.Segment) And
       {$endif}
                        (R1.Base = R2.Base) And
                        (R1.Symbol=R2.Symbol);
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyRefs(Const Ref: TReference; WhichReg: TRegister;
@@ -478,7 +478,7 @@ Unit AoptObj;
           Counter: TRegister;
       }
       Begin
-      {!!!!!!!!!!!
+      (*!!!!!!!!!!!
         WhichReg := RegMaxSize(WhichReg);
         If (Ref.base = procinfo.FramePointer) or
             Assigned(Ref.Symbol) Then
@@ -549,13 +549,13 @@ Unit AoptObj;
                        )
                    )
                 Then DestroyReg(Counter, InstrSinceLastMod)
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
       {Var Counter: TRegister;}
       Begin {initializes/desrtoys all registers}
-      {!!!!!!!!!
+      (*!!!!!!!!!
         For Counter := LoGPReg To HiGPReg Do
           Begin
             ReadReg(Counter);
@@ -563,7 +563,7 @@ Unit AoptObj;
           End;
         CondRegs.Init;
       { FPURegs.Init; }
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyOp(const o:Toper; var InstrSinceLastMod:
@@ -593,14 +593,14 @@ Unit AoptObj;
 
       Procedure TPaiProp.ReadRef(Ref: PReference);
       Begin
-      {!!!!!!!
+      (*!!!!!!
         If Ref^.Base <> R_NO Then
           ReadReg(Ref^.Base);
       {$ifdef refsHaveIndexReg}
         If Ref^.Index <> R_NO Then
           ReadReg(Ref^.Index);
       {$endif}
-      }
+      *)
       End;
 
       Procedure TPaiProp.ReadOp(const o:toper);
@@ -616,7 +616,7 @@ Unit AoptObj;
       Procedure TPaiProp.ModifyReg(reg: TRegister; Var InstrSinceLastMod:
                                      TInstrSinceLastMod);
       Begin
-      {!!!!!!!
+      (*!!!!!!!
         With Regs[reg] Do
           If (Typ = Con_Ref)
             Then
@@ -631,7 +631,7 @@ Unit AoptObj;
               End
             Else
               DestroyReg(Reg, InstrSinceLastMod);
-      }
+      *)
       End;
 
       Procedure TPaiProp.ModifyOp(const oper: TOper; var InstrSinceLastMod:
