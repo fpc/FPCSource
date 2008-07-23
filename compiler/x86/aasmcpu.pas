@@ -1644,12 +1644,12 @@ implementation
            if (ir=NR_NO) and (br<>NR_ESP) then
             begin
               output.sib_present:=false;
-              output.modrm:=(md shl 6) or (rfield shl 3) or base;
+              output.modrm:=(longint(md) shl 6) or (rfield shl 3) or base;
             end
            else
             begin
               output.sib_present:=true;
-              output.modrm:=(md shl 6) or (rfield shl 3) or 4;
+              output.modrm:=(longint(md) shl 6) or (rfield shl 3) or 4;
               output.sib:=(scalefactor shl 6) or (index shl 3) or base;
             end;
          end;

@@ -2722,7 +2722,7 @@ const pemagic : array[0..3] of byte = (
             Comment(V_Error,'Invalid DLL '+dllname+', Dos Header invalid');
             exit;
           end;
-        newheaderofs:=longint(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
+        newheaderofs:=cardinal(DosHeader[$3c]) or (DosHeader[$3d] shl 8) or (DosHeader[$3e] shl 16) or (DosHeader[$3f] shl 24);
         DLLReader.Seek(newheaderofs);
         if not DLLReader.Read(PEMagic,sizeof(PEMagic)) or
            (PEMagic[0]<>$50) or (PEMagic[1]<>$45) or (PEMagic[2]<>$00) or (PEMagic[3]<>$00) then
@@ -2765,7 +2765,7 @@ const pemagic : array[0..3] of byte = (
         DLLReader.Read(expdir,sizeof(expdir));
         for i:=0 to expdir.NumNames-1 do
           begin
-            DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
+            DLLReader.Seek(sechdr.datapos+longint(expdir.AddrNames)-sechdr.rvaofs+i*4);
             DLLReader.Read(NameOfs,4);
             Dec(NameOfs,sechdr.rvaofs);
             if (NameOfs<0) or

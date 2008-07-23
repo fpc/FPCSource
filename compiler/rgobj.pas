@@ -269,7 +269,7 @@ unit rgobj;
           if header.count<2 then
             exit;
           p:=1;
-          while 2*p<header.count do
+          while 2*cardinal(p)<header.count do
             p:=2*p;
           while p<>0 do
             begin

@@ -983,10 +983,12 @@ implementation
         exit;
      { Support default macro's }
        DefaultReplacements(s);
+{$warnings off}
        if PathSeparator <> ';' then
         for i:=1 to length(s) do
          if s[i]=PathSeparator then
           s[i]:=';';
+{$warnings on}
      { get current dir }
        CurrentDir:=GetCurrentDir;
        repeat

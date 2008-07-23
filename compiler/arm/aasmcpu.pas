@@ -1508,7 +1508,7 @@ implementation
             top_const:
               begin
                 i_field:=1;
-                bytes:=bytes or (oper[op]^.val and $fff);
+                bytes:=bytes or dword(oper[op]^.val and $fff);
               end;
             top_reg:
               begin

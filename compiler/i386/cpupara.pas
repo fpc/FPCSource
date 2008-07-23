@@ -664,10 +664,12 @@ unit cpupara;
           pocall_internproc :
             begin
               { Use default calling }
+{$warnings off}
               if (pocall_default=pocall_register) then
                 create_register_paraloc_info(p,side,p.paras,parareg,parasize)
               else
                 create_stdcall_paraloc_info(p,side,p.paras,parasize);
+{$warnings on}
             end;
           else
             create_stdcall_paraloc_info(p,side,p.paras,parasize);
