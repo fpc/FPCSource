@@ -778,7 +778,7 @@ uses
                   sources_avail:=false;
                   temp:=' not found';
                 end;
-              hp:=tinputfile.create(hs);
+              hp:=tdosinputfile.create(hs);
               { the indexing is wrong here PM }
               sourcefiles.register_file(hp);
             end;
