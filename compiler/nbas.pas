@@ -616,7 +616,7 @@ implementation
         hp : tai;
       begin
         inherited ppuwrite(ppufile);
-{$warning FIXME Add saving of register sets}
+{ TODO: FIXME Add saving of register sets}
         if not(nf_get_asm_position in flags) then
           begin
             hp:=tai(p_asm.first);

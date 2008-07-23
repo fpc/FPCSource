@@ -1439,7 +1439,7 @@ implementation
                     strtype:= st_longstring
                 else
                   begin
-                    {$warning todo: add a warning/hint here if one converting a too large array}
+                    { TODO: todo: add a warning/hint here if one converting a too large array}
                     { nodes is PChar, array [with size > 255] or OpenArrayOfChar.
                       Note: Delphi halts with error if "array [0..xx] of char"
                            is assigned to ShortString and string length is less

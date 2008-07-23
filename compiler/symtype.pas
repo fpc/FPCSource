@@ -635,7 +635,7 @@ implementation
 
         if assigned(s) then
          begin
-{$warning TODO ugly hack}
+{ TODO: ugly hack}
            if s is tsym then
              st:=FindUnitSymtable(tsym(s).owner)
            else

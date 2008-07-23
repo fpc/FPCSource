@@ -851,9 +851,9 @@ implementation
         secoptions : array[TAsmSectiontype] of TObjSectionOptions = ([],
           {code} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
           {Data} [oso_Data,oso_load,oso_write,oso_keep],
-{$warning TODO Fix sec_rodata be read-only-with-relocs}
+{ TODO: Fix sec_rodata be read-only-with-relocs}
           {roData} [oso_Data,oso_load,oso_write,oso_keep],
-{$warning TODO Fix sec_rodata_norel be read-only/constant}
+{ TODO: Fix sec_rodata_norel be read-only/constant}
           {roData_norel} [oso_Data,oso_load,oso_write,oso_keep],
           {bss} [oso_load,oso_write,oso_keep],
           {threadvar} [oso_load,oso_write],
@@ -2483,7 +2483,7 @@ implementation
               begin
                 objsec:=TObjSection(ObjData.ObjSectionList[j]);
                 objsec.Used:=false;
-{$warning TODO remove debug section always keep}
+{ TODO: remove debug section always keep}
                 if oso_debug in objsec.secoptions then
                   objsec.Used:=true;
                 if (oso_keep in objsec.secoptions) then

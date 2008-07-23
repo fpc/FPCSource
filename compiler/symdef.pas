@@ -2705,7 +2705,7 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          ppufile.getderef(returndefderef);
-{$warning TODO remove fpu_used loading}
+{ TODO: remove fpu_used loading}
          ppufile.getbyte;
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
@@ -3924,7 +3924,7 @@ implementation
 
     function tobjectdef.getparentdef:tdef;
       begin
-{$warning TODO Remove getparentdef hack}
+{ TODO: Remove getparentdef hack}
         { With 2 forward declared classes with the child class before the
           parent class the child class is written earlier to the ppu. Leaving it
           possible to have a reference to the parent class for property overriding,

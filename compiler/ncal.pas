@@ -975,7 +975,7 @@ implementation
         funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableprocentryderef);
-{$warning FIXME: No withsymtable support}
+{ TODO: FIXME: No withsymtable support}
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);

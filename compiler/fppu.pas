@@ -982,7 +982,7 @@ uses
              ibloadunit :
                readloadunit;
              ibasmsymbols :
-{$warning TODO Remove ibasmsymbols}
+{ TODO: Remove ibasmsymbols}
                ;
              ibendimplementation :
                break;

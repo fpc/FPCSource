@@ -379,7 +379,7 @@ begin
      RS_F10, RS_F11, RS_F12, RS_F13, RS_F31, RS_F30, RS_F29, RS_F28, RS_F27,
      RS_F26, RS_F25, RS_F24, RS_F23, RS_F22, RS_F21, RS_F20, RS_F19, RS_F18,
      RS_F17, RS_F16, RS_F15, RS_F14], first_fpu_imreg, []);
-{$WARNING FIX ME}
+{ TODO: FIX ME}
   rg[R_MMREGISTER] := trgcpu.create(R_MMREGISTER, R_SUBNONE,
     [RS_M0, RS_M1, RS_M2], first_mm_imreg, []);
 end;

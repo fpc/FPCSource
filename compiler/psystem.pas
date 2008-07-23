@@ -560,7 +560,7 @@ implementation
         aiclass[ait_ent]:=tai_ent;
 {$endif alpha}
 {$ifdef m68k}
-{$warning FIXME: tai_labeled_instruction doesn't exists}
+{ TODO: FIXME: tai_labeled_instruction doesn't exists}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif m68k}
 {$ifdef ia64}

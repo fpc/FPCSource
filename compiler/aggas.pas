@@ -249,7 +249,7 @@ implementation
 { not relocated properly on e.g. linux/ppc64. g++ generates there for a   }
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
-{$warning TODO .data.ro not yet working}
+{ TODO: .data.ro not yet working}
 {$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}

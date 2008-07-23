@@ -1040,7 +1040,7 @@ Unit AoptObj;
                       if GetNextInstruction(p, hp1) then
                         begin
                           if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp1) and
-        {$warning FIXME removing the first instruction fails}
+        { TODO: FIXME removing the first instruction fails}
                               (p<>blockstart) then
                             begin
                               hp2:=tai(hp1.next);

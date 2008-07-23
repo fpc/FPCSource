@@ -163,7 +163,7 @@ implementation
       begin
          secondpass(left);
 
-{$warning needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
+{ TODO: needs LOC_JUMP support, because called for bool_to_bool from ncgcnv }
 
          { Explicit typecasts from any ordinal type to a boolean type }
          { must not change the ordinal value                          }

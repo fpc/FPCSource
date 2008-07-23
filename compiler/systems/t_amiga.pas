@@ -271,7 +271,7 @@ end;
 
 initialization
 {$ifdef m68k}
-{$warning No executable creation support for m68k yet!}
+{ TODO: No executable creation support for m68k yet!}
   RegisterExternalLinker(system_m68k_Amiga_info,TLinkerAmiga);
   RegisterTarget(system_m68k_Amiga_info);
 {$endif m68k}

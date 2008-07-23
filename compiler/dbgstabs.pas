@@ -963,7 +963,7 @@ implementation
           begin
             if tabstractnormalvarsym(def.funcretsym).localloc.loc=LOC_REFERENCE then
               begin
-{$warning Need to add gdb support for ret in param register calling}
+{ TODO: Need to add gdb support for ret in param register calling}
                 if paramanager.ret_in_param(def.returndef,def.proccalloption) then
                   hs:='X*'
                 else

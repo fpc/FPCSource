@@ -2600,7 +2600,7 @@ implementation
         { equal sets for the code generator? }
         else if (left.resultdef.size=resultdef.size) and
                 (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
-          {$warning This causes wrong (but Delphi-compatible) results for disjoint subsets}
+          { TODO: This causes wrong (but Delphi-compatible) results for disjoint subsets}
           { e.g., this prints true because of this:
               var
                 sa: set of 1..2;

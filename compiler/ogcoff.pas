@@ -1836,7 +1836,7 @@ const pemagic : array[0..3] of byte = (
                      include(secoptions,oso_keep);
                    if (Copy(secname,1,6)='.idata') then
                      begin
-  {$warning TODO idata keep can maybe replaced with grouping of text and idata}
+  { TODO: idata keep can maybe replaced with grouping of text and idata}
                        include(secoptions,oso_keep);
                        secname:=secname + '.' + ExtractFileName(InputFileName);
                      end;

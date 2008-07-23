@@ -866,7 +866,7 @@ Implementation
       var
         objreader : TObjectReader;
       begin
-{$warning TODO Cleanup ignoring of   FPC generated libimp*.a files}
+{ TODO: Cleanup ignoring of   FPC generated libimp*.a files}
         { Don't load import libraries }
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
@@ -1027,7 +1027,7 @@ Implementation
         Message1(exec_i_linking,outputname);
         FlushOutput;
 
-{$warning TODO Load custom linker script}
+{ TODO: Load custom linker script}
         DefaultLinkScript;
 
         exeoutput:=CExeOutput.Create;
@@ -1084,7 +1084,7 @@ Implementation
             exeoutput.WriteExeFile(outputname);
           end;
 
-{$warning TODO fixed section names}
+{ TODO: fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
         status.datasize:=exeoutput.findexesection('.data').size;
         bsssec:=exeoutput.findexesection('.bss');

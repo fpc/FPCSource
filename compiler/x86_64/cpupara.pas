@@ -69,7 +69,7 @@ unit cpupara;
     function structure_in_registers(varspez:tvarspez;size:longint):boolean;
       begin
         if (target_info.system=system_x86_64_win64) then
-{$warning Temporary hack: vs_const parameters are always passed by reference for win64}
+{ TODO: Temporary hack: vs_const parameters are always passed by reference for win64}
           result:=(varspez=vs_value) and (size in [1,2,4,8])
         else
           result:=(size<=16);
@@ -84,7 +84,7 @@ unit cpupara;
            orddef:
              begin
                loc1:=LOC_REGISTER;
-               {$warning TODO 128bit also needs lochigh}
+               { TODO: 128bit also needs lochigh}
              end;
            floatdef:
              begin
@@ -101,7 +101,7 @@ unit cpupara;
                     begin
                       loc1:=LOC_MMREGISTER;
                       loc2:=LOC_MMREGISTER;
-                      {$warning TODO float 128bit needs SSEUP lochigh}
+                      { TODO: float 128bit needs SSEUP lochigh}
                     end;
                end;
              end;

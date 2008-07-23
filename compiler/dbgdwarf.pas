@@ -1758,7 +1758,7 @@ implementation
                   begin
                     if (vo_is_thread_var in sym.varoptions) then
                       begin
-{$warning !!! FIXME: dwarf for thread vars !!!}
+{ TODO: !!! FIXME: dwarf for thread vars !!!}
                         blocksize:=0;
                       end
                     else

@@ -243,7 +243,7 @@ unit cgcpu;
 //        writeln('a_param_reg');
 {$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
-{$WARNING FIX ME! check_register_size()}
+{ TODO: FIX ME! check_register_size()}
         // check_register_size(size,r);
         if use_push(cgpara) then
           begin
@@ -298,7 +298,7 @@ unit cgcpu;
         begin
           if not assigned(paraloc) then
             exit;
-{$WARNING FIX ME!!! this also triggers location bug }
+{ TODO: FIX ME!!! this also triggers location bug }
           {if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
              (tcgsize2size[paraloc^.size]>sizeof(aint)) then
@@ -569,7 +569,7 @@ unit cgcpu;
        href : treference;
 //       p: pointer;
       begin
-         {$WARNING FIX ME!!! take a look on this mess again...}
+         { TODO: FIX ME!!! take a look on this mess again...}
 //        if getregtype(r)=R_ADDRESSREGISTER then
 //          begin
 //            writeln('address reg?!?');
@@ -1369,7 +1369,7 @@ unit cgcpu;
               begin
                 { only 68020+ supports RTD, so this needs another code path
                   for 68000 and Coldfire (KB) }
-{$WARNING 68020+ only code generation, without fallback}
+{ TODO: 68020+ only code generation, without fallback}
                 list.concat(taicpu.op_const(A_RTD,S_NO,parasize));
               end
             else

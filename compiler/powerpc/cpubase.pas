@@ -127,7 +127,7 @@ uses
       { MM Super register first and last }
       first_mm_imreg     = $20;
 
-{$warning TODO Calculate bsstart}
+{ TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (
@@ -305,7 +305,7 @@ uses
 
          Taken from GCC rs6000.h
       }
-{$warning As indicated in rs6000.h, but can't find it anywhere else!}
+{ TODO: As indicated in rs6000.h, but can't find it anywhere else!}
       NR_PIC_OFFSET_REG = NR_R30;
       { Return address of a function }
       NR_RETURN_ADDRESS_REG = NR_R0;

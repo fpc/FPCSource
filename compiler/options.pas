@@ -1797,7 +1797,7 @@ begin
         inc(pc);
      { create argument }
        arglen:=pc-argstart;
-{$warning FIXME: silent truncation of environment parameters }
+{ TODO: FIXME: silent truncation of environment parameters }
        if (arglen > 255) then
          arglen := 255;
        setlength(hs,arglen);

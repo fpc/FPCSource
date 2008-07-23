@@ -163,7 +163,7 @@ uses
 {$endif x86_64}
 
     const
-{$warning TODO Calculate bsstart}
+{ TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (

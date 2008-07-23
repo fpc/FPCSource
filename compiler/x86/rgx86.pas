@@ -302,7 +302,7 @@ implementation
       begin
         used_in_proc:=used_in_proc+s;
 
-{$warning TODO firstsavefpureg}
+{ TODO: firstsavefpureg}
 (*
         { don't try to save the fpu registers if not desired (e.g. for }
         { the 80x86)                                                   }
@@ -338,7 +338,7 @@ implementation
          hr : treference;
 }
       begin
-{$warning TODO firstsavefpureg}
+{ TODO: firstsavefpureg}
 (*
         if firstsavefpureg <> R_NO then
           for r.enum:=lastsavefpureg downto firstsavefpureg do
