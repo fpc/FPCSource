@@ -101,6 +101,7 @@ interface
         DW_TAG_PGI_kanji_type := $A000,
         DW_TAG_PGI_interface_block := $A020);
 
+{$notes off}
       { Attribute names and codes.   }
       tdwarf_attribute = (DW_AT_sibling := $01,DW_AT_location := $02,
         DW_AT_name := $03,DW_AT_ordering := $09,
@@ -177,6 +178,7 @@ interface
         DW_AT_PGI_lbase := $3a00,
         DW_AT_PGI_soffset := $3a01,DW_AT_PGI_lstride := $3a02
       );
+{$notes on}
 
       { Form names and codes.   }
       Tdwarf_form = (DW_FORM_addr := $01,DW_FORM_block2 := $03,
@@ -427,7 +429,7 @@ implementation
       Tdwarf_calling_convention = (DW_CC_normal := $1,DW_CC_program := $2,
         DW_CC_nocall := $3,DW_CC_GNU_renesas_sh := $40
         );
-
+{$notes off}
       { Location atom names and codes.   }
       Tdwarf_location_atom = (DW_OP_addr := $03,DW_OP_deref := $06,DW_OP_const1u := $08,
         DW_OP_const1s := $09,DW_OP_const2u := $0a,
@@ -506,6 +508,7 @@ implementation
         DW_OP_HP_fltconst8 := $e3,DW_OP_HP_mod_range := $e4,
         DW_OP_HP_unmod_range := $e5,DW_OP_HP_tls := $e6
         );
+{$notes on}
 
     const
       { Implementation-defined range start.   }
