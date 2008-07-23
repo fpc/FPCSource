@@ -296,9 +296,9 @@ implementation
     procedure trgx86fpu.saveusedfpuregisters(list: TAsmList;
                                              var saved : tpushedsavedfpu;
                                              const s: tcpuregisterset);
-      var
+     { var
          r : tregister;
-         hr : treference;
+         hr : treference; }
       begin
         used_in_proc:=used_in_proc+s;
 
@@ -332,11 +332,11 @@ implementation
 
     procedure trgx86fpu.restoreusedfpuregisters(list : TAsmList;
                                                 const saved : tpushedsavedfpu);
-
+{
       var
          r,r2 : tregister;
          hr : treference;
-
+}
       begin
 {$warning TODO firstsavefpureg}
 (*

@@ -958,6 +958,7 @@ implementation
             comment : '; ';
           );
 
+{$ifdef x86_64}
        as_x86_64_masm_info : tasminfo =
           (
             id     : as_x86_64_masm;
@@ -969,6 +970,7 @@ implementation
             labelprefix : '@@';
             comment : '; ';
           );
+{$endif x86_64}
 
 initialization
 {$ifdef x86_64}

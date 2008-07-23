@@ -156,7 +156,6 @@ procedure write_ar(const name:string;size:longint);
 
 var ar:ar_hdr;        {PackTime is platform independent}
     time:TSystemTime;
-    dummy:word;
     numtime:longint;
     tmp:string[19];
 begin
@@ -456,7 +455,6 @@ var
   AppTypeStr,
   StripStr: string[40];
   RsrcStr : string;
-  DS,NS,ES : string;
   OutName: string;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then

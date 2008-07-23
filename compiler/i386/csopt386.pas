@@ -69,9 +69,9 @@ end;
 function modifiesConflictingMemLocation(p1: tai; supreg: tsuperregister; c: tregContent;
    var regsStillValid: tregset; onlymem: boolean; var invalsmemwrite: boolean): boolean;
 var
-  p, hp: taicpu;
+  p: taicpu;
   tmpRef: treference;
-  r,regCounter: tsuperregister;
+  regCounter: tsuperregister;
   opCount: longint;
   dummy: boolean;
 begin
@@ -231,8 +231,7 @@ function CheckSequence(p: tai; var prev: tai; supreg: tsuperregister; var Found:
 var
   regsNotRead, regsStillValid : tregset;
   checkingPrevSequences,
-  passedFlagsModifyingInstr,
-  invalsmemwrite               : boolean;
+  passedFlagsModifyingInstr   : boolean;
 
   function getPrevSequence(p: tai; supreg: tsuperregister; currentPrev: tai; var newPrev: tai): tsuperregister;
 
@@ -1423,7 +1422,7 @@ function ReplaceReg(asml: TAsmList; orgsupreg, newsupreg: tsuperregister; p,
 { where newsupreg was replaced by orgsupreg                                    }
 var
   endP, hp: tai;
-  removeLast, sequenceEnd, newRegModified, orgRegRead,
+  removeLast, newRegModified, orgRegRead,
     stateChanged, readStateChanged: Boolean;
 {$ifdef replaceregdebug}
   l: longint;
@@ -1683,7 +1682,7 @@ procedure loadcseregs(asml: TAsmList; const reginfo: toptreginfo; curseqend, pre
 var
   regsloaded: tregset;
   regloads, reguses: array[RS_EAX..RS_EDI] of tai;
-  regcounter, substreg: tsuperregister;
+  regcounter: tsuperregister;
   hp, hp2: tai;
   insertpos, insertoptinfo, prevseq_next: tai;
   i: longint;
@@ -1835,7 +1834,7 @@ procedure doCSE(asml: TAsmList; First, Last: tai; findPrevSeqs, doSubOpts: boole
  two different sequences}
 var cnt, cnt2, {cnt3,} orgNrofMods: longint;
     p, hp1, hp2, prevSeq: tai;
-    hp3, hp4: tai;
+    hp4: tai;
     hp5 : tai;
     reginfo: toptreginfo;
     memreg: tregister;
