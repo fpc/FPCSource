@@ -111,8 +111,8 @@ unit paramgr;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);virtual;
           procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
-          function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;abstract;
-          function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;virtual;abstract;
+          function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;
+          function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;virtual;
        end;
 
 
@@ -379,7 +379,20 @@ implementation
         create_paraloc_info(p,callerside);
         result:=create_paraloc_info(p,calleeside);
       end;
+      
 
+    function tparamanager.parseparaloc(parasym: tparavarsym; const s: string): boolean;
+      begin
+        Result:=False;
+        internalerror(200807235);
+      end;
+
+
+    function tparamanager.parsefuncretloc(p: tabstractprocdef; const s: string): boolean;
+      begin
+        Result:=False;
+        internalerror(200807236);
+      end;
 
 initialization
   ;
