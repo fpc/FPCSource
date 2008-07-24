@@ -843,8 +843,13 @@ begin
       else
         FileName:='';
     end;
+  {$ifdef Unix}
+  If (FileName<>'') then
+    FileName:=FExpand(FileName);
+  {$else}
   If (FileName<>'') then
     FileName:=FixFileName(FExpand(FileName));
+  {$endif}
   GetMainFile:=FileName;
 end;
 
