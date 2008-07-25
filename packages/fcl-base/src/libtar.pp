@@ -73,9 +73,11 @@ Date        Author Changes
                          (for compressed streams, which don't know their .Size)
 2006-03-13  HeySt  2.0.7 Bugfix in ReadFile (Buffer : POINTER)
 2006-09-20  MvdV   2.0.7.1 Small fixes for FPC.
+2007-05-16  HeySt  2.0.8 Bugfix in TTarWriter.AddFile (Convertfilename in the ELSE branch)
+                         Bug Reported by Chris Rorden
 *)
 
-UNIT LibTar;
+UNIT libtar;
 
 INTERFACE
 
@@ -794,7 +796,8 @@ VAR
 BEGIN
   Date := FileTimeGMT (Filename);
   IF TarFilename = '' THEN
-    TarFilename := ConvertFilename (Filename);
+    TarFilename := ConvertFilename (Filename)
+  ELSE TarFilename := ConvertFilename (TarFilename);
   S := TFileStream.Create (Filename, fmOpenRead OR fmShareDenyWrite);
   TRY
     AddStream (S, TarFilename, Date);
