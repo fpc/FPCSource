@@ -106,6 +106,7 @@ begin
     if not TryLoadLib('libiconv.so',error) then
       result:=false; 
   {$endif}
+  iconvlibfound:=iconvlibfound or result;
 end;
 
 function Iconvert(S:string;var res:string; FromEncoding, ToEncoding: string): cint;
