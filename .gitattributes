@@ -8026,6 +8026,7 @@ tests/webtbs/tw11354.pp svneol=native#text/plain
 tests/webtbs/tw1152.pp svneol=native#text/plain
 tests/webtbs/tw1157.pp svneol=native#text/plain
 tests/webtbs/tw1157b.pp svneol=native#text/plain
+tests/webtbs/tw11619.pp svneol=native#text/plain
 tests/webtbs/tw1181.pp svneol=native#text/plain
 tests/webtbs/tw1203.pp svneol=native#text/plain
 tests/webtbs/tw1204.pp svneol=native#text/plain
