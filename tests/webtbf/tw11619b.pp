@@ -1,0 +1,11 @@
+{ %fail }
+
+program TEST;
+{$EXTENDEDSYNTAX OFF}
+USES
+  DOS;
+BEGIN
+  IORESULT;
+END.
+
+
