@@ -159,7 +159,7 @@ unit cgx86;
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
                             A_IDIV,A_IMUL,A_MUL,A_NEG,A_NOT,A_OR,
-                            A_SAR,A_SHL,A_SHR,A_SUB,A_XOR);
+                            A_SAR,A_SHL,A_SHR,A_SUB,A_XOR,A_ROL,A_ROR);
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
@@ -1098,10 +1098,10 @@ unit cgx86;
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
           ( { scalar }
             ( { OS_F32 }
-              A_NOP,A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
+              A_NOP,A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP,A_NOP,A_NOP
             ),
             ( { OS_F64 }
-              A_NOP,A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP
+              A_NOP,A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP,A_NOP,A_NOP
             )
           ),
           ( { vectorized/packed }
@@ -1109,10 +1109,10 @@ unit cgx86;
               these
             }
             ( { OS_F32 }
-              A_NOP,A_NOP,A_ADDPS,A_NOP,A_DIVPS,A_NOP,A_NOP,A_MULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPS,A_XORPS
+              A_NOP,A_NOP,A_ADDPS,A_NOP,A_DIVPS,A_NOP,A_NOP,A_MULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPS,A_XORPS,A_NOP,A_NOP
             ),
             ( { OS_F64 }
-              A_NOP,A_NOP,A_ADDPD,A_NOP,A_DIVPD,A_NOP,A_NOP,A_MULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPD,A_XORPD
+              A_NOP,A_NOP,A_ADDPD,A_NOP,A_DIVPD,A_NOP,A_NOP,A_MULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPD,A_XORPD,A_NOP,A_NOP
             )
           )
         );
@@ -1259,7 +1259,7 @@ unit cgx86;
                    end
             else
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,reg));
-          OP_SHL,OP_SHR,OP_SAR:
+          OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$ifdef x86_64}
               if (a and 63) <> 0 Then
@@ -1375,7 +1375,7 @@ unit cgx86;
             else
               list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
                 TCgSize2OpSize[size],a,tmpref));
-          OP_SHL,OP_SHR,OP_SAR:
+          OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
               if (a and 31) <> 0 then
                 list.concat(taicpu.op_const_ref(
@@ -1407,9 +1407,9 @@ unit cgx86;
             { special stuff, needs separate handling inside code }
             { generator                                          }
             internalerror(200109233);
-          OP_SHR,OP_SHL,OP_SAR:
+          OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
             begin
-              { Use ecx to load the value, that allows beter coalescing }
+              { Use ecx to load the value, that allows better coalescing }
               getcpuregister(list,NR_ECX);
               a_load_reg_reg(list,size,OS_32,src,NR_ECX);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));

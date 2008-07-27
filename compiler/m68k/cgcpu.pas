@@ -158,7 +158,9 @@ unit cgcpu;
        A_LSL,
        A_LSR,
        A_SUB,
-       A_EOR
+       A_EOR,
+       A_NONE,
+       A_NONE
       );
 
 
@@ -1306,13 +1308,13 @@ unit cgcpu;
 	        { size can't be negative }
 		if (localsize < 0) then
 		  internalerror(2006122601);
-	      
+	
                 { Not to complicate the code generator too much, and since some }
                 { of the systems only support this format, the localsize cannot }
                 { exceed 32K in size.                                           }
                 if (localsize > high(smallint)) then
                   CGMessage(cg_e_localsize_too_big);
-                
+
                 list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
 	      end
 	    else
@@ -1324,7 +1326,7 @@ unit cgcpu;
 		  two moves. So, use a link in #0 case too, for now. I'm not
 		  really sure tho', that LINK supports #0 disposition, but i
 		  see no reason why it shouldn't support it. (KB) }
-		  
+		
 	        { when localsize = 0, use two moves, instead of link }
 		r:=NR_FRAME_POINTER_REG;
 		rsp:=NR_STACK_POINTER_REG;

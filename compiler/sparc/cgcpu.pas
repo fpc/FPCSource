@@ -109,10 +109,10 @@ interface
 
     const
       TOpCG2AsmOp : array[topcg] of TAsmOp=(
-        A_NONE,A_MOV,A_ADD,A_AND,A_UDIV,A_SDIV,A_SMUL,A_UMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR
+        A_NONE,A_MOV,A_ADD,A_AND,A_UDIV,A_SDIV,A_SMUL,A_UMUL,A_NEG,A_NOT,A_OR,A_SRA,A_SLL,A_SRL,A_SUB,A_XOR,A_NONE,A_NONE
       );
       TOpCG2AsmOpWithFlags : array[topcg] of TAsmOp=(
-        A_NONE,A_MOV,A_ADDcc,A_ANDcc,A_UDIVcc,A_SDIVcc,A_SMULcc,A_UMULcc,A_NEG,A_NOT,A_ORcc,A_SRA,A_SLL,A_SRL,A_SUBcc,A_XORcc
+        A_NONE,A_MOV,A_ADDcc,A_ANDcc,A_UDIVcc,A_SDIVcc,A_SMULcc,A_UMULcc,A_NEG,A_NOT,A_ORcc,A_SRA,A_SLL,A_SRL,A_SUBcc,A_XORcc,A_NONE,A_NONE
       );
       TOpCmp2AsmCond : array[topcmp] of TAsmCond=(C_NONE,
         C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A

@@ -2197,6 +2197,11 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$endif}
 
+{ these cpus have an inline rol/ror implementaion }
+{$if defined(x86)}
+  def_system_macro('FPC_HAS_INTERNAL_ROX');
+{$endif}
+
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
   def_system_macro('FPC_UNALIGNED_FIXED');

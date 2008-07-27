@@ -1579,7 +1579,7 @@ implementation
                   SL_SETZERO,
                   SL_SETMAX:
                     a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
-                  else                 
+                  else
                     a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
                 end;
                 valuereg := makeregsize(list,valuereg,loadsize);
@@ -1611,7 +1611,7 @@ implementation
                   SL_SETZERO,
                   SL_SETMAX:
                     a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
-                  else                 
+                  else
                     a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
                 end;
                 extra_value_reg := makeregsize(list,extra_value_reg,loadsize);
@@ -2465,7 +2465,7 @@ implementation
                if a = 0 then
                  op:=OP_NONE;
             end;
-        OP_SAR,OP_SHL,OP_SHR:
+        OP_SAR,OP_SHL,OP_SHR,OP_ROL,OP_ROR:
            begin
               if a = 0 then
                 op:=OP_NONE;
@@ -3870,7 +3870,7 @@ implementation
       begin
         internalerror(200807234);
       end;
-      
+
 
     function tcg.getflagregister(list: TAsmList; size: Tcgsize): Tregister;
       begin

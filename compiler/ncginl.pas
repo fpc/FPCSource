@@ -54,6 +54,7 @@ interface
           procedure second_round_real; virtual;
           procedure second_trunc_real; virtual;
           procedure second_abs_long; virtual;
+          procedure second_rox; virtual;
        end;
 
 implementation
@@ -161,6 +162,11 @@ implementation
                    end;
               end;
 {$endif SUPPORT_MMX}
+            in_rol_x,
+            in_rol_x_x,
+            in_ror_x,
+            in_ror_x_x:
+              second_rox;
             else internalerror(9);
          end;
       end;
@@ -689,29 +695,87 @@ implementation
     end;
 
     procedure Tcginlinenode.second_get_caller_addr;
+      var
+        frame_ref:Treference;
+      begin
+        if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+          begin
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp);
+            cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+          end
+        else
+          begin
+            location_reset(location,LOC_REGISTER,OS_ADDR);
+            location.register:=cg.getaddressregister(current_asmdata.currasmlist);
+          {$ifdef cpu64bitaddr}
+            reference_reset_base(frame_ref,current_procinfo.framepointer,8);
+          {$else}
+            reference_reset_base(frame_ref,current_procinfo.framepointer,4);
+          {$endif}
+            cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+          end;
+      end;
 
-    var frame_ref:Treference;
 
-    begin
-      if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-        begin
-          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp);
-          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
-        end
-      else
-        begin
-          location_reset(location,LOC_REGISTER,OS_ADDR);
-          location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-        {$ifdef cpu64bitaddr}
-          reference_reset_base(frame_ref,current_procinfo.framepointer,8);
-        {$else}
-          reference_reset_base(frame_ref,current_procinfo.framepointer,4);
-        {$endif}
-          cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
+    procedure tcginlinenode.second_rox;
+      var
+        op : topcg;
+        hcountreg : tregister;
+        op1,op2 : tnode;
+      begin
+        { one or two parameters? }
+        if assigned(tcallparanode(left).right) then
+          begin
+            op1:=tcallparanode(tcallparanode(left).right).left;
+            op2:=tcallparanode(left).left;
+          end
+        else
+          op1:=left;
+
+        secondpass(op1);
+        { load left operator in a register }
+        location_copy(location,op1.location);
+        case inlinenumber of
+          in_ror_x,
+          in_ror_x_x:
+            op:=OP_ROR;
+          in_rol_x,
+          in_rol_x_x:
+            op:=OP_ROL;
         end;
-    end;
+        location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
+
+        if assigned(tcallparanode(left).right) then
+          begin
+             secondpass(op2);
+             { rotating by a constant directly coded: }
+             if op2.nodetype=ordconstn then
+               cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,
+                 tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
+             else
+               begin
+                 location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
+                 {
+                 if op2.location.loc<>LOC_REGISTER then
+                   begin
+                     hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,
+                       op2.location.size);
+                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,
+                       op2.location,hcountreg);
+                   end
+                 else
+                   hcountreg:=op2.location.register;
+                 }
+                 { do modulo 2 operation }
+                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,op2.location.size,resultdef.size*8-1,op2.location.register);
+                 cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,location.size,op2.location.register,location.register);
+               end;
+          end
+        else
+          cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,1,location.register);
+      end;
 
 begin
    cinlinenode:=tcginlinenode;

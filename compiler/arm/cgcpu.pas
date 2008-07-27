@@ -347,7 +347,7 @@ unit cgcpu;
     const
       op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
         (A_NONE,A_MOV,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
-         A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
+         A_NONE,A_NONE,A_NONE,A_SUB,A_EOR,A_NONE,A_NONE);
 
 
     procedure tcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg;

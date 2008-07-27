@@ -119,10 +119,10 @@ unit cgcpu;
 const
   TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDI,A_ANDI_,A_DIVWU,
                         A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
-                        A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
+                        A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI,A_NONE,A_NONE);
   TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDIS,A_ANDIS_,
                         A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
-                        A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
+                        A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS,A_NONE,A_NONE);
 
   implementation
 
@@ -353,7 +353,7 @@ const
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           { sign extend shortint if necessary (because there is
-	   no load instruction to sign extend an 8 bit value automatically) 
+	   no load instruction to sign extend an 8 bit value automatically)
 	   and mask out extra sign bits when loading from a smaller signed
 	   to a larger unsigned type }
           if fromsize = OS_S8 then
@@ -669,7 +669,7 @@ const
       const
         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
           (A_NONE,A_MR,A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
-           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
+           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR,A_NONE,A_NONE);
 
        begin
          if (op = OP_MOVE) then

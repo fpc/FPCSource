@@ -2434,7 +2434,20 @@ implementation
                 begin
                   resultdef:=voidpointertype;
                 end;
-               else
+              in_rol_x,
+              in_ror_x:
+                begin
+                  set_varstate(left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=left.resultdef;
+                end;
+              in_rol_x_x,
+              in_ror_x_x:
+                begin
+                  set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
+                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
+                  resultdef:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                end;
+              else
                 internalerror(8);
             end;
           end;
@@ -2781,8 +2794,13 @@ implementation
              expectloc:=tcallparanode(left).left.expectloc;
            end;
 {$endif SUPPORT_UNALIGNED}
-          else
-            internalerror(89);
+         in_rol_x,
+         in_rol_x_x,
+         in_ror_x,
+         in_ror_x_x:
+           expectloc:=LOC_REGISTER;
+         else
+           internalerror(89);
           end;
        end;
 {$maxfpuregisters default}

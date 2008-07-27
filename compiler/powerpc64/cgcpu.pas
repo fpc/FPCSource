@@ -678,7 +678,7 @@ begin
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
-   required to load the value is greater than 2, store (and later load) the value from there } 
+   required to load the value is greater than 2, store (and later load) the value from there }
 //  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
 //    (getInstructionLength(a) > 2)) then
 //    loadConstantPIC(list, size, a, reg)
@@ -736,7 +736,7 @@ begin
   a_load_store(list, op, reg, ref2);
   { sign extend shortint if necessary (because there is
    no load instruction to sign extend an 8 bit value automatically)
-   and mask out extra sign bits when loading from a smaller 
+   and mask out extra sign bits when loading from a smaller
    signed to a larger unsigned type (where it matters) }
   if (fromsize = OS_S8) then begin
     a_load_reg_reg(list, OS_8, OS_S8, reg, reg);
@@ -784,10 +784,10 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(sreg.startbit) + ' tosize = ' + cgsize2string(tosize))));
   {$endif}
-  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets 
+  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets
   and if that subset is not >= the tosize). }
   if (sreg.startbit <> 0) or
-     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin 
+     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, destreg, sreg.subsetreg, (64 - sreg.startbit) and 63, 64 - sreg.bitlen));
     if (subsetsize in [OS_S8..OS_S128]) then
       if ((sreg.bitlen mod 8) = 0) then begin
@@ -1062,10 +1062,10 @@ procedure tcgppc.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
 const
   op_reg_reg_opcg2asmop32: array[TOpCG] of tasmop =
   (A_NONE, A_MR, A_ADD, A_AND, A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NEG, A_NOT, A_OR,
-   A_SRAW, A_SLW, A_SRW, A_SUB, A_XOR);
+   A_SRAW, A_SLW, A_SRW, A_SUB, A_XOR, A_NONE, A_NONE);
   op_reg_reg_opcg2asmop64: array[TOpCG] of tasmop =
   (A_NONE, A_MR, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
-   A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR);
+   A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR, A_NONE, A_NONE);
 begin
   case op of
     OP_NEG, OP_NOT:
@@ -1860,7 +1860,7 @@ begin
   end;
 
   { for ppc64/linux emit correct code which sets up a stack frame and then calls the
-  external method normally to ensure that the GOT/TOC will be loaded correctly if 
+  external method normally to ensure that the GOT/TOC will be loaded correctly if
   required.
 
   It's not really advantageous to use cg methods here because they are too specialized.
@@ -1938,7 +1938,7 @@ procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
         A_LD, A_LDU, A_STD, A_STDU, A_LWA :
            if ((ref.offset mod 4) <> 0) then begin
             tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    
+
             if (ref.base <> NR_NO) then begin
               a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
               ref.base := tmpreg;

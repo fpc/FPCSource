@@ -7697,6 +7697,7 @@ tests/test/trecreg2.pp svneol=native#text/plain
 tests/test/trecreg3.pp -text
 tests/test/trecreg4.pp svneol=native#text/plain
 tests/test/tresstr.pp svneol=native#text/plain
+tests/test/trox1.pp svneol=native#text/plain
 tests/test/trstr1.pp svneol=native#text/plain
 tests/test/trstr2.pp svneol=native#text/plain
 tests/test/trstr3.pp svneol=native#text/plain
