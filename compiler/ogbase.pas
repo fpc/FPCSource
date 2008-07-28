@@ -197,7 +197,7 @@ interface
        function  write(const d;l:aword):aword;
        function  writestr(const s:string):aword;
        function  WriteZeros(l:longword):aword;
-       procedure setmempos(var mpos:aword);
+       function  setmempos(mpos:qword):qword;
        procedure setDatapos(var dpos:aword);
        procedure alloc(l:aword);
        procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
@@ -412,6 +412,8 @@ interface
         FObjDataList  : TFPObjectList;
         { Position calculation }
         FImageBase    : aword;
+        FCurrMemPos       : qword;
+        procedure SetCurrMemPos(const AValue: qword);
       protected
         { writer }
         FExeWriteMode : TExeWriteMode;
@@ -426,8 +428,8 @@ interface
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);virtual;
       public
-        CurrDataPos,
-        CurrMemPos   : aword;
+        CurrDataPos  : aword;
+        MaxMemPos    : qword;
         IsSharedLibrary : boolean;
         constructor create;virtual;
         destructor  destroy;override;
@@ -480,6 +482,7 @@ interface
         property ImageBase:aword read FImageBase write FImageBase;
         property CurrExeSec:TExeSection read FCurrExeSec;
         property ExeWriteMode:TExeWriteMode read FExeWriteMode write FExeWriteMode;
+        property CurrMemPos:qword read FCurrMemPos write SetCurrMemPos;
       end;
       TExeOutputClass=class of TExeOutput;
 
@@ -692,11 +695,11 @@ implementation
       end;
 
 
-    procedure TObjSection.setmempos(var mpos:aword);
+    function TObjSection.setmempos(mpos:qword):qword;
       begin
         mempos:=align(mpos,secalign);
         { return updated mempos }
-        mpos:=mempos+size;
+        result:=mempos+size;
       end;
 
 
@@ -1660,7 +1663,7 @@ implementation
         for i:=0 to CurrExeSec.ObjSectionList.Count-1 do
           begin
             objsec:=TObjSection(CurrExeSec.ObjSectionList[i]);
-            objsec.setmempos(CurrMemPos);
+            CurrMemPos:=objsec.setmempos(CurrMemPos);
           end;
 
         { calculate size of the section }
@@ -2574,6 +2577,20 @@ implementation
                 objsec.FixupRelocs;
               end;
           end;
+      end;
+
+
+    procedure TExeOutput.SetCurrMemPos(const AValue: qword);
+      var
+        m: qword;
+      begin
+        if not IsSharedLibrary then
+          m:=AValue+FImageBase
+        else
+          m:=AValue;
+        if m>MaxMemPos then
+          Message1(link_f_executable_too_big, target_os_string);
+        FCurrMemPos:=AValue;
       end;
 
 

@@ -23,7 +23,8 @@
 #   parser_   parser
 #   type_     type checking
 #   general_  general info
-#   exec_     calls to assembler, linker, binder
+#   exec_     calls to assembler, external linker, binder
+#   link_     internal linker
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -2158,6 +2159,20 @@ execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % Informational message showing the stack size that the compiler committed for the executable.
+%\end{description}
+# EndOfTeX
+
+#
+# Internal linker messages
+#
+# 09200 is the last used one
+#
+# BeginOfTeX
+% \section{Linker messages}
+% This section lists messages produced by internal linker.
+% \begin{description}
+link_f_executable_too_big=09200_F_Executable image size is too big for $1 target.
+% Fatal error when resulting executable is too big.
 %\end{description}
 # EndOfTeX
 

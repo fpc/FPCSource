@@ -1063,7 +1063,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjData.afteralloc;
       var
-        mempos : aword;
+        mempos : qword;
         i      : longint;
       begin
         inherited afteralloc;
@@ -1072,7 +1072,7 @@ const pemagic : array[0..3] of byte = (
           begin
             mempos:=0;
             for i:=0 to ObjSectionList.Count-1 do
-              TObjSection(ObjSectionList[i]).setmempos(mempos);
+              mempos:=TObjSection(ObjSectionList[i]).setmempos(mempos);
           end;
       end;
 
@@ -1919,6 +1919,13 @@ const pemagic : array[0..3] of byte = (
       begin
         inherited create;
         win32:=awin32;
+        if target_info.system in [system_x86_64_win64] then
+          MaxMemPos:=$FFFFFFFF
+        else
+          if target_info.system in system_wince then
+            MaxMemPos:=$1FFFFF
+          else
+            MaxMemPos:=$7FFFFFFF;
       end;
 
 
