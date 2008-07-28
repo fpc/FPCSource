@@ -40,6 +40,7 @@ Type
 Implementation
 
   uses
+    verbose,
     aasmbase,aasmcpu;
 
   function CanBeCond(p : tai) : boolean;
@@ -51,6 +52,7 @@ Implementation
   function TCpuAsmOptimizer.PeepHoleOptPass1Cpu(var p: tai): boolean;
     var
       next1: tai;
+      hp1: tai;
     begin
       result := false;
       case p.typ of
@@ -82,6 +84,24 @@ Implementation
                      (taicpu(p).oper[2]^.shifterop^.shiftmode=taicpu(next1).oper[2]^.shifterop^.shiftmode) then
                     begin
                       inc(taicpu(p).oper[2]^.shifterop^.shiftimm,taicpu(next1).oper[2]^.shifterop^.shiftimm);
+                      { avoid overflows }
+                      if taicpu(p).oper[2]^.shifterop^.shiftimm>31 then
+                        case taicpu(p).oper[2]^.shifterop^.shiftmode of
+                          SM_ROR:
+                            taicpu(p).oper[2]^.shifterop^.shiftimm:=taicpu(p).oper[2]^.shifterop^.shiftimm and 31;
+                          SM_ASR:
+                            taicpu(p).oper[2]^.shifterop^.shiftimm:=31;
+                          SM_LSR,
+                          SM_LSL:
+                            begin
+                              hp1:=taicpu.op_reg_const(A_MOV,taicpu(p).oper[0]^.reg,0);
+                              InsertLLItem(p.previous, p.next, hp1);
+                              p.free;
+                              p:=hp1;
+                            end;
+                          else
+                            internalerror(2008072803);
+                        end;
                       asml.remove(next1);
                       next1.free;
                       result := true;

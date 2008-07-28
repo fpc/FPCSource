@@ -7446,6 +7446,7 @@ tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
 tests/test/dumpclass.pp svneol=native#text/plain
 tests/test/dumpmethods.pp svneol=native#text/plain
 tests/test/opt/README -text
+tests/test/opt/tarmshift.pp svneol=native#text/plain
 tests/test/opt/tcaseopt1.pp svneol=native#text/plain
 tests/test/opt/tcmov.pp svneol=native#text/plain
 tests/test/opt/tcse1.pp svneol=native#text/plain
