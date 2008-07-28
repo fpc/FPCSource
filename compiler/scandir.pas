@@ -1022,7 +1022,7 @@ implementation
 
     procedure dir_setpeflags;
       begin
-        if not (target_info.system in (system_windows+system_wince)) then
+        if not (target_info.system in (system_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
         peflags:=current_scanner.readval;
