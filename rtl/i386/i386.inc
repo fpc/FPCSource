@@ -1538,30 +1538,3 @@ end;
 
 {$endif}
 
-{$ifdef FPC_HAS_INTERNAL_ROX}
-{ the i386 cg doesn't support yet directly coded 64 bit rotates }
-function Ror(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Result:=(AValue shr 1) or (AValue shl 63);
-  end;
-
-
-function Ror(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Dist:=Dist and 63;
-    Result:=(AValue shr Dist) or (AValue shl (64-Dist));
-  end;
-
-
-function Rol(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Result:=(AValue shl 1) or (AValue shr 63);
-  end;
-
-
-function Rol(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Dist:=Dist and 63;
-    Result:=(AValue shl Dist) or (AValue shr (64-Dist));
-  end;
-{$endif FPC_HAS_INTERNAL_ROX}
