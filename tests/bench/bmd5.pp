@@ -1,6 +1,6 @@
 {$mode objfpc}
 uses
-  stopuhr,md5;
+  timer,md5;
 
 
 const
@@ -23,4 +23,5 @@ begin
     for j:=low(Strings) to high(Strings) do
       MDString(Strings[j],MD_VERSION_5);
   stop;
+  writeln;
 end.
