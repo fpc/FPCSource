@@ -84,7 +84,7 @@ type
     countNotes,
     countHints    : longint;  { number of found errors/warnings/notes/hints }
     codesize,
-    datasize      : aint;
+    datasize      : aword;
   { program info }
     isexe,
     ispackage,

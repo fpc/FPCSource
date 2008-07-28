@@ -1018,7 +1018,7 @@ Implementation
       label
         myexit;
       var
-        bsssize : aint;
+        bsssize : aword;
         bsssec  : TExeSection;
         dbgname : TCmdStr;
       begin

@@ -140,11 +140,11 @@ interface
        objsection : TObjSection;
        symidx     : longint;
        offset,
-       size       : aint;
+       size       : aword;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
        constructor create(AList:TFPHashObjectList;const AName:string);
-       function  address:aint;
+       function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
      end;
 
@@ -160,13 +160,13 @@ interface
 
      TObjRelocation = class
         DataOffset,
-        orgsize    : aint;  { original size of the symbol to Relocate, required for COFF }
+        orgsize    : aword;  { original size of the symbol to Relocate, required for COFF }
         symbol     : TObjSymbol;
         objsection : TObjSection; { only used if symbol=nil }
         typ        : TObjRelocationType;
-        constructor CreateSymbol(ADataOffset:aint;s:TObjSymbol;Atyp:TObjRelocationType);
-        constructor CreateSymbolSize(ADataOffset:aint;s:TObjSymbol;Aorgsize:aint;Atyp:TObjRelocationType);
-        constructor CreateSection(ADataOffset:aint;aobjsec:TObjSection;Atyp:TObjRelocationType);
+        constructor CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
+        constructor CreateSymbolSize(ADataOffset:aword;s:TObjSymbol;Aorgsize:aword;Atyp:TObjRelocationType);
+        constructor CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
      end;
 
      TObjSection = class(TFPHashObject)
@@ -182,7 +182,7 @@ interface
        { section Data }
        Size,
        DataPos,
-       MemPos     : aint;
+       MemPos     : aword;
        DataAlignBytes : shortint;
        { Relocations (=references) to other sections }
        ObjRelocations : TFPObjectList;
@@ -194,14 +194,14 @@ interface
        VTRefList : TFPObjectList;
        constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);virtual;
        destructor  destroy;override;
-       function  write(const d;l:aint):aint;
-       function  writestr(const s:string):aint;
-       function  WriteZeros(l:longint):aint;
-       procedure setmempos(var mpos:aint);
-       procedure setDatapos(var dpos:aint);
-       procedure alloc(l:aint);
-       procedure addsymReloc(ofs:aint;p:TObjSymbol;Reloctype:TObjRelocationType);
-       procedure addsectionReloc(ofs:aint;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+       function  write(const d;l:aword):aword;
+       function  writestr(const s:string):aword;
+       function  WriteZeros(l:longword):aword;
+       procedure setmempos(var mpos:aword);
+       procedure setDatapos(var dpos:aword);
+       procedure alloc(l:aword);
+       procedure addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
+       procedure addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
        procedure AddSymbolDefine(p:TObjSymbol);
        procedure FixupRelocs;virtual;
        procedure ReleaseData;
@@ -232,7 +232,7 @@ interface
        property CObjSection:TObjSectionClass read FCObjSection write FCObjSection;
      public
        CurrPass  : byte;
-       ImageBase : aint;
+       ImageBase : aword;
        constructor create(const n:string);virtual;
        destructor  destroy;override;
        { Sections }
@@ -252,10 +252,10 @@ interface
        function  symbolref(const aname:string):TObjSymbol;
        procedure ResetCachedAsmSymbols;
        { Allocation }
-       procedure alloc(len:aint);
+       procedure alloc(len:aword);
        procedure allocalign(len:shortint);
-       procedure writebytes(const Data;len:aint);
-       procedure writeReloc(Data,len:aint;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
+       procedure writebytes(const Data;len:aword);
+       procedure writeReloc(Data,len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;
@@ -348,7 +348,7 @@ interface
       public
         Size,
         DataPos,
-        MemPos     : aint;
+        MemPos     : aword;
         SecAlign   : shortint;
         SecOptions : TObjSectionOptions;
         constructor create(AList:TFPHashObjectList;const AName:string);virtual;
@@ -411,7 +411,7 @@ interface
         { Objects }
         FObjDataList  : TFPObjectList;
         { Position calculation }
-        FImageBase    : aint;
+        FImageBase    : aword;
       protected
         { writer }
         FExeWriteMode : TExeWriteMode;
@@ -420,14 +420,14 @@ interface
         internalObjData : TObjData;
         EntrySym  : TObjSymbol;
         SectionDataAlign,
-        SectionMemAlign : aint;
+        SectionMemAlign : aword;
         function  writeData:boolean;virtual;abstract;
         property CExeSection:TExeSectionClass read FCExeSection write FCExeSection;
         property CObjData:TObjDataClass read FCObjData write FCObjData;
         procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);virtual;
       public
         CurrDataPos,
-        CurrMemPos   : aint;
+        CurrMemPos   : aword;
         IsSharedLibrary : boolean;
         constructor create;virtual;
         destructor  destroy;override;
@@ -477,7 +477,7 @@ interface
         property CommonObjSymbols:TFPObjectList read FCommonObjSymbols;
         property ExeVTableList:TFPObjectList read FExeVTableList;
         property EntryName:string read FEntryName write FEntryName;
-        property ImageBase:aint read FImageBase write FImageBase;
+        property ImageBase:aword read FImageBase write FImageBase;
         property CurrExeSec:TExeSection read FCurrExeSec;
         property ExeWriteMode:TExeWriteMode read FExeWriteMode write FExeWriteMode;
       end;
@@ -518,7 +518,7 @@ implementation
       end;
 
 
-    function TObjSymbol.address:aint;
+    function TObjSymbol.address:aword;
       begin
         if assigned(objsection) then
           result:=offset+objsection.mempos
@@ -560,7 +560,7 @@ implementation
                               TObjRelocation
 ****************************************************************************}
 
-    constructor TObjRelocation.CreateSymbol(ADataOffset:aint;s:TObjSymbol;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSymbol(ADataOffset:aword;s:TObjSymbol;Atyp:TObjRelocationType);
       begin
         if not assigned(s) then
           internalerror(200603034);
@@ -572,7 +572,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateSymbolSize(ADataOffset:aint;s:TObjSymbol;Aorgsize:aint;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSymbolSize(ADataOffset:aword;s:TObjSymbol;Aorgsize:aword;Atyp:TObjRelocationType);
       begin
         if not assigned(s) then
           internalerror(200603035);
@@ -584,7 +584,7 @@ implementation
       end;
 
 
-    constructor TObjRelocation.CreateSection(ADataOffset:aint;aobjsec:TObjSection;Atyp:TObjRelocationType);
+    constructor TObjRelocation.CreateSection(ADataOffset:aword;aobjsec:TObjSection;Atyp:TObjRelocationType);
       begin
         if not assigned(aobjsec) then
           internalerror(200603036);
@@ -640,7 +640,7 @@ implementation
       end;
 
 
-    function TObjSection.write(const d;l:aint):aint;
+    function TObjSection.write(const d;l:aword):aword;
       begin
         result:=size;
         if assigned(Data) then
@@ -655,13 +655,13 @@ implementation
       end;
 
 
-    function TObjSection.writestr(const s:string):aint;
+    function TObjSection.writestr(const s:string):aword;
       begin
         result:=Write(s[1],length(s));
       end;
 
 
-    function TObjSection.WriteZeros(l:longint):aint;
+    function TObjSection.WriteZeros(l:longword):aword;
       var
         empty : array[0..1023] of byte;
       begin
@@ -677,7 +677,7 @@ implementation
       end;
 
 
-    procedure TObjSection.setDatapos(var dpos:aint);
+    procedure TObjSection.setDatapos(var dpos:aword);
       begin
         if oso_Data in secoptions then
           begin
@@ -692,7 +692,7 @@ implementation
       end;
 
 
-    procedure TObjSection.setmempos(var mpos:aint);
+    procedure TObjSection.setmempos(var mpos:aword);
       begin
         mempos:=align(mpos,secalign);
         { return updated mempos }
@@ -700,19 +700,19 @@ implementation
       end;
 
 
-    procedure TObjSection.alloc(l:aint);
+    procedure TObjSection.alloc(l:aword);
       begin
         inc(size,l);
       end;
 
 
-    procedure TObjSection.addsymReloc(ofs:aint;p:TObjSymbol;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsymReloc(ofs:aword;p:TObjSymbol;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSymbol(ofs,p,reloctype));
       end;
 
 
-    procedure TObjSection.addsectionReloc(ofs:aint;aobjsec:TObjSection;Reloctype:TObjRelocationType);
+    procedure TObjSection.addsectionReloc(ofs:aword;aobjsec:TObjSection;Reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.CreateSection(ofs,aobjsec,reloctype));
       end;
@@ -1021,7 +1021,7 @@ implementation
       end;
 
 
-    procedure TObjData.writebytes(const Data;len:aint);
+    procedure TObjData.writebytes(const Data;len:aword);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402251);
@@ -1029,7 +1029,7 @@ implementation
       end;
 
 
-    procedure TObjData.alloc(len:aint);
+    procedure TObjData.alloc(len:aword);
       begin
         if not assigned(CurrObjSec) then
           internalerror(200402252);
@@ -1241,10 +1241,10 @@ implementation
       var
         i : longint;
         objreloc : TObjRelocation;
-        vtblentryoffset : aint;
+        vtblentryoffset : aword;
       begin
         CheckIdx(VTableIdx);
-        vtblentryoffset:=ExeSymbol.ObjSymbol.Offset+VTableIdx*sizeof(pint);
+        vtblentryoffset:=ExeSymbol.ObjSymbol.Offset+longword(VTableIdx)*sizeof(pint);
         { Find and disable relocation }
         for i:=0 to ExeSymbol.ObjSymbol.ObjSection.ObjRelocations.Count-1 do
           begin
@@ -2168,11 +2168,11 @@ implementation
         currstabrelocidx,
         i,j,
         mergestabcnt,
-        stabcnt : longint;
+        stabcnt : longword;
         skipstab : boolean;
         skipfun : boolean;
         hstab   : TObjStabEntry;
-        stabrelocofs : longint;
+        stabrelocofs : longword;
         buf     : array[0..1023] of byte;
         bufend,
         bufsize  : longint;
@@ -2226,7 +2226,7 @@ implementation
                       begin
                         { Find corresponding Relocation }
                         currstabreloc:=nil;
-                        while (currstabrelocidx<currstabsec.ObjRelocations.Count) do
+                        while (currstabrelocidx<longword(currstabsec.ObjRelocations.Count)) do
                           begin
                             currstabreloc:=TObjRelocation(currstabsec.ObjRelocations[currstabrelocidx]);
                             if assigned(currstabreloc) and

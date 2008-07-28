@@ -1965,7 +1965,7 @@ implementation
         ea_data : ea;
       begin
         { safety check }
-        if objdata.currobjsec.size<>insoffset then
+        if objdata.currobjsec.size<>longword(insoffset) then
            internalerror(200130121);
         { load data to write }
         codes:=insentry^.code;

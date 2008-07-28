@@ -46,7 +46,7 @@ type
     function  createfile(const fn:string):boolean;override;
     procedure closefile;override;
     procedure writesym(const sym:string);override;
-    procedure write(const b;len:longint);override;
+    procedure write(const b;len:longword);override;
   private
     arfn        : string;
     arhdr       : tarhdr;
@@ -252,7 +252,7 @@ implementation
       end;
 
 
-    procedure tarobjectwriter.write(const b;len:longint);
+    procedure tarobjectwriter.write(const b;len:longword);
       begin
         inc(fobjsize,len);
         inc(fsize,len);

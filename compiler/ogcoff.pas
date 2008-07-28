@@ -41,15 +41,15 @@ interface
 
     type
        tcoffpedatadir = packed record
-         vaddr : longint;
-         size  : longint;
+         vaddr : longword;
+         size  : longword;
        end;
        tcoffheader = packed record
          mach   : word;
-         nsects : smallint;
-         time   : longint;
-         sympos : longint;
-         syms   : longint;
+         nsects : word;
+         time   : longword;
+         sympos : longword;
+         syms   : longword;
          opthdr : word;
          flag   : word;
        end;
@@ -57,45 +57,45 @@ interface
          Magic : word;
          MajorLinkerVersion : byte;
          MinorLinkerVersion : byte;
-         tsize : longint;
-         dsize : longint;
-         bsize : longint;
-         entry : longint;
-         text_start : longint;
+         tsize : longword;
+         dsize : longword;
+         bsize : longword;
+         entry : longword;
+         text_start : longword;
 {$ifndef x86_64}
-         data_start : longint;
+         data_start : longword;
 {$endif x86_64}
-         ImageBase : aint;
-         SectionAlignment : longint;
-         FileAlignment : longint;
+         ImageBase : aword;
+         SectionAlignment : longword;
+         FileAlignment : longword;
          MajorOperatingSystemVersion : word;
          MinorOperatingSystemVersion : word;
          MajorImageVersion : word;
          MinorImageVersion : word;
          MajorSubsystemVersion : word;
          MinorSubsystemVersion : word;
-         Win32Version : longint;
-         SizeOfImage : longint;
-         SizeOfHeaders : longint;
-         CheckSum : longint;
+         Win32Version : longword;
+         SizeOfImage : longword;
+         SizeOfHeaders : longword;
+         CheckSum : longword;
          Subsystem : word;
          DllCharacteristics : word;
-         SizeOfStackReserve : aint;
-         SizeOfStackCommit : aint;
-         SizeOfHeapReserve : aint;
-         SizeOfHeapCommit : aint;
-         LoaderFlags : longint;
-         NumberOfRvaAndSizes : longint;
+         SizeOfStackReserve : aword;
+         SizeOfStackCommit : aword;
+         SizeOfHeapReserve : aword;
+         SizeOfHeapCommit : aword;
+         LoaderFlags : longword;
+         NumberOfRvaAndSizes : longword;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
        end;
        tcoffsechdr = packed record
          name     : array[0..7] of char;
-         vsize    : longint;
-         rvaofs   : longint;
-         datasize : longint;
-         datapos  : longint;
-         relocpos : longint;
-         lineno1  : longint;
+         vsize    : longword;
+         rvaofs   : longword;
+         datasize : longword;
+         datapos  : longword;
+         relocpos : longword;
+         lineno1  : longword;
          nrelocs  : word;
          lineno2  : word;
          flags    : longword;
@@ -105,12 +105,12 @@ interface
        private
          orgmempos,
          coffrelocs,
-         coffrelocpos : aint;
+         coffrelocpos : aword;
        public
-         secidx   : longint;
+         secidx   : longword;
          flags    : longword;
          constructor create(AList:TFPHashObjectList;const Aname:string;Aalign:shortint;Aoptions:TObjSectionOptions);override;
-         procedure addsymsizereloc(ofs:aint;p:TObjSymbol;symsize:aint;reloctype:TObjRelocationType);
+         procedure addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
          procedure fixuprelocs;override;
        end;
 
@@ -133,7 +133,7 @@ interface
          destructor  destroy;override;
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-         procedure writereloc(data,len:aint;p:TObjSymbol;reloctype:TObjRelocationType);override;
+         procedure writereloc(data,len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
          procedure afteralloc;override;
        end;
 
@@ -151,7 +151,7 @@ interface
          symidx  : longint;
          FCoffSyms,
          FCoffStrs : tdynamicarray;
-         procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
+         procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
          procedure section_write_symbol(p:TObject;arg:pointer);
          procedure section_write_relocs(p:TObject;arg:pointer);
          procedure create_symbols(data:TObjData);
@@ -185,7 +185,7 @@ interface
          FSecTbl   : ^TObjSectionArray;
          win32     : boolean;
          function  GetSection(secidx:longint):TObjSection;
-         function  Read_str(strpos:longint):string;
+         function  Read_str(strpos:longword):string;
          procedure read_relocs(s:TCoffObjSection);
          procedure read_symbols(objdata:TObjData);
          procedure ObjSections_read_data(p:TObject;arg:pointer);
@@ -224,12 +224,12 @@ interface
          FCoffsyms,
          FCoffStrs : tdynamicarray;
          win32     : boolean;
-         nsects    : smallint;
+         nsects    : word;
          nsyms,
-         sympos    : aint;
-         function  totalheadersize:longint;
+         sympos    : aword;
+         function  totalheadersize:longword;
          procedure ExeSectionList_pass2_header(p:TObject;arg:pointer);
-         procedure write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
+         procedure write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
          procedure globalsyms_write_symbol(p:TObject;arg:pointer);
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
@@ -249,7 +249,7 @@ interface
 
        TPECoffexeoutput = class(TCoffexeoutput)
        private
-         idatalabnr : longint;
+         idatalabnr : longword;
          procedure GenerateRelocs;
        public
          constructor create;override;
@@ -260,7 +260,7 @@ interface
 
        TObjSymbolrec = record
          sym : TObjSymbol;
-         orgsize : aint;
+         orgsize : aword;
        end;
        TObjSymbolArray = array[0..high(word)] of TObjSymbolrec;
        TObjSectionArray = array[0..high(smallint)] of TObjSection;
@@ -455,19 +455,19 @@ implementation
          data_start : longint;
        end;
        coffsectionrec=packed record
-         len     : longint;
+         len     : longword;
          nrelocs : word;
          empty   : array[0..11] of char;
        end;
        coffreloc=packed record
-         address  : longint;
-         sym      : longint;
+         address  : longword;
+         sym      : longword;
          reloctype : word;
        end;
        coffsymbol=packed record
          name    : array[0..3] of char; { real is [0..7], which overlaps the strpos ! }
-         strpos  : longint;
-         value   : longint;
+         strpos  : longword;
+         value   : longword;
          section : smallint;
          empty   : word;
          typ     : byte;
@@ -763,7 +763,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjSection.addsymsizereloc(ofs:aint;p:TObjSymbol;symsize:aint;reloctype:TObjRelocationType);
+    procedure TCoffObjSection.addsymsizereloc(ofs:aword;p:TObjSymbol;symsize:aword;reloctype:TObjRelocationType);
       begin
         ObjRelocations.Add(TObjRelocation.createsymbolsize(ofs,p,symsize,reloctype));
       end;
@@ -774,7 +774,7 @@ const pemagic : array[0..3] of byte = (
         i,zero   : longint;
         objreloc : TObjRelocation;
         address,
-        relocval : aint;
+        relocval : aword;
         relocsec : TObjSection;
       begin
         if (ObjRelocations.Count>0) and
@@ -980,10 +980,10 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjData.writereloc(data,len:aint;p:TObjSymbol;reloctype:TObjRelocationType);
+    procedure TCoffObjData.writereloc(data,len:aword;p:TObjSymbol;reloctype:TObjRelocationType);
       var
         curraddr,
-        symaddr : aint;
+        symaddr : aword;
       begin
         if CurrObjSec=nil then
           internalerror(200403072);
@@ -1063,7 +1063,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjData.afteralloc;
       var
-        mempos : aint;
+        mempos : aword;
         i      : longint;
       begin
         inherited afteralloc;
@@ -1118,7 +1118,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjOutput.write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
+    procedure TCoffObjOutput.write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
       var
         sym : coffsymbol;
       begin
@@ -1249,7 +1249,7 @@ const pemagic : array[0..3] of byte = (
         sectionval : word;
         globalval  : byte;
         i          : longint;
-        value      : aint;
+        value      : aword;
         objsym     : TObjSymbol;
       begin
         with TCoffObjData(data) do
@@ -1299,7 +1299,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjOutput.section_set_datapos(p:TObject;arg:pointer);
       begin
-        TObjSection(p).setdatapos(paint(arg)^);
+        TObjSection(p).setdatapos(paword(arg)^);
       end;
 
 
@@ -1314,7 +1314,7 @@ const pemagic : array[0..3] of byte = (
       var
         sechdr   : tcoffsechdr;
         s        : string;
-        strpos   : Aint;
+        strpos   : aword;
       begin
         with TCoffObjSection(p) do
           begin
@@ -1372,7 +1372,7 @@ const pemagic : array[0..3] of byte = (
       var
         orgdatapos,
         datapos,
-        sympos   : aint;
+        sympos   : aword;
         i        : longint;
         gotreloc : boolean;
         header   : tcoffheader;
@@ -1495,7 +1495,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function TCoffObjInput.Read_str(strpos:longint):string;
+    function TCoffObjInput.Read_str(strpos:longword):string;
       begin
         FCoffStrs.Seek(strpos-4);
         FCoffStrs.Read(result[1],255);
@@ -1922,7 +1922,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffexeoutput.write_symbol(const name:string;value:aint;section:smallint;typ,aux:byte);
+    procedure TCoffexeoutput.write_symbol(const name:string;value:aword;section:smallint;typ,aux:byte);
       var
         sym : coffsymbol;
       begin
@@ -1981,7 +1981,7 @@ const pemagic : array[0..3] of byte = (
       var
         sechdr   : tcoffsechdr;
         s        : string;
-        strpos   : Aint;
+        strpos   : aword;
       begin
         with tExeSection(p) do
           begin
@@ -2065,10 +2065,10 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    function tcoffexeoutput.totalheadersize:longint;
+    function tcoffexeoutput.totalheadersize:longword;
       var
         stubsize,
-        optheadersize : longint;
+        optheadersize : longword;
       begin
         if win32 then
           begin
@@ -2087,7 +2087,7 @@ const pemagic : array[0..3] of byte = (
     procedure tcoffexeoutput.MemPos_Header;
       begin
         { calculate start positions after the headers }
-        currmempos:=totalheadersize+sizeof(tcoffsechdr)*(ExeSectionList.Count-2);
+        currmempos:=totalheadersize+sizeof(tcoffsechdr)*longword(ExeSectionList.Count-2);
       end;
 
 
@@ -2097,7 +2097,7 @@ const pemagic : array[0..3] of byte = (
         nsects:=0;
         ExeSectionList.ForEachCall(@ExeSectionList_pass2_header,@nsects);
         { calculate start positions after the headers }
-        currdatapos:=totalheadersize+sizeof(tcoffsechdr)*nsects;
+        currdatapos:=totalheadersize+longword(nsects)*sizeof(tcoffsechdr);
       end;
 
 
@@ -2113,7 +2113,7 @@ const pemagic : array[0..3] of byte = (
 
     function TCoffexeoutput.writedata:boolean;
       var
-        i           : longint;
+        i           : longword;
         header      : tcoffheader;
         djoptheader : coffdjoptheader;
         peoptheader : tcoffpeoptheader;
@@ -2547,13 +2547,13 @@ const pemagic : array[0..3] of byte = (
 
     procedure TPECoffexeoutput.GenerateRelocs;
       var
-        pgaddr, hdrpos : longint;
+        pgaddr, hdrpos : longword;
 
       procedure FinishBlock;
       var
         p,len : longint;
       begin
-        if hdrpos = -1 then
+        if hdrpos = longword(-1) then
           exit;
         p:=0;
         internalobjdata.writebytes(p,align(internalobjdata.CurrObjSec.size,4)-internalobjdata.CurrObjSec.size);
@@ -2562,14 +2562,15 @@ const pemagic : array[0..3] of byte = (
         len:=p-hdrpos;
         internalObjData.CurrObjSec.Data.write(len,4);
         internalObjData.CurrObjSec.Data.seek(p);
-        hdrpos:=-1;
+        hdrpos:=longword(-1);
       end;
 
       var
         exesec : TExeSection;
         objsec : TObjSection;
         objreloc : TObjRelocation;
-        i,j,k,offset : longint;
+        i,j,k : longint;
+        offset : longword;
         w: word;
       begin
         if not RelocSection then
@@ -2579,8 +2580,8 @@ const pemagic : array[0..3] of byte = (
           exit;
         objsec:=internalObjData.createsection('.reloc',0,exesec.SecOptions+[oso_data]);
         exesec.AddObjSection(objsec);
-        pgaddr:=-1;
-        hdrpos:=-1;
+        pgaddr:=longword(-1);
+        hdrpos:=longword(-1);
         for i:=0 to ExeSectionList.Count-1 do
           begin
             exesec:=TExeSection(ExeSectionList[i]);
@@ -2598,7 +2599,7 @@ const pemagic : array[0..3] of byte = (
                     offset:=objsec.MemPos+objreloc.dataoffset;
                     if offset<pgaddr then
                       Internalerror(2007062701);
-                    if (offset-pgaddr>=4096) or (pgaddr=-1) then
+                    if (offset-pgaddr>=4096) or (pgaddr=longword(-1)) then
                       begin
                         FinishBlock;
                         pgaddr:=(offset div 4096)*4096;
@@ -2693,7 +2694,7 @@ const pemagic : array[0..3] of byte = (
         Header    : TCoffHeader;
         peheader  : tcoffpeoptheader;
         NameOfs,
-        newheaderofs : longint;
+        newheaderofs : longword;
         FuncName  : string;
         expdir    : TPECoffExpDir;
         i         : longint;
@@ -2765,7 +2766,7 @@ const pemagic : array[0..3] of byte = (
         DLLReader.Read(expdir,sizeof(expdir));
         for i:=0 to expdir.NumNames-1 do
           begin
-            DLLReader.Seek(sechdr.datapos+longint(expdir.AddrNames)-sechdr.rvaofs+i*4);
+            DLLReader.Seek(sechdr.datapos+expdir.AddrNames-sechdr.rvaofs+i*4);
             DLLReader.Read(NameOfs,4);
             Dec(NameOfs,sechdr.rvaofs);
             if (NameOfs<0) or

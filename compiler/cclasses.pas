@@ -423,7 +423,7 @@ type
        tdynamicblock = record
          pos,
          size,
-         used : integer;
+         used : longword;
          Next : pdynamicblock;
          data : tdynamicblockdata;
        end;
@@ -434,28 +434,28 @@ type
      type
        tdynamicarray = class
        private
-         FPosn       : integer;
+         FPosn       : longword;
          FPosnblock  : pdynamicblock;
          FCurrBlocksize,
-         FMaxBlocksize  : integer;
+         FMaxBlocksize  : longword;
          FFirstblock,
          FLastblock  : pdynamicblock;
          procedure grow;
        public
-         constructor Create(Ablocksize:integer);
+         constructor Create(Ablocksize:longword);
          destructor  Destroy;override;
          procedure reset;
-         function  size:integer;
-         procedure align(i:integer);
-         procedure seek(i:integer);
-         function  read(var d;len:integer):integer;
-         procedure write(const d;len:integer);
+         function  size:longword;
+         procedure align(i:longword);
+         procedure seek(i:longword);
+         function  read(var d;len:longword):longword;
+         procedure write(const d;len:longword);
          procedure writestr(const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
-         procedure readstream(f:TCStream;maxlen:longint);
+         procedure readstream(f:TCStream;maxlen:longword);
          procedure writestream(f:TCStream);
-         property  CurrBlockSize : integer read FCurrBlocksize;
+         property  CurrBlockSize : longword read FCurrBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
-         property  Pos : integer read FPosn;
+         property  Pos : longword read FPosn;
        end;
 
 
@@ -2261,7 +2261,7 @@ end;
                                 tdynamicarray
 ****************************************************************************}
 
-    constructor tdynamicarray.create(Ablocksize:integer);
+    constructor tdynamicarray.create(Ablocksize:longword);
       begin
         FPosn:=0;
         FPosnblock:=nil;
@@ -2286,7 +2286,7 @@ end;
       end;
 
 
-    function  tdynamicarray.size:integer;
+    function  tdynamicarray.size:longword;
       begin
         if assigned(FLastblock) then
          size:=FLastblock^.pos+FLastblock^.used
@@ -2351,9 +2351,9 @@ end;
       end;
 
 
-    procedure tdynamicarray.align(i:integer);
+    procedure tdynamicarray.align(i:longword);
       var
-        j : integer;
+        j : longword;
       begin
         j:=(FPosn mod i);
         if j<>0 then
@@ -2372,7 +2372,7 @@ end;
       end;
 
 
-    procedure tdynamicarray.seek(i:integer);
+    procedure tdynamicarray.seek(i:longword);
       begin
         if (i<FPosnblock^.pos) or (i>=FPosnblock^.pos+FPosnblock^.size) then
          begin
@@ -2403,10 +2403,10 @@ end;
       end;
 
 
-    procedure tdynamicarray.write(const d;len:integer);
+    procedure tdynamicarray.write(const d;len:longword);
       var
         p : pchar;
-        i,j : integer;
+        i,j : longword;
       begin
         p:=pchar(@d);
         while (len>0) do
@@ -2448,10 +2448,10 @@ end;
       end;
 
 
-    function tdynamicarray.read(var d;len:integer):integer;
+    function tdynamicarray.read(var d;len:longword):longword;
       var
         p : pchar;
-        i,j,res : integer;
+        i,j,res : longword;
       begin
         res:=0;
         p:=pchar(@d);
@@ -2484,12 +2484,10 @@ end;
       end;
 
 
-    procedure tdynamicarray.readstream(f:TCStream;maxlen:longint);
+    procedure tdynamicarray.readstream(f:TCStream;maxlen:longword);
       var
-        i,left : integer;
+        i,left : longword;
       begin
-        if maxlen=-1 then
-         maxlen:=maxlongint;
         repeat
           left:=FPosnblock^.size-FPosnblock^.used;
           if left>maxlen then

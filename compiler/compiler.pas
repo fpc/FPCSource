@@ -110,7 +110,7 @@ uses
 {$ifdef symbian}
   ,i_symbian
 {$endif symbian}
-  ;
+  ,globtype;
 
 function Compile(const cmd:string):longint;
 
@@ -249,7 +249,7 @@ begin
           if totaltime<0 then
             totaltime:=totaltime+3600.0*24.0;
           timestr:=tostr(trunc(totaltime))+'.'+tostr(round(frac(totaltime)*10));
-          if status.codesize<>-1 then
+          if status.codesize<>aword(-1) then
             linkstr:=', '+tostr(status.codesize)+' ' +strpas(MessagePChar(general_text_bytes_code))+', '+tostr(status.datasize)+' '+strpas(MessagePChar(general_text_bytes_data))
           else
             linkstr:='';

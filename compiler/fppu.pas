@@ -569,7 +569,7 @@ uses
         len,hlen : longint;
         buf : array[0..1023] of byte;
       begin
-        if derefdataintflen>derefdata.size then
+        if longword(derefdataintflen)>derefdata.size then
           internalerror(200310223);
         derefdata.seek(0);
         { Write interface data }
