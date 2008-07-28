@@ -1923,7 +1923,7 @@ const pemagic : array[0..3] of byte = (
           MaxMemPos:=$FFFFFFFF
         else
           if target_info.system in system_wince then
-            MaxMemPos:=$1FFFFF
+            MaxMemPos:=$1FFFFFF
           else
             MaxMemPos:=$7FFFFFFF;
       end;
