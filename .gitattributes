@@ -6168,6 +6168,7 @@ tests/bench/bansi1.pp -text
 tests/bench/bansi1mt.pp svneol=native#text/plain
 tests/bench/blists1.inc svneol=native#text/plain
 tests/bench/blists1.pp svneol=native#text/plain
+tests/bench/bmd5.pp svneol=native#text/plain
 tests/bench/dmisc.pas svneol=native#text/plain
 tests/bench/drystone.pas svneol=native#text/plain
 tests/bench/pi.c -text
