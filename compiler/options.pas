@@ -2198,7 +2198,7 @@ begin
 {$endif}
 
 { these cpus have an inline rol/ror implementaion }
-{$if defined(x86)}
+{$if defined(x86) or defined(arm)}
   def_system_macro('FPC_HAS_INTERNAL_ROX');
 {$endif}
 

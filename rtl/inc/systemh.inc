@@ -609,14 +609,20 @@ function NtoLE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$ifdef FPC_HAS_INTERNAL_ROX}
+
 {$if defined(cpux86_64) or defined(cpui386)}
 {$define FPC_HAS_INTERNAL_ROX_BYTE}
 {$define FPC_HAS_INTERNAL_ROX_WORD}
-{$define FPC_HAS_INTERNAL_ROX_DWORD}
 {$endif defined(cpux86_64) or defined(cpui386)}
+
+{$if defined(cpux86_64) or defined(cpui386) or defined(arm)}
+{$define FPC_HAS_INTERNAL_ROX_DWORD}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(arm)}
+
 {$if defined(cpux86_64)}
 {$define FPC_HAS_INTERNAL_ROX_QWORD}
 {$endif defined(cpux86_64)}
+
 {$endif FPC_HAS_INTERNAL_ROX}
 
 {$ifdef FPC_HAS_INTERNAL_ROX_BYTE}

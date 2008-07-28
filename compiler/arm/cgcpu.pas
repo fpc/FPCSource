@@ -409,6 +409,34 @@ unit cgcpu;
                 else
                  list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
               end;
+            OP_ROL:
+              begin
+                if a>32 then
+                  internalerror(200308294);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_ROR;
+                    so.shiftimm:=32-a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            OP_ROR:
+              begin
+                if a>32 then
+                  internalerror(200308294);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_ROR;
+                    so.shiftimm:=a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
             OP_SHR:
               begin
                 if a>32 then
@@ -516,6 +544,28 @@ unit cgcpu;
               shifterop_reset(so);
               so.rs:=src1;
               so.shiftmode:=SM_ASR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_ROL:
+            begin
+              if not(size in [OS_32,OS_S32]) then
+                internalerror(2008072801);
+              { simulate ROL by ror'ing 32-value }
+              tmpreg:=getintregister(list,OS_32);
+              list.concat(taicpu.op_reg_const(A_MOV,tmpreg,32));
+              list.concat(taicpu.op_reg_reg_reg(A_SUB,src1,tmpreg,src1));
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_ROR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_ROR:
+            begin
+              if not(size in [OS_32,OS_S32]) then
+                internalerror(2008072802);
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_ROR;
               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
             end;
           OP_IMUL,
