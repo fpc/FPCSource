@@ -149,13 +149,6 @@ function MD5Match(const Digest1, Digest2: TMD5Digest): Boolean; inline;
 
 implementation
 
-
-function rol(x: Cardinal; n: Byte): Cardinal;
-begin
-  Result := (x shl n) or (x shr (32 - n));
-end;
-
-
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
 var

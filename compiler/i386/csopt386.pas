@@ -1022,7 +1022,7 @@ var
 begin
   case p.opcode of
     A_IMUL: noHardCodedRegs := p.ops <> 1;
-    A_SHL,A_SHR,A_SHLD,A_SHRD: noHardCodedRegs :=
+    A_SHL,A_SHR,A_ROR,A_ROL,A_SAR,A_SHLD,A_SHRD: noHardCodedRegs :=
       (p.oper[0]^.typ <> top_reg) or
       ((orgReg <> RS_ECX) and (newReg <> RS_ECX));
     else
