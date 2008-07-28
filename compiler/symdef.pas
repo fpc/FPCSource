@@ -3877,7 +3877,7 @@ implementation
          else
            tstoredsymtable(symtable).buildderef;
 
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).buildderef;
