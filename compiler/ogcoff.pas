@@ -841,9 +841,9 @@ const pemagic : array[0..3] of byte = (
               RELOC_RELATIVE_24:
                 begin
                   relocval:=(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
-                  address:=address or relocval and $ffffff;
+                  address:=address or (relocval and $ffffff);
                   relocval:=relocval shr 24;
-                  if (relocval<>$3f) and (relocval<>0) then
+                  if (relocval<>$ff) and (relocval<>0) then
                     internalerror(200606085);  { offset overflow }
                 end;
 {$endif arm}
