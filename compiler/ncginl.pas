@@ -722,7 +722,7 @@ implementation
     procedure tcginlinenode.second_rox;
       var
         op : topcg;
-        hcountreg : tregister;
+        {hcountreg : tregister;}
         op1,op2 : tnode;
       begin
         { one or two parameters? }
