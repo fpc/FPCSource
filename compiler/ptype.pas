@@ -834,7 +834,7 @@ implementation
                   first := false;
                   storepos:=current_tokenpos;
                   current_tokenpos:=defpos;
-                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l.svalue));
+                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
                   current_tokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;

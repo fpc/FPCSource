@@ -376,7 +376,7 @@ unit cgcpu;
         l1 : longint;
       begin
         ovloc.loc:=LOC_VOID;
-        if is_shifter_const(-a,shift) then
+        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin

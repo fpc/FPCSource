@@ -133,7 +133,7 @@ interface
          destructor  destroy;override;
          procedure CreateDebugSections;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
-         procedure writereloc(data,len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
+         procedure writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);override;
          procedure afteralloc;override;
        end;
 
@@ -774,7 +774,7 @@ const pemagic : array[0..3] of byte = (
         i,zero   : longint;
         objreloc : TObjRelocation;
         address,
-        relocval : aword;
+        relocval : aint;
         relocsec : TObjSection;
       begin
         if (ObjRelocations.Count>0) and
@@ -840,7 +840,7 @@ const pemagic : array[0..3] of byte = (
 {$ifdef arm}
               RELOC_RELATIVE_24:
                 begin
-                  relocval:=longword(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                  relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
                   address:=address or (relocval and $ffffff);
                   relocval:=relocval shr 24;
                   if (relocval<>$3f) and (relocval<>0) then
@@ -980,7 +980,7 @@ const pemagic : array[0..3] of byte = (
       end;
 
 
-    procedure TCoffObjData.writereloc(data,len:aword;p:TObjSymbol;reloctype:TObjRelocationType);
+    procedure TCoffObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reloctype:TObjRelocationType);
       var
         curraddr,
         symaddr : aword;

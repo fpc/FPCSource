@@ -255,7 +255,7 @@ interface
        procedure alloc(len:aword);
        procedure allocalign(len:shortint);
        procedure writebytes(const Data;len:aword);
-       procedure writeReloc(Data,len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
+       procedure writeReloc(Data:aint;len:aword;p:TObjSymbol;Reloctype:TObjRelocationType);virtual;abstract;
        procedure beforealloc;virtual;
        procedure beforewrite;virtual;
        procedure afteralloc;virtual;

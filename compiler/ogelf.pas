@@ -57,7 +57,7 @@ interface
          destructor  destroy;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
-         procedure writereloc(data,len:aword;p:TObjSymbol;reltype:TObjRelocationType);override;
+         procedure writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);override;
        end;
 
        TElfObjectOutput = class(tObjOutput)
@@ -646,7 +646,7 @@ implementation
       end;
 
 
-    procedure TElfObjData.writereloc(data,len:aword;p:TObjSymbol;reltype:TObjRelocationType);
+    procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
       var
         symaddr : longint;
       begin

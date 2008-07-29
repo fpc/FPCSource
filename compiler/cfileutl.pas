@@ -81,7 +81,7 @@ interface
       PCachedDirectoryEntry =  ^TCachedDirectoryEntry;
       TCachedDirectoryEntry = record
         RealName: TCmdStr;
-        Attr    : byte;
+        Attr    : longint;
       end;
 
       TDirectoryCache = class
