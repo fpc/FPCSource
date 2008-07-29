@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=mysql
-override PACKAGE_VERSION=2.2.2rc2
+override PACKAGE_VERSION=2.2.2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=my4_sys mysql4_com mysql4_version mysql4 mysql4dyn mysql4_comdyn mysql3_com mysql3_version mysql3 mysql3_comdyn mysql3dyn mysql40 mysql40dyn mysql41 mysql41dyn mysql50 mysql50dyn
 endif

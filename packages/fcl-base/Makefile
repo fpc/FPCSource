@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-base
-override PACKAGE_VERSION=2.2.2rc2
+override PACKAGE_VERSION=2.2.2
 ifeq ($(OS_TARGET),win32)
 INSTALL_DATADIR=${INSTALL_UNITDIR}
 endif

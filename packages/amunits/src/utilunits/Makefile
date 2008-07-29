@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=amunits
-override PACKAGE_VERSION=2.2.2rc2
+override PACKAGE_VERSION=2.2.2
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=amigautils consoleio deadkeys doublebuffer easyasl hisoft linklist longarray msgbox pastoc pcq systemvartags tagsarray timerutils vartags wbargs
 endif

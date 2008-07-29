@@ -4,7 +4,7 @@
 
 [package]
 name=unzip
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 units=ziptypes unzip

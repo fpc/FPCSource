@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-web
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \

@@ -4,7 +4,7 @@
 
 [package]
 name=sdl
-version=2.2.2rc2
+version=2.2.2
 
 [require]
 libc=y

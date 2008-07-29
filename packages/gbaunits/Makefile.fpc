@@ -4,7 +4,7 @@
 
 [package]
 name=gbaunits
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 loaders=bios_asm core_asm

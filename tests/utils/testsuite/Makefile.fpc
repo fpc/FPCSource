@@ -4,7 +4,7 @@
 
 [package]
 name=testsuite
-version=2.2.2rc2
+version=2.2.2
 
 [require]
 packages=fcl-base fcl-db

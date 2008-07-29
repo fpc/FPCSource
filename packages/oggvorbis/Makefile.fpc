@@ -4,7 +4,7 @@
 
 [package]
 name=oggvorbis
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 units=ogg vorbis

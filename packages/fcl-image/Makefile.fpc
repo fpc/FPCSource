@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-image
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \

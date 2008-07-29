@@ -4,7 +4,7 @@
 
 [package]
 name=utils
-version=2.2.2rc2
+version=2.2.2
 
 [target]
 dirs=fppkg fpcm tply h2pas fprcp dxegen fpdoc
