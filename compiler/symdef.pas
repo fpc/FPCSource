@@ -3832,7 +3832,7 @@ implementation
               ppufile.putstring(iidstr^);
            end;
 
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              ppufile.putlongint(ImplementedInterfaces.Count);
              for i:=0 to ImplementedInterfaces.Count-1 do
@@ -3898,7 +3898,7 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).deref;
