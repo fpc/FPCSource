@@ -594,7 +594,7 @@ begin
       ptSet :
         S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
       ptStream :
-        R:=Format('AssignParamFromStream(%s,%s);',[SFN,PN]);
+        R:=Format('AssignParamFromStream(%s,O.%s);',[SFN,PN]);
       ptTStrings :
         R:=Format('ParamAsString[%s]:=O.%s.Text;',[SFN,PN]);
       ptCustom :
