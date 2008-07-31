@@ -546,7 +546,7 @@ begin
       ptSet :
         S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
       ptStream :
-        R:=Format('FieldByName(%s).SaveToStream(O.%s);',[SFN,PN]);
+        R:=Format('AssignFieldAsStream(%s,O.%s);',[SFN,PN]);
       ptTStrings :
         R:=Format('O.%s.Text:=FieldAsString[%s];',[PN,SFN]);
       ptCustom :
