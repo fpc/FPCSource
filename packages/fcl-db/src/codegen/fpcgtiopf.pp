@@ -36,6 +36,7 @@ TYpe
     FListAncestorName: String;
     FListClassName : String;
     FVisitorOptions: TVisitorOptions;
+    FTableName : String;
     function GetListClassName: String;
     procedure SetListAncestorName(const AValue: String);
     procedure SetListClassName(const AValue: String);
@@ -48,6 +49,7 @@ TYpe
     Property ListAncestorName : String Read FListAncestorName Write SetListAncestorName;
     Property ListClassName : String Read GetListClassName Write SetListClassName;
     Property AncestorClass;
+    Property TableName : String Read FTableName Write FTableName;
   end;
   
   { TTiOPFCodeGenerator }
@@ -97,7 +99,8 @@ TYpe
   end;
 
 Const
-  SOID = 'OID'; // OID property.
+  SOID = 'OID';              // OID property.
+  SDefTableName = 'MYTABLE'; // Default table name.
   
 implementation
 
@@ -128,6 +131,7 @@ begin
   FListAncestorName:='TtiObjectList';
   AncestorClass:='TtiObject';
   ObjectClassName:='MyObject';
+  TableName:=SDefTableName;
   FVisitorOptions:=[voRead,voCreate,voDelete,voUpdate];
   FClassOptions:=[caCreateList,caListAddMethod,caListItemsProperty];
 end;
@@ -145,6 +149,7 @@ begin
     AncestorClass:=OC.AncestorClass;
     FVisitorOptions:=OC.FVisitorOptions;
     FClassOptions:=OC.FClassOptions;
+    FTableName:=OC.TableName;
     end;
   inherited Assign(ASource);
 end;
@@ -277,7 +282,9 @@ Var
   F : TFieldPropDef;
 
 begin
-  TN:='MyTable';
+  TN:=TiOPFOptions.TableName;
+  If (TN='') then 
+    TN:=SDefTableName;
   S:='';
   VS:='';
   W:='Your condition here';
