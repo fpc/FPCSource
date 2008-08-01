@@ -497,6 +497,15 @@ implementation
                            end;
                        end;
                    end;
+                 objectdef :
+                   begin
+                     { corba interface -> id string }
+                     if is_interfacecorba(def_from) then
+                      begin
+                        doconv:=tc_intf_2_string;
+                        eq:=te_convert_l1;
+                      end;
+                   end;
                end;
              end;
 
@@ -1362,8 +1371,8 @@ implementation
            recorddef :
              begin
                { interface -> guid }
-               if is_interface(def_from) and
-                  (def_to=rec_tguid) then
+               if (def_to=rec_tguid) and
+                  (is_interfacecom(def_from) or is_dispinterface(def_from)) then
                 begin
                   doconv:=tc_intf_2_guid;
                   eq:=te_convert_l1;

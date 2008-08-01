@@ -74,6 +74,7 @@ interface
           function typecheck_arrayconstructor_to_set : tnode;
           function typecheck_set_to_set : tnode;
           function typecheck_pchar_to_string : tnode;
+          function typecheck_interface_to_string : tnode;
           function typecheck_interface_to_guid : tnode;
           function typecheck_dynarray_to_openarray : tnode;
           function typecheck_pwchar_to_string : tnode;
@@ -1323,6 +1324,18 @@ implementation
       end;
 
 
+    function ttypeconvnode.typecheck_interface_to_string : tnode;
+      begin
+        if assigned(tobjectdef(left.resultdef).iidstr) then
+          begin
+            if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
+              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+            result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
+            tstringconstnode(result).changestringtype(cshortstringtype);
+          end;
+      end;
+
+
     function ttypeconvnode.typecheck_interface_to_guid : tnode;
       begin
         if assigned(tobjectdef(left.resultdef).iidguid) then
@@ -1590,7 +1603,7 @@ implementation
           { arrayconstructor_2_set } @ttypeconvnode.typecheck_arrayconstructor_to_set,
           { set_to_set } @ttypeconvnode.typecheck_set_to_set,
           { cord_2_pointer } @ttypeconvnode.typecheck_cord_to_pointer,
-          { intf_2_string } nil,
+          { intf_2_string } @ttypeconvnode.typecheck_interface_to_string,
           { intf_2_guid } @ttypeconvnode.typecheck_interface_to_guid,
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.typecheck_char_to_char,
