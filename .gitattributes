@@ -7547,6 +7547,7 @@ tests/test/tgeneric13.pp svneol=native#text/plain
 tests/test/tgeneric14.pp svneol=native#text/plain
 tests/test/tgeneric15.pp svneol=native#text/plain
 tests/test/tgeneric16.pp svneol=native#text/plain
+tests/test/tgeneric17.pp svneol=native#text/plain
 tests/test/tgeneric2.pp svneol=native#text/plain
 tests/test/tgeneric3.pp svneol=native#text/plain
 tests/test/tgeneric4.pp svneol=native#text/plain
