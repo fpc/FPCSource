@@ -4285,12 +4285,9 @@ begin
 end;
 
 function Load_GL_version_1_2: Boolean;
-var
-  extstring: String;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
     glBlendColor := wglGetProcAddress('glBlendColor');
     if not Assigned(glBlendColor) then Exit;
@@ -4298,6 +4295,26 @@ begin
     if not Assigned(glBlendEquation) then Exit;
     glDrawRangeElements := wglGetProcAddress('glDrawRangeElements');
     if not Assigned(glDrawRangeElements) then Exit;
+    glTexImage3D := wglGetProcAddress('glTexImage3D');
+    if not Assigned(glTexImage3D) then Exit;
+    glTexSubImage3D := wglGetProcAddress('glTexSubImage3D');
+    if not Assigned(glTexSubImage3D) then Exit;
+    glCopyTexSubImage3D := wglGetProcAddress('glCopyTexSubImage3D');
+    if not Assigned(glCopyTexSubImage3D) then Exit;
+    Result := TRUE;
+
+end;
+
+function Load_GL_ARB_imaging: Boolean;
+var
+  extstring: String;
+begin
+
+  Result := FALSE;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
+  begin
     glColorTable := wglGetProcAddress('glColorTable');
     if not Assigned(glColorTable) then Exit;
     glColorTableParameterfv := wglGetProcAddress('glColorTableParameterfv');
@@ -4362,26 +4379,6 @@ begin
     if not Assigned(glResetHistogram) then Exit;
     glResetMinmax := wglGetProcAddress('glResetMinmax');
     if not Assigned(glResetMinmax) then Exit;
-    glTexImage3D := wglGetProcAddress('glTexImage3D');
-    if not Assigned(glTexImage3D) then Exit;
-    glTexSubImage3D := wglGetProcAddress('glTexSubImage3D');
-    if not Assigned(glTexSubImage3D) then Exit;
-    glCopyTexSubImage3D := wglGetProcAddress('glCopyTexSubImage3D');
-    if not Assigned(glCopyTexSubImage3D) then Exit;
-    Result := TRUE;
-
-end;
-
-function Load_GL_ARB_imaging: Boolean;
-var
-  extstring: String;
-begin
-
-  Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
-
-  if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
-  begin
     Result := TRUE;
   end;
 
