@@ -836,64 +836,64 @@ implementation
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
-         begin
-           location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
-           if is_open_array(tparavarsym(p).vardef) or
-              is_array_of_const(tparavarsym(p).vardef) then
-            begin
-              { cdecl functions don't have a high pointer so it is not possible to generate
-                a local copy }
-              if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                begin
-                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
-                  if not assigned(hsym) then
-                    internalerror(200306061);
-                  hreg:=cg.getaddressregister(list);
-                  if not is_packed_array(tparavarsym(p).vardef) then
-                    cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
-                  else
-                    internalerror(2006080401);
-//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
-                end;
-            end
-           else
-            begin
-              { Allocate space for the local copy }
-              l:=tparavarsym(p).getsize;
-              localcopyloc.loc:=LOC_REFERENCE;
-              localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
-              { Copy data }
-              if is_shortstring(tparavarsym(p).vardef) then
-                begin
-                  { this code is only executed before the code for the body and the entry/exit code is generated
-                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                  }
-                  include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
-                end
-              else if tparavarsym(p).vardef.typ = variantdef then
-                begin
-                  { this code is only executed before the code for the body and the entry/exit code is generated
-                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                  }
-                  include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyvariant(list,href,localcopyloc.reference)
-                end
-              else
-                begin
-                  { pass proper alignment info }
-                  localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
-                  cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
-                end;
-              { update localloc of varsym }
-              tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
-              tparavarsym(p).localloc:=localcopyloc;
-              tparavarsym(p).initialloc:=localcopyloc;
-            end;
-         end;
+          (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+          begin
+            location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
+            if is_open_array(tparavarsym(p).vardef) or
+               is_array_of_const(tparavarsym(p).vardef) then
+              begin
+                { cdecl functions don't have a high pointer so it is not possible to generate
+                  a local copy }
+                if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                  begin
+                    hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                    if not assigned(hsym) then
+                      internalerror(200306061);
+                    hreg:=cg.getaddressregister(list);
+                    if not is_packed_array(tparavarsym(p).vardef) then
+                      cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
+                    else
+                      internalerror(2006080401);
+//                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
+                    cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
+                  end;
+              end
+            else
+              begin
+                { Allocate space for the local copy }
+                l:=tparavarsym(p).getsize;
+                localcopyloc.loc:=LOC_REFERENCE;
+                localcopyloc.size:=int_cgsize(l);
+                tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
+                { Copy data }
+                if is_shortstring(tparavarsym(p).vardef) then
+                  begin
+                    { this code is only executed before the code for the body and the entry/exit code is generated
+                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                    }
+                    include(current_procinfo.flags,pi_do_call);
+                    cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
+                  end
+                else if tparavarsym(p).vardef.typ = variantdef then
+                  begin
+                    { this code is only executed before the code for the body and the entry/exit code is generated
+                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                    }
+                    include(current_procinfo.flags,pi_do_call);
+                    cg.g_copyvariant(list,href,localcopyloc.reference)
+                  end
+                else
+                  begin
+                    { pass proper alignment info }
+                    localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
+                    cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
+                  end;
+                { update localloc of varsym }
+                tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
+                tparavarsym(p).localloc:=localcopyloc;
+                tparavarsym(p).initialloc:=localcopyloc;
+              end;
+          end;
       end;
 
 
@@ -1150,11 +1150,14 @@ implementation
              vs_value :
                if needs_inittable then
                  begin
-                   { variants are already handled by the call to fpc_variant_copy_overwrite }
-                   if tparavarsym(p).vardef.typ <> variantdef then begin
-                     location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
-                     cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
-                   end;
+                   { variants are already handled by the call to fpc_variant_copy_overwrite if
+                     they are passed by reference }
+                   if not((tparavarsym(p).vardef.typ=variantdef) and
+                     paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                     begin
+                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
+                       cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                     end;
                  end;
              vs_out :
                begin
