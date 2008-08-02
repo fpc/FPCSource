@@ -73,7 +73,7 @@ implementation
 
     function tx86casenode.has_jumptable : boolean;
       begin
-        has_jumptable:=true;
+        has_jumptable:=target_info.system<>system_x86_64_darwin;
       end;
 
 
