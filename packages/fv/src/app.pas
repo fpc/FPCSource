@@ -1069,6 +1069,7 @@ BEGIN                                                 { Compatability only }
 {  InitDosMem;}
   drivers.initkeyboard;
   drivers.initvideo;
+  Video.SetCursorType(crHidden);
   InitScreen;
   InitEvents;
   InitSysError;
