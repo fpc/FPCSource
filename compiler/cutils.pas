@@ -29,13 +29,11 @@ unit cutils;
 
 interface
 
+  type
+    Tcharset=set of char;
 
-    type
-       pshortstring = ^string;
-       Tcharset=set of char;
-
-    var
-      internalerrorproc : procedure(i:longint);
+  var
+    internalerrorproc : procedure(i:longint);
 
 
     {# Returns the minimal value between @var(a) and @var(b) }
