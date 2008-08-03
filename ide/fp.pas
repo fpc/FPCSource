@@ -206,7 +206,7 @@ begin
       end
     else
       if not BeforeINI then
-        TryToOpenFile(nil,Param,0,0,{false}true);
+        TryToOpenFileMulti(nil,Param,0,0,{false}true);
   end;
 end;
 
