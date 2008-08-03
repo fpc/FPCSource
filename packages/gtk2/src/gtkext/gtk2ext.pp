@@ -21,6 +21,10 @@ const
   {$endif}
   
 {$i gtkstatusiconh.inc}
+{$i gtkscalebuttonh.inc}
+{$i gtkvolumebuttonh.inc}
+{$i gtktextmarkh.inc}
+{$i gtktextiterh.inc}
 
 implementation
 
@@ -31,6 +35,10 @@ var
   gtkhandle : tlibhandle;
 
 {$i gtkstatusicon.inc}
+{$i gtkscalebutton.inc}
+{$i gtkvolumebutton.inc}
+{$i gtktextmark.inc}
+{$i gtktextiter.inc}
 
 var
   libIter: Integer;
@@ -39,14 +47,22 @@ initialization
   for libIter := High(GtkLibNames) downto Low(GtkLibNames) do begin
     gtkhandle := LoadLibrary(GtkLibNames[libIter]);
     if gtkhandle <> 0 then begin
-      // add all specific component load functions here
       Loadgtkstatusicon;
+      Loadgtkscalebutton;
+      Loadgtkvolumebutton;
+      Loadgtktextmark;
+      Loadgtkiter;
+      // add all specific component load functions here
       Break;
     end;
   end;
 finalization
-  // add all specific component free functions here
   Freegtkstatusicon;
+  Freegtkscalebutton;
+  Freegtkvolumebutton;
+  Freegtktextmark;
+  Freegtkiter;
+  // add all specific component free functions here
   if gtkhandle <> 0 then
     FreeLibrary(gtkhandle);
 

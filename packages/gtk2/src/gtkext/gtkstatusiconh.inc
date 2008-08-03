@@ -23,7 +23,9 @@
  *}
 
 type
-  PGtkStatusIcon  = Pointer;
+  PGtkStatusIcon = Pointer;
+  PGtkStatusIconClass = Pointer;
+
   PPGdkScreen = PGdkScreen;
 
 
@@ -54,7 +56,12 @@ var
   gtk_status_icon_position_menu : procedure(menu:PGtkMenu; x:Pgint; y:Pgint; push_in:Pgboolean; user_data:gpointer);
   gtk_status_icon_get_geometry : function(status_icon:PGtkStatusIcon; screen:PPGdkScreen; area:PGdkRectangle; orientation:PGtkOrientation):gboolean;
 
-function GTK_TYPE_STATUS_ICON: GType;
+  function GTK_TYPE_STATUS_ICON: GType; inline;
+  function GTK_STATUS_ICON(obj: Pointer): PGTypeInstance; inline;
+  function GTK_STATUS_ICON_CLASS(klass: Pointer): Pointer; inline;
+  function GTK_IS_STATUS_ICON(obj: Pointer): boolean; inline;
+  function GTK_IS_STATUS_ICON_CLASS(klass: Pointer): boolean; inline;
+  function GTK_STATUS_ICON_GET_CLASS(obj: Pointer): PGTypeClass; inline;
 
-function Available_GtkStatusIcon: Boolean;
+  function Available_GtkStatusIcon: Boolean;
 

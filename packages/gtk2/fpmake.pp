@@ -1214,6 +1214,14 @@ begin
         begin
           AddInclude('gtkstatusiconh.inc');
           AddInclude('gtkstatusicon.inc');
+	  AddInclude('gtkscalebuttonh.inc');
+	  AddInclude('gtkscalebutton.inc');
+	  AddInclude('gtkvolumebuttonh.inc');	  
+	  AddInclude('gtkvolumebutton.inc');	  
+	  AddInclude('gtktextmarkh.inc');
+	  AddInclude('gtktextmark.inc');
+	  AddInclude('gtktextiterh.inc');
+	  AddInclude('gtktextiter.inc');
         end;
 
      T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
