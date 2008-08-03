@@ -4378,6 +4378,8 @@ implementation
     constructor terrordef.create;
       begin
         inherited create(errordef);
+        { prevent consecutive faults }
+        savesize:=1;
       end;
 
 
