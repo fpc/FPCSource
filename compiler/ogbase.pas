@@ -2168,8 +2168,8 @@ implementation
         mergedstabstrsec : TObjSection;
         hstabreloc,
         currstabreloc : TObjRelocation;
+        i,j : longint;
         currstabrelocidx,
-        i,j,
         mergestabcnt,
         stabcnt : longword;
         skipstab : boolean;
@@ -2233,12 +2233,12 @@ implementation
                           begin
                             currstabreloc:=TObjRelocation(currstabsec.ObjRelocations[currstabrelocidx]);
                             if assigned(currstabreloc) and
-                               (currstabreloc.dataoffset>=j*sizeof(TObjStabEntry)+stabrelocofs) then
+                               (currstabreloc.dataoffset>=longword(j)*sizeof(TObjStabEntry)+stabrelocofs) then
                               break;
                             inc(currstabrelocidx);
                           end;
                         if assigned(currstabreloc) and
-                           (currstabreloc.dataoffset=j*sizeof(TObjStabEntry)+stabrelocofs) then
+                           (currstabreloc.dataoffset=longword(j)*sizeof(TObjStabEntry)+stabrelocofs) then
                           begin
                             hstabReloc:=currstabReloc;
                             inc(currstabrelocidx);
