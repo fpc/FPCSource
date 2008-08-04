@@ -1443,7 +1443,7 @@ begin
       result := false;
       exit;
       end;
-    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer+sizeof(TBufRecLinkItem)*FMaxIndexesCount;
+    currbuff := FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
     end
   else
     begin
