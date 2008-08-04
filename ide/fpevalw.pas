@@ -1,3 +1,16 @@
+{
+    Copyright (c) 1997-2008 by the Daniel Mantione
+   
+    Debug expression evaluator dialog ? 
+   
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit fpevalw;
 
 {****************************************************************************}
