@@ -533,7 +533,6 @@ begin
 
     if isc_dsql_prepare(@Status[0], @tr, @Statement, 0, @Buf[1], Dialect, nil) <> 0 then
       CheckError('PrepareStatement', Status);
-    FPrepared := True;
     if assigned(AParams) and (AParams.count > 0) then
       begin
       AllocSQLDA(in_SQLDA,Length(ParamBinding));
@@ -556,7 +555,6 @@ begin
       AllocSQLDA(in_SQLDA,0);
     if FStatementType = stselect then
       begin
-      FPrepared := False;
       if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);
       if SQLDA^.SQLD > SQLDA^.SQLN then
@@ -576,6 +574,7 @@ begin
         end;
       {$R+}
       end;
+    FPrepared := True;
     end;
 end;
 

@@ -212,7 +212,7 @@ type
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
-
+    FOpenDidPrepare : Boolean;
     procedure FreeFldBuffers;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetStatementType : TStatementType;
@@ -993,7 +993,11 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
-  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
+  if (FOpenDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
+    begin
+    FOpenDidPrepare:=False;
+    TSQLConnection(database).UnPrepareStatement(FCursor);
+    end;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -1176,7 +1180,9 @@ var tel, fieldc : integer;
     IndexFields : TStrings;
 begin
   try
-    Prepare;
+    FOpenDidPrepare:=Not Prepared;
+    If FOpenDidPrepare then
+      Prepare;
     if FCursor.FStatementType in [stSelect] then
       begin
       Execute;
@@ -1230,14 +1236,21 @@ end;
 // public part
 
 procedure TCustomSQLQuery.ExecSQL;
+
+Var
+  ExecDidPrepare : Boolean;
+
 begin
   try
-    Prepare;
+    ExecDidPrepare:=Not IsPrepared;
+    If ExecDidPrepare then
+      Prepare;
     Execute;
   finally
     // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     // called, so UnPrepareStatement shoudn't be called either
-    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(Fcursor);
+    if (ExecDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
+      TSQLConnection(database).UnPrepareStatement(Fcursor);
   end;
 end;
 
