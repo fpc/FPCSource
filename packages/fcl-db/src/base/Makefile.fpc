@@ -10,7 +10,7 @@ units=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll sqlscript
 rsts=dbwhtml dbconst dbcoll
 
 [require]
-packages=fcl-base
+packages=fcl-base fcl-xml
 
 [compiler]
 options=-S2h

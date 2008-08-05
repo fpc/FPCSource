@@ -21,7 +21,7 @@ unit BufDataset;
 
 interface
 
-uses Classes,Sysutils,db,bufdataset_parser;
+uses Classes,Sysutils,db,bufdataset_parser,dom;
 
 type
   TBufDataset = Class;
@@ -168,6 +168,8 @@ type
     property IsInitialized : boolean read GetIsInitialized;
     property BookmarkSize : integer read GetBookmarkSize;
   end;
+  
+  TDataPacketFormat = (dfBinary,dfXML,dfXMLUTF8);
 
   { TDoubleLinkedBufIndex }
 
@@ -303,6 +305,9 @@ type
 
     FBlobBuffers      : array of PBlobBuffer;
     FUpdateBlobBuffers: array of PBlobBuffer;
+    
+    FRowDataNode,
+    FRecordNode       : TDOMNode;
 
     procedure FetchAll;
     procedure BuildIndex(var AIndex : TBufIndex);
@@ -360,8 +365,8 @@ type
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
   {abstracts, must be overidden by descendents}
-    function Fetch : boolean; virtual; abstract;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    function Fetch : boolean; virtual;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public
@@ -381,6 +386,9 @@ type
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
+    procedure SaveToFile(const FileName: string = ''; Format: TDataPacketFormat = dfBinary);
+    procedure LoadFromFile(const FileName: string = '');
+
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
   published
@@ -393,7 +401,7 @@ type
 
 implementation
 
-uses variants, dbconst;
+uses variants, dbconst, xmlwrite, xmlread;
 
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
@@ -1173,7 +1181,7 @@ begin
       @DBCompareDouble;
     ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
   else
-    DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName]);
+    DatabaseErrorFmt(SErrIndexBasedOnInvField, [Fieldtypenames[AField.DataType]]);
   end;
 
   ACompareRec.Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+
@@ -2135,6 +2143,195 @@ begin
   InternalAddIndex(AName,AFields,AOptions,ADescFields,ACaseInsFields);
 end;
 
+const
+  XMLFieldtypenames : Array [TFieldType] of String[15] =
+    (
+      'Unknown',
+      'string',
+      'i2',
+      'i4',
+      'i4',
+      'boolean',
+      'r8',
+      'r8',
+      'fixed',
+      'date',
+      'time',
+      'datetime',
+      'bin.hex',
+      'bin.hex',
+      'i4',
+      'bin.hex',
+      'bin.hex',
+      'bin.hex',
+      'bin.hex',
+      'bin.hex',
+      'bin.hex',
+      'bin.hex',
+      '',
+      'string',
+      'string',
+      'i8',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      '',
+      ''
+    );
+
+
+procedure TBufDataset.SaveToFile(const FileName: string;
+  Format: TDataPacketFormat);
+
+var XMLDocument    : TXMLDocument;
+    DataPacketNode : TDOMElement;
+    MetaDataNode   : TDOMElement;
+    FieldsNode     : TDOMElement;
+    RowDataNode    : TDOMElement;
+    ParamsNode     : TDOMElement;
+    AFieldNode     : TDOMElement;
+    ARecordNode    : TDOMElement;
+    i              : integer;
+    BookMrk        : TBookmark;
+begin
+// TODO: implement filename property}
+//  CheckActive;
+  XMLDocument := TXMLDocument.Create;
+  DataPacketNode := XMLDocument.CreateElement('DATAPACKET');
+  DataPacketNode.SetAttribute('Version','2.0');
+  
+  MetaDataNode := XMLDocument.CreateElement('METADATA');
+  FieldsNode := XMLDocument.CreateElement('FIELDS');
+  
+  for i := 0 to Fields.Count -1 do with fields[i] do
+    begin
+    AFieldNode := XMLDocument.CreateElement('FIELD');
+    if fields[i].Name <> '' then AFieldNode.SetAttribute('fieldname',fields[i].Name);
+    AFieldNode.SetAttribute('attrname',fields[i].FieldName);
+    if size <> 0 then AFieldNode.SetAttribute('width',IntToStr(Size));
+    AFieldNode.SetAttribute('fieldtype',XMLFieldtypenames[fields[i].DataType]);
+    case DataType of
+      ftAutoInc : begin
+                  AFieldNode.SetAttribute('readonly','true');
+                  AFieldNode.SetAttribute('subtype','Autoinc');
+                  end;
+      ftCurrency: AFieldNode.SetAttribute('subtype','Money');
+      ftVarBytes,
+        ftBlob  : AFieldNode.SetAttribute('subtype','Binary');
+      ftMemo    : AFieldNode.SetAttribute('subtype','Text');
+      ftTypedBinary,
+        ftGraphic: AFieldNode.SetAttribute('subtype','Graphics');
+      ftFmtMemo : AFieldNode.SetAttribute('subtype','Formatted');
+      ftParadoxOle,
+        ftDBaseOle : AFieldNode.SetAttribute('subtype','Ole');
+    end; {case}
+    if ReadOnly then AFieldNode.SetAttribute('readonly','true');
+    
+    FieldsNode.AppendChild(AFieldNode);
+    end;
+
+  MetaDataNode.AppendChild(FieldsNode);
+  ParamsNode := XMLDocument.CreateElement('PARAMS');
+  MetaDataNode.AppendChild(ParamsNode);
+  DataPacketNode.AppendChild(MetaDataNode);
+  RowDataNode := XMLDocument.CreateElement('ROWDATA');
+
+  DisableControls;
+  BookMrk:=GetBookmark;
+  first;
+  while not eof do
+    begin
+    ARecordNode := XMLDocument.CreateElement('ROW');
+    for i := 0 to Fields.Count-1 do
+      begin
+      ARecordNode.SetAttribute(fields[i].FieldName,fields[i].AsString);
+      end;
+    RowDataNode.AppendChild(ARecordNode);
+    Next;
+    end;
+  GotoBookmark(Bookmrk);
+  EnableControls;
+
+  DataPacketNode.AppendChild(RowDataNode);
+
+  XMLDocument.AppendChild(DataPacketNode);
+  WriteXML(XMLDocument,FileName);
+
+  FieldsNode.Free;
+  MetaDataNode.Free;
+  DataPacketNode.Free;
+  XMLDocument.Free;
+end;
+
+procedure TBufDataset.LoadFromFile(const FileName: string);
+
+  function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
+  var AnAttr : TDomNode;
+  begin
+    AnAttr := ANode.Attributes.GetNamedItem(AttName);
+    if assigned(AnAttr) then result := AnAttr.NodeValue
+    else result := '';
+  end;
+
+var XMLDocument    : TXMLDocument;
+    DataPacketNode : TDOMNode;
+    MetaDataNode   : TDOMNode;
+    FieldsNode     : TDOMNode;
+    ParamsNode     : TDOMElement;
+    AFieldNode     : TDOMNode;
+    AFieldDef      : TFieldDef;
+    iFieldType     : TFieldType;
+    FTString       : string;
+    i              : integer;
+begin
+  ReadXMLFile(XMLDocument,FileName);
+  DataPacketNode := XMLDocument.FindNode('DATAPACKET');
+  if not assigned(DataPacketNode) then DatabaseError('Onbekend formaat');
+
+  MetaDataNode := DataPacketNode.FindNode('METADATA');
+  if not assigned(MetaDataNode) then DatabaseError('Onbekend formaat');
+
+  FieldsNode := MetaDataNode.FindNode('FIELDS');
+  if not assigned(FieldsNode) then DatabaseError('Onbekend formaat');
+  
+  with FieldsNode.ChildNodes do for i := 0 to Count - 1 do
+    begin
+    AFieldNode := item[i];
+    if AFieldNode.CompareName('FIELD')=0 then
+      begin
+      AFieldDef := TFieldDef.create(FieldDefs);
+      AFieldDef.DisplayName:=GetNodeAttribute(AFieldNode,'fieldname');
+      AFieldDef.Name:=GetNodeAttribute(AFieldNode,'attrname');
+      AFieldDef.Size:=StrToIntDef(GetNodeAttribute(AFieldNode,'width'),0);
+      FTString:=GetNodeAttribute(AFieldNode,'fieldtype');
+      
+      AFieldDef.DataType:=ftUnknown;
+      for iFieldType:=low(TFieldType) to high(TFieldType) do
+       if SameText(XMLFieldtypenames[iFieldType],FTString) then
+        begin
+        AFieldDef.DataType:=iFieldType;
+        break;
+        end;
+      end;
+    end;
+    
+  FRowDataNode := DataPacketNode.FindNode('ROWDATA');
+  FRecordNode := nil;
+
+//  XMLDocument.Free;     <-- MEM LEAK!
+  CreateFields;
+  Open;
+end;
+
 procedure TBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
                                        const ACaseInsFields: string);
 var StoreIndNr : Integer;
@@ -2460,6 +2657,56 @@ end;
 procedure TArrayBufIndex.GotoBookmark(const ABookmark : PBufBookmark);
 begin
   FCurrentRecInd:=GetRecordFromBookmark(ABookmark^);
+end;
+
+function TBufDataset.Fetch: boolean;
+begin
+  if assigned(FRowDataNode) then // The dataset is being read from a xml-document
+    begin
+    if FRecordNode = nil then FRecordNode := FRowDataNode.FirstChild
+    else FRecordNode := FRecordNode.NextSibling;
+
+    while assigned(FRecordNode) and (FRecordNode.CompareName('ROW')<>0) do
+      FRecordNode := FRecordNode.NextSibling;
+
+    result := assigned(FRecordNode);
+    end
+  else result := False;
+end;
+
+function TBufDataset.LoadField(FieldDef: TFieldDef; buffer: pointer; out
+  CreateBlob: boolean): boolean;
+var AFieldNode : TDOMNode;
+    AStr       : String;
+    Int1       : Integer;
+begin
+  if assigned(FRowDataNode) then // The dataset is being read from a xml-document
+    begin
+    CreateBlob:=False;
+    AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDef.Name);
+    Result := True;
+    if AFieldNode=nil then
+      result := false
+    else
+      begin
+      case FieldDef.DataType of
+        ftString : begin
+                   AStr:=AFieldNode.NodeValue;
+                   Int1 := length(AStr);
+                   if Int1>FieldDef.size then
+                     Int1 := FieldDef.Size;
+                   if int1 > 0 then
+                     move(AStr[1],buffer^,Int1);
+                   end;
+        ftInteger: begin
+                   result := False;
+                   end
+      else
+        result := False;
+      end; {case}
+      end;
+    end
+  else result := False;
 end;
 
 procedure TArrayBufIndex.InitialiseIndex;

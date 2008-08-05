@@ -29,6 +29,7 @@ type
   published
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
+    procedure TestSafeAsXML;
     procedure TestBookmarks;
     procedure TestBookmarkValid;
 
@@ -493,6 +494,29 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestSafeAsXML;
+var ds    : TDataset;
+    LoadDs: TBufDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  TBufDataset(ds).SaveToFile('/tmp/test.xml');
+  ds.close;
+
+  LoadDs := TBufDataset.Create(nil);
+  LoadDs.LoadFromFile('/tmp/test.xml');
+  AssertEquals(2,LoadDs.FieldDefs.Count);
+  AssertEquals(5,LoadDs.RecordCount);
+  AssertEquals(2,LoadDs.Fields.Count);
+  AssertEquals('ID',LoadDs.Fields[0].FieldName);
+  AssertEquals('NAME',LoadDs.Fields[1].FieldName);
+  AssertTrue('Type niet goed',loadds.fields[1].DataType=ftString);
+  AssertEquals('TestName1',LoadDs.FieldByName('name').AsString);
 end;
 
 procedure TTestDBBasics.TestBookmarks;

@@ -6,7 +6,7 @@
 main=fcl-db
 
 [require]
-packages=fcl-base
+packages=fcl-base fcl-xml
 packages_linux=ibase mysql oracle sqlite odbc postgres
 packages_freebsd=ibase mysql oracle sqlite odbc postgres
 packages_darwin=ibase mysql oracle sqlite odbc postgres
