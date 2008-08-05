@@ -30,6 +30,7 @@ type
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestSafeAsXML;
+    procedure TestAppendInsertRecord;
     procedure TestBookmarks;
     procedure TestBookmarkValid;
 
@@ -517,6 +518,28 @@ begin
   AssertEquals('NAME',LoadDs.Fields[1].FieldName);
   AssertTrue('Type niet goed',loadds.fields[1].DataType=ftString);
   AssertEquals('TestName1',LoadDs.FieldByName('name').AsString);
+end;
+
+procedure TTestDBBasics.TestAppendInsertRecord;
+begin
+  with DBConnector.GetNDataset(true,6) do
+    begin
+    open;
+    // InsertRecord should insert a record, set the values, post the record and
+    // make the new record active.
+    InsertRecord([152,'TestInsRec']);
+    AssertEquals(152,fields[0].AsInteger);
+    AssertEquals('TestInsRec',fields[1].AsString);
+    AssertTrue(state=dsBrowse);
+
+    // AppendRecord should append a record, further the same as InsertRecord
+    AppendRecord([151,'TestInsRec']);
+    AssertEquals(151,fields[0].AsInteger);
+    AssertEquals('TestInsRec',fields[1].AsString);
+    AssertTrue(state=dsBrowse);
+    next;
+    AssertTrue(EOF);
+    end;
 end;
 
 procedure TTestDBBasics.TestBookmarks;
