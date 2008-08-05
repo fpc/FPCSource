@@ -2201,7 +2201,8 @@ var XMLDocument    : TXMLDocument;
     AFieldNode     : TDOMElement;
     ARecordNode    : TDOMElement;
     i              : integer;
-    BookMrk        : TBookmark;
+    ScrollResult   : TGetResult;
+    StoreDSState   : TDataSetState;
 begin
 // TODO: implement filename property}
 //  CheckActive;
@@ -2245,21 +2246,21 @@ begin
   DataPacketNode.AppendChild(MetaDataNode);
   RowDataNode := XMLDocument.CreateElement('ROWDATA');
 
-  DisableControls;
-  BookMrk:=GetBookmark;
-  first;
-  while not eof do
+  StoreDSState:=State;
+  SetTempState(dsFilter);
+  ScrollResult:=FCurrentIndex.ScrollFirst;
+  while ScrollResult=grOK do
     begin
+    FFilterBuffer:=FCurrentIndex.CurrentBuffer;
     ARecordNode := XMLDocument.CreateElement('ROW');
     for i := 0 to Fields.Count-1 do
       begin
       ARecordNode.SetAttribute(fields[i].FieldName,fields[i].AsString);
       end;
     RowDataNode.AppendChild(ARecordNode);
-    Next;
+    ScrollResult:=FCurrentIndex.ScrollForward;
     end;
-  GotoBookmark(Bookmrk);
-  EnableControls;
+  SetTempState(StoreDSState);
 
   DataPacketNode.AppendChild(RowDataNode);
 
@@ -2286,7 +2287,6 @@ var XMLDocument    : TXMLDocument;
     DataPacketNode : TDOMNode;
     MetaDataNode   : TDOMNode;
     FieldsNode     : TDOMNode;
-    ParamsNode     : TDOMElement;
     AFieldNode     : TDOMNode;
     AFieldDef      : TFieldDef;
     iFieldType     : TFieldType;
