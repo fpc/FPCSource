@@ -75,7 +75,7 @@ function sigismember(const SigSet : TSigSet; SigNum : Longint):longint;cdecl;ext
 function sigisemptyset(const SigSet : TSigSet):longint;cdecl;external clib name 'sigisemptyset';
 function sigandset(var SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigandset';
 function sigorset(var SigSet : TSigSet; const Left : TSigSet; const Right : TSigSet):longint;cdecl;external clib name 'sigorset';
-function sigprocmask(__how:longint; SigSet : TSigSet; var oldset: Tsigset):longint;cdecl;external clib name 'sigprocmask';
+function sigprocmask(__how:longint; var SigSet : TSigSet; var oldset: Tsigset):longint;cdecl;external clib name 'sigprocmask';
 function sigsuspend(SigSet : TSigSet):longint;cdecl;external clib name 'sigsuspend';
 function sigaction(__sig:longint; Const act: _sigaction; Var oldact: _sigaction):longint;cdecl;external clib name 'sigaction';
 function sigpending(SigSet : TSigSet):longint;cdecl;external clib name 'sigpending';

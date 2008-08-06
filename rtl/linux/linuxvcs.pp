@@ -95,7 +95,9 @@ begin
   repeat
     str(pid,s);
     assign(f,'/proc/'+s+'/stat');
+    {$I-}
     reset(f);
+    {$I+}
     if ioresult<>0 then
       break;
     read(f,dummy);

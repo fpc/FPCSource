@@ -463,6 +463,7 @@ function IOpenEditorWindow(Bounds: PRect; FileName: string; CurX,CurY: sw_intege
 function LastSourceEditor : PSourceWindow;
 function SearchOnDesktop(FileName : string;tryexts:boolean) : PSourceWindow;
 function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
+function TryToOpenFileMulti(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts: boolean): PSourceWindow;
 function ITryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts, ShowIt,
          ForceNewWindow:boolean): PSourceWindow;
 function LocateSourceFile(const FileName: string; tryexts: boolean): string;
@@ -3975,6 +3976,22 @@ function TryToOpenFile(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tr
 begin
   TryToOpenFile:=ITryToOpenFile(Bounds,FileName,CurX,CurY,tryexts,true,false);
 end;
+
+function TryToOpenFileMulti(Bounds: PRect; FileName: string; CurX,CurY: sw_integer;tryexts:boolean): PSourceWindow;
+var srec:SearchRec;
+    dir,name,ext : string;
+begin
+ fsplit(filename,dir,name,ext);
+ dir:=completedir(dir);
+ FindFirst(filename,anyfile,Srec);
+ while (DosError=0) do
+   begin
+     ITryToOpenFile(Bounds,dir+srec.name,CurX,CurY,tryexts,true,false);    
+     FindNext(srec);
+   end;
+  FindClose(srec);
+end;
+
 
 function LocateSingleSourceFile(const FileName: string; tryexts: boolean): string;
 var D : DirStr;

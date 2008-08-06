@@ -59,7 +59,7 @@ begin
            umf_undefined : write(t,'umf_undefined');
            umf_unused : write(t,'umf_unused');
         end;
-        write(t,')');
+        write(t,'; reserved: 0)');
         if i<>p^.lastchar then
           writeln(t,',')
         else
