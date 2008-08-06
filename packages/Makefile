@@ -259,7 +259,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph libc unixutil graph pxlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph libc unixutil graph pxlib
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv graph unzip gdbint
@@ -271,7 +271,7 @@ ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users iconvenc
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib
@@ -298,7 +298,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib graph univint sdl
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc graph univint sdl
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -319,10 +319,10 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users iconvenc
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -343,7 +343,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -355,7 +355,7 @@ ifeq ($(FULL_TARGET),powerpc-macos)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib graph univint sdl
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc graph univint sdl
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
@@ -364,7 +364,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -376,13 +376,13 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib users iconvenc
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom numlib
@@ -391,13 +391,13 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  palmunits
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  winceunits fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
@@ -415,10 +415,10 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib graph
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
@@ -427,7 +427,7 @@ ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  a52 bfd aspell svgalib newt cdrom users  iconvenc imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-xml fcl-fpcunit fcl-json fcl-process unzip regexpr chm libgd symbolic
@@ -1574,6 +1574,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -1776,6 +1777,7 @@ TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 TARGET_DIRS_HASH=1
@@ -2170,6 +2172,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_GRAPH=1
 TARGET_DIRS_UNIVINT=1
 TARGET_DIRS_SDL=1
@@ -2387,6 +2390,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -2471,6 +2475,7 @@ TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 TARGET_DIRS_HASH=1
@@ -2742,6 +2747,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -2927,6 +2933,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_GRAPH=1
 TARGET_DIRS_UNIVINT=1
 TARGET_DIRS_SDL=1
@@ -3031,6 +3038,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -3251,6 +3259,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -3335,6 +3344,7 @@ TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 TARGET_DIRS_HASH=1
@@ -3395,6 +3405,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 TARGET_DIRS_HASH=1
@@ -3518,6 +3529,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -3619,6 +3631,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 TARGET_DIRS_HASH=1
@@ -3799,6 +3812,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -3878,6 +3892,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_NUMLIB=1
+TARGET_DIRS_ICONVENC=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 TARGET_DIRS_HASH=1
@@ -3979,6 +3994,7 @@ TARGET_DIRS_SVGALIB=1
 TARGET_DIRS_NEWT=1
 TARGET_DIRS_CDROM=1
 TARGET_DIRS_USERS=1
+TARGET_DIRS_ICONVENC=1
 TARGET_DIRS_IMLIB=1
 TARGET_DIRS_UTMP=1
 TARGET_DIRS_FPGTK=1
@@ -6538,6 +6554,51 @@ users_makefiles:
 users:
 	$(MAKE) -C users all
 .PHONY: users_all users_debug users_smart users_release users_units users_examples users_shared users_install users_sourceinstall users_exampleinstall users_distinstall users_zipinstall users_zipsourceinstall users_zipexampleinstall users_zipdistinstall users_clean users_distclean users_cleanall users_info users_makefiles users
+endif
+ifdef TARGET_DIRS_ICONVENC
+iconvenc_all:
+	$(MAKE) -C iconvenc all
+iconvenc_debug:
+	$(MAKE) -C iconvenc debug
+iconvenc_smart:
+	$(MAKE) -C iconvenc smart
+iconvenc_release:
+	$(MAKE) -C iconvenc release
+iconvenc_units:
+	$(MAKE) -C iconvenc units
+iconvenc_examples:
+	$(MAKE) -C iconvenc examples
+iconvenc_shared:
+	$(MAKE) -C iconvenc shared
+iconvenc_install:
+	$(MAKE) -C iconvenc install
+iconvenc_sourceinstall:
+	$(MAKE) -C iconvenc sourceinstall
+iconvenc_exampleinstall:
+	$(MAKE) -C iconvenc exampleinstall
+iconvenc_distinstall:
+	$(MAKE) -C iconvenc distinstall
+iconvenc_zipinstall:
+	$(MAKE) -C iconvenc zipinstall
+iconvenc_zipsourceinstall:
+	$(MAKE) -C iconvenc zipsourceinstall
+iconvenc_zipexampleinstall:
+	$(MAKE) -C iconvenc zipexampleinstall
+iconvenc_zipdistinstall:
+	$(MAKE) -C iconvenc zipdistinstall
+iconvenc_clean:
+	$(MAKE) -C iconvenc clean
+iconvenc_distclean:
+	$(MAKE) -C iconvenc distclean
+iconvenc_cleanall:
+	$(MAKE) -C iconvenc cleanall
+iconvenc_info:
+	$(MAKE) -C iconvenc info
+iconvenc_makefiles:
+	$(MAKE) -C iconvenc makefiles
+iconvenc:
+	$(MAKE) -C iconvenc all
+.PHONY: iconvenc_all iconvenc_debug iconvenc_smart iconvenc_release iconvenc_units iconvenc_examples iconvenc_shared iconvenc_install iconvenc_sourceinstall iconvenc_exampleinstall iconvenc_distinstall iconvenc_zipinstall iconvenc_zipsourceinstall iconvenc_zipexampleinstall iconvenc_zipdistinstall iconvenc_clean iconvenc_distclean iconvenc_cleanall iconvenc_info iconvenc_makefiles iconvenc
 endif
 ifdef TARGET_DIRS_IMLIB
 imlib_all:
