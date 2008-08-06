@@ -398,7 +398,16 @@ begin
 end;
 
 destructor TBufDataset.Destroy;
+
+Var
+  I : Integer;
 begin
+  SetLength(FUpdateBuffer,0);
+  SetLength(FBlobBuffers,0);
+  SetLength(FUpdateBlobBuffers,0);
+  For I:=0 to Length(FIndexes)-1 do
+    FreeAndNil(Findexes[I]);
+  SetLength(FIndexes,0);
   FreeAndNil(FIndexDefs);
   inherited destroy;
 end;
