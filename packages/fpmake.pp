@@ -67,6 +67,7 @@ The include lines below are generated with the following command:
 {$include libgd/fpmake.pp}
 {$include libndsfpc/fpmake.pp}
 {$include libpng/fpmake.pp}
+{$include libxml/fpmake.pp}
 {$include lua/fpmake.pp}
 {$include mad/fpmake.pp}
 {$include matroska/fpmake.pp}
