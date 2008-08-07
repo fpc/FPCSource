@@ -3275,7 +3275,6 @@ packages/libxml/examples/reader2.pas svneol=native#text/plain
 packages/libxml/examples/test1.xml svneol=native#text/plain
 packages/libxml/examples/test2.xml svneol=native#text/plain
 packages/libxml/fpmake.pp svneol=native#text/plain
-packages/libxml/src/DOCBparser.inc svneol=native#text/plain
 packages/libxml/src/HTMLparser.inc svneol=native#text/plain
 packages/libxml/src/HTMLtree.inc svneol=native#text/plain
 packages/libxml/src/SAX.inc svneol=native#text/plain
