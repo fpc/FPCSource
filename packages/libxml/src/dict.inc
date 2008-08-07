@@ -12,8 +12,7 @@
  * The dictionnary
  *)
 {$IFDEF TYPE}
-  xmlDict = record
-  end;
+  xmlDict = record end;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

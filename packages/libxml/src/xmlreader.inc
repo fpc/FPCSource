@@ -82,12 +82,11 @@
  *
  * Structure for an xmlReader context.
  *)
-  xmlTextReader = record
-  end;
+  xmlTextReader = record end;
 
   xmlTextReaderLocatorPtr = pointer;
 
-  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: pchar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); cdecl;
+  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: pchar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); XMLCALL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

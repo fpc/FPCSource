@@ -282,10 +282,10 @@
  *
  * A SAX Locator.
  *)
-  getPublicIdFunc = function(ctx: pointer): xmlCharPtr; cdecl;
-  getSystemIdFunc = function(ctx: pointer): xmlCharPtr; cdecl;
-  getLineNumberFunc = function(ctx: pointer): cint; cdecl;
-  getColumnNumberFunc = function(ctx: pointer): cint; cdecl;
+  getPublicIdFunc = function(ctx: pointer): xmlCharPtr; XMLCALL;
+  getSystemIdFunc = function(ctx: pointer): xmlCharPtr; XMLCALL;
+  getLineNumberFunc = function(ctx: pointer): cint; XMLCALL;
+  getColumnNumberFunc = function(ctx: pointer): cint; XMLCALL;
 
   xmlSAXLocator = record
     getPublicId     : getPublicIdFunc;
@@ -634,7 +634,7 @@
  * the new namespace declarations on the element.
  *)
   startElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr; nb_namespaces: cint;
-    namespaces: xmlCharPtrPtr; nb_attributes, nb_defaulted: cint; attributes: xmlCharPtrPtr); cdecl;
+    namespaces: xmlCharPtrPtr; nb_attributes, nb_defaulted: cint; attributes: xmlCharPtrPtr); XMLCALL;
 
 (**
  * endElementNsSAX2Func:
@@ -646,7 +646,7 @@
  * SAX2 callback when an element end has been detected by the parser.
  * It provides the namespace informations for the element.
  *)
-  endElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr);
+  endElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr); XMLCALL;
 
   xmlSAXHandler = record
     internalSubset: internalSubsetSAXFunc;
@@ -729,7 +729,7 @@
  *
  * Returns the entity input parser.
  *)
-  xmlExternalEntityLoader = function(URL, ID: pchar; context: xmlParserCtxtPtr): xmlParserInputPtr; cdecl;
+  xmlExternalEntityLoader = function(URL, ID: pchar; context: xmlParserCtxtPtr): xmlParserInputPtr; XMLCALL;
 
 (**
  * xmlParserOption:

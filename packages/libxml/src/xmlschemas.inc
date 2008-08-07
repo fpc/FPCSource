@@ -70,23 +70,19 @@
 (**
  * The schemas related types are kept internal
  *)
-  xmlSchema = record
-  end;
+  xmlSchema = record end;
 
 (**
  * A schemas validation context
  *)
-  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); cdecl;
-  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); cdecl;
+  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
 
-  xmlSchemaParserCtxt = record
-  end;
+  xmlSchemaParserCtxt = record end;
 
-  xmlSchemaValidCtxt = record
-  end;
+  xmlSchemaValidCtxt = record end;
 
-  xmlSchemaSAXPlugStruct = record
-  end;
+  xmlSchemaSAXPlugStruct = record end;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

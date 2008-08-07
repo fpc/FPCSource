@@ -466,7 +466,7 @@
  *
  * Returns an xmlNsPtr or NULL in case of an error.
  *)
-  xmlDOMWrapAcquireNsFunction = function (ctxt: xmlDOMWrapCtxtPtr; node: xmlNodePtr; nsName, nsPrefix: xmlCharPtr): xmlNsPtr; cdecl;
+  xmlDOMWrapAcquireNsFunction = function (ctxt: xmlDOMWrapCtxtPtr; node: xmlNodePtr; nsName, nsPrefix: xmlCharPtr): xmlNsPtr; XMLCALL;
 
 (**
  * xmlDOMWrapCtxt:

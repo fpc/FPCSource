@@ -229,26 +229,21 @@ const
 
 implementation
 
-procedure fpcxmlFree(mem: pointer); cdecl;
+procedure fpcxmlFree(mem: pointer); XMLCALL;
 begin
   FreeMem(mem);
 end;
 
-function fpcxmlMalloc(size: size_t): pointer; cdecl;
+function fpcxmlMalloc(size: size_t): pointer; XMLCALL;
 begin
   GetMem(Result, size);
 end;
 
-function fpcxmlRealloc(mem: pointer; size: size_t): pointer; cdecl;
+function fpcxmlRealloc(mem: pointer; size: size_t): pointer; XMLCALL;
 begin
   Result := mem;
   ReallocMem(Result, size);
 end;
-
-{procedure fpcxmlErrorHandler(ctx: pointer; msg: pchar; args: array of const); cdecl;
-begin
-  writeln('abcd');
-end;}
 
 initialization
 (*

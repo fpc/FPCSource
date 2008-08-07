@@ -53,8 +53,7 @@
  * All entities are stored in an hash table.
  * There is 2 separate hash tables for global and parameter entities.
  *)
-  xmlEntitiesTable = record
-  end;
+  xmlEntitiesTable = record end;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

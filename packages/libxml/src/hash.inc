@@ -12,8 +12,7 @@
 (*
  * The hash table.
  *)
-  xmlHashTable = record
-  end;
+  xmlHashTable = record end;
 
 
 (*
@@ -34,7 +33,7 @@
  *
  * Callback to free data from a hash.
  *)
-  xmlHashDeallocator = procedure(payload: pointer; name: xmlCharPtr); cdecl;
+  xmlHashDeallocator = procedure(payload: pointer; name: xmlCharPtr); XMLCALL;
 
 (**
  * xmlHashCopier:
@@ -45,7 +44,7 @@
  *
  * Returns a copy of the data or NULL in case of error.
  *)
-  xmlHashCopier = function(payload: pointer; name: xmlCharPtr): pointer; cdecl;
+  xmlHashCopier = function(payload: pointer; name: xmlCharPtr): pointer; XMLCALL;
 
 (**
  * xmlHashScanner:
@@ -55,7 +54,7 @@
  *
  * Callback when scanning data in a hash with the simple scanner.
  *)
-  xmlHashScanner = procedure(payload: pointer; data: pointer; name: xmlCharPtr); cdecl;
+  xmlHashScanner = procedure(payload: pointer; data: pointer; name: xmlCharPtr); XMLCALL;
 
 (**
  * xmlHashScannerFull:
@@ -67,7 +66,7 @@
  *
  * Callback when scanning data in a hash with the full scanner.
  *)
-  xmlHashScannerFull = procedure(payload: pointer; data: pointer; name, name2, name3: xmlCharPtr); cdecl;
+  xmlHashScannerFull = procedure(payload: pointer; data: pointer; name, name2, name3: xmlCharPtr); XMLCALL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

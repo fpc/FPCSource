@@ -44,7 +44,7 @@
  *
  * Signature for a free() implementation.
  *)
-  xmlFreeFunc = procedure(mem: pointer); cdecl;
+  xmlFreeFunc = procedure(mem: pointer); XMLCALL;
 
 (**
  * xmlMallocFunc:
@@ -54,7 +54,7 @@
  *
  * Returns a pointer to the newly allocated block or NULL in case of error.
  *)
-  xmlMallocFunc = function(size: size_t): pointer; cdecl;
+  xmlMallocFunc = function(size: size_t): pointer; XMLCALL;
 
 (**
  * xmlReallocFunc:
@@ -65,7 +65,7 @@
  *
  * Returns a pointer to the newly reallocated block or NULL in case of error.
  *)
-  xmlReallocFunc = function(mem: pointer; size: size_t): pointer; cdecl;
+  xmlReallocFunc = function(mem: pointer; size: size_t): pointer; XMLCALL;
 
 (**
  * xmlStrdupFunc:
@@ -75,7 +75,7 @@
  *
  * Returns the copy of the string or NULL in case of error.
  *)
-  xmlStrdupFunc = function(str: pchar): pchar; cdecl;
+  xmlStrdupFunc = function(str: pchar): pchar; XMLCALL;
 
 (*
  * The 4 interfaces used for all memory handling within libxml.

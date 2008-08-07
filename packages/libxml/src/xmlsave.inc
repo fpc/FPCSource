@@ -23,8 +23,7 @@
     XML_SAVE_NO_XHTML	= 1 shl 3  (* disable XHTML1 specific rules *)
   );
 
-  xmlSaveCtxt = record
-  end;
+  xmlSaveCtxt = record end;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

@@ -22,7 +22,7 @@
  *
  * Returns 1 if yes and 0 if another Input module should be used
  *)
-  xmlInputMatchCallback = function(filename: pchar): cint; cdecl;
+  xmlInputMatchCallback = function(filename: pchar): cint; XMLCALL;
 
 (**
  * xmlInputOpenCallback:
@@ -32,7 +32,7 @@
  *
  * Returns an Input context or NULL in case or error
  *)
-  xmlInputOpenCallback = function(filename: pchar): pointer; cdecl;
+  xmlInputOpenCallback = function(filename: pchar): pointer; XMLCALL;
 
 (**
  * xmlInputReadCallback:
@@ -44,7 +44,7 @@
  *
  * Returns the number of bytes read or -1 in case of error
  *)
-  xmlInputReadCallback = function(context: pointer; buffer: pchar; len: cint): cint; cdecl;
+  xmlInputReadCallback = function(context: pointer; buffer: pchar; len: cint): cint; XMLCALL;
 
 (**
  * xmlInputCloseCallback:
@@ -54,7 +54,7 @@
  *
  * Returns 0 or -1 in case of error
  *)
-  xmlInputCloseCallback = function(context: pointer): cint; cdecl;
+  xmlInputCloseCallback = function(context: pointer): cint; XMLCALL;
 
 {$IFDEF LIBXML_OUTPUT_ENABLED}
 (*
@@ -71,7 +71,7 @@
  *
  * Returns 1 if yes and 0 if another Output module should be used
  *)
-  xmlOutputMatchCallback = function(filename: pchar): cint; cdecl;
+  xmlOutputMatchCallback = function(filename: pchar): cint; XMLCALL;
 
 (**
  * xmlOutputOpenCallback:
@@ -81,7 +81,7 @@
  *
  * Returns an Output context or NULL in case or error
  *)
-  xmlOutputOpenCallback = function(filename: pchar): pointer; cdecl;
+  xmlOutputOpenCallback = function(filename: pchar): pointer; XMLCALL;
 
 (**
  * xmlOutputWriteCallback:
@@ -93,7 +93,7 @@
  *
  * Returns the number of bytes written or -1 in case of error
  *)
-  xmlOutputWriteCallback = function(context: pointer; buffer: pchar; len: cint): cint; cdecl;
+  xmlOutputWriteCallback = function(context: pointer; buffer: pchar; len: cint): cint; XMLCALL;
 
 (**
  * xmlOutputCloseCallback:
@@ -103,7 +103,7 @@
  *
  * Returns 0 or -1 in case of error
  *)
-  xmlOutputCloseCallback = function(context: pointer): cint; cdecl;
+  xmlOutputCloseCallback = function(context: pointer): cint; XMLCALL;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
   xmlParserInputBuffer = record

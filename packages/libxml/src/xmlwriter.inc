@@ -11,8 +11,7 @@
 {$IFDEF LIBXML_WRITER_ENABLED}
 
 {$IFDEF TYPE}
-  xmlTextWriter = record
-  end;
+  xmlTextWriter = record end;
 {$ENDIF}
 
 {$IFDEF FUNCTION}

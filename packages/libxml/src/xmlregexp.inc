@@ -16,21 +16,19 @@
  * A libxml regular expression, they can actually be far more complex
  * thank the POSIX regex expressions.
  *)
-  xmlRegexp = record
-  end;
+  xmlRegexp = record end;
 
 (**
  * xmlRegExecCtxtPtr:
  *
  * A libxml progressive regular expression evaluation context
  *)
-  xmlRegExecCtxt = record
-  end;
+  xmlRegExecCtxt = record end;
 
 (*
  * Callback function when doing a transition in the automata
  *)
-  xmlRegExecCallbacks = procedure(exec: xmlRegExecCtxtPtr; token: xmlCharPtr; transdata, inputdata: pointer); cdecl;
+  xmlRegExecCallbacks = procedure(exec: xmlRegExecCtxtPtr; token: xmlCharPtr; transdata, inputdata: pointer); XMLCALL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -91,8 +89,8 @@ function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; XMLCALL; XMLPUBFUN;
  * and for the set with just the empty token
  *)
 var
-  forbiddenExp: xmlExpNodePtr; cvar; external;
-  emptyExp: xmlExpNodePtr; cvar; external;
+  forbiddenExp: xmlExpNodePtr; XMLPUBVAR;
+  emptyExp: xmlExpNodePtr; XMLPUBVAR;
 
 (*
  * Expressions are reference counted internally

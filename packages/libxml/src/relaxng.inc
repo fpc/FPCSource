@@ -11,8 +11,7 @@
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 
 {$IFDEF TYPE}
-  xmlRelaxNG = record
-  end;
+  xmlRelaxNG = record end;
 
 (**
  * A schemas validation context
@@ -20,11 +19,9 @@
   xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
   xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
 
-  xmlRelaxNGParserCtxt = record
-  end;
+  xmlRelaxNGParserCtxt = record end;
 
-  xmlRelaxNGValidCtxt = record
-  end;
+  xmlRelaxNGValidCtxt = record end;
 
 (*
  * xmlRelaxNGValidErr:

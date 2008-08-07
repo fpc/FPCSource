@@ -17,8 +17,8 @@ procedure xmlCleanupGlobals; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IFDEF TYPE}
-  xmlParserInputBufferCreateFilenameFunc = function(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; cdecl;
-  xmlOutputBufferCreateFilenameFunc = function(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; cdecl;
+  xmlParserInputBufferCreateFilenameFunc = function(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL;
+  xmlOutputBufferCreateFilenameFunc = function(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; XMLCALL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -32,8 +32,8 @@ function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenam
  *)
 
 {$IFDEF TYPE}
-  xmlRegisterNodeFunc = procedure(node: xmlNodePtr);
-  xmlDeregisterNodeFunc = procedure(node: xmlNodePtr);
+  xmlRegisterNodeFunc = procedure(node: xmlNodePtr); XMLCALL;
+  xmlDeregisterNodeFunc = procedure(node: xmlNodePtr); XMLCALL;
 
   xmlGlobalState = record
     xmlParserVersion                        : pchar;

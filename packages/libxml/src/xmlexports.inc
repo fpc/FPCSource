@@ -31,7 +31,7 @@
  *
  * Macros which declare an exportable variable
  *)
-//#define XMLPUBVAR extern
+{$DEFINE XMLPUBVAR := cvar; external}
 
 (**
  * XMLCALL:
@@ -46,7 +46,7 @@
  * Macro which declares the calling convention for exported functions that
  * use '...'.
  *)
-//#define XMLCDECL
+{$DEFINE XMLCDECL := cdecl}
 
 (** DOC_DISABLE *)
 

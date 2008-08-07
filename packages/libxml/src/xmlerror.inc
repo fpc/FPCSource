@@ -824,7 +824,7 @@
  * Signature of the function to use when there is an error and
  * no parsing or validity context available .
  *)
-  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); cdecl;
+  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
 
 (**
  * xmlStructuredErrorFunc:
@@ -834,7 +834,7 @@
  * Signature of the function to use when there is an error and
  * the module handles the new error reporting mechanism.
  *)
-  xmlStructuredErrorFunc = procedure(userData: pointer; error: xmlErrorPtr); cdecl;
+  xmlStructuredErrorFunc = procedure(userData: pointer; error: xmlErrorPtr); XMLCALL;
 
 (*
  * Use the following function to reset the two global variables
