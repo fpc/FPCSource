@@ -8,7 +8,7 @@ version=2.6.32
 
 [target]
 units=libxml2
-# exampledirs=examples
+exampledirs=examples
 
 [require]
 

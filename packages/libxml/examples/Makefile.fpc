@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for OpenAL Examples
+#
+
+[target]
+programs=reader1 reader2
+
+[require]
+#packages=
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+
+[rules]
+.NOTPARALLEL:

@@ -18,7 +18,7 @@ program reader2;
 
 uses
   ctypes,
-  libxml2 in '../libxml2.pas',
+  libxml2,
   exutils;
 
 (**
