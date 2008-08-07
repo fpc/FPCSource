@@ -278,6 +278,7 @@ type
 
   TBufDataset = class(TDBDataSet)
   private
+    FFileName: string;
     FIndexes        : array of TBufIndex;
     FMaxIndexesCount: integer;
 
@@ -327,6 +328,9 @@ type
     function  IntAllocRecordBuffer: PChar;
     procedure DoFilterRecord(var Acceptable: Boolean);
     procedure ParseFilter(const AFilter: string);
+    procedure IntLoadFromFile(const FileName: string = '');
+    function FetchFromFile : boolean;
+    function LoadFieldFromFile(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean;
   protected
     procedure UpdateIndexDefs; override;
     function GetNewBlobBuffer : PBlobBuffer;
@@ -341,6 +345,8 @@ type
     procedure InternalInitRecord(Buffer: PChar); override;
     function  GetCanModify: Boolean; override;
     function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; override;
+    procedure DoBeforeClose; override;
+    procedure OpenCursor(InfoQuery: Boolean); override;
     procedure InternalOpen; override;
     procedure InternalClose; override;
     function getnextpacket : integer;
@@ -365,8 +371,8 @@ type
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
   {abstracts, must be overidden by descendents}
-    function Fetch : boolean; virtual;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
+    function Fetch : boolean; virtual; abstract;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public
@@ -387,11 +393,12 @@ type
     procedure AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
       const ACaseInsFields: string = ''); virtual;
     procedure SaveToFile(const FileName: string = ''; Format: TDataPacketFormat = dfBinary);
-    procedure LoadFromFile(const FileName: string = '');
+    procedure LoadFromFile(const AFileName: string = '');
 
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
   published
+    property FileName : string read FFileName write FFileName;
     property PacketRecords : Integer read FPacketRecords write SetPacketRecords default 10;
     property OnUpdateError: TResolverErrorEvent read FOnUpdateError write SetOnUpdateError;
     property IndexDefs : TIndexDefs read GetIndexDefs;
@@ -1158,6 +1165,22 @@ begin
   end;
 end;
 
+procedure TBufDataset.DoBeforeClose;
+begin
+  inherited DoBeforeClose;
+  if FFileName<>'' then
+    begin
+    SaveToFile(FFileName);
+    end;
+end;
+
+procedure TBufDataset.OpenCursor(InfoQuery: Boolean);
+begin
+  if FFileName<>'' then
+    IntLoadFromFile(FFileName);
+  inherited OpenCursor(InfoQuery);
+end;
+
 function TBufDataset.GetRecordUpdateBuffer : boolean;
 
 var x : integer;
@@ -1396,9 +1419,15 @@ var NullMask        : pbyte;
     x               : longint;
     CreateblobField : boolean;
     BufBlob         : PBufBlobField;
+    ActionOK         : boolean;
 
 begin
-  if not Fetch then
+  if assigned(FRowDataNode) then // The dataset is being read from a xml-document
+    ActionOK := FetchFromFile
+  else
+    ActionOK := Fetch;
+
+  if not ActionOK then
     begin
     Result := grEOF;
     FAllPacketsFetched := True;
@@ -1419,7 +1448,11 @@ begin
 
   for x := 0 to FieldDefs.count-1 do
     begin
-    if not LoadField(FieldDefs[x],buffer,CreateblobField) then
+    if assigned(FRowDataNode) then
+      ActionOK := LoadFieldFromFile(FieldDefs[x],buffer,CreateblobField)
+    else
+      ActionOK := LoadField(FieldDefs[x],buffer,CreateblobField);
+    if not ActionOK then
       SetFieldIsNull(NullMask,x)
     else if CreateblobField then
       begin
@@ -2213,7 +2246,6 @@ var XMLDocument    : TXMLDocument;
     ScrollResult   : TGetResult;
     StoreDSState   : TDataSetState;
 begin
-// TODO: implement filename property}
 //  CheckActive;
   XMLDocument := TXMLDocument.Create;
   DataPacketNode := XMLDocument.CreateElement('DATAPACKET');
@@ -2282,7 +2314,16 @@ begin
   XMLDocument.Free;
 end;
 
-procedure TBufDataset.LoadFromFile(const FileName: string);
+procedure TBufDataset.LoadFromFile(const AFileName: string);
+var StoreFileName : string;
+begin
+  StoreFileName:=FileName;
+  FileName := AFileName;
+  Open;
+  FileName := StoreFileName;
+end;
+
+procedure TBufDataset.IntLoadFromFile(const FileName: string);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
   var AnAttr : TDomNode;
@@ -2337,8 +2378,7 @@ begin
   FRecordNode := nil;
 
 //  XMLDocument.Free;     <-- MEM LEAK!
-  CreateFields;
-  Open;
+  if DefaultFields then CreateFields;
 end;
 
 procedure TBufDataset.InternalAddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string;
@@ -2668,7 +2708,7 @@ begin
   FCurrentRecInd:=GetRecordFromBookmark(ABookmark^);
 end;
 
-function TBufDataset.Fetch: boolean;
+function TBufDataset.FetchFromFile: boolean;
 begin
   if assigned(FRowDataNode) then // The dataset is being read from a xml-document
     begin
@@ -2683,39 +2723,35 @@ begin
   else result := False;
 end;
 
-function TBufDataset.LoadField(FieldDef: TFieldDef; buffer: pointer; out
+function TBufDataset.LoadFieldFromFile(FieldDef: TFieldDef; buffer: pointer; out
   CreateBlob: boolean): boolean;
 var AFieldNode : TDOMNode;
     AStr       : String;
     Int1       : Integer;
 begin
-  if assigned(FRowDataNode) then // The dataset is being read from a xml-document
+  CreateBlob:=False;
+  AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDef.Name);
+  Result := True;
+  if AFieldNode=nil then
+    result := false
+  else
     begin
-    CreateBlob:=False;
-    AFieldNode := FRecordNode.Attributes.GetNamedItem(FieldDef.Name);
-    Result := True;
-    if AFieldNode=nil then
-      result := false
+    case FieldDef.DataType of
+      ftString : begin
+                 AStr:=AFieldNode.NodeValue;
+                 Int1 := length(AStr);
+                 if Int1>FieldDef.size then
+                   Int1 := FieldDef.Size;
+                 if int1 > 0 then
+                   move(AStr[1],buffer^,Int1);
+                 end;
+      ftInteger: begin
+                 result := False;
+                 end
     else
-      begin
-      case FieldDef.DataType of
-        ftString : begin
-                   AStr:=AFieldNode.NodeValue;
-                   Int1 := length(AStr);
-                   if Int1>FieldDef.size then
-                     Int1 := FieldDef.Size;
-                   if int1 > 0 then
-                     move(AStr[1],buffer^,Int1);
-                   end;
-        ftInteger: begin
-                   result := False;
-                   end
-      else
-        result := False;
-      end; {case}
-      end;
-    end
-  else result := False;
+      result := False;
+    end; {case}
+    end;
 end;
 
 procedure TArrayBufIndex.InitialiseIndex;

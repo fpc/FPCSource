@@ -22,11 +22,13 @@ type
 
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
+    procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestFileNameProperty;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestSafeAsXML;
@@ -506,18 +508,30 @@ begin
     Ignore('This test only applies to TBufDataset and descendents.');
 
   ds.open;
-  TBufDataset(ds).SaveToFile('/tmp/test.xml');
+  TBufDataset(ds).SaveToFile('test.xml');
   ds.close;
 
   LoadDs := TBufDataset.Create(nil);
-  LoadDs.LoadFromFile('/tmp/test.xml');
-  AssertEquals(2,LoadDs.FieldDefs.Count);
-  AssertEquals(5,LoadDs.RecordCount);
-  AssertEquals(2,LoadDs.Fields.Count);
-  AssertEquals('ID',LoadDs.Fields[0].FieldName);
-  AssertEquals('NAME',LoadDs.Fields[1].FieldName);
-  AssertTrue('Type niet goed',loadds.fields[1].DataType=ftString);
-  AssertEquals('TestName1',LoadDs.FieldByName('name').AsString);
+  LoadDs.LoadFromFile('test.xml');
+  FTestXMLDatasetDefinition(LoadDS);
+end;
+
+procedure TTestDBBasics.TestFileNameProperty;
+var ds    : TDataset;
+    LoadDs: TBufDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  TBufDataset(ds).FileName:='test.xml';
+  ds.close;
+
+  ds := DBConnector.GetNDataset(True,7);
+  TBufDataset(ds).FileName:='test.xml';
+  ds.Open;
+  FTestXMLDatasetDefinition(Ds);
 end;
 
 procedure TTestDBBasics.TestAppendInsertRecord;
@@ -896,6 +910,19 @@ begin
       close;
       end;
     end;
+end;
+
+procedure TTestDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
+begin
+  AssertEquals(2,ADataset.FieldDefs.Count);
+  AssertEquals(5,ADataset.RecordCount);
+  AssertEquals(2,ADataset.Fields.Count);
+  AssertEquals('ID',ADataset.Fields[0].FieldName);
+  AssertEquals('NAME',ADataset.Fields[1].FieldName);
+  AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
+  AssertEquals('TestName1',ADataset.FieldByName('name').AsString);
+  ADataset.Next;
+  AssertEquals('TestName2',ADataset.FieldByName('name').AsString);
 end;
 
 procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);

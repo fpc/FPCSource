@@ -1178,43 +1178,50 @@ var tel, fieldc : integer;
     f           : TField;
     s           : string;
     IndexFields : TStrings;
+    ReadFromFile: Boolean;
 begin
   try
+    ReadFromFile:=FileName<>'';
     FOpenDidPrepare:=Not Prepared;
     If FOpenDidPrepare then
       Prepare;
     if FCursor.FStatementType in [stSelect] then
       begin
-      Execute;
-      // InternalInitFieldDef is only called after a prepare. i.e. not twice if
-      // a dataset is opened - closed - opened.
-      if FCursor.FInitFieldDef then InternalInitFieldDefs;
-      if DefaultFields then
+      if not ReadFromFile then
         begin
-        CreateFields;
-
-        if FUpdateable then
+        Execute;
+        // InternalInitFieldDef is only called after a prepare. i.e. not twice if
+        // a dataset is opened - closed - opened.
+        if FCursor.FInitFieldDef then InternalInitFieldDefs;
+        if DefaultFields then
           begin
-          if FusePrimaryKeyAsKey then
+          CreateFields;
+
+          if FUpdateable then
             begin
-            UpdateServerIndexDefs;
-            for tel := 0 to ServerIndexDefs.count-1 do
+            if FusePrimaryKeyAsKey then
               begin
-              if ixPrimary in ServerIndexDefs[tel].options then
+              UpdateServerIndexDefs;
+              for tel := 0 to ServerIndexDefs.count-1 do
                 begin
-                  IndexFields := TStringList.Create;
-                  ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
-                  for fieldc := 0 to IndexFields.Count-1 do
-                    begin
-                    F := Findfield(IndexFields[fieldc]);
-                    if F <> nil then
-                      F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                    end;
-                  IndexFields.Free;
+                if ixPrimary in ServerIndexDefs[tel].options then
+                  begin
+                    IndexFields := TStringList.Create;
+                    ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
+                    for fieldc := 0 to IndexFields.Count-1 do
+                      begin
+                      F := Findfield(IndexFields[fieldc]);
+                      if F <> nil then
+                        F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                      end;
+                    IndexFields.Free;
+                  end;
                 end;
               end;
             end;
-          end;
+          end
+        else
+          BindFields(True);
         end
       else
         BindFields(True);
