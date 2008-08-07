@@ -24,7 +24,7 @@
  *
  * Macros which declare an exportable function
  *)
-//#define XMLPUBFUN
+{$DEFINE XMLPUBFUN := external {$IFDEF DYNLINK}libxml2lib{$ENDIF}}
 
 (**
  * XMLPUBVAR:
@@ -38,7 +38,7 @@
  *
  * Macros which declare the called convention for exported functions
  *)
-//#define XMLCALL
+{$DEFINE XMLCALL := cdecl}
 
 (**
  * XMLCDECL:

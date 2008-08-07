@@ -40,19 +40,19 @@
  * xmlChar *	xmlNodeGetBase	(xmlDocPtr doc,
  *                               xmlNodePtr cur);
  *)
-function xmlCreateURI(): xmlURIPtr; cdecl; external;
-function xmlBuildURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlBuildRelativeURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlParseURI(str: pchar): xmlURIPtr; cdecl; external;
-function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; cdecl; external;
-function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; cdecl; external;
-function xmlSaveUri(uri: xmlURIPtr): pchar; cdecl; external;
-//procedure xmlPrintURI(stream: FILE; uri: xmlURIPtr); cdecl; external;
-function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; cdecl; external;
-function xmlNormalizeURIPath(path: pchar): cint; cdecl; external;
-function xmlURIEscape(str: xmlCharPtr): xmlCharPtr; cdecl; external;
-procedure xmlPrintURI(uri: xmlURIPtr); cdecl; external;
-function xmlCanonicPath(path: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlPathToURI(path: xmlCharPtr): xmlCharPtr; cdecl; external;
+function xmlCreateURI(): xmlURIPtr; XMLCALL; XMLPUBFUN;
+function xmlBuildURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlBuildRelativeURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlParseURI(str: pchar): xmlURIPtr; XMLCALL; XMLPUBFUN;
+function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; XMLCALL; XMLPUBFUN;
+function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlSaveUri(uri: xmlURIPtr): pchar; XMLCALL; XMLPUBFUN;
+//procedure xmlPrintURI(stream: FILE; uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
+function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlNormalizeURIPath(path: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlURIEscape(str: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+procedure xmlPrintURI(uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
+function xmlCanonicPath(path: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlPathToURI(path: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF}

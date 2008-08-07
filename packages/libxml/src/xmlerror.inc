@@ -843,30 +843,30 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); cdecl; external;
-procedure initGenericErrorDefaultFunc(var handler: xmlGenericErrorFunc); cdecl; external;
-procedure xmlSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); cdecl; external;
+procedure xmlSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); XMLCALL; XMLPUBFUN;
+procedure initGenericErrorDefaultFunc(var handler: xmlGenericErrorFunc); XMLCALL; XMLPUBFUN;
+procedure xmlSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); XMLCALL; XMLPUBFUN;
 
 (*
  * Default message routines used by SAX and Valid context for error
  * and warning reporting.
  *)
-procedure xmlParserError(ctx: pointer; msg: pchar; args: array of const); cdecl; external;
-procedure xmlParserWarning(ctx: pointer; msg: pchar; args: array of const); cdecl; external;
-procedure xmlParserValidityError(ctx: pointer; msg: pchar; args: array of const); cdecl; external;
-procedure xmlParserValidityWarning(ctx: pointer; msg: pchar; args: array of const); cdecl; external;
-procedure xmlParserPrintFileInfo(input: xmlParserInputPtr); cdecl; external;
-procedure xmlParserPrintFileContext(input: xmlParserInputPtr); cdecl; external;
+procedure xmlParserError(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
+procedure xmlParserWarning(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
+procedure xmlParserValidityError(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
+procedure xmlParserValidityWarning(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
+procedure xmlParserPrintFileInfo(input: xmlParserInputPtr); XMLCALL; XMLPUBFUN;
+procedure xmlParserPrintFileContext(input: xmlParserInputPtr); XMLCALL; XMLPUBFUN;
 
 (*
  * Extended error information routines
  *)
-function xmlGetLastError: xmlErrorPtr; cdecl; external;
-procedure xmlResetLastError; cdecl; external;
-function xmlCtxtGetLastError(ctx: pointer): xmlErrorPtr; cdecl; external;
-procedure xmlCtxtResetLastError(ctx: pointer); cdecl; external;
-procedure xmlResetError(err: xmlErrorPtr); cdecl; external;
-function xmlResetError(from, _to: xmlErrorPtr): cint; cdecl; external;
+function xmlGetLastError: xmlErrorPtr; XMLCALL; XMLPUBFUN;
+procedure xmlResetLastError; XMLCALL; XMLPUBFUN;
+function xmlCtxtGetLastError(ctx: pointer): xmlErrorPtr; XMLCALL; XMLPUBFUN;
+procedure xmlCtxtResetLastError(ctx: pointer); XMLCALL; XMLPUBFUN;
+procedure xmlResetError(err: xmlErrorPtr); XMLCALL; XMLPUBFUN;
+function xmlResetError(from, _to: xmlErrorPtr): cint; XMLCALL; XMLPUBFUN;
 
 {$IFDEF IN_LIBXML}
 (*

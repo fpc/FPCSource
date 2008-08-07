@@ -63,29 +63,29 @@
  *)
 
 {$IFDEF LIBXML_LEGACY_ENABLED}
-procedure xmlInitializePredefinedEntities; cdecl; external;
+procedure xmlInitializePredefinedEntities; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_LEGACY_ENABLED *)
-function xmlAddDocEntity(doc: xmlDocPtr; name: xmlCharPtr; _type: cint; ExternalID, SystemID, content: xmlCharPtr): xmlEntityPtr; cdecl; external;
-function xmlAddDtdEntity(doc: xmlDocPtr; name: xmlCharPtr; _type: cint; ExternalID, SystemID, content: xmlCharPtr): xmlEntityPtr; cdecl; external;
-function xmlGetPredefinedEntity(name: xmlCharPtr): xmlEntityPtr; cdecl; external;
-function xmlGetDocEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; cdecl; external;
-function xmlGetDtdEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; cdecl; external;
-function xmlGetParameterEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; cdecl; external;
+function xmlAddDocEntity(doc: xmlDocPtr; name: xmlCharPtr; _type: cint; ExternalID, SystemID, content: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlAddDtdEntity(doc: xmlDocPtr; name: xmlCharPtr; _type: cint; ExternalID, SystemID, content: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlGetPredefinedEntity(name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlGetDocEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlGetDtdEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlGetParameterEntity(doc: xmlDocPtr; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_LEGACY_ENABLED}
-function xmlEncodeEntities(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; cdecl; external;
+function xmlEncodeEntities(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_LEGACY_ENABLED *)
-function xmlEncodeEntitiesReentrant(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlEncodeSpecialChars(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlCreateEntitiesTable: xmlEntitiesTablePtr; cdecl; external;
+function xmlEncodeEntitiesReentrant(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlEncodeSpecialChars(doc: xmlDocPtr; input: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlCreateEntitiesTable: xmlEntitiesTablePtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_TREE_ENABLED}
-function xmlCopyEntitiesTable(table: xmlEntitiesTablePtr): xmlEntitiesTablePtr; cdecl; external;
+function xmlCopyEntitiesTable(table: xmlEntitiesTablePtr): xmlEntitiesTablePtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
-procedure xmlFreeEntitiesTable(table: xmlEntitiesTablePtr); cdecl; external;
+procedure xmlFreeEntitiesTable(table: xmlEntitiesTablePtr); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlDumpEntitiesTable(buf: xmlBufferPtr; table: xmlEntitiesTablePtr); cdecl; external;
-procedure xmlDumpEntityDecl(buf: xmlBufferPtr; ent: xmlEntityPtr); cdecl; external;
+procedure xmlDumpEntitiesTable(buf: xmlBufferPtr; table: xmlEntitiesTablePtr); XMLCALL; XMLPUBFUN;
+procedure xmlDumpEntityDecl(buf: xmlBufferPtr; ent: xmlEntityPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 {$IFDEF LIBXML_LEGACY_ENABLED}
-procedure xmlCleanupPredefinedEntities; cdecl; external;
+procedure xmlCleanupPredefinedEntities; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_LEGACY_ENABLED *)
 {$ENDIF}

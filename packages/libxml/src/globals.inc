@@ -12,8 +12,8 @@
  *)
 
 {$IFDEF FUNCTION}
-procedure xmlInitGlobals; cdecl; external;
-procedure xmlCleanupGlobals; cdecl; external;
+procedure xmlInitGlobals; XMLCALL; XMLPUBFUN;
+procedure xmlCleanupGlobals; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -22,8 +22,8 @@ procedure xmlCleanupGlobals; cdecl; external;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlParserInputBufferCreateFilenameDefault(func: xmlParserInputBufferCreateFilenameFunc): xmlParserInputBufferCreateFilenameFunc; cdecl; external;
-function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenameFunc): xmlOutputBufferCreateFilenameFunc; cdecl; external;
+function xmlParserInputBufferCreateFilenameDefault(func: xmlParserInputBufferCreateFilenameFunc): xmlParserInputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
+function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenameFunc): xmlOutputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 (*
@@ -82,17 +82,17 @@ function xmlOutputBufferCreateFilenameDefault(func: xmlOutputBufferCreateFilenam
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlInitializeGlobalState(gs: xmlGlobalStatePtr); cdecl; external;
-procedure xmlThrDefSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); cdecl; external;
-procedure xmlThrDefSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); cdecl; external;
+procedure xmlInitializeGlobalState(gs: xmlGlobalStatePtr); XMLCALL; XMLPUBFUN;
+procedure xmlThrDefSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); XMLCALL; XMLPUBFUN;
+procedure xmlThrDefSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); XMLCALL; XMLPUBFUN;
 
-function xmlRegisterNodeDefault(func: xmlRegisterNodeFunc): xmlRegisterNodeFunc; cdecl; external;
-function xmlThrDefRegisterNodeDefault(func: xmlRegisterNodeFunc): xmlRegisterNodeFunc; cdecl; external;
-function xmlDeregisterNodeDefault(func: xmlRegisterNodeFunc): xmlDeregisterNodeFunc; cdecl; external;
-function xmlThrDefDeregisterNodeDefault(func: xmlRegisterNodeFunc): xmlDeregisterNodeFunc; cdecl; external;
+function xmlRegisterNodeDefault(func: xmlRegisterNodeFunc): xmlRegisterNodeFunc; XMLCALL; XMLPUBFUN;
+function xmlThrDefRegisterNodeDefault(func: xmlRegisterNodeFunc): xmlRegisterNodeFunc; XMLCALL; XMLPUBFUN;
+function xmlDeregisterNodeDefault(func: xmlRegisterNodeFunc): xmlDeregisterNodeFunc; XMLCALL; XMLPUBFUN;
+function xmlThrDefDeregisterNodeDefault(func: xmlRegisterNodeFunc): xmlDeregisterNodeFunc; XMLCALL; XMLPUBFUN;
 
-function xmlDeregisterNodeDefault(func: xmlOutputBufferCreateFilenameFunc): xmlOutputBufferCreateFilenameFunc; cdecl; external;
-function xmlThrDefDeregisterNodeDefault(func: xmlParserInputBufferCreateFilenameFunc): xmlParserInputBufferCreateFilenameFunc; cdecl; external;
+function xmlDeregisterNodeDefault(func: xmlOutputBufferCreateFilenameFunc): xmlOutputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
+function xmlThrDefDeregisterNodeDefault(func: xmlParserInputBufferCreateFilenameFunc): xmlParserInputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
 
 {$IFDEF 0}
 (** DOC_DISABLE *)

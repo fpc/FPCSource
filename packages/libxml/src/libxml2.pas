@@ -5,13 +5,20 @@ unit libxml2;
 
 interface
 
-{$LINKLIB libxml2.so}
-
 uses
   ctypes;
 
-{$i xmlexports.h}
-{$i xmlversion.h}
+{.$DEFINE DYNLINK}
+
+{$IFDEF DYNLINK}
+const
+  libxml2lib = 'libxml2.so';
+{$ELSE}
+  {$LINKLIB libxml2.so}
+{$ENDIF}
+
+{$i xmlexports.inc}
+{$i xmlversion.inc}
 
 type
   iconv_t = pointer;
@@ -21,23 +28,23 @@ type
 (*
   pointer forwarders
 *)
-// dict.h
+// dict.inc
   xmlDictPtr = ^xmlDict;
 
-// encoding.h
+// encoding.inc
   xmlCharEncodingHandlerPtr = ^xmlCharEncodingHandler;
 
-// entities.h
+// entities.inc
   xmlEntityPtr = ^xmlEntity;
   xmlEntitiesTablePtr = ^xmlEntitiesTable;
 
-// globals.h
+// globals.inc
   xmlGlobalStatePtr = ^xmlGlobalState;
 
-// hash.h
+// hash.inc
   xmlHashTablePtr = ^xmlHashTable;
 
-// parser.h
+// parser.inc
   xmlParserInputPtr = ^xmlParserInput;
   xmlParserInputPtrPtr = ^xmlParserInputPtr;
   xmlParserNodeInfoPtr = ^xmlParserNodeInfo;
@@ -47,7 +54,7 @@ type
   xmlSAXHandlerPtr = ^xmlSAXHandler;
   xmlSAXHandlerV1Ptr = ^xmlSAXHandlerV1;
 
-// tree.h
+// tree.inc
   xmlBufferPtr = ^xmlBuffer;
   xmlNotationPtr = ^xmlNotation;
   xmlEnumerationPtr = ^xmlEnumeration;
@@ -64,19 +71,19 @@ type
   xmlDocPtr = ^xmlDoc;
   xmlDOMWrapCtxtPtr = ^xmlDOMWrapCtxt;
 
-// list.h
+// list.inc
   xmlLinkPtr = ^xmlLink;
   xmlListPtr = ^xmlList;
 
-// uri.h
+// uri.inc
   xmlURIPtr = ^xmlURI;
 
-// relaxng.h
+// relaxng.inc
   xmlRelaxNGPtr = ^xmlRelaxNG;
   xmlRelaxNGParserCtxtPtr = ^xmlRelaxNGParserCtxt;
   xmlRelaxNGValidCtxtPtr = ^xmlRelaxNGValidCtxt;
 
-// valid.h
+// valid.inc
   xmlValidStatePtr = ^xmlValidState;
   xmlValidCtxtPtr = ^xmlValidCtxt;
   xmlNotationTablePtr = ^xmlNotationTable;
@@ -85,139 +92,139 @@ type
   xmlIDTablePtr = ^xmlIDTable;
   xmlRefTablePtr = ^xmlRefTable;
 
-// xmlautomata.h
+// xmlautomata.inc
   xmlAutomataPtr = ^xmlAutomata;
   xmlAutomataStatePtr = ^xmlAutomataState;
 
-// xmlerror.h
+// xmlerror.inc
   xmlErrorPtr = ^xmlError;
 
-// xmlIO.h
+// xmlIO.inc
   xmlParserInputBufferPtr = ^xmlParserInputBuffer;
   xmlOutputBufferPtr = ^xmlOutputBuffer;
 
-// xmlmodule.h
+// xmlmodule.inc
   xmlModulePtr = ^xmlModule;
 
-// xmlreader.h
+// xmlreader.inc
   xmlTextReaderPtr = ^xmlTextReader;
 
-// xmlregexp.h
+// xmlregexp.inc
   xmlRegexpPtr = ^xmlRegexp;
   xmlRegExecCtxtPtr = ^xmlRegExecCtxt;
   xmlExpCtxtPtr = ^xmlExpCtxt;
 
-// xmlsave.h
+// xmlsave.inc
   xmlSaveCtxtPtr = ^xmlSaveCtxt;
 
-// xmlschemas.h
+// xmlschemas.inc
   xmlSchemaPtr = ^xmlSchema;
   xmlSchemaParserCtxtPtr = ^xmlSchemaParserCtxt;
   xmlSchemaValidCtxtPtr = ^xmlSchemaValidCtxt;
   xmlSchemaSAXPlugPtr = ^xmlSchemaSAXPlugStruct;
 
-// xmlstring.h
+// xmlstring.inc
   xmlCharPtr = pchar;
   xmlCharPtrPtr = ^xmlCharPtr;
 
-// xmlwriter.h
+// xmlwriter.inc
   xmlTextWriterPtr = ^xmlTextWriter;
 
 (*
   include types
 *)
 {$DEFINE TYPE}
-  {$i dict.h}
-  {$i encoding.h}
-  {$i tree.h}
-  {$i list.h}
-  {$i entities.h}
-  {$i xmlerror.h}
-  {$i xmlmemory.h}
-  {$i hash.h}
-  {$i schemasInternals.h}
-  {$i valid.h}
-  {$i parser.h}
-  {$i uri.h}
-  {$i relaxng.h}
-  {$i globals.h}
-  {$i xmlautomata.h}
-  {$i xmlIO.h}
-  {$i xmlmodule.h}
-  {$i xmlreader.h}
-  {$i xmlregexp.h}
-  {$i xmlsave.h}
-  {$i xmlschemas.h}
-  {$i xmlschemastypes.h}
-  {$i xmlstring.h}
-  {$i xmlunicode.h}
-  {$i xmlwriter.h}
-  {.$i xpath.h}
-  {.$i c14n.h}
+  {$i dict.inc}
+  {$i encoding.inc}
+  {$i tree.inc}
+  {$i list.inc}
+  {$i entities.inc}
+  {$i xmlerror.inc}
+  {$i xmlmemory.inc}
+  {$i hash.inc}
+  {$i schemasInternals.inc}
+  {$i valid.inc}
+  {$i parser.inc}
+  {$i uri.inc}
+  {$i relaxng.inc}
+  {$i globals.inc}
+  {$i xmlautomata.inc}
+  {$i xmlIO.inc}
+  {$i xmlmodule.inc}
+  {$i xmlreader.inc}
+  {$i xmlregexp.inc}
+  {$i xmlsave.inc}
+  {$i xmlschemas.inc}
+  {$i xmlschemastypes.inc}
+  {$i xmlstring.inc}
+  {$i xmlunicode.inc}
+  {$i xmlwriter.inc}
+  {.$i xpath.inc}
+  {.$i c14n.inc}
 {$UNDEF TYPE}
 
 const
 {$DEFINE CONST}
-  {$i dict.h}
-  {$i encoding.h}
-  {$i tree.h}
-  {$i list.h}
-  {$i entities.h}
-  {$i xmlerror.h}
-  {$i xmlmemory.h}
-  {$i schemasInternals.h}
-  {$i hash.h}
-  {$i valid.h}
-  {$i parser.h}
-  {$i uri.h}
-  {$i relaxng.h}
-  {$i globals.h}
-  {$i xmlautomata.h}
-  {$i xmlIO.h}
-  {$i xmlmodule.h}
-  {$i xmlreader.h}
-  {$i xmlregexp.h}
-  {$i xmlsave.h}
-  {$i xmlschemas.h}
-  {$i xmlschemastypes.h}
-  {$i xmlstring.h}
-  {$i xmlunicode.h}
-  {$i xmlwriter.h}
-  {.$i xpath.h}
-  {.$i c14n.h}
+  {$i dict.inc}
+  {$i encoding.inc}
+  {$i tree.inc}
+  {$i list.inc}
+  {$i entities.inc}
+  {$i xmlerror.inc}
+  {$i xmlmemory.inc}
+  {$i schemasInternals.inc}
+  {$i hash.inc}
+  {$i valid.inc}
+  {$i parser.inc}
+  {$i uri.inc}
+  {$i relaxng.inc}
+  {$i globals.inc}
+  {$i xmlautomata.inc}
+  {$i xmlIO.inc}
+  {$i xmlmodule.inc}
+  {$i xmlreader.inc}
+  {$i xmlregexp.inc}
+  {$i xmlsave.inc}
+  {$i xmlschemas.inc}
+  {$i xmlschemastypes.inc}
+  {$i xmlstring.inc}
+  {$i xmlunicode.inc}
+  {$i xmlwriter.inc}
+  {.$i xpath.inc}
+  {.$i c14n.inc}
 {$UNDEF CONST}
 
 (*
   include functions
 *)
 {$DEFINE FUNCTION}
-  {$i dict.h}
-  {$i encoding.h}
-  {$i tree.h}
-  {$i list.h}
-  {$i entities.h}
-  {$i xmlerror.h}
-  {$i xmlmemory.h}
-  {$i schemasInternals.h}
-  {$i hash.h}
-  {$i valid.h}
-  {$i parser.h}
-  {$i uri.h}
-  {$i relaxng.h}
-  {$i globals.h}
-  {$i xmlautomata.h}
-  {$i xmlIO.h}
-  {$i xmlmodule.h}
-  {$i xmlreader.h}
-  {$i xmlregexp.h}
-  {$i xmlsave.h}
-  {$i xmlschemas.h}
-  {$i xmlschemastypes.h}
-  {$i xmlstring.h}
-  {$i xmlunicode.h}
-  {$i xmlwriter.h}
-  {.$i xpath.h}
-  {.$i c14n.h}
+  {$i dict.inc}
+  {$i encoding.inc}
+  {$i tree.inc}
+  {$i list.inc}
+  {$i entities.inc}
+  {$i xmlerror.inc}
+  {$i xmlmemory.inc}
+  {$i schemasInternals.inc}
+  {$i hash.inc}
+  {$i valid.inc}
+  {$i parser.inc}
+  {$i uri.inc}
+  {$i relaxng.inc}
+  {$i globals.inc}
+  {$i xmlautomata.inc}
+  {$i xmlIO.inc}
+  {$i xmlmodule.inc}
+  {$i xmlreader.inc}
+  {$i xmlregexp.inc}
+  {$i xmlsave.inc}
+  {$i xmlschemas.inc}
+  {$i xmlschemastypes.inc}
+  {$i xmlstring.inc}
+  {$i xmlunicode.inc}
+  {$i xmlwriter.inc}
+  {.$i xpath.inc}
+  {.$i c14n.inc}
 {$UNDEF FUNCTION}
 
 implementation

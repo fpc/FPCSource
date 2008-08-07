@@ -125,37 +125,37 @@
 (*
  * Interfaces for encoding handlers.
  *)
-procedure xmlInitCharEncodingHandlers; cdecl; external;
-procedure xmlCleanupCharEncodingHandlers; cdecl; external;
-procedure xmlRegisterCharEncodingHandler(handler: xmlCharEncodingHandlerPtr); cdecl; external;
-function xmlGetCharEncodingHandler(enc: xmlCharEncoding): xmlCharEncodingHandlerPtr; cdecl; external;
-function xmlFindCharEncodingHandler(name: pchar): xmlCharEncodingHandlerPtr; cdecl; external;
-function xmlNewCharEncodingHandler(name: pchar; input: xmlCharEncodingInputFunc; output: xmlCharEncodingOutputFunc): xmlCharEncodingHandlerPtr; cdecl; external;
+procedure xmlInitCharEncodingHandlers; XMLCALL; XMLPUBFUN;
+procedure xmlCleanupCharEncodingHandlers; XMLCALL; XMLPUBFUN;
+procedure xmlRegisterCharEncodingHandler(handler: xmlCharEncodingHandlerPtr); XMLCALL; XMLPUBFUN;
+function xmlGetCharEncodingHandler(enc: xmlCharEncoding): xmlCharEncodingHandlerPtr; XMLCALL; XMLPUBFUN;
+function xmlFindCharEncodingHandler(name: pchar): xmlCharEncodingHandlerPtr; XMLCALL; XMLPUBFUN;
+function xmlNewCharEncodingHandler(name: pchar; input: xmlCharEncodingInputFunc; output: xmlCharEncodingOutputFunc): xmlCharEncodingHandlerPtr; XMLCALL; XMLPUBFUN;
 
 (*
  * Interfaces for encoding names and aliases.
  *)
-function xmlAddEncodingAlias(name: pchar; alias: pchar): cint; cdecl; external;
-function xmlDelEncodingAlias(alias: pchar): cint; cdecl; external;
-function xmlGetEncodingAlias(alias: pchar): pchar; cdecl; external;
-procedure xmlCleanupEncodingAliases; cdecl; external;
-function xmlParseCharEncoding(name: pchar): xmlCharEncoding; cdecl; external;
-function xmlGetCharEncodingName(enc: xmlCharEncoding): pchar; cdecl; external;
+function xmlAddEncodingAlias(name: pchar; alias: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlDelEncodingAlias(alias: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlGetEncodingAlias(alias: pchar): pchar; XMLCALL; XMLPUBFUN;
+procedure xmlCleanupEncodingAliases; XMLCALL; XMLPUBFUN;
+function xmlParseCharEncoding(name: pchar): xmlCharEncoding; XMLCALL; XMLPUBFUN;
+function xmlGetCharEncodingName(enc: xmlCharEncoding): pchar; XMLCALL; XMLPUBFUN;
 
 (*
  * Interfaces directly used by the parsers.
  *)
-function xmlDetectCharEncoding(_in: pchar; len: cint): xmlCharEncoding; cdecl; external;
-function xmlCharEncOutFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; cdecl; external;
-function xmlCharEncInFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; cdecl; external;
-function xmlCharEncFirstLine(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; cdecl; external;
-function xmlCharEncCloseFunc(handler: xmlCharEncodingHandlerPtr): cint; cdecl; external;
+function xmlDetectCharEncoding(_in: pchar; len: cint): xmlCharEncoding; XMLCALL; XMLPUBFUN;
+function xmlCharEncOutFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlCharEncInFunc(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlCharEncFirstLine(handler: xmlCharEncodingHandlerPtr; _out, _in: xmlBufferPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlCharEncCloseFunc(handler: xmlCharEncodingHandlerPtr): cint; XMLCALL; XMLPUBFUN;
 
 (*
  * Export a few useful functions
  *)
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-function UTF8Toisolat1(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; cdecl; external;
+function UTF8Toisolat1(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-function isolat1ToUTF8(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; cdecl; external;
+function isolat1ToUTF8(_out: pchar; outlen: pcint; _in: pchar; inlen: pcint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}

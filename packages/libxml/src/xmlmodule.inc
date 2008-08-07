@@ -30,10 +30,10 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlModuleOpen(filename: char; options: cint): xmlModulePtr; cdecl; external;
-function xmlModuleSymbol(module: xmlModulePtr; name: pchar; var result: pointer): cint; cdecl; external;
-function xmlModuleClose(module: xmlModulePtr): cint; cdecl; external;
-function xmlModuleFree(module: xmlModulePtr): cint; cdecl; external;
+function xmlModuleOpen(filename: char; options: cint): xmlModulePtr; XMLCALL; XMLPUBFUN;
+function xmlModuleSymbol(module: xmlModulePtr; name: pchar; var result: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlModuleClose(module: xmlModulePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlModuleFree(module: xmlModulePtr): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_MODULES_ENABLED *)

@@ -523,43 +523,43 @@
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED) or
   defined(LIBXML_DEBUG_ENABLED) or defined (LIBXML_HTML_ENABLED) or defined(LIBXML_SAX1_ENABLED) or
   defined(LIBXML_HTML_ENABLED) or defined(LIBXML_WRITER_ENABLED) or defined(LIBXML_DOCB_ENABLED)}
-function xmlValidateNCName(value: xmlCharPtr; space: cint): cint; cdecl; external;
+function xmlValidateNCName(value: xmlCharPtr; space: cint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-function xmlValidateQName(value: xmlCharPtr; space: cint): cint; cdecl; external;
-function xmlValidateName(value: xmlCharPtr; space: cint): cint; cdecl; external;
-function xmlValidateNMToken(value: xmlCharPtr; space: cint): cint; cdecl; external;
+function xmlValidateQName(value: xmlCharPtr; space: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlValidateName(value: xmlCharPtr; space: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlValidateNMToken(value: xmlCharPtr; space: cint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
-function xmlValidateQName(ncname, prefix, memory: xmlCharPtr; len: cint): xmlCharPtr; cdecl; external;
-function xmlSplitQName2(name: xmlCharPtr; var prefix: xmlCharPtr): xmlCharPtr; cdecl; external;
-function xmlSplitQName3(name: xmlCharPtr; var prefix: xmlCharPtr; var len: cint): xmlCharPtr; cdecl; external;
+function xmlValidateQName(ncname, prefix, memory: xmlCharPtr; len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlSplitQName2(name: xmlCharPtr; var prefix: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlSplitQName3(name: xmlCharPtr; var prefix: xmlCharPtr; var len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
 
 (*
  * Handling Buffers.
  *)
-procedure xmlSetBufferAllocationScheme(scheme: xmlBufferAllocationScheme); cdecl; external;
-function xmlGetBufferAllocationScheme: xmlBufferAllocationScheme; cdecl; external;
+procedure xmlSetBufferAllocationScheme(scheme: xmlBufferAllocationScheme); XMLCALL; XMLPUBFUN;
+function xmlGetBufferAllocationScheme: xmlBufferAllocationScheme; XMLCALL; XMLPUBFUN;
 
-function xmlBufferCreate: xmlBufferPtr; cdecl; external;
-function xmlBufferCreateSize(size: size_t): xmlBufferPtr; cdecl; external;
-function xmlBufferCreateStatic(mem: pointer; size: size_t): xmlBufferPtr; cdecl; external;
-function xmlBufferResize(buf: xmlBufferPtr; size: cuint): cint; cdecl; external;
-procedure xmlBufferFree(buf: xmlBufferPtr); cdecl; external;
+function xmlBufferCreate: xmlBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlBufferCreateSize(size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlBufferCreateStatic(mem: pointer; size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlBufferResize(buf: xmlBufferPtr; size: cuint): cint; XMLCALL; XMLPUBFUN;
+procedure xmlBufferFree(buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
 {XMLPUBFUN int XMLCALL
     xmlBufferDump   (FILE *file,
            xmlBufferPtr buf);}
-function xmlBufferAdd(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; cdecl; external;
-function xmlBufferAddHead(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; cdecl; external;
-function xmlBufferCat(buf: xmlBufferPtr; str: xmlCharPtr): cint; cdecl; external;
-function xmlBufferCCat(buf: xmlBufferPtr; str: pchar): cint; cdecl; external;
-function xmlBufferShrink(buf: xmlBufferPtr; len: cuint): cint; cdecl; external;
-function xmlBufferGrow(buf: xmlBufferPtr; len: cuint): cint; cdecl; external;
-procedure xmlBufferEmpty(buf: xmlBufferPtr); cdecl; external;
-function xmlBufferContent(buf: xmlBufferPtr): xmlCharPtr; cdecl; external;
-procedure xmlBufferSetAllocationScheme(buf: xmlBufferPtr; scheme: xmlBufferAllocationScheme); cdecl; external;
-function xmlBufferLength(buf: xmlBufferPtr): cint; cdecl; external;
+function xmlBufferAdd(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlBufferAddHead(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlBufferCat(buf: xmlBufferPtr; str: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlBufferCCat(buf: xmlBufferPtr; str: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlBufferShrink(buf: xmlBufferPtr; len: cuint): cint; XMLCALL; XMLPUBFUN;
+function xmlBufferGrow(buf: xmlBufferPtr; len: cuint): cint; XMLCALL; XMLPUBFUN;
+procedure xmlBufferEmpty(buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
+function xmlBufferContent(buf: xmlBufferPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+procedure xmlBufferSetAllocationScheme(buf: xmlBufferPtr; scheme: xmlBufferAllocationScheme); XMLCALL; XMLPUBFUN;
+function xmlBufferLength(buf: xmlBufferPtr): cint; XMLCALL; XMLPUBFUN;
 {$IFDEF 0}
 
 (*
@@ -1057,10 +1057,10 @@ XMLPUBFUN void XMLCALL
 (*
 * DOM-wrapper helper functions.
 *)
-function xmlDOMWrapNewCtxt: xmlDOMWrapCtxtPtr; cdecl; external;
-procedure xmlDOMWrapNewCtxt(ctxt: xmlDOMWrapCtxtPtr); cdecl; external;
-function xmlDOMWrapReconcileNamespaces(ctxt: xmlDOMWrapCtxtPtr; elem: xmlNodePtr; options: cint): cint; cdecl; external;
-function xmlDOMWrapAdoptNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; options: cint): cint; cdecl; external;
-function xmlDOMWrapRemoveNode(ctxt: xmlDOMWrapCtxtPtr; doc: xmlDocPtr; node: xmlNodePtr; options: cint): cint; cdecl; external;
-function xmlDOMWrapCloneNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; var clonedNode: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; deep, options: cint): cint; cdecl; external;
+function xmlDOMWrapNewCtxt: xmlDOMWrapCtxtPtr; XMLCALL; XMLPUBFUN;
+procedure xmlDOMWrapNewCtxt(ctxt: xmlDOMWrapCtxtPtr); XMLCALL; XMLPUBFUN;
+function xmlDOMWrapReconcileNamespaces(ctxt: xmlDOMWrapCtxtPtr; elem: xmlNodePtr; options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlDOMWrapAdoptNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlDOMWrapRemoveNode(ctxt: xmlDOMWrapCtxtPtr; doc: xmlDocPtr; node: xmlNodePtr; options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlDOMWrapCloneNode(ctxt: xmlDOMWrapCtxtPtr; sourceDoc: xmlDocPtr; node: xmlNodePtr; var clonedNode: xmlNodePtr; destDoc: xmlDocPtr; destParent: xmlNodePtr; deep, options: cint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}
