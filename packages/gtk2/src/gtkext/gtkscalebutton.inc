@@ -29,7 +29,7 @@ begin
    GTK_SCALE_BUTTON_GET_CLASS:=G_TYPE_INSTANCE_GET_CLASS(obj,GTK_TYPE_SCALE_BUTTON);
 end;
 
-function Available_GtkScaleButton: Boolean;
+function Available_GtkScaleButton_2_12: Boolean;
 begin
   Result := Assigned(gtk_scale_button_new);
 end;

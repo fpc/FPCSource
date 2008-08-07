@@ -19,5 +19,5 @@ var
   function GTK_IS_SCALE_BUTTON_CLASS(klass : pointer) : boolean; inline;
   function GTK_SCALE_BUTTON_GET_CLASS(obj : pointer) : PGTypeClass; inline;
 
-  function Available_GtkScaleButton: Boolean;
+  function Available_GtkScaleButton_2_12: Boolean;
 

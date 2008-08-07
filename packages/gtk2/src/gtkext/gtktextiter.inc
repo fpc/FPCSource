@@ -18,7 +18,7 @@ begin
   pointer(gtk_text_iter_backward_visible_lines):=GetProcAddress(gtkhandle,'gtk_text_iter_backward_visible_lines');
 end;
 
-function Available_GtkTextIter: Boolean;
+function Available_GtkTextIter_2_8: Boolean;
 begin
   Result := Assigned(gtk_text_iter_forward_visible_line);
 end;

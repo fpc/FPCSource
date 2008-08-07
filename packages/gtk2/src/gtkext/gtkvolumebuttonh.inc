@@ -14,5 +14,5 @@ var
   function GTK_IS_VOLUME_BUTTON_CLASS(klass : pointer) : boolean; inline;
   function GTK_VOLUME_BUTTON_GET_CLASS(obj : pointer) : PGTypeClass; inline;
 
-  function Available_GtkVolumeButton: Boolean;
+  function Available_GtkVolumeButton_2_12: Boolean;
 

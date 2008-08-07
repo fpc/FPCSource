@@ -88,8 +88,14 @@ begin
   GTK_STATUS_ICON_GET_CLASS := G_TYPE_INSTANCE_GET_CLASS (obj, GTK_TYPE_STATUS_ICON);
 end;
 
-function Available_GtkStatusIcon: Boolean;
+function Available_GtkStatusIcon_2_10: Boolean;
 begin
   Result := Assigned(gtk_status_icon_new);
 end;
+
+function Available_GtkStatusIcon_2_12: Boolean;
+begin
+  Result := Assigned(gtk_status_icon_get_screen);
+end;
+
 

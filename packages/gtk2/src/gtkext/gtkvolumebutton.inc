@@ -43,7 +43,7 @@ begin
    GTK_VOLUME_BUTTON_GET_CLASS:=G_TYPE_INSTANCE_GET_CLASS(obj,GTK_TYPE_VOLUME_BUTTON);
 end;
 
-function Available_GtkVolumeButton: Boolean;
+function Available_GtkVolumeButton_2_12: Boolean;
 begin
   Result := Assigned(gtk_volume_button_new);
 end;

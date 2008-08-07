@@ -63,5 +63,6 @@ var
   function GTK_IS_STATUS_ICON_CLASS(klass: Pointer): boolean; inline;
   function GTK_STATUS_ICON_GET_CLASS(obj: Pointer): PGTypeClass; inline;
 
-  function Available_GtkStatusIcon: Boolean;
+  function Available_GtkStatusIcon_2_10: Boolean;
+  function Available_GtkStatusIcon_2_12: Boolean;
 
