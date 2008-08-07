@@ -749,10 +749,10 @@ begin
     begin
       if VendorName<>'' then
         Result:=IncludeTrailingPathDelimiter(Result+VendorName);
-      Result:=Result+ApplicationName;
+      Result:=IncludeTrailingPathDelimiter(Result+ApplicationName);
     end
   else
-    Result:=DGetAppConfigDir(Global);
+    Result:=IncludeTrailingPathDelimiter(DGetAppConfigDir(Global));
 end;
 
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;
@@ -768,6 +768,7 @@ begin
   SetLength(buf, MAX_PATH);
   SetLength(buf, GetTempPath(Length(buf) + 1, PWideChar(buf)));
   Result:=buf;
+  Result := IncludeTrailingPathDelimiter(Result);
 end;
 
 {****************************************************************************
