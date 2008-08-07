@@ -8,13 +8,21 @@ interface
 uses
   ctypes;
 
-{.$DEFINE DYNLINK}
+{$IFDEF WINDOWS}
+  {$DEFINE DYNLINK}
+{$ENDIF}
 
 {$IFDEF DYNLINK}
 const
+{$IF Defined(WINDOWS)}
+  libxml2lib = 'libxml2.dll';
+{$ELSEIF Defined(UNIX)}
   libxml2lib = 'libxml2.so';
 {$ELSE}
-  {$LINKLIB libxml2.so}
+  {$MESSAGE ERROR 'DYNLINK not supported'}
+{$IFEND}
+{$ELSE}
+  {$LINKLIB libxml2}
 {$ENDIF}
 
 {$i xmlexports.inc}
