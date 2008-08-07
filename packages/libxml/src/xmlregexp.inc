@@ -38,7 +38,7 @@
 function xmlRegexpCompile(regexp: xmlCharPtr): xmlRegexpPtr; XMLCALL; XMLPUBFUN;
 procedure xmlRegFreeRegexp(regexp: xmlRegexpPtr); XMLCALL; XMLPUBFUN;
 function xmlRegexpExec(comp: xmlRegexpPtr; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-//procedure xmlRegexpPrint(output: FILE; regexp: xmlRegexpPtr); XMLCALL; XMLPUBFUN;
+procedure xmlRegexpPrint(output: PFILE; regexp: xmlRegexpPtr); XMLCALL; XMLPUBFUN;
 function xmlRegexpIsDeterminist(comp: xmlRegexpPtr): cint; XMLCALL; XMLPUBFUN;
 
 (*

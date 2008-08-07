@@ -13,7 +13,7 @@
  *
  * DEBUG_MEMORY replaces the allocator with a collect and debug
  * shell to the libc allocator.
- * DEBUG_MEMORY should only be activated when debugging 
+ * DEBUG_MEMORY should only be activated when debugging
  * libxml i.e. if libxml has been configured with --with-debug-mem too.
  *)
 {.$DEFINE DEBUG_MEMORY_FREED}
@@ -28,7 +28,7 @@
 (**
  * DEBUG_MEMORY_LOCATION:
  *
- * DEBUG_MEMORY_LOCATION should be activated only when debugging 
+ * DEBUG_MEMORY_LOCATION should be activated only when debugging
  * libxml i.e. if libxml has been configured with --with-debug-mem too.
  *)
 {$IFDEF DEBUG_MEMORY_LOCATION}
@@ -103,7 +103,7 @@ function xmlGcMemGet(var freeFunc: xmlFreeFunc; var mallocFunc: xmlMallocFunc; v
  *)
 function xmlInitMemory(): cint; XMLCALL; XMLPUBFUN;
 
-(* 
+(*
  * Cleanup of the memory layer.
  *)
 procedure xmlCleanupMemory(); XMLCALL; XMLPUBFUN;
@@ -113,8 +113,8 @@ procedure xmlCleanupMemory(); XMLCALL; XMLPUBFUN;
  *)
 function xmlMemUsed(): cint; XMLCALL; XMLPUBFUN;
 function xmlMemBlocks(): cint; XMLCALL; XMLPUBFUN;
-{XMLPUBFUN void XMLCALL	xmlMemDisplay	(FILE *fp);
-XMLPUBFUN void XMLCALL	xmlMemShow	(FILE *fp, int nr);}
+procedure xmlMemDisplay(fp: PFILE); XMLCALL; XMLPUBFUN;
+procedure xmlMemShow(fp: PFILE; nr: cint); XMLCALL; XMLPUBFUN;
 procedure xmlMemoryDump(); XMLCALL; XMLPUBFUN;
 function xmlMemMalloc(size: size_t): pointer; XMLCALL; XMLPUBFUN;
 function xmlMemRealloc(ptr: pointer; size: size_t): pointer; XMLCALL; XMLPUBFUN;

@@ -94,7 +94,6 @@ function xmlThrDefDeregisterNodeDefault(func: xmlRegisterNodeFunc): xmlDeregiste
 function xmlDeregisterNodeDefault(func: xmlOutputBufferCreateFilenameFunc): xmlOutputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
 function xmlThrDefDeregisterNodeDefault(func: xmlParserInputBufferCreateFilenameFunc): xmlParserInputBufferCreateFilenameFunc; XMLCALL; XMLPUBFUN;
 
-{$IFDEF 0}
 (** DOC_DISABLE *)
 (*
  * In general the memory allocation entry points are not kept
@@ -108,71 +107,80 @@ function xmlThrDefDeregisterNodeDefault(func: xmlParserInputBufferCreateFilename
 
 {$IFDEF LIBXML_THREAD_ALLOC_ENABLED}
 {$IFDEF LIBXML_THREAD_ENABLED}
-XMLPUBFUN  xmlMallocFunc * XMLCALL __xmlMalloc(void);
-#define xmlMalloc ( *(__xmlMalloc()))
+function __xmlMalloc: xmlMallocFuncPtr; XMLCALL; XMLPUBFUN;
+{$DEFINE xmlMalloc := __xmlMalloc()^ }
 {$ELSE}
-XMLPUBVAR xmlMallocFunc xmlMalloc;
+var
+  xmlMalloc: xmlMallocFunc; XMLPUBVAR;
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
-XMLPUBFUN  xmlMallocFunc * XMLCALL __xmlMallocAtomic(void);
+function __xmlMallocAtomic: xmlMallocFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlMallocAtomic ( *(__xmlMallocAtomic()))
 {$ELSE}
-XMLPUBVAR xmlMallocFunc xmlMallocAtomic;
+var
+  xmlMallocAtomic: xmlMallocFunc; XMLPUBVAR;
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
-XMLPUBFUN  xmlReallocFunc * XMLCALL __xmlRealloc(void);
+function __xmlRealloc: xmlReallocFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlRealloc ( *(__xmlRealloc()))
 {$ELSE}
-XMLPUBVAR xmlReallocFunc xmlRealloc;
+var
+  xmlRealloc: xmlReallocFunc; XMLPUBVAR;
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
-XMLPUBFUN  xmlFreeFunc * XMLCALL __xmlFree(void);
+function __xmlFree: xmlFreeFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlFree ( *(__xmlFree()))
 {$ELSE}
-XMLPUBVAR xmlFreeFunc xmlFree;
+var
+  xmlFree: xmlFreeFunc; XMLPUBVAR;
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
-XMLPUBFUN  xmlStrdupFunc * XMLCALL __xmlMemStrdup(void);
+function __xmlMemStrdup: xmlStrdupFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlMemStrdup ( *(__xmlMemStrdup()))
 {$ELSE}
-XMLPUBVAR xmlStrdupFunc xmlMemStrdup;
+var
+  xmlMemStrdup: xmlStrdupFunc; XMLPUBVAR;
 {$ENDIF}
 
 {$ELSE} (* !LIBXML_THREAD_ALLOC_ENABLED *)
-XMLPUBVAR xmlMallocFunc xmlMalloc;
-XMLPUBVAR xmlMallocFunc xmlMallocAtomic;
-XMLPUBVAR xmlReallocFunc xmlRealloc;
-XMLPUBVAR xmlFreeFunc xmlFree;
-XMLPUBVAR xmlStrdupFunc xmlMemStrdup;
+var
+  xmlMalloc: xmlMallocFunc; XMLPUBVAR;
+  xmlMallocAtomic: xmlMallocFunc; XMLPUBVAR;
+  xmlRealloc: xmlReallocFunc; XMLPUBVAR;
+  xmlFree: xmlFreeFunc; XMLPUBVAR;
+  xmlMemStrdup: xmlStrdupFunc; XMLPUBVAR;
 {$ENDIF} (* LIBXML_THREAD_ALLOC_ENABLED *)
 
 {$IFDEF LIBXML_DOCB_ENABLED}
-XMLPUBFUN  xmlSAXHandlerV1 * XMLCALL __docbDefaultSAXHandler(void);
+function __docbDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define docbDefaultSAXHandler ( *(__docbDefaultSAXHandler()))
+{$DEFINE docbDefaultSAXHandler := __docbDefaultSAXHandler()^ }
 {$ELSE}
-XMLPUBVAR xmlSAXHandlerV1 docbDefaultSAXHandler;
+var
+  docbDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
 {$ENDIF}
 {$ENDIF}
 
 {$IFDEF LIBXML_HTML_ENABLED}
-XMLPUBFUN xmlSAXHandlerV1 * XMLCALL __htmlDefaultSAXHandler(void);
+function __htmlDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define htmlDefaultSAXHandler ( *(__htmlDefaultSAXHandler()))
+{$DEFINE htmlDefaultSAXHandler := __htmlDefaultSAXHandler()^ }
 {$ELSE}
-XMLPUBVAR xmlSAXHandlerV1 htmlDefaultSAXHandler;
+var
+  htmlDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
 {$ENDIF}
 {$ENDIF}
 
-XMLPUBFUN xmlError * XMLCALL __xmlLastError(void);
+function __xmlLastError: xmlErrorPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlLastError ( *(__xmlLastError()))
+{$DEFINE xmlLastError := __xmlLastError()^ }
 {$ELSE}
-XMLPUBVAR xmlError xmlLastError;
+var
+  xmlLastError: xmlError; XMLPUBVAR;
 {$ENDIF}
 
 (*
@@ -181,187 +189,209 @@ XMLPUBVAR xmlError xmlLastError;
  * Do not modify the previous line.
  *)
 
-
-XMLPUBFUN int * XMLCALL __oldXMLWDcompatibility(void);
+function __oldXMLWDcompatibility: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define oldXMLWDcompatibility ( *(__oldXMLWDcompatibility()))
+{$DEFINE oldXMLWDcompatibility := __oldXMLWDcompatibility()^ }
 {$ELSE}
-XMLPUBVAR int oldXMLWDcompatibility;
+var
+  oldXMLWDcompatibility: cint; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN xmlBufferAllocationScheme * XMLCALL __xmlBufferAllocScheme(void);
+function __xmlBufferAllocScheme: xmlBufferAllocationSchemePtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlBufferAllocScheme ( *(__xmlBufferAllocScheme()))
+{$DEFINE xmlBufferAllocScheme := __xmlBufferAllocScheme()^ }
 {$ELSE}
-XMLPUBVAR xmlBufferAllocationScheme xmlBufferAllocScheme;
+var
+  xmlBufferAllocScheme: xmlBufferAllocationScheme; XMLPUBVAR;
 {$ENDIF}
-XMLPUBFUN xmlBufferAllocationScheme XMLCALL xmlThrDefBufferAllocScheme(xmlBufferAllocationScheme v);
+function xmlThrDefBufferAllocScheme(v: xmlBufferAllocationScheme): xmlBufferAllocationScheme; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int * XMLCALL __xmlDefaultBufferSize(void);
+function __xmlDefaultBufferSize: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlDefaultBufferSize ( *(__xmlDefaultBufferSize()))
+{$DEFINE xmlDefaultBufferSize := __xmlDefaultBufferSize()^ }
 {$ELSE}
-XMLPUBVAR int xmlDefaultBufferSize;
+var
+  xmlDefaultBufferSize: cint; XMLPUBVAR;
 {$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefDefaultBufferSize(int v);
+function xmlThrDefDefaultBufferSize(v: cint): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN xmlSAXHandlerV1 * XMLCALL __xmlDefaultSAXHandler(void);
+function __xmlDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlDefaultSAXHandler ( *(__xmlDefaultSAXHandler()))
+{$DEFINE xmlDefaultSAXHandler := __xmlDefaultSAXHandler()^ }
 {$ELSE}
-XMLPUBVAR xmlSAXHandlerV1 xmlDefaultSAXHandler;
-{$ENDIF}
-
-XMLPUBFUN xmlSAXLocator * XMLCALL __xmlDefaultSAXLocator(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlDefaultSAXLocator ( *(__xmlDefaultSAXLocator()))
-{$ELSE}
-XMLPUBVAR xmlSAXLocator xmlDefaultSAXLocator;
+var
+  xmlDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN int * XMLCALL __xmlDoValidityCheckingDefaultValue(void);
+function __xmlDefaultSAXLocator: xmlSAXLocatorPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlDoValidityCheckingDefaultValue ( *(__xmlDoValidityCheckingDefaultValue()))
+{$DEFINE xmlDefaultSAXLocator := __xmlDefaultSAXLocator()^ }
 {$ELSE}
-XMLPUBVAR int xmlDoValidityCheckingDefaultValue;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefDoValidityCheckingDefaultValue(int v);
-
-XMLPUBFUN xmlGenericErrorFunc * XMLCALL __xmlGenericError(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlGenericError ( *(__xmlGenericError()))
-{$ELSE}
-XMLPUBVAR xmlGenericErrorFunc xmlGenericError;
+var
+  xmlDefaultSAXLocator: xmlSAXLocator; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN xmlStructuredErrorFunc * XMLCALL __xmlStructuredError(void);
+function __xmlDoValidityCheckingDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlStructuredError ( *(__xmlStructuredError()))
+{$DEFINE xmlDoValidityCheckingDefaultValue := __xmlDoValidityCheckingDefaultValue()^ }
 {$ELSE}
-XMLPUBVAR xmlStructuredErrorFunc xmlStructuredError;
+var
+  xmlDoValidityCheckingDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefDoValidityCheckingDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlGenericError: xmlGenericErrorFuncPtr; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlGenericError := __xmlGenericError()^ }
+{$ELSE}
+var
+  xmlGenericError: xmlGenericErrorFunc; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN void * * XMLCALL __xmlGenericErrorContext(void);
+function __xmlStructuredError: xmlStructuredErrorFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlGenericErrorContext ( *(__xmlGenericErrorContext()))
+{$DEFINE xmlStructuredError := __xmlStructuredError()^ }
 {$ELSE}
-XMLPUBVAR void * xmlGenericErrorContext;
+var
+  xmlStructuredError: xmlStructuredErrorFunc; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN int * XMLCALL __xmlGetWarningsDefaultValue(void);
+function __xmlGenericErrorContext: ppointer; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlGetWarningsDefaultValue ( *(__xmlGetWarningsDefaultValue()))
+{$DEFINE xmlGenericErrorContext := __xmlGenericErrorContext()^ }
 {$ELSE}
-XMLPUBVAR int xmlGetWarningsDefaultValue;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefGetWarningsDefaultValue(int v);
-
-XMLPUBFUN int * XMLCALL __xmlIndentTreeOutput(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlIndentTreeOutput ( *(__xmlIndentTreeOutput()))
-{$ELSE}
-XMLPUBVAR int xmlIndentTreeOutput;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefIndentTreeOutput(int v);
-
-XMLPUBFUN char * * XMLCALL __xmlTreeIndentString(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlTreeIndentString ( *(__xmlTreeIndentString()))
-{$ELSE}
-XMLPUBVAR char * xmlTreeIndentString;
-{$ENDIF}
-XMLPUBFUN char * XMLCALL xmlThrDefTreeIndentString(char * v);
-
-XMLPUBFUN int * XMLCALL __xmlKeepBlanksDefaultValue(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlKeepBlanksDefaultValue ( *(__xmlKeepBlanksDefaultValue()))
-{$ELSE}
-XMLPUBVAR int xmlKeepBlanksDefaultValue;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefKeepBlanksDefaultValue(int v);
-
-XMLPUBFUN int * XMLCALL __xmlLineNumbersDefaultValue(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlLineNumbersDefaultValue ( *(__xmlLineNumbersDefaultValue()))
-{$ELSE}
-XMLPUBVAR int xmlLineNumbersDefaultValue;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefLineNumbersDefaultValue(int v);
-
-XMLPUBFUN int * XMLCALL __xmlLoadExtDtdDefaultValue(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlLoadExtDtdDefaultValue ( *(__xmlLoadExtDtdDefaultValue()))
-{$ELSE}
-XMLPUBVAR int xmlLoadExtDtdDefaultValue;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefLoadExtDtdDefaultValue(int v);
-
-XMLPUBFUN int * XMLCALL __xmlParserDebugEntities(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlParserDebugEntities ( *(__xmlParserDebugEntities()))
-{$ELSE}
-XMLPUBVAR int xmlParserDebugEntities;
-{$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefParserDebugEntities(int v);
-
-XMLPUBFUN char * * XMLCALL __xmlParserVersion(void);
-{$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlParserVersion ( *(__xmlParserVersion()))
-{$ELSE}
-XMLPUBVAR char * xmlParserVersion;
+var
+  xmlGenericErrorContext: pointer; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN int * XMLCALL __xmlPedanticParserDefaultValue(void);
+function __xmlGetWarningsDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlPedanticParserDefaultValue ( *(__xmlPedanticParserDefaultValue()))
+{$DEFINE xmlGetWarningsDefaultValue := __xmlGetWarningsDefaultValue()^ }
 {$ELSE}
-XMLPUBVAR int xmlPedanticParserDefaultValue;
+var
+  xmlGetWarningsDefaultValue: cint; XMLPUBVAR;
 {$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefPedanticParserDefaultValue(int v);
+function xmlThrDefGetWarningsDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int * XMLCALL __xmlSaveNoEmptyTags(void);
+function __xmlIndentTreeOutput: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlSaveNoEmptyTags ( *(__xmlSaveNoEmptyTags()))
+{$DEFINE xmlIndentTreeOutput := __xmlIndentTreeOutput()^ }
 {$ELSE}
-XMLPUBVAR int xmlSaveNoEmptyTags;
+var
+  xmlIndentTreeOutput: cint; XMLPUBVAR;
 {$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefSaveNoEmptyTags(int v);
+function xmlThrDefIndentTreeOutput(v: cint): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int * XMLCALL __xmlSubstituteEntitiesDefaultValue(void);
+function __xmlTreeIndentString: ppchar; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlSubstituteEntitiesDefaultValue ( *(__xmlSubstituteEntitiesDefaultValue()))
+{$DEFINE xmlTreeIndentString := __xmlTreeIndentString()^ }
 {$ELSE}
-XMLPUBVAR int xmlSubstituteEntitiesDefaultValue;
+var
+  xmlTreeIndentString: pchar; XMLPUBVAR;
 {$ENDIF}
-XMLPUBFUN int XMLCALL xmlThrDefSubstituteEntitiesDefaultValue(int v);
+function xmlThrDefTreeIndentString(v: pchar): pchar; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN xmlRegisterNodeFunc * XMLCALL __xmlRegisterNodeDefaultValue(void);
+function __xmlKeepBlanksDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlRegisterNodeDefaultValue ( *(__xmlRegisterNodeDefaultValue()))
+{$DEFINE xmlKeepBlanksDefaultValue := __xmlKeepBlanksDefaultValue()^ }
 {$ELSE}
-XMLPUBVAR xmlRegisterNodeFunc xmlRegisterNodeDefaultValue;
+var
+  xmlKeepBlanksDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefKeepBlanksDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlLineNumbersDefaultValue: pcint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlLineNumbersDefaultValue := __xmlLineNumbersDefaultValue()^ }
+{$ELSE}
+var
+  xmlLineNumbersDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefLineNumbersDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlLoadExtDtdDefaultValue: pcint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlLoadExtDtdDefaultValue := __xmlLoadExtDtdDefaultValue()^ }
+{$ELSE}
+var
+  xmlLoadExtDtdDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefLoadExtDtdDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlParserDebugEntities: pcint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlParserDebugEntities := __xmlParserDebugEntities()^ }
+{$ELSE}
+var
+  xmlParserDebugEntities: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefParserDebugEntities(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlParserVersion: ppchar; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlParserVersion := __xmlParserVersion()^ }
+{$ELSE}
+var
+  xmlParserVersion: pchar; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN xmlDeregisterNodeFunc * XMLCALL __xmlDeregisterNodeDefaultValue(void);
+function __xmlPedanticParserDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlDeregisterNodeDefaultValue ( *(__xmlDeregisterNodeDefaultValue()))
+{$DEFINE xmlPedanticParserDefaultValue := __xmlPedanticParserDefaultValue()^ }
 {$ELSE}
-XMLPUBVAR xmlDeregisterNodeFunc xmlDeregisterNodeDefaultValue;
+var
+  xmlPedanticParserDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefPedanticParserDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlSaveNoEmptyTags: pcint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlSaveNoEmptyTags := __xmlSaveNoEmptyTags()^ }
+{$ELSE}
+var
+  xmlSaveNoEmptyTags: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefSaveNoEmptyTags(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlSubstituteEntitiesDefaultValue: pcint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlSubstituteEntitiesDefaultValue := __xmlSubstituteEntitiesDefaultValue()^ }
+{$ELSE}
+var
+  xmlSubstituteEntitiesDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
+function xmlThrDefSubstituteEntitiesDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
+
+function __xmlRegisterNodeDefaultValue: xmlRegisterNodeFuncPtr; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlRegisterNodeDefaultValue := __xmlRegisterNodeDefaultValue()^ }
+{$ELSE}
+var
+  xmlRegisterNodeDefaultValue: xmlRegisterNodeFunc; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN xmlParserInputBufferCreateFilenameFunc * XMLCALL __xmlParserInputBufferCreateFilenameValue(void);
+function __xmlDeregisterNodeDefaultValue: xmlDeregisterNodeFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlParserInputBufferCreateFilenameValue ( *(__xmlParserInputBufferCreateFilenameValue()))
+{$DEFINE xmlDeregisterNodeDefaultValue := __xmlDeregisterNodeDefaultValue()^ }
 {$ELSE}
-XMLPUBVAR xmlParserInputBufferCreateFilenameFunc xmlParserInputBufferCreateFilenameValue;
+var
+  xmlDeregisterNodeDefaultValue: xmlDeregisterNodeFunc; XMLPUBVAR;
 {$ENDIF}
 
-XMLPUBFUN xmlOutputBufferCreateFilenameFunc * XMLCALL __xmlOutputBufferCreateFilenameValue(void);
+function __xmlParserInputBufferCreateFilenameValue: xmlParserInputBufferCreateFilenameFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
-#define xmlOutputBufferCreateFilenameValue ( *(__xmlOutputBufferCreateFilenameValue()))
+{$DEFINE xmlParserInputBufferCreateFilenameValue := __xmlParserInputBufferCreateFilenameValue()^ }
 {$ELSE}
-XMLPUBVAR xmlOutputBufferCreateFilenameFunc xmlOutputBufferCreateFilenameValue;
+var
+  xmlParserInputBufferCreateFilenameValue: xmlParserInputBufferCreateFilenameFunc; XMLPUBVAR;
 {$ENDIF}
-{$ENDIF} (* 0 *)
+
+function __xmlOutputBufferCreateFilenameValue: xmlOutputBufferCreateFilenameFuncPtr; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_THREAD_ENABLED}
+{$DEFINE xmlOutputBufferCreateFilenameValue := __xmlOutputBufferCreateFilenameValue()^ }
+{$ELSE}
+var
+  xmlOutputBufferCreateFilenameValue: xmlOutputBufferCreateFilenameFunc; XMLPUBVAR;
+{$ENDIF}
 
 {$ENDIF}

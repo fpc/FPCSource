@@ -8,26 +8,17 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_PATTERN_H__
-#define __XML_PATTERN_H__
+{$IFDEF LIBXML_PATTERN_ENABLED}
 
-#include <libxml/xmlversion.h>
-#include <libxml/tree.h>
-#include <libxml/dict.h>
-
-{ LIBXML_PATTERN_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF TYPE}
 (**
  * xmlPattern:
  *
  * A compiled (XPath based) pattern to select nodes
  *)
-typedef struct _xmlPattern xmlPattern;
-typedef xmlPattern *xmlPatternPtr;
+  xmlPattern = record end;
+
+  xmlStreamCtxt = record end;
 
 (**
  * xmlPatternFlags:
@@ -36,65 +27,32 @@ typedef xmlPattern *xmlPatternPtr;
  * matching with this module
  *
  *)
-typedef enum {
+  xmlPatternFlags = (
     XML_PATTERN_DEFAULT		= 0,	(* simple pattern match *)
-    XML_PATTERN_XPATH		= 1<<0,	(* standard XPath pattern *)
-    XML_PATTERN_XSSEL		= 1<<1,	(* XPath subset for schema selector *)
-    XML_PATTERN_XSFIELD		= 1<<2	(* XPath subset for schema field *)
-} xmlPatternFlags;
+    XML_PATTERN_XPATH		= 1 shl 0,	(* standard XPath pattern *)
+    XML_PATTERN_XSSEL		= 1 shl 1,	(* XPath subset for schema selector *)
+    XML_PATTERN_XSFIELD		= 1 shl 2	(* XPath subset for schema field *)
+  );
+{$ENDIF}
 
-XMLPUBFUN void XMLCALL
-			xmlFreePattern		(xmlPatternPtr comp);
-
-XMLPUBFUN void XMLCALL
-			xmlFreePatternList	(xmlPatternPtr comp);
-
-XMLPUBFUN xmlPatternPtr XMLCALL
-			xmlPatterncompile	(xmlChar *pattern,
-						 xmlDict *dict,
-						 int flags,
-						 xmlChar **namespaces);
-XMLPUBFUN int XMLCALL
-			xmlPatternMatch		(xmlPatternPtr comp,
-						 xmlNodePtr node);
+{$IFDEF FUNCTION}
+procedure xmlFreePattern(comp: xmlPatternPtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreePatternList(comp: xmlPatternPtr); XMLCALL; XMLPUBFUN;
+function xmlPatterncompile(pattern: xmlCharPtr; dict: xmlDictPtr; flags: cint; namespaces: xmlCharPtrPtr): xmlPatternPtr; XMLCALL; XMLPUBFUN;
+function xmlPatternMatch(comp: xmlPatternPtr; node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
 
 (* streaming interfaces *)
-typedef struct _xmlStreamCtxt xmlStreamCtxt;
-typedef xmlStreamCtxt *xmlStreamCtxtPtr;
+function xmlPatternStreamable(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlPatternMaxDepth(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlPatternMinDepth(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlPatternFromRoot(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlPatternGetStreamCtxt(comp: xmlPatternPtr): xmlStreamCtxtPtr; XMLCALL; XMLPUBFUN;
+procedure xmlFreeStreamCtxt(stream: xmlStreamCtxtPtr); XMLCALL; XMLPUBFUN;
+function xmlStreamPushNode(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr; nodeType: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlStreamPush(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlStreamPushAttr(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlStreamPop(stream: xmlStreamCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlStreamWantsAnyNode(stream: xmlStreamCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+{$ENDIF}
 
-XMLPUBFUN int XMLCALL
-			xmlPatternStreamable	(xmlPatternPtr comp);
-XMLPUBFUN int XMLCALL
-			xmlPatternMaxDepth	(xmlPatternPtr comp);
-XMLPUBFUN int XMLCALL
-			xmlPatternMinDepth	(xmlPatternPtr comp);
-XMLPUBFUN int XMLCALL
-			xmlPatternFromRoot	(xmlPatternPtr comp);
-XMLPUBFUN xmlStreamCtxtPtr XMLCALL
-			xmlPatternGetStreamCtxt	(xmlPatternPtr comp);
-XMLPUBFUN void XMLCALL
-			xmlFreeStreamCtxt	(xmlStreamCtxtPtr stream);
-XMLPUBFUN int XMLCALL
-			xmlStreamPushNode	(xmlStreamCtxtPtr stream,
-						 xmlChar *name,
-						 xmlChar *ns,
-						 int nodeType);
-XMLPUBFUN int XMLCALL
-			xmlStreamPush		(xmlStreamCtxtPtr stream,
-						 xmlChar *name,
-						 xmlChar *ns);
-XMLPUBFUN int XMLCALL
-			xmlStreamPushAttr	(xmlStreamCtxtPtr stream,
-						 xmlChar *name,
-						 xmlChar *ns);
-XMLPUBFUN int XMLCALL
-			xmlStreamPop		(xmlStreamCtxtPtr stream);
-XMLPUBFUN int XMLCALL
-			xmlStreamWantsAnyNode	(xmlStreamCtxtPtr stream);
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_PATTERN_ENABLED *)
-
-#endif (* __XML_PATTERN_H__ *)
+{$ENDIF} (* LIBXML_PATTERN_ENABLED *)

@@ -8,77 +8,43 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_THREADS_H__
-#define __XML_THREADS_H__
-
-#include <libxml/xmlversion.h>
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF TYPE}
 (*
  * xmlMutex are a simple mutual exception locks.
  *)
-typedef struct _xmlMutex xmlMutex;
-typedef xmlMutex *xmlMutexPtr;
+  xmlMutex = record end;
 
 (*
  * xmlRMutex are reentrant mutual exception locks.
  *)
-typedef struct _xmlRMutex xmlRMutex;
-typedef xmlRMutex *xmlRMutexPtr;
+  xmlRMutex = record end;
+{$ENDIF}
 
-{ __cplusplus
-}
-#endif
-#include <libxml/globals.h>
-{ __cplusplus
-extern "C" {
-#endif
-XMLPUBFUN xmlMutexPtr XMLCALL
-			xmlNewMutex	(void);
-XMLPUBFUN void XMLCALL
-			xmlMutexLock	(xmlMutexPtr tok);
-XMLPUBFUN void XMLCALL
-			xmlMutexUnlock	(xmlMutexPtr tok);
-XMLPUBFUN void XMLCALL
-			xmlFreeMutex	(xmlMutexPtr tok);
+{$IFDEF FUNCTION}
+function xmlNewMutex: xmlMutexPtr; XMLCALL; XMLPUBFUN;
+procedure xmlMutexLock(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
+procedure xmlMutexUnlock(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeMutex(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN xmlRMutexPtr XMLCALL
-			xmlNewRMutex	(void);
-XMLPUBFUN void XMLCALL
-			xmlRMutexLock	(xmlRMutexPtr tok);
-XMLPUBFUN void XMLCALL
-			xmlRMutexUnlock	(xmlRMutexPtr tok);
-XMLPUBFUN void XMLCALL
-			xmlFreeRMutex	(xmlRMutexPtr tok);
+function xmlNewRMutex: xmlRMutexPtr; XMLCALL; XMLPUBFUN;
+procedure xmlRMutexLock(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
+procedure xmlRMutexUnlock(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeRMutex(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
 
 (*
  * Library wide APIs.
  *)
-XMLPUBFUN void XMLCALL
-			xmlInitThreads	(void);
-XMLPUBFUN void XMLCALL
-			xmlLockLibrary	(void);
-XMLPUBFUN void XMLCALL
-			xmlUnlockLibrary(void);
-XMLPUBFUN int XMLCALL
-			xmlGetThreadId	(void);
-XMLPUBFUN int XMLCALL
-			xmlIsMainThread	(void);
-XMLPUBFUN void XMLCALL
-			xmlCleanupThreads(void);
-XMLPUBFUN xmlGlobalStatePtr XMLCALL
-			xmlGetGlobalState(void);
+procedure xmlInitThreads; XMLCALL; XMLPUBFUN;
+procedure xmlLockLibrary; XMLCALL; XMLPUBFUN;
+procedure xmlUnlockLibrary; XMLCALL; XMLPUBFUN;
 
-#if defined(HAVE_WIN32_THREADS) && !defined(HAVE_COMPILER_TLS) && defined(LIBXML_STATIC_FOR_DLL)
-int XMLCALL xmlDllMain(void *hinstDLL, unsigned long fdwReason, void *lpvReserved);
-#endif
+function xmlGetThreadId: cint; XMLCALL; XMLPUBFUN;
+function xmlIsMainThread: cint; XMLCALL; XMLPUBFUN;
+procedure xmlCleanupThreads; XMLCALL; XMLPUBFUN;
+function xmlGetGlobalState: xmlGlobalStatePtr; XMLCALL; XMLPUBFUN;
 
-{ __cplusplus
-}
-#endif
+{$IF defined(HAVE_WIN32_THREADS) and not defined(HAVE_COMPILER_TLS) and defined(LIBXML_STATIC_FOR_DLL)}
+//int XMLCALL xmlDllMain(void *hinstDLL, unsigned long fdwReason, void *lpvReserved);
+{$ENDIF}
 
-
-#endif (* __XML_THREADS_H__ *)
+{$ENDIF}

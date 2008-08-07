@@ -141,7 +141,7 @@ function xmlPopInputCallbacks: cint; XMLCALL; XMLPUBFUN;
 procedure xmlRegisterDefaultInputCallbacks; XMLCALL; XMLPUBFUN;
 function xmlAllocParserInputBuffer(enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlParserInputBufferCreateFilename(URI: pchar; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
-//function xmlParserInputBufferCreateFile(file: FILE; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlParserInputBufferCreateFile(fp: PFILE; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlParserInputBufferCreateFd(fd: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlParserInputBufferCreateMem(mem: pchar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlParserInputBufferCreateStatic(mem: pchar; size: cint; enc: xmlCharEncoding): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
@@ -164,7 +164,7 @@ procedure xmlRegisterDefaultOutputCallbacks; XMLCALL; XMLPUBFUN;
 function xmlAllocOutputBuffer(encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
 
 function xmlOutputBufferCreateFilename(URI: pchar; encoder: xmlCharEncodingHandlerPtr; compression: cint): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
-//function xmlOutputBufferCreateFile(file: FILE; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlOutputBufferCreateFile(fp: PFILE; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlOutputBufferCreateBuffer(buffer: xmlBufferPtr; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlOutputBufferCreateFd(fd: cint; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlOutputBufferCreateIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoder: xmlCharEncodingHandlerPtr): xmlOutputBufferPtr; XMLCALL; XMLPUBFUN;

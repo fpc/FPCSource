@@ -47,7 +47,7 @@ function xmlParseURI(str: pchar): xmlURIPtr; XMLCALL; XMLPUBFUN;
 function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; XMLCALL; XMLPUBFUN;
 function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; XMLCALL; XMLPUBFUN;
 function xmlSaveUri(uri: xmlURIPtr): pchar; XMLCALL; XMLPUBFUN;
-//procedure xmlPrintURI(stream: FILE; uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
+procedure xmlPrintURI(stream: PFILE; uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
 function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; XMLCALL; XMLPUBFUN;
 function xmlNormalizeURIPath(path: pchar): cint; XMLCALL; XMLPUBFUN;

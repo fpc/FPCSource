@@ -28,7 +28,7 @@
  * xmlParserProperties:
  *
  * Some common options to use with xmlTextReaderSetParserProp, but it
- * is better to use xmlParserOption and the xmlReaderNewxxx and 
+ * is better to use xmlParserOption and the xmlReaderNewxxx and
  * xmlReaderForxxx APIs now.
  *)
   xmlParserProperties = (
@@ -217,11 +217,11 @@ function xmlReaderNewIO(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; 
  *)
 function xmlTextReaderLocatorLineNumber(locator: xmlTextReaderLocatorPtr): cint; XMLCALL; XMLPUBFUN;
 function xmlTextReaderLocatorBaseURI(locator: xmlTextReaderLocatorPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-procedure xmlTextReaderLocatorBaseURI(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); XMLCALL; XMLPUBFUN;
+procedure xmlTextReaderSetErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); XMLCALL; XMLPUBFUN;
 procedure xmlTextReaderSetStructuredErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); XMLCALL; XMLPUBFUN;
 procedure xmlTextReaderGetErrorHandler(reader: xmlTextReaderPtr; var f: xmlTextReaderErrorFunc; var arg: pointer); XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_READER_ENABLED *)
-{$ENDIF} (* __XML_XMLREADER_H__ *)
+{$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)
 

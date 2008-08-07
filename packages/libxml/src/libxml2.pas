@@ -3,6 +3,9 @@ unit libxml2;
 {$mode objfpc}
 {$macro on}
 
+{$ALIGN 8}
+{$MINENUMSIZE 4}
+
 interface
 
 uses
@@ -30,6 +33,7 @@ const
 
 type
   iconv_t = pointer;
+  PFILE = pointer;
   va_list = pointer;
   size_t = {$IF Sizeof(pointer) = 8}qword{$ELSE}longword{$IFEND};
 
@@ -48,6 +52,10 @@ type
 
 // globals.inc
   xmlGlobalStatePtr = ^xmlGlobalState;
+  xmlRegisterNodeFuncPtr = ^xmlRegisterNodeFunc;
+  xmlDeregisterNodeFuncPtr = ^xmlDeregisterNodeFunc;
+  xmlParserInputBufferCreateFilenameFuncPtr = ^xmlParserInputBufferCreateFilenameFunc;
+  xmlOutputBufferCreateFilenameFuncPtr = ^xmlOutputBufferCreateFilenameFunc;
 
 // hash.inc
   xmlHashTablePtr = ^xmlHashTable;
@@ -61,6 +69,26 @@ type
   xmlSAXLocatorPtr = ^xmlSAXLocator;
   xmlSAXHandlerPtr = ^xmlSAXHandler;
   xmlSAXHandlerV1Ptr = ^xmlSAXHandlerV1;
+
+// pattern.inc
+  xmlPatternPtr = ^xmlPattern;
+  xmlStreamCtxtPtr = ^xmlStreamCtxt;
+
+// schemasInternals.inc
+  xmlSchemaValPtr = ^xmlSchemaVal;
+  xmlSchemaValPtrPtr = ^xmlSchemaValPtr;
+  xmlSchemaTypePtr = ^xmlSchemaType;
+  xmlSchemaFacetPtr = ^xmlSchemaFacet;
+  xmlSchemaAnnotPtr = ^xmlSchemaAnnot;
+  xmlSchemaAttributePtr = ^xmlSchemaAttribute;
+  xmlSchemaAttributeLinkPtr = ^xmlSchemaAttributeLink;
+  xmlSchemaAttributeLinkPtrPtr = ^xmlSchemaAttributeLinkPtr;
+  xmlSchemaWildcardNsPtr = ^xmlSchemaWildcardNs;
+  xmlSchemaWildcardPtr = ^xmlSchemaWildcard;
+  xmlSchemaAttributeGroupPtr = ^xmlSchemaAttributeGroup;
+  xmlSchemaTypeLinkPtr = ^xmlSchemaTypeLink;
+  xmlSchemaFacetLinkPtr = ^xmlSchemaFacetLink;
+  xmlSchemaElementPtr = ^xmlSchemaElement;
 
 // tree.inc
   xmlBufferPtr = ^xmlBuffer;
@@ -78,10 +106,15 @@ type
   xmlRefPtr = ^xmlRef;
   xmlDocPtr = ^xmlDoc;
   xmlDOMWrapCtxtPtr = ^xmlDOMWrapCtxt;
+  xmlBufferAllocationSchemePtr = ^xmlBufferAllocationScheme;
 
 // list.inc
   xmlLinkPtr = ^xmlLink;
   xmlListPtr = ^xmlList;
+
+// threads.inc
+  xmlMutexPtr = ^xmlMutex;
+  xmlRMutexPtr = ^xmlRMutex;
 
 // uri.inc
   xmlURIPtr = ^xmlURI;
@@ -106,6 +139,8 @@ type
 
 // xmlerror.inc
   xmlErrorPtr = ^xmlError;
+  xmlGenericErrorFuncPtr = ^xmlGenericErrorFunc;
+  xmlStructuredErrorFuncPtr = ^xmlStructuredErrorFunc;
 
 // xmlIO.inc
   xmlParserInputBufferPtr = ^xmlParserInputBuffer;
@@ -138,6 +173,10 @@ type
 // xmlwriter.inc
   xmlTextWriterPtr = ^xmlTextWriter;
 
+// xpath.inc
+  xmlNodeSetPtr = ^xmlNodeSet;
+  xmlNodeSet = record end;
+
 (*
   include types
 *)
@@ -150,9 +189,11 @@ type
   {$i xmlerror.inc}
   {$i xmlmemory.inc}
   {$i hash.inc}
+  {$i pattern.inc}
   {$i schemasInternals.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i threads.inc}
   {$i uri.inc}
   {$i relaxng.inc}
   {$i globals.inc}
@@ -168,39 +209,8 @@ type
   {$i xmlunicode.inc}
   {$i xmlwriter.inc}
   {.$i xpath.inc}
-  {.$i c14n.inc}
+  {$i c14n.inc}
 {$UNDEF TYPE}
-
-const
-{$DEFINE CONST}
-  {$i dict.inc}
-  {$i encoding.inc}
-  {$i tree.inc}
-  {$i list.inc}
-  {$i entities.inc}
-  {$i xmlerror.inc}
-  {$i xmlmemory.inc}
-  {$i schemasInternals.inc}
-  {$i hash.inc}
-  {$i valid.inc}
-  {$i parser.inc}
-  {$i uri.inc}
-  {$i relaxng.inc}
-  {$i globals.inc}
-  {$i xmlautomata.inc}
-  {$i xmlIO.inc}
-  {$i xmlmodule.inc}
-  {$i xmlreader.inc}
-  {$i xmlregexp.inc}
-  {$i xmlsave.inc}
-  {$i xmlschemas.inc}
-  {$i xmlschemastypes.inc}
-  {$i xmlstring.inc}
-  {$i xmlunicode.inc}
-  {$i xmlwriter.inc}
-  {.$i xpath.inc}
-  {.$i c14n.inc}
-{$UNDEF CONST}
 
 (*
   include functions
@@ -213,10 +223,12 @@ const
   {$i entities.inc}
   {$i xmlerror.inc}
   {$i xmlmemory.inc}
+  {$i pattern.inc}
   {$i schemasInternals.inc}
   {$i hash.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i threads.inc}
   {$i uri.inc}
   {$i relaxng.inc}
   {$i globals.inc}
@@ -232,7 +244,7 @@ const
   {$i xmlunicode.inc}
   {$i xmlwriter.inc}
   {.$i xpath.inc}
-  {.$i c14n.inc}
+  {$i c14n.inc}
 {$UNDEF FUNCTION}
 
 implementation
@@ -253,6 +265,17 @@ begin
   ReallocMem(Result, size);
 end;
 
+procedure fpcxmlGenericErrorHandler(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+begin
+  writeln(msg);
+end;
+
+procedure fpcxmlStructuredErrorHandler(userData: pointer; error: xmlErrorPtr); XMLCALL;
+begin
+  writeln('struct error');
+end;
+
+
 initialization
 (*
  * this initialize the library and check potential ABI mismatches
@@ -269,7 +292,8 @@ initialization
 (*
  * overloading the error functions
  *)
-  //xmlSetGenericErrorFunc(nil, @fpcxmlErrorHandler);
+  xmlSetGenericErrorFunc(nil, @fpcxmlGenericErrorHandler);
+  xmlSetStructuredErrorFunc(nil, @fpcxmlStructuredErrorHandler);
 
 finalization
 (*

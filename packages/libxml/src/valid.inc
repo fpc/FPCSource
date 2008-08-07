@@ -118,24 +118,10 @@ procedure xmlDumpNotationTable(buf: xmlBufferPtr; table: xmlNotationTablePtr); X
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (* Element Content *)
-(* the non Doc version are being deprecated *)
-function xmlNewElementContent(name: xmlCharPtr; _type: xmlElementContentType): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
-function xmlCopyElementContent(content: xmlElementContentPtr): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeElementContent(cur: xmlElementContentPtr); XMLCALL; XMLPUBFUN;
-
-(* the new versions with doc argument *)
 function xmlNewDocElementContent(doc: xmlDocPtr; name: xmlCharPtr; _type: xmlElementContentType): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
 function xmlCopyDocElementContent(doc: xmlDocPtr; content: xmlElementContentPtr): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
 procedure xmlFreeDocElementContent(doc: xmlDocPtr; cur: xmlElementContentPtr); XMLCALL; XMLPUBFUN;
 procedure xmlSnprintfElementContent(buf: pchar; size: cint; content: xmlElementContentPtr; englob: cint); XMLCALL; XMLPUBFUN;
-{$IFDEF LIBXML_OUTPUT_ENABLED}
-(* DEPRECATED *)
-{XMLPUBFUN void XMLCALL		     
-		xmlSprintfElementContent(char *buf,
-	                                 xmlElementContentPtr content,
-					 int englob);}
-{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-(* DEPRECATED *)
 
 (* Element *)
 function xmlAddElementDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name: xmlCharPtr; _type: xmlElementTypeVal; content: xmlElementContentPtr): xmlElementPtr; XMLCALL; XMLPUBFUN;

@@ -63,7 +63,7 @@
  * xmlParserNodeInfo:
  *
  * The parser can be asked to collect Node informations, i.e. at what
- * place in the file they were detected. 
+ * place in the file they were detected.
  * NOTE: This is off by default and not very well tested.
  *)
   xmlParserNodeInfo = record
@@ -365,8 +365,8 @@
 (**
  * entityDeclSAXFunc:
  * @ctx:  the user data (XML parser context)
- * @name:  the entity name 
- * @type:  the entity type 
+ * @name:  the entity name
+ * @type:  the entity type
  * @publicId: The public ID of the entity
  * @systemId: The system ID of the entity
  * @content: the entity value (without processing).
@@ -390,8 +390,8 @@
  * attributeDeclSAXFunc:
  * @ctx:  the user data (XML parser context)
  * @elem:  the name of the element
- * @fullname:  the attribute name 
- * @type:  the attribute type 
+ * @fullname:  the attribute name
+ * @type:  the attribute type
  * @def:  the type of default value
  * @defaultValue: the attribute default value
  * @tree:  the tree of enumerated value set
@@ -403,8 +403,8 @@
 (**
  * elementDeclSAXFunc:
  * @ctx:  the user data (XML parser context)
- * @name:  the element name 
- * @type:  the element type 
+ * @name:  the element name
+ * @type:  the element type
  * @content: the element value tree
  *
  * An element definition has been parsed.
@@ -486,7 +486,7 @@
  * @ctx:  the user data (XML parser context)
  * @name:  The entity name
  *
- * Called when an entity reference is detected. 
+ * Called when an entity reference is detected.
  *)
   referenceSAXFunc = procedure(ctx: pointer; name: xmlCharPtr); XMLCALL;
 
@@ -545,7 +545,7 @@
  * @ctx:  an XML parser context
  * @msg:  the message to display/transmit
  * @...:  extra parameters for the message display
- * 
+ *
  * Display and format a warning messages, callback.
  *)
   warningSAXFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
@@ -555,7 +555,7 @@
  * @ctx:  an XML parser context
  * @msg:  the message to display/transmit
  * @...:  extra parameters for the message display
- * 
+ *
  * Display and format an error messages, callback.
  *)
   errorSAXFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
@@ -565,7 +565,7 @@
  * @ctx:  an XML parser context
  * @msg:  the message to display/transmit
  * @...:  extra parameters for the message display
- * 
+ *
  * Display and format fatal error messages, callback.
  * Note: so far fatalError() SAX callbacks are not used, error()
  *       get all the callbacks for errors.
@@ -723,7 +723,7 @@
  * xmlExternalEntityLoader:
  * @URL: The System ID of the resource requested
  * @ID: The Public ID of the resource requested
- * @context: the XML parser context 
+ * @context: the XML parser context
  *
  * External entity loaders types.
  *
@@ -738,30 +738,28 @@
  * to the xmlReadDoc() and similar calls.
  *)
   xmlParserOption = type cint;
-{$ENDIF}
-{$IFDEF CONST}
-const
-  XML_PARSE_RECOVER = 1 shl 0; (* recover on errors *)
-  XML_PARSE_NOENT = 1 shl 1; (* substitute entities *)
-  XML_PARSE_DTDLOAD = 1 shl 2; (* load the external subset *)
-  XML_PARSE_DTDATTR = 1 shl 3; (* default DTD attributes *)
-  XML_PARSE_DTDVALID  = 1 shl 4; (* validate with the DTD *)
-  XML_PARSE_NOERROR = 1 shl 5; (* suppress error reports *)
-  XML_PARSE_NOWARNING = 1 shl 6; (* suppress warning reports *)
-  XML_PARSE_PEDANTIC  = 1 shl 7; (* pedantic error reporting *)
-  XML_PARSE_NOBLANKS  = 1 shl 8; (* remove blank nodes *)
-  XML_PARSE_SAX1  = 1 shl 9; (* use the SAX1 interface internally *)
-  XML_PARSE_XINCLUDE  = 1 shl 10;(* Implement XInclude substitition  *)
-  XML_PARSE_NONET = 1 shl 11;(* Forbid network access *)
-  XML_PARSE_NODICT  = 1 shl 12;(* Do not reuse the context dictionnary *)
-  XML_PARSE_NSCLEAN = 1 shl 13;(* remove redundant namespaces declarations *)
-  XML_PARSE_NOCDATA = 1 shl 14;(* merge CDATA as text nodes *)
-  XML_PARSE_NOXINCNODE= 1 shl 15;(* do not generate XINCLUDE START/END nodes *)
-  XML_PARSE_COMPACT   = 1 shl 16; (* compact small text nodes; no modification of
+
+{$DEFINE XML_PARSE_RECOVER := (1 shl 0)} (* recover on errors *)
+{$DEFINE XML_PARSE_NOENT := (1 shl 1)} (* substitute entities *)
+{$DEFINE XML_PARSE_DTDLOAD := (1 shl 2)} (* load the external subset *)
+{$DEFINE XML_PARSE_DTDATTR := (1 shl 3)} (* default DTD attributes *)
+{$DEFINE XML_PARSE_DTDVALID  := (1 shl 4)} (* validate with the DTD *)
+{$DEFINE XML_PARSE_NOERROR := (1 shl 5)} (* suppress error reports *)
+{$DEFINE XML_PARSE_NOWARNING := (1 shl 6)} (* suppress warning reports *)
+{$DEFINE XML_PARSE_PEDANTIC  := (1 shl 7)} (* pedantic error reporting *)
+{$DEFINE XML_PARSE_NOBLANKS  := (1 shl 8)} (* remove blank nodes *)
+{$DEFINE XML_PARSE_SAX1  := (1 shl 9)} (* use the SAX1 interface internally *)
+{$DEFINE XML_PARSE_XINCLUDE  := (1 shl 10)}(* Implement XInclude substitition  *)
+{$DEFINE XML_PARSE_NONET := (1 shl 11)}(* Forbid network access *)
+{$DEFINE XML_PARSE_NODICT  := (1 shl 12)}(* Do not reuse the context dictionnary *)
+{$DEFINE XML_PARSE_NSCLEAN := (1 shl 13)}(* remove redundant namespaces declarations *)
+{$DEFINE XML_PARSE_NOCDATA := (1 shl 14)}(* merge CDATA as text nodes *)
+{$DEFINE XML_PARSE_NOXINCNODE:= (1 shl 15)}(* do not generate XINCLUDE START/END nodes *)
+{$DEFINE XML_PARSE_COMPACT   := (1 shl 16)} (* compact small text nodes)} no modification of
                                    the tree allowed afterwards (will possibly
            crash if you try to modify the tree) *)
-{$ENDIF}
-{$IFDEF TYPE}
+
+
   xmlFeature = (
     XML_WITH_THREAD = 1,
     XML_WITH_TREE = 2,
@@ -828,7 +826,7 @@ function xmlLineNumbersDefault(val: cint): cint; XMLCALL; XMLPUBFUN;
 
 {$IFDEF LIBXML_SAX1_ENABLED}
 (*
- * Recovery mode 
+ * Recovery mode
  *)
 function xmlRecoverDoc(cur: xmlCharPtr): xmlDocPtr; XMLCALL; XMLPUBFUN;
 function xmlRecoverMemory(buffer: pchar; size: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;

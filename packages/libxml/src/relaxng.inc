@@ -102,12 +102,8 @@ procedure xmlRelaxNGSetParserStructuredErrors(ctxt: xmlRelaxNGParserCtxtPtr; ser
 function xmlRelaxNGParse(ctxt: xmlRelaxNGParserCtxtPtr): xmlRelaxNGPtr; XMLCALL; XMLPUBFUN;
 procedure xmlRelaxNGFree(schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-{XMLPUBFUN void XMLCALL
-		    xmlRelaxNGDump		(FILE *output,
-					 xmlRelaxNGPtr schema);
-XMLPUBFUN void XMLCALL
-		    xmlRelaxNGDumpTree	(FILE * output,
-					 xmlRelaxNGPtr schema);}
+procedure xmlRelaxNGDump(output: PFILE; schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
+procedure xmlRelaxNGDumpTree(output: PFILE; schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (*

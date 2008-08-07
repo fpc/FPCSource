@@ -45,7 +45,7 @@
 
 (*
 * ATTENTION: Change xmlSchemaSetValidOptions's check
-* for invalid values, if adding to the validation 
+* for invalid values, if adding to the validation
 * options below.
 *)
 (**
@@ -70,7 +70,7 @@
 (**
  * The schemas related types are kept internal
  *)
-  xmlSchema = record end;
+//  xmlSchema = record end;
 
 (**
  * A schemas validation context
@@ -100,9 +100,7 @@ function xmlSchemaIsValid(ctxt: xmlSchemaValidCtxtPtr): cint; XMLCALL; XMLPUBFUN
 function xmlSchemaParse(ctxt: xmlSchemaParserCtxtPtr): xmlSchemaPtr; XMLCALL; XMLPUBFUN;
 procedure xmlSchemaFree(schema: xmlSchemaPtr); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-{XMLPUBFUN void XMLCALL		
-	    xmlSchemaDump		(FILE *output,
-					 xmlSchemaPtr schema);}
+procedure xmlSchemaDump(output: PFILE; schema: xmlSchemaPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (*

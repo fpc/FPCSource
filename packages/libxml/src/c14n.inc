@@ -14,18 +14,9 @@
  *
  * Author: Aleksey Sanin <aleksey@aleksey.com>
  *)
-#ifndef __XML_C14N_H__
-#define __XML_C14N_H__
-{ LIBXML_C14N_ENABLED
-{ LIBXML_OUTPUT_ENABLED
 
-{ __cplusplus
-extern "C" {
-#endif (* __cplusplus *)
-
-#include <libxml/xmlversion.h>
-#include <libxml/tree.h>
-#include <libxml/xpath.h>
+{$IFDEF LIBXML_C14N_ENABLED}
+{$IFDEF LIBXML_OUTPUT_ENABLED}
 
 (*
  * XML Canonicazation
@@ -52,54 +43,28 @@ extern "C" {
  *    ...
  *)
 
-
-XMLPUBFUN int XMLCALL
-		xmlC14NDocSaveTo	(xmlDocPtr doc,
-					 xmlNodeSetPtr nodes,
-					 int exclusive,
-					 xmlChar **inclusive_ns_prefixes,
-					 int with_comments,
-					 xmlOutputBufferPtr buf);
-
-XMLPUBFUN int XMLCALL
-		xmlC14NDocDumpMemory	(xmlDocPtr doc,
-					 xmlNodeSetPtr nodes,
-					 int exclusive,
-					 xmlChar **inclusive_ns_prefixes,
-					 int with_comments,
-					 xmlChar **doc_txt_ptr);
-
-XMLPUBFUN int XMLCALL
-		xmlC14NDocSave		(xmlDocPtr doc,
-					 xmlNodeSetPtr nodes,
-					 int exclusive,
-					 xmlChar **inclusive_ns_prefixes,
-					 int with_comments,
-					 char* filename,
-					 int compression);
-
-
+{$IFDEF TYPE}
 (**
  * This is the core C14N function
  *)
-typedef int (*xmlC14NIsVisibleCallback)	(void* user_data,
-					 xmlNodePtr node,
-					 xmlNodePtr parent);
 
-XMLPUBFUN int XMLCALL
-		xmlC14NExecute		(xmlDocPtr doc,
-					 xmlC14NIsVisibleCallback is_visible_callback,
-					 void* user_data,
-					 int exclusive,
-					 xmlChar **inclusive_ns_prefixes,
-					 int with_comments,
-					 xmlOutputBufferPtr buf);
+  xmlC14NIsVisibleCallback = function(user_data: pointer; node, parent: xmlNodePtr): cint; XMLCALL;
+{$ENDIF}
 
-{ __cplusplus
-}
-#endif (* __cplusplus *)
+{$IFDEF FUNCTION}
+function xmlC14NDocSaveTo(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+  with_comments: cint; buf: xmlOutputBufferPtr): cint; XMLCALL; XMLPUBFUN;
 
-#endif (* LIBXML_OUTPUT_ENABLED *)
-#endif (* LIBXML_C14N_ENABLED *)
-#endif (* __XML_C14N_H__ *)
+function xmlC14NDocDumpMemory(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+  with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; XMLCALL; XMLPUBFUN;
+
+function xmlC14NDocSave(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
+  with_comments: cint; filename: pchar; compression: cint): cint; XMLCALL; XMLPUBFUN;
+
+function xmlC14NExecute(doc: xmlDocPtr; is_visible_callback: xmlC14NIsVisibleCallback; user_data: pointer;
+  exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; XMLCALL; XMLPUBFUN;
+{$ENDIF}
+
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+{$ENDIF} (* LIBXML_C14N_ENABLED *)
 

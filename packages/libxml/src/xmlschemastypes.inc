@@ -19,7 +19,7 @@
   );
 {$ENDIF}
 
-{$IFDEF FUNCTION_}
+{$IFDEF FUNCTION}
 procedure xmlSchemaInitTypes; XMLCALL; XMLPUBFUN;
 procedure xmlSchemaCleanupTypes; XMLCALL; XMLPUBFUN;
 function xmlSchemaGetPredefinedType(name, ns: xmlCharPtr): xmlSchemaTypePtr; XMLCALL; XMLPUBFUN;
@@ -42,47 +42,19 @@ function xmlSchemaWhiteSpaceReplace(value: xmlCharPtr): xmlCharPtr; XMLCALL; XML
 function xmlSchemaGetFacetValueAsULong(facet: xmlSchemaFacetPtr): culong; XMLCALL; XMLPUBFUN;
 function xmlSchemaValidateLengthFacet(_type: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong): cint; XMLCALL; XMLPUBFUN;
 function xmlSchemaValidateLengthFacetWhtsp(facet: xmlSchemaFacetPtr; valType: xmlSchemaValType; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong; ws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
-
-
-XMLPUBFUN int XMLCALL
-		xmlSchemaValPredefTypeNodeNoNorm(xmlSchemaTypePtr type, 
-						 xmlChar *value,
-						 xmlSchemaValPtr *val, 
-						 xmlNodePtr node);
-XMLPUBFUN int XMLCALL
-		xmlSchemaGetCanonValue		(xmlSchemaValPtr val,
-						 xmlChar **retValue);
-XMLPUBFUN int XMLCALL
-		xmlSchemaGetCanonValueWhtsp	(xmlSchemaValPtr val,						 
-						 xmlChar **retValue,
-						 xmlSchemaWhitespaceValueType ws);
-XMLPUBFUN int XMLCALL
-		xmlSchemaValueAppend		(xmlSchemaValPtr prev,
-						 xmlSchemaValPtr cur);
-XMLPUBFUN xmlSchemaValPtr XMLCALL
-		xmlSchemaValueGetNext		(xmlSchemaValPtr cur);
-XMLPUBFUN xmlChar * XMLCALL
-		xmlSchemaValueGetAsString	(xmlSchemaValPtr val);
-XMLPUBFUN int XMLCALL
-		xmlSchemaValueGetAsBoolean	(xmlSchemaValPtr val);
-XMLPUBFUN xmlSchemaValPtr XMLCALL
-		xmlSchemaNewStringValue		(xmlSchemaValType type,
-						 xmlChar *value);
-XMLPUBFUN xmlSchemaValPtr XMLCALL
-		xmlSchemaNewNOTATIONValue	(xmlChar *name,
-						 xmlChar *ns);
-XMLPUBFUN xmlSchemaValPtr XMLCALL
-		xmlSchemaNewQNameValue		(xmlChar *namespaceName,
-						 xmlChar *localName);
-XMLPUBFUN int XMLCALL
-		xmlSchemaCompareValuesWhtsp	(xmlSchemaValPtr x,
-						 xmlSchemaWhitespaceValueType xws,
-						 xmlSchemaValPtr y,
-						 xmlSchemaWhitespaceValueType yws);
-XMLPUBFUN xmlSchemaValPtr XMLCALL
-		xmlSchemaCopyValue		(xmlSchemaValPtr val);
-XMLPUBFUN xmlSchemaValType XMLCALL
-		xmlSchemaGetValType		(xmlSchemaValPtr val);
+function xmlSchemaValPredefTypeNodeNoNorm(_type: xmlSchemaTypePtr; value: xmlCharPtr; val: xmlSchemaValPtrPtr; node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaGetCanonValue(val: xmlSchemaValPtr; var retValue: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaGetCanonValueWhtsp(val: xmlSchemaValPtr; var retValue: xmlCharPtr; ws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaValueAppend(prev, cur: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaValueGetNext(cur: xmlSchemaValPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaValueGetAsString(val: xmlSchemaValPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaValueGetAsBoolean(val: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaNewStringValue(_type: xmlSchemaValType; value: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaNewNOTATIONValue(name, ns: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaNewQNameValue(namespaceName, localName: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaCompareValuesWhtsp(x: xmlSchemaValPtr; xws: xmlSchemaWhitespaceValueType; y: xmlSchemaValPtr; yws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaCopyValue(val: xmlSchemaValPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
+function xmlSchemaGetValType(val: xmlSchemaValPtr): xmlSchemaValType; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

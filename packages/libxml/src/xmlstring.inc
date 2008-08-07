@@ -49,7 +49,7 @@ function xmlStrlen(str: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
 function xmlStrcat(cur: xmlCharPtr; add: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 function xmlStrncat(cur: xmlCharPtr; add: xmlCharPtr; len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
 function xmlStrncatNew(str1: xmlCharPtr; str2: xmlCharPtr; len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlStrPrintf(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; args: array of const): cint; XMLCALL; XMLPUBFUN;
+function xmlStrPrintf(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; args: array of const): cint; XMLCDECL; XMLPUBFUN;
 function xmlStrVPrintf(buf: xmlCharPtr; len: cint; msg: xmlCharPtr; ap: va_list): cint; XMLCALL; XMLPUBFUN;
 function xmlGetUTF8Char(utf: pchar; len: pcint): cint; XMLCALL; XMLPUBFUN;
 function xmlCheckUTF8(utf: pchar): cint; XMLCALL; XMLPUBFUN;

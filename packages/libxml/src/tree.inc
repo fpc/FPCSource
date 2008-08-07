@@ -13,6 +13,7 @@
  * Some of the basic types pointer to structures:
  *)
 
+{$IFDEF TYPE}
 
 (**
  * BASE_BUFFER_SIZE:
@@ -30,24 +31,21 @@
  *)
 {.$DEFINE LIBXML_NAMESPACE_DICT}
 
-{$IFDEF CONST}
 (**
  * XML_XML_NAMESPACE:
  *
  * This is the namespace for the special xml: prefix predefined in the
  * XML Namespace specification.
  *)
-  XML_XML_NAMESPACE: xmlCharPtr = 'http://www.w3.org/XML/1998/namespace';
+{$DEFINE XML_XML_NAMESPACE := xmlCharPtr('http://www.w3.org/XML/1998/namespace')}
 
 (**
  * XML_XML_ID:
  *
  * This is the name for the special xml:id attribute
  *)
-  XML_XML_ID: xmlCharPtr = 'xml:id';
-{$ENDIF}
+{$DEFINE XML_XML_ID := xmlCharPtr('xml:id')}
 
-{$IFDEF TYPE}
 (**
  * xmlBufferAllocationScheme:
  *
@@ -263,19 +261,14 @@
     contModel   : pointer;
 {$ENDIF}
   end;
-{$ENDIF}
-
 
 (**
  * XML_LOCAL_NAMESPACE:
  *
  * A namespace declaration node.
  *)
-{$IFDEF CONST}
-  XML_LOCAL_NAMESPACE = XML_NAMESPACE_DECL;
-{$ENDIF}
+{$DEFINE XML_LOCAL_NAMESPACE := XML_NAMESPACE_DECL}
 
-{$IFDEF TYPE}
   xmlNsType = xmlElementType;
 
 (**
@@ -512,7 +505,6 @@
 #endif}
 {$ENDIF}
 
-
 {$IFDEF FUNCTION}
 (*
  * Variables.
@@ -547,9 +539,7 @@ function xmlBufferCreateSize(size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlBufferCreateStatic(mem: pointer; size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlBufferResize(buf: xmlBufferPtr; size: cuint): cint; XMLCALL; XMLPUBFUN;
 procedure xmlBufferFree(buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
-{XMLPUBFUN int XMLCALL
-    xmlBufferDump   (FILE *file,
-           xmlBufferPtr buf);}
+procedure xmlBufferDump(fp: PFILE; buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
 function xmlBufferAdd(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
 function xmlBufferAddHead(buf: xmlBufferPtr; str: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
 function xmlBufferCat(buf: xmlBufferPtr; str: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
