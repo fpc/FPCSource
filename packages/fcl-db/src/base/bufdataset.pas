@@ -371,8 +371,8 @@ type
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
   {abstracts, must be overidden by descendents}
-    function Fetch : boolean; virtual; abstract;
-    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual; abstract;
+    function Fetch : boolean; virtual;
+    function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); virtual; abstract;
 
   public
@@ -394,6 +394,7 @@ type
       const ACaseInsFields: string = ''); virtual;
     procedure SaveToFile(const FileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure LoadFromFile(const AFileName: string = '');
+    procedure CreateDataset;
 
     property ChangeCount : Integer read GetChangeCount;
     property MaxIndexesCount : Integer read FMaxIndexesCount write SetMaxIndexesCount;
@@ -752,7 +753,7 @@ end;
 
 Function TBufDataset.GetCanModify: Boolean;
 begin
-  Result:= False;
+  Result:= True;
 end;
 
 function TBufDataset.intAllocRecordBuffer: PChar;
@@ -2323,6 +2324,12 @@ begin
   FileName := StoreFileName;
 end;
 
+procedure TBufDataset.CreateDataset;
+begin
+  CheckInactive;
+  CreateFields;
+end;
+
 procedure TBufDataset.IntLoadFromFile(const FileName: string);
 
   function GetNodeAttribute(const aNode : TDOMNode; AttName : String) : string;
@@ -2456,6 +2463,20 @@ begin
   // only refresh if active
   if IsCursorOpen then
     Refresh;
+end;
+
+function TBufDataset.Fetch: boolean;
+begin
+  // Empty procedure to make it possible to use TBufDataset as a memory dataset
+  Result := False;
+end;
+
+function TBufDataset.LoadField(FieldDef: TFieldDef; buffer: pointer; out
+  CreateBlob: boolean): boolean;
+begin
+  // Empty procedure to make it possible to use TBufDataset as a memory dataset
+  CreateBlob := False;
+  Result := False;
 end;
 
 procedure TBufDataset.ParseFilter(const AFilter: string);

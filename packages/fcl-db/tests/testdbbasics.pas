@@ -29,6 +29,7 @@ type
     procedure TearDown; override;
   published
     procedure TestFileNameProperty;
+    procedure TestClientDatasetAsMemDataset;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
     procedure TestSafeAsXML;
@@ -532,6 +533,33 @@ begin
   TBufDataset(ds).FileName:='test.xml';
   ds.Open;
   FTestXMLDatasetDefinition(Ds);
+end;
+
+procedure TTestDBBasics.TestClientDatasetAsMemDataset;
+var ds : TBufDataset;
+    i  : integer;
+begin
+  ds := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,50);
+  DS.CreateDataset;
+  DS.Open;
+  for i := 1 to 10 do
+    begin
+    ds.Append;
+    ds.FieldByName('ID').AsInteger := i;
+    ds.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    DS.Post;
+    end;
+  ds.first;
+  for i := 1 to 10 do
+    begin
+    AssertEquals(i,ds.fieldbyname('ID').asinteger);
+    AssertEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
+    ds.next;
+    end;
+  AssertTrue(ds.EOF);
+  DS.Close;
 end;
 
 procedure TTestDBBasics.TestAppendInsertRecord;
