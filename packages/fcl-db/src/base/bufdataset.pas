@@ -2246,6 +2246,12 @@ procedure TBufDataset.SaveToFile(const FileName: string;
 
 type TRowStateValue = (rsvOriginal, rsvDeleted, rsvInserted, rsvUpdated, rsvDetailUpdates);
      TRowState = set of TRowStateValue;
+     
+     TChangeLogEntry = record
+       UpdateKind : TUpdateKind;
+       OrigEntry  : integer;
+       NewEntry   : integer;
+     end;
 
 var XMLDocument    : TXMLDocument;
     DataPacketNode : TDOMElement;
@@ -2260,6 +2266,7 @@ var XMLDocument    : TXMLDocument;
     StoreDSState   : TDataSetState;
     ABookMark      : PBufBookmark;
     ATBookmark     : TBufBookmark;
+    ChangeLog      : array of TChangeLogEntry;
 
   procedure SaveRecord(const RowState : TRowState);
   var FieldNr : Integer;
@@ -2276,12 +2283,14 @@ var XMLDocument    : TXMLDocument;
     if rsvUpdated in RowState then RowStateInt := RowStateInt+8;
     RowStateInt:=integer(RowState);
     if RowStateInt<>0 then
-      ARecordNode.SetAttribute('RowSate',inttostr(RowStateInt));
+      ARecordNode.SetAttribute('RowState',inttostr(RowStateInt));
     RowDataNode.AppendChild(ARecordNode);
   end;
 
 var RowState : TRowState;
     RecUpdBuf: integer;
+    EntryNr  : integer;
+    ChangeLogStr : String;
   
 begin
 //  CheckActive;
@@ -2326,6 +2335,9 @@ begin
   DataPacketNode.AppendChild(MetaDataNode);
   RowDataNode := XMLDocument.CreateElement('ROWDATA');
 
+  SetLength(ChangeLog,length(FUpdateBuffer));
+  EntryNr:=1;
+
   StoreDSState:=State;
   SetTempState(dsFilter);
   ScrollResult:=FCurrentIndex.ScrollFirst;
@@ -2334,14 +2346,23 @@ begin
     FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
     if GetRecordUpdateBuffer(ABookmark^) then
       begin
-      RowState:=[rsvOriginal];
       if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukInsert then
         begin
-        RowState:=RowState + [rsvInserted];
+        RowState:=[rsvInserted];
         FFilterBuffer:=FCurrentIndex.CurrentBuffer;
+        with ChangeLog[FCurrentUpdateBuffer] do
+          begin
+          OrigEntry:=0;
+          NewEntry:=EntryNr;
+          UpdateKind:=ukInsert;
+          end;
         end
       else // This is always ukModified
+        begin
+        RowState:=[rsvOriginal];
         FFilterBuffer:=FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
+        ChangeLog[FCurrentUpdateBuffer].OrigEntry:=EntryNr;
+        end;
       end
     else
       begin
@@ -2350,6 +2371,7 @@ begin
       end;
 
     SaveRecord(RowState);
+    inc(EntryNr);
     ScrollResult:=FCurrentIndex.ScrollForward;
     end;
 
@@ -2360,6 +2382,12 @@ begin
       RowState:=[rsvDeleted];
       FFilterBuffer:=FUpdateBuffer[RecUpdBuf].OldValuesBuffer;
       SaveRecord(RowState);
+      with ChangeLog[RecUpdBuf] do
+        begin
+        NewEntry:=EntryNr;
+        UpdateKind:=ukDelete;
+        end;
+      inc(EntryNr);
       end
     else if UpdateKind = ukModify then
       begin
@@ -2367,6 +2395,12 @@ begin
       FCurrentIndex.GotoBookmark(@BookmarkData);
       FFilterBuffer:=FCurrentIndex.CurrentBuffer;
       SaveRecord(RowState);
+      with ChangeLog[RecUpdBuf] do
+        begin
+        NewEntry:=EntryNr;
+        UpdateKind:=ukModify;
+        end;
+      inc(EntryNr);
       end;
     end;
 
@@ -2374,6 +2408,18 @@ begin
 
   DataPacketNode.AppendChild(RowDataNode);
 
+  ChangeLogStr:='';
+  for i := 0 to length(ChangeLog) -1 do with ChangeLog[i] do
+    begin
+    ChangeLogStr:=ChangeLogStr+' '+inttostr(NewEntry)+' '+inttostr(OrigEntry)+' ';
+    if UpdateKind=ukModify then ChangeLogStr := ChangeLogStr+'8';
+    if UpdateKind=ukInsert then ChangeLogStr := ChangeLogStr+'4';
+    if UpdateKind=ukDelete then ChangeLogStr := ChangeLogStr+'2';
+    end;
+
+  if ChangeLogStr<>'' then
+    ParamsNode.SetAttribute('CHANGE_LOG',Trim(ChangeLogStr));
+  SetLength(ChangeLog,0);
   XMLDocument.AppendChild(DataPacketNode);
   WriteXML(XMLDocument,FileName);
 
