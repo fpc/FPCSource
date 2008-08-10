@@ -319,7 +319,8 @@ type
     function GetIndexName: String;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
-    function GetRecordUpdateBuffer : boolean;
+    function GetRecordUpdateBuffer(const ABookmark : TBufBookmark) : boolean;
+    function GetActiveRecordUpdateBuffer : boolean;
     procedure ProcessFieldCompareStruct(AField: TField; var ACompareRec : TDBCompareRec);
     procedure SetIndexFieldNames(const AValue: String);
     procedure SetIndexName(AValue: String);
@@ -1182,22 +1183,13 @@ begin
   inherited OpenCursor(InfoQuery);
 end;
 
-function TBufDataset.GetRecordUpdateBuffer : boolean;
+function TBufDataset.GetActiveRecordUpdateBuffer : boolean;
 
-var x : integer;
-    ABookmark : TBufBookmark;
+var ABookmark : TBufBookmark;
 
 begin
   GetBookmarkData(ActiveBuffer,@ABookmark);
-  if (FCurrentUpdateBuffer >= length(FUpdateBuffer)) or not FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) then
-   for x := 0 to high(FUpdateBuffer) do
-    if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].BookmarkData,@ABookmark) then
-      begin
-      FCurrentUpdateBuffer := x;
-      break;
-      end;
-  Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and
-            (FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark));
+  result := GetRecordUpdateBuffer(ABookmark);
 end;
 
 procedure TBufDataset.ProcessFieldCompareStruct(AField: TField; var ACompareRec : TDBCompareRec);
@@ -1414,6 +1406,23 @@ begin
 {$ENDIF}
 end;
 
+function TBufDataset.GetRecordUpdateBuffer(const ABookmark: TBufBookmark): boolean;
+
+var x : integer;
+
+begin
+  if (FCurrentUpdateBuffer >= length(FUpdateBuffer)) or not FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark) then
+   for x := 0 to high(FUpdateBuffer) do
+    if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[x].BookmarkData,@ABookmark) and
+       (FUpdateBuffer[x].UpdateKind<>ukDelete) then // The Bookmarkdata of a deleted record does not contain the deleted record, but the record thereafter
+      begin
+      FCurrentUpdateBuffer := x;
+      break;
+      end;
+  Result := (FCurrentUpdateBuffer < length(FUpdateBuffer))  and
+            (FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@ABookmark));
+end;
+
 function TBufDataset.LoadBuffer(Buffer : PChar): TGetResult;
 
 var NullMask        : pbyte;
@@ -1488,7 +1497,7 @@ begin
   Result := False;
   if state = dsOldValue then
     begin
-    if not GetRecordUpdateBuffer then
+    if not GetActiveRecordUpdateBuffer then
       begin
       // There is no old value available
       result := false;
@@ -1600,7 +1609,7 @@ begin
 // may arise. The 'delete' is placed in the update-buffer before the actual delete
 // took place. This can lead into troubles, because other updates can depend on
 // the record still being available.
-  if not GetRecordUpdateBuffer or (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify) then
+  if not GetActiveRecordUpdateBuffer or (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify) then
     begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
@@ -1860,7 +1869,7 @@ begin
 
 
   // If there is no updatebuffer already, add one
-  if not GetRecordUpdateBuffer then
+  if not GetActiveRecordUpdateBuffer then
     begin
     // Add a new updatebuffer
     FCurrentUpdateBuffer := length(FUpdateBuffer);
@@ -2034,7 +2043,7 @@ Function TBufDataSet.UpdateStatus: TUpdateStatus;
 
 begin
   Result:=usUnmodified;
-  if GetRecordUpdateBuffer then
+  if GetActiveRecordUpdateBuffer then
     case FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind of
       ukModify : Result := usModified;
       ukInsert : Result := usInserted;
@@ -2235,6 +2244,9 @@ const
 procedure TBufDataset.SaveToFile(const FileName: string;
   Format: TDataPacketFormat);
 
+type TRowStateValue = (rsvOriginal, rsvDeleted, rsvInserted, rsvUpdated, rsvDetailUpdates);
+     TRowState = set of TRowStateValue;
+
 var XMLDocument    : TXMLDocument;
     DataPacketNode : TDOMElement;
     MetaDataNode   : TDOMElement;
@@ -2246,8 +2258,34 @@ var XMLDocument    : TXMLDocument;
     i              : integer;
     ScrollResult   : TGetResult;
     StoreDSState   : TDataSetState;
+    ABookMark      : PBufBookmark;
+    ATBookmark     : TBufBookmark;
+
+  procedure SaveRecord(const RowState : TRowState);
+  var FieldNr : Integer;
+      RowStateInt : Integer;
+  begin
+    ARecordNode := XMLDocument.CreateElement('ROW');
+    for FieldNr := 0 to Fields.Count-1 do
+      begin
+      ARecordNode.SetAttribute(fields[FieldNr].FieldName,fields[FieldNr].AsString);
+      end;
+    RowStateInt:=0;
+    if rsvOriginal in RowState then RowStateInt := RowStateInt+1;
+    if rsvInserted in RowState then RowStateInt := RowStateInt+4;
+    if rsvUpdated in RowState then RowStateInt := RowStateInt+8;
+    RowStateInt:=integer(RowState);
+    if RowStateInt<>0 then
+      ARecordNode.SetAttribute('RowSate',inttostr(RowStateInt));
+    RowDataNode.AppendChild(ARecordNode);
+  end;
+
+var RowState : TRowState;
+    RecUpdBuf: integer;
+  
 begin
 //  CheckActive;
+  ABookMark:=@ATBookmark;
   XMLDocument := TXMLDocument.Create;
   DataPacketNode := XMLDocument.CreateElement('DATAPACKET');
   DataPacketNode.SetAttribute('Version','2.0');
@@ -2293,15 +2331,45 @@ begin
   ScrollResult:=FCurrentIndex.ScrollFirst;
   while ScrollResult=grOK do
     begin
-    FFilterBuffer:=FCurrentIndex.CurrentBuffer;
-    ARecordNode := XMLDocument.CreateElement('ROW');
-    for i := 0 to Fields.Count-1 do
+    FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
+    if GetRecordUpdateBuffer(ABookmark^) then
       begin
-      ARecordNode.SetAttribute(fields[i].FieldName,fields[i].AsString);
+      RowState:=[rsvOriginal];
+      if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukInsert then
+        begin
+        RowState:=RowState + [rsvInserted];
+        FFilterBuffer:=FCurrentIndex.CurrentBuffer;
+        end
+      else // This is always ukModified
+        FFilterBuffer:=FUpdateBuffer[FCurrentUpdateBuffer].OldValuesBuffer;
+      end
+    else
+      begin
+      FFilterBuffer:=FCurrentIndex.CurrentBuffer;
+      RowState:=[];
       end;
-    RowDataNode.AppendChild(ARecordNode);
+
+    SaveRecord(RowState);
     ScrollResult:=FCurrentIndex.ScrollForward;
     end;
+
+  for RecUpdBuf:=0 to length(FUpdateBuffer)-1 do with FUpdateBuffer[RecUpdBuf] do
+    begin
+    if UpdateKind = ukDelete then
+      begin
+      RowState:=[rsvDeleted];
+      FFilterBuffer:=FUpdateBuffer[RecUpdBuf].OldValuesBuffer;
+      SaveRecord(RowState);
+      end
+    else if UpdateKind = ukModify then
+      begin
+      RowState:=[rsvUpdated];
+      FCurrentIndex.GotoBookmark(@BookmarkData);
+      FFilterBuffer:=FCurrentIndex.CurrentBuffer;
+      SaveRecord(RowState);
+      end;
+    end;
+
   SetTempState(StoreDSState);
 
   DataPacketNode.AppendChild(RowDataNode);
