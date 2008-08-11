@@ -141,6 +141,10 @@ Type
   Public
     Constructor Create(ATableName : String);
     Function AddDDIndexDef(AName : String) : TDDIndexDef;
+    function AddIndex (AName: String) : TDDIndexDef;
+    function IndexByName(AIndexName: String): TDDIndexDef;
+    function FindIndex(AIndexName: String): TDDIndexDef;
+    function IndexOfIndex(AIndexName: String): Integer;
     Property TableName : String Read FTableName Write SetTableName;
     Property Indexes[Index : Integer] : TDDIndexDef Read GetIndex Write SetIndex; default;
   end;
@@ -477,6 +481,7 @@ Const
 
 Resourcestring
   SErrFieldNotFound           = '"%s": Field "%s" not found.';
+  SErrIndexNotFound           = '"%s": Index "%s" not found.';
   SErrTableNotFound           = 'Table "%s" not found.';
   SErrDuplicateTableName      = 'Duplicate table name: "%s"';
   SErrDuplicateFieldName      = '"%s": Duplicate field name: "%s"';
@@ -997,6 +1002,7 @@ procedure TDDTableDef.SetTableName(const AValue: String);
 begin
   FTableName:=AValue;
   FFieldDefs.TableName:=AValue;
+  FIndexDefs.TableName:=AValue;
 end;
 
 function TDDTableDef.GetPrimaryKeyName: String;
@@ -2200,8 +2206,38 @@ end;
 
 function TDDIndexDefs.AddDDIndexDef(AName: String): TDDIndexDef;
 begin
+  result := AddIndex (AName);
+end;
+
+function TDDIndexDefs.AddIndex(AName: String): TDDIndexDef;
+begin
   Result:=Add as TDDIndexDef;
   Result.IndexName:=AName;
+end;
+
+function TDDIndexDefs.IndexOfIndex(AIndexName: String): Integer;
+begin
+  Result:=Count-1;
+  While (Result>=0) and (CompareText(GetIndex(Result).IndexName,AIndexName)<>0) do
+    Dec(Result)
+end;
+
+function TDDIndexDefs.FindIndex(AIndexName: String): TDDIndexDef;
+Var
+  I : integer;
+begin
+  I:=IndexOfIndex(AIndexName);
+  If (I=-1) then
+    Result:=Nil
+  else
+    Result:=GetIndex(I);
+end;
+
+function TDDIndexDefs.IndexByName(AIndexName: String): TDDIndexDef;
+begin
+  Result:=FindIndex(AIndexName);
+  If Result=Nil then
+    Raise EDatadict.CreateFmt(SErrIndexNotFound,[TableName,AIndexName]);
 end;
 
 initialization
