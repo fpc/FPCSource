@@ -659,8 +659,9 @@ begin
       begin
       TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen);
+
       FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
-         TransLen, False, (x + 1));
+         TransLen, (SQLDA^.SQLVar[x].sqltype and 1)=0, (x + 1));
       if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
 //      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
       FieldBinding[FD.FieldNo-1] := x;
