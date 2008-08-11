@@ -1280,7 +1280,7 @@ In case not, the value returned can be arbitrary.
                else
                  begin
                    if (exprType * exprType2) = [] then
-                     CTEError(exprType2, exprType, tokeninfo^[op].str);
+                     CTEError(exprType2, exprType, '"'+hs1+' '+tokeninfo^[op].str+' '+hs2+'"');
 
                    if is_number(hs1) and is_number(hs2) then
                      begin
