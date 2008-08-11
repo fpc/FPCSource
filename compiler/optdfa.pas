@@ -298,6 +298,9 @@ unit optdfa;
                 CreateInfo(tfornode(node).t2);
               end;
 
+            temprefn,
+            loadn,
+            typeconvn,
             assignn:
               begin
                 if not(assigned(node.optinfo^.def)) and
