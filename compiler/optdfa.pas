@@ -403,9 +403,26 @@ unit optdfa;
                 if not(is_void(current_procinfo.procdef.returndef)) and
                   not(current_procinfo.procdef.proctypeoption=potype_constructor) then
                   begin
-                    { get info from faked resultnode }
-                    node.optinfo^.use:=resultnode.optinfo^.use;
-                    node.optinfo^.life:=node.optinfo^.use;
+                    if not(assigned(node.optinfo^.def)) and
+                       not(assigned(node.optinfo^.use)) then
+                      begin
+                        if assigned(texitnode(node).left) then
+                          begin
+                            node.optinfo^.def:=resultnode.optinfo^.def;
+
+                            dfainfo.use:=@node.optinfo^.use;
+                            dfainfo.def:=@node.optinfo^.def;
+                            dfainfo.map:=map;
+                            foreachnodestatic(pm_postprocess,texitnode(node).left,@AddDefUse,@dfainfo);
+                            calclife(node);
+                          end
+                        else
+                          begin
+                            { get info from faked resultnode }
+                            node.optinfo^.use:=resultnode.optinfo^.use;
+                            node.optinfo^.life:=node.optinfo^.use;
+                          end;
+                      end;
                   end;
               end;
 
