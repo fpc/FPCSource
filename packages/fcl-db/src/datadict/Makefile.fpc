@@ -17,7 +17,7 @@ packages_wince=ibase mysql oracle sqlite odbc postgres
 packages_win64=sqlite odbc
 
 [target]
-units=fpdatadict fpdddbf fpddsqldb
+units=fpdatadict fpdddiff fpdddbf fpddsqldb
 units_linux=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 units_freebsd=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
 units_darwin=fpddfb fpddmysql40 fpddmysql41 fpddmysql50 fpddodbc fpddpq fpddoracle fpddsqlite3 fpddregstd
