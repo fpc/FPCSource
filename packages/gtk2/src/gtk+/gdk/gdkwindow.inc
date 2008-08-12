@@ -474,9 +474,14 @@ procedure gdk_window_unref(drawable:PGdkDrawable);
 procedure gdk_window_copy_area(drawable:PGdkDrawable; gc:PGdkGC;
   x,y: gint; source_drawable:PGdkDrawable; source_x,source_y: gint;
   width,height : gint);
+
 {$endif}
 { GDK_DISABLE_DEPRECATED  }
 
+procedure gdk_window_fullscreen(window: PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_set_skip_pager_hint(window: PGdkWindow; skips_pager: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_skip_taskbar_hint(window: PGdkWindow; skips_taskbar: gboolean); cdecl; external gdklib;
+procedure gdk_window_unfullscreen(window: PGdkWindow); cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------

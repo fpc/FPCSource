@@ -105,6 +105,7 @@ function GDK_IS_CURSOR(anObject : pointer) : boolean;
 { Cursors }
 
 function gdk_cursor_get_type:GType; cdecl; external gdklib;
+function gdk_cursor_new_for_display(display: PGdkDisplay; cursor_type:TGdkCursorType):PGdkCursor; cdecl; external gdklib;
 function gdk_cursor_new_for_screen(screen:PGdkScreen; cursor_type:TGdkCursorType):PGdkCursor; cdecl; external gdklib;
 
 {$ifndef GDK_MULTIHEAD_SAFE}
@@ -113,6 +114,7 @@ function gdk_cursor_new(cursor_type:TGdkCursorType):PGdkCursor; cdecl; external 
 
 function gdk_cursor_new_from_pixmap(source:PGdkPixmap; mask:PGdkPixmap; fg:PGdkColor; bg:PGdkColor; x:gint;
            y:gint):PGdkCursor; cdecl; external gdklib;
+function gdk_cursor_get_display(cursor: PGdkCursor):PGdkDisplay; cdecl; external gdklib;
 function gdk_cursor_get_screen(cursor:PGdkCursor):PGdkScreen; cdecl; external gdklib;
 function gdk_cursor_ref(cursor:PGdkCursor):PGdkCursor; cdecl; external gdklib;
 procedure gdk_cursor_unref(cursor:PGdkCursor); cdecl; external gdklib;

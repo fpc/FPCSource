@@ -74,6 +74,7 @@ function gdk_colormap_alloc_colors(colormap:PGdkColormap; colors:PGdkColor; ncol
 function gdk_colormap_alloc_color(colormap:PGdkColormap; color:PGdkColor; writeable:gboolean; best_match:gboolean):gboolean; cdecl; external gdklib;
 procedure gdk_colormap_free_colors(colormap:PGdkColormap; colors:PGdkColor; ncolors:gint); cdecl; external gdklib;
 procedure gdk_colormap_query_color(colormap:PGdkColormap; pixel:gulong; result:PGdkColor); cdecl; external gdklib;
+function gdk_colormap_get_screen(cmap: PGdkColormap):PGdkScreen; cdecl; external gdklib;
 function gdk_colormap_get_visual(colormap:PGdkColormap):PGdkVisual; cdecl; external gdklib;
 function gdk_color_copy(color:PGdkColor):PGdkColor; cdecl; external gdklib;
 procedure gdk_color_free(color:PGdkColor); cdecl; external gdklib;

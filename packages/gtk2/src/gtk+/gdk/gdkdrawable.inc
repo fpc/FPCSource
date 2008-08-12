@@ -125,12 +125,10 @@ procedure gdk_draw_rectangle(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; x:gi
 procedure gdk_draw_arc(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; x:gint; y:gint;
             width:gint; height:gint; angle1:gint; angle2:gint); cdecl; external gdklib;
 procedure gdk_draw_polygon(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; points:PGdkPoint; npoints:gint); cdecl; external gdklib;
-{$IFDEF GTK2_2}
 procedure gdk_draw_pixbuf(drawable: PGdkDrawable; gc:PGdkGC; src:PGdkPixbuf;
             xsrc:gint; ysrc:gint; xdest:gint; ydest:gint;
             width:gint; height:gint; dither:TGdkRgbDither;
             x_dither:gint; y_dither:gint); cdecl; external gdklib;
-{$ENDIF}
 
 
 {$ifndef GDK_DISABLE_DEPRECATED}

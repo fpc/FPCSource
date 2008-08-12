@@ -96,6 +96,8 @@ function gdk_drag_get_protocol(xid:guint32; protocol:PGdkDragProtocol):guint32; 
 
 procedure gdk_drag_find_window(context:PGdkDragContext; drag_window:PGdkWindow; x_root:gint; y_root:gint; var dest_window:PGdkWindow;
             protocol:PGdkDragProtocol); cdecl; external gdklib;
+procedure gdk_drag_find_window_for_screen(context:PGdkDragContext; drag_window:PGdkWindow; screen:PGdkScreen; x_root:gint; y_root:gint; var dest_window:PGdkWindow;
+            protocol:PGdkDragProtocol); cdecl; external gdklib;
 function gdk_drag_motion(context:PGdkDragContext; dest_window:PGdkWindow; protocol:TGdkDragProtocol; x_root:gint; y_root:gint;
            suggested_action:TGdkDragAction; possible_actions:TGdkDragAction; time:guint32):gboolean; cdecl; external gdklib;
 procedure gdk_drag_drop(context:PGdkDragContext; time:guint32); cdecl; external gdklib;

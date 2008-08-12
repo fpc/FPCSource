@@ -77,6 +77,7 @@ function gdk_visual_get_best:PGdkVisual; cdecl; external gdklib;
 function gdk_visual_get_best_with_depth(depth:gint):PGdkVisual; cdecl; external gdklib;
 function gdk_visual_get_best_with_type(visual_type:TGdkVisualType):PGdkVisual; cdecl; external gdklib;
 function gdk_visual_get_best_with_both(depth:gint; visual_type:TGdkVisualType):PGdkVisual; cdecl; external gdklib;
+function gdk_visual_get_screen(visual: PGdkVisual): PGdkScreen; cdecl; external gdklib;
 procedure gdk_query_depths(var depths:Pgint; count:Pgint); cdecl; external gdklib;
 procedure gdk_query_visual_types(var visual_types:PGdkVisualType; count:Pgint); cdecl; external gdklib;
 function gdk_list_visuals:PGList; cdecl; external gdklib;

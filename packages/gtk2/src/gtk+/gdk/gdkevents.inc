@@ -458,6 +458,10 @@ function gdk_event_get_axis(event:PGdkEvent; axis_use:TGdkAxisUse; value:Pgdoubl
 procedure gdk_event_handler_set(func:TGdkEventFunc; data:gpointer; notify:TGDestroyNotify); cdecl; external gdklib;
 procedure gdk_set_show_events(show_events:gboolean); cdecl; external gdklib;
 function gdk_get_show_events:gboolean; cdecl; external gdklib;
+function gdk_event_get_screen(event:PGdkEvent): PGdkScreen; cdecl; external gdklib;
+function gdk_event_new(_type: TGdkEventType): PGdkEvent; cdecl; external gdklib;
+function gdk_event_send_client_message_for_display(display:PGdkDisplay; event:PGdkEvent; xid:guint32):gboolean; cdecl; external gdklib;
+procedure gdk_event_set_screen(event: PGdkEvent; screen: PGdkScreen); cdecl; external gdklib;
 
 {$ifndef GDK_MULTIHEAD_SAFE}
 procedure gdk_add_client_message_filter(message_type:TGdkAtom; func:TGdkFilterFunc; data:gpointer); cdecl; external gdklib;

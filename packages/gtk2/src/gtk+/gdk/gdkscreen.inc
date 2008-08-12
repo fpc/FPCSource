@@ -1,5 +1,6 @@
 // included by gdk2.pp
 {$IFDEF read_forward_definitions}
+   PPGdkScreen = ^PGdkScreen;
    PGdkScreen = ^TGdkScreen;
    TGdkScreen = record
         parent_instance : TGObject;
@@ -66,6 +67,7 @@ function gdk_screen_get_monitor_at_window(screen:PGdkScreen; window:PGdkWindow):
 procedure gdk_screen_broadcast_client_message(screen:PGdkScreen; event:PGdkEvent); cdecl; external gdklib;
 function gdk_get_default_screen:PGdkScreen; cdecl; external gdklib;
 function gdk_screen_get_setting(screen:PGdkScreen; name:Pgchar; value:PGValue):gboolean; cdecl; external gdklib;
+function gdk_screen_make_display_name(screen: PGdkScreen): Pgchar; cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------
@@ -73,7 +75,7 @@ function gdk_screen_get_setting(screen:PGdkScreen; name:Pgchar; value:PGValue):g
 {$IFDEF read_implementation}
 function GDK_TYPE_SCREEN : GType;
 begin
-  GDK_TYPE_SCREEN:=0 //;gdk_screen_get_type;
+  GDK_TYPE_SCREEN := 0; //gdk_screen_get_type;
 end;
 
 function GDK_SCREEN(anObject : Pointer) : PGdkScreen;
