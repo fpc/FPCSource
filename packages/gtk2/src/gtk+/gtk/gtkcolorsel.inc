@@ -63,8 +63,6 @@ function gtk_color_selection_palette_to_string(colors:PGdkColor; n_colors:gint):
 function gtk_color_selection_set_change_palette_hook(func:TGtkColorSelectionChangePaletteFunc):TGtkColorSelectionChangePaletteFunc; cdecl; external gtklib;
 {$endif}
 
-function gtk_color_selection_set_change_palette_with_screen_hook(func:TGtkColorSelectionChangePaletteWithScreenFunc):TGtkColorSelectionChangePaletteWithScreenFunc; cdecl; external gtklib;
-
 {$ifndef GTK_DISABLE_DEPRECATED}
 { Deprecated calls:  }
 procedure gtk_color_selection_set_color(colorsel:PGtkColorSelection; color:Pgdouble); cdecl; external gtklib;
@@ -72,6 +70,10 @@ procedure gtk_color_selection_get_color(colorsel:PGtkColorSelection; color:Pgdou
 procedure gtk_color_selection_set_update_policy(colorsel:PGtkColorSelection; policy:TGtkUpdateType); cdecl; external gtklib;
 {$endif}
 { GTK_DISABLE_DEPRECATED  }
+
+{$IFDEF HasGTK2_2}
+function gtk_color_selection_set_change_palette_with_screen_hook(func:TGtkColorSelectionChangePaletteWithScreenFunc):TGtkColorSelectionChangePaletteWithScreenFunc; cdecl; external gtklib;
+{$ENDIF}
 
 {$ENDIF read_interface_rest}
 

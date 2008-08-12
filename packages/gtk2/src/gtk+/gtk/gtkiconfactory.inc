@@ -97,6 +97,11 @@ function gtk_icon_source_get_size(source:PGtkIconSource):TGtkIconSize; cdecl; ex
 { ignore this  }
 procedure _gtk_icon_set_invalidate_caches; cdecl; external gtklib;
 function _gtk_icon_factory_list_ids:PGSList; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_icon_size_lookup_for_settings(settings: PGtkSettings; size: TGtkIconSize; width: Pgint; height: Pgint): gboolean; cdecl; external gtklib;
+{$ENDIF}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

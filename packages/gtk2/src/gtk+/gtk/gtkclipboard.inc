@@ -26,13 +26,10 @@
 //------------------------------------------------------------------------------
 
 {$IFDEF read_interface_rest}
-function gtk_clipboard_get_for_display(display:PGdkDisplay; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
-
 {$ifndef GDK_MULTIHEAD_SAFE}
 function gtk_clipboard_get(selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
 {$endif}
 
-function gtk_clipboard_get_display(clipboard:PGtkClipboard):PGdkDisplay; cdecl; external gtklib;
 function gtk_clipboard_set_with_data(clipboard:PGtkClipboard; targets:PGtkTargetEntry; n_targets:guint; get_func:TGtkClipboardGetFunc; clear_func:TGtkClipboardClearFunc;
            user_data:gpointer):gboolean; cdecl; external gtklib;
 function gtk_clipboard_set_with_owner(clipboard:PGtkClipboard; targets:PGtkTargetEntry; n_targets:guint; get_func:TGtkClipboardGetFunc; clear_func:TGtkClipboardClearFunc;
@@ -45,6 +42,12 @@ procedure gtk_clipboard_request_text(clipboard:PGtkClipboard; callback:TGtkClipb
 function gtk_clipboard_wait_for_contents(clipboard:PGtkClipboard; target:TGdkAtom):PGtkSelectionData; cdecl; external gtklib;
 function gtk_clipboard_wait_for_text(clipboard:PGtkClipboard):Pgchar; cdecl; external gtklib;
 function gtk_clipboard_wait_is_text_available(clipboard:PGtkClipboard):gboolean; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_clipboard_get_display(clipboard:PGtkClipboard):PGdkDisplay; cdecl; external gtklib;
+function gtk_clipboard_get_for_display(display:PGdkDisplay; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
+{$ENDIF}
+
 {$ENDIF read_interface_rest}
 // included by gtk2.pas
 

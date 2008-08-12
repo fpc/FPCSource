@@ -146,7 +146,6 @@ function gtk_menu_get_tearoff_state(menu:PGtkMenu):gboolean; cdecl; external gtk
 procedure gtk_menu_set_title(menu:PGtkMenu; title:Pgchar); cdecl; external gtklib;
 function gtk_menu_get_title(menu:PGtkMenu):Pgchar; cdecl; external gtklib;
 procedure gtk_menu_reorder_child(menu:PGtkMenu; child:PGtkWidget; position:gint); cdecl; external gtklib;
-procedure gtk_menu_set_screen(menu:PGtkMenu; screen:PGdkScreen); cdecl; external gtklib;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
 procedure gtk_menu_append(menu,child : PGtkWidget);
@@ -155,6 +154,9 @@ procedure gtk_menu_insert(menu,child: PGtkWidget; pos : gint);
 {$endif}
 { GTK_DISABLE_DEPRECATED  }
 
+{$IFDEF HasGTK2_2}
+procedure gtk_menu_set_screen(menu:PGtkMenu; screen:PGdkScreen); cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

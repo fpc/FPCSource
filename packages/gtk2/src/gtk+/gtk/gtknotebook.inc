@@ -172,10 +172,9 @@ procedure gtk_notebook_query_tab_label_packing(notebook:PGtkNotebook;child:PGtkW
 procedure gtk_notebook_set_tab_label_packing(notebook:PGtkNotebook; child:PGtkWidget; expand:gboolean; fill:gboolean; pack_type:TGtkPackType); cdecl; external gtklib;
 procedure gtk_notebook_reorder_child(notebook:PGtkNotebook; child:PGtkWidget; position:gint); cdecl; external gtklib;
 
-{$IFDEF HasGTK2_4}
-function  gtk_notebook_get_n_pages(notebook:PGtkNotebook): integer; cdecl; external gtklib;
-{$ENDIF HasGTK2_4}
-
+{$IFDEF HasGTK2_2}
+function gtk_notebook_get_n_pages(notebook:PGtkNotebook): integer; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------
