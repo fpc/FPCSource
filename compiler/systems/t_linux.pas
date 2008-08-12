@@ -160,7 +160,7 @@ begin
 {$endif m68k}
 
 {$ifdef i386}
-     defdynlinker:='/lib/ld-linux.so.1';
+     defdynlinker:='/lib/ld-linux.so.2';
 {$endif}
 
 {$ifdef x86_64}
@@ -194,24 +194,27 @@ begin
          glibc 2.0
        If none is found (e.g. when cross compiling) glibc21 is assumed
      }
-{$ifdef i386}
-     if FileExists(sysrootpath+'/lib/ld-linux.so.2',false) then
+     if fileexists(sysrootpath+defdynlinker,false) then
        begin
-         DynamicLinker:='/lib/ld-linux.so.2';
+         DynamicLinker:=defdynlinker;
+{$ifdef i386}
          libctype:=glibc21;
-       end
-     else
+{$else i386}
+         libctype:=glibc2;
 {$endif i386}
-     if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
+       end
+     else if fileexists(sysrootpath+'/lib/ld-uClibc.so.0',false) then
        begin
          dynamiclinker:='/lib/ld-uClibc.so.0';
          libctype:=uclibc;
        end
-     else if fileexists(sysrootpath+defdynlinker,false) then
+{$ifdef i386}
+     else if FileExists(sysrootpath+'/lib/ld-linux.so.1',false) then
        begin
-         DynamicLinker:=defdynlinker;
+         DynamicLinker:='/lib/ld-linux.so.1';
          libctype:=glibc2;
        end
+{$endif i386}
      else
        begin
          { when no dyn. linker is found, we are probably
