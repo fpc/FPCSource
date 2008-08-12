@@ -2,6 +2,7 @@
 
 {$IFDEF read_forward_definitions}
    PGdkDisplay = ^TGdkDisplay;
+   PGdkDisplayPointerHooks = ^TGdkDisplayPointerHooks;
 {$ENDIF read_forward_definitions}
 
 //------------------------------------------------------------------------------
@@ -23,6 +24,12 @@
         button_window : array[0..1] of PGdkWindow;
         button_number : array[0..1] of guint;
         double_click_time : guint;
+        core_pointer: PGdkDevice;
+        pointer_hooks: PGdkDisplayPointerHooks;  
+        closed: guint;
+        double_click_distance: guint;
+        button_x: array[0..1] of guint;
+        button_y: array[0..1] of guint;
      end;
 
    PGdkDisplayClass = ^TGdkDisplayClass;
@@ -33,6 +40,12 @@
         get_screen : function (display:PGdkDisplay; screen_num:gint):PGdkScreen; cdecl;
         get_default_screen : function (display:PGdkDisplay):PGdkScreen; cdecl;
      end;
+
+   TGdkDisplayPointerHooks = record
+      get_pointer: procedure(display: PGdkDisplay; screen: PPGdkScreen; x: Pgint; y: Pgint; mask: PGdkModifierType); cdecl;
+      window_get_pointer: function(display: PGdkDisplay; window: PGdkWindow; x: Pgint; y: Pgint; mask: PGdkModifierType): PGdkWindow; cdecl;
+      window_at_pointer: function(display: PGdkDisplay; win_x: Pgint; win_y: Pgint): PGdkWindow; cdecl;
+    end;
 {$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
@@ -46,6 +59,7 @@ function GDK_IS_DISPLAY_CLASS(klass : pointer) : boolean;
 function GDK_DISPLAY_GET_CLASS(obj : pointer) : PGdkDisplayClass;
 
 //function gdk_display_get_type:GType; cdecl; external gdklib;
+function gdk_display_get_default: PGdkDisplay; cdecl; external gdklib;
 function gdk_display_open(display_name:Pgchar):PGdkDisplay; cdecl; external gdklib;
 function gdk_display_get_name(display:PGdkDisplay):Pgchar; cdecl; external gdklib;
 function gdk_display_get_n_screens(display:PGdkDisplay):gint; cdecl; external gdklib;
@@ -66,6 +80,10 @@ procedure gdk_display_set_double_click_time(display:PGdkDisplay; msec:guint); cd
 procedure gdk_display_set_sm_client_id(display:PGdkDisplay; sm_client_id:Pgchar); cdecl; external gdklib;
 procedure gdk_set_default_display(display:PGdkDisplay); cdecl; external gdklib;
 function gdk_get_default_display:PGdkDisplay; cdecl; external gdklib;
+function gdk_display_get_core_pointer(display:PGdkDisplay): PGdkDevice; cdecl; external gdklib;
+procedure gdk_display_get_pointer(display:PGdkDisplay; screen :PGdkScreen; x :Pgint; y : Pgint; mask : PGdkModifierType); cdecl; external gdklib;
+function gdk_display_get_window_at_pointer(display:PGdkDisplay; win_x: Pgint; win_y: Pgint): PGdkWindow; cdecl; external gdklib;
+function gdk_display_set_pointer_hooks(display: PGdkDisplay; new_hooks: PGdkDisplayPointerHooks): PGdkDisplayPointerHooks; cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------
@@ -73,7 +91,7 @@ function gdk_get_default_display:PGdkDisplay; cdecl; external gdklib;
 {$IFDEF read_implementation}
 function GDK_TYPE_DISPLAY : GType;
 begin
-  GDK_TYPE_DISPLAY:=0; //gdk_display_get_type;
+  GDK_TYPE_DISPLAY := 0; //gdk_display_get_type;
 end;
 
 function GDK_DISPLAY_OBJECT(anObject : pointer) : PGdkDisplay;

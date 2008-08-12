@@ -106,6 +106,7 @@ type
 procedure gdk_parse_args(argc:Pgint; var argv:PPgchar); cdecl; external gdklib;
 procedure gdk_init(argc:Pgint; var argv:PPgchar); cdecl; external gdklib;
 function gdk_init_check(argc:Pgint; var argv:PPgchar):gboolean; cdecl; external gdklib;
+procedure gdk_notify_startup_complete; cdecl; external gdklib;
 
 {$ifndef GDK_DISABLE_DEPRECATED}
 procedure gdk_exit(error_code:gint); cdecl; external gdklib;
@@ -173,8 +174,6 @@ function gdk_mbstowcs(dest:PGdkWChar; src:Pgchar; dest_max:gint):gint; cdecl; ex
 function gdk_event_send_client_message(event:PGdkEvent; xid:guint32):gboolean; cdecl; external gdklib;
 procedure gdk_event_send_clientmessage_toall(event:PGdkEvent); cdecl; external gdklib;
 {$endif}
-
-function gdk_event_send_client_message_for_display(display:PGdkDisplay; event:PGdkEvent; xid:guint32):gboolean; cdecl; external gdklib;
 
 
 {$IFNDEF KYLIX}

@@ -20,6 +20,7 @@
 {$include gdkproperty.inc}
 {$include gdkregion.inc}
 {$include gdkrgb.inc}
+{$include gdkdisplaymanager.inc}
 {$include gdkdisplay.inc}
 {$include gdkscreen.inc}
 {$include gdkselection.inc}

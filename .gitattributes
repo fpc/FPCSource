@@ -2191,6 +2191,7 @@ packages/gtk2/src/gtk+/gdk/gdk2.pas svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkcolor.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkcursor.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkdisplay.inc svneol=native#text/plain
+packages/gtk2/src/gtk+/gdk/gdkdisplaymanager.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkdnd.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkdrawable.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkevents.inc svneol=native#text/plain
