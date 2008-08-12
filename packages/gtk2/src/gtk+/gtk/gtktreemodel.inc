@@ -146,6 +146,12 @@ procedure gtk_tree_model_row_inserted(tree_model:PGtkTreeModel; path:PGtkTreePat
 procedure gtk_tree_model_row_has_child_toggled(tree_model:PGtkTreeModel; path:PGtkTreePath; iter:PGtkTreeIter); cdecl; external gtklib;
 procedure gtk_tree_model_row_deleted(tree_model:PGtkTreeModel; path:PGtkTreePath); cdecl; external gtklib;
 procedure gtk_tree_model_rows_reordered(tree_model:PGtkTreeModel; path:PGtkTreePath; iter:PGtkTreeIter; new_order:Pgint); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_tree_model_get_string_from_iter(tree_model:PGtkTreeModel; iter:PGtkTreeIter):Pgchar; cdecl; external gtklib;
+function gtk_tree_path_new_from_indices(first_index: gint): PGtkTreePath; cdecl; varargs; external gtklib;
+function gtk_tree_row_reference_copy(reference:PGtkTreeRowReference):PGtkTreeRowReference; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

@@ -57,7 +57,6 @@ function gtk_settings_get_type:GType; cdecl; external gtklib;
 function gtk_settings_get_default:PGtkSettings; cdecl; external gtklib;
 {$endif}
 
-function gtk_settings_get_for_screen(screen:PGdkScreen):PGtkSettings; cdecl; external gtklib;
 procedure gtk_settings_install_property(pspec:PGParamSpec); cdecl; external gtklib;
 procedure gtk_settings_install_property_parser(pspec:PGParamSpec; parser:TGtkRcPropertyParser); cdecl; external gtklib;
 { --- precoded parsing functions ---  }
@@ -75,6 +74,10 @@ procedure gtk_settings_set_double_property(settings:PGtkSettings; name:Pgchar; v
 procedure _gtk_settings_handle_event(event:PGdkEventSetting); cdecl; external gtklib;
 function _gtk_rc_property_parser_from_type(_type:GType):TGtkRcPropertyParser; cdecl; external gtklib;
 function _gtk_settings_parse_convert(parser:TGtkRcPropertyParser; src_value:PGValue; pspec:PGParamSpec; dest_value:PGValue):gboolean; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_settings_get_for_screen(screen:PGdkScreen):PGtkSettings; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

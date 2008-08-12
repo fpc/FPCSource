@@ -128,7 +128,6 @@ function gtk_tree_view_row_expanded(tree_view:PGtkTreeView; path:PGtkTreePath):g
 procedure gtk_tree_view_set_reorderable(tree_view:PGtkTreeView; reorderable:gboolean); cdecl; external gtklib;
 function gtk_tree_view_get_reorderable(tree_view:PGtkTreeView):gboolean; cdecl; external gtklib;
 procedure gtk_tree_view_set_cursor(tree_view:PGtkTreeView; path:PGtkTreePath; focus_column:PGtkTreeViewColumn; start_editing:gboolean); cdecl; external gtklib;
-procedure gtk_tree_view_set_cursor_on_cell(tree_view:PGtkTreeView; path:PGtkTreePath; focus_column:PGtkTreeViewColumn; focus_cell:PGtkCellRenderer; start_editing:gboolean); cdecl; external gtklib;
 procedure gtk_tree_view_get_cursor(tree_view:PGtkTreeView; var path:PGtkTreePath; var focus_column:PGtkTreeViewColumn); cdecl; external gtklib;
 { Layout information  }
 function gtk_tree_view_get_bin_window(tree_view:PGtkTreeView):PGdkWindow; cdecl; external gtklib;
@@ -158,6 +157,11 @@ function gtk_tree_view_get_search_equal_func(tree_view:PGtkTreeView):TGtkTreeVie
 procedure gtk_tree_view_set_search_equal_func(tree_view:PGtkTreeView; search_equal_func:TGtkTreeViewSearchEqualFunc; search_user_data:gpointer; search_destroy:TGtkDestroyNotify); cdecl; external gtklib;
 
 procedure gtk_tree_view_set_destroy_count_func(tree_view:PGtkTreeView; func:TGtkTreeDestroyCountFunc; data:gpointer; destroy:TGtkDestroyNotify); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+procedure gtk_tree_view_expand_to_path(tree_view:PGtkTreeView; path: PGtkTreePath); cdecl; external gtklib;
+procedure gtk_tree_view_set_cursor_on_cell(tree_view:PGtkTreeView; path:PGtkTreePath; focus_column:PGtkTreeViewColumn; focus_cell:PGtkCellRenderer; start_editing:gboolean); cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

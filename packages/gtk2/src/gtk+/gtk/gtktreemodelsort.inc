@@ -63,6 +63,10 @@ function gtk_tree_model_sort_convert_path_to_child_path(tree_model_sort:PGtkTree
 procedure gtk_tree_model_sort_convert_iter_to_child_iter(tree_model_sort:PGtkTreeModelSort; child_iter:PGtkTreeIter; sorted_iter:PGtkTreeIter); cdecl; external gtklib;
 procedure gtk_tree_model_sort_reset_default_sort_func(tree_model_sort:PGtkTreeModelSort); cdecl; external gtklib;
 procedure gtk_tree_model_sort_clear_cache(tree_model_sort:PGtkTreeModelSort); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_tree_model_sort_iter_is_valid(tree_model_sort:PGtkTreeModelSort; iter:PGtkTreeIter): gboolean; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

@@ -79,6 +79,14 @@ procedure gtk_list_store_insert_after(list_store:PGtkListStore; iter:PGtkTreeIte
 procedure gtk_list_store_prepend(list_store:PGtkListStore; iter:PGtkTreeIter); cdecl; external gtklib;
 procedure gtk_list_store_append(list_store:PGtkListStore; iter:PGtkTreeIter); cdecl; external gtklib;
 procedure gtk_list_store_clear(list_store:PGtkListStore); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_list_store_iter_is_valid(list_store:PGtkListStore; iter:PGtkTreeIter): gboolean; cdecl; external gtklib;
+procedure gtk_list_store_move_after(list_store:PGtkListStore; iter:PGtkTreeIter; position: PGtkTreeIter); cdecl; external gtklib;
+procedure gtk_list_store_move_before(list_store:PGtkListStore; iter:PGtkTreeIter; position: PGtkTreeIter); cdecl; external gtklib;
+procedure gtk_list_store_reorder(list_store:PGtkListStore; new_order:Pgint); cdecl; external gtklib;
+procedure gtk_list_store_swap(list_store:PGtkListStore; a:PGtkTreeIter; b:PGtkTreeIter); cdecl; external gtklib; 
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

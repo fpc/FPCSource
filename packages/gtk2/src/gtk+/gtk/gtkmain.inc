@@ -9,6 +9,8 @@
 { GTK_DISABLE_DEPRECATED  }
    TGtkModuleInitFunc = procedure (argc:Pgint; argv:PPPgchar); cdecl;
 
+   TGtkModuleDisplayInitFunc = procedure (display: PGdkDisplay); cdecl;
+
    TGtkKeySnoopFunc = function (grab_widget:PGtkWidget; event:PGdkEventKey; func_data:gpointer):gint; cdecl;
 {$ENDIF read_interface_types}
 

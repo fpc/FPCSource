@@ -52,11 +52,14 @@ procedure gtk_plug_construct(plug:PGtkPlug; socket_id:TGdkNativeWindow); cdecl; 
 function gtk_plug_new(socket_id:TGdkNativeWindow):PGtkWidget; cdecl; external gtklib;
 {$endif}
 
-procedure gtk_plug_construct_for_display(plug:PGtkPlug; display:PGdkDisplay; socket_id:TGdkNativeWindow); cdecl; external gtklib;
-function gtk_plug_new_for_display(display:PGdkDisplay; socket_id:TGdkNativeWindow):PGtkWidget; cdecl; external gtklib;
 function gtk_plug_get_id(plug:PGtkPlug):TGdkNativeWindow; cdecl; external gtklib;
 procedure _gtk_plug_add_to_socket(plug:PGtkPlug; socket:PGtkSocket); cdecl; external gtklib;
 procedure _gtk_plug_remove_from_socket(plug:PGtkPlug; socket:PGtkSocket); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+procedure gtk_plug_construct_for_display(plug:PGtkPlug; display:PGdkDisplay; socket_id:TGdkNativeWindow); cdecl; external gtklib;
+function gtk_plug_new_for_display(display:PGdkDisplay; socket_id:TGdkNativeWindow):PGtkWidget; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

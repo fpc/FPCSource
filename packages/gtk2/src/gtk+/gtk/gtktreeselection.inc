@@ -54,8 +54,6 @@ function gtk_tree_selection_get_tree_view(selection:PGtkTreeSelection):PGtkTreeV
 { Only meaningful if GTK_TREE_SELECTION_SINGLE is set  }
 { Use selected_foreach for GTK_TREE_SELECTION_MULTI  }
 function gtk_tree_selection_get_selected(selection:PGtkTreeSelection; model:PPGtkTreeModel; iter:PGtkTreeIter):gboolean; cdecl; external gtklib;
-{ gtk_tree_selection_get_selected_rows was later added, so maybe some older libs don't have it }
-function gtk_tree_selection_get_selected_rows(selection:PGtkTreeSelection; model:PPGtkTreeModel):PGList; cdecl; external gtklib;
 procedure gtk_tree_selection_selected_foreach(selection:PGtkTreeSelection; func:TGtkTreeSelectionForeachFunc; data:gpointer); cdecl; external gtklib;
 procedure gtk_tree_selection_select_path(selection:PGtkTreeSelection; path:PGtkTreePath); cdecl; external gtklib;
 procedure gtk_tree_selection_unselect_path(selection:PGtkTreeSelection; path:PGtkTreePath); cdecl; external gtklib;
@@ -66,6 +64,12 @@ function gtk_tree_selection_iter_is_selected(selection:PGtkTreeSelection; iter:P
 procedure gtk_tree_selection_select_all(selection:PGtkTreeSelection); cdecl; external gtklib;
 procedure gtk_tree_selection_unselect_all(selection:PGtkTreeSelection); cdecl; external gtklib;
 procedure gtk_tree_selection_select_range(selection:PGtkTreeSelection; start_path:PGtkTreePath; end_path:PGtkTreePath); cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_tree_selection_count_selected_rows(selection:PGtkTreeSelection):gint; cdecl; external gtklib;
+function gtk_tree_selection_get_selected_rows(selection:PGtkTreeSelection; model:PPGtkTreeModel):PGList; cdecl; external gtklib;
+procedure gtk_tree_selection_unselect_range(selection:PGtkTreeSelection; start_path:PGtkTreePath; end_path:PGtkTreePath); cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------
