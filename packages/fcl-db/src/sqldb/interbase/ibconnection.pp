@@ -661,7 +661,13 @@ begin
         TransType, TransLen);
       FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
          TransLen, False, (x + 1));
-      if TransType = ftBCD then FD.precision := SQLDA^.SQLVar[x].SQLLen;
+      if TransType = ftBCD then
+        case (SQLDA^.SQLVar[x].sqltype and not 1) of
+          SQL_SHORT : FD.precision := 4;
+          SQL_LONG  : FD.precision := 9;
+          SQL_INT64 : FD.precision := 18;
+          else FD.precision := SQLDA^.SQLVar[x].SQLLen;
+        end;
 //      FD.DisplayName := SQLDA^.SQLVar[x].AliasName;
       FieldBinding[FD.FieldNo-1] := x;
       end;
@@ -737,39 +743,42 @@ var ParNr,SQLVarNr : integer;
   end;
 
 var
-  VSQLVar: XSQLVAR;
+  // This should be a pointer, because the ORIGINAL variables must
+  // be modified.
+  VSQLVar: ^XSQLVAR;
+
 begin
 {$R-}
   with cursor as TIBCursor do for SQLVarNr := 0 to High(ParamBinding){AParams.count-1} do
     begin
     ParNr := ParamBinding[SQLVarNr];
-    VSQLVar := in_sqlda^.SQLvar[SQLVarNr];
+    VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
     if AParams[ParNr].IsNull then
       begin
-      If Assigned(VSQLVar.SQLInd) then
-        VSQLVar.SQLInd^ := -1;
+      If Assigned(VSQLVar^.SQLInd) then
+        VSQLVar^.SQLInd^ := -1;
       end
     else
       begin
-      if assigned(VSQLVar.SQLInd) then VSQLVar.SQLInd^ := 0;
+      if assigned(VSQLVar^.SQLInd) then VSQLVar^.SQLInd^ := 0;
 
-      case (VSQLVar.sqltype and not 1) of
+      case (VSQLVar^.sqltype and not 1) of
         SQL_LONG :
           begin
-            if VSQLVar.sqlscale = 0 then
+            if VSQLVar^.sqlscale = 0 then
               i := AParams[ParNr].AsInteger
             else
-              i := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
-            Move(i, VSQLVar.SQLData^, VSQLVar.SQLLen);
+              i := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
+            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_SHORT :
           begin
-            if VSQLVar.sqlscale = 0 then
+            if VSQLVar^.sqlscale = 0 then
               si := AParams[ParNr].AsSmallint
             else
-              si := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
+              si := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
             i := si;
-            Move(i, VSQLVar.SQLData^, VSQLVar.SQLLen);
+            Move(i, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_BLOB :
           SetBlobParam;
@@ -777,30 +786,30 @@ begin
           begin
           s := AParams[ParNr].AsString;
           w := length(s); // a word is enough, since the max-length of a string in interbase is 32k
-          if ((VSQLVar.SQLType and not 1) = SQL_VARYING) then
+          if ((VSQLVar^.SQLType and not 1) = SQL_VARYING) then
             begin
-            VSQLVar.SQLLen := w;
-            ReAllocMem(VSQLVar.SQLData, VSQLVar.SQLLen+2);
-            CurrBuff := VSQLVar.SQLData;
+            VSQLVar^.SQLLen := w;
+            ReAllocMem(VSQLVar^.SQLData, VSQLVar^.SQLLen+2);
+            CurrBuff := VSQLVar^.SQLData;
             move(w,CurrBuff^,sizeof(w));
             inc(CurrBuff,2);
             end
           else
-            CurrBuff := VSQLVar.SQLData;
+            CurrBuff := VSQLVar^.SQLData;
           Move(s[1], CurrBuff^, w);
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
-          SetDateTime(VSQLVar.SQLData, AParams[ParNr].AsDateTime, VSQLVar.SQLType);
+          SetDateTime(VSQLVar^.SQLData, AParams[ParNr].AsDateTime, VSQLVar^.SQLType);
         SQL_INT64:
           begin
-            if VSQLVar.sqlscale = 0 then
+            if VSQLVar^.sqlscale = 0 then
               li := AParams[ParNr].AsLargeInt
             else
-              li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar.sqlscale));
-            Move(li, VSQLVar.SQLData^, VSQLVar.SQLLen);
+              li := Round(AParams[ParNr].AsCurrency * IntPower(10, -VSQLVar^.sqlscale));
+            Move(li, VSQLVar^.SQLData^, VSQLVar^.SQLLen);
           end;
         SQL_DOUBLE, SQL_FLOAT:
-          SetFloat(VSQLVar.SQLData, AParams[ParNr].AsFloat, VSQLVar.SQLLen);
+          SetFloat(VSQLVar^.SQLData, AParams[ParNr].AsFloat, VSQLVar^.SQLLen);
       else
         DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[ParNr].DataType]],self);
       end {case}
