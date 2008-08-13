@@ -421,6 +421,7 @@ procedure gdk_window_set_group(window:PGdkWindow; leader:PGdkWindow); cdecl; ext
 procedure gdk_window_set_decorations(window:PGdkWindow; decorations:TGdkWMDecoration); cdecl; external gdklib;
 function gdk_window_get_decorations(window:PGdkWindow; decorations:PGdkWMDecoration):gboolean; cdecl; external gdklib;
 procedure gdk_window_set_functions(window:PGdkWindow; functions:TGdkWMFunction); cdecl; external gdklib;
+function gdk_window_get_group(window: PGdkWindow): PGdkWindow; cdecl; external gdklib;
 
 {$ifndef GDK_MULTIHEAD_SAFE}
 function gdk_window_get_toplevels:PGList; cdecl; external gdklib;
@@ -482,6 +483,9 @@ procedure gdk_window_fullscreen(window: PGdkWindow); cdecl; external gdklib;
 procedure gdk_window_set_skip_pager_hint(window: PGdkWindow; skips_pager: gboolean); cdecl; external gdklib;
 procedure gdk_window_set_skip_taskbar_hint(window: PGdkWindow; skips_taskbar: gboolean); cdecl; external gdklib;
 procedure gdk_window_unfullscreen(window: PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_set_accept_focus(window: PGdkWindow; accept_focus: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_keep_above(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_keep_below(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------

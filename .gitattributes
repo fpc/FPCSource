@@ -2114,6 +2114,7 @@ packages/gtk2/src/gtk+/gdk/gdkregion.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkrgb.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkscreen.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkselection.inc svneol=native#text/plain
+packages/gtk2/src/gtk+/gdk/gdkspawn.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdktypes.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkvisual.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkwindow.inc svneol=native#text/plain

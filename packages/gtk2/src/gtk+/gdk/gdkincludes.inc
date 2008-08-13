@@ -24,6 +24,7 @@
 {$include gdkdisplay.inc}
 {$include gdkscreen.inc}
 {$include gdkselection.inc}
+{$include gdkspawn.inc}
 {$include gdktypes.inc}
 {$include gdkvisual.inc}
 {$include gdkwindow.inc}
