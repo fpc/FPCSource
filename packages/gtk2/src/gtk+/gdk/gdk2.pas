@@ -189,6 +189,7 @@ var
 procedure gdk_threads_enter; cdecl; external gdklib;
 procedure gdk_threads_leave; cdecl; external gdklib;
 procedure gdk_threads_init; cdecl; external gdklib;
+procedure gdk_threads_set_lock_functions(enter_fn: TGCallback; leave_fn: TGCallback); cdecl; external gdklib;
 
 procedure _GDK_THREADS_ENTER;
 procedure _GDK_THREADS_LEAVE;

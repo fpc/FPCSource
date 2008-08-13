@@ -168,6 +168,9 @@ procedure gdk_draw_bitmap(drawable:PGdkDrawable; gc:PGdkGC; src:PGdkDrawable; xs
 { GDK_DISABLE_DEPRECATED  }
 
 function gdk_drawable_get_image(drawable:PGdkDrawable; x:gint; y:gint; width:gint; height:gint):PGdkImage; cdecl; external gdklib;
+function gdk_drawable_copy_to_image(drawable:PGdkDrawable; image: PGdkImage; src_x: gint; src_y: gint; dest_x: gint; dest_y: gint;
+           width: gint; height: gint):PGdkImage; cdecl; external gdklib;
+
 function gdk_drawable_get_clip_region(drawable:PGdkDrawable):PGdkRegion; cdecl; external gdklib;
 function gdk_drawable_get_visible_region(drawable:PGdkDrawable):PGdkRegion; cdecl; external gdklib;
 {$endif read_interface_rest}
