@@ -406,6 +406,7 @@ compiler/ppc.conf -text
 compiler/ppc.dof -text
 compiler/ppc68k.lpi svneol=native#text/plain
 compiler/ppcarm.lpi svneol=native#text/plain
+compiler/ppcavr.lpi svneol=native#text/plain
 compiler/ppcgen/aasmcpu.pas svneol=native#text/plain
 compiler/ppcgen/agppcgas.pas svneol=native#text/plain
 compiler/ppcgen/cgppc.pas svneol=native#text/plain
