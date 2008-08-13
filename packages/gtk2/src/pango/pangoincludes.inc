@@ -12,6 +12,8 @@
 {$include pango-glyph.inc}
 {$include pango-item.inc}
 {$include pango-layout.inc}
+{$include pango-matrix.inc}
 { $include pango-enum-types.inc}
+{$include pango-renderer.inc}
 {$include pango-tabs.inc}
 
