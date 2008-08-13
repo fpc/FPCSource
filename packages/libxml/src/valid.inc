@@ -7,6 +7,16 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlValidStatePtr = ^xmlValidState;
+  xmlValidCtxtPtr = ^xmlValidCtxt;
+  xmlNotationTablePtr = ^xmlNotationTable;
+  xmlElementTablePtr = ^xmlElementTable;
+  xmlAttributeTablePtr = ^xmlAttributeTable;
+  xmlIDTablePtr = ^xmlIDTable;
+  xmlRefTablePtr = ^xmlRefTable;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (*
  * Validation state added for non-determinist content model.

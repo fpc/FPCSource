@@ -10,6 +10,11 @@
 
 {$IFDEF LIBXML_PATTERN_ENABLED}
 
+{$IFDEF POINTER}
+  xmlPatternPtr = ^xmlPattern;
+  xmlStreamCtxtPtr = ^xmlStreamCtxt;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlPattern:
@@ -27,12 +32,14 @@
  * matching with this module
  *
  *)
-  xmlPatternFlags = (
-    XML_PATTERN_DEFAULT		= 0,	(* simple pattern match *)
-    XML_PATTERN_XPATH		= 1 shl 0,	(* standard XPath pattern *)
-    XML_PATTERN_XSSEL		= 1 shl 1,	(* XPath subset for schema selector *)
-    XML_PATTERN_XSFIELD		= 1 shl 2	(* XPath subset for schema field *)
-  );
+  xmlPatternFlags = type cint;
+{$ENDIF}
+
+{$IFDEF CONST}
+  XML_PATTERN_DEFAULT		= 0;	(* simple pattern match *)
+  XML_PATTERN_XPATH		= 1 shl 0;	(* standard XPath pattern *)
+  XML_PATTERN_XSSEL		= 1 shl 1;	(* XPath subset for schema selector *)
+  XML_PATTERN_XSFIELD		= 1 shl 2;	(* XPath subset for schema field *)
 {$ENDIF}
 
 {$IFDEF FUNCTION}

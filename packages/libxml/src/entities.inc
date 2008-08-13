@@ -8,6 +8,11 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlEntityPtr = ^xmlEntity;
+  xmlEntitiesTablePtr = ^xmlEntitiesTable;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (*
  * The different valid entity types.

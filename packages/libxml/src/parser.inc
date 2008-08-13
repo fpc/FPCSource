@@ -7,14 +7,27 @@
  * Author: Daniel Veillard
  *)
 
-{$IFDEF TYPE}
+{$IFDEF POINTER}
+  xmlParserInputPtr = ^xmlParserInput;
+  xmlParserInputPtrPtr = ^xmlParserInputPtr;
+  xmlParserNodeInfoPtr = ^xmlParserNodeInfo;
+  xmlParserNodeInfoSeqPtr = ^xmlParserNodeInfoSeq;
+  xmlParserCtxtPtr = ^xmlParserCtxt;
+  xmlSAXLocatorPtr = ^xmlSAXLocator;
+  xmlSAXHandlerPtr = ^xmlSAXHandler;
+  xmlSAXHandlerV1Ptr = ^xmlSAXHandlerV1;
+{$ENDIF}
+
+{$IFDEF CONST}
 (**
  * XML_DEFAULT_VERSION:
  *
  * The default version of XML used: 1.0
  *)
-{$DEFINE XML_DEFAULT_VERSION :=	'1.0'}
+  XML_DEFAULT_VERSION = '1.0';
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * xmlParserInput:
  *
@@ -107,14 +120,16 @@
     XML_PARSER_IGNORE,		(* within an IGNORED section *)
     XML_PARSER_PUBLIC_LITERAL 	(* within a PUBLIC value *)
   );
+{$ENDIF}
 
+{$IFDEF CONST}
 (**
  * XML_DETECT_IDS:
  *
  * Bit in the loadsubset context field to tell to do ID/REFs lookups.
  * Use it to initialize xmlLoadExtDtdDefaultValue.
  *)
-{$define XML_DETECT_IDS := 2}
+  XML_DETECT_IDS = 2;
 
 (**
  * XML_COMPLETE_ATTRS:
@@ -123,7 +138,7 @@
  * elements attributes lists with the ones defaulted from the DTDs.
  * Use it to initialize xmlLoadExtDtdDefaultValue.
  *)
-{$define XML_COMPLETE_ATTRS := 4}
+  XML_COMPLETE_ATTRS = 4;
 
 (**
  * XML_SKIP_IDS:
@@ -131,8 +146,10 @@
  * Bit in the loadsubset context field to tell to not do ID/REFs registration.
  * Used to initialize xmlLoadExtDtdDefaultValue in some special cases.
  *)
-{$define XML_SKIP_IDS := 8}
+  XML_SKIP_IDS = 8;
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * xmlParserMode:
  *
@@ -738,28 +755,30 @@
  * to the xmlReadDoc() and similar calls.
  *)
   xmlParserOption = type cint;
-
-{$DEFINE XML_PARSE_RECOVER := (1 shl 0)} (* recover on errors *)
-{$DEFINE XML_PARSE_NOENT := (1 shl 1)} (* substitute entities *)
-{$DEFINE XML_PARSE_DTDLOAD := (1 shl 2)} (* load the external subset *)
-{$DEFINE XML_PARSE_DTDATTR := (1 shl 3)} (* default DTD attributes *)
-{$DEFINE XML_PARSE_DTDVALID  := (1 shl 4)} (* validate with the DTD *)
-{$DEFINE XML_PARSE_NOERROR := (1 shl 5)} (* suppress error reports *)
-{$DEFINE XML_PARSE_NOWARNING := (1 shl 6)} (* suppress warning reports *)
-{$DEFINE XML_PARSE_PEDANTIC  := (1 shl 7)} (* pedantic error reporting *)
-{$DEFINE XML_PARSE_NOBLANKS  := (1 shl 8)} (* remove blank nodes *)
-{$DEFINE XML_PARSE_SAX1  := (1 shl 9)} (* use the SAX1 interface internally *)
-{$DEFINE XML_PARSE_XINCLUDE  := (1 shl 10)}(* Implement XInclude substitition  *)
-{$DEFINE XML_PARSE_NONET := (1 shl 11)}(* Forbid network access *)
-{$DEFINE XML_PARSE_NODICT  := (1 shl 12)}(* Do not reuse the context dictionnary *)
-{$DEFINE XML_PARSE_NSCLEAN := (1 shl 13)}(* remove redundant namespaces declarations *)
-{$DEFINE XML_PARSE_NOCDATA := (1 shl 14)}(* merge CDATA as text nodes *)
-{$DEFINE XML_PARSE_NOXINCNODE:= (1 shl 15)}(* do not generate XINCLUDE START/END nodes *)
-{$DEFINE XML_PARSE_COMPACT   := (1 shl 16)} (* compact small text nodes)} no modification of
+{$ENDIF}
+{$IFDEF CONST}
+  XML_PARSE_RECOVER = (1 shl 0); (* recover on errors *)
+  XML_PARSE_NOENT = (1 shl 1); (* substitute entities *)
+  XML_PARSE_DTDLOAD = (1 shl 2); (* load the external subset *)
+  XML_PARSE_DTDATTR = (1 shl 3); (* default DTD attributes *)
+  XML_PARSE_DTDVALID  = (1 shl 4); (* validate with the DTD *)
+  XML_PARSE_NOERROR = (1 shl 5); (* suppress error reports *)
+  XML_PARSE_NOWARNING = (1 shl 6); (* suppress warning reports *)
+  XML_PARSE_PEDANTIC  = (1 shl 7); (* pedantic error reporting *)
+  XML_PARSE_NOBLANKS  = (1 shl 8); (* remove blank nodes *)
+  XML_PARSE_SAX1  = (1 shl 9); (* use the SAX1 interface internally *)
+  XML_PARSE_XINCLUDE  = (1 shl 10);(* Implement XInclude substitition  *)
+  XML_PARSE_NONET = (1 shl 11);(* Forbid network access *)
+  XML_PARSE_NODICT  = (1 shl 12);(* Do not reuse the context dictionnary *)
+  XML_PARSE_NSCLEAN = (1 shl 13);(* remove redundant namespaces declarations *)
+  XML_PARSE_NOCDATA = (1 shl 14);(* merge CDATA as text nodes *)
+  XML_PARSE_NOXINCNODE = (1 shl 15);(* do not generate XINCLUDE START/END nodes *)
+  XML_PARSE_COMPACT   = (1 shl 16); (* compact small text nodes); no modification of
                                    the tree allowed afterwards (will possibly
            crash if you try to modify the tree) *)
+{$ENDIF}
 
-
+{$IFDEF TYPE}
   xmlFeature = (
     XML_WITH_THREAD = 1,
     XML_WITH_TREE = 2,

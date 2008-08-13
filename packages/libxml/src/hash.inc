@@ -8,6 +8,10 @@
  * Author: Bjorn Reese <bjorn.reese@systematic.dk>
  *)
 
+{$IFDEF POINTER}
+  xmlHashTablePtr = ^xmlHashTable;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (*
  * The hash table.

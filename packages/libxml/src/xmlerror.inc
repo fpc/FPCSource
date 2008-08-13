@@ -6,6 +6,11 @@
  *
  * Author: Daniel Veillard
  *)
+{$IFDEF POINTER}
+  xmlErrorPtr = ^xmlError;
+  xmlGenericErrorFuncPtr = ^xmlGenericErrorFunc;
+  xmlStructuredErrorFuncPtr = ^xmlStructuredErrorFunc;
+{$ENDIF}
 
 {$IFDEF TYPE}
 (**
@@ -868,33 +873,34 @@ procedure xmlCtxtResetLastError(ctx: pointer); XMLCALL; XMLPUBFUN;
 procedure xmlResetError(err: xmlErrorPtr); XMLCALL; XMLPUBFUN;
 function xmlResetError(from, _to: xmlErrorPtr): cint; XMLCALL; XMLPUBFUN;
 
-{$IFDEF IN_LIBXML}
 (*
  * Internal callback reporting routine
  *)
-{XMLPUBFUN void XMLCALL
-    __xmlRaiseError		(xmlStructuredErrorFunc schannel,
-    				 xmlGenericErrorFunc channel,
-    				 void *data,
-                                 void *ctx,
-    				 void *node,
-    				 int domain,
-				 int code,
-				 xmlErrorLevel level,
-				 char *file,
-				 int line,
-				 char *str1,
-				 char *str2,
-				 char *str3,
-				 int int1,
-				 int col,
-				 char *msg,
-				 ...);
-XMLPUBFUN void XMLCALL
-    __xmlSimpleError		(int domain,
-    				 int code,
-				 xmlNodePtr node,
-				 char *msg,
-				 char *extra);}
-{$ENDIF}
+procedure __xmlRaiseError(
+  schannel: xmlStructuredErrorFunc;
+  channel: xmlGenericErrorFunc;
+  data: pointer;
+  ctx: pointer;
+  node: pointer;
+  domain: cint;
+  code: cint;
+  level: xmlErrorLevel;
+  _file: pchar;
+  line: cint;
+  str1: pchar;
+  str2: pchar;
+  str3: pchar;
+  int1: cint;
+  col: cint;
+  msg: pchar;
+  args: array of const
+); XMLCALL; XMLPUBFUN;
+
+procedure __xmlSimpleError(
+  domain: cint;
+  code: cint;
+  node: xmlNodePtr;
+  msg: pchar;
+  extra: pchar
+); XMLCALL; XMLPUBFUN;
 {$ENDIF}

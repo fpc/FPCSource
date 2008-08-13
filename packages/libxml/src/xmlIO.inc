@@ -12,6 +12,11 @@
  * I/O structures.
  *)
 
+{$IFDEF POINTER}
+  xmlParserInputBufferPtr = ^xmlParserInputBuffer;
+  xmlOutputBufferPtr = ^xmlOutputBuffer;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlInputMatchCallback:
@@ -190,10 +195,8 @@ function xmlCheckHTTPInput(ctxt: xmlParserCtxtPtr; ret: xmlParserInputPtr): xmlP
 function xmlNoNetExternalEntityLoader(URL: pchar; ID: pchar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; XMLCALL; XMLPUBFUN;
 
 (*
- * xmlNormalizeWindowsPath is obsolete, don't use it.
  * Check xmlCanonicPath in uri.h for a better alternative.
  *)
-function xmlNormalizeWindowsPath(path: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 function xmlCheckFilename(path: pchar): cint; XMLCALL; XMLPUBFUN;
 
 (**

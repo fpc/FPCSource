@@ -9,6 +9,11 @@
 
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 {$IFDEF LIBXML_READER_ENABLED}
+
+{$IFDEF POINTER}
+  xmlTextReaderPtr = ^xmlTextReader;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlTextReaderMode:

@@ -10,6 +10,11 @@
 {$IFDEF LIBXML_REGEXP_ENABLED}
 {$IFDEF LIBXML_AUTOMATA_ENABLED}
 
+{$IFDEF POINTER}
+  xmlAutomataPtr = ^xmlAutomata;
+  xmlAutomataStatePtr = ^xmlAutomataState;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlAutomataPtr:

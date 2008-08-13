@@ -10,6 +10,13 @@
 
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 
+{$IFDEF POINTER}
+  xmlSchemaPtr = ^xmlSchema;
+  xmlSchemaParserCtxtPtr = ^xmlSchemaParserCtxt;
+  xmlSchemaValidCtxtPtr = ^xmlSchemaValidCtxt;
+  xmlSchemaSAXPlugPtr = ^xmlSchemaSAXPlugStruct;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * This error codes are obsolete; not used any more.
@@ -53,20 +60,24 @@
  *
  * This is the set of XML Schema validation options.
  *)
-  xmlSchemaValidOption = (
-    XML_SCHEMA_VAL_VC_I_CREATE			= 1 shl 0,
+  xmlSchemaValidOption = type cint;
+{$ENDIF}
+
+{$IFDEF CONST}
+    XML_SCHEMA_VAL_VC_I_CREATE			= 1 shl 0;
 	(* Default/fixed: create an attribute node
 	* or an element's text node on the instance.
 	*)
 
-    XML_SCHEMA_VAL_XSI_ASSEMBLE			= 1 shl 1
+    XML_SCHEMA_VAL_XSI_ASSEMBLE			= 1 shl 1;
 (*
 	* assemble schemata using
 	* xsi:schemaLocation and
 	* xsi:noNamespaceSchemaLocation
 *)
-  );
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * The schemas related types are kept internal
  *)

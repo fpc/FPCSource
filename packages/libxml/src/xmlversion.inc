@@ -14,34 +14,34 @@
  *)
 procedure xmlCheckVersion(version: cint); XMLCALL; XMLPUBFUN;
 
-
 (**
  * LIBXML_DOTTED_VERSION:
  *
  * the version string like "1.2.3"
  *)
-{$DEFINE LIBXML_DOTTED_VERSION := '2.6.32'}
+const
+  LIBXML_DOTTED_VERSION = '2.6.32';
 
 (**
  * LIBXML_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  *)
-{$DEFINE LIBXML_VERSION := 20632}
+  LIBXML_VERSION = 20632;
 
 (**
  * LIBXML_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  *)
-{$DEFINE LIBXML_VERSION_STRING := '20632'}
+  LIBXML_VERSION_STRING = '20632';
 
 (**
  * LIBXML_VERSION_EXTRA:
  *
  * extra version information, used to show a CVS compilation
  *)
-{$DEFINE LIBXML_VERSION_EXTRA := '-CVS2831'}
+  LIBXML_VERSION_EXTRA = '-CVS2831';
 
 (**
  * LIBXML_TEST_VERSION:
@@ -277,7 +277,8 @@ procedure xmlCheckVersion(version: cint); XMLCALL; XMLPUBFUN;
  *
  * the string suffix used by dynamic modules (usually shared libraries)
  *)
-{$DEFINE LIBXML_MODULE_EXTENSION := '.so'}
+const
+  LIBXML_MODULE_EXTENSION = '.so';
 
 (**
  * LIBXML_ZLIB_ENABLED:

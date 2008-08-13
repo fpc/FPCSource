@@ -10,6 +10,10 @@
 
 {$IFDEF LIBXML_WRITER_ENABLED}
 
+{$IFDEF POINTER}
+  xmlTextWriterPtr = ^xmlTextWriter;
+{$ENDIF}
+
 {$IFDEF TYPE}
   xmlTextWriter = record end;
 {$ENDIF}
@@ -111,7 +115,7 @@ function xmlTextWriterWritePI(writer: xmlTextWriterPtr; target, content: xmlChar
  *
  * This macro maps to xmlTextWriterWritePI
  *)
-{$DEFINE xmlTextWriterWriteProcessingInstruction := xmlTextWriterWritePI}
+//function xmlTextWriterWriteProcessingInstruction(writer: xmlTextWriterPtr; target, content: xmlCharPtr): cint; XMLCALL; XMLPUBFUN 'xmlTextWriterWritePI';
 
 (*
  * CDATA
@@ -144,7 +148,7 @@ function xmlTextWriterWriteDTD(writer: xmlTextWriterPtr; name, pubid, sysid, sub
  *
  * this macro maps to xmlTextWriterWriteDTD
  *)
-{$DEFINE xmlTextWriterWriteDocType := xmlTextWriterWriteDTD}
+//{$DEFINE xmlTextWriterWriteDocType := xmlTextWriterWriteDTD}
 
 (*
  * DTD element definition

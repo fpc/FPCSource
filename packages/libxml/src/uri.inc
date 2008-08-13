@@ -8,6 +8,10 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlURIPtr = ^xmlURI;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlURI:

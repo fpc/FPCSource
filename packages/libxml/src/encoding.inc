@@ -19,6 +19,10 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlCharEncodingHandlerPtr = ^xmlCharEncodingHandler;
+{$ENDIF}
+
 (*
  * xmlCharEncoding:
  *

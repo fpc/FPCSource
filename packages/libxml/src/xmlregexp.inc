@@ -9,6 +9,15 @@
  *)
 
 {$IFDEF LIBXML_REGEXP_ENABLED}
+
+{$IFDEF POINTER}
+  xmlExpNodePtr = ^xmlExpNode;
+  xmlRegexpPtr = ^xmlRegexp;
+  xmlRegExecCtxtPtr = ^xmlRegExecCtxt;
+  xmlExpCtxtPtr = ^xmlExpCtxt;
+{$ENDIF}
+
+
 {$IFDEF TYPE}
 (**
  * xmlRegexpPtr:
@@ -60,13 +69,10 @@ function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbva
 
 {$IFDEF TYPE}
 (* expressions are used within a context *)
-  xmlExpCtxt = record
-  end;
+  xmlExpCtxt = record end;
 
 (* Expressions are trees but the tree is opaque *)
-  xmlExpNodePtr = ^xmlExpNode;
-  xmlExpNode = record
-  end;
+  xmlExpNode = record end;
 
   xmlExpNodeType = (
     XML_EXP_EMPTY = 0,

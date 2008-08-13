@@ -11,6 +11,10 @@
 (*
  * The dictionnary
  *)
+{$IFDEF POINTER}
+  xmlDictPtr = ^xmlDict;
+{$ENDIF}
+
 {$IFDEF TYPE}
   xmlDict = record end;
 {$ENDIF}

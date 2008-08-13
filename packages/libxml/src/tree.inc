@@ -9,18 +9,36 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlBufferPtr = ^xmlBuffer;
+  xmlNotationPtr = ^xmlNotation;
+  xmlEnumerationPtr = ^xmlEnumeration;
+  xmlAttributePtr = ^xmlAttribute;
+  xmlElementContentPtr = ^xmlElementContent;
+  xmlElementPtr = ^xmlElement;
+  xmlNsPtr = ^xmlNs;
+  xmlNodePtr = ^xmlNode;
+  xmlNodePtrPtr = ^xmlNodePtr;
+  xmlDtdPtr = ^xmlDtd;
+  xmlAttrPtr = ^xmlAttr;
+  xmlIDPtr = ^xmlID;
+  xmlRefPtr = ^xmlRef;
+  xmlDocPtr = ^xmlDoc;
+  xmlDOMWrapCtxtPtr = ^xmlDOMWrapCtxt;
+  xmlBufferAllocationSchemePtr = ^xmlBufferAllocationScheme;
+{$ENDIF}
+
 (*
  * Some of the basic types pointer to structures:
  *)
 
-{$IFDEF TYPE}
-
+{$IFDEF CONST}
 (**
  * BASE_BUFFER_SIZE:
  *
  * default buffer size 4000.
  *)
-{$DEFINE BASE_BUFFER_SIZE := 4096}
+  BASE_BUFFER_SIZE = 4096;
 
 (**
  * LIBXML_NAMESPACE_DICT:
@@ -37,15 +55,17 @@
  * This is the namespace for the special xml: prefix predefined in the
  * XML Namespace specification.
  *)
-{$DEFINE XML_XML_NAMESPACE := xmlCharPtr('http://www.w3.org/XML/1998/namespace')}
+  //XML_XML_NAMESPACE: xmlCharPtr = pchar('http://www.w3.org/XML/1998/namespace');
 
 (**
  * XML_XML_ID:
  *
  * This is the name for the special xml:id attribute
  *)
-{$DEFINE XML_XML_ID := xmlCharPtr('xml:id')}
+  //XML_XML_ID: xmlCharPtr = pchar('xml:id');
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * xmlBufferAllocationScheme:
  *

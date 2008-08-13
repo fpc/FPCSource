@@ -9,6 +9,10 @@
 
 {$IFDEF LIBXML_OUTPUT_ENABLED}
 
+{$IFDEF POINTER}
+  xmlSaveCtxtPtr = ^xmlSaveCtxt;
+{$ENDIF}
+
 (**
  * xmlSaveOption:
  *
@@ -16,14 +20,16 @@
  * to the xmlSaveToFd() and similar calls.
  *)
 {$IFDEF TYPE}
-  xmlSaveOption = (
-    XML_SAVE_FORMAT     = 1 shl 0,	(* format save output *)
-    XML_SAVE_NO_DECL    = 1 shl 1,	(* drop the xml declaration *)
-    XML_SAVE_NO_EMPTY	= 1 shl 2, (* no empty tags *)
-    XML_SAVE_NO_XHTML	= 1 shl 3  (* disable XHTML1 specific rules *)
-  );
-
   xmlSaveCtxt = record end;
+
+  xmlSaveOption = type cint;
+{$ENDIF}
+
+{$IFDEF CONST}
+  XML_SAVE_FORMAT     = 1 shl 0;	(* format save output *)
+  XML_SAVE_NO_DECL    = 1 shl 1;	(* drop the xml declaration *)
+  XML_SAVE_NO_EMPTY	= 1 shl 2; (* no empty tags *)
+  XML_SAVE_NO_XHTML	= 1 shl 3;  (* disable XHTML1 specific rules *)
 {$ENDIF}
 
 {$IFDEF FUNCTION}

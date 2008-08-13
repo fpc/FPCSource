@@ -11,6 +11,14 @@
  * Author: Gary Pennington <Gary.Pennington@uk.sun.com>, Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlGlobalStatePtr = ^xmlGlobalState;
+  xmlRegisterNodeFuncPtr = ^xmlRegisterNodeFunc;
+  xmlDeregisterNodeFuncPtr = ^xmlDeregisterNodeFunc;
+  xmlParserInputBufferCreateFilenameFuncPtr = ^xmlParserInputBufferCreateFilenameFunc;
+  xmlOutputBufferCreateFilenameFuncPtr = ^xmlOutputBufferCreateFilenameFunc;
+{$ENDIF}
+
 {$IFDEF FUNCTION}
 procedure xmlInitGlobals; XMLCALL; XMLPUBFUN;
 procedure xmlCleanupGlobals; XMLCALL; XMLPUBFUN;

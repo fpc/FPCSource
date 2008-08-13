@@ -8,6 +8,10 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlCharPtr = pchar;
+  xmlCharPtrPtr = ^xmlCharPtr;
+{$ENDIF}
 
 {$IFDEF TYPE}
 (**

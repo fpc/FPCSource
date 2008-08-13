@@ -10,6 +10,12 @@
 
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 
+{$IFDEF POINTER}
+  xmlRelaxNGPtr = ^xmlRelaxNG;
+  xmlRelaxNGParserCtxtPtr = ^xmlRelaxNGParserCtxt;
+  xmlRelaxNGValidCtxtPtr = ^xmlRelaxNGValidCtxt;
+{$ENDIF}
+
 {$IFDEF TYPE}
   xmlRelaxNG = record end;
 

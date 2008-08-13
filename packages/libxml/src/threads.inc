@@ -8,6 +8,11 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF POINTER}
+  xmlMutexPtr = ^xmlMutex;
+  xmlRMutexPtr = ^xmlRMutex;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (*
  * xmlMutex are a simple mutual exception locks.

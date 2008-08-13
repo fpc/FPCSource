@@ -10,6 +10,10 @@
 
 {$IFDEF LIBXML_MODULES_ENABLED}
 
+{$IFDEF POINTER}
+  xmlModulePtr = ^xmlModule;
+{$ENDIF}
+
 {$IFDEF TYPE}
 (**
  * xmlModulePtr:

@@ -8,6 +8,11 @@
  * Author: Gary Pennington <Gary.Pennington@uk.sun.com>
  *)
 
+{$IFDEF POINTER}
+  xmlLinkPtr = ^xmlLink;
+  xmlListPtr = ^xmlList;
+{$ENDIF}
+
 {$IFDEF TYPE}
   xmlLink = record end;
   xmlList = record end;
