@@ -1058,6 +1058,12 @@ begin
      key:=Keyboard.GetKeyEvent;
      keycode:=Keyboard.GetKeyEventCode(key);
      keyshift:=KeyBoard.GetKeyEventShiftState(key);
+     // some kbds still honour old XT E0 prefix. (org IBM ps/2, win98?) bug #8978
+     if (keycode and $FF = $E0) and
+        (byte(keycode shr 8) in  
+              [$1C,$1D,$2A,$35..$38,$46..$49,$4b,$4d,$4f,$50..$53]) Then
+          keycode := keycode and $FF00;
+     
      { fixup shift-keys }
      if keyshift and kbShift<>0 then
        begin
