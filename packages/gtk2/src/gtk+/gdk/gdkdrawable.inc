@@ -76,6 +76,16 @@
         _gdk_reserved15 : procedure ; cdecl;
         _gdk_reserved16 : procedure ; cdecl;
      end;
+    
+   PGdkTrapezoid = ^TGdkTrapezoid;
+   TGdkTrapezoid = record
+        y1 : double;
+        x11 : double;
+        x21 : double;
+        y2 : double;
+        x12 : double;
+        x22 : double;
+     end;
 
 {$ENDIF read_interface_types}
 
@@ -125,6 +135,7 @@ procedure gdk_draw_rectangle(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; x:gi
 procedure gdk_draw_arc(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; x:gint; y:gint;
             width:gint; height:gint; angle1:gint; angle2:gint); cdecl; external gdklib;
 procedure gdk_draw_polygon(drawable:PGdkDrawable; gc:PGdkGC; filled:gint; points:PGdkPoint; npoints:gint); cdecl; external gdklib;
+procedure gdk_draw_trapezoids(drawable:PGdkDrawable; gc:PGdkGC; trapezoids: PGdkTrapezoid; n_trapezoids: gint); cdecl; external gdklib;
 procedure gdk_draw_pixbuf(drawable: PGdkDrawable; gc:PGdkGC; src:PGdkPixbuf;
             xsrc:gint; ysrc:gint; xdest:gint; ydest:gint;
             width:gint; height:gint; dither:TGdkRgbDither;
@@ -152,6 +163,8 @@ procedure gdk_draw_segments(drawable:PGdkDrawable; gc:PGdkGC; segs:PGdkSegment; 
 procedure gdk_draw_lines(drawable:PGdkDrawable; gc:PGdkGC; points:PGdkPoint; npoints:gint); cdecl; external gdklib;
 procedure gdk_draw_glyphs(drawable:PGdkDrawable; gc:PGdkGC; font:PPangoFont; x:gint; y:gint;
             glyphs:PPangoGlyphString); cdecl; external gdklib;
+procedure gdk_draw_glyphs_transformed(drawable:PGdkDrawable; gc:PGdkGC; matrix: PPangoMatrix; font: PPangoFont;
+            x: gint; y: gint; glyphs: PPangoGlyphString); cdecl; external gdklib;
 procedure gdk_draw_layout_line(drawable:PGdkDrawable; gc:PGdkGC; x:gint; y:gint; line:PPangoLayoutLine); cdecl; external gdklib;
 procedure gdk_draw_layout(drawable:PGdkDrawable; gc:PGdkGC; x:gint; y:gint; layout:PPangoLayout); cdecl; external gdklib;
 procedure gdk_draw_layout_line_with_colors(drawable:PGdkDrawable; gc:PGdkGC; x:gint; y:gint; line:PPangoLayoutLine;
