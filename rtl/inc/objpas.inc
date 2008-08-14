@@ -676,7 +676,7 @@
           Result := getcorbainterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
         end;
 
-      function TObject.getinterface(const iidstr : string;out obj) : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+      function TObject.getinterface(const iidstr : string;out obj) : boolean;
         begin
           Result := getinterfacebystr(iidstr,obj);
         end;
