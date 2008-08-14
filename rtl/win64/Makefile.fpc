@@ -101,6 +101,6 @@ objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
 macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
-buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT) macpas$(PPUEXT)
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(WINDIR) -I$(OBJPASDIR) -I$(WININC) -Fu$(WININC) -Fu$(WINDIR) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
 
