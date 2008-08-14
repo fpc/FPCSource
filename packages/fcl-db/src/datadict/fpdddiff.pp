@@ -149,6 +149,15 @@ end;
 
 procedure TCustomDDDiffer.CompareField(Source, Target: TDDFieldDefs;
   Fieldname: string; Kind: TDiffKindSet);
+
+  Function FieldTypesEqual(F1,F2 : TDDFieldDef) : boolean;
+
+  begin
+    Result:=(F1.FieldType=F2.FieldType);
+    If (Not Result) and (F1.FieldType in [ftFixedChar,ftString]) then
+      Result:=(F2.FieldType in [ftFixedChar,ftString]);
+  end;
+
 var
   SourceField, TargetField : TDDFieldDef;
 begin
@@ -158,13 +167,11 @@ begin
     FieldDifference(dtMissing, SourceField, nil)
   else if not assigned (SourceField) then
     FieldDifference(dtSurplus, nil, TargetField)
-  else if ( (SourceField.FieldType <> TargetField.FieldType) and
-            ( (SourceField.FieldType in [ftFixedChar,ftString]) <> (TargetField.FieldType in [ftFixedChar,ftString]) )
-          ) or
-          (SourceField.required <> TargetField.required) or
-//          (SourceField.DefaultExpression <> TargetField.DefaultExpression) or
-          ((SourceField.Size <> TargetField.Size) and not (SourceField.Fieldtype in [ftBlob])) or
-          (SourceField.Precision <> TargetField.Precision) then
+  else if (Not FieldTypesEqual(SourceField,TargetField))
+          or (SourceField.required <> TargetField.required)
+          or (SourceField.DefaultExpression <> TargetField.DefaultExpression)
+          or ((SourceField.Size <> TargetField.Size) and not (SourceField.Fieldtype in [ftBlob]))
+          or (SourceField.Precision <> TargetField.Precision) then
     FieldDifference(dtDifferent, SourceField, TargetField)
 end;
 

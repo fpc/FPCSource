@@ -1660,7 +1660,7 @@ begin
       Result:=Result+Format('(%d)',[FD.Size]);
     ftBCD,
     ftFMTBCD :
-      Result:=Result+Format('(%d,%d)',[FD.Size,FD.Precision]);
+      Result:=Result+Format('(%d,%d)',[FD.Precision,FD.Size]);
   end;
 end;
 
