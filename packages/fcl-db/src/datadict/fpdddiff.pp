@@ -154,8 +154,6 @@ procedure TCustomDDDiffer.CompareField(Source, Target: TDDFieldDefs;
 
   begin
     Result:=(F1.FieldType=F2.FieldType);
-    If (Not Result) and (F1.FieldType in [ftFixedChar,ftString]) then
-      Result:=(F2.FieldType in [ftFixedChar,ftString]);
   end;
 
 var
