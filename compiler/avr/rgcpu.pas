@@ -35,6 +35,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgobj)
+         procedure add_constraints(reg:tregister);override;
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
        end;
@@ -49,6 +50,42 @@ unit rgcpu;
       verbose, cutils,
       cgobj,
       procinfo;
+
+
+    procedure trgcpu.add_constraints(reg:tregister);
+      var
+        supreg,i : Tsuperregister;
+      begin
+        case getsubreg(reg) of
+          { Let 64bit floats conflict with all odd float regs }
+          R_SUBFD:
+            begin
+            {
+              supreg:=getsupreg(reg);
+              i:=RS_F1;
+              while (i<=RS_F31) do
+                begin
+                  add_edge(supreg,i);
+                  inc(i,2);
+                end;
+            }
+            end;
+          { Let 64bit ints conflict with all odd int regs }
+          R_SUBQ:
+            begin
+              supreg:=getsupreg(reg);
+              {
+              i:=RS_G1;
+              while (i<=RS_I7) do
+                begin
+                  add_edge(supreg,i);
+                  inc(i,2);
+                end;
+              }
+            end;
+        end;
+      end;
+
 
 
     procedure trgcpu.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);

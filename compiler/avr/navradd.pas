@@ -31,12 +31,13 @@ interface
     type
        tavraddnode = class(tcgaddnode)
        private
-          function  GetResFlags(unsigned:Boolean):TResFlags;
+         function  GetResFlags(unsigned:Boolean):TResFlags;
        protected
-          function pass_1 : tnode;override;
-          procedure second_cmpordinal;override;
-          procedure second_cmpsmallset;override;
-          procedure second_cmp64bit;override;
+         function pass_1 : tnode;override;
+         procedure second_cmpordinal;override;
+         procedure second_cmpsmallset;override;
+         procedure second_cmp64bit;override;
+         procedure second_cmp;
        end;
 
   implementation
@@ -160,65 +161,35 @@ interface
       end;
 
 
-    procedure tavraddnode.second_cmp64bit;
+    procedure tavraddnode.second_cmp;
       var
         unsigned : boolean;
-        oldnodetype : tnodetype;
+        tmpreg1,tmpreg2 : tregister;
+        i : longint;
       begin
-        {
         pass_left_right;
-        force_reg_left_right(false,false);
+        force_reg_left_right(true,false);
 
         unsigned:=not(is_signed(left.resultdef)) or
                   not(is_signed(right.resultdef));
 
-        { operation requiring proper N, Z and C flags ? }
-        if unsigned or (nodetype in [equaln,unequaln]) then
+        current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CP,left.location.register,right.location.register));
+        tmpreg1:=left.location.register;
+        tmpreg2:=right.location.register;
+
+        for i:=2 to tcgsize2size[left.location.size] do
           begin
-            location_reset(location,LOC_FLAGS,OS_NO);
-            location.resflags:=getresflags(unsigned);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
-          end
-        else
-        { operation requiring proper N, Z and V flags ? }
-          begin
-            location_reset(location,LOC_JUMP,OS_NO);
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
-            { the jump the sequence is a little bit hairy }
-            case nodetype of
-               ltn,gtn:
-                 begin
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrTrueLabel);
-                    { cheat a little bit for the negative test }
-                    toggleflag(nf_swapped);
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(false),current_procinfo.CurrFalseLabel);
-                    toggleflag(nf_swapped);
-                 end;
-               lten,gten:
-                 begin
-                    oldnodetype:=nodetype;
-                    if nodetype=lten then
-                      nodetype:=ltn
-                    else
-                      nodetype:=gtn;
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrTrueLabel);
-                    { cheat for the negative test }
-                    if nodetype=ltn then
-                      nodetype:=gtn
-                    else
-                      nodetype:=ltn;
-                    cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(unsigned),current_procinfo.CurrFalseLabel);
-                    nodetype:=oldnodetype;
-                 end;
-            end;
-            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo));
-            { the comparisaion of the low dword have to be
-               always unsigned!                            }
-            cg.a_jmp_flags(current_asmdata.CurrAsmList,getresflags(true),current_procinfo.CurrTrueLabel);
-            cg.a_jmp_always(current_asmdata.CurrAsmList,current_procinfo.CurrFalseLabel);
+            current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CPC,tmpreg1,tmpreg2));
           end;
-        }
+
+        location_reset(location,LOC_FLAGS,OS_NO);
+        location.resflags:=getresflags(unsigned);
+      end;
+
+
+    procedure tavraddnode.second_cmp64bit;
+      begin
+        second_cmp;
       end;
 
 
@@ -238,36 +209,8 @@ interface
 
 
     procedure tavraddnode.second_cmpordinal;
-      var
-        unsigned : boolean;
-        tmpreg : tregister;
-        b : byte;
       begin
-        {
-        pass_left_right;
-        force_reg_left_right(true,true);
-
-        unsigned:=not(is_signed(left.resultdef)) or
-                  not(is_signed(right.resultdef));
-
-        if right.location.loc = LOC_CONSTANT then
-          begin
-             if is_shifter_const(right.location.value,b) then
-               current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_CMP,left.location.register,right.location.value))
-             else
-               begin
-                 tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,location.size);
-                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_INT,
-                   right.location.value,tmpreg);
-                 current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,tmpreg));
-               end;
-          end
-        else
-          current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register,right.location.register));
-
-        location_reset(location,LOC_FLAGS,OS_NO);
-        location.resflags:=getresflags(unsigned);
-        }
+        second_cmp;
       end;
 
 begin
