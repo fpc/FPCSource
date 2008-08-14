@@ -248,7 +248,6 @@
        50 GetHeapSnapshot
       37D GetKPhys
       405 GetKeyboardTarget
-      4C3 GetMessageQueueReadyTimeStamp
       4B7 GetMessageWNoWait
       30B GetModuleInformation
       665 GetMonitorInfo
@@ -2343,6 +2342,7 @@ function GetMenuItemInfoW(_para1:HMENU; _para2:UINT; _para3:WINBOOL; _para4:LPME
 function GetMessage(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external KernelDLL name 'GetMessageW';
 function GetMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT):WINBOOL; external KernelDLL name 'GetMessageW';
 function GetMessagePos:DWORD; external KernelDLL name 'GetMessagePos';
+function GetMessageQueueReadyTimeStamp(hWnd:HWND):DWORD; external KernelDLL name 'GetMessageQueueReadyTimeStamp'; // index 4C3
 function GetMessageSource:UINT; external KernelDLL name 'GetMessageSource';// index 4BF
 function GetModuleFileName(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external KernelDLL name 'GetModuleFileNameW';
 function GetModuleFileNameW(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external KernelDLL name 'GetModuleFileNameW';
@@ -2373,7 +2373,7 @@ function GetProcAddressW(hModule:HINST; lpProcName:LPCWSTR):FARPROC; external Ke
 function GetProcessHeap:HANDLE; external KernelDLL name 'GetProcessHeap';
 function GetProcessVersion(ProcessId:DWORD):DWORD; external KernelDLL name 'GetProcessVersion'; // index 32F
 function GetDllVersion(hMod:HMODULE):DWORD;
-function GetProp(hWnd:HWND; lpString:LPCWSTR):HWND; external KernelDLL name 'GetProp';
+function GetProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external KernelDLL name 'GetProp';
 function GetQueueStatus(flags:UINT):DWORD; external KernelDLL name 'GetQueueStatus';
 function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external KernelDLL name 'GetRegionData';
 function GetRgnBox(_para1:HRGN; _para2:LPRECT):longint; external KernelDLL name 'GetRgnBox';

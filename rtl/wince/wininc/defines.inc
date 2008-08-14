@@ -5758,6 +5758,12 @@ const
       INPUT_KEYBOARD  = 1;
       INPUT_HARDWARE  = 2;
 
+// Constants used by GetMessageSource function.
+const
+      MSGSRC_UNKNOWN              = 0;
+      MSGSRC_SOFTWARE_POST        = 1;
+      MSGSRC_HARDWARE_KEYBOARD    = 2;
+
 {$endif read_interface}
 
 
