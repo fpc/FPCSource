@@ -115,6 +115,13 @@
      GDK_SETTING_ACTION_DELETED
    );
 
+   PGdkOwnerChange = ^TGdkOwnerChange;
+   TGdkOwnerChange = (
+     GDK_OWNER_CHANGE_NEW_OWNER,
+     GDK_OWNER_CHANGE_DESTROY,
+     GDK_OWNER_CHANGE_CLOSE
+   );
+
    PGdkEventAny = ^TGdkEventAny;
    TGdkEventAny = record
         _type : TGdkEventType;
@@ -309,6 +316,18 @@
         send_event : gint8;
         action : TGdkSettingAction;
         name : Pchar;
+     end;
+
+   PGdkEventOwnerChange = ^TGdkEventOwnerChange;
+   TGdkEventOwnerChange = record
+        _type : TGdkEventType;
+        window : PGdkWindow;
+        send_event : gint8;
+        owner : TGdkNativeWindow;
+        reason : TGdkOwnerChange;
+        selection : TGdkAtom;
+        time : guint32;
+        selection_time : guint32;
      end;
 
    PGdkEventWindowState = ^TGdkEventWindowState;

@@ -92,6 +92,11 @@ function gdk_display_get_default_group(display: PGdkDisplay): PGdkWindow; cdecl;
 procedure gdk_display_set_double_click_distance(display: PGdkDisplay; distance: guint); cdecl; external gdklib;
 function gdk_display_supports_cursor_alpha(display: PGdkDisplay): gboolean; cdecl; external gdklib;
 function gdk_display_supports_cursor_color(display: PGdkDisplay): gboolean; cdecl; external gdklib;
+// 2.6
+function gdk_display_request_selection_notification(display: PGdkDisplay; selection: TGdkAtom): gboolean; cdecl; external gdklib;
+procedure gdk_display_store_clipboard(display: PGdkDisplay; clipboard_window: PGdkWindow; time_: guint32; targets: PGdkAtom; n_targets: gint); cdecl; external gdklib;
+function gdk_display_supports_clipboard_persistence(display: PGdkDisplay): gboolean; cdecl; external gdklib;
+function gdk_display_supports_selection_notification(display: PGdkDisplay): gboolean; cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------

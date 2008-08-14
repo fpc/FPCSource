@@ -458,6 +458,8 @@ procedure gdk_window_set_debug_updates(setting:gboolean); cdecl; external gdklib
 procedure gdk_window_constrain_size(geometry:PGdkGeometry; flags:guint; width:gint; height:gint; new_width:Pgint;
             new_height:Pgint); cdecl; external gdklib;
 procedure gdk_window_get_internal_paint_info(window:PGdkWindow; var real_drawable:PGdkDrawable; x_offset:Pgint; y_offset:Pgint); cdecl; external gdklib;
+procedure gdk_window_enable_synchronized_configure(window:PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_configure_finished(window:PGdkWindow); cdecl; external gdklib;
 function gdk_set_pointer_hooks(new_hooks:PGdkPointerHooks):PGdkPointerHooks; cdecl; external gdklib;
 function gdk_get_default_root_window:PGdkWindow; cdecl; external gdklib;
 
@@ -486,6 +488,7 @@ procedure gdk_window_unfullscreen(window: PGdkWindow); cdecl; external gdklib;
 procedure gdk_window_set_accept_focus(window: PGdkWindow; accept_focus: gboolean); cdecl; external gdklib;
 procedure gdk_window_set_keep_above(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
 procedure gdk_window_set_keep_below(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_focus_on_map(window: PGdkWindow; focus_on_map: gboolean); cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------

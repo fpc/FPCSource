@@ -77,6 +77,7 @@ procedure gdk_drag_context_unref(context:PGdkDragContext); cdecl; external gdkli
 { Destination side  }
 
 procedure gdk_drag_status(context:PGdkDragContext; action:TGdkDragAction; time:guint32); cdecl; external gdklib;
+function gdk_drag_drop_succeeded(context:PGdkDragContext):gboolean; cdecl; external gdklib;
 procedure gdk_drop_reply(context:PGdkDragContext; ok:gboolean; time:guint32); cdecl; external gdklib;
 procedure gdk_drop_finish(context:PGdkDragContext; success:gboolean; time:guint32); cdecl; external gdklib;
 function gdk_drag_get_selection(context:PGdkDragContext):TGdkAtom; cdecl; external gdklib;
