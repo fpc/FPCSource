@@ -48,84 +48,27 @@
   HTML_PI_NODE		= XML_PI_NODE;
 {$ENDIF}
 
-{$IFDEF FUNCTION_}
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlNewDoc		(xmlChar *URI,
-					 xmlChar *ExternalID);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlNewDocNoDtD		(xmlChar *URI,
-					 xmlChar *ExternalID);
-XMLPUBFUN xmlChar * XMLCALL
-		htmlGetMetaEncoding	(htmlDocPtr doc);
-XMLPUBFUN int XMLCALL
-		htmlSetMetaEncoding	(htmlDocPtr doc,
-					 xmlChar *encoding);
+{$IFDEF FUNCTION}
+function htmlNewDoc(URI, ExternalID: xmlCharPtr): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlNewDocNoDtD(URI, ExternalID: xmlCharPtr): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlGetMetaEncoding(doc: htmlDocPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function htmlSetMetaEncoding(doc: htmlDocPtr; encoding: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-XMLPUBFUN void XMLCALL
-		htmlDocDumpMemory	(xmlDocPtr cur,
-					 xmlChar **mem,
-					 int *size);
-XMLPUBFUN void XMLCALL
-		htmlDocDumpMemoryFormat	(xmlDocPtr cur,
-					 xmlChar **mem,
-					 int *size,
-					 int format);
-XMLPUBFUN int XMLCALL
-		htmlDocDump		(FILE *f,
-					 xmlDocPtr cur);
-XMLPUBFUN int XMLCALL
-		htmlSaveFile		(char *filename,
-					 xmlDocPtr cur);
-XMLPUBFUN int XMLCALL
-		htmlNodeDump		(xmlBufferPtr buf,
-					 xmlDocPtr doc,
-					 xmlNodePtr cur);
-XMLPUBFUN void XMLCALL
-		htmlNodeDumpFile	(FILE *out,
-					 xmlDocPtr doc,
-					 xmlNodePtr cur);
-XMLPUBFUN int XMLCALL
-		htmlNodeDumpFileFormat	(FILE *out,
-					 xmlDocPtr doc,
-					 xmlNodePtr cur,
-					 char *encoding,
-					 int format);
-XMLPUBFUN int XMLCALL
-		htmlSaveFileEnc		(char *filename,
-					 xmlDocPtr cur,
-					 char *encoding);
-XMLPUBFUN int XMLCALL
-		htmlSaveFileFormat	(char *filename,
-					 xmlDocPtr cur,
-					 char *encoding,
-					 int format);
-
-XMLPUBFUN void XMLCALL
-		htmlNodeDumpFormatOutput(xmlOutputBufferPtr buf,
-					 xmlDocPtr doc,
-					 xmlNodePtr cur,
-					 char *encoding,
-					 int format);
-XMLPUBFUN void XMLCALL
-		htmlDocContentDumpOutput(xmlOutputBufferPtr buf,
-					 xmlDocPtr cur,
-					 char *encoding);
-XMLPUBFUN void XMLCALL
-		htmlDocContentDumpFormatOutput(xmlOutputBufferPtr buf,
-					 xmlDocPtr cur,
-					 char *encoding,
-					 int format);
-XMLPUBFUN void XMLCALL
-		htmlNodeDumpOutput	(xmlOutputBufferPtr buf,
-					 xmlDocPtr doc,
-					 xmlNodePtr cur,
-					 char *encoding);
-
+procedure htmlDocDumpMemory(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint); XMLCALL; XMLPUBFUN;
+procedure htmlDocDumpMemoryFormat(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint; format: cint); XMLCALL; XMLPUBFUN;
+procedure htmlDocDump(f: PFILE; cur: xmlDocPtr); XMLCALL; XMLPUBFUN;
+function htmlSaveFile(filename: pchar; doc: htmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+function htmlNodeDump(buf: xmlBufferPtr; doc: htmlDocPtr; cur: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+procedure htmlNodeDumpFile(_out: PFILE; doc: xmlDocPtr; cur: xmlNodePtr); XMLCALL; XMLPUBFUN;
+function htmlNodeDumpFileFormat(_out: PFILE; doc: htmlDocPtr; cur: xmlNodePtr; encoding: pchar; format: cint): cint; XMLCALL; XMLPUBFUN;
+function htmlSaveFileEnc(filename: pchar; cur: htmlDocPtr; encoding: pchar): cint; XMLCALL; XMLPUBFUN;
+function htmlSaveFileFormat(filename: pchar; cur: htmlDocPtr; encoding: pchar; format: cint): cint; XMLCALL; XMLPUBFUN;
+procedure htmlNodeDumpFormatOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: pchar; format: cint); XMLCALL; XMLPUBFUN;
+procedure htmlDocContentDumpOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: pchar); XMLCALL; XMLPUBFUN;
+procedure htmlDocContentDumpFormatOutput(buf: xmlOutputBufferPtr; cur: xmlNodePtr; encoding: pchar; format: cint); XMLCALL; XMLPUBFUN;
+procedure htmlNodeDumpOutput(buf: xmlOutputBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; encoding: pchar); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-
-XMLPUBFUN int XMLCALL
-		htmlIsBooleanAttr	(xmlChar *name);
-
+function htmlIsBooleanAttr(name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_HTML_ENABLED *)

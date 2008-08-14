@@ -422,9 +422,7 @@
  *
  * Macro to extract the content pointer of a node.
  *)
-
-{#define XML_GET_CONTENT(n)					\
-    ((n)->type == XML_ELEMENT_NODE ? NULL : (n)->content)}
+function XML_GET_CONTENT(n: pointer): xmlCharPtr;
 
 (**
  * XML_GET_LINE:
@@ -577,83 +575,40 @@ procedure xmlBufferEmpty(buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
 function xmlBufferContent(buf: xmlBufferPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
 procedure xmlBufferSetAllocationScheme(buf: xmlBufferPtr; scheme: xmlBufferAllocationScheme); XMLCALL; XMLPUBFUN;
 function xmlBufferLength(buf: xmlBufferPtr): cint; XMLCALL; XMLPUBFUN;
-{$IFDEF 0}
 
 (*
  * Creating/freeing new structures.
  *)
-XMLPUBFUN xmlDtdPtr XMLCALL
-		xmlCreateIntSubset	(xmlDocPtr doc,
-					 xmlChar *name,
-					 xmlChar *ExternalID,
-					 xmlChar *SystemID);
-XMLPUBFUN xmlDtdPtr XMLCALL
-		xmlNewDtd		(xmlDocPtr doc,
-					 xmlChar *name,
-					 xmlChar *ExternalID,
-					 xmlChar *SystemID);
-XMLPUBFUN xmlDtdPtr XMLCALL
-		xmlGetIntSubset		(xmlDocPtr doc);
-XMLPUBFUN void XMLCALL
-		xmlFreeDtd		(xmlDtdPtr cur);
+function xmlCreateIntSubset(doc: xmlDocPtr; name, ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
+function xmlNewDtd(doc: xmlDocPtr; name, ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
+function xmlGetIntSubset(doc: xmlDocPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
+procedure xmlFreeDtd(cur: xmlDtdPtr); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_LEGACY_ENABLED}
-XMLPUBFUN xmlNsPtr XMLCALL
-		xmlNewGlobalNs		(xmlDocPtr doc,
-					 xmlChar *href,
-					 xmlChar *prefix);
+function xmlNewGlobalNs(doc: xmlDocPtr; href, prefix: xmlCharPtr): xmlNsPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_LEGACY_ENABLED *)
-XMLPUBFUN xmlNsPtr XMLCALL
-		xmlNewNs		(xmlNodePtr node,
-					 xmlChar *href,
-					 xmlChar *prefix);
-XMLPUBFUN void XMLCALL
-		xmlFreeNs		(xmlNsPtr cur);
-XMLPUBFUN void XMLCALL
-		xmlFreeNsList		(xmlNsPtr cur);
-XMLPUBFUN xmlDocPtr XMLCALL
-		xmlNewDoc		(xmlChar *version);
-XMLPUBFUN void XMLCALL
-		xmlFreeDoc		(xmlDocPtr cur);
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlNewDocProp		(xmlDocPtr doc,
-					 xmlChar *name,
-					 xmlChar *value);
+function xmlNewNs(node: xmlNodePtr; href, prefix: xmlCharPtr): xmlNsPtr; XMLCALL; XMLPUBFUN;
+procedure xmlFreeNs(cur: xmlNsPtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeNsList(cur: xmlNsPtr); XMLCALL; XMLPUBFUN;
+function xmlNewDoc(version: xmlCharPtr): xmlDocPtr; XMLCALL; XMLPUBFUN;
+procedure xmlFreeDoc(cur: xmlDocPtr); XMLCALL; XMLPUBFUN;
+function xmlNewDocProp(doc: xmlDocPtr; name, value: xmlCharPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_HTML_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlNewProp		(xmlNodePtr node,
-					 xmlChar *name,
-					 xmlChar *value);
+function xmlNewProp(node: xmlNodePtr; name, value: xmlCharPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF}
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlNewNsProp		(xmlNodePtr node,
-					 xmlNsPtr ns,
-					 xmlChar *name,
-					 xmlChar *value);
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlNewNsPropEatName	(xmlNodePtr node,
-					 xmlNsPtr ns,
-					 xmlChar *name,
-					 xmlChar *value);
-XMLPUBFUN void XMLCALL
-		xmlFreePropList		(xmlAttrPtr cur);
-XMLPUBFUN void XMLCALL
-		xmlFreeProp		(xmlAttrPtr cur);
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlCopyProp		(xmlNodePtr target,
-					 xmlAttrPtr cur);
-XMLPUBFUN xmlAttrPtr XMLCALL
-		xmlCopyPropList		(xmlNodePtr target,
-					 xmlAttrPtr cur);
+function xmlNewNsProp(node: xmlNodePtr; ns: xmlNsPtr; name, value: xmlCharPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
+function xmlNewNsPropEatName(node: xmlNodePtr; ns: xmlNsPtr; name, value: xmlCharPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
+procedure xmlFreePropList(cur: xmlAttrPtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeProp(cur: xmlAttrPtr); XMLCALL; XMLPUBFUN;
+function xmlCopyProp(target: xmlNodePtr; cur: xmlAttrPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
+function xmlCopyPropList(target: xmlNodePtr; cur: xmlAttrPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_TREE_ENABLED}
-XMLPUBFUN xmlDtdPtr XMLCALL
-		xmlCopyDtd		(xmlDtdPtr dtd);
+function xmlCopyDtd(dtd: xmlDtdPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-XMLPUBFUN xmlDocPtr XMLCALL
-		xmlCopyDoc		(xmlDocPtr doc,
-					 int recursive);
+function xmlCopyDoc(doc: xmlDocPtr; recursive: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) *)
 
+{$IFDEF 0}
 (*
  * Creating new nodes.
  *)

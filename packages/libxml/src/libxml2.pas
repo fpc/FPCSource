@@ -79,6 +79,7 @@ type
   {$i xmlwriter.inc}
   {$i c14n.inc}
   {$i xpath.inc}
+  {$i xpathInternals.inc}
   {$i xlink.inc}
   {$i xinclude.inc}
   {$i xpointer.inc}
@@ -126,6 +127,7 @@ type
   {$i xmlwriter.inc}
   {$i c14n.inc}
   {$i xpath.inc}
+  {$i xpathInternals.inc}
   {$i xlink.inc}
   {$i xinclude.inc}
   {$i xpointer.inc}
@@ -174,6 +176,7 @@ const
   {$i xmlwriter.inc}
   {$i c14n.inc}
   {$i xpath.inc}
+  {$i xpathInternals.inc}
   {$i xlink.inc}
   {$i xinclude.inc}
   {$i xpointer.inc}
@@ -221,6 +224,7 @@ const
   {$i xmlwriter.inc}
   {$i c14n.inc}
   {$i xpath.inc}
+  {$i xpathInternals.inc}
   {$i xlink.inc}
   {$i xinclude.inc}
   {$i xpointer.inc}
@@ -371,6 +375,19 @@ end;
 (*
  * macros from globals.inc
  *)
+
+
+(*
+ * macros from tree.inc
+ *)
+
+function XML_GET_CONTENT(n: pointer): xmlCharPtr;
+begin
+  if xmlNodePtr(n)^._type = XML_ELEMENT_NODE then
+    Result := nil
+  else
+    Result := xmlNodePtr(n)^.content;
+end;
 
 
 (*

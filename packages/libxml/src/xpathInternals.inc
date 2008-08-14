@@ -9,17 +9,9 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_XPATH_INTERNALS_H__
-#define __XML_XPATH_INTERNALS_H__
+{$IFDEF LIBXML_XPATH_ENABLED}
 
-#include <libxml/xmlversion.h>
-#include <libxml/xpath.h>
-
-{ LIBXML_XPATH_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
+{$IFDEF FUNCTION_}
 
 (************************************************************************
  *									*
@@ -356,7 +348,7 @@ XMLPUBFUN void XMLCALL
 		xmlXPathErr	(xmlXPathParserContextPtr ctxt,
 				 int error);
 
-{ LIBXML_DEBUG_ENABLED
+{$IFDEF LIBXML_DEBUG_ENABLED}
 XMLPUBFUN void XMLCALL		
 		xmlXPathDebugDumpObject	(FILE *output,
 					 xmlXPathObjectPtr cur,
@@ -365,7 +357,8 @@ XMLPUBFUN void XMLCALL
 	    xmlXPathDebugDumpCompExpr(FILE *output,
 					 xmlXPathCompExprPtr comp,
 					 int depth);
-#endif
+{$ENDIF}
+
 (**
  * NodeSet handling.
  *)
@@ -621,10 +614,6 @@ XMLPUBFUN void XMLCALL xmlXPathBooleanFunction(xmlXPathParserContextPtr ctxt, in
  * Really internal functions
  *)
 XMLPUBFUN void XMLCALL xmlXPathNodeSetFreeNs(xmlNsPtr ns);
- 
-{ __cplusplus
-}
-#endif
+{$ENDIF}
 
-#endif (* LIBXML_XPATH_ENABLED *)
-#endif (* ! __XML_XPATH_INTERNALS_H__ *)
+{$ENDIF} (* LIBXML_XPATH_ENABLED *)
