@@ -10,116 +10,96 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_XINCLUDE_H__
-#define __XML_XINCLUDE_H__
+{$IFDEF LIBXML_XINCLUDE_ENABLED}
 
-#include <libxml/xmlversion.h>
-#include <libxml/tree.h>
-
-{ LIBXML_XINCLUDE_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF CONST}
 (**
  * XINCLUDE_NS:
  *
  * Macro defining the Xinclude namespace: http://www.w3.org/2003/XInclude
  *)
-#define XINCLUDE_NS (xmlChar *) "http://www.w3.org/2003/XInclude"
+  XINCLUDE_NS: xmlCharPtr = 'http://www.w3.org/2003/XInclude';
 (**
  * XINCLUDE_OLD_NS:
  *
  * Macro defining the draft Xinclude namespace: http://www.w3.org/2001/XInclude
  *)
-#define XINCLUDE_OLD_NS (xmlChar *) "http://www.w3.org/2001/XInclude"
+  XINCLUDE_OLD_NS: xmlCharPtr = 'http://www.w3.org/2001/XInclude';
 (**
  * XINCLUDE_NODE:
  *
  * Macro defining "include"
  *)
-#define XINCLUDE_NODE (xmlChar *) "include"
+  XINCLUDE_NODE: xmlCharPtr = 'include';
 (**
  * XINCLUDE_FALLBACK:
  *
  * Macro defining "fallback"
  *)
-#define XINCLUDE_FALLBACK (xmlChar *) "fallback"
+  XINCLUDE_FALLBACK: xmlCharPtr = 'fallback';
 (**
  * XINCLUDE_HREF:
  *
  * Macro defining "href"
  *)
-#define XINCLUDE_HREF (xmlChar *) "href"
+  XINCLUDE_HREF: xmlCharPtr = 'href';
 (**
  * XINCLUDE_PARSE:
  *
  * Macro defining "parse"
  *)
-#define XINCLUDE_PARSE (xmlChar *) "parse"
+  XINCLUDE_PARSE: xmlCharPtr = 'parse';
 (**
  * XINCLUDE_PARSE_XML:
  *
  * Macro defining "xml"
  *)
-#define XINCLUDE_PARSE_XML (xmlChar *) "xml"
+  XINCLUDE_PARSE_XML: xmlCharPtr = 'xml';
 (**
  * XINCLUDE_PARSE_TEXT:
  *
  * Macro defining "text"
  *)
-#define XINCLUDE_PARSE_TEXT (xmlChar *) "text"
+  XINCLUDE_PARSE_TEXT: xmlCharPtr = 'text';
 (**
  * XINCLUDE_PARSE_ENCODING:
  *
  * Macro defining "encoding"
  *)
-#define XINCLUDE_PARSE_ENCODING (xmlChar *) "encoding"
+  XINCLUDE_PARSE_ENCODING: xmlCharPtr = 'encoding';
 (**
  * XINCLUDE_PARSE_XPOINTER:
  *
  * Macro defining "xpointer"
  *)
-#define XINCLUDE_PARSE_XPOINTER (xmlChar *) "xpointer"
+  XINCLUDE_PARSE_XPOINTER: xmlCharPtr = 'xpointer';
+{$ENDIF}
 
-typedef struct _xmlXIncludeCtxt xmlXIncludeCtxt;
-typedef xmlXIncludeCtxt *xmlXIncludeCtxtPtr;
+{$IFDEF POINTER}
+  xmlXIncludeCtxtPtr = ^xmlXIncludeCtxt;
+{$ENDIF}
 
+{$IFDEF TYPE}
+  xmlXIncludeCtxt = record end;
+{$ENDIF}
+
+{$IFDEF FUNCTION}
 (*
  * standalone processing
  *)
-XMLPUBFUN int XMLCALL	
-		xmlXIncludeProcess	(xmlDocPtr doc);
-XMLPUBFUN int XMLCALL	
-		xmlXIncludeProcessFlags	(xmlDocPtr doc,
-					 int flags);
-XMLPUBFUN int XMLCALL	
-		xmlXIncludeProcessFlagsData(xmlDocPtr doc,
-					 int flags,
-					 void *data);
-XMLPUBFUN int XMLCALL	
-		xmlXIncludeProcessTree	(xmlNodePtr tree);
-XMLPUBFUN int XMLCALL	
-		xmlXIncludeProcessTreeFlags(xmlNodePtr tree,
-					 int flags);
+function xmlXIncludeProcess(doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessFlags(doc: xmlDocPtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessFlagsData(doc: xmlDocPtr; flags: cint; data: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessTree(tree: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessTreeFlags(tree: xmlNodePtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
+
 (*
  * contextual processing
  *)
-XMLPUBFUN xmlXIncludeCtxtPtr XMLCALL
-		xmlXIncludeNewContext	(xmlDocPtr doc);
-XMLPUBFUN int XMLCALL
-		xmlXIncludeSetFlags	(xmlXIncludeCtxtPtr ctxt,
-					 int flags);
-XMLPUBFUN void XMLCALL
-		xmlXIncludeFreeContext	(xmlXIncludeCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL
-		xmlXIncludeProcessNode	(xmlXIncludeCtxtPtr ctxt,
-					 xmlNodePtr tree);
-{ __cplusplus
-}
-#endif
+function xmlXIncludeNewContext(doc: xmlDocPtr): xmlXIncludeCtxtPtr; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessFlags(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
+procedure xmlXIncludeProcess(ctxt: xmlXIncludeCtxtPtr); XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcessNode(ctxt: xmlXIncludeCtxtPtr; tree: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+{$ENDIF}
 
-#endif (* LIBXML_XINCLUDE_ENABLED *)
-
-#endif (* __XML_XINCLUDE_H__ *)
+{$ENDIF} (* LIBXML_XINCLUDE_ENABLED *)

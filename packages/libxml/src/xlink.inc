@@ -7,18 +7,18 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_XLINK_H__
-#define __XML_XLINK_H__
+{$IFDEF LIBXML_XPTR_ENABLED}
 
-#include <libxml/xmlversion.h>
-#include <libxml/tree.h>
+{$IFDEF POINTER}
+  xlinkHRefPtr = ^xlinkHRef;
+  xlinkRolePtr = ^xlinkRole;
+  xlinkTitlePtr = ^xlinkTitle;
+  xlinkShowPtr = ^xlinkShow;
+  xlinkActuatePtr = ^xlinkActuate;
+  xlinkHandlerPtr = ^xlinkHandler;
+{$ENDIF}
 
-{ LIBXML_XPTR_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF TYPE}
 (**
  * Various defines for the various Link properties.
  *
@@ -29,29 +29,29 @@ extern "C" {
  * NOTE: the link detection layer will expand URI-Refences found on
  *       href attributes by using the base mechanism if found.
  *)
-typedef xmlChar *xlinkHRef;
-typedef xmlChar *xlinkRole;
-typedef xmlChar *xlinkTitle;
+  xlinkHRef = xmlCharPtr;
+  xlinkRole = xmlCharPtr;
+  xlinkTitle = xmlCharPtr;
 
-typedef enum {
+  xlinkType = (
     XLINK_TYPE_NONE = 0,
     XLINK_TYPE_SIMPLE,
     XLINK_TYPE_EXTENDED,
     XLINK_TYPE_EXTENDED_SET
-} xlinkType;
+  );
 
-typedef enum {
+  xlinkShow = (
     XLINK_SHOW_NONE = 0,
     XLINK_SHOW_NEW,
     XLINK_SHOW_EMBED,
     XLINK_SHOW_REPLACE
-} xlinkShow;
+  );
 
-typedef enum {
+  xlinkActuate = (
     XLINK_ACTUATE_NONE = 0,
     XLINK_ACTUATE_AUTO,
     XLINK_ACTUATE_ONREQUEST
-} xlinkActuate;
+  );
 
 (**
  * xlinkNodeDetectFunc:
@@ -61,7 +61,7 @@ typedef enum {
  * This is the prototype for the link detection routine.
  * It calls the default link detection callbacks upon link detection.
  *)
-typedef void (*xlinkNodeDetectFunc) (void *ctx, xmlNodePtr node);
+  xlinkNodeDetectFunc = procedure(ctx: pointer; node: xmlNodePtr); XMLCALL;
 
 (*
  * The link detection module interact with the upper layers using
@@ -78,12 +78,7 @@ typedef void (*xlinkNodeDetectFunc) (void *ctx, xmlNodePtr node);
  *
  * This is the prototype for a simple link detection callback.
  *)
-typedef void
-(*xlinkSimpleLinkFunk)	(void *ctx,
-			 xmlNodePtr node,
-			 xlinkHRef href,
-			 xlinkRole role,
-			 xlinkTitle title);
+  xlinkSimpleLinkFunk = procedure(ctx: pointer; node: xmlNodePtr; href: xlinkHRef; role: xlinkRole; title: xlinkTitle); XMLCALL;
 
 (**
  * xlinkExtendedLinkFunk:
@@ -103,20 +98,8 @@ typedef void
  *
  * This is the prototype for a extended link detection callback.
  *)
-typedef void
-(*xlinkExtendedLinkFunk)(void *ctx,
-			 xmlNodePtr node,
-			 int nbLocators,
-			 xlinkHRef *hrefs,
-			 xlinkRole *roles,
-			 int nbArcs,
-			 xlinkRole *from,
-			 xlinkRole *to,
-			 xlinkShow *show,
-			 xlinkActuate *actuate,
-			 int nbTitles,
-			 xlinkTitle *titles,
-			 xmlChar **langs);
+  xlinkExtendedLinkFunk = procedure(ctx: pointer; node: xmlNodePtr; nbLocators: cint; hrefs: xlinkHRefPtr; roles: xlinkRolePtr;
+    nbArcs: cint; from, _to: xlinkRolePtr; show: xlinkShowPtr; actuate: xlinkActuatePtr; nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); XMLCALL;
 
 (**
  * xlinkExtendedLinkSetFunk:
@@ -131,15 +114,8 @@ typedef void
  *
  * This is the prototype for a extended link set detection callback.
  *)
-typedef void
-(*xlinkExtendedLinkSetFunk)	(void *ctx,
-				 xmlNodePtr node,
-				 int nbLocators,
-				 xlinkHRef *hrefs,
-				 xlinkRole *roles,
-				 int nbTitles,
-				 xlinkTitle *titles,
-				 xmlChar **langs);
+  xlinkExtendedLinkSetFunk = procedure(ctx: pointer; node: xmlNodePtr; nbLocators: cint; hrefs: xlinkHRefPtr; roles: xlinkRolePtr;
+    nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); XMLCALL;
 
 (**
  * This is the structure containing a set of Links detection callbacks.
@@ -147,43 +123,32 @@ typedef void
  * There is no default xlink callbacks, if one want to get link
  * recognition activated, those call backs must be provided before parsing.
  *)
-typedef struct _xlinkHandler xlinkHandler;
-typedef xlinkHandler *xlinkHandlerPtr;
-struct _xlinkHandler {
-    xlinkSimpleLinkFunk simple;
-    xlinkExtendedLinkFunk extended;
-    xlinkExtendedLinkSetFunk set;
-};
+  xlinkHandler = record
+    simple    : xlinkSimpleLinkFunk;
+    extended  : xlinkExtendedLinkFunk;
+    _set      : xlinkExtendedLinkSetFunk;
+  end;
+{$ENDIF}
 
+{$IFDEF FUNCTION}
 (*
  * The default detection routine, can be overridden, they call the default
  * detection callbacks. 
  *)
-
-XMLPUBFUN xlinkNodeDetectFunc XMLCALL	
-		xlinkGetDefaultDetect	(void);
-XMLPUBFUN void XMLCALL			
-		xlinkSetDefaultDetect	(xlinkNodeDetectFunc func);
+function xlinkGetDefaultDetect: xlinkNodeDetectFunc; XMLCALL; XMLPUBFUN;
+procedure xlinkSetDefaultDetect(func: xlinkNodeDetectFunc); XMLCALL; XMLPUBFUN;
 
 (*
  * Routines to set/get the default handlers.
  *)
-XMLPUBFUN xlinkHandlerPtr XMLCALL	
-		xlinkGetDefaultHandler	(void);
-XMLPUBFUN void XMLCALL		
-		xlinkSetDefaultHandler	(xlinkHandlerPtr handler);
+function xlinkGetDefaultHandler: xlinkHandlerPtr; XMLCALL; XMLPUBFUN;
+procedure xlinkSetDefaultHandler(handler: xlinkHandlerPtr); XMLCALL; XMLPUBFUN;
 
 (*
  * Link detection module itself.
  *)
-XMLPUBFUN xlinkType XMLCALL	 
-		xlinkIsLink		(xmlDocPtr doc,
-					 xmlNodePtr node);
+function xlinkIsLink(doc: xmlDocPtr; node: xmlNodePtr): xlinkType; XMLCALL; XMLPUBFUN;
+{$ENDIF}
 
-{ __cplusplus
-}
-#endif
+{$ENDIF} (* LIBXML_XPTR_ENABLED *)
 
-#endif (* LIBXML_XPTR_ENABLED *)
-
-#endif (* __XML_XLINK_H__ *)

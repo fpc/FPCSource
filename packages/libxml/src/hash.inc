@@ -18,7 +18,6 @@
  *)
   xmlHashTable = record end;
 
-
 (*
  * Recent version of gcc produce a warning when a function pointer is assigned
  * to an object pointer, or vice versa.  The following macro is a dirty hack

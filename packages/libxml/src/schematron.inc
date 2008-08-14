@@ -7,60 +7,51 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF LIBXML_SCHEMATRON_ENABLED}
 
-#ifndef __XML_SCHEMATRON_H__
-#define __XML_SCHEMATRON_H__
+{$IFDEF CONST}
+  XML_SCHEMATRON_OUT_QUIET = 1 shl 0;	(* quiet no report *)
+  XML_SCHEMATRON_OUT_TEXT = 1 shl 1;	(* build a textual report *)
+  XML_SCHEMATRON_OUT_XML = 1 shl 2;	(* output SVRL *)
+  XML_SCHEMATRON_OUT_ERROR = 1 shl 3;  (* output via xmlStructuredErrorFunc *)
+  XML_SCHEMATRON_OUT_FILE = 1 shl 8;	(* output to a file descriptor *)
+  XML_SCHEMATRON_OUT_BUFFER = 1 shl 9;	(* output to a buffer *)
+  XML_SCHEMATRON_OUT_IO = 1 shl 10;	(* output to I/O mechanism *)
+{$ENDIF}
 
-#include <libxml/xmlversion.h>
+{$IFDEF POINTER}
+  xmlSchematronPtr = ^xmlSchematron;
+  xmlSchematronParserCtxtPtr = ^xmlSchematronParserCtxt;
+  xmlSchematronValidCtxtPtr = ^xmlSchematronValidCtxt;
+{$ENDIF}
 
-{ LIBXML_SCHEMATRON_ENABLED
-
-#include <libxml/tree.h>
-
-{ __cplusplus
-extern "C" {
-#endif
-
-typedef enum {
-    XML_SCHEMATRON_OUT_QUIET = 1 << 0,	(* quiet no report *)
-    XML_SCHEMATRON_OUT_TEXT = 1 << 1,	(* build a textual report *)
-    XML_SCHEMATRON_OUT_XML = 1 << 2,	(* output SVRL *)
-    XML_SCHEMATRON_OUT_ERROR = 1 << 3,  (* output via xmlStructuredErrorFunc *)
-    XML_SCHEMATRON_OUT_FILE = 1 << 8,	(* output to a file descriptor *)
-    XML_SCHEMATRON_OUT_BUFFER = 1 << 9,	(* output to a buffer *)
-    XML_SCHEMATRON_OUT_IO = 1 << 10	(* output to I/O mechanism *)
-} xmlSchematronValidOptions;
+{$IFDEF TYPE}
+  xmlSchematronValidOptions = type cint;
 
 (**
  * The schemas related types are kept internal
  *)
-typedef struct _xmlSchematron xmlSchematron;
-typedef xmlSchematron *xmlSchematronPtr;
+  xmlSchematron = record end;
 
 (**
  * A schemas validation context
  *)
-typedef void (*xmlSchematronValidityErrorFunc) (void *ctx, char *msg, ...);
-typedef void (*xmlSchematronValidityWarningFunc) (void *ctx, char *msg, ...);
+  xmlSchematronValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlSchematronValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
 
-typedef struct _xmlSchematronParserCtxt xmlSchematronParserCtxt;
-typedef xmlSchematronParserCtxt *xmlSchematronParserCtxtPtr;
+  xmlSchematronParserCtxt = record end;
 
-typedef struct _xmlSchematronValidCtxt xmlSchematronValidCtxt;
-typedef xmlSchematronValidCtxt *xmlSchematronValidCtxtPtr;
+  xmlSchematronValidCtxt = record end;
+{$ENDIF}
 
+{$IFDEF FUNCTION}
 (*
  * Interfaces for parsing.
  *)
-XMLPUBFUN xmlSchematronParserCtxtPtr XMLCALL 
-	    xmlSchematronNewParserCtxt	(char *URL);
-XMLPUBFUN xmlSchematronParserCtxtPtr XMLCALL 
-	    xmlSchematronNewMemParserCtxt(char *buffer,
-					 int size);
-XMLPUBFUN xmlSchematronParserCtxtPtr XMLCALL
-	    xmlSchematronNewDocParserCtxt(xmlDocPtr doc);
-XMLPUBFUN void XMLCALL		
-	    xmlSchematronFreeParserCtxt	(xmlSchematronParserCtxtPtr ctxt);
+function xmlSchematronNewParserCtxt(URL: pchar): xmlSchematronParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function xmlSchematronNewMemParserCtxt(buffer: pchar; size: cint): xmlSchematronParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function xmlSchematronNewDocParserCtxt(doc: xmlDocPtr): xmlSchematronParserCtxtPtr; XMLCALL; XMLPUBFUN;
+procedure xmlSchematronFreeParserCtxt(ctxt: xmlSchematronParserCtxtPtr); XMLCALL; XMLPUBFUN;
 (*****
 XMLPUBFUN void XMLCALL		
 	    xmlSchematronSetParserErrors(xmlSchematronParserCtxtPtr ctxt,
@@ -75,18 +66,13 @@ XMLPUBFUN int XMLCALL
 XMLPUBFUN int XMLCALL
 		xmlSchematronIsValid	(xmlSchematronValidCtxtPtr ctxt);
  *****)
-XMLPUBFUN xmlSchematronPtr XMLCALL	
-	    xmlSchematronParse		(xmlSchematronParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL		
-	    xmlSchematronFree		(xmlSchematronPtr schema);
+function xmlSchematronParse(ctxt: xmlSchematronParserCtxtPtr): xmlSchematronPtr; XMLCALL; XMLPUBFUN;
+procedure xmlSchematronFree(schema: xmlSchematronPtr); XMLCALL; XMLPUBFUN;
+
 (*
  * Interfaces for validating
  *)
-XMLPUBFUN void XMLCALL
-	    xmlSchematronSetValidStructuredErrors(
-	                                  xmlSchematronValidCtxtPtr ctxt,
-					  xmlStructuredErrorFunc serror,
-					  void *ctx);
+procedure xmlSchematronSetValidStructuredErrors(ctxt: xmlSchematronValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
 (******
 XMLPUBFUN void XMLCALL		
 	    xmlSchematronSetValidErrors	(xmlSchematronValidCtxtPtr ctxt,
@@ -107,19 +93,9 @@ XMLPUBFUN int XMLCALL
             xmlSchematronValidateOneElement (xmlSchematronValidCtxtPtr ctxt,
 			                 xmlNodePtr elem);
  *******)
+function xmlSchematronNewValidCtxt(schema: xmlSchematronPtr; options: cint): xmlSchematronValidCtxtPtr; XMLCALL; XMLPUBFUN;
+procedure xmlSchematronFreeValidCtxt(ctxt: xmlSchematronValidCtxtPtr); XMLCALL; XMLPUBFUN;
+function xmlSchematronValidateDoc(ctxt: xmlSchematronValidCtxtPtr; instance: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN xmlSchematronValidCtxtPtr XMLCALL	
-	    xmlSchematronNewValidCtxt	(xmlSchematronPtr schema,
-	    				 int options);
-XMLPUBFUN void XMLCALL			
-	    xmlSchematronFreeValidCtxt	(xmlSchematronValidCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			
-	    xmlSchematronValidateDoc	(xmlSchematronValidCtxtPtr ctxt,
-					 xmlDocPtr instance);
-
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_SCHEMATRON_ENABLED *)
-#endif (* __XML_SCHEMATRON_H__ *)
+{$ENDIF}
+{$ENDIF} (* LIBXML_SCHEMATRON_ENABLED *)

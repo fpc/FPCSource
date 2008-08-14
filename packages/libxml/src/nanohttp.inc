@@ -8,74 +8,28 @@
  * Author: Daniel Veillard
  *)
  
-#ifndef __NANO_HTTP_H__
-#define __NANO_HTTP_H__
+{$IFDEF LIBXML_HTTP_ENABLED}
 
-#include <libxml/xmlversion.h>
+{$IFDEF FUNCTION}
+procedure xmlNanoHTTPInit; XMLCALL; XMLPUBFUN;
+procedure xmlNanoHTTPCleanup; XMLCALL; XMLPUBFUN;
+procedure xmlNanoHTTPScanProxy(URL: pchar); XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPCleanup(URL, filename: pchar; contentType: ppchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPMethod(URL, method, input: pchar; contentType: ppchar; headers: pchar; ilen: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPMethodRedir(URL, method, input: pchar; contentType, redir: ppchar; headers: pchar; ilen: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPOpen(URL: pchar; contentType: ppchar): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPOpenRedir(URL: pchar; contentType, redir: ppchar): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPReturnCode(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPAuthHeader(ctx: pointer): pchar; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPRedir(ctx: pointer): pchar; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPContentLength(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPEncoding(ctx: pointer): pchar; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPMimeType(ctx: pointer): pchar; XMLCALL; XMLPUBFUN;
+function xmlNanoHTTPRead(ctx: pointer; dest: pointer; len: cint): cint; XMLCALL; XMLPUBFUN;
+{$IFDEF LIBXML_OUTPUT_ENABLED}
+function xmlNanoHTTPSave(ctx: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+procedure xmlNanoHTTPClose(ctx: pointer); XMLCALL; XMLPUBFUN;
+{$ENDIF}
 
-{ LIBXML_HTTP_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-XMLPUBFUN void XMLCALL
-	xmlNanoHTTPInit		(void);
-XMLPUBFUN void XMLCALL	
-	xmlNanoHTTPCleanup	(void);
-XMLPUBFUN void XMLCALL	
-	xmlNanoHTTPScanProxy	(char *URL);
-XMLPUBFUN int XMLCALL	
-	xmlNanoHTTPFetch	(char *URL,
-				 char *filename,
-				 char **contentType);
-XMLPUBFUN void * XMLCALL	
-	xmlNanoHTTPMethod	(char *URL,
-				 char *method,
-				 char *input,
-				 char **contentType,
-				 char *headers,
-				 int   ilen);
-XMLPUBFUN void * XMLCALL	
-	xmlNanoHTTPMethodRedir	(char *URL,
-				 char *method,
-				 char *input,
-				 char **contentType,
-				 char **redir,
-				 char *headers,
-				 int   ilen);
-XMLPUBFUN void * XMLCALL	
-	xmlNanoHTTPOpen		(char *URL,
-				 char **contentType);
-XMLPUBFUN void * XMLCALL	
-	xmlNanoHTTPOpenRedir	(char *URL,
-				 char **contentType,
-				 char **redir);
-XMLPUBFUN int XMLCALL	
-	xmlNanoHTTPReturnCode	(void *ctx);
-XMLPUBFUN char * XMLCALL 
-	xmlNanoHTTPAuthHeader	(void *ctx);
-XMLPUBFUN char * XMLCALL
-	xmlNanoHTTPRedir	(void *ctx);
-XMLPUBFUN int XMLCALL
-	xmlNanoHTTPContentLength( void * ctx );
-XMLPUBFUN char * XMLCALL
-	xmlNanoHTTPEncoding	(void *ctx);
-XMLPUBFUN char * XMLCALL
-	xmlNanoHTTPMimeType	(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoHTTPRead		(void *ctx,
-				 void *dest,
-				 int len);
-{ LIBXML_OUTPUT_ENABLED
-XMLPUBFUN int XMLCALL	
-	xmlNanoHTTPSave		(void *ctxt,
-				 char *filename);
-#endif (* LIBXML_OUTPUT_ENABLED *)
-XMLPUBFUN void XMLCALL	
-	xmlNanoHTTPClose	(void *ctx);
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_HTTP_ENABLED *)
-#endif (* __NANO_HTTP_H__ *)
+{$ENDIF} (* LIBXML_HTTP_ENABLED *)

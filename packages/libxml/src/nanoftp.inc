@@ -7,18 +7,10 @@
  *
  * Author: Daniel Veillard
  *)
- 
-#ifndef __NANO_FTP_H__
-#define __NANO_FTP_H__
 
-#include <libxml/xmlversion.h>
+{$IFDEF LIBXML_FTP_ENABLED}
 
-{ LIBXML_FTP_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF TYPE}
 (**
  * ftpListCallback: 
  * @userData:  user provided data for the callback
@@ -37,12 +29,8 @@ extern "C" {
  * A callback for the xmlNanoFTPList command.
  * Note that only one of year and day:minute are specified.
  *)
-typedef void (*ftpListCallback) (void *userData,
-	                         char *filename, char *attrib,
-	                         char *owner, char *group,
-				 unsigned long size, int links, int year,
-				 char *month, int day, int hour,
-				 int minute);
+  ftpListCallback = procedure(userData: pointer; filename, attrib, owner, group: pchar; size: culong; links, year: cint; month: pchar; day, hour, minute: cint); XMLCALL;
+
 (**
  * ftpDataCallback: 
  * @userData: the user provided context
@@ -51,93 +39,51 @@ typedef void (*ftpListCallback) (void *userData,
  *
  * A callback for the xmlNanoFTPGet command.
  *)
-typedef void (*ftpDataCallback) (void *userData,
-				 char *data,
-				 int len);
+  ftpDataCallback = procedure(userData: pointer; data: pchar; len: cint); XMLCALL;
+{$ENDIF}
 
+{$IFDEF FUNCTION}
 (*
  * Init
  *)
-XMLPUBFUN void XMLCALL
-	xmlNanoFTPInit		(void);
-XMLPUBFUN void XMLCALL	
-	xmlNanoFTPCleanup	(void);
+procedure xmlNanoFTPInit; XMLCALL; XMLPUBFUN;
+procedure xmlNanoFTPCleanup; XMLCALL; XMLPUBFUN;
 
 (*
  * Creating/freeing contexts.
  *)
-XMLPUBFUN void * XMLCALL	
-	xmlNanoFTPNewCtxt	(char *URL);
-XMLPUBFUN void XMLCALL	
-	xmlNanoFTPFreeCtxt	(void * ctx);
-XMLPUBFUN void * XMLCALL 	
-	xmlNanoFTPConnectTo	(char *server,
-				 int port);
+function xmlNanoFTPNewCtxt(URL: pchar): pointer; XMLCALL; XMLPUBFUN;
+procedure xmlNanoFTPFreeCtxt(ctx: pointer); XMLCALL; XMLPUBFUN;
+function xmlNanoFTPConnectTo(server: pchar; port: cint): pointer; XMLCALL; XMLPUBFUN;
+
 (*
  * Opening/closing session connections.
  *)
-XMLPUBFUN void * XMLCALL 	
-	xmlNanoFTPOpen		(char *URL);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPConnect	(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPClose		(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPQuit		(void *ctx);
-XMLPUBFUN void XMLCALL	
-	xmlNanoFTPScanProxy	(char *URL);
-XMLPUBFUN void XMLCALL	
-	xmlNanoFTPProxy		(char *host,
-				 int port,
-				 char *user,
-				 char *passwd,
-				 int type);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPUpdateURL	(void *ctx,
-				 char *URL);
+function xmlNanoFTPOpen(URL: pchar): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPConnect(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPClose(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPQuit(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+procedure xmlNanoFTPScanProxy(URL: pchar); XMLCALL; XMLPUBFUN;
+procedure xmlNanoFTPProxy(host: pchar; port: cint; user, passwd: pchar; _type: cint); XMLCALL; XMLPUBFUN;
+function xmlNanoFTPUpdateURL(ctx: pointer; URL: pchar): cint; XMLCALL; XMLPUBFUN;
 
 (*
  * Rather internal commands.
  *)
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPGetResponse	(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPCheckResponse	(void *ctx);
+function xmlNanoFTPGetResponse(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPCheckResponse(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
 
 (*
  * CD/DIR/GET handlers.
  *)
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPCwd		(void *ctx,
-				 char *directory);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPDele		(void *ctx,
-				 char *file);
+function xmlNanoFTPCwd(ctx: pointer; directory: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPGetResponse(ctx: pointer; _file: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPGetConnection(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPCloseConnection(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPList(ctx: pointer; callback: ftpListCallback; userData: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPGetSocket(ctx: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPGet(ctx: pointer; callback: ftpDataCallback; userData: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPRead(ctx: pointer; dest: pointer; len: cint): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPGetConnection	(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPCloseConnection(void *ctx);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPList		(void *ctx,
-				 ftpListCallback callback,
-				 void *userData,
-				 char *filename);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPGetSocket	(void *ctx,
-				 char *filename);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPGet		(void *ctx,
-				 ftpDataCallback callback,
-				 void *userData,
-				 char *filename);
-XMLPUBFUN int XMLCALL	
-	xmlNanoFTPRead		(void *ctx,
-				 void *dest,
-				 int len);
-
-{ __cplusplus
-}
-#endif
-#endif (* LIBXML_FTP_ENABLED *)
-#endif (* __NANO_FTP_H__ *)
+{$ENDIF}
+{$ENDIF} (* LIBXML_FTP_ENABLED *)

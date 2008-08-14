@@ -17,6 +17,7 @@
   xmlElementContentPtr = ^xmlElementContent;
   xmlElementPtr = ^xmlElement;
   xmlNsPtr = ^xmlNs;
+  xmlNsPtrPtr = ^xmlNsPtr;
   xmlNodePtr = ^xmlNode;
   xmlNodePtrPtr = ^xmlNodePtr;
   xmlDtdPtr = ^xmlDtd;
@@ -55,14 +56,14 @@
  * This is the namespace for the special xml: prefix predefined in the
  * XML Namespace specification.
  *)
-  //XML_XML_NAMESPACE: xmlCharPtr = pchar('http://www.w3.org/XML/1998/namespace');
+  XML_XML_NAMESPACE: xmlCharPtr = 'http://www.w3.org/XML/1998/namespace';
 
 (**
  * XML_XML_ID:
  *
  * This is the name for the special xml:id attribute
  *)
-  //XML_XML_ID: xmlCharPtr = pchar('xml:id');
+  XML_XML_ID: xmlCharPtr = 'xml:id';
 {$ENDIF}
 
 {$IFDEF TYPE}
