@@ -10,17 +10,9 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __HTML_PARSER_H__
-#define __HTML_PARSER_H__
-#include <libxml/xmlversion.h>
-#include <libxml/parser.h>
+{$IFDEF LIBXML_HTML_ENABLED}
 
-{ LIBXML_HTML_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF TYPE_}
 (*
  * Most of the back-end structures from XML and HTML are shared.
  *)
@@ -79,7 +71,9 @@ struct _htmlEntityDesc {
     char *name;	(* The entity name *)
     char *desc;   (* the description *)
 };
+{$ENDIF}
 
+{$IFDEF FUNCTION_}
 (*
  * There is only few public functions.
  *)
@@ -145,7 +139,7 @@ XMLPUBFUN int XMLCALL
 XMLPUBFUN int XMLCALL
 			htmlHandleOmittedElem(int val);
 
-{ LIBXML_PUSH_ENABLED
+{$IFDEF LIBXML_PUSH_ENABLED}
 (**
  * Interfaces for the Push mode.
  *)
@@ -161,7 +155,7 @@ XMLPUBFUN int XMLCALL
 						 char *chunk,
 						 int size,
 						 int terminate);
-#endif (* LIBXML_PUSH_ENABLED *)
+{$ENDIF} (* LIBXML_PUSH_ENABLED *)
 
 XMLPUBFUN void XMLCALL
 			htmlFreeParserCtxt	(htmlParserCtxtPtr ctxt);
@@ -293,11 +287,7 @@ XMLPUBFUN htmlStatus XMLCALL htmlNodeStatus(htmlNodePtr, int) ;
  * Returns the attributes required for the specified element.
  *)
 #define htmlRequiredAttrs(elt) (elt)->attrs_req
+{$ENDIF}
 
+{$ENDIF} (* LIBXML_HTML_ENABLED *)
 
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_HTML_ENABLED *)
-#endif (* __HTML_PARSER_H__ *)

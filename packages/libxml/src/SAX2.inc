@@ -8,19 +8,7 @@
  * Author: Daniel Veillard
  *)
 
-
-#ifndef __XML_SAX2_H__
-#define __XML_SAX2_H__
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <libxml/xmlversion.h>
-#include <libxml/parser.h>
-#include <libxml/xlink.h>
-
-{ __cplusplus
-extern "C" {
-#endif
+{$IFDEF FUNCTION_}
 XMLPUBFUN xmlChar * XMLCALL
 		xmlSAX2GetPublicId		(void *ctx);
 XMLPUBFUN xmlChar * XMLCALL	
@@ -98,7 +86,7 @@ XMLPUBFUN void XMLCALL
 		xmlSAX2StartDocument		(void *ctx);
 XMLPUBFUN void XMLCALL		
 		xmlSAX2EndDocument		(void *ctx);
-#if defined(LIBXML_SAX1_ENABLED) || defined(LIBXML_HTML_ENABLED) || defined(LIBXML_WRITER_ENABLED) || defined(LIBXML_DOCB_ENABLED)
+{$IF defined(LIBXML_SAX1_ENABLED) or defined(LIBXML_HTML_ENABLED) or defined(LIBXML_WRITER_ENABLED) or defined(LIBXML_DOCB_ENABLED)}
 XMLPUBFUN void XMLCALL		
 		xmlSAX2StartElement		(void *ctx,
 						 xmlChar *fullname,
@@ -106,7 +94,7 @@ XMLPUBFUN void XMLCALL
 XMLPUBFUN void XMLCALL		
 		xmlSAX2EndElement		(void *ctx,
 						 xmlChar *name);
-#endif (* LIBXML_SAX1_ENABLED or LIBXML_HTML_ENABLED *)
+{$ENDIF} (* LIBXML_SAX1_ENABLED or LIBXML_HTML_ENABLED *)
 XMLPUBFUN void XMLCALL
 		xmlSAX2StartElementNs		(void *ctx,
 						 xmlChar *localname,
@@ -145,10 +133,10 @@ XMLPUBFUN void XMLCALL
 						 xmlChar *value,
 						 int len);
 
-{ LIBXML_SAX1_ENABLED
+{$IFDEF LIBXML_SAX1_ENABLED}
 XMLPUBFUN int XMLCALL
 		xmlSAXDefaultVersion		(int version);
-#endif (* LIBXML_SAX1_ENABLED *)
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
 
 XMLPUBFUN int XMLCALL
 		xmlSAXVersion			(xmlSAXHandler *hdlr,
@@ -156,21 +144,19 @@ XMLPUBFUN int XMLCALL
 XMLPUBFUN void XMLCALL		
 		xmlSAX2InitDefaultSAXHandler    (xmlSAXHandler *hdlr,
 						 int warning);
-{ LIBXML_HTML_ENABLED
+{$IFDEF LIBXML_HTML_ENABLED}
 XMLPUBFUN void XMLCALL		
 		xmlSAX2InitHtmlDefaultSAXHandler(xmlSAXHandler *hdlr);
 XMLPUBFUN void XMLCALL		
 		htmlDefaultSAXHandlerInit	(void);
-#endif
-{ LIBXML_DOCB_ENABLED
+{$ENDIF}
+{$IFDEF LIBXML_DOCB_ENABLED}
 XMLPUBFUN void XMLCALL		
 		xmlSAX2InitDocbDefaultSAXHandler(xmlSAXHandler *hdlr);
 XMLPUBFUN void XMLCALL		
 		docbDefaultSAXHandlerInit	(void);
-#endif
+{$ENDIF}
 XMLPUBFUN void XMLCALL		
 		xmlDefaultSAXHandlerInit	(void);
-{ __cplusplus
-}
-#endif
-#endif (* __XML_SAX2_H__ *)
+
+{$ENDIF}

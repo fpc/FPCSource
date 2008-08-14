@@ -288,8 +288,13 @@
  *
  * A namespace declaration node.
  *)
-{$DEFINE XML_LOCAL_NAMESPACE := XML_NAMESPACE_DECL}
+{$ENDIF}
 
+{$IFDEF CONST}
+  XML_LOCAL_NAMESPACE = XML_NAMESPACE_DECL;
+{$ENDIF}
+
+{$IFDEF TYPE}
   xmlNsType = xmlElementType;
 
 (**
@@ -411,12 +416,13 @@
   end;
 {$ENDIF}
 
-{$IFDEF MACROIMPL}
+{$IFDEF FUNCTION}
 (**
  * XML_GET_CONTENT:
  *
  * Macro to extract the content pointer of a node.
  *)
+
 {#define XML_GET_CONTENT(n)					\
     ((n)->type == XML_ELEMENT_NODE ? NULL : (n)->content)}
 

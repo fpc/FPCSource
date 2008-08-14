@@ -8,21 +8,10 @@
  * Author: Daniel Veillard
  *)
 
+{$IFDEF LIBXML_LEGACY_ENABLED}
 
-#ifndef __XML_SAX_H__
-#define __XML_SAX_H__
+{$IFDEF FUNCTION_}
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <libxml/xmlversion.h>
-#include <libxml/parser.h>
-#include <libxml/xlink.h>
-
-{ LIBXML_LEGACY_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
 XMLPUBFUN xmlChar * XMLCALL
 		getPublicId			(void *ctx);
 XMLPUBFUN xmlChar * XMLCALL	
@@ -150,24 +139,19 @@ XMLPUBFUN void XMLCALL
 						 xmlChar *value,
 						 int len);
 
-{ LIBXML_SAX1_ENABLED
+{$IFDEF LIBXML_SAX1_ENABLED}
 XMLPUBFUN void XMLCALL		
 		initxmlDefaultSAXHandler	(xmlSAXHandlerV1 *hdlr,
 						 int warning);
-{ LIBXML_HTML_ENABLED
+{$IFDEF LIBXML_HTML_ENABLED}
 XMLPUBFUN void XMLCALL		
 		inithtmlDefaultSAXHandler	(xmlSAXHandlerV1 *hdlr);
-#endif
-{ LIBXML_DOCB_ENABLED
+{$ENDIF}
+{$IFDEF LIBXML_DOCB_ENABLED}
 XMLPUBFUN void XMLCALL		
 		initdocbDefaultSAXHandler	(xmlSAXHandlerV1 *hdlr);
-#endif
-#endif (* LIBXML_SAX1_ENABLED *)
+{$ENDIF}
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
+{$ENDIF}
 
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_LEGACY_ENABLED *)
-
-#endif (* __XML_SAX_H__ *)
+{$ENDIF} (* LIBXML_LEGACY_ENABLED *)

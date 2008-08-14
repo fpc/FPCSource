@@ -8,57 +8,47 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __HTML_TREE_H__
-#define __HTML_TREE_H__
+{$IFDEF LIBXML_HTML_ENABLED}
 
-#include <stdio.h>
-#include <libxml/xmlversion.h>
-#include <libxml/tree.h>
-#include <libxml/HTMLparser.h>
-
-{ LIBXML_HTML_ENABLED
-
-{ __cplusplus
-extern "C" {
-#endif
-
-
+{$IFDEF CONST}
 (**
  * HTML_TEXT_NODE:
  *
  * Macro. A text node in a HTML document is really implemented
  * the same way as a text node in an XML document.
  *)
-#define HTML_TEXT_NODE		XML_TEXT_NODE
+  HTML_TEXT_NODE		= XML_TEXT_NODE;
 (**
  * HTML_ENTITY_REF_NODE:
  *
  * Macro. An entity reference in a HTML document is really implemented
  * the same way as an entity reference in an XML document.
  *)
-#define HTML_ENTITY_REF_NODE	XML_ENTITY_REF_NODE
+  HTML_ENTITY_REF_NODE	= XML_ENTITY_REF_NODE;
 (**
  * HTML_COMMENT_NODE:
  *
  * Macro. A comment in a HTML document is really implemented
  * the same way as a comment in an XML document.
  *)
-#define HTML_COMMENT_NODE	XML_COMMENT_NODE
+  HTML_COMMENT_NODE	= XML_COMMENT_NODE;
 (**
  * HTML_PRESERVE_NODE:
  *
  * Macro. A preserved node in a HTML document is really implemented
  * the same way as a CDATA section in an XML document.
  *)
-#define HTML_PRESERVE_NODE	XML_CDATA_SECTION_NODE
+  HTML_PRESERVE_NODE	= XML_CDATA_SECTION_NODE;
 (**
  * HTML_PI_NODE:
  *
  * Macro. A processing instruction in a HTML document is really implemented
  * the same way as a processing instruction in an XML document.
  *)
-#define HTML_PI_NODE		XML_PI_NODE
+  HTML_PI_NODE		= XML_PI_NODE;
+{$ENDIF}
 
+{$IFDEF FUNCTION_}
 XMLPUBFUN htmlDocPtr XMLCALL
 		htmlNewDoc		(xmlChar *URI,
 					 xmlChar *ExternalID);
@@ -70,7 +60,7 @@ XMLPUBFUN xmlChar * XMLCALL
 XMLPUBFUN int XMLCALL
 		htmlSetMetaEncoding	(htmlDocPtr doc,
 					 xmlChar *encoding);
-{ LIBXML_OUTPUT_ENABLED
+{$IFDEF LIBXML_OUTPUT_ENABLED}
 XMLPUBFUN void XMLCALL
 		htmlDocDumpMemory	(xmlDocPtr cur,
 					 xmlChar **mem,
@@ -131,17 +121,11 @@ XMLPUBFUN void XMLCALL
 					 xmlNodePtr cur,
 					 char *encoding);
 
-#endif (* LIBXML_OUTPUT_ENABLED *)
+{$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 XMLPUBFUN int XMLCALL
 		htmlIsBooleanAttr	(xmlChar *name);
 
+{$ENDIF}
 
-{ __cplusplus
-}
-#endif
-
-#endif (* LIBXML_HTML_ENABLED *)
-
-#endif (* __HTML_TREE_H__ *)
-
+{$ENDIF} (* LIBXML_HTML_ENABLED *)

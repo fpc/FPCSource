@@ -62,6 +62,10 @@ type
   {$i globals.inc}
   {$i nanoftp.inc}
   {$i nanohttp.inc}
+  {$i SAX.inc}
+  {$i SAX2.inc}
+  {$i HTMLtree.inc}
+  {$i HTMLparser.inc}
   {$i xmlautomata.inc}
   {$i xmlIO.inc}
   {$i xmlmodule.inc}
@@ -105,6 +109,10 @@ type
   {$i globals.inc}
   {$i nanoftp.inc}
   {$i nanohttp.inc}
+  {$i SAX.inc}
+  {$i SAX2.inc}
+  {$i HTMLtree.inc}
+  {$i HTMLparser.inc}
   {$i xmlautomata.inc}
   {$i xmlIO.inc}
   {$i xmlmodule.inc}
@@ -149,6 +157,10 @@ const
   {$i globals.inc}
   {$i nanoftp.inc}
   {$i nanohttp.inc}
+  {$i SAX.inc}
+  {$i SAX2.inc}
+  {$i HTMLtree.inc}
+  {$i HTMLparser.inc}
   {$i xmlautomata.inc}
   {$i xmlIO.inc}
   {$i xmlmodule.inc}
@@ -192,6 +204,10 @@ const
   {$i globals.inc}
   {$i nanoftp.inc}
   {$i nanohttp.inc}
+  {$i SAX.inc}
+  {$i SAX2.inc}
+  {$i HTMLtree.inc}
+  {$i HTMLparser.inc}
   {$i xmlautomata.inc}
   {$i xmlIO.inc}
   {$i xmlmodule.inc}
