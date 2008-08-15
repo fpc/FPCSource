@@ -35,6 +35,7 @@ unit cpunode;
          after the generic one (FK)
        }
        ,navradd
+       ,navrmat
        ;
 
 
