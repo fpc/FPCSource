@@ -11,6 +11,10 @@ interface
 uses
   ctypes;
 
+//{$IF Sizeof(cbool) <> Sizeof(cint)}
+// {$ERROR 'cbool size mismatch!'}
+//{$ENDIF}
+
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
 {$ENDIF}
