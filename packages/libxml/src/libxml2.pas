@@ -55,6 +55,7 @@ type
   {$i schemasInternals.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
   {$i uri.inc}
@@ -103,6 +104,7 @@ type
   {$i schemasInternals.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
   {$i uri.inc}
@@ -152,6 +154,7 @@ const
   {$i hash.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
   {$i uri.inc}
@@ -200,6 +203,7 @@ const
   {$i hash.inc}
   {$i valid.inc}
   {$i parser.inc}
+  {$i parserInternals.inc}
   {$i schematron.inc}
   {$i threads.inc}
   {$i uri.inc}
@@ -373,8 +377,23 @@ end;
 
 
 (*
- * macros from globals.inc
+ * macros from HTMLparser.inc
  *)
+
+function htmlDefaultSubelement(elt: htmlElemDescPtr): pchar;
+begin
+  Result := elt^.defaultsubelt;
+end;
+
+function htmlElementAllowedHereDesc(parent: htmlElemDescPtr; elt: htmlElemDescPtr): cint;
+begin
+  Result := htmlElementAllowedHere(parent, elt^.name);
+end;
+
+function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
+begin
+  Result := elt^.attrs_req;
+end;
 
 
 (*

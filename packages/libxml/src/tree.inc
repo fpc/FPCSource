@@ -608,33 +608,18 @@ function xmlCopyDtd(dtd: xmlDtdPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
 function xmlCopyDoc(doc: xmlDocPtr; recursive: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED) *)
 
-{$IFDEF 0}
 (*
  * Creating new nodes.
  *)
-XMLPUBFUN xmlNodePtr XMLCALL
-		xmlNewDocNode		(xmlDocPtr doc,
-					 xmlNsPtr ns,
-					 xmlChar *name,
-					 xmlChar *content);
-XMLPUBFUN xmlNodePtr XMLCALL
-		xmlNewDocNodeEatName	(xmlDocPtr doc,
-					 xmlNsPtr ns,
-					 xmlChar *name,
-					 xmlChar *content);
-XMLPUBFUN xmlNodePtr XMLCALL
-		xmlNewNode		(xmlNsPtr ns,
-					 xmlChar *name);
-XMLPUBFUN xmlNodePtr XMLCALL
-		xmlNewNodeEatName	(xmlNsPtr ns,
-					 xmlChar *name);
+function xmlNewDocNode(doc: xmlDocPtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
+function xmlNewDocNodeEatName(doc: xmlDocPtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
+function xmlNewNode(ns: xmlNsPtr; name: xmlCharPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
+function xmlNewNodeEatName(ns: xmlNsPtr; name: xmlCharPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
 {$IF defined(LIBXML_TREE_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-XMLPUBFUN xmlNodePtr XMLCALL
-		xmlNewChild		(xmlNodePtr parent,
-					 xmlNsPtr ns,
-					 xmlChar *name,
-					 xmlChar *content);
+function xmlNewChild(parent: xmlNodePtr; ns: xmlNsPtr; name, content: xmlCharPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
 {$ENDIF}
+
+{$IFDEF 0}
 XMLPUBFUN xmlNodePtr XMLCALL
 		xmlNewDocText		(xmlDocPtr doc,
 					 xmlChar *content);
@@ -1005,26 +990,20 @@ XMLPUBFUN int XMLCALL
 					 char *encoding);
 
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
+{$ENDIF}
+
 (*
  * XHTML
  *)
-XMLPUBFUN int XMLCALL
-		xmlIsXHTML		(xmlChar *systemID,
-					 xmlChar *publicID);
+function xmlIsXHTML(systemID, publicID: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
 
 (*
  * Compression.
  *)
-XMLPUBFUN int XMLCALL
-		xmlGetDocCompressMode	(xmlDocPtr doc);
-XMLPUBFUN void XMLCALL
-		xmlSetDocCompressMode	(xmlDocPtr doc,
-					 int mode);
-XMLPUBFUN int XMLCALL
-		xmlGetCompressMode	(void);
-XMLPUBFUN void XMLCALL
-		xmlSetCompressMode	(int mode);
-{$ENDIF}
+function xmlGetDocCompressMode(doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlSetDocCompressMode(ctxt: xmlDOMWrapCtxtPtr; mode: cint); XMLCALL; XMLPUBFUN;
+function xmlGetCompressMode: cint; XMLCALL; XMLPUBFUN;
+procedure xmlSetCompressMode(mode: cint); XMLCALL; XMLPUBFUN;
 
 (*
 * DOM-wrapper helper functions.

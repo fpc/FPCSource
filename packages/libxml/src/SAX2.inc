@@ -8,155 +8,59 @@
  * Author: Daniel Veillard
  *)
 
-{$IFDEF FUNCTION_}
-XMLPUBFUN xmlChar * XMLCALL
-		xmlSAX2GetPublicId		(void *ctx);
-XMLPUBFUN xmlChar * XMLCALL	
-		xmlSAX2GetSystemId		(void *ctx);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2SetDocumentLocator	(void *ctx,
-						 xmlSAXLocatorPtr loc);
-    
-XMLPUBFUN int XMLCALL		
-		xmlSAX2GetLineNumber		(void *ctx);
-XMLPUBFUN int XMLCALL		
-		xmlSAX2GetColumnNumber		(void *ctx);
+{$IFDEF FUNCTION}
+function xmlSAX2GetPublicId(ctx: pointer): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlSAX2GetSystemId(ctx: pointer): xmlCharPtr; XMLCALL; XMLPUBFUN;
+procedure xmlSAX2GetSystemId(ctx: pointer; loc: xmlSAXLocatorPtr); XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int XMLCALL		
-		xmlSAX2IsStandalone		(void *ctx);
-XMLPUBFUN int XMLCALL		
-		xmlSAX2HasInternalSubset	(void *ctx);
-XMLPUBFUN int XMLCALL		
-		xmlSAX2HasExternalSubset	(void *ctx);
+function xmlSAX2GetLineNumber(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlSAX2GetColumnNumber(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN void XMLCALL		
-		xmlSAX2InternalSubset		(void *ctx,
-						 xmlChar *name,
-						 xmlChar *ExternalID,
-						 xmlChar *SystemID);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2ExternalSubset		(void *ctx,
-						 xmlChar *name,
-						 xmlChar *ExternalID,
-						 xmlChar *SystemID);
-XMLPUBFUN xmlEntityPtr XMLCALL	
-		xmlSAX2GetEntity		(void *ctx,
-						 xmlChar *name);
-XMLPUBFUN xmlEntityPtr XMLCALL	
-		xmlSAX2GetParameterEntity	(void *ctx,
-						 xmlChar *name);
-XMLPUBFUN xmlParserInputPtr XMLCALL 
-		xmlSAX2ResolveEntity		(void *ctx,
-						 xmlChar *publicId,
-						 xmlChar *systemId);
+function xmlSAX2IsStandalone(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlSAX2HasInternalSubset(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlSAX2HasExternalSubset(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN void XMLCALL		
-		xmlSAX2EntityDecl		(void *ctx,
-						 xmlChar *name,
-						 int type,
-						 xmlChar *publicId,
-						 xmlChar *systemId,
-						 xmlChar *content);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2AttributeDecl		(void *ctx,
-						 xmlChar *elem,
-						 xmlChar *fullname,
-						 int type,
-						 int def,
-						 xmlChar *defaultValue,
-						 xmlEnumerationPtr tree);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2ElementDecl		(void *ctx,
-						 xmlChar *name,
-						 int type,
-						 xmlElementContentPtr content);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2NotationDecl		(void *ctx,
-						 xmlChar *name,
-						 xmlChar *publicId,
-						 xmlChar *systemId);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2UnparsedEntityDecl	(void *ctx,
-						 xmlChar *name,
-						 xmlChar *publicId,
-						 xmlChar *systemId,
-						 xmlChar *notationName);
+procedure xmlSAX2InternalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2ExternalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
+function xmlSAX2GetEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlSAX2GetParameterEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
+function xmlSAX2ResolveEntity(ctx: pointer; publicId, systemId: xmlCharPtr): xmlParserInputPtr; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN void XMLCALL		
-		xmlSAX2StartDocument		(void *ctx);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2EndDocument		(void *ctx);
+procedure xmlSAX2EntityDecl(ctx: pointer; name: xmlCharPtr; _type: cint; publicId, systemId, content: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2AttributeDecl(ctx: pointer; elem, fullname: xmlCharPtr; _type, def: cint; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2ElementDecl(ctx: pointer; name: xmlCharPtr; _type: cint; content: xmlElementContentPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2NotationDecl(ctx: pointer; name, publicId, systemId: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2UnparsedEntityDecl(ctx: pointer; name, publicId, systemId, notationName: xmlCharPtr); XMLCALL; XMLPUBFUN;
+
+procedure xmlSAX2StartDocument(ctx: pointer); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2EndDocument(ctx: pointer); XMLCALL; XMLPUBFUN;
+
 {$IF defined(LIBXML_SAX1_ENABLED) or defined(LIBXML_HTML_ENABLED) or defined(LIBXML_WRITER_ENABLED) or defined(LIBXML_DOCB_ENABLED)}
-XMLPUBFUN void XMLCALL		
-		xmlSAX2StartElement		(void *ctx,
-						 xmlChar *fullname,
-						 xmlChar **atts);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2EndElement		(void *ctx,
-						 xmlChar *name);
+procedure xmlSAX2StartElement(ctx: pointer; filename: xmlCharPtr; atts: xmlCharPtrPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2EndElement(ctx: pointer; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_SAX1_ENABLED or LIBXML_HTML_ENABLED *)
-XMLPUBFUN void XMLCALL
-		xmlSAX2StartElementNs		(void *ctx,
-						 xmlChar *localname,
-						 xmlChar *prefix,
-						 xmlChar *URI,
-						 int nb_namespaces,
-						 xmlChar **namespaces,
-						 int nb_attributes,
-						 int nb_defaulted,
-						 xmlChar **attributes);
-XMLPUBFUN void XMLCALL
-		xmlSAX2EndElementNs		(void *ctx,
-						 xmlChar *localname,
-						 xmlChar *prefix,
-						 xmlChar *URI);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2Reference		(void *ctx,
-						 xmlChar *name);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2Characters		(void *ctx,
-						 xmlChar *ch,
-						 int len);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2IgnorableWhitespace	(void *ctx,
-						 xmlChar *ch,
-						 int len);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2ProcessingInstruction	(void *ctx,
-						 xmlChar *target,
-						 xmlChar *data);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2Comment			(void *ctx,
-						 xmlChar *value);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2CDataBlock		(void *ctx,
-						 xmlChar *value,
-						 int len);
-
+procedure xmlSAX2StartElementNs(ctx: pointer; localname, prefix, URI: xmlCharPtr; nb_namespaces: cint; namespaces: xmlCharPtrPtr;
+  nb_attributes, nb_defaulted: cint; attributes: xmlCharPtrPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2EndElementNs(ctx: pointer; localname, prefix, URI: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2Reference(ctx: pointer; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2Characters(ctx: pointer; name: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2IgnorableWhitespace(ctx: pointer; name: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2ProcessingInstruction(ctx: pointer; target, data: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2Comment(ctx: pointer; value: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSAX2CDataBlock(ctx: pointer; value: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_SAX1_ENABLED}
-XMLPUBFUN int XMLCALL
-		xmlSAXDefaultVersion		(int version);
+function xmlSAXDefaultVersion(version: cint): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
 
-XMLPUBFUN int XMLCALL
-		xmlSAXVersion			(xmlSAXHandler *hdlr,
-						 int version);
-XMLPUBFUN void XMLCALL		
-		xmlSAX2InitDefaultSAXHandler    (xmlSAXHandler *hdlr,
-						 int warning);
+function xmlSAXVersion(hdlr: xmlSAXHandlerPtr; version: cint): cint; XMLCALL; XMLPUBFUN;
+procedure xmlSAX2InitDefaultSAXHandler(hdlr: xmlSAXHandlerPtr; warning: cint); XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_HTML_ENABLED}
-XMLPUBFUN void XMLCALL		
-		xmlSAX2InitHtmlDefaultSAXHandler(xmlSAXHandler *hdlr);
-XMLPUBFUN void XMLCALL		
-		htmlDefaultSAXHandlerInit	(void);
+procedure xmlSAX2InitHtmlDefaultSAXHandler(hdlr: xmlSAXHandlerPtr); XMLCALL; XMLPUBFUN;
+procedure htmlDefaultSAXHandlerInit; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 {$IFDEF LIBXML_DOCB_ENABLED}
-XMLPUBFUN void XMLCALL		
-		xmlSAX2InitDocbDefaultSAXHandler(xmlSAXHandler *hdlr);
-XMLPUBFUN void XMLCALL		
-		docbDefaultSAXHandlerInit	(void);
+procedure xmlSAX2InitDocbDefaultSAXHandler(hdlr: xmlSAXHandlerPtr); XMLCALL; XMLPUBFUN;
+procedure docbDefaultSAXHandlerInit; XMLCALL; XMLPUBFUN;
 {$ENDIF}
-XMLPUBFUN void XMLCALL		
-		xmlDefaultSAXHandlerInit	(void);
-
+procedure xmlDefaultSAXHandlerInit; XMLCALL; XMLPUBFUN;
 {$ENDIF}

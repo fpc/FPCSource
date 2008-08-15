@@ -74,92 +74,41 @@
   end;
 {$ENDIF}
 
-{$IFDEF FUNCTION_}
+{$IFDEF FUNCTION}
 (*
  * There is only few public functions.
  *)
-XMLPUBFUN htmlElemDesc * XMLCALL
-			htmlTagLookup	(xmlChar *tag);
-XMLPUBFUN htmlEntityDesc * XMLCALL
-			htmlEntityLookup(xmlChar *name);
-XMLPUBFUN htmlEntityDesc * XMLCALL
-			htmlEntityValueLookup(unsigned int value);
+function htmlTagLookup(tag: xmlCharPtr): htmlElemDescPtr; XMLCALL; XMLPUBFUN;
+function htmlEntityLookup(tag: xmlCharPtr): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
+function htmlEntityValueLookup(value: cuint): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN int XMLCALL
-			htmlIsAutoClosed(htmlDocPtr doc,
-					 htmlNodePtr elem);
-XMLPUBFUN int XMLCALL
-			htmlAutoCloseTag(htmlDocPtr doc,
-					 xmlChar *name,
-					 htmlNodePtr elem);
-XMLPUBFUN htmlEntityDesc * XMLCALL
-			htmlParseEntityRef(htmlParserCtxtPtr ctxt,
-					 xmlChar **str);
-XMLPUBFUN int XMLCALL
-			htmlParseCharRef(htmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL
-			htmlParseElement(htmlParserCtxtPtr ctxt);
+function htmlIsAutoClosed(doc: htmlDocPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function htmlAutoCloseTag(doc: htmlDocPtr; name: xmlCharPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function htmlParseEntityRef(ctxt: htmlParserCtxtPtr; str: xmlCharPtrPtr): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN htmlParserCtxtPtr XMLCALL
-			htmlNewParserCtxt(void);
+function htmlParseCharRef(ctxt: htmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+function htmlParseElement(ctxt: htmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+function htmlNewParserCtxt: htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function htmlCreateMemoryParserCtxt(buffer: pchar; size: cint): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
 
-XMLPUBFUN htmlParserCtxtPtr XMLCALL
-			htmlCreateMemoryParserCtxt(char *buffer,
-						   int size);
-
-XMLPUBFUN int XMLCALL
-			htmlParseDocument(htmlParserCtxtPtr ctxt);
-XMLPUBFUN htmlDocPtr XMLCALL
-			htmlSAXParseDoc	(xmlChar *cur,
-					 char *encoding,
-					 htmlSAXHandlerPtr sax,
-					 void *userData);
-XMLPUBFUN htmlDocPtr XMLCALL
-			htmlParseDoc	(xmlChar *cur,
-					 char *encoding);
-XMLPUBFUN htmlDocPtr XMLCALL
-			htmlSAXParseFile(char *filename,
-					 char *encoding,
-					 htmlSAXHandlerPtr sax,
-					 void *userData);
-XMLPUBFUN htmlDocPtr XMLCALL
-			htmlParseFile	(char *filename,
-					 char *encoding);
-XMLPUBFUN int XMLCALL
-			UTF8ToHtml	(unsigned char *out,
-					 int *outlen,
-					 unsigned char *in,
-					 int *inlen);
-XMLPUBFUN int XMLCALL
-			htmlEncodeEntities(unsigned char *out,
-					 int *outlen,
-					 unsigned char *in,
-					 int *inlen, int quoteChar);
-XMLPUBFUN int XMLCALL
-			htmlIsScriptAttribute(xmlChar *name);
-XMLPUBFUN int XMLCALL
-			htmlHandleOmittedElem(int val);
+function htmlParseDocument(doc: htmlDocPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function htmlSAXParseDoc(cur: xmlCharPtr; encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlParseDoc(cur: xmlCharPtr; encoding: pchar): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlSAXParseFile(filename, encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlParseFile(filename, encoding: pchar): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function UTF8ToHtml(_out: pointer; outlen: cint; _in: pointer; inlen: cint): cint; XMLCALL; XMLPUBFUN;
+function htmlEncodeEntities(_out: pointer; outlen: cint; _in: pointer; inlen, quoteChar: cint): cint; XMLCALL; XMLPUBFUN;
+function htmlIsScriptAttribute(name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function htmlHandleOmittedElem(val: cint): cint; XMLCALL; XMLPUBFUN;
 
 {$IFDEF LIBXML_PUSH_ENABLED}
 (**
  * Interfaces for the Push mode.
  *)
-XMLPUBFUN htmlParserCtxtPtr XMLCALL
-			htmlCreatePushParserCtxt(htmlSAXHandlerPtr sax,
-						 void *user_data,
-						 char *chunk,
-						 int size,
-						 char *filename,
-						 xmlCharEncoding enc);
-XMLPUBFUN int XMLCALL
-			htmlParseChunk		(htmlParserCtxtPtr ctxt,
-						 char *chunk,
-						 int size,
-						 int terminate);
+function htmlCreatePushParserCtxt(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: pchar; size: cint; filename: pchar; enc: xmlCharEncoding): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: pchar; size, terminate: cint): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_PUSH_ENABLED *)
-
-XMLPUBFUN void XMLCALL
-			htmlFreeParserCtxt	(htmlParserCtxtPtr ctxt);
+procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -184,71 +133,19 @@ XMLPUBFUN void XMLCALL
   HTML_PARSE_COMPACT  = 1 shl 16; (* compact small text nodes *)
 {$ENDIF}
 
-{$IFDEF FUNCTION_}
-XMLPUBFUN void XMLCALL
-		htmlCtxtReset		(htmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL
-		htmlCtxtUseOptions	(htmlParserCtxtPtr ctxt,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlReadDoc		(xmlChar *cur,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlReadFile		(char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlReadMemory		(char *buffer,
-					 int size,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlReadFd		(int fd,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlReadIO		(xmlInputReadCallback ioread,
-					 xmlInputCloseCallback ioclose,
-					 void *ioctx,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlCtxtReadDoc		(xmlParserCtxtPtr ctxt,
-					 xmlChar *cur,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlCtxtReadFile		(xmlParserCtxtPtr ctxt,
-					 char *filename,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlCtxtReadMemory		(xmlParserCtxtPtr ctxt,
-					 char *buffer,
-					 int size,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlCtxtReadFd		(xmlParserCtxtPtr ctxt,
-					 int fd,
-					 char *URL,
-					 char *encoding,
-					 int options);
-XMLPUBFUN htmlDocPtr XMLCALL
-		htmlCtxtReadIO		(xmlParserCtxtPtr ctxt,
-					 xmlInputReadCallback ioread,
-					 xmlInputCloseCallback ioclose,
-					 void *ioctx,
-					 char *URL,
-					 char *encoding,
-					 int options);
+{$IFDEF FUNCTION}
+procedure htmlCtxtReset(ctxt: htmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
+function htmlParseChunk(ctxt: htmlParserCtxtPtr; options: cint): cint; XMLCALL; XMLPUBFUN;
+function htmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlReadFile(URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlReadFd(fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -279,7 +176,7 @@ function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; XMLCALL; XMLP
  *
  * Returns the default subelement for this element
  *)
-//#define htmlDefaultSubelement(elt) elt->defaultsubelt
+function htmlDefaultSubelement(elt: htmlElemDescPtr): pchar;
 
 (**
  * htmlElementAllowedHereDesc:
@@ -291,8 +188,7 @@ function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; XMLCALL; XMLP
  *
  * Returns 1 if allowed; 0 otherwise.
  *)
-{#define htmlElementAllowedHereDesc(parent,elt) \
-	htmlElementAllowedHere((parent), (elt)->name)}
+function htmlElementAllowedHereDesc(parent: htmlElemDescPtr; elt: htmlElemDescPtr): cint;
 
 (**
  * htmlRequiredAttrs:
@@ -300,7 +196,7 @@ function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; XMLCALL; XMLP
  *
  * Returns the attributes required for the specified element.
  *)
-{#define htmlRequiredAttrs(elt) (elt)->attrs_req}
+function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_HTML_ENABLED *)

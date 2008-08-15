@@ -9,18 +9,7 @@
  * Author: Daniel Veillard
  *)
 
-#ifndef __XML_PARSER_INTERNALS_H__
-#define __XML_PARSER_INTERNALS_H__
-
-#include <libxml/xmlversion.h>
-#include <libxml/parser.h>
-#include <libxml/HTMLparser.h>
-#include <libxml/chvalid.h>
-
-{ __cplusplus
-extern "C" {
-#endif
-
+{$IFDEF FUNCTION}
 (**
  * xmlParserMaxDepth:
  *
@@ -28,15 +17,18 @@ extern "C" {
  * process. This is not a limitation of the parser but a safety 
  * boundary feature.
  *)
-XMLPUBVAR unsigned int xmlParserMaxDepth;
+var
+  xmlParserMaxDepth: cuint; XMLPUBVAR;
+{$ENDIF}
 
+{$IFDEF CONST}
  (**
   * XML_MAX_NAMELEN:
   *
   * Identifiers can be longer, but this will be more costly
   * at runtime.
   *)
-#define XML_MAX_NAMELEN 100
+  XML_MAX_NAMELEN = 100;
 
 (**
  * INPUT_CHUNK:
@@ -44,8 +36,10 @@ XMLPUBVAR unsigned int xmlParserMaxDepth;
  * The parser tries to always have that amount of input ready.
  * One of the point is providing context when reporting errors.
  *)
-#define INPUT_CHUNK	250
+  INPUT_CHUNK	= 250;
+{$ENDIF}
 
+{$IFDEF FUNCTION_}
 (************************************************************************
  *									*
  * UNICODE version of the macros.      					*
@@ -243,8 +237,8 @@ XMLPUBVAR unsigned int xmlParserMaxDepth;
  * Skips the end of line chars.
  *)
 #define SKIP_EOL(p) 							\
-    if (*(p) == 0x13) { p++ ; if (*(p) == 0x10) p++; }			\
-    if (*(p) == 0x10) { p++ ; if (*(p) == 0x13) p++; }
+    if ( *(p) == 0x13) { p++ ; if ( *(p) == 0x10) p++; }			\
+    if ( *(p) == 0x10) { p++ ; if ( *(p) == 0x13) p++; }
 
 (**
  * MOVETO_ENDTAG:
@@ -253,7 +247,7 @@ XMLPUBVAR unsigned int xmlParserMaxDepth;
  * Skips to the next '>' char.
  *)
 #define MOVETO_ENDTAG(p)						\
-    while ((*p) && (*(p) != '>')) (p)++
+    while (( *p) && ( *(p) != '>')) (p)++
 
 (**
  * MOVETO_STARTTAG:
@@ -262,7 +256,7 @@ XMLPUBVAR unsigned int xmlParserMaxDepth;
  * Skips to the next '<' char.
  *)
 #define MOVETO_STARTTAG(p)						\
-    while ((*p) && (*(p) != '<')) (p)++
+    while (( *p) && ( *(p) != '<')) (p)++
 
 (**
  * Global variables used for predefined strings.
@@ -302,7 +296,7 @@ XMLPUBFUN int XMLCALL
 						 xmlParserInputPtr input,
 					 xmlCharEncodingHandlerPtr handler);
 
-{ IN_LIBXML
+{$IFDEF IN_LIBXML}
 (* internal error reporting *)
 XMLPUBFUN void XMLCALL
 			__xmlErrEncoding	(xmlParserCtxtPtr ctxt,
@@ -310,7 +304,7 @@ XMLPUBFUN void XMLCALL
 						 char *msg,
 						 xmlChar * str1,
 						 xmlChar * str2);
-#endif
+{$ENDIF}
 
 (**
  * Input Streams.
@@ -416,7 +410,7 @@ XMLPUBFUN void XMLCALL
 			xmlParsePEReference	(xmlParserCtxtPtr ctxt);
 XMLPUBFUN void XMLCALL			
 			xmlParseDocTypeDecl	(xmlParserCtxtPtr ctxt);
-{ LIBXML_SAX1_ENABLED
+{$IFDEF LIBXML_SAX1_ENABLED}
 XMLPUBFUN xmlChar * XMLCALL		
 			xmlParseAttribute	(xmlParserCtxtPtr ctxt,
 						 xmlChar **value);
@@ -424,7 +418,7 @@ XMLPUBFUN xmlChar * XMLCALL
 			xmlParseStartTag	(xmlParserCtxtPtr ctxt);
 XMLPUBFUN void XMLCALL			
 			xmlParseEndTag		(xmlParserCtxtPtr ctxt);
-#endif (* LIBXML_SAX1_ENABLED *)
+{$ENDIF} (* LIBXML_SAX1_ENABLED *)
 XMLPUBFUN void XMLCALL			
 			xmlParseCDSect		(xmlParserCtxtPtr ctxt);
 XMLPUBFUN void XMLCALL			
@@ -450,32 +444,40 @@ XMLPUBFUN void XMLCALL
 XMLPUBFUN void XMLCALL			
 			xmlParseExternalSubset	(xmlParserCtxtPtr ctxt,
 						 xmlChar *ExternalID,
-						 xmlChar *SystemID); 
+						 xmlChar *SystemID);
+{$ENDIF}
+
+{$IFDEF CONST}
 (**
  * XML_SUBSTITUTE_NONE:
  *
  * If no entities need to be substituted.
  *)
-#define XML_SUBSTITUTE_NONE	0
+  XML_SUBSTITUTE_NONE	= 0;
+
 (**
  * XML_SUBSTITUTE_REF:
  *
  * Whether general entities need to be substituted.
  *)
-#define XML_SUBSTITUTE_REF	1
+  XML_SUBSTITUTE_REF	= 1;
+
 (**
  * XML_SUBSTITUTE_PEREF:
  *
  * Whether parameter entities need to be substituted.
  *)
-#define XML_SUBSTITUTE_PEREF	2
+  XML_SUBSTITUTE_PEREF	= 2;
+
 (**
  * XML_SUBSTITUTE_BOTH:
  *
  * Both general and parameter entities need to be substituted.
  *)
-#define XML_SUBSTITUTE_BOTH 	3
+  XML_SUBSTITUTE_BOTH 	= 3;
+{$ENDIF}
 
+{$IFDEF FUNCTION_}
 XMLPUBFUN xmlChar * XMLCALL
 		xmlStringDecodeEntities		(xmlParserCtxtPtr ctxt,
 						 xmlChar *str,
@@ -528,20 +530,20 @@ XMLPUBFUN int XMLCALL			xmlCopyChar		(int len,
 XMLPUBFUN void XMLCALL			xmlNextChar		(xmlParserCtxtPtr ctxt);
 XMLPUBFUN void XMLCALL			xmlParserInputShrink	(xmlParserInputPtr in);
 
-{ LIBXML_HTML_ENABLED
+{$IFDEF LIBXML_HTML_ENABLED}
 (*
  * Actually comes from the HTML parser but launched from the init stuff.
  *)
 XMLPUBFUN void XMLCALL			htmlInitAutoClose	(void);
 XMLPUBFUN htmlParserCtxtPtr XMLCALL	htmlCreateFileParserCtxt(char *filename,
 	                                         char *encoding);
-#endif
+{$ENDIF}
 
 (*
  * Specific function to keep track of entities references
  * and used by the XSLT debugger.
  *)
-{ LIBXML_LEGACY_ENABLED
+{$IFDEF LIBXML_LEGACY_ENABLED}
 (**
  * xmlEntityReferenceFunc:
  * @ent: the entity
@@ -551,7 +553,7 @@ XMLPUBFUN htmlParserCtxtPtr XMLCALL	htmlCreateFileParserCtxt(char *filename,
  * Callback function used when one needs to be able to track back the
  * provenance of a chunk of nodes inherited from an entity replacement.
  *)
-typedef	void	(*xmlEntityReferenceFunc)	(xmlEntityPtr ent,
+typedef	void	(xmlEntityReferenceFunc)	(xmlEntityPtr ent,
 						 xmlNodePtr firstNode,
 						 xmlNodePtr lastNode);
   
@@ -571,6 +573,7 @@ XMLPUBFUN void XMLCALL	xmlParserHandleReference(xmlParserCtxtPtr ctxt);
 XMLPUBFUN xmlChar * XMLCALL		
 			xmlNamespaceParseQName	(xmlParserCtxtPtr ctxt,
 						 xmlChar **prefix);
+
 (**
  * Entities
  *)
@@ -585,18 +588,14 @@ XMLPUBFUN void XMLCALL
 			xmlHandleEntity		(xmlParserCtxtPtr ctxt,
 						 xmlEntityPtr entity);
 
-#endif (* LIBXML_LEGACY_ENABLED *)
+{$ENDIF} (* LIBXML_LEGACY_ENABLED *)
 
-{ IN_LIBXML
+{$IFDEF IN_LIBXML}
 (*
  * internal only
  *)
 XMLPUBFUN void XMLCALL
 	xmlErrMemory		(xmlParserCtxtPtr ctxt,
 				 char *extra);
-#endif
-
-{ __cplusplus
-}
-#endif
-#endif (* __XML_PARSER_INTERNALS_H__ *)
+{$ENDIF}
+{$ENDIF}
