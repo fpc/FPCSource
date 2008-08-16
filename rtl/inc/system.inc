@@ -648,7 +648,7 @@ begin
 end;
 
 
-Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function IOResult:Word;
 var
   HInoutRes : PWord;
 Begin

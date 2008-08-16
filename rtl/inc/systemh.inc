@@ -880,7 +880,7 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_addr(framebp:pointer):pointer;
 function get_caller_frame(framebp:pointer):pointer;
 
-Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
