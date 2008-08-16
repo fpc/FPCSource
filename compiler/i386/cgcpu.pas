@@ -493,8 +493,7 @@ unit cgcpu;
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) and
-           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
+           (pi_needs_got in current_procinfo.flags) then
           begin
             if (target_info.system<>system_i386_darwin) then
               begin
