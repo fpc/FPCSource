@@ -4263,22 +4263,13 @@ implementation
 
 
     procedure TImplementedInterface.AddImplProc(pd:tprocdef);
-      var
-        i : longint;
-        found : boolean;
       begin
         if not assigned(procdefs) then
           procdefs:=TFPObjectList.Create(false);
-        { No duplicate entries of the same procdef }
-        found:=false;
-        for i:=0 to procdefs.count-1 do
-          if tprocdef(procdefs[i])=pd then
-            begin
-              found:=true;
-              break;
-            end;
-        if not found then
-          procdefs.Add(pd);
+        { duplicate entries must be stored, because multiple }
+        { interfaces can declare methods with the same name  }
+        { and all of these get their own VMT entry           }
+        procdefs.Add(pd);
       end;
 
 
