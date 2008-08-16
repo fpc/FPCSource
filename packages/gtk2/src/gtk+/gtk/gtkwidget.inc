@@ -1,6 +1,7 @@
 // included by gtk2.pas
 
 {$IFDEF read_forward_definitions}
+   PPGtkWidget = ^PGtkWidget;
    PGtkWidget = ^TGtkWidget;
 {$ENDIF read_forward_definitions}
 
@@ -540,6 +541,17 @@ function gtk_widget_get_root_window(widget:PGtkWidget):PGdkWindow; cdecl; extern
 function gtk_widget_get_screen(widget:PGtkWidget):PGdkScreen; cdecl; external gtklib;
 function gtk_widget_has_screen(widget:PGtkWidget):gboolean; cdecl; external gtklib;
 {$ENDIF}
+
+{$ifdef HasGTK2_4}
+procedure gtk_widget_add_mnemonic_label(widget:PGtkWidget; _label:PGtkWidget); cdecl; external gtklib;
+function gtk_widget_can_activate_accel(widget:PGtkWidget; signal_id:guint):gboolean; cdecl; external gtklib;
+function gtk_widget_get_no_show_all(widget:PGtkWidget):gboolean; cdecl; external gtklib;
+function gtk_widget_list_mnemonic_labels(widget:PGtkWidget):PGList; cdecl; external gtklib;
+procedure gtk_widget_queue_resize_no_redraw(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_widget_remove_mnemonic_label(widget:PGtkWidget; _label:PGtkWidget); cdecl; external gtklib;
+procedure gtk_widget_set_no_show_all(widget:PGtkWidget; no_show_all:gboolean); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

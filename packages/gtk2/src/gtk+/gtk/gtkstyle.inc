@@ -336,6 +336,11 @@ procedure gtk_paint_string(style:PGtkStyle; window:PGdkWindow; state_type:TGtkSt
 function _gtk_get_insertion_cursor_gc(widget:PGtkWidget; is_primary:gboolean):PGdkGC; cdecl; external gtklib;
 procedure _gtk_draw_insertion_cursor(widget:PGtkWidget; drawable:PGdkDrawable; gc:PGdkGC; location:PGdkRectangle; direction:TGtkTextDirection;
             draw_arrow:gboolean); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+procedure gtk_draw_insertion_cursor(widget:PGtkWidget; drawable:PGdkDrawable; area:PGdkRectangle; location:PGdkRectangle; is_primary:gboolean;
+            direction:TGtkTextDirection; draw_arrow:gboolean); cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

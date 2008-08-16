@@ -157,6 +157,12 @@ procedure gtk_menu_insert(menu,child: PGtkWidget; pos : gint);
 {$IFDEF HasGTK2_2}
 procedure gtk_menu_set_screen(menu:PGtkMenu; screen:PGdkScreen); cdecl; external gtklib;
 {$ENDIF}
+
+{$ifdef HasGTK2_4}
+procedure gtk_menu_attach(menu: PGtkMenu; child: PGtkWidget; left_attach: guint; right_attach: guint; top_attach: guint; bottom_attach: guint); cdecl; external gtklib;
+procedure gtk_menu_set_monitor(menu: PGtkMenu; monitor_num: gint); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

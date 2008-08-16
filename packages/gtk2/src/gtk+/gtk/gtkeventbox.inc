@@ -31,6 +31,14 @@ function GTK_EVENT_BOX_GET_CLASS(obj: pointer) : PGtkEventBoxClass;
 
 function gtk_event_box_get_type:TGtkType; cdecl; external gtklib;
 function gtk_event_box_new:PGtkWidget; cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+function gtk_event_box_get_above_child(event_box:PGtkEventBox):gboolean; cdecl; external gtklib;
+procedure gtk_event_box_set_above_child(event_box: PGtkEventBox; above_child:gboolean); cdecl; external gtklib;
+procedure gtk_event_box_set_visible_window(event_box:PGtkEventBox; visible_window:gboolean); cdecl; external gtklib;
+function gtk_event_box_get_visible_window(event_box:PGtkEventBox):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

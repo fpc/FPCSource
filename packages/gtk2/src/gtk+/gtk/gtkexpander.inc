@@ -62,7 +62,6 @@ function gtk_expander_get_label_widget(expander:PGtkExpander):PGtkWidget;cdecl;e
 
 {$ifdef read_implementation}
 
-
 function GTK_TYPE_EXPANDER : GType;
 begin
    GTK_TYPE_EXPANDER:=gtk_expander_get_type;

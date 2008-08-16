@@ -203,6 +203,7 @@
 {$include gtkcelllayout.inc}
 {$include gtkentrycompletion.inc}
 {$include gtkuimanager.inc}
+{$include gtkseparatortoolitem.inc}
 {$include gtktreemodelfilter.inc}
 
 

@@ -6,6 +6,7 @@
 //------------------------------------------------------------------------------
 
 {$IFDEF read_interface_types}
+   PPGtkTooltips = ^PGtkTooltips;
    PGtkTooltips = ^TGtkTooltips;
 
    PGtkTooltipsData = ^TGtkTooltipsData;
@@ -84,6 +85,11 @@ procedure gtk_tooltips_set_tip(tooltips:PGtkTooltips; widget:PGtkWidget; tip_tex
 function gtk_tooltips_data_get(widget:PGtkWidget):PGtkTooltipsData; cdecl; external gtklib;
 procedure gtk_tooltips_force_window(tooltips:PGtkTooltips); cdecl; external gtklib;
 procedure _gtk_tooltips_toggle_keyboard_mode(widget:PGtkWidget); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+function gtk_tooltips_get_info_from_tip_window(tip_window:PGtkWindow; tooltips:PPGtkTooltips; current_widget:PPGtkWidget):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

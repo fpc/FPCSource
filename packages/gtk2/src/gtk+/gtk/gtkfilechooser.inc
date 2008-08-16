@@ -24,13 +24,9 @@ type
 {$IFDEF read_interface_rest}
 
 function GTK_TYPE_FILE_CHOOSER: GType;
-
 function GTK_FILE_CHOOSER(obj : pointer) : PGtkFileChooser;
-
 function GTK_IS_FILE_CHOOSER(obj : pointer) : gboolean;
-
 function GTK_FILE_CHOOSER_ERROR : TGQuark;
-
 
 
 function gtk_file_chooser_get_type:GType;cdecl;external gtklib name 'gtk_file_chooser_get_type';
@@ -127,28 +123,24 @@ procedure gtk_file_chooser_set_do_overwrite_confirmation(chooser:PGtkFileChooser
 
 {$IFDEF read_implementation}
 
-    function GTK_TYPE_FILE_CHOOSER: GType;
-    begin
-        GTK_TYPE_FILE_CHOOSER:=gtk_file_chooser_get_type;
-    end;
+function GTK_TYPE_FILE_CHOOSER: GType;
+begin
+   GTK_TYPE_FILE_CHOOSER:=gtk_file_chooser_get_type;
+end;
 
-    function GTK_FILE_CHOOSER(obj : pointer) : PGtkFileChooser;
-    begin
-       GTK_FILE_CHOOSER:=G_TYPE_CHECK_INSTANCE_CAST(obj, GTK_TYPE_FILE_CHOOSER);
-    end;
+function GTK_FILE_CHOOSER(obj : pointer) : PGtkFileChooser;
+begin
+   GTK_FILE_CHOOSER:=G_TYPE_CHECK_INSTANCE_CAST(obj, GTK_TYPE_FILE_CHOOSER);
+end;
 
+function GTK_IS_FILE_CHOOSER(obj : pointer) : gboolean;
+begin
+   GTK_IS_FILE_CHOOSER:=G_TYPE_CHECK_INSTANCE_TYPE(obj,GTK_TYPE_FILE_CHOOSER);
+end;
 
+function GTK_FILE_CHOOSER_ERROR : TGQuark;
+begin
+   GTK_FILE_CHOOSER_ERROR:=gtk_file_chooser_error_quark;
+end;
 
-    function GTK_IS_FILE_CHOOSER(obj : pointer) : gboolean;
-    begin
-       GTK_IS_FILE_CHOOSER:=G_TYPE_CHECK_INSTANCE_TYPE(obj,GTK_TYPE_FILE_CHOOSER);
-    end;
-
-
-    function GTK_FILE_CHOOSER_ERROR : TGQuark;
-
-      begin
-         GTK_FILE_CHOOSER_ERROR:=gtk_file_chooser_error_quark;
-      end;
-
-{$ENDIF} {read_implementation}
+{$ENDIF}

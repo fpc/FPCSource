@@ -65,6 +65,11 @@ procedure gtk_check_menu_item_set_show_toggle(menu_item:PGtkCheckMenuItem; alway
 
 procedure gtk_check_menu_item_set_state(check_menu_item:PGtkCheckMenuItem; is_active:gboolean);
 {$endif}
+
+{$ifdef HasGTK2_4}
+function gtk_check_menu_item_get_draw_as_radio(check_menu_item: PGtkCheckMenuItem):gboolean; cdecl; external gtklib;
+procedure gtk_check_menu_item_set_draw_as_radio(check_menu_item: PGtkCheckMenuItem; draw_as_radio: gboolean); cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

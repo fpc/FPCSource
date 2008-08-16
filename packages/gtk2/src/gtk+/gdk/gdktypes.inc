@@ -40,6 +40,7 @@
         height : gint;
      end;
 
+   PPGdkAtom = ^PGdkAtom;
    PGdkAtom = ^TGdkAtom;
    // internal type
    TGdkAtom = PtrUInt;

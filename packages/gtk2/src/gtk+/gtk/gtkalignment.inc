@@ -36,6 +36,11 @@ function GTK_ALIGNMENT_GET_CLASS(obj: pointer) : PGtkAlignmentClass;
 function gtk_alignment_get_type:TGtkType; cdecl; external gtklib;
 function gtk_alignment_new(xalign:gfloat; yalign:gfloat; xscale:gfloat; yscale:gfloat):PGtkWidget; cdecl; external gtklib;
 procedure gtk_alignment_set(alignment:PGtkAlignment; xalign:gfloat; yalign:gfloat; xscale:gfloat; yscale:gfloat); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+procedure gtk_alignment_get_padding(alignment: PGtkAlignment; padding_top: Pguint; padding_bottom: Pguint; padding_left: Pguint; padding_right: Pguint); cdecl; external gtklib;
+procedure gtk_alignment_set_padding(alignment: PGtkAlignment; padding_top: guint; padding_bottom: guint; padding_left: guint; padding_right: guint); cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

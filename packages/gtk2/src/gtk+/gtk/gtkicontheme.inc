@@ -119,6 +119,7 @@ function gtk_icon_info_get_display_name(icon_info:PGtkIconInfo):Pgchar;cdecl;ext
 {$ENDIF read_interface_rest}
 
 {$ifdef read_implementation}
+
 function GTK_TYPE_ICON_INFO : GType;
 begin
    GTK_TYPE_ICON_INFO:=gtk_icon_info_get_type;

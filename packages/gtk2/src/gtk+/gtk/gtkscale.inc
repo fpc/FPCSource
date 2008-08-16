@@ -60,6 +60,12 @@ procedure gtk_scale_set_value_pos(scale:PGtkScale; pos:TGtkPositionType); cdecl;
 function gtk_scale_get_value_pos(scale:PGtkScale):TGtkPositionType; cdecl; external gtklib;
 procedure _gtk_scale_get_value_size(scale:PGtkScale; width:Pgint; height:Pgint); cdecl; external gtklib;
 function _gtk_scale_format_value(scale:PGtkScale; value:gdouble):Pgchar; cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+function gtk_scale_get_layout(scale: PGtkScale): PPangoLayout; cdecl; external gtklib;
+procedure gtk_scale_get_layout_offsets(scale: PGtkScale; x: Pgint; y: Pgint); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

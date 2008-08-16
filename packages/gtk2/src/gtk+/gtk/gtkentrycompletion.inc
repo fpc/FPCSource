@@ -69,7 +69,6 @@ procedure gtk_entry_completion_delete_action(completion:PGtkEntryCompletion; ind
 { convenience  }
 procedure gtk_entry_completion_set_text_column(completion:PGtkEntryCompletion; column:gint);cdecl;external gtklib name 'gtk_entry_completion_set_text_column';
 
-
 {$endif read_interface_rest}
 
 {$ifdef read_implementation}

@@ -65,6 +65,7 @@ procedure gtk_font_button_set_show_size(font_button:PGtkFontButton; show_size:gb
 {$endif read_interface_rest}
 
 {$ifdef read_implementation}
+
 function GTK_TYPE_FONT_BUTTON : GType;
 begin
    GTK_TYPE_FONT_BUTTON:=gtk_font_button_get_type;

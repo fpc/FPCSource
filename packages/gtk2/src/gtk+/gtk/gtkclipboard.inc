@@ -21,6 +21,8 @@
 
    TGtkClipboardClearFunc = procedure (clipboard:PGtkClipboard; user_data_or_owner:gpointer); cdecl;
 
+   TGtkClipboardTargetsReceivedFunc = procedure (clipboard:PGtkClipboard; atoms: PGdkAtom; n_atoms: gint; data: gpointer); cdecl;
+
 {$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
@@ -47,6 +49,11 @@ function gtk_clipboard_wait_is_text_available(clipboard:PGtkClipboard):gboolean;
 function gtk_clipboard_get_display(clipboard:PGtkClipboard):PGdkDisplay; cdecl; external gtklib;
 function gtk_clipboard_get_for_display(display:PGdkDisplay; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
 {$ENDIF}
+
+{$ifdef HasGTK2_4}
+procedure gtk_clipboard_request_targets(clipboard: PGtkClipboard; callback: TGtkClipboardTargetsReceivedFunc; user_data: gpointer); cdecl; external gtklib;
+function gtk_clipboard_wait_for_targets(clipboard: PGtkClipboard; targets: PPGdkAtom; n_targets: Pgint):gboolean; cdecl; external gtklib;
+{$endif}
 
 {$ENDIF read_interface_rest}
 // included by gtk2.pas

@@ -22,6 +22,7 @@ type
 {$ENDIF read_interface_types}
 
 {$IFDEF read_interface_rest}
+
 function GTK_TYPE_RADIO_TOOL_BUTTON : GType;
 function GTK_RADIO_TOOL_BUTTON(obj : pointer) : PGtkRadioToolButton;
 function GTK_RADIO_TOOL_BUTTON_CLASS(klass : pointer) : PGtkRadioToolButtonClass;
@@ -69,11 +70,9 @@ begin
    GTK_IS_RADIO_TOOL_BUTTON_CLASS:=G_TYPE_CHECK_CLASS_TYPE(klass,GTK_TYPE_RADIO_TOOL_BUTTON);
 end;
 
-
 function GTK_RADIO_TOOL_BUTTON_GET_CLASS(obj : pointer) : PGtkRadioToolButtonClass;
 begin
    GTK_RADIO_TOOL_BUTTON_GET_CLASS:=PGtkRadioToolButtonClass(G_TYPE_INSTANCE_GET_CLASS(obj,GTK_TYPE_RADIO_TOOL_BUTTON));
 end;
-
 
 {$endif read_implementation}
