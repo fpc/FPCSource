@@ -744,7 +744,8 @@ implementation
 
 {$if defined(x86) or defined(arm)}
         { set implicit_finally flag for if procedure is safecall }
-        if procdef.proccalloption=pocall_safecall then
+        if (target_info.system in system_all_windows) and
+           (procdef.proccalloption=pocall_safecall) then
           include(flags, pi_needs_implicit_finally);
 {$endif}
         { firstpass everything }
