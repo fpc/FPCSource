@@ -103,6 +103,14 @@ function gtk_cell_renderer_start_editing(cell:PGtkCellRenderer; event:PGdkEvent;
            cell_area:PGdkRectangle; flags:TGtkCellRendererState):PGtkCellEditable; cdecl; external gtklib;
 procedure gtk_cell_renderer_set_fixed_size(cell:PGtkCellRenderer; width:gint; height:gint); cdecl; external gtklib;
 procedure gtk_cell_renderer_get_fixed_size(cell:PGtkCellRenderer; width:Pgint; height:Pgint); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+procedure gtk_cell_renderer_editing_canceled(cell: PGtkCellRenderer); cdecl; external gtklib; deprecated;
+{$endif}
+
+{$ifdef HasGTK2_6}
+procedure gtk_cell_renderer_stop_editing(cell: PGtkCellRenderer; canceled: gboolean); cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

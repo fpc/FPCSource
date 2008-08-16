@@ -20,6 +20,7 @@
 
 {$IFDEF read_interface_rest}
 const
+   GTK_STOCK_DIALOG_AUTHENTICATION = 'gtk-dialog-authentication';
    GTK_STOCK_DIALOG_INFO = 'gtk-dialog-info';
    GTK_STOCK_DIALOG_WARNING = 'gtk-dialog-warning';
    GTK_STOCK_DIALOG_ERROR = 'gtk-dialog-error';
@@ -52,9 +53,12 @@ const
    GTK_STOCK_GO_DOWN = 'gtk-go-down';
    GTK_STOCK_GO_FORWARD = 'gtk-go-forward';
    GTK_STOCK_GO_UP = 'gtk-go-up';
+   GTK_STOCK_HARDDISK = 'gtk-harddisk';
    GTK_STOCK_HELP = 'gtk-help';
    GTK_STOCK_HOME = 'gtk-home';
    GTK_STOCK_INDEX = 'gtk-index';
+   GTK_STOCK_INDENT = 'gtk-indent';
+   GTK_STOCK_UNINDENT = 'gtk-unindent';
    GTK_STOCK_ITALIC = 'gtk-italic';
    GTK_STOCK_JUMP_TO = 'gtk-jump-to';
    GTK_STOCK_JUSTIFY_CENTER = 'gtk-justify-center';
@@ -70,6 +74,7 @@ const
 	 GTK_STOCK_MEDIA_REWIND = 'gtk-media-rewind';
 	 GTK_STOCK_MEDIA_STOP = 'gtk-media-stop';
    GTK_STOCK_MISSING_IMAGE = 'gtk-missing-image';
+   GTK_STOCK_NETWORK = 'gtk-network';
    GTK_STOCK_NEW = 'gtk-new';
    GTK_STOCK_NO = 'gtk-no';
    GTK_STOCK_OK = 'gtk-ok';

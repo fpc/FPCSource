@@ -172,6 +172,18 @@ function gtk_text_iter_compare(lhs:PGtkTextIter; rhs:PGtkTextIter):gint; cdecl; 
 function gtk_text_iter_in_range(iter:PGtkTextIter; start:PGtkTextIter; theEnd:PGtkTextIter):gboolean; cdecl; external gtklib;
 { Put these two in ascending order  }
 procedure gtk_text_iter_order(first:PGtkTextIter; second:PGtkTextIter); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+function gtk_text_iter_backward_visible_cursor_position(iter:PGtkTextIter):gboolean; cdecl; external gtklib;
+function gtk_text_iter_backward_visible_cursor_positions(iter:PGtkTextIter; count:gint):gboolean; cdecl; external gtklib;
+function gtk_text_iter_backward_visible_word_start(iter:PGtkTextIter):gboolean; cdecl; external gtklib;
+function gtk_text_iter_backward_visible_word_starts(iter:PGtkTextIter; count:gint):gboolean; cdecl; external gtklib;
+function gtk_text_iter_forward_visible_cursor_position(iter:PGtkTextIter):gboolean; cdecl; external gtklib;
+function gtk_text_iter_forward_visible_cursor_positions(iter:PGtkTextIter; count:gint):gboolean; cdecl; external gtklib;
+function gtk_text_iter_forward_visible_word_end(iter:PGtkTextIter):gboolean; cdecl; external gtklib;
+function gtk_text_iter_forward_visible_word_ends(iter:PGtkTextIter; count:gint):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

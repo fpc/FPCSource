@@ -2346,6 +2346,7 @@ packages/gtk2/src/gtk+/gtk/gtkscrolledwindow.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtkselection.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtkseparator.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtkseparatormenuitem.inc svneol=native#text/plain
+packages/gtk2/src/gtk+/gtk/gtkseparatortoolitem.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtksettings.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtksignal.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gtk/gtksizegroup.inc svneol=native#text/plain

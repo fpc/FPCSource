@@ -19,14 +19,12 @@ type
 
 {$IFDEF read_interface_rest}
 
-
 function GTK_TYPE_FILE_CHOOSER_DIALOG : GType;
 function GTK_FILE_CHOOSER_DIALOG(obj : pointer) : PGtkFileChooserDialog;
 function GTK_FILE_CHOOSER_DIALOG_CLASS(klass : pointer) : PGtkFileChooserDialogClass;
 function GTK_IS_FILE_CHOOSER_DIALOG(obj : pointer) : gboolean;
 function GTK_IS_FILE_CHOOSER_DIALOG_CLASS(klass : pointer) : gboolean;
 function GTK_FILE_CHOOSER_DIALOG_GET_CLASS(obj : pointer) : PGtkFileChooserDialogClass;
-
 
 
 function gtk_file_chooser_dialog_get_type:GType;cdecl;external gtklib name 'gtk_file_chooser_dialog_get_type';
@@ -45,11 +43,9 @@ function gtk_file_chooser_dialog_new_with_backend(title:Pgchar; parent:PGtkWindo
 {$IFDEF read_implementation}
 
 function GTK_TYPE_FILE_CHOOSER_DIALOG : GType;
-  begin
-     GTK_TYPE_FILE_CHOOSER_DIALOG:=gtk_file_chooser_dialog_get_type;
-  end;
-
-
+begin
+   GTK_TYPE_FILE_CHOOSER_DIALOG:=gtk_file_chooser_dialog_get_type;
+end;
 
 function GTK_FILE_CHOOSER_DIALOG(obj : pointer) : PGtkFileChooserDialog;
 begin
@@ -60,7 +56,6 @@ function GTK_FILE_CHOOSER_DIALOG_CLASS(klass : pointer) : PGtkFileChooserDialogC
 begin
    GTK_FILE_CHOOSER_DIALOG_CLASS:=G_TYPE_CHECK_CLASS_CAST(klass,GTK_TYPE_FILE_CHOOSER_DIALOG);
 end;
-
 
 function GTK_IS_FILE_CHOOSER_DIALOG(obj : pointer) : gboolean;
 begin
@@ -76,6 +71,5 @@ function GTK_FILE_CHOOSER_DIALOG_GET_CLASS(obj : pointer) : PGtkFileChooserDialo
 begin
    GTK_FILE_CHOOSER_DIALOG_GET_CLASS:=PGtkFileChooserDialogClass(G_TYPE_INSTANCE_GET_CLASS(obj,GTK_TYPE_FILE_CHOOSER_DIALOG));
 end;
-
 
 {$ENDIF} {read_implementation}

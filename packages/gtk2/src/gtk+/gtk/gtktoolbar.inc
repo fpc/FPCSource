@@ -121,10 +121,17 @@ function gtk_toolbar_get_style(toolbar:PGtkToolbar):TGtkToolbarStyle; cdecl; ext
 function gtk_toolbar_get_icon_size(toolbar:PGtkToolbar):TGtkIconSize; cdecl; external gtklib;
 function gtk_toolbar_get_tooltips(toolbar:PGtkToolbar):gboolean; cdecl; external gtklib;
 
-{$IFDEF HasGTK2_4}
-function gtk_separator_tool_item_get_type:TGtkType; cdecl; external gtklib;
-function GTK_TYPE_SEPARATOR_TOOL_ITEM : GType;
-{$ENDIF HasGTK2_4}
+{$ifdef HasGTK2_4}
+function gtk_toolbar_get_drop_index(toolbar:PGtkToolbar; x:gint; y:gint):gint; cdecl; external gtklib;
+function gtk_toolbar_get_item_index(toolbar:PGtkToolbar; item:PGtkToolItem):gint; cdecl; external gtklib;
+function gtk_toolbar_get_nth_item(toolbar:PGtkToolbar; n:gint):PGtkToolItem; cdecl; external gtklib;
+function gtk_toolbar_get_n_items(toolbar:PGtkToolbar):gint; cdecl; external gtklib;
+function gtk_toolbar_get_relief_style(toolbar:PGtkToolbar):TGtkReliefStyle; cdecl; external gtklib;
+function gtk_toolbar_get_show_arrow(toolbar:PGtkToolbar):gboolean; cdecl; external gtklib;
+procedure gtk_toolbar_insert(toolbar:PGtkToolbar; item:PGtkToolItem; pos:gint); cdecl; external gtklib;
+procedure gtk_toolbar_set_drop_highlight_item(toolbar:PGtkToolbar; tool_item:PGtkToolItem; index_:gint); cdecl; external gtklib;
+procedure gtk_toolbar_set_show_arrow(toolbar:PGtkToolbar; show_arrow:gboolean); cdecl; external gtklib;
+{$endif}
 
 {$ENDIF read_interface_rest}
 
@@ -180,13 +187,6 @@ procedure set_icon_size_set(var a : TGtkToolbar; __icon_size_set : guint);
 begin
    a.flag0:=a.flag0 or ((__icon_size_set shl bp_TGtkToolbar_icon_size_set) and bm_TGtkToolbar_icon_size_set);
 end;
-
-{$IFDEF HasGTK2_4}
-function GTK_TYPE_SEPARATOR_TOOL_ITEM : GType;
-begin
-  GTK_TYPE_SEPARATOR_TOOL_ITEM:=gtk_separator_tool_item_get_type;
-end;
-{$ENDIF HasGTK2_4}
 
 {$ENDIF read_implementation}
 // included by gtk2.pas

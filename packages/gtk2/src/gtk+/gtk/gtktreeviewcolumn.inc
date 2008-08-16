@@ -186,9 +186,10 @@ function gtk_tree_view_column_cell_is_visible(tree_column:PGtkTreeViewColumn):gb
 procedure gtk_tree_view_column_focus_cell(tree_column:PGtkTreeViewColumn; cell:PGtkCellRenderer); cdecl; external gtklib;
 {$ENDIF}
 
-// since gtk 2.4
+{$ifdef HasGTK2_4}
 procedure gtk_tree_view_column_set_expand(tree_column: PGtkTreeViewColumn; Expand : gboolean); cdecl; external gtklib;
 function gtk_tree_view_column_get_expand(tree_column: PGtkTreeViewColumn): gboolean; cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------
