@@ -6,7 +6,11 @@ var
   p:^Byte;
   c:Byte;
   d:Integer;
+{$ifdef cpu64}
+  v : qword;
+{$else}
   v : cardinal;
+{$endif}
 begin
   v:=100;
   inc(v,-1);
