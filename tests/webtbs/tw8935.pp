@@ -1,4 +1,4 @@
-{%os=win32,win64,wince}
+{%target=win32,win64,wince}
 {%cpu=x86_64,i386,arm}
 {%result=229}
 
