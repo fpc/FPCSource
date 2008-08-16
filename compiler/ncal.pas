@@ -604,7 +604,7 @@ implementation
                here to make the change permanent. in the overload
                choosing the changes are only made temporary }
              if (left.resultdef.typ=procvardef) and
-                (parasym.vardef.typ<>procvardef) then
+                not(parasym.vardef.typ in [procvardef,formaldef]) then
                begin
                  if maybe_call_procvar(left,true) then
                    resultdef:=left.resultdef;

@@ -1998,8 +1998,8 @@ implementation
                internalerror(200212092);
 
               { Convert tp procvars when not expecting a procvar }
-              if (def_to.typ<>procvardef) and
-                 (currpt.left.resultdef.typ=procvardef) and
+             if (currpt.left.resultdef.typ=procvardef) and
+                not(def_to.typ in [procvardef,formaldef]) and
                  { Only convert to call when there is no overload or the return type
                    is equal to the expected type. }
                  (
