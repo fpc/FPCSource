@@ -242,8 +242,7 @@ begin
 end;
 
 procedure TFreeTypeFont.DoDrawText (atX,atY:integer; atext:string);
-var r,i : integer;
-    f : longint;
+var r : integer;
 begin
   GetText (atext);
   with FLastText do
