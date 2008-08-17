@@ -210,7 +210,8 @@ Function FormatCurr(const Format: string; Value: Currency; Const FormatSettings:
 {$endif}
 
 function StrToBool(const S: string): Boolean;
-function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
+function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;  
+function BoolToStr(B: Boolean;const TrueS,FalseS:string): string; inline;
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 

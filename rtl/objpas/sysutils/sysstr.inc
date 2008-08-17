@@ -1740,6 +1740,12 @@ begin
     Result:='0';
 end;
 
+// from textmode IDE util funcs.
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string; 
+begin
+  if B then Result:=TrueS else BoolToStr:=FalseS;
+end;
+
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 begin
   if not(TryStrToBool(S,Result)) then
