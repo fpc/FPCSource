@@ -2175,7 +2175,9 @@ var
       failed := true;
     if global_bigstring <> RESULT_BIGSTRING then
       failed := true;
+{ already called by method_virtual_call_destructor above
     vmtclass.destructor_params_done;
+}
 
     if failed then
       fail
@@ -3650,7 +3652,9 @@ procedure testwith;
       failed := true;
     if global_bigstring <> RESULT_BIGSTRING then
       failed := true;
+{ already called by method_virtual_call_destructor above
     destructor_params_done;
+}
 
     if failed then
       fail
