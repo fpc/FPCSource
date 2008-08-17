@@ -479,7 +479,8 @@ Type
   end;
   
   { TFPDDEngine }
-  TFPDDEngineCapability =(ecImport,ecCreateTable,ecViewTable, ecTableIndexes, ecRunQuery, ecRowsAffected);
+  TFPDDEngineCapability =(ecImport,ecCreateTable,ecViewTable, ecTableIndexes,
+                          ecRunQuery, ecRowsAffected, ecSequences, ecDomains);
   TFPDDEngineCapabilities = set of TFPDDEngineCapability;
   {
     to avoid dependencies on GUI elements in the data dictionary engines,
@@ -2870,8 +2871,6 @@ begin
   If (Result=Nil) then
     Raise EDatadict.CreateFmt(SErrSequenceNotFound,[ASequenceName]);
 end;
-
-
 
 
 { TFPDDSequenceList }
