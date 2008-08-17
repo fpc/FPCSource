@@ -408,6 +408,13 @@ Function DateTimeToMac(const AValue: TDateTime): Int64;
 Function MacToDateTime(const AValue: Int64): TDateTime;
 Function MacTimeStampToUnix(const AValue: Int64): Int64;
 
+{ .....................................................................
+    Dos <-> Delphi datetime support
+  .....................................................................}
+
+Function DateTimeToDosDateTime(const AValue: TDateTime): longint;
+Function DosDateTimeToDateTime( AValue: longint): TDateTime;
+
 { ScanDateTime is a limited inverse of formatdatetime }
 function ScanDateTime(const Pattern:string;const s:string;const fmt:TFormatSettings;startpos:integer=1) : tdatetime; overload;
 function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : tdatetime; overload;
@@ -2088,6 +2095,44 @@ const
 begin
   Result:=AValue - Epoch;
 end;
+
+Function DateTimeToDosDateTime(const AValue: TDateTime): longint;
+var year,month,day,hour,min,sec,msec : word;
+    zs : longint;
+begin
+  decodedatetime(avalue,year,month,day,hour,min,sec,msec);
+  result:=-1980;
+  result:=result+year and 127;
+  result:=result shl 4;
+  result:=result+month;
+  result:=result shl 5;
+  result:=result+day;
+  result:=result shl 16;
+  zs:=hour;
+  zs:=zs shl 6;
+  zs:=zs+min;
+  zs:=zs shl 5;
+  zs:=zs+sec div 2;
+  result:=result+(zs and $ffff);
+end;
+
+Function DosDateTimeToDateTime( AValue: longint): TDateTime;
+var year,month,day,hour,min,sec : integer;
+begin
+  sec:=(AValue and 31) * 2;
+  avalue:=AValue shr 5;
+  min:=AValue and 63;
+  avalue:=AValue shr 6;
+  hour:=AValue and 31;
+  avalue:=AValue shr 5;
+  day:=AValue and 31;
+  avalue:=AValue shr 5;
+  month:=AValue and 15;
+  avalue:=AValue shr 4;
+  year:=AValue+1980;
+  result:=EncodeDateTime(year,month,day,hour,min,sec,0);
+end;
+
 
 {
   Inverse of formatdatetime, destined for the dateutils unit of FPC.

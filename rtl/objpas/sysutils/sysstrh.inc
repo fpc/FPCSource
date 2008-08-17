@@ -67,8 +67,10 @@ Const
 Var TrueBoolStrs,
     FalseBoolStrs : Array of String;
 
-function NewStr(const S: string): PString;
-procedure DisposeStr(S: PString);
+function NewStr(Const S: ShortString): PShortString; overload;
+function NewStr(const S: string): PString; overload;
+procedure DisposeStr(S: PString); overload;
+procedure DisposeStr(S: PShortString); overload;
 procedure AssignStr(var P: PString; const S: string);
 procedure AppendStr(var Dest: String; const S: string);
 function UpperCase(const s: string): string;
