@@ -25,13 +25,22 @@ uses
 Type
 
   { TSQLDBFBDDEngine }
-  
+
+  { TFPDDFBSQLEngine }
+
+  TFPDDFBSQLEngine = Class(TFPDDSQLEngine)
+  Public
+    Function  CreateSequenceSQL(Sequence : TDDSequenceDef) : String; override;
+  end;
+
   TSQLDBFBDDEngine = Class(TSQLDBDDEngine)
   private
   Protected
     Function CreateConnection(AConnectString  : String) : TSQLConnection; override;
   Public
+    Class function EngineCapabilities : TFPDDEngineCapabilities; virtual;
     function ImportFields(Table: TDDTableDef): Integer; override;
+    Function CreateSQLEngine : TFPDDSQLEngine; override;
     Class function Description : string; override;
     Class function DBType : String; override;
   end;
@@ -65,6 +74,12 @@ function TSQLDBFBDDEngine.CreateConnection(AConnectString: String
   ): TSQLConnection;
 begin
   Result:=TIBConnection.Create(Self);
+end;
+
+class function TSQLDBFBDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
+begin
+  Result:=[ecImport,ecCreateTable,ecViewTable, ecTableIndexes,
+           ecRunQuery, ecRowsAffected, ecSequences, ecDomains];
 end;
 
 class function TSQLDBFBDDEngine.Description: string;
@@ -225,6 +240,18 @@ begin
   finally
     Q.Free;
   end;
+end;
+
+function TSQLDBFBDDEngine.CreateSQLEngine: TFPDDSQLEngine;
+begin
+  Result:=TFPDDFBSQLEngine.Create;
+end;
+
+{ TFPDDFBSQLEngine }
+
+function TFPDDFBSQLEngine.CreateSequenceSQL(Sequence: TDDSequenceDef): String;
+begin
+  Result:='CREATE GENERATOR '+Sequence.SequenceName;
 end;
 
 end.
