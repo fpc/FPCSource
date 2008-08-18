@@ -71,6 +71,8 @@ Type
     Constructor Create(ACollection : TCollection); override;
     Function FieldDefs : TDDFieldDefs;
     Function DataDictionary : TFPDataDictionary;
+    // Will return True if the field or the domain it is based on is required
+    Function FieldIsRequired : Boolean;
     Procedure ResolveDomain(ErrorOnFail : Boolean);
     Procedure ImportFromField(F: TField; Existing : Boolean = True);
     Procedure ApplyToField(F : TField);
@@ -552,6 +554,8 @@ Type
     Procedure Disconnect ; virtual; abstract;
     Function GetTableList(List : TStrings) : Integer; virtual; abstract;
     Function ImportFields(Table : TDDTableDef) : Integer; virtual; abstract;
+    Function ImportDomains(Domains : TDDDomainDefs) : Integer; virtual;
+    Function ImportSequences(Sequences : TDDSequenceDefs) : Integer; virtual;
     // Override depending on capabilities
     Procedure CreateTable(Table : TDDTableDef); virtual;
     // Should not open the dataset.
@@ -1001,6 +1005,16 @@ begin
     Result:=FieldDefs.DataDictionary
   else
     Result:=Nil;
+end;
+
+function TDDFieldDef.FieldIsRequired: Boolean;
+begin
+  Result:=Required;
+  If (Not Result) and (DomainName<>'') then
+    begin
+    ResolveDomain(True);
+    Result:=Domain.Required;
+    end;
 end;
 
 procedure TDDFieldDef.ResolveDomain(ErrorOnFail : Boolean);
@@ -1780,6 +1794,16 @@ end;
 class function TFPDDEngine.EngineCapabilities: TFPDDEngineCapabilities;
 begin
   Result:=[];
+end;
+
+function TFPDDEngine.ImportDomains(Domains: TDDDomainDefs): Integer;
+begin
+  Domains.Clear;
+end;
+
+function TFPDDEngine.ImportSequences(Sequences: TDDSequenceDefs): Integer;
+begin
+  Sequences.Clear;
 end;
 
 procedure TFPDDEngine.CreateTable(Table: TDDTableDef);
