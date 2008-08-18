@@ -30,6 +30,10 @@ Type
 
   TFPDDFieldList = Class;
   TFPDDIndexList = Class;
+  TDDTableDef = Class;
+  TDDTableDefs = Class;
+  TDDFieldDefs = Class;
+  TFPDataDictionary = Class;
 
   { TDDFieldDef }
 
@@ -43,6 +47,7 @@ Type
     FDefaultExpression: string;
     FDisplayLabel: string;
     FDisplayWidth: Longint;
+    FDomainName: string;
     FFieldName: string;
     FFieldType: TFieldType;
     FHint: String;
@@ -59,6 +64,7 @@ Type
     procedure SetSectionName(const Value: String); override;
   Public
     Constructor Create(ACollection : TCollection); override;
+    Function FieldDefs : TDDFieldDefs;
     Procedure ImportFromField(F: TField; Existing : Boolean = True);
     Procedure ApplyToField(F : TField);
     Procedure Assign(Source : TPersistent);  override;
@@ -74,6 +80,7 @@ Type
     property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
     property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
     property FieldName: string read FFieldName write FFieldName;
+    property DomainName: string read FDomainName write FDomainName;
     property Constraint: string read FConstraint write FConstraint;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;
     property Required: Boolean read FRequired write FRequired;
@@ -83,24 +90,41 @@ Type
     Property Hint : String Read FHint Write FHint;
     Property ProviderFlags : TProviderFlags Read FProviderFlags Write FProviderFlags;
   end;
-  
+
+  { TDDTableCollection }
+  TDDTableCollection = Class(TIniCollection)
+  private
+    FTableDef : TDDTableDef;
+    FTableName: String;
+    function GetTableName: String;
+  Protected
+    Procedure SetTableDef(ATableDef : TDDTableDef);
+    procedure SetTableName(const AValue: String); virtual;
+  Public
+    Function DataDictionary : TFPDataDictionary;
+    Property TableDef : TDDTableDef Read FTableDef;
+    Property TableName : String Read GetTableName Write SetTableName;
+  end;
+
   { TDDFieldDefs }
 
-  TDDFieldDefs = Class(TIniCollection)
+  TDDFieldDefs = Class(TDDTableCollection)
   private
-    FTableName: String;
     function GetField(Index : Integer): TDDFieldDef;
     procedure SetField(Index : Integer; const AValue: TDDFieldDef);
-    procedure SetTableName(const AValue: String);
+  Protected
+    procedure SetTableName(const AValue: String); override;
   Public
-    Constructor Create(ATableName : String);
+    Constructor Create(ATableDef : TDDTableDef);
+    Constructor Create(ATableName : string);
+    Property TableDef : TDDTableDef Read FTableDef;
+    Property TableName : String Read GetTableName Write SetTableName;
     Function AddField(AFieldName: String = '') : TDDFieldDef;
     Function IndexOfField(AFieldName : String) : Integer;
     Function FindField(AFieldName : String) : TDDFieldDef;
     Function FieldByName(AFieldName : String) : TDDFieldDef;
     Procedure FillFieldList(Const AFieldNames: String; List : TFPDDFieldList);
     Property Fields[Index : Integer] : TDDFieldDef Read GetField Write SetField; default;
-    Property TableName : String Read FTableName Write SetTableName;
   end;
   
   { TDDIndexDef }
@@ -131,21 +155,20 @@ Type
   end;
   
   { TDDIndexDefs }
-
-  TDDIndexDefs = Class(TIniCollection)
+  TDDIndexDefs = Class(TDDTableCollection)
   private
-    FTableName : String;
     function GetIndex(Index : Integer): TDDIndexDef;
     procedure SetIndex(Index : Integer; const AValue: TDDIndexDef);
-    procedure SetTableName(const AValue: String);
+  Protected
+    procedure SetTableName(const AValue: String); override;
   Public
+    Constructor Create(ATableDef : TDDTableDef);
     Constructor Create(ATableName : String);
     Function AddDDIndexDef(AName : String) : TDDIndexDef;
     function AddIndex (AName: String) : TDDIndexDef;
     function IndexByName(AIndexName: String): TDDIndexDef;
     function FindIndex(AIndexName: String): TDDIndexDef;
     function IndexOfIndex(AIndexName: String): Integer;
-    Property TableName : String Read FTableName Write SetTableName;
     Property Indexes[Index : Integer] : TDDIndexDef Read GetIndex Write SetIndex; default;
   end;
   
@@ -205,6 +228,8 @@ Type
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
+    Function DataDictionary : TFPDataDictionary;
+    Function TableDefs : TDDTableDefs;
     Function ImportFromDataset(Dataset : TDataSet; DoClear : Boolean = False; UpdateExisting : Boolean = True) : Integer;
     Procedure ApplyToDataset(Dataset : TDataset);
     Function AddField(AFieldName : String = '') : TDDFieldDef;
@@ -223,10 +248,12 @@ Type
 
   TDDTableDefs = Class(TIniCollection)
   private
+    FDataDictionary: TFPDataDictionary;
     FOnProgress: TDDProgressEvent;
     function GetTable(Index : Integer): TDDTableDef;
     procedure SetTable(Index : Integer; const AValue: TDDTableDef);
   Public
+    Property DataDictionary: TFPDataDictionary Read FDataDictionary;
     Function AddTable(ATableName : String = '') : TDDTableDef;
     Function IndexOfTable(ATableName : String) : Integer;
     Function FindTable(ATableName : String) : TDDTableDef;
@@ -585,6 +612,7 @@ Const
   KeyDisplayLabel           = 'DisplayLabel';
   KeyDisplayWidth           = 'DisplayWidth';
   KeyFieldName              = 'FieldName';
+  KeyDomainName             = 'DomainName';
   KeyConstraint             = 'Constraint';
   KeyReadOnly               = 'ReadOnly';
   KeyRequired               = 'Required';
@@ -923,6 +951,11 @@ begin
   FAlignMent:=taLeftJustify;
 end;
 
+function TDDFieldDef.FieldDefs: TDDFieldDefs;
+begin
+  Result:=(Collection as TDDFieldDefs)
+end;
+
 procedure TDDFieldDef.ImportFromField(F: TField; Existing : Boolean = True);
 begin
   FieldName:=F.FieldName;
@@ -993,6 +1026,7 @@ begin
     DBDefault:=DF.DBDefault;
     DisplayLabel:=DisplayLabel;
     FieldName:=DF.FieldName;
+    DomainName:=DF.DomainName;
     Constraint:=DF.Constraint;
     Hint:=DF.Hint;
     ReadOnly:=DF.ReadOnly;
@@ -1026,6 +1060,7 @@ begin
     WriteString(ASection,KeyDBDefault,DBDefault);
     WriteString(ASection,KeyDisplayLabel,DisplayLabel);
     WriteString(ASection,KeyFieldName,FieldName);
+    WriteString(ASection,KeyDomainName,DomainName);
     WriteString(ASection,KeyConstraint,Constraint);
     WriteString(ASection,KeyHint,Hint);
     O:=Integer(ProviderFlags);
@@ -1061,6 +1096,7 @@ begin
     DBDefault:=ReadString(ASection,KeyDBDefault,DBDefault);
     DisplayLabel:=ReadString(ASection,KeyDisplayLabel,DisplayLabel);
     FieldName:=ReadString(ASection,KeyFieldName,FieldName);
+    DomainName:=ReadString(ASection,KeyDomainName,DomainName);
     Constraint:=ReadString(ASection,KeyConstraint,Constraint);
     Hint:=ReadString(ASection,KeyHint,Hint);
     S:=ReadString(ASection,KeyProviderFlags,'');
@@ -1080,19 +1116,16 @@ end;
 
 procedure TDDFieldDefs.SetTableName(const AValue: String);
 begin
-  FTableName:=AValue;
+  Inherited;
   FSectionPrefix:=AValue;
   GlobalSection:=AValue+SFieldSuffix;
 end;
 
-function TDDFieldDefs.GetField(Index : Integer): TDDFieldDef;
+constructor TDDFieldDefs.Create(ATableDef: TDDTableDef);
 begin
-  Result:=TDDFieldDef(Items[Index]);
-end;
-
-procedure TDDFieldDefs.SetField(Index : Integer; const AValue: TDDFieldDef);
-begin
-  Items[Index]:=AValue;
+  Inherited Create(TDDFieldDef);
+  FPrefix:='Field';
+  SetTableDef(ATableDef);
 end;
 
 constructor TDDFieldDefs.Create(ATableName: String);
@@ -1101,6 +1134,18 @@ begin
   FPrefix:='Field';
   TableName:=ATableName;
 end;
+
+function TDDFieldDefs.GetField(Index : Integer): TDDFieldDef;
+begin
+  Result:=TDDFieldDef(Items[Index]);
+end;
+
+
+procedure TDDFieldDefs.SetField(Index : Integer; const AValue: TDDFieldDef);
+begin
+  Items[Index]:=AValue;
+end;
+
 
 function TDDFieldDefs.AddField(AFieldName: String): TDDFieldDef;
 
@@ -1206,8 +1251,8 @@ end;
 constructor TDDTableDef.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
-  FFieldDefs:=TDDFieldDefs.Create('NewTable');
-  FIndexDefs:=TDDIndexDefs.Create('NewTable');
+  FFieldDefs:=TDDFieldDefs.Create(Self);
+  FIndexDefs:=TDDIndexDefs.Create(Self);
   FKeyDefs:=TDDForeignkeyDefs.Create('NewTable');
 end;
 
@@ -1218,6 +1263,19 @@ begin
   FreeAndNil(FFieldDefs);
   FreeAndNil(FIndexDefs);
   inherited Destroy;
+end;
+
+function TDDTableDef.DataDictionary: TFPDataDictionary;
+begin
+  If Assigned(TableDefs) then
+    Result:=TableDefs.DataDictionary
+  else
+    Result:=Nil;
+end;
+
+function TDDTableDef.TableDefs: TDDTableDefs;
+begin
+  Result:=TDDTableDefs(Collection);
 end;
 
 Function TDDTableDef.ImportFromDataset(Dataset: TDataSet; DoClear : Boolean = False; UpdateExisting : Boolean = True) : Integer;
@@ -1315,6 +1373,7 @@ procedure TDDTableDefs.SetTable(Index : Integer; const AValue: TDDTableDef);
 begin
   Items[Index]:=AValue;
 end;
+
 
 function TDDTableDefs.AddTable(ATableName: String): TDDTableDef;
 
@@ -2480,9 +2539,18 @@ end;
 
 procedure TDDIndexDefs.SetTableName(const AValue: String);
 begin
-  FTableName:=AValue;
+  Inherited;
   FSectionPrefix:=AValue;
   GlobalSection:=AValue+SIndexSuffix;
+end;
+
+constructor TDDIndexDefs.Create(ATableDef: TDDTableDef);
+begin
+  FTableDef:=ATableDef;
+  If Assigned(FTableDef) then
+    Create(FTableDef.TableName)
+  else
+    Create('')
 end;
 
 constructor TDDIndexDefs.Create(ATableName: String);
@@ -2897,6 +2965,37 @@ begin
     Add(SD[I]);
 end;
 
+
+{ TDDTableCollection }
+
+function TDDTableCollection.GetTableName: String;
+begin
+  If Assigned(FTableDef) then
+    Result:=FTableDef.TableName
+  else
+    Result:=FTableName;
+end;
+
+procedure TDDTableCollection.SetTableDef(ATableDef: TDDTableDef);
+begin
+  FTableDef:=ATableDef;
+  If Assigned(FTableDef) then
+    TableName:=FTableDef.TableName;
+end;
+
+procedure TDDTableCollection.SetTableName(const AValue: String);
+begin
+  FTableName:=AValue;
+end;
+
+
+function TDDTableCollection.DataDictionary: TFPDataDictionary;
+begin
+  If Assigned(FTableDef) then
+    Result:=FTableDef.DataDictionary
+  else
+    Result:=Nil;
+end;
 
 initialization
 
