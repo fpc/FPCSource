@@ -66,7 +66,7 @@ Begin
    begin
      t.InOutFunc:=@FileWriteFunc;
      { Only install flushing if its a NOT a file, and only check if there
-       was no error opening the file, becuase else we always get a bad
+       was no error opening the file, because else we always get a bad
        file handle error 6 (PFV) }
      if (InOutRes=0) and
         Do_Isdevice(t.Handle) then
@@ -187,7 +187,7 @@ Begin
       InOutRes:=103;
      exit;
    end;
-{ Not the flushfunc but the inoutfunc should be used, becuase that
+{ Not the flushfunc but the inoutfunc should be used, because that
   writes the data, flushfunc doesn't need to be assigned }
   FileFunc(TextRec(t).InOutFunc)(TextRec(t));
 End;
