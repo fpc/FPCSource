@@ -23,13 +23,13 @@ uses
 
 type
 
-  TDiffKind = (DiffTables, DiffFields, DiffIndexes);
+  TDiffKind = (DiffTables, DiffFields, DiffIndexes, DiffSequences, DiffDomains);
   TDiffKindSet = set of TDiffKind;
 
   TDifferenceType = (dtMissing, dtDifferent, dtSurplus);
   
 const
-  diffAll = [DiffTables, DiffFields, DiffIndexes];
+  diffAll = [DiffTables, DiffFields, DiffIndexes, DiffSequences, DiffDomains];
   
 type
   
@@ -40,6 +40,8 @@ type
     FSourceDD: TFPdatadictionary;
     FTargetDD: TFPdatadictionary;
   protected
+    procedure DomainDifference (DiffType: TDifferenceType; SourceDomain, TargetDomain: TDDDomainDef); virtual;
+    procedure SequenceDifference (DiffType: TDifferenceType; SourceSequence, TargetSequence: TDDSequenceDef); virtual;
     procedure TableDifference (DiffType: TDifferenceType; SourceTable, TargetTable: TDDTableDef); virtual;
     procedure IndexDifference (DiffType: TDifferenceType; SourceIndex, TargetIndex: TDDIndexDef); virtual;
     procedure FieldDifference (DiffType: TDifferenceType; SourceField, TargetField: TDDFieldDef); virtual;
@@ -49,6 +51,10 @@ type
     procedure CompareField (Source, Target: TDDFieldDefs; Fieldname: string; Kind: TDiffKindSet);
     procedure CompareIndexes (Source, Target: TDDIndexDefs; Kind: TDiffKindSet);
     procedure CompareIndex (Source, Target: TDDIndexDefs; Indexname: string; Kind: TDiffKindSet);
+    procedure CompareDomains (Kind: TDiffKindSet);
+    procedure CompareDomain (Source, Target: TDDDomainDefs; DomainName: string; Kind: TDiffKindSet);
+    procedure CompareSequences (Kind: TDiffKindSet);
+    procedure CompareSequence (Source, Target: TDDSequenceDefs; SequenceName: string; Kind: TDiffKindSet);
   public
     procedure Compare (Kind: TDiffKindSet);
     property SourceDD : TFPdatadictionary read FSourceDD write FSourceDD;
@@ -66,6 +72,18 @@ resourcestring
 
 { TCustomDDDiffer }
 
+procedure TCustomDDDiffer.DomainDifference(DiffType: TDifferenceType;
+  SourceDomain, TargetDomain: TDDDomainDef);
+begin
+
+end;
+
+procedure TCustomDDDiffer.SequenceDifference(DiffType: TDifferenceType;
+  SourceSequence, TargetSequence: TDDSequenceDef);
+begin
+
+end;
+
 procedure TCustomDDDiffer.TableDifference(DiffType: TDifferenceType;
   SourceTable, TargetTable: TDDTableDef);
 begin
@@ -82,47 +100,50 @@ begin
 end;
 
 procedure TCustomDDDiffer.CompareTables(Kind: TDiffKindSet);
+
 var
-  Tablenames : TStringlist;
+  List : TStringlist;
   r : integer;
+
 begin
-  Tablenames := TStringlist.Create;
+  List := TStringlist.Create;
   try
-    TableNames.Duplicates:=dupIgnore;
-    TableNames.sorted := true;
+    List.Duplicates:=dupIgnore;
+    List.sorted := true;
     for r := 0 to SourceDD.Tables.Count-1 do
-      TableNames.Add (SourceDD.Tables[r].TableName);
+      List.Add (SourceDD.Tables[r].TableName);
     for r := 0 to TargetDD.Tables.Count-1 do
-      TableNames.Add (TargetDD.Tables[r].TableName);
-    for r := 0 to TableNames.count-1 do
-      CompareTable (TableNames[r], Kind);
+      List.Add (TargetDD.Tables[r].TableName);
+    for r := 0 to List.count-1 do
+      CompareTable (List[r], Kind);
   finally
-    Tablenames.Free;
+    List.Free;
   end;
 end;
 
 procedure TCustomDDDiffer.CompareTable(TableName: string; Kind: TDiffKindSet);
+
 var
-  SourceTable, TargetTable : TDDTableDef;
+  Src, Targ : TDDTableDef;
 begin
-  SourceTable := FSourceDD.Tables.FindTable(TableName);
-  TargetTable := FTargetDD.Tables.FindTable(TableName);
-  if Not assigned (TargetTable) then
+  Src := FSourceDD.Tables.FindTable(TableName);
+  Targ := FTargetDD.Tables.FindTable(TableName);
+  if Not assigned (Targ) then
     begin
     if DiffTables in Kind then
-      TableDifference (dtMissing, SourceTable, nil);
+      TableDifference (dtMissing, Src, nil);
     end
-  else if not assigned (SourceTable) then
+  else if not assigned (Src) then
     begin
     if DiffTables in Kind then
-      TableDifference (dtSurplus, nil, TargetTable);
+      TableDifference (dtSurplus, nil, Targ);
     end
   else
     begin  // table exists in source and target, compare fields and Indexes
     if DiffFields in Kind then
-      CompareFields (SourceTable.Fields, TargetTable.Fields, Kind);
+      CompareFields (Src.Fields, Targ.Fields, Kind);
     if DiffIndexes in Kind then
-      CompareIndexes(SourceTable.Indexes, TargetTable.Indexes, Kind);
+      CompareIndexes(Src.Indexes, Targ.Indexes, Kind);
     end;
 end;
 
@@ -157,20 +178,21 @@ procedure TCustomDDDiffer.CompareField(Source, Target: TDDFieldDefs;
   end;
 
 var
-  SourceField, TargetField : TDDFieldDef;
+  Src, Targ : TDDFieldDef;
 begin
-  SourceField := Source.FindField(FieldName);
-  TargetField := Target.FindField(FieldName);
-  if not assigned (TargetField) then
-    FieldDifference(dtMissing, SourceField, nil)
-  else if not assigned (SourceField) then
-    FieldDifference(dtSurplus, nil, TargetField)
-  else if (Not FieldTypesEqual(SourceField,TargetField))
-          or (SourceField.required <> TargetField.required)
-          or (SourceField.DefaultExpression <> TargetField.DefaultExpression)
-          or ((SourceField.Size <> TargetField.Size) and not (SourceField.Fieldtype in [ftBlob]))
-          or (SourceField.Precision <> TargetField.Precision) then
-    FieldDifference(dtDifferent, SourceField, TargetField)
+  Src := Source.FindField(FieldName);
+  Targ := Target.FindField(FieldName);
+  if not assigned (Targ) then
+    FieldDifference(dtMissing, Src, nil)
+  else if not assigned (Src) then
+    FieldDifference(dtSurplus, nil, Targ)
+  else if (Not FieldTypesEqual(Src,Targ))
+          or (Src.required <> Targ.required)
+          or (Src.DomainName <> Targ.DomainName)
+          or (Src.DefaultExpression <> Targ.DefaultExpression)
+          or ((Src.Size <> Targ.Size) and not (Src.Fieldtype in [ftBlob]))
+          or (Src.Precision <> Targ.Precision) then
+    FieldDifference(dtDifferent, Src, Targ)
 end;
 
 procedure TCustomDDDiffer.CompareIndexes(Source, Target: TDDIndexDefs;
@@ -197,20 +219,102 @@ end;
 procedure TCustomDDDiffer.CompareIndex(Source, Target: TDDIndexDefs;
   Indexname: string; Kind: TDiffKindSet);
 var
-  SourceIndex, TargetIndex : TDDIndexDef;
+  Src, Targ : TDDIndexDef;
 begin
-  SourceIndex := Source.FindIndex(IndexName);
-  TargetIndex := Target.FindIndex(IndexName);
-  if not assigned (TargetIndex) then
-    IndexDifference(dtMissing, SourceIndex, nil)
-  else if not assigned (SourceIndex) then
-    IndexDifference(dtSurplus, nil, TargetIndex)
-  else if (CompareText(SourceIndex.Expression,TargetIndex.Expression) <> 0) or
-          (CompareText(SourceIndex.Fields,TargetIndex.Fields) <> 0) or
-          (SourceIndex.Options <> TargetIndex.Options) or
-          (CompareText(SourceIndex.DescFields,TargetIndex.DescFields) <> 0) or
-          (CompareText(SourceIndex.CaseInsFields,TargetIndex.CaseInsFields) <> 0) then
-    IndexDifference(dtDifferent, SourceIndex, TargetIndex)
+  Src := Source.FindIndex(IndexName);
+  Targ := Target.FindIndex(IndexName);
+  if not assigned (Targ) then
+    IndexDifference(dtMissing, Src, nil)
+  else if not assigned (Src) then
+    IndexDifference(dtSurplus, nil, Targ)
+  else if (CompareText(Src.Expression,Targ.Expression) <> 0) or
+          (CompareText(Src.Fields,Targ.Fields) <> 0) or
+          (Src.Options <> Targ.Options) or
+          (CompareText(Src.DescFields,Targ.DescFields) <> 0) or
+          (CompareText(Src.CaseInsFields,Targ.CaseInsFields) <> 0) then
+    IndexDifference(dtDifferent, Src, Targ)
+end;
+
+procedure TCustomDDDiffer.CompareDomains(Kind: TDiffKindSet);
+
+Var
+  List : TStringList;
+  R : Integer;
+
+begin
+  List := TStringlist.Create;
+  try
+    List.Duplicates:=dupIgnore;
+    List.sorted := true;
+    for r := 0 to SourceDD.Domains.Count-1 do
+      List.Add (SourceDD.Domains[r].DomainName);
+    for r := 0 to TargetDD.Domains.Count-1 do
+      List.Add (TargetDD.Domains[r].DomainName);
+    for r := 0 to List.count-1 do
+      CompareDomain (SourceDD.Domains,TargetDD.Domains,List[r], Kind);
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TCustomDDDiffer.CompareDomain(Source, Target: TDDDomainDefs;
+  DomainName: string; Kind: TDiffKindSet);
+
+var
+  Src,Targ : TDDDomainDef;
+
+begin
+  Src := Source.FindDomain(DomainName);
+  Targ := Target.FindDomain(DomainName);
+  if not assigned (Targ) then
+    DomainDifference(dtMissing, Src, nil)
+  else if not assigned (Src) then
+    DomainDifference(dtSurplus, nil, Targ)
+  else if (Src.FieldType<>Targ.FieldType) or
+          (Src.Required<>Targ.Required) or
+          (Src.Precision<>Targ.Precision) or
+          (Src.Size<>Targ.Size) then
+    DomainDifference(dtDifferent, Src, Targ)
+end;
+
+procedure TCustomDDDiffer.CompareSequences(Kind: TDiffKindSet);
+
+Var
+  List : TStringList;
+  R : Integer;
+
+begin
+  List := TStringlist.Create;
+  try
+    List.Duplicates:=dupIgnore;
+    List.sorted := true;
+    for r := 0 to SourceDD.Sequences.Count-1 do
+      List.Add (SourceDD.Sequences[r].SequenceName);
+    for r := 0 to TargetDD.Sequences.Count-1 do
+      List.Add (TargetDD.Sequences[r].SequenceName);
+    for r := 0 to List.count-1 do
+      CompareSequence (SourceDD.Sequences,TargetDD.Sequences,List[r], Kind);
+  finally
+    List.Free;
+  end;
+end;
+
+procedure TCustomDDDiffer.CompareSequence(Source, Target: TDDSequenceDefs;
+  SequenceName: string; Kind: TDiffKindSet);
+
+var
+  Src,Targ : TDDSequenceDef;
+
+begin
+  Src := Source.FindSequence(SequenceName);
+  Targ := Target.FindSequence(SequenceName);
+  if not assigned (Targ) then
+    SequenceDifference(dtMissing, Src, nil)
+  else if not assigned (Src) then
+    SequenceDifference(dtSurplus, nil, Targ)
+  else if (Src.StartValue<>Targ.StartValue) or
+          (Src.Increment<>Targ.Increment) then
+    SequenceDifference(dtDifferent, Src, Targ)
 end;
 
 procedure TCustomDDDiffer.Compare (Kind: TDiffKindSet);
