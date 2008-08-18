@@ -33,6 +33,7 @@ Type
   TDDTableDef = Class;
   TDDTableDefs = Class;
   TDDFieldDefs = Class;
+  TDDDomainDef = Class;
   TFPDataDictionary = Class;
 
   { TDDFieldDef }
@@ -47,6 +48,7 @@ Type
     FDefaultExpression: string;
     FDisplayLabel: string;
     FDisplayWidth: Longint;
+    FDomain: TDDDomainDef;
     FDomainName: string;
     FFieldName: string;
     FFieldType: TFieldType;
@@ -57,19 +59,25 @@ Type
     FRequired: Boolean;
     FSize: Integer;
     FVisible: Boolean;
+    function GetDomainName: string;
     Function IsSizeStored : Boolean;
     Function IsPrecisionStored : Boolean;
+    procedure SetDomain(const AValue: TDDDomainDef);
+    procedure SetDomainName(const AValue: string);
   protected
     function GetSectionName: String; override;
     procedure SetSectionName(const Value: String); override;
   Public
     Constructor Create(ACollection : TCollection); override;
     Function FieldDefs : TDDFieldDefs;
+    Function DataDictionary : TFPDataDictionary;
+    Procedure ResolveDomain(ErrorOnFail : Boolean);
     Procedure ImportFromField(F: TField; Existing : Boolean = True);
     Procedure ApplyToField(F : TField);
     Procedure Assign(Source : TPersistent);  override;
     Procedure SaveToIni(Ini: TCustomInifile; ASection : String); override;
     Procedure LoadFromIni(Ini: TCustomInifile; ASection : String); override;
+    Property Domain : TDDDomainDef Read FDomain Write SetDomain;
   Published
     property FieldType : TFieldType Read FFieldType Write FFieldType;
     property AlignMent : TAlignMent Read FAlignMent write FAlignment default taLeftJustify;
@@ -80,7 +88,7 @@ Type
     property DisplayLabel : string read FDisplayLabel write FDisplayLabel;
     property DisplayWidth: Longint read FDisplayWidth write FDisplayWidth;
     property FieldName: string read FFieldName write FFieldName;
-    property DomainName: string read FDomainName write FDomainName;
+    property DomainName: string read GetDomainName write SetDomainName;
     property Constraint: string read FConstraint write FConstraint;
     property ReadOnly: Boolean read FReadOnly write FReadOnly;
     property Required: Boolean read FRequired write FRequired;
@@ -287,6 +295,7 @@ Type
 
   TDDSequenceDefs = Class(TIniCollection)
   private
+    FDataDictionary: TFPDataDictionary;
     FOnProgress: TDDProgressEvent;
     function GetSequence(Index : Integer): TDDSequenceDef;
     procedure SetSequence(Index : Integer; const AValue: TDDSequenceDef);
@@ -296,6 +305,7 @@ Type
     Function IndexOfSequence(ASequenceName : String) : Integer;
     Function FindSequence(ASequenceName : String) : TDDSequenceDef;
     Function SequenceByName(ASequenceName : String) : TDDSequenceDef;
+    Property DataDictionary : TFPDataDictionary Read FDataDictionary;
     Property Sequences[Index : Integer] : TDDSequenceDef Read GetSequence Write SetSequence; default;
     Property OnProgress : TDDProgressEvent Read FOnProgress Write FOnProgress;
   end;
@@ -331,11 +341,13 @@ Type
 
   TDDDomainDefs = Class(TIniCollection)
   private
+    FDataDictionary: TFPDataDictionary;
     FOnProgress: TDDProgressEvent;
     function GetDomain(Index : Integer): TDDDomainDef;
     procedure SetDomain(Index : Integer; const AValue: TDDDomainDef);
   Public
     Constructor Create;
+    Property DataDictionary : TFPDataDictionary Read FDataDictionary;
     Function AddDomain(ADomainName : String = '') : TDDDomainDef;
     Function IndexOfDomain(ADomainName : String) : Integer;
     Function FindDomain(ADomainName : String) : TDDDomainDef;
@@ -350,6 +362,7 @@ Type
   TFPDataDictionary = Class(TPersistent)
   private
     FDDName: String;
+    FDomains: TDDDomainDefs;
     FFileName: String;
     FOnApplyDataDictEvent: TOnApplyDataDictEvent;
     FOnProgress: TDDProgressEvent;
@@ -373,6 +386,7 @@ Type
     function CanonicalizeFieldName(const InFN: String; Out TableDef : TDDTableDef; Out FN: String): Boolean;
     Property Tables : TDDTableDefs Read FTables;
     Property Sequences : TDDSequenceDefs Read FSequences;
+    Property Domains : TDDDomainDefs Read FDomains;
     Property FileName : String Read FFileName;
     Property Name : String Read FDDName Write FDDName;
     Property OnProgress : TDDProgressEvent Read FOnProgress Write SetOnProgress;
@@ -717,6 +731,8 @@ Resourcestring
   SErrDuplicateSequence       = 'Duplicate sequence name: "%s"';
   SErrDuplicateDomain         = 'Duplicate domain name: "%s"';
   SErrDomainNotFound          = 'Domain "%s" not found.';
+  SErrNoDataDict              = '%s : No data dictionary available';
+  SErrResolveDomain           = 'Cannot resolve domain';
 
 Const
   IndexOptionNames : Array [TIndexOption] of String
@@ -929,9 +945,32 @@ begin
     ftWideString,ftArray, ftOraBlob, ftOraClob, ftFMTBcd];
 end;
 
+function TDDFieldDef.GetDomainName: string;
+begin
+  If Assigned(FDomain) then
+    Result:=FDomain.DomainName
+  else // Not resolved yet
+    Result:=FDomainName;
+end;
+
 function TDDFieldDef.IsPrecisionStored: Boolean;
 begin
   Result:=FieldType in [ftFloat,ftBCD,ftFMTBCD];
+end;
+
+procedure TDDFieldDef.SetDomain(const AValue: TDDDomainDef);
+begin
+  if FDomain=AValue then exit;
+  FDomain:=AValue;
+  If Assigned(FDomain) then
+    FDomainName:=FDomain.DomainName;
+end;
+
+procedure TDDFieldDef.SetDomainName(const AValue: string);
+begin
+  FDomainName:=AValue;
+  If (AValue<>'') then
+    ResolveDomain(False);
 end;
 
 function TDDFieldDef.GetSectionName: String;
@@ -954,6 +993,37 @@ end;
 function TDDFieldDef.FieldDefs: TDDFieldDefs;
 begin
   Result:=(Collection as TDDFieldDefs)
+end;
+
+function TDDFieldDef.DataDictionary: TFPDataDictionary;
+begin
+  If Assigned(FieldDefs) then
+    Result:=FieldDefs.DataDictionary
+  else
+    Result:=Nil;
+end;
+
+procedure TDDFieldDef.ResolveDomain(ErrorOnFail : Boolean);
+
+Var
+  DD : TFPDataDictionary;
+
+begin
+  If (FDomainName<>'') then
+    Exit;
+  DD:=DataDictionary;
+  If Not Assigned(DD) then
+    begin
+    If ErrorOnFail then
+      Raise EDataDict.CreateFmt(SErrNoDataDict,[SErrResolveDomain]);
+    end
+  else if (Not Assigned(FDomain)) or (CompareText(FDomain.DomainName,FDomainName)<>0) then
+    begin
+    If ErrorOnFail then
+      FDomain:=DD.Domains.DomainByName(FDomainName)
+    else
+      FDomain:=DD.Domains.FindDomain(FDomainName);
+    end;
 end;
 
 procedure TDDFieldDef.ImportFromField(F: TField; Existing : Boolean = True);
@@ -1435,7 +1505,11 @@ end;
 constructor TFPDataDictionary.Create;
 begin
   FTables:=TDDTableDefs.Create(TDDTableDef);
+  FTables.FDataDictionary:=Self;
   FSequences:=TDDSequenceDefs.Create;
+  FSequences.FDataDictionary:=Self;
+  FDomains:=TDDDomainDefs.Create;
+  FDomains.FDataDictionary:=Self;
 end;
 
 destructor TFPDataDictionary.Destroy;
@@ -1475,8 +1549,9 @@ end;
 procedure TFPDataDictionary.SaveToIni(Ini: TCustomIniFile; ASection: String);
 begin
   Ini.WriteString(ASection,KeyDataDictName,Name);
-  FTables.SaveToIni(Ini,SDatadictTables);
+  FDomains.SaveToIni(Ini,SDatadictDomains);
   FSequences.SaveToIni(Ini,SDatadictSequences);
+  FTables.SaveToIni(Ini,SDatadictTables);
 end;
 
 procedure TFPDataDictionary.LoadFromFile(AFileName: String);
@@ -1502,6 +1577,10 @@ end;
 procedure TFPDataDictionary.LoadFromIni(Ini: TCustomIniFile; ASection: String);
 begin
   FDDName:=Ini.ReadString(ASection,KeyDataDictName,'');
+  FDomains.Clear;
+  FDomains.LoadFromIni(Ini,SDataDictDomains);
+  FSequences.Clear;
+  FSequences.LoadFromIni(Ini,SDataDictSequences);
   FTables.Clear;
   FTables.LoadFromIni(Ini,SDataDictTables);
 end;
