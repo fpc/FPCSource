@@ -201,7 +201,8 @@ interface
 
          { general }
          nf_pass1_done,
-         nf_write,       { Node is written to            }
+         nf_write,       { Node is written to    }
+         nf_modify,      { Node is modified      }
          nf_is_funcret,
          nf_isproperty,
          nf_processing,

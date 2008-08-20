@@ -850,49 +850,56 @@ implementation
              loadn :
                begin
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
-                  begin
-                    hsym:=tabstractvarsym(tloadnode(p).symtableentry);
-                    if (vsf_must_be_valid in varstateflags) and
-                       (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
-                      begin
-                        { Give warning/note for uninitialized locals }
-                        if assigned(hsym.owner) and
-                          not(cs_opt_nodedfa in current_settings.optimizerswitches) and
-                           not(vo_is_external in hsym.varoptions) and
-                           (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
-                           ((hsym.owner=current_procinfo.procdef.localst) or
-                            (hsym.owner=current_procinfo.procdef.parast)) then
-                          begin
-                            if (vo_is_funcret in hsym.varoptions) then
-                              begin
-                                if (vsf_use_hints in varstateflags) then
-                                  CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                else
-                                  CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                              end
-                            else
-                              begin
-                                if tloadnode(p).symtable.symtabletype=localsymtable then
-                                  begin
-                                    if (vsf_use_hints in varstateflags) then
-                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
-                                    else
-                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
-                                  end
-                                else
-                                  begin
-                                    if (vsf_use_hints in varstateflags) then
-                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
-                                    else
-                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
-                                  end;
-                              end;
-                          end
-                        else if (newstate = vs_read) then
-                          newstate := vs_read_not_warned;
-                      end;
-                    hsym.varstate := vstrans[hsym.varstate,newstate];
-                  end;
+                   begin
+                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
+                     if (vsf_must_be_valid in varstateflags) and
+                        (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
+                       begin
+                         { Give warning/note for uninitialized locals }
+                         if assigned(hsym.owner) and
+                           not(cs_opt_nodedfa in current_settings.optimizerswitches) and
+                            not(vo_is_external in hsym.varoptions) and
+                            (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
+                            ((hsym.owner=current_procinfo.procdef.localst) or
+                             (hsym.owner=current_procinfo.procdef.parast)) then
+                           begin
+                             if (vo_is_funcret in hsym.varoptions) then
+                               begin
+                                 if (vsf_use_hints in varstateflags) then
+                                   CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
+                                 else
+                                   CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
+                               end
+                             else
+                               begin
+                                 if tloadnode(p).symtable.symtabletype=localsymtable then
+                                   begin
+                                     if (vsf_use_hints in varstateflags) then
+                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                     else
+                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                   end
+                                 else
+                                   begin
+                                     if (vsf_use_hints in varstateflags) then
+                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                     else
+                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                   end;
+                               end;
+                           end
+                         else if (newstate = vs_read) then
+                           newstate := vs_read_not_warned;
+                       end;
+                     hsym.varstate := vstrans[hsym.varstate,newstate];
+                   end;
+                 case newstate of
+                   vs_written:
+                     include(tloadnode(p).flags,nf_write);
+                   vs_readwritten:
+                     if not(nf_write in tloadnode(p).flags) then
+                       include(tloadnode(p).flags,nf_modify);
+                 end;
                  break;
                end;
              callparan :

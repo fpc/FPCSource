@@ -116,7 +116,12 @@ unit optdfa;
           loadn:
             begin
               pdfainfo(arg)^.map.Add(n);
-              if nf_write in n.flags then
+              if nf_modify in n.flags then
+                begin
+                  DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
+                  DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
+                end
+              else if nf_write in n.flags then
                 DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
@@ -424,6 +429,7 @@ unit optdfa;
                             { get info from faked resultnode }
                             node.optinfo^.use:=resultnode.optinfo^.use;
                             node.optinfo^.life:=node.optinfo^.use;
+                            changed:=true;
                           end;
                       end;
                   end;
@@ -524,14 +530,40 @@ unit optdfa;
 
 
     procedure TDFABuilder.createdfainfo(node : tnode);
+    {
+      var
+        lastnode : tnode;
+        fakeexitnode : texitnode;
+    }
       begin
         if not(assigned(nodemap)) then
           nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
-
+     {
+        { create an exit node for functions to get
+          the function result at the end handled properly }
+        if not(is_void(current_procinfo.procdef.returndef)) and
+          not(current_procinfo.procdef.proctypeoption=potype_constructor) then
+          begin
+            lastnode:=node;
+            while assigned(lastnode.successor) do
+              lastnode:=lastnode.successor;
+            fakeexitnode:=cexitnode.create(nil);
+            lastnode.successor:=fakeexitnode;
+          end
+        else
+           fakeexitnode:=nil;
+     }
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
+     {
+        if assigned(fakeexitnode) then
+          begin
+            lastnode.successor.free;
+            lastnode.successor:=nil;
+          end;
+     }
       end;
 
 

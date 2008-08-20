@@ -561,10 +561,8 @@ implementation
 
 
     function tsubscriptnode.dogetcopy : tnode;
-
       var
          p : tsubscriptnode;
-
       begin
          p:=tsubscriptnode(inherited dogetcopy);
          p.vs:=vs;
@@ -587,10 +585,10 @@ implementation
       end;
 
     procedure Tsubscriptnode.mark_write;
+      begin
+        include(flags,nf_write);
+      end;
 
-    begin
-      include(flags,nf_write);
-    end;
 
     function tsubscriptnode.pass_1 : tnode;
       begin
