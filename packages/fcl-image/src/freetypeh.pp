@@ -16,7 +16,7 @@
 unit freetypeh;
 
 { These are not all the availlable calls from the dll, but only those
-  I needed for the TStringBimaps }
+  I needed for the TStringBitMaps }
 
 interface
 
