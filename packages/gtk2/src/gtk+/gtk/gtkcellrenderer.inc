@@ -59,7 +59,7 @@ const
    GTK_CELL_RENDERER_PRELIT = 1 shl 1;
    GTK_CELL_RENDERER_INSENSITIVE = 1 shl 2;
    GTK_CELL_RENDERER_SORTED = 1 shl 3;
-
+   GTK_CELL_RENDERER_FOCUSED = 1 shl 4;
 
 const
    bm_TGtkCellRenderer_mode = $3;

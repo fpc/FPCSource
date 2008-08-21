@@ -43,6 +43,7 @@ function GDK_SCREEN_GET_CLASS(obj : Pointer) : PGdkScreenClass;
 
 
 //function gdk_screen_get_type:GType; cdecl; external gdklib;
+function gdk_screen_get_default:PGdkScreen; cdecl; external gdklib;
 function gdk_screen_get_default_colormap(screen:PGdkScreen):PGdkColormap; cdecl; external gdklib;
 procedure gdk_screen_set_default_colormap(screen:PGdkScreen; colormap:PGdkColormap); cdecl; external gdklib;
 function gdk_screen_get_system_colormap(screen:PGdkScreen):PGdkColormap; cdecl; external gdklib;

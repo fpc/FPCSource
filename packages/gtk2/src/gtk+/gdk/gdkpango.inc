@@ -74,8 +74,8 @@ function GDK_IS_PANGO_RENDERER_CLASS(klass: pointer): boolean;
 function GDK_PANGO_RENDERER_GET_CLASS(obj: pointer): PGdkPangoRendererClass;
 
 function gdk_pango_renderer_get_type: GType; cdecl; external gdklib;
-function gdk_pango_renderer_new(screen:PGdkScreen):PPangoRenderer; cdecl; external gdklib;
-function gdk_pango_renderer_get_default(screen:PGdkScreen):PPangoRenderer; cdecl; external gdklib;
+function gdk_pango_renderer_new(screen:PGdkScreen):PGdkPangoRenderer; cdecl; external gdklib;
+function gdk_pango_renderer_get_default(screen:PGdkScreen):PGdkPangoRenderer; cdecl; external gdklib;
 procedure gdk_pango_renderer_set_drawable(gdk_renderer:PGdkPangoRenderer; drawable:PGdkDrawable); cdecl; external gdklib;
 procedure gdk_pango_renderer_set_gc(gdk_renderer:PGdkPangoRenderer; gc:PGdkGC); cdecl; external gdklib;
 procedure gdk_pango_renderer_set_stipple(gdk_renderer:PGdkPangoRenderer; part:TPangoRenderPart; stipple:PGdkBitmap); cdecl; external gdklib;
