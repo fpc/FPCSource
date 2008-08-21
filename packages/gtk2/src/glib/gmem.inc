@@ -5,11 +5,7 @@
 
 //------------------------------------------------------------------------------
 
-{$IFDEF read_interface_rest}
-const
-   G_MEM_ALIGN = GLIB_SIZEOF_VOID_P;
-
-type
+{$IFDEF read_interface_types}
    PGMemVTable = ^TGMemVTable;
    TGMemVTable = record
         malloc : function (n_bytes:gsize):gpointer; cdecl;
@@ -22,7 +18,13 @@ type
 
    PGMemChunk = pointer; // internal structure of gmem.c
    PGAllocator = pointer; // internal structure of gmem.c
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
+const
+   G_MEM_ALIGN = GLIB_SIZEOF_VOID_P;
 
 { Memory allocation functions }
 

@@ -1,9 +1,11 @@
-{$ifndef __G_ERROR_H__}
-{$define __G_ERROR_H__}
+// included by glib2.pas
 
-//{$include gquark.inc}
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-  type
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
     PPGError = ^PGError;
     PGError  = ^TGError;
     TGError  = record
@@ -11,7 +13,9 @@
             code    : gint;
             message : Pgchar;
          end;
+{$ENDIF read_interface_types}
 
+{$IFDEF read_interface_rest}
 {$IFNDEF KYLIX}
     function  g_error_new(domain:TGQuark; code:gint; format:Pgchar; args:array of const):PGError;cdecl;overload;external gliblib name 'g_error_new_literal';
     function  g_error_new(domain:TGQuark; code:gint; format:Pgchar):PGError;cdecl;overload;varargs;external gliblib name 'g_error_new_literal';
@@ -43,6 +47,6 @@
 
     { if (err &&  err) then g_error_free( err);  err = NULL;   }
     procedure g_clear_error(err:PPGError);cdecl;external gliblib name 'g_clear_error';
+{$ENDIF read_interface_rest}
 
-{$endif}    { __G_ERROR_H__  }
 

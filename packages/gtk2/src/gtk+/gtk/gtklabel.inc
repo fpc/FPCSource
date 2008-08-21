@@ -106,15 +106,23 @@ procedure gtk_label_get_layout_offsets(_label:PGtkLabel; x:Pgint; y:Pgint); cdec
 
 {$ifndef GTK_DISABLE_DEPRECATED}
 procedure gtk_label_set(_label:PGtkLabel; str:Pchar);
-
 procedure gtk_label_get(_label:PGtkLabel; str:PPchar); cdecl; external gtklib;
-{ Convenience function to set the name and pattern by parsing
-   a string with embedded underscores, and return the appropriate
-   key symbol for the accelerator.
-  }
 function gtk_label_parse_uline(_label:PGtkLabel; _string:Pgchar):guint; cdecl; external gtklib;
 {$endif}
-{ GTK_DISABLE_DEPRECATED  }
+
+{$ifdef HasGTK2_6}
+function gtk_label_get_angle(_label:PGtkLabel):gdouble;cdecl; external gtklib;
+function gtk_label_get_ellipsize(_label:PGtkLabel):TPangoEllipsizeMode;cdecl; external gtklib;
+function gtk_label_get_max_width_chars(_label:PGtkLabel):gint;cdecl; external gtklib;
+function gtk_label_get_single_line_mode(_label:PGtkLabel):gboolean;cdecl; external gtklib;
+function gtk_label_get_width_chars(_label:PGtkLabel):gint;cdecl; external gtklib;
+procedure gtk_label_set_angle(_label:PGtkLabel; angle:gdouble);cdecl; external gtklib;
+procedure gtk_label_set_ellipsize(_label:PGtkLabel; mode:TPangoEllipsizeMode);cdecl; external gtklib;
+procedure gtk_label_set_max_width_chars(_label:PGtkLabel; n_chars:gint);cdecl; external gtklib;
+procedure gtk_label_set_single_line_mode(_label:PGtkLabel; single_line_mode:gboolean);cdecl; external gtklib;
+procedure gtk_label_set_width_chars(_label:PGtkLabel; n_chars:gint);cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

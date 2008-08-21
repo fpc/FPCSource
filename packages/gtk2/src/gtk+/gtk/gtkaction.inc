@@ -73,6 +73,9 @@ procedure gtk_action_set_accel_group(action:PGtkAction; accel_group:PGtkAccelGro
 
 {$ifdef HasGTK2_6}
 function gtk_action_get_accel_path(action: PGtkAction): Pgchar; cdecl;external gtklib name 'gtk_action_get_accel_path';
+function gtk_action_group_translate_string(action_group:PGtkActionGroup; _string:Pgchar):Pgchar; cdecl;external gtklib;
+procedure gtk_action_set_sensitive(action:PGtkAction; sensitive:gboolean); cdecl;external gtklib;
+procedure gtk_action_set_visible(action:PGtkAction; visible:gboolean); cdecl;external gtklib;
 {$endif}
 {$endif read_interface_rest}
 

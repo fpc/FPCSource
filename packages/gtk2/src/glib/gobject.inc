@@ -1,8 +1,11 @@
 // included by glib2.pas
 
-{ --- typedefs & structures ---  }
-type
-{< private > }
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
    PGObject = ^TGObject;
    TGObject = record
         g_type_instance : TGTypeInstance;
@@ -43,6 +46,13 @@ type
         pspec : PGParamSpec;
         value : PGValue;
      end;
+
+  G_FLAGS_TYPE = GType;
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 
 { --- type macros ---  }
 
@@ -128,9 +138,7 @@ procedure G_OBJECT_WARN_INVALID_PSPEC(anObject: gpointer; pname: PGChar;
   property_id: gint; pspec: gpointer);
 procedure G_OBJECT_WARN_INVALID_PROPERTY_ID(anObject: gpointer;
   property_id: gint; pspec : gpointer);
-
-type
-  G_FLAGS_TYPE = GType;
+{$ENDIF read_interface_rest}
 
 // included by glib2.pas
 

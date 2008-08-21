@@ -9,8 +9,9 @@
 
    TGtkTreeViewSearchEqualFunc = function (model:PGtkTreeModel; column:gint; key:Pgchar; iter:PGtkTreeIter; search_data:gpointer):gboolean; cdecl;
 
-{ This function should really never be used.  It is just for use by ATK.
-  }
+   TGtkTreeViewRowSeparatorFunc = function (model:PGtkTreeModel; iter:PGtkTreeIter; data:gpointer):gboolean; cdecl;
+
+   // This function should really never be used.  It is just for use by ATK.
    TGtkTreeDestroyCountFunc = procedure (tree_view:PGtkTreeView; path:PGtkTreePath; children:gint; user_data:gpointer); cdecl;
 
 { drop before/after this row  }
@@ -162,6 +163,19 @@ procedure gtk_tree_view_set_destroy_count_func(tree_view:PGtkTreeView; func:TGtk
 procedure gtk_tree_view_expand_to_path(tree_view:PGtkTreeView; path: PGtkTreePath); cdecl; external gtklib;
 procedure gtk_tree_view_set_cursor_on_cell(tree_view:PGtkTreeView; path:PGtkTreePath; focus_column:PGtkTreeViewColumn; focus_cell:PGtkCellRenderer; start_editing:gboolean); cdecl; external gtklib;
 {$ENDIF}
+
+{$ifdef HasGTK2_6}
+function gtk_tree_view_get_fixed_height_mode(tree_view:PGtkTreeView):gboolean; cdecl; external gtklib;
+function gtk_tree_view_get_hover_expand(tree_view:PGtkTreeView):gboolean; cdecl; external gtklib;
+function gtk_tree_view_get_hover_selection(tree_view:PGtkTreeView):gboolean; cdecl; external gtklib;
+function gtk_tree_view_get_row_separator_func(tree_view:PGtkTreeView):TGtkTreeViewRowSeparatorFunc; cdecl; external gtklib;
+procedure gtk_tree_view_set_fixed_height_mode(tree_view:PGtkTreeView; enable:gboolean); cdecl; external gtklib;
+procedure gtk_tree_view_set_hover_expand(tree_view:PGtkTreeView; expand:gboolean); cdecl; external gtklib;
+procedure gtk_tree_view_set_hover_selection(tree_view:PGtkTreeView; hover:gboolean); cdecl; external gtklib;
+procedure gtk_tree_view_set_row_separator_func(tree_view:PGtkTreeView; func:TGtkTreeViewRowSeparatorFunc;
+  data:gpointer; destroy:TGtkDestroyNotify); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

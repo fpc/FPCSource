@@ -1,9 +1,16 @@
-{*
- * gutils.inc
- *
- * depends on gtypes.inc
- *}
+// included by glib2.pas
 
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 {$ifdef WIN32}
 
   { On native Win32, directory separator is the backslash, and search path
@@ -160,3 +167,4 @@
 
     function GLIB_CHECK_VERSION (major, minor, micro: guint):boolean;
 {$ENDIF}
+{$ENDIF read_interface_rest}

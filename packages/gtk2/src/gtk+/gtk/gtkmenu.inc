@@ -163,6 +163,10 @@ procedure gtk_menu_attach(menu: PGtkMenu; child: PGtkWidget; left_attach: guint;
 procedure gtk_menu_set_monitor(menu: PGtkMenu; monitor_num: gint); cdecl; external gtklib;
 {$endif}
 
+{$ifdef HasGTK2_6}
+function gtk_menu_get_for_attach_widget(widget:PGtkWidget):PGList; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

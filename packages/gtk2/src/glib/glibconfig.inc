@@ -38,6 +38,19 @@
 
 {$ENDIF read_forward_definitions}
 
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+  PGSystemThread = ^TGSystemThread;
+  TGSystemThread = record
+    data           : array [0..3] of char;
+    dummy_double   : double;
+    dummy_pointer  : pointer;
+    dummy_long     : longint;
+  end;
+{$ENDIF read_interface_types}
+
 //------------------------------------------------------------------------------
 
 {$IFDEF read_interface_rest}
@@ -81,16 +94,6 @@ const
    GLIB_SIZEOF_LONG   = SizeOf(longint);
    GLIB_SIZEOF_SIZE_T = SizeOf(longint);
 
-type
-  PGSystemThread = ^TGSystemThread;
-  TGSystemThread = record
-        data           : array [0..3] of char;
-        dummy_double   : double;
-        dummy_pointer  : pointer;
-        dummy_long     : longint;
-      end;
-
-
 const
    GLIB_SYSDEF_POLLIN    = 1;
    GLIB_SYSDEF_POLLOUT   = 4;
@@ -106,8 +109,6 @@ const
 {$endif}
 
 function GUINT_TO_POINTER(i: guint): pointer;
-
-
 
 {$ENDIF read_interface_rest}
 

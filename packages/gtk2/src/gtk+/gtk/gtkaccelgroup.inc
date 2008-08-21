@@ -108,6 +108,10 @@ function gtk_accelerator_get_default_mod_mask:guint; cdecl; external gtklib;
 { --- internal ---  }
 function gtk_accel_group_query(accel_group:PGtkAccelGroup; accel_key:guint; accel_mods:TGdkModifierType; n_entries:Pguint):PGtkAccelGroupEntry; cdecl; external gtklib;
 procedure _gtk_accel_group_reconnect(accel_group:PGtkAccelGroup; accel_path_quark:TGQuark); cdecl; external gtklib;
+
+{$ifdef HasGTK2_6}
+function gtk_accelerator_get_label(accelerator_key:guint; accelerator_mods:TGdkModifierType):Pgchar; cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

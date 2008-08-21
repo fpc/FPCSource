@@ -122,6 +122,13 @@ procedure gtk_propagate_event(widget:PGtkWidget; event:PGdkEvent); cdecl; extern
 function _gtk_boolean_handled_accumulator(ihint:PGSignalInvocationHint; return_accu:PGValue; handler_return:PGValue; dummy:gpointer):gboolean; cdecl; external gtklib;
 function _gtk_find_module(name:Pgchar; _type:Pgchar):Pgchar; cdecl; external gtklib;
 function _gtk_get_module_path(_type:Pgchar):PPgchar; cdecl; external gtklib;
+
+{$ifdef HasGTK2_6}
+function gtk_get_option_group(open_default_display:gboolean):PGOptionGroup; cdecl; external gtklib;
+function gtk_init_with_args(argc:PLongint; argv:PPPchar; parameter_string:Pchar; 
+  entries:PGOptionEntry; translation_domain:Pchar; error:PPGError):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

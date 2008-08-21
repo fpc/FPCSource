@@ -1,10 +1,18 @@
 // included by glib2.pas
 
-{ Functions like the ones in <ctype.h> that are not affected by locale.  }
-type
-   PGAsciiType = ^TGAsciiType;
-   TGAsciiType = longint;
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+  PGAsciiType = ^TGAsciiType;
+  TGAsciiType = longint;
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 const
    G_ASCII_ALNUM = 1 shl 0;
    G_ASCII_ALPHA = 1 shl 1;
@@ -151,7 +159,6 @@ function g_strjoinv(separator:Pgchar; str_array:PPgchar):Pgchar; cdecl; external
 procedure g_strfreev(str_array:PPgchar); cdecl; external gliblib;
 function g_strdupv(str_array:PPgchar):PPgchar; cdecl; external gliblib;
 function g_stpcpy(dest:Pgchar; src:Pchar):Pgchar; cdecl; external gliblib;
-
-
+{$ENDIF read_interface_rest}
 // included by glib2.pas
 

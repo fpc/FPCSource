@@ -104,19 +104,19 @@ function gtk_progress_bar_get_pulse_step(pbar:PGtkProgressBar):gdouble; cdecl; e
 function gtk_progress_bar_get_orientation(pbar:PGtkProgressBar):TGtkProgressBarOrientation; cdecl; external gtklib;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
-{ Everything below here is deprecated  }
 function gtk_progress_bar_new_with_adjustment(adjustment:PGtkAdjustment):PGtkWidget; cdecl; external gtklib;
 procedure gtk_progress_bar_set_bar_style(pbar:PGtkProgressBar; style:TGtkProgressBarStyle); cdecl; external gtklib;
 procedure gtk_progress_bar_set_discrete_blocks(pbar:PGtkProgressBar; blocks:guint); cdecl; external gtklib;
-{ set_activity_step() is not only deprecated, it doesn't even work.
-   (Of course, it wasn't usable anyway, you had to set it from a size_allocate
-   handler or something)
-  }
 procedure gtk_progress_bar_set_activity_step(pbar:PGtkProgressBar; step:guint); cdecl; external gtklib;
 procedure gtk_progress_bar_set_activity_blocks(pbar:PGtkProgressBar; blocks:guint); cdecl; external gtklib;
 procedure gtk_progress_bar_update(pbar:PGtkProgressBar; percentage:gdouble); cdecl; external gtklib;
 {$endif}
-{ GTK_DISABLE_DEPRECATED  }
+
+{$ifdef HasGTK2_6}
+function gtk_progress_bar_get_ellipsize(pbar:PGtkProgressBar):TPangoEllipsizeMode; cdecl; external gtklib;
+procedure gtk_progress_bar_set_ellipsize(pbar:PGtkProgressBar; mode:TPangoEllipsizeMode); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------
