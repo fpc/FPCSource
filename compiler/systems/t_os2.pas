@@ -358,7 +358,7 @@ end;
           ImportLibrary : TImportLibrary;
           ImportSymbol  : TImportSymbol;
       begin
-        LibName:=FixFileName(Current_Module.ModuleName^ + Target_Info.StaticCLibExt);
+        LibName:=FixFileName(ChangeFileExt(Current_Module.ObjFileName^,Target_Info.StaticCLibExt));
         seq_no:=1;
         current_module.linkotherstaticlibs.add(libname,link_always);
         assign(out_file,current_module.outputpath^+libname);
