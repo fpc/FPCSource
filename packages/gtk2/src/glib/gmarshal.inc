@@ -1,5 +1,16 @@
 // included by glib2.pas
 
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 procedure g_cclosure_marshal_VOID__VOID(closure:PGClosure; return_value:PGValue;
   n_param_values:GUInt; param_values:PGValue; invocation_hint:GPointer;
   marshal_data:GPointer);cdecl;external gobjectlib;
@@ -68,6 +79,6 @@ procedure g_cclosure_marshal_BOOL__FLAGS(closure:PGClosure;
   return_value:PGValue; n_param_values:GUInt; param_values:PGValue;
   invocation_hint:GPointer;
   marshal_data:GPointer);cdecl;external gliblib name 'g_cclosure_marshal_BOOLEAN__FLAGS';
-
+{$ENDIF read_interface_rest}
 // included by glib2.pas
 

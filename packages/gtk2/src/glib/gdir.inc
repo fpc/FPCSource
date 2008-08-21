@@ -1,13 +1,17 @@
-// {$include <glib/gerror.h>}
-    type
-      PGDir   = pointer;
+// included by glib2.pas
 
-    function  g_dir_open(path:Pgchar; flags:guint; error:PPGError):PGDir;cdecl;external gliblib name 'g_dir_open';
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-    function  g_dir_read_name (dir:PGDir): pgchar; cdecl;external gliblib name 'g_dir_read_name';
+//------------------------------------------------------------------------------
 
-    procedure g_dir_rewind(dir:PGDir);cdecl;external gliblib name 'g_dir_rewind';
+{$IFDEF read_interface_types}
+  PGDir   = pointer;
+{$ENDIF read_interface_types}
 
-    procedure g_dir_close(dir:PGDir);cdecl;external gliblib name 'g_dir_close';
-
-
+{$IFDEF read_interface_rest}
+function  g_dir_open(path:Pgchar; flags:guint; error:PPGError):PGDir;cdecl;external gliblib name 'g_dir_open';
+function  g_dir_read_name (dir:PGDir): pgchar; cdecl;external gliblib name 'g_dir_read_name';
+procedure g_dir_rewind(dir:PGDir);cdecl;external gliblib name 'g_dir_rewind';
+procedure g_dir_close(dir:PGDir);cdecl;external gliblib name 'g_dir_close';
+{$ENDIF read_interface_rest}

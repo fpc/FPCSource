@@ -1,37 +1,15 @@
 // included by glib2.pas
 
-{ -- typedefs ---  }
-type
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
    PGClosure = ^TGClosure;
    PGClosureNotifyData = ^TGClosureNotifyData;
    TGClosureNotify = procedure (data:gpointer; closure:PGClosure); cdecl;
 
-{< private > }
-{< private > }
-{< private > }
-{< private > }
-{ finalization notifiers  }
-{< private > }
-{ invalidation notifiers  }
-{< private > }
-{< private > }
-{< protected > }
-{< public > }
-{< public > }
-{< private > }
-{out }
-{< protected > }
-{< private > }
-{ invariants/constrains:
-     - ->marshal and ->data are _invalid_ as soon as ->is_invalid==TRUE
-     - invocation of all inotifiers occours prior to fnotifiers
-     - order of inotifiers is random
-       inotifiers may _not_ free/invalidate parameter values (e.g. ->data)
-     - order of fnotifiers is random
-     - each notifier may only be removed before or during its invocation
-     - reference counting may only happen prior to fnotify invocation
-       (in that sense, fnotifiers are really finalization handlers)
-    }
    TGClosure = record
         flag0 : longint;
         marshal : procedure (closure:PGClosure; return_value:PGValue; n_param_values:guint; param_values:PGValue; invocation_hint:gpointer;
@@ -40,8 +18,13 @@ type
         notifiers : PGClosureNotifyData;
      end;
 
+   PGCClosure = ^TGCClosure;
+   TGCClosure = record
+        closure : TGClosure;
+        callback : gpointer;
+     end;
 
-   TGCallBackProcedure = procedure;
+   TGCallBackProcedure = procedure; 
    TGCallback = procedure (para1: TGCallBackProcedure); cdecl;
 
    TGClosureMarshal = procedure (closure:PGClosure; return_value:PGValue; n_param_values:guint; param_values:PGValue; invocation_hint:gpointer;
@@ -52,7 +35,11 @@ type
         notify : TGClosureNotify;
      end;
 
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 { --- defines ---  }
 
 function G_CLOSURE_NEEDS_MARSHAL(closure : Pointer) : boolean;
@@ -105,12 +92,6 @@ procedure set_is_invalid(var a : TGClosure; __is_invalid : guint);
 
 
 { closure for C function calls, callback() is the user function }
-type
-   PGCClosure = ^TGCClosure;
-   TGCClosure = record
-        closure : TGClosure;
-        callback : gpointer;
-     end;
 
 { --- prototypes ---  }
 
@@ -144,6 +125,7 @@ procedure g_closure_invoke(closure:PGClosure; return_value:PGValue; n_param_valu
    - need marshaller repo with decent aliasing to base types
    - provide marshaller collection, virtually covering anything out there
  }
+{$ENDIF read_interface_rest}
 
 // included by glib2.pas
 

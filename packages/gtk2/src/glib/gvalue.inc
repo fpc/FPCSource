@@ -1,25 +1,28 @@
 // included by glib2.pas
 
 {$IFDEF read_forward_definitions}
-{< private > }
-{ public for GTypeValueTable methods  }
-   PGValue = ^TGValue;
-   TGValue = record
-        g_type : GType;
-        data : array[0..1] of record
-            case longint of
-               0 : ( v_int : gint );
-               1 : ( v_uint : guint );
-               2 : ( v_long : glong );
-               3 : ( v_ulong : gulong );
-               4 : ( v_int64 : gint64 );
-               5 : ( v_uint64 : guint64 );
-               6 : ( v_float : gfloat );
-               7 : ( v_double : gdouble );
-               8 : ( v_pointer : gpointer );
-            end;
-     end;
+  PGValue = ^TGValue;
 {$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+  TGValue = record
+       g_type : GType;
+       data : array[0..1] of record
+           case longint of
+              0 : ( v_int : gint );
+              1 : ( v_uint : guint );
+              2 : ( v_long : glong );
+              3 : ( v_ulong : gulong );
+              4 : ( v_int64 : gint64 );
+              5 : ( v_uint64 : guint64 );
+              6 : ( v_float : gfloat );
+              7 : ( v_double : gdouble );
+              8 : ( v_pointer : gpointer );
+           end;
+    end;
+{$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
 

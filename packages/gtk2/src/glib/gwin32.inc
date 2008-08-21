@@ -1,48 +1,44 @@
-{*
- *  gwin32.inc
- *
- *  depends on gtypes.inc
- *}
+// included by glib2.pas
 
-{$ifdef WIN32}
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-{ Windows emulation stubs for common Unix functions
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+  Ppid_t = ^Tpid_t;
+  Tpid_t = longint;
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
+const
+  MAXPATHLEN = 1024;
+
+{ For some POSIX functions that are not provided by the MS runtime,
+  we provide emulators in glib, which are prefixed with g_win32_. }
+
+function ftruncate(f:gint; size:guint):gint;cdecl;external gliblib name 'g_win32_ftruncate';
+
+function g_win32_ftruncate(f:gint; size:guint):gint;cdecl;external gliblib name 'g_win32_ftruncate';
+
+{ The MS setlocale uses locale names of the form "English_United
+   States.1252" etc. We want the Unixish standard form "en", "zh_TW"
+   etc. This function gets the current thread locale from Windows and
+   returns it as a string of the above form for use in forming file
+   names etc. The returned string should be deallocated with g_free().
 }
 
-    const
-      MAXPATHLEN = 1024;
+function g_win32_getlocale:Pgchar;cdecl;external gliblib name 'g_win32_getlocale';
 
-    type
+{ Translate a Win32 error code (as returned by GetLastError()) into
+   the corresponding message. The returned string should be deallocated
+   with g_free().
+}
 
-       Ppid_t = ^Tpid_t;
-       Tpid_t = longint;
+function g_win32_error_message(error:gint):Pgchar;cdecl;external gliblib name 'g_win32_error_message';
+function g_win32_get_package_installation_directory(package:Pgchar; dll_name:Pgchar):Pgchar;cdecl;external gliblib name 'g_win32_get_package_installation_directory';
+function g_win32_get_package_installation_subdirectory(package:Pgchar; dll_name:Pgchar; subdir:Pgchar):Pgchar;cdecl;external gliblib name 'g_win32_get_package_installation_subdirectory';
 
-    { For some POSIX functions that are not provided by the MS runtime,
-       we provide emulators in glib, which are prefixed with g_win32_.
-      }
-    function ftruncate(f:gint; size:guint):gint;cdecl;external gliblib name 'g_win32_ftruncate';
-
-    function g_win32_ftruncate(f:gint; size:guint):gint;cdecl;external gliblib name 'g_win32_ftruncate';
-
-    { The MS setlocale uses locale names of the form "English_United
-       States.1252" etc. We want the Unixish standard form "en", "zh_TW"
-       etc. This function gets the current thread locale from Windows and
-       returns it as a string of the above form for use in forming file
-       names etc. The returned string should be deallocated with g_free().
-      }
-
-    function g_win32_getlocale:Pgchar;cdecl;external gliblib name 'g_win32_getlocale';
-
-    { Translate a Win32 error code (as returned by GetLastError()) into
-       the corresponding message. The returned string should be deallocated
-       with g_free().
-      }
-    function g_win32_error_message(error:gint):Pgchar;cdecl;external gliblib name 'g_win32_error_message';
-
-    function g_win32_get_package_installation_directory(package:Pgchar; dll_name:Pgchar):Pgchar;cdecl;external gliblib name 'g_win32_get_package_installation_directory';
-
-    function g_win32_get_package_installation_subdirectory(package:Pgchar; dll_name:Pgchar; subdir:Pgchar):Pgchar;cdecl;external gliblib name 'g_win32_get_package_installation_subdirectory';
-
-
-
-{$endif}
+{$ENDIF read_interface_rest}

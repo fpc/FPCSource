@@ -3,11 +3,10 @@
 {$IFDEF read_forward_definitions}
 {$ENDIF read_forward_definitions}
 
+
 //------------------------------------------------------------------------------
 
-{$IFDEF read_interface_rest}
-{ --- typedefs & structures ---  }
-type
+{$IFDEF read_interface_types}
    TGTypePluginUse = procedure (plugin:PGTypePlugin); cdecl;
 
    TGTypePluginUnuse = procedure (plugin:PGTypePlugin); cdecl;
@@ -23,7 +22,11 @@ type
         complete_type_info : TGTypePluginCompleteTypeInfo;
         complete_interface_info : TGTypePluginCompleteInterfaceInfo;
      end;
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 function G_TYPE_TYPE_PLUGIN : GType;
 function G_TYPE_PLUGIN(inst : Pointer) : PGTypePlugin;
 function G_TYPE_PLUGIN_CLASS(vtable : Pointer) : PGTypePluginClass;

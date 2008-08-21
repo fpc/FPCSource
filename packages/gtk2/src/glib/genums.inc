@@ -5,9 +5,7 @@
 
 //------------------------------------------------------------------------------
 
-{$IFDEF read_interface_rest}
-{ --- enum/flag values & classes ---  }
-type
+{$IFDEF read_interface_types}
    PGEnumClass = ^TGEnumClass;
    PGEnumValue = ^TGEnumValue;
 
@@ -40,7 +38,11 @@ type
         value_name : Pgchar;
         value_nick : Pgchar;
      end;
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 { --- type macros ---  }
 function G_TYPE_IS_ENUM(_type : GType) : gboolean;
 function G_ENUM_CLASS(_class : pointer) : PGEnumClass;
@@ -83,5 +85,3 @@ procedure g_flags_complete_type_info(g_flags_type:GType; info:PGTypeInfo; const_
 {$ENDIF read_interface_rest}
 
 // included by glib2.pas
-
-
