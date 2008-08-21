@@ -115,6 +115,12 @@ function gtk_dialog_get_has_separator(dialog:PGtkDialog):gboolean; cdecl; extern
 procedure gtk_dialog_response(dialog:PGtkDialog; response_id:gint); cdecl; external gtklib;
 { Returns response_id  }
 function gtk_dialog_run(dialog:PGtkDialog):gint; cdecl; external gtklib;
+
+{$ifdef HasGTK2_6}
+function gtk_alternative_dialog_button_order(screen:PGdkScreen):gboolean; cdecl; external gtklib;
+procedure gtk_dialog_set_alternative_button_order(dialog:PGtkDialog; first_response_id:gint);varargs;cdecl; external gtklib;
+procedure gtk_dialog_set_alternative_button_order_from_array(dialog:PGtkDialog; n_params:gint; new_order:Pgint);cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

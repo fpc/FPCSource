@@ -3,18 +3,16 @@
 {$ENDIF}
 
 {$IFDEF read_interface_types}
-type
-   PGtkFileChooserDialogClass = ^TGtkFileChooserDialogClass;
-   TGtkFileChooserDialogClass = record
-        parent_class : TGtkDialogClass;
-     end;
+  PGtkFileChooserDialogClass = ^TGtkFileChooserDialogClass;
+  TGtkFileChooserDialogClass = record
+    parent_class : TGtkDialogClass;
+  end;
 
-   PGtkFileChooserDialog = ^TGtkFileChooserDialog;
-   TGtkFileChooserDialog = record
-        parent_instance : TGtkDialog;
-        priv : PGtkFileChooserDialogPrivate;
-     end;
-
+  PGtkFileChooserDialog = ^TGtkFileChooserDialog;
+  TGtkFileChooserDialog = record
+    parent_instance : TGtkDialog;
+    priv : PGtkFileChooserDialogPrivate;
+  end;
 {$ENDIF} {types}
 
 {$IFDEF read_interface_rest}

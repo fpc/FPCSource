@@ -1,12 +1,10 @@
 
 {$IFDEF read_forward_definitions}
+   PGtkFileChooserDialogPrivate = pointer;
+   PPGtkFileChooserDialogPrivate = ^PGtkFileChooserDialogPrivate;
 {$ENDIF}
 
 {$IFDEF read_interface_types}
-type
-   PGtkFileChooserDialogPrivate = pointer;
-   PPGtkFileChooserDialogPrivate = ^PGtkFileChooserDialogPrivate;
-
    PGtkFileChooserIface = ^TGtkFileChooserIface;
    TGtkFileChooserIface = record
         base_iface : TGTypeInterface;

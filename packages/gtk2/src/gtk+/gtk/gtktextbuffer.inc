@@ -181,6 +181,10 @@ procedure _gtk_text_buffer_notify_will_remove_tag(buffer:PGtkTextBuffer; tag:PGt
 procedure gtk_text_buffer_select_range(buffer: PGtkTextBuffer; ins: PGtkTextIter; bound: PGtkTextIter); cdecl; external gtklib;
 {$endif}
 
+{$ifdef HasGTK2_6}
+function gtk_text_buffer_backspace(buffer:PGtkTextBuffer; iter:PGtkTextIter; interactive:gboolean; default_editable:gboolean):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

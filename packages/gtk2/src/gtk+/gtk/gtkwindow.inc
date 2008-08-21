@@ -300,6 +300,13 @@ procedure gtk_window_set_keep_above(window:PGtkWindow; setting:gboolean); cdecl;
 procedure gtk_window_set_keep_below(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
+{$ifdef HasGTK2_6}
+function gtk_window_get_focus_on_map(window:PGtkWindow):gboolean; cdecl; external gtklib;
+function gtk_window_get_icon_name(window:PGtkWindow):Pgchar; cdecl; external gtklib;
+procedure gtk_window_set_default_icon_name(name:Pgchar); cdecl; external gtklib;
+procedure gtk_window_set_focus_on_map(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
+procedure gtk_window_set_icon_name(window:PGtkWindow; name:Pgchar); cdecl; external gtklib;
+{$endif}
 
 {$ENDIF read_interface_rest}
 

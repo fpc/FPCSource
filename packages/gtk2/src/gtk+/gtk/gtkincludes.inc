@@ -154,28 +154,14 @@
 {$include gtkfilesystem.inc}
 
 // new GtkFileChooser Widget
-{$IFDEF HasGTK2_6}
-{$IFNDEF HasGTK2_8} // These functions are removed from GTK-2.8
+{$include gtkfilechooser.inc}
 {$include gtkfilechooserdefault.inc}
+{$include gtkfilechooserdialog.inc}
 {$include gtkfilechooserembed.inc}
 {$include gtkfilechooserentry.inc}
-{$include gtkiconview.inc}
-{$ENDIF HasGTK2_8}
-
-// new GtkCellRendererCombo widget
-{$include gtkcellrenderercombo.inc}
-{$ENDIF HasGTK2_6}
-
-{$IFDEF HasGTK2_8}
-// Put new GTK-2.8 functions here
-{$ENDIF HasGTK2_8}
-
-{$include gtkfilechooser.inc}
-
 {$include gtkfilechooserprivate.inc}
 {$include gtkfilechooserutils.inc}
 {$include gtkfilechooserwidget.inc}
-{$include gtkfilechooserdialog.inc}
 
 // GtkExpander
 {$include gtkexpander.inc}
@@ -206,6 +192,20 @@
 {$include gtkseparatortoolitem.inc}
 {$include gtktreemodelfilter.inc}
 
+{$IFDEF HasGTK2_6}
+{$include gtkaboutdialog.inc}
+{$include gtkcellrenderercombo.inc} // new GtkCellRendererCombo widget
+{$include gtkcellrendererprogress.inc}
+{$include gtkcellview.inc}
+{$include gtkfilechooserbutton.inc}
+{$include gtkiconview.inc}
+{$include gtkmenutoolbutton.inc}
+
+{$IFDEF HasGTK2_8}
+// Put new GTK-2.8 functions here
+{$ENDIF HasGTK2_8}
+
+{$ENDIF HasGTK2_6}
 
 {$endif HasGTK2_4}
 

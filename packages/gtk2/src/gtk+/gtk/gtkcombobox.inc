@@ -70,6 +70,20 @@ procedure gtk_combo_box_remove_text(combo_box:PGtkComboBox; position:gint);cdecl
 { programmatic control  }
 procedure gtk_combo_box_popup(combo_box:PGtkComboBox);cdecl;external gtklib name 'gtk_combo_box_popup';
 procedure gtk_combo_box_popdown(combo_box:PGtkComboBox);cdecl;external gtklib name 'gtk_combo_box_popdown';
+
+{$ifdef HasGTK2_6}
+function gtk_combo_box_get_active_text(combo_box:PGtkComboBox):Pgchar;cdecl;external gtklib;
+function gtk_combo_box_get_column_span_column(combo_box:PGtkComboBox):gint;cdecl;external gtklib;
+function gtk_combo_box_get_focus_on_click(combo:PGtkComboBox):gboolean;cdecl;external gtklib;
+function gtk_combo_box_get_popup_accessible(combo_box:PGtkComboBox):PAtkObject;cdecl;external gtklib;
+function gtk_combo_box_get_row_separator_func(combo_box:PGtkComboBox):TGtkTreeViewRowSeparatorFunc;cdecl;external gtklib;
+function gtk_combo_box_get_row_span_column(combo_box:PGtkComboBox):gint;cdecl;external gtklib;
+function gtk_combo_box_get_wrap_width(combo_box:PGtkComboBox):gint;cdecl;external gtklib;
+procedure gtk_combo_box_set_add_tearoffs(combo_box:PGtkComboBox; add_tearoffs:gboolean);cdecl;external gtklib;
+procedure gtk_combo_box_set_focus_on_click(combo:PGtkComboBox; focus_on_click:gboolean);cdecl;external gtklib;
+procedure gtk_combo_box_set_row_separator_func(combo_box:PGtkComboBox; func:TGtkTreeViewRowSeparatorFunc; data:gpointer; destroy:TGtkDestroyNotify);cdecl;external gtklib;
+{$endif}
+
 {$endif read_interface_rest}
 
 {$ifdef read_implementation}

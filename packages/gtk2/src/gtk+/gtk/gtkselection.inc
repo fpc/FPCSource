@@ -91,6 +91,19 @@ procedure gtk_selection_data_free(data:PGtkSelectionData); cdecl; external gtkli
 function gtk_selection_clear(widget:PGtkWidget; event:PGdkEventSelection):gboolean; cdecl; external gtklib;
 function gtk_selection_owner_set_for_display(display:PGdkDisplay; widget:PGtkWidget; selection:TGdkAtom; time:guint32):gboolean; cdecl; external gtklib;
 {$ENDIF}
+
+{$ifdef HasGTK2_6}
+function gtk_selection_data_get_pixbuf(selection_data:PGtkSelectionData):PGdkPixbuf; cdecl; external gtklib;
+function gtk_selection_data_get_uris(selection_data:PGtkSelectionData):PPgchar; cdecl; external gtklib;
+function gtk_selection_data_set_pixbuf(selection_data:PGtkSelectionData; pixbuf:PGdkPixbuf):gboolean; cdecl; external gtklib;
+function gtk_selection_data_set_uris(selection_data:PGtkSelectionData; uris:PPgchar):gboolean; cdecl; external gtklib;
+function gtk_selection_data_targets_include_image(selection_data:PGtkSelectionData; writable:gboolean):gboolean; cdecl; external gtklib;
+
+procedure gtk_target_list_add_image_targets(list:PGtkTargetList; info:guint; writable:gboolean); cdecl; external gtklib;
+procedure gtk_target_list_add_text_targets(list:PGtkTargetList; info:guint); cdecl; external gtklib;
+procedure gtk_target_list_add_uri_targets(list:PGtkTargetList; info:guint); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

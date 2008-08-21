@@ -46,6 +46,10 @@ function gtk_file_filter_get_needed(filter:PGtkFileFilter):TGtkFileFilterFlags;c
 
 function gtk_file_filter_filter(filter:PGtkFileFilter; filter_info:PGtkFileFilterInfo):gboolean;cdecl;external gtklib name 'gtk_file_filter_filter';
 
+{$ifdef HasGTK2_6}
+procedure gtk_file_filter_add_pixbuf_formats(filter:PGtkFileFilter);cdecl;external gtklib;
+{$endif}
+
 {$endif}
 
 {$ifdef read_implementation}
