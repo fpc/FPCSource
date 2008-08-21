@@ -231,6 +231,7 @@ Type
     FTableName: String;
     function GetOnProgress: TDDProgressEvent;
     function GetPrimaryKeyName: String;
+    function GetPrimaryIndexDef : TDDIndexDef;
     procedure SetTableName(const AValue: String);
   protected
     function GetSectionName: String; override;
@@ -245,10 +246,13 @@ Type
     Function AddField(AFieldName : String = '') : TDDFieldDef;
     Procedure SaveToIni(Ini: TCustomInifile; ASection : String); override;
     Procedure LoadFromIni(Ini: TCustomInifile; ASection : String); override;
+    procedure PrimaryIndexToFields;
+    procedure FieldsToPrimaryIndex;
     Property Fields : TDDFieldDefs Read FFieldDefs;
     Property Indexes : TDDIndexDefs Read FIndexDefs;
     Property ForeignKeys : TDDForeignKeyDefs Read FKeyDefs;
     Property OnProgress : TDDProgressEvent Read GetOnProgress;
+    Property PrimaryIndexDef : TDDIndexDef read GetPrimaryIndexDef;
   Published
     Property TableName : String Read FTableName Write SetTableName;
     Property PrimaryKeyConstraintName : String Read GetPrimaryKeyName Write FPrimaryKeyName;
@@ -545,17 +549,22 @@ Type
   Public
     Destructor Destroy; override;
     Function GetConnectString : String; virtual;
-    Function ImportTables(Tables : TDDTableDefs; List : TStrings; UpdateExisting : Boolean) : Integer;
     // Mandatory for all data dictionary engines.
     Class function Description : string; virtual; abstract;
     Class function DBType : String; virtual; abstract;
     Class function EngineCapabilities : TFPDDEngineCapabilities; virtual;
     Function Connect(const ConnectString : String) : Boolean; virtual; abstract;
     Procedure Disconnect ; virtual; abstract;
+    procedure ImportDatadict (Adatadict: TFPDataDictionary; UpdateExisting : Boolean);
     Function GetTableList(List : TStrings) : Integer; virtual; abstract;
+    Function ImportTables(Tables : TDDTableDefs; List : TStrings; UpdateExisting : Boolean) : Integer;
     Function ImportFields(Table : TDDTableDef) : Integer; virtual; abstract;
-    Function ImportDomains(Domains : TDDDomainDefs) : Integer; virtual;
-    Function ImportSequences(Sequences : TDDSequenceDefs) : Integer; virtual;
+    Function ImportIndexes(Table : TDDTableDef) : Integer; virtual; abstract;
+    function GetDomainList(List: TSTrings) : integer; virtual;
+    Function ImportDomains(Domains : TDDDomainDefs; List : TStrings; UpdateExisting : boolean) : Integer; virtual;
+    function GetSequenceList (List:TStrings): integer; virtual;
+    Function ImportSequences(Sequences : TDDSequenceDefs; List : TStrings; UpdateExisting : boolean) : Integer; virtual;
+
     // Override depending on capabilities
     Procedure CreateTable(Table : TDDTableDef); virtual;
     // Should not open the dataset.
@@ -1311,8 +1320,31 @@ begin
 end;
 
 function TDDTableDef.GetPrimaryKeyName: String;
+var i : TDDIndexDef;
 begin
-  Result:=Tablename+'_PK';
+  if FPrimaryKeyName <> '' then
+    Result := FPrimaryKeyName
+  else
+    begin
+    I := GetPrimaryIndexDef;
+    if assigned (I) then
+      Result := I.IndexName
+    else
+      Result:=Tablename+'_PK';
+    end;
+end;
+
+function TDDTableDef.GetPrimaryIndexDef: TDDIndexDef;
+var r : integer;
+begin
+  r := Indexes.count;
+  repeat
+    dec (r);
+  until (r < 0) or (ixPrimary in Indexes[r].Options);
+  if r < 0 then
+    result := nil
+  else
+    result := Indexes[r];
 end;
 
 function TDDTableDef.GetOnProgress: TDDProgressEvent;
@@ -1442,6 +1474,56 @@ begin
     OnProgress(Self,Format(SLoadingFieldsFrom,[TableName]));
   FFieldDefs.LoadFromIni(Ini,ASection+SFieldSuffix);
   FIndexDefs.LoadFromIni(Ini,ASection+SIndexSuffix);
+end;
+
+procedure TDDTableDef.PrimaryIndexToFields;
+var I : TDDIndexDef;
+    r : integer;
+    l : TFPDDFieldList;
+begin
+  I := GetPrimaryIndexDef;
+  if assigned (I) then
+    begin
+    for r := 0 to Fields.count-1 do
+      Fields[r].ProviderFlags := Fields[r].ProviderFlags - [pfInKey];
+    l := TFPDDFieldList.create;
+    try
+      Fields.FillFieldList (I.Fields, l);
+      for r := 0 to l.count-1 do
+        l[r].ProviderFlags := l[r].ProviderFlags + [pfInKey];
+    finally
+      l.Free;
+    end;
+    end;
+end;
+
+procedure TDDTableDef.FieldsToPrimaryIndex;
+var I : TDDIndexDef;
+    r : integer;
+    s : string;
+begin
+  I := GetPrimaryIndexDef;
+  s := '';
+  for r := 0 to fields.count-1 do
+    if pfInKey in fields[r].ProviderFlags then
+      s := s + ';' + fields[r].FieldName;
+  if s = '' then
+    begin
+    if assigned (I) then
+      I.Free;
+    end
+  else
+    begin
+    s := copy(s, 2, maxint);
+    if assigned (I) then
+      I.Fields := s
+    else
+      begin
+      I := Indexes.AddIndex(GetPrimaryKeyName);
+      I.Fields := s;
+      I.Options := I.Options + [ixPrimary];
+      end;
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -1774,16 +1856,24 @@ begin
     TD:=Nil;
     j:=Tables.IndexOfTable(List[i]);
     If (J=-1) then
-      TD:=Tables.AddTAble(List[i])
+      TD:=Tables.AddTable(List[i])
     else if UpdateExisting then
       TD:=Tables[J];
     If (TD<>nil) then
       begin
       DoProgress(Format(SDDImportingTable,[TD.TableName]));
       ImportFields(TD);
+      if ecTableIndexes in EngineCapabilities then
+        ImportIndexes(TD);
       Inc(Result);
       end
     end;
+end;
+
+function TFPDDEngine.GetDomainList(List: TSTrings): integer;
+begin
+  List.Clear;
+  result := 0;
 end;
 
 function TFPDDEngine.CreateSQLEngine: TFPDDSQLEngine;
@@ -1796,14 +1886,68 @@ begin
   Result:=[];
 end;
 
-function TFPDDEngine.ImportDomains(Domains: TDDDomainDefs): Integer;
+procedure TFPDDEngine.ImportDatadict(Adatadict: TFPDatadictionary;
+  UpdateExisting: Boolean);
+var L : TStringList;
+    r : integer;
 begin
-  Domains.Clear;
+  l := TStringlist.Create;
+  try
+    if ecDomains in EngineCapabilities then
+      begin
+      GetDomainList (L);
+      if UpdateExisting then // Delete domains that don't exist anymore
+        begin
+        for r := ADatadict.Domains.count-1 downto 0 do
+          if L.indexOf(ADatadict.Domains[r].DomainName) < 0 then
+            ADatadict.Domains[r].Free;
+        end;
+      ImportDomains (ADatadict.Domains, L, UpdateExisting);
+      end;
+
+    L.Clear;
+    GetTableList (L);
+    if UpdateExisting then // delete tables that don't exist anymore
+      begin
+      for r := ADatadict.Tables.count-1 downto 0 do
+        if L.indexOf(ADatadict.Tables[r].TableName) < 0 then
+          ADatadict.Tables[r].Free;
+      end;
+    ImportTables (ADatadict.Tables, L, UpdateExisting);
+
+    if ecSequences in EngineCapabilities then
+      begin
+      L.Clear;
+      GetSequenceList (L);
+      if UpdateExisting then // Delete sequences that don't exist anymore
+        begin
+        for r := ADatadict.Sequences.count-1 downto 0 do
+          if L.indexOf(ADatadict.Sequences[r].SequenceName) < 0 then
+            ADatadict.Sequences[r].Free;
+        end;
+      ImportSequences (ADatadict.Sequences, L, UpdateExisting);
+      end;
+  finally
+    L.Free;
+  end;
 end;
 
-function TFPDDEngine.ImportSequences(Sequences: TDDSequenceDefs): Integer;
+function TFPDDEngine.ImportDomains(Domains: TDDDomainDefs; List : TStrings; UpdateExisting : boolean) : Integer;
 begin
-  Sequences.Clear;
+  result := 0;
+  writeln ('importing no domains');
+end;
+
+function TFPDDEngine.GetSequenceList(List: TStrings): integer;
+begin
+  List.Clear;
+  result := 0;
+end;
+
+function TFPDDEngine.ImportSequences(Sequences: TDDSequenceDefs; List : TStrings; UpdateExisting : boolean) : Integer;
+begin
+  result := 0;
+  writeln ('importing no sequences');
 end;
 
 procedure TFPDDEngine.CreateTable(Table: TDDTableDef);
@@ -1986,7 +2130,10 @@ end;
 function TFPDDSQLEngine.FieldTypeString(FD : TDDFieldDef) : String;
 
 begin
-  Result:=FieldTypeString(FD.FieldType,FD.Size,FD.Precision);
+  if FD.DomainName <> '' then
+    Result := FD.DomainName
+  else
+    Result:=FieldTypeString(FD.FieldType,FD.Size,FD.Precision);
 end;
 
 
@@ -2390,15 +2537,9 @@ begin
     KF:=TFPDDFieldlist.Create(False);
     try
       KF.OwnsObjects:=False;
-      I:=0;
-      While (I<TableDef.Indexes.Count) and (KF.Count=0) do
-        begin
-        ID:=TableDef.Indexes[i];
-        If (ixPrimary in ID.Options) then
-          TableDef.Fields.FillFieldList(ID.Fields,KF);
-        Inc(I);
-        end;
-      If (KF.Count=0) then
+      if assigned (TableDef.PrimaryIndexDef) then
+        TableDef.fields.FillFieldList(TableDef.PrimaryIndexDef.Fields, KF)
+      else
         For I:=0 to TableDef.Fields.Count-1 do
           begin
           FD:=TableDef.Fields[I];
@@ -2460,7 +2601,8 @@ Var
 
 begin
   For I:=0 to Indexes.Count-1 do
-    SQL.Add(CreateIndexSQL(Indexes[i])+TerminatorChar);
+    if not (ixPrimary in Indexes[i].Options) then
+      SQL.Add(CreateIndexSQL(Indexes[i])+TerminatorChar);
 end;
 
 procedure TFPDDSQLEngine.CreateSequencesSQLStrings(Sequences: TFPDDSequenceList;
@@ -2822,9 +2964,10 @@ end;
 function TDDDomainDefs.IndexOfDomain(ADomainName: String): Integer;
 
 begin
-  Result:=Count-1;
-  While (Result>=0) and (CompareText(GetDomain(Result).DomainName,ADomainName)=0) do
+  Result := Count;
+  repeat
     Dec(Result);
+  until (Result < 0) or (CompareText(GetDomain(Result).DomainName,ADomainName) = 0);
 end;
 
 function TDDDomainDefs.FindDomain(ADomainName: String): TDDDomainDef;
@@ -3019,8 +3162,10 @@ end;
 
 function TDDSequenceDefs.IndexOfSequence(ASequenceName: String): Integer;
 begin
-  While (Result>=0) and (CompareText(GetSequence(Result).SequenceName,ASequenceName)=0) do
+  result := count;
+  repeat
     Dec(Result);
+  until (Result<0) or (CompareText(GetSequence(Result).SequenceName,ASequenceName)=0);
 end;
 
 function TDDSequenceDefs.FindSequence(ASequenceName: String): TDDSequenceDef;

@@ -39,6 +39,7 @@ Type
     Function Connect(const AConnectString : String) : Boolean; override;
     Function GetTableList(List : TStrings) : Integer; override;
     Function ImportFields(Table : TDDTableDef) : Integer; override;
+    Function ImportIndexes(Table : TDDTableDef) : Integer; override;
     Function ViewTable(Const TableName: String; DatasetOwner : TComponent) : TDataset; override;
     Function RunQuery(SQL : String) : Integer; override;
     Function CreateQuery(SQL : String; DatasetOwner : TComponent) : TDataset; override;
@@ -140,6 +141,12 @@ begin
     Q.Free;
   end;
 end;
+
+
+Function TSQLDBDDEngine.ImportIndexes(Table : TDDTableDef) : Integer;
+begin
+end;
+
 
 function TSQLDBDDEngine.ViewTable(const TableName: String;
   DatasetOwner: TComponent): TDataset;
