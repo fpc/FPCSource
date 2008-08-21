@@ -101,6 +101,7 @@ interface
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify : tnode;override;
        end;
        tfornodeclass = class of tfornode;
 
@@ -763,6 +764,26 @@ implementation
         end;
       Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
     end;
+
+
+    function tfornode.simplify : tnode;
+      begin
+        result:=nil;
+        if (t1.nodetype=ordconstn) and
+           (right.nodetype=ordconstn) and
+           (
+            (
+             (lnf_backward in loopflags) and
+             (tordconstnode(right).value<tordconstnode(t1).value)
+            ) or
+            (
+              not(lnf_backward in loopflags) and
+              (tordconstnode(right).value>tordconstnode(t1).value)
+            )
+           ) then
+        result:=cnothingnode.create;
+      end;
+
 
     function tfornode.pass_typecheck:tnode;
       var

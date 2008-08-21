@@ -204,8 +204,20 @@ unit optdfa;
               end
             else
               begin
-                l:=n.optinfo^.use;
-                DFASetIncludeSet(l,n.optinfo^.life);
+                { last node, not exit or raise node and function? }
+                if assigned(resultnode) and
+                  not(node.nodetype in [raisen,exitn]) then
+                  begin
+                    { if yes, result lifes }
+                    DFASetDiff(l,resultnode.optinfo^.life,n.optinfo^.def);
+                    DFASetIncludeSet(l,n.optinfo^.use);
+                    DFASetIncludeSet(l,n.optinfo^.life);
+                  end
+                else
+                  begin
+                    l:=n.optinfo^.use;
+                    DFASetIncludeSet(l,n.optinfo^.life);
+                  end;
               end;
             updatelifeinfo(n,l);
           end;
@@ -275,7 +287,9 @@ unit optdfa;
                   t1: to
                   t2: body
                 }
-                calclife(node);
+                { take care of the sucessor if it's possible that we don't have one execution of the body }
+                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
+                  calclife(node);
                 node.allocoptinfo;
                 if not(assigned(node.optinfo^.def)) and
                    not(assigned(node.optinfo^.use)) then
@@ -287,9 +301,11 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,tfornode(node).right,@AddDefUse,@dfainfo);
                     foreachnodestatic(pm_postprocess,tfornode(node).t1,@AddDefUse,@dfainfo);
                   end;
-                calclife(node);
+                { take care of the sucessor if it's possible that we don't have one execution of the body }
+                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
+                  calclife(node);
 
-                { create life the body }
+                { create life for the body }
                 CreateInfo(tfornode(node).t2);
 
                 { update for node }
@@ -360,7 +376,12 @@ unit optdfa;
                   DFASetIncludeSet(l,tifnode(node).t1.optinfo^.life)
                 else
                   if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    DFASetIncludeSet(l,node.successor.optinfo^.life)
+                  { last node and function? }
+                else
+                  if assigned(resultnode) then
+                    DFASetIncludeSet(l,resultnode.optinfo^.life);
+
                 { add use info from the cond. expression }
                 DFASetIncludeSet(l,tifnode(node).optinfo^.use);
                 { finally, update the life info of the node }
@@ -397,7 +418,11 @@ unit optdfa;
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
                 else
                   if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    DFASetIncludeSet(l,node.successor.optinfo^.life)
+                  { last node and function? }
+                else
+                  if assigned(resultnode) then
+                    DFASetIncludeSet(l,resultnode.optinfo^.life);
 
                 { add use info from the "case" expression }
                 DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
@@ -502,6 +527,7 @@ unit optdfa;
             dfarec.def:=@resultnode.optinfo^.def;
             dfarec.map:=map;
             AddDefUse(resultnode,@dfarec);
+            resultnode.optinfo^.life:=resultnode.optinfo^.use;
           end
         else
           resultnode:=nil;
@@ -530,40 +556,13 @@ unit optdfa;
 
 
     procedure TDFABuilder.createdfainfo(node : tnode);
-    {
-      var
-        lastnode : tnode;
-        fakeexitnode : texitnode;
-    }
       begin
         if not(assigned(nodemap)) then
           nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
-     {
-        { create an exit node for functions to get
-          the function result at the end handled properly }
-        if not(is_void(current_procinfo.procdef.returndef)) and
-          not(current_procinfo.procdef.proctypeoption=potype_constructor) then
-          begin
-            lastnode:=node;
-            while assigned(lastnode.successor) do
-              lastnode:=lastnode.successor;
-            fakeexitnode:=cexitnode.create(nil);
-            lastnode.successor:=fakeexitnode;
-          end
-        else
-           fakeexitnode:=nil;
-     }
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
-     {
-        if assigned(fakeexitnode) then
-          begin
-            lastnode.successor.free;
-            lastnode.successor:=nil;
-          end;
-     }
       end;
 
 
