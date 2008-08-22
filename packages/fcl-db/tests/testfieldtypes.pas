@@ -28,6 +28,7 @@ type
     procedure RunTest; override;
   published
     procedure TestClearUpdateableStatus;
+    procedure TestFixedStringParamQuery;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
     procedure TestDoubleFieldNames; // bug 8457
@@ -700,6 +701,11 @@ begin
   TestXXParamQuery(ftString,'VARCHAR(10)',testValuesCount);
 end;
 
+procedure TTestFieldTypes.TestFixedStringParamQuery;
+begin
+  TestXXParamQuery(ftFixedChar,'CHAR(10)',testValuesCount);
+end;
+
 procedure TTestFieldTypes.TestDateParamQuery;
 
 begin
@@ -731,6 +737,7 @@ begin
       case ADataType of
         ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftFixedChar,
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
         ftDate   : if cross then
                      Params.ParamByName('field1').AsString:= testDateValues[i]
@@ -753,7 +760,13 @@ begin
       case ADataType of
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
-        ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
+        ftFixedChar,
+        ftString : begin
+                   if FieldByName('FIELD1').isnull then
+                     AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString)
+                   else
+                     AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
+                   end;
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
       else
         AssertTrue('no test for paramtype available',False);

@@ -231,6 +231,7 @@ var DBConnectorClass : TPersistentClass;
     i                : integer;
 begin
   testValues[ftString] := testStringValues;
+  testValues[ftFixedChar] := testStringValues;
   testValues[ftDate] := testDateValues;
   for i := 0 to testValuesCount-1 do
     begin

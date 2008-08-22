@@ -796,7 +796,14 @@ begin
             inc(CurrBuff,2);
             end
           else
+            begin
+            // The buffer-length is always VSQLVar^.sqllen, nothing more, nothing less
+            // so fill the complete buffer with valid data. Adding #0 will lead
+            // to problems, because the #0 will be seen as a part of the (binary) string
             CurrBuff := VSQLVar^.SQLData;
+            w := VSQLVar^.sqllen;
+            s := PadRight(s,w);
+            end;
           Move(s[1], CurrBuff^, w);
           end;
         SQL_TYPE_DATE, SQL_TYPE_TIME, SQL_TIMESTAMP :
