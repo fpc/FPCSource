@@ -97,6 +97,18 @@ begin
 end;
 
 begin
+  (*
+   * this initialize the library and check potential ABI mismatches
+   * between the version it was compiled for and the actual shared
+   * library used.
+   *)
+  LIBXML_TEST_VERSION;
+
   streamFile(pchar(ParamStr(1)));
+
+  (*
+   * Cleanup function for the XML library.
+   *)
+  xmlCleanupParser();
 end.
 

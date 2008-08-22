@@ -49,7 +49,7 @@ const
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  *)
-{$DEFINE LIBXML_TEST_VERSION := xmlCheckVersion(20632)}
+procedure LIBXML_TEST_VERSION;
 
 (**
  * LIBXML_THREAD_ENABLED:

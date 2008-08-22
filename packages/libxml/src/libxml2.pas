@@ -268,6 +268,16 @@ end;
 
 
 (*
+ * macros from xmlversion.inc
+ *)
+
+procedure LIBXML_TEST_VERSION;
+begin
+  xmlCheckVersion(LIBXML_VERSION);
+end;
+
+
+(*
  * macros from chvalid.inc
  *)
 
@@ -454,14 +464,14 @@ initialization
 (*
  * overloading the error functions
  *)
-  xmlSetGenericErrorFunc(nil, @fpcxmlGenericErrorHandler);
-  xmlSetStructuredErrorFunc(nil, @fpcxmlStructuredErrorHandler);
+  //xmlSetGenericErrorFunc(nil, @fpcxmlGenericErrorHandler);
+  //xmlSetStructuredErrorFunc(nil, @fpcxmlStructuredErrorHandler);
 
 finalization
 (*
  * Cleanup function for the XML library.
  *)
-  xmlCleanupParser();
+  //xmlCleanupParser();
 
 (*
  * this is to debug memory for regression tests
