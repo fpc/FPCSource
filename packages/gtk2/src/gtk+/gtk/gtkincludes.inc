@@ -155,10 +155,10 @@
 
 // new GtkFileChooser Widget
 {$include gtkfilechooser.inc}
-{$include gtkfilechooserdefault.inc}
+//{$include gtkfilechooserdefault.inc} - no exports
 {$include gtkfilechooserdialog.inc}
-{$include gtkfilechooserembed.inc}
-{$include gtkfilechooserentry.inc}
+//{$include gtkfilechooserembed.inc} - no exports
+//{$include gtkfilechooserentry.inc} - no exports
 {$include gtkfilechooserprivate.inc}
 {$include gtkfilechooserutils.inc}
 {$include gtkfilechooserwidget.inc}
