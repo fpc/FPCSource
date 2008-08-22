@@ -3287,6 +3287,7 @@ packages/libxml/examples/Makefile svneol=native#text/plain
 packages/libxml/examples/Makefile.fpc svneol=native#text/plain
 packages/libxml/examples/exutils.pas svneol=native#text/plain
 packages/libxml/examples/io1.pas svneol=native#text/plain
+packages/libxml/examples/io2.pas svneol=native#text/plain
 packages/libxml/examples/reader1.pas svneol=native#text/plain
 packages/libxml/examples/reader2.pas svneol=native#text/plain
 packages/libxml/examples/test1.xml svneol=native#text/plain

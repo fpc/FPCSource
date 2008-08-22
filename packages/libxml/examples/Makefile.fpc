@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=reader1 reader2 io1
+programs=reader1 reader2 io1 io2
 
 [require]
 #packages=
