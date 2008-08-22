@@ -769,8 +769,8 @@ function xmlReconciliateNs(doc: xmlDocPtr; tree: xmlNodePtr): cint; XMLCALL; XML
  * Saving.
  *)
 procedure xmlDocDumpFormatMemory(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint; format: cint); XMLCALL; XMLPUBFUN;
-procedure xmlDocDumpMemory(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint); XMLCALL; XMLPUBFUN;
-procedure xmlDocDumpMemoryEnc(out_doc: xmlDocPtr; doc_txt_ptr: xmlCharPtrPtr; doc_txt_len: pcint; txt_encoding: pchar); XMLCALL; XMLPUBFUN;
+procedure xmlDocDumpMemory(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint); XMLCALL; XMLPUBFUN;
+procedure xmlDocDumpMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: pchar); XMLCALL; XMLPUBFUN;
 procedure xmlDocDumpFormatMemoryEnc(out_doc: xmlDocPtr; doc_txt_ptr: xmlCharPtrPtr; doc_txt_len: pcint; txt_encoding: pchar; format: cint); XMLCALL; XMLPUBFUN;
 function xmlDocFormatDump(f: PFILE; cur: xmlDocPtr; format: cint): cint; XMLCALL; XMLPUBFUN;
 function xmlDocDump(f: PFILE; cur: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;

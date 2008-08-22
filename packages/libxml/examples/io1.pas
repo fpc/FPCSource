@@ -18,7 +18,8 @@ program io1;
 uses
   ctypes,
   libxml2,
-  exutils;
+  exutils,
+  SysUtils;
 
 const
   include: pchar =
@@ -27,6 +28,11 @@ const
       '<p>List of people:</p>'#10+
       '<xi:include href="sql:select_name_from_people"/>'#10+
     '</document>'#10;
+
+var
+  res: pchar = '<list><people>a</people><people>b</people></list>';
+  cur: pchar = nil;
+  rlen: cint = 0;
 
 
 (**
@@ -39,7 +45,7 @@ const
  *)
 function sqlMatch(URI: pchar): cint; cdecl;
 begin
-  if assigned(URI) {and (strncmp(URI, 'sql:', 4) = 0)} then
+  if assigned(URI) and (strlcomp(URI, 'sql:', 4) = 0) then
     result := 1
   else
     result := 0;
@@ -56,18 +62,14 @@ end;
  *)
 function sqlOpen(URI: pchar): pointer; cdecl;
 begin
-  if not assigned(URI) or (strncmp(URI, 'sql:', 4) <> 0) then
+  if not assigned(URI) or (strlcomp(URI, 'sql:', 4) <> 0) then
     exit(nil);
 
-  
+  cur := res;
+  rlen := strlen(res);
+
+  result := pointer(cur);
 end;
-{
-    if ((URI == NULL) || (strncmp(URI, "sql:", 4)))
-        return(NULL);
-    cur = result;
-    rlen = strlen(result);
-    return((void *) cur);
-}
 
 (**
  * sqlClose:
@@ -79,12 +81,14 @@ end;
  *)
 function sqlClose(context: pointer): cint; cdecl;
 begin
-end; {
-    if (context == NULL) return(-1);
-    cur = NULL;
-    rlen = 0;
-    return(0);
-}
+  if not assigned(context) then
+    exit(-1);
+
+  cur := nil;
+  rlen := 0;
+
+  result := 0;
+end;
 
 (**
  * sqlRead:
@@ -97,20 +101,21 @@ end; {
  * Returns the number of bytes read or -1 in case of error
  *)
 function sqlRead(context: pointer; buffer: pchar; len: cint): cint; cdecl;
+var
+  ptr: pchar;
 begin
+  if not assigned(context) or not assigned(buffer) or (len < 0) then
+    exit(-1);
+
+  ptr := context;
+  if len > rlen then
+    len := rlen;
+
+  move(ptr^, buffer^, len);
+  rlen := rlen - len;
+
+  result := len;
 end;
-{
-   const char *ptr = (const char *) context;
-
-   if ((context == NULL) || (buffer == NULL) || (len < 0))
-       return(-1);
-
-   if (len > rlen) len = rlen;
-   memcpy(buffer, ptr, len);
-   rlen -= len;
-   return(len);
-}
-
 
 var
   doc: xmlDocPtr;
@@ -160,7 +165,8 @@ begin
   (*
    * Free the document
    *)
-  xmlFreeDoc(doc);
+  //xmlDumpDoc(doc);
+  docdump(doc);
 
   (*
    * Cleanup function for the XML library.
