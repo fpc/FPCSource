@@ -1307,6 +1307,14 @@ implementation
         do_localswitch(cs_bitpacking);
       end;
 
+    procedure dir_region;
+      begin
+      end;
+
+    procedure dir_endregion;
+      begin
+      end;
+
 
 {****************************************************************************
                          Initialize Directives
@@ -1337,6 +1345,7 @@ implementation
         AddDirective('D',directive_all, @dir_description);
         AddDirective('DEBUGINFO',directive_all, @dir_debuginfo);
         AddDirective('DESCRIPTION',directive_all, @dir_description);
+        AddDirective('ENDREGION',directive_all, @dir_endregion);
         AddDirective('ERROR',directive_all, @dir_error);
         AddDirective('ERRORC',directive_mac, @dir_error);
         AddDirective('EXTENDEDSYNTAX',directive_all, @dir_extendedsyntax);
@@ -1394,6 +1403,7 @@ implementation
         AddDirective('R',directive_all, @dir_resource);
         AddDirective('RANGECHECKS',directive_all, @dir_rangechecks);
         AddDirective('REFERENCEINFO',directive_all, @dir_referenceinfo);
+        AddDirective('REGION',directive_all, @dir_region);
         AddDirective('RESOURCE',directive_all, @dir_resource);
         AddDirective('SATURATION',directive_all, @dir_saturation);
         AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
