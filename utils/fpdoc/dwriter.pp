@@ -470,7 +470,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 
   function ConvertText: DOMString;
   var
-    s: String;
+    s: DOMString;
     i: Integer;
   begin
     if Node.NodeType = TEXT_NODE then
