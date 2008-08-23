@@ -132,16 +132,6 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
                               Parameter Handling
 *****************************************************************************}
 
-var
-  ModuleName : array[0..255] of char;
-
-function GetCommandFile:pchar;
-begin
-  GetModuleFileName(0,@ModuleName,255);
-  GetCommandFile:=@ModuleName;
-end;
-
-
 procedure setup_arguments;
 var
   arglen,
@@ -150,6 +140,7 @@ var
   pc,arg  : pchar;
   quote   : char;
   argvlen : longint;
+  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
 
   procedure allocarg(idx,len:longint);
     var
@@ -175,13 +166,10 @@ begin
   count:=0;
   argv:=nil;
   argvlen:=0;
-  pc:=getcommandfile;
-  Arglen:=0;
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen]=#0);
-  allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen+1);
+  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
+  buf[ArgLen] := #0; // be safe
+  allocarg(0,arglen);
+  move(buf,argv[0]^,arglen+1);
   { Setup cmdline variable }
   cmdline:=GetCommandLine;
   { process arguments }
@@ -271,7 +259,7 @@ begin
                   break;
                end;
              '"' :
-               begin
+                begin
                  if quote<>'''' then
                   begin
                     if pchar(pc+1)^<>'"' then
@@ -325,11 +313,11 @@ begin
  {$EndIf SYSTEM_DEBUG_STARTUP}
      inc(count);
    end;
-  { get argc and create an nil entry }
+  { get argc }
   argc:=count;
-  allocarg(argc,0);
-  { free unused memory }
-  sysreallocmem(argv,(argc+1)*sizeof(pointer));
+  { free unused memory, leaving a nil entry at the end }
+  sysreallocmem(argv,(count+1)*sizeof(pointer));
+  argv[count] := nil;
 end;
 
 
@@ -1149,7 +1137,7 @@ begin
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    SysInstance:=getmodulehandle(GetCommandFile);
+    SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
