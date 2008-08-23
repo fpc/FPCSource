@@ -3042,8 +3042,8 @@ implementation
                       { call-by-reference const's may need to be passed by }
                       { reference to function called in the inlined code   }
                       (paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) and
-                       (not valid_for_addr(para.left,false) or
-                        is_constnode(para.left)))))
+                       not valid_for_addr(para.left,false))
+                     ))
                    )
                   ) then
                   begin

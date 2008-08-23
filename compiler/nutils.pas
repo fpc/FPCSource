@@ -696,6 +696,7 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
+              stringconstn,
               tempcreaten,
               tempdeleten,
               ordconstn,
@@ -775,7 +776,7 @@ implementation
                         inc(result);
                         exit;
                       end;
-          
+
                     in_inc_x,
                     in_dec_x,
                     in_include_x_y,
@@ -799,7 +800,7 @@ implementation
                         exit;
                       end;
                   end;
-                  
+
                 end;
               else
                 begin
