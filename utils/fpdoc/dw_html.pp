@@ -621,8 +621,8 @@ var
 begin
   Doc := THTMLDocument.Create;
   Result := Doc;
-  Doc.AppendChild(Doc.CreateProcessingInstruction(
-    'DOCTYPE', 'HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"'));
+  Doc.AppendChild(Doc.Impl.CreateDocumentType(
+    'HTML', '-//W3C//DTD HTML 4.0 Transitional//EN', ''));
 
   HTMLEl := Doc.CreateHtmlElement;
   Doc.AppendChild(HTMLEl);
@@ -633,7 +633,7 @@ begin
   HeadEl.AppendChild(El);
   El['http-equiv'] := 'Content-Type';
   
-  El['content'] := Format('text/html; charset=%s',[charset]);
+  El['content'] := 'text/html; charset=utf-8';
   TitleElement := Doc.CreateElement('title');
   HeadEl.AppendChild(TitleElement);
   El := Doc.CreateElement('link');
