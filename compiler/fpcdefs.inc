@@ -53,7 +53,6 @@
   {$define x86}
   {$define cpuflags}
   {$define cpuextended}
-  {$define USECMOV}
   {$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
@@ -67,7 +66,6 @@
   {$define cpuextended}
   {$define cpufloat128}
   {$define cputargethasfixedstack}
-  {$define USECMOV}
   {$define cpumm}
 {$endif x86_64}
 

@@ -1747,7 +1747,6 @@ end;
 
 procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
 
-{$ifdef  USECMOV}
   function CanBeCMOV(p : tai) : boolean;
     begin
        CanBeCMOV:=assigned(p) and (p.typ=ait_instruction) and
@@ -1763,15 +1762,12 @@ procedure PeepHoleOptPass2(asml: TAsmList; BlockStart, BlockEnd: tai);
          ) and
          (taicpu(p).oper[1]^.typ in [top_reg]);
     end;
-{$endif  USECMOV}
 
 var
   p,hp1,hp2: tai;
-{$ifdef  USECMOV}
   l : longint;
   condition : tasmcond;
   hp3: tai;
-{$endif USECMOV}
   UsedRegs, TmpUsedRegs: TRegSet;
   carryadd_opcode: Tasmop;
 
@@ -1790,10 +1786,10 @@ begin
                   { jb @@1                            cmc
                     inc/dec operand           -->     adc/sbb operand,0
 		  @@1:
-		  
+		
 		  ... and ...
-		  
-                    jnb @@1                            
+		
+                    jnb @@1
                     inc/dec operand           -->     adc/sbb operand,0
 		  @@1: }
                   if GetNextInstruction(p,hp1) and (hp1.typ=ait_instruction) and
@@ -1839,7 +1835,6 @@ begin
                             end;
                         end;
                     end;
-{$ifdef USECMOV}
                   if (current_settings.cputype>=cpu_Pentium2) then
                     begin
                        { check for
@@ -1962,7 +1957,6 @@ begin
                               end;
                          end;
                     end;
-{$endif USECMOV}
                 end;
               A_FSTP,A_FISTP:
                 if doFpuLoadStoreOpt(asmL,p) then

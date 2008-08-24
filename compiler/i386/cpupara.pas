@@ -135,6 +135,11 @@ unit cpupara;
                         exit;
                       end;
                   end;
+                procvardef:
+                  begin
+                    result:=false;
+                    exit;
+                  end;
               end;
             end;
         end;
@@ -474,7 +479,7 @@ unit cpupara;
                     if (side=callerside) or
                        (po_nostackframe in p.procoptions) then
                       paraloc^.reference.index:=NR_STACK_POINTER_REG
-                    else 
+                    else
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     varalign:=used_align(size_2_align(l),paraalign,paraalign);
                     paraloc^.reference.offset:=parasize;
