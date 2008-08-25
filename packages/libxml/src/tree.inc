@@ -659,7 +659,7 @@ function xmlIsBlankNode(node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
 function xmlDocSetRootElement(doc: xmlDocPtr; root: xmlNodePtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* defined(LIBXML_TREE_ENABLED) || defined(LIBXML_WRITER_ENABLED) *)
 {$IFDEF LIBXML_TREE_ENABLED}
-procedure xmlIsBlankNode(cur: xmlNodePtr; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure xmlNodeSetName(cur: xmlNodePtr; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
 function xmlAddChild(parent, cur: xmlNodePtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
 function xmlAddChildList(parent, cur: xmlNodePtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
