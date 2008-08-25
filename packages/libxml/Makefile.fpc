@@ -7,7 +7,7 @@ name=libxml2
 version=2.6.32
 
 [target]
-units=libxml2
+units=libxml2 xmlxsd
 exampledirs=examples
 
 [require]
