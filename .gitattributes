@@ -9644,6 +9644,7 @@ utils/fpdoc/intl/fpdoc.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdocmk.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdocstr.de.po svneol=native#text/plain
 utils/fpdoc/intl/makeskel.de.po svneol=native#text/plain
+utils/fpdoc/makeskel.lpi svneol=native#text/plain
 utils/fpdoc/makeskel.pp svneol=native#text/plain
 utils/fpdoc/sh_pas.pp svneol=native#text/plain
 utils/fpdoc/unitdiff.pp svneol=native#text/plain
