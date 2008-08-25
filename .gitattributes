@@ -9634,6 +9634,7 @@ utils/fpdoc/fpde/frmtable.pp svneol=native#text/plain
 utils/fpdoc/fpde/pgeditor.pp svneol=native#text/plain
 utils/fpdoc/fpde/xpms.pp svneol=native#text/plain
 utils/fpdoc/fpdoc.css -text
+utils/fpdoc/fpdoc.lpi svneol=native#text/plain
 utils/fpdoc/fpdoc.pp svneol=native#text/plain
 utils/fpdoc/intl/Makefile svneol=native#text/plain
 utils/fpdoc/intl/dglobals.de.po svneol=native#text/plain
