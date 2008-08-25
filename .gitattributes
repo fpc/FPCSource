@@ -9603,6 +9603,8 @@ utils/fpdoc/dw_txt.pp svneol=native#text/plain
 utils/fpdoc/dw_xml.pp svneol=native#text/plain
 utils/fpdoc/dwlinear.pp svneol=native#text/plain
 utils/fpdoc/dwriter.pp svneol=native#text/plain
+utils/fpdoc/fpclasschart.lpi svneol=native#text/plain
+utils/fpdoc/fpclasschart.pp svneol=native#text/plain
 utils/fpdoc/fpde/Makefile svneol=native#text/plain
 utils/fpdoc/fpde/Makefile.fpc svneol=native#text/plain
 utils/fpdoc/fpde/bitmaps/bold.xpm -text
