@@ -2106,7 +2106,9 @@ begin
         // !!!: Store interface name
       end;
       NextToken;
-    end;
+    end
+    else
+      TPasClassType(Result).isForward:=CurToken=tkSemicolon;
 
     if CurToken <> tkSemicolon then
     begin
