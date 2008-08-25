@@ -63,6 +63,8 @@ unit gtk2; // keep unit name lowercase for kylix
 {$DEFINE HasGTK2_8}
 {$ENDIF}
 
+// {$define HasGTK_FileSystem}
+
 interface
 
 uses
