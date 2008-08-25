@@ -5,18 +5,17 @@
     <Version Value="6"/>
     <General>
       <Flags>
+        <SaveOnlyProjectUnits Value="True"/>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
+      <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
       <TargetFileExt Value=""/>
-      <ActiveEditorIndexAtStart Value="0"/>
     </General>
     <VersionInfo>
       <ProjectVersion Value=""/>
-      <Language Value=""/>
-      <CharSet Value=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -30,186 +29,18 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="6">
+    <Units Count="2">
       <Unit0>
         <Filename Value="fpclasschart.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="fpclasschart"/>
-        <CursorPos X="1" Y="125"/>
-        <TopLine Value="113"/>
-        <EditorIndex Value="0"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
-        <Filename Value="../../../../fpc/packages/fcl-passrc/src/pastree.pp"/>
-        <UnitName Value="PasTree"/>
-        <CursorPos X="25" Y="272"/>
-        <TopLine Value="240"/>
-        <EditorIndex Value="5"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit1>
-      <Unit2>
-        <Filename Value="../../../../fpc/packages/fcl-xml/src/dom.pp"/>
-        <UnitName Value="DOM"/>
-        <CursorPos X="14" Y="462"/>
-        <TopLine Value="436"/>
-        <EditorIndex Value="4"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit2>
-      <Unit3>
-        <Filename Value="../../../../fpc/packages/fcl-xml/src/xmlread.pp"/>
-        <UnitName Value="XMLRead"/>
-        <CursorPos X="10" Y="1283"/>
-        <TopLine Value="1239"/>
-        <EditorIndex Value="3"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit3>
-      <Unit4>
-        <Filename Value="../../../../fpc/packages/fcl-passrc/src/pparser.pp"/>
-        <UnitName Value="PParser"/>
-        <CursorPos X="1" Y="2111"/>
-        <TopLine Value="2084"/>
-        <EditorIndex Value="2"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
-      </Unit4>
-      <Unit5>
         <Filename Value="dglobals.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dGlobals"/>
-        <CursorPos X="1" Y="277"/>
-        <TopLine Value="277"/>
-        <EditorIndex Value="1"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
-      </Unit5>
+      </Unit1>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
-      <Position1>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="127" Column="28" TopLine="123"/>
-      </Position1>
-      <Position2>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="156" Column="37" TopLine="129"/>
-      </Position2>
-      <Position3>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="112" Column="1" TopLine="67"/>
-      </Position3>
-      <Position4>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="162" Column="21" TopLine="139"/>
-      </Position4>
-      <Position5>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="140" Column="22" TopLine="129"/>
-      </Position5>
-      <Position6>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="265" Column="1" TopLine="220"/>
-      </Position6>
-      <Position7>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="202" Column="13" TopLine="174"/>
-      </Position7>
-      <Position8>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="233" Column="19" TopLine="189"/>
-      </Position8>
-      <Position9>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="209" Column="1" TopLine="186"/>
-      </Position9>
-      <Position10>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="230" Column="28" TopLine="206"/>
-      </Position10>
-      <Position11>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="32" Column="57" TopLine="1"/>
-      </Position11>
-      <Position12>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="286" Column="19" TopLine="284"/>
-      </Position12>
-      <Position13>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="424" Column="3" TopLine="405"/>
-      </Position13>
-      <Position14>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="247" Column="11" TopLine="237"/>
-      </Position14>
-      <Position15>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="260" Column="37" TopLine="237"/>
-      </Position15>
-      <Position16>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="261" Column="30" TopLine="238"/>
-      </Position16>
-      <Position17>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="271" Column="24" TopLine="238"/>
-      </Position17>
-      <Position18>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="56" Column="6" TopLine="44"/>
-      </Position18>
-      <Position19>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="125" Column="7" TopLine="112"/>
-      </Position19>
-      <Position20>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="56" Column="26" TopLine="42"/>
-      </Position20>
-      <Position21>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="125" Column="22" TopLine="112"/>
-      </Position21>
-      <Position22>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="112" Column="26" TopLine="89"/>
-      </Position22>
-      <Position23>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="56" Column="33" TopLine="24"/>
-      </Position23>
-      <Position24>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="125" Column="27" TopLine="102"/>
-      </Position24>
-      <Position25>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="158" Column="63" TopLine="144"/>
-      </Position25>
-      <Position26>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="183" Column="17" TopLine="158"/>
-      </Position26>
-      <Position27>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="125" Column="1" TopLine="102"/>
-      </Position27>
-      <Position28>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="174" Column="48" TopLine="151"/>
-      </Position28>
-      <Position29>
-        <Filename Value="fpclasschart.pp"/>
-        <Caret Line="274" Column="24" TopLine="250"/>
-      </Position29>
-      <Position30>
-        <Filename Value="../../../../fpc/packages/fcl-passrc/src/pparser.pp"/>
-        <Caret Line="81" Column="10" TopLine="58"/>
-      </Position30>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="8"/>
@@ -217,14 +48,4 @@
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
-  <Debugging>
-    <Exceptions Count="2">
-      <Item1>
-        <Name Value="ECodetoolError"/>
-      </Item1>
-      <Item2>
-        <Name Value="EFOpenError"/>
-      </Item2>
-    </Exceptions>
-  </Debugging>
 </CONFIG>
