@@ -24,14 +24,14 @@
   xmlChar = cchar;
 {$ENDIF}
 
+{$IFDEF FUNCTION}
 (**
  * BAD_CAST:
  *
  * Macro to cast a string to an xmlChar * when one know its safe.
  *)
-//#define BAD_CAST (xmlChar *)
+function BAD_CAST(str: pchar): xmlCharPtr; inline;
 
-{$IFDEF FUNCTION}
 (*
  * xmlChar handling
  *)

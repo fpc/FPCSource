@@ -278,6 +278,16 @@ end;
 
 
 (*
+ * macros from xmlversion.inc
+ *)
+
+function BAD_CAST(str: pchar): xmlCharPtr;
+begin
+  result := xmlCharPtr(str);
+end;
+
+
+(*
  * macros from chvalid.inc
  *)
 

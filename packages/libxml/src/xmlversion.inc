@@ -145,7 +145,8 @@ procedure LIBXML_TEST_VERSION;
  *
  * Whether the deprecated APIs are compiled in for compatibility
  *)
-{$DEFINE LIBXML_LEGACY_ENABLED}
+{.$DEFINE LIBXML_LEGACY_ENABLED}
+{$WARNING 'libxml legacy mode disabled!'}
 
 (**
  * LIBXML_C14N_ENABLED:

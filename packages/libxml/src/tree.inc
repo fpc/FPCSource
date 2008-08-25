@@ -768,15 +768,15 @@ function xmlReconciliateNs(doc: xmlDocPtr; tree: xmlNodePtr): cint; XMLCALL; XML
 (*
  * Saving.
  *)
-procedure xmlDocDumpFormatMemory(cur: xmlDocPtr; mem: xmlCharPtrPtr; size: pcint; format: cint); XMLCALL; XMLPUBFUN;
+procedure xmlDocDumpFormatMemory(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint; format: cint); XMLCALL; XMLPUBFUN;
 procedure xmlDocDumpMemory(cur: xmlDocPtr; var mem: xmlCharPtr; var size: cint); XMLCALL; XMLPUBFUN;
 procedure xmlDocDumpMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: pchar); XMLCALL; XMLPUBFUN;
-procedure xmlDocDumpFormatMemoryEnc(out_doc: xmlDocPtr; doc_txt_ptr: xmlCharPtrPtr; doc_txt_len: pcint; txt_encoding: pchar; format: cint); XMLCALL; XMLPUBFUN;
+procedure xmlDocDumpFormatMemoryEnc(out_doc: xmlDocPtr; var doc_txt_ptr: xmlCharPtr; var doc_txt_len: cint; txt_encoding: pchar; format: cint); XMLCALL; XMLPUBFUN;
 function xmlDocFormatDump(f: PFILE; cur: xmlDocPtr; format: cint): cint; XMLCALL; XMLPUBFUN;
 function xmlDocDump(f: PFILE; cur: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
 function xmlElemDump(f: PFILE; doc: xmlDocPtr; cur: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveFile(filename: pchar; cur: xmlDocPtr; format: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveFormatFile(filename: pchar; cur: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSaveFormatFile(filename: pchar; cur: xmlDocPtr; format: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlSaveFile(filename: pchar; cur: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
 function xmlNodeDump(buf: xmlBufferPtr; doc: xmlDocPtr; cur: xmlNodePtr; level, format: cint): cint; XMLCALL; XMLPUBFUN;
 function xmlSaveFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: pchar): cint; XMLCALL; XMLPUBFUN;
 function xmlSaveFormatFileTo(buf: xmlOutputBufferPtr; cur: xmlDocPtr; encoding: pchar; format: cint): cint; XMLCALL; XMLPUBFUN;

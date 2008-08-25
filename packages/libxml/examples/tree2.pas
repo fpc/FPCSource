@@ -45,6 +45,7 @@ begin
    * of root_node node.
    *)
   xmlNewChild(root_node, nil, BAD_CAST('node1'), BAD_CAST('content of node 1'));
+
   (*
    * The same as above, but the new child node doesn't have a content
    *)
