@@ -459,7 +459,51 @@ type
        end;
 
 
+{******************************************************************
+   THashSet (keys not limited to ShortString, no indexed access)
+*******************************************************************}
+
+       PPHashSetItem = ^PHashSetItem;
+       PHashSetItem = ^THashSetItem;
+       THashSetItem = record
+         Next: PHashSetItem;
+         Key: Pointer;
+         KeyLength: Integer;
+         HashValue: LongWord;
+         Data: TObject;
+       end;
+
+       THashSet = class(TObject)
+       private
+         FCount: LongWord;
+         FBucketCount: LongWord;
+         FBucket: PPHashSetItem;
+         FOwnsObjects: Boolean;
+         FOwnsKeys: Boolean;
+         function Lookup(Key: Pointer; KeyLen: Integer; var Found: Boolean;
+           CanCreate: Boolean): PHashSetItem;
+         procedure Resize(NewCapacity: LongWord);
+       public
+         constructor Create(InitSize: Integer; OwnKeys, OwnObjects: Boolean);
+         destructor Destroy; override;
+         procedure Clear;
+         { finds an entry by key }
+         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer;
+           var Found: Boolean): PHashSetItem;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         { returns Data by given Key }
+         function Get(Key: Pointer; KeyLen: Integer): TObject;
+         { removes an entry, returns False if entry wasn't there }
+         function Remove(Entry: PHashSetItem): Boolean;
+         property Count: LongWord read FCount;
+      end;
+
+
     function FPHash(const s:shortstring):LongWord;
+    function FPHash(P: PChar; Len: Integer): LongWord;
 
 
 implementation
@@ -1043,7 +1087,7 @@ end;
         pmax:=@s[length(s)+1];
         while (p<pmax) do
           begin
-            result:=LongWord((result shl 5) - result) xor LongWord(P^);
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
             inc(p);
           end;
 {$ifdef overflowon}
@@ -1052,6 +1096,26 @@ end;
 {$endif}
       end;
 
+    function FPHash(P: PChar; Len: Integer): LongWord;
+      Var
+        pmax : pchar;
+      begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+        result:=0;
+        pmax:=p+len;
+        while (p<pmax) do
+          begin
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
+            inc(p);
+          end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+      end;
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
 begin
@@ -2226,16 +2290,14 @@ end;
     function TCmdStrList.Find(const s:TCmdStr):TCmdStrListItem;
       var
         NewNode : TCmdStrListItem;
-        ups     : string;
       begin
         result:=nil;
         if s='' then
          exit;
-        ups:=upper(s);
         NewNode:=TCmdStrListItem(FFirst);
         while assigned(NewNode) do
          begin
-           if upper(NewNode.FPStr)=ups then
+           if SysUtils.CompareText(s, NewNode.FPStr)=0 then
             begin
               result:=NewNode;
               exit;
@@ -2519,6 +2581,184 @@ end;
            f.Write(hp^.data,hp^.used);
            hp:=hp^.Next;
          end;
+      end;
+
+{****************************************************************************
+                                thashset
+****************************************************************************}
+
+    constructor THashSet.Create(InitSize: Integer; OwnKeys, OwnObjects: Boolean);
+      var
+        I: Integer;
+      begin
+        inherited Create;
+        FOwnsObjects := OwnObjects;
+        FOwnsKeys := OwnKeys;
+        I := 64;
+        while I < InitSize do I := I shl 1;
+        FBucketCount := I;
+        FBucket := AllocMem(I * sizeof(PHashSetItem));
+      end;
+
+
+    destructor THashSet.Destroy;
+      begin
+        Clear;
+        FreeMem(FBucket);
+        inherited Destroy;
+      end;
+
+
+    procedure THashSet.Clear;
+      var
+        I: Integer;
+        item, next: PHashSetItem;
+      begin
+        for I := 0 to FBucketCount-1 do
+        begin
+          item := FBucket[I];
+          while Assigned(item) do
+          begin
+            next := item^.Next;
+            if FOwnsObjects then
+              item^.Data.Free;
+            if FOwnsKeys then
+              FreeMem(item^.Key);
+            Dispose(item);
+            item := next;
+          end;
+        end;
+        FillChar(FBucket^, FBucketCount * sizeof(PHashSetItem), 0);
+      end;
+
+
+    function THashSet.Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Dummy, False);
+      end;
+
+
+    function THashSet.FindOrAdd(Key: Pointer; KeyLen: Integer;
+        var Found: Boolean): PHashSetItem;
+      begin
+        Result := Lookup(Key, KeyLen, Found, True);
+      end;
+
+
+    function THashSet.FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Dummy, True);
+      end;
+
+
+    function THashSet.Get(Key: Pointer; KeyLen: Integer): TObject;
+      var
+        e: PHashSetItem;
+        Dummy: Boolean;
+      begin
+        e := Lookup(Key, KeyLen, Dummy, False);
+        if Assigned(e) then
+          Result := e^.Data
+        else
+          Result := nil;
+      end;
+
+
+    function THashSet.Lookup(Key: Pointer; KeyLen: Integer;
+      var Found: Boolean; CanCreate: Boolean): PHashSetItem;
+      var
+        Entry: PPHashSetItem;
+        h: LongWord;
+      begin
+        h := FPHash(Key, KeyLen);
+        Entry := @FBucket[h mod FBucketCount];
+        while Assigned(Entry^) and
+          not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
+            (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
+              Entry := @Entry^^.Next;
+        Found := Assigned(Entry^);
+        if Found or (not CanCreate) then
+          begin
+            Result := Entry^;
+            Exit;
+          end;
+        if FCount > FBucketCount then  { arbitrary limit, probably too high }
+          begin
+            { rehash and repeat search }
+            Resize(FBucketCount * 2);
+            Result := Lookup(Key, KeyLen, Found, CanCreate);
+          end
+        else
+          begin
+            New(Result);
+            if FOwnsKeys then
+            begin
+              GetMem(Result^.Key, KeyLen);
+              Move(Key^, Result^.Key^, KeyLen);
+            end
+            else
+              Result^.Key := Key;
+            Result^.KeyLength := KeyLen;
+            Result^.HashValue := h;
+            Result^.Data := nil;
+            Result^.Next := nil;
+            Inc(FCount);
+            Entry^ := Result;
+          end;
+        end;
+
+
+    procedure THashSet.Resize(NewCapacity: LongWord);
+      var
+        p, chain: PPHashSetItem;
+        i: Integer;
+        e, n: PHashSetItem;
+      begin
+        p := AllocMem(NewCapacity * sizeof(PHashSetItem));
+        for i := 0 to FBucketCount-1 do
+          begin
+            e := FBucket[i];
+            while Assigned(e) do
+            begin
+              chain := @p[e^.HashValue mod NewCapacity];
+              n := e^.Next;
+              e^.Next := chain^;
+              chain^ := e;
+              e := n;
+            end;
+          end;
+        FBucketCount := NewCapacity;
+        FreeMem(FBucket);
+        FBucket := p;
+      end;
+
+
+    function THashSet.Remove(Entry: PHashSetItem): Boolean;
+      var
+        chain: PPHashSetItem;
+      begin
+        chain := @FBucket[Entry^.HashValue mod FBucketCount];
+        while Assigned(chain^) do
+          begin
+            if chain^ = Entry then
+              begin
+                chain^ := Entry^.Next;
+                if FOwnsObjects then
+                  Entry^.Data.Free;
+                if FOwnsKeys then
+                  FreeMem(Entry^.Key);
+                Dispose(Entry);
+                Dec(FCount);
+                Result := True;
+                Exit;
+              end;
+            chain := @chain^^.Next;
+          end;
+        Result := False;
       end;
 
 end.

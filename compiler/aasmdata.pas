@@ -66,6 +66,19 @@ interface
         al_end
       );
 
+      { Type of constant 'pools'. Currently contains only string types,
+        but may be extended with reals, sets, etc. }
+      
+      TConstPoolType = (
+         sp_invalid,
+         sp_conststr,
+         sp_shortstr,
+         sp_longstr,
+         sp_ansistr,
+         sp_widestr,
+         sp_unicodestr
+      );
+      
     const
       AsmListTypeStr : array[TAsmListType] of string[24] =(
         'al_begin',
@@ -126,6 +139,8 @@ interface
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
+        { hash tables for reusing constant storage }
+        ConstPools    : array[TConstPoolType] of THashSet;
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
@@ -293,6 +308,7 @@ implementation
     destructor TAsmData.destroy;
       var
         hal : TAsmListType;
+        hp  : TConstPoolType;
       begin
         { Symbols }
 {$ifdef MEMDEBUG}
@@ -321,6 +337,8 @@ implementation
 {$ifdef MEMDEBUG}
          memasmlists.stop;
 {$endif}
+         for hp := low(TConstPoolType) to high(TConstPoolType) do
+           ConstPools[hp].Free;
       end;
 
 

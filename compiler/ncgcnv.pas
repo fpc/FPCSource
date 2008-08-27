@@ -159,8 +159,7 @@ interface
                 end
                else
                 begin
-                  location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                  location_copy(location,left.location);
                 end;
              end;
            cst_longstring:
@@ -179,9 +178,7 @@ interface
                 end
                else
                 begin
-                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_INT,left.location.reference,
-                    location.register);
+                  location_copy(location,left.location);
                 end;
              end;
          end;
