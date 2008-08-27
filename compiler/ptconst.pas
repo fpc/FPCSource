@@ -711,11 +711,11 @@ implementation
                          current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength));
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                          { ... and vice versa }
                          if (target_info.system in systems_darwin) then
-                           list.concat(tai_directive.create(asd_reference,ll2.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
                          getmem(ca,strlength+1);
                          move(strval^,ca^,strlength);
                          { The terminating #0 to be stored in the .data section (JM) }
@@ -745,11 +745,11 @@ implementation
                            end;
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                          { ... and vice versa }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll2.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
                          for i:=0 to strlength-1 do
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                          { ending #0 }

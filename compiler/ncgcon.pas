@@ -327,13 +327,14 @@ implementation
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                                 { ... and vice versa }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 { include also terminating zero }
                                 getmem(pc,len+1);
                                 move(value_str^,pc^,len);
@@ -359,13 +360,14 @@ implementation
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len*cwidechartype.size));
                                   end;
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
+
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                                 { ... and vice versa }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 for i:=0 to len-1 do
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { terminating zero }
