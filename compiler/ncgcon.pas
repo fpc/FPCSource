@@ -403,7 +403,7 @@ implementation
            end;
          if cst_type in [cst_ansistring, cst_widestring] then
            begin
-             location_reset(location, LOC_CREGISTER, OS_ADDR);
+             location_reset(location, LOC_REGISTER, OS_ADDR);
              reference_reset_symbol(href, lab_str, 0);
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
