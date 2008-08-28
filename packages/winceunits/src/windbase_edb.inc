@@ -208,12 +208,12 @@ type
 //
 function CeCreateDatabaseWithProps(pGuid:PCEGUID; var pInfo:CEDBASEINFOEX; cProps:DWORD; var prgProps:CEPROPSPEC):CEOID;cdecl;external KernelDLL name 'CeCreateDatabaseWithProps';
 function CeAddDatabaseProps(pGuid:PCEGUID; oidDb:CEOID; cProps:DWORD; var prgProps:CEPROPSPEC):BOOL;cdecl;external KernelDLL name 'CeAddDatabaseProps';
-function CeGetDatabaseProps(hHandle:HANDLE; var pcPropId:WORD; var prgPropId:CEPROPID; var prgProps:CEPROPSPEC):BOOL;cdecl;external KernelDLL name 'CeGetDatabaseProps';
+function CeGetDatabaseProps(hHandle:HANDLE; pcPropId:LPWORD; prgPropId:PCEPROPID; prgProps:PCEPROPSPEC):BOOL;cdecl;external KernelDLL name 'CeGetDatabaseProps';
 function CeRemoveDatabaseProps(pGuid:PCEGUID; oidDb:CEOID; cPropID:DWORD; var prgPropID:CEPROPID):BOOL;cdecl;external KernelDLL name 'CeRemoveDatabaseProps';
 function CeMountDBVolEx(pGuid:PCEGUID; pwszDBVol:LPWSTR; pOptions:PCEVOLUMEOPTIONS; dwFlags:DWORD):BOOL;cdecl;external KernelDLL name 'CeMountDBVolEx';
 
 // Session API's
-function CeCreateSession(var pGuid:CEGUID):HANDLE;cdecl;external KernelDLL name 'CeCreateSession';
+function CeCreateSession(pGuid:PCEGUID):HANDLE;cdecl;external KernelDLL name 'CeCreateSession';
 function CeSetSessionOption(hSession:HANDLE; ulOptionId:ULONG; dwValue:DWORD):BOOL;cdecl;external KernelDLL name 'CeSetSessionOption';
 function CeGetDatabaseSession(hDatabase:HANDLE):HANDLE;cdecl;external KernelDLL name 'CeGetDatabaseSession';
 function CeBeginTransaction(hSession:HANDLE; isoLevel:CEDBISOLATIONLEVEL):BOOL;cdecl;external KernelDLL name 'CeBeginTransaction';

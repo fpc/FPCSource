@@ -42,6 +42,7 @@ type
   //Comment: Every WINCE object can be efficiently referred to by its OID.
   //         OID's are unique in the system and are not reused.
   CEOID = DWORD;
+  TCEOID = DWORD;
   PCEOID = ^CEOID;
 
   CEGUID = record
@@ -148,7 +149,7 @@ type
   PCEPROPID = ^CEPROPID;
   TCEPROPID = CEPROPID;
 
-function TypeFromPropID(propid : longint) : longint;
+function TypeFromPropID(propid : longint) : WORD;
 
 type
   //CERECORDINFO: Contains information about a record object.
@@ -370,7 +371,7 @@ type
       1 : ( uiVal     : USHORT   ); //CEVT_UI2
       2 : ( lVal      : longint  ); //CEVT_I4
       3 : ( ulVal     : ULONG    ); //CEVT_UI4
-      4 : ( filetime  : FILETIME ); //CEVT_FILETIME
+      4 : ( filetime  : TFILETIME ); //CEVT_FILETIME
       5 : ( lpwstr    : LPWSTR   ); //CEVT_LPWSTR - Ptr to null terminated string
       6 : ( blob      : CEBLOB   ); //CEVT_BLOB - DWORD count, and Ptr to bytes
       7 : ( boolVal   : BOOL     ); //CEVT_BOOL
@@ -446,7 +447,7 @@ const
   function CeDeleteDatabaseEx(pguid:PCEGUID; oid:CEOID):Boolean; external KernelDLL name 'CeDeleteDatabaseEx';
   function CeSeekDatabaseEx(hDatabase:HANDLE; dwSeekType:DWORD; dwValue:DWORD; wNumVals:WORD; lpdwIndex:LPDWORD):CEOID; external KernelDLL name 'CeSeekDatabaseEx';
   function CeDeleteRecord(hDatabase:HANDLE; oidRecord:CEOID):Boolean; external KernelDLL name 'CeDeleteRecord';
-  function CeReadRecordPropsEx(hDbase:HANDLE; dwFlags:DWORD; lpcPropID:LPWORD; var rgPropID:CEPROPID; var lplpBuffer:LPBYTE;
+  function CeReadRecordPropsEx(hDbase:HANDLE; dwFlags:DWORD; lpcPropID:LPWORD; rgPropID: PCEPROPID; lplpBuffer:LPBYTE;
                                lpcbBuffer:LPDWORD; hHeap:HANDLE):CEOID; external KernelDLL name 'CeReadRecordPropsEx';
   function CeWriteRecordProps(hDbase:HANDLE; oidRecord:CEOID; cPropID:WORD; var rgPropVal:CEPROPVAL):CEOID; external KernelDLL name 'CeWriteRecordProps';
   function CeMountDBVol(pguid:PCEGUID; lpszVol:LPWSTR; dwFlags:DWORD):Boolean; external KernelDLL name 'CeMountDBVol';
@@ -492,21 +493,19 @@ type
                      //  OBJTYPE_DATABASE  : The object is a database
                      //  OBJTYPE_RECORD    : The object is a record inside a database
     wObjType : Word; //Type of object
-    u : record  //This is a union
-      case longint of
-        0 : ( infFile : CEFILEINFO );      //Valid for file objects
-        1 : ( infDirectory : CEDIRINFO; ); //Valid for directory objects
-        //IF FILESYS_FSDBASE
-        2 : ( infDatabase : CEDBASEINFO; ); //Valid for database objects
-        3 : ( infRecord : CERECORDINFO; );  //Valid for record objects
-      end;
+    case longint of
+      0 : ( infFile : CEFILEINFO );      //Valid for file objects
+      1 : ( infDirectory : CEDIRINFO; ); //Valid for directory objects
+      //IF FILESYS_FSDBASE
+      2 : ( infDatabase : CEDBASEINFOEX; ); //Valid for database objects
+      3 : ( infRecord : CERECORDINFO; );  //Valid for record objects
   end;
   _CEOIDINFOEX = CEOIDINFOEX;
   PCEOIDINFOEX = ^CEOIDINFOEX;
   TCEOIDINFOEX = CEOIDINFOEX;
 
 // Functions
-function CeOidGetInfoEx2(pguid:PCEGUID; oid:CEOID; var oidInfo:CEOIDINFOEX):Boolean; external KernelDLL name 'CeOidGetInfoEx2';
+function CeOidGetInfoEx2(pguid:PCEGUID; oid:CEOID; oidInfo:PCEOIDINFOEX):Boolean; external KernelDLL name 'CeOidGetInfoEx2';
 function CeOidGetInfoEx(pguid:PCEGUID; oid:CEOID; var oidInfo:CEOIDINFO):Boolean; external KernelDLL name 'CeOidGetInfoEx';
 function CeOidGetInfo(oid:CEOID; var oidInfo:CEOIDINFO):Boolean; external KernelDLL name 'CeOidGetInfo';
 {$ifdef EDB}
@@ -524,7 +523,7 @@ function CeOidGetInfo(oid:CEOID; var oidInfo:CEOIDINFO):Boolean; external Kernel
 
 implementation
 
-function TypeFromPropID(propid : longint) : longint;
+function TypeFromPropID(propid : longint) : WORD;
 begin
   TypeFromPropID := LOWORD(propid);
 end;
