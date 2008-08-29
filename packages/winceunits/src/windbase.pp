@@ -505,6 +505,7 @@ type
   TCEOIDINFOEX = CEOIDINFOEX;
 
 // Functions
+function CeOidGetInfoEx2(pguid:PCEGUID; oid:CEOID; var oidInfo:CEOIDINFOEX):Boolean; external KernelDLL name 'CeOidGetInfoEx2';
 function CeOidGetInfoEx2(pguid:PCEGUID; oid:CEOID; oidInfo:PCEOIDINFOEX):Boolean; external KernelDLL name 'CeOidGetInfoEx2';
 function CeOidGetInfoEx(pguid:PCEGUID; oid:CEOID; var oidInfo:CEOIDINFO):Boolean; external KernelDLL name 'CeOidGetInfoEx';
 function CeOidGetInfo(oid:CEOID; var oidInfo:CEOIDINFO):Boolean; external KernelDLL name 'CeOidGetInfo';
