@@ -191,11 +191,11 @@ type
       AShFlags: Byte): Byte;
     Procedure AppendShortDescr(AContext : TPasElement;Parent: TDOMNode; DocNode : TDocNode);
     procedure AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
+    procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement);
     procedure AppendDescr(AContext: TPasElement; Parent: TDOMNode;
       DescrNode: TDOMElement; AutoInsertBlock: Boolean);
     procedure AppendDescrSection(AContext: TPasElement; Parent: TDOMNode;
       DescrNode: TDOMElement; const ATitle: DOMString);
-    procedure AppendShortDescrCell(Parent: TDOMNode; Element: TPasElement);
     function AppendHyperlink(Parent: TDOMNode; Element: TPasElement): TDOMElement;
     function AppendType(CodeEl, TableEl: TDOMElement;
       Element: TPasType; Expanded: Boolean;
@@ -1364,16 +1364,28 @@ end;
 
 Procedure THTMLWriter.AppendShortDescr(AContext: TPasElement; Parent: TDOMNode; DocNode : TDocNode);
 
+Var
+  N : TDocNode;
+
 begin
-  if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
+  if Assigned(DocNode) then
     begin
-    PushOutputNode(Parent);
-    try
-      if not ConvertShort(AContext,TDomElement(DocNode.ShortDescr)) then
-        Warning(AContext, SErrInvalidShortDescr)
-    finally
-      PopOutputNode;
-    end;
+    If (DocNode.Link<>'') then
+      begin
+      N:=Engine.FindLinkedNode(DocNode);
+      If (N<>Nil) then
+        DocNode:=N;
+      end;
+    If Assigned(DocNode.ShortDescr) then
+      begin
+      PushOutputNode(Parent);
+      try
+        if not ConvertShort(AContext,TDomElement(DocNode.ShortDescr)) then
+          Warning(AContext, SErrInvalidShortDescr)
+      finally
+        PopOutputNode;
+      end;
+      end;
     end;
 end;
 
@@ -1381,6 +1393,22 @@ procedure THTMLWriter.AppendShortDescr(Parent: TDOMNode; Element: TPasElement);
 
 begin
   AppendShortDescr(Element,Parent,Engine.FindDocNode(Element));
+end;
+
+procedure THTMLWriter.AppendShortDescrCell(Parent: TDOMNode;
+  Element: TPasElement);
+
+var
+  ParaEl: TDOMElement;
+
+begin
+  if Assigned(Engine.FindShortDescr(Element)) then
+  begin
+    AppendNbSp(CreatePara(CreateTD(Parent)), 2);
+    ParaEl := CreatePara(CreateTD(Parent));
+    ParaEl['class'] := 'cmt';
+    AppendShortDescr(ParaEl, Element);
+  end;
 end;
 
 procedure THTMLWriter.AppendDescr(AContext: TPasElement; Parent: TDOMNode;
@@ -1409,19 +1437,6 @@ begin
 end;
 
 
-procedure THTMLWriter.AppendShortDescrCell(Parent: TDOMNode;
-  Element: TPasElement);
-var
-  ParaEl: TDOMElement;
-begin
-  if Assigned(Engine.FindShortDescr(Element)) then
-  begin
-    AppendNbSp(CreatePara(CreateTD(Parent)), 2);
-    ParaEl := CreatePara(CreateTD(Parent));
-    ParaEl['class'] := 'cmt';
-    AppendShortDescr(ParaEl, Element);
-  end;
-end;
 
 function THTMLWriter.AppendHyperlink(Parent: TDOMNode;
   Element: TPasElement): TDOMElement;

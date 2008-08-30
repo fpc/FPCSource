@@ -60,6 +60,301 @@ type
       const ASourceFilename: String; ASourceLinenumber: Integer): TPasElement; override;
   end;
 
+  { TClassChartFormatter }
+  TClassMode = (cmNormal,cmSubClass,cmheadClass,cmFirstClass);
+  TClassChartFormatter = Class (TObject)
+  private
+    FClassMode: TClassMode;
+    FClassTree: TXMLDocument;
+    FCurrentColCount: Integer;
+    FCurrentRowCount: Integer;
+    FFileName: String;
+    FLargeHeadClassObjects: TStrings;
+    FLevel: Integer;
+    FMaxObjectsPerColumn: Integer;
+    FStartColumnObjects: TStrings;
+  Protected
+    procedure FirstClass(E : TDomElement); virtual;
+    procedure DoEmitClass(E : TDomElement); virtual;
+    procedure DoHeadClass(E: TDomElement); virtual;
+    procedure DoNextColumn(E: TDomElement); virtual;
+    procedure EndSubClass(E: TDomElement; HasSiblings : Boolean); virtual;
+    procedure StartSubClass(E: TDomElement); virtual;
+    Procedure StartChart; virtual;
+    Procedure EndChart; virtual;
+    procedure EmitClass(E : TDomElement; HasSiblings : Boolean);
+  Public
+    Constructor Create (AXML : TXMLDocument); virtual;
+    Destructor Destroy; override;
+    Procedure CreateChart;
+    Property CurrentColCount : Integer Read FCurrentColCount;
+    Property CurrentRowCount : Integer Read FCurrentRowCount;
+    Property ClassTree : TXMLDocument Read FClassTree;
+    Property Level : Integer Read FLevel Write FLevel;
+    Property ClassMode : TClassMode Read FClassMode;
+  Published
+    Property FileName : String Read FFileName Write FFilename;
+    Property StartColumnObjects : TStrings Read FStartColumnObjects;
+    Property LargeHeadClassObjects : TStrings Read FLargeHeadClassObjects;
+    Property MaxObjectsPerColumn : Integer Read FMaxObjectsPerColumn Write FMaxObjectsPerColumn;
+  end;
+
+{ TChartFormatter }
+
+constructor TClassChartFormatter.Create(AXML: TXMLDocument);
+begin
+  FClassTree:=AXML;
+  MaxObjectsPerColumn:=60;
+  FStartColumnObjects:=TStringList.Create;
+  FLargeHeadClassObjects:=TStringList.Create;
+  FLargeHeadClassObjects.Add('TPersistent');
+  FLargeHeadClassObjects.Add('TComponent');
+end;
+
+destructor TClassChartFormatter.Destroy;
+begin
+  FreeAndNil(FStartColumnObjects);
+  FreeAndNil(FLargeHeadClassObjects);
+  Inherited;
+end;
+
+procedure TClassChartFormatter.CreateChart;
+
+Var
+  N : TDomNode;
+  E : TDomElement;
+  I : Integer;
+  L : TFPList;
+
+begin
+  (FStartColumnObjects as TStringList).Sorted:=False;
+  (FLargeHeadClassObjects as TStringList).Sorted:=False;
+  StartChart;
+  try
+    N:=FClassTree.DocumentElement.FirstChild;
+    FCurrentColCount:=0;
+    FCurrentRowCount:=0;
+    FLevel:=0;
+    L:=TFPList.Create;
+    try
+      While (N<>nil) do
+        begin
+        If (N.NodeType=ELEMENT_NODE) then
+          L.Add(N);
+        N:=N.NextSibling;
+        end;
+      If (L.Count>0) then
+        begin
+        FirstClass(TDomElement(L[0]));
+        For I:=0 to L.Count-1 do
+          EmitClass(TDomElement(L[i]),I<L.Count-1);
+        end;
+    finally
+      L.Free;
+    end;
+    L:=TFPList.Create;
+    try
+      For I:=0 to FLargeHeadClassObjects.Count-1 do
+        If Assigned(FLargeHeadClassObjects.Objects[i]) then
+          L.Add(FLargeHeadClassObjects.Objects[i]);
+      FLargeHeadClassObjects.Clear;
+      For I:=0 to L.Count-1 do
+        begin
+        E:= TDomElement(L[i]);
+        DoHeadClass(E);
+        EmitClass(E,I<L.Count-1);
+        end;
+    finally
+      L.Free;
+    end;
+  finally
+    EndChart;
+  end;
+end;
+
+procedure TClassChartFormatter.FirstClass(E : TDomElement);
+
+begin
+  FClassMode:=cmFirstClass;
+end;
+
+procedure TClassChartFormatter.DoEmitClass(E : TDomElement);
+begin
+  //Reset
+  FClassMode:=cmNormal;
+end;
+
+procedure TClassChartFormatter.DoHeadClass(E : TDomElement);
+begin
+  DoNextColumn(E);
+  FClassMode:=cmHeadClass;
+  // Do nothing
+end;
+
+procedure TClassChartFormatter.StartSubClass(E : TDomElement);
+begin
+  FClassMode:=cmSubClass;
+end;
+
+procedure TClassChartFormatter.EndSubClass(E : TDomElement; HasSiblings : Boolean);
+begin
+  FClassMode:=cmNormal;
+end;
+
+procedure TClassChartFormatter.DoNextColumn(E : TDomElement);
+
+begin
+  Inc(FCurrentColCount);
+  FCurrentRowCount:=0;
+end;
+
+procedure TClassChartFormatter.StartChart;
+begin
+  // Do nothing
+end;
+
+procedure TClassChartFormatter.EndChart;
+begin
+  // Do nothing
+end;
+
+procedure TClassChartFormatter.EmitClass(E : TDomElement; HasSiblings: Boolean);
+
+Var
+  DidSub : Boolean;
+  N : TDomNode;
+  I : Integer;
+  L : TFPList;
+
+begin
+  Inc(Flevel);
+  try
+    I:=FStartColumnObjects.IndexOf(E.NodeName);
+    if (-1<>I) or ((FCurrentRowCount>MaxObjectsPerColumn) and (FLevel=2)) then
+      DoNextColumn(E)
+    else
+      begin
+      I:=FLargeHeadClassObjects.IndexOf(E.NodeName);
+      if (-1<>I) then
+        begin
+        FLargeHeadClassObjects.Objects[i]:=E;
+        Exit; // Must be picked up later.
+        end;
+      end;
+    DoEmitClass(E);
+    N:=E.FirstChild;
+    DidSub:=False;
+    L:=TFPList.Create;
+    try
+      While (N<>Nil) do
+        begin
+        if (N.NodeType=ELEMENT_NODE) then
+           L.Add(N);
+        N:=N.NextSibling;
+        end;
+      If L.Count>0 then
+        begin
+        StartSubClass(TDomElement(L[0]));
+        For I:=0 to L.Count-1 do
+          begin
+          EmitClass(TDomElement(L[i]),I<L.Count-1);
+          FClassMode:=cmNormal;
+          end;
+        EndSubClass(E,HasSiblings);
+        end;
+    Finally
+      L.Free;
+    end;
+    Inc(FCurrentRowCount);
+  finally
+    Dec(Flevel);
+  end;
+end;
+
+Type
+
+  { TPostScriptClassChartFormatter }
+
+  TPostScriptClassChartFormatter = Class(TClassChartFormatter)
+    FFile : Text;
+    FMode : TClassMode;
+    FIndent : Integer;
+    Procedure EmitLine(S : String);
+  Protected
+    procedure DoEmitClass(E : TDomElement); override;
+    procedure DoNextColumn(E: TDomElement); override;
+    procedure DoHeadClass(E: TDomElement); override;
+    procedure StartSubClass(E: TDomElement); override;
+    procedure EndSubClass(E: TDomElement; HasSiblings : Boolean); override;
+    Procedure StartChart; override;
+    Procedure EndChart; override;
+  end;
+
+{ TPostScriptClassChartFormatter }
+
+procedure TPostScriptClassChartFormatter.EmitLine(S: String);
+begin
+  Writeln(FFile,StringofChar(' ',Findent*2),S);
+end;
+
+procedure TPostScriptClassChartFormatter.DoEmitClass(E: TDomElement);
+begin
+  Case ClassMode of
+    cmFirstClass : EmitLine(Format('(%s) Ready drawlargebox',[E.NodeName]));
+    cmNormal     : EmitLine(Format('(%s) Ready newclass',[E.NodeName]));
+    cmSubClass   : EmitLine(Format('(%s) Ready newchildclass',[E.NodeName]));
+    cmHeadClass  : EmitLine(Format('(%s) Ready newlargeheadclass',[E.NodeName]));
+  end;
+end;
+
+procedure TPostScriptClassChartFormatter.DoNextColumn(E: TDomElement);
+begin
+  Inherited;
+  FIndent:=0;
+  EmitLine('newcolumn');
+
+end;
+
+procedure TPostScriptClassChartFormatter.DoHeadClass(E: TDomElement);
+begin
+//  DoNextColumn(E);
+  inherited DoHeadClass(E);
+end;
+
+
+procedure TPostScriptClassChartFormatter.EndSubClass(E: TDomElement; HasSiblings : Boolean);
+begin
+  if HasSiblings then
+    EmitLine('onelevelback')
+  else
+    EmitLine('onelevelbackempty');
+  If FIndent>0 then
+    Dec(Findent);
+end;
+
+procedure TPostScriptClassChartFormatter.StartSubClass(E: TDomElement);
+begin
+  inherited StartSubClass(E);
+  Inc(Findent);
+end;
+
+procedure TPostScriptClassChartFormatter.StartChart;
+begin
+  Assign(FFile,FileName);
+  Rewrite(FFile);
+end;
+
+procedure TPostScriptClassChartFormatter.EndChart;
+begin
+  Close(FFile);
+end;
+
+Type
+  TOutputFormat = (ofxml,ofPostscript);
+
+Var
+  OutputFormat : TOutputFormat = ofXML;
+
 const
   OSTarget: String = {$I %FPCTARGETOS%};
   CPUTarget: String = {$I %FPCTARGETCPU%};
@@ -277,7 +572,18 @@ begin
         Engine.Free;
       end;
       end;
-    WriteXMlFile(XML,AOutputName);
+    Case OutputFormat of
+      ofXML :
+        WriteXMlFile(XML,AOutputName);
+      ofPostScript :
+        With TPostScriptClassChartFormatter.Create(XML) do
+          try
+            FileName:=AOutputName;
+            CreateChart;
+          finally
+            Free;
+          end;
+    end;
     Writeln(StdErr,Format(SClassesAdded,[ACount,InputFiles.Count]));
   Finally
     XML.Free;
@@ -377,6 +683,8 @@ begin
     OutputName := Arg
   else if (Cmd = '-k') or (Cmd = '--kind') then
     cmdObjectKind:=TPasObjKind(GetEnumValue(TypeInfo(TPasObjKind),'ok'+Arg))
+  else if (Cmd = '-f') or (Cmd = '--format') then
+    OutputFormat:=TOutputFormat(GetEnumValue(TypeInfo(TOutputFormat),'of'+Arg))
   else if Cmd = '--merge' then
     begin
     if FileExists(Arg) then
