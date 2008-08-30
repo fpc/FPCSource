@@ -282,7 +282,7 @@ implementation
         );
       begin
          { for empty ansistrings we could return a constant 0 }
-         if (cst_type in [cst_ansistring,cst_widestring]) and (len=0) then
+         if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and (len=0) then
           begin
             location_reset(location,LOC_CONSTANT,OS_ADDR);
             location.value:=0;
@@ -311,7 +311,7 @@ implementation
                    entry^.Data := lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
                    if (len=0) or
-                      not(cst_type in [cst_ansistring,cst_widestring]) then
+                      not(cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
                      new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)))
                    else
                      new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(pint)));
@@ -321,7 +321,7 @@ implementation
                         begin
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
-                            else
+                           else
                              begin
                                 current_asmdata.getdatalabel(l1);
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
@@ -342,6 +342,7 @@ implementation
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                              end;
                         end;
+                      cst_unicodestring,
                       cst_widestring:
                         begin
                            if len=0 then
@@ -353,7 +354,7 @@ implementation
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                if tf_winlikewidestring in target_info.flags then
+                                if (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags) then
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
                                 else
                                   begin
@@ -411,8 +412,8 @@ implementation
          else
            begin
              location_reset(location, LOC_CREFERENCE, def_cgsize(resultdef));
-             location.reference.symbol:=lab_str;
-           end;
+         location.reference.symbol:=lab_str;
+      end;
       end;
 
 

@@ -43,7 +43,7 @@ procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
 Type
   { hooks for internationalization
     please add new procedures at the end, it makes it easier to detect new procedures }
-  TWideStringManager = record
+  TUnicodeStringManager = record
     Wide2AnsiMoveProc : procedure(source:pwidechar;var dest:ansistring;len:SizeInt);
     Ansi2WideMoveProc : procedure(source:pchar;var dest:widestring;len:SizeInt);
 
@@ -75,8 +75,17 @@ Type
     StrUpperAnsiStringProc : function(Str: PChar): PChar;
     ThreadInitProc : procedure;
     ThreadFiniProc : procedure;
+
+    { this is only different on windows }
+    Unicode2AnsiMoveProc : procedure(source:punicodechar;var dest:ansistring;len:SizeInt);
+    Ansi2UnicodeMoveProc : procedure(source:pchar;var dest:unicodestring;len:SizeInt);
+    UpperUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
+    LowerUnicodeStringProc : function(const S: UnicodeString): UnicodeString;
+    CompareUnicodeStringProc : function(const s1, s2 : UnicodeString) : PtrInt;
+    CompareTextUnicodeStringProc : function(const s1, s2 : UnicodeString): PtrInt;
   end;
 
+  TWideStringManager = TUnicodeStringManager;
 
 function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;

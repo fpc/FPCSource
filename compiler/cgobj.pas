@@ -3112,13 +3112,15 @@ implementation
          paramanager.getintparaloc(pocall_default,1,cgpara1);
          paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_interfacecom(t) then
-          incrfunc:='FPC_INTF_INCR_REF'
+           incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
-          incrfunc:='FPC_ANSISTR_INCR_REF'
+           incrfunc:='FPC_ANSISTR_INCR_REF'
          else if is_widestring(t) then
-          incrfunc:='FPC_WIDESTR_INCR_REF'
+           incrfunc:='FPC_WIDESTR_INCR_REF'
+         else if is_unicodestring(t) then
+           incrfunc:='FPC_UNICODESTR_INCR_REF'
          else if is_dynamic_array(t) then
-          incrfunc:='FPC_DYNARRAY_INCR_REF'
+           incrfunc:='FPC_DYNARRAY_INCR_REF'
          else
           incrfunc:='';
          { call the special incr function or the generic addref }
@@ -3174,6 +3176,8 @@ implementation
           decrfunc:='FPC_ANSISTR_DECR_REF'
          else if is_widestring(t) then
           decrfunc:='FPC_WIDESTR_DECR_REF'
+         else if is_unicodestring(t) then
+          decrfunc:='FPC_UNICODESTR_DECR_REF'
          else if is_dynamic_array(t) then
           begin
             decrfunc:='FPC_DYNARRAY_DECR_REF';
@@ -3234,6 +3238,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
+            is_unicodestring(t) or
             is_interfacecom(t) or
             is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
@@ -3266,6 +3271,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
+            is_unicodestring(t) or
             is_interfacecom(t) then
             begin
               g_decrrefcount(list,t,ref);

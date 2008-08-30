@@ -1541,7 +1541,7 @@ implementation
                   ) or
                   (
                    is_widechar(p.resultdef) and
-                   is_widestring(def_to)
+                   (is_widestring(def_to) or is_unicodestring(def_to))
                   ) then
                 eq:=te_equal
             end;

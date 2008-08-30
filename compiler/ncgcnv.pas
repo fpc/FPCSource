@@ -148,6 +148,8 @@ interface
                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
              end;
+           cst_widestring,
+           cst_unicodestring,
            cst_ansistring :
              begin
                if tstringconstnode(left).len=0 then
@@ -167,20 +169,8 @@ interface
                {!!!!!!!}
                internalerror(8888);
              end;
-           cst_widestring:
-             begin
-               if tstringconstnode(left).len=0 then
-                begin
-                  reference_reset(hr);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-                  location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
-                end
-               else
-                begin
-                  location_copy(location,left.location);
-                end;
-             end;
+           else
+             internalerror(200808241);
          end;
       end;
 

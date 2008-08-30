@@ -331,7 +331,14 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef VER2_2}
 {$i wstrings.inc}
+{$else VER2_2}
+  {$ifdef WINDOWS}
+    {$i wstrings.inc}
+  {$endif WINDOWS}
+  {$i ustrings.inc}
+{$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$i aliases.inc}

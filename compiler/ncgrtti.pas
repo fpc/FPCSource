@@ -372,6 +372,11 @@ implementation
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkWString));
                  write_rtti_name(def);
               end;
+            st_unicodestring:
+              begin
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkUString));
+                 write_rtti_name(def);
+              end;
             st_longstring:
               begin
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkLString));
@@ -976,7 +981,7 @@ implementation
                         current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
                       asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
                       if (tf_requires_proper_alignment in target_info.flags) then
-                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	      
+                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	
                       asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                     end;
                 end;
@@ -1069,7 +1074,7 @@ implementation
                     current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
                   asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
                   if (tf_requires_proper_alignment in target_info.flags) then
-                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	      
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	
                   asmlists[al_rtti].concat(Tai_const.create_sym_offset(mainrtti,st+offsets[i]));
                 end;
               asmlists[al_rtti].concat(Tai_symbol_end.create(rttilab));

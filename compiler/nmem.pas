@@ -667,7 +667,7 @@ implementation
            ansi/widestring needs to be valid }
          valid:=is_dynamic_array(left.resultdef) or
                 is_ansistring(left.resultdef) or
-                is_widestring(left.resultdef) or
+                is_wide_or_unicode_string(left.resultdef) or
                 { implicit pointer dereference -> pointer is read }
                 (left.resultdef.typ = pointerdef);
          if valid then
@@ -827,7 +827,8 @@ implementation
 
          if (nf_callunique in flags) and
             (is_ansistring(left.resultdef) or
-             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
+             is_unicodestring(left.resultdef) or
+            (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
              left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                ccallparanode.create(

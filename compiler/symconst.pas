@@ -61,6 +61,7 @@ const
   tkDynArray = 21;
   tkInterfaceCorba = 22;
   tkProcVar  = 23;
+  tkUString  = 24;
 
   otSByte    = 0;
   otUByte    = 1;

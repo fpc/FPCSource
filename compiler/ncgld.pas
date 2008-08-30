@@ -1073,7 +1073,7 @@ implementation
                            freetemp:=false;
                          end
                        else
-                        if is_widestring(lt) then
+                        if is_widestring(lt) or is_unicodestring(lt) then
                          begin
                            vtype:=vtWideString;
                            freetemp:=false;

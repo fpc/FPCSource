@@ -721,6 +721,9 @@ implementation
             is_pwidechar(paradef) then
            copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
         else
+         if is_unicodestring(paradef) then
+           copynode:=ccallnode.createintern('fpc_unicodestr_copy',paras)
+        else
          if is_char(paradef) then
            copynode:=ccallnode.createintern('fpc_char_copy',paras)
         else

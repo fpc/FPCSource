@@ -2787,7 +2787,8 @@ implementation
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resultdef) or
-                 is_widestring(resultdef) then
+                 is_widestring(resultdef) or
+                 is_unicodestring(resultdef) then
                begin
                  expectloc:=LOC_REFERENCE;
                end

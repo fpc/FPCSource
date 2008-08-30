@@ -617,6 +617,32 @@ begin
 end;
 
 
+Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_UNICODESTR']; compilerproc;
+{
+ Writes a UnicodeString to the Text file T
+}
+var
+  SLen : longint;
+  a: ansistring;
+begin
+  If (pointer(S)=nil) or (InOutRes<>0) then
+   exit;
+  case TextRec(f).mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        SLen:=Length(s);
+        If Len>SLen Then
+          fpc_WriteBlanks(f,Len-SLen);
+        a:=s;
+        { length(a) can be > slen, e.g. after utf-16 -> utf-8 }
+        fpc_WriteBuffer(f,pchar(a)^,length(a));
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
+end;
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_WIDESTR']; compilerproc;
 {
  Writes a WideString to the Text file T
@@ -641,7 +667,7 @@ begin
     else InOutRes:=103;
   end;
 end;
-
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; compilerproc;
 var

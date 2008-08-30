@@ -962,7 +962,7 @@ In case not, the value returned can be arbitrary.
                                   else
                                     l:=tarraydef(hdef).highrange;
                                 stringdef:
-                                  if is_open_string(hdef) or is_ansistring(hdef) or is_widestring(hdef) then
+                                  if is_open_string(hdef) or is_ansistring(hdef) or is_wide_or_unicode_string(hdef) then
                                     Message(type_e_mismatch)
                                   else
                                     l:=tstringdef(hdef).len;

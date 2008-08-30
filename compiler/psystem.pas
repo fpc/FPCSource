@@ -263,8 +263,14 @@ implementation
         addtype('LongString',clongstringtype);
 {$endif support_longstring}
         addtype('AnsiString',cansistringtype);
-        addtype('WideString',cwidestringtype);
+        { everything except windows maps widestring to unicodestring }
+        if target_info.system in system_windows then
+          addtype('WideString',cwidestringtype)
+        else
+          addtype('WideString',cunicodestringtype);
+
         addtype('UnicodeString',cunicodestringtype);
+
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',bool8type);
