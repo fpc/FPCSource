@@ -331,8 +331,9 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{ this is for bootstrappung with 2.2.x }
 {$ifdef VER2_2}
-{$i wstrings.inc}
+{$i wustring22.inc}
 {$else VER2_2}
   {$ifdef WINDOWS}
     {$i wstrings.inc}

@@ -5394,6 +5394,7 @@ rtl/inc/video.inc svneol=native#text/plain
 rtl/inc/videoh.inc svneol=native#text/plain
 rtl/inc/wstringh.inc svneol=native#text/plain
 rtl/inc/wstrings.inc -text
+rtl/inc/wustring22.inc svneol=native#text/plain
 rtl/inc/wustrings.inc svneol=native#text/plain
 rtl/linux/Makefile svneol=native#text/plain
 rtl/linux/Makefile.fpc svneol=native#text/plain
