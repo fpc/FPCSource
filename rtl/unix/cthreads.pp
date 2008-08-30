@@ -242,8 +242,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         writeln('Jumping to thread function');
 {$endif DEBUG_MT}
         ThreadMain:=pointer(ti.f(ti.p));
-        DoneThread;
-        pthread_exit(ThreadMain);
+        EndThread(0);
       end;
 
 
