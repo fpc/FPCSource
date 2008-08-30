@@ -878,11 +878,15 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and
-           (len=0) then
-         expectloc:=LOC_CONSTANT
+        if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
+          begin
+            if len=0 then
+              expectloc:=LOC_CONSTANT
+            else
+              expectloc:=LOC_REGISTER
+          end
         else
-         expectloc:=LOC_CREFERENCE;
+          expectloc:=LOC_CREFERENCE;
       end;
 
 
