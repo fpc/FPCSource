@@ -71,7 +71,7 @@ implementation
 
 uses
   widestr,
-  charset,
+  {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},
   SysUtils,
   version,
   cutils,cmsgs,

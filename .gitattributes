@@ -106,6 +106,7 @@ compiler/avr/rgcpu.pas svneol=native#text/plain
 compiler/browcol.pas svneol=native#text/plain
 compiler/bsdcompile -text
 compiler/catch.pas svneol=native#text/plain
+compiler/ccharset.pas svneol=native#text/plain
 compiler/cclasses.pas svneol=native#text/plain
 compiler/cfidwarf.pas svneol=native#text/plain
 compiler/cfileutl.pas svneol=native#text/plain
@@ -7838,6 +7839,8 @@ tests/test/tunistr1.pp svneol=native#text/plain
 tests/test/tunistr2.pp svneol=native#text/plain
 tests/test/tunistr4.pp svneol=native#text/plain
 tests/test/tunistr5.pp svneol=native#text/plain
+tests/test/tunistr6.pp svneol=native#text/plain
+tests/test/tunistr7.pp svneol=native#text/plain
 tests/test/tunit1.pp svneol=native#text/plain
 tests/test/tunit2.pp svneol=native#text/plain
 tests/test/tunit3.pp svneol=native#text/plain

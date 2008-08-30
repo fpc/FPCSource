@@ -270,7 +270,7 @@ implementation
          pooltype: TConstPoolType;
          pool: THashSet;
          entry: PHashSetItem;
-         
+
       const
         PoolMap: array[tconststringtype] of TConstPoolType = (
           sp_conststr,
@@ -295,7 +295,7 @@ implementation
               if current_asmdata.ConstPools[pooltype] = nil then
                 current_asmdata.ConstPools[pooltype] := THashSet.Create(64, True, False);
               pool := current_asmdata.ConstPools[pooltype];
-           
+
               if cst_type in [cst_widestring, cst_unicodestring] then
                 entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data, len*cwidechartype.size)
               else
@@ -402,7 +402,7 @@ implementation
                    end;
                 end;
            end;
-         if cst_type in [cst_ansistring, cst_widestring] then
+         if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, OS_ADDR);
              reference_reset_symbol(href, lab_str, 0);
@@ -412,8 +412,8 @@ implementation
          else
            begin
              location_reset(location, LOC_CREFERENCE, def_cgsize(resultdef));
-         location.reference.symbol:=lab_str;
-      end;
+             location.reference.symbol:=lab_str;
+           end;
       end;
 
 
