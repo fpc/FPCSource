@@ -19,7 +19,7 @@ unit dw_HTML;
 
 interface
 
-uses Classes, DOM, DOM_HTML, dGlobals, PasTree, dWriter, ChmWriter, ChmBase;
+uses Classes, contnrs, DOM, DOM_HTML, dGlobals, PasTree, dWriter, ChmWriter, ChmBase;
 
 const
   // Subpage indices for modules
@@ -418,7 +418,25 @@ begin
     Result := '../';
 end;
 
+Type
 
+  { TLinkData }
+
+  TLinkData = Class(TObject)
+    Constructor Create(Const APathName,ALink,AModuleName : string);
+    FPathName,
+    FLink,
+    FModuleName : String;
+  end;
+
+{ TLinkData }
+
+constructor TLinkData.Create(Const APathName, ALink, AModuleName: string);
+begin
+  FPathName:=APathName;
+  FLink:=ALink;
+  FModuleName:=AModuleName;
+end;
 
 constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 
@@ -492,7 +510,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     end;
   end;
 
-  procedure ScanModule(AModule: TPasModule);
+  procedure ScanModule(AModule: TPasModule; LinkList : TObjectList);
   var
     i, j, k: Integer;
     s: String;
@@ -506,22 +524,22 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
     AddPage(AModule,IndexSubIndex);
     AddTopicPages(AModule);
     with AModule do
-    begin
-      if InterfaceSection.ResStrings.Count > 0 then
       begin
+      if InterfaceSection.ResStrings.Count > 0 then
+        begin
         AddPage(AModule, ResstrSubindex);
         s := Allocator.GetFilename(AModule, ResstrSubindex);
         for i := 0 to InterfaceSection.ResStrings.Count - 1 do
           with TPasResString(InterfaceSection.ResStrings[i]) do
             Engine.AddLink(PathName, s + '#' + LowerCase(Name));
-      end;
+        end;
       AddPages(AModule, ConstsSubindex, InterfaceSection.Consts);
       AddPages(AModule, TypesSubindex, InterfaceSection.Types);
       if InterfaceSection.Classes.Count > 0 then
-      begin
+        begin
         AddPage(AModule, ClassesSubindex);
         for i := 0 to InterfaceSection.Classes.Count - 1 do
-        begin
+          begin
           ClassEl := TPasClassType(InterfaceSection.Classes[i]);
           AddPage(ClassEl, 0);
           // !!!: Only add when there are items
@@ -533,7 +551,7 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
           AddPage(ClassEl, EventsByNameSubindex);
 
           for j := 0 to ClassEl.Members.Count - 1 do
-          begin
+            begin
             FPEl := TPasElement(ClassEl.Members[j]);
             if ((FPEl.Visibility = visPrivate) and Engine.HidePrivate) or
               ((FPEl.Visibility = visProtected) and Engine.HideProtected) then
@@ -541,48 +559,51 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
 
             DocNode := Engine.FindDocNode(FPEl);
             if Assigned(DocNode) then
-            begin
+              begin
               ALink:=DocNode.Node['link'];
               If (ALink<>'') then
-                Engine.AddLink(FPEl.PathName,ResolveLinkIDInUnit(ALink,AModule.name))
+                LinkList.Add(TLinkData.Create(FPEl.PathName,ALink,AModule.name))
               else
                 AddPage(FPEl, 0);
-            end else  
-            begin
+              end
+            else
+              begin
               DidAutolink := False;
               if Assigned(ClassEl.AncestorType) and
                 (ClassEl.AncestorType.ClassType = TPasClassType) then
-              begin
-                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
                 begin
+                for k := 0 to TPasClassType(ClassEl.AncestorType).Members.Count - 1 do
+                  begin
                   AncestorMemberEl :=
                     TPasElement(TPasClassType(ClassEl.AncestorType).Members[k]);
                   if AncestorMemberEl.Name = FPEl.Name then
-                  begin
+                    begin
                     DocNode := Engine.FindDocNode(AncestorMemberEl);
                     if Assigned(DocNode) then
-                    begin
+                      begin
                       DidAutolink := True;
                       Engine.AddLink(FPEl.PathName,
                         Engine.FindAbsoluteLink(AncestorMemberEl.PathName));
                       break;
+                      end;
                     end;
                   end;
                 end;
-              end;
               if not DidAutolink then
                 AddPage(FPEl, 0);
+              end;
             end;
           end;
         end;
-      end;
       AddPages(AModule, ProcsSubindex, InterfaceSection.Functions);
       AddPages(AModule, VarsSubindex, InterfaceSection.Variables);
-    end;
+      end;
   end;
 
 var
   i: Integer;
+  L : TObjectList;
+
 begin
   inherited ;
   IndexColCount:=3;
@@ -600,9 +621,17 @@ begin
     AddPage(Package,IndexSubIndex);
     AddTopicPages(Package);
     end;
-
-  for i := 0 to Package.Modules.Count - 1 do
-    ScanModule(TPasModule(Package.Modules[i]));
+  L:=TObjectList.Create;
+  try
+    for i := 0 to Package.Modules.Count - 1 do
+      ScanModule(TPasModule(Package.Modules[i]),L);
+    // Resolve links
+    For I:=0 to L.Count-1 do
+      With TLinkData(L[i]) do
+        Engine.AddLink(FPathName,ResolveLinkIDInUnit(FLink,FModuleName));
+  finally
+    L.Free;
+  end;
 end;
 
 destructor THTMLWriter.Destroy;
