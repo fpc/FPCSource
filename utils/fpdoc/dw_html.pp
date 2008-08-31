@@ -2891,6 +2891,12 @@ var
             AppendKw(CodeEl, ' default');
             AppendSym(CodeEl, ';');
           end;
+          if (TPasProperty(Member).ImplementsName<>'') then
+          begin
+            AppendKw(CodeEl, ' implements');
+            AppendText(CodeEl, ' '+TPasProperty(Member).ImplementsName);
+            AppendSym(CodeEl, ';');
+          end;
           SetLength(s, 0);
           if Length(TPasProperty(Member).ReadAccessorName) > 0 then
             s := s + 'r';
