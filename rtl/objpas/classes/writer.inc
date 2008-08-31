@@ -938,7 +938,7 @@ begin
           else if ObjValue.InheritsFrom(TCollection) then
             begin
             if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
-              TCollection(GetObjectProp(Ancestor, PropInfo)))) then
+              TCollection(GetObjectProp(Ancestor, PropInfo)),root,rootancestor)) then
               begin
               Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
               SavedPropPath := FPropPath;
