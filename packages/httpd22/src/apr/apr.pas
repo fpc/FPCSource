@@ -89,10 +89,14 @@ type
   Ppid_t = ^pid_t;
   apr_uint16_t = Word;
   apr_uint32_t = Cardinal;
+  papr_uint32_t = ^apr_uint32_t;
   apr_int64_t = Int64;
+  papr_int64_t = ^apr_int64_t;
   apr_uint64_t = Int64;
+  papr_uint64_t = ^apr_uint64_t;
   apr_socklen_t = Integer;
   apr_byte_t = Byte;
+  papr_byte_t = ^apr_byte_t;
 
   apr_uint32_tso_handle_t = cuint;
 
@@ -181,6 +185,7 @@ type
 {$include apr_lib.inc}
 {$include apr_signal.inc}
 {$include apr_network_io.inc}
+{$include apr_hash.inc}
 {.$include apr_portable.inc}
 
 {.$include ../aprutils/apr_uri.inc}
