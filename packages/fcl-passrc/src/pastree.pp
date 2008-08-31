@@ -357,7 +357,7 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     Args: TList;        // List of TPasArgument objects
-    IndexValue, ReadAccessorName, WriteAccessorName,
+    IndexValue, ReadAccessorName, WriteAccessorName,ImplementsName,
       StoredAccessorName, DefaultValue: string;
     IsDefault, IsNodefault: Boolean;
   end;
@@ -1428,7 +1428,11 @@ begin
   else
     S:=' ';
   If Full then
+    begin
     Result:=Name+S+': '+Result;
+    If (ImplementsName<>'') then
+       Result:=Result+' implements '+ImplementsName;
+    end;   
   If IsDefault then
     Result:=Result+'; default'
 end;
