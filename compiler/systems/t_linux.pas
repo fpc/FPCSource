@@ -211,9 +211,18 @@ begin
        end
      else
        begin
-         { default is glibc 2.1+ compatible }
-         DynamicLinker:='/lib/ld-linux.so.2';
+         { when no dyn. linker is found, we are probably
+           cross compiling, so use the default dyn. linker }
+         DynamicLinker:=defdynlinker;
+         {
+           the default c startup script is gcrt0.as on all platforms
+           except i386
+         }
+{$ifdef i386}
          libctype:=glibc21;
+{$else i386}
+         libctype:=glibc2;
+{$endif i386}
        end;
    end;
 end;

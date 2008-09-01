@@ -669,6 +669,7 @@ interface
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
+    function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
 
 
@@ -4368,6 +4369,7 @@ implementation
           (tobjectdef(def).objecttype=odt_class);
       end;
 
+
     function is_object(def: tdef): boolean;
       begin
         is_object:=
@@ -4375,6 +4377,7 @@ implementation
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype=odt_object);
       end;
+
 
     function is_cppclass(def: tdef): boolean;
       begin
@@ -4384,12 +4387,22 @@ implementation
           (tobjectdef(def).objecttype=odt_cppclass);
       end;
 
+
     function is_class_or_interface(def: tdef): boolean;
       begin
-        is_class_or_interface:=
+        result:=
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
+      end;
+
+
+    function is_class_or_interface_or_object(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_object]);
       end;
 
 
