@@ -96,8 +96,6 @@ end;
 {$ENDIF}
 
 function InitIconv(Var error:string): Boolean;
-var
-  err: PChar;
 begin
   result:=true;
   {$ifdef LOADDYNAMIC}
@@ -111,7 +109,7 @@ end;
 
 function Iconvert(S:string;var res:string; FromEncoding, ToEncoding: string): cint;
 var
-  InLen, OutLen, Offset: longint;
+  InLen, OutLen, Offset: size_t;
   Src, Dst: PChar;
   H: iconv_t;
   lerr: cint;
