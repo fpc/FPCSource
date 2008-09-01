@@ -503,6 +503,7 @@ type
     FUpdateCount: Integer;
     FAdapter: IStringsAdapter;
     FLBS : TTextLineBreakStyle;
+    FStrictDelimiter : Boolean;
     function GetCommaText: string;
     function GetName(Index: Integer): string;
     function GetValue(const Name: string): string;
@@ -568,6 +569,7 @@ type
     Property TextLineBreakStyle : TTextLineBreakStyle Read GetLBS Write SetLBS;
     property Delimiter: Char read FDelimiter write SetDelimiter;
     property DelimitedText: string read GetDelimitedText write SetDelimitedText;
+    Property StrictDelimiter : Boolean Read FStrictDelimiter Write FStrictDelimiter;
     property QuoteChar: Char read FQuoteChar write SetQuoteChar;
     Property NameValueSeparator : Char Read FNameValueSeparator Write SetNameValueSeparator;
     property ValueFromIndex[Index: Integer]: string read GetValueFromIndex write SetValueFromIndex;
