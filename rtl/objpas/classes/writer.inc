@@ -808,8 +808,8 @@ begin
         if HasAncestor then
           DefFloatValue := GetFloatProp(Ancestor, PropInfo)
         else
-          DefFloatValue := 0;
-        if FloatValue <> DefFloatValue then
+          DefFloatValue := PPropInfo(PropInfo)^.Default;
+        if (FloatValue<>DefFloatValue) or (DefValue=longint($80000000)) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteFloat(FloatValue);
