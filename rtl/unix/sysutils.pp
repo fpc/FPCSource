@@ -294,6 +294,10 @@ end;
 
 Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
 
+Var
+  FNL : String;
+  LinkInfo : Stat;
+
 begin
   Result:=faArchive;
   If fpS_ISDIR(Info.st_mode) then
@@ -305,7 +309,13 @@ begin
   If fpS_ISSOCK(Info.st_mode) or fpS_ISBLK(Info.st_mode) or fpS_ISCHR(Info.st_mode) or fpS_ISFIFO(Info.st_mode) Then
      Result:=Result or faSysFile;
   If fpS_ISLNK(Info.st_mode) Then
+    begin
     Result:=Result or faSymLink;
+    // Windows reports if the link points to a directory.
+    FNL:=StrPas(FN);
+    if (fpstat(FNL,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+      Result := Result or faDirectory;
+    end;
 end;
 
 
@@ -424,10 +434,15 @@ Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
 var
   st      : baseunix.stat;
   WinAttr : longint;
+  
 begin
   FindGetFileInfo:=false;
-  if not fpstat(pointer(s),st)>=0 then
-   exit;
+  If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
+    FindGetFileInfo:=(fplstat(pointer(s),st)=0)    
+  else
+    FindGetFileInfo:=(fpstat(pointer(s),st)=0);
+  If not FindGetFileInfo then 
+    exit;  
   WinAttr:=LinuxToWinAttr(PChar(pointer(s)),st);
   If (f.FindHandle = nil) or ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
@@ -445,12 +460,10 @@ end;
 
 Function FindNext (Var Rslt : TSearchRec) : Longint;
 {
-  re-opens dir if not already in array and calls FindWorkProc
+  re-opens dir if not already in array and calls FindGetFileInfo
 }
 Var
   DirName  : String;
-  i,
-  ArrayPos : Longint;
   FName,
   SName    : string;
   Found,
@@ -501,7 +514,7 @@ End;
 
 Function FindFirst (Const Path : String; Attr : Longint; out Rslt : TSearchRec) : Longint;
 {
-  opens dir and calls FindWorkProc
+  opens dir and calls FindNext if needed.
 }
 var
   UnixFindData : PUnixFindData;
