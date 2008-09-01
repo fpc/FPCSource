@@ -5392,6 +5392,7 @@ rtl/inc/varianth.inc svneol=native#text/plain
 rtl/inc/variants.pp svneol=native#text/plain
 rtl/inc/video.inc svneol=native#text/plain
 rtl/inc/videoh.inc svneol=native#text/plain
+rtl/inc/wstring22h.inc svneol=native#text/plain
 rtl/inc/wstringh.inc svneol=native#text/plain
 rtl/inc/wstrings.inc -text
 rtl/inc/wustring22.inc svneol=native#text/plain

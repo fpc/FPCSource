@@ -345,11 +345,11 @@ Type
   PUCS2Char           = PWideChar;
   PWideString         = ^WideString;
 
-  UnicodeChar         = WideChar;
+  UnicodeChar         = type WideChar;
   PUnicodeChar        = ^UnicodeChar;
 {$ifdef VER2_2}
   { this is only to avoid too much ifdefs in the code }
-  UnicodeString       = WideString;
+  UnicodeString       = type WideString;
 {$endif VER2_2}
   PUnicodeString      = ^UnicodeString;
 
@@ -770,9 +770,9 @@ function  lowercase(const s : ansistring) : ansistring;
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 {$ifdef VER2_2}
-{$i wstringh.inc}
+{$i wstring22h.inc}
 {$else VER2_2}
-{$i ustringh.inc}
+  {$i ustringh.inc}
   {$ifdef WINDOWS}
     {$i wstringh.inc}
   {$endif WINDOWS}

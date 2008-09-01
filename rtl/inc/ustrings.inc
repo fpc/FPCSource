@@ -101,7 +101,24 @@ begin
 end;
 
 
-{****************************************************************************
+Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
+begin
+  manager:=widestringmanager;
+end;
+
+
+Procedure SetWideStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+begin
+  Old:=widestringmanager;
+  widestringmanager:=New;
+end;
+
+
+Procedure SetWideStringManager (Const New : TUnicodeStringManager);
+begin
+  widestringmanager:=New;
+end;
+         {****************************************************************************
                     Internal functions, not in interface.
 ****************************************************************************}
 
@@ -783,6 +800,23 @@ begin
     i := high(arr)+1;
   SetLength(fpc_UnicodeCharArray_To_UnicodeStr,i);
   Move(arr[0], Pointer(fpc_UnicodeCharArray_To_UnicodeStr)^,i*sizeof(UnicodeChar));
+end;
+
+
+Function fpc_WideCharArray_To_UnicodeStr(const arr: array of widechar; zerobased: boolean = true): UnicodeString; compilerproc;
+var
+  i  : SizeInt;
+begin
+  if (zerobased) then
+    begin
+      i:=IndexWord(arr,high(arr)+1,0);
+      if i = -1 then
+        i := high(arr)+1;
+    end
+  else
+    i := high(arr)+1;
+  SetLength(fpc_WideCharArray_To_UnicodeStr,i);
+  Move(arr[0], Pointer(fpc_WideCharArray_To_UnicodeStr)^,i*sizeof(WideChar));
 end;
 
 {$ifndef FPC_STRTOCHARARRAYPROC}
@@ -1699,6 +1733,12 @@ begin
 end;
 
 
+function UTF8Encode(const s : Ansistring) : UTF8String; inline;
+  begin
+    Result:=UTF8Encode(UnicodeString(s));
+  end;
+
+
 function UTF8Encode(const s : UnicodeString) : UTF8String;
   var
     i : SizeInt;
@@ -1732,6 +1772,18 @@ function UTF8Decode(const s : UTF8String): UnicodeString;
         SetLength(hs,i-1);
         result:=hs;
       end;
+  end;
+
+
+function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Utf8Encode(s);
+  end;
+
+
+function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Utf8Decode(s);
   end;
 
 
@@ -1888,3 +1940,4 @@ procedure initunicodestringmanager;
     widestringmanager.CompareUnicodeStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
   end;
+

@@ -79,24 +79,6 @@ begin
 end;
 
 
-Procedure GetWideStringManager (Var Manager : TWideStringManager);
-begin
-  manager:=widestringmanager;
-end;
-
-
-Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
-begin
-  Old:=widestringmanager;
-  widestringmanager:=New;
-end;
-
-
-Procedure SetWideStringManager (Const New : TWideStringManager);
-begin
-  widestringmanager:=New;
-end;
-
 (*
 Procedure UniqueWideString(Var S : WideString); [Public,Alias : 'FPC_WIDESTR_UNIQUE'];
 {
@@ -615,6 +597,16 @@ Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
 }
 begin
   widestringmanager.Wide2AnsiMoveProc(@c, fpc_WChar_To_AnsiStr, 1);
+end;
+
+
+Function fpc_UChar_To_WideStr(const c : WideChar): WideString; compilerproc;
+{
+  Converts a WideChar to a WideString;
+}
+begin
+  Setlength (fpc_UChar_To_WideStr,1);
+  fpc_UChar_To_WideStr[1]:= c;
 end;
 
 
@@ -1680,36 +1672,6 @@ function UTF8Encode(const s : WideString) : UTF8String;
         SetLength(hs,i-1);
         result:=hs;
       end;
-  end;
-
-
-function UTF8Decode(const s : UTF8String): WideString;
-  var
-    i : SizeInt;
-    hs : WideString;
-  begin
-    result:='';
-    if s='' then
-      exit;
-    SetLength(hs,length(s));
-    i:=Utf8ToUnicode(PWideChar(hs),length(hs)+1,pchar(s),length(s));
-    if i>0 then
-      begin
-        SetLength(hs,i-1);
-        result:=hs;
-      end;
-  end;
-
-
-function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Result:=Utf8Encode(s);
-  end;
-
-
-function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
-  begin
-    Result:=Utf8Decode(s);
   end;
 
 

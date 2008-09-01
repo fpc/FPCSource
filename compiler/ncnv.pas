@@ -953,7 +953,7 @@ implementation
                    if torddef(left.resultdef).ordtype<>uwidechar then
                      procname := 'fpc_char_to_'
                    else
-                     procname := 'fpc_wchar_to_';
+                     procname := 'fpc_uchar_to_';
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
                    { and the parameter }
@@ -2531,10 +2531,10 @@ implementation
       begin
         if (torddef(resultdef).ordtype=uchar) and
            (torddef(left.resultdef).ordtype=uwidechar) then
-          fname := 'fpc_wchar_to_char'
+          fname := 'fpc_uchar_to_char'
         else if (torddef(resultdef).ordtype=uwidechar) and
            (torddef(left.resultdef).ordtype=uchar) then
-          fname := 'fpc_char_to_wchar'
+          fname := 'fpc_char_to_uchar'
         else
           internalerror(2007081201);
 

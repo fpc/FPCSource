@@ -1014,12 +1014,13 @@ procedure InitWin32Widestrings;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
-
+{$ifndef VER2_2}
     { Unicode }
     widestringmanager.Unicode2AnsiMoveProc:=@Win32Unicode2AnsiMove;
     widestringmanager.Ansi2UnicodeMoveProc:=@Win32Ansi2UnicodeMove;
     widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
+{$endif VER2_2}
   end;
 
 

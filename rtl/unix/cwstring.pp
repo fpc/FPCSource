@@ -705,7 +705,7 @@ end;
 
 Procedure SetCWideStringManager;
 Var
-  CWideStringManager : TWideStringManager;
+  CWideStringManager : TUnicodeStringManager;
 begin
   CWideStringManager:=widestringmanager;
   With CWideStringManager do
@@ -734,7 +734,7 @@ begin
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
     end;
-  SetWideStringManager(CWideStringManager);
+  SetUnicodeStringManager(CWideStringManager);
 end;
 
 
