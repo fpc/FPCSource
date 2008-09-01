@@ -218,6 +218,26 @@ implementation
              end;
           end;
 
+          function allow_default_property(p : tpropertysym) : boolean;
+
+          begin
+             allow_default_property:=
+               (is_ordinal(p.propdef) or
+{$ifndef cpu64bitaddr}
+               is_64bitint(p.propdef) or
+{$endif cpu64bitaddr}
+               is_class(p.propdef) or
+               is_single(p.propdef) or
+               (p.propdef.typ in [classrefdef,pointerdef]) or
+                 is_smallset(p.propdef)
+               ) and not
+               (
+                (p.propdef.typ=arraydef) and
+                (ppo_indexed in p.propoptions)
+               ) and not
+               (ppo_hasparameters in p.propoptions);
+          end;
+
       var
          sym : tsym;
          p : tpropertysym;
@@ -566,20 +586,7 @@ implementation
            end;
          if try_to_consume(_DEFAULT) then
            begin
-              if not(is_ordinal(p.propdef) or
-{$ifndef cpu64bitaddr}
-                     is_64bitint(p.propdef) or
-{$endif cpu64bitaddr}
-                     is_class(p.propdef) or
-                     is_single(p.propdef) or
-                     (p.propdef.typ in [classrefdef,pointerdef]) or
-                     is_smallset(p.propdef)
-                    ) or
-                    (
-                     (p.propdef.typ=arraydef) and
-                     (ppo_indexed in p.propoptions)
-                    ) or
-                 (ppo_hasparameters in p.propoptions) then
+              if not allow_default_property(p) then
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
@@ -621,7 +628,12 @@ implementation
          else if try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
+           end
+         else if allow_default_property(p) then
+           begin
+              p.default:=longint($80000000);
            end;
+  
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
