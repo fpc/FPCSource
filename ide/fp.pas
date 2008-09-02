@@ -76,7 +76,7 @@ uses
   FPTemplt,FPRedir,FPDesk,
   FPCodTmp,FPCodCmp,
 
-  systems,globtype,globals;
+  systems;
 
 
 {$ifdef fpc}
@@ -326,15 +326,6 @@ begin
 {$ENDIF}
 end;
 
-
-procedure InitCompilerSwitches;
-  begin
-    default_settings.globalswitches:=[cs_check_unit_name];
-    default_settings.moduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
-    default_settings.localswitches:=[cs_typed_const_writable];
-  end;
-
-
 {The square bullet needs an MS-DOS code page. On Unix it is for sure the code
  page is not available before video is initialized. (And only in certain
  circumstances after that, so, use a plain ascii character as bullet on Unix.)}
@@ -379,8 +370,6 @@ BEGIN
   ShowReadme:=ShowReadme or (LocateFile(INIFileName)='');
   if LocateFile(INIFileName)<>'' then
     writeln(bullet+' Using configuration files from: ',DirOf(LocateFile(INIFileName)));
-
-  InitCompilerSwitches;
 
 {$ifdef VESA}
   InitVESAScreenModes;

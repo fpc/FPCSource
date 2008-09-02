@@ -1407,12 +1407,12 @@ begin
   for i:=low(TSwitchMode) to high(TSwitchMode) do
     begin
        SwitchesMode:=i;
-
+{$ifdef i386}
        { default is Pentium }
        ProcessorOptimizationSwitches^.SetCurrSel(1);
        { AT&T reader }
        AsmReaderSwitches^.SetCurrSel(1);
-
+{$endif i386}
        { FPC mode}
        CompilerModeSwitches^.SetCurrSel(0);
 (* Use platform defaults for memory switches. *)
