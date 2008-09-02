@@ -93,7 +93,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpIOCtl      (Handle:cint;Ndx: TIOCtlRequest; Data: Pointer):cint; external name  'FPC_SYSC_IOCTL';
     Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint; external name 'FPC_SYSC_NANOSLEEP';
     Function  fpLstat(path:pchar;Info:pstat):cint;
-    Function  fpLstat(Filename: ansistring;Info:pstat):cint;
     Function  fpSymlink(oldname,newname:pchar):cint;
     Function  fpReadLink(name,linkname:pchar;maxlen:size_t):cint; external name  'FPC_SYSC_READLINK';
 
