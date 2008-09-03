@@ -234,6 +234,7 @@ type
     procedure Clear;
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
@@ -301,6 +302,7 @@ type
     function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
     function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -479,7 +481,7 @@ type
 { ---------------------------------------------------------------------
     Bucket lists as in Delphi
   ---------------------------------------------------------------------}
-  
+
 
 Type
   TBucketItem = record
@@ -535,7 +537,7 @@ Type
 { ---------------------------------------------------------------------
   TBucketList
   ---------------------------------------------------------------------}
-  
+
 
   TBucketListSizes = (bl2, bl4, bl8, bl16, bl32, bl64, bl128, bl256);
 
@@ -553,7 +555,7 @@ Type
 { ---------------------------------------------------------------------
   TObjectBucketList
   ---------------------------------------------------------------------}
-  
+
   { TObjectBucketList }
 
   TObjectBucketList = class(TBucketList)
@@ -1144,26 +1146,6 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-    function FPHash1(const s:shortstring):LongWord;
-      Var
-        g : LongWord;
-        p,pmax : pchar;
-      begin
-        result:=0;
-        p:=@s[1];
-        pmax:=@s[length(s)+1];
-        while (p<pmax) do
-          begin
-            result:=result shl 4 + LongWord(p^);
-            g:=result and LongWord($F0000000);
-            if g<>0 then
-              result:=result xor (g shr 24) xor g;
-            inc(p);
-          end;
-        If result=0 then
-          result:=$ffffffff;
-      end;
-
     function FPHash(const s:shortstring):LongWord;
       Var
         p,pmax : pchar;
@@ -1177,7 +1159,28 @@ end;
         pmax:=@s[length(s)+1];
         while (p<pmax) do
           begin
-            result:=LongWord((result shl 5) - result) xor LongWord(P^);
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
+            inc(p);
+          end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+      end;
+
+    function FPHash(P: PChar; Len: Integer): LongWord;
+      Var
+        pmax : pchar;
+      begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+        result:=0;
+        pmax:=p+len;
+        while (p<pmax) do
+          begin
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
             inc(p);
           end;
 {$ifdef overflowon}
@@ -1205,7 +1208,7 @@ procedure TFPHashList.Put(Index: Integer; Item: Pointer);
 begin
   if (Index < 0) or (Index >= FCount) then
     RaiseIndexError(Index);
-  FHashList^[Index].Data:=Item;;
+  FHashList^[Index].Data:=Item;
 end;
 
 
@@ -1231,6 +1234,14 @@ begin
 end;
 
 
+function TFPHashList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result:=-1;
+  if ((Index > -1) and (Index < FCount)) then
+    Result:=FHashList^[Index].NextIndex;
+end;
+
+
 function TFPHashList.Extract(item: Pointer): Pointer;
 var
   i : Integer;
@@ -1253,6 +1264,9 @@ begin
     exit;
   ReallocMem(FHashList, NewCapacity*SizeOf(THashItem));
   FCapacity := NewCapacity;
+  { Maybe expand hash also }
+  if FCapacity>FHashCapacity*MaxItemsPerHash then
+    SetHashCapacity(FCapacity div MaxItemsPerHash);
 end;
 
 
@@ -1424,9 +1438,6 @@ begin
   else if FCapacity >= sizeof(ptrint) then
     inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
-  { Maybe expand hash also }
-  if FCount>FHashCapacity*MaxItemsPerHash then
-    SetHashCapacity(FCount div MaxItemsPerHash);
 end;
 
 procedure TFPHashList.StrExpand(MinIncSize:Integer);
@@ -1793,6 +1804,11 @@ end;
 function TFPHashObjectList.HashOfIndex(Index: Integer): LongWord;
 begin
   Result := FHashList.HashOfIndex(Index);
+end;
+
+function TFPHashObjectList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result := FHashList.GetNextCollision(Index);
 end;
 
 procedure TFPHashObjectList.Delete(Index: Integer);
@@ -2476,11 +2492,11 @@ end;
 
 function TCustomBucketList.AddItem(ABucket: Integer; AItem, AData: Pointer
   ): Pointer;
-  
+
 Var
   B : PBucket;
   L : Integer;
-  
+
 begin
   B:=@FBuckets[ABucket];
   L:=Length(B^.Items);
@@ -2502,11 +2518,11 @@ begin
 end;
 
 function TCustomBucketList.DeleteItem(ABucket: Integer; AIndex: Integer): Pointer;
-  
+
 Var
   B : PBucket;
   L : Integer;
-  
+
 begin
   B:=@FBuckets[ABucket];
   Result:=B^.Items[Aindex].Data;
@@ -2528,11 +2544,11 @@ end;
 
 function TCustomBucketList.FindItem(AItem: Pointer; out ABucket, AIndex: Integer
   ): Boolean;
-  
+
 Var
   I : Integer;
   B : TBucket;
-  
+
 begin
   ABucket:=BucketFor(AItem);
   B:=FBuckets[ABucket];
@@ -2616,11 +2632,11 @@ end;
 
 function TCustomBucketList.ForEach(AProc: TBucketProc; AInfo: Pointer
   ): Boolean;
-  
+
 Var
   I,J,S : Integer;
   Bu : TBucket;
-  
+
 begin
   I:=0;
   Result:=True;
@@ -2690,7 +2706,7 @@ constructor TBucketList.Create(ABuckets: TBucketListSizes);
 
 Var
   L : Integer;
-  
+
 begin
   Inherited Create;
   L:=1 shl (Ord(Abuckets)+1);

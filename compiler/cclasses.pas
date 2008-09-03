@@ -216,6 +216,7 @@ type
     procedure Clear;
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
@@ -283,6 +284,7 @@ type
     function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
     function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -1054,26 +1056,6 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-    function FPHash1(const s:shortstring):LongWord;
-      Var
-        g : LongWord;
-        p,pmax : pchar;
-      begin
-        result:=0;
-        p:=@s[1];
-        pmax:=@s[length(s)+1];
-        while (p<pmax) do
-          begin
-            result:=result shl 4 + LongWord(p^);
-            g:=result and LongWord($F0000000);
-            if g<>0 then
-              result:=result xor (g shr 24) xor g;
-            inc(p);
-          end;
-        If result=0 then
-          result:=$ffffffff;
-      end;
-
     function FPHash(const s:shortstring):LongWord;
       Var
         p,pmax : pchar;
@@ -1116,6 +1098,7 @@ end;
 {$undef overflowon}
 {$endif}
       end;
+
 
 procedure TFPHashList.RaiseIndexError(Index : Integer);
 begin
@@ -1161,6 +1144,14 @@ begin
 end;
 
 
+function TFPHashList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result:=-1;
+  if ((Index > -1) and (Index < FCount)) then
+    Result:=FHashList^[Index].NextIndex;
+end;
+
+
 function TFPHashList.Extract(item: Pointer): Pointer;
 var
   i : Integer;
@@ -1183,6 +1174,9 @@ begin
     exit;
   ReallocMem(FHashList, NewCapacity*SizeOf(THashItem));
   FCapacity := NewCapacity;
+  { Maybe expand hash also }
+  if FCapacity>FHashCapacity*MaxItemsPerHash then
+    SetHashCapacity(FCapacity div MaxItemsPerHash);
 end;
 
 
@@ -1301,6 +1295,7 @@ begin
       FHashList := nil;
     end;
   SetHashCapacity(1);
+  FHashTable^[0]:=longword(-1); // sethashcapacity does not always call rehash
   if Assigned(FStrs) then
     begin
       FStrCount:=0;
@@ -1353,9 +1348,6 @@ begin
   else if FCapacity >= sizeof(ptrint) then
     inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
-  { Maybe expand hash also }
-  if FCount>FHashCapacity*MaxItemsPerHash then
-    SetHashCapacity(FCount div MaxItemsPerHash);
 end;
 
 procedure TFPHashList.StrExpand(MinIncSize:Integer);
@@ -1724,6 +1716,11 @@ begin
   Result := FHashList.HashOfIndex(Index);
 end;
 
+function TFPHashObjectList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result := FHashList.GetNextCollision(Index);
+end;
+
 procedure TFPHashObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
@@ -1826,7 +1823,6 @@ procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:
 begin
   FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
 end;
-
 
 
 {****************************************************************************
