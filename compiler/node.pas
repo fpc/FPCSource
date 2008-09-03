@@ -271,6 +271,9 @@ interface
       pnode = ^tnode;
       { basic class for the intermediated representation fpc uses }
       tnode = class
+      private
+         fppuidx : longint;
+         function getppuidx:longint;
       public
          { type of this node }
          nodetype : tnodetype;
@@ -291,7 +294,6 @@ interface
          successor : tnode;
          { there are some properties about the node stored }
          flags  : tnodeflags;
-         ppuidx : longint;
          resultdef     : tdef;
          resultdefderef : tderef;
          fileinfo      : tfileposinfo;
@@ -306,7 +308,7 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);virtual;
          procedure buildderefimpl;virtual;
          procedure derefimpl;virtual;
-         procedure derefnode;virtual;
+         procedure resolveppuidx;virtual;
 
          { toggles the flag }
          procedure toggleflag(f : tnodeflag);
@@ -345,7 +347,7 @@ interface
 
          { does the real copying of a node }
          function dogetcopy : tnode;virtual;
-         
+
          { returns the real loadn/temprefn a node refers to,
            skipping (absolute) equal type conversions        }
          function actualtargetnode: tnode;virtual;
@@ -362,6 +364,7 @@ interface
 
          { ensures that the optimizer info record is allocated }
          function allocoptinfo : poptinfo;inline;
+         property ppuidx:longint read getppuidx;
       end;
 
       tnodeclass = class of tnode;
@@ -380,7 +383,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure derefnode;override;
          procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
@@ -398,7 +400,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure derefnode;override;
          procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
@@ -418,7 +419,6 @@ interface
          procedure ppuwrite(ppufile:tcompilerppufile);override;
          procedure buildderefimpl;override;
          procedure derefimpl;override;
-         procedure derefnode;override;
          procedure concattolist(l : tlinkedlist);override;
          function ischild(p : tnode) : boolean;override;
          function docompare(p : tnode) : boolean;override;
@@ -441,8 +441,6 @@ interface
     procedure ppuwritenode(ppufile:tcompilerppufile;n:tnode);
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
-    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
-    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
 
     const
       printnodespacing = '   ';
@@ -481,40 +479,59 @@ implementation
  ****************************************************************************}
 
     var
-      nodeppudata : tdynamicarray;
+      nodeppulist : TFPObjectList;
       nodeppuidx  : longint;
 
 
     procedure nodeppuidxcreate;
       begin
-        nodeppudata:=tdynamicarray.create(1024);
+        nodeppulist:=TFPObjectList.Create(false);
         nodeppuidx:=0;
+      end;
+
+
+    procedure nodeppuidxresolve;
+      var
+        i : longint;
+        n : tnode;
+      begin
+        for i:=0 to nodeppulist.count-1 do
+          begin
+            n:=tnode(nodeppulist[i]);
+            if assigned(n) then
+              n.resolveppuidx;
+          end;
       end;
 
 
     procedure nodeppuidxfree;
       begin
-        nodeppudata.free;
-        nodeppudata:=nil;
+        nodeppulist.free;
+        nodeppulist:=nil;
+        nodeppuidx:=0;
       end;
 
 
     procedure nodeppuidxadd(n:tnode);
+      var
+        i : longint;
       begin
-        if n.ppuidx<0 then
+        i:=n.ppuidx;
+        if i<=0 then
           internalerror(200311072);
-        nodeppudata.seek(n.ppuidx*sizeof(pointer));
-        nodeppudata.write(n,sizeof(pointer));
+        if i>=nodeppulist.capacity then
+          nodeppulist.capacity:=((i div 1024)+1)*1024;
+        if i>=nodeppulist.count then
+          nodeppulist.count:=i+1;
+        nodeppulist[i]:=n;
       end;
 
 
     function nodeppuidxget(i:longint):tnode;
       begin
-        if i<0 then
-          internalerror(200311072);
-        nodeppudata.seek(i*sizeof(pointer));
-        if nodeppudata.read(result,sizeof(pointer))<>sizeof(pointer) then
+        if i<=0 then
           internalerror(200311073);
+        result:=tnode(nodeppulist[i]);
       end;
 
 
@@ -540,7 +557,7 @@ implementation
            //writeln('load: ',nodetype2str[t]);
            { generate node of the correct class }
            result:=nodeclass[t].ppuload(t,ppufile);
-           result.ppuidx:=hppuidx;
+           result.fppuidx:=hppuidx;
            nodeppuidxadd(result);
          end
         else
@@ -555,10 +572,6 @@ implementation
         { type, read by ppuloadnode }
         if assigned(n) then
          begin
-           if n.ppuidx=-1 then
-             internalerror(200311071);
-           n.ppuidx:=nodeppuidx;
-           inc(nodeppuidx);
            ppufile.putbyte(byte(n.nodetype));
            ppufile.putlongint(n.ppuidx);
            //writeln('write: ',nodetype2str[n.nodetype]);
@@ -569,38 +582,23 @@ implementation
       end;
 
 
-    procedure ppuwritenoderef(ppufile:tcompilerppufile;n:tnode);
-      begin
-        { writing of node references isn't implemented yet (FK) }
-        internalerror(200506181);
-      end;
-
-
-    function ppuloadnoderef(ppufile:tcompilerppufile) : tnode;
-      begin
-        { reading of node references isn't implemented yet (FK) }
-        internalerror(200506182);
-        { avoid warning }
-        result := nil;
-      end;
-
-
     function ppuloadnodetree(ppufile:tcompilerppufile):tnode;
       begin
         if ppufile.readentry<>ibnodetree then
           Message(unit_f_ppu_read_error);
         nodeppuidxcreate;
         result:=ppuloadnode(ppufile);
-        result.derefnode;
+        nodeppuidxresolve;
         nodeppuidxfree;
       end;
 
 
     procedure ppuwritenodetree(ppufile:tcompilerppufile;n:tnode);
       begin
-        nodeppuidx:=0;
+        nodeppuidxcreate;
         ppuwritenode(ppufile,n);
         ppufile.writeentry(ibnodetree);
+        nodeppuidxfree;
       end;
 
 
@@ -691,7 +689,6 @@ implementation
          localswitches:=current_settings.localswitches;
          resultdef:=nil;
          flags:=[];
-         ppuidx:=-1;
       end;
 
     constructor tnode.createforcopy;
@@ -713,7 +710,6 @@ implementation
         expectloc:=LOC_INVALID;
         { updated by secondpass }
         location.loc:=LOC_INVALID;
-        ppuidx:=-1;
       end;
 
 
@@ -727,6 +723,22 @@ implementation
       end;
 
 
+    function tnode.getppuidx:longint;
+      begin
+        if fppuidx=0 then
+          begin
+            inc(nodeppuidx);
+            fppuidx:=nodeppuidx;
+          end;
+         result:=fppuidx;
+       end;
+
+
+    procedure tnode.resolveppuidx;
+      begin
+      end;
+
+
     procedure tnode.buildderefimpl;
       begin
         resultdefderef.build(resultdef);
@@ -736,11 +748,6 @@ implementation
     procedure tnode.derefimpl;
       begin
         resultdef:=tdef(resultdefderef.resolve);
-      end;
-
-
-    procedure tnode.derefnode;
-      begin
       end;
 
 
@@ -944,14 +951,6 @@ implementation
       end;
 
 
-    procedure tunarynode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(left) then
-          left.derefnode;
-      end;
-
-
     function tunarynode.docompare(p : tnode) : boolean;
       begin
          docompare:=(inherited docompare(p) and
@@ -1044,14 +1043,6 @@ implementation
         inherited derefimpl;
         if assigned(right) then
           right.derefimpl;
-      end;
-
-
-    procedure tbinarynode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(right) then
-          right.derefnode;
       end;
 
 
@@ -1185,14 +1176,6 @@ implementation
         inherited derefimpl;
         if assigned(third) then
           third.derefimpl;
-      end;
-
-
-    procedure ttertiarynode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(third) then
-          third.derefnode;
       end;
 
 

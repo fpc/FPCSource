@@ -136,7 +136,6 @@ type
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          procedure derefnode;override;
           function dogetcopy: tnode; override;
           function pass_1 : tnode; override;
           function pass_typecheck: tnode; override;
@@ -153,8 +152,8 @@ type
           constructor create_offset(const temp: ttempcreatenode;aoffset:longint);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure resolveppuidx;override;
           function dogetcopy: tnode; override;
-          procedure derefnode;override;
           function pass_1 : tnode; override;
           function pass_typecheck : tnode; override;
           procedure mark_write;override;
@@ -176,8 +175,8 @@ type
           constructor create_normal_temp(const temp: ttempcreatenode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure resolveppuidx;override;
           function dogetcopy: tnode; override;
-          procedure derefnode;override;
           function pass_1: tnode; override;
           function pass_typecheck: tnode; override;
           function docompare(p: tnode): boolean; override;
@@ -817,14 +816,6 @@ implementation
       end;
 
 
-    procedure ttempcreatenode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(tempinfo^.withnode) then
-          tempinfo^.withnode.derefnode;
-      end;
-
-
     function ttempcreatenode.pass_1 : tnode;
       begin
         result := nil;
@@ -933,11 +924,10 @@ implementation
       end;
 
 
-    procedure ttemprefnode.derefnode;
+    procedure ttemprefnode.resolveppuidx;
       var
         temp : ttempcreatenode;
       begin
-        inherited derefnode;
         temp:=ttempcreatenode(nodeppuidxget(tempidx));
         if temp.nodetype<>tempcreaten then
           internalerror(200311075);
@@ -1067,7 +1057,7 @@ implementation
       end;
 
 
-    procedure ttempdeletenode.derefnode;
+    procedure ttempdeletenode.resolveppuidx;
       var
         temp : ttempcreatenode;
       begin

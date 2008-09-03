@@ -121,7 +121,6 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function  dogetcopy : tnode;override;
@@ -992,20 +991,6 @@ implementation
         ppufile.putderef(symtableprocentryderef);
         ppufile.putderef(procdefinitionderef);
         ppufile.putsmallset(callnodeflags);
-      end;
-
-
-    procedure tcallnode.derefnode;
-      begin
-        if assigned(callinitblock) then
-          callinitblock.derefnode;
-        if assigned(methodpointer) then
-          methodpointer.derefnode;
-        if assigned(callcleanupblock) then
-          callcleanupblock.derefnode;
-        if assigned(funcretnode) then
-          funcretnode.derefnode;
-        inherited derefnode;
       end;
 
 

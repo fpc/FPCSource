@@ -63,7 +63,6 @@ interface
           function dogetcopy : tnode;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
@@ -129,6 +128,9 @@ interface
        tcontinuenodeclass = class of tcontinuenode;
 
        tgotonode = class(tnode)
+       private
+          labelnodeidx : longint;
+       public
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
@@ -137,6 +139,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure resolveppuidx;override;
           function dogetcopy : tnode;override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -268,15 +271,6 @@ implementation
         ppuwritenode(ppufile,t2);
       end;
 
-
-    procedure tloopnode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(t1) then
-          t1.derefnode;
-        if assigned(t2) then
-          t2.derefnode;
-      end;
 
     procedure tloopnode.buildderefimpl;
       begin
@@ -972,7 +966,7 @@ implementation
     constructor tgotonode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        labelnode:=tlabelnode(ppuloadnoderef(ppufile));
+        labelnodeidx:=ppufile.getlongint;
         exceptionblock:=ppufile.getbyte;
       end;
 
@@ -980,7 +974,8 @@ implementation
     procedure tgotonode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppuwritenoderef(ppufile,labelnode);
+        labelnodeidx:=labelnode.ppuidx;
+        ppufile.putlongint(labelnodeidx);
         ppufile.putbyte(exceptionblock);
       end;
 
@@ -988,14 +983,20 @@ implementation
     procedure tgotonode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        //!!! deref(labelnode);
       end;
 
 
     procedure tgotonode.derefimpl;
       begin
         inherited derefimpl;
-        //!!! deref(labelnode);
+      end;
+
+
+    procedure tgotonode.resolveppuidx;
+      begin
+        labelnode:=tlabelnode(nodeppuidxget(labelnodeidx));
+        if labelnode.nodetype<>labeln then
+          internalerror(200809021);
       end;
 
 
@@ -1036,17 +1037,23 @@ implementation
         p:=tgotonode(inherited dogetcopy);
         p.exceptionblock:=exceptionblock;
 
-        { force a valid labelnode }
+        { generate labelnode if not done yet }
         if not(assigned(labelnode)) then
           begin
             if assigned(labelsym) and assigned(labelsym.code) then
               labelnode:=tlabelnode(labelsym.code)
-            else
-              internalerror(200610291);
           end;
 
         p.labelsym:=labelsym;
-        p.labelnode:=tlabelnode(labelnode.dogetcopy);
+        if assigned(labelnode) then
+          p.labelnode:=tlabelnode(labelnode.dogetcopy)
+        else
+          begin
+            { don't trigger IE when there was already an error, i.e. the
+              label is not defined. See tw11763 (PFV) }
+            if errorcount=0 then
+              internalerror(200610291);
+          end;
         result:=p;
      end;
 

@@ -83,7 +83,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
-          procedure derefnode;override;
           function dogetcopy : tnode;override;
           procedure insertintolist(l : tnodelist);override;
           function pass_typecheck:tnode;override;
@@ -587,18 +586,6 @@ implementation
           elseblock.derefimpl;
         for i:=0 to blocks.count-1 do
           pcaseblock(blocks[i])^.statement.derefimpl;
-      end;
-
-
-    procedure tcasenode.derefnode;
-      var
-        i : integer;
-      begin
-        inherited derefnode;
-        if assigned(elseblock) then
-          elseblock.derefnode;
-        for i:=0 to blocks.count-1 do
-          pcaseblock(blocks[i])^.statement.derefnode;
       end;
 
 
