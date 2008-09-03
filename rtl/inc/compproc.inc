@@ -156,13 +156,21 @@ procedure fpc_AnsiStr_Currency(c : currency;len,fr : SizeInt;out s : ansistring)
 {$endif CPU64}
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
   {$if not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
-  {$ifndef FPUNONE}
-  procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
-  {$endif}
-  {$ifdef FPC_HAS_STR_CURRENCY}
-  procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
-  {$endif FPC_HAS_STR_CURRENCY}
+    {$ifndef FPUNONE}
+    procedure fpc_WideStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : WideString); compilerproc;
+    {$endif}
+    {$ifdef FPC_HAS_STR_CURRENCY}
+    procedure fpc_WideStr_Currency(c : Currency;len,fr : SizeInt;out s : WideString);compilerproc;
+    {$endif FPC_HAS_STR_CURRENCY}
   {$endif not(defined(FPC_WIDESTRING_EQUAL_UNICODESTRING)) or defined(VER2_2)}
+  {$ifndef VER2_2}
+    {$ifndef FPUNONE}
+    procedure fpc_UnicodeStr_Float(d : ValReal;len,fr,rt : SizeInt;out s : UnicodeString); compilerproc;
+    {$endif}
+    {$ifdef FPC_HAS_STR_CURRENCY}
+    procedure fpc_UnicodeStr_Currency(c : Currency;len,fr : SizeInt;out s : UnicodeString);compilerproc;
+    {$endif FPC_HAS_STR_CURRENCY}
+  {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifndef FPUNONE}
