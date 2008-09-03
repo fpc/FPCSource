@@ -102,3 +102,7 @@ Procedure GetWideStringManager (Var Manager : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager);
 Procedure SetWideStringManager (Const New : TWideStringManager; Var Old: TWideStringManager);
 
+Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+

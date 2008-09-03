@@ -84,6 +84,25 @@ begin
 end;
 
 
+Procedure GetUnicodeStringManager (Var Manager : TUnicodeStringManager);
+begin
+  manager:=widestringmanager;
+end;
+
+
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager; Var Old: TUnicodeStringManager);
+begin
+  Old:=widestringmanager;
+  widestringmanager:=New;
+end;
+
+
+Procedure SetUnicodeStringManager (Const New : TUnicodeStringManager);
+begin
+  widestringmanager:=New;
+end;
+
+
 Procedure GetWideStringManager (Var Manager : TWideStringManager);
 begin
   manager:=widestringmanager;
