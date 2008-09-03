@@ -819,6 +819,95 @@ begin
   Move(arr[0], Pointer(fpc_WideCharArray_To_UnicodeStr)^,i*sizeof(WideChar));
 end;
 
+
+{ due to their names, the following procedures should be in wstrings.inc,
+  however, the compiler generates code using this functions on all platforms }
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring;[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
+var
+  l: longint;
+ index: longint;
+ len: byte;
+ temp: ansistring;
+begin
+  l := high(arr)+1;
+  if l>=256 then
+    l:=255
+  else if l<0 then
+    l:=0;
+  if zerobased then
+    begin
+      index:=IndexWord(arr[0],l,0);
+      if (index < 0) then
+        len := l
+      else
+        len := index;
+    end
+  else
+    len := l;
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
+  fpc_WideCharArray_To_ShortStr := temp;
+end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true);[public,alias:'FPC_WIDECHARARRAY_TO_SHORTSTR']; compilerproc;
+var
+  l: longint;
+  index: ptrint;
+  len: byte;
+  temp: ansistring;
+begin
+  l := high(arr)+1;
+  if l>=high(res)+1 then
+    l:=high(res)
+  else if l<0 then
+    l:=0;
+  if zerobased then
+    begin
+      index:=IndexWord(arr[0],l,0);
+      if index<0 then
+        len:=l
+      else
+        len:=index;
+    end
+  else
+    len:=l;
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),temp,len);
+  res:=temp;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+var
+  i  : SizeInt;
+begin
+  if (zerobased) then
+    begin
+      i:=IndexWord(arr,high(arr)+1,0);
+      if i = -1 then
+        i := high(arr)+1;
+    end
+  else
+    i := high(arr)+1;
+  SetLength(fpc_WideCharArray_To_AnsiStr,i);
+  widestringmanager.Wide2AnsiMoveProc (pwidechar(@arr),fpc_WideCharArray_To_AnsiStr,i);
+end;
+
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
+var
+  i  : SizeInt;
+begin
+  if (zerobased) then
+    begin
+      i:=IndexWord(arr,high(arr)+1,0);
+      if i = -1 then
+        i := high(arr)+1;
+    end
+  else
+    i := high(arr)+1;
+  SetLength(fpc_WideCharArray_To_WideStr,i);
+  Move(arr[0], Pointer(fpc_WideCharArray_To_WideStr)^,i*sizeof(WideChar));
+end;
+
 {$ifndef FPC_STRTOCHARARRAYPROC}
 
 { inside the compiler, the resulttype is modified to that of the actual }

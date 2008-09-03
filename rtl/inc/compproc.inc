@@ -317,13 +317,6 @@ procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: S
 procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
 procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring; compilerproc;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true); compilerproc;
-{$endif FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
-Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
 Function fpc_WideStr_Compare_equal(const S1,S2 : WideString): SizeInt; compilerproc;
 Procedure fpc_WideStr_CheckZero(p : pointer); compilerproc;
@@ -408,6 +401,13 @@ procedure fpc_UnicodeCharArray_To_ShortStr(out res : shortstring;const arr: arra
 Function fpc_UnicodeCharArray_To_AnsiStr(const arr: array of unicodechar; zerobased: boolean = true): AnsiString; compilerproc;
 Function fpc_UnicodeCharArray_To_UnicodeStr(const arr: array of unicodechar; zerobased: boolean = true): UnicodeString; compilerproc;
 {$ifndef VER2_2}
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+Function fpc_WideCharArray_To_ShortStr(const arr: array of widechar; zerobased: boolean = true): shortstring; compilerproc;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array of widechar; zerobased: boolean = true); compilerproc;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 Function fpc_WideCharArray_To_UnicodeStr(const arr: array of widechar; zerobased: boolean = true): UnicodeString; compilerproc;
 {$endif VER2_2}
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
