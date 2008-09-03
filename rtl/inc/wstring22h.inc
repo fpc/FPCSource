@@ -77,7 +77,7 @@ Type
     ThreadInitProc : procedure;
     ThreadFiniProc : procedure;
   end;
-
+  TUnicodeStringManager = TWideStringManager;
 
 function UnicodeToUtf8(Dest: PChar; Source: PWideChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; SourceChars: SizeUInt): SizeUInt;
