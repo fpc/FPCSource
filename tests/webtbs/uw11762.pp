@@ -1,3 +1,4 @@
+{$goto on}
 unit uw11762;
 interface
 procedure p; inline;

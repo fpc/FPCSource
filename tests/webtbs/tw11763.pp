@@ -1,3 +1,4 @@
+{$goto on}
 procedure p; inline;
 label x;
 begin
