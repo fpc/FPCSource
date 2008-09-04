@@ -887,7 +887,7 @@ implementation
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
          unitname8 : string[8];
-         has_impl,ag: boolean;
+         ag: boolean;
 {$ifdef i386}
          gotvarsym : tstaticvarsym;
 {$endif i386}
@@ -1034,9 +1034,9 @@ implementation
 
          { Parse the implementation section }
          if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
-           has_impl:= false
+           current_module.interface_only:=true
          else
-           has_impl:= true;
+           current_module.interface_only:=false;
 
          parse_only:=false;
 
@@ -1056,7 +1056,7 @@ implementation
            end;
 {$endif i386}
 
-         if has_impl then
+         if not current_module.interface_only then
            begin
              consume(_IMPLEMENTATION);
              Message1(unit_u_loading_implementation_units,current_module.modulename^);
@@ -1076,7 +1076,7 @@ implementation
          symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
 
-         if has_impl then
+         if not current_module.interface_only then
            begin
              Message1(parser_u_parsing_implementation,current_module.modulename^);
              if current_module.in_interface then
@@ -1108,7 +1108,7 @@ implementation
              init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
            end;
          { finalize? }
-         if has_impl and (token=_FINALIZATION) then
+         if not current_module.interface_only and (token=_FINALIZATION) then
            begin
               { set module options }
               current_module.flags:=current_module.flags or uf_finalize;

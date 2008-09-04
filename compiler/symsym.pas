@@ -548,17 +548,18 @@ implementation
                 if (m_mac in current_settings.modeswitches) and
                    (pd.interfacedef) then
                   begin
-                    pd.forwarddef:=false;
                     pd.setmangledname(target_info.CPrefix+tprocdef(pd).procsym.realname);
+                    if (not current_module.interface_only) then
+                      MessagePos1(pd.fileinfo,sym_w_forward_not_resolved,pd.fullprocname(false));
                   end
                 else
                   begin
                     MessagePos1(pd.fileinfo,sym_e_forward_not_resolved,pd.fullprocname(false));
-                    { Turn further error messages off }
-                    pd.forwarddef:=false;
-                  end
-                end;
-           end;
+                  end;
+                { Turn further error messages off }
+                pd.forwarddef:=false;
+              end;
+          end;
       end;
 
 

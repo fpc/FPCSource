@@ -109,6 +109,7 @@ interface
         requires_ecx_pic_helper,
         { generate pic helper which loads eip in ebx (for non leave procedures) }
         requires_ebx_pic_helper : boolean;
+        interface_only: boolean; { interface-only macpas unit; flag does not need saving/restoring to ppu }
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,

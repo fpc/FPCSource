@@ -1457,7 +1457,7 @@ type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 #
 # Symtable
 #
-# 05062 is the last used one
+# 05064 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1625,6 +1625,10 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 % declared as \var{experimental} is used. Experimental symbols
 % might disappear or change semantics in future versions. Usage of this symbol
 % should be avoided as much as possible.
+sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
+% This happens if you declare a function in the \var{interface} of a unit in macpas mode,
+% but do not implement it.
+% \end{itemize}
 % \end{description}
 #
 # Codegenerator
