@@ -733,6 +733,13 @@ begin
       StrUpperAnsiStringProc:=@AnsiStrUpper;
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
+{$ifndef VER2_2}
+      { Unicode }
+      Unicode2AnsiMoveProc:=@Wide2AnsiMove;
+      Ansi2UnicodeMoveProc:=@Ansi2WideMove;
+      UpperUnicodeStringProc:=@UpperWideString;
+      LowerUnicodeStringProc:=@LowerWideString;
+{$endif VER2_2}
     end;
   SetUnicodeStringManager(CWideStringManager);
 end;
@@ -752,3 +759,4 @@ finalization
   { fini conversion tables for main program }
   FiniThread;
 end.
+
