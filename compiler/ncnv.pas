@@ -1155,7 +1155,11 @@ implementation
         result:=nil;
         if left.nodetype=ordconstn then
          begin
-           rv:=tordconstnode(left).value;
+           if is_signed(left.resultdef) or
+              not is_64bitint(left.resultdef) then
+             rv:=tordconstnode(left).value
+           else
+             rv:=qword(tordconstnode(left).value);
            if is_currency(resultdef) then
              rv:=rv*10000.0
            else if is_currency(left.resultdef) then
