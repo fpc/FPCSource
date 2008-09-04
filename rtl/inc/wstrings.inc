@@ -304,19 +304,6 @@ begin
 end;
 
 
-Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
-var
-  Size : SizeInt;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, -1, 0);
-  if Size>0 then
-    widestringmanager.Wide2AnsiMoveProc(P,result,Size);
-end;
-
-
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
 var
   Size : SizeInt;
@@ -333,41 +320,6 @@ begin
       PWideChar(Pointer(result)+Size*sizeof(WideChar))^:=#0;
    end;
 end;
-
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  result:='';
-  if p=nil then
-    exit;
-  Size := IndexWord(p^, $7fffffff, 0);
-  if Size>0 then
-    begin
-      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
-      result:=temp;
-    end;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
-var
-  Size : SizeInt;
-  temp: ansistring;
-begin
-  res:='';
-  if p=nil then
-    exit;
-  Size:=IndexWord(p^, high(PtrInt), 0);
-  if Size>0 then
-    begin
-      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
-      res:=temp;
-    end;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 { checked against the ansistring routine, 2001-05-27 (FK) }
@@ -799,47 +751,6 @@ begin
 {$endif}
 end;
 
-
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
-var
-  len: SizeInt;
-  temp: widestring;
-begin
-  len := length(src);
-  { make sure we don't dereference src if it can be nil (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > length(res) then
-    len := length(res);
-
-{$r-}
-  move(temp[1],res[0],len*sizeof(widechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
-
-procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
-var
-  len: longint;
-  temp : widestring;
-begin
-  len := length(src);
-  { make sure we don't access char 1 if length is 0 (JM) }
-  if len > 0 then
-    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
-  len := length(temp);
-  if len > length(res) then
-    len := length(res);
-{$r-}
-  move(temp[1],res[0],len*sizeof(widechar));
-  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
-{$ifdef RangeCheckWasOn}
-{$r+}
-{$endif}
-end;
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 
@@ -1728,11 +1639,6 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
     unimplementedwidestring;
   end;
 
-
-function CharLengthPChar(const Str: PChar): PtrInt;
-  begin
-    unimplementedwidestring;
-  end;
 {$warnings on}
 
 procedure initwidestringmanager;

@@ -316,13 +316,9 @@ Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
 Function fpc_CharArray_To_WideStr(const arr: array of char; zerobased: boolean = true): WideString; compilerproc;
 {$ifndef FPC_STRTOCHARARRAYPROC}
 function fpc_widestr_to_chararray(arraysize: SizeInt; const src: WideString): fpc_big_chararray; compilerproc;
-Function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray; compilerproc;
-Function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray; compilerproc;
 Function fpc_widestr_to_widechararray(arraysize: SizeInt; const src: WideString): fpc_big_widechararray; compilerproc;
 {$else ndef FPC_STRTOCHARARRAYPROC}
 procedure fpc_widestr_to_chararray(out res: array of char; const src: WideString); compilerproc;
-procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
-procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
 procedure fpc_widestr_to_widechararray(out res: array of widechar; const src: WideString); compilerproc;
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 Function fpc_WideStr_Compare(const S1,S2 : WideString): SizeInt; compilerproc;
@@ -349,15 +345,7 @@ Function fpc_UChar_To_WideStr(const c : WideChar): WideString; compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc;
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif  defined(WINDOWS) or defined(VER2_2)}
 
@@ -417,6 +405,14 @@ procedure fpc_WideCharArray_To_ShortStr(out res : shortstring;const arr: array o
 Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
 Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
 Function fpc_WideCharArray_To_UnicodeStr(const arr: array of widechar; zerobased: boolean = true): UnicodeString; compilerproc;
+{$ifndef FPC_STRTOCHARARRAYPROC}
+Function fpc_shortstr_to_widechararray(arraysize: SizeInt; const src: ShortString): fpc_big_widechararray; compilerproc;
+Function fpc_ansistr_to_widechararray(arraysize: SizeInt; const src: AnsiString): fpc_big_widechararray; compilerproc;
+{$else ndef FPC_STRTOCHARARRAYPROC}
+procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
+{$endif ndef FPC_STRTOCHARARRAYPROC}
 {$endif VER2_2}
 Function fpc_UnicodeStr_Compare(const S1,S2 : UnicodeString): SizeInt; compilerproc;
 Function fpc_UnicodeStr_Compare_equal(const S1,S2 : UnicodeString): SizeInt; compilerproc;
@@ -442,6 +438,18 @@ Function fpc_PWideChar_To_UnicodeStr(const p : pwidechar): unicodestring; compil
 Function fpc_PUnicodeChar_To_ShortStr(const p : punicodechar): shortstring; compilerproc;
 {$else FPC_STRTOSHORTSTRINGPROC}
 procedure fpc_PUnicodeChar_To_ShortStr(out res : shortstring;const p : punicodechar); compilerproc;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+
+
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif VER2_2}

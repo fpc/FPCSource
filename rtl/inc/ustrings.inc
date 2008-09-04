@@ -407,6 +407,54 @@ end;
 {$endif FPC_STRTOSHORTSTRINGPROC}
 
 
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+var
+  Size : SizeInt;
+begin
+  result:='';
+  if p=nil then
+    exit;
+  Size := IndexWord(p^, -1, 0);
+  if Size>0 then
+    widestringmanager.Wide2AnsiMoveProc(P,result,Size);
+end;
+
+
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+Function fpc_PWideChar_To_ShortStr(const p : pwidechar): shortstring; compilerproc;
+var
+  Size : SizeInt;
+  temp: ansistring;
+begin
+  result:='';
+  if p=nil then
+    exit;
+  Size := IndexWord(p^, $7fffffff, 0);
+  if Size>0 then
+    begin
+      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
+      result:=temp;
+    end;
+end;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_PWideChar_To_ShortStr(out res : shortstring;const p : pwidechar); compilerproc;
+var
+  Size : SizeInt;
+  temp: ansistring;
+begin
+  res:='';
+  if p=nil then
+    exit;
+  Size:=IndexWord(p^, high(PtrInt), 0);
+  if Size>0 then
+    begin
+      widestringmanager.Wide2AnsiMoveProc(p,temp,Size);
+      res:=temp;
+    end;
+end;
+{$endif FPC_STRTOSHORTSTRINGPROC}
+
+
 { checked against the ansistring routine, 2001-05-27 (FK) }
 Procedure fpc_UnicodeStr_Assign (Var S1 : Pointer;S2 : Pointer);[Public,Alias:'FPC_UNICODESTR_ASSIGN']; compilerproc;
 {
@@ -1077,6 +1125,66 @@ begin
 {$r+}
 {$endif}
 end;
+
+procedure fpc_ansistr_to_widechararray(out res: array of widechar; const src: AnsiString); compilerproc;
+var
+  len: SizeInt;
+  temp: widestring;
+begin
+  len := length(src);
+  { make sure we don't dereference src if it can be nil (JM) }
+  if len > 0 then
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+  len := length(temp);
+  if len > length(res) then
+    len := length(res);
+
+{$r-}
+  move(temp[1],res[0],len*sizeof(widechar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+procedure fpc_shortstr_to_widechararray(out res: array of widechar; const src: ShortString); compilerproc;
+var
+  len: longint;
+  temp : widestring;
+begin
+  len := length(src);
+  { make sure we don't access char 1 if length is 0 (JM) }
+  if len > 0 then
+    widestringmanager.ansi2widemoveproc(pchar(@src[1]),temp,len);
+  len := length(temp);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  move(temp[1],res[0],len*sizeof(widechar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
+
+procedure fpc_unicodestr_to_widechararray(out res: array of widechar; const src: UnicodeString); compilerproc;
+var
+  len: SizeInt;
+begin
+  len := length(src);
+  if len > length(res) then
+    len := length(res);
+{$r-}
+  { make sure we don't try to access element 1 of the widestring if it's nil }
+  if len > 0 then
+    move(src[1],res[0],len*SizeOf(WideChar));
+  fillchar(res[len],(length(res)-len)*SizeOf(WideChar),0);
+{$ifdef RangeCheckWasOn}
+{$r+}
+{$endif}
+end;
+
 
 {$endif ndef FPC_STRTOCHARARRAYPROC}
 
@@ -2016,6 +2124,11 @@ function CompareTextUnicodeString(const s1, s2 : UnicodeString): PtrInt;
   end;
 
 
+function CharLengthPChar(const Str: PChar): PtrInt;
+  begin
+    unimplementedunicodestring;
+  end;
+
 {$warnings on}
 
 procedure initunicodestringmanager;
@@ -2028,5 +2141,15 @@ procedure initunicodestringmanager;
 {$endif HAS_WIDESTRINGMANAGER}
     widestringmanager.CompareUnicodeStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
+
+{$ifndef HAS_WIDESTRINGMANAGER}
+    widestringmanager.Wide2AnsiMoveProc:=@defaultUnicode2AnsiMove;
+    widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2UnicodeMove;
+    widestringmanager.UpperWideStringProc:=@GenericUnicodeCase;
+    widestringmanager.LowerWideStringProc:=@GenericUnicodeCase;
+{$endif HAS_WIDESTRINGMANAGER}
+    widestringmanager.CompareWideStringProc:=@CompareUnicodeString;
+    widestringmanager.CompareTextWideStringProc:=@CompareTextUnicodeString;
+    widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
   end;
 
