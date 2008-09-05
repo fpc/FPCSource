@@ -127,8 +127,8 @@ begin
       if sizeof(ptruint)=8 then
         v:=(v shl 32) or v;
       { Align on native pointer size }
-      pend:=pbyte(align(pdest,sizeof(PtrUInt));
-      dec(count,pend-dest);
+      pend:=pbyte(align(pdest,sizeof(PtrUInt)));
+      dec(count,pend-pdest);
       while pdest<pend do
         begin
           pdest^:=value;
