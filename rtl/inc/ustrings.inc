@@ -2142,6 +2142,7 @@ procedure initunicodestringmanager;
     widestringmanager.CompareUnicodeStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextUnicodeStringProc:=@CompareTextUnicodeString;
 
+{$ifdef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$ifndef HAS_WIDESTRINGMANAGER}
     widestringmanager.Wide2AnsiMoveProc:=@defaultUnicode2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@defaultAnsi2UnicodeMove;
@@ -2151,5 +2152,6 @@ procedure initunicodestringmanager;
     widestringmanager.CompareWideStringProc:=@CompareUnicodeString;
     widestringmanager.CompareTextWideStringProc:=@CompareTextUnicodeString;
     widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
   end;
 

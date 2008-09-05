@@ -773,9 +773,9 @@ function  lowercase(const s : ansistring) : ansistring;
 {$i wstring22h.inc}
 {$else VER2_2}
   {$i ustringh.inc}
-  {$ifdef WINDOWS}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     {$i wstringh.inc}
-  {$endif WINDOWS}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 

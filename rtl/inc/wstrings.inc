@@ -1641,6 +1641,9 @@ function CompareTextWideString(const s1, s2 : WideString): PtrInt;
 
 {$warnings on}
 
+function CharLengthPChar(const Str: PChar): PtrInt;forward;
+
+
 procedure initwidestringmanager;
   begin
     fillchar(widestringmanager,sizeof(widestringmanager),0);
@@ -1654,4 +1657,3 @@ procedure initwidestringmanager;
     widestringmanager.CompareTextWideStringProc:=@CompareTextWideString;
     widestringmanager.CharLengthPCharProc:=@CharLengthPChar;
   end;
-
