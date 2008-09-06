@@ -114,7 +114,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
 var
-  aligncount : sizeint;
   pdest,pend : pbyte;
   v : ptruint;
 begin
@@ -128,9 +127,8 @@ begin
       if sizeof(ptruint)=8 then
         v:=(v shl 32) or v;
       { Align on native pointer size }
-      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
-      dec(count,aligncount);
-      pend:=pdest+aligncount;
+      pend:=pbyte(align(pdest,sizeof(PtrUInt)));
+      dec(count,pend-pdest);
       while pdest<pend do
         begin
           pdest^:=value;
