@@ -899,7 +899,8 @@ type
 
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
-    vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64, vaUTF8String);
+    vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64,
+    vaUTF8String,vaUString);
 
   TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;
@@ -965,6 +966,7 @@ type
     function ReadStr: String; virtual; abstract;
     function ReadString(StringType: TValueType): String; virtual; abstract;
     function ReadWideString: WideString;virtual;abstract;
+    function ReadUnicodeString: UnicodeString;virtual;abstract;
     procedure SkipComponent(SkipComponentInfos: Boolean); virtual; abstract;
     procedure SkipValue; virtual; abstract;
   end;
@@ -1016,6 +1018,7 @@ type
     function ReadStr: String; override;
     function ReadString(StringType: TValueType): String; override;
     function ReadWideString: WideString;override;
+    function ReadUnicodeString: UnicodeString;override;
     procedure SkipComponent(SkipComponentInfos: Boolean); override;
     procedure SkipValue; override;
   end;
@@ -1101,6 +1104,7 @@ type
     function ReadBoolean: Boolean;
     function ReadChar: Char;
     function ReadWideChar: WideChar;
+    function ReadUnicodeChar: UnicodeChar;
     procedure ReadCollection(Collection: TCollection);
     function ReadComponent(Component: TComponent): TComponent;
     procedure ReadComponents(AOwner, AParent: TComponent;
@@ -1119,6 +1123,7 @@ type
     function ReadRootComponent(ARoot: TComponent): TComponent;
     function ReadString: string;
     function ReadWideString: WideString;
+    function ReadUnicodeString: UnicodeString;
     function ReadValue: TValueType;
     procedure CopyValue(Writer: TWriter);
     property Driver: TAbstractObjectReader read FDriver;
@@ -1170,6 +1175,7 @@ type
     procedure WriteSet(Value: LongInt; SetType: Pointer); virtual; abstract;
     procedure WriteString(const Value: String); virtual; abstract;
     procedure WriteWideString(const Value: WideString);virtual;abstract;
+    procedure WriteUnicodeString(const Value: UnicodeString);virtual;abstract;
   end;
 
   { TBinaryObjectWriter }
@@ -1220,6 +1226,7 @@ type
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
+    procedure WriteUnicodeString(const Value: UnicodeString); override;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
