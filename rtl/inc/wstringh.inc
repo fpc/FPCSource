@@ -31,12 +31,6 @@ Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
 
-function WideCharToString(S : PWideChar) : AnsiString;
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
-function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
-procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
-procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
-
 procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
 procedure DefaultAnsi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
 
@@ -48,8 +42,6 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PWideChar; S
 function Utf8ToUnicode(Dest: PWideChar; Source: PChar; MaxChars: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 function Utf8ToUnicode(Dest: PWideChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
 function UTF8Encode(const s : WideString) : UTF8String;
-function WideStringToUCS4String(const s : WideString) : UCS4String;
-function UCS4StringToWideString(const s : UCS4String) : WideString;
 
 {$ifdef MSWINDOWS}
 const

@@ -31,6 +31,12 @@ Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
 Procedure SetString (Out S : UnicodeString; Buf : PUnicodeChar; Len : SizeInt);
 Procedure SetString (Out S : UnicodeString; Buf : PChar; Len : SizeInt);
 
+function WideCharToString(S : PWideChar) : AnsiString;
+function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
+function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
+procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
+procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
+
 function UnicodeCharToString(S : PUnicodeChar) : AnsiString;
 function StringToUnicodeChar(const Src : AnsiString;Dest : PUnicodeChar;DestSize : SizeInt) : PUnicodeChar;
 function UnicodeCharLenToString(S : PUnicodeChar;Len : SizeInt) : AnsiString;
@@ -99,6 +105,8 @@ function AnsiToUtf8(const s : ansistring): UTF8String;{$ifdef SYSTEMINLINE}inlin
 function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
 function UCS4StringToUnicodeString(const s : UCS4String) : UnicodeString;
+function WideStringToUCS4String(const s : WideString) : UCS4String;
+function UCS4StringToWideString(const s : UCS4String) : WideString;
 
 Procedure GetWideStringManager (Var Manager : TUnicodeStringManager);
 Procedure SetWideStringManager (Const New : TUnicodeStringManager);

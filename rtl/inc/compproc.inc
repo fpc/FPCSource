@@ -330,13 +330,6 @@ Function  fpc_widestr_Copy (Const S : WideString; Index,Size : SizeInt) : WideSt
 {$ifndef FPC_WINLIKEWIDESTRING}
 function fpc_widestr_Unique(Var S : Pointer): Pointer; compilerproc;
 {$endif FPC_WINLIKEWIDESTRING}
-Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
-Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 Function fpc_WChar_To_AnsiStr(const c : WideChar): AnsiString; compilerproc;
 Function fpc_WChar_To_WideStr(const c : WideChar): WideString; compilerproc;
 {$ifndef VER2_2}
@@ -426,6 +419,13 @@ Function fpc_UChar_To_Char(const c : UnicodeChar): Char; compilerproc;
 Function fpc_UChar_To_UnicodeStr(const c : UnicodeChar): UnicodeString; compilerproc;
 Function fpc_WChar_To_UnicodeStr(const c : WideChar): UnicodeString; compilerproc;
 Function fpc_UChar_To_AnsiStr(const c : UnicodeChar): AnsiString; compilerproc;
+Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
+Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
+{$ifndef FPC_STRTOSHORTSTRINGPROC}
+Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
+{$else FPC_STRTOSHORTSTRINGPROC}
+procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
+{$endif FPC_STRTOSHORTSTRINGPROC}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}

@@ -496,15 +496,6 @@ end;
 
 {$endif STR_CONCAT_PROCS}
 
-Function fpc_Char_To_WChar(const c : Char): WideChar; compilerproc;
-var
-  w: widestring;
-begin
-  widestringmanager.Ansi2WideMoveProc(@c, w, 1);
-  fpc_Char_To_WChar:= w[1];
-end;
-
-
 
 Function fpc_Char_To_WideStr(const c : Char): WideString; compilerproc;
 {
@@ -515,21 +506,6 @@ begin
   fpc_Char_To_WideStr[1]:=c;
   { Terminating Zero }
   PWideChar(Pointer(fpc_Char_To_WideStr)+sizeof(WideChar))^:=#0;
-end;
-
-
-Function fpc_WChar_To_Char(const c : WideChar): Char; compilerproc;
-{
-  Converts a WideChar to a Char;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  if length(s)=1 then
-    fpc_WChar_To_Char:= s[1]
-  else
-    fpc_WChar_To_Char:='?';
 end;
 
 
@@ -560,31 +536,6 @@ begin
   Setlength (fpc_UChar_To_WideStr,1);
   fpc_UChar_To_WideStr[1]:= c;
 end;
-
-
-{$ifndef FPC_STRTOSHORTSTRINGPROC}
-Function fpc_WChar_To_ShortStr(const c : WideChar): ShortString; compilerproc;
-{
-  Converts a WideChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c, s, 1);
-  fpc_WChar_To_ShortStr:= s;
-end;
-{$else FPC_STRTOSHORTSTRINGPROC}
-procedure fpc_WChar_To_ShortStr(out res : shortstring;const c : WideChar) compilerproc;
-{
-  Converts a WideChar to a ShortString;
-}
-var
-  s: ansistring;
-begin
-  widestringmanager.Wide2AnsiMoveProc(@c,s,1);
-  res:=s;
-end;
-{$endif FPC_STRTOSHORTSTRINGPROC}
 
 
 Function fpc_PChar_To_WideStr(const p : pchar): WideString; compilerproc;
@@ -879,44 +830,6 @@ end;
 {*****************************************************************************
                      Public functions, In interface.
 *****************************************************************************}
-
-function WideCharToString(S : PWideChar) : AnsiString;
-  begin
-     result:=WideCharLenToString(s,Length(WideString(s)));
-  end;
-
-function StringToWideChar(const Src : AnsiString;Dest : PWideChar;DestSize : SizeInt) : PWideChar;
-  var
-    temp:widestring;
-  begin
-     widestringmanager.Ansi2WideMoveProc(PChar(Src),temp,Length(Src));
-     if Length(temp)<DestSize then
-       move(temp[1],Dest^,Length(temp)*SizeOf(WideChar))
-     else
-       move(temp[1],Dest^,(DestSize-1)*SizeOf(WideChar));
-
-     Dest[DestSize-1]:=#0;
-
-     result:=Dest;
-
-  end;
-
-function WideCharLenToString(S : PWideChar;Len : SizeInt) : AnsiString;
-  begin
-     //SetLength(result,Len);
-     widestringmanager.Wide2AnsiMoveproc(S,result,Len);
-  end;
-
-procedure WideCharLenToStrVar(Src : PWideChar;Len : SizeInt;out Dest : AnsiString);
-  begin
-     Dest:=WideCharLenToString(Src,Len);
-  end;
-
-procedure WideCharToStrVar(S : PWideChar;out Dest : AnsiString);
-  begin
-     Dest:=WideCharToString(S);
-  end;
-
 
 Function fpc_widestr_Unique(Var S : Pointer): Pointer; [Public,Alias : 'FPC_WIDESTR_UNIQUE']; compilerproc;
   begin
@@ -1533,77 +1446,6 @@ begin
     end;
 end;
 
-
-function WideStringToUCS4String(const s : WideString) : UCS4String;
-  var
-    i, slen,
-    destindex : SizeInt;
-    len       : longint;
-  begin
-    slen:=length(s);
-    setlength(result,slen+1);
-    i:=1;
-    destindex:=0;
-    while (i<=slen) do
-      begin
-        result[destindex]:=utf16toutf32(s,i,len);
-        inc(destindex);
-        inc(i,len);
-      end;
-    { destindex <= slen (surrogate pairs may have been merged) }
-    { destindex+1 for terminating #0 (dynamic arrays are       }
-    { implicitely filled with zero)                            }
-    setlength(result,destindex+1);
-  end;
-
-
-{ concatenates an utf-32 char to a widestring. S *must* be unique when entering. }
-procedure ConcatUTF32ToWideStr(const nc: UCS4Char; var S: WideString; var index: SizeInt);
-var
-  p : PWideChar;
-begin
-  { if nc > $ffff, we need two places }
-  if (index+ord(nc > $ffff)>length(s)) then
-    if (length(s) < 10*256) then
-      setlength(s,length(s)+10)
-    else
-      setlength(s,length(s)+length(s) shr 8);
-  { we know that s is unique -> avoid uniquestring calls}
-  p:=@s[index];
-  if (nc<$ffff) then
-    begin
-      p^:=widechar(nc);
-      inc(index);
-    end
-  else if (dword(nc)<=$10ffff) then
-    begin
-      p^:=widechar((nc - $10000) shr 10 + $d800);
-      (p+1)^:=widechar((nc - $10000) and $3ff + $dc00);
-      inc(index,2);
-    end
-  else
-    { invalid code point }
-    begin
-      p^:='?';
-      inc(index);
-    end;
-end;
-
-
-function UCS4StringToWideString(const s : UCS4String) : WideString;
-  var
-    i        : SizeInt;
-    resindex : SizeInt;
-  begin
-    { skip terminating #0 }
-    SetLength(result,length(s)-1);
-    resindex:=1;
-    for i:=0 to high(s)-1 do
-      ConcatUTF32ToWideStr(s[i],result,resindex);
-    { adjust result length (may be too big due to growing }
-    { for surrogate pairs)                                }
-    setlength(result,resindex-1);
-  end;
 
 const
   SNoWidestrings = 'This binary has no widestrings support compiled in.';

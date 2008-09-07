@@ -1296,6 +1296,7 @@ type
     procedure WriteRootComponent(ARoot: TComponent);
     procedure WriteString(const Value: string);
     procedure WriteWideString(const Value: WideString);
+    procedure WriteUnicodeString(const Value: UnicodeString);
     property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
     property OnFindAncestor: TFindAncestorEvent read FOnFindAncestor write FOnFindAncestor;
     property OnWriteMethodProperty: TWriteMethodPropertyEvent read FOnWriteMethodProperty write FOnWriteMethodProperty;
