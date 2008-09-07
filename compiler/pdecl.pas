@@ -293,7 +293,7 @@ implementation
            fieldvarsym :
              pd:=tfieldvarsym(p).vardef
            else
-             exit;
+             internalerror(2008090702);
          end;
          repeat
            again:=false;
@@ -346,7 +346,11 @@ implementation
                   end;
                end;
              recorddef :
-               trecorddef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
+               begin
+                 trecorddef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
+                 { don't free, may still be reused }
+                 trecorddef(pd).symtable.forwardchecksyms.clear;
+               end;
              objectdef :
                begin
                  if not(m_fpc in current_settings.modeswitches) and
@@ -362,7 +366,12 @@ implementation
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
                     if not(tsym(p).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                     tobjectdef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
+                      begin
+                        tobjectdef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
+                        { don't free, may still be reused }
+                        tobjectdef(pd).symtable.forwardchecksyms.clear;
+                      end;
+                     
                   end;
                end;
           end;
@@ -463,6 +472,8 @@ implementation
                     { we can ignore the result   }
                     { the definition is modified }
                     object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
+                    { since the definition is modified, there may be new forwarddefs }
+                    symtablestack.top.forwardchecksyms.add(sym);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -591,7 +602,9 @@ implementation
              generictypelist.free;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);
+         symtablestack.top.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
+         { don't free, may still be reused }
+         symtablestack.top.forwardchecksyms.clear;
          block_type:=old_block_type;
       end;
 

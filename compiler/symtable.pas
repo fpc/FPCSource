@@ -1060,6 +1060,11 @@ implementation
             def:=TDef(unionst.DefList[i]);
             def.ChangeOwner(self);
           end;
+        { add the types that may need to be forward-checked }
+        forwardchecksyms.capacity:=forwardchecksyms.capacity+unionst.forwardchecksyms.count;
+        for i:=0 to unionst.forwardchecksyms.count-1 do
+          forwardchecksyms.add(tsym(unionst.forwardchecksyms[i]));
+        unionst.forwardchecksyms.clear;
         _datasize:=storesize;
         fieldalignment:=storealign;
       end;
