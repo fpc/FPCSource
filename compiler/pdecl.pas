@@ -293,7 +293,7 @@ implementation
            fieldvarsym :
              pd:=tfieldvarsym(p).vardef
            else
-             internalerror(2008090702);
+             exit;
          end;
          repeat
            again:=false;
@@ -346,11 +346,7 @@ implementation
                   end;
                end;
              recorddef :
-               begin
-                 trecorddef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-                 { don't free, may still be reused }
-                 trecorddef(pd).symtable.forwardchecksyms.clear;
-               end;
+               trecorddef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
              objectdef :
                begin
                  if not(m_fpc in current_settings.modeswitches) and
@@ -366,12 +362,7 @@ implementation
                       check objectdefs in objects/records, because these
                       can't exist (anonymous objects aren't allowed) }
                     if not(tsym(p).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                      begin
-                        tobjectdef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-                        { don't free, may still be reused }
-                        tobjectdef(pd).symtable.forwardchecksyms.clear;
-                      end;
-                     
+                     tobjectdef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
                   end;
                end;
           end;
@@ -600,9 +591,7 @@ implementation
              generictypelist.free;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.top.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-         { don't free, may still be reused }
-         symtablestack.top.forwardchecksyms.clear;
+         symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);
          block_type:=old_block_type;
       end;
 

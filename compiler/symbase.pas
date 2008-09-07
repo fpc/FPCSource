@@ -92,7 +92,6 @@ interface
           realname  : pshortstring;
           DefList   : TFPObjectList;
           SymList   : TFPHashObjectList;
-          forwardchecksyms : TFPObjectList;
           defowner  : TDefEntry; { for records and objects }
           moduleid  : longint;
           refcount  : smallint;
@@ -215,13 +214,11 @@ implementation
              name:=nil;
              realname:=nil;
            end;
-         symtabletype:=abstractsymtable;
+         symtabletype:=abstracTSymtable;
          symtablelevel:=0;
          defowner:=nil;
          DefList:=TFPObjectList.Create(true);
          SymList:=TFPHashObjectList.Create(true);
-         { the syms are owned by symlist, so don't free }
-         forwardchecksyms:=TFPObjectList.Create(false);
          refcount:=1;
       end;
 
@@ -233,11 +230,9 @@ implementation
           exit;
         Clear;
         DefList.Free;
-        { SymList can already be disposed or set to nil for withsymtable, }
-        { but in that case Free does nothing                              }
-        SymList.Free;
-        forwardchecksyms.free;
-        
+        { SymList can already be disposed or set to nil for withsymtable }
+        if assigned(SymList) then
+          SymList.Free;
         stringdispose(name);
         stringdispose(realname);
       end;
@@ -269,7 +264,6 @@ implementation
         i : integer;
       begin
          SymList.Clear;
-         forwardchecksyms.clear;
          { Prevent recursive calls between TDef.destroy and TSymtable.Remove }
          if DefList.OwnsObjects then
            begin
@@ -306,9 +300,6 @@ implementation
            sym.ChangeOwnerAndName(SymList,Copy(sym.realname,2,255))
          else
            sym.ChangeOwnerAndName(SymList,Upper(sym.realname));
-         { keep track of syms whose type may need forward resolving later on }
-         if (sym.typ in [typesym,fieldvarsym]) then
-           forwardchecksyms.add(sym);
          sym.Owner:=self;
       end;
 
@@ -318,8 +309,6 @@ implementation
         if sym.Owner<>self then
           internalerror(200611121);
         SymList.Remove(sym);
-        if (sym.typ in [typesym,fieldvarsym]) then
-          forwardchecksyms.remove(sym);
       end;
 
 
