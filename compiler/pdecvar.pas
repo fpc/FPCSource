@@ -186,8 +186,8 @@ implementation
                                else
                                 Message(type_e_ordinal_expr_expected)
                              end;
-                            p.free;
                             pl.addconst(sl_vec,idx,p.resultdef);
+                            p.free;
                             def:=tarraydef(def).elementdef;
                           end
                          else
