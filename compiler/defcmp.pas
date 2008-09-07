@@ -909,7 +909,7 @@ implementation
                          else
                           { pwidechar(widestring) }
                           if is_pwidechar(def_to) and
-                             (is_widestring(def_from) or is_unicodestring(def_to))  then
+                            is_wide_or_unicode_string(def_from) then
                            begin
                              doconv:=tc_ansistring_2_pchar;
                              eq:=te_convert_l1;

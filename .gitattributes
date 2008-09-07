@@ -7826,6 +7826,7 @@ tests/test/tsetsize.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
 tests/test/tstprocv.pp svneol=native#text/plain
 tests/test/tstring1.pp svneol=native#text/plain
+tests/test/tstring10.pp svneol=native#text/plain
 tests/test/tstring2.pp svneol=native#text/plain
 tests/test/tstring3.pp svneol=native#text/plain
 tests/test/tstring4.pp svneol=native#text/plain
