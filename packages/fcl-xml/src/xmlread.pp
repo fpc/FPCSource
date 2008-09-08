@@ -2903,9 +2903,9 @@ end;
 
 procedure TXMLReader.PushVC(aElDef: TDOMElementDef);
 begin
-  if FNesting = Length(FValidator) then
-    SetLength(FValidator, FNesting * 2);
   Inc(FNesting);
+  if FNesting >= Length(FValidator) then
+    SetLength(FValidator, FNesting * 2);
   FValidator[FNesting].FElementDef := aElDef;
   FValidator[FNesting].FCurCP := nil;
   FValidator[FNesting].FFailed := False;

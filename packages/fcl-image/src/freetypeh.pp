@@ -106,14 +106,20 @@ type
   FT_UShort = word;
   FT_Int = longint;
   FT_UInt = longword;
+  {$if defined(cpu64) and not(defined(win64) and defined(cpux86_64))}
+  FT_Long = int64;
+  FT_ULong = qword;
+  FT_Pos = int64;
+  {$ELSE}
   FT_Long = longint;
   FT_ULong = longword;
+  FT_Pos = longint;
+  {$ENDIF}
   FT_F2Dot14 = smallint;
   FT_F26Dot6 = longint;
   FT_Fixed = longint;
   FT_Error = longint;
   FT_Pointer = pointer;
-  FT_Pos = longint;
   //FT_Offset = size_t;
   //FT_PtrDist = size_t;
 
@@ -321,11 +327,11 @@ function FT_Set_Pixel_Sizes(face:PFT_Face; pixel_width,pixel_height:FT_UInt) : i
 function FT_Set_Char_Size(face:PFT_Face; char_width,char_height:FT_F26dot6;horz_res, vert_res:FT_UInt) : integer; cdecl; external freetypedll name 'FT_Set_Char_Size';
 function FT_Get_Char_Index(face:PFT_Face; charcode:FT_ULong):FT_UInt; cdecl; external freetypedll name 'FT_Get_Char_Index';
 function FT_Load_Glyph(face:PFT_Face; glyph_index:FT_UInt ;load_flags:longint):integer; cdecl; external freetypedll name 'FT_Load_Glyph';
-function FT_Get_Kerning(face:PFT_Face; left_glyph, right_glyph, kern_mode:FT_UInt; var akerning:FT_Vector) : integer; cdecl; external freetypedll name 'FT_Get_Kerning';
+function FT_Get_Kerning(face:PFT_Face; left_glyph, right_glyph, kern_mode:FT_UInt; out akerning:FT_Vector) : integer; cdecl; external freetypedll name 'FT_Get_Kerning';
 
-function FT_Get_Glyph(slot:PFT_GlyphSlot; var aglyph:PFT_Glyph) : integer; cdecl; external freetypedll name 'FT_Get_Glyph';
+function FT_Get_Glyph(slot:PFT_GlyphSlot; out aglyph:PFT_Glyph) : integer; cdecl; external freetypedll name 'FT_Get_Glyph';
 function FT_Glyph_Transform(glyph:PFT_Glyph; matrix:PFT_Matrix; delta:PFT_Vector) : integer; cdecl; external freetypedll name 'FT_Glyph_Transform';
-function FT_Glyph_Copy(source:PFT_Glyph; var target:PFT_Glyph): integer; cdecl; external freetypedll name 'FT_Glyph_Copy';
+function FT_Glyph_Copy(source:PFT_Glyph; out target:PFT_Glyph): integer; cdecl; external freetypedll name 'FT_Glyph_Copy';
 procedure FT_Glyph_Get_CBox(glyph:PFT_Glyph;bbox_mode:FT_UInt;var acbox:FT_BBox); cdecl; external freetypedll name 'FT_Glyph_Get_CBox';
 function FT_Glyph_To_Bitmap(var the_glyph:PFT_Glyph;render_mode:FT_Render_Mode;origin:PFT_Vector; destroy:FT_Bool):integer; cdecl; external freetypedll name 'FT_Glyph_To_Bitmap';
 procedure FT_Done_Glyph (glyph:PFT_Glyph); cdecl; external freetypedll name 'FT_Done_Glyph';
