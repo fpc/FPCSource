@@ -714,15 +714,8 @@ end;
 
 Procedure TObjectList.SetItem(Index: Integer; AObject: TObject);
 
-Var
-  O : TObject;
-
 begin
-  if OwnsObjects then
-    begin
-    O:=GetItem(Index);
-    O.Free;
-    end;
+  // Put will take care of deleting old one in Notify.
   Put(Index,Pointer(AObject));
 end;
 
