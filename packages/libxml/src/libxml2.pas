@@ -1,6 +1,7 @@
 unit libxml2;
 
 {$mode objfpc}
+{$H+}
 {$macro on}
 
 {$ALIGN 8}
