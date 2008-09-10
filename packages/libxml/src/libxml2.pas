@@ -286,6 +286,11 @@ begin
   result := xmlCharPtr(str);
 end;
 
+function BAD_CAST(str: string): xmlCharPtr;
+begin
+  result := xmlCharPtr(PChar(str));
+end;
+
 
 (*
  * macros from chvalid.inc

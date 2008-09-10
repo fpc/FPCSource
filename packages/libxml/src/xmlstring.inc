@@ -31,6 +31,7 @@
  * Macro to cast a string to an xmlChar * when one know its safe.
  *)
 function BAD_CAST(str: pchar): xmlCharPtr; inline;
+function BAD_CAST(str: string): xmlCharPtr; inline;
 
 (*
  * xmlChar handling

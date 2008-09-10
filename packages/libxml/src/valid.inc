@@ -201,7 +201,7 @@ function xmlValidateOneNamespace(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xm
 function xmlValidateDocumentFinal(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_VALID_ENABLED *)
 
-{$IF defined(LIBXML_VALID_ENABLED) ordefined(LIBXML_SCHEMAS_ENABLED)}
+{$IF defined(LIBXML_VALID_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
 function xmlValidateNotationUse(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; notationName: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
 {$ENDIF} (* LIBXML_VALID_ENABLED or LIBXML_SCHEMAS_ENABLED *)
 
