@@ -893,13 +893,16 @@ procedure ObjectBinaryToText(Input, Output: TStream);
   end;
 
   procedure OutString(s: String);
-
   begin
     OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd);
   end;
 
   procedure OutWString(W: WideString);
+  begin
+    OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
+  end;
 
+  procedure OutUString(W: UnicodeString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
@@ -1043,6 +1046,25 @@ procedure ObjectBinaryToText(Input, Output: TStream);
     end;
   end;
 
+  function ReadUStr: UnicodeString;
+  var
+    len: DWord;
+  {$IFDEF ENDIAN_BIG}
+    i : integer;
+  {$ENDIF}
+  begin
+    len := ReadDWord;
+    SetLength(Result, len);
+    if (len > 0) then
+    begin
+      Input.ReadBuffer(Pointer(@Result[1])^, len*2);
+      {$IFDEF ENDIAN_BIG}
+      for i:=1 to len do
+        Result[i]:=widechar(SwapEndian(word(Result[i])));
+      {$ENDIF}
+    end;
+  end;
+
   procedure ReadPropList(indent: String);
 
     procedure ProcessValue(ValueType: TValueType; Indent: String);
@@ -1130,6 +1152,11 @@ procedure ObjectBinaryToText(Input, Output: TStream);
           OutLn('');
           end;
         vaWString:
+          begin
+          OutWString(ReadWStr);
+          OutLn('');
+          end;
+        vaUString:
           begin
           OutWString(ReadWStr);
           OutLn('');

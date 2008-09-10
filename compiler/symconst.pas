@@ -448,7 +448,7 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
-    tve_unicodestring,
+    tve_ustring,
     tve_wstring,
     tve_astring,
     tve_sstring,

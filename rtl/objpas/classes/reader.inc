@@ -1248,12 +1248,12 @@ begin
         end;
       end;
     tkSString, tkLString, tkAString:
-    begin
-      TmpStr:=ReadString;
-      if Assigned(FOnReadStringProperty) then
-        FOnReadStringProperty(Self,Instance,PropInfo,TmpStr);
-      SetStrProp(Instance, PropInfo, TmpStr);
-    end;
+      begin
+        TmpStr:=ReadString;
+        if Assigned(FOnReadStringProperty) then
+          FOnReadStringProperty(Self,Instance,PropInfo,TmpStr);
+        SetStrProp(Instance, PropInfo, TmpStr);
+      end;
     tkUstring:
       SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
     tkWString:
