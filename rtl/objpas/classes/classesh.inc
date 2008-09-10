@@ -900,7 +900,7 @@ type
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
     vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64,
-    vaUTF8String,vaUString);
+    vaUTF8String, vaUString);
 
   TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;

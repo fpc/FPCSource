@@ -428,6 +428,11 @@ begin
         Count:=LongInt(ReadDWord);
         SkipBytes(Count*sizeof(widechar));
       end;
+    vaUString:
+      begin
+        Count:=LongInt(ReadDWord);
+        SkipBytes(Count*sizeof(widechar));
+      end;
     vaSet:
       SkipSetBody;
     vaCollection:
@@ -1251,7 +1256,7 @@ begin
     end;
     tkUstring:
       SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
-    tkWstring:
+    tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
     {!!!: tkVariant}
     tkClass:
@@ -1399,6 +1404,8 @@ begin
     end
   else if StringType in [vaWString] then
     Result:= FDriver.ReadWidestring
+  else if StringType in [vaUString] then
+    Result:= FDriver.ReadUnicodeString
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
@@ -1410,20 +1417,22 @@ var
  i: Integer;
 begin
   if NextValue in [vaWString,vaUString,vaUTF8String] then
-               //vaUTF8String needs conversion? 2008-09-06 mse
-  begin
-    ReadValue;
-    Result := FDriver.ReadWideString
-  end
-  else begin
-    //data probable from ObjectTextToBinary
-    s := ReadString;
-    setlength(result,length(s));
-    for i:= 1 to length(s) do begin
-     result[i]:= widechar(ord(s[i])); //no code conversion
+    //vaUTF8String needs conversion? 2008-09-06 mse
+    begin
+      ReadValue;
+      Result := FDriver.ReadWideString
+    end
+  else
+    begin
+      //data probable from ObjectTextToBinary
+      s := ReadString;
+      setlength(result,length(s));
+      for i:= 1 to length(s) do begin
+        result[i]:= widechar(ord(s[i])); //no code conversion
     end;
   end;
 end;
+
 
 function TReader.ReadUnicodeString: UnicodeString;
 var
@@ -1431,20 +1440,22 @@ var
  i: Integer;
 begin
   if NextValue in [vaWString,vaUString,vaUTF8String] then 
-                //vaUTF8String needs conversion? 2008-09-06 mse
-  begin
-    ReadValue;
-    Result := FDriver.ReadUnicodeString
-  end
-  else begin
-    //data probable from ObjectTextToBinary
-    s := ReadString;
-    setlength(result,length(s));
-    for i:= 1 to length(s) do begin
-     result[i]:= UnicodeChar(ord(s[i])); //no code conversion
+    //vaUTF8String needs conversion? 2008-09-06 mse
+    begin
+      ReadValue;
+      Result := FDriver.ReadUnicodeString
+    end
+  else
+    begin
+      //data probable from ObjectTextToBinary
+      s := ReadString;
+      setlength(result,length(s));
+      for i:= 1 to length(s) do begin
+        result[i]:= UnicodeChar(ord(s[i])); //no code conversion
     end;
   end;
 end;
+
 
 function TReader.ReadValue: TValueType;
 begin
