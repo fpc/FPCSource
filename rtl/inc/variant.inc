@@ -225,24 +225,29 @@ end;
 { Strings }
 
 operator :=(const source : shortstring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
 
 operator :=(const source : ansistring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   VariantManager.VarFromLStr(Dest,Source);
 end;
 
 
 operator :=(const source : widestring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   VariantManager.VarFromWStr(Dest,Source);
 end;
+
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : UnicodeString) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  VariantManager.VarFromWStr(Dest,Source);
+end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 
@@ -412,22 +417,33 @@ end;
 { Strings }
 
 operator :=(const source : variant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   VariantManager.VarToPStr(Dest,Source);
 end;
 
-operator :=(const source : variant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+operator :=(const source : variant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.vartolstr(dest,source);
 end;
 
-operator :=(const source : variant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+operator :=(const source : variant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   variantmanager.vartowstr(dest,source);
 end;
+
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : variant) dest : UnicodeString;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  res : WideString;
+begin
+  variantmanager.vartowstr(res,source);
+  dest:=res;
+end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+
 
 { Floats }
 
@@ -623,7 +639,7 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
 
 procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
   begin
-    if Length(Indices)>0 then 
+    if Length(Indices)>0 then
       variantmanager.vararrayput(A, Value, Length(Indices), @Indices[0])
     else
       variantmanager.vararrayput(A, Value, 0, nil);
@@ -632,13 +648,13 @@ procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array
 
 function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
   begin
-    if Length(Indices)>0 then 
+    if Length(Indices)>0 then
       Result:=variantmanager.vararrayget(A, Length(Indices), @Indices[0])
-    else 
+    else
       Result:=variantmanager.vararrayget(A, 0, nil);
   end;
-  
- 
+
+
 procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
   begin
@@ -762,6 +778,16 @@ operator :=(const source : olevariant) dest : widestring;{$ifdef SYSTEMINLINE}in
     variantmanager.vartowstr(dest,variant(tvardata(source)));
   end;
 
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : olevariant) dest : UnicodeString;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    res : WideString;
+  begin
+    variantmanager.vartowstr(res,variant(tvardata(source)));
+    dest:=res;
+  end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
@@ -931,6 +957,14 @@ operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}in
   end;
 
 
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : UnicodeString) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    variantmanager.varfromwstr(variant(tvardata(dest)),source);
+  end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+
+
 { Floats }
 {$ifdef SUPPORT_SINGLE}
 operator :=(const source : single) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1050,6 +1084,14 @@ Function Pos (w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}
   end;
 
 
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function Pos (w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(w,UnicodeString(v));
+  end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+
+
 Function Pos (v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=Pos(ShortString(v),c);
@@ -1072,6 +1114,14 @@ Function Pos (v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}
   begin
     Result:=Pos(WideString(v),w);
   end;
+
+
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function Pos (v : Variant; Const w : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=Pos(UnicodeString(v),w);
+  end;
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 
 Function Pos (v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}

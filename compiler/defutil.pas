@@ -165,6 +165,12 @@ interface
     {# returns true if p is a wide string type }
     function is_widestring(p : tdef) : boolean;
 
+    {# true if p is an unicode string def }
+    function is_unicodestring(p : tdef) : boolean;
+
+    {# returns true if p is a wide or unicode string type }
+    function is_wide_or_unicode_string(p : tdef) : boolean;
+
     {# Returns true if p is a short string type }
     function is_shortstring(p : tdef) : boolean;
 
@@ -574,6 +580,22 @@ implementation
       begin
          is_widestring:=(p.typ=stringdef) and
                         (tstringdef(p).stringtype=st_widestring);
+      end;
+
+
+    { true if p is an wide string def }
+    function is_wide_or_unicode_string(p : tdef) : boolean;
+      begin
+         is_wide_or_unicode_string:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype in [st_widestring,st_unicodestring]);
+      end;
+
+
+    { true if p is an unicode string def }
+    function is_unicodestring(p : tdef) : boolean;
+      begin
+         is_unicodestring:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype=st_unicodestring);
       end;
 
 

@@ -6,7 +6,7 @@ unit cp8859_1;
   implementation
 
   uses
-     charset;
+     {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2};
 
   const
      map : array[0..255] of tunicodecharmapping = (

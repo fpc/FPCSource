@@ -899,10 +899,6 @@ end;
 
 {$endif Set_i386_Exception_handler}
 
-{****************************************************************************
-                      OS dependend widestrings
-****************************************************************************}
-
 const
   { MultiByteToWideChar  }
      MB_PRECOMPOSED = 1;
@@ -918,6 +914,9 @@ function CharUpperBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
 function CharLowerBuff(lpsz:LPWSTR; cchLength:DWORD):DWORD;
     stdcall; external 'user32' name 'CharLowerBuffW';
 
+{******************************************************************************
+                              Widestring
+ ******************************************************************************}
 
 procedure Win32Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
   var
@@ -947,13 +946,57 @@ procedure Win32Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
 function Win32WideUpper(const s : WideString) : WideString;
   begin
     result:=s;
-    UniqueString(result);
     if length(result)>0 then
       CharUpperBuff(LPWSTR(result),length(result));
   end;
 
 
 function Win32WideLower(const s : WideString) : WideString;
+  begin
+    result:=s;
+    if length(result)>0 then
+      CharLowerBuff(LPWSTR(result),length(result));
+  end;
+
+{******************************************************************************
+                              Unicode
+ ******************************************************************************}
+
+procedure Win32Unicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, nil, 0, nil, nil);
+    // this will null-terminate
+    setlength(dest, destlen);
+    WideCharToMultiByte(CP_ACP, WC_NO_BEST_FIT_CHARS, source, len, @dest[1], destlen, nil, nil);
+  end;
+
+procedure Win32Ansi2UnicodeMove(source:pchar;var dest:UnicodeString;len:SizeInt);
+  var
+    destlen: SizeInt;
+  begin
+    // retrieve length including trailing #0
+    // not anymore, because this must also be usable for single characters
+    destlen:=MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, nil, 0);
+    // this will null-terminate
+    setlength(dest, destlen);
+    MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, source, len, @dest[1], destlen);
+  end;
+
+
+function Win32UnicodeUpper(const s : UnicodeString) : UnicodeString;
+  begin
+    result:=s;
+    UniqueString(result);
+    if length(result)>0 then
+      CharUpperBuff(LPWSTR(result),length(result));
+  end;
+
+
+function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
   begin
     result:=s;
     UniqueString(result);
@@ -966,10 +1009,18 @@ function Win32WideLower(const s : WideString) : WideString;
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
   begin
+    { Widestring }
     widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
     widestringmanager.UpperWideStringProc:=@Win32WideUpper;
     widestringmanager.LowerWideStringProc:=@Win32WideLower;
+{$ifndef VER2_2}
+    { Unicode }
+    widestringmanager.Unicode2AnsiMoveProc:=@Win32Unicode2AnsiMove;
+    widestringmanager.Ansi2UnicodeMoveProc:=@Win32Ansi2UnicodeMove;
+    widestringmanager.UpperUnicodeStringProc:=@Win32UnicodeUpper;
+    widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
+{$endif VER2_2}
   end;
 
 
@@ -1192,6 +1243,10 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
+{$ifndef VER2_2}
+  initunicodestringmanager;
+{$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.
+

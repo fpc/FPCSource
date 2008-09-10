@@ -345,6 +345,14 @@ Type
   PUCS2Char           = PWideChar;
   PWideString         = ^WideString;
 
+  UnicodeChar         = type WideChar;
+  PUnicodeChar        = ^UnicodeChar;
+{$ifdef VER2_2}
+  { this is only to avoid too much ifdefs in the code }
+  UnicodeString       = type WideString;
+{$endif VER2_2}
+  PUnicodeString      = ^UnicodeString;
+
   { Needed for fpc_get_output }
   PText               = ^Text;
 
@@ -761,7 +769,14 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$i wstringh.inc}
+{$ifdef VER2_2}
+{$i wstring22h.inc}
+{$else VER2_2}
+  {$i ustringh.inc}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    {$i wstringh.inc}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 

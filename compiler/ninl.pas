@@ -1676,7 +1676,7 @@ implementation
                             result:=cordconstnode.create(0,u8inttype,false);
                           end
                         else if not is_ansistring(left.resultdef) and
-                                not is_widestring(left.resultdef) then
+                                not is_wide_or_unicode_string(left.resultdef) then
                           result:=cordconstnode.create(tstringdef(left.resultdef).len,u8inttype,true)
                       end;
                   end;
@@ -2040,8 +2040,8 @@ implementation
                         { length)                                 }
                         if (left.nodetype=typeconvn) and
                            (ttypeconvnode(left).left.resultdef.typ=stringdef) and
-                           not(is_widestring(left.resultdef) xor
-                               is_widestring(ttypeconvnode(left).left.resultdef)) then
+                           not(is_wide_or_unicode_string(left.resultdef) xor
+                               is_wide_or_unicode_string(ttypeconvnode(left).left.resultdef)) then
                          begin
                            hp:=ttypeconvnode(left).left;
                            ttypeconvnode(left).left:=nil;
@@ -2334,7 +2334,7 @@ implementation
                               result:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry))
                             end
                            else if is_ansistring(left.resultdef) or
-                                   is_widestring(left.resultdef) then
+                                   is_wide_or_unicode_string(left.resultdef) then
                              CGMessage(type_e_mismatch)
                          end;
                      end;

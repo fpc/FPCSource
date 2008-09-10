@@ -319,6 +319,29 @@ begin
     {$ENDIF}
   end;
 end;
+                      
+procedure TBinaryObjectWriter.WriteUnicodeString(const Value: UnicodeString);
+var len : longword;
+{$IFDEF ENDIAN_BIG}
+    i : integer;
+    us : UnicodeString;
+{$ENDIF}
+begin
+  WriteValue(vaUString);
+  len:=Length(Value);
+  WriteDWord(len);
+  if len > 0 then
+  begin
+    {$IFDEF ENDIAN_BIG}
+    setlength(us,len);
+    for i:=1 to len do
+      us[i]:=widechar(SwapEndian(word(Value[i])));
+    Write(us[1], len*sizeof(UnicodeChar));
+    {$ELSE}
+    Write(Value[1], len*sizeof(UnicodeChar));
+    {$ENDIF}
+  end;
+end;
 
 procedure TBinaryObjectWriter.FlushBuffer;
 begin
@@ -737,6 +760,7 @@ var
   DefMethodValue: TMethod;
   WStrValue, WDefStrValue: WideString;
   StrValue, DefStrValue: String;
+  UStrValue, UDefStrValue: UnicodeString;
   AncestorObj: TObject;
   Component: TComponent;
   ObjValue: TObject;
@@ -876,6 +900,21 @@ begin
           Driver.EndProperty;
         end;
       end;
+    tkUString:
+      begin
+        UStrValue := GetUnicodeStrProp(Instance, PropInfo);
+        if HasAncestor then
+          UDefStrValue := GetUnicodeStrProp(Ancestor, PropInfo)
+        else
+          SetLength(UDefStrValue, 0);
+
+        if UStrValue <> UDefStrValue then
+        begin
+          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          WriteUnicodeString(UStrValue);
+          Driver.EndProperty;
+        end;
+      end;
   {!!!: tkVariant:}
     tkClass:
       begin
@@ -1011,5 +1050,10 @@ end;
 procedure TWriter.WriteWideString(const Value: WideString);
 begin
   Driver.WriteWideString(Value);
+end;
+
+procedure TWriter.WriteUnicodeString(const Value: UnicodeString);
+begin
+  Driver.WriteUnicodeString(Value);
 end;
 

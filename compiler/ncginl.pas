@@ -358,7 +358,7 @@ implementation
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
-           if is_widestring(left.resultdef) then
+           if is_widestring(left.resultdef) or is_unicodestring(left.resultdef) then
              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,1,hregister);
            cg.a_label(current_asmdata.CurrAsmList,lengthlab);
            location_reset(location,LOC_REGISTER,def_cgsize(resultdef));

@@ -431,7 +431,7 @@ implementation
                     { convert to widestring stringconstn }
                     inserttypeconv(p,cwidestringtype);
                     if (p.nodetype=stringconstn) and
-                       (tstringconstnode(p).cst_type=cst_widestring) then
+                       (tstringconstnode(p).cst_type in [cst_widestring,cst_unicodestring]) then
                      begin
                        pw:=pcompilerwidestring(tstringconstnode(p).value_str);
                        for i:=0 to tstringconstnode(p).len-1 do
@@ -641,7 +641,7 @@ implementation
         begin
           n:=comp_expr(true);
           { load strval and strlength of the constant tree }
-          if (n.nodetype=stringconstn) or is_widestring(def) or is_constwidecharnode(n) then
+          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) then
             begin
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }

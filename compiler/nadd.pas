@@ -546,11 +546,11 @@ implementation
         { stringconstn only                                       }
 
         { widechars are converted above to widestrings too }
-        { this isn't veryy efficient, but I don't think    }
+        { this isn't ver y efficient, but I don't think    }
         { that it does matter that much (FK)               }
         if (lt=stringconstn) and (rt=stringconstn) and
-          (tstringconstnode(left).cst_type=cst_widestring) and
-          (tstringconstnode(right).cst_type=cst_widestring) then
+          (tstringconstnode(left).cst_type in [cst_widestring,cst_unicodestring]) and
+          (tstringconstnode(right).cst_type in [cst_widestring,cst_unicodestring]) then
           begin
              initwidestring(ws1);
              initwidestring(ws2);
@@ -835,6 +835,8 @@ implementation
         if is_constnode(right) and is_constnode(left) and
            (is_widestring(right.resultdef) or
             is_widestring(left.resultdef) or
+            is_unicodestring(right.resultdef) or
+            is_unicodestring(left.resultdef) or
             is_widechar(right.resultdef) or
             is_widechar(left.resultdef)) then
           begin
@@ -1419,8 +1421,13 @@ implementation
           begin
             if (nodetype in [addn,equaln,unequaln,lten,gten,ltn,gtn]) then
               begin
+                { Is there a unicodestring? }
+                if is_unicodestring(rd) or is_unicodestring(ld) then
+                  strtype:= st_unicodestring
+                else
                 { Is there a widestring? }
                 if is_widestring(rd) or is_widestring(ld) or
+                   is_unicodestring(rd) or is_unicodestring(ld) or
                    is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd) or
                    is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld) then
                   strtype:= st_widestring
@@ -1455,6 +1462,13 @@ implementation
                         inserttypeconv(right,cwidestringtype);
                       if not(is_widestring(ld)) then
                         inserttypeconv(left,cwidestringtype);
+                    end;
+                  st_unicodestring :
+                    begin
+                      if not(is_unicodestring(rd)) then
+                        inserttypeconv(right,cunicodestringtype);
+                      if not(is_unicodestring(ld)) then
+                        inserttypeconv(left,cunicodestringtype);
                     end;
                   st_ansistring :
                     begin
@@ -2516,6 +2530,11 @@ implementation
          else if (ld.typ=stringdef) then
             begin
               if is_widestring(ld) then
+                begin
+                   { this is only for add, the comparisaion is handled later }
+                   expectloc:=LOC_REGISTER;
+                end
+              else if is_unicodestring(ld) then
                 begin
                    { this is only for add, the comparisaion is handled later }
                    expectloc:=LOC_REGISTER;

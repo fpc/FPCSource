@@ -71,7 +71,7 @@ implementation
 
 uses
   widestr,
-  charset,
+  {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},
   SysUtils,
   version,
   cutils,cmsgs,
@@ -2579,6 +2579,9 @@ begin
   set_system_macro('FPC_RELEASE',release_nr);
   set_system_macro('FPC_PATCH',patch_nr);
   set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
+
+  if not(target_info.system in system_windows) then
+    def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');
 
   for i:=low(tfeature) to high(tfeature) do
     if i in features then

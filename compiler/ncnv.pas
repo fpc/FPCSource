@@ -917,12 +917,12 @@ implementation
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
          if (left.nodetype=ordconstn) and
-            ((tstringdef(resultdef).stringtype=st_widestring) or
+            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
              { >=128 is destroyed }
              (tordconstnode(left).value.uvalue<128)) then
            begin
-              if tstringdef(resultdef).stringtype=st_widestring then
+              if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
@@ -953,7 +953,7 @@ implementation
                    if torddef(left.resultdef).ordtype<>uwidechar then
                      procname := 'fpc_char_to_'
                    else
-                     procname := 'fpc_wchar_to_';
+                     procname := 'fpc_uchar_to_';
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
                    { and the parameter }
@@ -1193,7 +1193,8 @@ implementation
            inserttypeconv(left,cwidestringtype)
          else
            if is_pchar(resultdef) and
-              is_widestring(left.resultdef) then
+              (is_widestring(left.resultdef) or
+               is_unicodestring(left.resultdef)) then
              begin
                inserttypeconv(left,cansistringtype);
                { the second pass of second_cstring_to_pchar expects a  }
@@ -2037,8 +2038,8 @@ implementation
             if (convtype=tc_string_2_string) and
               (
                 ((not is_widechararray(left.resultdef) and
-                  not is_widestring(left.resultdef)) or
-                 (tstringdef(resultdef).stringtype=st_widestring) or
+                  not is_wide_or_unicode_string(left.resultdef)) or
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
                  { non-ascii chars would be replaced with '?' -> loses info }
                  not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))
               ) then
@@ -2530,10 +2531,10 @@ implementation
       begin
         if (torddef(resultdef).ordtype=uchar) and
            (torddef(left.resultdef).ordtype=uwidechar) then
-          fname := 'fpc_wchar_to_char'
+          fname := 'fpc_uchar_to_char'
         else if (torddef(resultdef).ordtype=uwidechar) and
            (torddef(left.resultdef).ordtype=uchar) then
-          fname := 'fpc_char_to_wchar'
+          fname := 'fpc_char_to_uchar'
         else
           internalerror(2007081201);
 

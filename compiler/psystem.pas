@@ -157,7 +157,10 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
         cansistringtype:=tstringdef.createansi;
-        cwidestringtype:=tstringdef.createwide;
+        if target_info.system in system_windows then
+          cwidestringtype:=tstringdef.createwide
+        else
+          cwidestringtype:=tstringdef.createunicode;
         cunicodestringtype:=tstringdef.createunicode;
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=tstringdef.createshort(0);
@@ -265,6 +268,7 @@ implementation
         addtype('AnsiString',cansistringtype);
         addtype('WideString',cwidestringtype);
         addtype('UnicodeString',cunicodestringtype);
+
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',bool8type);

@@ -642,7 +642,8 @@ implementation
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resultdef) or
-            is_widestring(left.resultdef) then
+            is_widestring(left.resultdef) or
+            is_unicodestring(left.resultdef) then
            begin
               if nf_callunique in flags then
                 internalerror(200304236);
@@ -763,6 +764,7 @@ implementation
                      begin
                        case tstringdef(left.resultdef).stringtype of
                          { it's the same for ansi- and wide strings }
+                         st_unicodestring,
                          st_widestring,
                          st_ansistring:
                            begin
@@ -926,6 +928,7 @@ implementation
                    begin
                       case tstringdef(left.resultdef).stringtype of
                          { it's the same for ansi- and wide strings }
+                         st_unicodestring,
                          st_widestring,
                          st_ansistring:
                            begin

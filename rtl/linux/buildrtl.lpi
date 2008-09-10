@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="\"/>
+    <PathDelim Value="/"/>
     <Version Value="6"/>
     <General>
       <Flags>
@@ -40,22 +40,15 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
-    <PathDelim Value="\"/>
+    <Version Value="8"/>
     <SearchPaths>
-      <IncludeFiles Value="..\inc\;..\i386\;..\win\;..\win\wininc\;..\objpas\classes\;..\objpas\sysutils\;..\objpas\"/>
-      <OtherUnitFiles Value="..\objpas\;..\objpas\classes\;..\objpas\sysutils\;..\inc\;..\win\;..\i386\"/>
-      <UnitOutputDirectory Value="..\units\i386-win32"/>
+      <IncludeFiles Value="../inc/;../$(TargetCPU)/;../unix/;../objpas/classes/;../objpas/sysutils/;../objpas/"/>
+      <OtherUnitFiles Value="../objpas/;../objpas/classes/;../objpas/sysutils/;../inc/;../unix/;../$(TargetCPU)/"/>
+      <UnitOutputDirectory Value="../units/$(TargetCPU)-linux"/>
     </SearchPaths>
     <Parsing>
       <Style Value="2"/>
-      <SyntaxOptions>
-        <D2Extensions Value="False"/>
-      </SyntaxOptions>
     </Parsing>
-    <CodeGeneration>
-      <Generate Value="Faster"/>
-    </CodeGeneration>
     <Other>
       <Verbosity>
         <ShowNotes Value="False"/>
@@ -63,7 +56,7 @@
       </Verbosity>
       <CompilerPath Value="$(CompPath)"/>
       <ExecuteBefore>
-        <Command Value="cmd.exe /c &quot;if not exist ..\units\i386-win32 mkdir ..\units\i386-win32&quot;"/>
+        <Command Value="cmd.exe /c &quot;if not exist ../units/$(TargetCPU)-linux mkdir ../units/$(TargetCPU)-linux&quot;"/>
         <ShowAllMessages Value="True"/>
       </ExecuteBefore>
     </Other>

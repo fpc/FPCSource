@@ -61,6 +61,8 @@ const
   tkDynArray = 21;
   tkInterfaceCorba = 22;
   tkProcVar  = 23;
+  tkUString  = 24;
+  tkUChar    = 25;
 
   otSByte    = 0;
   otUByte    = 1;
@@ -446,7 +448,7 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
-    tve_unicodestring,
+    tve_ustring,
     tve_wstring,
     tve_astring,
     tve_sstring,

@@ -40,6 +40,9 @@ Const
        tkInt64         = 19;
        tkQWord         = 20;
        tkDynArray      = 21;
+       tkInterfaceCorba = 22;
+       tkProcVar       = 23;
+       tkUString       = 24;
 
 
 type
@@ -130,7 +133,7 @@ end;
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
-    tkAstring,tkWstring,tkInterface,tkDynArray:
+    tkAstring,tkWstring,tkUString,tkInterface,tkDynArray:
       PPchar(Data)^:=Nil;
     tkArray:
       arrayrtti(data,typeinfo,@int_initialize);
@@ -151,11 +154,20 @@ begin
         fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
+{$ifndef VER2_2}
+    tkUstring :
+      begin
+        fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
+        PPointer(Data)^:=nil;
+      end;
+{$endif VER2_2}
+{$ifdef WINDOWS}
     tkWstring :
       begin
         fpc_WideStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
+{$endif WINDOWS}
     tkArray :
       arrayrtti(data,typeinfo,@int_finalize);
     tkObject,
@@ -179,8 +191,14 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
+{$ifdef WINDOWS}
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
+{$endif WINDOWS}
+{$ifndef VER2_2}
+    tkUstring :
+      fpc_UnicodeStr_Incr_Ref(PPointer(Data)^);
+{$endif VER2_2}
     tkArray :
       arrayrtti(data,typeinfo,@int_addref);
     tkobject,
@@ -206,8 +224,14 @@ begin
     { see AddRef for comment about below construct (JM) }
     tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
+{$ifdef WINDOWS}
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
+{$endif WINDOWS}
+{$ifndef VER2_2}
+    tkUString:
+      fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
+{$endif VER2_2}
     tkArray:
       arrayrtti(data,typeinfo,@fpc_systemDecRef);
     tkobject,
@@ -245,8 +269,14 @@ begin
         fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
+{$ifdef WINDOWS}
     tkWstring:
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
+{$endif WINDOWS}
+{$ifndef VER2_2}
+    tkUstring:
+      fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);
+{$endif VER2_2}
     tkArray:
       begin
         Temp:=PByte(TypeInfo);

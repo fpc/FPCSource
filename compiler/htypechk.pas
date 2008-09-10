@@ -1541,7 +1541,7 @@ implementation
                   ) or
                   (
                    is_widechar(p.resultdef) and
-                   is_widestring(def_to)
+                   (is_widestring(def_to) or is_unicodestring(def_to))
                   ) then
                 eq:=te_equal
             end;
@@ -2238,7 +2238,7 @@ implementation
           (tve_single,tve_dblcurrency,tve_extended,
            tve_dblcurrency,tve_dblcurrency,tve_extended);
         variantstringdef_cl: array[tstringtype] of tvariantequaltype =
-          (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_unicodestring);
+          (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_ustring);
       begin
         case def.typ of
           orddef:
@@ -2437,9 +2437,9 @@ implementation
         else if (currvcl=tve_boolformal) or
                 (bestvcl=tve_boolformal) then
           if (currvcl=tve_boolformal) then
-            result:=ord(bestvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+            result:=ord(bestvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring,tve_ustring])
           else
-            result:=-ord(currvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+            result:=-ord(currvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring,tve_ustring])
         { byte is better than everything else (we assume both aren't byte, }
         { since there's only one parameter and that one can't be the same) }
         else if (currvcl=tve_byte) or
@@ -2497,7 +2497,11 @@ implementation
         { widestring is better than everything left }
         else if (currvcl=tve_wstring) or
                 (bestvcl=tve_wstring) then
-          result:=1-2*ord(bestvcl=tve_wstring);
+          result:=1-2*ord(bestvcl=tve_wstring)
+        { unicodestring is better than everything left }
+        else if (currvcl=tve_ustring) or
+                (bestvcl=tve_ustring) then
+          result:=1-2*ord(bestvcl=tve_ustring);
 
         { all possibilities should have been checked now }
         if (result=-5) then

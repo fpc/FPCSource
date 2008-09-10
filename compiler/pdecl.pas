@@ -96,7 +96,7 @@ implementation
              end;
            stringconstn:
              begin
-               if is_widestring(p.resultdef) then
+               if is_wide_or_unicode_string(p.resultdef) then
                  begin
                    initwidestring(pw);
                    copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
