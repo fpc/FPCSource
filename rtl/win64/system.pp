@@ -1157,6 +1157,9 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
+{$ifndef VER2_2}
+  initunicodestringmanager;
+{$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.
