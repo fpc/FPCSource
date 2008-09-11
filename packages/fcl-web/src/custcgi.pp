@@ -436,9 +436,9 @@ begin
       end;}
     CT:=ContentType;
     if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
-      ProcessMultiPart(M,CT)
+      ProcessMultiPart(M,CT, ContentFields)
     else if CompareText('APPLICATION/X-WWW-FORM-URLENCODED',CT)=0 then
-      ProcessUrlEncoded(M)
+      ProcessUrlEncoded(M, ContentFields)
     else
       begin
 {$ifdef CGIDEBUG}
@@ -465,7 +465,7 @@ begin
 {$endif}
   FQueryString:=GetEnvironmentVariable('QUERY_STRING');
   If (FQueryString<>'') then
-    ProcessQueryString(FQueryString);
+    ProcessQueryString(FQueryString, QueryFields);
 {$ifdef CGIDEBUG}
   SendMethodExit('InitGetVars');
 {$endif}

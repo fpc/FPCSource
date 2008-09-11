@@ -75,12 +75,14 @@ end;
 
 function TCGIApplication.GetModuleName(Arequest: TRequest): string;
 
-
 begin
   If (FModuleVar<>'') then
-    Result:=ARequest.QueryFields.Values[FModuleVar];
+    Result:=ARequest.QueryFields.Values[FModuleVar];//Module name from query parameter using the FModuleVar as parameter name (default is 'Module')
   If (Result='') then
+  begin
+    if (Pos('/', ARequest.PathInfo[2]) <= 0) and AllowDefaultModule then Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
     Result:=ARequest.GetNextPathInfo;
+  end;
 end;
 
 function TCGIApplication.FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
