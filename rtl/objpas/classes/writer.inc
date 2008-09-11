@@ -754,6 +754,7 @@ var
   Ident: String;
   IntToIdentFn: TIntToIdent;
 {$ifndef FPUNONE}
+  SingleV : Single;
   FloatValue, DefFloatValue: Extended;
 {$endif}
   MethodValue: TMethod;
@@ -832,7 +833,10 @@ begin
         if HasAncestor then
           DefFloatValue := GetFloatProp(Ancestor, PropInfo)
         else
-          DefFloatValue := PPropInfo(PropInfo)^.Default;
+          begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
+          DefFloatValue:=PSingle(@PPropInfo(PropInfo)^.Default)^;
+          end;
         if (FloatValue<>DefFloatValue) or (DefValue=longint($80000000)) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
