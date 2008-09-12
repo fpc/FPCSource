@@ -72,6 +72,8 @@ type
   culong                 = cardinal;           pculong                = ^culong;
 {$endif}
 
+  size_t                 = clong;              psize_t                = ^size_t;
+
 // Kylix compat types
   u_long  = culong;
   u_short = cushort;
