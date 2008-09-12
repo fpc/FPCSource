@@ -951,7 +951,9 @@ begin
   Move(OldBuf^, FCharBuf^, Remainder);
   BytesRead := FStream.Read(FAllocated[Slack-4], FCapacity);
   FCharBufEnd := FAllocated + (Slack-4) + BytesRead;
-  PWideChar(FCharBufEnd)^ := #0;
+  // fcharbufend can be unaligned, split.
+  Pchar(FCharBufEnd)^ := #0;
+  Pchar(FCharBufEnd+1)^ := #0;
 end;
 
 { TXMLFileInputSource }
