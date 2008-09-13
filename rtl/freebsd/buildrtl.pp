@@ -4,7 +4,7 @@ unit buildrtl;
   interface
 
     uses
-      system, unixtype, ctypes, baseunix, strings, objpas,b macpas, syscall, unixutil,
+      system, unixtype, ctypes, baseunix, strings, objpas,macpas, syscall, unixutil,
       fpintres, heaptrc, lineinfo, lnfodwrf,
       termio, unix, freebsd, initc, cmem, mmx,
       crt, printer,
