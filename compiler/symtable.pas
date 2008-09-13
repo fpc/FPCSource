@@ -46,7 +46,6 @@ interface
        tstoredsymtable = class(TSymtable)
        private
           b_needs_init_final : boolean;
-          forwardchecksyms : TFPObjectList;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
@@ -59,12 +58,8 @@ interface
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
-          constructor create(const s:string); reintroduce;
-          destructor destroy; override;
-          procedure clear;override;
           procedure insert(sym:TSymEntry;checkdup:boolean=true);override;
           procedure delete(sym:TSymEntry);override;
-          procedure checkforwardtype(sym:TSymEntry);
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -290,30 +285,6 @@ implementation
                              TStoredSymtable
 *****************************************************************************}
 
-    constructor tstoredsymtable.create(const s:string);
-      begin
-        inherited create(s);
-         { the syms are owned by symlist, so don't free }
-         forwardchecksyms:=TFPObjectList.Create(false);
-      end;
-
-
-    destructor tstoredsymtable.destroy;
-      begin
-        inherited destroy;
-        { must be after inherited destroy, because that one calls }
-        { clear which also clears forwardchecksyms                }
-        forwardchecksyms.free;
-      end;
-
-
-    procedure tstoredsymtable.clear;
-      begin
-        forwardchecksyms.clear;
-        inherited clear;
-      end;
-
-
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
         inherited insert(sym,checkdup);
@@ -331,12 +302,6 @@ implementation
         if (sym.typ in [typesym,fieldvarsym]) then
           forwardchecksyms.remove(sym);
         inherited delete(sym);
-      end;
-
-
-    procedure tstoredsymtable.checkforwardtype(sym:TSymEntry);
-      begin
-        forwardchecksyms.add(sym);
       end;
 
 

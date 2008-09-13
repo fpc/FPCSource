@@ -370,7 +370,7 @@ implementation
                     { the definition is modified }
                     object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
                     { since the definition is modified, there may be new forwarddefs }
-                    tstoredsymtable(symtablestack.top).checkforwardtype(sym);
+                    symtablestack.top.checkforwardtype(sym);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
