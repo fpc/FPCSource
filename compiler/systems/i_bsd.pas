@@ -57,10 +57,11 @@ unit i_bsd;
             name         : 'FreeBSD/ELF for i386';
             shortname    : 'FreeBSD';
             flags        : [tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses,
-            {$ifdef segment_threadvars}
-                                        tf_section_threadvars,
-            {$endif segment_threadvars}
-                           tf_needs_symbol_type,tf_needs_symbol_size,tf_smartlink_library {,tf_smartlink_sections},tf_has_winlike_resources];
+{$ifdef segment_threadvars}
+                            tf_section_threadvars,
+{$endif segment_threadvars}
+                            tf_needs_symbol_type,tf_needs_symbol_size,tf_smartlink_library
+                            {,tf_smartlink_sections},tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -120,9 +121,10 @@ unit i_bsd;
             system       : system_x86_64_freebsd;
             name         : 'FreeBSD for x86-64';
             shortname    : 'FreeBSD';
-            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,{Linux: tf_library_needs_pic,}tf_needs_symbol_type,
-                            tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library
-                                {	tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
+            flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
+                            tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,
+                            tf_dwarf_only_local_labels
+                            { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;HASUNIX;BSD';
@@ -147,7 +149,7 @@ unit i_bsd;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_x86_64_elf64;
+            assem        : as_gas;
             assemextern  : as_gas;
             link         : nil;
             linkextern   : nil;
