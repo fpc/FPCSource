@@ -1808,13 +1808,13 @@ begin
                               Taicpu(p).clearop(0);
                               Taicpu(p).ops:=0;
                               Taicpu(p).is_jmp:=false;
-			      Taicpu(p).opcode:=A_CMC;
-			      Taicpu(p).condition:=C_NONE;
-			      Taicpu(hp1).ops:=2;
+                              Taicpu(p).opcode:=A_CMC;
+                              Taicpu(p).condition:=C_NONE;
+                              Taicpu(hp1).ops:=2;
                               Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
                               Taicpu(hp1).loadconst(0,0);
-			      Taicpu(hp1).opcode:=carryadd_opcode;
-			      continue;
+                              Taicpu(hp1).opcode:=carryadd_opcode;
+                              continue;
                             end;
                         end;
                       if Taicpu(p).condition in [C_AE,C_NB] then
@@ -1827,11 +1827,12 @@ begin
                             begin
                               asml.remove(p);
                               p.free;
-			      Taicpu(hp1).ops:=2;
+                              Taicpu(hp1).ops:=2;
                               Taicpu(hp1).loadoper(1,Taicpu(hp1).oper[0]^);
                               Taicpu(hp1).loadconst(0,0);
-			      Taicpu(hp1).opcode:=carryadd_opcode;
-			      continue;
+                              Taicpu(hp1).opcode:=carryadd_opcode;
+                              p:=hp1;
+                              continue;
                             end;
                         end;
                     end;
