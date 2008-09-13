@@ -1028,6 +1028,26 @@ begin
         list.concat(taicpu.op_reg_reg(A_NOT, dst, src))
       else
         do_lo_hi(A_XORI, A_XORIS);
+    OP_ROL:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, dst, src, a and 63, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
+	end else begin
+	  internalerror(2008091303);
+	end;
+      end;
+    OP_ROR:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, dst, src, ((64 - a) and 63), 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
+	end else begin
+	  internalerror(2008091304);
+	end;
+      end;
     OP_SHL, OP_SHR, OP_SAR:
       begin
         if (size in [OS_64, OS_S64]) then
@@ -1066,6 +1086,8 @@ const
   op_reg_reg_opcg2asmop64: array[TOpCG] of tasmop =
   (A_NONE, A_MR, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
    A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR, A_NONE, A_NONE);
+var
+  tmpreg : TRegister;
 begin
   case op of
     OP_NEG, OP_NOT:
@@ -1074,6 +1096,28 @@ begin
         if (op = OP_NOT) and not (size in [OS_64, OS_S64]) then
           { zero/sign extend result again, fromsize is not important here }
           a_load_reg_reg(list, OS_S64, size, dst, dst)
+      end;
+    OP_ROL:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const(A_RLDCL, dst, src2, src1, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
+	end else begin
+	  internalerror(2008091301);
+	end;
+      end;
+    OP_ROR:
+      begin
+        tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const(A_RLDCL, dst, src2, tmpreg, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
+	end else begin
+	  internalerror(2008091302);
+	end;
       end;
     else
       if (size in [OS_64, OS_S64]) then begin

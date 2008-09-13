@@ -623,13 +623,13 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$define FPC_HAS_INTERNAL_ROX_WORD}
 {$endif defined(cpux86_64) or defined(cpui386)}
 
-{$if defined(cpux86_64) or defined(cpui386) or defined(arm)}
+{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
 {$define FPC_HAS_INTERNAL_ROX_DWORD}
-{$endif defined(cpux86_64) or defined(cpui386) or defined(arm)}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
 
-{$if defined(cpux86_64)}
+{$if defined(cpux86_64) or defined(powerpc64)}
 {$define FPC_HAS_INTERNAL_ROX_QWORD}
-{$endif defined(cpux86_64)}
+{$endif defined(cpux86_64) or defined(powerpc64)}
 
 {$endif FPC_HAS_INTERNAL_ROX}
 

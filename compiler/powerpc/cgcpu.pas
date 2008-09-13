@@ -647,7 +647,21 @@ const
                 a_load_reg_reg(list,size,size,src,dst);
               if (a shr 5) <> 0 then
                 internalError(68991);
-            end
+            end;
+	  OP_ROL:
+	    begin
+	      if (not (size in [OS_32, OS_S32])) then begin
+	        internalerror(2008091307);
+	      end;    
+	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
+	    end;
+	  OP_ROR:
+	    begin
+	      if (not (size in [OS_32, OS_S32])) then begin
+		internalerror(2008091308);
+	      end;    
+	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
+	    end
           else
             internalerror(200109091);
         end;
@@ -670,6 +684,8 @@ const
         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
           (A_NONE,A_MR,A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
            A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR,A_NONE,A_NONE);
+      var
+        tmpreg : TRegister;
 
        begin
          if (op = OP_MOVE) then
@@ -683,6 +699,22 @@ const
                  { zero/sign extend result again }
                  a_load_reg_reg(list,OS_32,size,dst,dst);
               end;
+	   OP_ROL:
+	     begin
+	       if (not (size in [OS_32, OS_S32])) then begin
+	         internalerror(2008091305);
+	       end;
+	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
+	     end;
+	   OP_ROR:
+	     begin
+	       if (not (size in [OS_32, OS_S32])) then begin
+	         internalerror(2008091306);
+	       end;
+	       tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
+	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
+	     end;	
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;
