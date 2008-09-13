@@ -7588,7 +7588,7 @@ function load_GL_ARB_vertex_buffer_object : boolean;
 var extstring:string;
 
 begin
-  load_GL_ARB_vertex_buffer_object:=false;
+  Result:=false;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   if glext_ExtensionSupported('GL_ARB_vertex_buffer_object',extstring) then
     begin
@@ -7612,8 +7612,8 @@ begin
       if not Assigned(glGetBufferParameterivARB) then Exit;
       glGetBufferPointervARB := wglGetProcAddress('glGetBufferPointervARB');
       if not Assigned(glGetBufferPointervARB) then Exit;
+      Result:=true;
     end;
-  load_GL_ARB_vertex_buffer_object:=true;
 end;
 
 {$IFDEF Windows}
