@@ -276,109 +276,6 @@ implementation
       end;
 
 
-    { search in symtablestack used, but not defined type }
-    procedure resolve_type_forward(p:TObject;arg:pointer);
-      var
-        hpd,pd : tdef;
-        stpos  : tfileposinfo;
-        again  : boolean;
-        srsym  : tsym;
-        srsymtable : TSymtable;
-
-      begin
-         { Check only typesyms or record/object fields }
-         case tsym(p).typ of
-           typesym :
-             pd:=ttypesym(p).typedef;
-           fieldvarsym :
-             pd:=tfieldvarsym(p).vardef
-           else
-             internalerror(2008090702);
-         end;
-         repeat
-           again:=false;
-           case pd.typ of
-             arraydef :
-               begin
-                 { elementdef could also be defined using a forwarddef }
-                 pd:=tarraydef(pd).elementdef;
-                 again:=true;
-               end;
-             pointerdef,
-             classrefdef :
-               begin
-                 { classrefdef inherits from pointerdef }
-                 hpd:=tabstractpointerdef(pd).pointeddef;
-                 { still a forward def ? }
-                 if hpd.typ=forwarddef then
-                  begin
-                    { try to resolve the forward }
-                    { get the correct position for it }
-                    stpos:=current_tokenpos;
-                    current_tokenpos:=tforwarddef(hpd).forwardpos;
-                    resolving_forward:=true;
-                    if not assigned(tforwarddef(hpd).tosymname) then
-                      internalerror(20021120);
-                    searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
-                    resolving_forward:=false;
-                    current_tokenpos:=stpos;
-                    { we don't need the forwarddef anymore, dispose it }
-                    hpd.free;
-                    tabstractpointerdef(pd).pointeddef:=nil; { if error occurs }
-                    { was a type sym found ? }
-                    if assigned(srsym) and
-                       (srsym.typ=typesym) then
-                     begin
-                       tabstractpointerdef(pd).pointeddef:=ttypesym(srsym).typedef;
-                       { avoid wrong unused warnings web bug 801 PM }
-                       inc(ttypesym(srsym).refs);
-                       { we need a class type for classrefdef }
-                       if (pd.typ=classrefdef) and
-                          not(is_class(ttypesym(srsym).typedef)) then
-                         Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename);
-                     end
-                    else
-                     begin
-                       MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
-                       { try to recover }
-                       tabstractpointerdef(pd).pointeddef:=generrordef;
-                     end;
-                  end;
-               end;
-             recorddef :
-               begin
-                 trecorddef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-                 { don't free, may still be reused }
-                 trecorddef(pd).symtable.forwardchecksyms.clear;
-               end;
-             objectdef :
-               begin
-                 if not(m_fpc in current_settings.modeswitches) and
-                    (oo_is_forward in tobjectdef(pd).objectoptions) then
-                  begin
-                    { only give an error as the implementation may follow in an
-                      other type block which is allowed by FPC modes }
-                    MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
-                  end
-                 else
-                  begin
-                    { Check all fields of the object declaration, but don't
-                      check objectdefs in objects/records, because these
-                      can't exist (anonymous objects aren't allowed) }
-                    if not(tsym(p).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                      begin
-                        tobjectdef(pd).symtable.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-                        { don't free, may still be reused }
-                        tobjectdef(pd).symtable.forwardchecksyms.clear;
-                      end;
-                     
-                  end;
-               end;
-          end;
-        until not again;
-      end;
-
-
     procedure types_dec;
 
         function parse_generic_parameters:TFPObjectList;
@@ -473,7 +370,7 @@ implementation
                     { the definition is modified }
                     object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
                     { since the definition is modified, there may be new forwarddefs }
-                    symtablestack.top.forwardchecksyms.add(sym);
+                    tstoredsymtable(symtablestack.top).checkforwardtype(sym);
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -602,9 +499,7 @@ implementation
              generictypelist.free;
          until token<>_ID;
          typecanbeforward:=false;
-         symtablestack.top.forwardchecksyms.ForEachCall(@resolve_type_forward,nil);
-         { don't free, may still be reused }
-         symtablestack.top.forwardchecksyms.clear;
+         tstoredsymtable(symtablestack.top).resolve_forward_types;
          block_type:=old_block_type;
       end;
 

@@ -46,6 +46,7 @@ interface
           constructor create(st:tsymtyp;const n : string);
           constructor ppuload(st:tsymtyp;ppufile:tcompilerppufile);
           destructor destroy;override;
+          procedure resolve_type_forward;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
        end;
 
@@ -380,6 +381,96 @@ implementation
       begin
         inherited destroy;
       end;
+
+
+    { Resolve forward defined types and give errors for non-resolved ones }
+    procedure tstoredsym.resolve_type_forward;
+      var
+        hpd,pd : tdef;
+        srsym  : tsym;
+        srsymtable : TSymtable;
+        again  : boolean;
+
+      begin
+         { Check only typesyms or record/object fields }
+         case typ of
+           typesym :
+             pd:=ttypesym(self).typedef;
+           fieldvarsym :
+             pd:=tfieldvarsym(self).vardef
+           else
+             internalerror(2008090702);
+         end;
+         repeat
+           again:=false;
+           case pd.typ of
+             arraydef :
+               begin
+                 { elementdef could also be defined using a forwarddef }
+                 pd:=tarraydef(pd).elementdef;
+                 again:=true;
+               end;
+             pointerdef,
+             classrefdef :
+               begin
+                 { classrefdef inherits from pointerdef }
+                 hpd:=tabstractpointerdef(pd).pointeddef;
+                 { still a forward def ? }
+                 if hpd.typ=forwarddef then
+                  begin
+                    { try to resolve the forward }
+                    if not assigned(tforwarddef(hpd).tosymname) then
+                      internalerror(20021120);
+                    searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
+                    { we don't need the forwarddef anymore, dispose it }
+                    hpd.free;
+                    tabstractpointerdef(pd).pointeddef:=nil; { if error occurs }
+                    { was a type sym found ? }
+                    if assigned(srsym) and
+                       (srsym.typ=typesym) then
+                     begin
+                       tabstractpointerdef(pd).pointeddef:=ttypesym(srsym).typedef;
+                       { avoid wrong unused warnings web bug 801 PM }
+                       inc(ttypesym(srsym).refs);
+                       { we need a class type for classrefdef }
+                       if (pd.typ=classrefdef) and
+                          not(is_class(ttypesym(srsym).typedef)) then
+                         MessagePos1(tsym(srsym).fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
+                     end
+                    else
+                     begin
+                       MessagePos1(fileinfo,sym_e_forward_type_not_resolved,realname);
+                       { try to recover }
+                       tabstractpointerdef(pd).pointeddef:=generrordef;
+                     end;
+                  end;
+               end;
+             recorddef :
+               begin
+                 tstoredsymtable(trecorddef(pd).symtable).resolve_forward_types;
+               end;
+             objectdef :
+               begin
+                 if not(m_fpc in current_settings.modeswitches) and
+                    (oo_is_forward in tobjectdef(pd).objectoptions) then
+                  begin
+                    { only give an error as the implementation may follow in an
+                      other type block which is allowed by FPC modes }
+                    MessagePos1(fileinfo,sym_e_forward_type_not_resolved,realname);
+                  end
+                 else
+                  begin
+                    { Check all fields of the object declaration, but don't
+                      check objectdefs in objects/records, because these
+                      can't exist (anonymous objects aren't allowed) }
+                    if not(owner.symtabletype in [ObjectSymtable,recordsymtable]) then
+                      tstoredsymtable(tobjectdef(pd).symtable).resolve_forward_types;
+                  end;
+               end;
+          end;
+        until not again;
+      end;
+
 
 
 {****************************************************************************

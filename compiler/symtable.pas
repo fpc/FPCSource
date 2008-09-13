@@ -46,6 +46,7 @@ interface
        tstoredsymtable = class(TSymtable)
        private
           b_needs_init_final : boolean;
+          forwardchecksyms : TFPObjectList;
           procedure _needs_init_final(sym:TObject;arg:pointer);
           procedure check_forward(sym:TObject;arg:pointer);
           procedure labeldefined(sym:TObject;arg:pointer);
@@ -58,6 +59,12 @@ interface
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
+          constructor create(const s:string); reintroduce;
+          destructor destroy; override;
+          procedure clear;override;
+          procedure insert(sym:TSymEntry;checkdup:boolean=true);override;
+          procedure delete(sym:TSymEntry);override;
+          procedure checkforwardtype(sym:TSymEntry);
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -70,6 +77,7 @@ interface
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure check_forwards;
+          procedure resolve_forward_types;
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
@@ -281,6 +289,56 @@ implementation
 {*****************************************************************************
                              TStoredSymtable
 *****************************************************************************}
+
+    constructor tstoredsymtable.create(const s:string);
+      begin
+        inherited create(s);
+         { the syms are owned by symlist, so don't free }
+         forwardchecksyms:=TFPObjectList.Create(false);
+      end;
+
+
+    destructor tstoredsymtable.destroy;
+      begin
+        inherited destroy;
+        { must be after inherited destroy, because that one calls }
+        { clear which also clears forwardchecksyms                }
+        forwardchecksyms.free;
+      end;
+
+
+    procedure tstoredsymtable.clear;
+      begin
+        forwardchecksyms.clear;
+        inherited clear;
+      end;
+
+
+    procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
+      begin
+        inherited insert(sym,checkdup);
+        { keep track of syms whose type may need forward resolving later on }
+        if (sym.typ in [typesym,fieldvarsym]) then
+          forwardchecksyms.add(sym);
+      end;
+
+
+    procedure tstoredsymtable.delete(sym:TSymEntry);
+      begin
+        { this must happen before inherited() is called, because }
+        { the sym is owned by symlist and will consequently be   }
+        { freed and invalid afterwards                           }
+        if (sym.typ in [typesym,fieldvarsym]) then
+          forwardchecksyms.remove(sym);
+        inherited delete(sym);
+      end;
+
+
+    procedure tstoredsymtable.checkforwardtype(sym:TSymEntry);
+      begin
+        forwardchecksyms.add(sym);
+      end;
+
 
     procedure tstoredsymtable.ppuload(ppufile:tcompilerppufile);
       begin
@@ -718,6 +776,17 @@ implementation
          b_needs_init_final:=false;
          SymList.ForEachCall(@_needs_init_final,nil);
          needs_init_final:=b_needs_init_final;
+      end;
+
+
+    procedure tstoredsymtable.resolve_forward_types;
+      var
+        i: longint;
+      begin
+        for i:=0 to forwardchecksyms.Count-1 do
+          tstoredsym(forwardchecksyms[i]).resolve_type_forward;
+        { don't free, may still be reused }
+        forwardchecksyms.clear;
       end;
 
 

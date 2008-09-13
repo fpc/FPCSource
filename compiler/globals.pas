@@ -244,7 +244,6 @@ interface
        block_type : tblock_type;         { type of currently parsed block }
 
        compile_level : word;
-       resolving_forward : boolean;      { used to add forward reference as second ref }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
        current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
@@ -1255,7 +1254,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         DLLsource:=false;
-        resolving_forward:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;
         paratargetdbg:=dbg_none;
