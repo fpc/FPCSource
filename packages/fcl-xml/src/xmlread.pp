@@ -2982,9 +2982,9 @@ begin
   Inc(FNesting);
   if FNesting >= Length(FValidator) then
     SetLength(FValidator, FNesting * 2);
-  FValidator[FNesting].FElementDef := aElDef;
-  FValidator[FNesting].FCurCP := nil;
-  FValidator[FNesting].FFailed := False;
+  unaligned(FValidator[FNesting].FElementDef) := aElDef;
+  unaligned(FValidator[FNesting].FCurCP) := nil;
+  unaligned(FValidator[FNesting].FFailed) := False;
   UpdateConstraints;
 end;
 
