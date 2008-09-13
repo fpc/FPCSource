@@ -62,8 +62,14 @@ function xmlIsBaseChar_ch(c: cint): cbool;
  *)
 function xmlIsBaseCharQ(c: cint): cbool;
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsBaseCharGroup: xmlChRangeGroup; XMLPUBVAR;
+  __xmlIsBaseCharGroup: xmlChRangeGroupPtr = @xmlIsBaseCharGroup;
+{$ELSE}
+var
+  __xmlIsBaseCharGroup: xmlChRangeGroupPtr;
+{$ENDIF}
 
 (**
  * xmlIsBlank_ch:
@@ -97,8 +103,14 @@ function xmlIsChar_ch(c: cint): cbool;
  *)
 function xmlIsCharQ(c: cint): cbool;
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsCharGroup: xmlChRangeGroup; XMLPUBVAR;
+  __xmlIsCharGroup: xmlChRangeGroupPtr = @xmlIsCharGroup;
+{$ELSE}
+var
+  __xmlIsCharGroup: xmlChRangeGroupPtr;
+{$ENDIF}
 
 (**
  * xmlIsCombiningQ:
@@ -108,8 +120,14 @@ var
  *)
 function xmlIsCombiningQ(c: cint): cbool;
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsCombiningGroup: xmlChRangeGroup; XMLPUBVAR;
+  __xmlIsCombiningGroup: xmlChRangeGroupPtr = @xmlIsCombiningGroup;
+{$ELSE}
+var
+  __xmlIsCombiningGroup: xmlChRangeGroupPtr;
+{$ENDIF}
 
 (**
  * xmlIsDigit_ch:
@@ -127,8 +145,14 @@ function xmlIsDigit_ch(c: cint): cbool;
  *)
 function xmlIsDigitQ(c: cint): cbool;
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsDigitGroup: xmlChRangeGroup; XMLPUBVAR;
+  __xmlIsDigitGroup: xmlChRangeGroupPtr = @xmlIsDigitGroup;
+{$ELSE}
+var
+  __xmlIsDigitGroup: xmlChRangeGroupPtr;
+{$ENDIF}
 
 (**
  * xmlIsExtender_ch:
@@ -146,8 +170,14 @@ function xmlIsExtender_ch(c: cint): cbool;
  *)
 function xmlIsExtenderQ(c: cint): cbool;
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsExtenderGroup: xmlChRangeGroup; XMLPUBVAR;
+  __xmlIsExtenderGroup: xmlChRangeGroupPtr = @xmlIsExtenderGroup;
+{$ELSE}
+var
+  __xmlIsExtenderGroup: xmlChRangeGroupPtr;
+{$ENDIF}
 
 (**
  * xmlIsIdeographicQ:
@@ -157,9 +187,22 @@ var
  *)
 function xmlIsIdeographicQ(c: cint): cbool;
 
+type
+  pchar_tab = ^char_tab;
+  char_tab = array[0..255] of cbool;
+
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIsIdeographicGroup: xmlChRangeGroup; XMLPUBVAR;
-  xmlIsPubidChar_tab: array[0..255] of cbool;
+  __xmlIsIdeographicGroup: xmlChRangeGroupPtr = @xmlIsIdeographicGroup;
+  
+  xmlIsPubidChar_tab: char_tab; XMLPUBVAR;
+  __xmlIsPubidChar_tab: pchar_tab = @xmlIsPubidChar_tab;
+{$ELSE}
+var
+  __xmlIsIdeographicGroup: xmlChRangeGroupPtr;
+  __xmlIsPubidChar_tab: pchar_tab;
+{$ENDIF}
 
 (**
  * xmlIsPubidChar_ch:

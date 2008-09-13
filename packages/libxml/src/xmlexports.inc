@@ -31,7 +31,12 @@
  *
  * Macros which declare an exportable variable
  *)
+{$IFDEF UNIX}
 {$DEFINE XMLPUBVAR := cvar; external}
+{$ELSE}
+{$DEFINE XMLPUBVAR := not_supported}
+{$DEFINE NO_EXTERNAL_VARS}
+{$ENDIF}
 
 (**
  * XMLCALL:

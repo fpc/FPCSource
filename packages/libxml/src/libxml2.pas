@@ -10,6 +10,9 @@ unit libxml2;
 interface
 
 uses
+{$IFDEF WINDOWS}
+  windows,
+{$ENDIF}
   ctypes;
 
 //{$IF Sizeof(cbool) <> Sizeof(cint)}
@@ -37,10 +40,9 @@ const
 {$i xmlversion.inc}
 
 type
-  iconv_t = pointer;
   PFILE = pointer;
   va_list = pointer;
-  size_t = {$IF Sizeof(pointer) = 8}qword{$ELSE}longword{$IFEND};
+  iconv_t = pointer;
 
 (*
   include pointers (forwarding)
@@ -312,7 +314,7 @@ begin
   if c < $100 then
     Result := xmlIsBaseChar_ch(c)
   else
-    Result := xmlCharInRange(c, @xmlIsBaseCharGroup);
+    Result := xmlCharInRange(c, __xmlIsBaseCharGroup);
 end;
 
 function xmlIsBlank_ch(c: cint): cbool;
@@ -349,7 +351,7 @@ begin
     if c < $100 then
     Result := false
   else
-    Result := xmlCharInRange(c, @xmlIsCombiningGroup);
+    Result := xmlCharInRange(c, __xmlIsCombiningGroup);
 end;
 
 function xmlIsDigit_ch(c: cint): cbool;
@@ -362,7 +364,7 @@ begin
   if c < $100 then
     Result := xmlIsDigit_ch(c)
   else
-    Result := xmlCharInRange(c, @xmlIsDigitGroup);
+    Result := xmlCharInRange(c, __xmlIsDigitGroup);
 end;
 
 function xmlIsExtender_ch(c: cint): cbool;
@@ -375,7 +377,7 @@ begin
   if c < $100 then
     Result := xmlIsExtender_ch(c)
   else
-    Result := xmlCharInRange(c, @xmlIsExtenderGroup);
+    Result := xmlCharInRange(c, __xmlIsExtenderGroup);
 end;
 
 function xmlIsIdeographicQ(c: cint): cbool;
@@ -392,7 +394,7 @@ end;
 function xmlIsPubidChar_ch(c: cint): cbool;
 begin
   if (c >= 0) and (c <= 255) then
-    Result := xmlIsPubidChar_tab[c]
+    Result := __xmlIsPubidChar_tab^[c]
   else
     Result := false;
 end;
@@ -464,7 +466,57 @@ begin
   Result := not assigned(ns) or (ns^.nodeNr = 0) or (ns^.nodeTab = nil);
 end;
 
+{$IFDEF WINDOWS}
+procedure LoadExternalVariables;
+var
+  libHandle: THandle;
+begin
+  libHandle := LoadLibrary(libxml2lib);
+  if libHandle <> 0 then
+  begin
+  { xmlregexp.inc }
+   {__emptyExp := xmlExpNodePtrPtr(GetProcAddress(libHandle, 'emptyExp'));
+    __forbiddenExp := xmlExpNodePtrPtr(GetProcAddress(libHandle, 'forbiddenExp'));}
+
+  { paserInternals.inc }
+    //__xmlParserMaxDepth := PCardinal(GetProcAddress(libHandle, 'xmlParserMaxDepth'));
+   
+  {  }
+   {xmlStringComment := PChar(GetProcAddress(libHandle, 'xmlStringComment'));
+    xmlStringText := PChar(GetProcAddress(libHandle, 'xmlStringText'));
+    xmlStringTextNoenc := PChar(GetProcAddress(libHandle, 'xmlStringTextNoenc'));}
+
+  { chvalid.inc }
+    __xmlIsBaseCharGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsBaseCharGroup'));
+    __xmlIsCharGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsCharGroup'));
+    __xmlIsCombiningGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsCombiningGroup'));
+    __xmlIsDigitGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsDigitGroup'));
+    __xmlIsExtenderGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsExtenderGroup'));
+    __xmlIsIdeographicGroup := xmlChRangeGroupPtr(GetProcAddress(libHandle, 'xmlIsIdeographicGroup'));
+    __xmlIsPubidChar_tab := GetProcAddress(libHandle, 'xmlIsPubidChar_tab');
+    
+  { globals.inc }
+    xmlMalloc := xmlMallocFunc(GetProcAddress(libHandle, 'xmlMalloc'));
+    xmlMallocAtomic := xmlMallocFunc(GetProcAddress(libHandle, 'xmlMallocAtomic'));
+    xmlRealloc := xmlReallocFunc(GetProcAddress(libHandle, 'xmlRealloc'));
+    xmlFree := xmlFreeFunc(GetProcAddress(libHandle, 'xmlFree'));
+    xmlMemStrdup := xmlStrdupFunc(GetProcAddress(libHandle, 'xmlMemStrdup'));
+    
+  { xpath.inc }
+   {__xmlXPathNAN := PDouble(GetProcAddress(libHandle, 'xmlXPathNAN'));
+    __xmlXPathNINF := PDouble(GetProcAddress(libHandle, 'xmlXPathNINF'));
+    __xmlXPathPINF := PDouble(GetProcAddress(libHandle, 'xmlXPathPINF'));}
+    
+    FreeLibrary(libHandle);
+  end;
+end;
+{$ENDIF}
+
 initialization
+{$IFDEF WINDOWS}
+  LoadExternalVariables;
+{$ENDIF}
+
 (*
  * this initialize the library and check potential ABI mismatches
  * between the version it was compiled for and the actual shared

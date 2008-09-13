@@ -94,9 +94,11 @@ function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; XMLCALL; XMLPUBFUN;
  * 2 core expressions shared by all for the empty language set
  * and for the set with just the empty token
  *)
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   forbiddenExp: xmlExpNodePtr; XMLPUBVAR;
   emptyExp: xmlExpNodePtr; XMLPUBVAR;
+{$ENDIF}
 
 (*
  * Expressions are reference counted internally

@@ -119,7 +119,7 @@ function __xmlMalloc: xmlMallocFuncPtr; XMLCALL; XMLPUBFUN;
 {$DEFINE xmlMalloc := __xmlMalloc()^ }
 {$ELSE}
 var
-  xmlMalloc: xmlMallocFunc; XMLPUBVAR;
+  xmlMalloc: xmlMallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
@@ -127,7 +127,7 @@ function __xmlMallocAtomic: xmlMallocFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlMallocAtomic ( *(__xmlMallocAtomic()))
 {$ELSE}
 var
-  xmlMallocAtomic: xmlMallocFunc; XMLPUBVAR;
+  xmlMallocAtomic: xmlMallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
@@ -135,7 +135,7 @@ function __xmlRealloc: xmlReallocFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlRealloc ( *(__xmlRealloc()))
 {$ELSE}
 var
-  xmlRealloc: xmlReallocFunc; XMLPUBVAR;
+  xmlRealloc: xmlReallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
@@ -143,7 +143,7 @@ function __xmlFree: xmlFreeFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlFree ( *(__xmlFree()))
 {$ELSE}
 var
-  xmlFree: xmlFreeFunc; XMLPUBVAR;
+  xmlFree: xmlFreeFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF}
 
 {$IFDEF LIBXML_THREAD_ENABLED}
@@ -151,16 +151,16 @@ function __xmlMemStrdup: xmlStrdupFuncPtr; XMLCALL; XMLPUBFUN;
 #define xmlMemStrdup ( *(__xmlMemStrdup()))
 {$ELSE}
 var
-  xmlMemStrdup: xmlStrdupFunc; XMLPUBVAR;
+  xmlMemStrdup: xmlStrdupFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF}
 
 {$ELSE} (* !LIBXML_THREAD_ALLOC_ENABLED *)
 var
-  xmlMalloc: xmlMallocFunc; XMLPUBVAR;
-  xmlMallocAtomic: xmlMallocFunc; XMLPUBVAR;
-  xmlRealloc: xmlReallocFunc; XMLPUBVAR;
-  xmlFree: xmlFreeFunc; XMLPUBVAR;
-  xmlMemStrdup: xmlStrdupFunc; XMLPUBVAR;
+  xmlMalloc: xmlMallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
+  xmlMallocAtomic: xmlMallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
+  xmlRealloc: xmlReallocFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
+  xmlFree: xmlFreeFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
+  xmlMemStrdup: xmlStrdupFunc; {$IFNDEF NO_EXTERNAL_VARS}XMLPUBVAR;{$ENDIF}
 {$ENDIF} (* LIBXML_THREAD_ALLOC_ENABLED *)
 
 {$IFDEF LIBXML_DOCB_ENABLED}
@@ -168,8 +168,10 @@ function __docbDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE docbDefaultSAXHandler := __docbDefaultSAXHandler()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   docbDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 
@@ -178,8 +180,10 @@ function __htmlDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE htmlDefaultSAXHandler := __htmlDefaultSAXHandler()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   htmlDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 {$ENDIF}
 
@@ -187,8 +191,10 @@ function __xmlLastError: xmlErrorPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlLastError := __xmlLastError()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlLastError: xmlError; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 (*
@@ -201,16 +207,20 @@ function __oldXMLWDcompatibility: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE oldXMLWDcompatibility := __oldXMLWDcompatibility()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   oldXMLWDcompatibility: cint; XMLPUBVAR;
+  {$ENDIF}
 {$ENDIF}
 
 function __xmlBufferAllocScheme: xmlBufferAllocationSchemePtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlBufferAllocScheme := __xmlBufferAllocScheme()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlBufferAllocScheme: xmlBufferAllocationScheme; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefBufferAllocScheme(v: xmlBufferAllocationScheme): xmlBufferAllocationScheme; XMLCALL; XMLPUBFUN;
 
@@ -218,8 +228,10 @@ function __xmlDefaultBufferSize: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlDefaultBufferSize := __xmlDefaultBufferSize()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlDefaultBufferSize: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefDefaultBufferSize(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -227,24 +239,30 @@ function __xmlDefaultSAXHandler: xmlSAXHandlerV1Ptr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlDefaultSAXHandler := __xmlDefaultSAXHandler()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlDefaultSAXHandler: xmlSAXHandlerV1; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlDefaultSAXLocator: xmlSAXLocatorPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlDefaultSAXLocator := __xmlDefaultSAXLocator()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlDefaultSAXLocator: xmlSAXLocator; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlDoValidityCheckingDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlDoValidityCheckingDefaultValue := __xmlDoValidityCheckingDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlDoValidityCheckingDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefDoValidityCheckingDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -252,32 +270,40 @@ function __xmlGenericError: xmlGenericErrorFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlGenericError := __xmlGenericError()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlGenericError: xmlGenericErrorFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlStructuredError: xmlStructuredErrorFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlStructuredError := __xmlStructuredError()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlStructuredError: xmlStructuredErrorFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlGenericErrorContext: ppointer; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlGenericErrorContext := __xmlGenericErrorContext()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlGenericErrorContext: pointer; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlGetWarningsDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlGetWarningsDefaultValue := __xmlGetWarningsDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlGetWarningsDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefGetWarningsDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -285,8 +311,10 @@ function __xmlIndentTreeOutput: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlIndentTreeOutput := __xmlIndentTreeOutput()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlIndentTreeOutput: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefIndentTreeOutput(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -294,8 +322,10 @@ function __xmlTreeIndentString: ppchar; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlTreeIndentString := __xmlTreeIndentString()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlTreeIndentString: pchar; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefTreeIndentString(v: pchar): pchar; XMLCALL; XMLPUBFUN;
 
@@ -303,8 +333,10 @@ function __xmlKeepBlanksDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlKeepBlanksDefaultValue := __xmlKeepBlanksDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlKeepBlanksDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefKeepBlanksDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -312,8 +344,10 @@ function __xmlLineNumbersDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlLineNumbersDefaultValue := __xmlLineNumbersDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlLineNumbersDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefLineNumbersDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -321,8 +355,10 @@ function __xmlLoadExtDtdDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlLoadExtDtdDefaultValue := __xmlLoadExtDtdDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlLoadExtDtdDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefLoadExtDtdDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -330,8 +366,10 @@ function __xmlParserDebugEntities: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlParserDebugEntities := __xmlParserDebugEntities()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlParserDebugEntities: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefParserDebugEntities(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -339,16 +377,20 @@ function __xmlParserVersion: ppchar; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlParserVersion := __xmlParserVersion()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlParserVersion: pchar; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlPedanticParserDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlPedanticParserDefaultValue := __xmlPedanticParserDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlPedanticParserDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefPedanticParserDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -356,8 +398,10 @@ function __xmlSaveNoEmptyTags: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlSaveNoEmptyTags := __xmlSaveNoEmptyTags()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlSaveNoEmptyTags: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefSaveNoEmptyTags(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -365,8 +409,10 @@ function __xmlSubstituteEntitiesDefaultValue: pcint; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlSubstituteEntitiesDefaultValue := __xmlSubstituteEntitiesDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlSubstituteEntitiesDefaultValue: cint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 function xmlThrDefSubstituteEntitiesDefaultValue(v: cint): cint; XMLCALL; XMLPUBFUN;
 
@@ -374,32 +420,40 @@ function __xmlRegisterNodeDefaultValue: xmlRegisterNodeFuncPtr; XMLCALL; XMLPUBF
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlRegisterNodeDefaultValue := __xmlRegisterNodeDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlRegisterNodeDefaultValue: xmlRegisterNodeFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlDeregisterNodeDefaultValue: xmlDeregisterNodeFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlDeregisterNodeDefaultValue := __xmlDeregisterNodeDefaultValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlDeregisterNodeDefaultValue: xmlDeregisterNodeFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlParserInputBufferCreateFilenameValue: xmlParserInputBufferCreateFilenameFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlParserInputBufferCreateFilenameValue := __xmlParserInputBufferCreateFilenameValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlParserInputBufferCreateFilenameValue: xmlParserInputBufferCreateFilenameFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 function __xmlOutputBufferCreateFilenameValue: xmlOutputBufferCreateFilenameFuncPtr; XMLCALL; XMLPUBFUN;
 {$IFDEF LIBXML_THREAD_ENABLED}
 {$DEFINE xmlOutputBufferCreateFilenameValue := __xmlOutputBufferCreateFilenameValue()^ }
 {$ELSE}
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlOutputBufferCreateFilenameValue: xmlOutputBufferCreateFilenameFunc; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 {$ENDIF}

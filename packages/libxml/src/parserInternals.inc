@@ -17,8 +17,10 @@
  * process. This is not a limitation of the parser but a safety 
  * boundary feature.
  *)
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlParserMaxDepth: cuint; XMLPUBVAR;
+{$ENDIF}
 {$ENDIF}
 
 {$IFDEF CONST}

@@ -365,10 +365,12 @@
  * Objects and Nodesets handling
  *)
 
+{$IFNDEF NO_EXTERNAL_VARS}
 var
   xmlXPathNAN: cdouble; XMLPUBVAR;
   xmlXPathPINF: cdouble; XMLPUBVAR;
   xmlXPathNINF: cdouble; XMLPUBVAR;
+{$ENDIF}
 
 (* These macros may later turn into functions *)
 (**
