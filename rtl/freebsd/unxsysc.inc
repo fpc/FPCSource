@@ -84,6 +84,7 @@ begin
  fpFlock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
+{$ifndef CPUI386}
 // needs oldfpccall;
 Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint;  oldfpccall;
 {
@@ -112,6 +113,7 @@ begin
    mov %ebx,(%edx)
  end;
 end;
+{$endif CPUI386}
 
 
 function MUnMap (P : Pointer; Size : size_t) : cint;
