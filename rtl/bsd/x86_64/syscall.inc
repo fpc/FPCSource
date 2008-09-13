@@ -60,7 +60,7 @@ asm
   movq sysnr,%rax         { Syscall number -> rax.  }
   movq param1,%rdi        { shift arg1 - arg1. }
   syscall                 { Do the system call. }
-  jb .LSyscOK             { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
