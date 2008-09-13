@@ -133,7 +133,7 @@ unit cgppc;
        const
          opcg_strings : array[TOpCg] of string[6] = (
            'None', 'Move', 'Add', 'And', 'Div', 'IDiv', 'IMul', 'Mul',
-           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor'
+           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor', 'Rol', 'Ror'
          );
        begin
          result := opcg_strings[op];
