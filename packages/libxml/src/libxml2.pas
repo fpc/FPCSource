@@ -13,6 +13,9 @@ uses
 {$IFDEF WINDOWS}
   windows,
 {$ENDIF}
+{$IFDEF UNIX}
+  baseunix,
+{$ENDIF}
   ctypes;
 
 //{$IF Sizeof(cbool) <> Sizeof(cint)}
