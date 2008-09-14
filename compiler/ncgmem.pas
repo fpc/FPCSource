@@ -66,8 +66,8 @@ interface
            This routine should update location.reference correctly,
            so it points to the correct address.
          }
-         procedure update_reference_reg_mul(reg:tregister;l:aint);virtual;
-         procedure update_reference_reg_packed(reg:tregister;l:aint);virtual;
+         procedure update_reference_reg_mul(maybe_const_reg:tregister;l:aint);virtual;
+         procedure update_reference_reg_packed(maybe_const_reg:tregister;l:aint);virtual;
          procedure second_wideansistring;virtual;
          procedure second_dynamicarray;virtual;
        public
@@ -453,39 +453,44 @@ implementation
        end;
 
 
-     procedure tcgvecnode.update_reference_reg_mul(reg:tregister;l:aint);
+     { this routine must, like any other routine, not change the contents }
+     { of base/index registers of references, as these may be regvars.    }
+     { The register allocator can coalesce one LOC_REGISTER being moved   }
+     { into another (as their live ranges won't overlap), but not a       }
+     { LOC_CREGISTER moved into a LOC_(C)REGISTER most of the time (as    }
+     { the live range of the LOC_CREGISTER will most likely overlap the   }
+     { the live range of the target LOC_(C)REGISTER)                      }
+     { The passed register may be a LOC_CREGISTER as well.                }
+     procedure tcgvecnode.update_reference_reg_mul(maybe_const_reg:tregister;l:aint);
        var
          hreg: tregister;
        begin
+         if l<>1 then
+           begin
+             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,maybe_const_reg,hreg);
+             maybe_const_reg:=hreg;
+           end;
          if location.reference.base=NR_NO then
-          begin
-            if l<>1 then
-              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
-            location.reference.base:=reg;
-          end
+           location.reference.base:=maybe_const_reg
          else if location.reference.index=NR_NO then
-          begin
-            if l<>1 then
-              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
-            location.reference.index:=reg;
-          end
+           location.reference.index:=maybe_const_reg
          else
           begin
-            hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+            hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
             reference_reset_base(location.reference,hreg,0);
             { insert new index register }
-            if l<>1 then
-              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_ADDR,l,reg);
-            location.reference.index:=reg;
+            location.reference.index:=maybe_const_reg;
           end;
        end;
 
 
-     procedure tcgvecnode.update_reference_reg_packed(reg:tregister;l:aint);
+     { see remarks for tcgvecnode.update_reference_reg_mul above }
+     procedure tcgvecnode.update_reference_reg_packed(maybe_const_reg:tregister;l:aint);
        var
          sref: tsubsetreference;
-         offsetreg: tregister;
+         offsetreg, hreg: tregister;
          alignpower: aint;
          temp : longint;
        begin
@@ -496,21 +501,22 @@ implementation
             (ispowerof2(l div 8,temp) or
              not is_ordinal(resultdef)) then
            begin
-             update_reference_reg_mul(reg,l div 8);
+             update_reference_reg_mul(maybe_const_reg,l div 8);
              exit;
            end;
          if (l > 8*sizeof(aint)) then
            internalerror(200608051);
          sref.ref := location.reference;
-         offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,reg);
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,reg);
+         hreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,tarraydef(left.resultdef).lowrange,maybe_const_reg,hreg);
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_IMUL,OS_INT,l,hreg);
          { keep alignment for index }
          sref.ref.alignment := left.resultdef.alignment;
          if not ispowerof2(sref.ref.alignment,temp) then
            internalerror(2006081201);
          alignpower:=temp;
-         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,reg,offsetreg);
+         offsetreg := cg.getaddressregister(current_asmdata.CurrAsmList);
+         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_ADDR,3+alignpower,hreg,offsetreg);
          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SHL,OS_ADDR,alignpower,offsetreg);
          if (sref.ref.base = NR_NO) then
            sref.ref.base := offsetreg
@@ -521,8 +527,8 @@ implementation
              cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_ADD,OS_ADDR,sref.ref.base,offsetreg);
              sref.ref.base := offsetreg;
            end;
-         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,reg);
-         sref.bitindexreg := reg;
+         cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_INT,(1 shl (3+alignpower))-1,hreg);
+         sref.bitindexreg := hreg;
          sref.startbit := 0;
          sref.bitlen := resultdef.packedbitsize;
          if (left.location.loc = LOC_REFERENCE) then
@@ -900,7 +906,7 @@ implementation
               secondpass(right);
 
               { if mulsize = 1, we won't have to modify the index }
-              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,not is_packed_array(left.resultdef) and (mulsize = 1) );
+              location_force_reg(current_asmdata.CurrAsmList,right.location,OS_ADDR,true);
 
               if isjump then
                begin
