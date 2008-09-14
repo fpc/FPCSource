@@ -42,6 +42,11 @@ const
 {$i xmlexports.inc}
 {$i xmlversion.inc}
 
+{$IFDEF WINDOWS}
+type
+  size_t = culong;
+{$ENDIF}
+
 type
   PFILE = pointer;
   va_list = pointer;
