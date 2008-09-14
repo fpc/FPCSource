@@ -300,6 +300,7 @@ uses
 {$IFDEF UNIX}
   {$IFDEF FPC}
   pthreads,
+  unixtype,
   baseunix,
   {$IFNDEF GP2X}    
   unix,

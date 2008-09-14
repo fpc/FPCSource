@@ -22,7 +22,7 @@ interface
 {DEFINE LOADDYNAMIC}
 
 uses
-  baseunix,
+  ctypes,unixtype,baseunix,
   {$ifdef LOADDYNAMIC}
   dl,
   {$endif}

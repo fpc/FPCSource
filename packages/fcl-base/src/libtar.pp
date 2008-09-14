@@ -95,7 +95,7 @@ USES
    Libc,		// MvdV: Nothing is used from this???
 {$ENDIF}
 {$ifdef Unix} 
-  BaseUnix, Unix,
+  UnixType, BaseUnix, Unix,
 {$endif}
 (*$IFDEF MSWINDOWS *)
    Windows,

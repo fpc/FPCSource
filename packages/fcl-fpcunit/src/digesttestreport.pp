@@ -108,7 +108,7 @@ implementation
 
 uses LibTar,
 {$IFDEF UNIX}
-     Unix,BaseUnix,
+     UnixType,Unix,BaseUnix,
 {$ENDIF}
 {$IFDEF MSWINDOWS}
      windows,

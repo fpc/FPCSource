@@ -86,7 +86,7 @@ USES
      {$ifdef VER1_0}
        linux,
      {$else}
-       baseunix,unix,
+       unixtype,baseunix,unix,
      {$endif}
    {$ENDIF}
 

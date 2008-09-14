@@ -14,7 +14,7 @@ uses
   windows,
 {$ENDIF}
 {$IFDEF UNIX}
-  baseunix,
+  unixtype,
 {$ENDIF}
   ctypes;
 

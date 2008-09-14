@@ -145,6 +145,8 @@ Uses
 {$endif WINDOWS}
 {$ifdef UNIX}
 uses
+   ctypes,
+   UnixType,
    Unix,
    Baseunix;
 {$endif UNIX}

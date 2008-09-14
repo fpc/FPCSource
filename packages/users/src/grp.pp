@@ -3,7 +3,7 @@ unit grp;
 interface
 
 uses
-  initc,baseunix,ctypes;
+  initc,unixtype,baseunix,ctypes;
 
 {$IFDEF FPC}
 {$PACKRECORDS C}
