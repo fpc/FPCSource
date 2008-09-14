@@ -902,16 +902,14 @@ implementation
 
 
     function ttypeconvnode.typecheck_char_to_string : tnode;
-
       var
-         procname: string[31];
-         para : tcallparanode;
-         hp : tstringconstnode;
-         ws : pcompilerwidestring;
-         newblock : tblocknode;
-         newstat  : tstatementnode;
-         restemp  : ttempcreatenode;
-
+        procname: string[31];
+        para : tcallparanode;
+        hp : tstringconstnode;
+        ws : pcompilerwidestring;
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
       begin
          result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
@@ -930,6 +928,7 @@ implementation
                  else
                    concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value.uvalue)));
                  hp:=cstringconstnode.createwstr(ws);
+                 hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
               else
@@ -994,7 +993,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
-
       begin
         if resultdef.size <> 1 then
           begin
@@ -1010,10 +1008,8 @@ implementation
 
 
     function ttypeconvnode.typecheck_char_to_char : tnode;
-
       var
-         hp : tordconstnode;
-
+        hp : tordconstnode;
       begin
          result:=nil;
          if (left.nodetype=ordconstn) and
