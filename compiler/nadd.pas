@@ -829,14 +829,22 @@ implementation
             end;
          end;
 
+        { If both operands are constant and there is a unicodestring
+          or unicodestring then convert everything to unicodestring }
+        if is_constnode(right) and is_constnode(left) and
+           (is_unicodestring(right.resultdef) or
+            is_unicodestring(left.resultdef)) then
+          begin
+            inserttypeconv(right,cunicodestringtype);
+            inserttypeconv(left,cunicodestringtype);
+          end;
+
         { If both operands are constant and there is a widechar
           or widestring then convert everything to widestring. This
           allows constant folding like char+widechar }
         if is_constnode(right) and is_constnode(left) and
            (is_widestring(right.resultdef) or
             is_widestring(left.resultdef) or
-            is_unicodestring(right.resultdef) or
-            is_unicodestring(left.resultdef) or
             is_widechar(right.resultdef) or
             is_widechar(left.resultdef)) then
           begin
@@ -1423,14 +1431,13 @@ implementation
               begin
                 { Is there a unicodestring? }
                 if is_unicodestring(rd) or is_unicodestring(ld) then
-                  strtype:= st_unicodestring
+                  strtype:=st_unicodestring
                 else
                 { Is there a widestring? }
-                if is_widestring(rd) or is_widestring(ld) or
-                   is_unicodestring(rd) or is_unicodestring(ld) or
-                   is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd) or
-                   is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld) then
-                  strtype:= st_widestring
+                  if is_widestring(rd) or is_widestring(ld) or
+                     is_pwidechar(rd) or is_widechararray(rd) or is_widechar(rd) or is_open_widechararray(rd) or
+                     is_pwidechar(ld) or is_widechararray(ld) or is_widechar(ld) or is_open_widechararray(ld) then
+                    strtype:=st_widestring
                 else
                   if is_ansistring(rd) or is_ansistring(ld) or
                      ((cs_ansistrings in current_settings.localswitches) and
@@ -1440,10 +1447,10 @@ implementation
                        is_pchar(ld) or (is_chararray(ld) and (ld.size > 255)) or is_open_chararray(ld)
                       )
                      ) then
-                    strtype:= st_ansistring
+                    strtype:=st_ansistring
                 else
                   if is_longstring(rd) or is_longstring(ld) then
-                    strtype:= st_longstring
+                    strtype:=st_longstring
                 else
                   begin
                     { TODO: todo: add a warning/hint here if one converting a too large array}
@@ -1753,9 +1760,9 @@ implementation
                   begin
                     { for strings, return is always a 255 char string }
                     if is_shortstring(left.resultdef) then
-                     resultdef:=cshortstringtype
+                      resultdef:=cshortstringtype
                     else
-                     resultdef:=left.resultdef;
+                      resultdef:=left.resultdef;
                   end;
                 else
                   resultdef:=left.resultdef;

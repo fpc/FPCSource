@@ -308,7 +308,7 @@ implementation
         addtype('$longstring',clongstringtype);
         addtype('$ansistring',cansistringtype);
         addtype('$widestring',cwidestringtype);
-        addtype('$unicodestring',cwidestringtype);
+        addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
         addtype('$boolean8',bool8type);
