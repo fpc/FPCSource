@@ -118,6 +118,6 @@ end;
 
 function MUnMap (P : Pointer; Size : size_t) : cint;
 begin
-  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size);
+  MUnMap:=do_syscall(syscall_nr_munmap,TSysParam(P),Size);
 end;
 

@@ -105,7 +105,7 @@ function FPsysctl (Name: pchar; namelen:cuint; oldp:pointer;oldlenp:psize_t; new
 
 Begin
         if (name[0] <> chr(CTL_USER)) Then
-           exit(do_syscall(syscall_nr___sysctl,longint(name), namelen, longint(oldp), longint(oldlenp), longint(newp), longint(newlen)))
+           exit(do_syscall(syscall_nr___sysctl,TSysParam(name), namelen, TSysParam(oldp), TSysParam(oldlenp), TSysParam(newp), TSysParam(newlen)))
         else
          Exit(0);
 End;

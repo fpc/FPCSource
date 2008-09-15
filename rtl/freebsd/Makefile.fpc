@@ -74,6 +74,12 @@ else
 CPU_UNITS=
 endif
 
+ifeq ($(CPU_TARGET),x86_64)
+CPU_UNITS=x86 ports 
+else
+CPU_UNITS=
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files

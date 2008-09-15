@@ -37,7 +37,7 @@ Function FPSigPending(var nset: sigset_t):cint;
   signals is set in SSet
 }
 begin
-  FPsigpending:=do_syscall(syscall_nr_sigpending,longint(@nset));
+  FPsigpending:=do_syscall(syscall_nr_sigpending,TSysParam(@nset));
 end;
 
 function FPsigsuspend(const sigmask:sigset_t):cint;
@@ -47,7 +47,7 @@ function FPsigsuspend(const sigmask:sigset_t):cint;
 }
 
 begin
-  FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,longint(@sigmask));
+  FPsigsuspend:= do_syscall(syscall_nr_sigsuspend,TSysParam(@sigmask));
 end;
 
 Type // implementation side for now. Should move to BSD unit.
@@ -63,13 +63,13 @@ Const   ITimer_Real    =0;
 Function SetITimer(Which : Longint;Const value : ItimerVal; var VarOValue:ItimerVal):Longint;
 
 Begin
-  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,Longint(@Value),longint(@varovalue));
+  SetItimer:=Do_Syscall(syscall_nr_setitimer,Which,TSysParam(@Value),TSysParam(@varovalue));
 End;
 
 Function GetITimer(Which : Longint;Var value : ItimerVal):Longint;
 
 Begin
-  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,Longint(@value));
+  GetItimer:=Do_Syscall(syscall_nr_getItimer,Which,TSysParam(@value));
 End;
 
 Function FPalarm(Seconds: cuint):cuint;
@@ -225,7 +225,7 @@ function FPwait(var stat_loc:cint): pid_t;
 }
 
 begin // actually a wait4() call with 4th arg 0.
- FPWait:=do_syscall(syscall_nr_WaitPID,WAIT_ANY,longint(@Stat_loc),0,0);
+ FPWait:=do_syscall(syscall_nr_WaitPID,WAIT_ANY,TSysParam(@Stat_loc),0,0);
 end;
 
 //function FPgetpid : pid_t;
@@ -281,7 +281,7 @@ end;
 function FPgetgroups(gidsetsize : cint; var grouplist:tgrparr): cint;
 
 begin
- FPgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,longint(@grouplist));
+ FPgetgroups:=do_syscall(syscall_nr_getgroups,gidsetsize,TSysParam(@grouplist));
 end;
 
 function FPgetpgrp : pid_t;
@@ -311,25 +311,25 @@ Function FPlink(existing:pchar;newone:pchar):cint;
   In effect, new will be the same file as old.
 }
 begin
-  FPLink:=Do_Syscall(syscall_nr_link,longint(existing),longint(newone));
+  FPLink:=Do_Syscall(syscall_nr_link,TSysParam(existing),TSysParam(newone));
 end;
 
 Function FPmkfifo(path:pchar;mode:mode_t):cint;
 
 begin
-  FPmkfifo:=do_syscall(syscall_nr_mkfifo,longint(path),longint(mode));
+  FPmkfifo:=do_syscall(syscall_nr_mkfifo,TSysParam(path),TSysParam(mode));
 end;
 
 Function FPchmod(path:pchar;mode:mode_t):cint;
 
 begin
-  FPchmod:=do_syscall(syscall_nr_chmod,longint(path),longint(mode));
+  FPchmod:=do_syscall(syscall_nr_chmod,TSysParam(path),TSysParam(mode));
 end;
 
 Function FPchown(path:pchar;owner:uid_t;group:gid_t):cint;
 
 begin
-  FPChOwn:=do_syscall(syscall_nr_chown,longint(path),longint(owner),longint(group));
+  FPChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
 end;
 
 Function FPUtime(path:pchar;times:putimbuf):cint;
@@ -348,13 +348,13 @@ begin
     tv[1].tv_usec:=0;
     tvp:=@tv;
    end;
- FPutime:=do_syscall(syscall_nr_utimes,longint(path),longint(tvp));
+ FPutime:=do_syscall(syscall_nr_utimes,TSysParam(path),TSysParam(tvp));
 end;
 
 Function FPpipe(var fildes : tfildes):cint;
 
 begin
- FPpipe:=do_syscall(syscall_nr_pipe,longint(@fildes));
+ FPpipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
 end;
 
 function FPfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
@@ -366,7 +366,7 @@ end;
 function FPfcntl(fildes:cint;Cmd:cint;var Arg:flock):cint;
 
 begin
- FPfcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,longint(@arg));
+ FPfcntl:=do_syscall(syscall_nr_fcntl,fildes,cmd,TSysParam(@arg));
 end;
 
 function FPfcntl(fildes:cint;Cmd:cint):cint;
@@ -378,13 +378,13 @@ end;
 function FPexecve(path:pchar;argv:ppchar;envp:ppchar):cint;
 
 Begin
-  FPexecve:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+  FPexecve:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
 End;
 
 function FPexecv(path:pchar;argv:ppchar):cint;
 
 Begin
-  FPexecv:=do_syscall(syscall_nr_Execve,longint(path),longint(argv),longint(envp));
+  FPexecv:=do_syscall(syscall_nr_Execve,TSysParam(path),TSysParam(argv),TSysParam(envp));
 End;
 
 CONST RUSAGE_SELF       = 0;
@@ -393,7 +393,7 @@ CONST RUSAGE_SELF       = 0;
 function FPgetrusage(who:cint;var ru : rusage):cint;
 
 begin
- FPgetrusage:=do_syscall(syscall_nr_getrusage,longint(who),longint(@ru));
+ FPgetrusage:=do_syscall(syscall_nr_getrusage,longint(who),TSysParam(@ru));
 end;
 
 function FPtimes(var buffer : tms):clock_t;
@@ -422,7 +422,7 @@ begin
             exit(clock_t(-1));
         buffer.tms_cutime := CONVTCK(ru.ru_utime);
         buffer.tms_cstime := CONVTCK(ru.ru_stime);
-        if do_syscall(syscall_nr_gettimeofday,longint(@t),0)<>0 Then
+        if do_syscall(syscall_nr_gettimeofday,TSysParam(@t),0)<>0 Then
                     exit(clock_t(-1));
         FPtimes:=clock_t(CONVTCK(t));
 end;
@@ -434,7 +434,7 @@ Function fpSelect(N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cin
 }
 
 begin
- fpSelect:=do_syscall(syscall_nr_select,n,longint(readfds),longint(writefds),longint(exceptfds),longint(timeout));
+ fpSelect:=do_syscall(syscall_nr_select,n,TSysParam(readfds),TSysParam(writefds),TSysParam(exceptfds),TSysParam(timeout));
 end;
 
 Function fpLstat(path:pchar;Info:pstat):cint;
