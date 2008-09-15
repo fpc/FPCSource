@@ -757,19 +757,7 @@ implementation
              else
                begin
                  location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
-                 {
-                 if op2.location.loc<>LOC_REGISTER then
-                   begin
-                     hcountreg:=cg.getintregister(current_asmdata.CurrAsmList,
-                       op2.location.size);
-                     cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,
-                       op2.location,hcountreg);
-                   end
-                 else
-                   hcountreg:=op2.location.register;
-                 }
                  { do modulo 2 operation }
-                 cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,op2.location.size,resultdef.size*8-1,op2.location.register);
                  cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,location.size,op2.location.register,location.register);
                end;
           end
