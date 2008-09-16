@@ -79,6 +79,12 @@
 {$define FPC_HAS_FEATURE_DYNLIBS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
+{$ifndef VER2_2}
+{$ifndef FPC_HAS_UNICODESTRING}
+{$error Building trunk is only supported when using the latest release as a starting compiler}
+{$endif}
+{$endif}
+
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
