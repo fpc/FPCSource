@@ -9,7 +9,7 @@
  *)
 
 {$IFDEF POINTER}
-  xmlCharPtr = pointer;
+  xmlCharPtr = ^xmlChar;
   xmlCharPtrPtr = ^xmlCharPtr;
 {$ENDIF}
 

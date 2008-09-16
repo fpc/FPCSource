@@ -427,7 +427,7 @@ end;
 
 function htmlElementAllowedHereDesc(parent: htmlElemDescPtr; elt: htmlElemDescPtr): cint;
 begin
-  Result := htmlElementAllowedHere(parent, elt^.name);
+  Result := htmlElementAllowedHere(parent, BAD_CAST(elt^.name));
 end;
 
 function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
