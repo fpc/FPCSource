@@ -18,61 +18,71 @@
  *
  * Macro defining the Xinclude namespace: http://www.w3.org/2003/XInclude
  *)
-  XINCLUDE_NS: xmlCharPtr = 'http://www.w3.org/2003/XInclude';
+  __XINCLUDE_NS: String = 'http://www.w3.org/2003/XInclude';
+  XINCLUDE_NS: xmlCharPtr = @__XINCLUDE_NS[1];
 (**
  * XINCLUDE_OLD_NS:
  *
  * Macro defining the draft Xinclude namespace: http://www.w3.org/2001/XInclude
  *)
-  XINCLUDE_OLD_NS: xmlCharPtr = 'http://www.w3.org/2001/XInclude';
+  __XINCLUDE_OLD_NS: String = 'http://www.w3.org/2001/XInclude';
+  XINCLUDE_OLD_NS: xmlCharPtr = @__XINCLUDE_OLD_NS[1];
 (**
  * XINCLUDE_NODE:
  *
  * Macro defining "include"
  *)
-  XINCLUDE_NODE: xmlCharPtr = 'include';
+  __XINCLUDE_NODE: String = 'include';
+  XINCLUDE_NODE: xmlCharPtr = @__XINCLUDE_NODE[1];
 (**
  * XINCLUDE_FALLBACK:
  *
  * Macro defining "fallback"
  *)
-  XINCLUDE_FALLBACK: xmlCharPtr = 'fallback';
+  __XINCLUDE_FALLBACK: String = 'fallback';
+  XINCLUDE_FALLBACK: xmlCharPtr = @__XINCLUDE_FALLBACK[1];
 (**
  * XINCLUDE_HREF:
  *
  * Macro defining "href"
  *)
-  XINCLUDE_HREF: xmlCharPtr = 'href';
+  __XINCLUDE_HREF: String = 'href';
+  XINCLUDE_HREF: xmlCharPtr = @__XINCLUDE_HREF[1];
 (**
  * XINCLUDE_PARSE:
  *
  * Macro defining "parse"
  *)
-  XINCLUDE_PARSE: xmlCharPtr = 'parse';
+  __XINCLUDE_PARSE: String = 'parse';
+  XINCLUDE_PARSE: xmlCharPtr = @__XINCLUDE_PARSE[1];
 (**
  * XINCLUDE_PARSE_XML:
  *
  * Macro defining "xml"
  *)
-  XINCLUDE_PARSE_XML: xmlCharPtr = 'xml';
+  __XINCLUDE_PARSE_XML: String = 'xml';
+  XINCLUDE_PARSE_XML: xmlCharPtr = @__XINCLUDE_PARSE_XML[1];
 (**
  * XINCLUDE_PARSE_TEXT:
  *
  * Macro defining "text"
  *)
-  XINCLUDE_PARSE_TEXT: xmlCharPtr = 'text';
+  __XINCLUDE_PARSE_TEXT: String = 'text';
+  XINCLUDE_PARSE_TEXT: xmlCharPtr = @__XINCLUDE_PARSE_TEXT[1];
 (**
  * XINCLUDE_PARSE_ENCODING:
  *
  * Macro defining "encoding"
  *)
-  XINCLUDE_PARSE_ENCODING: xmlCharPtr = 'encoding';
+  __XINCLUDE_PARSE_ENCODING: String = 'encoding';
+  XINCLUDE_PARSE_ENCODING: xmlCharPtr = @__XINCLUDE_PARSE_ENCODING[1];
 (**
  * XINCLUDE_PARSE_XPOINTER:
  *
  * Macro defining "xpointer"
  *)
-  XINCLUDE_PARSE_XPOINTER: xmlCharPtr = 'xpointer';
+  __XINCLUDE_PARSE_XPOINTER: String = 'xpointer';
+  XINCLUDE_PARSE_XPOINTER: xmlCharPtr = @__XINCLUDE_PARSE_XPOINTER[1];
 {$ENDIF}
 
 {$IFDEF POINTER}

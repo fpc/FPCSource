@@ -411,7 +411,7 @@ function xmlXPathNodeSetCreate(val: xmlNodePtr): xmlNodeSetPtr; XMLCALL; XMLPUBF
 procedure xmlXPathFreeNodeSetList(obj: xmlXPathObjectPtr); XMLCALL; XMLPUBFUN;
 procedure xmlXPathFreeNodeSet(obj: xmlNodeSetPtr); XMLCALL; XMLPUBFUN;
 function xmlXPathObjectCopy(val: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathObjectCopy(node1, node2: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXPathCmpNodes(node1, node2: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
 
 (**
  * Conversion functions to basic types.

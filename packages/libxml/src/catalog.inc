@@ -22,14 +22,16 @@
  *
  * The namespace for the XML Catalogs elements.
  *)
-  XML_CATALOGS_NAMESPACE: xmlCharPtr = 'urn:oasis:names:tc:entity:xmlns:xml:catalog';
+  __XML_CATALOGS_NAMESPACE: String = 'urn:oasis:names:tc:entity:xmlns:xml:catalog';
+  XML_CATALOGS_NAMESPACE: xmlCharPtr = @__XML_CATALOGS_NAMESPACE[1];
 
 (**
  * XML_CATALOG_PI:
  *
  * The specific XML Catalog Processing Instuction name.
  *)
-  XML_CATALOG_PI: xmlCharPtr = 'urn:oasis:names:tc:entity:xmlns:xml:catalog';
+  __XML_CATALOG_PI: String = 'urn:oasis:names:tc:entity:xmlns:xml:catalog';
+  XML_CATALOG_PI: xmlCharPtr = @__XML_CATALOG_PI[1];
 {$ENDIF}
 
 {$IFDEF POINTER}

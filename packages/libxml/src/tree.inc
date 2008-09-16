@@ -51,19 +51,21 @@
 {.$DEFINE LIBXML_NAMESPACE_DICT}
 
 (**
- * XML_XML_NAMESPACE:
+ * LIBXML_XML_NAMESPACE:
  *
  * This is the namespace for the special xml: prefix predefined in the
  * XML Namespace specification.
  *)
-  XML_XML_NAMESPACE: xmlCharPtr = 'http://www.w3.org/XML/1998/namespace';
+  __LIBXML_XML_NAMESPACE: String = 'http://www.w3.org/XML/1998/namespace';
+  LIBXML_XML_NAMESPACE: xmlCharPtr = @__LIBXML_XML_NAMESPACE[1];
 
 (**
  * XML_XML_ID:
  *
  * This is the name for the special xml:id attribute
  *)
-  XML_XML_ID: xmlCharPtr = 'xml:id';
+  __LIBXML_XML_ID: String = 'xml:id';
+  LIBXML_XML_ID: xmlCharPtr = @__LIBXML_XML_ID[1];
 {$ENDIF}
 
 {$IFDEF TYPE}
