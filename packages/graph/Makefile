@@ -301,7 +301,7 @@ ifeq ($(FULL_TARGET),m68k-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=graph $(GGIGRAPH_UNIT) sdlgraph
+override TARGET_UNITS+=graph $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 override TARGET_UNITS+=graph
@@ -322,7 +322,7 @@ ifeq ($(FULL_TARGET),x86_64-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=graph $(GGIGRAPH_UNIT) sdlgraph
+override TARGET_UNITS+=graph $(GGIGRAPH_UNIT)
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 override TARGET_UNITS+=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
