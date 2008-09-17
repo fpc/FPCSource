@@ -31,7 +31,7 @@ interface
       node,cpubase,
       symnot,
       symtype,symbase,symdef,symsym,
-      optunrol;
+      optloop;
 
     type
        { flags used by loop nodes }
