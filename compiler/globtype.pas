@@ -386,7 +386,9 @@ interface
          { stack frame optimization not possible (only on x86 probably) }
          pi_needs_stackframe,
          { set if the procedure has at least one register saved on the stack }
-         pi_has_saved_regs
+         pi_has_saved_regs,
+         { dfa was generated for this proc }
+         pi_dfaavailable
        );
        tprocinfoflags=set of tprocinfoflag;
 

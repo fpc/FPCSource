@@ -29,7 +29,7 @@ unit optloop;
       node;
 
     function unroll_loop(node : tnode) : tnode;
-    function optimize_induction_variables(node : tnode) : tnode;
+    function OptimizeInductionVariables(node : tnode) : boolean;
 
   implementation
 
@@ -39,7 +39,10 @@ unit optloop;
       symdef,symsym,
       cpuinfo,
       nutils,
-      nadd,nbas,nflw,ncon,ninl,ncal,nld;
+      nadd,nbas,nflw,ncon,ninl,ncal,nld,
+      pass_1,
+      optbase,optutils,
+      procinfo;
 
     var
       nodecount : aword;
@@ -185,10 +188,21 @@ unit optloop;
       deletecodestatements: tstatementnode;
       templist : tfplist;
       inductionexprs : tfplist;
+      changedforloop,
+      containsnestedforloop : boolean;
 
     function is_loop_invariant(loop : tnode;expr : tnode) : boolean;
       begin
         result:=is_constnode(expr);
+        case expr.nodetype of
+          loadn:
+            begin
+              if (pi_dfaavailable in current_procinfo.flags) and
+                assigned(loop.optinfo) and
+                assigned(expr.optinfo) then
+                result:=not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
+            end;
+        end;
       end;
 
 
@@ -229,8 +243,21 @@ unit optloop;
       begin
         result:=fen_false;
         case n.nodetype of
+          forn:
+            { inform for loop search routine, that it needs to search more deeply }
+            containsnestedforloop:=true;
           muln:
             begin
+              if (taddnode(n).right.nodetype=loadn) and
+                taddnode(n).right.isequal(tfornode(arg).left) and
+                { plain read of the loop variable? }
+                not(nf_write in taddnode(n).right.flags) and
+                not(nf_modify in taddnode(n).right.flags) and
+                is_loop_invariant(tfornode(arg),taddnode(n).left) and
+                { for now, we can handle only constant lower borders }
+                is_constnode(tfornode(arg).right) then
+                taddnode(n).swapleftright;
+
               if (taddnode(n).left.nodetype=loadn) and
                 taddnode(n).left.isequal(tfornode(arg).left) and
                 { plain read of the loop variable? }
@@ -240,6 +267,7 @@ unit optloop;
                 { for now, we can handle only constant lower borders }
                 is_constnode(tfornode(arg).right) then
                 begin
+                  changedforloop:=true;
                   { did we use the same expression before already? }
                   if not(findpreviousstrengthreduction) then
                     begin
@@ -272,6 +300,8 @@ unit optloop;
                       { ... and add a temp. release node }
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
                     end;
+                  { set types }
+                  do_firstpass(n);
                   result:=fen_norecurse_false;
                 end;
             end;
@@ -279,7 +309,7 @@ unit optloop;
       end;
 
 
-    function optimize_induction_variables(node : tnode) : tnode;
+    function OptimizeInductionVariablesSingleForLoop(node : tnode) : tnode;
       var
         loopcode,
         newcode : tblocknode;
@@ -287,11 +317,11 @@ unit optloop;
         newcodestatements : tstatementnode;
         fornode : tfornode;
       begin
+        result:=nil;
         if node.nodetype<>forn then
           exit;
         templist:=TFPList.Create;
         inductionexprs:=TFPList.Create;
-        result:=nil;
         initcode:=nil;
         calccode:=nil;
         deletecode:=nil;
@@ -305,6 +335,9 @@ unit optloop;
         { clue everything together }
         if assigned(initcode) then
           begin
+            do_firstpass(initcode);
+            do_firstpass(calccode);
+            do_firstpass(deletecode);
             { create a new for node, the old one will be released by the compiler }
             with tfornode(node) do
               begin
@@ -320,15 +353,50 @@ unit optloop;
             addstatement(loopcodestatements,calccode);
             addstatement(loopcodestatements,tfornode(node).t2);
             tfornode(node).t2:=loopcode;
+            do_firstpass(node);
 
             result:=internalstatements(newcodestatements);
             addstatement(newcodestatements,initcode);
             addstatement(newcodestatements,node);
             addstatement(newcodestatements,deletecode);
-            printnode(output,result);
           end;
         templist.Free;
         inductionexprs.Free;
+      end;
+
+
+    function iterforloops(var n: tnode; arg: pointer): foreachnoderesult;
+      var
+        hp : tnode;
+      begin
+        Result:=fen_false;
+        if n.nodetype=forn then
+          begin
+            { do we have DFA available? }
+            if pi_dfaavailable in current_procinfo.flags then
+              begin
+                CalcDefSum(n);
+              end;
+
+            containsnestedforloop:=false;
+            hp:=OptimizeInductionVariablesSingleForLoop(n);
+            if assigned(hp) then
+              begin
+                n.Free;
+                n:=hp;
+              end;
+            { can we avoid further searching? }
+            if not(containsnestedforloop) then
+              Result:=fen_norecurse_false;
+          end;
+      end;
+
+
+    function OptimizeInductionVariables(node : tnode) : boolean;
+      begin
+        changedforloop:=false;
+        foreachnodestatic(pm_postprocess,node,@iterforloops,nil);
+        Result:=changedforloop;
       end;
 
 end.

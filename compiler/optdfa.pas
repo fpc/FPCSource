@@ -145,6 +145,21 @@ unit optdfa;
       end;
 
 
+    function ResetDFA(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if assigned(n.optinfo) then
+          begin
+            with n.optinfo^ do
+              begin
+                life:=nil;
+                def:=nil;
+                use:=nil;
+                defsum:=nil;
+              end;
+          end;
+      end;
+
+
     procedure TDFABuilder.CreateLifeInfo(node : tnode;map : TIndexedNodeSet);
 
       var
@@ -552,6 +567,7 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
+        foreachnodestatic(pm_postprocess,node,@ResetDFA,nil);
       end;
 
 

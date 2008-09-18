@@ -803,19 +803,7 @@ implementation
                end;
            end;
 
-         { loop invariant/strength reduction }
-         if cs_opt_loopstrength in current_settings.optimizerswitches then
-           begin
-             res:=optimize_induction_variables(self);
-             if assigned(res) then
-               begin
-                 typecheckpass(res);
-                 result:=res;
-                 exit;
-               end;
-           end;
-
-         {Can we spare the first comparision?}
+         { Can we spare the first comparision? }
          if (t1.nodetype=ordconstn) and
             (right.nodetype=ordconstn) and
             (
@@ -1177,15 +1165,15 @@ implementation
          resultdef:=voidtype;
          if assigned(left) then
            begin
-              { first para must be a _class_ }
-              typecheckpass(left);
-              set_varstate(left,vs_read,[vsf_must_be_valid]);
-              if codegenerror then
-               exit;
-              if not(is_class(left.resultdef)) then
-                CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-              { insert needed typeconvs for addr,frame }
-              if assigned(right) then
+             { first para must be a _class_ }
+             typecheckpass(left);
+             set_varstate(left,vs_read,[vsf_must_be_valid]);
+             if codegenerror then
+              exit;
+             if not(is_class(left.resultdef)) then
+               CGMessage1(type_e_class_type_expected,left.resultdef.typename);
+             { insert needed typeconvs for addr,frame }
+             if assigned(right) then
                begin
                  { addr }
                  typecheckpass(right);
