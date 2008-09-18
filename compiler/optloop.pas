@@ -1,5 +1,5 @@
 {
-    Loop unrolling
+    Loop optimization
 
     Copyright (c) 2005 by Florian Klaempfl
 
@@ -29,15 +29,17 @@ unit optloop;
       node;
 
     function unroll_loop(node : tnode) : tnode;
+    function optimize_induction_variables(node : tnode) : tnode;
 
   implementation
 
     uses
+      cclasses,
       globtype,globals,constexp,
-      symsym,
+      symdef,symsym,
       cpuinfo,
       nutils,
-      nbas,nflw,ncon,ninl,ncal,nld;
+      nadd,nbas,nflw,ncon,ninl,ncal,nld;
 
     var
       nodecount : aword;
@@ -172,6 +174,161 @@ unit optloop;
                 tfornode(node).t2:=unrollblock;
               end;
           end;
+      end;
+
+    var
+      initcode,
+      calccode,
+      deletecode : tblocknode;
+      initcodestatements,
+      calccodestatements,
+      deletecodestatements: tstatementnode;
+      templist : tfplist;
+      inductionexprs : tfplist;
+
+    function is_loop_invariant(loop : tnode;expr : tnode) : boolean;
+      begin
+        result:=is_constnode(expr);
+      end;
+
+
+    { checks if the strength of n can be recuded, arg is the tforloop being considered }
+    function dostrengthreductiontest(var n: tnode; arg: pointer): foreachnoderesult;
+
+      function findpreviousstrengthreduction : boolean;
+        var
+          i : longint;
+        begin
+          result:=false;
+          for i:=0 to inductionexprs.count-1 do
+            begin
+              { do we already maintain one expression? }
+              if tnode(inductionexprs[i]).isequal(n) then
+                begin
+                  n.free;
+                  n:=ttemprefnode.create(ttempcreatenode(templist[i]));
+                  result:=true;
+                  exit;
+                end;
+            end;
+        end;
+
+
+      procedure CreateNodes;
+        begin
+          if not assigned(initcode) then
+            begin
+              initcode:=internalstatements(initcodestatements);
+              calccode:=internalstatements(calccodestatements);
+              deletecode:=internalstatements(deletecodestatements);
+            end;
+        end;
+
+      var
+        tempnode : ttempcreatenode;
+      begin
+        result:=fen_false;
+        case n.nodetype of
+          muln:
+            begin
+              if (taddnode(n).left.nodetype=loadn) and
+                taddnode(n).left.isequal(tfornode(arg).left) and
+                { plain read of the loop variable? }
+                not(nf_write in taddnode(n).left.flags) and
+                not(nf_modify in taddnode(n).left.flags) and
+                is_loop_invariant(tfornode(arg),taddnode(n).right) and
+                { for now, we can handle only constant lower borders }
+                is_constnode(tfornode(arg).right) then
+                begin
+                  { did we use the same expression before already? }
+                  if not(findpreviousstrengthreduction) then
+                    begin
+                      tempnode:=ctempcreatenode.create(n.resultdef,n.resultdef.size,tt_persistent,
+                        tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable);
+
+                      templist.Add(tempnode);
+                      inductionexprs.Add(n);
+                      CreateNodes;
+
+                      if lnf_backward in tfornode(arg).loopflags then
+                        addstatement(calccodestatements,
+                          geninlinenode(in_dec_x,false,
+                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))))
+                      else
+                        addstatement(calccodestatements,
+                          geninlinenode(in_inc_x,false,
+                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))));
+                      addstatement(initcodestatements,tempnode);
+                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
+                        caddnode.create(muln,
+                          caddnode.create(subn,tfornode(arg).right.getcopy,cordconstnode.create(1,tfornode(arg).right.resultdef,false)),
+                          taddnode(n).right.getcopy)
+                        )
+                      );
+
+                      { finally replace the node by a temp. ref }
+                      n:=ctemprefnode.create(tempnode);
+
+                      { ... and add a temp. release node }
+                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
+                    end;
+                  result:=fen_norecurse_false;
+                end;
+            end;
+        end;
+      end;
+
+
+    function optimize_induction_variables(node : tnode) : tnode;
+      var
+        loopcode,
+        newcode : tblocknode;
+        loopcodestatements,
+        newcodestatements : tstatementnode;
+        fornode : tfornode;
+      begin
+        if node.nodetype<>forn then
+          exit;
+        templist:=TFPList.Create;
+        inductionexprs:=TFPList.Create;
+        result:=nil;
+        initcode:=nil;
+        calccode:=nil;
+        deletecode:=nil;
+        initcodestatements:=nil;
+        calccodestatements:=nil;
+        deletecodestatements:=nil;
+        { find all expressions being candidates for strength reduction
+          and replace them }
+        foreachnodestatic(pm_postprocess,node,@dostrengthreductiontest,node);
+
+        { clue everything together }
+        if assigned(initcode) then
+          begin
+            { create a new for node, the old one will be released by the compiler }
+            with tfornode(node) do
+              begin
+                fornode:=cfornode.create(left,right,t1,t2,lnf_backward in loopflags);
+                left:=nil;
+                right:=nil;
+                t1:=nil;
+                t2:=nil;
+              end;
+            node:=fornode;
+
+            loopcode:=internalstatements(loopcodestatements);
+            addstatement(loopcodestatements,calccode);
+            addstatement(loopcodestatements,tfornode(node).t2);
+            tfornode(node).t2:=loopcode;
+
+            result:=internalstatements(newcodestatements);
+            addstatement(newcodestatements,initcode);
+            addstatement(newcodestatements,node);
+            addstatement(newcodestatements,deletecode);
+            printnode(output,result);
+          end;
+        templist.Free;
+        inductionexprs.Free;
       end;
 
 end.

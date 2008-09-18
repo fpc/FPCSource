@@ -781,27 +781,39 @@ implementation
 
     function tfornode.pass_typecheck:tnode;
       var
-        unrollres : tnode;
+        res : tnode;
       begin
          result:=nil;
          resultdef:=voidtype;
-
-         { loop unrolling }
-         if cs_opt_loopunroll in current_settings.optimizerswitches then
-           begin
-             unrollres:=unroll_loop(self);
-             if assigned(unrollres) then
-               begin
-                 typecheckpass(unrollres);
-                 result:=unrollres;
-                 exit;
-               end;
-           end;
 
          { process the loopvar, from and to, varstates are already set }
          typecheckpass(left);
          typecheckpass(right);
          typecheckpass(t1);
+
+         { loop unrolling }
+         if cs_opt_loopunroll in current_settings.optimizerswitches then
+           begin
+             res:=unroll_loop(self);
+             if assigned(res) then
+               begin
+                 typecheckpass(res);
+                 result:=res;
+                 exit;
+               end;
+           end;
+
+         { loop invariant/strength reduction }
+         if cs_opt_loopstrength in current_settings.optimizerswitches then
+           begin
+             res:=optimize_induction_variables(self);
+             if assigned(res) then
+               begin
+                 typecheckpass(res);
+                 result:=res;
+                 exit;
+               end;
+           end;
 
          {Can we spare the first comparision?}
          if (t1.nodetype=ordconstn) and
