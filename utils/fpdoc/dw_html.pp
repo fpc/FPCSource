@@ -638,6 +638,7 @@ destructor THTMLWriter.Destroy;
 begin
   PageInfos.Free;
   OutputNodeStack.Free;
+  FAllocator.Free;
   inherited Destroy;
 end;
 
