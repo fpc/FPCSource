@@ -200,7 +200,10 @@ unit optloop;
               if (pi_dfaavailable in current_procinfo.flags) and
                 assigned(loop.optinfo) and
                 assigned(expr.optinfo) then
-                result:=not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
+                { no aliasing? }
+                result:=not(tabstractvarsym(tloadnode(expr).symtableentry).addr_taken) and
+                { no definition in the loop? }
+                  not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
             end;
         end;
       end;
