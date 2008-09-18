@@ -376,11 +376,14 @@ begin
         Raise EFPApacheError.CreateFmt(SErrNoModuleForRequest,[MN]);
         end;
       MC:=MI.ModuleClass;
-      M:=FindModule(MC); // Check if a module exists already
       end;
+    M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
       begin
-      M:=MC.Create(Self);
+      If MC.UseStreaming then
+        M:=MC.Create(Self)
+      else  
+        M:=MC.CreateNew(Self,0);
       end;
     M.HandleRequest(ARequest,AResponse);
   except

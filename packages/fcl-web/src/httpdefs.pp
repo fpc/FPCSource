@@ -1047,8 +1047,9 @@ begin
 end;
 
 function TRequest.GetTempUploadFileName: String;
+
 begin
-  Result:=GetTempFileName('/tmp/','CGI')
+  Result := GetTempFileName(GetTempDir, 'CGI');
 end;
 
 
