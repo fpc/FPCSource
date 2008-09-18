@@ -223,7 +223,7 @@ unit optloop;
               if tnode(inductionexprs[i]).isequal(n) then
                 begin
                   n.free;
-                  n:=ttemprefnode.create(ttempcreatenode(templist[i]));
+                  n:=ctemprefnode.create(ttempcreatenode(templist[i]));
                   result:=true;
                   exit;
                 end;
