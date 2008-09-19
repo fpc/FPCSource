@@ -560,7 +560,10 @@ constructor THTMLWriter.Create(APackage: TPasPackage; AEngine: TFPDocEngine);
             DocNode := Engine.FindDocNode(FPEl);
             if Assigned(DocNode) then
               begin
-              ALink:=DocNode.Node['link'];
+              if Assigned(DocNode.Node) then
+                ALink:=DocNode.Node['link']
+              else
+                ALink:='';
               If (ALink<>'') then
                 LinkList.Add(TLinkData.Create(FPEl.PathName,ALink,AModule.name))
               else
