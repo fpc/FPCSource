@@ -3649,25 +3649,47 @@ In case not, the value returned can be arbitrary.
                      '#' :
                        begin
                          readchar; { read # }
-                         if c='$' then
-                           begin
-                              readchar; { read leading $ }
-                              asciinr:='$';
-                              while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<6) do
-                               begin
-                                 asciinr:=asciinr+c;
-                                 readchar;
-                               end;
-                           end
-                         else
-                           begin
-                              asciinr:='';
-                              while (c in ['0'..'9']) and (length(asciinr)<6) do
-                               begin
-                                 asciinr:=asciinr+c;
-                                 readchar;
-                               end;
-                           end;
+                         case c of
+                           '$':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='$';
+                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=5) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           '&':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='&';
+                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=7) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           '%':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='%';
+                               while (upcase(c) in ['0','1']) and (length(asciinr)<=17) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           else
+                             begin
+                               asciinr:='';
+                               while (c in ['0'..'9']) and (length(asciinr)<=5) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                         end;
                          val(asciinr,m,code);
                          if (asciinr='') or (code<>0) then
                            Message(scan_e_illegal_char_const)
