@@ -444,6 +444,8 @@ implementation
               { when constant, just multiply the addvalue }
               if is_constintnode(tcallparanode(tcallparanode(left).right).left) then
                  addvalue:=addvalue*get_ordinal_value(tcallparanode(tcallparanode(left).right).left)
+              else if is_constpointernode(tcallparanode(tcallparanode(left).right).left) then
+                 addvalue:=addvalue*tpointerconstnode(tcallparanode(tcallparanode(left).right).left).value
               else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,tcallparanode(tcallparanode(left).right).left.location,cgsize,addvalue<=1);

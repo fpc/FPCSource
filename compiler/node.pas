@@ -460,6 +460,7 @@ interface
     function is_constboolnode(p : tnode) : boolean;
     function is_constenumnode(p : tnode) : boolean;
     function is_constwidecharnode(p : tnode) : boolean;
+    function is_constpointernode(p : tnode) : boolean;
 
 
 implementation
@@ -669,6 +670,13 @@ implementation
       begin
          is_constenumnode:=(p.nodetype=ordconstn) and (p.resultdef.typ=enumdef);
       end;
+
+
+    function is_constpointernode(p : tnode) : boolean;
+      begin
+         is_constpointernode:=(p.nodetype=pointerconstn);
+      end;
+
 
 {****************************************************************************
                                  TNODE
