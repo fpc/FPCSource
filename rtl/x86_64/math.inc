@@ -61,12 +61,10 @@ FPC_ABSMASK_DOUBLE:
     
     
     procedure SetSSECSR(w : dword);
-      var
-        _w : dword;
       begin
-        _w:=w;
+        mxcsr:=w;
         asm
-          ldmxcsr _w
+          ldmxcsr w
         end;
       end;
     

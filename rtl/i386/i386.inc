@@ -1261,6 +1261,7 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     localfpucw:=Default8087CW;
     asm
+      fninit
       fldcw   localfpucw
       fwait
     end;
@@ -1278,11 +1279,25 @@ Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
   begin
+    localfpucw:=Default8087CW;
     asm
-      fnclex
+      fninit
       fwait
+      fldcw   localfpucw
     end;
+    if has_sse_support then
+      begin
+        localmxcsr:=mxcsr;
+        asm
+          { setup sse exceptions }
+          ldmxcsr localmxcsr
+        end;
+      end;
     softfloat_exception_flags:=0;
   end;
 
