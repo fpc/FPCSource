@@ -791,6 +791,8 @@ implementation
          typecheckpass(right);
          typecheckpass(t1);
 
+         set_varstate(left,vs_written,[]);
+
          { loop unrolling }
          if cs_opt_loopunroll in current_settings.optimizerswitches then
            begin

@@ -34,12 +34,14 @@ unit optloop;
   implementation
 
     uses
-      cclasses,
+      cutils,cclasses,
       globtype,globals,constexp,
       symdef,symsym,
+      defutil,
       cpuinfo,
       nutils,
-      nadd,nbas,nflw,ncon,ninl,ncal,nld,
+      nadd,nbas,nflw,ncon,ninl,ncal,nld,nmem,ncnv,
+      ncgmem,
       pass_1,
       optbase,optutils,
       procinfo;
@@ -205,6 +207,13 @@ unit optloop;
                 { no definition in the loop? }
                   not(DFASetIn(loop.optinfo^.defsum,expr.optinfo^.index));
             end;
+          vecn:
+            begin
+              result:=((tvecnode(expr).left.nodetype=loadn) or is_loop_invariant(loop,tvecnode(expr).left)) and
+                is_loop_invariant(loop,tvecnode(expr).right);
+            end;
+          typeconvn:
+            result:=is_loop_invariant(loop,ttypeconvnode(expr).left);
         end;
       end;
 
@@ -223,7 +232,15 @@ unit optloop;
               if tnode(inductionexprs[i]).isequal(n) then
                 begin
                   n.free;
-                  n:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                  case n.nodetype of
+                    muln:
+                      n:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                    vecn:
+                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(
+                        ttempcreatenode(templist[i]))),n.resultdef);
+                    else
+                      internalerror(200809211);
+                  end;
                   result:=true;
                   exit;
                 end;
@@ -243,6 +260,7 @@ unit optloop;
 
       var
         tempnode : ttempcreatenode;
+        dummy : longint;
       begin
         result:=fen_false;
         case n.nodetype of
@@ -289,6 +307,7 @@ unit optloop;
                         addstatement(calccodestatements,
                           geninlinenode(in_inc_x,false,
                           ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(taddnode(n).right.getcopy,nil))));
+
                       addstatement(initcodestatements,tempnode);
                       addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
                         caddnode.create(muln,
@@ -299,6 +318,66 @@ unit optloop;
 
                       { finally replace the node by a temp. ref }
                       n:=ctemprefnode.create(tempnode);
+
+                      { ... and add a temp. release node }
+                      addstatement(deletecodestatements,ctempdeletenode.create(tempnode));
+                    end;
+                  { set types }
+                  do_firstpass(n);
+                  result:=fen_norecurse_false;
+                end;
+            end;
+          vecn:
+            begin
+              { is the index the counter variable? }
+              if not(is_special_array(tvecnode(n).left.resultdef)) and
+                (tvecnode(n).right.isequal(tfornode(arg).left) or
+                 { fpc usually creates a type cast to access an array }
+                 ((tvecnode(n).right.nodetype=typeconvn) and
+                  ttypeconvnode(tvecnode(n).right).left.isequal(tfornode(arg).left)
+                 )
+                ) and
+                { plain read of the loop variable? }
+                not(nf_write in tvecnode(n).right.flags) and
+                not(nf_modify in tvecnode(n).right.flags) and
+                { direct array access? }
+                ((tvecnode(n).left.nodetype=loadn) or
+                { ... or loop invariant expression? }
+                is_loop_invariant(tfornode(arg),tvecnode(n).left)) and
+                { removing the multiplication is only worth the
+                  effort if it's not a simple shift }
+                not(ispowerof2(tcgvecnode(n).get_mul_size,dummy)) then
+                begin
+                  changedforloop:=true;
+                  { did we use the same expression before already? }
+                  if not(findpreviousstrengthreduction) then
+                    begin
+                      tempnode:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
+
+                      templist.Add(tempnode);
+                      inductionexprs.Add(n);
+                      CreateNodes;
+
+                      if lnf_backward in tfornode(arg).loopflags then
+                        addstatement(calccodestatements,
+                          geninlinenode(in_dec_x,false,
+                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,tfornode(arg).right.resultdef,false),nil))))
+                      else
+                        addstatement(calccodestatements,
+                          geninlinenode(in_inc_x,false,
+                          ccallparanode.create(ctemprefnode.create(tempnode),ccallparanode.create(
+                          cordconstnode.create(tcgvecnode(n).get_mul_size,tfornode(arg).right.resultdef,false),nil))));
+
+                      addstatement(initcodestatements,tempnode);
+                      addstatement(initcodestatements,cassignmentnode.create(ctemprefnode.create(tempnode),
+                        caddrnode.create(
+                          cvecnode.create(tvecnode(n).left.getcopy,tfornode(arg).right.getcopy)
+                        )
+                      ));
+
+                      { finally replace the node by a temp. ref }
+                      n:=ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),n.resultdef);
 
                       { ... and add a temp. release node }
                       addstatement(deletecodestatements,ctempdeletenode.create(tempnode));

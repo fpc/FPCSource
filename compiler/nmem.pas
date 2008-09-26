@@ -449,7 +449,7 @@ implementation
               CGMessage(type_e_variable_id_expected);
           end;
 
-        if (mark_read_written) then
+        if mark_read_written then
           begin
             { This is actually only "read", but treat it nevertheless as  }
             { modified due to the possible use of pointers                }

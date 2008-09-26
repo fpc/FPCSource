@@ -56,10 +56,10 @@ interface
        end;
 
        tcgvecnode = class(tvecnode)
+         function get_mul_size : aint;
        private
          procedure rangecheck_array;
        protected
-         function get_mul_size : aint;
          {# This routine is used to calculate the address of the reference.
             On entry reg contains the index in the array,
            and l contains the size of each element in the array.
