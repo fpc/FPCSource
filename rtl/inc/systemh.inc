@@ -351,7 +351,7 @@ Type
   PUCS2Char           = PWideChar;
   PWideString         = ^WideString;
 
-  UnicodeChar         = type WideChar;
+  UnicodeChar         = WideChar;
   PUnicodeChar        = ^UnicodeChar;
 {$ifdef VER2_2}
   { this is only to avoid too much ifdefs in the code }
