@@ -1216,6 +1216,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
+    tkUString :
+      Result := GetUnicodeStrProp(Instance,PropInfo);
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1272,6 +1274,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       SetWideStrProp(Instance,PropInfo,Value);
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,Value);
     tkSString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -1351,6 +1355,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
       Result:=GetStrProp(Instance,PropInfo);
+    tkUString :
+      Result := GetUnicodeStrProp(Instance,PropInfo);
     tkWString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1385,6 +1391,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
        SetStrProp(Instance,PropInfo,Value);
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,Value);
     tkWString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
