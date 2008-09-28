@@ -266,6 +266,7 @@ Type
   Protected
     Property HdrPos : Longint Read FHeaderPos Write FheaderPos;
   Public
+    Procedure Assign(Source : TPersistent); override;
     Property Stream : TStream Read FStream Write FStream;
   Published
     Property ArchiveFileName : String Read GetArchiveFileName Write FArchiveFileName;
@@ -1555,6 +1556,25 @@ begin
   Result:=FArchiveFileName;
   If (Result='') then
     Result:=FDiskFileName;
+end;
+
+procedure TZipFileEntry.Assign(Source: TPersistent);
+
+Var
+  Z : TZipFileEntry;
+
+begin
+  if Source is TZipFileEntry then
+    begin
+    Z:=Source as TZipFileEntry;
+    FArchiveFileName:=Z.FArchiveFileName;
+    FDiskFileName:=Z.FDiskFileName;
+    FSize:=Z.FSize;
+    FDateTime:=Z.FDateTime;
+    FStream:=Z.FStream;
+    end
+  else
+    inherited Assign(Source);
 end;
 
 { TZipFileEntries }
