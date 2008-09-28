@@ -1868,7 +1868,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_STATIC;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_notobjintf];
       handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
