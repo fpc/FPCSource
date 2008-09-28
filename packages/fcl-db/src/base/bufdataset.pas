@@ -170,7 +170,7 @@ type
     property BookmarkSize : integer read GetBookmarkSize;
   end;
   
-  TDataPacketFormat = (dfBinary,dfXML,dfXMLUTF8);
+  TDataPacketFormat = (dfBinary,dfXML,dfXMLUTF8,dfAny);
 
   { TDoubleLinkedBufIndex }
 
@@ -303,6 +303,7 @@ type
 
   { TDataPacketReader }
 
+  TDatapacketReaderClass = class of TDatapacketReader;
   TDataPacketReader = class(TObject)
     FStream : TStream;
   public
@@ -320,23 +321,20 @@ type
     procedure StoreRecord(ADataset : TBufDataset; RowState : TRowState); virtual; abstract;
     procedure InitLoadRecords(var AChangeLog : TChangeLogEntryArr); virtual; abstract;
     property Stream: TStream read FStream;
+    class function RecognizeStream(AStream : TStream) : boolean; virtual; abstract;
   end;
 
-  { TXMLBufDatasetReader }
+  { TXMLDatapacketReader }
 
   TXMLDatapacketReader = class(TDataPacketReader)
-    FFileName : String;
-
     XMLDocument    : TXMLDocument;
     DataPacketNode : TDOMElement;
     MetaDataNode   : TDOMNode;
     FieldsNode     : TDOMNode;
-
     FChangeLogNode,
     FParamsNode,
     FRowDataNode,
     FRecordNode       : TDOMNode;
-
   public
     destructor destroy; override;
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
@@ -351,14 +349,12 @@ type
     function GetCurrentElement: pointer; override;
     procedure RestoreRecord(ADataset : TBufDataset); override;
     procedure StoreRecord(ADataset : TBufDataset; RowState : TRowState); override;
-
-//    property FileName : string read FFileName write FFileName;
+    class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
 
-  { TFpcBinaryBufDatasetReader }
+  { TFpcBinaryDatapacketReader }
 
   TFpcBinaryDatapacketReader = class(TDataPacketReader)
-    FFileName : String;
   public
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
@@ -372,8 +368,7 @@ type
     function GetCurrentElement: pointer; override;
     procedure RestoreRecord(ADataset : TBufDataset); override;
     procedure StoreRecord(ADataset : TBufDataset; RowState : TRowState); override;
-
-    property FileName : string read FFileName write FFileName;
+    class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
 
   TBufDataset = class(TDBDataSet)
@@ -494,10 +489,10 @@ type
 
     procedure SetDatasetPacket(AReader : TDataPacketReader);
     procedure GetDatasetPacket(AWriter : TDataPacketReader);
-    procedure LoadFromStream(AStream : TStream);
+    procedure LoadFromStream(AStream : TStream; Format: TDataPacketFormat = dfAny);
     procedure SaveToStream(AStream : TStream; Format: TDataPacketFormat = dfBinary);
-    procedure LoadFromFile(const AFileName: string = '');
-    procedure SaveToFile(const FileName: string = ''; Format: TDataPacketFormat = dfBinary);
+    procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfAny);
+    procedure SaveToFile(AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure CreateDataset;
 
     property ChangeCount : Integer read GetChangeCount;
@@ -511,9 +506,45 @@ type
     property IndexFieldNames : String read GetIndexFieldNames write SetIndexFieldNames;
   end;
 
+procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderClass; AFormat : TDataPacketFormat);
+
 implementation
 
 uses variants, dbconst, xmlwrite, xmlread;
+
+Type TDatapacketReaderRegistration = record
+                                       ReaderClass : TDatapacketReaderClass;
+                                       Format      : TDataPacketFormat;
+                                     end;
+
+var RegisteredDatapacketReaders : Array of TDatapacketReaderRegistration;
+
+procedure RegisterDatapacketReader(ADatapacketReaderClass : TDatapacketReaderClass; AFormat : TDataPacketFormat);
+begin
+  setlength(RegisteredDatapacketReaders,length(RegisteredDatapacketReaders)+1);
+  with RegisteredDatapacketReaders[length(RegisteredDatapacketReaders)-1] do
+    begin
+    Readerclass := ADatapacketReaderClass;
+    Format      := AFormat;
+    end;
+end;
+
+function GetRegisterDatapacketReader(AStream : TStream; AFormat : TDataPacketFormat; var ADataReaderClass : TDatapacketReaderRegistration) : boolean;
+var i : integer;
+begin
+  Result := False;
+  for i := 0 to length(RegisteredDatapacketReaders)-1 do if ((AFormat=dfAny) or (AFormat=RegisteredDatapacketReaders[i].Format)) then
+    begin
+    if (AStream=nil) or (RegisteredDatapacketReaders[i].ReaderClass.RecognizeStream(AStream)) then
+      begin
+      ADataReaderClass := RegisteredDatapacketReaders[i];
+      Result := True;
+      if (AStream <> nil) then AStream.Seek(0,soFromBeginning);
+      break;
+      end;
+    AStream.Seek(0,soFromBeginning);
+    end;
+end;
 
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
 
@@ -2340,11 +2371,12 @@ const
     );
 
 
-procedure TBufDataset.SaveToFile(const FileName: string;
+procedure TBufDataset.SaveToFile(AFileName: string;
   Format: TDataPacketFormat);
 var AFileStream : TFileStream;
 begin
-  AFileStream := TFileStream.Create(FileName,fmCreate);
+  if AFileName='' then AFileName := FFileName;
+  AFileStream := TFileStream.Create(AFileName,fmCreate);
   try
     SaveToStream(AFileStream, Format);
   finally
@@ -2462,10 +2494,16 @@ begin
   end;
 end;
 
-procedure TBufDataset.LoadFromStream(AStream: TStream);
-var APacketReader : TDataPacketReader;
+procedure TBufDataset.LoadFromStream(AStream: TStream; Format: TDataPacketFormat);
+var APacketReaderReg : TDatapacketReaderRegistration;
+    APacketReader : TDataPacketReader;
 begin
-  APacketReader := TFpcBinaryDatapacketReader.create(AStream);
+  if GetRegisterDatapacketReader(AStream,format,APacketReaderReg) then
+    APacketReader := APacketReaderReg.ReaderClass.create(AStream)
+  else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
+    APacketReader := TFpcBinaryDatapacketReader.create(AStream)
+  else
+    DatabaseError(SStreamNotRecognised);
   try
     SetDatasetPacket(APacketReader);
   finally
@@ -2474,12 +2512,15 @@ begin
 end;
 
 procedure TBufDataset.SaveToStream(AStream: TStream; Format: TDataPacketFormat);
-var  APacketWriter : TDataPacketReader;
+var APacketReaderReg : TDatapacketReaderRegistration;
+    APacketWriter : TDataPacketReader;
 begin
-  case Format of
-    dfBinary : APacketWriter := TFpcBinaryDatapacketReader.create(AStream);
-    dfXML    : APacketWriter := TXMLDatapacketReader.create(AStream);
-  end;
+  if GetRegisterDatapacketReader(Nil,format,APacketReaderReg) then
+    APacketWriter := APacketReaderReg.ReaderClass.create(AStream)
+  else if Format = dfBinary then
+    APacketWriter := TFpcBinaryDatapacketReader.create(AStream)
+  else
+    DatabaseError(SNoReaderClassRegistered);
   try
     GetDatasetPacket(APacketWriter);
   finally
@@ -2487,12 +2528,13 @@ begin
   end;
 end;
 
-procedure TBufDataset.LoadFromFile(const AFileName: string);
+procedure TBufDataset.LoadFromFile(AFileName: string; Format: TDataPacketFormat);
 var AFileStream : TFileStream;
 begin
+  if AFileName='' then AFileName := FFileName;
   AFileStream := TFileStream.Create(AFileName,fmOpenRead);
   try
-    LoadFromStream(AFileStream);
+    LoadFromStream(AFileStream, Format);
   finally
     AFileStream.Free;
   end;
@@ -3277,6 +3319,20 @@ begin
   FRowDataNode.AppendChild(ARecordNode);
 end;
 
+class function TXMLDatapacketReader.RecognizeStream(AStream: TStream): boolean;
+const XmlStart = '<?xml';
+var s        : string;
+    len      : integer;
+begin
+  Len := length(XmlStart);
+  setlength(s,len);
+  if (AStream.Read (s[1],len) = len)
+  and (s=XmlStart) then
+    Result := True
+  else
+    Result := False;
+end;
+
 procedure TXMLDatapacketReader.GotoNextRecord;
 begin
   FRecordNode := FRecordNode.NextSibling;
@@ -3295,15 +3351,12 @@ const FpcBinaryIdent = 'BinBufDataset';
 
 procedure TFpcBinaryDatapacketReader.LoadFieldDefs(AFieldDefs: TFieldDefs);
 
-var s        : string;
-    FldCount : word;
+var FldCount : word;
     i        : integer;
 
 begin
-  setlength(s,sizeof(FpcBinaryIdent));
-  Stream.Read(s[1],length(FpcBinaryIdent));
-  if s <> FpcBinaryIdent then
-    DatabaseError('Not a TFpdBinaryBufDatasetReader file:' + s);
+  if not RecognizeStream(Stream) then
+    DatabaseError(SStreamNotRecognised);
 
   FldCount:=Stream.ReadWord;
   for i := 0 to FldCount -1 do with TFieldDef.create(AFieldDefs) do
@@ -3391,5 +3444,23 @@ begin
   Stream.WriteBuffer(ADataset.GetCurrentBuffer^,ADataset.FRecordSize);
 end;
 
+class function TFpcBinaryDatapacketReader.RecognizeStream(AStream: TStream
+  ): boolean;
+var s        : string;
+    len      : integer;
 begin
+  Len := length(FpcBinaryIdent);
+  setlength(s,len);
+  if (AStream.Read (s[1],len) = len)
+  and (s=FpcBinaryIdent) then
+    Result := True
+  else
+    Result := False;
+end;
+
+initialization
+  setlength(RegisteredDatapacketReaders,0);
+  RegisterDatapacketReader(TXMLDatapacketReader,dfXML);
+finalization
+  setlength(RegisteredDatapacketReaders,0);
 end.

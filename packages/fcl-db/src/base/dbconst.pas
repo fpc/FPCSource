@@ -103,6 +103,8 @@ Resourcestring
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
   SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
+  SStreamNotRecognised     = 'The data-stream format is not recognized';
+  SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
   
 

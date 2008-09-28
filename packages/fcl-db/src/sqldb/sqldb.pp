@@ -1181,7 +1181,7 @@ var tel, fieldc : integer;
     ReadFromFile: Boolean;
 begin
   try
-    ReadFromFile:=FileName<>'';
+    ReadFromFile:=IsReadFromPacket;
     FOpenDidPrepare:=Not Prepared;
     If FOpenDidPrepare then
       Prepare;
