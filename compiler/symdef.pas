@@ -3149,9 +3149,12 @@ implementation
               not(is_void(returndef)) then
               s:=s+':'+returndef.GetTypeName;
         end;
+        s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
-          s:=s+';'+ProcCallOptionStr[proccalloption];
+          s:=s+' '+ProcCallOptionStr[proccalloption]+';';
+        if po_staticmethod in procoptions then
+          s:=s+' Static;';
         fullprocname:=s;
       end;
 
