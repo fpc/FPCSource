@@ -1568,6 +1568,8 @@ implementation
                     { property of a class/object? }
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
+                        if (srsymtable.symtabletype=ObjectSymtable) then
+                          p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype=ObjectSymtable) then
@@ -2232,22 +2234,23 @@ implementation
                      check_hints(srsym,srsym.symoptions);
                      { load the procdef from the inherited class and
                        not from self }
-                     if srsym.typ in [procsym,propertysym] then
-                      begin
-                        if (srsym.typ = procsym) then
-                          begin
-                            hdef:=hclassdef;
-                            if (po_classmethod in current_procinfo.procdef.procoptions) or
-                               (po_staticmethod in current_procinfo.procdef.procoptions) then
-                              hdef:=tclassrefdef.create(hdef);
-                            p1:=ctypenode.create(hdef);
-                          end;
-                      end
-                     else
-                      begin
-                        Message(parser_e_methode_id_expected);
-                        p1:=cerrornode.create;
-                      end;
+                     case srsym.typ of
+                       procsym:
+                         begin
+                           hdef:=hclassdef;
+                           if (po_classmethod in current_procinfo.procdef.procoptions) or
+                              (po_staticmethod in current_procinfo.procdef.procoptions) then
+                             hdef:=tclassrefdef.create(hdef);
+                           p1:=ctypenode.create(hdef);
+                         end;
+                       propertysym:
+                         ;
+                       else
+                         begin
+                           Message(parser_e_methode_id_expected);
+                           p1:=cerrornode.create;
+                         end;
+                     end;
                      do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
                   else
