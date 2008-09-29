@@ -68,7 +68,7 @@ var
   DebugClient : TSimpleIPCClient = nil;
   MsgBuffer : TMemoryStream = Nil;
   ServerID : Integer;
-  DebugDisabled : Boolean;
+  DebugDisabled : Boolean = False;
   Indent : Integer = 0;
   
 Procedure WriteMessage(Const Msg : TDebugMessage);
@@ -236,8 +236,8 @@ begin
       Msg.Msg:=Format(SProcessID,[ApplicationName]);
       WriteMessage(Msg);
       end;
-    FreeAndNil(MsgBuffer);
-    FreeAndNil(DebugClient);
+    if assigned(MsgBuffer) then FreeAndNil(MsgBuffer);
+    if assigned(DebugClient) then FreeAndNil(DebugClient);
   except
   end;
 end;
@@ -278,8 +278,6 @@ begin
   Result := True;
 end;
 
-Initialization
-  DebugDisabled := False;
 Finalization
   FreeDebugClient;
 end.
