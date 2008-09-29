@@ -4082,7 +4082,7 @@ function VarTypeAsText(const AType: TVarType): string;
     'Unknown','Decimal','???','ShortInt','Byte','Word','DWord','Int64','QWord');
   begin
     if ((AType and varTypeMask)>=low(names)) and ((AType and varTypeMask)<=high(names)) then
-      Result:=names[AType]
+      Result:=names[AType and varTypeMask]
     else
       case AType and varTypeMask of
         varString:
