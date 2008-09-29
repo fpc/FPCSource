@@ -213,6 +213,9 @@ implementation
 
 
     procedure firstcomplex(p : tbinarynode);
+      var
+        fcl, fcr: longint;
+        ncl, ncr: longint;
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
@@ -222,8 +225,28 @@ implementation
                internalerror(200709253);
            end
          else
-           if node_resources_fpu(p.right)>node_resources_fpu(p.left) then
-             p.swapleftright;
+           begin
+             fcl:=node_resources_fpu(p.left);
+             fcr:=node_resources_fpu(p.right);
+             ncl:=node_complexity(p.left);
+             ncr:=node_complexity(p.right);
+             { We swap left and right if
+                a) right needs more floating point registers than left, and
+                   left needs more than 0 floating point registers (if it
+                   doesn't need any, swapping won't change the floating
+                   point register pressure)
+                b) both left and right need an equal amount of floating
+                   point registers or right needs no floating point registers,
+                   and in addition right has a higher complexity than left
+                   (+- needs more integer registers, but not necessarily)
+             }
+             if ((fcr>fcl) and
+                 (fcl>0)) or
+                (((fcr=fcl) or
+                  (fcr=0)) and
+                 (ncr>ncl)) then
+               p.swapleftright
+           end;
       end;
 
 
