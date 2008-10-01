@@ -1690,7 +1690,7 @@ Begin
       if ErrorLen=ErrorBufferLength then
         begin
           AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
-          MessageBox(0,@ErrorBufW,'Error',0);
+          MessageBox(0,@ErrorBufW,'Error',$10010); { MB_SETFOREGROUND or ICON_ERROR }
           ErrorLen:=0;
         end;
       Dec(F.BufPos,i);
@@ -1704,7 +1704,7 @@ begin
   if ErrorLen>0 then
    begin
      AnsiToWideBuf(@ErrorBuf, -1, @ErrorBufW, SizeOf(ErrorBufW));
-     MessageBox(0,@ErrorBufW,'Error',0);
+     MessageBox(0,@ErrorBufW,'Error',$10010); { MB_SETFOREGROUND or ICON_ERROR }
      ErrorLen:=0;
    end;
   ErrorLen:=0;
