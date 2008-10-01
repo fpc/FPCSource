@@ -3028,13 +3028,13 @@ function VarSupports(const V: Variant; const IID: TGUID; out Intf): Boolean;
 begin
   case TVarData(v).vType of
     varUnknown:
-      Result := IInterface(TVarData(v).vUnknown).QueryInterface(IID, Intf) = S_OK;
+      Result := Assigned(TVarData(v).vUnknown) and (IInterface(TVarData(v).vUnknown).QueryInterface(IID, Intf) = S_OK);
     varUnknown or varByRef:
-      Result := IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK;
+      Result := Assigned(TVarData(v).vPointer) and Assigned(pointer(TVarData(v).vPointer^)) and (IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK);
     varDispatch:
-      Result := IInterface(TVarData(v).vDispatch).QueryInterface(IID, Intf) = S_OK;
+      Result := Assigned(TVarData(v).vDispatch) and (IInterface(TVarData(v).vDispatch).QueryInterface(IID, Intf) = S_OK);
     varDispatch or varByRef:
-      Result := IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK;
+      Result := Assigned(TVarData(v).vPointer) and Assigned(pointer(TVarData(v).vPointer^)) and (IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK);
     varVariant, varVariant or varByRef:
       Result := Assigned(TVarData(v).vPointer) and VarSupports(Variant(PVarData(TVarData(v).vPointer)^), IID, Intf);
     else
