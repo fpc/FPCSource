@@ -235,27 +235,6 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-
-  Procedure  SetStrictDelimited;
-  
-  Var
-    P,PL : Integer;
-    
-  begin
-    PL:=1;
-    P:=1;
-{
-    While Length(S)>0 do
-      begin
-      P:=Pos(FDelimiter,S);
-      If (P=0) then
-        P:=Length(S)+1;
-      Add(Copy(S,1,P-1));
-      System.Delete(S,1,P));
-      end;
-}  end;  
-    
-
 var i,j:integer;
     aNotFirst:boolean;
 begin

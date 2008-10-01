@@ -754,7 +754,6 @@ var
   Ident: String;
   IntToIdentFn: TIntToIdent;
 {$ifndef FPUNONE}
-  SingleV : Single;
   FloatValue, DefFloatValue: Extended;
 {$endif}
   MethodValue: TMethod;
