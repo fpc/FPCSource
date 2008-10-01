@@ -3024,20 +3024,35 @@ function VarAsError(AResult: HRESULT): Variant;
   end;
 
 
-{$warnings off}
 function VarSupports(const V: Variant; const IID: TGUID; out Intf): Boolean;
 begin
-  NotSupported('VarSupports');
+  case TVarData(v).vType of
+    varUnknown:
+      Result := IInterface(TVarData(v).vUnknown).QueryInterface(IID, Intf) = S_OK;
+    varUnknown or varByRef:
+      Result := IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK;
+    varDispatch:
+      Result := IInterface(TVarData(v).vDispatch).QueryInterface(IID, Intf) = S_OK;
+    varDispatch or varByRef:
+      Result := IInterface(TVarData(v).vPointer^).QueryInterface(IID, Intf) = S_OK;
+    varVariant, varVariant or varByRef:
+      Result := Assigned(TVarData(v).vPointer) and VarSupports(Variant(PVarData(TVarData(v).vPointer)^), IID, Intf);
+    else
+      Result := False;
+  end;
 end;
 
 
 function VarSupports(const V: Variant; const IID: TGUID): Boolean;
+var
+  Dummy: IInterface;
 begin
-  NotSupported('VarSupports');
+  Result := VarSupports(V, IID, Dummy);
 end;
 
 
 { Variant copy support }
+{$warnings off}
 procedure VarCopyNoInd(var Dest: Variant; const Source: Variant);
 
 begin
