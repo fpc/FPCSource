@@ -29,6 +29,7 @@ unit agarmgas;
   interface
 
     uses
+       globtype,
        aasmtai,aasmdata,
        aggas,
        cpubase;
@@ -36,6 +37,7 @@ unit agarmgas;
     type
       TARMGNUAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
+        function MakeCmdLine: TCmdStr; override;
       end;
 
      TArmInstrWriter=class(TCPUInstrWriter)
@@ -57,7 +59,7 @@ unit agarmgas;
        cutils,globals,verbose,
        systems,
        assemble,
-       aasmcpu,
+       cpuinfo,aasmcpu,
        itcpugas,
        cgbase,cgutils;
 
@@ -71,6 +73,12 @@ unit agarmgas;
         InstrWriter := TArmInstrWriter.create(self);
       end;
 
+
+    function TArmGNUAssembler.MakeCmdLine: TCmdStr;
+      begin
+        if (current_settings.fputype = fpu_soft) then
+          result:='-mfpu=softvfp '+result;
+      end;
 
 {****************************************************************************}
 {                      GNU/Apple PPC Assembler writer                        }
