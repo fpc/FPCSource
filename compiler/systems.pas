@@ -144,7 +144,8 @@ interface
              system_arm_symbian,        { 60 }
              system_x86_64_darwin,      { 61 }
              system_avr_embedded,       { 62 }
-             system_i386_haiku          { 63 }             
+             system_i386_haiku,         { 63 }    
+             system_arm_darwin          { 64 }
        );
 
      type
@@ -395,7 +396,8 @@ interface
 
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
-                         system_powerpc64_darwin,system_x86_64_darwin];
+                         system_powerpc64_darwin,system_x86_64_darwin,
+                         system_arm_darwin];
 
        { all systems supporting exports from programs or units }
        system_unit_program_exports = [system_i386_win32,
@@ -924,11 +926,22 @@ begin
   {$ifdef cpuarm}
     default_target(source_info.system);
   {$else cpuarm}
-  {$ifdef WINDOWS}
-    default_target(system_arm_wince);
-  {$else WINDOWS}
-    default_target(system_arm_linux);
-  {$endif WINDOWS}
+    {$ifdef WINDOWS}
+      {$define default_target_set}
+      default_target(system_arm_wince);
+    {$endif}
+    {$ifdef linux}
+      {$define default_target_set}
+      default_target(system_arm_linux);
+    {$endif}
+    {$ifdef darwin}
+      {$define default_target_set}
+      default_target(system_arm_darwin);
+    {$endif}
+    {$ifndef default_target_set}
+      default_target(system_arm_linux);
+      {$define default_target_set}
+    {$endif}
   {$endif cpuarm}
 {$endif arm}
 

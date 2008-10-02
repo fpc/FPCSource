@@ -361,7 +361,8 @@ implementation
          system_powerpc_darwin,
          system_i386_darwin,
          system_powerpc64_darwin,
-         system_x86_64_darwin:
+         system_x86_64_darwin,
+         system_arm_darwin:
            begin
              if (atype = sec_stub) then
                AsmWrite('.section ');
@@ -390,6 +391,8 @@ implementation
                 system_i386_darwin:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 { darwin/x86-64 uses RIP-based GOT addressing }
+                system_arm_darwin:
+                  AsmWriteln('.section __TEXT,__picsymbolstub4,symbol_stubs,none,16');
                 else
                   internalerror(2006031101);
               end;

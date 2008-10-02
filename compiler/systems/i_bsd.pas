@@ -660,6 +660,64 @@ unit i_bsd;
           );
 
 
+       system_arm_darwin_info : tsysteminfo =
+          (
+            system       : system_arm_darwin;
+            name         : 'Darwin for ARM';
+            shortname    : 'Darwin';
+            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources];
+            cpu          : cpu_arm;
+            unit_env     : 'BSDUNITS';
+            extradefines : 'UNIX;BSD;HASUNIX;CPUARMEL';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.dylib';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.dylib';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            Cprefix      : '_';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_darwin;
+            assemextern  : as_darwin;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_macho;
+            dbg          : dbg_dwarf2;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 8;
+                maxCrecordalign : 8
+              );
+            first_parm_offset : 8;
+            stacksize    : 262144;
+            abi : abi_eabi
+          );
 
   implementation
 
@@ -703,5 +761,10 @@ initialization
   {$ifdef Darwin}
      set_source_info(system_powerpc64_darwin_info);
   {$endif Darwin}
+{$ifdef cpuarm}
+  {$ifdef Darwin}
+     set_source_info(system_arm_darwin_info);
+  {$endif Darwin}
+{$endif cpuarm}
 {$endif powerpc64}
 end.

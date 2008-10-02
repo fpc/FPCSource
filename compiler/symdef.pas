@@ -1504,7 +1504,7 @@ implementation
 
     function torddef.alignment:shortint;
       begin
-        if (target_info.system = system_i386_darwin) and
+        if (target_info.system in [system_i386_darwin,system_arm_darwin]) and
            (ordtype in [s64bit,u64bit]) then
           result := 4
         else
@@ -1630,7 +1630,7 @@ implementation
 
     function tfloatdef.alignment:shortint;
       begin
-        if (target_info.system = system_i386_darwin) then
+        if (target_info.system in [system_i386_darwin,system_arm_darwin]) then
           case floattype of
             s80real : result:=16;
             s64real,
