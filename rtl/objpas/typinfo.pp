@@ -200,17 +200,20 @@ unit typinfo;
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string; AKinds : TTypeKinds) : PPropInfo;
-Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
 Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
-Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
-Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
-Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 
-Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
+Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+Function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+Function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+
+Procedure GetPropInfos(TypeInfo: PTypeInfo; PropList: PPropList);
+Function GetPropList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropList; Sorted: boolean = true): longint;
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
 function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
 function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
@@ -272,8 +275,8 @@ Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo): TObject;
 Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass): TObject;
 Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject);
 Procedure SetObjectProp(Instance: TObject; PropInfo: PPropInfo; Value: TObject);
-
 Function  GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
+Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
 
 Function  GetMethodProp(Instance: TObject; PropInfo: PPropInfo) : TMethod;
 Function  GetMethodProp(Instance: TObject; const PropName: string): TMethod;
@@ -633,9 +636,25 @@ begin
 end;
 
 
-Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
+Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
-  result:=GetPropInfo(AClass,PropName);
+  result:=GetPropInfo(Instance, PropName, AKinds);
+  if Result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
+
+Function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+begin
+  result:=GetPropInfo(AClass, PropName);
+  if result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
+
+Function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+begin
+  result:=GetPropInfo(AClass, PropName, AKinds);
   if result=nil then
     Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
 end;
@@ -1138,7 +1157,12 @@ end;
 
 Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
 begin
-  Result:=GetTypeData(FindPropInfo(Instance,PropName)^.PropType)^.ClassType;
+  Result:=GetTypeData(FindPropInfo(Instance,PropName,[tkClass])^.PropType)^.ClassType;
+end;
+
+Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
+begin
+  Result:=GetTypeData(FindPropInfo(AClass,PropName,[tkClass])^.PropType)^.ClassType;
 end;
 
 { ---------------------------------------------------------------------
@@ -1807,7 +1831,7 @@ end;
 
 Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
 begin
-  Result:=FindPropInfo(Instance,PropName)^.PropType^.Kind=TypeKind
+  Result:=PropType(Instance,PropName)=TypeKind
 end;
 
 Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;
