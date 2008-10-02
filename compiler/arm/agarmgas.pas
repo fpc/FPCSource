@@ -76,6 +76,7 @@ unit agarmgas;
 
     function TArmGNUAssembler.MakeCmdLine: TCmdStr;
       begin
+        result:=inherited MakeCmdLine;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
       end;
