@@ -665,7 +665,7 @@ unit i_bsd;
             system       : system_arm_darwin;
             name         : 'Darwin for ARM';
             shortname    : 'Darwin';
-            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_pic_default,tf_has_winlike_resources];
+            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX;CPUARMEL';
