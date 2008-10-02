@@ -42,6 +42,10 @@ unit agarmgas;
         procedure WriteInstruction(hp : tai);override;
      end;
 
+    TArmAppleGNUAssembler=class(TAppleGNUassembler)
+      constructor create(smart: boolean); override;
+    end;
+
 
     const
       gas_shiftmode2str : array[tshiftmode] of string[3] = (
@@ -62,6 +66,17 @@ unit agarmgas;
 {****************************************************************************}
 
     constructor TArmGNUAssembler.create(smart: boolean);
+      begin
+        inherited create(smart);
+        InstrWriter := TArmInstrWriter.create(self);
+      end;
+
+
+{****************************************************************************}
+{                      GNU/Apple PPC Assembler writer                        }
+{****************************************************************************}
+
+    constructor TArmAppleGNUAssembler.create(smart: boolean);
       begin
         inherited create(smart);
         InstrWriter := TArmInstrWriter.create(self);
@@ -251,7 +266,20 @@ unit agarmgas;
             comment : '# ';
           );
 
+       as_arm_gas_darwin_info : tasminfo =
+          (
+            id     : as_darwin;
+            idtxt  : 'AS-Darwin';
+            asmbin : 'as';
+            asmcmd : '-o $OBJ $ASM -arch arm';
+            supported_target : system_any;
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : 'L';
+            comment : '# ';
+          );
+
 
 begin
   RegisterAssembler(as_arm_gas_info,TARMGNUAssembler);
+  RegisterAssembler(as_arm_gas_darwin_info,TArmAppleGNUAssembler);
 end.
