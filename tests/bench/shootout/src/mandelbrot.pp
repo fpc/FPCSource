@@ -7,7 +7,9 @@
 
 program mandelbrot;
 
+{$IFDEF CPUI386}
 {$FPUTYPE SSE2}{$I-}
+{$ENDIF}
 
 var n: longint;
     TextBuf: array[0..$FFF] of byte;
