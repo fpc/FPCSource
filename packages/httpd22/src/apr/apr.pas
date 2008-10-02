@@ -97,16 +97,7 @@ type
   apr_uint32_tso_handle_t = cuint;
 
 type
-  {$IFDEF WINDOWS}
   apr_off_t = Int64;
-  {$ENDIF}
-  {$IFDEF UNIX}
-  {$ifdef CPU64}
-  apr_off_t = int64;
-  {$else}
-  apr_off_t = Integer;
-  {$endif}
-  {$ENDIF}
 
   apr_int32_t = Integer;
   Papr_int32_t = ^Integer;
