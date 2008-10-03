@@ -6,7 +6,7 @@ program meteorshower;
 
  mostly based on Ben St. John's implementation.}
 
-{$Q-}{$PACKSET 4}
+{$Q-}
 
 uses dos;
 
