@@ -6280,6 +6280,7 @@ tests/bench/shootout/fpascal2.diff svneol=native#text/plain
 tests/bench/shootout/io/binarytrees-output.txt svneol=native#text/plain
 tests/bench/shootout/io/knucleotide-output.txt svneol=native#text/plain
 tests/bench/shootout/io/mandelbrot-output.txt -text svneol=unset#image/x-portable-bitmap
+tests/bench/shootout/io/meteor-output.txt svneol=native#text/plain
 tests/bench/shootout/io/moments.in -text
 tests/bench/shootout/io/moments.out -text
 tests/bench/shootout/io/recursive-output.txt svneol=native#text/plain
