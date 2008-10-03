@@ -6,7 +6,7 @@ program meteorshower;
 
  mostly based on Ben St. John's implementation.}
 
-{$Q-}
+{$Q-}{$PACKSET 4}
 
 uses dos;
 
@@ -705,7 +705,7 @@ begin
        isOdd:=parity(row and 1);
 
        if not(cardinal(last_row) in alwaysBad[parity(row and 1)]) then
-         if boardVec*bitvec(cardinal(TOP_ROW) shl N_COL*3)=[] then
+         if boardVec*bitvec(cardinal(cardinal(TOP_ROW) shl N_COL*3))=[] then
            begin
              isClosed:=fixed(row>6); {because we track 3 rows}
                if not(cardinal(last_row) in is_known[isClosed,isOdd]) then
