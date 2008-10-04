@@ -716,7 +716,7 @@ unit i_bsd;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
-            abi : abi_eabi
+            abi : abi_default
           );
 
   implementation

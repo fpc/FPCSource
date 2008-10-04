@@ -2509,7 +2509,7 @@ begin
 
   { force fpu emulation on arm/wince, arm/gba and arm/nds}
   if (target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-    system_m68k_linux,system_arm_nds])
+    system_m68k_linux,system_arm_nds,system_arm_darwin])
 {$ifdef arm}
     or (init_settings.fputype=fpu_soft)
     or (target_info.abi=abi_eabi)
