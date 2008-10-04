@@ -6,8 +6,6 @@ program meteorshower;
 
  mostly based on Ben St. John's implementation.}
 
-{$Q-}
-
 uses dos;
 
 const N_COL = 5;
