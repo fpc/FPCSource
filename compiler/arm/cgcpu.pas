@@ -112,6 +112,7 @@ unit cgcpu;
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+        function get_darwin_call_stub(const s: string): tasmsymbol;
       end;
 
       tcg64farm = class(tcg64f32)
@@ -167,9 +168,15 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
-        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-             RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
+        if (target_info.system<>system_arm_darwin) then
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+               RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
+        else
+          { r9 is not available on Darwin according to the llvm code generator }
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+               RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
@@ -281,7 +288,10 @@ unit cgcpu;
 
     procedure tcgarm.a_call_name(list : TAsmList;const s : string);
       begin
-        list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
+        if target_info.system<>system_arm_darwin then
+          list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+        else
+          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -2097,6 +2107,48 @@ unit cgcpu;
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
           a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
+    function tcgarm.get_darwin_call_stub(const s: string): tasmsymbol;
+      var
+        stubname: string;
+        l1: tasmsymbol;
+        href: treference;
+      begin
+        stubname := 'L'+s+'$stub';
+        result := current_asmdata.getasmsymbol(stubname);
+        if assigned(result) then
+          exit;
+
+        if current_asmdata.asmlists[al_imports]=nil then
+          current_asmdata.asmlists[al_imports]:=TAsmList.create;
+
+        current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
+        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(4));
+        result := current_asmdata.RefAsmSymbol(stubname);
+        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        
+        if not(cs_create_pic in current_settings.moduleswitches) then
+          begin
+            l1 := current_asmdata.RefAsmSymbol('L'+s+'$slp');
+            reference_reset_symbol(href,l1,0);
+            href.refaddr:=addr_full;
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R12,href));
+            reference_reset_base(href,NR_R12,0);
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R15,href));
+            current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
+            l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
+            current_asmdata.asmlists[al_imports].concat(tai_const.create_sym(l1));
+          end
+        else
+          internalerror(2008100401);
+        
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
+        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
 
 
