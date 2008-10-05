@@ -935,6 +935,7 @@ packages/cdrom/src/cdromioctl.pp svneol=native#text/plain
 packages/cdrom/src/cdromlin.inc svneol=native#text/plain
 packages/cdrom/src/cdromw32.inc svneol=native#text/plain
 packages/cdrom/src/discid.pp svneol=native#text/plain
+packages/cdrom/src/fpcddb.pp svneol=native#text/plain
 packages/cdrom/src/lincd.pp svneol=native#text/plain
 packages/cdrom/src/major.pp svneol=native#text/plain
 packages/cdrom/src/scsidefs.pp svneol=native#text/plain
