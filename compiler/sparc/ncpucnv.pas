@@ -220,6 +220,7 @@ implementation
 
     procedure tsparctypeconvnode.second_int_to_bool;
       var
+        href: treference;
         hreg1,hreg2 : tregister;
         resflags : tresflags;
         opsize   : tcgsize;
@@ -259,20 +260,34 @@ implementation
             begin
               if left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                 begin
-                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.reference,hreg2);
+                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+{$ifndef cpu64bitalu}
+                  if left.location.size in [OS_64,OS_S64] then
+                    begin
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,left.location.reference,hreg2);
+                      hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+                      href:=left.location.reference;
+                      inc(href.offset,4);
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hreg1);
+                      cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg1,hreg2,hreg2);
+                    end
+                  else
+{$endif not cpu64bitalu}
+                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.reference,hreg2);
                 end
               else
-                hreg2:=left.location.register;
-{$ifndef cpu64bitalu}
-              if left.location.size in [OS_64,OS_S64] then
                 begin
-                  hreg1:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,hreg2,left.location.register64.reghi,hreg1);
-                  hreg2:=hreg1;
-                  opsize:=OS_32;
-                end;
+                  hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
+{$ifndef cpu64bitalu}
+                   if left.location.size in [OS_64,OS_S64] then
+                     begin
+                        hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,OP_OR,OS_32,left.location.register64.reghi,left.location.register64.reglo,hreg2);
+                     end
+                   else
 {$endif not cpu64bitalu}
+                     cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,opsize,left.location.register,hreg2);
+                end;
               hreg1:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SUBCC,NR_G0,hreg2,NR_G0));
               if is_pasbool(resultdef) then
