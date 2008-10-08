@@ -191,8 +191,17 @@ type
   accessible via fields using specialized properties of descendant classes,
   e.g. TDOMElement.TagName, TDOMCharacterData.Data etc.}
 
+  TNodeFlagEnum = (
+    nfReadonly,
+    nfRecycled,
+    nfIgnorableWS,
+    nfSpecified
+  );
+  TNodeFlags = set of TNodeFlagEnum;
+
   TDOMNode = class
   protected
+    FFlags: TNodeFlags;
     FParentNode: TDOMNode;
     FPreviousSibling, FNextSibling: TDOMNode;
     FOwnerDocument: TDOMDocument;
@@ -360,7 +369,7 @@ type
     function GetNodeValue: DOMString; override;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
-    property Data: DOMString read FNodeValue write FNodeValue;
+    property Data: DOMString read FNodeValue write SetNodeValue;
     property Length: LongWord read GetLength;
     function SubstringData(offset, count: LongWord): DOMString;
     procedure AppendData(const arg: DOMString);
@@ -430,7 +439,7 @@ type
     function CreateElementBuf(Buf: DOMPChar; Length: Integer): TDOMElement;
     function CreateDocumentFragment: TDOMDocumentFragment;
     function CreateTextNode(const data: DOMString): TDOMText;
-    function CreateTextNodeBuf(Buf: DOMPChar; Length: Integer): TDOMText;
+    function CreateTextNodeBuf(Buf: DOMPChar; Length: Integer; IgnWS: Boolean): TDOMText;
     function CreateComment(const data: DOMString): TDOMComment;
     function CreateCommentBuf(Buf: DOMPChar; Length: Integer): TDOMComment;
     function CreateCDATASection(const data: DOMString): TDOMCDATASection;
@@ -492,18 +501,18 @@ type
   protected
     FName: DOMString;
     FOwnerElement: TDOMElement;
-    FSpecified: Boolean;
     // TODO: following 2 - replace with a link to AttDecl ??    
     FDeclared: Boolean;
     FDataType: TAttrDataType;
     function  GetNodeValue: DOMString; override;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
+    function GetSpecified: Boolean;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Name: DOMString read FName;
-    property Specified: Boolean read FSpecified;
+    property Specified: Boolean read GetSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
     property OwnerElement: TDOMElement read FOwnerElement;
     // extensions
@@ -561,16 +570,13 @@ type
 
   TDOMText = class(TDOMCharacterData)
   protected
-    // set by parser if text contains only literal whitespace (i.e. not coming from CharRefs) 
-    FMayBeIgnorable: Boolean;
     function GetNodeType: Integer; override;
     function GetNodeName: DOMString; override;
     procedure SetNodeValue(const aValue: DOMString); override;
   public
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     function SplitText(offset: LongWord): TDOMText;
-    // Extension
-    property MayBeIgnorable: Boolean read FMayBeIgnorable write FMayBeIgnorable;
+    function IsElementContentWhitespace: Boolean;
   end;
 
 
@@ -696,7 +702,7 @@ type
   public
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Target: DOMString read FTarget;
-    property Data: DOMString read FNodeValue write FNodeValue;
+    property Data: DOMString read FNodeValue write SetNodeValue;
   end;
 
 
@@ -937,7 +943,8 @@ begin
         if Assigned(Txt) then
         begin
           Txt.AppendData(TDOMText(Child).Data);
-          Txt.FMayBeIgnorable := Txt.FMayBeIgnorable and TDOMText(Child).FMayBeIgnorable;
+          // TODO: maybe should be smarter
+          Exclude(Txt.FFlags, nfIgnorableWS);
         end
         else
         begin
@@ -965,7 +972,7 @@ end;
 
 procedure TDOMNode.SetTextContent(const AValue: DOMString);
 begin
-  NodeValue := AValue;
+  SetNodeValue(AValue);
 end;
 
 function TDOMNode.GetNamespaceURI: DOMString;
@@ -1244,11 +1251,15 @@ begin
   Result := '';
   child := FFirstChild;
   // TODO: probably very slow, optimization needed
-  // TODO: must ignore whitespace nodes
   while Assigned(child) do
   begin
-    if not (child.NodeType in [COMMENT_NODE, PROCESSING_INSTRUCTION_NODE]) then
+    case child.NodeType of
+      TEXT_NODE: if not (nfIgnorableWS in child.FFlags) then
+        Result := Result + TDOMText(child).Data;
+      COMMENT_NODE, PROCESSING_INSTRUCTION_NODE: ; // ignored
+    else
       Result := Result + child.TextContent;
+    end;
     child := child.NextSibling;
   end;
 end;
@@ -1489,6 +1500,8 @@ begin
   if Exists then
   begin
     Result := TDOMNode(FList.List^[i]);
+    if FNodeType = ATTRIBUTE_NODE then
+      TDOMAttr(Result).FOwnerElement := nil;
     FList.List^[i] := arg;
     exit;
   end;
@@ -1826,10 +1839,12 @@ begin
   Result.FNodeValue := data;
 end;
 
-function TDOMDocument.CreateTextNodeBuf(Buf: DOMPChar; Length: Integer): TDOMText;
+function TDOMDocument.CreateTextNodeBuf(Buf: DOMPChar; Length: Integer; IgnWS: Boolean): TDOMText;
 begin
   Result := TDOMText.Create(Self);
   SetString(Result.FNodeValue, Buf, Length);
+  if IgnWS then
+    Include(Result.FFlags, nfIgnorableWS);
 end;
 
 
@@ -1865,13 +1880,14 @@ begin
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateAttribute');
   Result := TDOMAttr.Create(Self);
   Result.FName := name;
+  Include(Result.FFlags, nfSpecified);
 end;
 
 function TDOMDocument.CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
 begin
   Result := TDOMAttr.Create(Self);
   SetString(Result.FName, Buf, Length);
-  Result.FSpecified := True;
+  Include(Result.FFlags, nfSpecified);
 end;
 
 function TDOMDocument.CreateEntityReference(const name: DOMString):
@@ -1990,7 +2006,6 @@ function TDOMAttr.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   // Cloned attribute is always specified and carries its children
   Result := ACloneOwner.CreateAttribute(FName);
-  TDOMAttr(Result).FSpecified := True;
   TDOMAttr(Result).FDataType := FDataType;
   // Declared = ?
   CloneChildren(Result, ACloneOwner);
@@ -2005,13 +2020,18 @@ end;
 
 procedure TDOMAttr.SetNodeValue(const AValue: DOMString);
 begin
-  FSpecified := True;
   SetTextContent(AValue);
+  Include(FFlags, nfSpecified);
 end;
 
 function TDOMAttr.CompareName(const AName: DOMString): Integer;
 begin
   Result := CompareDOMStrings(DOMPChar(AName), DOMPChar(FName), Length(AName), Length(FName));
+end;
+
+function TDOMAttr.GetSpecified: Boolean;
+begin
+  Result := nfSpecified in FFlags;
 end;
 
 // -------------------------------------------------------
@@ -2104,6 +2124,7 @@ begin
   else
   begin
     Attr := FOwnerDocument.CreateAttribute(name);
+    Attr.FOwnerElement := Self;
     FAttributes.FList.Insert(I, Attr);
   end;
   attr.NodeValue := value;
@@ -2140,7 +2161,6 @@ end;
 
 function TDOMElement.GetAttributeNode(const name: DOMString): TDOMAttr;
 begin
-  // DONE: delegated to TNamedNodeMap.GetNamedItem
   if Assigned(FAttributes) then
     Result := FAttributes.GetNamedItem(name) as TDOMAttr
   else
@@ -2160,8 +2180,11 @@ begin
   Result := Attributes.SetNamedItem(NewAttr) as TDOMAttr;
 
   // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
-  Result.Free;
-  Result := nil;
+  if Assigned(Result) and (Result <> NewAttr) then
+  begin
+    Result.Free;
+    Result := nil;
+  end;  
 end;
 
 function TDOMElement.SetAttributeNodeNS(NewAttr: TDOMAttr): TDOMAttr;
@@ -2169,8 +2192,11 @@ begin
   Result := Attributes.SetNamedItemNS(NewAttr) as TDOMAttr;
 
   // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
-  Result.Free;
-  Result := nil;
+  if Assigned(Result) and (Result <> NewAttr) then
+  begin
+    Result.Free;
+    Result := nil;
+  end;  
 end;
 
 
@@ -2234,15 +2260,14 @@ end;
 
 procedure TDOMText.SetNodeValue(const aValue: DOMString);
 begin
+  inherited SetNodeValue(aValue);
   // TODO: may analyze aValue, but this will slow things down...
-  FMayBeIgnorable := False;
-  FNodeValue := aValue;
+  Exclude(FFlags, nfIgnorableWS);
 end;
 
 function TDOMText.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   Result := ACloneOwner.CreateTextNode(FNodeValue);
-  TDOMText(Result).FMayBeIgnorable := FMayBeIgnorable;
 end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
@@ -2252,12 +2277,16 @@ begin
 
   Result := TDOMText.Create(FOwnerDocument);
   Result.FNodeValue := Copy(FNodeValue, offset + 1, Length);
-  Result.FMayBeIgnorable := FMayBeIgnorable;
+  Result.FFlags := FFlags * [nfIgnorableWS];
   FNodeValue := Copy(FNodeValue, 1, offset);
   if Assigned(FParentNode) then
     FParentNode.InsertBefore(Result, FNextSibling);
 end;
 
+function TDOMText.IsElementContentWhitespace: Boolean;
+begin
+  Result := nfIgnorableWS in FFlags;
+end;
 
 // -------------------------------------------------------
 //   Comment

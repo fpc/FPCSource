@@ -377,7 +377,7 @@ begin
   else if s = 'decrement' then
     rslt.Add(indent + 'Dec(' + node['var'] + ', ' + node['value'] + ');')
   else if s = 'plus' then
-    rslt.Add(indent + node['var'] + ' := ' + ReplaceQuotes(node['op1']) + ' + ' + ReplaceQuotes(node['op2']))
+    rslt.Add(indent + node['var'] + ' := ' + ReplaceQuotes(node['op1']) + ' + ' + ReplaceQuotes(node['op2']) + ';')
 
   else if s = 'fail' then
     rslt.Add(indent + s + '(''' + node['id'] + ''');')
