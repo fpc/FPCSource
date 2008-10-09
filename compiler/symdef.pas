@@ -2805,7 +2805,13 @@ implementation
                   case hpc.consttyp of
                     conststring,
                     constresourcestring :
-                      hs:=strpas(pchar(hpc.value.valueptr));
+                      begin
+                      If hpc.value.len>0 then
+                        begin
+                        setLength(hs,hpc.value.len);
+                        move(hpc.value.valueptr^,hs[1],hpc.value.len);
+                        end;
+                      end;
                     constreal :
                       str(pbestreal(hpc.value.valueptr)^,hs);
                     constpointer :
