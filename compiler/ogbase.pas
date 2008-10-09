@@ -1384,8 +1384,13 @@ implementation
         FIsVar:=AIsVar;
         FMangledName:=AName;
         { Replace ? and @ in import name }
-        Replace(FMangledName,'?','__q$$');
-        Replace(FMangledName,'@','__a$$');
+        { these replaces broke existing code on i386-win32 at least, while fixed 
+          bug 8391 on arm-wince so limit this to arm-wince (KB) }
+        if (target_info.system in [system_arm_wince]) then
+          begin
+            Replace(FMangledName,'?','__q$$');
+            Replace(FMangledName,'@','__a$$');
+          end;
       end;
 
 
