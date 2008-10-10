@@ -2194,8 +2194,13 @@ const
                     if s<>'' then
                       begin
                         { Replace ? and @ in import name }
-                        Replace(s,'?','__q$$');
-                        Replace(s,'@','__a$$');
+                        { these replaces broke existing code on i386-win32 at least, while fixed 
+                          bug 8391 on arm-wince so limit this to arm-wince (KB) }
+                        if target_info.system in [system_arm_wince] then 
+                          begin
+                            Replace(s,'?','__q$$');
+                            Replace(s,'@','__a$$');
+                          end;
                         pd.setmangledname(s);
                       end;
                   end;
