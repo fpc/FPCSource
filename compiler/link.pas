@@ -376,7 +376,11 @@ Implementation
                     { if smart not avail then try static linking }
                     if (flags and uf_static_linked)<>0 then
                      begin
-                       Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+                       { if not create_smartlink_library, then smart linking happens using the
+                         regular object files
+                       }
+                       if create_smartlink_library then
+                         Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
                        mask:=mask or link_static;
                      end
                     else
