@@ -73,14 +73,14 @@ unit optvirt;
         function registerinstantiatedobjectdefrecursive(def: tobjectdef; instantiated: boolean): tinheritancetreenode;
         procedure markvmethods(node: tinheritancetreenode; p: pointer);
         procedure printobjectvmtinfo(node: tinheritancetreenode; arg: pointer);
-        procedure setinstantiated(node: tinheritancetreenode; arg: pointer);
        public
         constructor create;
         destructor destroy; override;
         { adds an objectdef (the def itself, and all of its parents that do not yet exist) to
           the tree, and returns the leaf node
         }
-        procedure registerinstantiateddef(def: tdef);
+        procedure registerinstantiatedobjdef(def: tdef);
+        procedure registerinstantiatedclassrefdef(def: tdef);
         procedure checkforclassrefinheritance(def: tdef);
         procedure foreachnode(proctocall: tinheritancetreecallback; arg: pointer);
         procedure foreachleafnode(proctocall: tinheritancetreecallback; arg: pointer);
@@ -266,12 +266,21 @@ unit optvirt;
       end;
 
 
-    procedure tinheritancetree.registerinstantiateddef(def: tdef);
+    procedure tinheritancetree.registerinstantiatedobjdef(def: tdef);
       begin
         { add the def }
         if (def.typ=objectdef) then
           registerinstantiatedobjectdefrecursive(tobjectdef(def),true)
-        else if (def.typ=classrefdef) then
+        else
+          internalerror(2008092401);
+      end;
+
+
+    procedure tinheritancetree.registerinstantiatedclassrefdef(def: tdef);
+      begin
+        { queue for later checking (these are the objectdefs
+          to which the classrefdefs point) }
+        if (def.typ=objectdef) then
           classrefdefs.add(def)
         else
           internalerror(2008092401);
@@ -284,28 +293,23 @@ unit optvirt;
      begin
        if (def.typ=objectdef) then
          begin
+{$ifdef debug_devirt}
+           write('   Checking for classrefdef inheritance of ',def.typename);
+{$endif debug_devirt}
            for i:=0 to classrefdefs.count-1 do
-             if tobjectdef(def).is_related(tclassrefdef(classrefdefs[i]).pointeddef) then
+             if tobjectdef(def).is_related(tobjectdef(classrefdefs[i])) then
                begin
-                 registerinstantiateddef(def);
+{$ifdef debug_devirt}
+                 writeln('... Found: inherits from Class Of ',tobjectdef(classrefdefs[i]).typename);
+{$endif debug_devirt}
+                 registerinstantiatedobjdef(def);
                  exit;
                end;
+{$ifdef debug_devirt}
+           writeln('... Not found!');
+{$endif debug_devirt}
          end;
      end;
-
-
-   procedure tinheritancetree.setinstantiated(node: tinheritancetreenode; arg: pointer);
-      var
-        classrefdef: tclassrefdef absolute arg;
-      begin
-        if not(node.instantiated) then
-          begin
-            node.instantiated:=true;
-            {$IFDEF DEBUG_DEVIRT}
-            writeln('Marked ',node.def.typename,' as instantiated because instantiated ',classrefdef.typename);
-            {$ENDIF}
-          end;
-      end;
 
 
     procedure tinheritancetree.foreachnodefromroot(root: tinheritancetreenode; proctocall: tinheritancetreecallback; arg: pointer);
@@ -370,7 +374,7 @@ unit optvirt;
             vmtbuilder:=tvmtbuilder.create(node.def);
             vmtbuilder.generate_vmt(false);
             vmtbuilder.free;
-            { may not have any vmtentries }
+            { may not have any virtual methods }
             if not assigned(node.def.vmtentries) then
               exit;
           end;
@@ -388,7 +392,7 @@ unit optvirt;
             { Now mark all virtual methods static that are the same in parent
               classes as in this instantiated child class (only instantiated
               classes can be leaf nodes, since only instantiated classes were
-              added to the tree) as statically callable.
+              added to the tree).
               If a first child does not override a parent method while a
               a second one does, the first will mark it as statically
               callable, but the second will set it to not statically callable.
@@ -406,13 +410,13 @@ unit optvirt;
                   if not assigned(currnode.def.vmtentries) then
                     break;
                 end;
-              { stop when this method is not yet implemented in a parent }
+              { stop when this method is does not exist in a parent }
               if (currnode.def.vmtentries.count<=i) then
                 break;
               
               if not assigned(currnode.def.vmcallstaticinfo) then
                 currnode.def.vmcallstaticinfo:=allocmem(currnode.def.vmtentries.count*sizeof(tvmcallstatic));
-              { same procdef as in all instantiated childs? }
+              { same procdef as in all instantiated childs? (yes or don't know) }
               if (currnode.def.vmcallstaticinfo^[i] in [vmcs_default,vmcs_yes]) then
                 begin
                   { methods in uninstantiated classes can be made static if
@@ -458,7 +462,6 @@ unit optvirt;
 
     procedure tinheritancetree.optimizevirtualmethods;
       begin
-//        finalisetree;
         foreachleafnode(@markvmethods,nil);
       end;
 
@@ -498,7 +501,10 @@ unit optvirt;
       end;
 
 
-    { helper routine: decompose a class/procdef combo into a unitname, class name and vmtentry number }
+    { helper routine: decompose an object & procdef combo into a unitname, class name and vmtentry number
+      (unit name where the objectdef is declared, class name of the objectdef, vmtentry number of the
+       procdef -- procdef does not necessarily belong to objectdef, it may also belong to a descendant
+       or parent) }
 
     procedure defsdecompose(objdef: tobjectdef; procdef: tprocdef; out unitname, classname: pshortstring; out vmtentry: longint);
       const
@@ -524,7 +530,6 @@ unit optvirt;
         if (vmtentry=$ffff) then
           internalerror(2008100509);
       end;
-
 
 
    { tclassdevirtinfo }
@@ -711,6 +716,9 @@ unit optvirt;
             if assigned(hp.wpoinfo.createdobjtypes) then
               for i:=0 to hp.wpoinfo.createdobjtypes.count-1 do
                 tdef(hp.wpoinfo.createdobjtypes[i]).register_created_object_type;
+            if assigned(hp.wpoinfo.createdclassrefobjtypes) then
+              for i:=0 to hp.wpoinfo.createdclassrefobjtypes.count-1 do
+                tobjectdef(hp.wpoinfo.createdclassrefobjtypes[i]).register_created_classref_type;
             hp:=tmodule(hp.next);
           end;
          inheritancetree:=tinheritancetree.create;
@@ -719,7 +727,7 @@ unit optvirt;
 {$ENDIF}
          for i := 0 to current_module.wpoinfo.createdobjtypes.count-1 do
            begin
-             inheritancetree.registerinstantiateddef(tdef(current_module.wpoinfo.createdobjtypes[i]));
+             inheritancetree.registerinstantiatedobjdef(tdef(current_module.wpoinfo.createdobjtypes[i]));
 {$IFDEF DEBUG_DEVIRT}
              write('  ',tdef(current_module.wpoinfo.createdobjtypes[i]).GetTypeName);
 {$ENDIF}
@@ -739,13 +747,25 @@ unit optvirt;
                    else
                      internalerror(2008092101);
                  end;
-               classrefdef:
+               else
+                 internalerror(2008092102);
+             end;
+           end;
+
+         for i := 0 to current_module.wpoinfo.createdclassrefobjtypes.count-1 do
+           begin
+             inheritancetree.registerinstantiatedclassrefdef(tdef(current_module.wpoinfo.createdclassrefobjtypes[i]));
+{$IFDEF DEBUG_DEVIRT}
+             write('  Class Of ',tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
+{$ENDIF}
+             case tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).typ of
+               objectdef:
 {$IFDEF DEBUG_DEVIRT}
                  writeln(' (classrefdef)')
 {$ENDIF}
                  ;
                else
-                 internalerror(2008092102);
+                 internalerror(2008101101);
              end;
            end;
          { now add all objectdefs derived from the instantiated
@@ -755,17 +775,19 @@ unit optvirt;
          hp:=tmodule(loaded_units.first);
          while assigned(hp) do
           begin
-            { we cannot just walk over the module's deflist, because a bunch of
+            { we cannot just walk over the module's deflists, because a bunch of
               the defs in there don't exist anymore (when destroyed, they're
               removed from their symtable but not from the module's deflist)
 
-              procedure-local (or class-local) class definitions do not (yet) exist
+              procedure-local (or class-local) class definitions do not (yet)
+              exit, so it's enough to just walk the global and localsymtables
             }
             { globalsymtable (interface), is nil for main program itself }
             if assigned(hp.globalsymtable) then
               for i:=0 to hp.globalsymtable.deflist.count-1 do
                 inheritancetree.checkforclassrefinheritance(tdef(hp.globalsymtable.deflist[i]));
-            { staticsymtable (implementation) }
+            { staticsymtable (implementation), is nil for units with nothing
+              in the implementation }
             if assigned(hp.localsymtable) then
               for i:=0 to hp.localsymtable.deflist.count-1 do
                 inheritancetree.checkforclassrefinheritance(tdef(hp.localsymtable.deflist[i]));
@@ -919,17 +941,25 @@ unit optvirt;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
         vmtentry: longint;
+        realobjdef: tobjectdef;
       begin
-         { we don't support classrefs yet, nor interfaces }
-         if (objdef.typ<>objectdef) or
-            not(tobjectdef(objdef).objecttype in [odt_class,odt_object]) then
+         { class methods are in the regular vmt, so we can handle classrefs
+           the same as plain objectdefs
+         }
+         if (objdef.typ=classrefdef) then
+           realobjdef:=tobjectdef(tclassrefdef(objdef).pointeddef)
+         else if (objdef.typ=objectdef) and
+            (tobjectdef(objdef).objecttype in [odt_class,odt_object]) then
+           realobjdef:=tobjectdef(objdef)
+         else
            begin
+             { we don't support interfaces yet }
              result:=false;
              exit;
            end;
 
          { get the component names for the class/procdef combo }
-         defsdecompose(tobjectdef(objdef), tprocdef(procdef),unitid,classid,vmtentry);
+         defsdecompose(realobjdef, tprocdef(procdef),unitid,classid,vmtentry);
 
          { do we have any info for this unit? }
          unitdevirtinfo:=findunit(unitid^);

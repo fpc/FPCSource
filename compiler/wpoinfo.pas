@@ -39,6 +39,7 @@ type
    { devirtualisation information -- begin }
    private
     fcreatedobjtypesderefs: pderefarray;
+    fcreatedclassrefobjtypesderefs: pderefarray;
    { devirtualisation information -- end }
 
    public
@@ -81,10 +82,10 @@ implementation
           freemem(fcreatedobjtypesderefs);
           fcreatedobjtypesderefs:=nil;
         end;
-      if assigned(fcreatedobjtypes) then
+      if assigned(fcreatedclassrefobjtypesderefs) then
         begin
-          fcreatedobjtypes.free;
-          fcreatedobjtypes:=nil;
+          freemem(fcreatedclassrefobjtypesderefs);
+          fcreatedclassrefobjtypesderefs:=nil;
         end;
       inherited destroy;
     end;
@@ -100,9 +101,15 @@ implementation
       ppufile.putlongint(fcreatedobjtypes.count);
       for i:=0 to fcreatedobjtypes.count-1 do
         ppufile.putderef(fcreatedobjtypesderefs^[i]);
+      ppufile.putlongint(fcreatedclassrefobjtypes.count);
+      for i:=0 to fcreatedclassrefobjtypes.count-1 do
+        ppufile.putderef(fcreatedclassrefobjtypesderefs^[i]);
+
       ppufile.writeentry(ibcreatedobjtypes);
       freemem(fcreatedobjtypesderefs);
       fcreatedobjtypesderefs:=nil;
+      freemem(fcreatedclassrefobjtypesderefs);
+      fcreatedclassrefobjtypesderefs:=nil;
     end;
 
 
@@ -119,6 +126,13 @@ implementation
       getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
       for i:=0 to len-1 do
         ppufile.getderef(fcreatedobjtypesderefs^[i]);
+
+      len:=ppufile.getlongint;
+      fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
+      fcreatedclassrefobjtypes.count:=len;
+      getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
+      for i:=0 to len-1 do
+        ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
     end;
 
 
@@ -129,6 +143,10 @@ implementation
       getmem(fcreatedobjtypesderefs,fcreatedobjtypes.count*sizeof(tderef));
       for i:=0 to fcreatedobjtypes.count-1 do
         fcreatedobjtypesderefs^[i].build(fcreatedobjtypes[i]);
+
+      getmem(fcreatedclassrefobjtypesderefs,fcreatedclassrefobjtypes.count*sizeof(tderef));
+      for i:=0 to fcreatedclassrefobjtypes.count-1 do
+        fcreatedclassrefobjtypesderefs^[i].build(fcreatedclassrefobjtypes[i]);
     end;
 
 
@@ -145,6 +163,11 @@ implementation
         fcreatedobjtypes[i]:=fcreatedobjtypesderefs^[i].resolve;
       freemem(fcreatedobjtypesderefs);
       fcreatedobjtypesderefs:=nil;
+
+      for i:=0 to fcreatedclassrefobjtypes.count-1 do
+        fcreatedclassrefobjtypes[i]:=fcreatedclassrefobjtypesderefs^[i].resolve;
+      freemem(fcreatedclassrefobjtypesderefs);
+      fcreatedclassrefobjtypesderefs:=nil;
     end;
 
 

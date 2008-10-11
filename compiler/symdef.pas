@@ -244,7 +244,8 @@ interface
           iidguid        : pguid;
           iidstr         : pshortstring;
           writing_class_record_dbginfo,
-          created_in_current_module     : boolean;
+          created_in_current_module,
+          classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
@@ -276,17 +277,17 @@ interface
           function implements_any_interfaces: boolean;
           procedure reset; override;
           procedure register_created_object_type;override;
+          procedure register_created_classref_type;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
-          created_in_current_module : boolean;
           constructor create(def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
-          procedure reset; override;
           procedure register_created_object_type;override;
+          procedure reset;override;
        end;
 
        tarraydef = class(tstoreddef)
@@ -2043,21 +2044,17 @@ implementation
          result:=true;
       end;
       
-      
+
     procedure tclassrefdef.reset;
       begin
+        tobjectdef(pointeddef).classref_created_in_current_module:=false;
         inherited reset;
-        created_in_current_module:=false;
       end;
 
 
     procedure tclassrefdef.register_created_object_type;
       begin
-        if not created_in_current_module then
-          begin
-            created_in_current_module:=true;
-            current_module.wpoinfo.addcreatedobjtype(self);
-          end;
+        tobjectdef(pointeddef).register_created_classref_type;
       end;
 
 {***************************************************************************
@@ -4222,6 +4219,17 @@ implementation
       begin
         inherited reset;
         created_in_current_module:=false;
+        classref_created_in_current_module:=false;
+      end;
+
+
+    procedure tobjectdef.register_created_classref_type;
+      begin
+        if not classref_created_in_current_module then
+          begin
+            classref_created_in_current_module:=true;
+            current_module.wpoinfo.addcreatedobjtypeforclassref(self);
+          end;
       end;
 
 

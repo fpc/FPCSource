@@ -1273,12 +1273,26 @@ implementation
                    odt_class:
                      writeln(' (class)');
                    else
-                     internalerror(2008092101);
+                     internalerror(2008101103);
                  end;
-               classrefdef:
-                 writeln(' (classrefdef)');
                else
-                 internalerror(2008092102);
+                 internalerror(2008101104);
+             end;
+           end;
+
+         for i := 0 to current_module.wpoinfo.createdclassrefobjtypes.count-1 do
+           begin
+             write('  Class Of ',tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
+             case tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).typ of
+               objectdef:
+                 case tobjectdef(current_module.wpoinfo.createdclassrefobjtypes[i]).objecttype of
+                   odt_class:
+                     writeln(' (classrefdef)');
+                   else
+                     internalerror(2008101105);
+                 end
+               else
+                 internalerror(2008101102);
              end;
            end;
 {$endif debug_devirt}

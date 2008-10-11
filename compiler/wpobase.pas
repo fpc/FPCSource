@@ -108,13 +108,17 @@ type
    protected
     { created object types }
     fcreatedobjtypes: tfpobjectlist;
+    { objectdefs pointed to by created classrefdefs }
+    fcreatedclassrefobjtypes: tfpobjectlist;
    public
     constructor create; reintroduce; virtual;
     destructor destroy; override;
 
     property createdobjtypes: tfpobjectlist read fcreatedobjtypes;
+    property createdclassrefobjtypes: tfpobjectlist read fcreatedclassrefobjtypes;
 
     procedure addcreatedobjtype(def: tdef);
+    procedure addcreatedobjtypeforclassref(def: tdef);
   end;
 
   { ************************************************************************* }
@@ -251,6 +255,7 @@ implementation
   constructor tunitwpoinfobase.create;
     begin
       fcreatedobjtypes:=tfpobjectlist.create(false);
+      fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
     end;
 
 
@@ -258,6 +263,8 @@ implementation
     begin
       fcreatedobjtypes.free;
       fcreatedobjtypes:=nil;
+      fcreatedclassrefobjtypes.free;
+      fcreatedclassrefobjtypes:=nil;
       inherited destroy;
     end;
     
@@ -266,6 +273,12 @@ implementation
     begin
       fcreatedobjtypes.add(def);
     end;
+
+  procedure tunitwpoinfobase.addcreatedobjtypeforclassref(def: tdef);
+    begin
+      fcreatedclassrefobjtypes.add(def);
+    end;
+
 
   { twpofilereader }
 
