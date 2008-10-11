@@ -62,6 +62,17 @@ endif
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 
+# No custom libgdb.a found, try using system default library if available
+ifeq ($(LIBGDBFILE),)
+SYSLIBDIR=/lib /usr/lib /usr/local/lib
+# Detect if libgdb.a is available
+override LIBGDBFILE=$(firstword $(wildcard $(addsuffix /libgdb.a,$(SYSLIBDIR))))
+ifneq (${LIBGDBFILE},)
+$(warning Using system sefault libgdb file located in ${LIBGDBFILE})
+GDBLIBDIR=$(dir ${LIBGDBFILE})
+endif
+endif
+
 # Disable GDB when no libgdb.a found
 ifeq ($(LIBGDBFILE),)
 GDB=
