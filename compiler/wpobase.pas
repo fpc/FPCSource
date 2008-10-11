@@ -231,6 +231,8 @@ type
     { routines accessing the optimizer information }
     { 1) devirtualization at the symbol name level }
     function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
+    { 2) optimal replacement method name in vmt }
+    function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
 
     constructor create; reintroduce;
     destructor destroy; override;
@@ -522,7 +524,7 @@ implementation
       { and for each specified optimization check whether the input feedback
         file contained the necessary information
       }
-      if (cs_wpo_devirtualize_calls in init_settings.dowpoptimizerswitches) and
+      if (([cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts] * init_settings.dowpoptimizerswitches) <> []) and
          not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) then
         begin
           message1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);

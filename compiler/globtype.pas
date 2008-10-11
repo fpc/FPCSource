@@ -188,7 +188,8 @@ interface
        toptimizerswitches = set of toptimizerswitch;
 
        { whole program optimizer }
-       twpoptimizerswitch = (cs_wpo_devirtualize_calls
+       twpoptimizerswitch = (
+         cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
@@ -200,7 +201,7 @@ interface
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
        );
        WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[11] = (
-         'DEVIRTCALLS'
+         'DEVIRTCALLS','OPTVMTS'
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[9] = ('',

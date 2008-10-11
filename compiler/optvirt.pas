@@ -630,10 +630,12 @@ unit optvirt;
             end;
       end;
 
+
     constructor tprogdevirtinfo.create;
       begin
         inherited create;
       end;
+
 
     destructor tprogdevirtinfo.destroy;
       begin
@@ -641,19 +643,22 @@ unit optvirt;
         inherited destroy;
       end;
 
+
     class function tprogdevirtinfo.getwpotype: twpotype;
       begin
         result:=wpo_devirtualization_context_insensitive;
       end;
 
+
     class function tprogdevirtinfo.generatesinfoforwposwitches: twpoptimizerswitches;
       begin
-        result:=[cs_wpo_devirtualize_calls];
+        result:=[cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
       end;
+
 
     class function tprogdevirtinfo.performswpoforswitches: twpoptimizerswitches;
       begin
-        result:=[cs_wpo_devirtualize_calls];
+        result:=[cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts];
       end;
 
 

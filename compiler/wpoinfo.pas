@@ -60,6 +60,7 @@ type
 
   twpoinfomanager = class(twpoinfomanagerbase)
     function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; override;
+    function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; override;
   end;
 
 
@@ -182,6 +183,18 @@ implementation
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
          not(cs_wpo_devirtualize_calls in current_settings.dowpoptimizerswitches) then
+        begin
+          result:=false;
+          exit;
+        end;
+      result:=twpodevirtualisationhandler(wpoinfouse[wpo_devirtualization_context_insensitive]).staticnameforvirtualmethod(objdef,procdef,name);
+    end;
+
+
+  function twpoinfomanager.optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean;
+    begin
+      if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
+         not(cs_wpo_optimize_vmts in current_settings.dowpoptimizerswitches) then
         begin
           result:=false;
           exit;
