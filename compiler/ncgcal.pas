@@ -86,7 +86,8 @@ implementation
 {$endif x86}
       ncgutil,
       cgobj,tgobj,
-      procinfo;
+      procinfo,
+      wpobase;
 
 
 {*****************************************************************************
@@ -863,6 +864,7 @@ implementation
 
     procedure tcgcallnode.pass_generate_code;
       var
+        name_to_call: shortstring;
         regs_to_save_int,
         regs_to_save_fpu,
         regs_to_save_mm   : Tcpuregisterset;
@@ -923,11 +925,13 @@ implementation
          { procedure variable or normal function call ? }
          if (right=nil) then
            begin
+             name_to_call:='';
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
              if (po_virtualmethod in procdefinition.procoptions) and
                 assigned(methodpointer) and
-                (methodpointer.nodetype<>typen) then
+                (methodpointer.nodetype<>typen) and
+                not wpoinfomanager.can_be_devirtualized(methodpointer.resultdef,procdefinition,name_to_call) then
                begin
                  { virtual methods require an index }
                  if tprocdef(procdefinition).extnumber=$ffff then
@@ -1018,7 +1022,10 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
-                      cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname);
+                      if (name_to_call='') then
+                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname)
+                      else
+                        cg.a_call_name(current_asmdata.CurrAsmList,name_to_call);
                       extra_post_call_code;
                     end;
                end;

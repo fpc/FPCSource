@@ -187,11 +187,20 @@ interface
        );
        toptimizerswitches = set of toptimizerswitch;
 
+       { whole program optimizer }
+       twpoptimizerswitch = (cs_wpo_devirtualize_calls
+       );
+       twpoptimizerswitches = set of twpoptimizerswitch;
+
+
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
+       );
+       WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[11] = (
+         'DEVIRTCALLS'
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[9] = ('',
@@ -201,6 +210,11 @@ interface
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
+
+       { whole program optimizations whose information generation requires
+         information from all loaded units
+       }
+       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls];
 
        featurestr : array[tfeature] of string[12] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',

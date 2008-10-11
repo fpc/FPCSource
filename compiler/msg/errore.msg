@@ -2495,6 +2495,62 @@ option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc
 # EndOfTeX
 
 #
+#  Whole program optimization
+#
+# 12004 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimisation messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+wpo_cant_find_file=12000_E_Cannot open whole program optimization feedback file $1
+% The compiler cannot open the specified feedback file with whole program optimization information.
+wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
+% The compiler starts processing whole program optimization information found in the named file.
+wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file $1
+% The compiler has finished processing the whole program optimization information found in the named file.
+wpo_expected_section=12003_E_Expected section header, but got "$2" at line $1 of wpo feedback file
+% The compiler expected a section header in the whole program optimization file (starting with \%),
+% but did not find it.
+wpo_no_section_handler=12004_W_No handler registered for whole program optimization section "$2" at line $1 of wpo feedback file, ignoring
+% The compiler has no handler to deal with the mentioned whole program optimization information
+% section, and will therefore ignore it and skip to the next section.
+wpo_found_section=12005_D_Found whole program optimization section "$1" with information about "$2"
+% The compiler encountered a section with whole program optimization information, and according
+% to its handler this section contains information usable for the mentioned purpose.
+wpo_no_input_specified=12006_E_The selected whole program optimizations require a previously generated feedback file (use -Fw to specify)
+% The compiler needs information gathered during a previous compilation run to perform the selected
+% whole program optimizations. You can specify the location of the feedback file containing this
+% information using the -Fw switch.
+wpo_not_enough_info=12007_E_No collected information necessary to perform "$1" whole program optimization found
+% While you pointed the compiler to a file containing whole program optimization feedback, it
+% did not contain the information necessary to perform the selected optimizations. You most likely
+% have to recompile the program using the appropate -OWxxx switch.
+wpo_no_output_specified=12008_E_Specify a whole program optimization feedback file to store the generated info in (using -FW)
+% You have to specify the feedback file in which the compiler has to store the whole program optimization
+% information that is generated during the compilation run. This can be done using the -FW switch.
+wpo_output_without_info_gen=12009_E_Not generating any whole program optimization information, yet a feedback file was specified (using -FW)
+% The compiler was instructed to store whole program optimization feedback into a file specified using -FW,
+% but not to actually generated any whole program optimization feedback. The classes of to be
+% generated information can be speciied using -OWxxx
+wpo_input_without_info_use=12010_E_Not performing any whole program optimizations, yet an input feedback file was specified (using -Fw)
+% The compiler was not instructed to perform any whole program optimizations (no -Owxxx parameters),
+% but nevertheless an input file with such feedback was specified (using -Fwyyy). Since this can
+% indicate that you forgot to specify an -Owxxx parameter, the compiler generates an error in this case.
+wpo_skipping_unnecessary_section=12011_D_Skipping whole program optimization section "$1", because not needed by the requested optimizations
+% The whole program optimization feedback file contains a section with information that is not
+% required by the selected whole program optimizations
+wpo_duplicate_wpotype=12012_W_Overriding previously read information for "$1" from feedback input file using information in section "$2"
+% The feedback file contains multiple sections that provide the same class of information (e.g.,
+% information about which virtual methods can be devirtualized). In this case, the information in last encountered
+% seciont is used. Turn on debugging output (-vd) to see for each section what class of information
+% it provides.
+%\end{description}
+# EndOfTeX
+
+
+#
 # Logo (option -l)
 #
 option_logo=11023_[
@@ -2525,6 +2581,10 @@ Supported ABI targets:
 
 Supported Optimizations:
   $OPTIMIZATIONS
+
+Supported Whole Program Optimizations:
+  All
+  $WPOPTIMIZATIONS
 
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC

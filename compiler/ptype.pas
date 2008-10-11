@@ -259,7 +259,7 @@ implementation
                 if (tt.typ=objectdef) then
                   begin
                     vmtbuilder:=TVMTBuilder.Create(tobjectdef(tt));
-                    vmtbuilder.generate_vmt;
+                    vmtbuilder.generate_vmt(true);
                     vmtbuilder.free;
                   end;
               end;

@@ -223,6 +223,9 @@ interface
 
        { tobjectdef }
 
+       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
+       pmvcallstaticinfo = ^tmvcallstaticinfo;
+       tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
        tobjectdef = class(tabstractrecorddef)
        public
           dwarf_struct_lab : tasmsymbol;
@@ -235,11 +238,13 @@ interface
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPObjectList;
+          vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
-          writing_class_record_dbginfo : boolean;
           objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
+          writing_class_record_dbginfo,
+          created_in_current_module     : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
@@ -269,14 +274,19 @@ interface
           procedure set_parent(c : tobjectdef);
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
+          procedure reset; override;
+          procedure register_created_object_type;override;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
+          created_in_current_module : boolean;
           constructor create(def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function GetTypeName:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          procedure reset; override;
+          procedure register_created_object_type;override;
        end;
 
        tarraydef = class(tstoreddef)
@@ -2032,7 +2042,23 @@ implementation
       begin
          result:=true;
       end;
+      
+      
+    procedure tclassrefdef.reset;
+      begin
+        inherited reset;
+        created_in_current_module:=false;
+      end;
 
+
+    procedure tclassrefdef.register_created_object_type;
+      begin
+        if not created_in_current_module then
+          begin
+            created_in_current_module:=true;
+            current_module.wpoinfo.addcreatedobjtype(self);
+          end;
+      end;
 
 {***************************************************************************
                                    TSETDEF
@@ -3782,6 +3808,11 @@ implementation
              vmtentries.free;
              vmtentries:=nil;
            end;
+         if assigned(vmcallstaticinfo) then
+           begin
+             freemem(vmcallstaticinfo);
+             vmcallstaticinfo:=nil;
+           end;
          inherited destroy;
       end;
 
@@ -4186,6 +4217,22 @@ implementation
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
       end;
 
+
+    procedure tobjectdef.reset;
+      begin
+        inherited reset;
+        created_in_current_module:=false;
+      end;
+
+
+    procedure tobjectdef.register_created_object_type;
+      begin
+        if not created_in_current_module then
+          begin
+            created_in_current_module:=true;
+            current_module.wpoinfo.addcreatedobjtype(self);
+          end;
+      end;
 
 {****************************************************************************
                              TImplementedInterface

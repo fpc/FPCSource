@@ -465,7 +465,7 @@ implementation
                        not(df_generic in hdef.defoptions) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
-                        vmtbuilder.generate_vmt;
+                        vmtbuilder.generate_vmt(true);
                         vmtbuilder.free;
                       end;
                     try_consume_hintdirective(newtype.symoptions);

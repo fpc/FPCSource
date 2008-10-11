@@ -44,7 +44,9 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symsym,aasmbase,aasmtai,aasmdata;
+       symbase,symsym,
+       wpobase,
+       aasmbase,aasmtai,aasmdata;
 
 
     const
@@ -127,6 +129,7 @@ interface
         derefdata     : tdynamicarray;
         deflist,
         symlist       : TFPObjectList;
+        wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
@@ -487,6 +490,7 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        wpoinfo:=nil;
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -593,14 +597,11 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
-        if assigned(globalsymtable) then
-          globalsymtable.free;
-        if assigned(localsymtable) then
-          localsymtable.free;
-        if assigned(globalmacrosymtable) then
-          globalmacrosymtable.free;
-        if assigned(localmacrosymtable) then
-          localmacrosymtable.free;
+        wpoinfo.free;
+        globalsymtable.free;
+        localsymtable.free;
+        globalmacrosymtable.free;
+        localmacrosymtable.free;
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
@@ -643,30 +644,20 @@ implementation
             asmdata:=nil;
           end;
         DoneDebugInfo(self);
-        if assigned(globalsymtable) then
-          begin
-            globalsymtable.free;
-            globalsymtable:=nil;
-          end;
-        if assigned(localsymtable) then
-          begin
-            localsymtable.free;
-            localsymtable:=nil;
-          end;
-        if assigned(globalmacrosymtable) then
-          begin
-            globalmacrosymtable.free;
-            globalmacrosymtable:=nil;
-          end;
-        if assigned(localmacrosymtable) then
-          begin
-            localmacrosymtable.free;
-            localmacrosymtable:=nil;
-          end;
+        globalsymtable.free;
+        globalsymtable:=nil;
+        localsymtable.free;
+        localsymtable:=nil;
+        globalmacrosymtable.free;
+        globalmacrosymtable:=nil;
+        localmacrosymtable.free;
+        localmacrosymtable:=nil;
         deflist.free;
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        wpoinfo.free;
+        wpoinfo:=nil;
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then

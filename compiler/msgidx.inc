@@ -750,13 +750,26 @@ const
   option_config_is_dir=11040;
   option_confict_asm_debug=11041;
   option_ppc386_deprecated=11042;
+  wpo_cant_find_file=12000;
+  wpo_begin_processing=12001;
+  wpo_end_processing=12002;
+  wpo_expected_section=12003;
+  wpo_no_section_handler=12004;
+  wpo_found_section=12005;
+  wpo_no_input_specified=12006;
+  wpo_not_enough_info=12007;
+  wpo_no_output_specified=12008;
+  wpo_output_without_info_gen=12009;
+  wpo_input_without_info_use=12010;
+  wpo_skipping_unnecessary_section=12011;
+  wpo_duplicate_wpotype=12012;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 47219;
+  MsgTxtSize = 48555;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,248,84,65,50,108,22,201,61,
-    43,1,1,1,1,1,1,1,1,1
+    43,13,1,1,1,1,1,1,1,1
   );

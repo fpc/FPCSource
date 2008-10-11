@@ -1540,7 +1540,21 @@ implementation
                 vmttree:=methodpointer.getcopy;
                 { Only a typenode can be passed when it is called with <class of xx>.create }
                 if vmttree.nodetype=typen then
-                  vmttree:=cloadvmtaddrnode.create(vmttree);
+                  begin
+                    { we know the exact class type being created }
+                    tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type;
+                    vmttree:=cloadvmtaddrnode.create(vmttree);
+                  end
+                else
+                  begin
+                    { the loadvmtaddrnode is already created in case of classtype.create }
+                    if (vmttree.nodetype=loadvmtaddrn) and
+                       (tloadvmtaddrnode(vmttree).left.nodetype = typen) then
+                      tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                    else
+                      { the created class can be any child class as well -> register classrefdef }
+                      methodpointer.resultdef.register_created_object_type;
+                  end;
               end
             else
               begin
@@ -1575,11 +1589,15 @@ implementation
                       vmttree:=cpointerconstnode.create(1,voidpointertype)
                     else
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
-                  else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-                          (procdefinition.proctypeoption=potype_constructor) then
+                  { else, if we are calling a constructor }
+                  else if (current_procinfo.procdef.proctypeoption=potype_constructor) then
                     vmttree:=cpointerconstnode.create(0,voidpointertype)
                   else
-                    vmttree:=cpointerconstnode.create(1,voidpointertype);
+                    begin
+                      { created a new class instance of this type }
+                      methodpointer.resultdef.register_created_object_type;
+                      vmttree:=cpointerconstnode.create(1,voidpointertype);
+                    end;
                 end
             else
             { normal call to method like cl1.proc }
@@ -1602,11 +1620,14 @@ implementation
                 else
                   begin
                     if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-                       (procdefinition.proctypeoption=potype_constructor) and
                        (nf_is_self in methodpointer.flags) then
                       vmttree:=cpointerconstnode.create(0,voidpointertype)
                     else
-                      vmttree:=cpointerconstnode.create(1,voidpointertype);
+                      begin
+                        { created a new class instance of this type }
+                        methodpointer.resultdef.register_created_object_type;
+                        vmttree:=cpointerconstnode.create(1,voidpointertype);
+                      end;
                   end;
               end;
           end
@@ -1615,7 +1636,10 @@ implementation
           begin
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
+              begin
+                methodpointer.resultdef.register_created_object_type;
                 vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
+              end
             else
               { destructor with extended syntax called from dispose }
               if (cnf_dispose_call in callnodeflags) then
@@ -1644,7 +1668,10 @@ implementation
                    if (methodpointer.nodetype=typen) then
                      vmttree:=cpointerconstnode.create(0,voidpointertype)
                    else
-                     vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
+                     begin
+                       methodpointer.resultdef.register_created_object_type;
+                       vmttree:=cloadvmtaddrnode.create(ctypenode.create(methodpointer.resultdef))
+                     end;
                  end
                else
                  vmttree:=cpointerconstnode.create(0,voidpointertype);

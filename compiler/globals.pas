@@ -110,6 +110,10 @@ interface
          localswitches   : tlocalswitches;
          modeswitches    : tmodeswitches;
          optimizerswitches : toptimizerswitches;
+         { generate information necessary to perform these wpo's during a subsequent compilation }
+         genwpoptimizerswitches: twpoptimizerswitches;
+         { perform these wpo's using information generated during a previous compilation }
+         dowpoptimizerswitches: twpoptimizerswitches;
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
@@ -172,6 +176,9 @@ interface
        { specified with -FE or -FU }
        outputexedir      : TPathStr;
        outputunitdir     : TPathStr;
+       { specified with -FW and -Fw }
+       wpofeedbackinput,
+       wpofeedbackoutput : TPathStr;
 
        { things specified with parameters }
        paratarget        : tsystem;
@@ -313,6 +320,8 @@ interface
         localswitches : [cs_check_io,cs_typed_const_writable];
         modeswitches : fpcmodeswitches;
         optimizerswitches : [];
+        genwpoptimizerswitches : [];
+        dowpoptimizerswitches : [];
         debugswitches : [];
         setalloc : 0;
         packenum : 4;
@@ -409,6 +418,7 @@ interface
     function SetFpuType(const s:string;var a:tfputype):boolean;
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
+    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
@@ -1065,6 +1075,59 @@ implementation
             end
           else
             result:=false;
+        until false;
+      end;
+
+
+    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
+      var
+        tok   : string;
+        doset,
+        found : boolean;
+        opt   : twpoptimizerswitch;
+      begin
+        result:=true;
+        uppervar(s);
+        repeat
+          tok:=GetToken(s,',');
+          if tok='' then
+           break;
+          if Copy(tok,1,2)='NO' then
+            begin
+              delete(tok,1,2);
+              doset:=false;
+            end
+          else
+            doset:=true;
+          found:=false;
+          if (tok = 'ALL') then
+            begin
+              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+                if doset then
+                  include(a,opt)
+                else
+                  exclude(a,opt);
+            end
+          else
+            begin
+              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+                begin
+                  if WPOptimizerSwitchStr[opt]=tok then
+                    begin
+                      found:=true;
+                      break;
+                    end;
+                end;
+              if found then
+                begin
+                  if doset then
+                    include(a,opt)
+                  else
+                    exclude(a,opt);
+                end
+              else
+                result:=false;
+            end;
         until false;
       end;
 

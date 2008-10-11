@@ -97,6 +97,7 @@ uses
   cfileutl,
   verbose,systems,version,
   symtable, symsym,
+  wpoinfo,
   scanner,
   aasmbase,ogbase,
   parser,
@@ -1064,6 +1065,8 @@ uses
              tstoredsymtable(localsymtable).buildderef;
              tstoredsymtable(localsymtable).buildderefimpl;
            end;
+         tunitwpoinfo(wpoinfo).buildderef;
+         tunitwpoinfo(wpoinfo).buildderefimpl;
          writederefmap;
          writederefdata;
 
@@ -1097,6 +1100,9 @@ uses
            needed for local debugging of unit functions }
          if (flags and uf_local_symtable)<>0 then
            tstoredsymtable(localsymtable).ppuwrite(ppufile);
+
+         { write whole program optimisation-related information }
+         tunitwpoinfo(wpoinfo).ppuwrite(ppufile);
 
          { the last entry ibend is written automaticly }
 
@@ -1301,11 +1307,16 @@ uses
             localsymtable:=tstaticsymtable.create(modulename^,moduleid);
             tstaticsymtable(localsymtable).ppuload(ppufile);
           end;
-
+          
         { we can now derefence all pointers to the implementation parts }
         tstoredsymtable(globalsymtable).derefimpl;
         if assigned(localsymtable) then
           tstoredsymtable(localsymtable).derefimpl;
+
+         { read whole program optimisation-related information }
+         wpoinfo:=tunitwpoinfo.ppuload(ppufile);
+         tunitwpoinfo(wpoinfo).deref;
+         tunitwpoinfo(wpoinfo).derefimpl;
       end;
 
 
@@ -1383,6 +1394,8 @@ uses
                       tstoredsymtable(localsymtable).deref;
                       tstoredsymtable(localsymtable).derefimpl;
                     end;
+                   tunitwpoinfo(wpoinfo).deref;
+                   tunitwpoinfo(wpoinfo).derefimpl;
                  end
                else
                  Message1(unit_u_skipping_reresolving_unit,modulename^);

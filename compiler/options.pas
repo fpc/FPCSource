@@ -77,6 +77,7 @@ uses
   cutils,cmsgs,
   comphook,
   symtable,scanner,rabase,
+  wpobase,
   i_bsd
   ;
 
@@ -142,6 +143,7 @@ var
   cpu : tcputype;
   fpu : tfputype;
   opt : toptimizerswitch;
+  wpopt: twpoptimizerswitch;
   abi : tabi;
 begin
   p:=MessagePchar(option_info);
@@ -212,6 +214,24 @@ begin
                 if hs1<>'' then
                   begin
                     Replace(hs,'$OPTIMIZATIONS',hs1);
+                    Comment(V_Normal,hs);
+                  end;
+              end;
+          end;
+      end
+     else if pos('$WPOPTIMIZATIONS',s)>0 then
+      begin
+        for wpopt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+          begin
+{           currently all whole program optimizations are platform-independent
+            if opt in supported_wpoptimizerswitches then
+}
+              begin
+                hs:=s;
+                hs1:=WPOptimizerSwitchStr[wpopt];
+                if hs1<>'' then
+                  begin
+                    Replace(hs,'$WPOPTIMIZATIONS',hs1);
                     Comment(V_Normal,hs);
                   end;
               end;
@@ -825,6 +845,24 @@ begin
                    end;
                  'U' :
                    OutputUnitDir:=FixPath(More,true);
+                 'W',
+                 'w':
+                   begin
+                     if More<>'' then
+                       begin
+                         DefaultReplacements(More);
+                         D:=ExtractFilePath(More);
+                         if (D<>'') then
+                           D:=FixPath(D,True);
+                         D:=D+ExtractFileName(More);
+                         if (c='W') then
+                           WpoFeedbackOutput:=D
+                         else
+                           WpoFeedbackInput:=D;
+                       end
+                     else
+                       IllegalPara(opt);
+                   end;
                  else
                    IllegalPara(opt);
                end;
@@ -1043,6 +1081,18 @@ begin
                       Message2(option_obsolete_switch_use_new,'-Or','-O2 or -Ooregvar');
                     'u' :
                       Message2(option_obsolete_switch_use_new,'-Ou','-Oouncertain');
+                    'w' :
+                      begin
+                        if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.dowpoptimizerswitches) then
+                          IllegalPara(opt);
+                        break;
+                      end;
+                    'W' :
+                      begin
+                        if not UpdateWpoStr(copy(more,j+1,length(more)),init_settings.genwpoptimizerswitches) then
+                          IllegalPara(opt);
+                        break;
+                      end;
                     else
                       IllegalPara(opt);
                   end;

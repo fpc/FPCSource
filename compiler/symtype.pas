@@ -82,6 +82,7 @@ interface
          function  needs_inittable:boolean;virtual;abstract;
          function  is_related(def:tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
+         procedure register_created_object_type;virtual;
       end;
 
 {************************************************
@@ -320,6 +321,10 @@ implementation
         Owner.DefList.Add(self);
       end;
 
+
+    procedure tdef.register_created_object_type;
+      begin
+      end;
 
 {****************************************************************************
                           TSYM (base for all symtypes)
