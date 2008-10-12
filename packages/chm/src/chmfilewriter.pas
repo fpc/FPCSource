@@ -175,6 +175,7 @@ begin
   Cfg.SetValue('Settings/Title/Value', Title);
   Cfg.SetValue('Settings/OutputFileName/Value', OutputFileName);
   Cfg.SetValue('Settings/DefaultFont/Value', DefaultFont);
+  Cfg.Flush;
   Cfg.Free;
 end;
 
