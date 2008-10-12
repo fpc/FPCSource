@@ -291,6 +291,7 @@ implementation
         begin
           s:=fcurline;
           fusecurline:=false;
+          result:=true;
           exit;
         end;
       repeat
@@ -371,8 +372,12 @@ implementation
                   twpocomponentbase(fdest.wpoinfouse[wpotype]).loadfromwpofilesection(self);
                 end
               else
-                message1(wpo_skipping_unnecessary_section,sectionname);
-              break;
+                begin
+                  message1(wpo_skipping_unnecessary_section,sectionname);
+                  { skip the current section }
+                  while sectiongetnextline(s) do
+                    ;
+                end;
             end
           else
             begin
