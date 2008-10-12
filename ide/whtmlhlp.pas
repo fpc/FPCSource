@@ -635,7 +635,7 @@ begin
         begin
           Topic^.NamedMarks^.InsertStr(Name);
 {$IFDEF WDEBUG}
-          DebugMessage('',' Adding Name "'+Name+'"',1,1);
+          DebugMessageS({$i %file%},' Adding Name "'+Name+'"',{$i %line%},'1');
 {$endif WDEBUG}
           AddChar(hscNamedMark);
         end;
