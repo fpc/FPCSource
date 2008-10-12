@@ -2712,6 +2712,8 @@ S*2Aas_Assemble using GNU AS
 **2FR<x>_Set resource (.res) linker to <x>
 **2Fu<x>_Add <x> to unit path
 **2FU<x>_Set unit output path to <x>, overrides -FE
+**2FW<x>_Store generated whole-program optimization feedback in <x>
+**2Fw<x>_Load previously stored whole-program optimization feedback from <x>
 *g1g_Generate debug information (default format for target)
 *g2gc_Generate checks for pointers
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
@@ -2754,6 +2756,8 @@ S*2Aas_Assemble using GNU AS
 **2Oa<x>=<y>_Set alignment
 **2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
 **2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i for possible values
+**2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 **1R<x>_Assembler reading style:
