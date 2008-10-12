@@ -39,6 +39,7 @@
 #   c_   conditional
 #   d_   debug message
 #   x_   executable informations
+#   o_   normal (e.g., "press enter to continue")
 #
 
 #
@@ -2459,7 +2460,7 @@ option_using_env=11027_T_Reading options from environment $1
 % Options are also read from this environment string.
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled.
-option_help_press_enter=11029__*** press enter ***
+option_help_press_enter=11029_O_*** press enter ***
 % Message shown when help is shown page per page. When pressing the ENTER
 % Key, the next page of help is shown. If you press q and then ENTER, the
 % compiler exits.
@@ -2753,7 +2754,8 @@ S*2Tlinux_Linux
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_b : Write file names messages with full path
 **2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info
+**2*_    lots of debugging info      q : Show message numbers
+**2*_m<x>,<y> : Don't show messages numbered <x> and <y>
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
 P*1W<x>_Target-specific options (targets)
