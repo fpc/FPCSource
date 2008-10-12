@@ -1,7 +1,7 @@
 {
-    Virtual methods optimizations (devirtualization)
-
     Copyright (c) 2008 by Jonas Maebe
+
+    Virtual methods optimizations (devirtualization)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -118,7 +118,7 @@ unit optvirt;
         function findclass(const n: shortstring): tclassdevirtinfo;
       end;
 
-      { defvirtualisation information for all units in a program }
+      { devirtualisation information for all units in a program }
 
       { tprogdevirtinfo }
 
@@ -142,7 +142,7 @@ unit optvirt;
         procedure constructfromcompilerstate; override;
         procedure storewpofilesection(writer: twposectionwriterintf); override;
 
-        { infromation providing }
+        { information providing }
         procedure loadfromwpofilesection(reader: twposectionreaderintf); override;
         function staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; override;
 
