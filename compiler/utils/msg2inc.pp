@@ -161,6 +161,8 @@ begin
      writeln('aborting');
      halt(1);
    end;
+{ no linebreak after last entry }
+  dec(msgsize);
 { alloc memory }
   getmem(msgtxt,msgsize);
   ptxt:=msgtxt;
