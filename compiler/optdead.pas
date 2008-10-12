@@ -38,7 +38,7 @@ unit optdead;
 
       twpodeadcodeinfo = class(twpodeadcodehandler)
        private
-        { hashtable of symbols which are dead for some reason }
+        { hashtable of symbols which are live }
         fsymbols     : tfphashlist;
 
        public
