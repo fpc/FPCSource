@@ -32,9 +32,9 @@ uses
 
 type
   { the types of available whole program optimization }
-  twpotype = (wpo_devirtualization_context_insensitive);
+  twpotype = (wpo_devirtualization_context_insensitive,wpo_live_symbol_information);
 const
-  wpo2str: array[twpotype] of string[16] = ('devirtualization');
+  wpo2str: array[twpotype] of string[16] = ('devirtualization','symbol liveness');
 
 type
   { ************************************************************************* }
@@ -57,6 +57,9 @@ type
 
 
   { base class for wpo information stores }
+
+  { twpocomponentbase }
+
   twpocomponentbase = class
    public
     constructor create; reintroduce; virtual;
@@ -71,6 +74,14 @@ type
 
     { whole program optimizations performed by this class }
     class function performswpoforswitches: twpoptimizerswitches; virtual; abstract;
+
+    { returns the name of the section parsed by this class }
+    class function sectionname: shortstring; virtual; abstract;
+
+    { checks whether the compiler options are compatible with this
+      optimization (default: don't check anything)
+    }
+    class procedure checkoptions; virtual;
 
     { loads the information pertinent to this whole program optimization from
       the current section being processed by reader
@@ -197,6 +208,15 @@ type
     function staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
   end;
 
+  twpodeadcodehandler = class(twpocomponentbase)
+    { checks whether a mangledname was removed as dead code from the final
+      binary (WARNING: must *not* be called for functions marked as inline,
+      since if all call sites are inlined, it won't appear in the final
+      binary but nevertheless is still necessary!)
+    }
+    function symbolinfinalbinary(const s: shortstring): boolean; virtual; abstract;
+  end;
+
 
   { ************************************************************************* }
   { ************ Collection of all instances of wpo components ************** }
@@ -209,12 +229,12 @@ type
     { array of classrefs of handler classes for the various kinds of whole
       program optimization that we support
     }
-    fsectionhandlers: tfphashlist; static;
+    fwpocomponents: tfphashlist;
 
     freader: twpofilereader;
     fwriter: twpofilewriter;
    public
-    class procedure registersectionreader(const sectionname: string; sectionhandler: twpocomponentbaseclass);
+    procedure registerwpocomponentclass(wpocomponent: twpocomponentbaseclass);
     function gethandlerforsection(const secname: string): twpocomponentbaseclass;
 
     { instances of the various optimizers/information collectors (for
@@ -233,6 +253,10 @@ type
     function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
     { 2) optimal replacement method name in vmt }
     function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
+    { 3) is a symbol in the final binary (i.e., not removed by dead code stripping/smart linking).
+        WARNING: do *not* call for inline functions/procedures/methods/...
+    }
+    function symbol_live(const name: shortstring): boolean; virtual; abstract;
 
     constructor create; reintroduce;
     destructor destroy; override;
@@ -312,7 +336,7 @@ implementation
     begin
       if not FileExists(fn) then
         begin
-          message1(wpo_cant_find_file,fn);
+          cgmessage1(wpo_cant_find_file,fn);
           exit;
         end;
       assign(finputfile,fn);
@@ -334,7 +358,7 @@ implementation
       s,
       sectionname: string;
     begin
-      message1(wpo_begin_processing,ffilename);
+      cgmessage1(wpo_begin_processing,ffilename);
       reset(finputfile);
       flinenr:=0;
       while getnextnoncommentline(s) do
@@ -344,7 +368,7 @@ implementation
           { format: "% sectionname" }
           if (s[1]<>'%') then
             begin
-              message2(wpo_expected_section,tostr(flinenr),s);
+              cgmessage2(wpo_expected_section,tostr(flinenr),s);
               break;
             end;
           for i:=2 to length(s) do
@@ -357,14 +381,14 @@ implementation
           if assigned(sectionhandler) then
             begin
               wpotype:=sectionhandler.getwpotype;
-              message2(wpo_found_section,sectionname,wpo2str[wpotype]);
+              cgmessage2(wpo_found_section,sectionname,wpo2str[wpotype]);
               { do we need this information? }
               if ((sectionhandler.performswpoforswitches * init_settings.dowpoptimizerswitches) <> []) then
                 begin
                   { did some other section already generate this type of information? }
                   if assigned(fdest.wpoinfouse[wpotype]) then
                     begin
-                      message2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
+                      cgmessage2(wpo_duplicate_wpotype,wpo2str[wpotype],sectionname);
                       fdest.wpoinfouse[wpotype].free;
                     end;
                   { process the section }
@@ -373,7 +397,7 @@ implementation
                 end
               else
                 begin
-                  message1(wpo_skipping_unnecessary_section,sectionname);
+                  cgmessage1(wpo_skipping_unnecessary_section,sectionname);
                   { skip the current section }
                   while sectiongetnextline(s) do
                     ;
@@ -381,14 +405,14 @@ implementation
             end
           else
             begin
-              message1(wpo_no_section_handler,sectionname);
+              cgmessage1(wpo_no_section_handler,sectionname);
               { skip the current section }
               while sectiongetnextline(s) do
                 ;
             end;
         end;
       close(finputfile);
-      message1(wpo_end_processing,ffilename);
+      cgmessage1(wpo_end_processing,ffilename);
     end;
 
   function twpofilereader.sectiongetnextline(out s: string): boolean;
@@ -411,6 +435,12 @@ implementation
   { twpocomponentbase }
 
   constructor twpocomponentbase.create;
+    begin
+      { do nothing }
+    end;
+
+
+  class procedure twpocomponentbase.checkoptions;
     begin
       { do nothing }
     end;
@@ -458,19 +488,16 @@ implementation
 
 { twpoinfomanagerbase }
 
-  class procedure twpoinfomanagerbase.registersectionreader(const sectionname: string; sectionhandler: twpocomponentbaseclass);
+  procedure twpoinfomanagerbase.registerwpocomponentclass(wpocomponent: twpocomponentbaseclass);
     begin
-      { avoid having to check all the time whether it's assigned or not }
-      if not assigned(fsectionhandlers) then
-        fsectionhandlers:=tfphashlist.create;
-      fsectionhandlers.add(sectionname,sectionhandler);
+      fwpocomponents.add(wpocomponent.sectionname,wpocomponent);
     end;
 
 
   function twpoinfomanagerbase.gethandlerforsection(const secname: string
       ): twpocomponentbaseclass;
     begin
-      result:=twpocomponentbaseclass(fsectionhandlers.find(secname));
+      result:=twpocomponentbaseclass(fwpocomponents.find(secname));
     end;
 
   procedure twpoinfomanagerbase.setwpoinputfile(const fn: tcmdstr);
@@ -484,12 +511,14 @@ implementation
     end;
 
   procedure twpoinfomanagerbase.parseandcheckwpoinfo;
+    var
+      i: longint;
     begin
       { error if we don't have to optimize yet have an input feedback file }
       if (init_settings.dowpoptimizerswitches=[]) and
          assigned(freader) then
         begin
-          message(wpo_input_without_info_use);
+          cgmessage(wpo_input_without_info_use);
           exit;
         end;
 
@@ -497,7 +526,7 @@ implementation
       if (init_settings.dowpoptimizerswitches<>[]) and
          not assigned(freader) then
         begin
-          message(wpo_no_input_specified);
+          cgmessage(wpo_no_input_specified);
           exit;
         end;
 
@@ -507,14 +536,14 @@ implementation
       if (init_settings.genwpoptimizerswitches<>[]) and
          not assigned(fwriter) then
         begin
-          message(wpo_no_output_specified);
+          cgmessage(wpo_no_output_specified);
           exit;
         end;
 
       if (init_settings.genwpoptimizerswitches=[]) and
          assigned(fwriter) then
         begin
-          message(wpo_output_without_info_gen);
+          cgmessage(wpo_output_without_info_gen);
           exit;
         end;
 
@@ -532,10 +561,23 @@ implementation
       if (([cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts] * init_settings.dowpoptimizerswitches) <> []) and
          not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) then
         begin
-          message1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);
+          cgmessage1(wpo_not_enough_info,wpo2str[wpo_devirtualization_context_insensitive]);
           exit;
         end;
 
+      if (cs_wpo_symbol_liveness in init_settings.dowpoptimizerswitches) and
+         not assigned(wpoinfouse[wpo_live_symbol_information]) then
+        begin
+          cgmessage1(wpo_not_enough_info,wpo2str[wpo_live_symbol_information]);
+          exit;
+        end;
+
+      { perform pre-checking to ensure there are no known incompatibilities between
+        the selected optimizations and other switches
+      }
+      for i:=0 to fwpocomponents.count-1 do
+        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*init_settings.genwpoptimizerswitches)<>[] then
+          twpocomponentbaseclass(fwpocomponents[i]).checkoptions
     end;
 
   procedure twpoinfomanagerbase.extractwpoinfofromprogram;
@@ -548,10 +590,10 @@ implementation
         exit;
 
       { let all wpo components gather the necessary info from the compiler state }
-      for i:=0 to fsectionhandlers.count-1 do
-        if (twpocomponentbaseclass(fsectionhandlers[i]).generatesinfoforwposwitches*current_settings.genwpoptimizerswitches)<>[] then
+      for i:=0 to fwpocomponents.count-1 do
+        if (twpocomponentbaseclass(fwpocomponents[i]).generatesinfoforwposwitches*current_settings.genwpoptimizerswitches)<>[] then
           begin
-            info:=twpocomponentbaseclass(fsectionhandlers[i]).create;
+            info:=twpocomponentbaseclass(fwpocomponents[i]).create;
             info.constructfromcompilerstate;
             fwriter.registerwpocomponent(info);
           end;
@@ -564,6 +606,7 @@ implementation
   constructor twpoinfomanagerbase.create;
     begin
       inherited create;
+      fwpocomponents:=tfphashlist.create;
     end;
 
   destructor twpoinfomanagerbase.destroy;
@@ -574,13 +617,12 @@ implementation
       freader:=nil;
       fwriter.free;
       fwriter:=nil;
+      fwpocomponents.free;
+      fwpocomponents:=nil;
       for i:=low(wpoinfouse) to high(wpoinfouse) do
         if assigned(wpoinfouse[i]) then
           wpoinfouse[i].free;
       inherited destroy;
     end;
 
-finalization
-  twpoinfomanagerbase.fsectionhandlers.free;
-  twpoinfomanagerbase.fsectionhandlers:=nil;
 end.

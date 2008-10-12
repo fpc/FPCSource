@@ -208,7 +208,8 @@ implementation
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,nset,
       procinfo,cpuinfo,
-      cgbase
+      cgbase,
+      wpobase
       ;
 
     type
@@ -1517,6 +1518,22 @@ implementation
 
 
     procedure tcallnode.register_created_object_types;
+
+      function checklive(def: tdef): boolean;
+        begin
+          if assigned(current_procinfo) and
+             not(po_inline in current_procinfo.procdef.procoptions) and
+             not wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+            begin
+{$ifdef debug_deadcode}
+              writeln(' NOT adding creadion of ',def.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
+{$endif debug_deadcode}
+              result:=false;
+            end
+          else
+            result:=true;
+        end;
+
       var
         crefdef,
         systobjectdef : tdef;
@@ -1530,45 +1547,54 @@ implementation
             if (procdefinition.proctypeoption=potype_constructor) then
               begin
                 { Only a typenode can be passed when it is called with <class of xx>.create }
-                if methodpointer.nodetype=typen then
-                  { we know the exact class type being created }
-                  tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                if (methodpointer.nodetype=typen) then
+                  begin
+                    if checklive(methodpointer.resultdef) then
+                      { we know the exact class type being created }
+                      tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                  end
                 else
                   begin
                     { the loadvmtaddrnode is already created in case of classtype.create }
                     if (methodpointer.nodetype=loadvmtaddrn) and
                        (tloadvmtaddrnode(methodpointer).left.nodetype=typen) then
-                      tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                      begin
+                        if checklive(methodpointer.resultdef) then
+                          tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                      end
                     else
                       begin
-                        { special case: if the classref comes from x.classtype (with classtype,
-                          being tobject.classtype) then the created instance is x or a descendant
-                          of x (rather than tobject or a descendant of tobject)
-                        }
-                        systobjectdef:=search_system_type('TOBJECT').typedef;
-                        if (methodpointer.nodetype=calln) and
-                           { not a procvar call }
-                           not assigned(right) and
-                           { procdef is owned by system.tobject }
-                           (tprocdef(tcallnode(methodpointer).procdefinition).owner.defowner=systobjectdef) and
-                           { we're calling system.tobject.classtype }
-                           (tcallnode(methodpointer).symtableprocentry.name='CLASSTYPE') and
-                           { could again be a classrefdef, but unlikely }
-                           (tcallnode(methodpointer).methodpointer.resultdef.typ=objectdef) and
-                           { don't go through this trouble if it was already a tobject }
-                           (tcallnode(methodpointer).methodpointer.resultdef<>systobjectdef) then
+                        if checklive(methodpointer.resultdef) then
                           begin
-                            { register this object type as classref, so all descendents will also
-                              be marked as instantiatable (only the pointeddef will actually be
-                              recorded, so it's no problem that the clasrefdef is only temporary)
+                            { special case: if the classref comes from x.classtype (with classtype,
+                              being tobject.classtype) then the created instance is x or a descendant
+                              of x (rather than tobject or a descendant of tobject)
                             }
-                            crefdef:=tclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
-                            { and register it }
-                            crefdef.register_created_object_type;
-                          end
-                         else
-                          { the created class can be any child class as well -> register classrefdef }
-                          methodpointer.resultdef.register_created_object_type;
+                            systobjectdef:=search_system_type('TOBJECT').typedef;
+                            if (methodpointer.nodetype=calln) and
+                               { not a procvar call }
+                               not assigned(right) and
+                               { procdef is owned by system.tobject }
+                               (tprocdef(tcallnode(methodpointer).procdefinition).owner.defowner=systobjectdef) and
+                               { we're calling system.tobject.classtype }
+                               (tcallnode(methodpointer).symtableprocentry.name='CLASSTYPE') and
+                               { could again be a classrefdef, but unlikely }
+                               (tcallnode(methodpointer).methodpointer.resultdef.typ=objectdef) and
+                               { don't go through this trouble if it was already a tobject }
+                               (tcallnode(methodpointer).methodpointer.resultdef<>systobjectdef) then
+                              begin
+                                { register this object type as classref, so all descendents will also
+                                  be marked as instantiatable (only the pointeddef will actually be
+                                  recorded, so it's no problem that the clasrefdef is only temporary)
+                                }
+                                crefdef:=tclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
+                                { and register it }
+                                crefdef.register_created_object_type;
+                              end
+                             else
+                              { the created class can be any child class as well -> register classrefdef }
+                              methodpointer.resultdef.register_created_object_type;
+                          end;
                       end;
                   end;
               end
@@ -1580,7 +1606,8 @@ implementation
             { constructor with extended syntax called from new }
             if (cnf_new_call in callnodeflags) then
               begin
-                methodpointer.resultdef.register_created_object_type;
+                if checklive(methodpointer.resultdef) then
+                  methodpointer.resultdef.register_created_object_type;
               end
             else
             { normal object call like obj.proc }
@@ -1590,7 +1617,8 @@ implementation
              begin
                if (procdefinition.proctypeoption=potype_constructor) then
                  begin
-                   if (methodpointer.nodetype<>typen) then
+                   if (methodpointer.nodetype<>typen) and
+                      checklive(methodpointer.resultdef) then
                      methodpointer.resultdef.register_created_object_type;
                  end
              end;

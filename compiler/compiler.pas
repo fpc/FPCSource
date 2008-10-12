@@ -40,7 +40,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,pass_1,wpobase,wpoinfo
+  assemble,link,dbgbase,import,export,tokens,pass_1,wpobase,wpo
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }
@@ -117,8 +117,7 @@ function Compile(const cmd:string):longint;
 implementation
 
 uses
-  aasmcpu,
-  wpo;
+  aasmcpu;
 
 {$if defined(EXTDEBUG) or defined(MEMDEBUG)}
   {$define SHOWUSEDMEM}

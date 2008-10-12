@@ -27,9 +27,46 @@ unit wpo;
 interface
 
 uses
-  optvirt;
+  { all units with whole program optimisation components }
+  optvirt,optdead;
+
+
+  procedure InitWpo;
+  procedure DoneWpo;
 
 implementation
+
+  uses
+    globals,
+    wpobase, wpoinfo;
+
+  { called after command line parameters have been parsed }
+  procedure InitWpo;
+    begin
+      { always create so we don't have to litter the source with if-tests }
+      wpoinfomanager:=twpoinfomanager.create;
+
+      { register the classes we can/should potentially use }
+      wpoinfomanager.registerwpocomponentclass(tprogdevirtinfo);
+      wpoinfomanager.registerwpocomponentclass(twpodeadcodeinfofromexternallinker);
+
+      { assign input/output feedback files }
+      if (wpofeedbackinput<>'') then
+        wpoinfomanager.setwpoinputfile(wpofeedbackinput);
+      if (wpofeedbackoutput<>'') then
+        wpoinfomanager.setwpooutputfile(wpofeedbackoutput);
+
+      { parse input }
+      wpoinfomanager.parseandcheckwpoinfo;
+    end;
+
+
+  procedure DoneWpo;
+    begin
+      wpoinfomanager.free;
+      wpoinfomanager:=nil;
+    end;
+
 
 end.
 

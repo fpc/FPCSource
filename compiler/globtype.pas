@@ -189,7 +189,8 @@ interface
 
        { whole program optimizer }
        twpoptimizerswitch = (
-         cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts
+         cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts,
+         cs_wpo_symbol_liveness
        );
        twpoptimizerswitches = set of twpoptimizerswitch;
 
@@ -200,8 +201,8 @@ interface
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
        );
-       WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[11] = (
-         'DEVIRTCALLS','OPTVMTS'
+       WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
+         'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[9] = ('',

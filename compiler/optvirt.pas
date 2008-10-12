@@ -137,6 +137,7 @@ unit optvirt;
         class function getwpotype: twpotype; override;
         class function generatesinfoforwposwitches: twpoptimizerswitches; override;
         class function performswpoforswitches: twpoptimizerswitches; override;
+        class function sectionname: shortstring; override;
 
         { information collection }
         procedure constructfromcompilerstate; override;
@@ -662,6 +663,12 @@ unit optvirt;
       end;
 
 
+    class function tprogdevirtinfo.sectionname: shortstring;
+      begin
+        result:=DEVIRT_SECTION_NAME;
+      end;
+
+
     procedure reset_all_impl_defs;
 
       procedure reset_used_unit_impl_defs(hp:tmodule);
@@ -981,6 +988,4 @@ unit optvirt;
            staticname:=newname^;
       end;
 
-initialization
-  twpoinfomanagerbase.registersectionreader(DEVIRT_SECTION_NAME,tprogdevirtinfo);
 end.

@@ -763,13 +763,19 @@ const
   wpo_input_without_info_use=12010;
   wpo_skipping_unnecessary_section=12011;
   wpo_duplicate_wpotype=12012;
+  wpo_cannot_extract_live_symbol_info_strip=12013;
+  wpo_cannot_extract_live_symbol_info_no_link=12014;
+  wpo_cannot_find_symbol_progs=12015;
+  wpo_error_reading_symbol_file=12016;
+  wpo_error_executing_symbol_prog=12017;
+  wpo_symbol_live_info_needs_smart_linking=12018;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 48555;
+  MsgTxtSize = 49108;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,248,84,65,50,108,22,201,61,
-    43,13,1,1,1,1,1,1,1,1
+    43,19,1,1,1,1,1,1,1,1
   );

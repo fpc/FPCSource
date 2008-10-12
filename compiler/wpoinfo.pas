@@ -61,11 +61,9 @@ type
   twpoinfomanager = class(twpoinfomanagerbase)
     function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; override;
     function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; override;
+    function symbol_live(const name: shortstring): boolean; override;
   end;
 
-
-  procedure InitWpo;
-  procedure DoneWpo;
 
 implementation
 
@@ -120,7 +118,7 @@ implementation
     begin
       { load start of definition section, which holds the amount of defs }
       if ppufile.readentry<>ibcreatedobjtypes then
-        Message(unit_f_ppu_read_error);
+        cgmessage(unit_f_ppu_read_error);
       len:=ppufile.getlongint;
       fcreatedobjtypes:=tfpobjectlist.create(false);
       fcreatedobjtypes.count:=len;
@@ -203,22 +201,17 @@ implementation
     end;
 
 
-  procedure InitWpo;
+  function twpoinfomanager.symbol_live(const name: shortstring): boolean;
     begin
-      { always create so we don't have to litter the source with if-tests }
-      wpoinfomanager:=twpoinfomanager.create;
-      if (wpofeedbackinput<>'') then
-        wpoinfomanager.setwpoinputfile(wpofeedbackinput);
-      if (wpofeedbackoutput<>'') then
-        wpoinfomanager.setwpooutputfile(wpofeedbackoutput);
-      wpoinfomanager.parseandcheckwpoinfo;
+      if not assigned(wpoinfouse[wpo_live_symbol_information]) or
+         not(cs_wpo_symbol_liveness in current_settings.dowpoptimizerswitches) then
+        begin
+          { if we don't know, say that the symbol is live }
+          result:=true;
+          exit;
+        end;
+      result:=twpodeadcodehandler(wpoinfouse[wpo_live_symbol_information]).symbolinfinalbinary(name);
     end;
 
-
-  procedure DoneWpo;
-    begin
-      wpoinfomanager.free;
-      wpoinfomanager:=nil;
-    end;
 
 end.

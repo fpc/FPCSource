@@ -2504,7 +2504,7 @@ option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc
 % \section{Whole program optimisation messages}
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
-wpo_cant_find_file=12000_E_Cannot open whole program optimization feedback file $1
+wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file $1
 % The compiler cannot open the specified feedback file with whole program optimization information.
 wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
 % The compiler starts processing whole program optimization information found in the named file.
@@ -2519,7 +2519,7 @@ wpo_no_section_handler=12004_W_No handler registered for whole program optimizat
 wpo_found_section=12005_D_Found whole program optimization section "$1" with information about "$2"
 % The compiler encountered a section with whole program optimization information, and according
 % to its handler this section contains information usable for the mentioned purpose.
-wpo_no_input_specified=12006_E_The selected whole program optimizations require a previously generated feedback file (use -Fw to specify)
+wpo_no_input_specified=12006_F_The selected whole program optimizations require a previously generated feedback file (use -Fw to specify)
 % The compiler needs information gathered during a previous compilation run to perform the selected
 % whole program optimizations. You can specify the location of the feedback file containing this
 % information using the -Fw switch.
@@ -2527,7 +2527,7 @@ wpo_not_enough_info=12007_E_No collected information necessary to perform "$1" w
 % While you pointed the compiler to a file containing whole program optimization feedback, it
 % did not contain the information necessary to perform the selected optimizations. You most likely
 % have to recompile the program using the appropate -OWxxx switch.
-wpo_no_output_specified=12008_E_Specify a whole program optimization feedback file to store the generated info in (using -FW)
+wpo_no_output_specified=12008_F_Specify a whole program optimization feedback file to store the generated info in (using -FW)
 % You have to specify the feedback file in which the compiler has to store the whole program optimization
 % information that is generated during the compilation run. This can be done using the -FW switch.
 wpo_output_without_info_gen=12009_E_Not generating any whole program optimization information, yet a feedback file was specified (using -FW)
@@ -2546,6 +2546,25 @@ wpo_duplicate_wpotype=12012_W_Overriding previously read information for "$1" fr
 % information about which virtual methods can be devirtualized). In this case, the information in last encountered
 % seciont is used. Turn on debugging output (-vd) to see for each section what class of information
 % it provides.
+wpo_cannot_extract_live_symbol_info_strip=12013_E_Cannot extract symbol liveness information from program when stripping symbols, use -Xs-
+% Certain symbol liveness collectors extract the symbol information from the linked program. If the symbol information
+% is stripped (option -Xs), this is not possible.
+wpo_cannot_extract_live_symbol_info_no_link=12014_E_Cannot extract symbol liveness information from program when when not linking on host
+% Certain symbol liveness collectors extract the symbol information from the linked program. If the program does not
+% get linked by the compiler, this is not possible.
+wpo_cannot_find_symbol_progs=12015_F_Cannot find "$1" or "$2" to extract symbol liveness information from linked program
+% Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
+% This helper program is normally 'nm', which is part of the GNU binutils
+wpo_error_reading_symbol_file=12016_E_Error during reading symbol liveness information produced by "$2"
+% An error occurred during the reading of the symbol liveness file that was generated using the 'nm' or 'objdump' program. The reason
+% can be that it was shorter than expected, or that its format was not understood.
+wpo_error_executing_symbol_prog=12017_F_Error executing "$1" (exitcode: $2) to extract symbol information from linked program
+% Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
+% The helper program produced the reported error code when it was ran on the linked program.
+wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness information can only help when using smart linking, use -CX -XX
+% Whether or not a symbol is live is determined by looking whether it exists in the final linked program.
+% Without smart linking/dead code stripping, all symbols are always included, regardless of whether they are
+% actually used or not. So in that case all symbols will be seen as live, even if they are not.
 %\end{description}
 # EndOfTeX
 
