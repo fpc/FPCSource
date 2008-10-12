@@ -708,6 +708,7 @@ ide/unit.pt -text
 ide/vesa.pas svneol=native#text/plain
 ide/wansi.pas svneol=native#text/plain
 ide/wcedit.pas svneol=native#text/plain
+ide/wchmhwrap.pas svneol=native#text/plain
 ide/wconsole.pas svneol=native#text/plain
 ide/wconsts.pas svneol=native#text/plain
 ide/wconstse.inc svneol=native#text/plain
