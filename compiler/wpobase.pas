@@ -69,7 +69,7 @@ type
     }
     class function getwpotype: twpotype; virtual; abstract;
 
-    { whole program optimizations for which this class generated information }
+    { whole program optimizations for which this class generates information }
     class function generatesinfoforwposwitches: twpoptimizerswitches; virtual; abstract;
 
     { whole program optimizations performed by this class }
@@ -93,7 +93,7 @@ type
     }
     procedure storewpofilesection(writer: twposectionwriterintf); virtual; abstract;
 
-    { extracts the informations pertinent to this whole program optimization
+    { extracts the information pertinent to this whole program optimization
       from the current compiler state (loaded units, ...)
     }
     procedure constructfromcompilerstate; virtual; abstract;
@@ -143,7 +143,7 @@ type
   twpofilewriter = class(tobject,twposectionwriterintf)
    private
     { array of class *instances* that wish to be written out to the
-      whole program optimization
+      whole program optimization feedback file
     }
     fsectioncontents: tfpobjectlist;
 
@@ -161,6 +161,9 @@ type
     { writes s to the wpo file }
     procedure sectionputline(const s: string);
 
+    { register a component instance that needs to be written
+      to the wpo feedback file
+    }
     procedure registerwpocomponent(component: twpocomponentbase);
   end;
 
@@ -202,8 +205,9 @@ type
 
   { method devirtualisation }
   twpodevirtualisationhandler = class(twpocomponentbase)
-    { checks whether def (a procdef for a virtual method) can be replaced with
-      a static call, and if so returns the mangled name in staticname.
+    { checks whether procdef (a procdef for a virtual method) can be replaced with
+      a static call when it's called as objdef.procdef, and if so returns the
+      mangled name in staticname.
     }
     function staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
   end;
@@ -227,25 +231,46 @@ type
   twpoinfomanagerbase = class
    private
     { array of classrefs of handler classes for the various kinds of whole
-      program optimization that we support
+      program optimizations that we support
     }
     fwpocomponents: tfphashlist;
 
     freader: twpofilereader;
     fwriter: twpofilewriter;
    public
-    procedure registerwpocomponentclass(wpocomponent: twpocomponentbaseclass);
-    function gethandlerforsection(const secname: string): twpocomponentbaseclass;
-
     { instances of the various optimizers/information collectors (for
       information used during this compilation)
     }
     wpoinfouse: array[twpotype] of twpocomponentbase;
 
+    { register a whole program optimization class type }
+    procedure registerwpocomponentclass(wpocomponent: twpocomponentbaseclass);
+
+    { get the program optimization class type that can parse the contents
+      of the section with name "secname" in the wpo feedback file
+    }
+    function gethandlerforsection(const secname: string): twpocomponentbaseclass;
+
+    { tell all instantiated wpo component classes to collect the information
+      from the global compiler state that they need (done at the very end of
+      the compilation process)
+    }
     procedure extractwpoinfofromprogram;
 
+    { set the name of the feedback file from which all whole-program information
+      to be used during the current compilation will be read
+    }
     procedure setwpoinputfile(const fn: tcmdstr);
+
+    { set the name of the feedback file to which all whole-program information
+      collected during the current compilation will be written
+    }
     procedure setwpooutputfile(const fn: tcmdstr);
+
+    { check whether the specified wpo options (-FW/-Fw/-OW/-Ow) are complete
+      and sensical, and parse the wpo feedback file specified with
+      setwpoinputfile
+    }
     procedure parseandcheckwpoinfo;
 
     { routines accessing the optimizer information }
@@ -253,7 +278,7 @@ type
     function can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
     { 2) optimal replacement method name in vmt }
     function optimized_name_for_vmt(objdef, procdef: tdef; out name: shortstring): boolean; virtual; abstract;
-    { 3) is a symbol in the final binary (i.e., not removed by dead code stripping/smart linking).
+    { 3) does a symbol appear in the final binary (i.e., not removed by dead code stripping/smart linking).
         WARNING: do *not* call for inline functions/procedures/methods/...
     }
     function symbol_live(const name: shortstring): boolean; virtual; abstract;

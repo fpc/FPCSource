@@ -255,7 +255,8 @@ unit optvirt;
           begin
             { recursively add parent, of which we have no info about whether or not it is
               instantiated at this point -> default to false (will be overridden by "true"
-              if necessary)
+              if this class is instantioted, since then registerinstantiatedobjdef() will
+              be called for this class as well)
             }
             result:=registerinstantiatedobjectdefrecursive(def.childof,false);
             { and add ourselves to the parent }
@@ -284,7 +285,7 @@ unit optvirt;
         if (def.typ=objectdef) then
           classrefdefs.add(def)
         else
-          internalerror(2008092401);
+          internalerror(2008101401);
       end;
 
 
@@ -411,7 +412,7 @@ unit optvirt;
                   if not assigned(currnode.def.vmtentries) then
                     break;
                 end;
-              { stop when this method is does not exist in a parent }
+              { stop when this method does not exist in a parent }
               if (currnode.def.vmtentries.count<=i) then
                 break;
               
@@ -442,6 +443,7 @@ unit optvirt;
                       {$IFDEF DEBUG_DEVIRT}
                       writeln('    marking as non-static for ',currnode.def.typename);
                       {$ENDIF}
+                      { this vmt entry must also remain virtual for all parents }
                       makeallvirtual:=true;
                       currnode.def.vmcallstaticinfo^[i]:=vmcs_no;
                     end;
@@ -452,7 +454,7 @@ unit optvirt;
                   {$IFDEF DEBUG_DEVIRT}
                   writeln('    not processing parents, already non-static for ',currnode.def.typename);
                   {$ENDIF}
-                  { parents are also already set to vmcs_no, so no need to continue }
+                  { parents are already set to vmcs_no, so no need to continue }
                   currnode:=nil;
                 end;
             until not assigned(currnode) or
@@ -717,7 +719,7 @@ unit optvirt;
            a type defined in the implementation of one unit in another unit).
 
            Here, we want to record all classes constructed anywhere in the
-           program, also if those class(refdef) types are defined in the
+           program, also if those class(ref) types are defined in the
            implementation of a unit. So reset the state of all defs in
            implementation sections before starting the collection process. }
          reset_all_impl_defs;
@@ -792,7 +794,7 @@ unit optvirt;
               removed from their symtable but not from the module's deflist)
 
               procedure-local (or class-local) class definitions do not (yet)
-              exit, so it's enough to just walk the global and localsymtables
+              exit, so it's enough to just walk the global and local symtables
             }
             { globalsymtable (interface), is nil for main program itself }
             if assigned(hp.globalsymtable) then
@@ -813,6 +815,7 @@ unit optvirt;
          inheritancetree.free;
       end;
 
+
     function tprogdevirtinfo.addunitifnew(const n: shortstring): tunitdevirtinfo;
       begin
         if assigned(funits) then
@@ -828,10 +831,12 @@ unit optvirt;
           end;
       end;
 
+
     function tprogdevirtinfo.findunit(const n: shortstring): tunitdevirtinfo;
       begin
         result:=tunitdevirtinfo(funits.find(n));
       end;
+
 
     procedure tprogdevirtinfo.loadfromwpofilesection(reader: twposectionreaderintf);
       var
@@ -914,6 +919,7 @@ unit optvirt;
         until false;
       end;
 
+
     procedure tprogdevirtinfo.storewpofilesection(writer: twposectionwriterintf);
       var
         unitcount,
@@ -945,6 +951,7 @@ unit optvirt;
           end;
       end;
 
+
     function tprogdevirtinfo.staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean;
       var
         unitid,
@@ -956,7 +963,7 @@ unit optvirt;
         realobjdef: tobjectdef;
       begin
          { class methods are in the regular vmt, so we can handle classrefs
-           the same as plain objectdefs
+           the same way as plain objectdefs
          }
          if (objdef.typ=classrefdef) then
            realobjdef:=tobjectdef(tclassrefdef(objdef).pointeddef)
@@ -971,7 +978,7 @@ unit optvirt;
            end;
 
          { get the component names for the class/procdef combo }
-         defsdecompose(realobjdef, tprocdef(procdef),unitid,classid,vmtentry);
+         defsdecompose(realobjdef,tprocdef(procdef),unitid,classid,vmtentry);
 
          { do we have any info for this unit? }
          unitdevirtinfo:=findunit(unitid^);
