@@ -65,6 +65,8 @@ implementation
     begin
       wpoinfomanager.free;
       wpoinfomanager:=nil;
+      wpofeedbackinput:='';
+      wpofeedbackoutput:='';
     end;
 
 
