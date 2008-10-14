@@ -315,7 +315,7 @@ const
             ...
         }
         result:=false;
-        while (pos(' F .text',line)<=0) do
+        while (pos(objdumpsearchstr,line)<=0) do
           begin
             if failiferror(eof(fsymfile)) then
               exit;
