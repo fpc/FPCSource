@@ -750,13 +750,14 @@ const
   option_config_is_dir=11040;
   option_confict_asm_debug=11041;
   option_ppc386_deprecated=11042;
+  option_else_without_if=11043;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 47307;
+  MsgTxtSize = 47481;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,248,84,65,50,108,22,201,61,
-    43,1,1,1,1,1,1,1,1,1
+    44,1,1,1,1,1,1,1,1,1
   );
