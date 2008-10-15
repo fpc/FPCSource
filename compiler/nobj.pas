@@ -55,9 +55,9 @@ interface
         VMTSymEntryList : TFPHashObjectList;
         has_constructor,
         has_virtual_method : boolean;
-        function is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef; check_visibility: boolean):boolean;
+        function is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
         procedure add_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef);
-        procedure add_vmt_entries(objdef:tobjectdef; check_visibility: boolean);
+        procedure add_vmt_entries(objdef:tobjectdef);
         function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
         procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
         procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
@@ -66,7 +66,7 @@ interface
       public
         constructor create(c:tobjectdef);
         destructor  destroy;override;
-        procedure generate_vmt(check_visibility: boolean);
+        procedure generate_vmt;
       end;
 
     type
@@ -235,7 +235,7 @@ implementation
       end;
 
 
-    function TVMTBuilder.is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef; check_visibility: boolean):boolean;
+    function TVMTBuilder.is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
       const
         po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
@@ -283,11 +283,10 @@ implementation
                       begin
                         if is_visible then
                           procdefcoll^.hidden:=true;
-                        if check_visibility then
-                          if (pd._class=procdefcoll^.data._class) then
-                             MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                          else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                            MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                        if (pd._class=procdefcoll^.data._class) then
+                           MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                        else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                       end;
                   end
                 { if both are virtual we check the header }
@@ -305,11 +304,10 @@ implementation
                           begin
                             if is_visible then
                               procdefcoll^.hidden:=true;
-                            if check_visibility then
-                              if (pd._class=procdefcoll^.data._class) then
-                                MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                              else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                            if (pd._class=procdefcoll^.data._class) then
+                              MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                            else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
                           end;
                       end
                     { same parameter and return types (parameter specifiers will be checked below) }
@@ -344,8 +342,7 @@ implementation
                           for the current parsed class. Parent classes are already validated and
                           need to include all virtual methods including the ones not visible in the
                           current class }
-                        if check_visibility and
-                           (_class=pd._class) and
+                        if (_class=pd._class) and
                            (po_overridingmethod in pd.procoptions) and
                            (not procdefcoll^.visible) then
                           MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
@@ -373,15 +370,14 @@ implementation
                         begin
                           if is_visible then
                             procdefcoll^.hidden:=true;
-                          if check_visibility then
-                            if (pd._class=procdefcoll^.data._class) then
-                              MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                            else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                              if not is_object(_class) then
-                                MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
-                              else
-                                { objects don't allow starting a new virtual tree }
-                                MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,procdefcoll^.data.fullprocname(false));
+                          if (pd._class=procdefcoll^.data._class) then
+                            MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
+                          else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
+                            if not is_object(_class) then
+                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                            else
+                              { objects don't allow starting a new virtual tree }
+                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,procdefcoll^.data.fullprocname(false));
                         end;
                      end;
                   end
@@ -414,7 +410,7 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.add_vmt_entries(objdef:tobjectdef; check_visibility: boolean);
+    procedure TVMTBuilder.add_vmt_entries(objdef:tobjectdef);
       var
          def : tdef;
          pd  : tprocdef;
@@ -423,7 +419,7 @@ implementation
       begin
         { start with the base class }
         if assigned(objdef.childof) then
-          add_vmt_entries(objdef.childof,check_visibility);
+          add_vmt_entries(objdef.childof);
         { process all procdefs, we must process the defs to
           keep the same order as that is written in the source
           to be compatible with the indexes in the interface vtable (PFV) }
@@ -438,7 +434,7 @@ implementation
                 if not assigned(VMTSymEntry) then
                   VMTSymEntry:=TVMTSymEntry.Create(VMTSymEntryList,pd.procsym.name);
                 { VMT entry }
-                if is_new_vmt_entry(VMTSymEntry,pd,check_visibility) then
+                if is_new_vmt_entry(VMTSymEntry,pd) then
                   add_new_vmt_entry(VMTSymEntry,pd);
               end;
           end;
@@ -668,7 +664,7 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.generate_vmt(check_visibility: boolean);
+    procedure TVMTBuilder.generate_vmt;
       var
         i : longint;
         ImplIntf : TImplementedInterface;
@@ -676,27 +672,26 @@ implementation
         { Find VMT entries }
         has_constructor:=false;
         has_virtual_method:=false;
-        add_vmt_entries(_class,check_visibility);
+        add_vmt_entries(_class);
         if not(is_interface(_class)) and
            has_virtual_method and
            not(has_constructor) then
           Message1(parser_w_virtual_without_constructor,_class.objrealname^);
 
         { Find Procdefs implementing the interfaces }
-        if check_visibility then
-          if assigned(_class.ImplementedInterfaces) then
-            begin
-              { Collect implementor functions into the tImplementedInterface.procdefs }
-              for i:=0 to _class.ImplementedInterfaces.count-1 do
-                begin
-                  ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-                  intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
-                end;
-              { Optimize interface tables to reuse wrappers }
-              intf_optimize_vtbls;
-              { Allocate interface tables }
-              intf_allocate_vtbls;
-            end;
+        if assigned(_class.ImplementedInterfaces) then
+          begin
+            { Collect implementor functions into the tImplementedInterface.procdefs }
+            for i:=0 to _class.ImplementedInterfaces.count-1 do
+              begin
+                ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
+              end;
+            { Optimize interface tables to reuse wrappers }
+            intf_optimize_vtbls;
+            { Allocate interface tables }
+            intf_allocate_vtbls;
+          end;
       end;
 
 
@@ -1326,9 +1321,6 @@ implementation
            current_asmdata.asmlists[al_globals].concat(tai_symbol.CreateName(hs,AT_DATA,0));
 {$endif vtentry}
          end;
-        { release VMTEntries, we don't need them anymore }
-        _class.VMTEntries.free;
-        _class.VMTEntries:=nil;
       end;
 
 

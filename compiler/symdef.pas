@@ -226,7 +226,11 @@ interface
        tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
        pmvcallstaticinfo = ^tmvcallstaticinfo;
        tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
+       pderefarray = ^tderefarray;
+       tderefarray = array[0..1024*1024-1] of tderef;
        tobjectdef = class(tabstractrecorddef)
+       private
+          vmtentriesderefs: pderefarray;
        public
           dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
@@ -3718,7 +3722,8 @@ implementation
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
          i,
-         implintfcount : longint;
+         implintfcount,
+         vmtentrycount  : longint;
          d : tderef;
          ImplIntf : TImplementedInterface;
       begin
@@ -3759,6 +3764,17 @@ implementation
            end
          else
            ImplementedInterfaces:=nil;
+
+         { load vmt procdefs }
+         vmtentrycount:=ppufile.getlongint;
+         if (vmtentrycount<>0) then
+           begin
+             vmtentries:=tfpobjectlist.create(false);
+             vmtentries.count:=vmtentrycount;
+             getmem(vmtentriesderefs,vmtentrycount*sizeof(tderef));
+             for i:=0 to vmtentrycount-1 do
+               ppufile.getderef(vmtentriesderefs^[i]);
+           end;
 
          if df_copied_def in defoptions then
            ppufile.getderef(cloneddefderef)
@@ -3880,6 +3896,16 @@ implementation
                end;
            end;
 
+         { write vmt procdefs }
+         if assigned(vmtentries) then
+           begin
+             ppufile.putlongint(vmtentries.count);
+             for i:=0 to vmtentries.count-1 do
+               ppufile.putderef(vmtentriesderefs^[i]);
+           end
+         else
+           ppufile.putlongint(0);
+
          if df_copied_def in defoptions then
            ppufile.putderef(cloneddefderef);
 
@@ -3919,6 +3945,13 @@ implementation
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).buildderef;
            end;
+
+         if assigned(vmtentries) then
+           begin
+             getmem(vmtentriesderefs,vmtentries.count*sizeof(tderef));
+             for i:=0 to vmtentries.count-1 do
+               vmtentriesderefs^[i].build(vmtentries[i]);
+           end;
       end;
 
 
@@ -3939,6 +3972,14 @@ implementation
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).deref;
+           end;
+
+         if assigned(vmtentries) then
+           begin
+             for i:=0 to vmtentries.count-1 do
+               vmtentries[i]:=vmtentriesderefs^[i].resolve;
+             freemem(vmtentriesderefs);
+             vmtentriesderefs:=nil;
            end;
       end;
 

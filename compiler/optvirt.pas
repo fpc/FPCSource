@@ -372,14 +372,7 @@ unit optvirt;
         {$ENDIF}
         { todo: also process interfaces (ImplementedInterfaces) }
         if not assigned(node.def.vmtentries) then
-          begin
-            vmtbuilder:=tvmtbuilder.create(node.def);
-            vmtbuilder.generate_vmt(false);
-            vmtbuilder.free;
-            { may not have any virtual methods }
-            if not assigned(node.def.vmtentries) then
-              exit;
-          end;
+          exit;
         { process all vmt entries for this class/object }
         for i:=0 to node.def.vmtentries.count-1 do
           begin
@@ -403,17 +396,10 @@ unit optvirt;
             }
             makeallvirtual:=false;
             repeat
-              if not assigned(currnode.def.vmtentries) then
-                begin
-                  vmtbuilder:=tvmtbuilder.create(currnode.def);
-                  vmtbuilder.generate_vmt(false);
-                  vmtbuilder.free;
-                  { may not have any vmtentries }
-                  if not assigned(currnode.def.vmtentries) then
-                    break;
-                end;
-              { stop when this method does not exist in a parent }
-              if (currnode.def.vmtentries.count<=i) then
+                 { this parent may not have any virtual methods }
+              if not assigned(currnode.def.vmtentries) or
+                 { stop when this method does not exist in a parent }
+                 (currnode.def.vmtentries.count<=i) then
                 break;
               
               if not assigned(currnode.def.vmcallstaticinfo) then
@@ -928,7 +914,8 @@ unit optvirt;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
       begin
-        if (funits.count=0) then
+        { if there are no optimised virtual methods, we have stored no info }
+        if not assigned(funits) then
           exit;
         writer.startsection(DEVIRT_SECTION_NAME);
         for unitcount:=0 to funits.count-1 do
