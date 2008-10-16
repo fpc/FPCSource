@@ -108,8 +108,9 @@ const
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
-    Function  FpPause   : cInt; cdecl external clib name 'pause';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl; external clib name 'fcntl';
+    Function  FpPause   : cInt; cdecl; external clib name 'pause';
+    Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
 {$ifdef solaris}   
 {$linklib md5} 
 {$linklib aio}
