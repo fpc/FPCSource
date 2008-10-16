@@ -215,10 +215,8 @@
       30C DumpKCallProfile
       3DB EnableCaretSystemWide
       553 EnableEUDC
-       BF EnumDevices
       50E EnumDisplayDevices
       666 EnumDisplayMonitors
-       BE EnumPnpIds
       14D EnumUILanguagesW
       374 ExtractResource
       17F FileSystemPowerFunction
@@ -239,7 +237,6 @@
        29 GetCurrentFT
       39F GetCurrentPermissions
       186 GetDeviceByIndex
-       C0 GetDeviceKeys
       2FA GetEventData
       394 GetFSHeapInfo
       407 GetForegroundInfo
@@ -377,7 +374,6 @@
       36F NKvDbgPrintfW
       30F NotifyForceCleanboot
       410 NotifyWinUserSystem
-       C1 OpenDeviceKey
       395 OtherThreadsRunning
       3BB PPSHRestart
         C PSLNotify
@@ -401,7 +397,6 @@
       2D4 PegSetUserNotification
       1CE PegWriteRecordProps
       2F1 PerformCallBack4
-      267 PlaySoundW
       3A3 PowerOffSystem
       37C PrintTrackedItem
       373 ProcessDetachAllDLLs
@@ -1886,16 +1881,6 @@
       584 ldexp
       585 ldiv
       589 longjmp
-      2B2 mixerClose
-      2A9 mixerGetControlDetails
-      2AA mixerGetDevCaps
-      2AB mixerGetID
-      2AC mixerGetLineControls
-      2AD mixerGetLineInfo
-      2AE mixerGetNumDevs
-      2AF mixerMessage
-      2B0 mixerOpen
-      2B1 mixerSetControlDetails
       596 modf
       599 pow
       60D printf
@@ -1909,7 +1894,6 @@
       62F setvbuf
       5A0 sin
       5A1 sinh
-      266 sndPlaySoundW
       608 sprintf
       5A2 sqrt
       68E sqrtf
@@ -1948,41 +1932,6 @@
       609 vsprintf
       604 vswprintf
       633 vwprintf
-      283 waveInAddBuffer
-      280 waveInClose
-      27E waveInGetDevCaps
-      27F waveInGetErrorText
-      288 waveInGetID
-      27D waveInGetNumDevs
-      287 waveInGetPosition
-      289 waveInMessage
-      28A waveInOpen
-      281 waveInPrepareHeader
-      286 waveInReset
-      284 waveInStart
-      285 waveInStop
-      282 waveInUnprepareHeader
-      274 waveOutBreakLoop
-      26D waveOutClose
-      269 waveOutGetDevCaps
-      26C waveOutGetErrorText
-      27A waveOutGetID
-      268 waveOutGetNumDevs
-      276 waveOutGetPitch
-      278 waveOutGetPlaybackRate
-      275 waveOutGetPosition
-      26A waveOutGetVolume
-      27B waveOutMessage
-      27C waveOutOpen
-      271 waveOutPause
-      26E waveOutPrepareHeader
-      273 waveOutReset
-      272 waveOutRestart
-      277 waveOutSetPitch
-      279 waveOutSetPlaybackRate
-      26B waveOutSetVolume
-      26F waveOutUnprepareHeader
-      270 waveOutWrite
       632 wprintf
       631 wscanf
 

@@ -7120,6 +7120,25 @@
      TVSFIXEDFILEINFO = VS_FIXEDFILEINFO;
      PVSFIXEDFILEINFO = ^VS_FIXEDFILEINFO;
 
+
+// Windows CE File API definitions copied from NT's winbase.h
+     _WIN32_FIND_DATAA =record
+       dwFileAttributes:DWORD;
+       ftCreationTime:FILETIME;
+       ftLastAccessTime:FILETIME;
+       ftLastWriteTime:FILETIME;
+       nFileSizeHigh:DWORD;
+       nFileSizeLow:DWORD;
+       dwReserved0:DWORD;
+       dwReserved1:DWORD;
+       cFileName:array[0..MAX_PATH-1] of char;
+       cAlternateFileName:array[0..13] of char;
+     end;
+     WIN32_FIND_DATAA = _WIN32_FIND_DATAA;
+     PWIN32_FIND_DATAA = ^_WIN32_FIND_DATAA;
+     LPWIN32_FIND_DATAA = ^_WIN32_FIND_DATAA;
+
+
      WIN32_FIND_DATAW = record
           dwFileAttributes : DWORD;
           ftCreationTime : FILETIME;
@@ -7128,7 +7147,7 @@
           nFileSizeHigh : DWORD;
           nFileSizeLow : DWORD;
           dwOID: DWORD;
-          cFileName : array[0..MAX_PATH] of WCHAR;
+          cFileName : array[0..MAX_PATH-1] of WCHAR;
        end;
 
      LPWIN32_FIND_DATAW = ^WIN32_FIND_DATAW;

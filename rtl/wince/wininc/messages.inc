@@ -227,7 +227,8 @@
      EM_STREAMIN = 1097;
      EM_STREAMOUT = 1098;
      EM_UNDO = 199;
-  { Edit control  }
+
+  { Edit control notifications  }
      EN_SETFOCUS     =$0100;
      EN_KILLFOCUS    =$0200;
      EN_CHANGE       =$0300;
@@ -236,6 +237,9 @@
      EN_MAXTEXT      =$0501;
      EN_HSCROLL      =$0601;
      EN_VSCROLL      =$0602;
+     EN_ALIGN_LTR_EC = $0700;
+     EN_ALIGN_RTL_EC = $0701;
+
 
      EN_CORRECTTEXT = 1797;
      EN_DROPFILES = 1795;

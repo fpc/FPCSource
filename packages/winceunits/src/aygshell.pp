@@ -43,7 +43,6 @@
             29    ComboEditAutoComplete
             45    ComboSubProc
            190    CreateImageCache
-          2021    DMProcessConfigXML
            330    DPI_ExtractIconEx
            311    DPI_LoadImageFile
            310    DPI_LoadLibraryRes
