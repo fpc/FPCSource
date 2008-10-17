@@ -471,7 +471,11 @@ type
 {$endif cpum68k}
 
 {$ifdef cpuarm}
-{$define OLDMMAP}
+  {$ifdef FPC_ABI_EABI}
+    {$define MMAP2}
+  {$else FPC_ABI_EABI}
+    {$define OLDMMAP}
+  {$endif FPC_ABI_EABI}
 {$endif cpuarm}
 
 
@@ -491,11 +495,19 @@ begin
   Fpmmap:=pointer(do_syscall(syscall_nr_mmap,TSysParam(@MMapArgs)));
 end;
 {$else OLDMMAP}
+{$ifdef MMAP2}
+begin
+  {$message warning need mmap64 syscall, hi(off) not used}
+  Fpmmap:= pointer(do_syscall(syscall_nr_mmap2,TSysParam(adr),TSysParam(len),
+    TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
+end;
+{$else MMAP2}
 begin
   {$message warning need mmap64 syscall, hi(off) not used}
   Fpmmap:= pointer(do_syscall(syscall_nr_mmap,TSysParam(adr),TSysParam(len),
     TSysParam(prot),TSysParam(flags),TSysParam(fd),TSysParam(lo(off))));
 end;
+{$endif MMAP2}
 {$endif OLDMMAP}
 
 

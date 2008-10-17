@@ -33,7 +33,8 @@
   {$endif}
 {$endif}
 
-{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386)}
+{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386) or
+  (defined(cpuarm) and defined(FPC_ABI_EABI))}
   {$DEFINE has_ugetrlimit}
 {$endif}
 
