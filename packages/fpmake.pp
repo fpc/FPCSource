@@ -39,13 +39,13 @@ The include lines below are generated with the following command:
 {$include fcl-passrc/fpmake.pp}
 {$include fcl-process/fpmake.pp}
 {$include fcl-registry/fpmake.pp}
+{$include fcl-res/fpmake.pp}
 {$include fcl-web/fpmake.pp}
 {$include fcl-xml/fpmake.pp}
 {$include fftw/fpmake.pp}
 {$include fpgtk/fpmake.pp}
 {$include fpmkunit/fpmake.pp}
 {$include fv/fpmake.pp}
-{$include gbaunits/fpmake.pp}
 {$include gdbint/fpmake.pp}
 {$include gdbm/fpmake.pp}
 {$include ggi/fpmake.pp}
@@ -59,11 +59,13 @@ The include lines below are generated with the following command:
 {$include httpd20/fpmake.pp}
 {$include httpd22/fpmake.pp}
 {$include ibase/fpmake.pp}
+{$include iconvenc/fpmake.pp}
 {$include imagemagick/fpmake.pp}
 {$include imlib/fpmake.pp}
 {$include ldap/fpmake.pp}
 {$include libc/fpmake.pp}
 {$include libcurl/fpmake.pp}
+{$include libgbafpc/fpmake.pp}
 {$include libgd/fpmake.pp}
 {$include libndsfpc/fpmake.pp}
 {$include libpng/fpmake.pp}
@@ -114,7 +116,7 @@ The include lines below are generated with the following command:
 
     // Create fpc-all package
     PBuild:=AddPackage('fpc-all');
-    PBuild.Version:='2.2.1-1';
+    PBuild.Version:='2.2.2-0';
     for i:=0 to Packages.Count-1 do
       begin
         P:=Packages.PackageItems[i];

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-jedi';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
     P.OSes:=[win32,win64];
 
     P.Dependencies.Add('winunits-base');

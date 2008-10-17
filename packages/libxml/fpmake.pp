@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.32';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
   T:=P.Targets.AddUnit('libxml2.pas');

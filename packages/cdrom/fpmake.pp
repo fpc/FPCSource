@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cdrom';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
     P.OSes:=[Win32,Win64,Linux];
 
     P.SourcePath.Add('src');

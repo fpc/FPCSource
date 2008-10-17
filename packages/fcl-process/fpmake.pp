@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-process';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1-1';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);

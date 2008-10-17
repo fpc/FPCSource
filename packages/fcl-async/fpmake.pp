@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-async';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/win',AllWindowsOSes);

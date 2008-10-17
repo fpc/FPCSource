@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cairo';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     P.Dependencies.Add('x11',AllUnixOSes);
@@ -36,7 +36,7 @@ begin
         AddUnit('xlib');
         AddUnit('xrender');
       end;
-   T:=P.Targets.AddUnit('cairowin32.pp',AllWindowOses);
+   T:=P.Targets.AddUnit('cairowin32.pp',AllWindowsOses);
     with T.Dependencies do
       begin
         AddUnit('cairo');

@@ -15,7 +15,7 @@ begin
     P:=AddPackage('amunits');
 {$ifdef ALLPACKAGES}
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
     P.CPUs:=[m68k];
     P.OSes:=[Amiga];
 

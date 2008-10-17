@@ -17,12 +17,12 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
 
     D:=P.Dependencies.Add('paszlib');
-      D.Version:='2.2.1';
+      D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.2.1';
+      D.Version:='2.2.2-0';
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

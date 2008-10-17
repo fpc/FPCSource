@@ -2727,7 +2727,6 @@ packages/iconvenc/examples/Makefile svneol=native#text/plain
 packages/iconvenc/examples/Makefile.fpc svneol=native#text/plain
 packages/iconvenc/examples/iconvtest.pp svneol=native#text/plain
 packages/iconvenc/fpmake.pp svneol=native#text/plain
-packages/iconvenc/manifest.xml svneol=native#text/plain
 packages/iconvenc/src/iconvenc.pas svneol=native#text/plain
 packages/imagemagick/Makefile svneol=native#text/plain
 packages/imagemagick/Makefile.fpc svneol=native#text/plain
