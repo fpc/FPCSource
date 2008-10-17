@@ -849,6 +849,22 @@
      TCOLORMAP = COLORMAP;
      PCOLORMAP = ^COLORMAP;
 
+{*
+ * Combo Box Structures
+ *}
+     tagCOMBOBOXINFO = record
+       cbSize:DWORD;
+       rcItem:RECT;
+       rcButton:RECT;
+       stateButton:DWORD; // Currently unsupported on CE
+       hwndCombo:HWND;
+       hwndItem:HWND;
+       hwndList:HWND;
+     end;
+     COMBOBOXINFO = tagCOMBOBOXINFO;
+     PCOMBOBOXINFO = ^tagCOMBOBOXINFO;
+     LPCOMBOBOXINFO = ^tagCOMBOBOXINFO;
+
      DCB = record
           DCBlength : DWORD;
           BaudRate : DWORD;
@@ -7644,7 +7660,7 @@ type
 
   tagBSTRBLOB = record
     cbsize : ULONG;
-	  pdata  : pbyte;
+    pdata  : pbyte;
   end;
   BSTRBLOB=TagBSTRBlob;
   TBSTRBLOB=BSTRBLOB;

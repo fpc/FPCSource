@@ -1,12 +1,25 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2008 Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ ********************************************************************** }
+
 //
 // Module Name:
 //
-//	  wininet.h
+//    wininet.h
 //
 // Abstract:
 //
-//  	Contains manifests, macros, types and prototypes for Microsoft Windows
-//  	Internet Extensions
+//    Contains manifests, macros, types and prototypes for Microsoft Windows
+//    Internet Extensions
 //
 
 //
@@ -267,19 +280,19 @@ const
 
 type
      INTERNET_SCHEME = (INTERNET_SCHEME_PARTIAL := -2,
-	                       INTERNET_SCHEME_UNKNOWN := -1,
-	                       INTERNET_SCHEME_DEFAULT := 0,
-	                       INTERNET_SCHEME_FTP,
-	                       INTERNET_SCHEME_GOPHER,
-	                       INTERNET_SCHEME_HTTP,
-	                       INTERNET_SCHEME_HTTPS,
-	                       INTERNET_SCHEME_FILE,
-	                       INTERNET_SCHEME_NEWS,
-	                       INTERNET_SCHEME_MAILTO,
-	                       INTERNET_SCHEME_SOCKS,
-	                       INTERNET_SCHEME_JAVASCRIPT,
-	                       INTERNET_SCHEME_VBSCRIPT,
-	                       INTERNET_SCHEME_RES);
+                         INTERNET_SCHEME_UNKNOWN := -1,
+                         INTERNET_SCHEME_DEFAULT := 0,
+                         INTERNET_SCHEME_FTP,
+                         INTERNET_SCHEME_GOPHER,
+                         INTERNET_SCHEME_HTTP,
+                         INTERNET_SCHEME_HTTPS,
+                         INTERNET_SCHEME_FILE,
+                         INTERNET_SCHEME_NEWS,
+                         INTERNET_SCHEME_MAILTO,
+                         INTERNET_SCHEME_SOCKS,
+                         INTERNET_SCHEME_JAVASCRIPT,
+                         INTERNET_SCHEME_VBSCRIPT,
+                         INTERNET_SCHEME_RES);
 
 const
       INTERNET_SCHEME_FIRST = INTERNET_SCHEME_FTP;
@@ -300,14 +313,14 @@ type
 
 type
      INTERNET_ASYNC_RESULT = record
-	     //
-	     // dwResult - the HINTERNET, DWORD or BOOL return code from an async API
-	     //
-	      dwResult:DWORD_PTR;
+       //
+       // dwResult - the HINTERNET, DWORD or BOOL return code from an async API
+       //
+        dwResult:DWORD_PTR;
       //
-	     // dwError - the error code if the API failed
-	     //
-	      dwError:DWORD;
+       // dwError - the error code if the API failed
+       //
+        dwError:DWORD;
      end;
      LPINTERNET_ASYNC_RESULT = ^INTERNET_ASYNC_RESULT;
 
@@ -346,21 +359,21 @@ type
 //
 type
      INTERNET_PER_CONN_OPTIONA = record
-	      dwOption:DWORD;			 // option to be queried or set
+        dwOption:DWORD;      // option to be queried or set
        case DWORD of
-         0: (dwValue:DWORD);		 // dword value for the option
-         1: (pszValue:LPSTR);		 // pointer to string value for the option
-		       2: (ftValue:FILETIME);		 // file-time value for the option
+         0: (dwValue:DWORD);     // dword value for the option
+         1: (pszValue:LPSTR);    // pointer to string value for the option
+           2: (ftValue:FILETIME);    // file-time value for the option
      end;
      LPINTERNET_PER_CONN_OPTIONA = ^INTERNET_PER_CONN_OPTIONA;
 
 type
      INTERNET_PER_CONN_OPTIONW = record
-	      dwOption:DWORD;			 // option to be queried or set
+        dwOption:DWORD;      // option to be queried or set
        case DWORD of
-         0: (dwValue:DWORD);		 // dword value for the option
-         1: (pszValue:LPWSTR);		 // pointer to string value for the option
-		       2: (ftValue:FILETIME);		 // file-time value for the option
+         0: (dwValue:DWORD);     // dword value for the option
+         1: (pszValue:LPWSTR);     // pointer to string value for the option
+           2: (ftValue:FILETIME);    // file-time value for the option
      end;
      LPINTERNET_PER_CONN_OPTIONW = ^INTERNET_PER_CONN_OPTIONW;
 
@@ -376,21 +389,21 @@ type
 
 type
      INTERNET_PER_CONN_OPTION_LISTA = record
-       dwSize:DWORD;				// size of the INTERNET_PER_CONN_OPTION_LIST struct
-	      pszConnection:LPSTR;		// connection name to set/query options
-	      dwOptionCount:DWORD;		// number of options to set/query
-	      dwOptionError:DWORD;		// on error, which option failed
-	      pOptions:LPINTERNET_PER_CONN_OPTIONA; // array of options to set/query
+       dwSize:DWORD;        // size of the INTERNET_PER_CONN_OPTION_LIST struct
+        pszConnection:LPSTR;    // connection name to set/query options
+        dwOptionCount:DWORD;    // number of options to set/query
+        dwOptionError:DWORD;    // on error, which option failed
+        pOptions:LPINTERNET_PER_CONN_OPTIONA; // array of options to set/query
      end;
      LPINTERNET_PER_CONN_OPTION_LISTA = ^INTERNET_PER_CONN_OPTION_LISTA;
 
 type
      INTERNET_PER_CONN_OPTION_LISTW = record
-       dwSize:DWORD;				// size of the INTERNET_PER_CONN_OPTION_LIST struct
-	      pszConnection:LPWSTR;		// connection name to set/query options
-	      dwOptionCount:DWORD;		// number of options to set/query
-	      dwOptionError:DWORD;		// on error, which option failed
-	      pOptions:LPINTERNET_PER_CONN_OPTIONW; // array of options to set/query
+       dwSize:DWORD;        // size of the INTERNET_PER_CONN_OPTION_LIST struct
+        pszConnection:LPWSTR;   // connection name to set/query options
+        dwOptionCount:DWORD;    // number of options to set/query
+        dwOptionError:DWORD;    // on error, which option failed
+        pOptions:LPINTERNET_PER_CONN_OPTIONW; // array of options to set/query
      end;
      LPINTERNET_PER_CONN_OPTION_LISTW = ^INTERNET_PER_CONN_OPTION_LISTW;
 
@@ -444,8 +457,8 @@ const
 //
 type
      INTERNET_VERSION_INFO = record
-	      dwMajorVersion:DWORD;
-	      dwMinorVersion:DWORD;
+        dwMajorVersion:DWORD;
+        dwMinorVersion:DWORD;
      end;
      LPINTERNET_VERSION_INFO = ^INTERNET_VERSION_INFO;
 
@@ -454,8 +467,8 @@ type
 //
 type
      HTTP_VERSION_INFO = record
-	      dwMajorVersion:DWORD;
-	      dwMinorVersion:DWORD;
+        dwMajorVersion:DWORD;
+        dwMinorVersion:DWORD;
      end;
      LPHTTP_VERSION_INFO = ^HTTP_VERSION_INFO;
 
@@ -465,16 +478,16 @@ type
 
 type
      INTERNET_CONNECTED_INFO = record
-	     //
-	     // dwConnectedState - new connected/disconnected state.
-	     // See INTERNET_STATE_CONNECTED, etc.
-	     //
-	      dwConnectedState:DWORD;
+       //
+       // dwConnectedState - new connected/disconnected state.
+       // See INTERNET_STATE_CONNECTED, etc.
+       //
+        dwConnectedState:DWORD;
       //
-	     // dwFlags - flags controlling connected->disconnected (or disconnected->
-	     // connected) transition. See below
-	     //
-	      dwFlags:DWORD;
+       // dwFlags - flags controlling connected->disconnected (or disconnected->
+       // connected) transition. See below
+       //
+        dwFlags:DWORD;
      end;
      LPINTERNET_CONNECTED_INFO = ^INTERNET_CONNECTED_INFO;
 
@@ -512,41 +525,41 @@ const
 
 type
      URL_COMPONENTSA = record
-       dwStructSize:DWORD;		// size of this structure. Used in version check
-       lpszScheme:LPSTR;			// pointer to scheme name
-       dwSchemeLength:DWORD;		// length of scheme name
-       nScheme:INTERNET_SCHEME;	// enumerated scheme type (if known)
-       lpszHostName:LPSTR;		// pointer to host name
-       dwHostNameLength:DWORD;	// length of host name
-       nPort:INTERNET_PORT;		// converted port number
-       lpszUserName:LPSTR;		// pointer to user name
-       dwUserNameLength:DWORD;	// length of user name
-       lpszPassword:LPSTR;		// pointer to password
-       dwPasswordLength:DWORD;	// length of password
-       lpszUrlPath:LPSTR;		// pointer to URL-path
-       dwUrlPathLength:DWORD;	// length of URL-path
-       lpszExtraInfo:LPSTR;		// pointer to extra information (e.g. ?foo or #foo)
-       dwExtraInfoLength:DWORD;	// length of extra information
+       dwStructSize:DWORD;    // size of this structure. Used in version check
+       lpszScheme:LPSTR;      // pointer to scheme name
+       dwSchemeLength:DWORD;    // length of scheme name
+       nScheme:INTERNET_SCHEME; // enumerated scheme type (if known)
+       lpszHostName:LPSTR;    // pointer to host name
+       dwHostNameLength:DWORD;  // length of host name
+       nPort:INTERNET_PORT;   // converted port number
+       lpszUserName:LPSTR;    // pointer to user name
+       dwUserNameLength:DWORD;  // length of user name
+       lpszPassword:LPSTR;    // pointer to password
+       dwPasswordLength:DWORD;  // length of password
+       lpszUrlPath:LPSTR;   // pointer to URL-path
+       dwUrlPathLength:DWORD; // length of URL-path
+       lpszExtraInfo:LPSTR;   // pointer to extra information (e.g. ?foo or #foo)
+       dwExtraInfoLength:DWORD; // length of extra information
      end;
      LPURL_COMPONENTSA = ^URL_COMPONENTSA;
 
 type
      URL_COMPONENTSW = record
-       dwStructSize:DWORD;		// size of this structure. Used in version check
-       lpszScheme:LPWSTR;			// pointer to scheme name
-       dwSchemeLength:DWORD;		// length of scheme name
-       nScheme:INTERNET_SCHEME;	// enumerated scheme type (if known)
-       lpszHostName:LPWSTR;		// pointer to host name
-       dwHostNameLength:DWORD;	// length of host name
-       nPort:INTERNET_PORT;		// converted port number
-       lpszUserName:LPWSTR;		// pointer to user name
-       dwUserNameLength:DWORD;	// length of user name
-       lpszPassword:LPWSTR;		// pointer to password
-       dwPasswordLength:DWORD;	// length of password
-       lpszUrlPath:LPWSTR;		// pointer to URL-path
-       dwUrlPathLength:DWORD;	// length of URL-path
-       lpszExtraInfo:LPWSTR;		// pointer to extra information (e.g. ?foo or #foo)
-       dwExtraInfoLength:DWORD;	// length of extra information
+       dwStructSize:DWORD;    // size of this structure. Used in version check
+       lpszScheme:LPWSTR;     // pointer to scheme name
+       dwSchemeLength:DWORD;    // length of scheme name
+       nScheme:INTERNET_SCHEME; // enumerated scheme type (if known)
+       lpszHostName:LPWSTR;   // pointer to host name
+       dwHostNameLength:DWORD;  // length of host name
+       nPort:INTERNET_PORT;   // converted port number
+       lpszUserName:LPWSTR;   // pointer to user name
+       dwUserNameLength:DWORD;  // length of user name
+       lpszPassword:LPWSTR;   // pointer to password
+       dwPasswordLength:DWORD;  // length of password
+       lpszUrlPath:LPWSTR;    // pointer to URL-path
+       dwUrlPathLength:DWORD; // length of URL-path
+       lpszExtraInfo:LPWSTR;    // pointer to extra information (e.g. ?foo or #foo)
+       dwExtraInfoLength:DWORD; // length of extra information
      end;
      LPURL_COMPONENTSW = ^URL_COMPONENTSW;
 
@@ -625,15 +638,15 @@ type
 type
      LPINTERNET_BUFFERSA = ^_INTERNET_BUFFERSA;
      _INTERNET_BUFFERSA = record
-       dwStructSize:DWORD;					// used for API versioning. Set to sizeof(INTERNET_BUFFERS)
-       Next:LPINTERNET_BUFFERSA;	// chain of buffers
-       lpcszHeader:LPCSTR;				// pointer to headers (may be NULL)
-       dwHeadersLength:DWORD;				// length of headers if not NULL
-       dwHeadersTotal:DWORD;				// size of headers if not enough buffer
-       lpvBuffer:LPVOID;					// pointer to data buffer (may be NULL)
-       dwBufferLength:DWORD;				// length of data buffer if not NULL
-       dwBufferTotal:DWORD;				// total size of chunk, or content-length if not chunked
-       dwOffsetLow:DWORD;					// used for read-ranges (only used in HttpSendRequest2)
+       dwStructSize:DWORD;          // used for API versioning. Set to sizeof(INTERNET_BUFFERS)
+       Next:LPINTERNET_BUFFERSA;  // chain of buffers
+       lpcszHeader:LPCSTR;        // pointer to headers (may be NULL)
+       dwHeadersLength:DWORD;       // length of headers if not NULL
+       dwHeadersTotal:DWORD;        // size of headers if not enough buffer
+       lpvBuffer:LPVOID;          // pointer to data buffer (may be NULL)
+       dwBufferLength:DWORD;        // length of data buffer if not NULL
+       dwBufferTotal:DWORD;       // total size of chunk, or content-length if not chunked
+       dwOffsetLow:DWORD;         // used for read-ranges (only used in HttpSendRequest2)
        dwOffsetHigh:DWORD;
      end;
      INTERNET_BUFFERSA = _INTERNET_BUFFERSA;
@@ -641,15 +654,15 @@ type
 type
      LPINTERNET_BUFFERSW = ^_INTERNET_BUFFERSW;
      _INTERNET_BUFFERSW = record
-       dwStructSize:DWORD;					// used for API versioning. Set to sizeof(INTERNET_BUFFERS)
-       Next:LPINTERNET_BUFFERSW;	// chain of buffers
-       lpcszHeader:LPCSTR;				// pointer to headers (may be NULL)
-       dwHeadersLength:DWORD;				// length of headers if not NULL
-       dwHeadersTotal:DWORD;				// size of headers if not enough buffer
-       lpvBuffer:LPVOID;					// pointer to data buffer (may be NULL)
-       dwBufferLength:DWORD;				// length of data buffer if not NULL
-       dwBufferTotal:DWORD;				// total size of chunk, or content-length if not chunked
-       dwOffsetLow:DWORD;					// used for read-ranges (only used in HttpSendRequest2)
+       dwStructSize:DWORD;          // used for API versioning. Set to sizeof(INTERNET_BUFFERS)
+       Next:LPINTERNET_BUFFERSW;  // chain of buffers
+       lpcszHeader:LPCSTR;        // pointer to headers (may be NULL)
+       dwHeadersLength:DWORD;       // length of headers if not NULL
+       dwHeadersTotal:DWORD;        // size of headers if not enough buffer
+       lpvBuffer:LPVOID;          // pointer to data buffer (may be NULL)
+       dwBufferLength:DWORD;        // length of data buffer if not NULL
+       dwBufferTotal:DWORD;       // total size of chunk, or content-length if not chunked
+       dwOffsetLow:DWORD;         // used for read-ranges (only used in HttpSendRequest2)
        dwOffsetHigh:DWORD;
      end;
      INTERNET_BUFFERSW = _INTERNET_BUFFERSW;
@@ -671,35 +684,35 @@ const
       WinInetDLL = 'wininet.dll';
 
 function InternetTimeFromSystemTimeA(pst:LPSYSTEMTIME;  // input GMT time
-								                             dwRFC:DWORD;			   // RFC format
-								                             lpszTime:LPSTR;		   // output string buffer
-								                             cbTime:DWORD			   // output buffer size
-								                            ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeA';
+                                             dwRFC:DWORD;        // RFC format
+                                             lpszTime:LPSTR;       // output string buffer
+                                             cbTime:DWORD        // output buffer size
+                                            ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeA';
 
 function InternetTimeFromSystemTimeW(pst:LPSYSTEMTIME;  // input GMT time
-								                             dwRFC:DWORD;			   // RFC format
-								                             lpszTime:LPWSTR;		   // output string buffer
-								                             cbTime:DWORD			   // output buffer size
-								                            ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeW';
+                                             dwRFC:DWORD;        // RFC format
+                                             lpszTime:LPWSTR;      // output string buffer
+                                             cbTime:DWORD        // output buffer size
+                                            ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeW';
 
 {$IFDEF UNICODE}
 function InternetTimeFromSystemTime(pst:LPSYSTEMTIME;  // input GMT time
-								                            dwRFC:DWORD;			   // RFC format
-								                            lpszTime:LPWSTR;		   // output string buffer
-								                            cbTime:DWORD			   // output buffer size
-								                           ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeW';
+                                            dwRFC:DWORD;         // RFC format
+                                            lpszTime:LPWSTR;       // output string buffer
+                                            cbTime:DWORD         // output buffer size
+                                           ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function InternetTimeFromSystemTime(pst:LPSYSTEMTIME;  // input GMT time
-								                            dwRFC:DWORD;			   // RFC format
-                                    lpszTime:LPSTR;		   // output string buffer
-                                    cbTime:DWORD			   // output buffer size
+                                            dwRFC:DWORD;         // RFC format
+                                    lpszTime:LPSTR;      // output string buffer
+                                    cbTime:DWORD         // output buffer size
                                    ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTimeA';
 {$ELSE WIN32}
 function InternetTimeFromSystemTime(pst:LPSYSTEMTIME;  // input GMT time
-								                            dwRFC:DWORD;			   // RFC format
-                                    lpszTime:LPSTR;		   // output string buffer
-                                    cbTime:DWORD			   // output buffer size
+                                            dwRFC:DWORD;         // RFC format
+                                    lpszTime:LPSTR;      // output string buffer
+                                    cbTime:DWORD         // output buffer size
                                    ):BOOL; external WinInetDLL name 'InternetTimeFromSystemTime';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
@@ -712,141 +725,141 @@ const
       INTERNET_RFC1123_FORMAT     = 0;
       INTERNET_RFC1123_BUFSIZE    = 30;
 
-function InternetTimeToSystemTimeA(lpszTime:LPCSTR;		  // NULL terminated string
-                                   pst:LPSYSTEMTIME;		  // output in GMT time
-								                           dwReserved:DWORD
+function InternetTimeToSystemTimeA(lpszTime:LPCSTR;     // NULL terminated string
+                                   pst:LPSYSTEMTIME;      // output in GMT time
+                                           dwReserved:DWORD
                                   ):BOOL; external WinInetDLL name 'InternetTimeToSystemTimeA';
 
-function InternetTimeToSystemTimeW(lpszTime:LPCWSTR;		  // NULL terminated string
-                                   pst:LPSYSTEMTIME;		  // output in GMT time
-								                           dwReserved:DWORD
+function InternetTimeToSystemTimeW(lpszTime:LPCWSTR;      // NULL terminated string
+                                   pst:LPSYSTEMTIME;      // output in GMT time
+                                           dwReserved:DWORD
                                   ):BOOL; external WinInetDLL name 'InternetTimeToSystemTimeW';
 
 {$IFDEF UNICODE}
-function InternetTimeToSystemTime(lpszTime:LPCWSTR;		  // NULL terminated string
-                                  pst:LPSYSTEMTIME;		  // output in GMT time
-								                          dwReserved:DWORD
+function InternetTimeToSystemTime(lpszTime:LPCWSTR;     // NULL terminated string
+                                  pst:LPSYSTEMTIME;     // output in GMT time
+                                          dwReserved:DWORD
                                  ):BOOL; external WinInetDLL name 'InternetTimeToSystemTimeW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
-function InternetTimeToSystemTime(lpszTime:LPCSTR;		  // NULL terminated string
-                                  pst:LPSYSTEMTIME;		  // output in GMT time
-								                          dwReserved:DWORD
+function InternetTimeToSystemTime(lpszTime:LPCSTR;      // NULL terminated string
+                                  pst:LPSYSTEMTIME;     // output in GMT time
+                                          dwReserved:DWORD
                                  ):BOOL; external WinInetDLL name 'InternetTimeToSystemTimeA';
 {$ELSE WIN32}
-function InternetTimeToSystemTime(lpszTime:LPCSTR;		  // NULL terminated string
-                                  pst:LPSYSTEMTIME;		  // output in GMT time
-								                  dwReserved:DWORD
+function InternetTimeToSystemTime(lpszTime:LPCSTR;      // NULL terminated string
+                                  pst:LPSYSTEMTIME;     // output in GMT time
+                                  dwReserved:DWORD
                                  ):BOOL; external WinInetDLL name 'InternetTimeToSystemTime';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
 function InternetCrackUrlA(lpszUrl:LPCSTR;
                            dwUrlLength:DWORD;
-						                     dwFlags:DWORD;
-						                     lpUrlComponents:LPURL_COMPONENTSA
-						                    ):BOOL; external WinInetDLL name 'InternetCrackUrlA';
+                                 dwFlags:DWORD;
+                                 lpUrlComponents:LPURL_COMPONENTSA
+                                ):BOOL; external WinInetDLL name 'InternetCrackUrlA';
 
 function InternetCrackUrlW(lpszUrl:LPCWSTR;
                            dwUrlLength:DWORD;
-						                     dwFlags:DWORD;
-						                     lpUrlComponents:LPURL_COMPONENTSW
-						                    ):BOOL; external WinInetDLL name 'InternetCrackUrlW';
+                                 dwFlags:DWORD;
+                                 lpUrlComponents:LPURL_COMPONENTSW
+                                ):BOOL; external WinInetDLL name 'InternetCrackUrlW';
 
 {$IFDEF UNICODE}
 function InternetCrackUrl(lpszUrl:LPCWSTR;
                           dwUrlLength:DWORD;
-						                    dwFlags:DWORD;
-						                    lpUrlComponents:LPURL_COMPONENTSW
-						                   ):BOOL; external WinInetDLL name 'InternetCrackUrlW';
+                                dwFlags:DWORD;
+                                lpUrlComponents:LPURL_COMPONENTSW
+                               ):BOOL; external WinInetDLL name 'InternetCrackUrlW';
 {$ELSE UNICODE}
 function InternetCrackUrl(lpszUrl:LPCSTR;
                           dwUrlLength:DWORD;
-						                    dwFlags:DWORD;
-						                    lpUrlComponents:LPURL_COMPONENTSA
-						                   ):BOOL; external WinInetDLL name 'InternetCrackUrlA';
+                                dwFlags:DWORD;
+                                lpUrlComponents:LPURL_COMPONENTSA
+                               ):BOOL; external WinInetDLL name 'InternetCrackUrlA';
 {$ENDIF UNICODE}
 
 function InternetCreateUrlA(lpUrlComponents:LPURL_COMPONENTSA;
-						                      dwFlags:DWORD;
-						                      lpszUrl:LPSTR;
-						                      lpdwUrlLength:LPDWORD
-						                     ):BOOL; external WinInetDLL name 'InternetCreateUrlA';
+                                  dwFlags:DWORD;
+                                  lpszUrl:LPSTR;
+                                  lpdwUrlLength:LPDWORD
+                                 ):BOOL; external WinInetDLL name 'InternetCreateUrlA';
 
 function InternetCreateUrlW(lpUrlComponents:LPURL_COMPONENTSW;
-						                      dwFlags:DWORD;
-						                      lpszUrl:LPWSTR;
-						                      lpdwUrlLength:LPDWORD
-						                     ):BOOL; external WinInetDLL name 'InternetCreateUrlW';
+                                  dwFlags:DWORD;
+                                  lpszUrl:LPWSTR;
+                                  lpdwUrlLength:LPDWORD
+                                 ):BOOL; external WinInetDLL name 'InternetCreateUrlW';
 
 {$IFDEF UNICODE}
 function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSW;
-						                     dwFlags:DWORD;
-						                     lpszUrl:LPWSTR;
-						                     lpdwUrlLength:LPDWORD
-						                    ):BOOL; external WinInetDLL name 'InternetCreateUrlW';
+                                 dwFlags:DWORD;
+                                 lpszUrl:LPWSTR;
+                                 lpdwUrlLength:LPDWORD
+                                ):BOOL; external WinInetDLL name 'InternetCreateUrlW';
 {$ELSE UNICODE}
 function InternetCreateUrl(lpUrlComponents:LPURL_COMPONENTSA;
-						                     dwFlags:DWORD;
-						                     lpszUrl:LPSTR;
-						                     lpdwUrlLength:LPDWORD
-						                    ):BOOL; external WinInetDLL name 'InternetCreateUrlA';
+                                 dwFlags:DWORD;
+                                 lpszUrl:LPSTR;
+                                 lpdwUrlLength:LPDWORD
+                                ):BOOL; external WinInetDLL name 'InternetCreateUrlA';
 {$ENDIF UNICODE}
 
 
 function InternetCanonicalizeUrlA(lpszUrl:LPCSTR;
-								                          lpszBuffer:LPSTR;
-								                          lpdwBufferLength:LPDWORD;
-								                          dwFlags:DWORD
-								                         ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlA';
+                                          lpszBuffer:LPSTR;
+                                          lpdwBufferLength:LPDWORD;
+                                          dwFlags:DWORD
+                                         ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlA';
 
 function InternetCanonicalizeUrlW(lpszUrl:LPCWSTR;
-								                          lpszBuffer:LPWSTR;
-								                          lpdwBufferLength:LPDWORD;
-								                          dwFlags:DWORD
-								                         ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlW';
+                                          lpszBuffer:LPWSTR;
+                                          lpdwBufferLength:LPDWORD;
+                                          dwFlags:DWORD
+                                         ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlW';
 
 {$IFDEF UNICODE}
 function InternetCanonicalizeUrl(lpszUrl:LPCWSTR;
-								                         lpszBuffer:LPWSTR;
-								                         lpdwBufferLength:LPDWORD;
-								                         dwFlags:DWORD
-								                        ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlW';
+                                         lpszBuffer:LPWSTR;
+                                         lpdwBufferLength:LPDWORD;
+                                         dwFlags:DWORD
+                                        ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlW';
 {$ELSE UNICODE}
 function InternetCanonicalizeUrl(lpszUrl:LPCSTR;
-								                         lpszBuffer:LPSTR;
-								                         lpdwBufferLength:LPDWORD;
-								                         dwFlags:DWORD
-								                        ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlA';
+                                         lpszBuffer:LPSTR;
+                                         lpdwBufferLength:LPDWORD;
+                                         dwFlags:DWORD
+                                        ):BOOL; external WinInetDLL name 'InternetCanonicalizeUrlA';
 {$ENDIF UNICODE}
 
 function InternetCombineUrlA(lpszBaseUrl:LPCSTR;
-						                       lpszRelativeUrl:LPCSTR;
-						                       lpszBuffer:LPSTR;
-						                       lpdwBufferLength:LPDWORD;
-						                       dwFlags:DWORD
+                                   lpszRelativeUrl:LPCSTR;
+                                   lpszBuffer:LPSTR;
+                                   lpdwBufferLength:LPDWORD;
+                                   dwFlags:DWORD
                             ):BOOL; external WinInetDLL name 'InternetCombineUrlA';
 
 function InternetCombineUrlW(lpszBaseUrl:LPCWSTR;
-						                       lpszRelativeUrl:LPCWSTR;
-						                       lpszBuffer:LPWSTR;
-						                       lpdwBufferLength:LPDWORD;
-						                       dwFlags:DWORD
+                                   lpszRelativeUrl:LPCWSTR;
+                                   lpszBuffer:LPWSTR;
+                                   lpdwBufferLength:LPDWORD;
+                                   dwFlags:DWORD
                             ):BOOL; external WinInetDLL name 'InternetCombineUrlW';
 
 {$IFDEF UNICODE}
 function InternetCombineUrl(lpszBaseUrl:LPCWSTR;
-						                      lpszRelativeUrl:LPCWSTR;
-						                      lpszBuffer:LPWSTR;
-						                      lpdwBufferLength:LPDWORD;
-						                      dwFlags:DWORD
+                                  lpszRelativeUrl:LPCWSTR;
+                                  lpszBuffer:LPWSTR;
+                                  lpdwBufferLength:LPDWORD;
+                                  dwFlags:DWORD
                            ):BOOL; external WinInetDLL name 'InternetCombineUrlW';
 {$ELSE UNICODE}
 function InternetCombineUrl(lpszBaseUrl:LPCSTR;
-						                      lpszRelativeUrl:LPCSTR;
-						                      lpszBuffer:LPSTR;
-						                      lpdwBufferLength:LPDWORD;
-						                      dwFlags:DWORD
+                                  lpszRelativeUrl:LPCSTR;
+                                  lpszBuffer:LPSTR;
+                                  lpdwBufferLength:LPDWORD;
+                                  dwFlags:DWORD
                            ):BOOL; external WinInetDLL name 'InternetCombineUrlA';
 {$ENDIF UNICODE}
 
@@ -872,33 +885,33 @@ const
                                           // signs encountered, default is to not encode percent.
 
 function InternetOpenA(lpszAgent:LPCSTR;
-									              dwAccessType:DWORD;
-									              lpszProxy:LPCSTR;
-									              lpszProxyBypass:LPCSTR;
-									              dwFlags:DWORD
-									             ):HINTERNET; external WinInetDLL name 'InternetOpenA';
+                                dwAccessType:DWORD;
+                                lpszProxy:LPCSTR;
+                                lpszProxyBypass:LPCSTR;
+                                dwFlags:DWORD
+                               ):HINTERNET; external WinInetDLL name 'InternetOpenA';
 
 function InternetOpenW(lpszAgent:LPCWSTR;
-									              dwAccessType:DWORD;
-									              lpszProxy:LPCWSTR;
-									              lpszProxyBypass:LPCWSTR;
-									              dwFlags:DWORD
-									             ):HINTERNET; external WinInetDLL name 'InternetOpenW';
+                                dwAccessType:DWORD;
+                                lpszProxy:LPCWSTR;
+                                lpszProxyBypass:LPCWSTR;
+                                dwFlags:DWORD
+                               ):HINTERNET; external WinInetDLL name 'InternetOpenW';
 
 {$IFDEF UNICODE}
 function InternetOpen(lpszAgent:LPCWSTR;
-									             dwAccessType:DWORD;
-									             lpszProxy:LPCWSTR;
-									             lpszProxyBypass:LPCWSTR;
-									             dwFlags:DWORD
-									            ):HINTERNET; external WinInetDLL name 'InternetOpenW';
+                               dwAccessType:DWORD;
+                               lpszProxy:LPCWSTR;
+                               lpszProxyBypass:LPCWSTR;
+                               dwFlags:DWORD
+                              ):HINTERNET; external WinInetDLL name 'InternetOpenW';
 {$ELSE UNICODE}
 function InternetOpen(lpszAgent:LPCSTR;
-									             dwAccessType:DWORD;
-									             lpszProxy:LPCSTR;
-									             lpszProxyBypass:LPCSTR;
-									             dwFlags:DWORD
-									            ):HINTERNET; external WinInetDLL name 'InternetOpenA';
+                               dwAccessType:DWORD;
+                               lpszProxy:LPCSTR;
+                               lpszProxyBypass:LPCSTR;
+                               dwFlags:DWORD
+                              ):HINTERNET; external WinInetDLL name 'InternetOpenA';
 {$ENDIF UNICODE}
 
 //
@@ -921,45 +934,45 @@ const
 function InternetCloseHandle(_hInternet:HINTERNET):BOOL; external WinInetDLL name 'InternetCloseHandle';
 
 function InternetConnectA(_hInternet:HINTERNET;
-										                lpszServerName:LPCSTR;
-										                nServerPort:INTERNET_PORT;
-										                lpszUserName:LPCSTR;
-										                lpszPassword:LPCSTR;
-										                dwService:DWORD;
-										                dwFlags:DWORD;
-										                dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetConnectA';
+                                    lpszServerName:LPCSTR;
+                                    nServerPort:INTERNET_PORT;
+                                    lpszUserName:LPCSTR;
+                                    lpszPassword:LPCSTR;
+                                    dwService:DWORD;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'InternetConnectA';
 
 function InternetConnectW(_hInternet:HINTERNET;
-										                lpszServerName:LPCWSTR;
-										                nServerPort:INTERNET_PORT;
-										                lpszUserName:LPCWSTR;
-										                lpszPassword:LPCWSTR;
-										                dwService:DWORD;
-										                dwFlags:DWORD;
-										                dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetConnectW';
+                                    lpszServerName:LPCWSTR;
+                                    nServerPort:INTERNET_PORT;
+                                    lpszUserName:LPCWSTR;
+                                    lpszPassword:LPCWSTR;
+                                    dwService:DWORD;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'InternetConnectW';
 
 {$IFDEF UNICODE}
 function InternetConnect(_hInternet:HINTERNET;
-										               lpszServerName:LPCWSTR;
-										               nServerPort:INTERNET_PORT;
-										               lpszUserName:LPCWSTR;
-										               lpszPassword:LPCWSTR;
-										               dwService:DWORD;
-										               dwFlags:DWORD;
-										               dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetConnectW';
+                                   lpszServerName:LPCWSTR;
+                                   nServerPort:INTERNET_PORT;
+                                   lpszUserName:LPCWSTR;
+                                   lpszPassword:LPCWSTR;
+                                   dwService:DWORD;
+                                   dwFlags:DWORD;
+                                   dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'InternetConnectW';
 {$ELSE UNICODE}
 function InternetConnect(_hInternet:HINTERNET;
-										               lpszServerName:LPCSTR;
-										               nServerPort:INTERNET_PORT;
-										               lpszUserName:LPCSTR;
-										               lpszPassword:LPCSTR;
-										               dwService:DWORD;
-										               dwFlags:DWORD;
-										               dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetConnectA';
+                                   lpszServerName:LPCSTR;
+                                   nServerPort:INTERNET_PORT;
+                                   lpszUserName:LPCSTR;
+                                   lpszPassword:LPCSTR;
+                                   dwService:DWORD;
+                                   dwFlags:DWORD;
+                                   dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'InternetConnectA';
 {$ENDIF UNICODE}
 
 //
@@ -972,69 +985,69 @@ const
 
 
 function InternetOpenUrlA(_hInternet:HINTERNET;
-										                lpszUrl:LPCSTR;
-										                lpszHeaders:LPCSTR;
-										                dwHeadersLength:DWORD;
-										                dwFlags:DWORD;
+                                    lpszUrl:LPCSTR;
+                                    lpszHeaders:LPCSTR;
+                                    dwHeadersLength:DWORD;
+                                    dwFlags:DWORD;
                           dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetOpenUrlA';
+                                   ):HINTERNET; external WinInetDLL name 'InternetOpenUrlA';
 
 function InternetOpenUrlW(_hInternet:HINTERNET;
-										                lpszUrl:LPCWSTR;
-										                lpszHeaders:LPCWSTR;
-										                dwHeadersLength:DWORD;
-										                dwFlags:DWORD;
+                                    lpszUrl:LPCWSTR;
+                                    lpszHeaders:LPCWSTR;
+                                    dwHeadersLength:DWORD;
+                                    dwFlags:DWORD;
                           dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'InternetOpenUrlW';
+                                   ):HINTERNET; external WinInetDLL name 'InternetOpenUrlW';
 
 {$IFDEF UNICODE}
 function InternetOpenUrl(_hInternet:HINTERNET;
-										               lpszUrl:LPCWSTR;
-										               lpszHeaders:LPCWSTR;
-										               dwHeadersLength:DWORD;
-										               dwFlags:DWORD;
+                                   lpszUrl:LPCWSTR;
+                                   lpszHeaders:LPCWSTR;
+                                   dwHeadersLength:DWORD;
+                                   dwFlags:DWORD;
                          dwContext:DWORD_PTR
-										              ):HINTERNET; external WinInetDLL name 'InternetOpenUrlW';
+                                  ):HINTERNET; external WinInetDLL name 'InternetOpenUrlW';
 {$ELSE UNICODE}
 function InternetOpenUrl(_hInternet:HINTERNET;
-										               lpszUrl:LPCSTR;
-										               lpszHeaders:LPCSTR;
-										               dwHeadersLength:DWORD;
-										               dwFlags:DWORD;
+                                   lpszUrl:LPCSTR;
+                                   lpszHeaders:LPCSTR;
+                                   dwHeadersLength:DWORD;
+                                   dwFlags:DWORD;
                          dwContext:DWORD_PTR
-										              ):HINTERNET; external WinInetDLL name 'InternetOpenUrlA';
+                                  ):HINTERNET; external WinInetDLL name 'InternetOpenUrlA';
 {$ENDIF UNICODE}
 
 function InternetReadFile(_hFile:HINTERNET;
-						                    lpBuffer:LPVOID;
-						                    dwNumberOfBytesToRead:DWORD;
-						                    lpdwNumberOfBytesRead:LPDWORD
-						                   ):BOOL; external WinInetDLL name 'InternetREadFile';
+                                lpBuffer:LPVOID;
+                                dwNumberOfBytesToRead:DWORD;
+                                lpdwNumberOfBytesRead:LPDWORD
+                               ):BOOL; external WinInetDLL name 'InternetREadFile';
 
 function InternetReadFileExA(_hFile:HINTERNET;
-									                    lpBuffersOut:LPINTERNET_BUFFERSA;
-									                    dwFlags:DWORD;
-									                    dwContext:DWORD_PTR
-									                   ):BOOL; external WinInetDLL name 'InternetReadFileExA';
+                                      lpBuffersOut:LPINTERNET_BUFFERSA;
+                                      dwFlags:DWORD;
+                                      dwContext:DWORD_PTR
+                                     ):BOOL; external WinInetDLL name 'InternetReadFileExA';
 
 function InternetReadFileExW(_hFile:HINTERNET;
-									                    lpBuffersOut:LPINTERNET_BUFFERSW;
-									                    dwFlags:DWORD;
-									                    dwContext:DWORD_PTR
-									                   ):BOOL; external WinInetDLL name 'InternetReadFileExW';
+                                      lpBuffersOut:LPINTERNET_BUFFERSW;
+                                      dwFlags:DWORD;
+                                      dwContext:DWORD_PTR
+                                     ):BOOL; external WinInetDLL name 'InternetReadFileExW';
 
 {$IFDEF UNICODE}
 function InternetReadFileEx(_hFile:HINTERNET;
-									                   lpBuffersOut:LPINTERNET_BUFFERSW;
-									                   dwFlags:DWORD;
-									                   dwContext:DWORD_PTR
-									                  ):BOOL; external WinInetDLL name 'InternetReadFileExW';
+                                     lpBuffersOut:LPINTERNET_BUFFERSW;
+                                     dwFlags:DWORD;
+                                     dwContext:DWORD_PTR
+                                    ):BOOL; external WinInetDLL name 'InternetReadFileExW';
 {$ELSE UNICODE}
 function InternetReadFileEx(_hFile:HINTERNET;
-									                   lpBuffersOut:LPINTERNET_BUFFERSA;
-								                    dwFlags:DWORD;
-								                    dwContext:DWORD_PTR
-								                   ):BOOL; external WinInetDLL name 'InternetReadFileExA';
+                                     lpBuffersOut:LPINTERNET_BUFFERSA;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):BOOL; external WinInetDLL name 'InternetReadFileExA';
 {$ENDIF UNICODE}
 
 
@@ -1048,108 +1061,108 @@ const
       IRF_NO_WAIT     = $00000008;
 
 function InternetSetFilePointer(_hFile:HINTERNET;
-										                      lDistanceToMove:LONG;
-										                      pReserved:PVOID;
-										                      dwMoveMethod:DWORD;
-										                      dwContext:DWORD_PTR
-										                     ):DWORD; external WinInetDLL name 'InternetSetFilePointer';
+                                          lDistanceToMove:LONG;
+                                          pReserved:PVOID;
+                                          dwMoveMethod:DWORD;
+                                          dwContext:DWORD_PTR
+                                         ):DWORD; external WinInetDLL name 'InternetSetFilePointer';
 
 function InternetWriteFile(_hFile:HINTERNET;
-						                     lpBuffer:LPCVOID;
-						                     dwNumberOfBytesToWrite:DWORD;
-						                     lpdwNumberOfBytesWritten:LPDWORD
-						                    ):BOOL; external WinInetDLL name 'InternetWriteFile';
+                                 lpBuffer:LPCVOID;
+                                 dwNumberOfBytesToWrite:DWORD;
+                                 lpdwNumberOfBytesWritten:LPDWORD
+                                ):BOOL; external WinInetDLL name 'InternetWriteFile';
 
 
 function InternetQueryDataAvailable(_hFile:HINTERNET;
-								                            lpdwNumberOfBytesAvailable:LPDWORD;
-								                            dwFlags:DWORD;
-								                            dwContext:DWORD_PTR
-								                           ):BOOL; external WinInetDLL name 'InternetQueryDataAvailable';
+                                            lpdwNumberOfBytesAvailable:LPDWORD;
+                                            dwFlags:DWORD;
+                                            dwContext:DWORD_PTR
+                                           ):BOOL; external WinInetDLL name 'InternetQueryDataAvailable';
 
 function InternetFindNextFileA(hFind:HINTERNET;
-							                        lpvFindData:LPVOID
-							                       ):BOOL; external WinInetDLL name 'InternetFindNextFileA';
+                                      lpvFindData:LPVOID
+                                     ):BOOL; external WinInetDLL name 'InternetFindNextFileA';
 
 function InternetFindNextFileW(hFind:HINTERNET;
-							                        lpvFindData:LPVOID
-							                       ):BOOL; external WinInetDLL name 'InternetFindNextFileW';
+                                      lpvFindData:LPVOID
+                                     ):BOOL; external WinInetDLL name 'InternetFindNextFileW';
 
 {$IFDEF UNICODE}
 function InternetFindNextFile(hFind:HINTERNET;
-							                       lpvFindData:LPVOID
-							                      ):BOOL; external WinInetDLL name 'InternetFindNextFileW';
+                                     lpvFindData:LPVOID
+                                    ):BOOL; external WinInetDLL name 'InternetFindNextFileW';
 {$ELSE UNICODE}
 function InternetFindNextFile(hFind:HINTERNET;
-						                        lpvFindData:LPVOID
-						                       ):BOOL; external WinInetDLL name 'InternetFindNextFileA';
+                                    lpvFindData:LPVOID
+                                   ):BOOL; external WinInetDLL name 'InternetFindNextFileA';
 {$ENDIF UNICODE}
 
 function InternetQueryOptionA(_hInternet:HINTERNET;
-							                       dwOption:DWORD;
-							                       lpBuffer:LPVOID;
-							                       lpdwBufferLength:LPDWORD
-							                      ):BOOL; external WinInetDLL name 'InternetQueryOptionA';
+                                     dwOption:DWORD;
+                                     lpBuffer:LPVOID;
+                                     lpdwBufferLength:LPDWORD
+                                    ):BOOL; external WinInetDLL name 'InternetQueryOptionA';
 
 function InternetQueryOptionW(_hInternet:HINTERNET;
-							                       dwOption:DWORD;
-							                       lpBuffer:LPVOID;
-							                       lpdwBufferLength:LPDWORD
-							                      ):BOOL; external WinInetDLL name 'InternetQueryOptionW';
+                                     dwOption:DWORD;
+                                     lpBuffer:LPVOID;
+                                     lpdwBufferLength:LPDWORD
+                                    ):BOOL; external WinInetDLL name 'InternetQueryOptionW';
 
 {$IFDEF UNICODE}
 function InternetQueryOption(_hInternet:HINTERNET;
-							                      dwOption:DWORD;
-							                      lpBuffer:LPVOID;
-							                      lpdwBufferLength:LPDWORD
-							                     ):BOOL; external WinInetDLL name 'InternetQueryOptionW';
+                                    dwOption:DWORD;
+                                    lpBuffer:LPVOID;
+                                    lpdwBufferLength:LPDWORD
+                                   ):BOOL; external WinInetDLL name 'InternetQueryOptionW';
 {$ELSE UNICODE}
 function InternetQueryOption(_hInternet:HINTERNET;
-							                      dwOption:DWORD;
-							                      lpBuffer:LPVOID;
-							                      lpdwBufferLength:LPDWORD
-							                     ):BOOL; external WinInetDLL name 'InternetQueryOptionA';
+                                    dwOption:DWORD;
+                                    lpBuffer:LPVOID;
+                                    lpdwBufferLength:LPDWORD
+                                   ):BOOL; external WinInetDLL name 'InternetQueryOptionA';
 {$ENDIF UNICODE}
 
 function InternetSetOptionA(_hInternet:HINTERNET;
-						                      dwOption:DWORD;
-						                      lpBuffer:LPVOID;
-						                      dwBufferLength:DWORD
-						                     ):BOOL; external WinInetDLL name 'InternetSetOptionA';
+                                  dwOption:DWORD;
+                                  lpBuffer:LPVOID;
+                                  dwBufferLength:DWORD
+                                 ):BOOL; external WinInetDLL name 'InternetSetOptionA';
 
 function InternetSetOptionW(_hInternet:HINTERNET;
-						                      dwOption:DWORD;
-						                      lpBuffer:LPVOID;
-						                      dwBufferLength:DWORD
-						                     ):BOOL; external WinInetDLL name 'InternetSetOptionW';
+                                  dwOption:DWORD;
+                                  lpBuffer:LPVOID;
+                                  dwBufferLength:DWORD
+                                 ):BOOL; external WinInetDLL name 'InternetSetOptionW';
 
 {$IFDEF UNICODE}
 function InternetSetOption(_hInternet:HINTERNET;
-						                     dwOption:DWORD;
-						                     lpBuffer:LPVOID;
-						                     dwBufferLength:DWORD
-						                    ):BOOL; external WinInetDLL name 'InternetSetOptionW';
+                                 dwOption:DWORD;
+                                 lpBuffer:LPVOID;
+                                 dwBufferLength:DWORD
+                                ):BOOL; external WinInetDLL name 'InternetSetOptionW';
 {$ELSE UNICODE}
 function InternetSetOption(_hInternet:HINTERNET;
-						                     dwOption:DWORD;
-						                     lpBuffer:LPVOID;
-						                     dwBufferLength:DWORD
-						                    ):BOOL; external WinInetDLL name 'InternetSetOptionA';
+                                 dwOption:DWORD;
+                                 lpBuffer:LPVOID;
+                                 dwBufferLength:DWORD
+                                ):BOOL; external WinInetDLL name 'InternetSetOptionA';
 {$ENDIF UNICODE}
 
 function InternetSetOptionExA(_hInternet:HINTERNET;
                               dwOption:DWORD;
-							                       lpBuffer:LPVOID;
-							                       dwBufferLength:DWORD;
-							                       dwFlags:DWORD
-							                      ):BOOL; external WinInetDLL name 'InternetSetOptionExA';
+                                     lpBuffer:LPVOID;
+                                     dwBufferLength:DWORD;
+                                     dwFlags:DWORD
+                                    ):BOOL; external WinInetDLL name 'InternetSetOptionExA';
 
 function InternetSetOptionExW(_hInternet:HINTERNET;
                               dwOption:DWORD;
-							                       lpBuffer:LPVOID;
-							                       dwBufferLength:DWORD;
-							                       dwFlags:DWORD
-							                      ):BOOL; external WinInetDLL name 'InternetSetOptionExW';
+                                     lpBuffer:LPVOID;
+                                     dwBufferLength:DWORD;
+                                     dwFlags:DWORD
+                                    ):BOOL; external WinInetDLL name 'InternetSetOptionExW';
 
 {$IFDEF UNICODE}
 function InternetSetOptionEx(_hInternet:HINTERNET;
@@ -1169,8 +1182,8 @@ function InternetSetOptionEx(_hInternet:HINTERNET;
 
 
 function InternetLockRequestFile(_hInternet:HINTERNET;
-							                   lphLockRequestInfo:LPHANDLE
-							                  ):BOOL; external WinInetDLL name 'InternetLockRequestFile';
+                                 lphLockRequestInfo:LPHANDLE
+                                ):BOOL; external WinInetDLL name 'InternetLockRequestFile';
 
 function InternetUnlockRequestFile(hLockRequestInfo:HANDLE):BOOL; external WinInetDLL name 'InternetUnlockRequestFile';
 
@@ -1276,7 +1289,7 @@ const
       INTERNET_OPTION_RESTORE_WORKER_THREAD_DEFAULTS          = 93;
       INTERNET_OPTION_SOCKET_SEND_BUFFER_LENGTH               = 94;
       INTERNET_OPTION_PROXY_SETTINGS_CHANGED                  = 95;
-      INTERNET_OPTION_SERVER_CERT_CONTEXT	                    = 96;
+      INTERNET_OPTION_SERVER_CERT_CONTEXT                     = 96;
 
       INTERNET_OPTION_SOCKET_LINGER_TIME                      = 97;
 
@@ -1376,25 +1389,25 @@ const
 
 
 function InternetGetLastResponseInfoA(lpdwError:LPDWORD;
-									                    lpszBuffer:LPSTR;
-									                    lpdwBufferLength:LPDWORD
-									                   ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoA';
+                                      lpszBuffer:LPSTR;
+                                      lpdwBufferLength:LPDWORD
+                                     ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoA';
 
 function InternetGetLastResponseInfoW(lpdwError:LPDWORD;
-									                    lpszBuffer:LPWSTR;
-									                    lpdwBufferLength:LPDWORD
-									                   ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoW';
+                                      lpszBuffer:LPWSTR;
+                                      lpdwBufferLength:LPDWORD
+                                     ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoW';
 
 {$IFDEF UNICODE}
 function InternetGetLastResponseInfo(lpdwError:LPDWORD;
-									                   lpszBuffer:LPWSTR;
-									                   lpdwBufferLength:LPDWORD
-									                  ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoW';
+                                     lpszBuffer:LPWSTR;
+                                     lpdwBufferLength:LPDWORD
+                                    ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoW';
 {$ELSE UNICODE}
 function InternetGetLastResponseInfo(lpdwError:LPDWORD;
-									                   lpszBuffer:LPSTR;
-									                   lpdwBufferLength:LPDWORD
-									                  ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoA';
+                                     lpszBuffer:LPSTR;
+                                     lpdwBufferLength:LPDWORD
+                                    ):BOOL; external WinInetDLL name 'InternetGetLastResponseInfoA';
 {$ENDIF UNICODE}
 
 
@@ -1404,36 +1417,36 @@ function InternetGetLastResponseInfo(lpdwError:LPDWORD;
 
 type
      INTERNET_STATUS_CALLBACK = procedure(_hInternet:HINTERNET;
-									                        dwContext:DWORD_PTR;
-									                        dwInternetStatus:DWORD;
-									                        lpvStatusInformation:LPVOID;
-									                        dwStatusInformationLength:DWORD); cdecl;
+                                          dwContext:DWORD_PTR;
+                                          dwInternetStatus:DWORD;
+                                          lpvStatusInformation:LPVOID;
+                                          dwStatusInformationLength:DWORD); cdecl;
 
 
      LPINTERNET_STATUS_CALLBACK = INTERNET_STATUS_CALLBACK;
 
 
 function InternetSetStatusCallbackA(_hInternet:HINTERNET;
-																    lpfnInternetCallback:INTERNET_STATUS_CALLBACK
-																   ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackA';
+                                    lpfnInternetCallback:INTERNET_STATUS_CALLBACK
+                                   ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackA';
 
 function InternetSetStatusCallbackW(_hInternet:HINTERNET;
-																    lpfnInternetCallback:INTERNET_STATUS_CALLBACK
-																   ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackW';
+                                    lpfnInternetCallback:INTERNET_STATUS_CALLBACK
+                                   ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackW';
 
 {$IFDEF UNICODE}
 function InternetSetStatusCallback(_hInternet:HINTERNET;
-																   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
-																  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackW';
+                                   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
+                                  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function InternetSetStatusCallback(_hInternet:HINTERNET;
-																   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
-																  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackA';
+                                   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
+                                  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallbackA';
 {$ELSE WIN32}
 function InternetSetStatusCallback(_hInternet:HINTERNET;
-																   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
-																  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallback';
+                                   lpfnInternetCallback:INTERNET_STATUS_CALLBACK
+                                  ):INTERNET_STATUS_CALLBACK; external WinInetDLL name 'InternetSetStatusCallback';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
@@ -1469,7 +1482,7 @@ const
       INTERNET_STATUS_P3P_HEADER              = 325;
       INTERNET_STATUS_P3P_POLICYREF           = 326;
       INTERNET_STATUS_COOKIE_HISTORY          = 327;
-      INTERNET_STATUS_SSL_NEGOTIATION_COMPLETE	= 401;
+      INTERNET_STATUS_SSL_NEGOTIATION_COMPLETE  = 401;
 
 //
 // the following can be indicated in a state change notification:
@@ -1487,49 +1500,49 @@ const
 type
      InternetCookieState = (COOKIE_STATE_UNKNOWN := $00,
                             COOKIE_STATE_ACCEPT  := $01,
-	                           COOKIE_STATE_PROMPT  := $02,
-	                           COOKIE_STATE_LEASH   := $03,
-	                           COOKIE_STATE_DOWNGRADE := $04,
-	                           COOKIE_STATE_REJECT    := $05);
+                             COOKIE_STATE_PROMPT  := $02,
+                             COOKIE_STATE_LEASH   := $03,
+                             COOKIE_STATE_DOWNGRADE := $04,
+                             COOKIE_STATE_REJECT    := $05);
 
 const
       COOKIE_STATE_MAX   = COOKIE_STATE_REJECT;
 
 type
      IncomingCookieState = record
-	     cSession:longint;			// Session cookies received
-	     cPersistent:longint;		// Persistent cookies received
+       cSession:longint;      // Session cookies received
+       cPersistent:longint;   // Persistent cookies received
 
-	     cAccepted:longint;			// Number of cookies accepted
-	     cLeashed:longint;			//               ... leashed
-	     cDowngraded:longint;		//               ... converted to session-cookies
-	     cBlocked:longint;			//               ... rejected
+       cAccepted:longint;     // Number of cookies accepted
+       cLeashed:longint;      //               ... leashed
+       cDowngraded:longint;   //               ... converted to session-cookies
+       cBlocked:longint;      //               ... rejected
 
-	     pszLocation:PChar;		// Optional: URL associated with reported cookie events
-   					                // This can be used to override request URL
+       pszLocation:PChar;   // Optional: URL associated with reported cookie events
+                            // This can be used to override request URL
      end;
 
 type
      OutgoingCookieState = record
-	     cSent:longint;
-	     cSuppressed:longint;
+       cSent:longint;
+       cSuppressed:longint;
 
-	     pszLocation:PChar;		// Optional: URL associated with reported cookie events
-									          // This can be used to override request URL
+       pszLocation:PChar;   // Optional: URL associated with reported cookie events
+                            // This can be used to override request URL
      end;
 
 type
      InternetCookieHistory = record
        fAccepted:BOOL;
-	      fLeashed:BOOL;
-	      fDowngraded:BOOL;
-	      fRejected:BOOL;
+        fLeashed:BOOL;
+        fDowngraded:BOOL;
+        fRejected:BOOL;
      end;
 
 type
      CookieDecision = record
        dwCookieState:DWORD;
-	      fAllowSession:BOOL;
+        fAllowSession:BOOL;
      end;
 
 //
@@ -1548,301 +1561,301 @@ const
 //
 
 function FtpFindFirstFileA(hConnect:HINTERNET;
-										       lpszSearchFile:LPCSTR;
-										       lpFindFileData:LPWIN32_FIND_DATAA;
-										       dwFlags:DWORD;
-										       dwContext:DWORD_PTR
-										      ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileA';
+                           lpszSearchFile:LPCSTR;
+                           lpFindFileData:LPWIN32_FIND_DATAA;
+                           dwFlags:DWORD;
+                           dwContext:DWORD_PTR
+                          ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileA';
 
 function FtpFindFirstFileW(hConnect:HINTERNET;
-										       lpszSearchFile:LPCWSTR;
-										       lpFindFileData:LPWIN32_FIND_DATAW;
-										       dwFlags:DWORD;
-										       dwContext:DWORD_PTR
-										      ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileW';
+                           lpszSearchFile:LPCWSTR;
+                           lpFindFileData:LPWIN32_FIND_DATAW;
+                           dwFlags:DWORD;
+                           dwContext:DWORD_PTR
+                          ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileW';
 
 {$IFDEF UNICODE}
 function FtpFindFirstFile(hConnect:HINTERNET;
-										      lpszSearchFile:LPCWSTR;
-										      lpFindFileData:LPWIN32_FIND_DATAW;
-										      dwFlags:DWORD;
-										      dwContext:DWORD_PTR
-										     ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileW';
+                          lpszSearchFile:LPCWSTR;
+                          lpFindFileData:LPWIN32_FIND_DATAW;
+                          dwFlags:DWORD;
+                          dwContext:DWORD_PTR
+                         ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileW';
 {$ELSE UNICODE}
 function FtpFindFirstFile(hConnect:HINTERNET;
-										      lpszSearchFile:LPCSTR;
-										      lpFindFileData:LPWIN32_FIND_DATAA;
-										      dwFlags:DWORD;
-										      dwContext:DWORD_PTR
-										     ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileA';
+                          lpszSearchFile:LPCSTR;
+                          lpFindFileData:LPWIN32_FIND_DATAA;
+                          dwFlags:DWORD;
+                          dwContext:DWORD_PTR
+                         ):HINTERNET; external WinInetDLL name 'FtpFindFirstFileA';
 {$ENDIF UNICODE}
 
 function FtpGetFileA(hConnect:HINTERNET;
-				             lpszRemoteFile:LPCSTR;
+                     lpszRemoteFile:LPCSTR;
                      lpszNewFile:LPCSTR;
-				             fFailIfExists:BOOL;
-				             dwFlagsAndAttributes:DWORD;
-				             dwFlags:DWORD;
-				             dwContext:DWORD_PTR
-				            ):BOOL; external WinInetDLL name 'FtpGetFileA';
+                     fFailIfExists:BOOL;
+                     dwFlagsAndAttributes:DWORD;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):BOOL; external WinInetDLL name 'FtpGetFileA';
 
 function FtpGetFileW(hConnect:HINTERNET;
-				             lpszRemoteFile:LPCWSTR;
+                     lpszRemoteFile:LPCWSTR;
                      lpszNewFile:LPCWSTR;
-				             fFailIfExists:BOOL;
-				             dwFlagsAndAttributes:DWORD;
-				             dwFlags:DWORD;
-				             dwContext:DWORD_PTR
-				            ):BOOL; external WinInetDLL name 'FtpGetFileW';
+                     fFailIfExists:BOOL;
+                     dwFlagsAndAttributes:DWORD;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):BOOL; external WinInetDLL name 'FtpGetFileW';
 
 {$IFDEF UNICODE}
 function FtpGetFile(hConnect:HINTERNET;
-				            lpszRemoteFile:LPCWSTR;
+                    lpszRemoteFile:LPCWSTR;
                     lpszNewFile:LPCWSTR;
-				            fFailIfExists:BOOL;
-				            dwFlagsAndAttributes:DWORD;
-				            dwFlags:DWORD;
-				            dwContext:DWORD_PTR
-				           ):BOOL; external WinInetDLL name 'FtpGetFileW';
+                    fFailIfExists:BOOL;
+                    dwFlagsAndAttributes:DWORD;
+                    dwFlags:DWORD;
+                    dwContext:DWORD_PTR
+                   ):BOOL; external WinInetDLL name 'FtpGetFileW';
 {$ELSE UNICODE}
 function FtpGetFile(hConnect:HINTERNET;
-				            lpszRemoteFile:LPCSTR;
+                    lpszRemoteFile:LPCSTR;
                     lpszNewFile:LPCSTR;
-				            fFailIfExists:BOOL;
-				            dwFlagsAndAttributes:DWORD;
-				            dwFlags:DWORD;
-				            dwContext:DWORD_PTR
-				           ):BOOL; external WinInetDLL name 'FtpGetFileA';
+                    fFailIfExists:BOOL;
+                    dwFlagsAndAttributes:DWORD;
+                    dwFlags:DWORD;
+                    dwContext:DWORD_PTR
+                   ):BOOL; external WinInetDLL name 'FtpGetFileA';
 {$ENDIF UNICODE}
 
 function FtpPutFileA(hConnect:HINTERNET;
-				             lpszLocalFile:LPCSTR;
-				             lpszNewRemoteFile:LPCSTR;
-				             dwFlags:DWORD;
-				             dwContext:DWORD_PTR
-				            ):BOOL; external WinInetDLL name 'FtpPutFileA';
+                     lpszLocalFile:LPCSTR;
+                     lpszNewRemoteFile:LPCSTR;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):BOOL; external WinInetDLL name 'FtpPutFileA';
 
 function FtpPutFileW(hConnect:HINTERNET;
-				             lpszLocalFile:LPCWSTR;
-				             lpszNewRemoteFile:LPCWSTR;
-				             dwFlags:DWORD;
-				             dwContext:DWORD_PTR
-				            ):BOOL; external WinInetDLL name 'FtpPutFileW';
+                     lpszLocalFile:LPCWSTR;
+                     lpszNewRemoteFile:LPCWSTR;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):BOOL; external WinInetDLL name 'FtpPutFileW';
 
 {$IFDEF UNICODE}
 function FtpPutFile(hConnect:HINTERNET;
-				            lpszLocalFile:LPCWSTR;
-				            lpszNewRemoteFile:LPCWSTR;
-				            dwFlags:DWORD;
-				            dwContext:DWORD_PTR
-				           ):BOOL; external WinInetDLL name 'FtpPutFileW';
+                    lpszLocalFile:LPCWSTR;
+                    lpszNewRemoteFile:LPCWSTR;
+                    dwFlags:DWORD;
+                    dwContext:DWORD_PTR
+                   ):BOOL; external WinInetDLL name 'FtpPutFileW';
 {$ELSE UNICODE}
 function FtpPutFile(hConnect:HINTERNET;
-				            lpszLocalFile:LPCSTR;
-				            lpszNewRemoteFile:LPCSTR;
-				            dwFlags:DWORD;
-				            dwContext:DWORD_PTR
-				           ):BOOL; external WinInetDLL name 'FtpPutFileA';
+                    lpszLocalFile:LPCSTR;
+                    lpszNewRemoteFile:LPCSTR;
+                    dwFlags:DWORD;
+                    dwContext:DWORD_PTR
+                   ):BOOL; external WinInetDLL name 'FtpPutFileA';
 {$ENDIF UNICODE}
 
 function FtpGetFileEx(hFtpSession:HINTERNET;
                       lpszRemoteFile:LPCSTR;
-					            lpszNewFile:LPCWSTR;
-					            fFailIfExists:BOOL;
-					            dwFlagsAndAttributes:DWORD;
-					            dwFlags:DWORD;
-					            dwContext:DWORD_PTR
-					           ):BOOL; external WinInetDLL name 'FtpGetFileEx';
+                      lpszNewFile:LPCWSTR;
+                      fFailIfExists:BOOL;
+                      dwFlagsAndAttributes:DWORD;
+                      dwFlags:DWORD;
+                      dwContext:DWORD_PTR
+                     ):BOOL; external WinInetDLL name 'FtpGetFileEx';
 
 function FtpPutFileEx(hFtpSession:HINTERNET;
-					            lpszLocalFile:LPCWSTR;
-					            lpszNewRemoteFile:LPCSTR;
-					            dwFlags:DWORD;
-					            dwContext:DWORD_PTR
-					           ):BOOL; external WinInetDLL name 'FtpPutFileEx';
+                      lpszLocalFile:LPCWSTR;
+                      lpszNewRemoteFile:LPCSTR;
+                      dwFlags:DWORD;
+                      dwContext:DWORD_PTR
+                     ):BOOL; external WinInetDLL name 'FtpPutFileEx';
 
 function FtpDeleteFileA(hConnect:HINTERNET;
-					              lpszFileName:LPCSTR
-					             ):BOOL; external WinInetDLL name 'FtpDeleteFileA';
+                        lpszFileName:LPCSTR
+                       ):BOOL; external WinInetDLL name 'FtpDeleteFileA';
 
 function FtpDeleteFileW(hConnect:HINTERNET;
-					              lpszFileName:LPCWSTR
-					             ):BOOL; external WinInetDLL name 'FtpDeleteFileW';
+                        lpszFileName:LPCWSTR
+                       ):BOOL; external WinInetDLL name 'FtpDeleteFileW';
 
 {$IFDEF UNICODE}
 function FtpDeleteFile(hConnect:HINTERNET;
-					             lpszFileName:LPCWSTR
-					            ):BOOL; external WinInetDLL name 'FtpDeleteFileW';
+                       lpszFileName:LPCWSTR
+                      ):BOOL; external WinInetDLL name 'FtpDeleteFileW';
 {$ELSE UNICODE}
 function FtpDeleteFile(hConnect:HINTERNET;
-					             lpszFileName:LPCSTR
-					            ):BOOL; external WinInetDLL name 'FtpDeleteFileA';
+                       lpszFileName:LPCSTR
+                      ):BOOL; external WinInetDLL name 'FtpDeleteFileA';
 {$ENDIF UNICODE}
 
 function FtpRenameFileA(hConnect:HINTERNET;
-					              lpszExisting:LPCSTR;
-					              lpszNew:LPCSTR
-					             ):BOOL; external WinInetDLL name 'FtpRenameFileA';
+                        lpszExisting:LPCSTR;
+                        lpszNew:LPCSTR
+                       ):BOOL; external WinInetDLL name 'FtpRenameFileA';
 
 function FtpRenameFileW(hConnect:HINTERNET;
-					              lpszExisting:LPCWSTR;
-					              lpszNew:LPCWSTR
-					             ):BOOL; external WinInetDLL name 'FtpRenameFileW';
+                        lpszExisting:LPCWSTR;
+                        lpszNew:LPCWSTR
+                       ):BOOL; external WinInetDLL name 'FtpRenameFileW';
 {$IFDEF UNICODE}
 function FtpRenameFile(hConnect:HINTERNET;
-					             lpszExisting:LPCWSTR;
-					             lpszNew:LPCWSTR
-					            ):BOOL; external WinInetDLL name 'FtpRenameFileW';
+                       lpszExisting:LPCWSTR;
+                       lpszNew:LPCWSTR
+                      ):BOOL; external WinInetDLL name 'FtpRenameFileW';
 {$ELSE UNICODE}
 function FtpRenameFile(hConnect:HINTERNET;
-					             lpszExisting:LPCSTR;
-					             lpszNew:LPCSTR
-					            ):BOOL; external WinInetDLL name 'FtpRenameFileA';
+                       lpszExisting:LPCSTR;
+                       lpszNew:LPCSTR
+                      ):BOOL; external WinInetDLL name 'FtpRenameFileA';
 {$ENDIF UNICODE}
 
 function FtpOpenFileA(hConnect:HINTERNET;
-									    lpszFileName:LPCSTR;
-									    dwAccess:DWORD;
-									    dwFlags:DWORD;
-									    dwContext:DWORD_PTR
-									   ):HINTERNET; external WinInetDLL name 'FtpOpenFileA';
+                      lpszFileName:LPCSTR;
+                      dwAccess:DWORD;
+                      dwFlags:DWORD;
+                      dwContext:DWORD_PTR
+                     ):HINTERNET; external WinInetDLL name 'FtpOpenFileA';
 
 function FtpOpenFileW(hConnect:HINTERNET;
-									    lpszFileName:LPCWSTR;
-									    dwAccess:DWORD;
-									    dwFlags:DWORD;
-									    dwContext:DWORD_PTR
-									   ):HINTERNET; external WinInetDLL name 'FtpOpenFileW';
+                      lpszFileName:LPCWSTR;
+                      dwAccess:DWORD;
+                      dwFlags:DWORD;
+                      dwContext:DWORD_PTR
+                     ):HINTERNET; external WinInetDLL name 'FtpOpenFileW';
 
 {$IFDEF UNICODE}
 function FtpOpenFile(hConnect:HINTERNET;
-									   lpszFileName:LPCWSTR;
-									   dwAccess:DWORD;
-									   dwFlags:DWORD;
-									   dwContext:DWORD_PTR
-									  ):HINTERNET; external WinInetDLL name 'FtpOpenFileW';
+                     lpszFileName:LPCWSTR;
+                     dwAccess:DWORD;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):HINTERNET; external WinInetDLL name 'FtpOpenFileW';
 {$ELSE UNICODE}
 function FtpOpenFile(hConnect:HINTERNET;
-									   lpszFileName:LPCSTR;
-									   dwAccess:DWORD;
-									   dwFlags:DWORD;
-									   dwContext:DWORD_PTR
-									  ):HINTERNET; external WinInetDLL name 'FtpOpenFileA';
+                     lpszFileName:LPCSTR;
+                     dwAccess:DWORD;
+                     dwFlags:DWORD;
+                     dwContext:DWORD_PTR
+                    ):HINTERNET; external WinInetDLL name 'FtpOpenFileA';
 {$ENDIF UNICODE}
 
 function FtpCreateDirectoryA(hConnect:HINTERNET;
-						                 lpszDirectory:LPCSTR
-						                ):BOOL; external WinInetDLL name 'FtpCreateDirectoryA';
+                             lpszDirectory:LPCSTR
+                            ):BOOL; external WinInetDLL name 'FtpCreateDirectoryA';
 
 function FtpCreateDirectoryW(hConnect:HINTERNET;
-						                 lpszDirectory:LPCWSTR
-						                ):BOOL; external WinInetDLL name 'FtpCreateDirectoryW';
+                             lpszDirectory:LPCWSTR
+                            ):BOOL; external WinInetDLL name 'FtpCreateDirectoryW';
 
 {$IFDEF UNICODE}
 function FtpCreateDirectory(hConnect:HINTERNET;
-						                lpszDirectory:LPCWSTR
-						               ):BOOL; external WinInetDLL name 'FtpCreateDirectoryW';
+                            lpszDirectory:LPCWSTR
+                           ):BOOL; external WinInetDLL name 'FtpCreateDirectoryW';
 {$ELSE UNICODE}
 function FtpCreateDirectory(hConnect:HINTERNET;
-						                lpszDirectory:LPCSTR
-						               ):BOOL; external WinInetDLL name 'FtpCreateDirectoryA';
+                            lpszDirectory:LPCSTR
+                           ):BOOL; external WinInetDLL name 'FtpCreateDirectoryA';
 {$ENDIF UNICODE}
 
 function FtpRemoveDirectoryA(hConnect:HINTERNET;
-						                 lpszDirectory:LPCSTR
-						                ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryA';
+                             lpszDirectory:LPCSTR
+                            ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryA';
 
 function FtpRemoveDirectoryW(hConnect:HINTERNET;
-						                 lpszDirectory:LPCWSTR
-						                ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryW';
+                             lpszDirectory:LPCWSTR
+                            ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryW';
 
 {$IFDEF UNICODE}
 function FtpRemoveDirectory(hConnect:HINTERNET;
-						                lpszDirectory:LPCWSTR
-						               ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryW';
+                            lpszDirectory:LPCWSTR
+                           ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryW';
 {$ELSE UNICODE}
 function FtpRemoveDirectory(hConnect:HINTERNET;
-						                lpszDirectory:LPCSTR
-						               ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryA';
+                            lpszDirectory:LPCSTR
+                           ):BOOL; external WinInetDLL name 'FtpRemoveDirectoryA';
 {$ENDIF UNICODE}
 
 function FtpSetCurrentDirectoryA(hConnect:HINTERNET;
-     				  	  	                  lpszDirectory:LPCSTR
-					        		                 ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryA';
+                                      lpszDirectory:LPCSTR
+                                       ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryA';
 
 function FtpSetCurrentDirectoryW(hConnect:HINTERNET;
-     				  	  	                  lpszDirectory:LPCWSTR
-					        		                 ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryW';
+                                      lpszDirectory:LPCWSTR
+                                       ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryW';
 
 {$IFDEF UNICODE}
 function FtpSetCurrentDirectory(hConnect:HINTERNET;
-     				  	  	                 lpszDirectory:LPCWSTR
-					        		                ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryW';
+                                     lpszDirectory:LPCWSTR
+                                      ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryW';
 {$ELSE UNICODE}
 function FtpSetCurrentDirectory(hConnect:HINTERNET;
-     				  	  	                 lpszDirectory:LPCSTR
-					        		                ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryA';
+                                     lpszDirectory:LPCSTR
+                                      ):BOOL; external WinInetDLL name 'FtpSetCurrentDirectoryA';
 {$ENDIF UNICODE}
 
 function FtpGetCurrentDirectoryA(hConnect:HINTERNET;
-							                          lpszCurrentDirectory:LPSTR;
-							                          lpdwCurrentDirectory:LPDWORD
-							                         ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryA';
+                                        lpszCurrentDirectory:LPSTR;
+                                        lpdwCurrentDirectory:LPDWORD
+                                       ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryA';
 
 function FtpGetCurrentDirectoryW(hConnect:HINTERNET;
-							                          lpszCurrentDirectory:LPWSTR;
-							                          lpdwCurrentDirectory:LPDWORD
-							                         ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryW';
+                                        lpszCurrentDirectory:LPWSTR;
+                                        lpdwCurrentDirectory:LPDWORD
+                                       ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryW';
 
 {$IFDEF UNICODE}
 function FtpGetCurrentDirectory(hConnect:HINTERNET;
-							                         lpszCurrentDirectory:LPWSTR;
-							                         lpdwCurrentDirectory:LPDWORD
-							                        ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryW';
+                                       lpszCurrentDirectory:LPWSTR;
+                                       lpdwCurrentDirectory:LPDWORD
+                                      ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryW';
 {$ELSE UNICODE}
 function FtpGetCurrentDirectory(hConnect:HINTERNET;
-							                         lpszCurrentDirectory:LPSTR;
-							                         lpdwCurrentDirectory:LPDWORD
-							                        ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryA';
+                                       lpszCurrentDirectory:LPSTR;
+                                       lpdwCurrentDirectory:LPDWORD
+                                      ):BOOL; external WinInetDLL name 'FtpGetCurrentDirectoryA';
 {$ENDIF UNICODE}
 
 function FtpCommandA(hConnect:HINTERNET;
-              				   fExpectResponse:BOOL;
-				                 dwFlags:DWORD;
-				                 lpszCommand:LPCSTR;
-				                 dwContext:DWORD_PTR;
-				                 phFtpCommand:LPHINTERNET
-				                ):BOOL; external WinInetDLL name 'FtpCommandA';
+                         fExpectResponse:BOOL;
+                         dwFlags:DWORD;
+                         lpszCommand:LPCSTR;
+                         dwContext:DWORD_PTR;
+                         phFtpCommand:LPHINTERNET
+                        ):BOOL; external WinInetDLL name 'FtpCommandA';
 
 function FtpCommandW(hConnect:HINTERNET;
-              				   fExpectResponse:BOOL;
-				                 dwFlags:DWORD;
-				                 lpszCommand:LPCWSTR;
-				                 dwContext:DWORD_PTR;
-				                 phFtpCommand:LPHINTERNET
-				                ):BOOL; external WinInetDLL name 'FtpCommandW';
+                         fExpectResponse:BOOL;
+                         dwFlags:DWORD;
+                         lpszCommand:LPCWSTR;
+                         dwContext:DWORD_PTR;
+                         phFtpCommand:LPHINTERNET
+                        ):BOOL; external WinInetDLL name 'FtpCommandW';
 
 {$IFDEF UNICODE}
 function FtpCommand(hConnect:HINTERNET;
-              				  fExpectResponse:BOOL;
-				                dwFlags:DWORD;
-				                lpszCommand:LPCWSTR;
-				                dwContext:DWORD_PTR;
-				                phFtpCommand:LPHINTERNET
-				               ):BOOL; external WinInetDLL name 'FtpCommandW';
+                        fExpectResponse:BOOL;
+                        dwFlags:DWORD;
+                        lpszCommand:LPCWSTR;
+                        dwContext:DWORD_PTR;
+                        phFtpCommand:LPHINTERNET
+                       ):BOOL; external WinInetDLL name 'FtpCommandW';
 {$ELSE UNICODE}
 function FtpCommand(hConnect:HINTERNET;
-              				  fExpectResponse:BOOL;
-				                dwFlags:DWORD;
-				                lpszCommand:LPCSTR;
-				                dwContext:DWORD_PTR;
-				                phFtpCommand:LPHINTERNET
-				               ):BOOL; external WinInetDLL name 'FtpCommandA';
+                        fExpectResponse:BOOL;
+                        dwFlags:DWORD;
+                        lpszCommand:LPCSTR;
+                        dwContext:DWORD_PTR;
+                        phFtpCommand:LPHINTERNET
+                       ):BOOL; external WinInetDLL name 'FtpCommandA';
 {$ENDIF UNICODE}
 
 function FtpGetFileSize(_hFile:HINTERNET;
-								                lpdwFileSizeHigh:LPDWORD
-								               ):DWORD; external WinInetDLL name 'FtpGetFileSize';
+                                lpdwFileSizeHigh:LPDWORD
+                               ):DWORD; external WinInetDLL name 'FtpGetFileSize';
 
 
 
@@ -1886,22 +1899,22 @@ const
 
 type
      GOPHER_FIND_DATAA = record
-	      DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of char;
-	      GopherType:DWORD;	// GOPHER_TYPE_, if known
-	      SizeLow:DWORD;
-	      SizeHigh:DWORD;
-	      LastModificationTime:FILETIME;
-	      Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of char;
+        DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of char;
+        GopherType:DWORD; // GOPHER_TYPE_, if known
+        SizeLow:DWORD;
+        SizeHigh:DWORD;
+        LastModificationTime:FILETIME;
+        Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of char;
      end;
      LPGOPHER_FIND_DATAA = ^GOPHER_FIND_DATAA;
 
      GOPHER_FIND_DATAW = record
-	      DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of WCHAR;
-	      GopherType:DWORD;	// GOPHER_TYPE_, if known
-	      SizeLow:DWORD;
-	      SizeHigh:DWORD;
-	      LastModificationTime:FILETIME;
-	      Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of WCHAR;
+        DisplayString:array[0..MAX_GOPHER_DISPLAY_TEXT] of WCHAR;
+        GopherType:DWORD; // GOPHER_TYPE_, if known
+        SizeLow:DWORD;
+        SizeHigh:DWORD;
+        LastModificationTime:FILETIME;
+        Locator:array[0..MAX_GOPHER_LOCATOR_LENGTH] of WCHAR;
      end;
      LPGOPHER_FIND_DATAW = ^GOPHER_FIND_DATAW;
 
@@ -1986,108 +1999,108 @@ const
 //
 type
      GOPHER_ADMIN_ATTRIBUTE_TYPE = record
-	      Comment:LPCTSTR;
-	      EmailAddress:LPCTSTR;
+        Comment:LPCTSTR;
+        EmailAddress:LPCTSTR;
      end;
      LPGOPHER_ADMIN_ATTRIBUTE_TYPE = ^GOPHER_ADMIN_ATTRIBUTE_TYPE;
 
 type
      GOPHER_MOD_DATE_ATTRIBUTE_TYPE = record
-	      DateAndTime:FILETIME;
+        DateAndTime:FILETIME;
      end;
      LPGOPHER_MOD_DATE_ATTRIBUTE_TYPE = ^GOPHER_MOD_DATE_ATTRIBUTE_TYPE;
 
 type
      GOPHER_TTL_ATTRIBUTE_TYPE = record
-	      Ttl:DWORD;
+        Ttl:DWORD;
      end;
      LPGOPHER_TTL_ATTRIBUTE_TYPE = ^GOPHER_TTL_ATTRIBUTE_TYPE;
 
 type
      GOPHER_SCORE_ATTRIBUTE_TYPE = record
-	      Score:longint;
+        Score:longint;
      end;
      LPGOPHER_SCORE_ATTRIBUTE_TYPE = ^GOPHER_SCORE_ATTRIBUTE_TYPE;
 
 type
      GOPHER_SCORE_RANGE_ATTRIBUTE_TYPE = record
-	      LowerBound:longint;
-	      UpperBound:longint;
+        LowerBound:longint;
+        UpperBound:longint;
      end;
      LPGOPHER_SCORE_RANGE_ATTRIBUTE_TYPE = ^GOPHER_SCORE_RANGE_ATTRIBUTE_TYPE;
 
 type
      GOPHER_SITE_ATTRIBUTE_TYPE = record
-	      Site:LPCTSTR;
+        Site:LPCTSTR;
      end;
      LPGOPHER_SITE_ATTRIBUTE_TYPE = ^GOPHER_SITE_ATTRIBUTE_TYPE;
 
 type
      GOPHER_ORGANIZATION_ATTRIBUTE_TYPE = record
-	      Organization:LPCTSTR;
+        Organization:LPCTSTR;
      end;
      LPGOPHER_ORGANIZATION_ATTRIBUTE_TYPE = ^GOPHER_ORGANIZATION_ATTRIBUTE_TYPE;
 
 type
      GOPHER_LOCATION_ATTRIBUTE_TYPE = record
-	      Location:LPCTSTR;
+        Location:LPCTSTR;
      end;
      LPGOPHER_LOCATION_ATTRIBUTE_TYPE = ^GOPHER_LOCATION_ATTRIBUTE_TYPE;
 
 type
      GOPHER_GEOGRAPHICAL_LOCATION_ATTRIBUTE_TYPE = record
-	      DegreesNorth:longint;
-	      MinutesNorth:longint;
-	      SecondsNorth:longint;
-	      DegreesEast:longint;
-	      MinutesEast:longint;
-	      SecondsEast:longint;
+        DegreesNorth:longint;
+        MinutesNorth:longint;
+        SecondsNorth:longint;
+        DegreesEast:longint;
+        MinutesEast:longint;
+        SecondsEast:longint;
      end;
      LPGOPHER_GEOGRAPHICAL_LOCATION_ATTRIBUTE_TYPE = ^GOPHER_GEOGRAPHICAL_LOCATION_ATTRIBUTE_TYPE;
 
 type
      GOPHER_TIMEZONE_ATTRIBUTE_TYPE = record
-	      Zone:longint;
+        Zone:longint;
      end;
      LPGOPHER_TIMEZONE_ATTRIBUTE_TYPE = ^GOPHER_TIMEZONE_ATTRIBUTE_TYPE;
 
 type
       GOPHER_PROVIDER_ATTRIBUTE_TYPE = record
-  	     Provider:LPCTSTR;
+         Provider:LPCTSTR;
       end;
       LPGOPHER_PROVIDER_ATTRIBUTE_TYPE = ^GOPHER_PROVIDER_ATTRIBUTE_TYPE;
 
 type
      GOPHER_VERSION_ATTRIBUTE_TYPE = record
-	      Version:LPCTSTR;
+        Version:LPCTSTR;
      end;
      LPGOPHER_VERSION_ATTRIBUTE_TYPE = ^GOPHER_VERSION_ATTRIBUTE_TYPE;
 
 type
      GOPHER_ABSTRACT_ATTRIBUTE_TYPE = record
-	      ShortAbstract:LPCTSTR;
-	      AbstractFile:LPCTSTR;
+        ShortAbstract:LPCTSTR;
+        AbstractFile:LPCTSTR;
      end;
      LPGOPHER_ABSTRACT_ATTRIBUTE_TYPE = ^GOPHER_ABSTRACT_ATTRIBUTE_TYPE;
 
 type
      GOPHER_VIEW_ATTRIBUTE_TYPE = record
-	      ContentType:LPCTSTR;
-	      Language:LPCTSTR;
-	      Size:DWORD;
+        ContentType:LPCTSTR;
+        Language:LPCTSTR;
+        Size:DWORD;
      end;
      LPGOPHER_VIEW_ATTRIBUTE_TYPE = ^GOPHER_VIEW_ATTRIBUTE_TYPE;
 
 type
      GOPHER_VERONICA_ATTRIBUTE_TYPE = record
-	      TreeWalk:BOOL;
+        TreeWalk:BOOL;
      end;
      LPGOPHER_VERONICA_ATTRIBUTE_TYPE = ^GOPHER_VERONICA_ATTRIBUTE_TYPE;
 
 type
      GOPHER_ASK_ATTRIBUTE_TYPE = record
-	      QuestionType:LPCTSTR;
-	      QuestionText:LPCTSTR;
+        QuestionType:LPCTSTR;
+        QuestionText:LPCTSTR;
      end;
      LPGOPHER_ASK_ATTRIBUTE_TYPE = ^GOPHER_ASK_ATTRIBUTE_TYPE;
 
@@ -2099,7 +2112,7 @@ type
 
 type
       GOPHER_UNKNOWN_ATTRIBUTE_TYPE = record
-	       Text:LPCTSTR;
+         Text:LPCTSTR;
       end;
       LPGOPHER_UNKNOWN_ATTRIBUTE_TYPE = ^GOPHER_UNKNOWN_ATTRIBUTE_TYPE;
 
@@ -2110,26 +2123,26 @@ type
 
 type
      GOPHER_ATTRIBUTE_TYPE = record
-	      CategoryId:DWORD;	// e.g. GOPHER_CATEGORY_ID_ADMIN
-	      AttributeId:DWORD;	// e.g. GOPHER_ATTRIBUTE_ID_ADMIN
+        CategoryId:DWORD; // e.g. GOPHER_CATEGORY_ID_ADMIN
+        AttributeId:DWORD;  // e.g. GOPHER_ATTRIBUTE_ID_ADMIN
        case longint of // AttributeType
-		       0: (Admin:GOPHER_ADMIN_ATTRIBUTE_TYPE);
-		       1: (ModDate:GOPHER_MOD_DATE_ATTRIBUTE_TYPE);
-		       2: (Ttl:GOPHER_TTL_ATTRIBUTE_TYPE);
-		       3: (Score:GOPHER_SCORE_ATTRIBUTE_TYPE);
-		       4: (ScoreRange:GOPHER_SCORE_RANGE_ATTRIBUTE_TYPE);
-		       5: (Site:GOPHER_SITE_ATTRIBUTE_TYPE);
-		       6: (Organization:GOPHER_ORGANIZATION_ATTRIBUTE_TYPE);
-		       7: (Location:GOPHER_LOCATION_ATTRIBUTE_TYPE);
-		       8: (GeographicalLocation:GOPHER_GEOGRAPHICAL_LOCATION_ATTRIBUTE_TYPE);
-		       9: (TimeZone:GOPHER_TIMEZONE_ATTRIBUTE_TYPE);
-		       10: (Provider:GOPHER_PROVIDER_ATTRIBUTE_TYPE);
-		       11: (Version:GOPHER_VERSION_ATTRIBUTE_TYPE);
-		       12: (_Abstract:GOPHER_ABSTRACT_ATTRIBUTE_TYPE);
-		       13: (View:GOPHER_VIEW_ATTRIBUTE_TYPE);
-		       14: (Veronica:GOPHER_VERONICA_ATTRIBUTE_TYPE);
-		       15: (Ask:GOPHER_ASK_ATTRIBUTE_TYPE);
-		       16: (Unknown:GOPHER_UNKNOWN_ATTRIBUTE_TYPE);
+           0: (Admin:GOPHER_ADMIN_ATTRIBUTE_TYPE);
+           1: (ModDate:GOPHER_MOD_DATE_ATTRIBUTE_TYPE);
+           2: (Ttl:GOPHER_TTL_ATTRIBUTE_TYPE);
+           3: (Score:GOPHER_SCORE_ATTRIBUTE_TYPE);
+           4: (ScoreRange:GOPHER_SCORE_RANGE_ATTRIBUTE_TYPE);
+           5: (Site:GOPHER_SITE_ATTRIBUTE_TYPE);
+           6: (Organization:GOPHER_ORGANIZATION_ATTRIBUTE_TYPE);
+           7: (Location:GOPHER_LOCATION_ATTRIBUTE_TYPE);
+           8: (GeographicalLocation:GOPHER_GEOGRAPHICAL_LOCATION_ATTRIBUTE_TYPE);
+           9: (TimeZone:GOPHER_TIMEZONE_ATTRIBUTE_TYPE);
+           10: (Provider:GOPHER_PROVIDER_ATTRIBUTE_TYPE);
+           11: (Version:GOPHER_VERSION_ATTRIBUTE_TYPE);
+           12: (_Abstract:GOPHER_ABSTRACT_ATTRIBUTE_TYPE);
+           13: (View:GOPHER_VIEW_ATTRIBUTE_TYPE);
+           14: (Veronica:GOPHER_VERONICA_ATTRIBUTE_TYPE);
+           15: (Ask:GOPHER_ASK_ATTRIBUTE_TYPE);
+           16: (Unknown:GOPHER_UNKNOWN_ATTRIBUTE_TYPE);
      end;
      LPGOPHER_ATTRIBUTE_TYPE = ^GOPHER_ATTRIBUTE_TYPE;
 
@@ -2211,115 +2224,115 @@ const
 //
 
 function GopherCreateLocatorA(lpszHost:LPCSTR;
-							                       nServerPort:INTERNET_PORT;
-							                       lpszDisplayString:INTERNET_PORT;
-							                       lpszSelectorString:LPCSTR;
-							                       dwGopherType:DWORD;
-							                       lpszLocator:LPSTR;
-							                       lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorA';
+                                     nServerPort:INTERNET_PORT;
+                                     lpszDisplayString:INTERNET_PORT;
+                                     lpszSelectorString:LPCSTR;
+                                     dwGopherType:DWORD;
+                                     lpszLocator:LPSTR;
+                                     lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorA';
 
 function GopherCreateLocatorW(lpszHost:LPCWSTR;
-							                       nServerPort:INTERNET_PORT;
-							                       lpszDisplayString:INTERNET_PORT;
-							                       lpszSelectorString:LPCWSTR;
-							                       dwGopherType:DWORD;
-							                       lpszLocator:LPWSTR;
-							                       lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorW';
+                                     nServerPort:INTERNET_PORT;
+                                     lpszDisplayString:INTERNET_PORT;
+                                     lpszSelectorString:LPCWSTR;
+                                     dwGopherType:DWORD;
+                                     lpszLocator:LPWSTR;
+                                     lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorW';
 
 {$IFDEF UNICODE}
 function GopherCreateLocator(lpszHost:LPCWSTR;
-							                      nServerPort:INTERNET_PORT;
-							                      lpszDisplayString:INTERNET_PORT;
-							                      lpszSelectorString:LPCWSTR;
-							                      dwGopherType:DWORD;
-							                      lpszLocator:LPWSTR;
-							                      lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorW';
+                                    nServerPort:INTERNET_PORT;
+                                    lpszDisplayString:INTERNET_PORT;
+                                    lpszSelectorString:LPCWSTR;
+                                    dwGopherType:DWORD;
+                                    lpszLocator:LPWSTR;
+                                    lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorW';
 {$ELSE UNICODE}
 function GopherCreateLocator(lpszHost:LPCSTR;
-							                      nServerPort:INTERNET_PORT;
-							                      lpszDisplayString:INTERNET_PORT;
-							                      lpszSelectorString:LPCSTR;
-							                      dwGopherType:DWORD;
-							                      lpszLocator:LPSTR;
-							                      lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorA';
+                                    nServerPort:INTERNET_PORT;
+                                    lpszDisplayString:INTERNET_PORT;
+                                    lpszSelectorString:LPCSTR;
+                                    dwGopherType:DWORD;
+                                    lpszLocator:LPSTR;
+                                    lpdwBufferLength:LPDWORD):BOOL; external WinInetDLL name 'GopherCreateLocatorA';
 {$ENDIF UNICODE}
 
 function GopherGetLocatorTypeA(lpszLocator:LPCSTR;
-							                        lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeA';
+                                      lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeA';
 
 function GopherGetLocatorTypeW(lpszLocator:LPCWSTR;
-							                        lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeW';
+                                      lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeW';
 
 {$IFDEF UNICODE}
 function GopherGetLocatorType(lpszLocator:LPCWSTR;
-							                       lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeW';
+                                     lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeW';
 {$ELSE UNICODE}
 function GopherGetLocatorType(lpszLocator:LPCSTR;
-							                       lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeA';
+                                     lpdwGopherType:LPDWORD):BOOL; external WinInetDLL name 'GopherGetLocatorTypeA';
 {$ENDIF UNICODE}
 
 function GopherFindFirstFileA(hConnect:HINTERNET;
-											                   lpszLocator:LPCSTR;
-											                   lpszSearchString:LPCSTR;
-											                   lpFindData:LPGOPHER_FIND_DATAA;
-											                   dwFlags:DWORD;
-											                   dwContext:DWORD_PTR
-											                  ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileA';
+                                         lpszLocator:LPCSTR;
+                                         lpszSearchString:LPCSTR;
+                                         lpFindData:LPGOPHER_FIND_DATAA;
+                                         dwFlags:DWORD;
+                                         dwContext:DWORD_PTR
+                                        ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileA';
 
 function GopherFindFirstFileW(hConnect:HINTERNET;
-											                   lpszLocator:LPCWSTR;
-											                   lpszSearchString:LPCWSTR;
-											                   lpFindData:LPGOPHER_FIND_DATAW;
-											                   dwFlags:DWORD;
-											                   dwContext:DWORD_PTR
-											                  ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileW';
+                                         lpszLocator:LPCWSTR;
+                                         lpszSearchString:LPCWSTR;
+                                         lpFindData:LPGOPHER_FIND_DATAW;
+                                         dwFlags:DWORD;
+                                         dwContext:DWORD_PTR
+                                        ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileW';
 
 {$IFDEF UNICODE}
 function GopherFindFirstFile(hConnect:HINTERNET;
-											                  lpszLocator:LPCWSTR;
-											                  lpszSearchString:LPCWSTR;
-											                  lpFindData:LPGOPHER_FIND_DATAW;
-											                  dwFlags:DWORD;
-											                  dwContext:DWORD_PTR
-											                 ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileW';
+                                        lpszLocator:LPCWSTR;
+                                        lpszSearchString:LPCWSTR;
+                                        lpFindData:LPGOPHER_FIND_DATAW;
+                                        dwFlags:DWORD;
+                                        dwContext:DWORD_PTR
+                                       ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileW';
 {$ELSE UNICODE}
 function GopherFindFirstFile(hConnect:HINTERNET;
-											                  lpszLocator:LPCSTR;
-											                  lpszSearchString:LPCSTR;
-											                  lpFindData:LPGOPHER_FIND_DATAA;
-											                  dwFlags:DWORD;
-											                  dwContext:DWORD_PTR
-											                 ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileA';
+                                        lpszLocator:LPCSTR;
+                                        lpszSearchString:LPCSTR;
+                                        lpFindData:LPGOPHER_FIND_DATAA;
+                                        dwFlags:DWORD;
+                                        dwContext:DWORD_PTR
+                                       ):HINTERNET; external WinInetDLL name 'GopherFindFirstFileA';
 {$ENDIF UNICODE}
 
 function GopherOpenFileA(hConnect:HINTERNET;
-									                lpszLocator:LPCSTR;
-									                lpszView:LPCSTR;
-									                dwFlags:DWORD;
-									                dwContext:DWORD_PTR
-									               ):HINTERNET; external WinInetDLL name 'GopherOpenFileA';
+                                  lpszLocator:LPCSTR;
+                                  lpszView:LPCSTR;
+                                  dwFlags:DWORD;
+                                  dwContext:DWORD_PTR
+                                 ):HINTERNET; external WinInetDLL name 'GopherOpenFileA';
 
 function GopherOpenFileW(hConnect:HINTERNET;
-									                lpszLocator:LPCWSTR;
-									                lpszView:LPCWSTR;
-									                dwFlags:DWORD;
-									                dwContext:DWORD_PTR
-									               ):HINTERNET; external WinInetDLL name 'GopherOpenFileW';
+                                  lpszLocator:LPCWSTR;
+                                  lpszView:LPCWSTR;
+                                  dwFlags:DWORD;
+                                  dwContext:DWORD_PTR
+                                 ):HINTERNET; external WinInetDLL name 'GopherOpenFileW';
 
 {$IFDEF UNICODE}
 function GopherOpenFile(hConnect:HINTERNET;
-									               lpszLocator:LPCWSTR;
-									               lpszView:LPCWSTR;
-									               dwFlags:DWORD;
-									               dwContext:DWORD_PTR
-									              ):HINTERNET; external WinInetDLL name 'GopherOpenFileW';
+                                 lpszLocator:LPCWSTR;
+                                 lpszView:LPCWSTR;
+                                 dwFlags:DWORD;
+                                 dwContext:DWORD_PTR
+                                ):HINTERNET; external WinInetDLL name 'GopherOpenFileW';
 {$ELSE UNICODE}
 function GopherOpenFile(hConnect:HINTERNET;
-									               lpszLocator:LPCSTR;
+                                 lpszLocator:LPCSTR;
                         lpszView:LPCSTR;
-									               dwFlags:DWORD;
-									               dwContext:DWORD_PTR
-									              ):HINTERNET; external WinInetDLL name 'GopherOpenFileA';
+                                 dwFlags:DWORD;
+                                 dwContext:DWORD_PTR
+                                ):HINTERNET; external WinInetDLL name 'GopherOpenFileA';
 {$ENDIF UNICODE}
 
 type
@@ -2327,45 +2340,45 @@ type
                                             dwError:DWORD):BOOL; cdecl;
 
 function GopherGetAttributeA(hConnect:HINTERNET;
-						                       lpszLocator:LPCSTR;
-						                       lpszAttributeName:LPCSTR;
-						                       lpBuffer:LPBYTE;
-						                       dwBufferLength:DWORD;
-						                       lpdwCharactersReturned:LPDWORD;
-						                       lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
-						                       dwContext:DWORD_PTR
-						                      ):BOOL; external WinInetDLL name 'GopherGetAttributeA';
+                                   lpszLocator:LPCSTR;
+                                   lpszAttributeName:LPCSTR;
+                                   lpBuffer:LPBYTE;
+                                   dwBufferLength:DWORD;
+                                   lpdwCharactersReturned:LPDWORD;
+                                   lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
+                                   dwContext:DWORD_PTR
+                                  ):BOOL; external WinInetDLL name 'GopherGetAttributeA';
 
 function GopherGetAttributeW(hConnect:HINTERNET;
-						                       lpszLocator:LPCWSTR;
-						                       lpszAttributeName:LPCWSTR;
-						                       lpBuffer:LPBYTE;
-						                       dwBufferLength:DWORD;
-						                       lpdwCharactersReturned:LPDWORD;
-						                       lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
-						                       dwContext:DWORD_PTR
-						                      ):BOOL; external WinInetDLL name 'GopherGetAttributeW';
+                                   lpszLocator:LPCWSTR;
+                                   lpszAttributeName:LPCWSTR;
+                                   lpBuffer:LPBYTE;
+                                   dwBufferLength:DWORD;
+                                   lpdwCharactersReturned:LPDWORD;
+                                   lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
+                                   dwContext:DWORD_PTR
+                                  ):BOOL; external WinInetDLL name 'GopherGetAttributeW';
 
 {$IFDEF UNICODE}
 function GopherGetAttribute(hConnect:HINTERNET;
-						                      lpszLocator:LPCWSTR;
-						                      lpszAttributeName:LPCWSTR;
-						                      lpBuffer:LPBYTE;
-						                      dwBufferLength:DWORD;
-						                      lpdwCharactersReturned:LPDWORD;
-						                      lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
-						                      dwContext:DWORD_PTR
-						                     ):BOOL; external WinInetDLL name 'GopherGetAttributeW';
+                                  lpszLocator:LPCWSTR;
+                                  lpszAttributeName:LPCWSTR;
+                                  lpBuffer:LPBYTE;
+                                  dwBufferLength:DWORD;
+                                  lpdwCharactersReturned:LPDWORD;
+                                  lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
+                                  dwContext:DWORD_PTR
+                                 ):BOOL; external WinInetDLL name 'GopherGetAttributeW';
 {$ELSE UNICODE}
 function GopherGetAttribute(hConnect:HINTERNET;
-						                      lpszLocator:LPCSTR;
-						                      lpszAttributeName:LPCSTR;
-						                      lpBuffer:LPBYTE;
-						                      dwBufferLength:DWORD;
-						                      lpdwCharactersReturned:LPDWORD;
-						                      lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
-						                      dwContext:DWORD_PTR
-						                     ):BOOL; external WinInetDLL name 'GopherGetAttributeA';
+                                  lpszLocator:LPCSTR;
+                                  lpszAttributeName:LPCSTR;
+                                  lpBuffer:LPBYTE;
+                                  dwBufferLength:DWORD;
+                                  lpdwCharactersReturned:LPDWORD;
+                                  lpfnEnumerator:GOPHER_ATTRIBUTE_ENUMERATOR;
+                                  dwContext:DWORD_PTR
+                                 ):BOOL; external WinInetDLL name 'GopherGetAttributeA';
 {$ENDIF UNICODE}
 
 
@@ -2601,28 +2614,28 @@ const
 //
 
 function HttpOpenRequestA(hConnect:HINTERNET;
-										                lpszVerb:LPCSTR;
-										                lpszObjectName:LPCSTR;
-										                lpszVersion:LPCSTR;
-										                lpszReferrer:LPCSTR;
-										                lplpszAcceptTypes:PLPSTR;
-										                dwFlags:DWORD;
-										                dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'HttpOpenRequestA';
+                                    lpszVerb:LPCSTR;
+                                    lpszObjectName:LPCSTR;
+                                    lpszVersion:LPCSTR;
+                                    lpszReferrer:LPCSTR;
+                                    lplpszAcceptTypes:PLPSTR;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'HttpOpenRequestA';
 
 function HttpOpenRequestW(hConnect:HINTERNET;
-										                lpszVerb:LPCWSTR;
-										                lpszObjectName:LPCWSTR;
-										                lpszVersion:LPCWSTR;
-										                lpszReferrer:LPCWSTR;
-										                lplpszAcceptTypes:PLPWSTR;
-										                dwFlags:DWORD;
-										                dwContext:DWORD_PTR
-										               ):HINTERNET; external WinInetDLL name 'HttpOpenRequestW';
+                                    lpszVerb:LPCWSTR;
+                                    lpszObjectName:LPCWSTR;
+                                    lpszVersion:LPCWSTR;
+                                    lpszReferrer:LPCWSTR;
+                                    lplpszAcceptTypes:PLPWSTR;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):HINTERNET; external WinInetDLL name 'HttpOpenRequestW';
 
 {$IFDEF UNICODE}
 function HttpOpenRequest(hConnect:HINTERNET;
-										               lpszVerb:LPCWSTR;
+                                   lpszVerb:LPCWSTR;
                          lpszObjectName:LPCWSTR;
                          lpszVersion:LPCWSTR;
                          lpszReferrer:LPCWSTR;
@@ -2632,7 +2645,7 @@ function HttpOpenRequest(hConnect:HINTERNET;
                         ):HINTERNET; external WinInetDLL name 'HttpOpenRequestW';
 {$ELSE UNICODE}
 function HttpOpenRequest(hConnect:HINTERNET;
-										               lpszVerb:LPCSTR;
+                                   lpszVerb:LPCSTR;
                          lpszObjectName:LPCSTR;
                          lpszVersion:LPCSTR;
                          lpszReferrer:LPCSTR;
@@ -2643,29 +2656,29 @@ function HttpOpenRequest(hConnect:HINTERNET;
 {$ENDIF UNICODE}
 
 function HttpAddRequestHeadersA(hRequest:HINTERNET;
-							                         lpszHeaders:LPCSTR;
-							                         dwHeadersLength:DWORD;
-							                         dwModifiers:DWORD
-							                        ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersA';
+                                       lpszHeaders:LPCSTR;
+                                       dwHeadersLength:DWORD;
+                                       dwModifiers:DWORD
+                                      ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersA';
 
 function HttpAddRequestHeadersW(hRequest:HINTERNET;
-							                         lpszHeaders:LPCWSTR;
-							                         dwHeadersLength:DWORD;
-							                         dwModifiers:DWORD
-							                        ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersW';
+                                       lpszHeaders:LPCWSTR;
+                                       dwHeadersLength:DWORD;
+                                       dwModifiers:DWORD
+                                      ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersW';
 
 {$IFDEF UNICODE}
 function HttpAddRequestHeaders(hRequest:HINTERNET;
-							                        lpszHeaders:LPCWSTR;
-							                        dwHeadersLength:DWORD;
-							                        dwModifiers:DWORD
-							                       ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersW';
+                                      lpszHeaders:LPCWSTR;
+                                      dwHeadersLength:DWORD;
+                                      dwModifiers:DWORD
+                                     ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersW';
 {$ELSE UNICODE}
 function HttpAddRequestHeaders(hRequest:HINTERNET;
-							                        lpszHeaders:LPCSTR;
-							                        dwHeadersLength:DWORD;
-							                        dwModifiers:DWORD
-							                       ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersA';
+                                      lpszHeaders:LPCSTR;
+                                      dwHeadersLength:DWORD;
+                                      dwModifiers:DWORD
+                                     ):BOOL; external WinInetDLL name 'HttpAddRequestHeadersA';
 {$ENDIF UNICODE}
 
 //
@@ -2711,63 +2724,63 @@ const
       HTTP_ADDREQ_FLAG_REPLACE    = $80000000;
 
 function HttpSendRequestA(hRequest:HINTERNET;
-						                    lpszHeaders:LPCSTR;
-						                    dwHeadersLength:DWORD;
-						                    lpOptional:LPVOID;
-						                    dwOptionalLength:DWORD
-						                   ):BOOL; external WinInetDLL name 'HttpSendRequestA';
+                                lpszHeaders:LPCSTR;
+                                dwHeadersLength:DWORD;
+                                lpOptional:LPVOID;
+                                dwOptionalLength:DWORD
+                               ):BOOL; external WinInetDLL name 'HttpSendRequestA';
 
 function HttpSendRequestW(hRequest:HINTERNET;
-						                    lpszHeaders:LPCWSTR;
-						                    dwHeadersLength:DWORD;
-						                    lpOptional:LPVOID;
-						                    dwOptionalLength:DWORD
-						                   ):BOOL; external WinInetDLL name 'HttpSendRequestW';
+                                lpszHeaders:LPCWSTR;
+                                dwHeadersLength:DWORD;
+                                lpOptional:LPVOID;
+                                dwOptionalLength:DWORD
+                               ):BOOL; external WinInetDLL name 'HttpSendRequestW';
 
 {$IFDEF UNICODE}
 function HttpSendRequest(hRequest:HINTERNET;
-						                   lpszHeaders:LPCWSTR;
-						                   dwHeadersLength:DWORD;
-						                   lpOptional:LPVOID;
-						                   dwOptionalLength:DWORD
-						                  ):BOOL; external WinInetDLL name 'HttpSendRequestW';
+                               lpszHeaders:LPCWSTR;
+                               dwHeadersLength:DWORD;
+                               lpOptional:LPVOID;
+                               dwOptionalLength:DWORD
+                              ):BOOL; external WinInetDLL name 'HttpSendRequestW';
 {$ELSE UNICODE}
 function HttpSendRequest(hRequest:HINTERNET;
-						                   lpszHeaders:LPCSTR;
-						                   dwHeadersLength:DWORD;
-						                   lpOptional:LPVOID;
-						                   dwOptionalLength:DWORD
-						                  ):BOOL; external WinInetDLL name 'HttpSendRequestA';
+                               lpszHeaders:LPCSTR;
+                               dwHeadersLength:DWORD;
+                               lpOptional:LPVOID;
+                               dwOptionalLength:DWORD
+                              ):BOOL; external WinInetDLL name 'HttpSendRequestA';
 {$ENDIF UNICODE}
 
 function HttpSendRequestExA(hRequest:HINTERNET;
-									                   lpBuffersIn:LPINTERNET_BUFFERSA;
-									                   lpBuffersOut:LPINTERNET_BUFFERSA;
-									                   dwFlags:DWORD;
-									                   dwContext:DWORD_PTR
-									                  ):BOOL; external WinInetDLL name 'HttpSendRequestExA';
+                                     lpBuffersIn:LPINTERNET_BUFFERSA;
+                                     lpBuffersOut:LPINTERNET_BUFFERSA;
+                                     dwFlags:DWORD;
+                                     dwContext:DWORD_PTR
+                                    ):BOOL; external WinInetDLL name 'HttpSendRequestExA';
 
 function HttpSendRequestExW(hRequest:HINTERNET;
-									                   lpBuffersIn:LPINTERNET_BUFFERSW;
-									                   lpBuffersOut:LPINTERNET_BUFFERSW;
-									                   dwFlags:DWORD;
-									                   dwContext:DWORD_PTR
-									                  ):BOOL; external WinInetDLL name 'HttpSendRequestExW';
+                                     lpBuffersIn:LPINTERNET_BUFFERSW;
+                                     lpBuffersOut:LPINTERNET_BUFFERSW;
+                                     dwFlags:DWORD;
+                                     dwContext:DWORD_PTR
+                                    ):BOOL; external WinInetDLL name 'HttpSendRequestExW';
 
 {$IFDEF UNICODE}
 function HttpSendRequestEx(hRequest:HINTERNET;
-									                  lpBuffersIn:LPINTERNET_BUFFERS;
-									                  lpBuffersOut:LPINTERNET_BUFFERS;
-									                  dwFlags:DWORD;
-									                  dwContext:DWORD_PTR
-									                 ):BOOL; external WinInetDLL name 'HttpSendRequestExW';
+                                    lpBuffersIn:LPINTERNET_BUFFERS;
+                                    lpBuffersOut:LPINTERNET_BUFFERS;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):BOOL; external WinInetDLL name 'HttpSendRequestExW';
 {$ELSE UNICODE}
 function HttpSendRequestEx(hRequest:HINTERNET;
-									                  lpBuffersIn:LPINTERNET_BUFFERS;
-									                  lpBuffersOut:LPINTERNET_BUFFERS;
-									                  dwFlags:DWORD;
-									                  dwContext:DWORD_PTR
-									                 ):BOOL; external WinInetDLL name 'HttpSendRequestExA';
+                                    lpBuffersIn:LPINTERNET_BUFFERS;
+                                    lpBuffersOut:LPINTERNET_BUFFERS;
+                                    dwFlags:DWORD;
+                                    dwContext:DWORD_PTR
+                                   ):BOOL; external WinInetDLL name 'HttpSendRequestExA';
 {$ENDIF UNICODE}
 
 //
@@ -2782,59 +2795,59 @@ const
       HSR_CHUNKED     = $00000020;                      // operation is send of chunked data
 
 function HttpEndRequestA(hRequest:HINTERNET;
-								                 lpBuffersOut:LPINTERNET_BUFFERSA;
-								                 dwFlags:DWORD;
-								                 dwContext:DWORD_PTR
-								                ):BOOL; external WinInetDLL name 'HttpEndRequestA';
+                                 lpBuffersOut:LPINTERNET_BUFFERSA;
+                                 dwFlags:DWORD;
+                                 dwContext:DWORD_PTR
+                                ):BOOL; external WinInetDLL name 'HttpEndRequestA';
 
 function HttpEndRequestW(hRequest:HINTERNET;
-								                 lpBuffersOut:LPINTERNET_BUFFERSW;
-								                 dwFlags:DWORD;
-								                 dwContext:DWORD_PTR
-								                ):BOOL; external WinInetDLL name 'HttpEndRequestW';
+                                 lpBuffersOut:LPINTERNET_BUFFERSW;
+                                 dwFlags:DWORD;
+                                 dwContext:DWORD_PTR
+                                ):BOOL; external WinInetDLL name 'HttpEndRequestW';
 
 {$IFDEF UNICODE}
 function HttpEndRequest(hRequest:HINTERNET;
-								                lpBuffersOut:LPINTERNET_BUFFERS;
-							                 dwFlags:DWORD;
-							                 dwContext:DWORD_PTR
-							                ):BOOL; external WinInetDLL name 'HttpEndRequestW';
+                                lpBuffersOut:LPINTERNET_BUFFERS;
+                               dwFlags:DWORD;
+                               dwContext:DWORD_PTR
+                              ):BOOL; external WinInetDLL name 'HttpEndRequestW';
 {$ELSE UNICODE}
 function HttpEndRequest(hRequest:HINTERNET;
-								                lpBuffersOut:LPINTERNET_BUFFERS;
-							                 dwFlags:DWORD;
-							                 dwContext:DWORD_PTR
-							                ):BOOL; external WinInetDLL name 'HttpEndRequestA';
+                                lpBuffersOut:LPINTERNET_BUFFERS;
+                               dwFlags:DWORD;
+                               dwContext:DWORD_PTR
+                              ):BOOL; external WinInetDLL name 'HttpEndRequestA';
 {$ENDIF UNICODE}
 
 function HttpQueryInfoA(hRequest:HINTERNET;
-					                   dwInfoLevel:DWORD;
-					                   lpBuffer:LPVOID;
-					                   lpdwBufferLength:LPDWORD;
-					                   lpdwIndex:LPDWORD
-					                  ):BOOL; external WinInetDLL name 'HttpQueryInfoA';
+                             dwInfoLevel:DWORD;
+                             lpBuffer:LPVOID;
+                             lpdwBufferLength:LPDWORD;
+                             lpdwIndex:LPDWORD
+                            ):BOOL; external WinInetDLL name 'HttpQueryInfoA';
 
 function HttpQueryInfoW(hRequest:HINTERNET;
-					                   dwInfoLevel:DWORD;
-					                   lpBuffer:LPVOID;
-					                   lpdwBufferLength:LPDWORD;
-					                   lpdwIndex:LPDWORD
-					                  ):BOOL; external WinInetDLL name 'HttpQueryInfoW';
+                             dwInfoLevel:DWORD;
+                             lpBuffer:LPVOID;
+                             lpdwBufferLength:LPDWORD;
+                             lpdwIndex:LPDWORD
+                            ):BOOL; external WinInetDLL name 'HttpQueryInfoW';
 
 {$IFDEF UNICODE}
 function HttpQueryInfo(hRequest:HINTERNET;
-					                  dwInfoLevel:DWORD;
-					                  lpBuffer:LPVOID;
-					                  lpdwBufferLength:LPDWORD;
-					                  lpdwIndex:LPDWORD
-					                 ):BOOL; external WinInetDLL name 'HttpQueryInfoW';
+                            dwInfoLevel:DWORD;
+                            lpBuffer:LPVOID;
+                            lpdwBufferLength:LPDWORD;
+                            lpdwIndex:LPDWORD
+                           ):BOOL; external WinInetDLL name 'HttpQueryInfoW';
 {$ELSE UNICODE}
 function HttpQueryInfo(hRequest:HINTERNET;
-					                  dwInfoLevel:DWORD;
-					                  lpBuffer:LPVOID;
-					                  lpdwBufferLength:LPDWORD;
-					                  lpdwIndex:LPDWORD
-					                 ):BOOL; external WinInetDLL name 'HttpQueryInfoA';
+                            dwInfoLevel:DWORD;
+                            lpBuffer:LPVOID;
+                            lpdwBufferLength:LPDWORD;
+                            lpdwIndex:LPDWORD
+                           ):BOOL; external WinInetDLL name 'HttpQueryInfoA';
 {$ENDIF UNICODE}
 
 
@@ -2855,81 +2868,81 @@ const
       INTERNET_COOKIE_IS_LEGACY       = $800;
 
 function InternetSetCookieA(lpszUrl:LPCSTR;
-						                      lpszCookieName:LPCSTR;
-						                      lpszCookieData:LPCSTR
-						                     ):BOOL; external WinInetDLL name 'InternetSetCookieA';
+                                  lpszCookieName:LPCSTR;
+                                  lpszCookieData:LPCSTR
+                                 ):BOOL; external WinInetDLL name 'InternetSetCookieA';
 
 function InternetSetCookieW(lpszUrl:LPCWSTR;
-						                      lpszCookieName:LPCWSTR;
-						                      lpszCookieData:LPCWSTR
-						                     ):BOOL; external WinInetDLL name 'InternetSetCookieW';
+                                  lpszCookieName:LPCWSTR;
+                                  lpszCookieData:LPCWSTR
+                                 ):BOOL; external WinInetDLL name 'InternetSetCookieW';
 
 {$IFDEF UNICODE}
 function InternetSetCookie(lpszUrl:LPCWSTR;
-						                     lpszCookieName:LPCWSTR;
-						                     lpszCookieData:LPCWSTR
-						                    ):BOOL; external WinInetDLL name 'InternetSetCookieW';
+                                 lpszCookieName:LPCWSTR;
+                                 lpszCookieData:LPCWSTR
+                                ):BOOL; external WinInetDLL name 'InternetSetCookieW';
 {$ELSE UNICODE}
 function InternetSetCookie(lpszUrl:LPCSTR;
-						                     lpszCookieName:LPCSTR;
-						                     lpszCookieData:LPCSTR
-						                    ):BOOL; external WinInetDLL name 'InternetSetCookieA';
+                                 lpszCookieName:LPCSTR;
+                                 lpszCookieData:LPCSTR
+                                ):BOOL; external WinInetDLL name 'InternetSetCookieA';
 {$ENDIF UNICODE}
 
 function InternetGetCookieA(lpszUrl:LPCSTR;
-						                      lpszCookieName:LPCSTR;
-						                      lpCookieData:LPCSTR;
-						                      lpdwSize:LPDWORD
-						                     ):BOOL; external WinInetDLL name 'InternetGetCookieA';
+                                  lpszCookieName:LPCSTR;
+                                  lpCookieData:LPCSTR;
+                                  lpdwSize:LPDWORD
+                                 ):BOOL; external WinInetDLL name 'InternetGetCookieA';
 
 function InternetGetCookieW(lpszUrl:LPCWSTR;
-						                      lpszCookieName:LPCWSTR;
-						                      lpCookieData:LPCWSTR;
-						                      lpdwSize:LPDWORD
-						                     ):BOOL; external WinInetDLL name 'InternetGetCookieW';
+                                  lpszCookieName:LPCWSTR;
+                                  lpCookieData:LPCWSTR;
+                                  lpdwSize:LPDWORD
+                                 ):BOOL; external WinInetDLL name 'InternetGetCookieW';
 
 {$IFDEF UNICODE}
 function InternetGetCookie(lpszUrl:LPCWSTR;
-						                     lpszCookieName:LPCWSTR;
-						                     lpCookieData:LPCWSTR;
-						                     lpdwSize:LPDWORD
-						                    ):BOOL; external WinInetDLL name 'InternetGetCookieW';
+                                 lpszCookieName:LPCWSTR;
+                                 lpCookieData:LPCWSTR;
+                                 lpdwSize:LPDWORD
+                                ):BOOL; external WinInetDLL name 'InternetGetCookieW';
 {$ELSE UNICODE}
 function InternetGetCookie(lpszUrl:LPCSTR;
-						                     lpszCookieName:LPCSTR;
-						                     lpCookieData:LPCSTR;
-						                     lpdwSize:LPDWORD
-						                    ):BOOL; external WinInetDLL name 'InternetGetCookieA';
+                                 lpszCookieName:LPCSTR;
+                                 lpCookieData:LPCSTR;
+                                 lpdwSize:LPDWORD
+                                ):BOOL; external WinInetDLL name 'InternetGetCookieA';
 {$ENDIF UNICODE}
 
 function InternetSetCookieExA(lpszUrl:LPCSTR;
-										                    lpszCookieName:LPCSTR;
-										                    lpszCookieData:LPCSTR;
-										                    dwFlags:DWORD;
-										                    dwReserved:DWORD_PTR
-										                   ):DWORD; external WinInetDLL name 'InternetSetCookieExA';
+                                        lpszCookieName:LPCSTR;
+                                        lpszCookieData:LPCSTR;
+                                        dwFlags:DWORD;
+                                        dwReserved:DWORD_PTR
+                                       ):DWORD; external WinInetDLL name 'InternetSetCookieExA';
 
 function InternetSetCookieExW(lpszUrl:LPCWSTR;
-										                    lpszCookieName:LPCWSTR;
-										                    lpszCookieData:LPCWSTR;
-										                    dwFlags:DWORD;
-										                    dwReserved:DWORD_PTR
-										                   ):DWORD; external WinInetDLL name 'InternetSetCookieExW';
+                                        lpszCookieName:LPCWSTR;
+                                        lpszCookieData:LPCWSTR;
+                                        dwFlags:DWORD;
+                                        dwReserved:DWORD_PTR
+                                       ):DWORD; external WinInetDLL name 'InternetSetCookieExW';
 
 {$IFDEF UNICODE}
 function InternetSetCookieEx(lpszUrl:LPCWSTR;
-										                   lpszCookieName:LPCWSTR;
-										                   lpszCookieData:LPCWSTR;
-										                   dwFlags:DWORD;
-										                   dwReserved:DWORD_PTR
-										                  ):DWORD; external WinInetDLL name 'InternetSetCookieExW';
+                                       lpszCookieName:LPCWSTR;
+                                       lpszCookieData:LPCWSTR;
+                                       dwFlags:DWORD;
+                                       dwReserved:DWORD_PTR
+                                      ):DWORD; external WinInetDLL name 'InternetSetCookieExW';
 {$ELSE UNICODE}
 function InternetSetCookieEx(lpszUrl:LPCSTR;
-										                   lpszCookieName:LPCSTR;
-										                   lpszCookieData:LPCSTR;
-										                   dwFlags:DWORD;
-										                   dwReserved:DWORD_PTR
-										                  ):DWORD; external WinInetDLL name 'InternetSetCookieExA';
+                                       lpszCookieName:LPCSTR;
+                                       lpszCookieData:LPCSTR;
+                                       dwFlags:DWORD;
+                                       dwReserved:DWORD_PTR
+                                      ):DWORD; external WinInetDLL name 'InternetSetCookieExA';
 {$ENDIF UNICODE}
 
 
@@ -2940,25 +2953,25 @@ function InternetSetCookieEx(lpszUrl:LPCSTR;
 function InternetAttemptConnect(dwReserved:DWORD):DWORD; external WinInetDLL name 'InternetAttemptConnect';
 
 function InternetCheckConnectionA(lpszUrl:LPCSTR;
-								                          dwFlags:DWORD;
-								                          dwReserved:DWORD
-								                         ):BOOL; external WinInetDLL name 'InternetCheckConnectionA';
+                                          dwFlags:DWORD;
+                                          dwReserved:DWORD
+                                         ):BOOL; external WinInetDLL name 'InternetCheckConnectionA';
 
 function InternetCheckConnectionW(lpszUrl:LPCWSTR;
-								                          dwFlags:DWORD;
-								                          dwReserved:DWORD
-								                         ):BOOL; external WinInetDLL name 'InternetCheckConnectionW';
+                                          dwFlags:DWORD;
+                                          dwReserved:DWORD
+                                         ):BOOL; external WinInetDLL name 'InternetCheckConnectionW';
 
 {$IFDEF UNICODE}
 function InternetCheckConnection(lpszUrl:LPCWSTR;
-								                         dwFlags:DWORD;
-								                         dwReserved:DWORD
-								                        ):BOOL; external WinInetDLL name 'InternetCheckConnectionW';
+                                         dwFlags:DWORD;
+                                         dwReserved:DWORD
+                                        ):BOOL; external WinInetDLL name 'InternetCheckConnectionW';
 {$ELSE UNICODE}
 function InternetCheckConnection(lpszUrl:LPCSTR;
-								                         dwFlags:DWORD;
-								                         dwReserved:DWORD
-								                        ):BOOL; external WinInetDLL name 'InternetCheckConnectionA';
+                                         dwFlags:DWORD;
+                                         dwReserved:DWORD
+                                        ):BOOL; external WinInetDLL name 'InternetCheckConnectionA';
 {$ENDIF UNICODE}
 
 const
@@ -2994,55 +3007,55 @@ type
 
 type
      INTERNET_AUTH_NOTIFY_DATA = record
-       cbStruct:DWORD;	  // size of this structure
-	      dwOptions:DWORD;	  // reserved: must set to 0
-	      pfnNotify:PFN_AUTH_NOTIFY;	  // notification callback to retry InternetErrorDlg
-       dwContext:DWORD_PTR;	  // context to pass to to notification function
+       cbStruct:DWORD;    // size of this structure
+        dwOptions:DWORD;    // reserved: must set to 0
+        pfnNotify:PFN_AUTH_NOTIFY;    // notification callback to retry InternetErrorDlg
+       dwContext:DWORD_PTR;   // context to pass to to notification function
      end;
 
 
 function ResumeSuspendedDownload(hRequest:HINTERNET;
-										                       dwResultCode:DWORD
-										                      ):BOOL; external WinInetDLL name 'ResumeSuspendedDownload';
+                                           dwResultCode:DWORD
+                                          ):BOOL; external WinInetDLL name 'ResumeSuspendedDownload';
 
 function InternetErrorDlg(_hWnd:HWND;
-									                 hRequest:HINTERNET;
-									                 dwError:DWORD;
-									                 dwFlags:DWORD;
-									                 lppvData:PPVOID
-									                ):DWORD; external WinInetDLL name 'InternetErrorDlg';
+                                   hRequest:HINTERNET;
+                                   dwError:DWORD;
+                                   dwFlags:DWORD;
+                                   lppvData:PPVOID
+                                  ):DWORD; external WinInetDLL name 'InternetErrorDlg';
 
 function InternetConfirmZoneCrossingA(_hWnd:HWND;
-												                          szUrlPrev:LPSTR;
-												                          szUrlNew:LPSTR;
-												                          bPost:BOOL
-												                         ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingA';
+                                                  szUrlPrev:LPSTR;
+                                                  szUrlNew:LPSTR;
+                                                  bPost:BOOL
+                                                 ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingA';
 
 function InternetConfirmZoneCrossingW(_hWnd:HWND;
-												                          szUrlPrev:LPWSTR;
-												                          szUrlNew:LPWSTR;
-												                          bPost:BOOL
-												                         ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingW';
+                                                  szUrlPrev:LPWSTR;
+                                                  szUrlNew:LPWSTR;
+                                                  bPost:BOOL
+                                                 ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingW';
 
 {$IFDEF UNICODE}
 function InternetConfirmZoneCrossing(_hWnd:HWND;
-												                         szUrlPrev:LPWSTR;
-												                         szUrlNew:LPWSTR;
-												                         bPost:BOOL
-												                        ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingW';
+                                                 szUrlPrev:LPWSTR;
+                                                 szUrlNew:LPWSTR;
+                                                 bPost:BOOL
+                                                ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingW';
 {$ELSE UNICODE}
 {$IFDEF WINX32}
 function InternetConfirmZoneCrossing(_hWnd:HWND;
-												                         szUrlPrev:LPSTR;
-												                         szUrlNew:LPSTR;
-												                         bPost:BOOL
-												                        ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingA';
+                                                 szUrlPrev:LPSTR;
+                                                 szUrlNew:LPSTR;
+                                                 bPost:BOOL
+                                                ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossingA';
 {$ELSE WINX32}
 function InternetConfirmZoneCrossing(_hWnd:HWND;
-												                         szUrlPrev:LPSTR;
-												                         szUrlNew:LPSTR;
-												                         bPost:BOOL
-												                        ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossing';
+                                                 szUrlPrev:LPSTR;
+                                                 szUrlNew:LPSTR;
+                                                 bPost:BOOL
+                                                ):DWORD; external WinInetDLL name 'InternetConfirmZoneCrossing';
 {$ENDIF WINX32}
 {$ENDIF UNICODE}
 
@@ -3211,46 +3224,46 @@ const
 
 type
      _INTERNET_CACHE_ENTRY_INFOA = record
-	      dwStructSize:DWORD;			// version of cache system.
-	      lpszSourceUrlName:LPSTR;	  // embedded pointer to the URL name string.
-	      lpszLocalFileName:LPSTR;	// embedded pointer to the local file name.
-	      CacheEntryType:DWORD;		// cache type bit mask.
-	      dwUseCount:DWORD;			// current users count of the cache entry.
-	      dwHitRate:DWORD;			// num of times the cache entry was retrieved.
-	      dwSizeLow:DWORD;			// low DWORD of the file size.
-	      dwSizeHigh:DWORD;			// high DWORD of the file size.
-	      LastModifiedTime:FILETIME;	// last modified time of the file in GMT format.
-	      ExpireTime:FILETIME;		// expire time of the file in GMT format
-	      LastAccessTime:FILETIME;	// last accessed time in GMT format
-	      LastSyncTime:FILETIME;		// last time the URL was synchronized with the source
-	      lpHeaderInfo:LPSTR;		 // embedded pointer to the header info.
-	      dwHeaderInfoSize:DWORD;		// size of the above header.
-	      lpszFileExtension:LPSTR;	// File extension used to retrive the urldata as a file.
+        dwStructSize:DWORD;     // version of cache system.
+        lpszSourceUrlName:LPSTR;    // embedded pointer to the URL name string.
+        lpszLocalFileName:LPSTR;  // embedded pointer to the local file name.
+        CacheEntryType:DWORD;   // cache type bit mask.
+        dwUseCount:DWORD;     // current users count of the cache entry.
+        dwHitRate:DWORD;      // num of times the cache entry was retrieved.
+        dwSizeLow:DWORD;      // low DWORD of the file size.
+        dwSizeHigh:DWORD;     // high DWORD of the file size.
+        LastModifiedTime:FILETIME;  // last modified time of the file in GMT format.
+        ExpireTime:FILETIME;    // expire time of the file in GMT format
+        LastAccessTime:FILETIME;  // last accessed time in GMT format
+        LastSyncTime:FILETIME;    // last time the URL was synchronized with the source
+        lpHeaderInfo:LPSTR;    // embedded pointer to the header info.
+        dwHeaderInfoSize:DWORD;   // size of the above header.
+        lpszFileExtension:LPSTR;  // File extension used to retrive the urldata as a file.
        case longint of // Exemption delta from last access time.
-		       0: (dwReserved:DWORD);
+           0: (dwReserved:DWORD);
          1: (dwExemptDelta:DWORD);
      end;
      INTERNET_CACHE_ENTRY_INFOA = _INTERNET_CACHE_ENTRY_INFOA;
      LPINTERNET_CACHE_ENTRY_INFOA = ^_INTERNET_CACHE_ENTRY_INFOA;
 
      _INTERNET_CACHE_ENTRY_INFOW = record
-	      dwStructSize:DWORD;			// version of cache system.
-	      lpszSourceUrlName:LPWSTR;	  // embedded pointer to the URL name string.
-	      lpszLocalFileName:LPWSTR;	// embedded pointer to the local file name.
-	      CacheEntryType:DWORD;		// cache type bit mask.
-	      dwUseCount:DWORD;			// current users count of the cache entry.
-	      dwHitRate:DWORD;			// num of times the cache entry was retrieved.
-	      dwSizeLow:DWORD;			// low DWORD of the file size.
-	      dwSizeHigh:DWORD;			// high DWORD of the file size.
-	      LastModifiedTime:FILETIME;	// last modified time of the file in GMT format.
-	      ExpireTime:FILETIME;		// expire time of the file in GMT format
-	      LastAccessTime:FILETIME;	// last accessed time in GMT format
-	      LastSyncTime:FILETIME;		// last time the URL was synchronized with the source
-	      lpHeaderInfo:LPWSTR;		 // embedded pointer to the header info.
-	      dwHeaderInfoSize:DWORD;		// size of the above header.
-	      lpszFileExtension:LPWSTR;	// File extension used to retrive the urldata as a file.
+        dwStructSize:DWORD;     // version of cache system.
+        lpszSourceUrlName:LPWSTR;   // embedded pointer to the URL name string.
+        lpszLocalFileName:LPWSTR; // embedded pointer to the local file name.
+        CacheEntryType:DWORD;   // cache type bit mask.
+        dwUseCount:DWORD;     // current users count of the cache entry.
+        dwHitRate:DWORD;      // num of times the cache entry was retrieved.
+        dwSizeLow:DWORD;      // low DWORD of the file size.
+        dwSizeHigh:DWORD;     // high DWORD of the file size.
+        LastModifiedTime:FILETIME;  // last modified time of the file in GMT format.
+        ExpireTime:FILETIME;    // expire time of the file in GMT format
+        LastAccessTime:FILETIME;  // last accessed time in GMT format
+        LastSyncTime:FILETIME;    // last time the URL was synchronized with the source
+        lpHeaderInfo:LPWSTR;     // embedded pointer to the header info.
+        dwHeaderInfoSize:DWORD;   // size of the above header.
+        lpszFileExtension:LPWSTR; // File extension used to retrive the urldata as a file.
        case longint of // Exemption delta from last access time.
-		       0: (dwReserved:DWORD);
+           0: (dwReserved:DWORD);
          1: (dwExemptDelta:DWORD);
      end;
      INTERNET_CACHE_ENTRY_INFOW = _INTERNET_CACHE_ENTRY_INFOW;
@@ -3269,7 +3282,7 @@ type
 type
      _INTERNET_CACHE_TIMESTAMPS = record
        ftExpires:FILETIME;
-	      ftLastModified:FILETIME;
+        ftLastModified:FILETIME;
      end;
      INTERNET_CACHE_TIMESTAMPS = _INTERNET_CACHE_TIMESTAMPS;
      LPINTERNET_CACHE_TIMESTAMPS = ^_INTERNET_CACHE_TIMESTAMPS;
@@ -3326,24 +3339,24 @@ const
 type
      _INTERNET_CACHE_GROUP_INFOA = record
        dwGroupSize:DWORD;
-	      dwGroupFlags:DWORD;
-	      dwGroupType:DWORD;
-	      dwDiskUsage:DWORD;	// in KB
-	      dwDiskQuota:DWORD;	// in KB
-	      dwOwnerStorage:array[0..GROUP_OWNER_STORAGE_SIZE-1] of DWORD;
-	      szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of char;
+        dwGroupFlags:DWORD;
+        dwGroupType:DWORD;
+        dwDiskUsage:DWORD;  // in KB
+        dwDiskQuota:DWORD;  // in KB
+        dwOwnerStorage:array[0..GROUP_OWNER_STORAGE_SIZE-1] of DWORD;
+        szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of char;
      end;
      INTERNET_CACHE_GROUP_INFOA = _INTERNET_CACHE_GROUP_INFOA;
      LPINTERNET_CACHE_GROUP_INFOA = ^INTERNET_CACHE_GROUP_INFOA;
 
      _INTERNET_CACHE_GROUP_INFOW = record
        dwGroupSize:DWORD;
-	      dwGroupFlags:DWORD;
-	      dwGroupType:DWORD;
-	      dwDiskUsage:DWORD;	// in KB
-	      dwDiskQuota:DWORD;	// in KB
-	      dwOwnerStorage:array[0..GROUP_OWNER_STORAGE_SIZE-1] of DWORD;
-	      szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of WCHAR;
+        dwGroupFlags:DWORD;
+        dwGroupType:DWORD;
+        dwDiskUsage:DWORD;  // in KB
+        dwDiskQuota:DWORD;  // in KB
+        dwOwnerStorage:array[0..GROUP_OWNER_STORAGE_SIZE-1] of DWORD;
+        szGroupName:array[0..GROUPNAME_MAX_LENGTH-1] of WCHAR;
      end;
      INTERNET_CACHE_GROUP_INFOW = _INTERNET_CACHE_GROUP_INFOW;
      LPINTERNET_CACHE_GROUP_INFOW = ^INTERNET_CACHE_GROUP_INFOW;
@@ -3365,33 +3378,33 @@ type
 //
 
 function CreateUrlCacheEntryA(lpszUrlName:LPCSTR;
-							                       dwExpectedFileSize:DWORD;
-							                       lpszFileExtension:LPCSTR;
-							                       lpszFileName:LPSTR;
-							                       dwReserved:DWORD
-							                      ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryA';
+                                     dwExpectedFileSize:DWORD;
+                                     lpszFileExtension:LPCSTR;
+                                     lpszFileName:LPSTR;
+                                     dwReserved:DWORD
+                                    ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryA';
 
 function CreateUrlCacheEntryW(lpszUrlName:LPCWSTR;
-							                       dwExpectedFileSize:DWORD;
-							                       lpszFileExtension:LPCWSTR;
-							                       lpszFileName:LPWSTR;
-							                       dwReserved:DWORD
-							                      ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryW';
+                                     dwExpectedFileSize:DWORD;
+                                     lpszFileExtension:LPCWSTR;
+                                     lpszFileName:LPWSTR;
+                                     dwReserved:DWORD
+                                    ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryW';
 
 {$IFDEF UNICODE}
 function CreateUrlCacheEntry(lpszUrlName:LPCWSTR;
-							                      dwExpectedFileSize:DWORD;
-							                      lpszFileExtension:LPCWSTR;
-							                      lpszFileName:LPWSTR;
-							                      dwReserved:DWORD
-							                     ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryW';
+                                    dwExpectedFileSize:DWORD;
+                                    lpszFileExtension:LPCWSTR;
+                                    lpszFileName:LPWSTR;
+                                    dwReserved:DWORD
+                                   ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryW';
 {$ELSE UNICODE}
 function CreateUrlCacheEntry(lpszUrlName:LPCSTR;
-							                      dwExpectedFileSize:DWORD;
-							                      lpszFileExtension:LPCSTR;
-							                      lpszFileName:LPSTR;
-							                      dwReserved:DWORD
-							                     ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryA';
+                                    dwExpectedFileSize:DWORD;
+                                    lpszFileExtension:LPCSTR;
+                                    lpszFileName:LPSTR;
+                                    dwReserved:DWORD
+                                   ):BOOL; external WinInetDLL name 'CreateUrlCacheEntryA';
 {$ENDIF UNICODE}
 
 {$IFNDEF USE_FIXED_COMMIT_URL_CACHE_ENTRY}
@@ -3407,26 +3420,26 @@ function CreateUrlCacheEntry(lpszUrlName:LPCSTR;
 // we want to make these apis consistent.
 
 function CommitUrlCacheEntryA(lpszUrlName:LPCSTR;
-							                       lpszLocalFileName:LPCSTR;
-							                       ExpireTime:FILETIME;
+                                     lpszLocalFileName:LPCSTR;
+                                     ExpireTime:FILETIME;
                               LastModifiedTime:FILETIME;
-							                       CacheEntryType:DWORD;
-							                       lpHeaderInfo:LPBYTE;
-							                       dwHeaderSize:DWORD;
-							                       lpszFileExtension:LPCSTR;
-							                       lpszOriginalUrl:LPCSTR
-							                      ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryA';
+                                     CacheEntryType:DWORD;
+                                     lpHeaderInfo:LPBYTE;
+                                     dwHeaderSize:DWORD;
+                                     lpszFileExtension:LPCSTR;
+                                     lpszOriginalUrl:LPCSTR
+                                    ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryA';
 
 function CommitUrlCacheEntryW(lpszUrlName:LPCWSTR;
-							                       lpszLocalFileName:LPCWSTR;
-							                       ExpireTime:FILETIME;
+                                     lpszLocalFileName:LPCWSTR;
+                                     ExpireTime:FILETIME;
                               LastModifiedTime:FILETIME;
-							                       CacheEntryType:DWORD;
-							                       lpHeaderInfo:LPWSTR;
-							                       dwHeaderSize:DWORD;
-							                       lpszFileExtension:LPCWSTR;
-							                       lpszOriginalUrl:LPCWSTR
-							                      ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryW';
+                                     CacheEntryType:DWORD;
+                                     lpHeaderInfo:LPWSTR;
+                                     dwHeaderSize:DWORD;
+                                     lpszFileExtension:LPCWSTR;
+                                     lpszOriginalUrl:LPCWSTR
+                                    ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryW';
 
 {$IFDEF UNICODE}
 function CommitUrlCacheEntry(lpszUrlName:LPCWSTR;
@@ -3453,26 +3466,26 @@ function CommitUrlCacheEntry(lpszUrlName:LPCSTR;
 {$ENDIF UNICODE}
 {$ELSE USE_FIXED_COMMIT_URL_CACHE_ENTRY}
 function CommitUrlCacheEntryA(lpszUrlName:LPCSTR;
-							                       lpszLocalFileName:LPCSTR;
-							                       ExpireTime:FILETIME;
+                                     lpszLocalFileName:LPCSTR;
+                                     ExpireTime:FILETIME;
                               LastModifiedTime:FILETIME;
-							                       CacheEntryType:DWORD;
-							                       lpHeaderInfo:LPCSTR;
-							                       dwHeaderSize:DWORD;
-							                       lpszFileExtension:LPCSTR;
-							                       lpszOriginalUrl:LPCSTR
-							                      ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryA';
+                                     CacheEntryType:DWORD;
+                                     lpHeaderInfo:LPCSTR;
+                                     dwHeaderSize:DWORD;
+                                     lpszFileExtension:LPCSTR;
+                                     lpszOriginalUrl:LPCSTR
+                                    ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryA';
 
 function CommitUrlCacheEntryW(lpszUrlName:LPCWSTR;
-							                       lpszLocalFileName:LPCWSTR;
-							                       ExpireTime:FILETIME;
+                                     lpszLocalFileName:LPCWSTR;
+                                     ExpireTime:FILETIME;
                               LastModifiedTime:FILETIME;
-							                       CacheEntryType:DWORD;
-							                       lpHeaderInfo:LPCWSTR;
-							                       dwHeaderSize:DWORD;
-							                       lpszFileExtension:LPCWSTR;
-							                       lpszOriginalUrl:LPCWSTR
-							                      ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryW';
+                                     CacheEntryType:DWORD;
+                                     lpHeaderInfo:LPCWSTR;
+                                     dwHeaderSize:DWORD;
+                                     lpszFileExtension:LPCWSTR;
+                                     lpszOriginalUrl:LPCWSTR
+                                    ):BOOL; external WinInetDLL name 'CommitUrlCacheEntryW';
 
 {$IFDEF UNICODE}
 function CommitUrlCacheEntry(lpszUrlName:LPCWSTR;
@@ -3500,232 +3513,232 @@ function CommitUrlCacheEntry(lpszUrlName:LPCSTR;
 {$ENDIF USE_FIXED_COMMIT_URL_CACHE_ENTRY}
 
 function RetrieveUrlCacheEntryFileA(lpszUrlName:LPCSTR;
-								                            lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-								                            lpdwCacheEntryInfoBufferSize:LPDWORD;
-								                            dwReserved:DWORD
-								                           ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileA';
+                                            lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                            lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                            dwReserved:DWORD
+                                           ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileA';
 
 function RetrieveUrlCacheEntryFileW(lpszUrlName:LPCWSTR;
-								                            lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-								                            lpdwCacheEntryInfoBufferSize:LPDWORD;
-								                            dwReserved:DWORD
-								                           ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileW';
+                                            lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                            lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                            dwReserved:DWORD
+                                           ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileW';
 
 {$IFDEF UNICODE}
 function RetrieveUrlCacheEntryFile(lpszUrlName:LPCWSTR;
-								                           lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-								                           lpdwCacheEntryInfoBufferSize:LPDWORD;
-								                           dwReserved:DWORD
-								                          ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileW';
+                                           lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                           lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                           dwReserved:DWORD
+                                          ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileW';
 {$ELSE UNICODE}
 function RetrieveUrlCacheEntryFile(lpszUrlName:LPCSTR;
-								                           lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-								                           lpdwCacheEntryInfoBufferSize:LPDWORD;
-								                           dwReserved:DWORD
-								                          ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileA';
+                                           lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                           lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                           dwReserved:DWORD
+                                          ):BOOL; external WinInetDLL name 'RetrieveUrlCacheEntryFileA';
 {$ENDIF UNICODE}
 
 function UnlockUrlCacheEntryFileA(lpszUrlName:LPCSTR;
-								                          dwReserved:DWORD
-								                         ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileA';
+                                          dwReserved:DWORD
+                                         ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileA';
 
 function UnlockUrlCacheEntryFileW(lpszUrlName:LPCWSTR;
-								                          dwReserved:DWORD
-								                         ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileW';
+                                          dwReserved:DWORD
+                                         ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileW';
 
 {$IFDEF UNICODE}
 function UnlockUrlCacheEntryFile(lpszUrlName:LPCWSTR;
-								                         dwReserved:DWORD
-								                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileW';
+                                         dwReserved:DWORD
+                                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function UnlockUrlCacheEntryFile(lpszUrlName:LPCSTR;
-								                         dwReserved:DWORD
-								                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileA';
+                                         dwReserved:DWORD
+                                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFileA';
 {$ELSE WIN32}
 function UnlockUrlCacheEntryFile(lpszUrlName:LPCSTR;
-								                         dwReserved:DWORD
-								                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFile';
+                                         dwReserved:DWORD
+                                        ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryFile';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
 function RetrieveUrlCacheEntryStreamA(lpszUrlName:LPCSTR;
-												                          lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-												                          lpdwCacheEntryInfoBufferSize:LPDWORD;
-												                          fRandomRead:BOOL;
-												                          dwReserved:DWORD
-											                          ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamA';
+                                                  lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                                  lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                                  fRandomRead:BOOL;
+                                                  dwReserved:DWORD
+                                                ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamA';
 
 function RetrieveUrlCacheEntryStreamW(lpszUrlName:LPCWSTR;
-												                          lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-												                          lpdwCacheEntryInfoBufferSize:LPDWORD;
-												                          fRandomRead:BOOL;
-												                          dwReserved:DWORD
-											                          ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamW';
+                                                  lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                                  lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                                  fRandomRead:BOOL;
+                                                  dwReserved:DWORD
+                                                ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamW';
 
 {$IFDEF UNICODE}
 function RetrieveUrlCacheEntryStream(lpszUrlName:LPCWSTR;
-												                         lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-												                         lpdwCacheEntryInfoBufferSize:LPDWORD;
-												                         fRandomRead:BOOL;
-												                         dwReserved:DWORD
-											                         ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamW';
+                                                 lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                                 lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                                 fRandomRead:BOOL;
+                                                 dwReserved:DWORD
+                                               ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamW';
 {$ELSE UNICODE}
 function RetrieveUrlCacheEntryStream(lpszUrlName:LPCSTR;
-												                         lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-												                         lpdwCacheEntryInfoBufferSize:LPDWORD;
-												                         fRandomRead:BOOL;
-												                         dwReserved:DWORD
-											                         ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamA';
+                                                 lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                                 lpdwCacheEntryInfoBufferSize:LPDWORD;
+                                                 fRandomRead:BOOL;
+                                                 dwReserved:DWORD
+                                               ):HANDLE; external WinInetDLL name 'RetrieveUrlCacheEntryStreamA';
 {$ENDIF UNICODE}
 
 function ReadUrlCacheEntryStream(hUrlCacheStream:HANDLE;
-							                          dwLocation:DWORD;
-							                          lpBuffer:LPVOID;
-							                          lpdwLen:LPDWORD;
-							                          Reserved:DWORD
-							                         ):BOOL; external WinInetDLL name 'ReadUrlCacheEntryStream';
+                                        dwLocation:DWORD;
+                                        lpBuffer:LPVOID;
+                                        lpdwLen:LPDWORD;
+                                        Reserved:DWORD
+                                       ):BOOL; external WinInetDLL name 'ReadUrlCacheEntryStream';
 
 function UnlockUrlCacheEntryStream(hUrlCacheStream:HANDLE;
-								                           Reserved:DWORD
-								                          ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryStream';
+                                           Reserved:DWORD
+                                          ):BOOL; external WinInetDLL name 'UnlockUrlCacheEntryStream';
 
 function GetUrlCacheEntryInfoA(lpszUrlName:LPCSTR;
-										                     lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-										                     lpdwCacheEntryInfoBufferSize:LPDWORD
-										                    ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoA';
+                                         lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                         lpdwCacheEntryInfoBufferSize:LPDWORD
+                                        ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoA';
 
 function GetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR;
-										                     lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-										                     lpdwCacheEntryInfoBufferSize:LPDWORD
-										                    ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoW';
+                                         lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                         lpdwCacheEntryInfoBufferSize:LPDWORD
+                                        ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoW';
 
 {$IFDEF UNICODE}
 function GetUrlCacheEntryInfo(lpszUrlName:LPCWSTR;
-										                    lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-										                    lpdwCacheEntryInfoBufferSize:LPDWORD
-										                   ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoW';
+                                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                        lpdwCacheEntryInfoBufferSize:LPDWORD
+                                       ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoW';
 {$ELSE UNICODE}
 function GetUrlCacheEntryInfo(lpszUrlName:LPCSTR;
-										                    lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-										                    lpdwCacheEntryInfoBufferSize:LPDWORD
-										                   ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoA';
+                                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                        lpdwCacheEntryInfoBufferSize:LPDWORD
+                                       ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoA';
 {$ENDIF UNICODE}
 
 function FindFirstUrlCacheGroup(dwFlags:DWORD;
-										                      dwFilter:DWORD;
-										                      lpSearchCondition:LPVOID;
-										                      dwSearchCondition:DWORD;
-										                      lpGroupId:LPGROUPID;
-										                      lpReserved:LPVOID
-										                     ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheGroup';
+                                          dwFilter:DWORD;
+                                          lpSearchCondition:LPVOID;
+                                          dwSearchCondition:DWORD;
+                                          lpGroupId:LPGROUPID;
+                                          lpReserved:LPVOID
+                                         ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheGroup';
 
 function FindNextUrlCacheGroup(hFind:HANDLE;
-										                     lpGroupId:LPGROUPID;
-										                     lpReserved:LPVOID
-										                    ):BOOL; external WinInetDLL name 'FindNextUrlCacheGroup';
+                                         lpGroupId:LPGROUPID;
+                                         lpReserved:LPVOID
+                                        ):BOOL; external WinInetDLL name 'FindNextUrlCacheGroup';
 
 
 function GetUrlCacheGroupAttributeA(gid:GROUPID;
                                     dwFlags:DWORD;
-											                         dwAttributes:DWORD;
-											                         lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
-											                         lpdwGroupInfo:LPDWORD;
-											                         lpReserved:LPVOID
-											                        ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeA';
+                                               dwAttributes:DWORD;
+                                               lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
+                                               lpdwGroupInfo:LPDWORD;
+                                               lpReserved:LPVOID
+                                              ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeA';
 
 function GetUrlCacheGroupAttributeW(gid:GROUPID;
                                     dwFlags:DWORD;
-											                         dwAttributes:DWORD;
-											                         lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
-											                         lpdwGroupInfo:LPDWORD;
-											                         lpReserved:LPVOID
-											                        ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeW';
+                                               dwAttributes:DWORD;
+                                               lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
+                                               lpdwGroupInfo:LPDWORD;
+                                               lpReserved:LPVOID
+                                              ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeW';
 
 {$IFDEF UNICODE}
 function GetUrlCacheGroupAttribute(gid:GROUPID;
                                    dwFlags:DWORD;
-											                        dwAttributes:DWORD;
-											                        lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
-											                        lpdwGroupInfo:LPDWORD;
-											                        lpReserved:LPVOID
-											                       ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeW';
+                                              dwAttributes:DWORD;
+                                              lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
+                                              lpdwGroupInfo:LPDWORD;
+                                              lpReserved:LPVOID
+                                             ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeW';
 {$ELSE UNICODE}
 function GetUrlCacheGroupAttribute(gid:GROUPID;
                                    dwFlags:DWORD;
-											                        dwAttributes:DWORD;
-											                        lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
-											                        lpdwGroupInfo:LPDWORD;
-											                        lpReserved:LPVOID
-											                       ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeA';
+                                              dwAttributes:DWORD;
+                                              lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
+                                              lpdwGroupInfo:LPDWORD;
+                                              lpReserved:LPVOID
+                                             ):BOOL; external WinInetDLL name 'GetUrlCacheGroupAttributeA';
 {$ENDIF UNICODE}
 
 function SetUrlCacheGroupAttributeA(gid:GROUPID;
-											                         dwFlags:DWORD;
-											                         dwAttributes:DWORD;
-											                         lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
-											                         lpReserved:LPVOID
-											                        ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeA';
+                                               dwFlags:DWORD;
+                                               dwAttributes:DWORD;
+                                               lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
+                                               lpReserved:LPVOID
+                                              ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeA';
 
 function SetUrlCacheGroupAttributeW(gid:GROUPID;
-											                         dwFlags:DWORD;
-											                         dwAttributes:DWORD;
-											                         lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
-											                         lpReserved:LPVOID
-											                        ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeW';
+                                               dwFlags:DWORD;
+                                               dwAttributes:DWORD;
+                                               lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
+                                               lpReserved:LPVOID
+                                              ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeW';
 
 {$IFDEF UNICODE}
 function SetUrlCacheGroupAttribute(gid:GROUPID;
-											                        dwFlags:DWORD;
-											                        dwAttributes:DWORD;
-											                        lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
-											                        lpReserved:LPVOID
-											                       ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeW';
+                                              dwFlags:DWORD;
+                                              dwAttributes:DWORD;
+                                              lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOW;
+                                              lpReserved:LPVOID
+                                             ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeW';
 {$ELSE UNICODE}
 function SetUrlCacheGroupAttribute(gid:GROUPID;
-											                        dwFlags:DWORD;
-											                        dwAttributes:DWORD;
-											                        lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
-											                        lpReserved:LPVOID
-											                       ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeA';
+                                              dwFlags:DWORD;
+                                              dwAttributes:DWORD;
+                                              lpGroupInfo:LPINTERNET_CACHE_GROUP_INFOA;
+                                              lpReserved:LPVOID
+                                             ):BOOL; external WinInetDLL name 'SetUrlCacheGroupAttributeA';
 {$ENDIF UNICODE}
 
 
 function GetUrlCacheEntryInfoExA(lpszUrl:LPCSTR;
-							                          lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-							                          lpdwCacheEntryInfoBufSize:LPDWORD;
-							                          lpszReserved:LPSTR;  // must pass null
-							                          lpdwReserved:LPDWORD;	 // must pass null
-							                          lpReserved:LPVOID;	 // must pass null
-							                          dwFlags:DWORD		 // reserved
-							                         ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExA';
+                                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                        lpdwCacheEntryInfoBufSize:LPDWORD;
+                                        lpszReserved:LPSTR;  // must pass null
+                                        lpdwReserved:LPDWORD;  // must pass null
+                                        lpReserved:LPVOID;   // must pass null
+                                        dwFlags:DWORD    // reserved
+                                       ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExA';
 
 function GetUrlCacheEntryInfoExW(lpszUrl:LPCWSTR;
-							                          lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-							                          lpdwCacheEntryInfoBufSize:LPDWORD;
-							                          lpszReserved:LPWSTR;  // must pass null
-							                          lpdwReserved:LPDWORD;	 // must pass null
-							                          lpReserved:LPVOID;	 // must pass null
-							                          dwFlags:DWORD		 // reserved
-							                         ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExW';
+                                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                        lpdwCacheEntryInfoBufSize:LPDWORD;
+                                        lpszReserved:LPWSTR;  // must pass null
+                                        lpdwReserved:LPDWORD;  // must pass null
+                                        lpReserved:LPVOID;   // must pass null
+                                        dwFlags:DWORD    // reserved
+                                       ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExW';
 
 {$IFDEF UNICODE}
 function GetUrlCacheEntryInfoEx(lpszUrl:LPCWSTR;
                                 lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
                                 lpdwCacheEntryInfoBufSize:LPDWORD;
                                 lpszReserved:LPWSTR;  // must pass null
-                                lpdwReserved:LPDWORD;	 // must pass null
-                                lpReserved:LPVOID;	 // must pass null
-                                dwFlags:DWORD		 // reserved
+                                lpdwReserved:LPDWORD;  // must pass null
+                                lpReserved:LPVOID;   // must pass null
+                                dwFlags:DWORD    // reserved
                                ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExW';
 {$ELSE UNICODE}
 function GetUrlCacheEntryInfoEx(lpszUrl:LPCSTR;
                                 lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
                                 lpdwCacheEntryInfoBufSize:LPDWORD;
                                 lpszReserved:LPSTR;  // must pass null
-                                lpdwReserved:LPDWORD;	 // must pass null
-                                lpReserved:LPVOID;	 // must pass null
-                                dwFlags:DWORD		 // reserved
+                                lpdwReserved:LPDWORD;  // must pass null
+                                lpReserved:LPVOID;   // must pass null
+                                dwFlags:DWORD    // reserved
                                ):BOOL; external WinInetDLL name 'GetUrlCacheEntryInfoExA';
 {$ENDIF UNICODE}
 
@@ -3740,25 +3753,25 @@ const
       CACHE_ENTRY_EXEMPT_DELTA_FC = $00000800;
 
 function SetUrlCacheEntryInfoA(lpszUrlName:LPCSTR;
-							                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-							                        dwFieldControl:DWORD
-							                       ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoA';
+                                      lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                      dwFieldControl:DWORD
+                                     ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoA';
 
 function SetUrlCacheEntryInfoW(lpszUrlName:LPCWSTR;
-							                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-							                        dwFieldControl:DWORD
-							                       ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoW';
+                                      lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                      dwFieldControl:DWORD
+                                     ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoW';
 
 {$IFDEF UNICODE}
 function SetUrlCacheEntryInfo(lpszUrlName:LPCWSTR;
-						                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-						                        dwFieldControl:DWORD
-						                       ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoW';
+                                    lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                    dwFieldControl:DWORD
+                                   ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoW';
 {$ELSE UNICODE}
 function SetUrlCacheEntryInfo(lpszUrlName:LPCSTR;
-						                        lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-						                        dwFieldControl:DWORD
-						                       ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoA';
+                                    lpCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                    dwFieldControl:DWORD
+                                   ):BOOL; external WinInetDLL name 'SetUrlCacheEntryInfoA';
 {$ENDIF UNICODE}
 
 
@@ -3767,13 +3780,13 @@ function SetUrlCacheEntryInfo(lpszUrlName:LPCSTR;
 //
 
 function CreateUrlCacheGroup(dwFlags:DWORD;
-										                   lpReserved:LPVOID  // must pass NULL
-										                  ):GROUPID; external WinInetDLL name 'CreateUrlCacheGroup';
+                                       lpReserved:LPVOID  // must pass NULL
+                                      ):GROUPID; external WinInetDLL name 'CreateUrlCacheGroup';
 
 function DeleteUrlCacheGroup(GroupId:GROUPID;
-						                       dwFlags:DWORD;		  // must pass 0
-						                       lpReserved:LPVOID	  // must pass NULL
-						                      ):BOOL; external WinInetDLL name 'DeleteUrlCacheGroup';
+                                   dwFlags:DWORD;     // must pass 0
+                                   lpReserved:LPVOID    // must pass NULL
+                                  ):BOOL; external WinInetDLL name 'DeleteUrlCacheGroup';
 
 // Flags for SetUrlCacheEntryGroup
 const
@@ -3785,16 +3798,16 @@ function SetUrlCacheEntryGroupA(lpszUrlName:LPCSTR;
                                 GroupId:GROUPID;
                                 pbGroupAttributes:LPBYTE; // must pass NULL
                                 cbGroupAttributes:DWORD; // must pass 0
-							                         lpReserved:LPVOID		 // must pass NULL
-							                        ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupA';
+                                       lpReserved:LPVOID     // must pass NULL
+                                      ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupA';
 
 function SetUrlCacheEntryGroupW(lpszUrlName:LPCWSTR;
                                 dwFlags:DWORD;
                                 GroupId:GROUPID;
                                 pbGroupAttributes:LPBYTE; // must pass NULL
                                 cbGroupAttributes:DWORD; // must pass 0
-							                         lpReserved:LPVOID		 // must pass NULL
-							                        ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupW';
+                                       lpReserved:LPVOID     // must pass NULL
+                                      ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupW';
 
 {$IFDEF UNICODE}
 function SetUrlCacheEntryGroup(lpszUrlName:LPCWSTR;
@@ -3802,7 +3815,7 @@ function SetUrlCacheEntryGroup(lpszUrlName:LPCWSTR;
                                GroupId:GROUPID;
                                pbGroupAttributes:LPBYTE; // must pass NULL
                                cbGroupAttributes:DWORD; // must pass 0
-                               lpReserved:LPVOID		 // must pass NULL
+                               lpReserved:LPVOID     // must pass NULL
                               ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
@@ -3811,7 +3824,7 @@ function SetUrlCacheEntryGroup(lpszUrlName:LPCSTR;
                                GroupId:GROUPID;
                                pbGroupAttributes:LPBYTE; // must pass NULL
                                cbGroupAttributes:DWORD; // must pass 0
-                               lpReserved:LPVOID		 // must pass NULL
+                               lpReserved:LPVOID     // must pass NULL
                               ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroupA';
 {$ELSE WIN32}
 function SetUrlCacheEntryGroup(lpszUrlName:LPCSTR;
@@ -3819,32 +3832,32 @@ function SetUrlCacheEntryGroup(lpszUrlName:LPCSTR;
                                GroupId:GROUPID;
                                pbGroupAttributes:LPBYTE; // must pass NULL
                                cbGroupAttributes:DWORD; // must pass 0
-                               lpReserved:LPVOID		 // must pass NULL
+                               lpReserved:LPVOID     // must pass NULL
                               ):BOOL; external WinInetDLL name 'SetUrlCacheEntryGroup';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
 function FindFirstUrlCacheEntryExA(lpszUrlSearchPattern:LPCSTR;
                                    dwFlags:DWORD;
-											                        dwFilter:DWORD;
-											                        GroupId:GROUPID;
-											                        lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-											                        lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-											                        lpReserved:LPVOID;	   // must pass NULL
-											                        pcbReserved2:LPDWORD;   // must pass NULL
-											                        lpReserved3:LPVOID	   // must pass NULL
-											                       ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExA';
+                                              dwFilter:DWORD;
+                                              GroupId:GROUPID;
+                                              lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                              lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
+                                              lpReserved:LPVOID;     // must pass NULL
+                                              pcbReserved2:LPDWORD;   // must pass NULL
+                                              lpReserved3:LPVOID     // must pass NULL
+                                             ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExA';
 
 function FindFirstUrlCacheEntryExW(lpszUrlSearchPattern:LPCWSTR;
                                    dwFlags:DWORD;
-											                        dwFilter:DWORD;
-											                        GroupId:GROUPID;
-											                        lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-											                        lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-											                        lpReserved:LPVOID;	   // must pass NULL
-											                        pcbReserved2:LPDWORD;   // must pass NULL
-											                        lpReserved3:LPVOID	   // must pass NULL
-											                       ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExW';
+                                              dwFilter:DWORD;
+                                              GroupId:GROUPID;
+                                              lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                              lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
+                                              lpReserved:LPVOID;     // must pass NULL
+                                              pcbReserved2:LPDWORD;   // must pass NULL
+                                              lpReserved3:LPVOID     // must pass NULL
+                                             ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExW';
 
 {$IFDEF UNICODE}
 function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR;
@@ -3853,9 +3866,9 @@ function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCWSTR;
                                   GroupId:GROUPID;
                                   lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
                                   lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-                                  lpReserved:LPVOID;	   // must pass NULL
+                                  lpReserved:LPVOID;     // must pass NULL
                                   pcbReserved2:LPDWORD;   // must pass NULL
-                                  lpReserved3:LPVOID	   // must pass NULL
+                                  lpReserved3:LPVOID     // must pass NULL
                                  ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExW';
 {$ELSE UNICODE}
 function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR;
@@ -3864,55 +3877,55 @@ function FindFirstUrlCacheEntryEx(lpszUrlSearchPattern:LPCSTR;
                                   GroupId:GROUPID;
                                   lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
                                   lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-                                  lpReserved:LPVOID;	   // must pass NULL
+                                  lpReserved:LPVOID;     // must pass NULL
                                   pcbReserved2:LPDWORD;   // must pass NULL
-                                  lpReserved3:LPVOID	   // must pass NULL
+                                  lpReserved3:LPVOID     // must pass NULL
                                  ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryExA';
 {$ENDIF UNICODE}
 
 function FindNextUrlCacheEntryExA(hEnumHandle:HANDLE;
-								                          lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                          lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
                                   lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-								                          lpReserved:LPVOID;	 // must pass NULL
-								                          pcbReserved2:LPDWORD;	 // must pass NULL
-								                          lpReserved3:LPVOID	 // must pass NULL
-								                         ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExA';
+                                          lpReserved:LPVOID;   // must pass NULL
+                                          pcbReserved2:LPDWORD;  // must pass NULL
+                                          lpReserved3:LPVOID   // must pass NULL
+                                         ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExA';
 
 function FindNextUrlCacheEntryExW(hEnumHandle:HANDLE;
-								                          lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                          lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
                                   lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-								                          lpReserved:LPVOID;	 // must pass NULL
-								                          pcbReserved2:LPDWORD;	 // must pass NULL
-								                          lpReserved3:LPVOID	 // must pass NULL
-								                         ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExW';
+                                          lpReserved:LPVOID;   // must pass NULL
+                                          pcbReserved2:LPDWORD;  // must pass NULL
+                                          lpReserved3:LPVOID   // must pass NULL
+                                         ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExW';
 
 {$IFDEF UNICODE}
 function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE;
                                  lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
                                  lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-                                 lpReserved:LPVOID;	 // must pass NULL
-                                 pcbReserved2:LPDWORD;	 // must pass NULL
-                                 lpReserved3:LPVOID	 // must pass NULL
+                                 lpReserved:LPVOID;  // must pass NULL
+                                 pcbReserved2:LPDWORD;   // must pass NULL
+                                 lpReserved3:LPVOID  // must pass NULL
                                 ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExW';
 {$ELSE UNICODE}
 function FindNextUrlCacheEntryEx(hEnumHandle:HANDLE;
                                  lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
                                  lpdwFirstCacheEntryInfoBufferSize:LPDWORD;
-                                 lpReserved:LPVOID;	 // must pass NULL
-                                 pcbReserved2:LPDWORD;	 // must pass NULL
-                                 lpReserved3:LPVOID	 // must pass NULL
+                                 lpReserved:LPVOID;  // must pass NULL
+                                 pcbReserved2:LPDWORD;   // must pass NULL
+                                 lpReserved3:LPVOID  // must pass NULL
                                 ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryExA';
 {$ENDIF UNICODE}
 
 function FindFirstUrlCacheEntryA(lpszUrlSearchPattern:LPCSTR;
-											                      lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-											                      lpdwFirstCacheEntryInfoBufferSize:LPDWORD
-											                     ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryA';
+                                            lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                            lpdwFirstCacheEntryInfoBufferSize:LPDWORD
+                                           ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryA';
 
 function FindFirstUrlCacheEntryW(lpszUrlSearchPattern:LPCWSTR;
-											                      lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-											                      lpdwFirstCacheEntryInfoBufferSize:LPDWORD
-											                     ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryW';
+                                            lpFirstCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                            lpdwFirstCacheEntryInfoBufferSize:LPDWORD
+                                           ):HANDLE; external WinInetDLL name 'FindFirstUrlCacheEntryW';
 
 {$IFDEF UNICODE}
 function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCWSTR;
@@ -3927,25 +3940,25 @@ function FindFirstUrlCacheEntry(lpszUrlSearchPattern:LPCSTR;
 {$ENDIF UNICODE}
 
 function FindNextUrlCacheEntryA(hEnumHandle:HANDLE;
-							                         lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-							                         lpdwNextCacheEntryInfoBufferSize:LPDWORD
-							                        ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryA';
+                                       lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                       lpdwNextCacheEntryInfoBufferSize:LPDWORD
+                                      ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryA';
 
 function FindNextUrlCacheEntryW(hEnumHandle:HANDLE;
-							                         lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-							                         lpdwNextCacheEntryInfoBufferSize:LPDWORD
-							                        ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryW';
+                                       lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                       lpdwNextCacheEntryInfoBufferSize:LPDWORD
+                                      ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryW';
 
 {$IFDEF UNICODE}
 function FindNextUrlCacheEntry(hEnumHandle:HANDLE;
-							                        lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
-							                        lpdwNextCacheEntryInfoBufferSize:LPDWORD
-							                       ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryW';
+                                      lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOW;
+                                      lpdwNextCacheEntryInfoBufferSize:LPDWORD
+                                     ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryW';
 {$ELSE UNICODE}
 function FindNextUrlCacheEntry(hEnumHandle:HANDLE;
-							                        lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
-							                        lpdwNextCacheEntryInfoBufferSize:LPDWORD
-							                       ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryA';
+                                      lpNextCacheEntryInfo:LPINTERNET_CACHE_ENTRY_INFOA;
+                                      lpdwNextCacheEntryInfoBufferSize:LPDWORD
+                                     ):BOOL; external WinInetDLL name 'FindNextUrlCacheEntryA';
 {$ENDIF UNICODE}
 
 
@@ -3983,39 +3996,39 @@ function DeleteUrlCacheEntry(lpszUrlName:LPCSTR):BOOL; external WinInetDLL name 
 function InternetDialA(hwndParent:HWND;
                        lpszConnectoid:LPSTR;
                        dwFlags:DWORD;
-								               lpdwConnection:PDWORD_PTR;
-								               dwReserved:DWORD
-								              ):DWORD; external WinInetDLL name 'InternetDialA';
+                               lpdwConnection:PDWORD_PTR;
+                               dwReserved:DWORD
+                              ):DWORD; external WinInetDLL name 'InternetDialA';
 
 function InternetDialW(hwndParent:HWND;
                        lpszConnectoid:LPWSTR;
                        dwFlags:DWORD;
-								               lpdwConnection:PDWORD_PTR;
-								               dwReserved:DWORD
-								              ):DWORD; external WinInetDLL name 'InternetDialW';
+                               lpdwConnection:PDWORD_PTR;
+                               dwReserved:DWORD
+                              ):DWORD; external WinInetDLL name 'InternetDialW';
 
 {$IFDEF UNICODE}
 function InternetDial(hwndParent:HWND;
                       lpszConnectoid:LPWSTR;
                       dwFlags:DWORD;
-								              lpdwConnection:PDWORD_PTR;
-								              dwReserved:DWORD
-								             ):DWORD; external WinInetDLL name 'InternetDialW';
+                              lpdwConnection:PDWORD_PTR;
+                              dwReserved:DWORD
+                             ):DWORD; external WinInetDLL name 'InternetDialW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function InternetDial(hwndParent:HWND;
                       lpszConnectoid:LPSTR;
                       dwFlags:DWORD;
-								              lpdwConnection:PDWORD_PTR;
-								              dwReserved:DWORD
-								             ):DWORD; external WinInetDLL name 'InternetDialA';
+                              lpdwConnection:PDWORD_PTR;
+                              dwReserved:DWORD
+                             ):DWORD; external WinInetDLL name 'InternetDialA';
 {$ELSE WIN32}
 function InternetDial(hwndParent:HWND;
                       lpszConnectoid:LPSTR;
                       dwFlags:DWORD;
-								              lpdwConnection:PDWORD_PTR;
-								              dwReserved:DWORD
-								             ):DWORD; external WinInetDLL name 'InternetDial';
+                              lpdwConnection:PDWORD_PTR;
+                              dwReserved:DWORD
+                             ):DWORD; external WinInetDLL name 'InternetDial';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
@@ -4027,11 +4040,11 @@ const
       INTERNET_DIAL_UNATTENDED       = $8000;
 
 function InternetHangUp(dwConnection:DWORD_PTR;
-								                dwReserved:DWORD
+                                dwReserved:DWORD
                        ):DWORD; external WinInetDLL name 'InternetHangUp';
 
 function InternetAutodial(dwFlags:DWORD;
-								                  hwndParent:HWND
+                                  hwndParent:HWND
                          ):BOOL; external WinInetDLL name 'InternetAutodial';
 
 // Flags for InternetAutodial
@@ -4056,71 +4069,71 @@ const
       INTERENT_GOONLINE_MASK    = $00000001;
 
 function InternetGoOnlineA(lpszURL:LPSTR;
-									                  hwndParent:HWND;
+                                    hwndParent:HWND;
                            dwFlags:DWORD
-									                 ):BOOL; external WinInetDLL name 'InternetGoOnlineA';
+                                   ):BOOL; external WinInetDLL name 'InternetGoOnlineA';
 
 function InternetGoOnlineW(lpszURL:LPWSTR;
-									                  hwndParent:HWND;
+                                    hwndParent:HWND;
                            dwFlags:DWORD
-									                 ):BOOL; external WinInetDLL name 'InternetGoOnlineW';
+                                   ):BOOL; external WinInetDLL name 'InternetGoOnlineW';
 
 {$IFDEF UNICODE}
 function InternetGoOnline(lpszURL:LPWSTR;
-								                  hwndParent:HWND;
+                                  hwndParent:HWND;
                           dwFlags:DWORD
-								                 ):BOOL; external WinInetDLL name 'InternetGoOnlineW';
+                                 ):BOOL; external WinInetDLL name 'InternetGoOnlineW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function InternetGoOnline(lpszURL:LPSTR;
-								                  hwndParent:HWND;
+                                  hwndParent:HWND;
                           dwFlags:DWORD
-								                 ):BOOL; external WinInetDLL name 'InternetGoOnlineA';
+                                 ):BOOL; external WinInetDLL name 'InternetGoOnlineA';
 {$ELSE WIN32}
 function InternetGoOnline(lpszURL:LPSTR;
-								                  hwndParent:HWND;
+                                  hwndParent:HWND;
                           dwFlags:DWORD
-								                 ):BOOL; external WinInetDLL name 'InternetGoOnline';
+                                 ):BOOL; external WinInetDLL name 'InternetGoOnline';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
 
 function InternetGetConnectedState(lpdwFlags:LPDWORD;
-											                        dwReserved:DWORD
+                                              dwReserved:DWORD
                                   ):BOOL; external WinInetDLL name 'InternetGetConnectedState';
 
 
 function InternetGetConnectedStateExA(lpdwFlags:LPDWORD;
-											                           lpszConnectionName:LPSTR;
+                                                 lpszConnectionName:LPSTR;
                                       dwNameLen:DWORD;
                                       dwReserved:DWORD
-											                          ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExA';
+                                                ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExA';
 
 function InternetGetConnectedStateExW(lpdwFlags:LPDWORD;
-											                           lpszConnectionName:LPWSTR;
+                                                 lpszConnectionName:LPWSTR;
                                       dwNameLen:DWORD;
                                       dwReserved:DWORD
-											                          ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExW';
+                                                ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExW';
 
 {$IFDEF UNICODE}
 function InternetGetConnectedStateEx(lpdwFlags:LPDWORD;
-											                          lpszConnectionName:LPWSTR;
+                                                lpszConnectionName:LPWSTR;
                                      dwNameLen:DWORD;
                                      dwReserved:DWORD
-											                         ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExW';
+                                               ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExW';
 {$ELSE UNICODE}
 {$IFDEF WIN32}
 function InternetGetConnectedStateEx(lpdwFlags:LPDWORD;
-											                          lpszConnectionName:LPSTR;
+                                                lpszConnectionName:LPSTR;
                                      dwNameLen:DWORD;
                                      dwReserved:DWORD
-											                         ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExA';
+                                               ):BOOL; external WinInetDLL name 'InternetGetConnectedStateExA';
 {$ELSE WIN32}
 function InternetGetConnectedStateEx(lpdwFlags:LPDWORD;
-											                          lpszConnectionName:LPSTR;
+                                                lpszConnectionName:LPSTR;
                                      dwNameLen:DWORD;
                                      dwReserved:DWORD
-											                         ):BOOL; external WinInetDLL name 'InternetGetConnectedStateEx';
+                                               ):BOOL; external WinInetDLL name 'InternetGetConnectedStateEx';
 {$ENDIF WIN32}
 {$ENDIF UNICODE}
 
@@ -4257,28 +4270,28 @@ const
       PRIVACY_TYPE_THIRD_PARTY        = 1;
 
 function PrivacySetZonePreferenceW(dwZone:DWORD;
-						                             dwType:DWORD;
-						                             dwTemplate:DWORD;
+                                         dwType:DWORD;
+                                         dwTemplate:DWORD;
                                    pszPreference:LPCWSTR
-						                            ):DWORD; external WinInetDLL name 'PrivacySetZonePreferenceW';
+                                        ):DWORD; external WinInetDLL name 'PrivacySetZonePreferenceW';
 function PrivacySetZonePreference(dwZone:DWORD;
-						                            dwType:DWORD;
-						                            dwTemplate:DWORD;
+                                        dwType:DWORD;
+                                        dwTemplate:DWORD;
                                   pszPreference:LPCWSTR
-						                           ):DWORD; external WinInetDLL name 'PrivacySetZonePreferenceW';
+                                       ):DWORD; external WinInetDLL name 'PrivacySetZonePreferenceW';
 
 function PrivacyGetZonePreferenceW(dwZone:DWORD;
-						                             dwType:DWORD;
-						                             pdwTemplate:LPDWORD;
+                                         dwType:DWORD;
+                                         pdwTemplate:LPDWORD;
                                    pszBuffer:LPWSTR;
                                    pdwBufferLength:LPDWORD
-						                            ):DWORD; external WinInetDLL name 'PrivacyGetZonePreferenceW';
+                                        ):DWORD; external WinInetDLL name 'PrivacyGetZonePreferenceW';
 function PrivacyGetZonePreference(dwZone:DWORD;
-						                            dwType:DWORD;
-						                            pdwTemplate:LPDWORD;
+                                        dwType:DWORD;
+                                        pdwTemplate:LPDWORD;
                                   pszBuffer:LPWSTR;
                                   pdwBufferLength:LPDWORD
-						                           ):DWORD; external WinInetDLL name 'PrivacyGetZonePreferenceW';
+                                       ):DWORD; external WinInetDLL name 'PrivacyGetZonePreferenceW';
 
 // *
 // * Return packing to whatever it was before we

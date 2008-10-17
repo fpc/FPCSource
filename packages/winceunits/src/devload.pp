@@ -1,3 +1,16 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2008 Free Pascal development team.
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ ********************************************************************** }
+
 //
 // Module Name:
 //
@@ -92,7 +105,7 @@ const
       DEVFLAGS_NOLOAD            = $00000004;  // Don't load Dll
       DEVFLAGS_NAKEDENTRIES      = $00000008;  // Entry points don't have Prefix prepended
       DEVFLAGS_BOOTPHASE_1       = $00001000;  // This driver only load at system phase 1
-      DEVFLAGS_IRQ_EXCLUSIVE	   = $00000100;  // This driver only can be load when it has exclusive access for IRQ.
+      DEVFLAGS_IRQ_EXCLUSIVE     = $00000100;  // This driver only can be load when it has exclusive access for IRQ.
       DEVFLAGS_TRUSTEDCALLERONLY = $00010000;  // This driver only can be opened by trusted application.
 
 //

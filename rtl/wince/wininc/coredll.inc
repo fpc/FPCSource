@@ -409,31 +409,6 @@
       485 QAUnhookWindowsJournalHook
       2F2 QueryAPISetID
        91 Random
-      1FC RasDeleteEntry
-      207 RasDevConfigDialogEditW
-      1F3 RasDial
-      1FE RasEnumConnections
-      203 RasEnumDevicesW
-      1F6 RasEnumEntries
-      1FF RasGetConnectStatus
-      206 RasGetDispPhoneNumW
-      20A RasGetEapConnectionData
-      208 RasGetEapUserData
-      200 RasGetEntryDevConfig
-      1F7 RasGetEntryDialParams
-      1F9 RasGetEntryProperties
-      205 RasGetLinkStatistics
-      204 RasGetProjectionInfoW
-      1F5 RasHangUp
-      1F4 RasHangup
-      202 RasIOControl
-      1FD RasRenameEntry
-      20B RasSetEapConnectionData
-      209 RasSetEapUserData
-      201 RasSetEntryDevConfig
-      1F8 RasSetEntryDialParams
-      1FA RasSetEntryProperties
-      1FB RasValidateEntryName
       181 ReadFileWithSeek
       3C0 ReadRegistryFromOEM
       1BE RectangleAnimation

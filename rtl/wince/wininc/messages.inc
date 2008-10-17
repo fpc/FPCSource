@@ -126,6 +126,7 @@
      CB_SETLOCALE = 345;
      CB_SETTOPINDEX = 348;
      CB_SHOWDROPDOWN = 335;
+     CB_GETCOMBOBOXINFO = $0162;
   { Combo Box notifications  }
      CBN_CLOSEUP = 8;
      CBN_DBLCLK = 2;
