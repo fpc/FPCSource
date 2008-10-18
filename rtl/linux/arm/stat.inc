@@ -12,28 +12,28 @@
 
  **********************************************************************}
 
-  Stat = packed record  // No unix typing because of differences
+  Stat = record  // No unix typing because of differences
     case byte of
     0:
-      (dev    : culonglong;
-      __pad0    : array[0..3] of cuchar;
-      __st_ino  : culong;
-      mode   : cuint;
-      nlink  : cuint;
-      uid    : culong;
-      gid    : culong;
-      rdev   : culonglong;
-      __pad3 : array[0..3] of cuchar;
-      size   : culonglong;
-      blksize: culong;
-      blocks : culonglong;
-      atime  : culong;
-      atime_nsec : culong;
-      mtime  : culong;
-      mtime_nsec : culong;
-      ctime  : culong;
-      ctime_nsec : culong;
-      ino    : culonglong;);
+      (dev    : culonglong deprecated;
+      __pad0    : array[0..3] of cuchar deprecated;
+      __st_ino  : culong deprecated;
+      mode   : cuint deprecated;
+      nlink  : cuint deprecated;
+      uid    : culong deprecated;
+      gid    : culong deprecated;
+      rdev   : culonglong deprecated;
+      __pad3 : array[0..3] of cuchar deprecated;
+      size   : culonglong deprecated;
+      blksize: culong deprecated;
+      blocks : culonglong deprecated;
+      atime  : culong deprecated;
+      atime_nsec : culong deprecated;
+      mtime  : culong deprecated;
+      mtime_nsec : culong deprecated;
+      ctime  : culong deprecated;
+      ctime_nsec : culong deprecated;
+      ino    : culonglong deprecated;);
     1:
       (st_dev    : culonglong;
       __pad0_    : array[0..3] of cuchar;
@@ -55,3 +55,4 @@
       st_ctime_nsec : culong;
       st_ino    : culonglong);
   end;
+
