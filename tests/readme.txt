@@ -120,6 +120,10 @@ TEST_DELTEMP           delete temporary executable/object/ppu file,
                        default is off
 TEST_TIMEOUT           use timeout wrapper for (remote) execution
 V                      print dotest commandline
+TEST_ABI               test a certain abi, this influences where the
+                       c object files are taken from: TEST_ABI=eabi
+                       takes the c*.o files from 
+                       test/cg/obj/linux/arm-eabi
 
   (Please add more test options if needed)
 
