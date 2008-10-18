@@ -138,9 +138,7 @@ uses
   fpcatch,
 { $endif HasSignal}
   Dos,
-{$ifdef fpc}
   Video,
-{$endif fpc}
   globals,
   StdDlg,App,tokens,
   FVConsts,
@@ -692,7 +690,7 @@ end;
 const
   lasttime  : real = 0;
 
-function CompilerStatus: boolean; {$ifndef FPC}far;{$endif}
+function CompilerStatus: boolean;
   var
      event : tevent;
 
@@ -735,7 +733,7 @@ begin
   CompilerStatus:=false;
 end;
 
-Function  CompilerGetNamedFileTime(const filename : string) : Longint; {$ifndef FPC}far;{$endif}
+Function  CompilerGetNamedFileTime(const filename : string) : Longint;
 var t: longint;
     W: PSourceWindow;
 begin
@@ -747,7 +745,7 @@ begin
   CompilerGetNamedFileTime:=t;
 end;
 
-function CompilerOpenInputFile(const filename: string): tinputfile; {$ifndef FPC}far;{$endif}
+function CompilerOpenInputFile(const filename: string): tinputfile;
 var f: tinputfile;
     W: PSourceWindow;
 begin
@@ -765,7 +763,7 @@ begin
   CompilerOpenInputFile:=f;
 end;
 
-function CompilerComment(Level:Longint; const s:ansistring):boolean; {$ifndef FPC}far;{$endif}
+function CompilerComment(Level:Longint; const s:ansistring):boolean;
 begin
   CompilerComment:=false;
   if (status.verbosity and Level)<>0 then
@@ -856,7 +854,7 @@ begin
 end;
 
 procedure ResetErrorMessages;
-  procedure ResetErrorLine(P: PView); {$ifndef FPC}far;{$endif}
+  procedure ResetErrorLine(P: PView);
   begin
     if assigned(P) and
        (TypeOf(P^)=TypeOf(TSourceWindow)) then
@@ -1009,14 +1007,9 @@ begin
        ChangeRedirError(FPErrFileName,false);
 {$endif}
 {$ifdef Unix}
-       {$ifdef ver1_0}
-       Shell(GetExePath+PpasFile);
-       Error:=LinuxError;
-       {$else}
        error:=0;
        If Shell(GetExePath+PpasFile)=-1 Then
         Error:=fpgeterrno;
-       {$endif}
 {$else}
        DosExecute(GetEnv('COMSPEC'),'/C '+GetExePath+PpasFile);
        Error:=DosError;

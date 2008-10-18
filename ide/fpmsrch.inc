@@ -52,7 +52,7 @@ var R: TRect;
       NameMatches:=(ProcS='') or (Pos(ProcS,UpcaseStr(St)) > 0);
     end;
 
-  procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
+  procedure InsertInS(P: PSymbol);
 
     procedure InsertItemsInS(P: PSymbolCollection);
     var I: Sw_integer;
@@ -120,7 +120,7 @@ var R: TRect;
     Overflow: boolean;
     Level : longint;
 
-  procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
+  procedure InsertInS(P: PSymbol);
 
     procedure InsertItemsInS(P: PSymbolCollection);
     var I: Sw_integer;
@@ -165,7 +165,7 @@ procedure TIDEApp.Modules;
 var
     R: TRect;
     S: PSortedSymbolCollection;
-procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
+procedure InsertInS(P: PSymbol);
 begin
   S^.Insert(P);
 end;

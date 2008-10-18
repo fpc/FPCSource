@@ -284,7 +284,7 @@ const           { Symbol browser tabs }
                 label_browsertab_unit = 'U';
 
 procedure CloseAllBrowsers;
-  procedure SendCloseIfBrowser(P: PView); {$ifndef FPC}far;{$endif}
+  procedure SendCloseIfBrowser(P: PView);
   begin
     if assigned(P) and
        ((TypeOf(P^)=TypeOf(TBrowserWindow)) or
@@ -736,7 +736,7 @@ end;
 
 function LastBrowserWindow: PBrowserWindow;
 var BW: PBrowserWindow;
-procedure IsBW(P: PView); {$ifndef FPC}far;{$endif}
+procedure IsBW(P: PView);
 begin
   if (P^.HelpCtx=hcBrowserWindow) then
     BW:=pointer(P);

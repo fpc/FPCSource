@@ -101,12 +101,8 @@ implementation
 
 uses
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    linux,
-  {$else}
-    baseunix,
-    unix,
-  {$endif}
+  baseunix,
+  unix,
 {$endif}
 {$ifdef go32v2}
   dpmiexcp,
@@ -297,7 +293,7 @@ begin
 {$endif HasSignal}
     begin
 {$ifdef HasSignal}
-      StoreSigFPE:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,@CalcSigFPE);
+      StoreSigFPE:={$ifdef unix}fpSignal{$else}Signal{$endif}(SIGFPE,@CalcSigFPE);
 {$endif HasSignal}
       if (Status = csError) and (Key <> 'C') then Key := ' ';
       if HexShown then
@@ -396,7 +392,7 @@ begin
         else CalcKey:=false;
       end;
 {$ifdef HasSignal}
-      {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,StoreSigFPE);
+      {$ifdef unix}fpSignal{$else}Signal{$endif}(SIGFPE,StoreSigFPE);
 {$endif HasSignal}
       DrawView;
 {$ifdef HasSignal}

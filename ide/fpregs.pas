@@ -32,10 +32,6 @@ uses
 
   type
 
-{$ifdef TP}
-    dword = longint;
-{$endif TP}
-
 {$undef cpu_known}
 
     TIntRegs = record

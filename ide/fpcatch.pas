@@ -19,12 +19,8 @@ interface
 
 {$ifdef Unix}
 uses
-  {$ifdef VER1_0}
-    linux;
-  {$else}
-    baseunix,
-    unix;
-  {$endif}
+  baseunix,
+  unix;
 {$endif}
 {$ifdef go32v2}
 uses
@@ -182,14 +178,12 @@ begin
                IF NOT CtrlCPressed and Assigned(Application) then
                  begin
                    MustQuit:=false;
-{$ifdef FPC}
                    if GetDosTicks>LastCtrlC+10 then
                      begin
                        CtrlCPressed:=true;
                        Keyboard.PutKeyEvent((kbCtrl shl 16) or kbCtrlC);
                        LastCtrlC:=GetDosTicks;
                      end;
-{$endif FPC}
                  end
                else
                  begin
@@ -251,15 +245,11 @@ begin
   }
 {$endif go32v2}
 {$ifdef HasSignal}
-{$ifndef TP}
   NewSignal:=@CatchSignal;
-{$else TP}
-  NewSignal:=SignalHandler(CatchSignal);
-{$endif TP}
-  OldSigSegm:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGSEGV,NewSignal);
-  OldSigInt:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGINT,NewSignal);
-  OldSigFPE:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,NewSignal);
-  OldSigILL:={$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGILL,NewSignal);
+  OldSigSegm:={$ifdef unix}fpSignal{$else}Signal{$endif}(SIGSEGV,NewSignal);
+  OldSigInt:={$ifdef unix}fpSignal{$else}Signal{$endif}(SIGINT,NewSignal);
+  OldSigFPE:={$ifdef unix}fpSignal{$else}Signal{$endif}(SIGFPE,NewSignal);
+  OldSigILL:={$ifdef unix}fpSignal{$else}Signal{$endif}(SIGILL,NewSignal);
   CatchSignalsEnabled:=true;
 {$endif}
 end;
@@ -269,10 +259,10 @@ begin
 {$ifdef HasSignal}
   if not CatchSignalsEnabled then
     exit;
-  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGSEGV,OldSigSegm);
-  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGINT,OldSigInt);
-  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGFPE,OldSigFPE);
-  {$ifdef unix}{$ifdef ver1_0}Signal{$else}fpSignal{$endif}{$else}Signal{$endif}(SIGILL,OldSigILL);
+  {$ifdef unix}fpSignal{$else}Signal{$endif}(SIGSEGV,OldSigSegm);
+  {$ifdef unix}fpSignal{$else}Signal{$endif}(SIGINT,OldSigInt);
+  {$ifdef unix}fpSignal{$else}Signal{$endif}(SIGFPE,OldSigFPE);
+  {$ifdef unix}fpSignal{$else}Signal{$endif}(SIGILL,OldSigILL);
   CatchSignalsEnabled:=false;
 {$endif}
 end;

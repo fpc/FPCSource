@@ -1344,7 +1344,7 @@ begin
 end;
 
 function TCustomHTMLHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
-function MatchCtx(P: PTopic): boolean; {$ifndef FPC}far;{$endif}
+function MatchCtx(P: PTopic): boolean;
 begin
   MatchCtx:=P^.HelpCtx=HelpCtx;
 end;
@@ -1535,7 +1535,7 @@ begin
       Alias:=Trim(copy(Alias,1,HelpFacility^.IndexTabSize-4-2))+'..';
   FormatAlias:=Alias;
 end;
-(*procedure AddDoc(P: PHTMLLinkScanDocument); {$ifndef FPC}far;{$endif}
+(*procedure AddDoc(P: PHTMLLinkScanDocument);
 var I: sw_integer;
     TLI: THelpCtx;
 begin
@@ -1576,7 +1576,7 @@ begin
   LoadIndex:=OK;
 end;
 
-function CreateProcHTML(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProcHTML(const FileName,Param: string;Index : longint): PHelpFile;
 var H: PHelpFile;
 begin
   H:=nil;
@@ -1585,7 +1585,7 @@ begin
   CreateProcHTML:=H;
 end;
 
-function CreateProcHTMLIndex(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProcHTMLIndex(const FileName,Param: string;Index : longint): PHelpFile;
 var H: PHelpFile;
 begin
   H:=nil;

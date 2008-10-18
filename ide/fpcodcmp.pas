@@ -221,7 +221,7 @@ var
   Level : longint;
   UpStandardUnits : string;
 
-  procedure InsertInS(P: PSymbol); {$ifndef FPC}far;{$endif}
+  procedure InsertInS(P: PSymbol);
 
     procedure InsertItemsInS(P: PSymbolCollection);
     var I: Sw_integer;

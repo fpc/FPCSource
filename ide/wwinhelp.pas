@@ -1282,7 +1282,7 @@ begin
     Dec(RemSize,CurFrag); Inc(CurOfs,CurFrag);
   end;
 end;
-function SearchTopicStart(P: PTopicEnumData): boolean; {$ifndef FPC}far;{$endif}
+function SearchTopicStart(P: PTopicEnumData): boolean;
 begin
   case P^.TL.RecordType of
     $02 : TopicStartPos:=P^.TopicPos;
@@ -1290,7 +1290,7 @@ begin
   GotIt:=(P^.TL.RecordType in [$20,$23]) and (P^.TopicOfs<=BlockOfs) and (BlockOfs<P^.TopicOfs+P^.LinkData2Size);
   SearchTopicStart:=not GotIt;
 end;
-function RenderTopicProc(P: PTopicEnumData): boolean; {$ifndef FPC}far;{$endif}
+function RenderTopicProc(P: PTopicEnumData): boolean;
 var LinkData1Ofs: longint;
     LinkData2Ofs: longint;
 function ReadUCHAR: byte;
@@ -1665,7 +1665,7 @@ begin
   inherited Done;
 end;
 
-function CreateProc(const FileName,Param: string;Index : longint): PHelpFile; {$ifndef FPC}far;{$endif}
+function CreateProc(const FileName,Param: string;Index : longint): PHelpFile;
 begin
   CreateProc:=New(PWinHelpFile, Init(FileName,Index));
 end;

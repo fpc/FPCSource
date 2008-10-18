@@ -17,11 +17,7 @@ unit WConsole;
 interface
 {$ifdef UNIX}
    uses
-{$Ifdef ver1_0}
-     linux;
-{$else}
      termio;
-{$endif}
 {$endif UNIX}
 
   type

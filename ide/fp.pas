@@ -25,7 +25,6 @@ program FP;
 (**********************************************************************)
 (* CONDITIONAL DEFINES                                                *)
 (*  - NODEBUG    No Debugging support                                 *)
-(*  - TP         Turbo Pascal mode                                    *)
 (*  - i386       Target is an i386 IDE                                *)
 (**********************************************************************)
 
@@ -47,9 +46,7 @@ uses
 {$ifdef go32v2}
   dpmiexcp,
 {$endif go32v2}
-{$ifdef fpc}
   keyboard,video,mouse,
-{$endif fpc}
 {$ifdef HasSignal}
   fpcatch,
 {$endif HasSignal}
@@ -79,7 +76,6 @@ uses
   systems;
 
 
-{$ifdef fpc}
 Const
   DummyMouseDriver : TMouseDriver = (
     useDefaultQueue : true;
@@ -96,7 +92,6 @@ Const
     PollMouseEvent  : nil;
     PutMouseEvent   : nil;
   );
-{$endif fpc}
 
 {$ifdef useresstrings}
 resourcestring
@@ -192,13 +187,10 @@ begin
              if Length(Param)=1 then
                begin
                  UseMouse:=false;
-{$ifdef fpc}
                  DoneMouse;
                  SetMouseDriver(DummyMouseDriver);
-{$endif fpc}
                  ButtonCount:=0;
                end;
-{$ifdef fpc}
 {          'F' :
              if Length(Param)=1 then
                NoExtendedFrame:=true;}
@@ -206,7 +198,6 @@ begin
           'T' :  DebuggeeTTY:=Copy(Param,2,High(Param));
 {$endif Unix}
          { 'M' : TryToMaximizeScreen:=true;}
-{$endif fpc}
 {$ifdef DEBUG}
           'Z' : UseOldBufStreamMethod:=true;
           'X' : CloseImmediately:=true;
@@ -219,7 +210,7 @@ begin
   end;
 end;
 
-Procedure MyStreamError(Var S: TStream); {$ifndef FPC}far;{$endif}
+Procedure MyStreamError(Var S: TStream);
 var ErrS: string;
 begin
   case S.Status of
@@ -542,13 +533,11 @@ BEGIN
   DoneBreakpoints;
   DoneWatches;
 {$endif}
-{$ifdef fpc}
 {$ifdef unix}
   Video.ClearScreen;
 {$endif unix}
 {  Video.DoneVideo;
   Keyboard.DoneKeyboard;}
-{$endif fpc}
 {$ifdef VESA}
   DoneVESAScreenModes;
 {$endif}
