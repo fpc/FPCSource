@@ -24,6 +24,8 @@
 
 unit i_bsd;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

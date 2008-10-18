@@ -21,6 +21,8 @@
 { This unit implements support information structures for go32v2. }
 unit i_go32v2;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

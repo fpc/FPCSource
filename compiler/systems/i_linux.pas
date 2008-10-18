@@ -21,6 +21,8 @@
 { This unit implements support information structures for linux. }
 unit i_linux;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -689,3 +691,4 @@ initialization
   {$endif linux}
 {$endif CPUARM}
 end.
+

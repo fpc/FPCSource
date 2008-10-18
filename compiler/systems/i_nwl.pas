@@ -21,6 +21,8 @@
 { This unit implements support information structures for Netware libc modules. }
 unit i_nwl;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
