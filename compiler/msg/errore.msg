@@ -1629,7 +1629,6 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
-% \end{itemize}
 % \end{description}
 #
 # Codegenerator
@@ -2420,10 +2419,10 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_In options file $1 at line $2 too many #IF(N)DEFs encountered
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_In options file $1 at line $2 unexpected #ENDIFs encountered
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_too_less_endif=11015_F_Open conditional at the end of the options file
@@ -2492,9 +2491,9 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
-%\end{description}
-option_else_without_if=11043_F_In options file $1 at line $2 #ELSE directive without #IF(N)DEF found
+option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
 % An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
+%\end{description}
 # EndOfTeX
 
 #
