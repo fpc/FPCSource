@@ -1725,6 +1725,9 @@ begin
     if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
       TPasProperty(Element).WriteAccessorName := GetAccessorName
     else
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'IMPLEMENTS') then
+      TPasProperty(Element).ImplementsName := GetAccessorName
+    else
 //    not write accessor will be recheck for another token
       UngetToken;
     
