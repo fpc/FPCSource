@@ -107,6 +107,10 @@
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
+  { inherit FPC_ARMEL? }
+  {$if defined(CPUARMEL) and not(defined(FPC_OARM))}
+    {$define FPC_ARMEL}
+  {$endif}
 {$endif arm}
 
 {$ifdef m68k}
