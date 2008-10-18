@@ -106,12 +106,14 @@ begin
 
   I := 0;
   if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
+    (Value[I] = ':') or
     (Xml11 and IsXml11Char(Value, I))) then
       Exit;
   Inc(I);
   while I < Len do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
         Exit;
     Inc(I);
@@ -137,6 +139,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[Offset+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
@@ -167,6 +170,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
         Exit;
     Inc(I);
@@ -190,6 +194,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
