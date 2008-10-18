@@ -31,7 +31,6 @@ asm
   str   r7,[sp,#-4]!
   mov   r7,r0
   swi   #0x0
-  ldr   r7,[sp],#4
   cmn   r0,#126
   ldr   r7,[sp],#4
   movls pc,lr
