@@ -109,7 +109,7 @@ type
   public
     UsesList: TList;            // TPasUnresolvedTypeRef or TPasModule elements
     Declarations, ResStrings, Types, Consts, Classes,
-      Functions, Variables: TList;
+    Functions, Variables, Properties: TList;
   end;
 
   TPasModule = class(TPasElement)
@@ -269,6 +269,7 @@ type
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
+    IsForward : Boolean;
     Members: TList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
   end;
@@ -645,6 +646,7 @@ begin
   Classes := TList.Create;
   Functions := TList.Create;
   Variables := TList.Create;
+  Properties := TList.Create;
 end;
 
 destructor TPasSection.Destroy;
@@ -657,7 +659,7 @@ begin
   Consts.Free;
   Types.Free;
   ResStrings.Free;
-
+  Properties.Free;
   for i := 0 to Declarations.Count - 1 do
     TPasElement(Declarations[i]).Release;
   Declarations.Free;

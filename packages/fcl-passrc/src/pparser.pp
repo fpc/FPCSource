@@ -88,7 +88,7 @@ uses Classes;
 
 type
 
-  TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar);
+  TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar, declProperty);
 
   TProcType = (ptProcedure, ptFunction, ptOperator);
 
@@ -728,6 +728,8 @@ var
   List: TList;
   i,j: Integer;
   VarEl: TPasVariable;
+  PropEl : TPasProperty;
+  
 begin
   Module := nil;
   Module := TPasModule(CreateElement(TPasModule, ExpectIdentifier,
@@ -760,6 +762,8 @@ begin
         CurBlock := declVar;
       tkThreadVar:
         CurBlock := declThreadVar;
+      tkProperty:
+        CurBlock := declProperty;  
       tkProcedure:
         begin
           AddProcOrFunction(Section, ParseProcedureOrFunctionDecl(Section, ptProcedure));
@@ -769,11 +773,6 @@ begin
         begin
           AddProcOrFunction(Section, ParseProcedureOrFunctionDecl(Section, ptFunction));
           CurBlock := declNone;
-        end;
-      tkProperty:
-        begin
-          ExpectIdentifier;
-          ParseProperty(CreateElement(TPasProperty, CurTokenString, Section));
         end;
       tkOperator:
         begin
@@ -847,6 +846,18 @@ begin
                 finally
                   List.Free;
                 end;
+              end;
+            declProperty:
+              begin
+              PropEl:=TPasProperty(CreateElement(TPasProperty, CurTokenString, Section));
+              Try
+                ParseProperty(PropEl)
+              except
+                Propel.Free;
+                Raise;
+              end;    
+              Section.Declarations.Add(PropEl);
+              Section.properties.add(PropEl);
               end;
           else
             ParseExc(SParserSyntaxError);
@@ -2095,7 +2106,9 @@ begin
         // !!!: Store interface name
       end;
       NextToken;
-    end;
+    end
+    else
+      TPasClassType(Result).isForward:=CurToken=tkSemicolon;
 
     if CurToken <> tkSemicolon then
     begin
