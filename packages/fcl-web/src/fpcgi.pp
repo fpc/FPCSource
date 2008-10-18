@@ -75,18 +75,12 @@ end;
 
 function TCGIApplication.GetModuleName(Arequest: TRequest): string;
 
-Var
-  S : String;
-
 begin
   If (FModuleVar<>'') then
     Result:=ARequest.QueryFields.Values[FModuleVar];//Module name from query parameter using the FModuleVar as parameter name (default is 'Module')
   If (Result='') then
     begin
-    S:=ARequest.PathInfo;
-    Delete(S,1,1);
-    if (Pos('/',S) <= 0) and AllowDefaultModule then 
-      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
+    if (Pos('/', pchar(@ARequest.PathInfo[2])) <= 0) and AllowDefaultModule then Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
     Result:=ARequest.GetNextPathInfo;
     end;
 end;
@@ -129,7 +123,7 @@ Var
   
 begin
   MC:=Nil;
-  M:=Nil;
+  M:=NIL;
   If (OnGetModule<>Nil) then
     OnGetModule(Self,ARequest,MC);
   If (MC=Nil) then
@@ -148,12 +142,7 @@ begin
     end;
   M:=FindModule(MC); // Check if a module exists already
   If (M=Nil) then
-    begin
-    If MC.UseStreaming then
-      M:=MC.Create(Self)
-    else  
-      M:=MC.CreateNew(Self,0);
-    end;  
+    M:=MC.Create(Self);
   M.HandleRequest(ARequest,AResponse);
 end;
 

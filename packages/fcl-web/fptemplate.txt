@@ -160,5 +160,5 @@ template tag with the ~Column1, ~Column2 for the HEADER parameter, and the
 ~Column1Value, ~Column2Value in the ONEROW parameter while looping through a 
 sql query result set.
 Or if there is nothing to list, just use the NOTFOUND parameter as a replace 
-text for the whole RESULT template tag.
+text for the whole REPORTRESULT template tag.
 

@@ -94,7 +94,6 @@ Type
   
   TCustomHTTPModule = Class(TDataModule)
   public
-    Class Function UseStreaming : Boolean; virtual;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
   end;
   
@@ -408,14 +407,6 @@ begin
     Dec(Result);
 end;
 
-{ TCustomHTTPModule }
-
-Class Function TCustomHTTPModule.UseStreaming : Boolean; 
-
-begin
-  Result:=True;
-end;
-    
 Initialization
   ModuleFactory:=TModuleFactory.Create(TModuleItem);
 
