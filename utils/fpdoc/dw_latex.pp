@@ -38,6 +38,7 @@ Type
   TLaTeXWriter = class(TLinearWriter)
   protected
     FLink: String;
+    FImageDir: String;
     FTableCount : Integer;
     FInVerbatim : Boolean;
     Inlist,
@@ -85,6 +86,7 @@ Type
     procedure DescrEndItalic; override;
     procedure DescrBeginEmph; override;
     procedure DescrEndEmph; override;
+    procedure DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString); override;
     procedure DescrWriteFileEl(const AText: DOMString); override;
     procedure DescrWriteKeywordEl(const AText: DOMString); override;
     procedure DescrWriteVarEl(const AText: DOMString); override;
@@ -125,6 +127,7 @@ Type
     procedure DescrEndTableCell; override;
     // TFPDocWriter class methods
     Function InterPretOption(Const Cmd,Arg : String) : boolean; override;
+    Property ImageDir : String Read FImageDir Write FImageDir;
   end;
 
 
@@ -213,6 +216,29 @@ end;
 procedure TLaTeXWriter.DescrEndEmph;
 begin
   Write('}');
+end;
+
+procedure TLaTeXWriter.DescrWriteImageEl(const AFileName, ACaption, ALinkName : DOMString); 
+
+Var
+  FN : String;
+  L : Integer;
+  
+begin
+  Writeln('\begin{figure}[ht]%');
+  Writeln('\begin{center}');
+  If (ACaption<>ACaption) then
+    Writeln(Format('\caption{%s}',[EscapeText(ACaption)]));
+  If (ALinkName<>'') then
+    WriteLabel('fig:'+ALinkName);
+  FN:=ImageDir;
+  L:=Length(FN);
+  If (L>0) and (FN[l]<>'/')  then
+    FN:=FN+'/';
+  FN:=FN+AFileName;
+  Writeln('\epsfig{file='+FN+'}');
+  Writeln('\end{center}');
+  Writeln('\end{figure}');
 end;
 
 procedure TLaTeXWriter.DescrWriteFileEl(const AText: DOMString);
@@ -675,6 +701,8 @@ begin
     LatexHighLight:=True
   else if Cmd = '--latex-extension' then
      TexExtension:=Arg
+  else if Cmd = '--image-dir' then
+     ImageDir:=Arg
   else
     Result:=False;
 end;

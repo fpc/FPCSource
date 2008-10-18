@@ -46,7 +46,9 @@ resourcestring
   SDocClasses                = 'Classes';
   SDocProceduresAndFunctions = 'Procedures and functions';
   SDocVariables              = 'Variables';
-
+  SDocIdentifierIndex        = 'Index';
+  SDocModuleIndex            = 'Index of all identifiers in unit ''%s''';
+  SDocPackageIndex           = 'Index of all identifiers in package ''%s''';
   SDocUnitOverview           = 'Overview of unit ''%s''';
   SDocOverview               = 'Overview';
   SDocSearch                 = 'Search';
@@ -101,7 +103,11 @@ resourcestring
   // HTML usage
   SHTMLUsageFooter = 'Append xhtml from file as footer to html page';
   SHTMLUsageFooterDate = 'Append footer with date. fmt is Optional format for FormatDateTime';
-  
+  SHTMLUsageCharset = 'Set the HTML character set';
+  SHTMLHtmlSearch = 'Add search page with given name to the menu bar';
+  SHTMLIndexColcount = 'Use N columns in the identifier index pages';
+  SHTMLImageUrl = 'Prefix image URLs with url';
+    
   // CHM usage
   SCHMUsageTOC     = 'Use [File] as the table of contents. Usually a .hhc file.';
   SCHMUsageIndex   = 'Use [File] as the index. Usually a .hhk file.';
@@ -242,7 +248,10 @@ type
 
   // The main FPDoc engine
 
+  { TFPDocEngine }
+
   TFPDocEngine = class(TPasTreeContainer)
+  private
   protected
     DescrDocs: TObjectList;             // List of XML documents
     DescrDocNames: TStringList;         // Names of the XML documents
@@ -269,6 +278,7 @@ type
     procedure AddLink(const APathName, ALinkTo: String);
     function FindAbsoluteLink(const AName: String): String;
     function ResolveLink(AModule: TPasModule; const ALinkDest: String): String;
+    function FindLinkedNode(ANode: TDocNode): TDocNode;
 
     // Documentation file support
     procedure AddDocFile(const AFilename: String);
@@ -1189,24 +1199,51 @@ begin
 end;
 
 function TFPDocEngine.FindShortDescr(AElement: TPasElement): TDOMElement;
+
 var
-  DocNode: TDocNode;
+  DocNode,N: TDocNode;
+
 begin
   DocNode := FindDocNode(AElement);
   if Assigned(DocNode) then
-    Result := DocNode.ShortDescr
+    begin
+    N:=FindLinkedNode(DocNode);
+    If (N<>Nil) then
+      DocNode:=N;
+    Result := DocNode.ShortDescr;
+    end
   else
     Result := nil;
 end;
 
+
+function TFPDocEngine.FindLinkedNode(ANode : TDocNode) : TDocNode;
+
+Var
+  S: String;
+
+begin
+  If (ANode.Link='') then
+    Result:=Nil
+  else
+    Result:=FindDocNode(CurModule,ANode.Link);
+end;
+
 function TFPDocEngine.FindShortDescr(ARefModule: TPasModule;
   const AName: String): TDOMElement;
+
 var
-  DocNode: TDocNode;
+  N,DocNode: TDocNode;
+
 begin
   DocNode := FindDocNode(ARefModule, AName);
   if Assigned(DocNode) then
-    Result := DocNode.ShortDescr
+    begin
+    N:=FindLinkedNode(DocNode);
+    If (N<>Nil) then
+      DocNode:=N;
+    Result := DocNode.ShortDescr;
+    end
   else
     Result := nil;
 end;

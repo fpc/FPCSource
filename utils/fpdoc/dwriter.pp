@@ -69,10 +69,10 @@ type
   private
     FEngine  : TFPDocEngine;
     FPackage : TPasPackage;
-
     FTopics  : TList;
+    FImgExt : String;
+    
   protected
-
     procedure Warning(AContext: TPasElement; const AMsg: String);
     procedure Warning(AContext: TPasElement; const AMsg: String;
       const Args: array of const);
@@ -96,7 +96,8 @@ type
       Node: TDOMNode);
     function ConvertSimpleBlock(AContext: TPasElement; Node: TDOMNode): Boolean;
     Function FindTopicElement(Node : TDocNode): TTopicElement;
-
+    Procedure ConvertImage(El : TDomElement);
+    
     procedure DescrWriteText(const AText: DOMString); virtual; abstract;
     procedure DescrBeginBold; virtual; abstract;
     procedure DescrEndBold; virtual; abstract;
@@ -104,6 +105,7 @@ type
     procedure DescrEndItalic; virtual; abstract;
     procedure DescrBeginEmph; virtual; abstract;
     procedure DescrEndEmph; virtual; abstract;
+    procedure DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); virtual; 
     procedure DescrWriteFileEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteKeywordEl(const AText: DOMString); virtual; abstract;
     procedure DescrWriteVarEl(const AText: DOMString); virtual; abstract;
@@ -148,6 +150,7 @@ type
     property Engine : TFPDocEngine read FEngine;
     Property Package : TPasPackage read FPackage;
     Property Topics : TList Read FTopics;
+    Property ImageExtension : String Read FImgExt Write FImgExt;
     // Should return True if option was succesfully interpreted.
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Procedure Usage(List : TStrings); virtual;
@@ -320,6 +323,7 @@ begin
   FEngine  := AEngine;
   FPackage := APackage;
   FTopics:=Tlist.Create;
+  FImgExt:='.png';
 end;
 
 destructor TFPDocWriter.Destroy;
@@ -358,6 +362,12 @@ begin
       Result:=TTopicElement(FTopics[i]);
     Dec(I);
     end;
+end;
+
+Procedure TFPDocWriter.DescrWriteImageEl(const AFileName, ACaption,ALinkName : DOMString); 
+
+begin
+  system.writeln(ClassName,': No support for images yet: ',AFileName,' (caption: "',ACaption,'")');
 end;
 
 { ---------------------------------------------------------------------
@@ -460,7 +470,7 @@ function TFPDocWriter.ConvertBaseShort(AContext: TPasElement;
 
   function ConvertText: DOMString;
   var
-    s: String;
+    s: DOMString;
     i: Integer;
   begin
     if Node.NodeType = TEXT_NODE then
@@ -971,9 +981,29 @@ begin
     ConvertDefinitionList;
     DescrEndDefinitionList;
     Result := True;
-  end else
+  end else if Node.NodeName = 'img' then
+  begin
+    begin
+    ConvertImage(Node as TDomElement);
+    Result:=True;
+    end;
+  end else  
     Result := False;
 end;
+
+Procedure TFPDocWriter.ConvertImage(El : TDomElement);
+
+Var
+  FN,Cap,LinkName : DOMString;
+
+begin
+  FN:=El['file'];
+  Cap:=El['caption'];
+  LinkName:=El['name'];
+  FN:=ChangeFileExt(FN,ImageExtension);
+  DescrWriteImageEl(FN,Cap,LinkName);
+end;
+
 
 Constructor TTopicElement.Create(const AName: String; AParent: TPasElement);
 

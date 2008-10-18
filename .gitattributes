@@ -9071,6 +9071,8 @@ utils/fpdoc/dw_txt.pp svneol=native#text/plain
 utils/fpdoc/dw_xml.pp svneol=native#text/plain
 utils/fpdoc/dwlinear.pp svneol=native#text/plain
 utils/fpdoc/dwriter.pp svneol=native#text/plain
+utils/fpdoc/fpclasschart.lpi svneol=native#text/plain
+utils/fpdoc/fpclasschart.pp svneol=native#text/plain
 utils/fpdoc/fpde/Makefile svneol=native#text/plain
 utils/fpdoc/fpde/Makefile.fpc svneol=native#text/plain
 utils/fpdoc/fpde/bitmaps/bold.xpm -text
@@ -9102,6 +9104,7 @@ utils/fpdoc/fpde/frmtable.pp svneol=native#text/plain
 utils/fpdoc/fpde/pgeditor.pp svneol=native#text/plain
 utils/fpdoc/fpde/xpms.pp svneol=native#text/plain
 utils/fpdoc/fpdoc.css -text
+utils/fpdoc/fpdoc.lpi svneol=native#text/plain
 utils/fpdoc/fpdoc.pp svneol=native#text/plain
 utils/fpdoc/intl/Makefile svneol=native#text/plain
 utils/fpdoc/intl/dglobals.de.po svneol=native#text/plain
@@ -9111,6 +9114,7 @@ utils/fpdoc/intl/fpdoc.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdocmk.de.po svneol=native#text/plain
 utils/fpdoc/intl/fpdocstr.de.po svneol=native#text/plain
 utils/fpdoc/intl/makeskel.de.po svneol=native#text/plain
+utils/fpdoc/makeskel.lpi svneol=native#text/plain
 utils/fpdoc/makeskel.pp svneol=native#text/plain
 utils/fpdoc/sh_pas.pp svneol=native#text/plain
 utils/fpdoc/unitdiff.pp svneol=native#text/plain

@@ -282,6 +282,10 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      ParentItem := Index.Items.NewItem;
+      ParentItem.Text := AModule.Name;
+      ParentItem.Local := Allocator.GetFilename(AModule, 0);
+
       //  classes
       for j := 0 to AModule.InterfaceSection.Classes.Count-1 do
       begin
