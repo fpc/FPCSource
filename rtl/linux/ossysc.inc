@@ -20,10 +20,27 @@
 *****************************************************************************}
 
 function Fptime(tloc:pTime): TTime; [public, alias : 'FPC_SYSC_TIME'];
+{$ifdef FPC_USEGETTIMEOFDAY}
+VAR tv     : timeval;
+    tz     : timezone;
+    retval : longint;
 
 begin
-  Fptime:=do_syscall(syscall_nr_time,TSysParam(tloc));
+  Retval:=do_syscall(syscall_nr_gettimeofday,TSysParam(@tv),TSysParam(@tz));
+  If retval=-1 then
+   Fptime:=-1
+  else
+   Begin
+   If Assigned(tloc) Then
+     TLoc^:=tv.tv_sec;
+    Fptime:=tv.tv_sec;
+   End;
 End;
+{$else FPC_USEGETTIMEOFDAY}
+begin
+  Fptime:=do_syscall(syscall_nr_time,TSysParam(tloc));
+end;
+{$endif FPC_USEGETTIMEOFDAY}
 
 {*****************************************************************************
                --- File:File handling related calls ---
@@ -47,7 +64,7 @@ begin
   result:=do_syscall(syscall_nr_lseek,tsysparam(fd),tsysparam(offset),tsysparam(whence));
 {$else}
   if do_syscall(syscall_nr__llseek,tsysparam(fd),
-      {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
+//      {$ifdef FPC_ABI_EABI}      0,  { align parameters as required with dummy } {$endif FPC_ABI_EABI}
       tsysparam(hi(offset)),tsysparam(lo(offset)),
       tsysparam(@result), tsysparam(whence)) = -1 then
     result:=off_t(-1);
@@ -369,19 +386,6 @@ Begin
 End;
 }
 
-{$ifdef CPUARM}
-{$define WAIT4}
-{$endif CPUARM}
-
-{$ifdef CPUx86_64}
-{$define WAIT4}
-{$endif CPUx86_64}
-
-{$ifdef CPUSPARC}
-{$define WAIT4}
-{$endif CPUSPARC}
-
-
 function Fpwaitpid(pid : pid_t; stat_loc : pcint; options: cint): pid_t; [public, alias : 'FPC_SYSC_WAITPID'];
 {
   Waits until a child with PID Pid exits, or returns if it is exited already.
@@ -460,24 +464,6 @@ type
     fd      : TSysParam;
     offset  : TSysParam;
   end;
-
-
-{$ifdef cpui386}
-{$define OLDMMAP}
-{$endif cpui386}
-
-{$ifdef cpum68k}
-{$define OLDMMAP}
-{$endif cpum68k}
-
-{$ifdef cpuarm}
-  {$ifdef FPC_ABI_EABI}
-    {$define MMAP2}
-  {$else FPC_ABI_EABI}
-    {$define OLDMMAP}
-  {$endif FPC_ABI_EABI}
-{$endif cpuarm}
-
 
 Function Fpmmap(adr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;off:off_t):pointer;  [public, alias : 'FPC_SYSC_MMAP'];
 // OFF_T procedure, and returns a pointer, NOT cint.
@@ -604,3 +590,4 @@ begin
   fpprctl := do_syscall(syscall_nr_prctl, option, arg);
 end;
 {$endif}
+
