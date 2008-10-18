@@ -332,7 +332,9 @@ unit cpupara;
                         { align registers for eabi }
                         if (target_info.abi=abi_eabi) and
                           (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (nextintreg in [RS_R1,RS_R3]) then
+                          (nextintreg in [RS_R1,RS_R3]) and
+                          { first location? }
+                          (paralen=8) then
                           inc(nextintreg);
                         { this is not abi compliant
                           why? (FK) }
@@ -386,7 +388,9 @@ unit cpupara;
                         { align stack for eabi }
                         if (target_info.abi=abi_eabi) and
                           (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (stack_offset mod 8<>0) then
+                          (stack_offset mod 8<>0) and
+                          { first location? }
+                          (paralen=8) then
                           inc(stack_offset,8-(stack_offset mod 8));
 
                         paraloc^.size:=OS_ADDR;
