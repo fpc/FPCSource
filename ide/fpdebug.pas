@@ -543,7 +543,7 @@ begin
 {$endif Windows}
       st[i]:='/';
 {$ifdef Windows}
-  {$ifdef USE_MINGW_GDB} // see mantis 11968 because of mingw build. MvdV
+  {$ifndef USE_MINGW_GDB} // see mantis 11968 because of mingw build. MvdV
 { for Windows we should convert e:\ into //e/ PM }
   if (length(st)>2) and (st[2]=':') and (st[3]='/') then
     st:=CygDrivePrefix+'/'+st[1]+copy(st,3,length(st));
