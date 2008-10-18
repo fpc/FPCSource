@@ -1251,7 +1251,7 @@ function GlobalPtrHandle(lp:pointer):Pointer;
 function SetLayeredWindowAttributes(HWND:hwnd;crKey :COLORREF;bAlpha : byte;dwFlags : DWORD):WINBOOL; external 'user32' name 'SetLayeredWindowAttributes';
 function SignalObjectAndWait( hObjectToSignal:THANDLE;  hObjectToWaitOn:THANDLE ;dwMilliseconds:  DWORD ;bAlertable:BOOL):DWORD; external 'kernel32' name 'SignalObjectAndWait';
 function CancelWaitableTimer(hTimer:THandle):BOOL; external 'kernel32' name 'CancelWaitableTimer';
-function GetComboBoxInfo(hwndCombo:HWND;pcbi:PCOMBOBOXINFO):BOOL; external 'kernel32' name 'GetComboBoxInfo';
+function GetComboBoxInfo(hwndCombo:HWND;pcbi:PCOMBOBOXINFO):BOOL; external 'user32' name 'GetComboBoxInfo';
 function GetAncestor(HWnd: HWND; Flag: UINT): HWND; StdCall; External 'user32';
 {$endif read_interface}
 

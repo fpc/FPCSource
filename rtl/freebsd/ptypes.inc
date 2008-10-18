@@ -153,7 +153,7 @@ type
 
 
 Const
-     MNAMLEN   = 80;      // slightly machine specific.
+     MNAMLEN   = 88-2*sizeof(long); // slightly machine specific.
      MFSNamLen = 16;	
 type
   fsid_t  = array[0..1] of cint;
