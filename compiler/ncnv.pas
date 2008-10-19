@@ -192,6 +192,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
+          function docompare(p: tnode): boolean; override;
           destructor destroy; override;
           call: tnode;
        end;
@@ -3354,6 +3355,14 @@ implementation
           tasnode(result).call := call.getcopy
         else
           tasnode(result).call := nil;
+      end;
+
+
+    function tasnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          tasnode(p).call.isequal(call);
       end;
 
 
