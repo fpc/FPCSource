@@ -209,7 +209,12 @@ type
       a static call when it's called as objdef.procdef, and if so returns the
       mangled name in staticname.
     }
-    function staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
+    function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
+    { checks whether procdef (a procdef for a virtual method) can be replaced with
+      a different procname in the vmt of objdef, and if so returns the new
+      mangledname in staticname
+    }
+    function staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean; virtual; abstract;
   end;
 
   twpodeadcodehandler = class(twpocomponentbase)

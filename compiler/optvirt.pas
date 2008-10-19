@@ -95,10 +95,14 @@ unit optvirt;
        private
         { array (indexed by vmt entry nr) of replacement statically callable method names }
         fstaticmethodnames: tfplist;
+        { is this class instantiated by the program? }
+        finstantiated: boolean;
         function isstaticvmtentry(vmtindex: longint; out replacementname: pshortstring): boolean;
        public
-        constructor create(hashobjectlist:tfphashobjectlist;const n: shortstring);reintroduce;
+        constructor create(hashobjectlist:tfphashobjectlist;const n: shortstring; instantiated: boolean);
         destructor destroy; override;
+
+        property instantiated: boolean read finstantiated;
 
         procedure addstaticmethod(vmtindex: longint; const replacementname: shortstring);
       end;
@@ -114,7 +118,7 @@ unit optvirt;
         constructor create(hashobjectlist:tfphashobjectlist;const n: shortstring);reintroduce;
         destructor destroy; override;
 
-        function addclass(const n: shortstring): tclassdevirtinfo;
+        function addclass(const n: shortstring; instantiated: boolean): tclassdevirtinfo;
         function findclass(const n: shortstring): tclassdevirtinfo;
       end;
 
@@ -130,6 +134,7 @@ unit optvirt;
         procedure converttreenode(node: tinheritancetreenode; arg: pointer);
         function addunitifnew(const n: shortstring): tunitdevirtinfo;
         function findunit(const n: shortstring): tunitdevirtinfo;
+        function getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: string): boolean;
        public
         constructor create; override;
         destructor destroy; override;
@@ -145,7 +150,8 @@ unit optvirt;
 
         { information providing }
         procedure loadfromwpofilesection(reader: twposectionreaderintf); override;
-        function staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; override;
+        function staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean; override;
+        function staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean; override;
 
       end;
 
@@ -362,7 +368,6 @@ unit optvirt;
     procedure tinheritancetree.markvmethods(node: tinheritancetreenode; p: pointer);
       var
         currnode: tinheritancetreenode;
-        vmtbuilder: tvmtbuilder;
         pd: tobject;
         i: longint;
         makeallvirtual: boolean;
@@ -490,17 +495,18 @@ unit optvirt;
       end;
 
 
-    { helper routine: decompose an object & procdef combo into a unitname, class name and vmtentry number
+    { helper routines: decompose an object & procdef combo into a unitname, class name and vmtentry number
       (unit name where the objectdef is declared, class name of the objectdef, vmtentry number of the
        procdef -- procdef does not necessarily belong to objectdef, it may also belong to a descendant
-       or parent) }
+       or parent)
+    }
 
-    procedure defsdecompose(objdef: tobjectdef; procdef: tprocdef; out unitname, classname: pshortstring; out vmtentry: longint);
+    procedure defunitclassname(objdef: tobjectdef; out unitname, classname: pshortstring);
       const
         mainprogname: string[2] = 'P$';
       var
         mainsymtab,
-        objparentsymtab: tsymtable;
+        objparentsymtab : tsymtable;
       begin
         objparentsymtab:=objdef.symtable;
         mainsymtab:=objparentsymtab.defowner.owner;
@@ -514,6 +520,12 @@ unit optvirt;
         else
           unitname:=mainsymtab.name;
         classname:=tobjectdef(objparentsymtab.defowner).objname;
+      end;
+
+
+    procedure defsdecompose(objdef: tobjectdef; procdef: tprocdef; out unitname, classname: pshortstring; out vmtentry: longint);
+      begin
+        defunitclassname(objdef,unitname,classname);
         vmtentry:=procdef.extnumber;
         { if it's $ffff, this is not a valid virtual method }
         if (vmtentry=$ffff) then
@@ -523,9 +535,10 @@ unit optvirt;
 
    { tclassdevirtinfo }
 
-    constructor tclassdevirtinfo.create(hashobjectlist:tfphashobjectlist;const n: shortstring);
+    constructor tclassdevirtinfo.create(hashobjectlist:tfphashobjectlist;const n: shortstring; instantiated: boolean);
       begin
         inherited create(hashobjectlist,n);
+        finstantiated:=instantiated;
         fstaticmethodnames:=tfplist.create;
       end;
 
@@ -573,13 +586,13 @@ unit optvirt;
         inherited destroy;
       end;
 
-    function tunitdevirtinfo.addclass(const n: shortstring): tclassdevirtinfo;
+    function tunitdevirtinfo.addclass(const n: shortstring; instantiated: boolean): tclassdevirtinfo;
       begin
         result:=findclass(n);
         { can't have two classes with the same name in a single unit }
         if assigned(result) then
           internalerror(2008100501);
-        result:=tclassdevirtinfo.create(fclasses,n);
+        result:=tclassdevirtinfo.create(fclasses,n,instantiated);
       end;
 
     function tunitdevirtinfo.findclass(const n: shortstring): tclassdevirtinfo;
@@ -592,28 +605,27 @@ unit optvirt;
 
     procedure tprogdevirtinfo.converttreenode(node: tinheritancetreenode; arg: pointer);
       var
-        i,
-        vmtentry: longint;
+        i: longint;
         unitid, classid: pshortstring;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
-        first : boolean;
       begin
+        if (not node.instantiated) and
+           not assigned(node.def.vmtentries) then
+          exit;
+        { always add a class entry for an instantiated class, so we can
+          fill the vmt's of non-instantiated classes with calls to
+          FPC_ABSTRACTERROR during the optimisation phase
+        }
+        defunitclassname(node.def,unitid,classid);
+        unitdevirtinfo:=addunitifnew(unitid^);
+        classdevirtinfo:=unitdevirtinfo.addclass(classid^,node.instantiated);
         if not assigned(node.def.vmtentries) then
           exit;
-        first:=true;
         for i:=0 to node.def.vmtentries.count-1 do
           if (po_virtualmethod in tabstractprocdef(node.def.vmtentries[i]).procoptions) and
              (node.def.vmcallstaticinfo^[i]=vmcs_yes) then
             begin
-              if first then
-                begin
-                  { add necessary entries for the unit and the class }
-                  defsdecompose(node.def,tprocdef(node.def.vmtentries[i]),unitid,classid,vmtentry);
-                  unitdevirtinfo:=addunitifnew(unitid^);
-                  classdevirtinfo:=unitdevirtinfo.addclass(classid^);
-                  first:=false;
-                end;
               { add info about devirtualised vmt entry }
               classdevirtinfo.addstaticmethod(i,tprocdef(node.def.vmtentries[i]).mangledname);
             end;
@@ -831,15 +843,24 @@ unit optvirt;
         vmtentryname: string;
         vmttype: string[15];
         vmtentrynrstr: string[7];
+        classinstantiated: string[1];
         vmtentry, error: longint;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
+        instantiated: boolean;
       begin
         { format:
+            # unitname^
             unit1^
+            # classname&
             class1&
+            # instantiated?
+            1
+            # vmt type (base or some interface)
             basevmt
+            # vmt entry nr
             0
+            # name of routine to call instead
             staticvmtentryforslot0
             5
             staticvmtentryforslot5
@@ -847,12 +868,20 @@ unit optvirt;
             0
             staticvmtentryforslot0
 
+            # non-instantiated class (but if we encounter a variable of this
+            # type, we can optimise class to vmtentry 1)
             class2&
+            0
             basevmt
             1
             staticvmtentryforslot1
 
+            # instantiated class without optimisable virtual methods
+            class3&
+            1
+
             unit2^
+            1
             class3&
             ...
 
@@ -875,25 +904,33 @@ unit optvirt;
             if (classid='') or
                (classid[length(classid)]<>'&') then
               internalerror(2008100503);
+            { instantiated? }
+            if not reader.sectiongetnextline(classinstantiated) then
+              internalerror(2008101901);
+            instantiated:=classinstantiated='1';
             { cut off the trailing & }
             setlength(classid,length(classid)-1);
-            classdevirtinfo:=unitdevirtinfo.addclass(classid);
+            classdevirtinfo:=unitdevirtinfo.addclass(classid,instantiated);
             if not reader.sectiongetnextline(vmttype) then
               internalerror(2008100506);
-            { interface info is not yet supported }
-            if (vmttype<>'basevmt') then
-              internalerror(2008100507);
-            { read all vmt entries for this class }
-            while reader.sectiongetnextline(vmtentrynrstr) and
-                  (vmtentrynrstr<>'') do
+            { any optimisable virtual methods? }
+            if (vmttype<>'') then
               begin
-                val(vmtentrynrstr,vmtentry,error);
-                if (error<>0) then
-                  internalerror(2008100504);
-                if not reader.sectiongetnextline(vmtentryname) or
-                   (vmtentryname='') then
-                  internalerror(2008100508);
-                classdevirtinfo.addstaticmethod(vmtentry,vmtentryname);
+                { interface info is not yet supported }
+                if (vmttype<>'basevmt') then
+                  internalerror(2008100507);
+                { read all vmt entries for this class }
+                while reader.sectiongetnextline(vmtentrynrstr) and
+                      (vmtentrynrstr<>'') do
+                  begin
+                    val(vmtentrynrstr,vmtentry,error);
+                    if (error<>0) then
+                      internalerror(2008100504);
+                    if not reader.sectiongetnextline(vmtentryname) or
+                       (vmtentryname='') then
+                      internalerror(2008100508);
+                    classdevirtinfo.addstaticmethod(vmtentry,vmtentryname);
+                  end;
               end;
             { end of section -> exit }
             if not(reader.sectiongetnextline(classid)) then
@@ -913,6 +950,7 @@ unit optvirt;
         vmtentrycount: longint;
         unitdevirtinfo: tunitdevirtinfo;
         classdevirtinfo: tclassdevirtinfo;
+        first: boolean;
       begin
         { if there are no optimised virtual methods, we have stored no info }
         if not assigned(funits) then
@@ -926,10 +964,16 @@ unit optvirt;
               begin
                 classdevirtinfo:=tclassdevirtinfo(tunitdevirtinfo(funits[unitcount]).fclasses[classcount]);
                 writer.sectionputline(classdevirtinfo.name+'&');
-                writer.sectionputline('basevmt');
+                writer.sectionputline(tostr(ord(classdevirtinfo.instantiated)));
+                first:=true;
                 for vmtentrycount:=0 to classdevirtinfo.fstaticmethodnames.count-1 do
                   if assigned(classdevirtinfo.fstaticmethodnames[vmtentrycount]) then
                     begin
+                      if first then
+                        begin
+                          writer.sectionputline('basevmt');
+                          first:=false;
+                        end;
                       writer.sectionputline(tostr(vmtentrycount));
                       writer.sectionputline(pshortstring(classdevirtinfo.fstaticmethodnames[vmtentrycount])^);
                     end;
@@ -939,7 +983,7 @@ unit optvirt;
       end;
 
 
-    function tprogdevirtinfo.staticnameforvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean;
+    function tprogdevirtinfo.getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: string): boolean;
       var
         unitid,
         classid,
@@ -976,10 +1020,39 @@ unit optvirt;
          classdevirtinfo:=unitdevirtinfo.findclass(classid^);
          if not assigned(classdevirtinfo) then
            exit;
-         { now check whether it can be devirtualised, and if so to what }
-         result:=classdevirtinfo.isstaticvmtentry(vmtentry,newname);
-         if result then
-           staticname:=newname^;
+         { if it's for a vmtentry of an objdef and the objdef is
+           not instantiated, then we can fill the vmt with pointers
+           to FPC_ABSTRACTERROR
+         }
+         if forvmtentry and
+            (objdef.typ=objectdef) and
+            not classdevirtinfo.instantiated and
+            { virtual class methods can be called even if the class is not instantiated }
+            not(po_classmethod in tprocdef(procdef).procoptions) then
+           begin
+             staticname:='FPC_ABSTRACTERROR';
+             result:=true;
+           end
+         else
+           begin
+             { now check whether it can be devirtualised, and if so to what }
+             result:=classdevirtinfo.isstaticvmtentry(vmtentry,newname);
+             if result then
+               staticname:=newname^;
+           end;
+      end;
+
+
+
+    function tprogdevirtinfo.staticnameforcallingvirtualmethod(objdef, procdef: tdef; out staticname: string): boolean;
+      begin
+        result:=getstaticname(false,objdef,procdef,staticname);
+      end;
+
+
+    function tprogdevirtinfo.staticnameforvmtentry(objdef, procdef: tdef; out staticname: string): boolean;
+      begin
+        result:=getstaticname(true,objdef,procdef,staticname);
       end;
 
 end.

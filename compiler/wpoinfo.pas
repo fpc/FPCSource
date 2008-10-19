@@ -177,6 +177,8 @@ implementation
 
   { twpoinfomanager }
 
+  { devirtualisation }
+
   function twpoinfomanager.can_be_devirtualized(objdef, procdef: tdef; out name: shortstring): boolean;
     begin
       if not assigned(wpoinfouse[wpo_devirtualization_context_insensitive]) or
@@ -185,7 +187,7 @@ implementation
           result:=false;
           exit;
         end;
-      result:=twpodevirtualisationhandler(wpoinfouse[wpo_devirtualization_context_insensitive]).staticnameforvirtualmethod(objdef,procdef,name);
+      result:=twpodevirtualisationhandler(wpoinfouse[wpo_devirtualization_context_insensitive]).staticnameforcallingvirtualmethod(objdef,procdef,name);
     end;
 
 
@@ -197,9 +199,11 @@ implementation
           result:=false;
           exit;
         end;
-      result:=twpodevirtualisationhandler(wpoinfouse[wpo_devirtualization_context_insensitive]).staticnameforvirtualmethod(objdef,procdef,name);
+      result:=twpodevirtualisationhandler(wpoinfouse[wpo_devirtualization_context_insensitive]).staticnameforvmtentry(objdef,procdef,name);
     end;
 
+
+  { symbol liveness }
 
   function twpoinfomanager.symbol_live(const name: shortstring): boolean;
     begin
