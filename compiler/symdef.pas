@@ -249,6 +249,7 @@ interface
           iidstr         : pshortstring;
           writing_class_record_dbginfo,
           created_in_current_module,
+          maybe_created_in_current_module,
           classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
@@ -281,6 +282,7 @@ interface
           function implements_any_interfaces: boolean;
           procedure reset; override;
           procedure register_created_object_type;override;
+          procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
        end;
 
@@ -4260,6 +4262,7 @@ implementation
       begin
         inherited reset;
         created_in_current_module:=false;
+        maybe_created_in_current_module:=false;
         classref_created_in_current_module:=false;
       end;
 
@@ -4280,6 +4283,21 @@ implementation
           begin
             created_in_current_module:=true;
             current_module.wpoinfo.addcreatedobjtype(self);
+          end;
+      end;
+
+
+    procedure tobjectdef.register_maybe_created_object_type;
+      begin
+        { if we know it has been created for sure, no need
+          to also record that it maybe can be created in
+          this module
+        }
+        if not (created_in_current_module) and
+           not (maybe_created_in_current_module) then
+          begin
+            maybe_created_in_current_module:=true;
+            current_module.wpoinfo.addmaybecreatedbyclassref(self);
           end;
       end;
 

@@ -121,15 +121,23 @@ type
     fcreatedobjtypes: tfpobjectlist;
     { objectdefs pointed to by created classrefdefs }
     fcreatedclassrefobjtypes: tfpobjectlist;
+    { objtypes potentially instantiated by fcreatedclassrefobjtypes
+      (objdectdefs pointed to by classrefdefs that are
+       passed as a regular parameter, loaded in a variable, ...
+       so they can end up in a classrefdef var and be instantiated)
+    }
+    fmaybecreatedbyclassrefdeftypes: tfpobjectlist;
    public
     constructor create; reintroduce; virtual;
     destructor destroy; override;
 
     property createdobjtypes: tfpobjectlist read fcreatedobjtypes;
     property createdclassrefobjtypes: tfpobjectlist read fcreatedclassrefobjtypes;
+    property maybecreatedbyclassrefdeftypes: tfpobjectlist read fmaybecreatedbyclassrefdeftypes;
 
     procedure addcreatedobjtype(def: tdef);
     procedure addcreatedobjtypeforclassref(def: tdef);
+    procedure addmaybecreatedbyclassref(def: tdef);
   end;
 
   { ************************************************************************* }
@@ -312,6 +320,7 @@ implementation
     begin
       fcreatedobjtypes:=tfpobjectlist.create(false);
       fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
+      fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
     end;
 
 
@@ -321,6 +330,8 @@ implementation
       fcreatedobjtypes:=nil;
       fcreatedclassrefobjtypes.free;
       fcreatedclassrefobjtypes:=nil;
+      fmaybecreatedbyclassrefdeftypes.free;
+      fmaybecreatedbyclassrefdeftypes:=nil;
       inherited destroy;
     end;
     
@@ -335,6 +346,10 @@ implementation
       fcreatedclassrefobjtypes.add(def);
     end;
 
+  procedure tunitwpoinfobase.addmaybecreatedbyclassref(def: tdef);
+    begin
+      fmaybecreatedbyclassrefdeftypes.add(def);
+    end;
 
   { twpofilereader }
 

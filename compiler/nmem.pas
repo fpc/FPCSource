@@ -30,7 +30,7 @@ interface
        symdef,symsym,symtable,symtype;
 
     type
-       tloadvmtaddrnode = class(tunarynode)
+tloadvmtaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -168,7 +168,12 @@ implementation
          result:=nil;
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
-           firstpass(left);
+           firstpass(left)
+         { keep track of which classes might be instantiated via a classrefdef }
+         else if (left.resultdef.typ=classrefdef) then
+           tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
+         else if (left.resultdef.typ=objectdef) then
+           tobjectdef(left.resultdef).register_maybe_created_object_type;
       end;
 
 

@@ -40,6 +40,7 @@ type
    private
     fcreatedobjtypesderefs: pderefarray;
     fcreatedclassrefobjtypesderefs: pderefarray;
+    fmaybecreatedbyclassrefdeftypesderefs: pderefarray;
    { devirtualisation information -- end }
 
    public
@@ -86,6 +87,11 @@ implementation
           freemem(fcreatedclassrefobjtypesderefs);
           fcreatedclassrefobjtypesderefs:=nil;
         end;
+      if assigned(fmaybecreatedbyclassrefdeftypesderefs) then
+        begin
+          freemem(fmaybecreatedbyclassrefdeftypesderefs);
+          fmaybecreatedbyclassrefdeftypesderefs:=nil;
+        end;
       inherited destroy;
     end;
     
@@ -103,12 +109,18 @@ implementation
       ppufile.putlongint(fcreatedclassrefobjtypes.count);
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
         ppufile.putderef(fcreatedclassrefobjtypesderefs^[i]);
+      ppufile.putlongint(fmaybecreatedbyclassrefdeftypes.count);
+      for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
+        ppufile.putderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
 
       ppufile.writeentry(ibcreatedobjtypes);
+
       freemem(fcreatedobjtypesderefs);
       fcreatedobjtypesderefs:=nil;
       freemem(fcreatedclassrefobjtypesderefs);
       fcreatedclassrefobjtypesderefs:=nil;
+      freemem(fmaybecreatedbyclassrefdeftypesderefs);
+      fmaybecreatedbyclassrefdeftypesderefs:=nil;
     end;
 
 
@@ -119,6 +131,7 @@ implementation
       { load start of definition section, which holds the amount of defs }
       if ppufile.readentry<>ibcreatedobjtypes then
         cgmessage(unit_f_ppu_read_error);
+
       len:=ppufile.getlongint;
       fcreatedobjtypes:=tfpobjectlist.create(false);
       fcreatedobjtypes.count:=len;
@@ -132,6 +145,13 @@ implementation
       getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
       for i:=0 to len-1 do
         ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
+
+      len:=ppufile.getlongint;
+      fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
+      fmaybecreatedbyclassrefdeftypes.count:=len;
+      getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
+      for i:=0 to len-1 do
+        ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
     end;
 
 
@@ -146,6 +166,10 @@ implementation
       getmem(fcreatedclassrefobjtypesderefs,fcreatedclassrefobjtypes.count*sizeof(tderef));
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
         fcreatedclassrefobjtypesderefs^[i].build(fcreatedclassrefobjtypes[i]);
+
+      getmem(fmaybecreatedbyclassrefdeftypesderefs,fmaybecreatedbyclassrefdeftypes.count*sizeof(tderef));
+      for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
+        fmaybecreatedbyclassrefdeftypesderefs^[i].build(fmaybecreatedbyclassrefdeftypes[i]);
     end;
 
 
@@ -167,6 +191,11 @@ implementation
         fcreatedclassrefobjtypes[i]:=fcreatedclassrefobjtypesderefs^[i].resolve;
       freemem(fcreatedclassrefobjtypesderefs);
       fcreatedclassrefobjtypesderefs:=nil;
+
+      for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
+        fmaybecreatedbyclassrefdeftypes[i]:=fmaybecreatedbyclassrefdeftypesderefs^[i].resolve;
+      freemem(fmaybecreatedbyclassrefdeftypesderefs);
+      fmaybecreatedbyclassrefdeftypesderefs:=nil;
     end;
 
 

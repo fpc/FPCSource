@@ -731,9 +731,14 @@ unit optvirt;
             if assigned(hp.wpoinfo.createdclassrefobjtypes) then
               for i:=0 to hp.wpoinfo.createdclassrefobjtypes.count-1 do
                 tobjectdef(hp.wpoinfo.createdclassrefobjtypes[i]).register_created_classref_type;
+            if assigned(hp.wpoinfo.maybecreatedbyclassrefdeftypes) then
+              for i:=0 to hp.wpoinfo.maybecreatedbyclassrefdeftypes.count-1 do
+                tobjectdef(hp.wpoinfo.maybecreatedbyclassrefdeftypes[i]).register_maybe_created_object_type;
             hp:=tmodule(hp.next);
           end;
          inheritancetree:=tinheritancetree.create;
+
+         { add all constructed class/object types to the tree }
 {$IFDEF DEBUG_DEVIRT}
          writeln('constructed object/class/classreftypes in ',current_module.realmodulename^);
 {$ENDIF}
@@ -764,6 +769,7 @@ unit optvirt;
              end;
            end;
 
+         { register all instantiated classrefdefs with the tree }
          for i := 0 to current_module.wpoinfo.createdclassrefobjtypes.count-1 do
            begin
              inheritancetree.registerinstantiatedclassrefdef(tdef(current_module.wpoinfo.createdclassrefobjtypes[i]));
@@ -780,31 +786,30 @@ unit optvirt;
                  internalerror(2008101101);
              end;
            end;
-         { now add all objectdefs derived from the instantiated
-           classrefdefs to the tree (as they can, in theory, all
+
+
+         { now add all objectdefs that are referred somewhere (via a
+           loadvmtaddr node) and that are derived from an instantiated
+           classrefdef to the tree (as they can, in theory, all
            be instantiated as well)
          }
-         hp:=tmodule(loaded_units.first);
-         while assigned(hp) do
-          begin
-            { we cannot just walk over the module's deflists, because a bunch of
-              the defs in there don't exist anymore (when destroyed, they're
-              removed from their symtable but not from the module's deflist)
+         for i := 0 to current_module.wpoinfo.maybecreatedbyclassrefdeftypes.count-1 do
+           begin
+             inheritancetree.checkforclassrefinheritance(tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]));
+{$IFDEF DEBUG_DEVIRT}
+             write('  Class Of ',tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).GetTypeName);
+{$ENDIF}
+             case tdef(current_module.wpoinfo.maybecreatedbyclassrefdeftypes[i]).typ of
+               objectdef:
+{$IFDEF DEBUG_DEVIRT}
+                 writeln(' (classrefdef)')
+{$ENDIF}
+                 ;
+               else
+                 internalerror(2008101101);
+             end;
+           end;
 
-              procedure-local (or class-local) class definitions do not (yet)
-              exit, so it's enough to just walk the global and local symtables
-            }
-            { globalsymtable (interface), is nil for main program itself }
-            if assigned(hp.globalsymtable) then
-              for i:=0 to hp.globalsymtable.deflist.count-1 do
-                inheritancetree.checkforclassrefinheritance(tdef(hp.globalsymtable.deflist[i]));
-            { staticsymtable (implementation), is nil for units with nothing
-              in the implementation }
-            if assigned(hp.localsymtable) then
-              for i:=0 to hp.localsymtable.deflist.count-1 do
-                inheritancetree.checkforclassrefinheritance(tdef(hp.localsymtable.deflist[i]));
-            hp:=tmodule(hp.next);
-          end;
          inheritancetree.optimizevirtualmethods;
 {$ifdef DEBUG_DEVIRT}
          inheritancetree.printvmtinfo;
