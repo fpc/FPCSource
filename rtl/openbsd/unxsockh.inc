@@ -147,3 +147,8 @@ const
   { enable SACKs (if disabled by def.)  }
      TCP_SACK_ENABLE = $08;
 
+        SHUT_RD         =0;             { shut down the reading side }
+        SHUT_WR         =1;             { shut down the writing side }
+        SHUT_RDWR       =2;             { shut down both sides }
+
+
