@@ -119,3 +119,8 @@ const
      PF_BLUETOOTH = AF_BLUETOOTH;
      PF_MAX = AF_MAX;
 
+        SHUT_RD         =0;             { shut down the reading side }
+        SHUT_WR         =1;             { shut down the writing side }
+        SHUT_RDWR       =2;             { shut down both sides }
+
+
