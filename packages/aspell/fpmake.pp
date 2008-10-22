@@ -28,6 +28,9 @@ begin
 
     P.Sources.AddSrc('LICENSE');
     P.Sources.AddSrc('LICENSE.ADDON');
+
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('example.pas');
     
 {$ifndef ALLPACKAGES}
     Run;

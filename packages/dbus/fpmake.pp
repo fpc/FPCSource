@@ -40,6 +40,8 @@ begin
           AddInclude('dbus-threads.inc');
         end;
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('busexample.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

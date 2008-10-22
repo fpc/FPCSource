@@ -95,13 +95,94 @@ begin
 
     // Windows units
     T:=P.Targets.AddUnit('ServiceManager.pas',[Win32,Win64]);
-    T:=P.Targets.AddUnit('fileinfo',AllWindowsOSes);
+    T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
 
     // Additional sources
     P.Sources.AddSrcFiles('src/win/fclel.*');
+
+    // Examples
+    P.ExamplePath.Add('examples');
+      T:=P.Targets.AddExampleProgram('asiotest.pp');
+      T:=P.Targets.AddExampleProgram('b64dec.pp');
+      T:=P.Targets.AddExampleProgram('b64enc.pp');
+      T:=P.Targets.AddExampleProgram('b64.pp');
+      T:=P.Targets.AddExampleProgram('b64test2.pp');
+      T:=P.Targets.AddExampleProgram('b64test.pp');
+      T:=P.Targets.AddExampleProgram('base64decodingtestcase.pas');
+      T:=P.Targets.AddExampleProgram('cachetest.pp');
+      T:=P.Targets.AddExampleProgram('cfgtest.pp');
+      T:=P.Targets.AddExampleProgram('daemon.pp');
+      T:=P.Targets.AddExampleProgram('daemon.txt');
+      T:=P.Targets.AddExampleProgram('dbugsrv.pp');
+      T:=P.Targets.AddExampleProgram('debugtest.pp');
+      T:=P.Targets.AddExampleProgram('doecho.pp');
+      T:=P.Targets.AddExampleProgram('dparser.pp');
+      T:=P.Targets.AddExampleProgram('dsockcli.pp');
+      T:=P.Targets.AddExampleProgram('dsocksvr.pp');
+      T:=P.Targets.AddExampleProgram('fpdoc.dtd');
+      T:=P.Targets.AddExampleProgram('fstream.pp');
+      T:=P.Targets.AddExampleProgram('htdump.pp');
+      T:=P.Targets.AddExampleProgram('ipcclient.pp');
+      T:=P.Targets.AddExampleProgram('ipcserver.pp');
+      T:=P.Targets.AddExampleProgram('isockcli.pp');
+      T:=P.Targets.AddExampleProgram('isocksvr.pp');
+      T:=P.Targets.AddExampleProgram('istream.pp');
+      T:=P.Targets.AddExampleProgram('list.pp');
+      T:=P.Targets.AddExampleProgram('mstream.pp');
+      T:=P.Targets.AddExampleProgram('poolmm1.pp');
+      T:=P.Targets.AddExampleProgram('poolmm2.pp');
+      T:=P.Targets.AddExampleProgram('restest.pp');
+      T:=P.Targets.AddExampleProgram('showver.pp');
+      T:=P.Targets.AddExampleProgram('sockcli.pp');
+      T:=P.Targets.AddExampleProgram('socksvr.pp');
+      T:=P.Targets.AddExampleProgram('sstream.pp');
+      T:=P.Targets.AddExampleProgram('stringl.pp');
+      T:=P.Targets.AddExampleProgram('tarmakerconsgzip.pas');
+      T:=P.Targets.AddExampleProgram('tarmakercons.pas');
+      T:=P.Targets.AddExampleProgram('testapp.pp');
+      T:=P.Targets.AddExampleProgram('testbf.pp');
+      T:=P.Targets.AddExampleProgram('testbs.pp');
+      T:=P.Targets.AddExampleProgram('testcgi.pp');
+      T:=P.Targets.AddExampleProgram('testcont.pp');
+      T:=P.Targets.AddExampleProgram('testez.pp');
+      T:=P.Targets.AddExampleProgram('testhres.pp');
+      T:=P.Targets.AddExampleProgram('testnres.pp');
+      T:=P.Targets.AddExampleProgram('testol.pp');
+      T:=P.Targets.AddExampleProgram('testproc.pp');
+      T:=P.Targets.AddExampleProgram('testreg.pp');
+      T:=P.Targets.AddExampleProgram('testrhre.pp');
+      T:=P.Targets.AddExampleProgram('testrnre.pp');
+      T:=P.Targets.AddExampleProgram('testrsre.pp');
+      T:=P.Targets.AddExampleProgram('testrtf.pp');
+      T:=P.Targets.AddExampleProgram('testser.pp');
+      T:=P.Targets.AddExampleProgram('testsres.pp');
+      T:=P.Targets.AddExampleProgram('testtimer.pp');
+      T:=P.Targets.AddExampleProgram('testunzip.pp');
+      T:=P.Targets.AddExampleProgram('testur.pp');
+      T:=P.Targets.AddExampleProgram('testweb.pp');
+      T:=P.Targets.AddExampleProgram('testz2.pp');
+      T:=P.Targets.AddExampleProgram('testzip.pp');
+      T:=P.Targets.AddExampleProgram('testz.pp');
+      T:=P.Targets.AddExampleProgram('threads.pp');
+      T:=P.Targets.AddExampleProgram('tidea.pp');
+      T:=P.Targets.AddExampleProgram('tstelcmd.pp');
+      T:=P.Targets.AddExampleProgram('tstelgtk.pp');
+      T:=P.Targets.AddExampleProgram('txmlreg.pp');
+      T:=P.Targets.AddExampleProgram('xmldump.pp');
+
+      // example data files.
+      // README
+      // kword.xml
+      // overview.rtf
+      // showver.rc
+      // showver.res
+      // simple.xml
+      // parser.dat
+      // testcgi.html
 
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+

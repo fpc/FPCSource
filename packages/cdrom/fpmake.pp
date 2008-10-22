@@ -56,8 +56,14 @@ begin
         end;
     T:=P.Targets.AddUnit('wnaspi32.pp',[Win32,Win64]);
 
+
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('getdiscid.pp');
+    T:=P.Targets.AddExampleProgram('showcds.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+

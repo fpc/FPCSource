@@ -26,6 +26,10 @@ begin
           AddInclude('bzip2i386.inc',[i386],AllOSes);
         end;
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('pasbzip.pas');
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

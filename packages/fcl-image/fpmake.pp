@@ -219,8 +219,13 @@ begin
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('drawing.pp');
+    T:=P.Targets.AddExampleProgram('imgconv.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+
