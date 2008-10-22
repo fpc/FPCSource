@@ -24,7 +24,7 @@ const
      ListIndent = 2;
      DefIndent  = 4;
 
-     MaxTopicLinks = 4000; { maximum number of links on a single HTML page }
+     MaxTopicLinks = 24000; { maximum number of links on a single HTML page }
 
 type
     THTMLSection = (hsNone,hsHeading1,hsHeading2,hsHeading3,hsHeading4,hsHeading5,hsHeading6);
@@ -647,16 +647,16 @@ begin
               InAnchor:=true;
               AddChar(hscLink);
 {$IFDEF WDEBUG}
-              DebugMessage('',' Adding Link1 "'+HRef+'"'+' "'+url+'"',1,1);
-{$endif WDEBUG}
+              DebugMessageS({$i %file%},' Adding Link1 "'+HRef+'"'+' "'+url+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
               
               if pos('#',HRef)=1 then
                 Href:=NameAndExtOf(GetFilename)+Href;
               HRef:=canonicalizeURL(URL,HRef);
               LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
 {$IFDEF WDEBUG}
-              DebugMessage('',' Adding Link2 "'+HRef+'"',1,1);
-{$endif WDEBUG}
+              DebugMessageS({$i %file%},' Adding Link2 "'+HRef+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
               Inc(LinkPtr);
             end;
           end;
@@ -671,8 +671,7 @@ end;
 procedure THTMLTopicRenderer.DocUnknownTag;
 begin
 {$IFDEF WDEBUG}
-  DebugMessage('',' Unknown tag "'+TagName+'" params "'+
-    TagParams+'"',1,1);
+  DebugMessageS({$i %file%},' Unknown tag "'+TagName+'" params "'+TagParams+'"'  ,{$i %line%},'1');
 {$endif WDEBUG}
 end;
 
@@ -1300,6 +1299,9 @@ begin
           if Topic^.LinkCount>0 then { FP causes numeric RTE 215 without this }
           for I:=0 to Min(Topic^.LinkCount-1,High(LinkIndexes)-1) do
             begin
+              {$IFDEF WDEBUG}
+                DebugMessageS({$i %file%},' Indexing links ('+inttostr(i)+')'+topiclinks^.at(linkindexes[i])^,{$i %line%},'1');
+              {$endif WDEBUG}
               Topic^.Links^[I].FileID:=Topic^.FileID;
               Topic^.Links^[I].Context:=EncodeHTMLCtx(Topic^.FileID,LinkIndexes[I]+1);
             end;
@@ -1320,7 +1322,10 @@ end;
 
 Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
 begin
- CanonicalizeUrl:=combinepaths(relative,base);
+ if copy(relative,1,7)<>'ms-its:' then 
+   CanonicalizeUrl:=combinepaths(relative,base)
+  else
+   CanonicalizeUrl:=relative; 
 end;
 
 constructor TCustomHTMLHelpFile.Init(AID: word);
@@ -1376,13 +1381,13 @@ begin
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking before for ',1,1);
-{$endif WDEBUG}
+          DebugMessageS({$i %file%},'(Topicinfo) Link before formatpath "'+link+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
           
           Link:=FormatPath(Link);
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking after for ',1,1);
-{$endif WDEBUG}
+          DebugMessageS({$i %file%},'(Topicinfo) Link after formatpath "'+link+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1417,14 +1422,12 @@ begin
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking before for ',1,1);
-{$endif WDEBUG}
-          
+          DebugMessageS({$i %file%},'(ReadTopic) Link before formatpath "'+link+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
           Link:=FormatPath(Link);
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking after for ',1,1);
-{$endif WDEBUG}
-
+          DebugMessageS({$i %file%},'(ReadTopic) Link before formatpath "'+link+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1447,8 +1450,8 @@ begin
       if (HTMLFile=nil) then
         begin
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' filename not known :(',1,1);
-{$endif DEBUG}
+          DebugMessageS({$i %file%},'(ReadTopic) Filename not known:  "'+link+'"',{$i %line%},'1');
+{$ENDIF WDEBUG}
         end;
       if (p>1) and (HTMLFile=nil) then
         begin
@@ -1641,7 +1644,7 @@ begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
           Link:=FormatPath(Link);
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking for',1,1);
+          DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1');
 {$endif WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
@@ -1677,12 +1680,11 @@ begin
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking for',1,1);
+          DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1');
 {$endif WDEBUG}
-
           Link:=FormatPath(Link);
 {$IFDEF WDEBUG}
-          DebugMessage(Link,' looking for',1,1);
+          DebugMessageS({$i %file%},' Looking for (after formatpath)  "'+Link+'"',{$i %line%},'1');
 {$endif WDEBUG}
           P:=Pos('#',Link);
           if P>0 then

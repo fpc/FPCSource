@@ -107,13 +107,19 @@ begin
  result:=false;
  if not assigned (fchmr) then exit;
  if floaded then exit;
-//  m:=Classes.TMemorystream.create;
+ {$ifdef wdebug}
+     debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1'); 
+ {$endif}
+  
   m:=fchmr.getobject(fchmr.indexfile);
   try
-  {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1'); 
-  {$endif}
-    findex.loadfromStream(m);
+   if assigned(m) then
+     begin
+      {$ifdef wdebug}
+       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1'); 
+      {$endif}
+      findex.loadfromStream(m);
+    end;
   finally
     freeandnil(m);
     end;
@@ -148,7 +154,7 @@ begin
   result:=nil;
   if not assigned(fchmr) or (name='') then exit;
   
-  If name[1]<>'/' Then
+  If (name[1]<>'/') and (copy(name,1,7)<>'ms-its:') Then
     name:='/'+name;
   linedata:=Classes.TStringList.create;
   try
