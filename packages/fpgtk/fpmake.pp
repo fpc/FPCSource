@@ -41,6 +41,12 @@ begin
           AddUnit('fpglib');
         end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('examples/lister.pp');
+    P.Targets.AddExampleProgram('examples/testgtk.pp');
+    // 'examples/Makefile
+    // 'examples/Makefile.fpc
+    // 'examples/testgtk.ppr
 
 {$ifndef ALLPACKAGES}
     Run;

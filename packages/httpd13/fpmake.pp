@@ -17,7 +17,10 @@ begin
     P.Directory:='httpd13';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
+
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('httpd.pas');

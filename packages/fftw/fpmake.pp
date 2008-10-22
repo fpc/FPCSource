@@ -22,6 +22,10 @@ begin
 
     T:=P.Targets.AddUnit('fftw_s.pas');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('examples/example.pas');
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

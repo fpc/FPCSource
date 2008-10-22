@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('buildim.pp');
       with T.Dependencies do
@@ -51,6 +52,11 @@ begin
           AddUnit('imagemagick');
         end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('screenshot.lpr');
+    P.Targets.AddExampleProgram('wanddemo.lpr');
+    P.Targets.AddExampleProgram('wanddemo.dpr');
+    // 'image.png
 
     {$ifndef ALLPACKAGES}
         Run;

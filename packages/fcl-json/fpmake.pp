@@ -37,8 +37,20 @@ begin
         end;
     T:=P.Targets.AddUnit('jsonscanner.pp');
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('confdemo.pp');
+    T:=P.Targets.AddExampleProgram('parsedemo.pp');
+    T:=P.Targets.AddExampleProgram('simpledemo.pp');
+
+    // simpledemo.lpi
+    // confdemo.lpi
+    // parsedemo.lpi
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+
+
+

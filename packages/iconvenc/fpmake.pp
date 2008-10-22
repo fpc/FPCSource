@@ -22,6 +22,9 @@ begin
 
     T:=P.Targets.AddUnit('iconvenc.pas');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('iconvtest.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

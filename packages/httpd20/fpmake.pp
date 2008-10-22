@@ -18,6 +18,13 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/apr');
+    P.SourcePath.Add('src/apriconv');
+    P.SourcePath.Add('src/aprutil');
+    P.IncludePath.Add('src');
+    P.IncludePath.Add('src/apr');
+    P.IncludePath.Add('src/apriconv');
+    P.IncludePath.Add('src/aprutil');
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('apriconv.pas');
@@ -86,6 +93,15 @@ begin
           AddUnit('aprutil');
         end;
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('minimain.pas');
+    T:=P.Targets.AddExampleProgram('mod_hello.pp');
+    T:=P.Targets.AddExampleProgram('mod_example.pp'); 
+    T.Dependencies.AddInclude('define.inc');	
+    T:=P.Targets.AddExampleProgram('mod_spelling.pp');
+    T.Dependencies.AddInclude('define.inc');	
+    T:=P.Targets.AddExampleProgram('testmodule.pp');
+    T.Dependencies.AddInclude('define.inc');	
 
 {$ifndef ALLPACKAGES}
     Run;

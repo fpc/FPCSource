@@ -245,6 +245,14 @@ begin
           AddUnit('drivers');
           AddUnit('fvconsts');
         end;
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('examples/testapp.pas');
+    P.Targets.AddExampleProgram('examples/platform.inc');
+    // 'examples/Makefile
+    // 'examples/testapp.lpi
+    // 'examples/Makefile.fpc
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

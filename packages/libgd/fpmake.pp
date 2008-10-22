@@ -21,6 +21,10 @@ begin
 
     T:=P.Targets.AddUnit('gd.pp');
 
+    P.ExamplePath.Add('tests');
+    P.Targets.AddExampleProgram('gdtestcgi.pp');
+    P.Targets.AddExampleProgram('gdtest.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

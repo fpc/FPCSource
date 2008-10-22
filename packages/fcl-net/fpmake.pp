@@ -74,6 +74,22 @@ begin
           AddUnit('httpsvlt');
         end;
     T:=P.Targets.AddProgram('mkxmlrpc.pp',AllUnixOSes);
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('examples/rpccli.pp');
+    P.Targets.AddExampleProgram('examples/svrclass_xmlrpc.pp');
+    P.Targets.AddExampleProgram('examples/ip6test.pp');
+    P.Targets.AddExampleProgram('examples/svrclass.pp');
+    P.Targets.AddExampleProgram('examples/testdns.pp');
+    P.Targets.AddExampleProgram('examples/testnet.pp');
+    P.Targets.AddExampleProgram('examples/testhosts.pp');
+    P.Targets.AddExampleProgram('examples/rpcserv.pp');
+    P.Targets.AddExampleProgram('examples/testsvc.pp');
+    P.Targets.AddExampleProgram('examples/testhst.pp');
+    P.Targets.AddExampleProgram('examples/testuri.pp');
+    P.Targets.AddExampleProgram('examples/testproto.pp');
+    // 'examples/Makefile
+    // 'examples/Makefile.fpc
+    // 'examples/readme.txt
 
 {$ifndef ALLPACKAGES}
     Run;

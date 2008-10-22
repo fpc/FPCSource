@@ -221,6 +221,13 @@ begin
           AddInclude('vtx.inc');
         end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('examples/testzvt.pp');
+    P.Targets.AddExampleProgram('examples/gconfcallback2.pp');
+    P.Targets.AddExampleProgram('examples/gconfexample.pp');
+    P.Targets.AddExampleProgram('examples/gconfcallback1.pp');
+    P.Targets.AddExampleProgram('examples/gnometest.pp');
+
 
 {$ifndef ALLPACKAGES}
     Run;

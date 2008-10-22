@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-
+    P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('gdbcon.pp');
       with T.Dependencies do
         begin

@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-
+    P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('registry.pp');
       with T.Dependencies do
         begin
@@ -35,6 +35,12 @@ begin
           AddUnit('xmlread');
           AddUnit('xmlwrite');
         end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('tests/testbasics.pp');
+    P.Targets.AddExampleProgram('tests/regtestframework.pp');
+    // 'tests/Makefile
+    // 'tests/Makefile.fpc
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -24,7 +24,7 @@ begin
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
-
+    // md5.ref
 {$ifndef ALLPACKAGES}
     Run;
     end;

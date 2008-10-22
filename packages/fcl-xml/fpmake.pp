@@ -124,8 +124,23 @@ begin
           AddUnit('htmldefs');
         end;
 
+ 
+    P.Sources.AddSrc('src/README');
+
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('tests/xmlts.pp');
+    P.Targets.AddExampleProgram('tests/domunit.pp');
+    P.Targets.AddExampleProgram('tests/testgen.pp');
+    // 'tests/api.xml
+    // 'tests/README_DOM
+    // 'tests/README
+    // 'tests/template.xml
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+

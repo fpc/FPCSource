@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('ibase40.pp');
     T:=P.Targets.AddUnit('ibase60dyn.pp');
@@ -31,6 +32,9 @@ begin
           AddInclude('ibase60.inc');
         end;
 
+    P.ExamplePath.Add('tests');
+    P.Targets.AddExampleProgram('testib40.pp');
+    P.Targets.AddExampleProgram('testib60.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

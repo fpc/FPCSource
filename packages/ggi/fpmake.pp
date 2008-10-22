@@ -32,6 +32,9 @@ begin
         end;
     T:=P.Targets.AddUnit('gii.pp');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('ggi1.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
