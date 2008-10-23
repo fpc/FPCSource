@@ -18,6 +18,8 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
+    P.IncludePath.Add('src/i386',[i386],AllOSes);
 
 T:=P.Targets.AddUnit('hermes.pp');
   with T.Dependencies do
@@ -42,8 +44,8 @@ T:=P.Targets.AddUnit('hermes.pp');
       AddInclude('p_i8.inc');
       AddInclude('p_muhmu.inc');
       AddInclude('d_32.inc');
-      AddInclude('headi386.inc');
-      AddInclude('headmmx.inc');
+      AddInclude('headi386.inc',[i386],AllOSes);
+      AddInclude('headmmx.inc',[i386],AllOSes); 
       AddInclude('factconv.inc');
       AddInclude('list.inc');
       AddInclude('utility.inc');
@@ -52,7 +54,7 @@ T:=P.Targets.AddUnit('hermes.pp');
       AddInclude('convert.inc');
       AddInclude('clear.inc');
       AddInclude('factory.inc');
-    end;
+   end;
 
 
 {$ifndef ALLPACKAGES}
@@ -60,3 +62,19 @@ T:=P.Targets.AddUnit('hermes.pp');
     end;
 end.
 {$endif ALLPACKAGES}
+
+      AddInclude('headi386.inc');
+      AddInclude('headmmx.inc');
+mmx_clr.as
+mmx_main.as
+mmxp2_32.as
+mmxp_32.as
+x8616lut.as
+x86_clr.as
+x86_main.as
+x86p_16.as
+x86p_32.as
+x86p_cpy.as
+x86p_i8.as
+x86p_s32.as
+x86pscpy.as');

@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('ocidyn.pp');
       with T.Dependencies do
@@ -52,6 +53,9 @@ begin
     T:=P.Targets.AddUnit('oraoci.pp');
     T:=P.Targets.AddUnit('oratypes.pp');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('test01.pp');
+    P.Targets.AddExampleProgram('oraclew.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

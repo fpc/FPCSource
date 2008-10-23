@@ -21,6 +21,11 @@ begin
 
     T:=P.Targets.AddUnit('newt.pp');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('newt3.pas');
+    P.Targets.AddExampleProgram('newt2.pas');
+    P.Targets.AddExampleProgram('newt1.pas');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

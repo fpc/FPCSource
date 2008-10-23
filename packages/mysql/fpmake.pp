@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('my4_sys.pp');
     T:=P.Targets.AddUnit('mysql3_comdyn.pp');
@@ -105,6 +106,12 @@ begin
         begin
           AddInclude('mysql.inc');
         end;
+
+    P.ExamplePath.Add('tests');
+    P.Targets.AddExampleProgram('testdb3.pp');
+    P.Targets.AddExampleProgram('testdb4.pp');
+    P.Targets.AddExampleProgram('mysqls.pp');
+    // 'mysqls.c
 
 {$ifndef ALLPACKAGES}
     Run;

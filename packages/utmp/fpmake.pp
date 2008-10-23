@@ -21,6 +21,8 @@ begin
 
     T:=P.Targets.AddUnit('utmp.pp');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('testutmp.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

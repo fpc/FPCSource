@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('odbcsqldyn.pas');
       with T.Dependencies do
@@ -29,6 +30,10 @@ begin
         begin
           AddInclude('odbcsql.inc');
         end;
+
+    P.ExamplePath.Add('tests');
+    P.Targets.AddExampleProgram('testodbc.pp');
+    // 'testodbc.mdb
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -22,6 +22,9 @@ begin
 
     T:=P.Targets.AddUnit('openssl.pas');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('test1.pas');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
