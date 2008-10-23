@@ -22,6 +22,12 @@ begin
     T:=P.Targets.AddUnit('libuuid.pp');
     T:=P.Targets.AddUnit('macuuid.pp');
 
+    P.Sources.AddSrc('README');
+
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testlibuid.pp');
+    P.Targets.AddExampleProgram('testuid.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

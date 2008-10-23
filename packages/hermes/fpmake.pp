@@ -63,18 +63,16 @@ T:=P.Targets.AddUnit('hermes.pp');
 end.
 {$endif ALLPACKAGES}
 
-      AddInclude('headi386.inc');
-      AddInclude('headmmx.inc');
-mmx_clr.as
-mmx_main.as
-mmxp2_32.as
-mmxp_32.as
-x8616lut.as
-x86_clr.as
-x86_main.as
-x86p_16.as
-x86p_32.as
-x86p_cpy.as
-x86p_i8.as
-x86p_s32.as
-x86pscpy.as');
+// mmx_clr.as
+// mmx_main.as
+// mmxp2_32.as
+// mmxp_32.as
+// x8616lut.as
+// x86_clr.as
+// x86_main.as
+// x86p_16.as
+// x86p_32.as
+// x86p_cpy.as
+// x86p_i8.as
+// x86p_s32.as
+// x86pscpy.as');

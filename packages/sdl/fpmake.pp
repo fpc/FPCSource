@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
     P.Dependencies.Add('x11');
     P.Dependencies.Add('pthreads');
 
@@ -83,9 +84,18 @@ begin
           AddInclude('jedi-sdl.inc');
           AddUnit('sdl');
         end;
+    P.Sources.AddSrc('LGPL');
+    P.Sources.AddSrc('LGPL.addon');
+    P.Sources.AddSrc('MPL-1.1');
+    P.Sources.AddSrc('README');
 
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+
+
+
+
+ 

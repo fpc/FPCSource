@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('sqlite3db.pas');
       with T.Dependencies do
@@ -41,6 +42,10 @@ begin
         end;
     T:=P.Targets.AddUnit('sqlite.pp');
 
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testapiv3x.pp');
+    P.Targets.AddExampleProgram('test.pas');
+    // 'testapiv3x.README
 
 {$ifndef ALLPACKAGES}
     Run;

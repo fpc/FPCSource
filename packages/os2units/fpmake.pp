@@ -34,6 +34,8 @@ begin
     P.Targets.AddUnit('sw.pas',[OS2]);
     P.Targets.AddUnit('wpstk.pp',[OS2]);
 
+    P.Sources.AddSrc('readme.txt');
+
    // not compilable defunct for now
 
     P.ExamplePath.Add('examples');
@@ -42,6 +44,8 @@ begin
     P.Targets.AddExampleProgram('clktest.pas');
     P.Targets.AddExampleProgram('ftptest.pas');
     P.Targets.AddExampleProgram('lvmtest.pas');
+
+
 
 {$ifndef ALLPACKAGES}
     Run;

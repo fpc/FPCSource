@@ -18,7 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-
+    P.OSes:=[darwin];
   T:=P.Targets.AddUnit('ABActions.pas');
     with T.Dependencies do
       begin
@@ -851,7 +851,7 @@ begin
         AddUnit('cfdictionary');
         AddUnit('cggeometry');
       end;
-  T:=P.Targets.AddUnit('CGDisplayFade.pas');
+  T:=P.Targets.AddUnit('CGDisplayFades.pas');
     with T.Dependencies do
       begin
         AddUnit('mactypes');
@@ -1528,7 +1528,7 @@ begin
         AddUnit('quickdraw');
         AddUnit('endian');
       end;
-  T:=P.Targets.AddUnit('FPCMacOSAll.pas');
+  T:=P.Targets.AddUnit('MacOSAll.pas');
   T:=P.Targets.AddUnit('FileTypesAndCreators.pas');
     with T.Dependencies do
       begin
@@ -3180,6 +3180,9 @@ begin
       begin
         AddUnit('mactypes');
       end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('controldemo.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

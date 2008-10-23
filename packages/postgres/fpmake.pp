@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('dllistdyn.pp');
       with T.Dependencies do
@@ -47,6 +48,12 @@ begin
           AddUnit('dllist');
         end;
 
+    P.Sources.AddSrc('README');
+
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testpg2.pp');
+    P.Targets.AddExampleProgram('testpg1.pp');
+  
 {$ifndef ALLPACKAGES}
     Run;
     end;

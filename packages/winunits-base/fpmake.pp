@@ -30,6 +30,7 @@ begin
           AddUnit('mmsystem');
           AddUnit('comconst');
           AddUnit('commctrl');
+          AddUnit('commdlg');
           AddUnit('comobj');
           AddUnit('ole2');
           AddUnit('activex');
@@ -38,11 +39,12 @@ begin
           AddUnit('oleserver');
           AddUnit('shfolder');
           AddUnit('richedit');
-		  AddUnit('wininet');
+	  AddUnit('wininet');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
     T:=P.Targets.AddImplicitUnit('commctrl.pp');
+    T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('comobj.pp');
     T:=P.Targets.AddImplicitUnit('flatsb.pp');
     T:=P.Targets.AddImplicitUnit('mmsystem.pp');
@@ -53,9 +55,17 @@ begin
     T:=P.Targets.AddImplicitUnit('shfolder.pp');
     T:=P.Targets.AddImplicitUnit('shlobj.pp');
     T:=P.Targets.AddImplicitUnit('winver.pp');
+    T:=P.Targets.AddImplicitUnit('wininet.pp');
     T:=P.Targets.AddImplicitUnit('imagehlp.pp');
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('wininet.pp');
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testcom1.pp');
+    P.Targets.AddExampleProgram('OOTest.pp');
+    P.Targets.AddExampleProgram('OOHelper.pp');
+    P.Targets.AddExampleProgram('testver.pp');
+    P.Targets.AddExampleProgram('testcom2.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

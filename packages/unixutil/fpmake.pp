@@ -18,8 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-
-    T:=P.Targets.AddUnit('unixutils.pp');
+    T:=P.Targets.AddUnit('unixutils.pp',[i386],[linux]);
       with T.Dependencies do
         begin
           AddUnit('libc');

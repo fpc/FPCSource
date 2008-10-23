@@ -22,6 +22,7 @@ begin
     P.SourcePath.Add('src/coreunits');
     P.SourcePath.Add('src/otherlibs');
     P.SourcePath.Add('src/utilunits');
+    P.SourcePath.Add('.');
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('msgbox.pas');
@@ -165,8 +166,9 @@ begin
     T:=P.Targets.AddExampleProgram('envprint.pas');
     T:=P.Targets.AddExampleProgram('penshare.pas');
 
-    P.Sources.AddSrc('README');
-    P.Sources.AddSrc('units.txt');
+    P.Sources.AddDoc('README');
+    P.Sources.AddDoc('units.txt');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

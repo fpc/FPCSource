@@ -32,6 +32,10 @@ begin
           AddInclude('rearrang.inc');
         end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('evaltest.pas');
+    P.Targets.AddExampleProgram('rpnthing.pas');
+
 
 {$ifndef ALLPACKAGES}
     Run;

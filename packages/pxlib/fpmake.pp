@@ -19,6 +19,7 @@ begin
     T:=P.Targets.AddUnit('src/pxlib.pp');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/ppxview.pp');
+      T.OSes:=[Linux];
 {$ifndef ALLPACKAGES}
     Run;
     end;

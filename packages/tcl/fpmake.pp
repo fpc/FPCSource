@@ -21,6 +21,9 @@ begin
 
     T:=P.Targets.AddUnit('tcl80.pp');
 
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('tcl_demo.pp');
+    // 'test.tcl
 
 {$ifndef ALLPACKAGES}
     Run;

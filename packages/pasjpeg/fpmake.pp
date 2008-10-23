@@ -127,13 +127,43 @@ begin
     T:=P.Targets.AddImplicitUnit('jquant2.pas');
     T:=P.Targets.AddImplicitUnit('jutils.pas');
 
+    P.Sources.AddSrc('readme.txt');
+ 
     P.ExamplePath.Add('examples');
 
-    T:=P.Targets.AddExampleProgram('cjpeg.pas');
-    T:=P.Targets.AddExampleProgram('demo.pas');
-    T:=P.Targets.AddExampleProgram('djpeg.pas');
-    T:=P.Targets.AddExampleProgram('jpegtran.pas');
-    T:=P.Targets.AddExampleProgram('rdjpgcom.pas');
+    P.Targets.AddExampleProgram('cjpeg.pas');
+    P.Targets.AddExampleProgram('djpeg.pas');
+    P.Targets.AddExampleProgram('rdswitch.pas');
+    P.Targets.AddExampleProgram('testproj.dpr');
+    P.Targets.AddExampleProgram('cdjpeg.pas');
+    P.Targets.AddExampleProgram('test1.pas');
+    P.Targets.AddExampleProgram('example.pas');
+    P.Targets.AddExampleProgram('wrjpgcom.pas');
+    P.Targets.AddExampleProgram('rdjpgcom.pas');
+    P.Targets.AddExampleProgram('rdtarga.pas');
+    P.Targets.AddExampleProgram('demo.pas');
+    P.Targets.AddExampleProgram('wrppm.pas');
+    P.Targets.AddExampleProgram('transupp.pas');
+    P.Targets.AddExampleProgram('rdbmp.pas');
+    P.Targets.AddExampleProgram('rdppm.pas');
+    P.Targets.AddExampleProgram('rdcolmap.pas');
+    P.Targets.AddExampleProgram('wrtarga.pas');
+    P.Targets.AddExampleProgram('wrbmp.pas');
+    P.Targets.AddExampleProgram('jpegtran.pas');
+    P.Targets.AddExampleProgram('cderror.pas');
+    P.Targets.AddExampleProgram('test.pas');
+    P.Targets.AddExampleProgram('fcache.pas');
+    // 'djpeg.res
+    // 'testproj.res
+    // 'script0.ijg
+    // 'test1.dfm
+    // 'jpegtran.res
+    // 'demo.res
+    // 'qtable1.ijg
+    // 'script1.ijg
+    // 'cjpeg.res
+    // 'jpegtran.drc
+    // 'script2.ijg
 
 {$ifndef ALLPACKAGES}
     Run;
