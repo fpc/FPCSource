@@ -367,6 +367,18 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$ENDIF}
 {$ENDIF}
 
+{ MorphOS has AmigaOS API, so define OS_AMIGA }
+{$IFDEF MORPHOS}
+  {$UNDEF OS_DOS}
+  {$DEFINE OS_AMIGA}
+  {$IFDEF CPU86}
+    {$UNDEF CPU86}
+  {$ENDIF}
+  {$IFNDEF CPUPPC}
+    {$DEFINE CPUPPC}
+  {$ENDIF}
+{$ENDIF}
+
 {---------------------------------------------------------------------------}
 {  FPC ATARI COMPILER changes op system and CPU type - Updated 27Aug98 LdB  }
 {---------------------------------------------------------------------------}

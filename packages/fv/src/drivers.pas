@@ -97,6 +97,10 @@ USES
       nwserv,
    {$ENDIF}
 
+   {$IFDEF OS_AMIGA}
+      doslib,
+   {$ENDIF}
+
    video,
    SysMsg,
    FVCommon, Objects;                                 { GFV standard units }
@@ -767,6 +771,12 @@ var
     GetDosTicks := Nwserv.GetCurrentTicks;
   end;
 {$ENDIF}
+{$IFDEF OS_AMIGA}
+  begin
+{$WARNING FIXME: dummy implementation}
+    GetDosTicks:=-1;
+  end;
+{$ENDIF OS_AMIGA}
 
 
 procedure GiveUpTimeSlice;
@@ -815,6 +825,12 @@ end;
     Delay (10);
   end;
 {$ENDIF}
+{$IFDEF OS_AMIGA}
+  begin
+    { AmigaOS Delay() wait's argument in 1/50 seconds }
+    DOSLib.Delay (5);
+  end;
+{$ENDIF OS_AMIGA}
 
 
 {---------------------------------------------------------------------------}
