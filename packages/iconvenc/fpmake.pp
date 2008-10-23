@@ -17,6 +17,13 @@ begin
     P.Directory:='iconvenc';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'Marco van de Voort';
+    P.License := 'Library: LGPL2 or later, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'A libiconv header translation.';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

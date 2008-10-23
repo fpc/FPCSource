@@ -17,6 +17,13 @@ begin
     P.Directory:='users';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'Michael van Canneyt, Marco van de Voort';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Headers to access Unix groups and users.';
+    P.NeedLibC:= false;
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('crypth.pp',[linux]);

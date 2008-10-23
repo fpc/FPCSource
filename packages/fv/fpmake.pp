@@ -17,6 +17,12 @@ begin
     P.Directory:='fv';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'Leon De Boer and Pierre Mueller';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Free Vision, a portable Turbo Vision clone.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -201,7 +207,9 @@ begin
     T:=P.Targets.AddUnit('sysmsg.pas');
       with T.Dependencies do
         begin
-          AddInclude('unixsmsg.inc');
+          AddInclude('unixsmsg.inc',AllUnixOSes);
+          AddInclude('win32smsg.inc',[win32,win64]);
+          AddInclude('go32smsg.inc',[go32v2]);
         end;
     T:=P.Targets.AddUnit('tabs.pas');
       with T.Dependencies do
