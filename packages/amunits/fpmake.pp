@@ -14,6 +14,7 @@ begin
 
     P:=AddPackage('amunits');
 {$ifdef ALLPACKAGES}
+    P.Directory:='amunits';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.CPUs:=[m68k];
@@ -22,7 +23,6 @@ begin
     P.SourcePath.Add('src/coreunits');
     P.SourcePath.Add('src/otherlibs');
     P.SourcePath.Add('src/utilunits');
-    P.SourcePath.Add('.');
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('msgbox.pas');
