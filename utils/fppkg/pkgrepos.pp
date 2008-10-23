@@ -294,7 +294,6 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
       begin
         Log(vlDebug,SLogFindInstalledPackages,[AUnitDir]);
         repeat
-writeln(SR.Name);
           if ((SR.Attr and faDirectory)=faDirectory) and (SR.Name<>'.') and (SR.Name<>'..') then
             begin
               UD:=IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(AUnitDir)+SR.Name);
