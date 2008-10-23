@@ -17,11 +17,17 @@ begin
     P.Directory:='fcl-net';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
     P.Dependencies.Add('fcl-async');
+
+    P.Author := 'Sebastian Guenther and Free Pascal development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Network related parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src/unix',AllUnixOSes);

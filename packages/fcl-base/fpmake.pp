@@ -17,8 +17,14 @@ begin
     P.Directory:='fcl-base';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-
     P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
+
+    P.Author := '<various>';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/unix',AllUnixOSes);

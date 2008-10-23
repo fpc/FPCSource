@@ -18,11 +18,17 @@ begin
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-
     D:=P.Dependencies.Add('paszlib');
       D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-base');
       D.Version:='2.2.2-0';
+
+    P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

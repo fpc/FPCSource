@@ -17,6 +17,14 @@ begin
     P.Directory:='fcl-registry';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'FPC development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Windows registry + emulation parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     T:=P.Targets.AddUnit('registry.pp');

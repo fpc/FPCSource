@@ -17,6 +17,14 @@ begin
     P.Directory:='fcl-async';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Mostly Sebastian Guenther';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Asynchonous event management of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
+
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/win',AllWindowsOSes);

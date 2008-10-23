@@ -13,6 +13,14 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-db');
+
+    P.Author := '<various>';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
+
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-db';
 {$endif ALLPACKAGES}

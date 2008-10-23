@@ -17,10 +17,16 @@ begin
     P.Directory:='fcl-image';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
+
+    P.Author := 'Michael Van Canneyt of the Free Pascal development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');

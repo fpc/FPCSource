@@ -17,10 +17,16 @@ begin
     P.Directory:='fcl-fpcunit';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
+
+    P.Author := ' Dean Zobec, Michael van Canneyt';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
