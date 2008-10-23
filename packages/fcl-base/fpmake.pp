@@ -49,7 +49,8 @@ begin
       T.ResourceStrings:=true;
       with T.Dependencies do
         begin
-          AddInclude('eventlog.inc');
+          AddInclude('eventlog.inc',AllUnixOSes+[Win32,Win64]);
+          AddInclude('felog.inc',AllOSes-AllUnixOSes-[Win32,Win64]);
         end;
     T:=P.Targets.AddUnit('fptimer.pp',AllWindowsOSes+AllUnixOSes);
     T:=P.Targets.AddUnit('gettext.pp');
