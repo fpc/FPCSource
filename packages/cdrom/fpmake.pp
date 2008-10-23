@@ -19,6 +19,13 @@ begin
     P.Version:='2.2.2-0';
     P.OSes:=[Win32,Win64,Linux];
 
+    P.Author := 'Michael van Canneyt';
+    P.License := 'LGPL with modification';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Unit to read a CDROM disc TOC and get a list of CD Rom devices';
+    P.NeedLibC:= False;
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

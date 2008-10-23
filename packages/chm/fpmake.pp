@@ -19,8 +19,15 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
 
+    P.Author := 'Andrew Haines';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Standalone CHM reader and writer library';
+    P.NeedLibC:= false;
+
     D:=P.Dependencies.Add('fcl-xml');
-      D.Version:='2.2.2-0';
+    D.Version:='2.2.2-0';
     
     P.SourcePath.Add('src');
 

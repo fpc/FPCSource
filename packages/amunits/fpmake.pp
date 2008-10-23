@@ -17,6 +17,14 @@ begin
     P.Directory:='amunits';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Nils Sjoholm';
+    P.License := 'LGPL with modification';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'A set of units for Amiga OS. 68k only?';
+    P.NeedLibC:= false;
+
     P.CPUs:=[m68k];
     P.OSes:=[Amiga];
 

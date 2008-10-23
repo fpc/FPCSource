@@ -17,6 +17,14 @@ begin
     P.Directory:='dbus';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Library: Red Hat, header: Unknown (but probably Sebastian Guenther)';
+    P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := D-Bus message bus interface. (Pre 1.0?)';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

@@ -20,7 +20,7 @@ The include lines below are generated with the following command:
 *)
 
 {$include a52/fpmake.pp}
-{$include amunits/fpmake.pp}
+
 {$include aspell/fpmake.pp}
 {$include bfd/fpmake.pp}
 {$include bzip2/fpmake.pp}
@@ -113,6 +113,8 @@ The include lines below are generated with the following command:
 {$include x11/fpmake.pp}
 {$include xforms/fpmake.pp}
 {$include zlib/fpmake.pp}
+
+{$include amunits/fpmake.pp}
 
     // Create fpc-all package
     PBuild:=AddPackage('fpc-all');

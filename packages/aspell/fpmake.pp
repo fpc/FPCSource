@@ -17,6 +17,14 @@ begin
     P.Directory:='aspell';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
+    P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'The New Aspell, spelling library';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');

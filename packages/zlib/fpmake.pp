@@ -12,9 +12,9 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('ibase');
+    P:=AddPackage('zlib');
 {$ifdef ALLPACKAGES}
-    P.Directory:='ibase';
+    P.Directory:='zlib';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
