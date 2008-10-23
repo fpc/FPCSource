@@ -404,7 +404,7 @@ type
     procedure ValidateDTD;
     procedure ValidateRoot;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
-    procedure DoAttrText(ch: PWideChar; Count: Integer);
+    procedure DoAttrText(ch: PWideChar; Count: Integer);    
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     // Some SAX-alike stuff (at a very early stage)
@@ -662,7 +662,7 @@ begin
     node := Context.ParentNode
   else
     node := Context;
-  // TODO: replacing document isn't yet supported
+  // TODO: replacing document isn't yet supported  
   if (Action = xaReplaceChildren) and (node.NodeType = DOCUMENT_NODE) then
     raise EDOMNotSupported.Create('DOMParser.ParseWithContext');
 
@@ -964,7 +964,7 @@ begin
     Move(OldBuf^, FCharBuf^, Remainder);
   BytesRead := FStream.Read(FAllocated[Slack-4], FCapacity);
   FCharBufEnd := FAllocated + (Slack-4) + BytesRead;
-  Unaligned(PWideChar(FCharBufEnd)^) := #0;
+  PWideChar(FCharBufEnd)^ := #0;
 end;
 
 { TXMLFileInputSource }
@@ -1492,7 +1492,7 @@ begin
       if (FCurChar = #10) or (FCurChar = #9) or (FCurChar = #13) then
         BufAppend(FValue, #32)  // don't change FCurChar, needed for correct location reporting
       else
-        BufAppend(FValue, FCurChar);
+        BufAppend(FValue, FCurChar);  
       GetChar;
     end
     else
@@ -1522,7 +1522,7 @@ begin
   ParseContent;
   if FCurChar <> #0 then
     FatalError('End-tag is not allowed here');
-  // SAX: ContentHandler.EndDocument() - here? or somewhere in destructor?
+  // SAX: ContentHandler.EndDocument() - here? or somewhere in destructor?  
 end;
 
 function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
@@ -1534,7 +1534,7 @@ begin
     Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, Src);
     if not Result then
     begin
-      // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here
+      // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
       ValidationError('Unable to resolve external entity ''%s''', [AEntity.NodeName]);
       Exit;
     end;
@@ -1578,7 +1578,7 @@ begin
     FSource.Free;
     FSource := Src;
     FCurChar := FSource.FBuf^;
-// correct position of this error is after PE reference
+// correct position of this error is after PE reference      
     if Error then
       BadPENesting(esFatal);
   end;
@@ -3000,9 +3000,9 @@ begin
   Inc(FNesting);
   if FNesting >= Length(FValidator) then
     SetLength(FValidator, FNesting * 2);
-  unaligned(FValidator[FNesting].FElementDef) := aElDef;
-  unaligned(FValidator[FNesting].FCurCP) := nil;
-  unaligned(FValidator[FNesting].FFailed) := False;
+  FValidator[FNesting].FElementDef := aElDef;
+  FValidator[FNesting].FCurCP := nil;
+  FValidator[FNesting].FFailed := False;
   UpdateConstraints;
 end;
 
