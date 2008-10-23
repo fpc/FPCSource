@@ -100,6 +100,7 @@ begin
 
    ScreenWidth := 80;
    ScreenHeight := 25;
+   ScreenColor := true;
 
    videoColorMap := pScreen(videoWindow^.WScreen)^.ViewPort.ColorMap;
    for counter:=0 to 15 do begin
@@ -219,7 +220,6 @@ Var
   I : Integer;
 
 begin
-{
   I:=SysVideoModeCount-1;
   SysSetVideoMode:=False;
   While (I>=0) and Not SysSetVideoMode do
@@ -238,7 +238,6 @@ begin
       ScreenColor:=SysVMD[I].Color;
       end else SysSetVideoMode := false;
     end;
-}
 end;
 
 Function SysGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
@@ -264,7 +263,6 @@ end;
 procedure DrawChar(x,y: longint; bitmap: pBitmap; drawCursor: boolean);
 var tmpCharData: word;
     tmpChar    : byte;
-    tmpRow     : byte;
     tmpFGColor : byte;
     tmpBGColor : byte;
 var
@@ -276,28 +274,17 @@ begin
   tmpFGColor :=(tmpCharData shr 8) and %00001111;
   tmpBGColor :=(tmpCharData shr 12) and %00000111;
   
-//  write('"',char(tmpChar),'" ',tmpChar);
   sX:=x*8;
   sY:=y*16;
-
-  SetAPen(videoWindow^.RPort,videoPens[tmpBGColor]);
-  RectFill(videoWindow^.RPort, sX, sY, sX + 7, sY + 15);
-
+  
   SetAPen(videoWindow^.Rport,videoPens[tmpFGColor]);
-  for counterY:=0 to 15 do begin
-    tmpRow:=vgafont[tmpChar,counterY];
-    if (tmpRow>0) then begin
-      for counterX:=0 to 7 do begin
-         if ((tmpRow and (1 shl counterX)) > 0) then
-            WritePixel(videoWindow^.RPort,sX+counterX,sY+counterY);
-      end;
-    end;
-  end;
+  SetBPen(videoWindow^.RPort,videoPens[tmpBGColor]);
+  BltTemplate(@vgafont[tmpChar,0],0,1,videoWindow^.RPort,sX,sY,8,16);
+  
   if drawCursor then begin
      gfxMove(videoWindow^.RPort,sX,sY+14); Draw(videoWindow^.RPort,sX+7,sY+14);
      gfxMove(videoWindow^.RPort,sX,sY+15); Draw(videoWindow^.RPort,sX+7,sY+15);
   end;
-
 end;
 
 
