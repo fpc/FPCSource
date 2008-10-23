@@ -22,7 +22,7 @@ begin
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.ExternalURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := D-Bus message bus interface. (Pre 1.0?)';
+    P.Description := 'D-Bus message bus interface. (Pre 1.0?)';
     P.NeedLibC:= true;
 
     P.SourcePath.Add('src');
