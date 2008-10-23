@@ -92,7 +92,9 @@ begin
   if GeneratedConfig then
     Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile])
+    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
+  // Log configuration
+  GlobalOptions.LogValues;
 end;
 
 
@@ -129,6 +131,8 @@ begin
       else
         Error(SErrMissingCompilerConfig,[S]);
     end;
+  // Log compiler configuration
+  CompilerOptions.LogValues('');
   // Load FPMake compiler config, this is normally the same config as above
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   if FileExists(S) then
@@ -140,6 +144,8 @@ begin
     end
   else
     Error(SErrMissingCompilerConfig,[S]);
+  // Log compiler configuration
+  FPMakeCompilerOptions.LogValues('fpmake-building ');
 end;
 
 
