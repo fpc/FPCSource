@@ -75,6 +75,36 @@ type
     end;
 {$ENDIF}
 
+{$IFDEF AMIGA}
+  {$DEFINE AMIGASCREEN}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  {$DEFINE AMIGASCREEN}
+{$ENDIF}
+
+{$IFDEF AMIGASCREEN}
+    PAmigaScreen = ^TAmigaScreen;
+    TAmigaScreen = object(TScreen)
+      function    GetWidth: integer; virtual;
+      function    GetHeight: integer; virtual;
+      procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
+      procedure   GetCursorPos(var P: TPoint); virtual;
+      { remember the initial video screen }
+      procedure   Capture; virtual;
+      { restore the initial video mode }
+      procedure   Restore; virtual;
+      { saves the current IDE screen }
+      procedure   SaveIDEScreen; virtual;
+      { saves the current console screen }
+      procedure   SaveConsoleScreen; virtual;
+      { restores the saved console screen }
+      procedure   SwitchToConsoleScreen; virtual;
+      { restores the saved IDE screen }
+      procedure   SwitchBackToIDEScreen; virtual;
+    end;
+{$ENDIF}
+
 {$IFDEF OS2}
     POS2Screen = ^TOS2Screen;
     TOS2Screen = object(TScreen)
@@ -1443,6 +1473,67 @@ end;
 
 
 {****************************************************************************
+                                 TAmigaScreen
+****************************************************************************}
+
+
+{$IFDEF AMIGASCREEN}
+function TAmigaScreen.GetWidth: integer;
+begin
+  GetWidth:=80;
+end;
+
+function TAmigaScreen.GetHeight: integer;
+begin
+  GetHeight:=25;
+end;
+
+procedure TAmigaScreen.GetLine(Line: integer; var Text, Attr: string);
+begin
+  Text:='                                                                               ';
+  Attr:='                                                                               ';
+end;
+
+procedure TAmigaScreen.GetCursorPos(var P: TPoint);
+begin
+  P.X:=1;
+  P.Y:=1;
+end;
+
+{ remember the initial video screen }
+procedure TAmigaScreen.Capture;
+begin
+end;
+
+{ restore the initial video mode }
+procedure TAmigaScreen.Restore;
+begin
+end;
+
+{ saves the current IDE screen }
+procedure TAmigaScreen.SaveIDEScreen;
+begin
+end;
+
+{ saves the current console screen }
+procedure TAmigaScreen.SaveConsoleScreen;
+begin
+end;
+
+{ restores the saved console screen }
+procedure TAmigaScreen.SwitchToConsoleScreen;
+begin
+end;
+
+{ restores the saved IDE screen }
+procedure TAmigaScreen.SwitchBackToIDEScreen;
+begin
+end;
+
+{$ENDIF}
+
+
+{****************************************************************************
                                  Initialize
 ****************************************************************************}
 
@@ -1464,7 +1555,11 @@ begin
         {$ifdef netwlibc}
           UserScreen:=New(PNWLScreen, Init);
         {$else}
-          UserScreen:=New(PScreen, Init);
+          {$ifdef AMIGASCREEN}
+            UserScreen:=New(PAmigaScreen, Init);
+          {$else}
+            UserScreen:=New(PScreen, Init);
+          {$endif AMIGASCREEN}
         {$endif netwlibc}
       {$endif OS2}
     {$endif Windows}
