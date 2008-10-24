@@ -37,6 +37,12 @@ interface
 {$ifdef netware}
       longint
 {$endif netware}
+{$ifdef amiga}
+      longint
+{$endif amiga}
+{$ifdef morphos}
+      longint
+{$endif morphos}
     ;
 Procedure SaveConsoleMode(var ConsoleMode : TConsoleMode);
 Procedure RestoreConsoleMode(const ConsoleMode : TConsoleMode);
