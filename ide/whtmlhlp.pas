@@ -1577,8 +1577,9 @@ end;
 
 constructor TChmHelpFile.Init(AFileName: string; AID: word);
 begin
-  if inherited Init(AID)=false then Fail;
-  renderer^.done;
+  if inherited Init(AID)=false then 
+    Fail;
+  Dispose(renderer,done);
   renderer:=New(PCHMTopicRenderer, Init);
   DefaultFileName:=AFileName; 
   if (DefaultFileName='') or not ExistsFile(DefaultFilename) then

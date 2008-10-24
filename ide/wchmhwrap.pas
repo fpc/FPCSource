@@ -69,7 +69,7 @@ Constructor TChmWrapper.Create(name:string);
 
 begin
   ffs:=Classes.TFileStream.create(name,fmOpenRead);
-  fchmr:=TChmReader.Create(ffs,True);
+  fchmr:=TChmReader.Create(ffs,True); // owns ffs
   findex:=nil;
   if not fchmr.isvalidfile then
     begin
