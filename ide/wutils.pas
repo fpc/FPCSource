@@ -40,7 +40,12 @@ const
   TempFirstChar = {$ifndef Unix}'~'{$else}'_'{$endif};
   TempExt       = '.tmp';
   TempNameLen   = 8;
-  EOL : String[2] = {$ifdef Unix}#10;{$else}#13#10;{$endif}
+
+  { Get DirSep and EOL from System unit, instead of redefining 
+    here with tons of $ifdefs (KB) }
+  DirSep : char = System.DirectorySeparator;
+  EOL : String[2] = System.LineEnding;
+
 
 type
   PByteArray = ^TByteArray;
@@ -179,7 +184,6 @@ const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
       LastStrToCardResult : integer = 0;
       LastHexToCardResult : integer = 0;
-      DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
       UseOldBufStreamMethod : boolean = false;
 
 procedure RegisterWUtils;
@@ -1229,6 +1233,9 @@ var Dir: string;
 begin
   Dir:=GetEnv('TEMP');
   if Dir='' then Dir:=GetEnv('TMP');
+{$if defined(morphos) or defined(amiga)}
+  if Dir='' then Dir:='T:';
+{$endif}
   if (Dir<>'') then if not ExistsDir(Dir) then Dir:='';
   if Dir='' then Dir:=GetCurDir;
   repeat

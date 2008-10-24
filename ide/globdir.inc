@@ -82,6 +82,14 @@
   {$define FSCaseInsensitive}
 {$endif}
 
+{$ifdef Amiga}
+  {$define FSCaseInsensitive}
+{$endif}
+
+{$ifdef MorphOS}
+  {$define FSCaseInsensitive}
+{$endif}
+
 { --- Exclude debugger support --- }
 {.$DEFINE NODEBUG}
 
