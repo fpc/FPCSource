@@ -132,10 +132,15 @@ procedure TCommandUpdate.Execute;
 var
   PackagesURL :  String;
 begin
-  // Download mirrors.xml
-  Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
-  DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
-  LoadLocalAvailableMirrors;
+  // Download and load mirrors.xml
+  // This can be skipped when a custom RemoteRepository is configured
+  if (GlobalOptions.RemoteMirrorsURL<>'') and
+     (GlobalOptions.RemoteRepository<>'auto') then
+    begin
+      Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
+      DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
+      LoadLocalAvailableMirrors;
+    end;
   // Download packages.xml
   PackagesURL:=GetRemoteRepositoryURL(PackagesFileName);
   Log(vlCommands,SLogDownloading,[PackagesURL,GlobalOptions.LocalPackagesFile]);
