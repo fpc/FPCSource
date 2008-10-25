@@ -51,7 +51,7 @@ var
 procedure SysInitVideo;
 var counter: longint;
 begin
-   writeln('sysinitvideo');
+//   writeln('sysinitvideo');
    InitGraphicsLibrary;
    InitIntuitionLibrary;
 {
