@@ -17,6 +17,13 @@ begin
     P.Directory:='httpd22';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';
+    P.License := 'Library: Apache License 2, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Headers for the Apache 2.2 series www server';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/apr');
     P.SourcePath.Add('src/apriconv');

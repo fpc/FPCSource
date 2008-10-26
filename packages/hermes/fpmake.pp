@@ -17,6 +17,14 @@ begin
     P.Directory:='hermes';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Nikolay Nikolov';
+    P.License := 'Library: GPL2, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Library for pixel graphics conversion';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.IncludePath.Add('src/i386',[i386],AllOSes);

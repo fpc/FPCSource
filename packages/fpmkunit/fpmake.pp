@@ -18,6 +18,12 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.Description:='Free Pascal Make Tool';
+    P.Author := 'Peter Vreman';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Basic library of the fpmake/fppkg build system.';
+    P.NeedLibC:= false;  // true for headers that indirectly link to libc?
     
     // All dependencies (including implicit) are listed
     // here to be able to update all requirements to

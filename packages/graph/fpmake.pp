@@ -17,6 +17,13 @@ begin
     P.Directory:='graph';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'FPC team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'A portable, yet usable substitute for the Turbo Pascal Graph unit.';
+    P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
+
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/macosx',[darwin]);
     P.SourcePath.Add('src/amiga',[amiga]);

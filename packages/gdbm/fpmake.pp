@@ -17,6 +17,13 @@ begin
     P.Directory:='gdbm';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Author := 'Library: GNU, header: Michael van Canneyt';
+    P.License := 'Library: GPL2 (or later?), header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'GNU dbm is a set of database routines that use extensible hashing.';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gdbm.pp');
