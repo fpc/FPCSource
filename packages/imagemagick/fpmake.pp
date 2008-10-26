@@ -17,6 +17,14 @@ begin
     P.Directory:='imagemagick';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
+    P.License := 'Library: Imagemagick license, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Header to Imagemagick, a graphics manipulation program .';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

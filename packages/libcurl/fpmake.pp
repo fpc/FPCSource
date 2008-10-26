@@ -17,6 +17,14 @@ begin
     P.Directory:='libcurl';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+
+    P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
+    P.License := 'Library: MIT, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Library to fetch files from URLs using many protocols.';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('libcurl.pp');
