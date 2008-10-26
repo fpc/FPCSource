@@ -83,6 +83,15 @@ implementation
 {$define HAS_SYSMSG}
 {$endif unix}
 
+{$ifdef amiga}
+{$i amismsg.inc}
+{$define HAS_SYSMSG}
+{$endif amiga}
+{$ifdef morphos}
+{$i amismsg.inc}
+{$define HAS_SYSMSG}
+{$endif morphos}
+
 {$ifdef HAS_SYSMSG}
 
 procedure PutSystemEvent(const SystemEvent: TSystemEvent);
