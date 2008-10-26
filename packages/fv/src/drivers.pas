@@ -83,11 +83,7 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_UNIX}
-     {$ifdef VER1_0}
-       linux,
-     {$else}
        unixtype,baseunix,unix,
-     {$endif}
    {$ENDIF}
 
    {$IFDEF OS_NETWARE_LIBC}
@@ -737,14 +733,8 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
      tv : TimeVal;
   {  tz : TimeZone;}
   begin
-    {$ifdef ver1_0}
-    GetTimeOfDay(tv{,tz});
-    GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
-    {$else}
     FPGetTimeOfDay(@tv,nil{,tz});
     GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
-
-    {$endif}
   end;
 {$ENDIF OS_UNIX}
 {$IFDEF OS_WINDOWS}
@@ -794,7 +784,7 @@ end;
 begin
   req.tv_sec:=0;
   req.tv_nsec:=10000000;{ 10 ms }
-  {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
+  fpnanosleep(@req,@rem);
 end;
 {$ENDIF}
 {$IFDEF OS_OS2}
