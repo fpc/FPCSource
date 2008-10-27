@@ -2393,7 +2393,7 @@ Const
      LOGBRUSH = record
           lbStyle : UINT;
           lbColor : COLORREF;
-          lbHatch : LONG;
+          lbHatch : ULONG_PTR;
        end;
      tagLOGBRUSH = LOGBRUSH;
      TLOGBRUSH = LOGBRUSH;
