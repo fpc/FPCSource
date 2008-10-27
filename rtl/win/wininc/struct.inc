@@ -2594,7 +2594,7 @@ Const
           elpWidth : UINT;
           elpBrushStyle : UINT;
           elpColor : COLORREF;
-          elpHatch : LONG;
+          elpHatch : ULONG_ptr;
           elpNumEntries : DWORD;
           elpStyleEntry : array[0..0] of DWORD;
        end;
