@@ -2631,7 +2631,7 @@ SysCall GfxBase 942;
 procedure ReleasePen(cm : pColorMap location 'a0'; n : CARDINAL location 'd0');
 SysCall GfxBase 948;
 
-function ObtainPen(cm : pColorMap location 'a0'; n : CARDINAL location 'd0'; r : CARDINAL location 'd1'; g : CARDINAL location 'd2'; b : CARDINAL location 'd3'; f : LongInt location 'd4') : CARDINAL;
+function ObtainPen(cm : pColorMap location 'a0'; n : longint location 'd0'; r : CARDINAL location 'd1'; g : CARDINAL location 'd2'; b : CARDINAL location 'd3'; f : LongInt location 'd4') : CARDINAL;
 SysCall GfxBase 954;
 
 function GetBitMapAttr(bm : pBitMap location 'a0'; attrnum : CARDINAL location 'd1') : CARDINAL;
