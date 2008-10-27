@@ -75,12 +75,17 @@ end;
 
 function TCGIApplication.GetModuleName(Arequest: TRequest): string;
 
+var
+  S : String;
 begin
   If (FModuleVar<>'') then
     Result:=ARequest.QueryFields.Values[FModuleVar];//Module name from query parameter using the FModuleVar as parameter name (default is 'Module')
   If (Result='') then
     begin
-    if (Pos('/', pchar(@ARequest.PathInfo[2])) <= 0) and AllowDefaultModule then Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
+    S:=ARequest.PathInfo;
+    Delete(S,1,1);
+    if (Pos('/',S) <= 0) and AllowDefaultModule then
+      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
     Result:=ARequest.GetNextPathInfo;
     end;
 end;
