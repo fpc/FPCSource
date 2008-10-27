@@ -808,7 +808,7 @@ type
   end;
 
 const
-  RCTABLE_MAXIDX = 6;
+  RCTABLE_MAXIDX = 16;
   rawCodeTable : array[0..RCTABLE_MAXIDX] of rawCodeEntry = 
     ((rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
      (rc: 72; n: $4900; s: $4900; c: $8400; a: $9900; ), // PgUP   // shift?
@@ -817,7 +817,18 @@ const
      (rc: 76; n: $4800; s: $4800; c: $8D00; a: $9800; ), // UP     // shift?
      (rc: 77; n: $5000; s: $5000; c: $9100; a: $A000; ), // DOWN   // shift?
      (rc: 78; n: $4D00; s: $4D00; c: $7400; a: $9D00; ), // RIGHT  // shift?
-     (rc: 79; n: $4B00; s: $4B00; c: $7300; a: $9B00; )  // LEFT   // shift?
+     (rc: 79; n: $4B00; s: $4B00; c: $7300; a: $9B00; ), // LEFT   // shift?
+ 
+     (rc: 80; n: $3B00; s: $5400; c: $5E00; a: $6800; ), // F1
+     (rc: 81; n: $3C00; s: $5500; c: $5F00; a: $6900; ), // F2
+     (rc: 82; n: $3D00; s: $5600; c: $6000; a: $6A00; ), // F3
+     (rc: 83; n: $3E00; s: $5700; c: $6100; a: $6B00; ), // F4
+     (rc: 84; n: $3F00; s: $5800; c: $6200; a: $6C00; ), // F5
+     (rc: 85; n: $4000; s: $5900; c: $6300; a: $6D00; ), // F6
+     (rc: 86; n: $4100; s: $5A00; c: $6400; a: $6E00; ), // F7
+     (rc: 87; n: $4200; s: $5B00; c: $6500; a: $6F00; ), // F8
+     (rc: 88; n: $4300; s: $5C00; c: $6600; a: $7000; ), // F9
+     (rc: 89; n: $4400; s: $5D00; c: $6700; a: $7100; )  // F10
     );
 
 function rcTableIdx(rc: longint): longint;
@@ -903,6 +914,10 @@ begin
       setShiftState(iMsg);
 
       case (iMsg^.iClass) of
+        IDCMP_CLOSEWINDOW: begin
+            writeln('gotclosewindow!');
+            GotCloseWindow;
+          end;
         IDCMP_VANILLAKEY: begin
             writeln('vanilla keycode: ',iMsg^.code);
             KeyCode:=iMsg^.code;
@@ -927,19 +942,6 @@ begin
             
             case (iMsg^.code) of
                35: KeyCode:=$2100; // Alt-F
-               
-               80..89: begin // F1..F10
-                 tmpFCode:=iMsg^.code-80;
-                 if hasShift(iMsg) then begin
-                   KeyCode:=($54+tmpFCode) shl 8;
-                 end else if hasCtrl(iMsg) then begin
-                   KeyCode:=($5E+tmpFCode) shl 8;
-                 end else if hasAlt(iMsg) then begin
-                   KeyCode:=($68+tmpFCode) shl 8;
-                 end else begin
-                   KeyCode:=($3B+tmpFCode) shl 8;
-                 end;
-               end;
 
               112: KeyCode:=$4700; // HOME
               113: KeyCode:=$4F00; // END
