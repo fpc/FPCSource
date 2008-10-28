@@ -1767,6 +1767,7 @@ implementation
         oldsymtablestack   : tsymtablestack;
         pu : tused_unit;
         hmodule : tmodule;
+        specobj : tobjectdef;
       begin
         if not((tsym(p).typ=typesym) and
                (ttypesym(p).typedef.typesym=tsym(p)) and
@@ -1776,11 +1777,12 @@ implementation
           exit;
 
         { Setup symtablestack a definition time }
+        specobj:=tobjectdef(ttypesym(p).typedef);
         oldsymtablestack:=symtablestack;
         symtablestack:=tsymtablestack.create;
         if not assigned(tobjectdef(ttypesym(p).typedef).genericdef) then
           internalerror(200705151);
-        hmodule:=find_module_from_symtable(tobjectdef(ttypesym(p).typedef).genericdef.owner);
+        hmodule:=find_module_from_symtable(specobj.genericdef.owner);
         if hmodule=nil then
           internalerror(200705152);
         pu:=tused_unit(hmodule.used_units.first);
@@ -1796,29 +1798,32 @@ implementation
         if assigned(hmodule.localsymtable) then
           symtablestack.push(hmodule.localsymtable);
 
-        { definitions }
-        for i:=0 to tobjectdef(ttypesym(p).typedef).symtable.DefList.Count-1 do
+        { procedure definitions for classes or objects }
+        if is_class(specobj) or is_object(specobj) then
           begin
-            hp:=tdef(tobjectdef(ttypesym(p).typedef).symtable.DefList[i]);
-            if hp.typ=procdef then
-             begin
-               if assigned(tprocdef(hp).genericdef) and
-                 (tprocdef(hp).genericdef.typ=procdef) and
-                 assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+            for i:=0 to specobj.symtable.DefList.Count-1 do
+              begin
+                hp:=tdef(specobj.symtable.DefList[i]);
+                if hp.typ=procdef then
                  begin
-                   oldcurrent_filepos:=current_filepos;
-                   current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
-                   { use the index the module got from the current compilation process }
-                   current_filepos.moduleindex:=hmodule.unit_index;
-                   current_tokenpos:=current_filepos;
-                   current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
-                   read_proc_body(nil,tprocdef(hp));
-                   current_filepos:=oldcurrent_filepos;
-                 end
-               else
-                 MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
+                   if assigned(tprocdef(hp).genericdef) and
+                     (tprocdef(hp).genericdef.typ=procdef) and
+                     assigned(tprocdef(tprocdef(hp).genericdef).generictokenbuf) then
+                     begin
+                       oldcurrent_filepos:=current_filepos;
+                       current_filepos:=tprocdef(tprocdef(hp).genericdef).fileinfo;
+                       { use the index the module got from the current compilation process }
+                       current_filepos.moduleindex:=hmodule.unit_index;
+                       current_tokenpos:=current_filepos;
+                       current_scanner.startreplaytokens(tprocdef(tprocdef(hp).genericdef).generictokenbuf);
+                       read_proc_body(nil,tprocdef(hp));
+                       current_filepos:=oldcurrent_filepos;
+                     end
+                   else
+                     MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
+                 end;
              end;
-         end;
+          end;
 
         { Restore symtablestack }
         symtablestack.free;

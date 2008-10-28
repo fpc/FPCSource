@@ -249,6 +249,8 @@ interface
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           function  getparentdef:tdef;override;
           function  size : aint;override;
           function  alignment:shortint;override;
@@ -3859,6 +3861,24 @@ implementation
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).deref;
            end;
+      end;
+
+
+    procedure tobjectdef.buildderefimpl;
+      var
+         i : longint;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
+    procedure tobjectdef.derefimpl;
+      begin
+         inherited derefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).derefimpl;
       end;
 
 

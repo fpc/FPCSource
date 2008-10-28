@@ -136,7 +136,9 @@ type
     sp_strictprivate,
     sp_strictprotected,
     sp_implicitrename,
-    sp_hidden
+    sp_hidden,
+    sp_hint_experimental,
+    sp_generic_para
   );
   tsymoptions=set of tsymoption;
 
@@ -147,7 +149,9 @@ type
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization
+    df_specialization,
+    { def has been copied from another def so symtable is not owned }
+    df_copied_def
   );
   tdefoptions=set of tdefoption;
 
