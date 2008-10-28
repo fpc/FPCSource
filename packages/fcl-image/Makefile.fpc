@@ -10,7 +10,7 @@ version=2.2.2
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       clipping fpcanvas pixtools fppixlcanv fpimgcanv pscanvas fpwritebmp \
       fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg \
-      pcxcomn fpreadpcx fpwritepcx \
+      pcxcomn fpreadpcx fpwritepcx fptiffcmn fpreadtiff fpwritetiff \
       targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer \ 
       extinterpolation
 units_win32=freetypeh freetype ftfont
