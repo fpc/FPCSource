@@ -93,11 +93,11 @@ const
 type
   PKEvent = ^TKEvent;
   TKEvent = record
-    Ident  : cuint;      { identifier for this event }
+    Ident  : PtrUInt;      { identifier for this event }
     Filter : cshort;     { filter for event }
     Flags  : cushort;
     FFlags : cuint;
-    Data   : cint;
+    Data   : PtrInt;
     uData  : Pointer;    { opaque user data identifier }
   end;
 
@@ -106,9 +106,9 @@ function kqueue: cint; extdecl;
 function kevent(kq: cint; ChangeList: PKEvent; nChanged: cint;
                   EventList: PKevent; nEvents: cint; Timeout: PTimeSpec): cint; extdecl;
 
-procedure EV_SET(kevp: PKEvent; const aIdent: cuint; const aFilter: cshort;
+procedure EV_SET(kevp: PKEvent; const aIdent: PtrUInt; const aFilter: cshort;
                    const aFlags: cushort; const aFFlags: cuint;
-                   const aData: cint; const auData: Pointer);  inline;
+                   const aData: PtrInt; const auData: Pointer);  inline;
 
 implementation
 
@@ -117,8 +117,8 @@ uses
   SysCall;
 {$endif}
 
-procedure EV_SET(kevp: PKEvent; const aIdent: cuint; const aFilter: cshort; const aFlags: cushort;
-                                const aFFlags: cuint; const aData: cint; const auData: Pointer); inline;
+procedure EV_SET(kevp: PKEvent; const aIdent: PtrUInt; const aFilter: cshort; const aFlags: cushort;
+                                const aFFlags: cuint; const aData: PtrInt; const auData: Pointer); inline;
 begin
   kevp^.Ident  := aIdent;
   kevp^.Filter := aFilter;
