@@ -915,8 +915,10 @@ begin
 
       case (iMsg^.iClass) of
         IDCMP_CLOSEWINDOW: begin
-            writeln('gotclosewindow!');
             GotCloseWindow;
+          end;
+        IDCMP_CHANGEWINDOW: begin
+            GotResizeWindow;
           end;
         IDCMP_VANILLAKEY: begin
             writeln('vanilla keycode: ',iMsg^.code);

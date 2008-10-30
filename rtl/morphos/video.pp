@@ -27,6 +27,8 @@ uses
   Video units, and Free Vision }
 procedure GotCloseWindow;
 function HasCloseWindow: boolean;
+procedure GotResizeWindow;
+function HasResizeWindow(var winw:longint; var winh: longint): boolean;
 
 var
    videoWindow   : pWindow; 
@@ -56,6 +58,7 @@ var
    oldcursorType: word;
 
    gotCloseWindowMsg: boolean;
+   gotResizeWindowMsg: boolean;
 
 procedure SysInitVideo;
 var counter: longint;
@@ -76,11 +79,11 @@ begin
       WA_MaxHeight,32768,
 //      WA_IDCMP,IDCMP_MOUSEBUTTONS Or IDCMP_RAWKEYS,
       WA_IDCMP,IDCMP_VANILLAKEY Or IDCMP_RAWKEY Or
-               IDCMP_CLOSEWINDOW,
+               IDCMP_CLOSEWINDOW Or IDCMP_CHANGEWINDOW,
       WA_Title,DWord(PChar('Free Pascal Video Output')),
       WA_Flags,(WFLG_GIMMEZEROZERO Or WFLG_SMART_REFRESH Or WFLG_NOCAREREFRESH Or 
                 WFLG_ACTIVATE Or WFLG_DRAGBAR Or WFLG_DEPTHGADGET Or
-//                WFLG_SIZEGADGET Or WFLG_SIZEBBOTTOM Or
+                WFLG_SIZEGADGET Or WFLG_SIZEBBOTTOM Or
                 WFLG_CLOSEGADGET)
    ]);
 
@@ -105,6 +108,7 @@ begin
    oldcursorType:=crHidden;
 
    gotCloseWindowMsg:=false;
+   gotResizeWindowMsg:=false;
 end;
 
 
@@ -121,29 +125,17 @@ function SysSetVideoMode (Const Mode : TVideoMode) : Boolean;
 
 var
   I : Integer;
-
+  dx : integer;
+  dy : integer;
 begin
-
-{
-  I:=SysVideoModeCount-1;
-  SysSetVideoMode:=False;
-  While (I>=0) and Not SysSetVideoMode do
-    If (Mode.col=SysVMD[i].col) and
-       (Mode.Row=SysVMD[i].Row) and
-       (Mode.Color=SysVMD[i].Color) then
-      SysSetVideoMode:=True
-    else
-      Dec(I);
-  If SysSetVideoMode then
-    begin
-    if SysVideoModeSelector(Mode) then
-      begin
-      ScreenWidth:=SysVMD[I].Col;
-      ScreenHeight:=SysVMD[I].Row;
-      ScreenColor:=SysVMD[I].Color;
-      end else SysSetVideoMode := false;
-    end;
-}
+  dx := (Mode.col * 8) - videoWindow^.GZZWidth;
+  dy := (Mode.row * 16) - videoWindow^.GZZHeight;
+  SizeWindow(videoWindow,dx,dy);
+  
+  ScreenWidth:=Mode.col;
+  ScreenHeight:=Mode.row;
+  ScreenColor:=Mode.color;
+  SysSetVideoMode:=true;
 end;
 
 
@@ -272,6 +264,19 @@ function HasCloseWindow: boolean;
 begin
   HasCloseWindow:=gotCloseWindowMsg;
   gotCloseWindowMsg:=false;
+end;
+
+procedure GotResizeWindow;
+begin
+  gotResizeWindowMsg:=true;
+end;
+
+function HasResizeWindow(var winw:longint; var winh: longint): boolean;
+begin
+  HasResizeWindow:=gotResizeWindowMsg;
+  winw:=videoWindow^.GZZWidth div 8;
+  winh:=videoWindow^.GZZHeight div 16;
+  gotResizeWindowMsg:=false;
 end;
 
 
