@@ -31,8 +31,6 @@ var
   lastxsize,lastysize : longint;
 
 procedure InitSystemMsg;
-//var
-//  WinSize : TWinSize;
 begin
   If SystemEventActive then
     exit;
@@ -41,13 +39,11 @@ begin
   PendingSystemTail:=@PendingSystemEvent;
   PendingSystemEvents:=0;
   FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
-//  FillChar(WinSize,sizeof(WinSize),0);
-//  fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-//  LastXSize:=WinSize.ws_row;
-//  LastYSize:=WinSize.ws_col;
-//  If LastXSize=0 then
+  Video.HasResizeWindow(LastXSize,LastYSize);
+
+  If LastXSize=0 then
     LastXSize:=80;
-//  If LastYSize=0 then
+  If LastYSize=0 then
     LastYSize:=25;
 
   SystemEventActive:=true;
@@ -78,6 +74,7 @@ end;
 
 
 function PollSystemEvent(var SystemEvent: TSystemEvent):boolean;
+var width, height : longint;
 begin
   SystemEvent.typ:=SysNothing;
   if not SystemEventActive then
@@ -95,21 +92,17 @@ begin
        SystemEvent.CloseTyp:=0;
        PutSystemEvent(SystemEvent);
        PollSystemEvent:=true;
-     end;
-{
-     FillChar(WinSize,sizeof(WinSize),0);
-     fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-     if (winsize.ws_col<>0) and (winsize.ws_row<>0) and
-        ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
-       begin
+     end else if Video.HasResizeWindow(width, height) then begin
+       if (width>0) and (height>0) and 
+          ((width<>lastxsize) or (height<>lastysize)) then begin
          SystemEvent.typ:=SysResize;
-         SystemEvent.x:=WinSize.ws_col;
-         SystemEvent.y:=WinSize.ws_row;
+         SystemEvent.x:=width;
+         SystemEvent.y:=height;
          PutSystemEvent(SystemEvent);
-         LastXSize:=WinSize.ws_row;
-         LastYSize:=WinSize.ws_col;
+         LastXSize:=width;
+         LastYSize:=height;
          PollSystemEvent:=true;
-       end}
+       end;
+     end;
     end;
 end;
-
