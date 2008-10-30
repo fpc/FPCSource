@@ -16,15 +16,15 @@ uses
   cTypes;
 
 {$IFDEF Linux}
-  const libaspell = '/usr/lib/libaspell.so.15';
+  const libaspell = '/usr/lib/libaspell.so';
 {$ENDIF}
 
 {$IFDEF FreeBSD}
-  const libaspell = '/usr/local/lib/libaspell.so.15';
+  const libaspell = '/usr/local/lib/libaspell.so';
 {$ENDIF}
 
 {$IFDEF darwin}
- const libaspell = '/opt/local/lib/libaspell.15.dylib';
+ const libaspell = '/opt/local/lib/libaspell.dylib';
 {$ENDIF}
 
 {$IFDEF windows}
@@ -1050,6 +1050,10 @@ var
   bversion, path: ansistring;
   version: dword;
   {$ENDIF}
+  {$ifdef linux}
+  i: Integer;
+  s: string;
+  {$endif}
 begin
   aspell_init := True;
   libname := libn;
@@ -1067,9 +1071,18 @@ begin
   LibHandle := LoadLibrary(libname);
   {$ifdef darwin}
   if LibHandle = 0 then begin
-    libname := '/sw/lib/libaspell.15.dylib';
+    libname := '/sw/lib/libaspell.dylib';
     LibHandle := LoadLibrary(libname);
   end;
+  {$endif}
+
+  {$ifdef linux}
+  if LibHandle = 0 then begin
+    for i := 15 to 30 do begin // TODO: make sure to up this when required
+      str(i, s);
+      libname := libn + '.' + s;
+      LibHandle := LoadLibrary(libname);
+    end;
   {$endif}
 
   if LibHandle = 0 then
