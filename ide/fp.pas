@@ -330,7 +330,7 @@ procedure InitCompilerSwitches;
  page is not available before video is initialized. (And only in certain
  circumstances after that, so, use a plain ascii character as bullet on Unix.)}
 
-{$ifdef unix}
+{$if defined(unix) or defined(amiga) or defined(morphos)}
 const bullet='*';
 {$else}
 const bullet='þ';
