@@ -48,23 +48,14 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
   If the operation was unsuccesful, linuxerror is set.
 }
 var
-  ret  : longint;
-  errn : cint;
-  {$ifdef FPC_USE_LIBC}
-   fdis : array[0..1] of cint;
-  {$endif}
+  pip  : tpipe;
 begin
-{$ifndef FPC_USE_LIBC}
- ret:=intAssignPipe(pipe_in,pipe_out,errn);
- if ret=-1 Then
-  fpseterrno(errn);
-{$ELSE}
- fdis[0]:=pipe_in;
- fdis[1]:=pipe_out;
- ret:=pipe(fdis);
- pipe_in:=fdis[0];
- pipe_out:=fdis[1];
-{$ENDIF}
- AssignPipe:=ret;
+  {$ifdef FPC_USE_LIBC}
+  assignpipe:=pipe(pip);
+  {$else}
+  assignPipe:=fppipe(pip);
+  {$endif}
+  pipe_in:=pip[0];
+  pipe_out:=pip[1];
 end;
 
