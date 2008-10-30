@@ -37,8 +37,7 @@ var
 implementation
 
 uses
-//   dos
-   exec,graphics;
+   exec, graphics;
 
 {$i video.inc}
 
@@ -204,7 +203,7 @@ begin
   if smallforce then begin
     for counterY:=0 to ScreenHeight-1 do begin
       for counterX:=0 to ScreenWidth-1 do begin
-        if VideoBuf^[BufCounter]<>OldVideoBuf^[BufCounter] then
+        if (VideoBuf^[BufCounter]<>OldVideoBuf^[BufCounter]) or force then
           DrawChar(counterX,counterY,crHidden);
         Inc(BufCounter);
       end;
