@@ -1082,7 +1082,10 @@ begin
       str(i, s);
       libname := libn + '.' + s;
       LibHandle := LoadLibrary(libname);
+      if LibHandle <> 0 then
+        Break;
     end;
+  end;
   {$endif}
 
   if LibHandle = 0 then
