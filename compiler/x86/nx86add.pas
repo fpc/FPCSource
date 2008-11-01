@@ -181,7 +181,7 @@ unit nx86add;
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
          end;

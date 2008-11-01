@@ -270,7 +270,8 @@ implementation
                 gvs:=tstaticvarsym(symtableentry);
                 if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
                   begin
-                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname);
+                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname,
+                      vo_is_weak_external in gvs.varoptions);
                     if (location.reference.base <> NR_NO) then
                       exit;
                   end;
@@ -279,7 +280,10 @@ implementation
                 { DLL variable }
                   begin
                     hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                    location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
+                    if not(vo_is_weak_external in gvs.varoptions) then
+                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname)
+                    else
+                      location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
                     cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
                     reference_reset_base(location.reference,hregister,0);
                   end
@@ -290,7 +294,10 @@ implementation
                      if (tf_section_threadvars in target_info.flags) then
                        begin
                          if gvs.localloc.loc=LOC_INVALID then
-                           reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                           if not(vo_is_weak_external in gvs.varoptions) then
+                             reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                           else
+                             reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0)
                          else
                            location:=gvs.localloc;
 {$ifdef i386}
@@ -324,7 +331,10 @@ implementation
                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                          { don't save the allocated register else the result will be destroyed later }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),0);
+                         if not(vo_is_weak_external in gvs.varoptions) then
+                           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                         else
+                           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0);
                          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                          cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -342,7 +352,10 @@ implementation
                            layout of a threadvar is (4 bytes pointer):
                              0 - Threadvar index
                              4 - Threadvar value in single threading }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tstaticvarsym(symtableentry).mangledname),sizeof(pint));
+                         if not(vo_is_weak_external in gvs.varoptions) then
+                           reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint))
+                         else
+                           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint));
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                          cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                          location.reference.base:=hregister;
@@ -352,7 +365,10 @@ implementation
                  else
                    begin
                      if gvs.localloc.loc=LOC_INVALID then
-                       reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                       if not(vo_is_weak_external in gvs.varoptions) then
+                         reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                       else
+                         reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0)
                      else
                        location:=gvs.localloc;
                    end;
@@ -482,10 +498,15 @@ implementation
                     begin
                        pd:=tprocdef(tprocsym(symtableentry).ProcdefList[0]);
                        if (po_external in pd.procoptions) then
-                         location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname);
+                         location.reference.base :=
+                            cg.g_indirect_sym_load(current_asmdata.CurrAsmList,pd.mangledname,
+                                                   po_weakexternal in pd.procoptions);
                        {!!!!! Be aware, work on virtual methods too }
                        if (location.reference.base = NR_NO) then
-                         location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname);
+                         if not(po_weakexternal in pd.procoptions) then
+                           location.reference.symbol:=current_asmdata.RefAsmSymbol(procdef.mangledname)
+                         else
+                           location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(procdef.mangledname);
                     end;
                end;
             labelsym :

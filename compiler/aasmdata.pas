@@ -145,6 +145,7 @@ interface
         destructor  destroy;override;
         { asmsymbol }
         function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+        function  WeakRefAsmSymbol(const s : string) : TAsmSymbol;
         function  RefAsmSymbol(const s : string) : TAsmSymbol;
         function  GetAsmSymbol(const s : string) : TAsmSymbol;
         { create new assembler label }
@@ -373,7 +374,18 @@ implementation
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE);
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE)
+        { one normal reference removes the "weak" character of a symbol }
+        else if (result.bind=AB_WEAK_EXTERNAL) then
+          result.bind:=AB_EXTERNAL;
+      end;
+
+
+    function TAsmData.WeakRefAsmSymbol(const s : string) : TAsmSymbol;
+      begin
+        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        if not assigned(result) then
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,AT_NONE);
       end;
 
 

@@ -193,7 +193,7 @@ implementation
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,tr,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -244,7 +244,7 @@ implementation
           begin
             current_asmdata.getjumplabel(hl);
             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_SINT,OC_NE,low(aint),location.register,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -371,7 +371,7 @@ implementation
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paraloc1);
                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR');
+                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
                   paraloc1.done;
                   cg.a_label(current_asmdata.CurrAsmList,hl);
                   if nodetype = modn then

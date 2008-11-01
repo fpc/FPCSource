@@ -196,7 +196,7 @@ unit cgobj;
              a temp register on most cpu's resulting in conflicts with the
              registers used for the parameters (PFV)
           }
-          procedure a_call_name(list : TAsmList;const s : string);virtual; abstract;
+          procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
           procedure a_call_ref(list : TAsmList;ref : treference);virtual; abstract;
           { same as a_call_name, might be overriden on certain architectures to emit
@@ -476,7 +476,7 @@ unit cgobj;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string): tregister;virtual;
+          function g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;virtual;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
@@ -3072,7 +3072,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_SHORTSTR_ASSIGN');
+        a_call_name(list,'FPC_SHORTSTR_ASSIGN',false);
         deallocallcpuregisters(list);
         cgpara3.done;
         cgpara2.done;
@@ -3094,7 +3094,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE');
+        a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE',false);
         deallocallcpuregisters(list);
         cgpara2.done;
         cgpara1.done;
@@ -3136,7 +3136,7 @@ implementation
               a_param_ref(list,OS_ADDR,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,incrfunc);
+            a_call_name(list,incrfunc,false);
             deallocallcpuregisters(list);
           end
          else
@@ -3149,7 +3149,7 @@ implementation
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_ADDREF');
+            a_call_name(list,'FPC_ADDREF',false);
             deallocallcpuregisters(list);
           end;
          cgpara2.done;
@@ -3206,7 +3206,7 @@ implementation
             a_param_reg(list,OS_ADDR,tempreg1,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,decrfunc);
+            a_call_name(list,decrfunc,false);
             deallocallcpuregisters(list);
           end
          else
@@ -3219,7 +3219,7 @@ implementation
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_DECREF');
+            a_call_name(list,'FPC_DECREF',false);
             deallocallcpuregisters(list);
          end;
         cgpara2.done;
@@ -3252,7 +3252,7 @@ implementation
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
-              a_call_name(list,'FPC_INITIALIZE');
+              a_call_name(list,'FPC_INITIALIZE',false);
               deallocallcpuregisters(list);
            end;
         cgpara1.done;
@@ -3287,7 +3287,7 @@ implementation
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
-              a_call_name(list,'FPC_FINALIZE');
+              a_call_name(list,'FPC_FINALIZE',false);
               deallocallcpuregisters(list);
            end;
         cgpara1.done;
@@ -3432,7 +3432,7 @@ implementation
                     { if low(to) > maxlongint also range error }
                     (lto > aintmax) then
                    begin
-                     a_call_name(list,'FPC_RANGEERROR');
+                     a_call_name(list,'FPC_RANGEERROR',false);
                      exit
                    end;
                  { from is signed and to is unsigned -> when looking at to }
@@ -3447,7 +3447,7 @@ implementation
                  if (lfrom > aintmax) or
                     (hto < 0) then
                    begin
-                     a_call_name(list,'FPC_RANGEERROR');
+                     a_call_name(list,'FPC_RANGEERROR',false);
                      exit
                    end;
                  { from is unsigned and to is signed -> when looking at to }
@@ -3472,7 +3472,7 @@ implementation
         else
 {$endif cpu64bitalu}
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(int64(hto-lto)),hreg,neglabel);
-        a_call_name(list,'FPC_RANGEERROR');
+        a_call_name(list,'FPC_RANGEERROR',false);
         a_label(list,neglabel);
       end;
 
@@ -3509,7 +3509,7 @@ implementation
            paramanager.allocparaloc(list,cgpara1);
            a_param_const(list,OS_INT,210,cgpara1);
            paramanager.freeparaloc(list,cgpara1);
-           a_call_name(list,'FPC_HANDLEERROR');
+           a_call_name(list,'FPC_HANDLEERROR',false);
            a_label(list,oklabel);
            cgpara1.done;
          end;
@@ -3535,7 +3535,7 @@ implementation
            paramanager.freeparaloc(list,cgpara1);
            paramanager.freeparaloc(list,cgpara2);
            allocallcpuregisters(list);
-           a_call_name(list,'FPC_CHECK_OBJECT_EXT');
+           a_call_name(list,'FPC_CHECK_OBJECT_EXT',false);
            deallocallcpuregisters(list);
          end
         else
@@ -3545,7 +3545,7 @@ implementation
             a_param_reg(list,OS_ADDR,reg,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_CHECK_OBJECT');
+            a_call_name(list,'FPC_CHECK_OBJECT',false);
             deallocallcpuregisters(list);
           end;
         cgpara1.done;
@@ -3591,7 +3591,7 @@ implementation
         a_param_reg(list,OS_INT,sizereg,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_GETMEM');
+        a_call_name(list,'FPC_GETMEM',false);
         deallocallcpuregisters(list);
         cgpara1.done;
         { return the new address }
@@ -3617,7 +3617,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_MOVE');
+        a_call_name(list,'FPC_MOVE',false);
         deallocallcpuregisters(list);
         cgpara3.done;
         cgpara2.done;
@@ -3637,7 +3637,7 @@ implementation
         a_param_loc(list,l,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_FREEMEM');
+        a_call_name(list,'FPC_FREEMEM',false);
         deallocallcpuregisters(list);
         cgpara1.done;
       end;
@@ -3813,11 +3813,11 @@ implementation
 
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
-        a_call_name(list,s);
+        a_call_name(list,s,false);
       end;
 
 
-   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string): tregister;
+   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;
       var
         l: tasmsymbol;
         ref: treference;
@@ -3834,7 +3834,10 @@ implementation
                 begin
                   l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
-                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
+                  if not(weak) then
+                    current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)))
+                  else
+                    current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.WeakRefAsmSymbol(symname)));
 {$ifdef cpu64bitaddr}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}

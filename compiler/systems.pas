@@ -408,6 +408,9 @@ interface
                                          system_x86_64_win64,
                                          system_ia64_win64]+system_linux;
 
+       { all systems for which weak linking has been tested/is supported }
+       system_weak_linking = systems_darwin;
+
        system_internal_sysinit = [system_i386_linux,system_i386_win32];
 
        system_embedded = [system_i386_embedded,system_m68k_embedded,system_alpha_embedded,

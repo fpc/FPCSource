@@ -770,6 +770,7 @@ implementation
       is_dll,
       is_cdecl,
       is_external_var,
+      is_weak_external,
       is_public_var  : boolean;
       dll_name,
       C_name      : string;
@@ -811,7 +812,9 @@ implementation
         end;
 
       { external }
-      if try_to_consume(_EXTERNAL) then
+      is_weak_external:=try_to_consume(_WEAKEXTERNAL);
+      if is_weak_external or
+         try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
           if not is_cdecl then
@@ -870,6 +873,12 @@ implementation
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           include(vs.varoptions,vo_is_external);
+          if (is_weak_external) then
+            begin
+              if not(target_info.system in system_weak_linking) then
+                message(parser_e_weak_external_not_supported);
+              include(vs.varoptions,vo_is_weak_external);
+            end;
           vs.varregable := vr_none;
           if is_dll then
             current_module.AddExternalImport(dll_name,C_Name,0,true,false)
@@ -1118,7 +1127,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives before a semicolon }
-             if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
+             if (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) then
                begin
                  read_public_and_external_sc(sc);
                  allowdefaultvalue:=false;
@@ -1175,7 +1184,7 @@ implementation
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
              if (
                  (
-                  (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
+                  (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
                   (m_cvar_support in current_settings.modeswitches)
                  ) or
                  (

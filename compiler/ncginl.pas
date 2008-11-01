@@ -231,7 +231,7 @@ implementation
        paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc3);
        paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc4);
        cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_ASSERT');
+       cg.a_call_name(current_asmdata.CurrAsmList,'FPC_ASSERT',false);
        cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
        location_freetemp(current_asmdata.CurrAsmList,hp3.location);
        location_freetemp(current_asmdata.CurrAsmList,hp2.location);

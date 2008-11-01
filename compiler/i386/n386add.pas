@@ -173,7 +173,7 @@ interface
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
          end;
@@ -386,7 +386,7 @@ interface
        begin
          current_asmdata.getjumplabel(hl4);
          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
          cg.a_label(current_asmdata.CurrAsmList,hl4);
        end;
       {Free EAX,EDX}

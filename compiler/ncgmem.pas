@@ -228,7 +228,7 @@ implementation
             paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
             cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
           end;
       end;
@@ -283,7 +283,7 @@ implementation
                 cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               end;
            end
@@ -302,7 +302,7 @@ implementation
                 cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER');
+                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               end;
            end
@@ -585,7 +585,7 @@ implementation
                cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_LT,0,hreg,poslabel);
                cg.a_cmp_loc_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_BE,hightree.location,hreg,neglabel);
                cg.a_label(current_asmdata.CurrAsmList,poslabel);
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR');
+               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RANGEERROR',false);
                cg.a_label(current_asmdata.CurrAsmList,neglabel);
                { release hightree }
                hightree.free;
@@ -603,7 +603,7 @@ implementation
                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK');
+               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK',false);
                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
             end
          else
@@ -685,7 +685,7 @@ implementation
                    cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO');
+                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO',false);
                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                 end;
 
@@ -795,7 +795,7 @@ implementation
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK');
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
 
@@ -963,7 +963,7 @@ implementation
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK');
+                              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
                            end;
                          st_shortstring:

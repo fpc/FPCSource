@@ -266,7 +266,9 @@ type
     po_has_importdll,
     po_has_importname,
     po_kylixlocal,
-    po_dispid
+    po_dispid,
+    { weakly linked (i.e., may or may not exist at run time) }
+    po_weakexternal
   );
   tprocoptions=set of tprocoption;
 
@@ -353,7 +355,8 @@ type
     vo_is_typed_const,
     vo_is_range_check,
     vo_is_overflow_check,
-    vo_is_typinfo_para
+    vo_is_typinfo_para,
+    vo_is_weak_external
   );
   tvaroptions=set of tvaroption;
 

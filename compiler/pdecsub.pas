@@ -1609,6 +1609,15 @@ begin
 end;
 
 
+procedure pd_weakexternal(pd:tabstractprocdef);
+begin
+  if not(target_info.system in system_weak_linking) then
+    message(parser_e_weak_external_not_supported)
+  else
+    pd_external(pd);
+end;
+
+
 type
    pd_handler=procedure(pd:tabstractprocdef);
    proc_dir_rec=record
@@ -1623,7 +1632,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=39;
+  num_proc_directives=40;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1985,6 +1994,19 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_WEAKEXTERNAL;
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
+      handler  : @pd_weakexternal;
+      pocall   : pocall_none;
+      { mark it both external and weak external, so we don't have to
+        adapt all code for external symbols to also check for weak external
+      }
+      pooption : [po_external,po_weakexternal];
+      mutexclpocall : [pocall_internproc,pocall_syscall];
+      { allowed for external cpp classes }
+      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     )
    );
 

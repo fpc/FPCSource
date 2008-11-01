@@ -1018,7 +1018,7 @@ implementation
                       if (po_interrupt in procdefinition.procoptions) then
                         extra_interrupt_code;
                       extra_call_code;
-                      cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname);
+                      cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;
@@ -1114,7 +1114,7 @@ implementation
              cgpara.done;
 {$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK',false);
              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
 {$endif}
@@ -1152,7 +1152,7 @@ implementation
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK');
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
       end;

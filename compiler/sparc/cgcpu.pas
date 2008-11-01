@@ -51,7 +51,7 @@ interface
         procedure a_paramaddr_ref(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
         procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
         procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
-        procedure a_call_name(list:TAsmList;const s:string);override;
+        procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
         procedure a_call_reg(list:TAsmList;Reg:TRegister);override;
         { General purpose instructions }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
@@ -430,9 +430,12 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_call_name(list:TAsmList;const s:string);
+    procedure TCgSparc.a_call_name(list:TAsmList;const s:string; weak: boolean);
       begin
-        list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)));
+        if not weak then
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.RefAsmSymbol(s)))
+        else
+          list.concat(taicpu.op_sym(A_CALL,current_asmdata.WeakRefAsmSymbol(s)));
         { Delay slot }
         list.concat(taicpu.op_none(A_NOP));
       end;
@@ -1034,7 +1037,7 @@ implementation
             internalerror(200409281);
         end;
 
-        a_call_name(list,'FPC_OVERFLOW');
+        a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,hl);
       end;
 
@@ -1146,7 +1149,7 @@ implementation
         paramanager.freeparaloc(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list,'FPC_MOVE');
+        a_call_name(list,'FPC_MOVE',false);
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         paraloc3.done;

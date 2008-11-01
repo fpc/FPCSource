@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03247 is the last used one
+# 03248 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1165,6 +1165,11 @@ parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported wit
 % is exported inside the \var{exports} statement of a library.
 % In that case, you have to specify the export name at the point where the
 % variable is declared, using the \var{export} and \var{alias} directives.
+parser_e_weak_external_not_supported=03248_E_Weak external symbols are not supported for the current target
+% A "weak external" symbol is a symbol which may or may not exist at (either static
+% or dynamic) link time. This concept may not be available (or implemented yet)
+% on the current cpu/OS target.
+
 
 % \end{description}
 #

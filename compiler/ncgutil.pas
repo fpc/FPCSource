@@ -397,7 +397,7 @@ implementation
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
         cg.deallocallcpuregisters(list);
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -405,7 +405,7 @@ implementation
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_SETJMP');
+        cg.a_call_name(list,'FPC_SETJMP',false);
         cg.deallocallcpuregisters(list);
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
@@ -421,7 +421,7 @@ implementation
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocallcpuregisters(list);
-         cg.a_call_name(list,'FPC_POPADDRSTACK');
+         cg.a_call_name(list,'FPC_POPADDRSTACK',false);
          cg.deallocallcpuregisters(list);
 
          if not onlyfree then
@@ -1986,7 +1986,7 @@ implementation
          begin
            { initialize units }
            cg.allocallcpuregisters(list);
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false);
            cg.deallocallcpuregisters(list);
          end;
 
@@ -2006,7 +2006,7 @@ implementation
         { call __EXIT for main program }
         if (not DLLsource) and
            (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT');
+          cg.a_call_name(list,'FPC_DO_EXIT',false);
       end;
 
 
@@ -2186,7 +2186,7 @@ implementation
         paramanager.freeparaloc(list,paraloc1);
         { Call the helper }
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_STACKCHECK');
+        cg.a_call_name(list,'FPC_STACKCHECK',false);
         cg.deallocallcpuregisters(list);
         paraloc1.done;
       end;
