@@ -99,6 +99,7 @@ begin
         begin
           AddUnit('wformat');
         end;
+    T:=P.Targets.AddUnit('fpexprpars.pp');
 
     // Windows units
     T:=P.Targets.AddUnit('ServiceManager.pas',[Win32,Win64]);

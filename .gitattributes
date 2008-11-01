@@ -1018,6 +1018,7 @@ packages/fcl-base/examples/dparser.pp svneol=native#text/plain
 packages/fcl-base/examples/dsockcli.pp svneol=native#text/plain
 packages/fcl-base/examples/dsocksvr.pp svneol=native#text/plain
 packages/fcl-base/examples/fpdoc.dtd -text
+packages/fcl-base/examples/fpexprpars.txt svneol=native#text/plain
 packages/fcl-base/examples/fstream.pp svneol=native#text/plain
 packages/fcl-base/examples/htdump.pp svneol=native#text/plain
 packages/fcl-base/examples/intl/Makefile svneol=native#text/plain
@@ -1062,6 +1063,7 @@ packages/fcl-base/examples/testbs.pp svneol=native#text/plain
 packages/fcl-base/examples/testcgi.html -text
 packages/fcl-base/examples/testcgi.pp svneol=native#text/plain
 packages/fcl-base/examples/testcont.pp svneol=native#text/plain
+packages/fcl-base/examples/testexprpars.pp svneol=native#text/plain
 packages/fcl-base/examples/testez.pp svneol=native#text/plain
 packages/fcl-base/examples/testhres.pp svneol=native#text/plain
 packages/fcl-base/examples/testnres.pp svneol=native#text/plain
@@ -1098,6 +1100,7 @@ packages/fcl-base/src/custapp.pp svneol=native#text/plain
 packages/fcl-base/src/daemonapp.pp svneol=native#text/plain
 packages/fcl-base/src/eventlog.pp svneol=native#text/plain
 packages/fcl-base/src/felog.inc svneol=native#text/plain
+packages/fcl-base/src/fpexprpars.pp svneol=native#text/plain
 packages/fcl-base/src/fptimer.pp svneol=native#text/plain
 packages/fcl-base/src/gettext.pp svneol=native#text/plain
 packages/fcl-base/src/go32v2/custapp.inc svneol=native#text/plain

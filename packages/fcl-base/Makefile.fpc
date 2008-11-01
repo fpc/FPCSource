@@ -14,7 +14,8 @@ packages_win64=winunits-base winunits-jedi
 units=contnrs inifiles rtfpars idea base64 gettext \
       iostream cachecls avl_tree uriparser \
       eventlog custapp wformat whtml wtex rttiutils bufstream \
-      streamex blowfish streamio inicol pooledmm libtar streamcoll maskutils
+      streamex blowfish streamio inicol pooledmm libtar streamcoll \
+      maskutils fpexprpars
 units_beos=syncobjs
 units_haiku=syncobjs
 units_freebsd=syncobjs daemonapp fptimer
