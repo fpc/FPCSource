@@ -99,4 +99,42 @@ match. If no match is found, Def will be returned. From this it follows that
 2) The types of Tag, label1, label2 must be the same;
 3) The types of Def, Value1, Value2 must be the same;
 
+As soon as the expression is set, it is compiled and checked. Thus
+   FP.Expression:='1*2';
+will work.
+
+On the other hand
+   FP.Expression:=' 1 * ''a string''';
+will result in an exception because 1 and ''a string'' do not have the same
+type.
+
+Getting the result is quite simple
+
+  FP.Expression:='1*2';
+  Writeln(FP.AsInteger);
+
+This will raise an exception if the type of the result is not integer.
+
+In case the expression result type is unknown, it can be examined using 
+the ResultType function, as in :
+
+  FP.Expression:='Some user-provided expression';
+  Case FP.ResultType of
+    rtString  : Writeln(FP.Evaluate.ResString);
+    rtInteger : Writeln(FP.Evaluate.ResInteger);
+    rtFloat   : Writeln(FP.Evaluate.ResFloat);
+    rtBoolean : Writeln(FP.Evaluate.ResBoolean);
+    rtDateTime : Writeln(FormatDateTime('cccc',FP.Evaluate.ResDateTime));
+  end;   
+
+Which is equivalent to
+
+  FP.Expression:='Some user-provided expression';
+  Case FP.ResultType of
+    rtString  : Writeln(FP.AsString);
+    rtInteger : Writeln(FP.AsInteger);
+    rtFloat   : Writeln(FP.AsFloat);
+    rtBoolean : Writeln(FP.AsBoolean);
+    rtDateTime : Writeln(FormatDateTime('cccc',FP.AsDateTime));
+  end;
 
