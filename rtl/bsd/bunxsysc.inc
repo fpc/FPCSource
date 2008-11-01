@@ -351,10 +351,29 @@ begin
  FPutime:=do_syscall(syscall_nr_utimes,TSysParam(path),TSysParam(tvp));
 end;
 
-Function FPpipe(var fildes : tfildes):cint;
+function __pipe_call(sysnr:TSysParam):TSysResult; {$ifdef cpui386}oldfpccall{$endif} external name 'FPC_DOSYS0';
 
+Function FPpipe(var fildes : tfildes):cint;
+var
+  a, b: cInt;
 begin
- FPpipe:=do_syscall(syscall_nr_pipe,TSysParam(@fildes));
+  asm
+  {$ifdef CPUi386}
+    pushl syscall_nr_pipe
+    call __pipe_call
+    movl %eax, a
+    movl %edx, b
+  {$else}
+    movq syscall_nr_pipe, %rdi
+    call __pipe_call
+    movl %eax, a
+    movl %edx, b
+  {$endif}
+  end;
+
+  fpPipe := a; // eax is in a, no matter if it worked or not
+  fildes[0] := a;
+  fildes[1] := b;
 end;
 
 function FPfcntl(fildes:cint;Cmd:cint;Arg:cint):cint;
