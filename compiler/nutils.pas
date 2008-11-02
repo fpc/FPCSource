@@ -798,13 +798,15 @@ implementation
                         { operation (add, sub, or, and }
                         inc(result);
                         { left expression }
-                        inc(result,node_complexity(tbinarynode(p).left));
+                        inc(result,node_complexity(tcallparanode(tunarynode(p).left).left));
                         if (result >= NODE_COMPLEXITY_INF) then
                           begin
                             result := NODE_COMPLEXITY_INF;
                             exit;
                           end;
-                        p := tbinarynode(p).right;
+                        p:=tcallparanode(tunarynode(p).left).right;
+                        if assigned(p) then
+                          p:=tcallparanode(p).left;
                       end;
                     else
                       begin
