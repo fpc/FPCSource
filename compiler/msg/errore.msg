@@ -1145,7 +1145,10 @@ parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported wit
 % is exported inside the \var{exports} statement of a library.
 % In that case, you have to specify the export name at the point where the
 % variable is declared, using the \var{export} and \var{alias} directives.
-
+parser_e_forward_mismatch=03249_E_Forward type definition does not match
+% Classes and interfaces being defined forward must have the same type
+% when being implemented. A forward interface can not be changed into a class.
+%
 % \end{description}
 #
 # Type Checking

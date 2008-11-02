@@ -535,7 +535,17 @@ implementation
            exit;
 
          if assigned(fd) then
-           aktobjectdef:=fd
+           begin
+             if fd.objecttype<>classtype then
+               begin
+                 Message(parser_e_forward_mismatch);
+                 { recover }
+                 aktobjectdef:=tobjectdef.create(classtype,n,nil);
+                 include(aktobjectdef.objectoptions,oo_is_forward);
+               end
+             else
+               aktobjectdef:=fd
+           end
          else
            begin
              { anonym objects aren't allow (o : object a : longint; end;) }
