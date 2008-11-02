@@ -1063,6 +1063,7 @@ implementation
 {$if defined(x86) or defined(arm)}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
+               (target_info.system in system_all_windows) and
                (procdef.proccalloption=pocall_safecall) then
               cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
 {$endif}
