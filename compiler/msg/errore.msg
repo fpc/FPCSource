@@ -1169,8 +1169,10 @@ parser_e_weak_external_not_supported=03248_E_Weak external symbols are not suppo
 % A "weak external" symbol is a symbol which may or may not exist at (either static
 % or dynamic) link time. This concept may not be available (or implemented yet)
 % on the current cpu/OS target.
-
-
+parser_e_forward_mismatch=03249_E_Forward type definition does not match
+% Classes and interfaces being defined forward must have the same type
+% when being implemented. A forward interface can not be changed into a class.
+%
 % \end{description}
 #
 # Type Checking
