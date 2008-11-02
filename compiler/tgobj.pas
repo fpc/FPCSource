@@ -641,6 +641,7 @@ implementation
         getlocal(list, size, def.alignment, def, ref);
       end;
 
+
     procedure ttgobj.getlocal(list: TAsmList; size : longint; alignment : shortint; def:tdef;var ref : treference);
       begin
         alignment:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
@@ -657,6 +658,5 @@ implementation
       begin
         FreeTemp(list,ref.offset,[tt_persistent]);
       end;
-
 
 end.
