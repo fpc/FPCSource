@@ -1,9 +1,10 @@
-{ %opt=-Oodfa -Sew }                                                                                                                                         program FunctionResultAnalysisWrong;
+{ %opt=-Oodfa -Sew }
 { %fail }
 {$IFDEF FPC}
   {$mode delphi}
 {$ENDIF}
 
+program FunctionResultAnalysisWrong;
 uses
   SysUtils;
 
