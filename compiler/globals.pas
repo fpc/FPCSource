@@ -161,6 +161,15 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstate = record
+        nextverbositystr : string;
+        nextlocalswitches : tlocalswitches;
+        nextverbosityfullswitch: longint;
+        verbosityfullswitched,
+        localswitcheschanged : boolean;
+      end;
+
+
     var
        { specified inputfile }
        inputfilepath     : string;
@@ -252,9 +261,7 @@ interface
        init_settings,
        current_settings   : tsettings;
 
-       nextlocalswitches : tlocalswitches;
-       localswitcheschanged : boolean;
-
+       pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
        stacksize,

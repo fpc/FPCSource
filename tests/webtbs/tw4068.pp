@@ -1,4 +1,4 @@
-{ %opt=-Sen }
+{ %opt=-Sen -vn }
 
 { Source provided for Free Pascal Bug Report 4068 }
 { Submitted by "David Butler" on  2005-06-12 }

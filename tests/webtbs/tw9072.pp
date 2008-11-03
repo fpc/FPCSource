@@ -1,4 +1,4 @@
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 {$mode tp}
 

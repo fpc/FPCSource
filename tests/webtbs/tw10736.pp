@@ -1,4 +1,4 @@
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 
 unit tw10736;
 

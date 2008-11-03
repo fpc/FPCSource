@@ -1,4 +1,4 @@
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 { %fail }
 {$mode objfpc}
 procedure p(out o);

@@ -1,4 +1,4 @@
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$M+}

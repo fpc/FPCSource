@@ -1,4 +1,4 @@
-{ %opt=-Sen }
+{ %opt=-Sen -vn }
 {$mode delphi}
 
 function calclength1(const s1: shortstring): integer;

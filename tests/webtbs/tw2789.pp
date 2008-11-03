@@ -1,4 +1,4 @@
-{ %opt=-Sen }
+{ %opt=-Sen -vn }
 
 Var B:Longint;
 

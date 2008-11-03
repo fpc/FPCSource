@@ -1,4 +1,4 @@
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 { %fail }
 
 {$T-}

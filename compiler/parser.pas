@@ -41,7 +41,7 @@ implementation
       fksysutl,
 {$ENDIF}
       cutils,cclasses,
-      globtype,version,tokens,systems,globals,verbose,
+      globtype,version,tokens,systems,globals,verbose,switches,
       symbase,symtable,symsym,
       finput,fmodule,fppu,
       aasmbase,aasmtai,aasmdata,
@@ -309,11 +309,7 @@ implementation
             oldparse_only:=parse_only;
           { save akt... state }
           { handle the postponed case first }
-           if localswitcheschanged then
-             begin
-               current_settings.localswitches:=nextlocalswitches;
-               localswitcheschanged:=false;
-             end;
+            flushpendingswitchesstate;
             oldcurrent_filepos:=current_filepos;
             old_settings:=current_settings;
           end;

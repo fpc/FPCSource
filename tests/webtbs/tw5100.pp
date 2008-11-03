@@ -1,5 +1,5 @@
 { %norun }
-{ %OPT=-Sen }
+{ %OPT=-Sen -vn }
 
 unit tw5100; 
 

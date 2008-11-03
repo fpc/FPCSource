@@ -1,5 +1,5 @@
 { %target=win32 }
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 
 uses
   windows;

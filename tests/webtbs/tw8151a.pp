@@ -1,4 +1,4 @@
-{ %opt=-Oodfa -Sew }
+{ %opt=-Oodfa -Sew -vw }
 { %norun }
 {$IFDEF FPC}
   {$mode delphi}

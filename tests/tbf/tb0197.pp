@@ -1,6 +1,6 @@
 { %norun }
 { %fail }
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 type
  tr = record

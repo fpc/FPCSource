@@ -332,11 +332,7 @@ implementation
         if b then
          begin
            { resolve all postponed switch changes }
-           if localswitcheschanged then
-             begin
-               current_settings.localswitches:=nextlocalswitches;
-               localswitcheschanged:=false;
-             end;
+           flushpendingswitchesstate;
 
            HandleModeSwitches(changeinit);
 
@@ -526,11 +522,7 @@ implementation
 
     procedure dir_ifopt;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
@@ -3200,11 +3192,7 @@ In case not, the value returned can be arbitrary.
       label
          exit_label;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
 
         { record tokens? }
         if allowrecordtoken and

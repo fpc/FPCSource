@@ -1,4 +1,4 @@
-{ %OPT=-Sew -Oodfa }
+{ %OPT=-Sew -vw -Oodfa }
 { %NORUN }
 {$mode objfpc}
 function Test(a: integer): boolean;

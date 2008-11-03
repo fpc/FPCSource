@@ -1,4 +1,4 @@
-{ %OPT=-Sen }
+{ %OPT=-Sen -vn }
 
 {$mode objfpc}
 

@@ -579,26 +579,29 @@ implementation
                 'W':
                   begin
                     v:=v or V_Warning;
-                    if status.errorwarning then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countWarnings);
+                    if CheckVerbosity(V_Warning) then
+                      if status.errorwarning then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countWarnings);
                   end;
                 'N' :
                   begin
                     v:=v or V_Note;
-                    if status.errornote then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countNotes);
+                    if CheckVerbosity(V_Note) then
+                      if status.errornote then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countNotes);
                   end;
                 'H' :
                   begin
                     v:=v or V_Hint;
-                    if status.errorhint then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countHints);
+                    if CheckVerbosity(V_Hint) then
+                      if status.errorhint then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countHints);
                   end;
                 'I' :
                   v:=v or V_Info;

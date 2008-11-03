@@ -1,5 +1,5 @@
 { %norun }
-{ %opt=-Sen }
+{ %opt=-Sen -vn }
 
 type
  tr = record

@@ -1,6 +1,6 @@
 { %target=linux,solaris,freebsd,win32 }
 { %fail }
-{ %opt=-Sew }
+{ %opt=-vw -Sew }
 
 { just some random non-darwin targets }
 
