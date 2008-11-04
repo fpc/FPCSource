@@ -501,8 +501,7 @@ type
   protected
     FName: DOMString;
     FOwnerElement: TDOMElement;
-    // TODO: following 2 - replace with a link to AttDecl ??    
-    FDeclared: Boolean;
+    // TODO: replace with a link to AttDecl ??    
     FDataType: TAttrDataType;
     function  GetNodeValue: DOMString; override;
     function GetNodeType: Integer; override;
@@ -2016,7 +2015,6 @@ begin
   // Cloned attribute is always specified and carries its children
   Result := ACloneOwner.CreateAttribute(FName);
   TDOMAttr(Result).FDataType := FDataType;
-  // Declared = ?
   CloneChildren(Result, ACloneOwner);
 end;
 

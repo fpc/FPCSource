@@ -318,6 +318,7 @@ type
     FSaViolation: Boolean;
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
+    FAttrTag: Cardinal;
 
     FColonPos: Integer;
     FValidate: Boolean;            // parsing options, copy of FCtrl.Options
@@ -340,6 +341,7 @@ type
     procedure ParseQuantity(CP: TContentParticle);
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
+    procedure ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
     procedure AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
     procedure ClearRefs(aList: TFPList);
     procedure ValidateIdRefs;
@@ -425,6 +427,8 @@ type
   // Attribute/Element declarations
 
   TDOMAttrDef = class(TDOMAttr)
+  private
+    FTag: Cardinal;
   protected
     FExternallyDeclared: Boolean;
     FDefault: TAttrDefault;
@@ -432,6 +436,8 @@ type
     function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
     function HasEnumToken(const aValue: WideString): Boolean;
     function Clone(AElement: TDOMElement): TDOMAttr;
+  public
+    property Tag: Cardinal read FTag write FTag;
   end;
 
   TDOMElementDef = class(TDOMElement)
@@ -2625,6 +2631,8 @@ begin
 
   NewElem := doc.CreateElementBuf(FName.Buffer, FName.Length);
   FCursor.AppendChild(NewElem);
+  // we're about to process a new set of attributes
+  Inc(FAttrTag);
 
   // Find declaration for this element
   ElDef := nil;
@@ -2697,10 +2705,49 @@ end;
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
 var
   attr: TDOMAttr;
+  AttDef: TDOMAttrDef;
   OldAttr: TDOMNode;
+
+procedure CheckValue;
+var
+  AttValue, OldValue: WideString;
+begin
+  if FStandalone and AttDef.FExternallyDeclared then
+  begin
+    OldValue := Attr.Value;
+    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    AttValue := Attr.Value;
+    if AttValue <> OldValue then
+      StandaloneError(-1);
+  end
+  else
+  begin
+    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    AttValue := Attr.Value;
+  end;
+  // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
+  if (AttDef.FDefault = adFixed) and (AttDef.Value <> AttValue) then
+    ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[AttDef.Name], -1);
+  if not ValidateAttrSyntax(AttDef, AttValue) then
+    ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name], -1);
+  ValidateAttrValue(Attr, AttValue);
+end;
+
 begin
   CheckName;
   attr := doc.CreateAttributeBuf(FName.Buffer, FName.Length);
+
+  if Assigned(ElDef) then
+  begin
+    AttDef := TDOMAttrDef(ElDef.GetAttributeNode(attr.Name));
+    if AttDef = nil then
+      ValidationError('Using undeclared attribute ''%s'' on element ''%s''',[attr.Name, Elem.TagName], FName.Length)
+    else
+      AttDef.Tag := FAttrTag;  // indicates that this one is specified
+  end
+  else
+    AttDef := nil;
+
   // !!cannot use TDOMElement.SetAttributeNode because it will free old attribute
   OldAttr := Elem.Attributes.SetNamedItem(Attr);
   if Assigned(OldAttr) then
@@ -2711,6 +2758,9 @@ begin
   ExpectEq;
   FCursor := attr;
   ExpectAttValue;
+
+  if Assigned(AttDef) and ((AttDef.FDataType <> dtCdata) or (AttDef.FDefault = adFixed)) then
+    CheckValue;
 end;
 
 procedure TXMLReader.AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
@@ -2719,9 +2769,13 @@ var
 begin
   New(w);
   SetString(w^.Value, Buf, Abs(Length));
-  StoreLocation(w^.Loc);
   if Length > 0 then
+  begin
+    StoreLocation(w^.Loc);
     Dec(w^.Loc.LinePos, Length);
+  end
+  else
+    w^.Loc := FTokenStart;
   aList.Add(w);
 end;
 
@@ -2752,9 +2806,7 @@ var
 
 procedure DoDefaulting;
 var
-  AttValue: WideString;
-  I, L, StartPos, EndPos: Integer;
-  Entity: TDOMEntity;
+  I: Integer;
   AttDef: TDOMAttrDef;
 begin
   Map := ElDef.FAttributes;
@@ -2763,96 +2815,25 @@ begin
   begin
     AttDef := Map[I] as TDOMAttrDef;
 
-    Attr := Element.GetAttributeNode(AttDef.Name);
-    if Attr = nil then
+    if AttDef.Tag <> FAttrTag then  // this one wasn't specified
     begin
-      // attribute needs defaulting
       case AttDef.FDefault of
         adDefault, adFixed: begin
           if FStandalone and AttDef.FExternallyDeclared then
             StandaloneError;
           Attr := AttDef.Clone(Element);
           Element.SetAttributeNode(Attr);
+          ValidateAttrValue(Attr, Attr.Value);
         end;
         adRequired:  ValidationError('Required attribute ''%s'' of element ''%s'' is missing',[AttDef.Name, Element.TagName], 0)
       end;
-    end
-    else
-    begin
-      TDOMAttrDef(Attr).FDeclared := True;
-      // bypass heavyweight operations if possible
-      if (AttDef.DataType <> dtCdata) or (AttDef.FDefault = adFixed) then
-      begin
-        AttValue := Attr.Value; // unnormalized
-        // now assign DataType so that value is correctly normalized
-        TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
-        if FStandalone and AttDef.FExternallyDeclared and (Attr.Value <> AttValue) then
-          StandaloneError;
-        AttValue := Attr.Value; // recalculate
-        // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
-        if (AttDef.FDefault = adFixed) and (AttDef.Value <> AttValue) then
-          ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[AttDef.Name], 0);
-        if not ValidateAttrSyntax(AttDef, AttValue) then
-          ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name], 0);
-      end;
     end;
-
-    if Attr = nil then
-      Continue;
-    L := Length(AttValue);
-    case Attr.DataType of
-      dtId: if not Doc.AddID(Attr) then
-              ValidationError('The ID ''%s'' is not unique', [AttValue], 0);
-
-      dtIdRef, dtIdRefs: begin
-        StartPos := 1;
-        while StartPos <= L do
-        begin
-          EndPos := StartPos;
-          while (EndPos <= L) and (AttValue[EndPos] <> #32) do
-            Inc(EndPos);
-          // pass negative Length, so current location is not altered
-          AddForwardRef(FIDRefs, @AttValue[StartPos], StartPos-EndPos);
-          StartPos := EndPos + 1;
-        end;
-      end;
-
-      dtEntity, dtEntities: begin
-        StartPos := 1;
-        while StartPos <= L do
-        begin
-          EndPos := StartPos;
-          while (EndPos <= L) and (AttValue[EndPos] <> #32) do
-            Inc(EndPos);
-          Entity := TDOMEntity(FDocType.Entities.GetNamedItem(Copy(AttValue, StartPos, EndPos-StartPos)));
-          if (Entity = nil) or (Entity.NotationName = '') then
-            ValidationError('Attribute ''%s'' type mismatch', [Attr.Name], 0);
-          StartPos := EndPos + 1;
-        end;
-      end;
-    end;
-  end;
-end;
-
-procedure ReportUndeclared;
-var
-  I: Integer;
-begin
-  Map := Element.Attributes;
-  for I := 0 to Map.Length-1 do
-  begin
-    Attr := TDOMAttr(Map[I]);
-    if not TDOMAttrDef(Attr).FDeclared then
-      ValidationError('Using undeclared attribute ''%s'' on element ''%s''',[Attr.Name, Element.TagName], 0);
   end;
 end;
 
 begin
   if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
     DoDefaulting;
-  // Now report undeclared attributes
-  if Assigned(FDocType) and Element.HasAttributes then
-    ReportUndeclared;
 end;
 
 function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
@@ -2892,6 +2873,45 @@ begin
     dtNotation: Result := AttrDef.HasEnumToken(aValue);
   else
     Result := True;
+  end;
+end;
+
+procedure TXMLReader.ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
+var
+  L, StartPos, EndPos: Integer;
+  Entity: TDOMEntity;
+begin
+  L := Length(aValue);
+  case Attr.DataType of
+    dtId: if not Doc.AddID(Attr) then
+            ValidationError('The ID ''%s'' is not unique', [aValue], -1);
+
+    dtIdRef, dtIdRefs: begin
+      StartPos := 1;
+      while StartPos <= L do
+      begin
+        EndPos := StartPos;
+        while (EndPos <= L) and (aValue[EndPos] <> #32) do
+          Inc(EndPos);
+        // pass negative length, so uses FTokenStart as location
+        AddForwardRef(FIDRefs, @aValue[StartPos], StartPos-EndPos);
+        StartPos := EndPos + 1;
+      end;
+    end;
+
+    dtEntity, dtEntities: begin
+      StartPos := 1;
+      while StartPos <= L do
+      begin
+        EndPos := StartPos;
+        while (EndPos <= L) and (aValue[EndPos] <> #32) do
+          Inc(EndPos);
+        Entity := TDOMEntity(FDocType.Entities.GetNamedItem(Copy(aValue, StartPos, EndPos-StartPos)));
+        if (Entity = nil) or (Entity.NotationName = '') then
+          ValidationError('Attribute ''%s'' type mismatch', [Attr.Name], -1);
+        StartPos := EndPos + 1;
+      end;
+    end;
   end;
 end;
 
@@ -3068,7 +3088,6 @@ begin
   Result := TDOMAttr.Create(FOwnerDocument);
   TDOMAttrEx(Result).FName := Self.FName;
   TDOMAttrEx(Result).FDataType := FDataType;
-  TDOMAttrEx(Result).FDeclared := True;
   CloneChildren(Result, FOwnerDocument);
 end;
 
