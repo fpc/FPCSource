@@ -3960,35 +3960,28 @@ implementation
 
     procedure tobjectdef.set_parent( c : tobjectdef);
       begin
-        { nothing to do if the parent was not forward !}
         if assigned(childof) then
           exit;
         childof:=c;
-        { some options are inherited !! }
-        if assigned(c) then
+        if not assigned(c) then
+          exit;
+        { inherit options and status }
+        objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
+        { add the data of the anchestor class/object }
+        if (objecttype in [odt_class,odt_object]) then
           begin
-             { only important for classes }
-             objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
-             if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
-               begin
-                  { add the data of the anchestor class }
-                  tObjectSymtable(symtable).datasize:=
-                    tObjectSymtable(symtable).datasize+
-                    tObjectSymtable(c.symtable).datasize;
-                  { inherit recordalignment }
-                  tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
-                  if (oo_has_vmt in objectoptions) and
-                     (oo_has_vmt in c.objectoptions) then
-                    tObjectSymtable(symtable).datasize:=
-                      tObjectSymtable(symtable).datasize-sizeof(pint);
-                  { if parent has a vmt field then
-                    the offset is the same for the child PM }
-                  if (oo_has_vmt in c.objectoptions) or is_class(self) then
-                    begin
-                       vmt_offset:=c.vmt_offset;
-                       include(objectoptions,oo_has_vmt);
-                    end;
-               end;
+            tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
+            { inherit recordalignment }
+            tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            if (oo_has_vmt in objectoptions) and
+               (oo_has_vmt in c.objectoptions) then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);
+            { if parent has a vmt field then the offset is the same for the child PM }
+            if (oo_has_vmt in c.objectoptions) or is_class(self) then
+              begin
+                vmt_offset:=c.vmt_offset;
+                include(objectoptions,oo_has_vmt);
+              end;
           end;
       end;
 
