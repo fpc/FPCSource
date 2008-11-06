@@ -187,9 +187,9 @@ implementation
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
-        if assigned(aktobjectdef) and
-           (aktobjectdef.objname^=uspecializename) then
-          tt:=aktobjectdef;
+        if assigned(current_objectdef) and
+           (current_objectdef.objname^=uspecializename) then
+          tt:=current_objectdef;
 
         { for units specializations can already be needed in the interface, therefor we
           will use the global symtable. Programs don't have a globalsymtable and there we
@@ -293,15 +293,15 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         if assigned(aktobjectdef) and
-            (aktobjectdef.objname^=pattern) and
+         if assigned(current_objectdef) and
+            (current_objectdef.objname^=pattern) and
             (
              (testcurobject=2) or
-             is_class_or_interface(aktobjectdef)
+             is_class_or_interface(current_objectdef)
             )then
            begin
              consume(_ID);
-             def:=aktobjectdef;
+             def:=current_objectdef;
              exit;
            end;
          { Use the special searchsym_type that ignores records,objects and
@@ -489,15 +489,15 @@ implementation
               - classes can be used also in classes
               - objects can be parameters }
            if (token=_ID) and
-              assigned(aktobjectdef) and
-              (aktobjectdef.objname^=pattern) and
+              assigned(current_objectdef) and
+              (current_objectdef.objname^=pattern) and
               (
                (testcurobject=2) or
-               is_class_or_interface(aktobjectdef)
+               is_class_or_interface(current_objectdef)
               )then
              begin
                consume(_ID);
-               def:=aktobjectdef;
+               def:=current_objectdef;
                exit;
              end;
            { Generate a specialization? }

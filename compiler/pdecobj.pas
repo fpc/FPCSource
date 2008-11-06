@@ -68,7 +68,7 @@ implementation
         begin
            consume(_CONSTRUCTOR);
            { must be at same level as in implementation }
-           parse_proc_head(aktobjectdef,potype_constructor,pd);
+           parse_proc_head(current_objectdef,potype_constructor,pd);
            if not assigned(pd) then
              begin
                consume(_SEMICOLON);
@@ -78,7 +78,7 @@ implementation
               (pd.procsym.name<>'INIT') then
              Message(parser_e_constructorname_must_be_init);
            consume(_SEMICOLON);
-           include(aktobjectdef.objectoptions,oo_has_constructor);
+           include(current_objectdef.objectoptions,oo_has_constructor);
            { Set return type, class constructors return the
              created instance, object constructors return boolean }
            if is_class(pd._class) then
@@ -98,17 +98,17 @@ implementation
           p : tpropertysym;
         begin
            { check for a class }
-           if not((is_class_or_interface_or_dispinterface(aktobjectdef)) or
-              (not(m_tp7 in current_settings.modeswitches) and (is_object(aktobjectdef)))) then
+           if not((is_class_or_interface_or_dispinterface(current_objectdef)) or
+              (not(m_tp7 in current_settings.modeswitches) and (is_object(current_objectdef)))) then
              Message(parser_e_syntax_error);
            consume(_PROPERTY);
-           p:=read_property_dec(aktobjectdef);
+           p:=read_property_dec(current_objectdef);
            consume(_SEMICOLON);
            if try_to_consume(_DEFAULT) then
              begin
-               if oo_has_default_property in aktobjectdef.objectoptions then
+               if oo_has_default_property in current_objectdef.objectoptions then
                  message(parser_e_only_one_default_property);
-               include(aktobjectdef.objectoptions,oo_has_default_property);
+               include(current_objectdef.objectoptions,oo_has_default_property);
                include(p.propoptions,ppo_defaultproperty);
                if not(ppo_hasparameters in p.propoptions) then
                  message(parser_e_property_need_paras);
@@ -126,7 +126,7 @@ implementation
           pd : tprocdef;
         begin
            consume(_DESTRUCTOR);
-           parse_proc_head(aktobjectdef,potype_destructor,pd);
+           parse_proc_head(current_objectdef,potype_destructor,pd);
            if not assigned(pd) then
              begin
                consume(_SEMICOLON);
@@ -139,7 +139,7 @@ implementation
               (m_fpc in current_settings.modeswitches) then
              Message(parser_e_no_paras_for_destructor);
            consume(_SEMICOLON);
-           include(aktobjectdef.objectoptions,oo_has_destructor);
+           include(current_objectdef.objectoptions,oo_has_destructor);
            { no return value }
            pd.returndef:=voidtype;
            destructor_head:=pd;
@@ -151,16 +151,16 @@ implementation
            { publishable }
            if classtype in [odt_interfacecom,odt_class] then
              begin
-                aktobjectdef.objecttype:=classtype;
+                current_objectdef.objecttype:=classtype;
                 { set published flag in $M+ mode or it is inherited }
                 if (cs_generate_rtti in current_settings.localswitches) or
-                    (assigned(aktobjectdef.childof) and
-                     (oo_can_have_published in aktobjectdef.childof.objectoptions)) then
-                  include(aktobjectdef.objectoptions,oo_can_have_published);
+                    (assigned(current_objectdef.childof) and
+                     (oo_can_have_published in current_objectdef.childof.objectoptions)) then
+                  include(current_objectdef.objectoptions,oo_can_have_published);
                 { in "publishable" classes the default access type is published, this is
                   done separate from above if-statement because the option can be
                   inherited from the forward class definition }
-                if (oo_can_have_published in aktobjectdef.objectoptions) then
+                if (oo_can_have_published in current_objectdef.objectoptions) then
                   current_object_option:=[sp_published];
              end;
         end;
@@ -172,10 +172,10 @@ implementation
           i   : longint;
           def : tdef;
         begin
-          include(aktobjectdef.objectoptions,oo_has_virtual);
-          for i:=0 to aktobjectdef.symtable.DefList.count-1 do
+          include(current_objectdef.objectoptions,oo_has_virtual);
+          for i:=0 to current_objectdef.symtable.DefList.count-1 do
             begin
-              def:=tdef(aktobjectdef.symtable.DefList[i]);
+              def:=tdef(current_objectdef.symtable.DefList[i]);
               if assigned(def) and
                  (def.typ=procdef) then
                 begin
@@ -215,9 +215,9 @@ implementation
                        { also anonym objects aren't allow (o : object a : longint; end;) }
                        if n='' then
                          Message(parser_f_no_anonym_objects);
-                       aktobjectdef:=tobjectdef.create(classtype,n,nil);
-                       include(aktobjectdef.objectoptions,oo_is_forward);
-                       object_dec:=aktobjectdef;
+                       current_objectdef:=tobjectdef.create(classtype,n,nil);
+                       include(current_objectdef.objectoptions,oo_is_forward);
+                       object_dec:=current_objectdef;
                        typecanbeforward:=storetypecanbeforward;
                        readobjecttype:=false;
                        exit;
@@ -240,15 +240,15 @@ implementation
                        { also anonym objects aren't allow (o : object a : longint; end;) }
                        if n='' then
                          Message(parser_f_no_anonym_objects);
-                       aktobjectdef:=tobjectdef.create(classtype,n,nil);
+                       current_objectdef:=tobjectdef.create(classtype,n,nil);
                        if (cs_compilesystem in current_settings.moduleswitches) and
                           (classtype=odt_interfacecom) and (upper(n)='IUNKNOWN') then
-                         interface_iunknown:=aktobjectdef;
-                       include(aktobjectdef.objectoptions,oo_is_forward);
+                         interface_iunknown:=current_objectdef;
+                       include(current_objectdef.objectoptions,oo_is_forward);
                        if (cs_generate_rtti in current_settings.localswitches) and
                           (classtype=odt_interfacecom) then
-                         include(aktobjectdef.objectoptions,oo_can_have_published);
-                       object_dec:=aktobjectdef;
+                         include(current_objectdef.objectoptions,oo_can_have_published);
+                       object_dec:=current_objectdef;
                        typecanbeforward:=storetypecanbeforward;
                        readobjecttype:=false;
                        exit;
@@ -294,17 +294,17 @@ implementation
                         { also anonym objects aren't allow (o : object a : longint; end;) }
                         if n='' then
                           Message(parser_f_no_anonym_objects);
-                        aktobjectdef:=tobjectdef.create(odt_class,n,nil);
+                        current_objectdef:=tobjectdef.create(odt_class,n,nil);
                         if (cs_compilesystem in current_settings.moduleswitches) and (upper(n)='TOBJECT') then
-                          class_tobject:=aktobjectdef;
-                        aktobjectdef.objecttype:=odt_class;
-                        include(aktobjectdef.objectoptions,oo_is_forward);
+                          class_tobject:=current_objectdef;
+                        current_objectdef.objecttype:=odt_class;
+                        include(current_objectdef.objectoptions,oo_is_forward);
                         if (cs_generate_rtti in current_settings.localswitches) then
-                          include(aktobjectdef.objectoptions,oo_can_have_published);
+                          include(current_objectdef.objectoptions,oo_can_have_published);
                         { all classes must have a vmt !!  at offset zero }
-                        if not(oo_has_vmt in aktobjectdef.objectoptions) then
-                          aktobjectdef.insertvmt;
-                        object_dec:=aktobjectdef;
+                        if not(oo_has_vmt in current_objectdef.objectoptions) then
+                          current_objectdef.insertvmt;
+                        object_dec:=current_objectdef;
                         typecanbeforward:=storetypecanbeforward;
                         readobjecttype:=false;
                         exit;
@@ -326,15 +326,15 @@ implementation
                  Message1(type_e_interface_type_expected,intfdef.typename);
                  exit;
               end;
-            if aktobjectdef.find_implemented_interface(intfdef)<>nil then
+            if current_objectdef.find_implemented_interface(intfdef)<>nil then
               Message1(sym_e_duplicate_id,intfdef.objname^)
             else
               begin
                 { allocate and prepare the GUID only if the class
                   implements some interfaces. }
-                if aktobjectdef.ImplementedInterfaces.count = 0 then
-                  aktobjectdef.prepareguid;
-                aktobjectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
+                if current_objectdef.ImplementedInterfaces.count = 0 then
+                  current_objectdef.prepareguid;
+                current_objectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
               end;
         end;
 
@@ -362,13 +362,13 @@ implementation
           p:=comp_expr(true);
           if p.nodetype=stringconstn then
             begin
-              stringdispose(aktobjectdef.iidstr);
-              aktobjectdef.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
+              stringdispose(current_objectdef.iidstr);
+              current_objectdef.iidstr:=stringdup(strpas(tstringconstnode(p).value_str)); { or upper? }
               p.free;
-              valid:=string2guid(aktobjectdef.iidstr^,aktobjectdef.iidguid^);
-              if (classtype in [odt_interfacecom,odt_dispinterface]) and not assigned(aktobjectdef.iidguid) and not valid then
+              valid:=string2guid(current_objectdef.iidstr^,current_objectdef.iidguid^);
+              if (classtype in [odt_interfacecom,odt_dispinterface]) and not assigned(current_objectdef.iidguid) and not valid then
                 Message(parser_e_improper_guid_syntax);
-              include(aktobjectdef.objectoptions,oo_has_valid_guid);
+              include(current_objectdef.objectoptions,oo_has_valid_guid);
             end
           else
             begin
@@ -426,7 +426,7 @@ implementation
                          if not(is_interface(childof)) then
                            Message(parser_e_mix_of_classes_and_objects);
                          classtype:=childof.objecttype;
-                         aktobjectdef.objecttype:=classtype;
+                         current_objectdef.objecttype:=classtype;
                        end;
                      odt_cppclass:
                        if not(is_cppclass(childof)) then
@@ -454,10 +454,10 @@ implementation
             begin
               case classtype of
                 odt_class:
-                  if aktobjectdef<>class_tobject then
+                  if current_objectdef<>class_tobject then
                     childof:=class_tobject;
                 odt_interfacecom:
-                  if aktobjectdef<>interface_iunknown then
+                  if current_objectdef<>interface_iunknown then
                     childof:=interface_iunknown;
               end;
             end;
@@ -469,17 +469,17 @@ implementation
                 at the start of the new definition and will reset it below after the
                 parent has been set }
               if not(oo_is_forward in childof.objectoptions) then
-                aktobjectdef.set_parent(childof)
+                current_objectdef.set_parent(childof)
               else
                 Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^);
             end;
 
           { remove forward flag, is resolved }
-          exclude(aktobjectdef.objectoptions,oo_is_forward);
+          exclude(current_objectdef.objectoptions,oo_is_forward);
 
           if hasparentdefined then
             begin
-              if aktobjectdef.objecttype=odt_class then
+              if current_objectdef.objecttype=odt_class then
                 begin
                   if assigned(intfchildof) then
                     handleImplementedInterface(intfchildof);
@@ -514,11 +514,11 @@ implementation
         i : longint;
         generictype : ttypesym;
         current_blocktype : tblock_type;
-        oldaktobjectdef : tobjectdef;
+        oldcurrent_objectdef : tobjectdef;
         old_parse_generic : boolean;
       begin
          old_object_option:=current_object_option;
-         oldaktobjectdef:=aktobjectdef;
+         oldcurrent_objectdef:=current_objectdef;
          old_parse_generic:=parse_generic;
 
          { objects and class types can't be declared local }
@@ -540,21 +540,21 @@ implementation
                begin
                  Message(parser_e_forward_mismatch);
                  { recover }
-                 aktobjectdef:=tobjectdef.create(classtype,n,nil);
-                 include(aktobjectdef.objectoptions,oo_is_forward);
+                 current_objectdef:=tobjectdef.create(classtype,n,nil);
+                 include(current_objectdef.objectoptions,oo_is_forward);
                end
              else
-               aktobjectdef:=fd
+               current_objectdef:=fd
            end
          else
            begin
              { anonym objects aren't allow (o : object a : longint; end;) }
              if n='' then
                Message(parser_f_no_anonym_objects);
-             aktobjectdef:=tobjectdef.create(classtype,n,nil);
+             current_objectdef:=tobjectdef.create(classtype,n,nil);
              { include forward flag, it'll be removed after the parent class have been
                added. This is to prevent circular childof loops }
-             include(aktobjectdef.objectoptions,oo_is_forward);
+             include(current_objectdef.objectoptions,oo_is_forward);
            end;
 
          { read list of parent classes }
@@ -567,11 +567,11 @@ implementation
          { set class flags and inherits published }
          setclassattributes;
 
-         symtablestack.push(aktobjectdef.symtable);
+         symtablestack.push(current_objectdef.symtable);
          testcurobject:=1;
 
          { add generic type parameters }
-         aktobjectdef.genericdef:=genericdef;
+         current_objectdef.genericdef:=genericdef;
          if assigned(genericlist) then
            begin
              for i:=0 to genericlist.count-1 do
@@ -579,11 +579,11 @@ implementation
                  generictype:=ttypesym(genericlist[i]);
                  if generictype.typedef.typ=undefineddef then
                    begin
-                     include(aktobjectdef.defoptions,df_generic);
+                     include(current_objectdef.defoptions,df_generic);
                      parse_generic:=true;
                    end
                  else
-                   include(aktobjectdef.defoptions,df_specialization);
+                   include(current_objectdef.defoptions,df_specialization);
                  symtablestack.top.insert(generictype);
                end;
            end;
@@ -597,14 +597,14 @@ implementation
               case token of
                 _TYPE :
                   begin
-                    if ([df_generic,df_specialization]*aktobjectdef.defoptions)=[] then
+                    if ([df_generic,df_specialization]*current_objectdef.defoptions)=[] then
                       Message(parser_e_type_and_var_only_in_generics);
                      consume(_TYPE);
                      current_blocktype:=bt_type;
                   end;
                 _VAR :
                   begin
-                    if ([df_generic,df_specialization]*aktobjectdef.defoptions)=[] then
+                    if ([df_generic,df_specialization]*current_objectdef.defoptions)=[] then
                       Message(parser_e_type_and_var_only_in_generics);
                     consume(_VAR);
                     current_blocktype:=bt_general;
@@ -614,23 +614,23 @@ implementation
                     case idtoken of
                       _PRIVATE :
                         begin
-                          if is_interface(aktobjectdef) then
+                          if is_interface(current_objectdef) then
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PRIVATE);
                            current_object_option:=[sp_private];
-                           include(aktobjectdef.objectoptions,oo_has_private);
+                           include(current_objectdef.objectoptions,oo_has_private);
                          end;
                        _PROTECTED :
                          begin
-                           if is_interface(aktobjectdef) then
+                           if is_interface(current_objectdef) then
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PROTECTED);
                            current_object_option:=[sp_protected];
-                           include(aktobjectdef.objectoptions,oo_has_protected);
+                           include(current_objectdef.objectoptions,oo_has_protected);
                          end;
                        _PUBLIC :
                          begin
-                           if is_interface(aktobjectdef) then
+                           if is_interface(current_objectdef) then
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PUBLIC);
                            current_object_option:=[sp_public];
@@ -640,14 +640,14 @@ implementation
                            { we've to check for a pushlished section in non-  }
                            { publishable classes later, if a real declaration }
                            { this is the way, delphi does it                  }
-                           if is_interface(aktobjectdef) then
+                           if is_interface(current_objectdef) then
                              Message(parser_e_no_access_specifier_in_interfaces);
                            consume(_PUBLISHED);
                            current_object_option:=[sp_published];
                          end;
                        _STRICT :
                          begin
-                           if is_interface(aktobjectdef) then
+                           if is_interface(current_objectdef) then
                               Message(parser_e_no_access_specifier_in_interfaces);
                             consume(_STRICT);
                             if token=_ID then
@@ -657,13 +657,13 @@ implementation
                                     begin
                                       consume(_PRIVATE);
                                       current_object_option:=[sp_strictprivate];
-                                      include(aktobjectdef.objectoptions,oo_has_strictprivate);
+                                      include(current_objectdef.objectoptions,oo_has_strictprivate);
                                     end;
                                   _PROTECTED:
                                     begin
                                       consume(_PROTECTED);
                                       current_object_option:=[sp_strictprotected];
-                                      include(aktobjectdef.objectoptions,oo_has_strictprotected);
+                                      include(current_objectdef.objectoptions,oo_has_strictprotected);
                                     end;
                                   else
                                     message(parser_e_protected_or_private_expected);
@@ -676,11 +676,11 @@ implementation
                           begin
                             if current_blocktype=bt_general then
                               begin
-                                if is_interface(aktobjectdef) then
+                                if is_interface(current_objectdef) then
                                   Message(parser_e_no_vars_in_interfaces);
 
                                 if (sp_published in current_object_option) and
-                                  not(oo_can_have_published in aktobjectdef.objectoptions) then
+                                  not(oo_can_have_published in current_objectdef.objectoptions) then
                                   Message(parser_e_cant_have_published);
 
                                 read_record_fields([vd_object])
@@ -699,12 +699,12 @@ implementation
                 _CLASS :
                   begin
                     if (sp_published in current_object_option) and
-                       not(oo_can_have_published in aktobjectdef.objectoptions) then
+                       not(oo_can_have_published in current_objectdef.objectoptions) then
                       Message(parser_e_cant_have_published);
 
                     oldparse_only:=parse_only;
                     parse_only:=true;
-                    pd:=parse_proc_dec(aktobjectdef);
+                    pd:=parse_proc_dec(current_objectdef);
 
                     { this is for error recovery as well as forward }
                     { interface mappings, i.e. mapping to a method  }
@@ -726,11 +726,11 @@ implementation
 
                        { add procdef options to objectdef options }
                        if (po_msgint in pd.procoptions) then
-                        include(aktobjectdef.objectoptions,oo_has_msgint);
+                        include(current_objectdef.objectoptions,oo_has_msgint);
                        if (po_msgstr in pd.procoptions) then
-                         include(aktobjectdef.objectoptions,oo_has_msgstr);
+                         include(current_objectdef.objectoptions,oo_has_msgstr);
                        if (po_virtualmethod in pd.procoptions) then
-                         include(aktobjectdef.objectoptions,oo_has_virtual);
+                         include(current_objectdef.objectoptions,oo_has_virtual);
 
                        chkcpp(pd);
                      end;
@@ -747,14 +747,14 @@ implementation
                 _CONSTRUCTOR :
                   begin
                     if (sp_published in current_object_option) and
-                      not(oo_can_have_published in aktobjectdef.objectoptions) then
+                      not(oo_can_have_published in current_objectdef.objectoptions) then
                       Message(parser_e_cant_have_published);
 
                     if not(sp_public in current_object_option) and
                        not(sp_published in current_object_option) then
                       Message(parser_w_constructor_should_be_public);
 
-                    if is_interface(aktobjectdef) then
+                    if is_interface(current_objectdef) then
                       Message(parser_e_no_con_des_in_interfaces);
 
                     oldparse_only:=parse_only;
@@ -768,7 +768,7 @@ implementation
 
                     { add procdef options to objectdef options }
                     if (po_virtualmethod in pd.procoptions) then
-                      include(aktobjectdef.objectoptions,oo_has_virtual);
+                      include(current_objectdef.objectoptions,oo_has_virtual);
                     chkcpp(pd);
 
                     { Support hint directives }
@@ -783,13 +783,13 @@ implementation
                 _DESTRUCTOR :
                   begin
                     if (sp_published in current_object_option) and
-                      not(oo_can_have_published in aktobjectdef.objectoptions) then
+                      not(oo_can_have_published in current_objectdef.objectoptions) then
                       Message(parser_e_cant_have_published);
 
                     if there_is_a_destructor then
                       Message(parser_n_only_one_destructor);
 
-                    if is_interface(aktobjectdef) then
+                    if is_interface(current_objectdef) then
                       Message(parser_e_no_con_des_in_interfaces);
 
                     if not(sp_public in current_object_option) then
@@ -807,7 +807,7 @@ implementation
 
                     { add procdef options to objectdef options }
                     if (po_virtualmethod in pd.procoptions) then
-                      include(aktobjectdef.objectoptions,oo_has_virtual);
+                      include(current_objectdef.objectoptions,oo_has_virtual);
 
                     chkcpp(pd);
 
@@ -832,23 +832,23 @@ implementation
           end;
 
          { generate vmt space if needed }
-         if not(oo_has_vmt in aktobjectdef.objectoptions) and
-            (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*aktobjectdef.objectoptions<>[]) or
+         if not(oo_has_vmt in current_objectdef.objectoptions) and
+            (([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_objectdef.objectoptions<>[]) or
              (classtype in [odt_class])
             ) then
-           aktobjectdef.insertvmt;
+           current_objectdef.insertvmt;
 
-         if is_interface(aktobjectdef) then
+         if is_interface(current_objectdef) then
            setinterfacemethodoptions;
 
          { remove symtable from stack }
-         symtablestack.pop(aktobjectdef.symtable);
+         symtablestack.pop(current_objectdef.symtable);
 
          { return defined objectdef }
-         result:=aktobjectdef;
+         result:=current_objectdef;
 
          { restore old state }
-         aktobjectdef:=oldaktobjectdef;
+         current_objectdef:=oldcurrent_objectdef;
          testcurobject:=0;
          typecanbeforward:=storetypecanbeforward;
          parse_generic:=old_parse_generic;

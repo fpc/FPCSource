@@ -2186,7 +2186,7 @@ implementation
        class_tobject:=nil;
        interface_iunknown:=nil;
        rec_tguid:=nil;
-       aktobjectdef:=nil;
+       current_objectdef:=nil;
        dupnr:=0;
      end;
 

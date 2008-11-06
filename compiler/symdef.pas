@@ -564,7 +564,7 @@ interface
        Tdefmatch=(dm_exact,dm_equal,dm_convertl1);
 
     var
-       aktobjectdef : tobjectdef;  { used for private functions check !! }
+       current_objectdef : tobjectdef;  { used for private functions check !! }
 
     { default types }
        generrordef,              { error in definition }
@@ -3864,7 +3864,7 @@ implementation
 
     function tobjectdef.GetTypeName:string;
       begin
-        if (self <> aktobjectdef) then
+        if (self <> current_objectdef) then
           GetTypeName:=typename
         else
           { in this case we will go in endless recursion, because then  }
