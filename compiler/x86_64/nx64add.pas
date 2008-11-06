@@ -30,7 +30,8 @@ interface
 
     type
        tx8664addnode = class(tx86addnode)
-          procedure second_mul;override;
+          procedure second_addordinal; override;
+          procedure second_mul;
        end;
 
   implementation
@@ -41,6 +42,24 @@ interface
       defutil,
       cgbase,cgutils,cga,cgobj,
       tgobj;
+
+{*****************************************************************************
+                                Addordinal
+*****************************************************************************}
+
+    procedure tx8664addnode.second_addordinal;
+    begin
+      { filter unsigned MUL opcode, which requires special handling }
+      if (nodetype=muln) and
+        (not(is_signed(left.resultdef)) or
+         not(is_signed(right.resultdef))) then
+      begin
+        second_mul;
+        exit;
+      end;
+
+      inherited second_addordinal;
+    end;
 
 {*****************************************************************************
                                 MUL
