@@ -262,7 +262,7 @@ interface
 
        { currently parsed block type }
        tblock_type = (bt_none,
-         bt_general,bt_type,bt_const,bt_except,bt_body,bt_specialize
+         bt_general,bt_type,bt_const,bt_except,bt_body
        );
 
        { Temp types }

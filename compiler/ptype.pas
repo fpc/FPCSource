@@ -86,7 +86,6 @@ implementation
         err : boolean;
         i   : longint;
         sym : tsym;
-        old_block_type : tblock_type;
         genericdef : tstoreddef;
         generictype : ttypesym;
         generictypelist : TFPObjectList;
@@ -132,8 +131,6 @@ implementation
           end;
 
         consume(_LSHARPBRACKET);
-        old_block_type:=block_type;
-        block_type:=bt_specialize;
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
@@ -271,7 +268,6 @@ implementation
 
         generictypelist.free;
         consume(_RSHARPBRACKET);
-        block_type:=old_block_type;
       end;
 
 
