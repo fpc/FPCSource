@@ -10,7 +10,6 @@ var
 begin
 {$warnings on}
     p:= @a;
-    offs:= SizeOf(integer);
 {$push}
 {$warnings off}
 {$pop}
