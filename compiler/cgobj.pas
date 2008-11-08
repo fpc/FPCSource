@@ -2534,7 +2534,7 @@ implementation
             LOC_REGISTER,LOC_CREGISTER:
               begin
                 { paramfpu_ref does the check_simpe_location check here if necessary }
-                tg.GetTemp(list,TCGSize2Size[size],tt_normal,ref);
+                tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,ref);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
                 a_paramfpu_ref(list,size,ref,cgpara);
                 tg.Ungettemp(list,ref);
@@ -3670,7 +3670,7 @@ implementation
 
         if size>0 then
           begin
-            tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
             include(current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }

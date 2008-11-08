@@ -432,7 +432,7 @@ implementation
                       {$else}
                          internalerror(20020520);
                       {$endif} {$endif}
-                      tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),tt_normal,location.reference);
+                      tg.GetTemp(current_asmdata.CurrAsmList,2*sizeof(pint),sizeof(pint),tt_normal,location.reference);
                       secondpass(left);
 
                       { load class instance/classrefdef address }
@@ -757,7 +757,7 @@ implementation
                             { convert an extended into a double/single, since sse   }
                             { doesn't support extended)                             }
                             r:=cg.getfpuregister(current_asmdata.CurrAsmList,right.location.size);
-                            tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,tt_normal,href);
+                            tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
                             cg.a_loadfpu_ref_reg(current_asmdata.CurrAsmList,right.location.size,right.location.size,right.location.reference,r);
                             cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,r,href);
                             if releaseright then
@@ -834,7 +834,7 @@ implementation
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }
-                          tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,tt_normal,href);
+                          tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
                           location_reset(right.location,LOC_REFERENCE,left.location.size);
                           right.location.reference:=href;
@@ -951,31 +951,38 @@ implementation
         hp    : tarrayconstructornode;
         href  : treference;
         lt    : tdef;
-        vaddr : boolean;
-        vtype : longint;
-        freetemp,
-        dovariant : boolean;
-        elesize : longint;
-        tmpreg  : tregister;
         paraloc : tcgparalocation;
         otlabel,
         oflabel : tasmlabel;
+        vtype : longint;
+        elesize,
+        elealign : longint;
+        tmpreg  : tregister;
+        vaddr : boolean;
+        freetemp,
+        dovariant : boolean;
       begin
         if is_packed_array(resultdef) then
           internalerror(200608042);
         dovariant:=(nf_forcevaria in flags) or is_variant_array(resultdef);
         if dovariant then
-          elesize:=sizeof(pint)+sizeof(pint)
+          begin
+            elesize:=sizeof(pint)+sizeof(pint);
+            elealign:=sizeof(pint);
+          end
         else
-          elesize:=tarraydef(resultdef).elesize;
+          begin
+            elesize:=tarraydef(resultdef).elesize;
+            elealign:=tarraydef(resultdef).elementdef.alignment;
+          end;
         location_reset(location,LOC_CREFERENCE,OS_NO);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
          if tarraydef(resultdef).highrange=-1 then
-           tg.GetTemp(current_asmdata.CurrAsmList,elesize,tt_normal,location.reference)
+           tg.GetTemp(current_asmdata.CurrAsmList,elesize,elealign,tt_normal,location.reference)
          else
-           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resultdef).highrange+1)*elesize,tt_normal,location.reference);
+           tg.GetTemp(current_asmdata.CurrAsmList,(tarraydef(resultdef).highrange+1)*elesize,resultdef.alignment,tt_normal,location.reference);
          href:=location.reference;
         { Process nodes in array constructor }
         hp:=self;

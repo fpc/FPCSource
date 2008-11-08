@@ -144,7 +144,7 @@ implementation
         { stw R3,disp+4(R1)   # store lower half            }
         { lfd FR1,disp(R1)    # float load double of value  }
         { fsub FR1,FR1,FR2    # subtract 0x4330000000000000 }
-        tg.Gettemp(current_asmdata.CurrAsmList,8,tt_normal,ref);
+        tg.Gettemp(current_asmdata.CurrAsmList,8,8,tt_normal,ref);
 
         signed := is_signed(left.resultdef);
 

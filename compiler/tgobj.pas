@@ -80,7 +80,7 @@ unit tgobj;
           }
           procedure setfirsttemp(l : longint);
 
-          procedure gettemp(list: TAsmList; size : longint;temptype:ttemptype;out ref : treference);
+          procedure gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
           procedure gettemptyped(list: TAsmList; def:tdef;temptype:ttemptype;out ref : treference);
           procedure ungettemp(list: TAsmList; const ref : treference);
 
@@ -491,17 +491,17 @@ implementation
       end;
 
 
-    procedure ttgobj.gettemp(list: TAsmList; size : longint;temptype:ttemptype;out ref : treference);
+    procedure ttgobj.gettemp(list: TAsmList; size, alignment : longint;temptype:ttemptype;out ref : treference);
       var
         varalign : shortint;
       begin
-        varalign:=size_2_align(size);
-        varalign:=used_align(varalign,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
+        varalign:=used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax);
         { can't use reference_reset_base, because that will let tgobj depend
           on cgobj (PFV) }
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
         ref.offset:=alloctemp(list,size,varalign,temptype,nil);
+        ref.alignment:=varalign;
       end;
 
 
@@ -516,6 +516,7 @@ implementation
         fillchar(ref,sizeof(ref),0);
         ref.base:=current_procinfo.framepointer;
         ref.offset:=alloctemp(list,def.size,varalign,temptype,def);
+        ref.alignment:=varalign;
       end;
 
 

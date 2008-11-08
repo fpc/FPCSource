@@ -555,7 +555,7 @@ implementation
                     structs with up to 16 bytes are returned in registers }
                   if cgsize in [OS_128,OS_S128] then
                     begin
-                      tg.GetTemp(current_asmdata.CurrAsmList,16,tt_normal,ref);
+                      tg.GetTemp(current_asmdata.CurrAsmList,16,8,tt_normal,ref);
                       location_reset(location,LOC_REFERENCE,OS_NO);
                       location.reference:=ref;
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].register,ref);

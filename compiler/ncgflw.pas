@@ -1323,7 +1323,7 @@ implementation
            end
          else
            begin
-             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(pint),tt_normal,exceptref);
+             tg.GetTemp(current_asmdata.CurrAsmList,sizeof(pint),sizeof(pint),tt_normal,exceptref);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
            end;
 

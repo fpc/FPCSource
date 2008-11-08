@@ -265,7 +265,8 @@ interface
      { Memory sizes }
        heapsize,
        stacksize,
-       jmp_buf_size : longint;
+       jmp_buf_size,
+       jmp_buf_align : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }

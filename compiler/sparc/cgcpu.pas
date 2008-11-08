@@ -423,7 +423,7 @@ implementation
       var
         href : treference;
       begin
-        tg.GetTemp(list,TCGSize2Size[size],tt_normal,href);
+        tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,href);
         a_loadfpu_reg_ref(list,size,size,r,href);
         a_paramfpu_ref(list,size,href,paraloc);
         tg.Ungettemp(list,href);

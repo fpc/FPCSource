@@ -90,7 +90,7 @@ begin
   if not(tg.istemp(left.location.reference) and
          (tg.sizeoftemp(current_asmdata.CurrAsmList,left.location.reference) = 256)) then
     begin
-       tg.Gettemp(current_asmdata.CurrAsmList,256,tt_normal,href);
+       tg.Gettemp(current_asmdata.CurrAsmList,256,1,tt_normal,href);
        cg.g_copyshortstring(current_asmdata.CurrAsmList,left.location.reference,href,255);
        location_freetemp(current_asmdata.CurrAsmList,left.location);
        { return temp reference }

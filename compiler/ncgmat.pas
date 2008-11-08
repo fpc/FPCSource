@@ -149,7 +149,7 @@ implementation
         { get a temporary memory reference to store the floating
           point value
         }
-        tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tt_normal,href);
+        tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tcgsize2size[_size],tt_normal,href);
         { store the floating point value in the temporary memory area }
         cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
         { only single and double ieee are supported, for little endian
