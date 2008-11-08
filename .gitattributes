@@ -2173,6 +2173,7 @@ packages/gtk2/src/glib/grel.inc svneol=native#text/plain
 packages/gtk2/src/glib/gscanner.inc svneol=native#text/plain
 packages/gtk2/src/glib/gshell.inc svneol=native#text/plain
 packages/gtk2/src/glib/gsignal.inc svneol=native#text/plain
+packages/gtk2/src/glib/gslice.inc svneol=native#text/pascal
 packages/gtk2/src/glib/gslist.inc svneol=native#text/plain
 packages/gtk2/src/glib/gsourceclosure.inc svneol=native#text/plain
 packages/gtk2/src/glib/gspawn.inc svneol=native#text/plain
