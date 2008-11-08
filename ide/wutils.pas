@@ -190,10 +190,10 @@ procedure RegisterWUtils;
 
 Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string);
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string; nrLine, nrPos : sw_word);
 
 type
-  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : String);
+  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : String; nrLine, nrPos : sw_word);
 
 Const
   DebugMessageS : TDebugMessage = @WUtilsDebugMessage;
@@ -1276,10 +1276,10 @@ end;
 
 Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
 begin
- WUtilsDebugMessage(Afilename,AText,inttostr(aline),inttostr(apos));
+  DebugMessageS(Afilename,AText,'','',aline,apos);
 end;
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string);
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string;nrLine, nrPos : sw_word);
 begin
   writeln(stderr,AFileName,' (',ALine,',',APos,') ',AText);
   flush(stderr);

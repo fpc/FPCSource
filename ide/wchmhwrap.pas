@@ -45,7 +45,7 @@ function combinepaths(relpath,basepath:String):String;
 
 begin
   {$ifdef combinedebug}
-    debugmessageS({$i %file%},'combine in "'+relpath+'" and "'+basepath+'"',{$i %line%},'1');
+    debugmessageS({$i %file%},'combine in "'+relpath+'" and "'+basepath+'"',{$i %line%},'1',0,0);
   {$endif}
 
   if relpath='' then exit;
@@ -58,7 +58,7 @@ begin
      end;
        
    {$ifdef combinedebug}
-    debugmessageS({$i %file%},'combine out "'+relpath+'" and "'+basepath+'"',{$i %line%},'1');
+    debugmessageS({$i %file%},'combine out "'+relpath+'" and "'+basepath+'"',{$i %line%},'1',0,0);
   {$endif}
   
   result:=basepath+relpath;
@@ -78,12 +78,12 @@ begin
       exit;  
     end;      
   {$ifdef wdebug}
-    debugmessageS({$i %file%},'TCHMWrapper: before sitemap creation ',{$i %line%},'1');
+    debugmessageS({$i %file%},'TCHMWrapper: before sitemap creation ',{$i %line%},'1',0,0);
   {$endif}
   findex:=TChmSiteMap.create(stindex);
   ftopic:=TChmSiteMap.create(sttoc);
   {$ifdef wdebug}
-    debugmessageS({$i %file%},'TCHMWrapper: after sitemap creation ',{$i %line%},'1');
+    debugmessageS({$i %file%},'TCHMWrapper: after sitemap creation ',{$i %line%},'1',0,0);
   {$endif}
   floaded:=false;
 end;
@@ -108,7 +108,7 @@ begin
  if not assigned (fchmr) then exit;
  if floaded then exit;
  {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1'); 
+     debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0); 
  {$endif}
   
   m:=fchmr.getobject(fchmr.indexfile);
@@ -116,7 +116,7 @@ begin
    if assigned(m) then
      begin
       {$ifdef wdebug}
-       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1'); 
+       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1',0,0); 
       {$endif}
       findex.loadfromStream(m);
     end;
@@ -124,7 +124,7 @@ begin
     freeandnil(m);
     end;
    {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1'); 
+     debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1',0,0); 
   {$endif}
   
   tli:=TopicLinks^.AddItem(fchmr.defaultpage); 
@@ -138,7 +138,7 @@ begin
       IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
     end;
    {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: endloadindex ',{$i %line%},'1'); 
+     debugmessageS({$i %file%},'TCHMWrapper: endloadindex ',{$i %line%},'1',0,0); 
   {$endif}
   floaded:=true;
   result:=true;
@@ -159,7 +159,7 @@ begin
   linedata:=Classes.TStringList.create;
   try
     {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: Getting file '+name,{$i %line%},'1'); 
+     debugmessageS({$i %file%},'TCHMWrapper: Getting file '+name,{$i %line%},'1',0,0); 
     {$endif}
 //    if uppercase(name)='TABLE OF CONTENTS' Then
   //    m:=fchmr.getobject(fchmr.tocfile)
