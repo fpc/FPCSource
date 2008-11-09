@@ -3615,7 +3615,7 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     c:=upcase(c);
-                    if (block_type in [bt_type]) or
+                    if (block_type in [bt_type,bt_const_type,bt_var_type]) or
                        (lasttoken=_ID) or (lasttoken=_NIL) or (lasttoken=_OPERATOR) or
                        (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
@@ -3855,7 +3855,7 @@ In case not, the value returned can be arbitrary.
              '>' :
                begin
                  readchar;
-                 if (block_type in [bt_type]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_RSHARPBRACKET
                  else
                    begin
@@ -3887,7 +3887,7 @@ In case not, the value returned can be arbitrary.
              '<' :
                begin
                  readchar;
-                 if (block_type in [bt_type]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_LSHARPBRACKET
                  else
                    begin

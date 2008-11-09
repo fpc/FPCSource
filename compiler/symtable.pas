@@ -72,7 +72,6 @@ interface
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure check_forwards;
-          procedure resolve_forward_types;
           procedure checklabels;
           function  needs_init_final : boolean;
           procedure unchain_overloaded;
@@ -288,19 +287,11 @@ implementation
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
         inherited insert(sym,checkdup);
-        { keep track of syms whose type may need forward resolving later on }
-        if (sym.typ in [typesym,fieldvarsym]) then
-          forwardchecksyms.add(sym);
       end;
 
 
     procedure tstoredsymtable.delete(sym:TSymEntry);
       begin
-        { this must happen before inherited() is called, because }
-        { the sym is owned by symlist and will consequently be   }
-        { freed and invalid afterwards                           }
-        if (sym.typ in [typesym,fieldvarsym]) then
-          forwardchecksyms.remove(sym);
         inherited delete(sym);
       end;
 
@@ -744,17 +735,6 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.resolve_forward_types;
-      var
-        i: longint;
-      begin
-        for i:=0 to forwardchecksyms.Count-1 do
-          tstoredsym(forwardchecksyms[i]).resolve_type_forward;
-        { don't free, may still be reused }
-        forwardchecksyms.clear;
-      end;
-
-
 {****************************************************************************
                           TAbstractRecordSymtable
 ****************************************************************************}
@@ -1094,11 +1074,6 @@ implementation
             def:=TDef(unionst.DefList[i]);
             def.ChangeOwner(self);
           end;
-        { add the types that may need to be forward-checked }
-        forwardchecksyms.capacity:=forwardchecksyms.capacity+unionst.forwardchecksyms.count;
-        for i:=0 to unionst.forwardchecksyms.count-1 do
-          forwardchecksyms.add(tsym(unionst.forwardchecksyms[i]));
-        unionst.forwardchecksyms.clear;
         _datasize:=storesize;
         fieldalignment:=storealign;
       end;

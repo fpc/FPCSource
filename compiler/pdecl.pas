@@ -194,7 +194,7 @@ implementation
                 begin
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
-                   block_type:=bt_type;
+                   block_type:=bt_const_type;
                    consume(_COLON);
                    read_anon_type(hdef,false);
                    block_type:=bt_const;
@@ -302,6 +302,7 @@ implementation
          hdef     : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
+         objecttype : tobjecttyp;
          isgeneric,
          isunique,
          istyperenaming : boolean;
@@ -311,7 +312,6 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
-         typecanbeforward:=true;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -366,11 +366,22 @@ implementation
                     is_class_or_interface_or_dispinterface(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
-                    { we can ignore the result   }
-                    { the definition is modified }
-                    object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
-                    { since the definition is modified, there may be new forwarddefs }
-                    symtablestack.top.checkforwardtype(sym);
+                    case token of
+                      _CLASS :
+                        objecttype:=odt_class;
+                      _INTERFACE :
+                        if current_settings.interfacetype=it_interfacecom then
+                          objecttype:=odt_interfacecom
+                        else
+                          objecttype:=odt_interfacecorba;
+                      _DISPINTERFACE :
+                        objecttype:=odt_dispinterface;
+                      else
+                        internalerror(200811072);
+                    end;
+                    consume(token);
+                    { we can ignore the result, the definition is modified }
+                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -498,8 +509,7 @@ implementation
            if assigned(generictypelist) then
              generictypelist.free;
          until token<>_ID;
-         typecanbeforward:=false;
-         tstoredsymtable(symtablestack.top).resolve_forward_types;
+         resolve_forward_types;
          block_type:=old_block_type;
       end;
 

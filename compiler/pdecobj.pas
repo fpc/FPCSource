@@ -27,19 +27,19 @@ interface
 
     uses
       cclasses,
-      globtype,symtype,symdef;
+      globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
 
 implementation
 
     uses
       cutils,
       globals,verbose,systems,tokens,
-      symconst,symbase,symsym,symtable,
+      symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
-      scanner,
+      fmodule,scanner,
       pbase,pexpr,pdecsub,pdecvar,ptype,pdecl
       ;
 
@@ -152,57 +152,6 @@ implementation
                 tprocdef(def).forwarddef:=false;
               end;
           end;
-      end;
-
-
-    function readobjecttype : tobjecttyp;
-      begin
-        result:=odt_none;
-        { distinguish classes and objects }
-        case token of
-          _OBJECT:
-            begin
-              result:=odt_object;
-              consume(_OBJECT)
-            end;
-          _CPPCLASS:
-            begin
-              result:=odt_cppclass;
-              consume(_CPPCLASS);
-            end;
-          _DISPINTERFACE:
-            begin
-              { need extra check here since interface is a keyword
-                in all pascal modes }
-              if not(m_class in current_settings.modeswitches) then
-                Message(parser_f_need_objfpc_or_delphi_mode);
-              result:=odt_dispinterface;
-              consume(_DISPINTERFACE);
-            end;
-          _INTERFACE:
-            begin
-              { need extra check here since interface is a keyword
-                in all pascal modes }
-              if not(m_class in current_settings.modeswitches) then
-                Message(parser_f_need_objfpc_or_delphi_mode);
-              if current_settings.interfacetype=it_interfacecom then
-                result:=odt_interfacecom
-              else {it_interfacecorba}
-                result:=odt_interfacecorba;
-              consume(_INTERFACE);
-            end;
-          _CLASS:
-            begin
-              result:=odt_class;
-              consume(_CLASS);
-            end;
-          else
-            begin
-              { this is error but try to recover }
-              result:=odt_class;
-              consume(_OBJECT);
-            end;
-        end;
       end;
 
 
@@ -389,68 +338,6 @@ implementation
           end
         else if (current_objectdef.objecttype=odt_dispinterface) then
           message(parser_e_dispinterface_needs_a_guid);
-      end;
-
-
-    function try_parse_class_forward_decl:boolean;
-      begin
-        result:=false;
-        if (token<>_SEMICOLON) then
-          exit;
-
-        if (cs_compilesystem in current_settings.moduleswitches) then
-          begin
-            case current_objectdef.objecttype of
-              odt_interfacecom :
-                if (current_objectdef.objname^='IUNKNOWN') then
-                  interface_iunknown:=current_objectdef;
-              odt_class :
-                if (current_objectdef.objname^='TOBJECT') then
-                  class_tobject:=current_objectdef;
-            end;
-          end;
-
-        { enable published? }
-        if (cs_generate_rtti in current_settings.localswitches) and
-           (current_objectdef.objecttype in [odt_interfacecom,odt_class]) then
-          include(current_objectdef.objectoptions,oo_can_have_published);
-
-        { all classes must have a vmt at offset zero }
-        if current_objectdef.objecttype=odt_class then
-          current_objectdef.insertvmt;
-
-        result:=true;
-      end;
-
-
-    function try_parse_class_reference:tdef;
-      var
-        hdef : tdef;
-      begin
-        result:=nil;
-        { Delphi only allows class of in type blocks.
-          Note that when parsing the type of a variable declaration
-          the blocktype is bt_type so the check for typecanbeforward
-          is also necessary (PFV) }
-        if (token<>_OF) or
-           (
-            (m_delphi in current_settings.modeswitches) and
-            not((block_type=bt_type) and typecanbeforward)
-           ) then
-          exit;
-
-        consume(_OF);
-        single_type(hdef,typecanbeforward);
-
-        { must be a forward def or a class }
-        if (hdef.typ=forwarddef) or
-           is_class(hdef) then
-          result:=tclassrefdef.create(hdef)
-        else
-          begin
-            Message1(type_e_class_type_expected,generrordef.typename);
-            result:=generrordef;
-          end;
       end;
 
 
@@ -745,18 +632,15 @@ implementation
       end;
 
 
-    function object_dec(const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
       label
         myexit;
       var
-        objecttype : tobjecttyp;
         old_object_option : tsymoptions;
-        old_typecanbeforward : boolean;
         old_current_objectdef : tobjectdef;
       begin
         old_object_option:=current_object_option;
         old_current_objectdef:=current_objectdef;
-        old_typecanbeforward:=typecanbeforward;
 
         current_objectdef:=nil;
 
@@ -764,13 +648,6 @@ implementation
         if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) and
            not assigned(genericlist) then
           Message(parser_e_no_local_objects);
-
-        { for tp7 don't allow forward types }
-        if (m_tp7 in current_settings.modeswitches) then
-          typecanbeforward:=false;
-
-        { get type of objectdef }
-        objecttype:=readobjecttype;
 
         { reuse forward objectdef? }
         if assigned(fd) then
@@ -787,14 +664,6 @@ implementation
           end
         else
           begin
-            { Handle class of ... class references }
-            if objecttype=odt_class then
-              begin
-                result:=try_parse_class_reference;
-                if assigned(result) then
-                  goto myexit;
-              end;
-
             { anonym objects aren't allow (o : object a : longint; end;) }
             if n='' then
               Message(parser_f_no_anonym_objects);
@@ -806,30 +675,47 @@ implementation
               added. This is to prevent circular childof loops }
             include(current_objectdef.objectoptions,oo_is_forward);
 
-            { is this a forward declaration? }
-            if try_parse_class_forward_decl then
+            if (cs_compilesystem in current_settings.moduleswitches) then
               begin
-                result:=current_objectdef;
-                goto myexit;
+                case current_objectdef.objecttype of
+                  odt_interfacecom :
+                    if (current_objectdef.objname^='IUNKNOWN') then
+                      interface_iunknown:=current_objectdef;
+                  odt_class :
+                    if (current_objectdef.objname^='TOBJECT') then
+                      class_tobject:=current_objectdef;
+                end;
               end;
           end;
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
-        if (cs_generate_rtti in current_settings.localswitches) then
+        if (cs_generate_rtti in current_settings.localswitches) and
+           (current_objectdef.objecttype in [odt_interfacecom,odt_class]) then
           include(current_objectdef.objectoptions,oo_can_have_published);
 
-        { parse list of parent classes }
-        parse_parent_classes;
+        { forward def? }
+        if not assigned(fd) and
+           (token=_SEMICOLON) then
+          begin
+            { add to the list of definitions to check that the forward
+              is resolved. this is required for delphi mode }
+            current_module.checkforwarddefs.add(current_objectdef);
+          end
+        else
+          begin
+            { parse list of parent classes }
+            parse_parent_classes;
 
-        { parse optional GUID for interfaces }
-        parse_guid;
+            { parse optional GUID for interfaces }
+            parse_guid;
 
-        { parse and insert object members }
-        symtablestack.push(current_objectdef.symtable);
-        insert_generic_parameter_types(genericdef,genericlist);
-        parse_object_members;
-        symtablestack.pop(current_objectdef.symtable);
+            { parse and insert object members }
+            symtablestack.push(current_objectdef.symtable);
+            insert_generic_parameter_types(genericdef,genericlist);
+            parse_object_members;
+            symtablestack.pop(current_objectdef.symtable);
+          end;
 
         { generate vmt space if needed }
         if not(oo_has_vmt in current_objectdef.objectoptions) and
@@ -848,7 +734,6 @@ implementation
       myexit:
         { restore old state }
         current_objectdef:=old_current_objectdef;
-        typecanbeforward:=old_typecanbeforward;
         current_object_option:=old_object_option;
       end;
 

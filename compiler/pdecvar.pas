@@ -633,7 +633,7 @@ implementation
            begin
               p.default:=longint($80000000);
            end;
-  
+
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
@@ -1065,7 +1065,7 @@ implementation
          { all variables are public if not in a object declaration }
          current_object_option:=[sp_public];
          old_block_type:=block_type;
-         block_type:=bt_type;
+         block_type:=bt_var;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
            consume(_ID);
@@ -1098,6 +1098,9 @@ implementation
                  end;
                consume(_ID);
              until not try_to_consume(_COMMA);
+
+             { read variable type def }
+             block_type:=bt_var_type;
              consume(_COLON);
 
 {$ifdef gpc_mode}
@@ -1107,13 +1110,13 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             { read variable type def }
              read_anon_type(hdef,false);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
                  vs.vardef:=hdef;
                end;
+             block_type:=bt_var;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
@@ -1218,7 +1221,6 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         old_block_type : tblock_type;
          old_current_object_option : tsymoptions;
          hs,sorg : string;
          hdef,casetype : tdef;
@@ -1253,8 +1255,6 @@ implementation
          { all variables are public if not in a object declaration }
          if not(vd_object in options) then
           current_object_option:=[sp_public];
-         old_block_type:=block_type;
-         block_type:=bt_type;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
@@ -1519,7 +1519,6 @@ implementation
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
               uniondef.owner.deletedef(uniondef);
            end;
-         block_type:=old_block_type;
          current_object_option:=old_current_object_option;
          { free the list }
          sc.free;

@@ -409,7 +409,7 @@ implementation
         { the variables are always public }
         current_object_option:=[sp_public];
         inc(testcurobject);
-        block_type:=bt_type;
+        block_type:=bt_var;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -467,8 +467,10 @@ implementation
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
               begin
+                block_type:=bt_var_type;
                 consume(_COLON);
                 single_type(pv.returndef,false);
+                block_type:=bt_var;
               end;
              hdef:=pv;
              { possible proc directives }
@@ -517,7 +519,11 @@ implementation
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else
-                  single_type(hdef,false);
+                  begin
+                    block_type:=bt_var_type;
+                    single_type(hdef,false);
+                    block_type:=bt_var;
+                  end;
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
@@ -2269,9 +2275,9 @@ const
                     if s<>'' then
                       begin
                         { Replace ? and @ in import name }
-                        { these replaces broke existing code on i386-win32 at least, while fixed 
+                        { these replaces broke existing code on i386-win32 at least, while fixed
                           bug 8391 on arm-wince so limit this to arm-wince (KB) }
-                        if target_info.system in [system_arm_wince] then 
+                        if target_info.system in [system_arm_wince] then
                           begin
                             Replace(s,'?','__q$$');
                             Replace(s,'@','__a$$');
@@ -2437,7 +2443,7 @@ const
              because a constant/default value follows }
            if res then
             begin
-              if (block_type in [bt_const,bt_type]) and
+              if (block_type=bt_const_type) and
                  (token=_EQUAL) then
                break;
               { support procedure proc;stdcall export; }
