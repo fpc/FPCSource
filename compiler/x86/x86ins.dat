@@ -1017,7 +1017,8 @@ reg_eax,reg_ecx,reg_edx      \3\x0F\x01\xC8           PRESCOTT,ND
 (Ch_Wop2, Ch_Rop1, Ch_None)
 mem_offs,reg_ax|32    \300\320\1\xA3\34               8086,SM,NOX86_64
 regmem,reg16|32|64    \300\320\1\x89\101              8086,SM
-reg_ax|32,mem_offs    \325\301\1\xA1\35               8086,SM,NOX86_64
+reg_ax,mem_offs       \324\301\1\xA1\35               8086,SM,NOX86_64
+reg_eax,mem_offs      \325\301\1\xA1\35               386,SM,NOX86_64
 reg16|32|64,regmem    \301\320\1\x8B\110              8086,SM
 reg32|64,imm          \320\10\xB8\35                  386,SD
 rm32|64,imm           \300\320\1\xC7\200\41           386,SD
@@ -2025,7 +2026,7 @@ void                  \2\x0F\x07                      P6,PRIV,AMD
 regmem,reg16|32|64    \300\320\1\x85\101              8086,SM
 reg16|32|64,mem       \301\320\1\x85\110              8086,SM
 reg8,reg8             \300\323\1\x84\101              8086
-rm8,reg8              \301\323\1\x84\110              8086,SM
+rm8,reg8              \301\323\1\x84\101              8086,SM
 reg_eax,imm           \325\1\xA9\41                   386,SM
 reg_ax,imm            \324\1\xA9\31                   8086,SM
 reg_al,imm            \1\xA8\21                       8086,SM
