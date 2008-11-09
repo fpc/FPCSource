@@ -1002,6 +1002,8 @@ implementation
                     ot:=OT_IMM8 or OT_SIGNED
                   else
                     ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+                  if (val=1) and (i=1) then
+                    ot := ot or OT_ONENESS;
                 end;
               top_none :
                 begin

@@ -353,7 +353,10 @@ implementation
                     end;
                end;
             labelsym :
-              location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
+              if assigned(tlabelsym(symtableentry).asmblocklabel) then
+                location.reference.symbol:=tlabelsym(symtableentry).asmblocklabel
+              else
+                location.reference.symbol:=tcglabelnode((tlabelsym(symtableentry).code)).getasmlabel;
             else internalerror(200510032);
          end;
       end;
