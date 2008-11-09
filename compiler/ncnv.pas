@@ -2962,7 +2962,8 @@ implementation
           that will load the value in a new register first }
         { the same goes for changing the sign of equal-sized values which
           are smaller than an entire register }
-        if (resultdef.size<left.resultdef.size) or
+        if result and
+           (resultdef.size<left.resultdef.size) or
            ((resultdef.size=left.resultdef.size) and
             (left.resultdef.size<sizeof(aint)) and
             (is_signed(resultdef) xor is_signed(left.resultdef))) then
