@@ -455,7 +455,7 @@ begin
   WOS2Help.RegisterHelpType;
   WWinHelp.RegisterHelpType;
   WVPHelp.RegisterHelpType;
-  WHTMLHlp.RegisterHelpType;
+  WHTMLHlp.RegisterHelpType; // Also registers chm and html index (.htx)
 
   PushStatus(msg_LoadingHelpFiles);
   for I:=0 to HelpFiles^.Count-1 do

@@ -1139,6 +1139,7 @@ end;
 destructor TChmFileList.Destroy;
 begin
   fUnNotifiedFiles.Free;
+  inherited Destroy;
 end;
 
 procedure TChmFileList.SetOnOpenNewFile(AValue: TChmFileOpenEvent);

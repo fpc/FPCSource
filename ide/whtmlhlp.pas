@@ -14,26 +14,20 @@ unit WHTMLHlp;
 
 interface
 
-uses Objects,WHTML,WAnsi,WHelp;
+uses Objects,WHTML,WAnsi,WHelp,WChmHWrap;
 
 const
      extHTML              = '.htm';
      extHTMLIndex         = '.htx';
+     extCHM		  = '.chm';
 
      ListIndent = 2;
      DefIndent  = 4;
 
-     MaxTopicLinks = 4000; { maximum number of links on a single HTML page }
+     MaxTopicLinks = 24000; { maximum number of links on a single HTML page }
 
 type
     THTMLSection = (hsNone,hsHeading1,hsHeading2,hsHeading3,hsHeading4,hsHeading5,hsHeading6);
-
-    PTopicLinkCollection = ^TTopicLinkCollection;
-    TTopicLinkCollection = object(TStringCollection)
-      procedure   Insert(Item: Pointer); virtual;
-      function    At(Index: sw_Integer): PString;
-      function    AddItem(Item: string): integer;
-    end;
 
     TParagraphAlign = (paLeft,paCenter,paRight);
 
@@ -116,6 +110,7 @@ type
       procedure DocTableHeaderItem(Entered: boolean); virtual;
       procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
+      function CanonicalizeURL(const Base,Relative:String):string; virtual;
     public
       function  GetSectionColor(Section: THTMLSection; var Color: byte): boolean; virtual;
     private
@@ -148,24 +143,28 @@ type
       procedure AddCharAt(C: char;AtPtr : sw_word);
       function AddTextAt(const S: string;AtPtr : sw_word) : sw_word;
       function ComputeTextLength(TStart,TEnd : sw_word) : sw_word;
-
     end;
 
+    PCHMTopicRenderer = ^TCHMTopicRenderer;
+    TCHMTopicRenderer = object(THTMLTopicRenderer)
+      function CanonicalizeURL(const Base,Relative:String):string; virtual;
+      end;
+      
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
     TCustomHTMLHelpFile = object(THelpFile)
       constructor Init(AID: word);
       destructor  Done; virtual;
     public
+      Renderer: PHTMLTopicRenderer;
       function    GetTopicInfo(T: PTopic) : string; virtual;
       function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
     private
-      Renderer: PHTMLTopicRenderer;
       DefaultFileName: string;
       CurFileName: string;
       TopicLinks: PTopicLinkCollection;
     end;
-
+   
     PHTMLHelpFile = ^THTMLHelpFile;
     THTMLHelpFile = object(TCustomHTMLHelpFile)
       constructor Init(AFileName: string; AID: word; ATOCEntry: string);
@@ -173,6 +172,19 @@ type
       function    LoadIndex: boolean; virtual;
     private
       TOCEntry: string;
+    end;
+
+    PCHMHelpFile = ^TCHMHelpFile;
+    TCHMHelpFile = object(TCustomHTMLHelpFile)
+      constructor Init(AFileName: string; AID: word);
+      destructor  Done; virtual; 
+    public
+      function    LoadIndex: boolean; virtual;
+      function    ReadTopic(T: PTopic): boolean; virtual;
+      function    GetTopicInfo(T: PTopic) : string; virtual;
+      function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
+    private
+      Chmw: TCHMWrapper;
     end;
 
     PHTMLIndexHelpFile = ^THTMLIndexHelpFile;
@@ -527,25 +539,6 @@ begin
   DefHTMLGetSectionColor:=false;
 end;
 
-function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
-var Ctx: longint;
-begin
-  Ctx:=(longint(FileID) shl 16)+LinkNo;
-  EncodeHTMLCtx:=Ctx;
-end;
-
-procedure DecodeHTMLCtx(Ctx: longint; var FileID: word; var LinkNo: word);
-begin
-  if (Ctx shr 16)=0 then
-    begin
-      FileID:=$ffff; LinkNo:=0;
-    end
-  else
-    begin
-      FileID:=Ctx shr 16; LinkNo:=Ctx and $ffff;
-    end;
-end;
-
 function CharStr(C: char; Count: byte): string;
 var S: string;
 begin
@@ -554,27 +547,6 @@ begin
   CharStr:=S;
 end;
 
-procedure TTopicLinkCollection.Insert(Item: Pointer);
-begin
-  AtInsert(Count,Item);
-end;
-
-function TTopicLinkCollection.At(Index: sw_Integer): PString;
-begin
-  At:=inherited At(Index);
-end;
-
-function TTopicLinkCollection.AddItem(Item: string): integer;
-var Idx: sw_integer;
-begin
-  if Item='' then Idx:=-1 else
-  if Search(@Item,Idx)=false then
-    begin
-      AtInsert(Count,NewStr(Item));
-      Idx:=Count-1;
-    end;
-  AddItem:=Idx;
-end;
 
 function THTMLTopicRenderer.DocAddTextChar(C: char): boolean;
 var Added: boolean;
@@ -662,9 +634,9 @@ begin
       if Name<>'' then
         begin
           Topic^.NamedMarks^.InsertStr(Name);
-{$ifdef DEBUG}
-          DebugMessage('',' Adding Name "'+Name+'"',1,1);
-{$endif DEBUG}
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},' Adding Name "'+Name+'"',{$i %line%},'1',0,0);
+{$endif WDEBUG}
           AddChar(hscNamedMark);
         end;
       if (HRef<>'')then
@@ -674,13 +646,17 @@ begin
             begin
               InAnchor:=true;
               AddChar(hscLink);
+{$IFDEF WDEBUG}
+              DebugMessageS({$i %file%},' Adding Link1 "'+HRef+'"'+' "'+url+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
+              
               if pos('#',HRef)=1 then
                 Href:=NameAndExtOf(GetFilename)+Href;
-              HRef:=CompleteURL(URL,HRef);
+              HRef:=canonicalizeURL(URL,HRef);
               LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
-{$ifdef DEBUG}
-              DebugMessage('',' Adding Link "'+HRef+'"',1,1);
-{$endif DEBUG}
+{$IFDEF WDEBUG}
+              DebugMessageS({$i %file%},' Adding Link2 "'+HRef+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
               Inc(LinkPtr);
             end;
           end;
@@ -694,10 +670,9 @@ end;
 
 procedure THTMLTopicRenderer.DocUnknownTag;
 begin
-{$ifdef DEBUG}
-  DebugMessage('',' Unknown tag "'+TagName+'" params "'+
-    TagParams+'"',1,1);
-{$endif DEBUG}
+{$IFDEF WDEBUG}
+  DebugMessageS({$i %file%},' Unknown tag "'+TagName+'" params "'+TagParams+'"'  ,{$i %line%},'1',0,0);
+{$endif WDEBUG}
 end;
 
 procedure DecodeAlign(Align: string; var PAlign: TParagraphAlign);
@@ -740,6 +715,12 @@ begin
     end;
 end;
 
+Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+// uses info from filesystem (curdir) -> overriden for CHM.
+begin
+ CanonicalizeURL:=CompleteURL(Base,relative);
+end;
+
 procedure THTMLTopicRenderer.DocParagraph(Entered: boolean);
 var Align: string;
 begin
@@ -776,20 +757,20 @@ var
 begin
   if pos('tex4ht:',Comment)=0 then
     exit;
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
   DebugMessage(GetFileName,'tex4ht comment "'
         +Comment+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
   if SuppressOutput then
     begin
       if (pos(SuppressUntil,Comment)=0) then
         exit
       else
         begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
           DebugMessage(GetFileName,' Found '+SuppressUntil+'comment "'
             +Comment+'" SuppressOuput reset to false',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
           SuppressOutput:=false;
           SuppressUntil:='';
         end;
@@ -797,20 +778,20 @@ begin
   if (pos('tex4ht:graphics ',Comment)>0) and
      LastAnsiLoadFailed then
     begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
       DebugMessage(GetFileName,' Using tex4ht comment "'
         +Comment+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocImage;
     end;
   if (pos('tex4ht:syntaxdiagram ',Comment)>0) then
     begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
       DebugMessage(GetFileName,' Using tex4ht:syntaxdiagram comment "'
         +Comment+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocImage;
@@ -822,10 +803,10 @@ begin
     end;
   if (pos('tex4ht:mysyntdiag ',Comment)>0) then
     begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
       DebugMessage(GetFileName,' Using tex4ht:mysyntdiag comment "'
         +Comment+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
       { Try again with this info }
       TagParams:=Comment;
       DocGetTagParam('SRC',src);
@@ -849,16 +830,16 @@ var Name,Src,Alt,SrcLine: string;
 begin
   if SuppressOutput then
     exit;
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
   if not DocGetTagParam('NAME',Name) then
      Name:='<No name>';
   DebugMessage(GetFileName,' Image "'+Name+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
   if DocGetTagParam('SRC',src) then
     begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
       DebugMessage(GetFileName,' Image source tag "'+Src+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
       if src<>'' then
         begin
           src:=CompleteURL(URL,src);
@@ -866,24 +847,24 @@ begin
             Try to see if a file with same name and extension .git
             exists PM }
           src:=DirAndNameOf(src)+'.ans';
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
           DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
           if not ExistsFile(src) then
             begin
               DocGetTagParam('SRC',src);
               src:=DirAndNameOf(src)+'.ans';
               src:=CompleteURL(DirOf(URL)+'../',src);
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
               DebugMessage(GetFileName,' Trying "'+Src+'"',Line,1);
-{$endif DEBUG}
+{$endif wDEBUG}
             end;
           if not ExistsFile(src) then
             begin
               LastAnsiLoadFailed:=true;
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
               DebugMessage(GetFileName,' "'+Src+'" not found',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
             end
           else
             begin
@@ -908,9 +889,9 @@ begin
           if not ExistsFile(src) then
             begin
               LastAnsiLoadFailed:=true;
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
               DebugMessage(GetFileName,' "'+Src+'" not found',Line,1);
-{$endif DEBUG}
+{$endif WDEBUG}
             end
           else
             begin
@@ -1318,6 +1299,9 @@ begin
           if Topic^.LinkCount>0 then { FP causes numeric RTE 215 without this }
           for I:=0 to Min(Topic^.LinkCount-1,High(LinkIndexes)-1) do
             begin
+              {$IFDEF WDEBUG}
+                DebugMessageS({$i %file%},' Indexing links ('+inttostr(i)+')'+topiclinks^.at(linkindexes[i])^,{$i %line%},'1',0,0);
+              {$endif WDEBUG}
               Topic^.Links^[I].FileID:=Topic^.FileID;
               Topic^.Links^[I].Context:=EncodeHTMLCtx(Topic^.FileID,LinkIndexes[I]+1);
             end;
@@ -1334,6 +1318,14 @@ begin
         end;
     end;
   BuildTopic:=OK;
+end;
+
+Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+begin
+ if copy(relative,1,7)<>'ms-its:' then 
+   CanonicalizeUrl:=combinepaths(relative,base)
+  else
+   CanonicalizeUrl:=relative; 
 end;
 
 constructor TCustomHTMLHelpFile.Init(AID: word);
@@ -1388,10 +1380,14 @@ begin
       else
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},'(Topicinfo) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
+          
           Link:=FormatPath(Link);
-{$ifdef DEBUG_WHTMLHLP}
-          DebugMessage(Link,' looking for',1,1);
-{$endif DEBUG_WHTMLHLP}
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},'(Topicinfo) Link after formatpath "'+link+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1425,10 +1421,13 @@ begin
       else
         begin
           Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},'(ReadTopic) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
           Link:=FormatPath(Link);
-{$ifdef DEBUG}
-          DebugMessage(Link,' looking for',1,1);
-{$endif DEBUG}
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},'(ReadTopic) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
           begin
@@ -1450,18 +1449,18 @@ begin
         end;
       if (HTMLFile=nil) then
         begin
-{$ifdef DEBUG}
-          DebugMessage(Link,' filename not known :(',1,1);
-{$endif DEBUG}
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},'(ReadTopic) Filename not known:  "'+link+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
         end;
       if (p>1) and (HTMLFile=nil) then
         begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
           if p>0 then
             DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
           else
             DebugMessage(Name,Link+' not found',1,1);
-{$endif DEBUG}
+{$endif WDEBUG}
           New(HTMLFile, Init);
           HTMLFile^.AddLine('<HEAD><TITLE>'+msg_pagenotavailable+'</TITLE></HEAD>');
           HTMLFile^.AddLine(
@@ -1474,12 +1473,12 @@ begin
         CurFileName:=Name
       else
         begin
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
           if p>0 then
             DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
           else
             DebugMessage(Name,Link+' not found',1,1);
-{$endif DEBUG}
+{$endif WDEBUG}
         end;
       if HTMLFile<>nil then Dispose(HTMLFile, Done);
       if BookMark='' then
@@ -1487,10 +1486,10 @@ begin
       else
         begin
           P:=T^.GetNamedMarkIndex(BookMark);
-{$ifdef DEBUG}
+{$IFDEF WDEBUG}
           if p=-1 then
             DebugMessage(Name,Link+'#'+Bookmark+' bookmark not found',1,1);
-{$endif DEBUG}
+{$endif WDEBUG}
           T^.StartNamedMark:=P+1;
         end;
     end;
@@ -1576,6 +1575,194 @@ begin
   LoadIndex:=OK;
 end;
 
+constructor TChmHelpFile.Init(AFileName: string; AID: word);
+begin
+  if inherited Init(AID)=false then 
+    Fail;
+  Dispose(renderer,done);
+  renderer:=New(PCHMTopicRenderer, Init);
+  DefaultFileName:=AFileName; 
+  if (DefaultFileName='') or not ExistsFile(DefaultFilename) then
+  begin
+    Done;
+    Fail;
+  end
+  else
+    chmw:=TCHMWrapper.Create(DefaultFileName);
+end;
+
+function    TChmHelpFile.LoadIndex: boolean; 
+begin
+  loadindex:=false;
+  if assigned(chmw) then
+    loadindex:=chmw.loadindex(id,TopicLinks,IndexEntries,helpfacility);
+end;
+
+function TChmHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
+function MatchCtx(P: PTopic): boolean;
+begin
+  MatchCtx:=P^.HelpCtx=HelpCtx;
+end;
+var FileID,LinkNo: word;
+    P: PTopic;
+    FName: string;
+begin
+  DecodeHTMLCtx(HelpCtx,FileID,LinkNo);
+  if (HelpCtx<>0) and (FileID<>ID) then P:=nil else
+  if (FileID=ID) and (LinkNo>TopicLinks^.Count) then P:=nil else
+    begin
+      P:=Topics^.FirstThat(@MatchCtx);
+      if P=nil then
+        begin
+          if LinkNo=0 then
+            FName:=DefaultFileName
+          else
+            FName:=TopicLinks^.At(LinkNo-1)^;
+          P:=NewTopic(ID,HelpCtx,0,FName,nil,0);
+          Topics^.Insert(P);
+        end;
+    end;
+  SearchTopic:=P;
+end;
+
+function TChmHelpFile.GetTopicInfo(T: PTopic) : string;
+var OK: boolean;
+    Name: string;
+    Link,Bookmark: string;
+    P: sw_integer;
+begin
+  Bookmark:='';
+  OK:=T<>nil;
+  if OK then
+    begin
+      if T^.HelpCtx=0 then
+        begin
+          Name:=DefaultFileName;
+          P:=0;
+        end
+      else
+        begin
+          Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
+          Link:=FormatPath(Link);
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1',0,0);
+{$endif WDEBUG}
+          P:=Pos('#',Link);
+          if P>0 then
+          begin
+            Bookmark:=copy(Link,P+1,length(Link));
+            Link:=copy(Link,1,P-1);
+          end;
+{          if CurFileName='' then Name:=Link else
+          Name:=CompletePath(CurFileName,Link);}
+          Name:=Link;
+        end;
+    end;
+  GetTopicInfo:=Name+'#'+BookMark;
+end;
+
+function TChmHelpFile.ReadTopic(T: PTopic): boolean;
+var OK: boolean;
+    HTMLFile: PMemoryTextFile;
+    Name: string;
+    Link,Bookmark: string;
+    P: sw_integer;
+begin
+  Bookmark:='';
+  OK:=T<>nil;
+  if OK then
+    begin
+      if T^.HelpCtx=0 then
+        begin
+          Name:=DefaultFileName;
+          P:=0;
+        end
+      else
+        begin
+          Link:=TopicLinks^.At((T^.HelpCtx and $ffff)-1)^;
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1',0,0);
+{$endif WDEBUG}
+          Link:=FormatPath(Link);
+{$IFDEF WDEBUG}
+          DebugMessageS({$i %file%},' Looking for (after formatpath)  "'+Link+'"',{$i %line%},'1',0,0);
+{$endif WDEBUG}
+          P:=Pos('#',Link);
+          if P>0 then
+          begin
+            Bookmark:=copy(Link,P+1,length(Link));
+            Link:=copy(Link,1,P-1);
+          end;
+{          if CurFileName='' then Name:=Link else
+          Name:=CompletePath(CurFileName,Link);}
+          Name:=Link;
+        end;
+      HTMLFile:=nil;
+      if Name<>'' then
+        HTMLFile:=chmw.gettopic(name);
+
+      if (HTMLFile=nil) and (CurFileName<>'') then
+        begin
+          Name:=CurFileName;
+          HTMLFile:=chmw.gettopic(name);
+        end;
+      if (HTMLFile=nil) then
+        begin
+{$IFDEF WDEBUG}
+          DebugMessage(Link,' filename not known :(',1,1);
+{$endif WDEBUG}
+        end;
+      if (p>1) and (HTMLFile=nil) then
+        begin
+{$IFDEF WDEBUG}
+          if p>0 then
+            DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
+          else
+            DebugMessage(Name,Link+' not found',1,1);
+{$endif WDEBUG}
+          New(HTMLFile, Init);
+          HTMLFile^.AddLine('<HEAD><TITLE>'+msg_pagenotavailable+'</TITLE></HEAD>');
+          HTMLFile^.AddLine(
+            '<BODY>'+
+            FormatStrStr(msg_cantaccessurl,Name)+'<br><br>'+
+            '</BODY>');
+        end;
+      OK:=Renderer^.BuildTopic(T,Name,HTMLFile,TopicLinks);
+      if OK then
+        CurFileName:=Name
+      else
+        begin
+{$IFDEF WDEBUG}
+          if p>0 then
+            DebugMessage(Name,Link+'#'+Bookmark+' not found',1,1)
+          else
+            DebugMessage(Name,Link+' not found',1,1);
+{$endif WDEBUG}
+        end;
+      if HTMLFile<>nil then Dispose(HTMLFile, Done);
+      if BookMark='' then
+        T^.StartNamedMark:=0
+      else
+        begin
+          P:=T^.GetNamedMarkIndex(BookMark);
+{$IFDEF WDEBUG}
+          if p=-1 then
+            DebugMessage(Name,Link+'#'+Bookmark+' bookmark not found',1,1);
+{$endif WDEBUG}
+          T^.StartNamedMark:=P+1;
+        end;
+    end;
+  ReadTopic:=OK;
+end;
+
+destructor TChmHelpFile.done;
+
+begin
+ if assigned(chmw) then
+  chmw.free;
+ inherited Done;
+end;
+
 function CreateProcHTML(const FileName,Param: string;Index : longint): PHelpFile;
 var H: PHelpFile;
 begin
@@ -1583,6 +1770,15 @@ begin
   if CompareText(copy(ExtOf(FileName),1,length(extHTML)),extHTML)=0 then
     H:=New(PHTMLHelpFile, Init(FileName,Index,Param));
   CreateProcHTML:=H;
+end;
+
+function CreateProcCHM(const FileName,Param: string;Index : longint): PHelpFile;
+var H: PHelpFile;
+begin
+  H:=nil;
+  if CompareText(copy(ExtOf(FileName),1,length(extCHM)),extCHM)=0 then
+    H:=New(PCHMHelpFile, Init(FileName,Index));
+  CreateProcCHM:=H;
 end;
 
 function CreateProcHTMLIndex(const FileName,Param: string;Index : longint): PHelpFile;
@@ -1598,6 +1794,7 @@ procedure RegisterHelpType;
 begin
   RegisterHelpFileType({$ifdef FPC}@{$endif}CreateProcHTML);
   RegisterHelpFileType({$ifdef FPC}@{$endif}CreateProcHTMLIndex);
+  RegisterHelpFileType({$ifdef FPC}@{$endif}CreateProcCHM);
 end;
 
 

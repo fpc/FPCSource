@@ -76,6 +76,8 @@ const
   {$WARNINGS OFF}
 {$ENDIF}
 
+// {$define HasGLIB2_10}
+
 {$DEFINE read_forward_definitions}
 type
   // internal types

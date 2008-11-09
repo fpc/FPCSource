@@ -184,13 +184,15 @@ const LastStrToIntResult : integer = 0;
 
 procedure RegisterWUtils;
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
+
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string; nrLine, nrPos : sw_word);
+
 type
-  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : sw_word);
+  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : String; nrLine, nrPos : sw_word);
 
 Const
-  DebugMessage : TDebugMessage = @WUtilsDebugMessage;
-
+  DebugMessageS : TDebugMessage = @WUtilsDebugMessage;
 
 implementation
 
@@ -1265,9 +1267,15 @@ begin
 {$endif}
 end;
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
+begin
+  DebugMessageS(Afilename,AText,'','',aline,apos);
+end;
+
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string;nrLine, nrPos : sw_word);
 begin
   writeln(stderr,AFileName,' (',ALine,',',APos,') ',AText);
+  flush(stderr);
 end;
 
 BEGIN
