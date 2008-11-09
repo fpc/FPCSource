@@ -284,7 +284,14 @@ begin
        106 : HS:=@SInvalidInput;
      end;
      E:=EinOutError.Create (HS^);
-     EInoutError(E).ErrorCode:=IOresult; // Clears InOutRes !!
+     // this routine can be called from FPC_IOCHECK,
+     // which clears inoutres and then passes its
+     // original value to HandleErrorFrame() (which calls
+     // us). So use errno rather than IOResult, and clear
+     // InOutRes explicitly in case we can also be called
+     // from a place that does not clear InOutRes explicitly
+     EInoutError(E).ErrorCode:=errno;
+     inoutres:=0;
      end;
   // We don't set abstracterrorhandler, but we do it here.
   // Unless the use sets another handler we'll get here anyway...
