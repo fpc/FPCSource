@@ -54,6 +54,7 @@ interface
           function simplify:tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
+          function retains_value_location:boolean;
           function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
        private
@@ -1595,8 +1596,7 @@ implementation
       begin
         result:=self;
         while (result.nodetype=typeconvn) and
-              (nf_absolute in result.flags) and
-              (resultdef.size=left.resultdef.size) do
+              ttypeconvnode(result).retains_value_location do
           result:=ttypeconvnode(result).left;
       end;
 
@@ -2931,7 +2931,7 @@ implementation
       end;
 
 
-    function ttypeconvnode.assign_allowed:boolean;
+    function ttypeconvnode.retains_value_location:boolean;
       begin
         result:=(convtype=tc_equal) or
                 { typecasting from void is always allowed }
@@ -2951,6 +2951,12 @@ implementation
                 ((convtype in [tc_int_2_bool,tc_bool_2_int,tc_bool_2_bool]) and
                  (nf_explicit in flags) and
                  (resultdef.size=left.resultdef.size));
+      end;
+
+
+    function ttypeconvnode.assign_allowed:boolean;
+      begin
+        result:=retains_value_location;
 
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }

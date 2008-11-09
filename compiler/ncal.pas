@@ -1697,6 +1697,15 @@ implementation
             exit;
           end;
 
+        { if the result is the same as the self parameter (in case of objects),
+          we can't optimise. We have to check this explicitly becaise
+          hidden parameters such as self have not yet been inserted at this
+          point
+        }
+        if assigned(methodpointer) and
+           realassignmenttarget.isequal(methodpointer.actualtargetnode) then
+          exit;
+
         { when we substitute a function result inside an inlined function,
           we may take the address of this function result. Therefore the
           substituted function result may not be in a register, as we cannot
