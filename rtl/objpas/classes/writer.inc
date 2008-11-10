@@ -79,12 +79,16 @@ procedure TBinaryObjectWriter.WriteExtended(e : extended); {$ifdef CLASSESINLINE
 var ext : array[0..9] of byte;
 {$ENDIF}
 begin
-  {$IFNDEF FPC_HAS_TYPE_EXTENDED}
+{$IFNDEF FPC_HAS_TYPE_EXTENDED}
+  {$IFDEF FPC_DOUBLE_HILO_SWAPPED}
+  { SwapDoubleHiLo defined in reader.inc }
+  SwapDoubleHiLo(e);
+  {$ENDIF FPC_DOUBLE_HILO_SWAPPED}
   DoubleToExtended(e,@(ext[0]));
   Write(ext[0],10);
-  {$ELSE}
+{$ELSE}
   Write(e,sizeof(e));
-  {$ENDIF}
+{$ENDIF}
 end;
 {$endif}
 
@@ -312,6 +316,29 @@ begin
     Write(ws[1], len*sizeof(widechar));
     {$ELSE}
     Write(Value[1], len*sizeof(widechar));
+    {$ENDIF}
+  end;
+end;
+                      
+procedure TBinaryObjectWriter.WriteUnicodeString(const Value: UnicodeString);
+var len : longword;
+{$IFDEF ENDIAN_BIG}
+    i : integer;
+    us : UnicodeString;
+{$ENDIF}
+begin
+  WriteValue(vaUString);
+  len:=Length(Value);
+  WriteDWord(len);
+  if len > 0 then
+  begin
+    {$IFDEF ENDIAN_BIG}
+    setlength(us,len);
+    for i:=1 to len do
+      us[i]:=widechar(SwapEndian(word(Value[i])));
+    Write(us[1], len*sizeof(UnicodeChar));
+    {$ELSE}
+    Write(Value[1], len*sizeof(UnicodeChar));
     {$ENDIF}
   end;
 end;
@@ -733,6 +760,7 @@ var
   DefMethodValue: TMethod;
   WStrValue, WDefStrValue: WideString;
   StrValue, DefStrValue: String;
+  UStrValue, UDefStrValue: UnicodeString;
   AncestorObj: TObject;
   Component: TComponent;
   ObjValue: TObject;
@@ -769,7 +797,7 @@ begin
           DefValue := GetOrdProp(Ancestor, PropInfo)
         else
           DefValue := PPropInfo(PropInfo)^.Default;
-        //writeln(PPropInfo(PropInfo)^.Name, ', HasAncestor=', ord(HasAncestor), ', Value=', Value, ', Default=', DefValue);
+        // writeln(PPropInfo(PropInfo)^.Name, ', HasAncestor=', ord(HasAncestor), ', Value=', Value, ', Default=', DefValue);
         if (Value <> DefValue) or (DefValue=longint($80000000)) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
@@ -804,8 +832,11 @@ begin
         if HasAncestor then
           DefFloatValue := GetFloatProp(Ancestor, PropInfo)
         else
-          DefFloatValue := 0;
-        if FloatValue <> DefFloatValue then
+          begin
+          DefValue :=PPropInfo(PropInfo)^.Default;
+          DefFloatValue:=PSingle(@PPropInfo(PropInfo)^.Default)^;
+          end;
+        if (FloatValue<>DefFloatValue) or (DefValue=longint($80000000)) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteFloat(FloatValue);
@@ -872,6 +903,21 @@ begin
           Driver.EndProperty;
         end;
       end;
+    tkUString:
+      begin
+        UStrValue := GetUnicodeStrProp(Instance, PropInfo);
+        if HasAncestor then
+          UDefStrValue := GetUnicodeStrProp(Ancestor, PropInfo)
+        else
+          SetLength(UDefStrValue, 0);
+
+        if UStrValue <> UDefStrValue then
+        begin
+          Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+          WriteUnicodeString(UStrValue);
+          Driver.EndProperty;
+        end;
+      end;
   {!!!: tkVariant:}
     tkClass:
       begin
@@ -934,7 +980,7 @@ begin
           else if ObjValue.InheritsFrom(TCollection) then
             begin
             if (not HasAncestor) or (not CollectionsEqual(TCollection(ObjValue),
-              TCollection(GetObjectProp(Ancestor, PropInfo)))) then
+              TCollection(GetObjectProp(Ancestor, PropInfo)),root,rootancestor)) then
               begin
               Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
               SavedPropPath := FPropPath;
@@ -983,8 +1029,12 @@ begin
         if HasAncestor then
           DefBoolValue := GetOrdProp(Ancestor, PropInfo)<>0
         else
+          begin
           DefBoolValue := PPropInfo(PropInfo)^.Default<>0;
-        if BoolValue <> DefBoolValue then
+          DefValue:=PPropInfo(PropInfo)^.Default;
+          end;
+        // writeln(PPropInfo(PropInfo)^.Name, ', HasAncestor=', ord(HasAncestor), ', Value=', Value, ', Default=', DefBoolValue);
+        if (BoolValue<>DefBoolValue) or (DefValue=longint($80000000)) then
           begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           WriteBoolean(BoolValue);
@@ -1007,5 +1057,10 @@ end;
 procedure TWriter.WriteWideString(const Value: WideString);
 begin
   Driver.WriteWideString(Value);
+end;
+
+procedure TWriter.WriteUnicodeString(const Value: UnicodeString);
+begin
+  Driver.WriteUnicodeString(Value);
 end;
 

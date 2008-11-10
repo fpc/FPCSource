@@ -780,7 +780,7 @@ Implementation
               { Search opcodes }
               if len>0 then
                 begin
-                  actopcode:=tasmop(PtrInt(iasmops.Find(copy(s,1,len))));
+                  actopcode:=tasmop(PtrUInt(iasmops.Find(copy(s,1,len))));
                   if actopcode<>A_NONE then
                     begin
                       if gas_needsuffix[actopcode]=attsufFPU then

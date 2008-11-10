@@ -37,9 +37,11 @@ unit optbase;
       toptinfo = record
         { index of the current node inside the dfa sets, aword(-1) if no entry }
         index : aword;
+        { dfa }
         def : tdfaset;
         use : tdfaset;
         life : tdfaset;
+        defsum : tdfaset;
       end;
 
       poptinfo = ^toptinfo;

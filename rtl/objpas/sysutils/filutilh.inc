@@ -23,7 +23,7 @@ Type
 {$ifdef unix}
     FindHandle : Pointer;
     Mode : TMode;
-    PathOnly : AnsiString;
+    PathOnly : AnsiString {$ifndef VER2_2} deprecated{$endif};
 {$else unix}
     FindHandle : THandle;
 {$endif unix}

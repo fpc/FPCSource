@@ -569,7 +569,7 @@ uses
         len,hlen : longint;
         buf : array[0..1023] of byte;
       begin
-        if derefdataintflen>derefdata.size then
+        if longword(derefdataintflen)>derefdata.size then
           internalerror(200310223);
         derefdata.seek(0);
         { Write interface data }
@@ -778,7 +778,7 @@ uses
                   sources_avail:=false;
                   temp:=' not found';
                 end;
-              hp:=tinputfile.create(hs);
+              hp:=tdosinputfile.create(hs);
               { the indexing is wrong here PM }
               sourcefiles.register_file(hp);
             end;
@@ -982,7 +982,7 @@ uses
              ibloadunit :
                readloadunit;
              ibasmsymbols :
-{$warning TODO Remove ibasmsymbols}
+{ TODO: Remove ibasmsymbols}
                ;
              ibendimplementation :
                break;

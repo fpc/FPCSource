@@ -61,6 +61,8 @@ const
   tkDynArray = 21;
   tkInterfaceCorba = 22;
   tkProcVar  = 23;
+  tkUString  = 24;
+  tkUChar    = 25;
 
   otSByte    = 0;
   otUByte    = 1;
@@ -137,7 +139,8 @@ type
     sp_strictprotected,
     sp_implicitrename,
     sp_hidden,
-    sp_hint_experimental
+    sp_hint_experimental,
+    sp_generic_para
   );
   tsymoptions=set of tsymoption;
 
@@ -263,7 +266,9 @@ type
     po_has_importdll,
     po_has_importname,
     po_kylixlocal,
-    po_dispid
+    po_dispid,
+    { weakly linked (i.e., may or may not exist at run time) }
+    po_weakexternal
   );
   tprocoptions=set of tprocoption;
 
@@ -351,6 +356,7 @@ type
     vo_is_range_check,
     vo_is_overflow_check,
     vo_is_typinfo_para,
+    vo_is_weak_external,
     vo_is_first_field   { first field of a record or variant part of a record }
   );
   tvaroptions=set of tvaroption;
@@ -446,7 +452,7 @@ type
   tvariantequaltype = (
     tve_incompatible,
     tve_chari64,
-    tve_unicodestring,
+    tve_ustring,
     tve_wstring,
     tve_astring,
     tve_sstring,
@@ -474,7 +480,8 @@ type
 
 const
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
-                oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor];
+                oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
+                oo_can_have_published];
    clearstack_pocalls = [
      pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
    ];

@@ -37,7 +37,7 @@ interface
        ;
 
     type
-       TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL);
+       TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,

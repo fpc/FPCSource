@@ -333,7 +333,7 @@ begin
 
   if FPassed = 0 then
     FState := 'N/A'
-  else if FPassed = FTotal then
+  else if FPassed = FTotal - FSkipped then
     FState := 'CONFORMS (provisionally)'
   else
     FState := 'DOES NOT CONFORM';

@@ -126,6 +126,15 @@ procedure gtk_image_set(image:PGtkImage; val:PGdkImage; mask:PGdkBitmap); cdecl;
 procedure gtk_image_get(image:PGtkImage; var val:PGdkImage; var mask:PGdkBitmap); cdecl; external gtklib;
 {$endif}
 { GTK_DISABLE_DEPRECATED  }
+
+{$ifdef HasGTK2_6}
+procedure gtk_image_get_icon_name(image:PGtkImage; icon_name:PPgchar; size:PGtkIconSize); cdecl; external gtklib;
+function gtk_image_get_pixel_size(image:PGtkImage):gint; cdecl; external gtklib;
+function gtk_image_new_from_icon_name(icon_name:Pgchar; size:TGtkIconSize):PGtkWidget; cdecl; external gtklib;
+procedure gtk_image_set_from_icon_name(image:PGtkImage; icon_name:Pgchar; size:TGtkIconSize); cdecl; external gtklib;
+procedure gtk_image_set_pixel_size(image:PGtkImage; pixel_size:gint); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

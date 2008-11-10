@@ -39,7 +39,7 @@ type
 
 implementation
 
-uses baseunix, Unix;
+uses unixtype, baseunix, Unix;
 
 const
   MaxHandle = SizeOf(TFDSet) * 8 - 1;

@@ -2625,12 +2625,7 @@ end;
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
   If Level in FLogLevels then
-    begin
-      if Level in [vlError,vlWarning] then
-        Writeln(StdErr,Msg)
-      else
-        Writeln(StdOut,Msg);
-    end;
+    Writeln(StdOut,Msg);
 end;
 
 

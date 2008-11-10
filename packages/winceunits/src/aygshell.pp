@@ -43,7 +43,6 @@
             29    ComboEditAutoComplete
             45    ComboSubProc
            190    CreateImageCache
-          2021    DMProcessConfigXML
            330    DPI_ExtractIconEx
            311    DPI_LoadImageFile
            310    DPI_LoadLibraryRes
@@ -364,10 +363,10 @@ const
   SIP_STATUS_UNAVAILABLE = 0;
   SIP_STATUS_AVAILABLE  = 1;
 
-  SIPF_OFF    =	$00000000;
-  SIPF_ON     =	$00000001;
-  SIPF_DOCKED =	$00000002;
-  SIPF_LOCKED =	$00000004;
+  SIPF_OFF    = $00000000;
+  SIPF_ON     = $00000001;
+  SIPF_DOCKED = $00000002;
+  SIPF_LOCKED = $00000004;
 
   {Supported system parameters}
   SPI_SETCOMPLETIONINFO  = 223;

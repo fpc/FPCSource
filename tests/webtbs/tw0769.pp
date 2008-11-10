@@ -1,4 +1,4 @@
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 { this should generate no warning }
 
 {$mode tp}

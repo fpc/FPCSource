@@ -260,7 +260,7 @@ implementation
       end;
 
 
-{$WARNING FIX ME!!! shlshrnode needs review}
+{ TODO: FIX ME!!! shlshrnode needs review}
     procedure tm68kshlshrnode.pass_generate_code;
       var
         hregister,resultreg,hregister1,

@@ -4285,12 +4285,9 @@ begin
 end;
 
 function Load_GL_version_1_2: Boolean;
-var
-  extstring: String;
 begin
 
   Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
 
     glBlendColor := wglGetProcAddress('glBlendColor');
     if not Assigned(glBlendColor) then Exit;
@@ -4298,6 +4295,26 @@ begin
     if not Assigned(glBlendEquation) then Exit;
     glDrawRangeElements := wglGetProcAddress('glDrawRangeElements');
     if not Assigned(glDrawRangeElements) then Exit;
+    glTexImage3D := wglGetProcAddress('glTexImage3D');
+    if not Assigned(glTexImage3D) then Exit;
+    glTexSubImage3D := wglGetProcAddress('glTexSubImage3D');
+    if not Assigned(glTexSubImage3D) then Exit;
+    glCopyTexSubImage3D := wglGetProcAddress('glCopyTexSubImage3D');
+    if not Assigned(glCopyTexSubImage3D) then Exit;
+    Result := TRUE;
+
+end;
+
+function Load_GL_ARB_imaging: Boolean;
+var
+  extstring: String;
+begin
+
+  Result := FALSE;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
+  begin
     glColorTable := wglGetProcAddress('glColorTable');
     if not Assigned(glColorTable) then Exit;
     glColorTableParameterfv := wglGetProcAddress('glColorTableParameterfv');
@@ -4362,26 +4379,6 @@ begin
     if not Assigned(glResetHistogram) then Exit;
     glResetMinmax := wglGetProcAddress('glResetMinmax');
     if not Assigned(glResetMinmax) then Exit;
-    glTexImage3D := wglGetProcAddress('glTexImage3D');
-    if not Assigned(glTexImage3D) then Exit;
-    glTexSubImage3D := wglGetProcAddress('glTexSubImage3D');
-    if not Assigned(glTexSubImage3D) then Exit;
-    glCopyTexSubImage3D := wglGetProcAddress('glCopyTexSubImage3D');
-    if not Assigned(glCopyTexSubImage3D) then Exit;
-    Result := TRUE;
-
-end;
-
-function Load_GL_ARB_imaging: Boolean;
-var
-  extstring: String;
-begin
-
-  Result := FALSE;
-  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
-
-  if glext_ExtensionSupported('GL_ARB_imaging', extstring) then
-  begin
     Result := TRUE;
   end;
 
@@ -7591,7 +7588,7 @@ function load_GL_ARB_vertex_buffer_object : boolean;
 var extstring:string;
 
 begin
-  load_GL_ARB_vertex_buffer_object:=false;
+  Result:=false;
   extstring := String(PChar(glGetString(GL_EXTENSIONS)));
   if glext_ExtensionSupported('GL_ARB_vertex_buffer_object',extstring) then
     begin
@@ -7615,8 +7612,8 @@ begin
       if not Assigned(glGetBufferParameterivARB) then Exit;
       glGetBufferPointervARB := wglGetProcAddress('glGetBufferPointervARB');
       if not Assigned(glGetBufferPointervARB) then Exit;
+      Result:=true;
     end;
-  load_GL_ARB_vertex_buffer_object:=true;
 end;
 
 {$IFDEF Windows}

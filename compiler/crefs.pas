@@ -34,7 +34,7 @@ uses
    TrefItem = class (TLinkedListItem)
      refinfo  : tfileposinfo;
      constructor create(const ARefInfo : tfileposinfo);
-     Function GetCopy:TLinkedListItem;virtual;
+     Function GetCopy:TLinkedListItem;virtual;reintroduce;
    end;
 
    TRefLinkedList = class(TLinkedList)

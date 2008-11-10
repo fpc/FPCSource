@@ -754,6 +754,10 @@ begin
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
+  
+  { Set is_jmp, it enables asmwriter to emit short jumps if appropriate }
+  if (opcode=A_JMP) or (opcode=A_JCC) then
+    ai.is_jmp := True;
 
  { Concat the opcode or give an error }
   if assigned(ai) then

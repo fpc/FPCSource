@@ -115,6 +115,13 @@
      GDK_SETTING_ACTION_DELETED
    );
 
+   PGdkOwnerChange = ^TGdkOwnerChange;
+   TGdkOwnerChange = (
+     GDK_OWNER_CHANGE_NEW_OWNER,
+     GDK_OWNER_CHANGE_DESTROY,
+     GDK_OWNER_CHANGE_CLOSE
+   );
+
    PGdkEventAny = ^TGdkEventAny;
    TGdkEventAny = record
         _type : TGdkEventType;
@@ -311,6 +318,18 @@
         name : Pchar;
      end;
 
+   PGdkEventOwnerChange = ^TGdkEventOwnerChange;
+   TGdkEventOwnerChange = record
+        _type : TGdkEventType;
+        window : PGdkWindow;
+        send_event : gint8;
+        owner : TGdkNativeWindow;
+        reason : TGdkOwnerChange;
+        selection : TGdkAtom;
+        time : guint32;
+        selection_time : guint32;
+     end;
+
    PGdkEventWindowState = ^TGdkEventWindowState;
    TGdkEventWindowState = record
         _type : TGdkEventType;
@@ -458,6 +477,10 @@ function gdk_event_get_axis(event:PGdkEvent; axis_use:TGdkAxisUse; value:Pgdoubl
 procedure gdk_event_handler_set(func:TGdkEventFunc; data:gpointer; notify:TGDestroyNotify); cdecl; external gdklib;
 procedure gdk_set_show_events(show_events:gboolean); cdecl; external gdklib;
 function gdk_get_show_events:gboolean; cdecl; external gdklib;
+function gdk_event_get_screen(event:PGdkEvent): PGdkScreen; cdecl; external gdklib;
+function gdk_event_new(_type: TGdkEventType): PGdkEvent; cdecl; external gdklib;
+function gdk_event_send_client_message_for_display(display:PGdkDisplay; event:PGdkEvent; xid:guint32):gboolean; cdecl; external gdklib;
+procedure gdk_event_set_screen(event: PGdkEvent; screen: PGdkScreen); cdecl; external gdklib;
 
 {$ifndef GDK_MULTIHEAD_SAFE}
 procedure gdk_add_client_message_filter(message_type:TGdkAtom; func:TGdkFilterFunc; data:gpointer); cdecl; external gdklib;

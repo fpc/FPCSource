@@ -616,15 +616,23 @@ end;
 
 {$define FPC_SYSTEM_HAS_SYSRESETFPU}
 Procedure SysResetFPU;
-begin
-  asm
-    { initialize fpu }
-    fnclex
-    fwait
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
+  begin
+    localfpucw:=Default8087CW;
+    localmxcsr:=mxcsr;
+    asm
+      fninit
+      fwait
+      fldcw   localfpucw
+      ldmxcsr localmxcsr
+    end;
+    { x86-64 might use softfloat code }
+    softfloat_exception_flags:=0;
   end;
-  { x86-64 might use softfloat code }
-  softfloat_exception_flags:=0;
-end;
+
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
 {$define FPC_SYSTEM_HAS_MEM_BARRIER}

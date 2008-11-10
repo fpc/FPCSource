@@ -158,7 +158,9 @@ unit cgcpu;
        A_LSL,
        A_LSR,
        A_SUB,
-       A_EOR
+       A_EOR,
+       A_NONE,
+       A_NONE
       );
 
 
@@ -243,7 +245,7 @@ unit cgcpu;
 //        writeln('a_param_reg');
 {$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
-{$WARNING FIX ME! check_register_size()}
+{ TODO: FIX ME! check_register_size()}
         // check_register_size(size,r);
         if use_push(cgpara) then
           begin
@@ -298,7 +300,7 @@ unit cgcpu;
         begin
           if not assigned(paraloc) then
             exit;
-{$WARNING FIX ME!!! this also triggers location bug }
+{ TODO: FIX ME!!! this also triggers location bug }
           {if (paraloc^.loc<>LOC_REFERENCE) or
              (paraloc^.reference.index<>NR_STACK_POINTER_REG) or
              (tcgsize2size[paraloc^.size]>sizeof(aint)) then
@@ -569,7 +571,7 @@ unit cgcpu;
        href : treference;
 //       p: pointer;
       begin
-         {$WARNING FIX ME!!! take a look on this mess again...}
+         { TODO: FIX ME!!! take a look on this mess again...}
 //        if getregtype(r)=R_ADDRESSREGISTER then
 //          begin
 //            writeln('address reg?!?');
@@ -1306,13 +1308,13 @@ unit cgcpu;
 	        { size can't be negative }
 		if (localsize < 0) then
 		  internalerror(2006122601);
-	      
+	
                 { Not to complicate the code generator too much, and since some }
                 { of the systems only support this format, the localsize cannot }
                 { exceed 32K in size.                                           }
                 if (localsize > high(smallint)) then
                   CGMessage(cg_e_localsize_too_big);
-                
+
                 list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,-localsize));
 	      end
 	    else
@@ -1324,7 +1326,7 @@ unit cgcpu;
 		  two moves. So, use a link in #0 case too, for now. I'm not
 		  really sure tho', that LINK supports #0 disposition, but i
 		  see no reason why it shouldn't support it. (KB) }
-		  
+		
 	        { when localsize = 0, use two moves, instead of link }
 		r:=NR_FRAME_POINTER_REG;
 		rsp:=NR_STACK_POINTER_REG;
@@ -1369,7 +1371,7 @@ unit cgcpu;
               begin
                 { only 68020+ supports RTD, so this needs another code path
                   for 68000 and Coldfire (KB) }
-{$WARNING 68020+ only code generation, without fallback}
+{ TODO: 68020+ only code generation, without fallback}
                 list.concat(taicpu.op_const(A_RTD,S_NO,parasize));
               end
             else

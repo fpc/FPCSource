@@ -1,39 +1,97 @@
 // included by glib2.pas
 
 {$IFDEF read_forward_definitions}
-{ Typedefs }
    PGType = ^GType;
    GType = gulong;
 
-{ Basic Type Structures }
-{< private > }
    PGTypeClass = ^TGTypeClass;
    TGTypeClass = record
-        g_type : GType;
-     end;
+     g_type : GType;
+   end;
 
-{< private > }
    PGTypeInstance = ^TGTypeInstance;
    TGTypeInstance = record
-        g_class : PGTypeClass;
-     end;
+     g_class : PGTypeClass;
+   end;
 
-{< private > }
-{ iface type  }
    PGTypeInterface = ^TGTypeInterface;
    TGTypeInterface = record
-        g_type : GType;
-        g_instance_type : GType;
-     end;
+     g_type : GType;
+     g_instance_type : GType;
+   end;
 
    PGTypeQuery = ^TGTypeQuery;
    TGTypeQuery = record
-        _type : GType;
-        type_name : Pgchar;
-        class_size : guint;
-        instance_size : guint;
-     end;
+     _type : GType;
+     type_name : Pgchar;
+     class_size : guint;
+     instance_size : guint;
+   end;
 {$ENDIF read_forward_definitions}
+
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+
+   PGTypeDebugFlags = ^TGTypeDebugFlags;
+   TGTypeDebugFlags = longint;
+
+   TGBaseInitFunc = procedure (g_class:gpointer); cdecl;
+   TGBaseFinalizeFunc = procedure (g_class:gpointer); cdecl;
+   TGClassInitFunc = procedure (g_class:gpointer; class_data:gpointer); cdecl;
+   TGClassFinalizeFunc = procedure (g_class:gpointer; class_data:gpointer); cdecl;
+   TGInstanceInitFunc = procedure (instance:PGTypeInstance; g_class:gpointer); cdecl;
+   TGInterfaceInitFunc = procedure (g_iface:gpointer; iface_data:gpointer); cdecl;
+   TGInterfaceFinalizeFunc = procedure (g_iface:gpointer; iface_data:gpointer); cdecl;
+   TGTypeClassCacheFunc = function (cache_data:gpointer; g_class:PGTypeClass):gboolean; cdecl;
+   TGTranslateFunc = function (str:Pgchar;data:gpointer):Pgchar; cdecl;
+
+   PGTypeFundamentalFlags = ^TGTypeFundamentalFlags;
+   TGTypeFundamentalFlags = longint;
+
+   PGTypeFlags = ^TGTypeFlags;
+   TGTypeFlags = longint;
+
+   PGTypeValueTable = ^TGTypeValueTable;
+   TGTypeValueTable = record
+        value_init : procedure (value:PGValue); cdecl;
+        value_free : procedure (value:PGValue); cdecl;
+        value_copy : procedure (src_value:PGValue; dest_value:PGValue); cdecl;
+        value_peek_pointer : function (value:PGValue):gpointer; cdecl;
+        collect_format : Pgchar;
+        collect_value : function (value:PGValue; n_collect_values:guint; collect_values:PGTypeCValue; collect_flags:guint):Pgchar; cdecl;
+        lcopy_format : Pgchar;
+        lcopy_value : function (value:PGValue; n_collect_values:guint; collect_values:PGTypeCValue; collect_flags:guint):Pgchar; cdecl;
+     end;
+
+
+   PGTypeInfo = ^TGTypeInfo;
+   TGTypeInfo = record
+        class_size : guint16;
+        base_init : TGBaseInitFunc;
+        base_finalize : TGBaseFinalizeFunc;
+        class_init : TGClassInitFunc;
+        class_finalize : TGClassFinalizeFunc;
+        class_data : gconstpointer;
+        instance_size : guint16;
+        n_preallocs : guint16;
+        instance_init : TGInstanceInitFunc;
+        value_table : PGTypeValueTable;
+     end;
+
+   PGTypeFundamentalInfo = ^TGTypeFundamentalInfo;
+   TGTypeFundamentalInfo = record
+        type_flags : TGTypeFundamentalFlags;
+     end;
+
+   PGInterfaceInfo = ^TGInterfaceInfo;
+   TGInterfaceInfo = record
+        interface_init : TGInterfaceInitFunc;
+        interface_finalize : TGInterfaceFinalizeFunc;
+        interface_data : gpointer;
+     end;
+{$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
 
@@ -76,7 +134,6 @@ const
 
 function G_TYPE_MAKE_FUNDAMENTAL(x : longint) : GType;
 
-
 const
    G_TYPE_RESERVED_GLIB_FIRST = 21;
    G_TYPE_RESERVED_GLIB_LAST = 31;
@@ -117,10 +174,6 @@ function G_TYPE_FROM_INTERFACE(g_iface : Pointer) : GType;
 
 { debug flags for g_type_init_with_debug_flags()  }
 {< skip > }
-type
-   PGTypeDebugFlags = ^TGTypeDebugFlags;
-   TGTypeDebugFlags = longint;
-
 const
    G_TYPE_DEBUG_NONE = 0;
    G_TYPE_DEBUG_OBJECTS = 1 shl 0;
@@ -154,91 +207,15 @@ function g_type_get_qdata(_type:GType; quark:TGQuark):gpointer; cdecl; external 
 procedure g_type_query(_type:GType; query:PGTypeQuery); cdecl; external gobjectlib;
 
 
-{ --- type registration ---  }
-type
-   TGBaseInitFunc = procedure (g_class:gpointer); cdecl;
-
-   TGBaseFinalizeFunc = procedure (g_class:gpointer); cdecl;
-
-   TGClassInitFunc = procedure (g_class:gpointer; class_data:gpointer); cdecl;
-
-   TGClassFinalizeFunc = procedure (g_class:gpointer; class_data:gpointer); cdecl;
-
-   TGInstanceInitFunc = procedure (instance:PGTypeInstance; g_class:gpointer); cdecl;
-
-   TGInterfaceInitFunc = procedure (g_iface:gpointer; iface_data:gpointer); cdecl;
-
-   TGInterfaceFinalizeFunc = procedure (g_iface:gpointer; iface_data:gpointer); cdecl;
-
-   TGTypeClassCacheFunc = function (cache_data:gpointer; g_class:PGTypeClass):gboolean; cdecl;
-
-{< skip > }
-
-   PGTypeFundamentalFlags = ^TGTypeFundamentalFlags;
-   TGTypeFundamentalFlags = longint;
-
 const
    G_TYPE_FLAG_CLASSED        = 1 shl 0;
    G_TYPE_FLAG_INSTANTIATABLE = 1 shl 1;
    G_TYPE_FLAG_DERIVABLE      = 1 shl 2;
    G_TYPE_FLAG_DEEP_DERIVABLE = 1 shl 3;
 
-
-{< skip > }
-type
-   PGTypeFlags = ^TGTypeFlags;
-   TGTypeFlags = longint;
-
 const
    G_TYPE_FLAG_ABSTRACT = 1 shl 4;
    G_TYPE_FLAG_VALUE_ABSTRACT = 1 shl 5;
-
-type
-{ interface types, classed types, instantiated types  }
-
-{ varargs functionality (optional)  }
-   PGTypeValueTable = ^TGTypeValueTable;
-   TGTypeValueTable = record
-        value_init : procedure (value:PGValue); cdecl;
-        value_free : procedure (value:PGValue); cdecl;
-        value_copy : procedure (src_value:PGValue; dest_value:PGValue); cdecl;
-        value_peek_pointer : function (value:PGValue):gpointer; cdecl;
-        collect_format : Pgchar;
-        collect_value : function (value:PGValue; n_collect_values:guint; collect_values:PGTypeCValue; collect_flags:guint):Pgchar; cdecl;
-        lcopy_format : Pgchar;
-        lcopy_value : function (value:PGValue; n_collect_values:guint; collect_values:PGTypeCValue; collect_flags:guint):Pgchar; cdecl;
-     end;
-
-
-{ classed types, instantiated types  }
-{ instantiated types  }
-{ value handling  }
-   PGTypeInfo = ^TGTypeInfo;
-   TGTypeInfo = record
-        class_size : guint16;
-        base_init : TGBaseInitFunc;
-        base_finalize : TGBaseFinalizeFunc;
-        class_init : TGClassInitFunc;
-        class_finalize : TGClassFinalizeFunc;
-        class_data : gconstpointer;
-        instance_size : guint16;
-        n_preallocs : guint16;
-        instance_init : TGInstanceInitFunc;
-        value_table : PGTypeValueTable;
-     end;
-
-   PGTypeFundamentalInfo = ^TGTypeFundamentalInfo;
-   TGTypeFundamentalInfo = record
-        type_flags : TGTypeFundamentalFlags;
-     end;
-
-   PGInterfaceInfo = ^TGInterfaceInfo;
-   TGInterfaceInfo = record
-        interface_init : TGInterfaceInitFunc;
-        interface_finalize : TGInterfaceFinalizeFunc;
-        interface_data : gpointer;
-     end;
-
 
 function g_type_register_static(parent_type:GType; type_name:Pgchar; info:PGTypeInfo; flags:TGTypeFlags):GType; cdecl; external gobjectlib;
 function g_type_register_dynamic(parent_type:GType; type_name:Pgchar; plugin:PGTypePlugin; flags:TGTypeFlags):GType; cdecl; external gobjectlib;

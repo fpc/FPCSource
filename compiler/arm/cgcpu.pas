@@ -46,7 +46,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
         procedure a_call_ref(list : TAsmList;ref: treference);override;
 
@@ -106,11 +106,13 @@ unit cgcpu;
         function handle_load_store(list:TAsmList;op: tasmop;oppostfix : toppostfix;reg:tregister;ref: treference):treference;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);
+        procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint); override;
+        procedure g_stackpointer_alloc(list : TAsmList;size : longint);override;
       private
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
+        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       end;
 
       tcg64farm = class(tcg64f32)
@@ -166,9 +168,15 @@ unit cgcpu;
       begin
         inherited init_register_allocators;
         { currently, we save R14 always, so we can use it }
-        rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
-            [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
-             RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
+        if (target_info.system<>system_arm_darwin) then
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+               RS_R9,RS_R10,RS_R12,RS_R14],first_int_imreg,[])
+        else
+          { r9 is not available on Darwin according to the llvm code generator }
+          rg[R_INTREGISTER]:=trgintcpu.create(R_INTREGISTER,R_SUBWHOLE,
+              [RS_R0,RS_R1,RS_R2,RS_R3,RS_R4,RS_R5,RS_R6,RS_R7,RS_R8,
+               RS_R10,RS_R12,RS_R14],first_int_imreg,[]);
         rg[R_FPUREGISTER]:=trgcpu.create(R_FPUREGISTER,R_SUBNONE,
             [RS_F0,RS_F1,RS_F2,RS_F3,RS_F4,RS_F5,RS_F6,RS_F7],first_fpu_imreg,[]);
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
@@ -278,9 +286,15 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_call_name(list : TAsmList;const s : string);
+    procedure tcgarm.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
-        list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
+        if target_info.system<>system_arm_darwin then
+          if not weak then
+            list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+          else
+            list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)))
+        else
+          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -346,7 +360,7 @@ unit cgcpu;
     const
       op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
         (A_NONE,A_MOV,A_ADD,A_AND,A_NONE,A_NONE,A_MUL,A_MUL,A_NONE,A_NONE,A_ORR,
-         A_NONE,A_NONE,A_NONE,A_SUB,A_EOR);
+         A_NONE,A_NONE,A_NONE,A_SUB,A_EOR,A_NONE,A_NONE);
 
 
     procedure tcgarm.a_op_const_reg_reg(list: TAsmList; op: TOpCg;
@@ -375,7 +389,7 @@ unit cgcpu;
         l1 : longint;
       begin
         ovloc.loc:=LOC_VOID;
-        if is_shifter_const(-a,shift) then
+        if {$ifopt R+}(a<>-2147483648) and{$endif} is_shifter_const(-a,shift) then
           case op of
             OP_ADD:
               begin
@@ -402,6 +416,34 @@ unit cgcpu;
                   begin
                     shifterop_reset(so);
                     so.shiftmode:=SM_LSL;
+                    so.shiftimm:=a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            OP_ROL:
+              begin
+                if a>32 then
+                  internalerror(200308294);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_ROR;
+                    so.shiftimm:=32-a;
+                    list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
+                  end
+                else
+                 list.concat(taicpu.op_reg_reg(A_MOV,dst,src));
+              end;
+            OP_ROR:
+              begin
+                if a>32 then
+                  internalerror(200308294);
+                if a<>0 then
+                  begin
+                    shifterop_reset(so);
+                    so.shiftmode:=SM_ROR;
                     so.shiftimm:=a;
                     list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src,so));
                   end
@@ -515,6 +557,28 @@ unit cgcpu;
               shifterop_reset(so);
               so.rs:=src1;
               so.shiftmode:=SM_ASR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_ROL:
+            begin
+              if not(size in [OS_32,OS_S32]) then
+                internalerror(2008072801);
+              { simulate ROL by ror'ing 32-value }
+              tmpreg:=getintregister(list,OS_32);
+              list.concat(taicpu.op_reg_const(A_MOV,tmpreg,32));
+              list.concat(taicpu.op_reg_reg_reg(A_SUB,src1,tmpreg,src1));
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_ROR;
+              list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
+            end;
+          OP_ROR:
+            begin
+              if not(size in [OS_32,OS_S32]) then
+                internalerror(2008072802);
+              shifterop_reset(so);
+              so.rs:=src1;
+              so.shiftmode:=SM_ROR;
               list.concat(taicpu.op_reg_reg_shifterop(A_MOV,dst,src2,so));
             end;
           OP_IMUL,
@@ -1287,7 +1351,7 @@ unit cgcpu;
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
-            { allocate necessary stack size
+           (* allocate necessary stack size
               not necessary according to Yury Sidorov
 
             { don't use a_op_const_reg_reg here because we don't allow register allocations
@@ -1349,7 +1413,7 @@ unit cgcpu;
                  end
              end
             else
-            }
+            *)
             if LocalSize<>0 then
               if not(is_shifter_const(localsize,shift)) then
                 begin
@@ -1608,7 +1672,7 @@ unit cgcpu;
         paramanager.freeparaloc(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list,'FPC_MOVE');
+        a_call_name(list,'FPC_MOVE',false);
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         paraloc3.done;
@@ -1882,7 +1946,7 @@ unit cgcpu;
             internalerror(200409281);
         end;
 
-        a_call_name(list,'FPC_OVERFLOW');
+        a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,hl);
       end;
 
@@ -1960,6 +2024,11 @@ unit cgcpu;
               end;
               paraloc:=next;
             end;
+      end;
+
+    procedure tcgarm.g_stackpointer_alloc(list: TAsmList; size: longint);
+      begin
+        internalerror(200807237);
       end;
 
 
@@ -2041,6 +2110,51 @@ unit cgcpu;
         if (op in overflowops) and
            (size in [OS_8,OS_S8,OS_16,OS_S16]) then
           a_load_reg_reg(list,OS_32,size,dst,dst);
+      end;
+
+
+    function tcgarm.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
+      var
+        stubname: string;
+        l1: tasmsymbol;
+        href: treference;
+      begin
+        stubname := 'L'+s+'$stub';
+        result := current_asmdata.getasmsymbol(stubname);
+        if assigned(result) then
+          exit;
+
+        if current_asmdata.asmlists[al_imports]=nil then
+          current_asmdata.asmlists[al_imports]:=TAsmList.create;
+
+        current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
+        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(4));
+        result := current_asmdata.RefAsmSymbol(stubname);
+        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        { register as a weak symbol if necessary }
+        if weak then
+          current_asmdata.weakrefasmsymbol(s);
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        
+        if not(cs_create_pic in current_settings.moduleswitches) then
+          begin
+            l1 := current_asmdata.RefAsmSymbol('L'+s+'$slp');
+            reference_reset_symbol(href,l1,0);
+            href.refaddr:=addr_full;
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R12,href));
+            reference_reset_base(href,NR_R12,0);
+            current_asmdata.asmlists[al_imports].concat(taicpu.op_reg_ref(A_LDR,NR_R15,href));
+            current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
+            l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
+            current_asmdata.asmlists[al_imports].concat(tai_const.create_sym(l1));
+          end
+        else
+          internalerror(2008100401);
+        
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_lazy_symbol_pointer,''));
+        current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
+        current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
+        current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));
       end;
 
 

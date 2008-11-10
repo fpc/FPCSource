@@ -69,9 +69,9 @@ end;
 Function TLinkerWatcom.WriteResponseFile(isdll:boolean) : Boolean;
 Var
   linkres  : TLinkRes;
-  i        : longint;
+  {i        : longint;}
   s        : string;
-  linklibc : boolean;
+  {linklibc : boolean;}
 begin
   WriteResponseFile:=False;
 

@@ -44,6 +44,9 @@ interface
       {# This is a derived class which is used to write
          GAS styled assembler.
       }
+
+      { TGNUAssembler }
+
       TGNUAssembler=class(texternalassembler)
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
@@ -53,6 +56,7 @@ interface
 {$ifdef support_llvm}
         procedure WriteLlvmInstruction(hp: taillvm);
 {$endif support_llvm}
+        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
@@ -82,8 +86,12 @@ interface
       end;
 
 
+      { TAppleGNUAssembler }
+
       TAppleGNUAssembler=class(TGNUAssembler)
+       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        procedure WriteWeakSymbolDef(s: tasmsymbol); override;
        private
         debugframecount: aint;
        end;
@@ -259,7 +267,7 @@ implementation
 { not relocated properly on e.g. linux/ppc64. g++ generates there for a   }
 { vtable for a class called Window:                                       }
 { .section .data.rel.ro._ZTV6Window,"awG",@progbits,_ZTV6Window,comdat    }
-{$warning TODO .data.ro not yet working}
+{ TODO: .data.ro not yet working}
 {$if defined(arm) or defined(powerpc)}
           '.rodata',
 {$else arm}
@@ -371,7 +379,8 @@ implementation
          system_powerpc_darwin,
          system_i386_darwin,
          system_powerpc64_darwin,
-         system_x86_64_darwin:
+         system_x86_64_darwin,
+         system_arm_darwin:
            begin
              if (atype = sec_stub) then
                AsmWrite('.section ');
@@ -399,7 +408,12 @@ implementation
                     AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
                 system_i386_darwin:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
-                { darwin/x86-64 uses RIP-based GOT addressing }
+                system_arm_darwin:
+                  if (cs_create_pic in current_settings.moduleswitches) then
+                    AsmWriteln('.section __TEXT,__picsymbolstub4,symbol_stubs,none,16')
+                  else
+                    AsmWriteln('.section __TEXT,__symbol_stub4,symbol_stubs,none,12')
+                { darwin/x86-64 uses RIP-based GOT addressing, no symbol stubs }
                 else
                   internalerror(2006031101);
               end;
@@ -1113,10 +1127,17 @@ implementation
       end;
 
 
+    procedure TGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+      begin
+        AsmWriteLn(#9'.weak '+s.name);
+      end;
+
+
     procedure TGNUAssembler.WriteAsmList;
     var
       n : string;
       hal : tasmlisttype;
+      i: longint;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -1138,6 +1159,11 @@ implementation
           writetree(current_asmdata.asmlists[hal]);
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
+
+      { add weak symbol markers }
+      for i:=0 to current_asmdata.asmsymboldict.count-1 do
+        if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
+          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (target_info.system in systems_darwin) then
@@ -1212,6 +1238,12 @@ implementation
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
+      end;
+
+
+    procedure TAppleGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+      begin
+        AsmWriteLn(#9'.weak_reference '+s.name);
       end;
 
 

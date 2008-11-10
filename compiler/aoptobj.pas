@@ -351,6 +351,7 @@ Unit AoptObj;
       Function TUsedRegs.IsUsed(Reg: TRegister): Boolean;
       Begin
         //!!!!!!!!!!! IsUsed := Reg in UsedRegs
+        Result:=False; { unimplemented }
       End;
 
       Function TUsedRegs.GetUsedRegs: TRegSet;
@@ -377,13 +378,16 @@ Unit AoptObj;
         End;
 
       Function TPaiProp.RegInSequence(Reg, which: TRegister): Boolean;
+      {
       Var p: Tai;
           RegsChecked: TRegSet;
           content: TContent;
           Counter: Byte;
           TmpResult: Boolean;
-      Begin
-      {!!!!!!!!!!1
+      }
+      begin
+        Result:=False; { unimplemented }
+      (*!!!!!!!!!!1
         RegsChecked := [];
         content := regs[which];
         p := content.StartMod;
@@ -421,7 +425,7 @@ Unit AoptObj;
             GetNextInstruction(p,p)
           End;
         RegInSequence := TmpResult
-      }
+      *)
       End;
 
 
@@ -429,8 +433,10 @@ Unit AoptObj;
                   TInstrSinceLastMod);
       { Destroys the contents of the register Reg in the PPaiProp p1, as well as }
       { the contents of registers are loaded with a memory location based on Reg }
+      {
       Var TmpWState, TmpRState: Byte;
           Counter: TRegister;
+      }
       Begin
       {!!!!!!!
         Reg := RegMaxSize(Reg);
@@ -454,14 +460,15 @@ Unit AoptObj;
 
       Function ArrayRefsEq(const r1, r2: TReference): Boolean;
       Begin
-      {!!!!!!!!!!
+        Result:=False; { unimplemented }
+      (*!!!!!!!!!!
         ArrayRefsEq := (R1.Offset+R1.OffsetFixup = R2.Offset+R2.OffsetFixup) And
       {$ifdef refsHaveSegmentReg}
                        (R1.Segment = R2.Segment) And
       {$endif}
                        (R1.Base = R2.Base) And
                        (R1.Symbol=R2.Symbol);
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyRefs(Const Ref: TReference; WhichReg: TRegister;
@@ -469,10 +476,12 @@ Unit AoptObj;
       { destroys all registers which possibly contain a reference to Ref, WhichReg }
       { is the register whose contents are being written to memory (if this proc   }
       { is called because of a "mov?? %reg, (mem)" instruction)                    }
+      {
       Var RefsEq: TRefCompare;
           Counter: TRegister;
+      }
       Begin
-      {!!!!!!!!!!!
+      (*!!!!!!!!!!!
         WhichReg := RegMaxSize(WhichReg);
         If (Ref.base = procinfo.FramePointer) or
             Assigned(Ref.Symbol) Then
@@ -543,13 +552,13 @@ Unit AoptObj;
                        )
                    )
                 Then DestroyReg(Counter, InstrSinceLastMod)
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyAllRegs(var InstrSinceLastMod: TInstrSinceLastMod);
-      Var Counter: TRegister;
+      {Var Counter: TRegister;}
       Begin {initializes/desrtoys all registers}
-      {!!!!!!!!!
+      (*!!!!!!!!!
         For Counter := LoGPReg To HiGPReg Do
           Begin
             ReadReg(Counter);
@@ -557,7 +566,7 @@ Unit AoptObj;
           End;
         CondRegs.Init;
       { FPURegs.Init; }
-      }
+      *)
       End;
 
       Procedure TPaiProp.DestroyOp(const o:Toper; var InstrSinceLastMod:
@@ -587,14 +596,14 @@ Unit AoptObj;
 
       Procedure TPaiProp.ReadRef(Ref: PReference);
       Begin
-      {!!!!!!!
+      (*!!!!!!
         If Ref^.Base <> R_NO Then
           ReadReg(Ref^.Base);
       {$ifdef refsHaveIndexReg}
         If Ref^.Index <> R_NO Then
           ReadReg(Ref^.Index);
       {$endif}
-      }
+      *)
       End;
 
       Procedure TPaiProp.ReadOp(const o:toper);
@@ -610,7 +619,7 @@ Unit AoptObj;
       Procedure TPaiProp.ModifyReg(reg: TRegister; Var InstrSinceLastMod:
                                      TInstrSinceLastMod);
       Begin
-      {!!!!!!!
+      (*!!!!!!!
         With Regs[reg] Do
           If (Typ = Con_Ref)
             Then
@@ -625,7 +634,7 @@ Unit AoptObj;
               End
             Else
               DestroyReg(Reg, InstrSinceLastMod);
-      }
+      *)
       End;
 
       Procedure TPaiProp.ModifyOp(const oper: TOper; var InstrSinceLastMod:
@@ -652,16 +661,19 @@ Unit AoptObj;
 
       Function TPaiProp.GetWState(Reg: TRegister): TStateInt; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetWState := Regs[Reg].WState
       End;
 
       Function TPaiProp.GetRState(Reg: TRegister): TStateInt; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetRState := Regs[Reg].RState
       End;
 
       Function TPaiProp.GetRegContentType(Reg: TRegister): Byte; {$ifdef inl} inline;{$endif inl}
       Begin
+        Result:=0; { unimplemented }
         //!!!! GetRegContentType := Regs[Reg].typ
       End;
 
@@ -878,8 +890,8 @@ Unit AoptObj;
 {$endif}
     function tAOptObj.getlabelwithsym(sym: tasmlabel): tai;
       begin
-        if (sym.labelnr >= labelinfo^.lowlabel) and
-           (sym.labelnr <= labelinfo^.highlabel) then   { range check, a jump can go past an assembler block! }
+        if (sym.labelnr >= aint(labelinfo^.lowlabel)) and
+           (sym.labelnr <= aint(labelinfo^.highlabel)) then   { range check, a jump can go past an assembler block! }
           getlabelwithsym := labelinfo^.labeltable^[sym.labelnr-labelinfo^.lowlabel].paiobj
         else
           getlabelwithsym := nil;
@@ -1034,7 +1046,7 @@ Unit AoptObj;
                       if GetNextInstruction(p, hp1) then
                         begin
                           if FindLabel(tasmlabel(taicpu(p).oper[0]^.ref^.symbol), hp1) and
-        {$warning FIXME removing the first instruction fails}
+        { TODO: FIXME removing the first instruction fails}
                               (p<>blockstart) then
                             begin
                               hp2:=tai(hp1.next);

@@ -156,7 +156,7 @@ type
 const TopicCacheSize    : sw_integer = 10;
       HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
-      MaxHelpTopicSize  : sw_word = {$ifdef FPC}3*65520{$else}65520{$endif};
+      MaxHelpTopicSize  : sw_word = 3*65520;
 
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string;
           ExtData: pointer; ExtDataSize: longint): PTopic;
@@ -186,12 +186,8 @@ implementation
 
 uses
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    linux,
-  {$else}
-    baseunix,
-    unix,
-  {$endif}
+  baseunix,
+  unix,
 {$endif Unix}
 {$IFDEF OS2}
   DosCalls,
@@ -314,13 +310,8 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
     tv : TimeVal;
     tz : TimeZone;
   begin
-    {$ifdef ver1_0}
-    GetTimeOfDay(tv); {Timezone no longer used?}
-    GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
-    {$else}
     fpGetTimeOfDay(@tv,@tz);
     GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
-    {$endif}
   end;
 {$endif Unix}
 {$ifdef Windows}
@@ -329,11 +320,6 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
   end;
 {$endif Windows}
 {$ifdef go32v2}
-  begin
-    GetDosTicks:=MemL[$40:$6c];
-  end;
-{$endif go32v2}
-{$ifdef TP}
   begin
     GetDosTicks:=MemL[$40:$6c];
   end;
@@ -350,6 +336,16 @@ end;
 {$ifdef netware_clib}
 begin
   GetDosTicks := Nwserv.GetCurrentTicks;
+end;
+{$endif}
+{$ifdef amiga}
+begin
+  GetDosTicks := -1;
+end;
+{$endif}
+{$ifdef morphos}
+begin
+  GetDosTicks := -1;
 end;
 {$endif}
 
@@ -398,7 +394,7 @@ end;
 
 function CloneTopic(T: PTopic): PTopic;
 var NT: PTopic;
-procedure CloneMark(P: PString); {$ifndef FPC}far;{$endif}
+procedure CloneMark(P: PString);
 begin
   NT^.NamedMarks^.InsertStr(GetStr(P));
 end;
@@ -713,9 +709,9 @@ end;
 procedure THelpFile.MaintainTopicCache;
 var Count: sw_integer;
     MinLRU: longint;
-procedure CountThem(P: PTopic); {$ifndef FPC}far;{$endif}
+procedure CountThem(P: PTopic);
 begin if (P^.Text<>nil) or (P^.Links<>nil) then Inc(Count); end;
-procedure SearchLRU(P: PTopic); {$ifndef FPC}far;{$endif}
+procedure SearchLRU(P: PTopic);
 begin if P^.LastAccess<MinLRU then begin MinLRU:=P^.LastAccess; end; end;
 var P: PTopic;
 begin
@@ -779,7 +775,7 @@ end;
 function THelpFacility.SearchTopicOwner(SourceFileID: word; Context: THelpCtx): PHelpFile;
 var P: PTopic;
     HelpFile: PHelpFile;
-function Search(F: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
+function Search(F: PHelpFile): boolean;
 begin
   P:=SearchTopicInHelpFile(F,Context); if P<>nil then HelpFile:=F;
   Search:=P<>nil;
@@ -833,8 +829,8 @@ end;
 
 
 function THelpFacility.TopicSearch(Keyword: string; var FileID: word; var Context: THelpCtx): boolean;
-function ScanHelpFileExact(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
-function SearchExact(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
+function ScanHelpFileExact(H: PHelpFile): boolean;
+function SearchExact(P: PIndexEntry): boolean;
 begin
   SearchExact:=UpcaseStr(P^.Tag^)=Keyword;
 end;
@@ -845,8 +841,8 @@ begin
   if P<>nil then begin FileID:=H^.ID; Context:=P^.HelpCtx; end;
   ScanHelpFileExact:=P<>nil;
 end;
-function ScanHelpFile(H: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
-function Search(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
+function ScanHelpFile(H: PHelpFile): boolean;
+function Search(P: PIndexEntry): boolean;
 begin
   Search:=copy(UpcaseStr(P^.Tag^),1,length(Keyword))=Keyword;
 end;
@@ -871,8 +867,8 @@ function THelpFacility.BuildIndexTopic: PTopic;
 var T: PTopic;
     Keywords: PIndexEntryCollection;
     Lines: PUnsortedStringCollection;
-procedure InsertKeywordsOfFile(H: PHelpFile); {$ifndef FPC}far;{$endif}
-function InsertKeywords(P: PIndexEntry): boolean; {$ifndef FPC}far;{$endif}
+procedure InsertKeywordsOfFile(H: PHelpFile);
+function InsertKeywords(P: PIndexEntry): boolean;
 begin
   Keywords^.Insert(P);
   InsertKeywords:=Keywords^.Count>=MaxCollectionSize;
@@ -1006,7 +1002,7 @@ begin
 end;
 
 function THelpFacility.SearchFile(ID: byte): PHelpFile;
-function Match(P: PHelpFile): boolean; {$ifndef FPC}far;{$endif}
+function Match(P: PHelpFile): boolean;
 begin
   Match:=(P^.ID=ID);
 end;

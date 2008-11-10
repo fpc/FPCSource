@@ -396,7 +396,6 @@ end;
 Procedure TDataset.DoInternalOpen;
 
 begin
-  FDefaultFields:=FieldCount=0;
   InternalOpen;
   FInternalOpenComplete := True;
 {$ifdef dsdebug}
@@ -829,6 +828,37 @@ begin
   FFieldDefs.Assign(AFieldDefs);
 end;
 
+procedure TDataSet.DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
+var i : integer;
+    ValuesSize : integer;
+begin
+  ValuesSize:=Length(Values);
+  if ValuesSize>FieldCount then DatabaseError(STooManyFields,self);
+  if DoAppend then
+    Append
+  else
+    Insert;
+
+  for i := 0 to ValuesSize-1 do with values[i] do
+    case VType of
+      vtInteger   : fields[i].AsInteger    := VInteger;
+      vtBoolean   : fields[i].AsBoolean    := VBoolean;
+      vtChar      : fields[i].AsString     := VChar;
+      vtWideChar  : fields[i].AsString     := VWideChar;
+      vtString    : fields[i].AsString     := AnsiString(VString);
+      vtAnsiString: fields[i].AsString     := AnsiString(VAnsiString);
+      vtCurrency  : fields[i].AsCurrency   := VCurrency^;
+//      vtWideString: fields[i].AsWideString := VWideString;
+      vtInt64     : fields[i].AsLargeInt   := VInt64^;
+      vtQWord     : fields[i].AsLargeInt   := VQWord^;
+      vtVariant   : fields[i].AsVariant    := VVariant^;
+    else
+      DatabaseError(SIncompatibleTVarRec);
+    end; {case}
+  Post;
+
+end;
+
 procedure TDataSet.InitFieldDefsFromfields;
 var i : integer;
 begin
@@ -982,6 +1012,7 @@ begin
       DoBeforeOpen;
       FInternalCalcFields:=False;
       try
+        FDefaultFields:=FieldCount=0;
         OpenCursor(False);
       finally
         if FState <> dsOpening then OpenCursorComplete;
@@ -1321,7 +1352,7 @@ end;
 Procedure TDataset.AppendRecord(const Values: array of const);
 
 begin
-  //!! To be implemented
+  DoInsertAppendRecord(Values,True);
 end;
 
 Function TDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
@@ -1754,9 +1785,8 @@ end;
 
 Procedure TDataset.InsertRecord(const Values: array of const);
 
-
 begin
-  //!! To be implemented
+  DoInsertAppendRecord(Values,False);
 end;
 
 Function TDataset.IsEmpty: Boolean;

@@ -1,9 +1,13 @@
 // included by glib2.pas
 
 {$IFDEF read_forward_definitions}
-{ vararg union holding actuall values collected
-  }
    PGTypeCValue = ^TGTypeCValue;
+{$ENDIF read_forward_definitions}
+
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
    TGTypeCValue = record
        case longint of
           0 : ( v_int : gint );
@@ -12,7 +16,7 @@
           3 : ( v_double : gdouble );
           4 : ( v_pointer : gpointer );
        end;
-{$ENDIF read_forward_definitions}
+{$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
 

@@ -41,7 +41,7 @@ interface
 implementation
 
     uses
-      globtype,systems,cclasses,
+      globtype,comphook,systems,cclasses,
       cutils,globals,
       procinfo,
       cgbase,symdef
@@ -61,6 +61,7 @@ implementation
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
+         oldverbosity     : longint;
          oldpos    : tfileposinfo;
          hp        : tnode;
       begin
@@ -69,9 +70,11 @@ implementation
            oldcodegenerror:=codegenerror;
            oldpos:=current_filepos;
            oldlocalswitches:=current_settings.localswitches;
+           oldverbosity:=status.verbosity;
            codegenerror:=false;
            current_filepos:=p.fileinfo;
            current_settings.localswitches:=p.localswitches;
+           status.verbosity:=p.verbosity;
            hp:=p.pass_typecheck;
            { should the node be replaced? }
            if assigned(hp) then
@@ -84,6 +87,7 @@ implementation
             end;
            current_settings.localswitches:=oldlocalswitches;
            current_filepos:=oldpos;
+           status.verbosity:=oldverbosity;
            if codegenerror then
             begin
               include(p.flags,nf_error);
@@ -115,6 +119,7 @@ implementation
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
          oldpos    : tfileposinfo;
+         oldverbosity: longint;
          hp : tnode;
       begin
          if (nf_pass1_done in p.flags) then
@@ -124,17 +129,17 @@ implementation
               oldcodegenerror:=codegenerror;
               oldpos:=current_filepos;
               oldlocalswitches:=current_settings.localswitches;
+              oldverbosity:=status.verbosity;
               codegenerror:=false;
               current_filepos:=p.fileinfo;
               current_settings.localswitches:=p.localswitches;
+              status.verbosity:=p.verbosity;
               { checks make always a call }
               if ([cs_check_range,cs_check_overflow,cs_check_stack] * current_settings.localswitches <> []) then
                 include(current_procinfo.flags,pi_do_call);
               { determine the resultdef if not done }
               if (p.resultdef=nil) then
                begin
-                 current_filepos:=p.fileinfo;
-                 current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_typecheck;
                  { should the node be replaced? }
                  if assigned(hp) then
@@ -152,15 +157,11 @@ implementation
                     if p.resultdef=nil then
                      p.resultdef:=generrordef;
                   end;
-                 current_settings.localswitches:=oldlocalswitches;
-                 current_filepos:=oldpos;
                  codegenerror:=codegenerror or oldcodegenerror;
                end;
               if not(nf_error in p.flags) then
                begin
                  { first pass }
-                 current_filepos:=p.fileinfo;
-                 current_settings.localswitches:=p.localswitches;
                  hp:=p.pass_1;
                  { should the node be replaced? }
                  if assigned(hp) then
@@ -197,6 +198,7 @@ implementation
               codegenerror:=codegenerror or oldcodegenerror;
               current_settings.localswitches:=oldlocalswitches;
               current_filepos:=oldpos;
+              status.verbosity:=oldverbosity;
            end
          else
            codegenerror:=true;

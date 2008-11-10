@@ -121,6 +121,9 @@ _start:
         ldr ip,=__stkptr
         str sp, [ip]
 
+	/* keep stack aligned as required by eabi */
+        sub sp,sp,#4
+
 	/* Push stack limit */
 	str a3, [sp, #-4]!
 

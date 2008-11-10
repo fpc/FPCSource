@@ -38,7 +38,6 @@ function GTK_TOOL_ITEM_GET_CLASS(o : pointer) : PGtkToolItemClass;
 
 
 function gtk_tool_item_get_type:GType;cdecl;external gtklib name 'gtk_tool_item_get_type';
-
 function gtk_tool_item_new:PGtkToolItem;cdecl;external gtklib name 'gtk_tool_item_new';
 
 procedure gtk_tool_item_set_homogeneous(tool_item:PGtkToolItem; homogeneous:gboolean);cdecl;external gtklib name 'gtk_tool_item_set_homogeneous';
@@ -62,23 +61,20 @@ function gtk_tool_item_get_is_important(tool_item:PGtkToolItem):gboolean;cdecl;e
 procedure gtk_tool_item_set_is_important(tool_item:PGtkToolItem; is_important:gboolean);cdecl;external gtklib name 'gtk_tool_item_set_is_important';
 
 function gtk_tool_item_get_icon_size(tool_item:PGtkToolItem):TGtkIconSize;cdecl;external gtklib name 'gtk_tool_item_get_icon_size';
-
 function gtk_tool_item_get_orientation(tool_item:PGtkToolItem):TGtkOrientation;cdecl;external gtklib name 'gtk_tool_item_get_orientation';
-
 function gtk_tool_item_get_toolbar_style(tool_item:PGtkToolItem):TGtkToolbarStyle;cdecl;external gtklib name 'gtk_tool_item_get_toolbar_style';
-
 function gtk_tool_item_get_relief_style(tool_item:PGtkToolItem):TGtkReliefStyle;cdecl;external gtklib name 'gtk_tool_item_get_relief_style';
-
 function gtk_tool_item_retrieve_proxy_menu_item(tool_item:PGtkToolItem):PGtkWidget;cdecl;external gtklib name 'gtk_tool_item_retrieve_proxy_menu_item';
 
-
 function gtk_tool_item_get_proxy_menu_item(tool_item:PGtkToolItem; menu_item_id:Pgchar):PGtkWidget;cdecl;external gtklib name 'gtk_tool_item_get_proxy_menu_item';
-
-
 procedure gtk_tool_item_set_proxy_menu_item(tool_item:PGtkToolItem; menu_item_id:Pgchar; menu_item:PGtkWidget);cdecl;external gtklib name 'gtk_tool_item_set_proxy_menu_item';
 
 { internal function  }
 procedure _gtk_tool_item_toolbar_reconfigured(tool_item:PGtkToolItem);cdecl;external gtklib name '_gtk_tool_item_toolbar_reconfigured';
+
+{$ifdef HasGTK2_6}
+procedure gtk_tool_item_rebuild_menu(tool_item:PGtkToolItem);cdecl;external gtklib;
+{$endif}
 
 {$endif read_interface_rest}
 

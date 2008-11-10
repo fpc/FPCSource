@@ -58,6 +58,8 @@ interface
           procedure writedefs(ppufile:tcompilerppufile);
           procedure writesyms(ppufile:tcompilerppufile);
        public
+          procedure insert(sym:TSymEntry;checkdup:boolean=true);override;
+          procedure delete(sym:TSymEntry);override;
           { load/write }
           procedure ppuload(ppufile:tcompilerppufile);virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
@@ -324,6 +326,18 @@ implementation
 {*****************************************************************************
                              TStoredSymtable
 *****************************************************************************}
+
+    procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
+      begin
+        inherited insert(sym,checkdup);
+      end;
+
+
+    procedure tstoredsymtable.delete(sym:TSymEntry);
+      begin
+        inherited delete(sym);
+      end;
+
 
     procedure tstoredsymtable.ppuload(ppufile:tcompilerppufile);
       begin
@@ -2469,7 +2483,7 @@ implementation
        class_tobject:=nil;
        interface_iunknown:=nil;
        rec_tguid:=nil;
-       aktobjectdef:=nil;
+       current_objectdef:=nil;
        dupnr:=0;
      end;
 

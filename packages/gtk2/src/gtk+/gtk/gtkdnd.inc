@@ -73,6 +73,20 @@ procedure gtk_drag_set_default_icon(colormap:PGdkColormap; pixmap:PGdkPixmap; ma
 {$endif}
 { !GTK_DISABLE_DEPRECATED  }
 
+{$ifdef HasGTK2_4}
+function gtk_drag_source_get_target_list(widget: PGtkWidget):PGtkTargetList; cdecl; external gtklib;
+procedure gtk_drag_source_set_target_list(widget: PGtkWidget; target_list:PGtkTargetList); cdecl; external gtklib;
+{$endif}
+
+{$ifdef HasGTK2_6}
+procedure gtk_drag_dest_add_image_targets(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_drag_dest_add_text_targets(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_drag_dest_add_uri_targets(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_drag_source_add_image_targets(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_drag_source_add_text_targets(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_drag_source_add_uri_targets(widget:PGtkWidget); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 // included by gtk2.pas
 

@@ -331,7 +331,15 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$i wstrings.inc}
+{ this is for bootstrappung with 2.2.x }
+{$ifdef VER2_2}
+{$i wustring22.inc}
+{$else VER2_2}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    {$i wstrings.inc}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$i ustrings.inc}
+{$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 {$i aliases.inc}
@@ -648,7 +656,7 @@ begin
 end;
 
 
-Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function IOResult:Word;
 var
   HInoutRes : PWord;
 Begin

@@ -250,6 +250,10 @@ procedure gtk_text_view_set_accepts_tab(text_view: PGtkTextView; accepts_tab: gb
 function  gtk_text_view_get_accepts_tab(text_view: PGtkTextView): gboolean; cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
+{$ifdef HasGTK2_6}
+procedure gtk_text_view_get_iter_at_position(text_view:PGtkTextView; iter:PGtkTextIter; trailing:Pgint; x:gint; y:gint); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

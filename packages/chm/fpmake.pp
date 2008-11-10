@@ -17,10 +17,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='chm';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Andrew Haines';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Standalone CHM reader and writer library';
+    P.NeedLibC:= false;
 
     D:=P.Dependencies.Add('fcl-xml');
-      D.Version:='2.2.1';
+    D.Version:='2.2.2-0';
     
     P.SourcePath.Add('src');
 
@@ -69,6 +76,10 @@ begin
         begin
           AddUnit('paslznonslide');
         end;
+
+//    P.ProgramPath.Add('src');
+    T:=P.Targets.AddProgram('chmls.lpr');
+    T:=P.Targets.AddProgram('chmcmd.lpr');
 
 
 {$ifndef ALLPACKAGES}

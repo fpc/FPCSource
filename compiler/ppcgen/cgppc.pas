@@ -64,7 +64,7 @@ unit cgppc;
 
         procedure g_maybe_got_init(list: TAsmList); override;
        protected
-        function  get_darwin_call_stub(const s: string): tasmsymbol;
+        function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
         { Make sure ref is a valid reference for the PowerPC and sets the }
         { base to the value of the index if (base = R_NO).                }
@@ -133,7 +133,7 @@ unit cgppc;
        const
          opcg_strings : array[TOpCg] of string[6] = (
            'None', 'Move', 'Add', 'And', 'Div', 'IDiv', 'IMul', 'Mul',
-           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor'
+           'Neg', 'Not', 'Or', 'Sar', 'Shl', 'Shr', 'Sub', 'Xor', 'Rol', 'Ror'
          );
        begin
          result := opcg_strings[op];
@@ -243,7 +243,7 @@ unit cgppc;
       end;
 
 
-    function tcgppcgen.get_darwin_call_stub(const s: string): tasmsymbol;
+    function tcgppcgen.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
         instr: taicpu;
@@ -273,6 +273,9 @@ unit cgppc;
         current_asmdata.asmlists[al_imports].concat(Tai_align.Create(stubalign));
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        { register as a weak symbol if necessary }
+        if weak then
+          current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
         reference_reset_symbol(href,l1,0);
@@ -599,7 +602,7 @@ unit cgppc;
         end
       else
         a_jmp_cond(list,OC_AE,hl);
-      a_call_name(list,'FPC_OVERFLOW');
+      a_call_name(list,'FPC_OVERFLOW',false);
       a_label(list,hl);
     end;
 
@@ -616,7 +619,7 @@ unit cgppc;
           paramanager.freeparaloc(list,paraloc1);
           paraloc1.done;
           allocallcpuregisters(list);
-          a_call_name(list,'mcount');
+          a_call_name(list,'mcount',false);
           deallocallcpuregisters(list);
           a_reg_dealloc(list,NR_R0);
         end;
@@ -724,7 +727,7 @@ unit cgppc;
           case target_info.system of
             system_powerpc_darwin,
             system_powerpc64_darwin:
-              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname)));
+              list.concat(taicpu.op_sym(A_B,get_darwin_call_stub(procdef.mangledname,false)));
             system_powerpc64_linux:
               {$note ts:todo add GOT change?? - think not needed :) }
               list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol('.' + procdef.mangledname)));
@@ -777,14 +780,14 @@ unit cgppc;
         if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin]) and
            assigned(ref.symbol) and
            not assigned(ref.relsymbol) and
-           ((ref.symbol.bind = AB_EXTERNAL) or
+           ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
             (cs_create_pic in current_settings.moduleswitches))then
           begin
-            if (ref.symbol.bind = AB_EXTERNAL) or
+            if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                ((cs_create_pic in current_settings.moduleswitches) and
                 (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
               begin
-                tmpreg := g_indirect_sym_load(list,ref.symbol.name);
+                tmpreg := g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
                 ref.symbol:=nil;
               end
             else

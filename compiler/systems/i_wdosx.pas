@@ -21,6 +21,8 @@
 { This unit implements support information structures for wdosx. }
 unit i_wdosx;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -83,6 +85,7 @@ unit i_wdosx;
               );
             first_parm_offset : 8;
             stacksize    : 32*1024*1024;
+            abi          : abi_default;
           );
 
   implementation

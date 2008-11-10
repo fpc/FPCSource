@@ -104,8 +104,8 @@ Unit raavrgas;
 
     procedure tavrattreader.ReadSym(oper : tavroperand);
       var
-         tempstr, mangledname : string;
-         typesize,l,k : longint;
+        tempstr, mangledname : string;
+        typesize,l,k : aint;
       begin
         tempstr:=actasmpattern;
         Consume(AS_ID);
@@ -209,7 +209,7 @@ Unit raavrgas;
     Procedure tavrattreader.BuildOperand(oper : tavroperand);
       var
         expr : string;
-        typesize,l : longint;
+        typesize,l : aint;
 
 
         procedure AddLabelOperand(hl:tasmlabel);
@@ -234,7 +234,7 @@ Unit raavrgas;
             hasdot  : boolean;
             l,
             toffset,
-            tsize   : longint;
+            tsize   : aint;
           begin
             if not(actasmtoken in [AS_DOT,AS_PLUS,AS_MINUS]) then
              exit;

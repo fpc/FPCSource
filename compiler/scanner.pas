@@ -332,11 +332,7 @@ implementation
         if b then
          begin
            { resolve all postponed switch changes }
-           if localswitcheschanged then
-             begin
-               current_settings.localswitches:=nextlocalswitches;
-               localswitcheschanged:=false;
-             end;
+           flushpendingswitchesstate;
 
            HandleModeSwitches(changeinit);
 
@@ -472,7 +468,6 @@ implementation
     function isdef(var valuedescr: String): Boolean;
       var
         hs    : string;
-        mac   : tmacro;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -490,7 +485,6 @@ implementation
     function isnotdef(var valuedescr: String): Boolean;
       var
         hs    : string;
-        mac   : tmacro;
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
@@ -528,11 +522,7 @@ implementation
 
     procedure dir_ifopt;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
@@ -964,7 +954,7 @@ In case not, the value returned can be arbitrary.
                                   else
                                     l:=tarraydef(hdef).highrange;
                                 stringdef:
-                                  if is_open_string(hdef) or is_ansistring(hdef) or is_widestring(hdef) then
+                                  if is_open_string(hdef) or is_ansistring(hdef) or is_wide_or_unicode_string(hdef) then
                                     Message(type_e_mismatch)
                                   else
                                     l:=tstringdef(hdef).len;
@@ -1282,7 +1272,7 @@ In case not, the value returned can be arbitrary.
                else
                  begin
                    if (exprType * exprType2) = [] then
-                     CTEError(exprType2, exprType, tokeninfo^[op].str);
+                     CTEError(exprType2, exprType, '"'+hs1+' '+tokeninfo^[op].str+' '+hs2+'"');
 
                    if is_number(hs1) and is_number(hs2) then
                      begin
@@ -3202,11 +3192,7 @@ In case not, the value returned can be arbitrary.
       label
          exit_label;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
 
         { record tokens? }
         if allowrecordtoken and
@@ -3629,7 +3615,7 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     c:=upcase(c);
-                    if (block_type in [bt_type,bt_specialize]) or
+                    if (block_type in [bt_type,bt_const_type,bt_var_type]) or
                        (lasttoken=_ID) or (lasttoken=_NIL) or (lasttoken=_OPERATOR) or
                        (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
@@ -3651,25 +3637,47 @@ In case not, the value returned can be arbitrary.
                      '#' :
                        begin
                          readchar; { read # }
-                         if c='$' then
-                           begin
-                              readchar; { read leading $ }
-                              asciinr:='$';
-                              while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<6) do
-                               begin
-                                 asciinr:=asciinr+c;
-                                 readchar;
-                               end;
-                           end
-                         else
-                           begin
-                              asciinr:='';
-                              while (c in ['0'..'9']) and (length(asciinr)<6) do
-                               begin
-                                 asciinr:=asciinr+c;
-                                 readchar;
-                               end;
-                           end;
+                         case c of
+                           '$':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='$';
+                               while (upcase(c) in ['A'..'F','0'..'9']) and (length(asciinr)<=5) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           '&':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='&';
+                               while (upcase(c) in ['0'..'7']) and (length(asciinr)<=7) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           '%':
+                             begin
+                               readchar; { read leading $ }
+                               asciinr:='%';
+                               while (upcase(c) in ['0','1']) and (length(asciinr)<=17) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                           else
+                             begin
+                               asciinr:='';
+                               while (c in ['0'..'9']) and (length(asciinr)<=5) do
+                                 begin
+                                   asciinr:=asciinr+c;
+                                   readchar;
+                                 end;
+                             end;
+                         end;
                          val(asciinr,m,code);
                          if (asciinr='') or (code<>0) then
                            Message(scan_e_illegal_char_const)
@@ -3847,7 +3855,7 @@ In case not, the value returned can be arbitrary.
              '>' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_specialize]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_RSHARPBRACKET
                  else
                    begin
@@ -3879,7 +3887,7 @@ In case not, the value returned can be arbitrary.
              '<' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_specialize]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_LSHARPBRACKET
                  else
                    begin

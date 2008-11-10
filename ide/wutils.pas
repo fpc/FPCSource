@@ -14,11 +14,6 @@ unit WUtils;
 
 interface
 
-{$ifndef FPC}
-  {$define TPUNIXLF}
-{$endif}
-
-
 uses
 {$ifdef Windows}
   windows,
@@ -32,12 +27,8 @@ uses
 {$endif}
 
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    linux,
-  {$else}
-    baseunix,
-    unix,
-  {$endif}
+  baseunix,
+  unix,
 {$endif Unix}
   Dos,Objects;
 
@@ -49,7 +40,12 @@ const
   TempFirstChar = {$ifndef Unix}'~'{$else}'_'{$endif};
   TempExt       = '.tmp';
   TempNameLen   = 8;
-  EOL : String[2] = {$ifdef Unix}#10;{$else}#13#10;{$endif}
+
+  { Get DirSep and EOL from System unit, instead of redefining 
+    here with tons of $ifdefs (KB) }
+  DirSep : char = System.DirectorySeparator;
+  EOL : String[2] = System.LineEnding;
+
 
 type
   PByteArray = ^TByteArray;
@@ -118,10 +114,6 @@ type
     function  AtInt(Index: sw_integer): ptrint;
   end;
 
-{$ifdef TPUNIXLF}
-  procedure readln(var t:text;var s:string);
-{$endif}
-
 procedure ReadlnFromStream(Stream: PStream; var s:string;var linecomplete,hasCR : boolean);
 function eofstream(s: pstream): boolean;
 procedure ReadlnFromFile(var f : file; var S:string;
@@ -185,9 +177,6 @@ function Now: longint;
 function FormatDateTimeL(L: longint; const Format: string): string;
 function FormatDateTime(const D: DateTime; const Format: string): string;
 
-{$ifdef TP}
-function StrPas(C: PChar): string;
-{$endif}
 function MemToStr(var B; Count: byte): string;
 procedure StrToMem(S: string; var B);
 
@@ -195,18 +184,19 @@ const LastStrToIntResult : integer = 0;
       LastHexToIntResult : integer = 0;
       LastStrToCardResult : integer = 0;
       LastHexToCardResult : integer = 0;
-      DirSep             : char    = {$ifdef Unix}'/'{$else}'\'{$endif};
       UseOldBufStreamMethod : boolean = false;
 
 procedure RegisterWUtils;
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
+
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string; nrLine, nrPos : sw_word);
+
 type
-  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : sw_word);
+  TDebugMessage = procedure(AFileName, AText : string; ALine, APos : String; nrLine, nrPos : sw_word);
 
 Const
-  DebugMessage : TDebugMessage = @WUtilsDebugMessage;
-
+  DebugMessageS : TDebugMessage = @WUtilsDebugMessage;
 
 implementation
 
@@ -230,37 +220,6 @@ const
      Load:    @TUnsortedStringCollection.Load;
      Store:   @TUnsortedStringCollection.Store
   );
-{$endif}
-
-{$ifdef TPUNIXLF}
-  procedure readln(var t:text;var s:string);
-  var
-    c : char;
-    i : longint;
-  begin
-    if TextRec(t).UserData[1]=2 then
-      system.readln(t,s)
-    else
-     begin
-      c:=#0;
-      i:=0;
-      while (not eof(t)) and (c<>#10) and (i<High(S)) do
-       begin
-         read(t,c);
-         if c<>#10 then
-          begin
-            inc(i);
-            s[i]:=c;
-          end;
-       end;
-      if (i>0) and (s[i]=#13) then
-       begin
-         dec(i);
-         TextRec(t).UserData[1]:=2;
-       end;
-      s[0]:=chr(i);
-     end;
-  end;
 {$endif}
 
 function eofstream(s: pstream): boolean;
@@ -385,24 +344,6 @@ procedure ReadlnFromFile(var f : file; var S:string;
     s[0]:=chr(i);
   end;
 
-{$ifdef TP}
-{ TP's own StrPas() is buggy, because it causes GPF with strings longer than
-  255 chars }
-function StrPas(C: PChar): string;
-var S: string;
-    I: longint;
-begin
-  if Assigned(C)=false then
-    S:=''
-  else
-    begin
-      I:=StrLen(C); if I>High(S) then I:=High(S);
-      S[0]:=chr(I); Move(C^,S[1],I);
-    end;
-  StrPas:=S;
-end;
-{$endif}
-
 function MemToStr(var B; Count: byte): string;
 var S: string;
 begin
@@ -427,9 +368,6 @@ begin
 end;
 
 function CharStr(C: char; Count: integer): string;
-{$ifndef FPC}
-var S: string;
-{$endif}
 begin
   if Count<=0 then
     begin
@@ -438,14 +376,8 @@ begin
     end
   else if Count>255 then
     Count:=255;
-{$ifdef FPC}
   CharStr[0]:=chr(Count);
   FillChar(CharStr[1],Count,C);
-{$else}
-  S[0]:=chr(Count);
-  FillChar(S[1],Count,C);
-  CharStr:=S;
-{$endif}
 end;
 
 function UpcaseStr(const S: string): string;
@@ -744,7 +676,7 @@ begin
 end;
 
 procedure TUnsortedStringCollection.Assign(ALines: PUnsortedStringCollection);
-procedure AddIt(P: PString); {$ifndef FPC}far;{$endif}
+procedure AddIt(P: PString);
 begin
   Insert(NewStr(GetStr(P)));
 end;
@@ -1245,9 +1177,7 @@ var
 begin
   Dos.FindFirst(FileName,Archive+ReadOnly,Dir);
   ExistsFile:=(Dos.DosError=0);
-{$ifdef FPC}
   Dos.FindClose(Dir);
-{$endif def FPC}
 end;
 
 { returns zero for empty and non existant files }
@@ -1261,9 +1191,7 @@ begin
     SizeOfFile:=Dir.Size
   else
     SizeOfFile:=0;
-{$ifdef FPC}
   Dos.FindClose(Dir);
-{$endif def FPC}
 end;
 
 function ExistsDir(const DirName: string): boolean;
@@ -1275,9 +1203,7 @@ begin
     at least for some Dos version
     so we need to check the attributes PM }
   ExistsDir:=(Dos.DosError=0) and ((Dir.attr and Directory) <> 0);
-{$ifdef FPC}
   Dos.FindClose(Dir);
-{$endif def FPC}
 end;
 
 function CompleteDir(const Path: string): string;
@@ -1307,6 +1233,9 @@ var Dir: string;
 begin
   Dir:=GetEnv('TEMP');
   if Dir='' then Dir:=GetEnv('TMP');
+{$if defined(morphos) or defined(amiga)}
+  if Dir='' then Dir:='T:';
+{$endif}
   if (Dir<>'') then if not ExistsDir(Dir) then Dir:='';
   if Dir='' then Dir:=GetCurDir;
   repeat
@@ -1345,9 +1274,15 @@ begin
 {$endif}
 end;
 
-Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure DebugMessage(AFileName, AText : string; ALine, APos : sw_word); // calls DebugMessage
+begin
+  DebugMessageS(Afilename,AText,'','',aline,apos);
+end;
+
+Procedure WUtilsDebugMessage(AFileName, AText : string; ALine, APos : string;nrLine, nrPos : sw_word);
 begin
   writeln(stderr,AFileName,' (',ALine,',',APos,') ',AText);
+  flush(stderr);
 end;
 
 BEGIN

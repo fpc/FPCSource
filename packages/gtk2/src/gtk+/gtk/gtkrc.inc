@@ -181,6 +181,11 @@ function gtk_rc_parse_priority(scanner:PGScanner; priority:PGtkPathPriorityType)
 
 function _gtk_rc_style_lookup_rc_property(rc_style:PGtkRcStyle; type_name:TGQuark; property_name:TGQuark):PGtkRcProperty; cdecl; external gtklib;
 function _gtk_rc_context_get_default_font_name(settings:PGtkSettings):Pgchar; cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+procedure gtk_rc_reset_styles(settings: PGtkSettings); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

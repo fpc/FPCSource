@@ -1251,7 +1251,7 @@ function GlobalPtrHandle(lp:pointer):Pointer;
 function SetLayeredWindowAttributes(HWND:hwnd;crKey :COLORREF;bAlpha : byte;dwFlags : DWORD):WINBOOL; external 'user32' name 'SetLayeredWindowAttributes';
 function SignalObjectAndWait( hObjectToSignal:THANDLE;  hObjectToWaitOn:THANDLE ;dwMilliseconds:  DWORD ;bAlertable:BOOL):DWORD; external 'kernel32' name 'SignalObjectAndWait';
 function CancelWaitableTimer(hTimer:THandle):BOOL; external 'kernel32' name 'CancelWaitableTimer';
-function GetComboBoxInfo(hwndCombo:HWND;pcbi:PCOMBOBOXINFO):BOOL; external 'kernel32' name 'GetComboBoxInfo';
+function GetComboBoxInfo(hwndCombo:HWND;pcbi:PCOMBOBOXINFO):BOOL; external 'user32' name 'GetComboBoxInfo';
 function GetAncestor(HWnd: HWND; Flag: UINT): HWND; StdCall; External 'user32';
 {$endif read_interface}
 
@@ -2241,6 +2241,11 @@ begin
   SNDMSG:=SendMessage(hWnd,Msg,wParam,lParam);
 end;
 
+function SNDMSGW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
+begin
+  SNDMSGW:=SendMessageW(hWnd,Msg,wParam,lParam);
+end;
+
 
 function CommDlg_OpenSave_GetSpecA(_hdlg:HWND;_psz:LPSTR;_cbmax : longint) : LRESULT;
 begin
@@ -2250,7 +2255,7 @@ end;
 
 function CommDlg_OpenSave_GetSpecW(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetSpecW:=SNDMSG(_hdlg,CDM_GETSPEC,WPARAM(_cbmax),LPARAM(_psz));
+  CommDlg_OpenSave_GetSpecW:=SNDMSGW(_hdlg,CDM_GETSPEC,WPARAM(_cbmax),LPARAM(_psz));
 end;
 
 
@@ -2262,7 +2267,7 @@ end;
 {$else Unicode}
 function CommDlg_OpenSave_GetSpec(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetSpec:=SNDMSG(_hdlg,CDM_GETSPEC,WPARAM(_cbmax),LPARAM(_psz));
+  CommDlg_OpenSave_GetSpec:=SNDMSGW(_hdlg,CDM_GETSPEC,WPARAM(_cbmax),LPARAM(_psz));
 end;
 {$endif Unicode}
 
@@ -2275,7 +2280,7 @@ end;
 
 function CommDlg_OpenSave_GetFilePathW(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetFilePathW:=SNDMSG(_hdlg,CDM_GETFILEPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
+  CommDlg_OpenSave_GetFilePathW:=SNDMSGW(_hdlg,CDM_GETFILEPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
 end;
 
 {$ifndef Unicode}
@@ -2286,7 +2291,7 @@ end;
 {$else Unicode}
 function CommDlg_OpenSave_GetFilePath(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetFilePath:=SNDMSG(_hdlg,CDM_GETFILEPATH,WPARAM(_cbmax),LPARAM(_psz));
+  CommDlg_OpenSave_GetFilePath:=SNDMSGW(_hdlg,CDM_GETFILEPATH,WPARAM(_cbmax),LPARAM(_psz));
 end;
 {$endif Unicode}
 
@@ -2298,7 +2303,7 @@ end;
 
 function CommDlg_OpenSave_GetFolderPathW(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetFolderPathW:=SNDMSG(_hdlg,CDM_GETFOLDERPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
+  CommDlg_OpenSave_GetFolderPathW:=SNDMSGW(_hdlg,CDM_GETFOLDERPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
 end;
 
 {$ifndef Unicode}
@@ -2309,7 +2314,7 @@ end;
 {$else Unicode}
 function CommDlg_OpenSave_GetFolderPath(_hdlg:HWND;_psz:LPWSTR;_cbmax : longint) : LRESULT;
 begin
-  CommDlg_OpenSave_GetFolderPath:=SNDMSG(_hdlg,CDM_GETFOLDERPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
+  CommDlg_OpenSave_GetFolderPath:=SNDMSGW(_hdlg,CDM_GETFOLDERPATH,WPARAM(_cbmax),LPARAM(LPWSTR(_psz)));
 end;
 {$endif Unicode}
 

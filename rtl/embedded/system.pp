@@ -28,9 +28,9 @@ Unit System;
 
 {$I systemh.inc}
 
+const
 {
   fix me
-const
  LineEnding = #10;
  LFNSupport = true;
  DirectorySeparator = '/';
@@ -40,7 +40,11 @@ const
   AllowDirectorySeparators : set of char = ['\','/'];
   AllowDriveSeparators : set of char = [':'];
 { FileNameCaseSensitive is defined below! }
+}
+{$ifdef FPC_HAS_FEATURE_EXITCODE}
  maxExitCode = 255;
+{$endif FPC_HAS_FEATURE_EXITCODE}
+{
  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
  AllFilesMask = '*';
 

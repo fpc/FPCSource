@@ -18,6 +18,9 @@ dirs_wince=interbase postgres mysql odbc oracle sqlite
 units=sqldb
 rsts=sqldb
 
+[require]
+packages=fcl-xml
+
 [compiler]
 options=-S2
 

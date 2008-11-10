@@ -16,7 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gtk1';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+    P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Peter Vreman';
+    P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Header to the GTK widgetset (v1).';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.OSes:=AllUnixOSes+[Win32,Win64];
     P.Dependencies.Add('opengl');
 
@@ -284,6 +291,39 @@ begin
           AddUnit('glib');
           AddUnit('gdk');
         end;
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('entry.pp');
+    P.Targets.AddExampleProgram('filesel.pp');
+    P.Targets.AddExampleProgram('spinbutton.pp');
+    P.Targets.AddExampleProgram('gtkgldemo.pp');
+    P.Targets.AddExampleProgram('editform.pp');
+    P.Targets.AddExampleProgram('pixmap.pp');
+    P.Targets.AddExampleProgram('scribble.pp');
+    P.Targets.AddExampleProgram('tictactoe.pp');
+    P.Targets.AddExampleProgram('paned.pp');
+    P.Targets.AddExampleProgram('notebook.pp');
+    P.Targets.AddExampleProgram('statusbar.pp');
+    P.Targets.AddExampleProgram('ttt_test.pp');
+    P.Targets.AddExampleProgram('list.pp');
+    P.Targets.AddExampleProgram('clist.pp');
+    P.Targets.AddExampleProgram('toolbar.pp');
+    P.Targets.AddExampleProgram('progressbar.pp');
+    P.Targets.AddExampleProgram('rulers.pp');
+    // 'examples/Makefile
+    // 'examples/Makefile.fpc
+    P.ExamplePath.Add('examples/tutorial');
+    P.Targets.AddExampleProgram('tut6_3.pp');
+    P.Targets.AddExampleProgram('tut6_4.pp');
+    P.Targets.AddExampleProgram('tut4_3.pp');
+    P.Targets.AddExampleProgram('tut6_2.pp');
+    P.Targets.AddExampleProgram('tut6_1.pp');
+    P.Targets.AddExampleProgram('tut2_1.pp');
+    P.Targets.AddExampleProgram('tut4_5.pp');
+    P.Targets.AddExampleProgram('tut8_5.pp');
+    P.Targets.AddExampleProgram('tut3_3.pp');
+    // 'examples/tutorial/Makefile
+    // 'examples/tutorial/Makefile.fpc
+    // 'examples/tutorial/info.xpm
 
 {$ifndef ALLPACKAGES}
     Run;

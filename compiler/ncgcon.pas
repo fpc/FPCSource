@@ -71,7 +71,7 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil
+      ncgutil, cclasses
       ;
 
 
@@ -262,179 +262,79 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         hp1,hp2 : tai;
          l1,
          lastlabel   : tasmlabel;
-         lastlabelhp : tai;
          pc       : pchar;
-         same_string : boolean;
-         l,j,
-         i,mylength  : longint;
+         l,i : longint;
+         href: treference;
+         pooltype: TConstPoolType;
+         pool: THashSet;
+         entry: PHashSetItem;
+
+      const
+        PoolMap: array[tconststringtype] of TConstPoolType = (
+          sp_conststr,
+          sp_shortstr,
+          sp_longstr,
+          sp_ansistr,
+          sp_widestr,
+          sp_unicodestr
+        );
       begin
          { for empty ansistrings we could return a constant 0 }
-         if (cst_type in [cst_ansistring,cst_widestring]) and (len=0) then
+         if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and (len=0) then
           begin
             location_reset(location,LOC_CONSTANT,OS_ADDR);
             location.value:=0;
             exit;
           end;
-         { return a constant reference in memory }
-         location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
          { const already used ? }
-         lastlabel:=nil;
-         lastlabelhp:=nil;
          if not assigned(lab_str) then
            begin
-              if is_shortstring(resultdef) then
-                mylength:=len+2
+              pooltype := PoolMap[cst_type];
+              if current_asmdata.ConstPools[pooltype] = nil then
+                current_asmdata.ConstPools[pooltype] := THashSet.Create(64, True, False);
+              pool := current_asmdata.ConstPools[pooltype];
+
+              if cst_type in [cst_widestring, cst_unicodestring] then
+                entry := pool.FindOrAdd(pcompilerwidestring(value_str)^.data, len*cwidechartype.size)
               else
-                mylength:=len+1;
-              { widestrings can't be reused yet }
-              if not(is_widestring(resultdef)) then
-                begin
-                  { tries to find an old entry }
-                  hp1:=tai(current_asmdata.asmlists[al_typedconsts].first);
-                  while assigned(hp1) do
-                    begin
-                       if hp1.typ=ait_label then
-                         begin
-                           lastlabel:=tai_label(hp1).labsym;
-                           lastlabelhp:=hp1;
-                         end
-                       else
-                         begin
-                            same_string:=false;
-                            if (hp1.typ=ait_string) and
-                               (lastlabel<>nil) and
-                               (tai_string(hp1).len=mylength) then
-                              begin
-                                 case cst_type of
-                                   cst_conststring:
-                                     begin
-                                       j:=0;
-                                       same_string:=true;
-                                       if len>0 then
-                                         begin
-                                           for i:=0 to len-1 do
-                                             begin
-                                               if tai_string(hp1).str[j]<>value_str[i] then
-                                                 begin
-                                                   same_string:=false;
-                                                   break;
-                                                 end;
-                                               inc(j);
-                                             end;
-                                         end;
-                                     end;
-                                   cst_shortstring:
-                                     begin
-                                       { if shortstring then check the length byte first and
-                                         set the start index to 1 }
-                                       if len=ord(tai_string(hp1).str[0]) then
-                                         begin
-                                           j:=1;
-                                           same_string:=true;
-                                           if len>0 then
-                                             begin
-                                               for i:=0 to len-1 do
-                                                begin
-                                                  if tai_string(hp1).str[j]<>value_str[i] then
-                                                   begin
-                                                     same_string:=false;
-                                                     break;
-                                                   end;
-                                                  inc(j);
-                                                end;
-                                             end;
-                                         end;
-                                     end;
-                                   cst_ansistring,
-                                   cst_widestring :
-                                     begin
-                                       { before the string the following sequence must be found:
-                                         <label>
-                                           constsymbol <datalabel>
-                                           constint -1
-                                           constint <len>
-                                         we must then return <label> to reuse
-                                       }
-                                       hp2:=tai(lastlabelhp.previous);
-                                       if assigned(hp2) and
-                                          (hp2.typ=ait_const) and
-                                          (tai_const(hp2).consttype=aitconst_aint) and
-                                          (tai_const(hp2).value=len) and
-                                          assigned(hp2.previous) and
-                                          (tai(hp2.previous).typ=ait_const) and
-                                          (tai_const(hp2.previous).consttype=aitconst_aint) and
-                                          (tai_const(hp2.previous).value=-1) and
-                                          assigned(hp2.previous.previous) and
-                                          (tai(hp2.previous.previous).typ=ait_const) and
-                                          (tai_const(hp2.previous.previous).consttype=aitconst_ptr) and
-                                          assigned(hp2.previous.previous.previous) and
-                                          (tai(hp2.previous.previous.previous).typ=ait_label) then
-                                         begin
-                                           lastlabel:=tai_label(hp2.previous.previous.previous).labsym;
-                                           same_string:=true;
-                                           j:=0;
-                                           if len>0 then
-                                             begin
-                                               for i:=0 to len-1 do
-                                                begin
-                                                  if tai_string(hp1).str[j]<>value_str[i] then
-                                                   begin
-                                                     same_string:=false;
-                                                     break;
-                                                   end;
-                                                  inc(j);
-                                                end;
-                                             end;
-                                         end;
-                                     end;
-                                 end;
-                                 { found ? }
-                                 if same_string then
-                                   begin
-                                     lab_str:=lastlabel;
-                                     break;
-                                   end;
-                              end;
-                            lastlabel:=nil;
-                         end;
-                       hp1:=tai(hp1.next);
-                    end;
-                end;
+                entry := pool.FindOrAdd(value_str, len);
+
+              lab_str := TAsmLabel(entry^.Data);  // is it needed anymore?
+
               { :-(, we must generate a new entry }
-              if not assigned(lab_str) then
+              if not assigned(entry^.Data) then
                 begin
                    current_asmdata.getdatalabel(lastlabel);
                    lab_str:=lastlabel;
+                   entry^.Data := lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
                    if (len=0) or
-                      not(cst_type in [cst_ansistring,cst_widestring]) then
+                      not(cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
                      new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)))
                    else
                      new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(pint)));
-                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    { generate an ansi string ? }
                    case cst_type of
                       cst_ansistring:
                         begin
-                           { an empty ansi string is nil! }
                            if len=0 then
-                             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(nil))
+                             InternalError(2008032301)   { empty string should be handled above }
                            else
                              begin
                                 current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len));
+
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                                 { ... and vice versa }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 { include also terminating zero }
                                 getmem(pc,len+1);
                                 move(value_str^,pc^,len);
@@ -442,33 +342,33 @@ implementation
                                 current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                              end;
                         end;
+                      cst_unicodestring,
                       cst_widestring:
                         begin
-                           { an empty wide string is nil! }
                            if len=0 then
-                             current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(nil))
+                             InternalError(2008032302)   { empty string should be handled above }
                            else
                              begin
                                 current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_sym(l1));
-
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                                 { we use always UTF-16 coding for constants }
                                 { at least for now                          }
                                 { Consts.concat(Tai_const.Create_8bit(2)); }
-                                if tf_winlikewidestring in target_info.flags then
+                                if (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags) then
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
                                 else
                                   begin
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
                                     current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len*cwidechartype.size));
                                   end;
+
                                 { make sure the string doesn't get dead stripped if the header is referenced }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
+                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                                 { ... and vice versa }
                                 if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lab_str.name));
+                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
                                 for i:=0 to len-1 do
                                   current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
                                 { terminating zero }
@@ -477,6 +377,7 @@ implementation
                         end;
                       cst_shortstring:
                         begin
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { truncate strings larger than 255 chars }
                           if len>255 then
                            l:=255
@@ -491,6 +392,7 @@ implementation
                         end;
                       cst_conststring:
                         begin
+                          current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { include terminating zero }
                           getmem(pc,len+1);
                           move(value_str^,pc[0],len);
@@ -500,7 +402,18 @@ implementation
                    end;
                 end;
            end;
-         location.reference.symbol:=lab_str;
+         if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
+           begin
+             location_reset(location, LOC_REGISTER, OS_ADDR);
+             reference_reset_symbol(href, lab_str, 0);
+             location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
+             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+           end
+         else
+           begin
+             location_reset(location, LOC_CREFERENCE, def_cgsize(resultdef));
+             location.reference.symbol:=lab_str;
+           end;
       end;
 
 
@@ -548,7 +461,7 @@ implementation
         var
            hp1         : tai;
            lastlabel   : tasmlabel;
-           i, diff     : longint;
+           i           : longint;
            neededtyp   : taiconst_type;
         begin
           location_reset(location,LOC_CREFERENCE,OS_NO);

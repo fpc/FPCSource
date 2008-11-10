@@ -2393,7 +2393,7 @@ Const
      LOGBRUSH = record
           lbStyle : UINT;
           lbColor : COLORREF;
-          lbHatch : LONG;
+          lbHatch : ULONG_PTR;
        end;
      tagLOGBRUSH = LOGBRUSH;
      TLOGBRUSH = LOGBRUSH;
@@ -2594,7 +2594,7 @@ Const
           elpWidth : UINT;
           elpBrushStyle : UINT;
           elpColor : COLORREF;
-          elpHatch : LONG;
+          elpHatch : ULONG_ptr;
           elpNumEntries : DWORD;
           elpStyleEntry : array[0..0] of DWORD;
        end;

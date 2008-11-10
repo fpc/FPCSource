@@ -69,9 +69,9 @@ end;
 function modifiesConflictingMemLocation(p1: tai; supreg: tsuperregister; c: tregContent;
    var regsStillValid: tregset; onlymem: boolean; var invalsmemwrite: boolean): boolean;
 var
-  p, hp: taicpu;
+  p: taicpu;
   tmpRef: treference;
-  r,regCounter: tsuperregister;
+  regCounter: tsuperregister;
   opCount: longint;
   dummy: boolean;
 begin
@@ -231,8 +231,7 @@ function CheckSequence(p: tai; var prev: tai; supreg: tsuperregister; var Found:
 var
   regsNotRead, regsStillValid : tregset;
   checkingPrevSequences,
-  passedFlagsModifyingInstr,
-  invalsmemwrite               : boolean;
+  passedFlagsModifyingInstr   : boolean;
 
   function getPrevSequence(p: tai; supreg: tsuperregister; currentPrev: tai; var newPrev: tai): tsuperregister;
 
@@ -419,7 +418,7 @@ var
   HighFound, OrgRegFound: longint;
   regcounter, regCounter2, tmpreg, base, index: tsuperregister;
   OrgRegResult: Boolean;
-  TmpResult, flagResultsNeeded, stopchecking: Boolean;
+  TmpResult, flagResultsNeeded: Boolean;
 begin {CheckSequence}
   TmpResult := False;
   FillChar(OrgRegInfo, Sizeof(OrgRegInfo), 0);
@@ -459,7 +458,6 @@ begin {CheckSequence}
       hp3 := p;
       if checkingprevsequences then
         prevreginfo := reginfo;
-      stopchecking := false;
       while (Found <> OldNrofMods) and
                                   { old  new }
              InstructionsEquivalent(hp2, hp3, reginfo) and
@@ -1024,7 +1022,7 @@ var
 begin
   case p.opcode of
     A_IMUL: noHardCodedRegs := p.ops <> 1;
-    A_SHL,A_SHR,A_SHLD,A_SHRD: noHardCodedRegs :=
+    A_SHL,A_SHR,A_ROR,A_ROL,A_SAR,A_SHLD,A_SHRD: noHardCodedRegs :=
       (p.oper[0]^.typ <> top_reg) or
       ((orgReg <> RS_ECX) and (newReg <> RS_ECX));
     else
@@ -1423,7 +1421,7 @@ function ReplaceReg(asml: TAsmList; orgsupreg, newsupreg: tsuperregister; p,
 { where newsupreg was replaced by orgsupreg                                    }
 var
   endP, hp: tai;
-  removeLast, sequenceEnd, newRegModified, orgRegRead,
+  removeLast, newRegModified, orgRegRead,
     stateChanged, readStateChanged: Boolean;
 {$ifdef replaceregdebug}
   l: longint;
@@ -1683,7 +1681,7 @@ procedure loadcseregs(asml: TAsmList; const reginfo: toptreginfo; curseqend, pre
 var
   regsloaded: tregset;
   regloads, reguses: array[RS_EAX..RS_EDI] of tai;
-  regcounter, substreg: tsuperregister;
+  regcounter: tsuperregister;
   hp, hp2: tai;
   insertpos, insertoptinfo, prevseq_next: tai;
   i: longint;
@@ -1835,7 +1833,7 @@ procedure doCSE(asml: TAsmList; First, Last: tai; findPrevSeqs, doSubOpts: boole
  two different sequences}
 var cnt, cnt2, {cnt3,} orgNrofMods: longint;
     p, hp1, hp2, prevSeq: tai;
-    hp3, hp4: tai;
+    hp4: tai;
     hp5 : tai;
     reginfo: toptreginfo;
     memreg: tregister;

@@ -1,4 +1,4 @@
-{ %opt=-Seh }
+{ %opt=-Seh -vh }
 
 {$mode delphi}
 program TestMismatch;

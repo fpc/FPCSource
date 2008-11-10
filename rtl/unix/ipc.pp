@@ -17,7 +17,11 @@ unit ipc;
 
 interface
 
-Uses BaseUnix,UnixType;
+Uses
+{$ifdef FPC_USE_LIBCX}
+  initc,
+{$endif}
+  BaseUnix,UnixType;
 
 { ----------------------------------------------------------------------
   General IPC stuff
@@ -45,11 +49,17 @@ Const
   IPC_M      =  2 shl 12;
 {$endif}
 
+{$ifdef Darwin}
+  IPC_R      =  4 shl 6;
+  IPC_W      =  2 shl 6;
+  IPC_M      =  1 shl 12;
+{$endif}
+
   IPC_CREAT  =  1 shl 9;  { create if key is nonexistent }
   IPC_EXCL   =  2 shl 9;  { fail if key exists }
   IPC_NOWAIT =  4 shl 9;  { return error on wait }
 
-{$if defined(FreeBSD) or defined(Linux)}
+{$if defined(FreeBSD) or defined(Darwin) or defined(Linux)}
   IPC_PRIVATE : TKey = 0;
 {$endif}
 
@@ -58,11 +68,13 @@ Const
   IPC_RMID = 0;     { remove resource }
   IPC_SET  = 1;     { set ipc_perm options }
   IPC_STAT = 2;     { get ipc_perm options }
+{$ifndef Darwin}
   IPC_INFO = 3;     { see ipcs }
+{$endif}
 
 type
   PIPC_Perm = ^TIPC_Perm;
-{$ifdef FreeBSD}
+{$if defined(FreeBSD) or defined(Darwin)}
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
         cgid  : cushort;  { creator group id }
@@ -100,8 +112,9 @@ type
 {$endif cpux86_64}
 {$endif}
 
+
 { Function to generate a IPC key. }
-Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; external name 'ftok'; {$endif}
+Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'ftok'; {$endif}
 
 { ----------------------------------------------------------------------
   Sys V Shared memory stuff
@@ -109,7 +122,36 @@ Function ftok (Path : pchar;  ID : cint) : TKey; {$ifdef FPC_USE_LIBC} cdecl; ex
 
 Type
   PShmid_DS = ^TShmid_ds;
-{$ifdef linux}
+
+{$ifdef FreeBSD}
+  TShmid_ds = record
+    shm_perm  : TIPC_Perm;
+    shm_segsz : cint;
+    shm_lpid  : pid_t;
+    shm_cpid  : pid_t;
+    shm_nattch : cshort;
+    shm_atime : time_t;
+    shm_dtime : time_t;
+    shm_ctime : time_t;
+    shm_internal : pointer;
+  end;
+{$endif}
+
+{$ifdef Darwin}
+  TShmid_ds = record
+    shm_perm  : TIPC_Perm;
+    shm_segsz : size_t;
+    shm_lpid  : pid_t;
+    shm_cpid  : pid_t;
+    shm_nattch : cushort; // typedef unsigned short shmatt_t
+    shm_atime : time_t;
+    shm_dtime : time_t;
+    shm_ctime : time_t;
+    shm_internal : pointer;
+  end;
+{$endif}
+
+{$ifdef Linux}
 {$ifdef cpux86_64}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
@@ -134,26 +176,14 @@ Type
     shm_lpid  : ipc_pid_t;
     shm_nattch : word;
     shm_npages : word;
-    shm_pages  : Pointer;
+    shm_pages  : pointer;
     attaches   : pointer;
   end;
 {$endif cpux86_64}  
-{$else} // FreeBSD checked
-  TShmid_ds = record
-    shm_perm  : TIPC_Perm;
-    shm_segsz : cint;
-    shm_lpid  : pid_t;
-    shm_cpid  : pid_t;
-    shm_nattch : cshort;
-    shm_atime : time_t;
-    shm_dtime : time_t;
-    shm_ctime : time_t;
-    shm_internal : pointer;
-  end;
 {$endif}
 
   const
-{$ifdef linux}
+{$ifdef Linux}
      SHM_R      = 4 shl 6;
      SHM_W      = 2 shl 6;
 {$else}
@@ -166,6 +196,9 @@ Type
 {$ifdef Linux}
      SHM_REMAP  = 4 shl 12;
 {$endif}
+{$ifdef Darwin}
+     SHMLBA     = 4096;
+{$endif}
 
      SHM_LOCK   = 11;
      SHM_UNLOCK = 12;
@@ -177,8 +210,7 @@ Type
 
 type            // the shm*info kind is "kernel" only.
   PSHMinfo = ^TSHMinfo;
-  TSHMinfo = record             // comment under FreeBSD: do we really need
-                                // this?
+  TSHMinfo = record             // comment under FreeBSD/Darwin: do we really need this?
     shmmax : cint;
     shmmin : cint;
     shmmni : cint;
@@ -186,7 +218,7 @@ type            // the shm*info kind is "kernel" only.
     shmall : cint;
   end;
 
-{$if defined(freebsd) or defined(linux)}
+{$if defined(FreeBSD) or defined(Linux)}
   PSHM_info = ^TSHM_info;
   TSHM_info = record
     used_ids : cint;
@@ -198,10 +230,10 @@ type            // the shm*info kind is "kernel" only.
   end;
 {$endif}
 
-Function shmget(key: Tkey; size:size_t; flag:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmget'; {$endif}
-Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmat'; {$endif}
-Function shmdt (shmaddr:pointer):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmdt'; {$endif}
-Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'shmctl'; {$endif}
+Function shmget(key: Tkey; size:size_t; flag:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'shmget'; {$endif}
+Function shmat (shmid:cint; shmaddr:pointer; shmflg:cint):pointer; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'shmat'; {$endif}
+Function shmdt (shmaddr:pointer):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'shmdt'; {$endif}
+Function shmctl(shmid:cint; cmd:cint; buf: pshmid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'shmctl'; {$endif}
 
 { ----------------------------------------------------------------------
   Message queue stuff
@@ -222,14 +254,26 @@ type
   msglen_t = culong;
   msgqnum_t= culong;
 
+{$ifdef Darwin}                      
+  user_msglen_t = culonglong;
+  user_msgqnum_t= culonglong;
+{$endif}
+
   PMSG = ^TMSG;
   TMSG = record
 {$ifndef FreeBSD}                       // opague in FreeBSD
+   {$ifdef Darwin}                    
+    msg_next  : PMSG;
+    msg_type  : clong;
+    msg_ts    : cushort;
+    mac_label : pointer;
+   {$else}
     msg_next  : PMSG;
     msg_type  : Longint;
     msg_spot  : PChar;
     msg_stime : Longint;
     msg_ts    : Integer;
+   {$endif}
 {$endif}
   end;
 
@@ -251,24 +295,45 @@ type
     msg_lrpid  : ipc_pid_t;
   end;
 {$else}
-  PMSQid_ds = ^TMSQid_ds;
-  TMSQid_ds = record
-    msg_perm   : TIPC_perm;
-    msg_first  : PMsg;
-    msg_last   : PMsg;
-    msg_cbytes : msglen_t;
-    msg_qnum   : msgqnum_t;
-    msg_qbytes : msglen_t;
-    msg_lspid  : pid_t;
-    msg_lrpid  : pid_t;
-    msg_stime  : time_t;
-    msg_pad1   : clong;
-    msg_rtime  : time_t;
-    msg_pad2   : clong;
-    msg_ctime  : time_t;
-    msg_pad3   : clong;
-    msg_pad4   : array [0..3] of clong;
-  end;
+  {$ifdef Darwin}
+     PMSQid_ds = ^TMSQid_ds;
+     TMSQid_ds = record
+       msg_perm   : TIPC_perm;
+       msg_first  : cint32;
+       msg_last   : cint32;
+       msg_cbytes : msglen_t;
+       msg_qnum   : msgqnum_t;
+       msg_qbytes : msglen_t;
+       msg_lspid  : pid_t;
+       msg_lrpid  : pid_t;
+       msg_stime  : time_t;
+       msg_pad1   : cint32;
+       msg_rtime  : time_t;
+       msg_pad2   : cint32;
+       msg_ctime  : time_t;
+       msg_pad3   : cint32;
+       msg_pad4   : array [0..3] of cint32;
+     end;
+  {$else}
+     PMSQid_ds = ^TMSQid_ds;
+     TMSQid_ds = record
+       msg_perm   : TIPC_perm;
+       msg_first  : PMsg;
+       msg_last   : PMsg;
+       msg_cbytes : msglen_t;
+       msg_qnum   : msgqnum_t;
+       msg_qbytes : msglen_t;
+       msg_lspid  : pid_t;
+       msg_lrpid  : pid_t;
+       msg_stime  : time_t;
+       msg_pad1   : clong;
+       msg_rtime  : time_t;
+       msg_pad2   : clong;
+       msg_ctime  : time_t;
+       msg_pad3   : clong;
+       msg_pad4   : array [0..3] of clong;
+     end;
+  {$endif}
 {$endif}
 
   PMSGbuf = ^TMSGbuf;
@@ -301,10 +366,10 @@ type
   end;
 {$endif}
 
-Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgget'; {$endif}
-Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgsnd'; {$endif}
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgrcv'; {$endif}
-Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'msgctl'; {$endif}
+Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgget'; {$endif}
+Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgsnd'; {$endif}
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint): {$ifdef Darwin}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
+Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgctl'; {$endif}
 
 { ----------------------------------------------------------------------
   Semaphores stuff
@@ -358,20 +423,43 @@ type
     sem_nsems : cushort;
   end;
 {$else}
+   {$ifdef Darwin}
+     PSEM = ^TSEM;
+     TSEM = record
+       semval  : cushort;
+       sempid  : pid_t;
+       semncnt : cushort;
+       semzcnt : cushort;
+     end;
+     
+     PSEMid_ds = ^TSEMid_ds;
+     TSEMid_ds = record
+             sem_perm : tipc_perm;
+             sem_base : PSEM;
+             sem_nsems : cushort;
+             sem_otime : time_t;
+             sem_pad1 : cint32;
+             sem_ctime : time_t;
+             sem_pad2 : cint32;
+             sem_pad3 : array[0..3] of cint32;
+          end;
 
-     sem=record end; // opague
+   {$else}
+     PSEM = ^TSEM;
+     TSEM = record end; // opague
 
-  PSEMid_ds = ^TSEMid_ds;
-  TSEMid_ds = record
-          sem_perm : tipc_perm;
-          sem_base : ^sem;
-          sem_nsems : cushort;
-          sem_otime : time_t;
-          sem_pad1 : cint;
-          sem_ctime : time_t;
-          sem_pad2 : cint;
-          sem_pad3 : array[0..3] of cint;
-       end;
+     PSEMid_ds = ^TSEMid_ds;
+     TSEMid_ds = record
+             sem_perm : tipc_perm;
+             sem_base : PSEM;
+             sem_nsems : cushort;
+             sem_otime : time_t;
+             sem_pad1 : cint;
+             sem_ctime : time_t;
+             sem_pad2 : cint;
+             sem_pad3 : array[0..3] of cint;
+          end;
+    {$endif}
 {$endif}
 
   PSEMbuf = ^TSEMbuf;
@@ -417,13 +505,15 @@ Type
 {$endif}
    end;
 
-Function semget(key:Tkey; nsems:cint; semflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semget'; {$endif}
-Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semop'; {$endif}
-Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'semctl'; {$endif}
+Function semget(key:Tkey; nsems:cint; semflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semget'; {$endif}
+Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semop'; {$endif}
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
 
 implementation
 
+{$ifndef FPC_USE_LIBC}
 uses Syscall;
+{$endif ndef FPC_USE_LIBC}
 
 {$ifndef FPC_USE_LIBC}
  {$ifdef Linux}
@@ -436,6 +526,13 @@ uses Syscall;
  {$ifdef BSD}
    {$i ipcbsd.inc}
  {$endif}
+{$else ndef FPC_USE_LIBC}
+Function real_semctl(semid:cint; semnum:cint; cmd:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; varargs; external clib name 'semctl'; {$endif}
+
+Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
+  begin
+    semctl := real_semctl(semid,semnum,cmd,pointer(@arg));
+  end;
 {$endif}
 
 

@@ -148,6 +148,8 @@ interface
                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
              end;
+           cst_widestring,
+           cst_unicodestring,
            cst_ansistring :
              begin
                if tstringconstnode(left).len=0 then
@@ -159,8 +161,7 @@ interface
                 end
                else
                 begin
-                  location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,location.register);
+                  location_copy(location,left.location);
                 end;
              end;
            cst_longstring:
@@ -168,22 +169,8 @@ interface
                {!!!!!!!}
                internalerror(8888);
              end;
-           cst_widestring:
-             begin
-               if tstringconstnode(left).len=0 then
-                begin
-                  reference_reset(hr);
-                  hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
-                  location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                  cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
-                end
-               else
-                begin
-                  location.register:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
-                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_INT,left.location.reference,
-                    location.register);
-                end;
-             end;
+           else
+             internalerror(200808241);
          end;
       end;
 
@@ -256,7 +243,7 @@ interface
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,tt_normal,location.reference);
+               tg.GetTemp(current_asmdata.CurrAsmList,256,1,tt_normal,location.reference);
                cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -285,7 +272,7 @@ interface
              if (left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
                location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
              { round them down to the proper precision }
-             tg.gettemp(current_asmdata.currasmlist,resultdef.size,tt_normal,tr);
+             tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
              location_reset(left.location,LOC_REFERENCE,location.size);
              left.location.reference:=tr;
@@ -381,7 +368,7 @@ interface
     var r:Treference;
 
     begin
-      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),tt_normal,r);
+      tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
       location_reset(location,LOC_REFERENCE,OS_NO);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);

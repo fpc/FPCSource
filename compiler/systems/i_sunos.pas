@@ -21,6 +21,8 @@
 { This unit implements support information structures for solaris. }
 unit i_sunos;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

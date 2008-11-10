@@ -252,7 +252,6 @@ implementation
     Procedure InsertResourceInfo(ResourcesUsed : boolean);
 
     var
-      I            : Integer;
       ResourceInfo : TAsmList;
 
     begin
@@ -891,7 +890,7 @@ implementation
          init_procinfo,
          finalize_procinfo : tcgprocinfo;
          unitname8 : string[8];
-         has_impl,ag: boolean;
+         ag: boolean;
 {$ifdef i386}
          gotvarsym : tstaticvarsym;
 {$endif i386}
@@ -1038,9 +1037,9 @@ implementation
 
          { Parse the implementation section }
          if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then
-           has_impl:= false
+           current_module.interface_only:=true
          else
-           has_impl:= true;
+           current_module.interface_only:=false;
 
          parse_only:=false;
 
@@ -1060,7 +1059,7 @@ implementation
            end;
 {$endif i386}
 
-         if has_impl then
+         if not current_module.interface_only then
            begin
              consume(_IMPLEMENTATION);
              Message1(unit_u_loading_implementation_units,current_module.modulename^);
@@ -1080,7 +1079,7 @@ implementation
          symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
 
-         if has_impl then
+         if not current_module.interface_only then
            begin
              Message1(parser_u_parsing_implementation,current_module.modulename^);
              if current_module.in_interface then
@@ -1112,7 +1111,7 @@ implementation
              init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
            end;
          { finalize? }
-         if has_impl and (token=_FINALIZATION) then
+         if not current_module.interface_only and (token=_FINALIZATION) then
            begin
               { set module options }
               current_module.flags:=current_module.flags or uf_finalize;
@@ -1292,7 +1291,6 @@ implementation
 
     procedure insert_export(sym : TObject;arg:pointer);
       var
-        hp : texported_item;
         i : longint;
         item : TCmdStrListItem;
       begin
@@ -1555,18 +1553,18 @@ implementation
       var
         main_file : tinputfile;
         hp,hp2    : tmodule;
-        finalize_procinfo,
+        {finalize_procinfo,
         init_procinfo,
-        main_procinfo : tcgprocinfo;
+        main_procinfo : tcgprocinfo;}
         force_init_final : boolean;
         uu : tused_unit;
       begin
          Status.IsPackage:=true;
          Status.IsExe:=true;
          parse_only:=false;
-         main_procinfo:=nil;
+         {main_procinfo:=nil;
          init_procinfo:=nil;
-         finalize_procinfo:=nil;
+         finalize_procinfo:=nil;}
 
          if not RelocSectionSetExplicitly then
            RelocSection:=true;
@@ -1659,7 +1657,7 @@ implementation
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final then
-           init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable);
+           {init_procinfo:=gen_implicit_initfinal(uf_init,current_module.localsymtable)};
 
          { Add symbol to the exports section for win32 so smartlinking a
            DLL will include the edata section }

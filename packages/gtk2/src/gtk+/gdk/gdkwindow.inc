@@ -75,8 +75,18 @@
    TGdkWindowTypeHint = (
      GDK_WINDOW_TYPE_HINT_NORMAL,
      GDK_WINDOW_TYPE_HINT_DIALOG,
-     GDK_WINDOW_TYPE_HINT_MENU,
-     GDK_WINDOW_TYPE_HINT_TOOLBAR
+     GDK_WINDOW_TYPE_HINT_MENU,           // Torn off menu
+     GDK_WINDOW_TYPE_HINT_TOOLBAR,
+     GDK_WINDOW_TYPE_HINT_SPLASHSCREEN,
+     GDK_WINDOW_TYPE_HINT_UTILITY,
+     GDK_WINDOW_TYPE_HINT_DOCK,
+     GDK_WINDOW_TYPE_HINT_DESKTOP,
+     GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU, // A drop down menu (from a menubar)
+     GDK_WINDOW_TYPE_HINT_POPUP_MENU,    // A popup menu (from right-click)
+     GDK_WINDOW_TYPE_HINT_TOOLTIP,
+     GDK_WINDOW_TYPE_HINT_NOTIFICATION,
+     GDK_WINDOW_TYPE_HINT_COMBO,
+     GDK_WINDOW_TYPE_HINT_DND
    );
 
 { The next two enumeration values current match the
@@ -411,6 +421,7 @@ procedure gdk_window_set_group(window:PGdkWindow; leader:PGdkWindow); cdecl; ext
 procedure gdk_window_set_decorations(window:PGdkWindow; decorations:TGdkWMDecoration); cdecl; external gdklib;
 function gdk_window_get_decorations(window:PGdkWindow; decorations:PGdkWMDecoration):gboolean; cdecl; external gdklib;
 procedure gdk_window_set_functions(window:PGdkWindow; functions:TGdkWMFunction); cdecl; external gdklib;
+function gdk_window_get_group(window: PGdkWindow): PGdkWindow; cdecl; external gdklib;
 
 {$ifndef GDK_MULTIHEAD_SAFE}
 function gdk_window_get_toplevels:PGList; cdecl; external gdklib;
@@ -447,6 +458,8 @@ procedure gdk_window_set_debug_updates(setting:gboolean); cdecl; external gdklib
 procedure gdk_window_constrain_size(geometry:PGdkGeometry; flags:guint; width:gint; height:gint; new_width:Pgint;
             new_height:Pgint); cdecl; external gdklib;
 procedure gdk_window_get_internal_paint_info(window:PGdkWindow; var real_drawable:PGdkDrawable; x_offset:Pgint; y_offset:Pgint); cdecl; external gdklib;
+procedure gdk_window_enable_synchronized_configure(window:PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_configure_finished(window:PGdkWindow); cdecl; external gdklib;
 function gdk_set_pointer_hooks(new_hooks:PGdkPointerHooks):PGdkPointerHooks; cdecl; external gdklib;
 function gdk_get_default_root_window:PGdkWindow; cdecl; external gdklib;
 
@@ -464,9 +477,18 @@ procedure gdk_window_unref(drawable:PGdkDrawable);
 procedure gdk_window_copy_area(drawable:PGdkDrawable; gc:PGdkGC;
   x,y: gint; source_drawable:PGdkDrawable; source_x,source_y: gint;
   width,height : gint);
+
 {$endif}
 { GDK_DISABLE_DEPRECATED  }
 
+procedure gdk_window_fullscreen(window: PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_set_skip_pager_hint(window: PGdkWindow; skips_pager: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_skip_taskbar_hint(window: PGdkWindow; skips_taskbar: gboolean); cdecl; external gdklib;
+procedure gdk_window_unfullscreen(window: PGdkWindow); cdecl; external gdklib;
+procedure gdk_window_set_accept_focus(window: PGdkWindow; accept_focus: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_keep_above(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_keep_below(window: PGdkWindow; setting: gboolean); cdecl; external gdklib;
+procedure gdk_window_set_focus_on_map(window: PGdkWindow; focus_on_map: gboolean); cdecl; external gdklib;
 {$endif read_interface_rest}
 
 //------------------------------------------------------------------------------

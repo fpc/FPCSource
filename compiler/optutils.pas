@@ -41,6 +41,11 @@ unit optutils;
     procedure SetNodeSucessors(p : tnode);
     procedure PrintDFAInfo(var f : text;p : tnode);
     procedure PrintIndexedNodeSet(var f : text;s : TIndexedNodeSet);
+    { determines the optinfo.defsum field for the given node
+      this field contains a sum of all expressions defined by
+      all child expressions reachable through p
+    }
+    procedure CalcDefSum(p : tnode);
 
   implementation
 
@@ -189,6 +194,7 @@ unit optutils;
                 DoSet(tfornode(p).t2,p);
                 Breakstack.Delete(Breakstack.Count-1);
                 Continuestack.Delete(Continuestack.Count-1);
+                p.successor:=succ;
               end;
             breakn:
               begin
@@ -205,7 +211,7 @@ unit optutils;
                 Breakstack.Add(succ);
                 Continuestack.Add(p);
                 result:=p;
-                { the successor of the last node of the for body is the while node itself }
+                { the successor of the last node of the while body is the while node itself }
                 DoSet(twhilerepeatnode(p).right,p);
                 p.successor:=succ;
                 Breakstack.Delete(Breakstack.Count-1);
@@ -293,6 +299,28 @@ unit optutils;
         DoSet(p,nil);
         Continuestack.Free;
         Breakstack.Free;
+      end;
+
+    var
+      sum : TDFASet;
+
+    function adddef(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if assigned(n.optinfo) then
+          DFASetIncludeSet(sum,n.optinfo^.def);
+        Result:=fen_false;
+      end;
+
+
+    procedure CalcDefSum(p : tnode);
+      begin
+        p.allocoptinfo;
+        if not assigned(p.optinfo^.defsum) then
+          begin
+            sum:=nil;
+            foreachnodestatic(pm_postprocess,p,@adddef,nil);
+            p.optinfo^.defsum:=sum;
+          end;
       end;
 
 end.

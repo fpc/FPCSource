@@ -91,8 +91,11 @@ procedure gtk_menu_shell_activate_item(menu_shell:PGtkMenuShell; menu_item:PGtkW
 procedure _gtk_menu_shell_select_first(menu_shell:PGtkMenuShell); cdecl; external gtklib;
 procedure _gtk_menu_shell_activate(menu_shell:PGtkMenuShell); cdecl; external gtklib;
 
-{$IFDEF HasGTK2_4}
+{$IFDEF HasGTK2_2}
 procedure gtk_menu_shell_select_first(menu_shell: PGtkMenuShell; search_sensitive: gboolean);  cdecl; external gtklib;
+{$ENDIF}
+
+{$IFDEF HasGTK2_4}
 procedure gtk_menu_shell_cancel(menu_shell: PGtkMenuShell); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 

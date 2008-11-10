@@ -106,6 +106,7 @@ type
 procedure gdk_parse_args(argc:Pgint; var argv:PPgchar); cdecl; external gdklib;
 procedure gdk_init(argc:Pgint; var argv:PPgchar); cdecl; external gdklib;
 function gdk_init_check(argc:Pgint; var argv:PPgchar):gboolean; cdecl; external gdklib;
+procedure gdk_notify_startup_complete; cdecl; external gdklib;
 
 {$ifndef GDK_DISABLE_DEPRECATED}
 procedure gdk_exit(error_code:gint); cdecl; external gdklib;
@@ -174,8 +175,6 @@ function gdk_event_send_client_message(event:PGdkEvent; xid:guint32):gboolean; c
 procedure gdk_event_send_clientmessage_toall(event:PGdkEvent); cdecl; external gdklib;
 {$endif}
 
-function gdk_event_send_client_message_for_display(display:PGdkDisplay; event:PGdkEvent; xid:guint32):gboolean; cdecl; external gdklib;
-
 
 {$IFNDEF KYLIX}
 { Threading }
@@ -190,6 +189,7 @@ var
 procedure gdk_threads_enter; cdecl; external gdklib;
 procedure gdk_threads_leave; cdecl; external gdklib;
 procedure gdk_threads_init; cdecl; external gdklib;
+procedure gdk_threads_set_lock_functions(enter_fn: TGCallback; leave_fn: TGCallback); cdecl; external gdklib;
 
 procedure _GDK_THREADS_ENTER;
 procedure _GDK_THREADS_LEAVE;

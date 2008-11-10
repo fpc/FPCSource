@@ -22,6 +22,8 @@
 { This unit implements support information structures for Haiku. }
 unit i_haiku;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

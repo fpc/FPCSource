@@ -56,6 +56,9 @@ implementation
     {$ifndef NOTARGETSYMBIAN}
       ,t_symbian
     {$endif}
+    {$ifndef NOTARGETBSD}
+      ,t_bsd
+    {$endif}
 
 {**************************************
              Assemblers

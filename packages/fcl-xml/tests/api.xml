@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A free-form description of DOM API, lists properties/methods,
+  their arguments and result types.
+  This is used by testgen program to convert w3.org XML test descriptions into 
+  fpcUnit-compatible Pascal code.
+ -->
+<!DOCTYPE api [
+<!ELEMENT api (item)+ >
+<!ELEMENT item (arg*)>
+<!ELEMENT arg (#PCDATA)>
+<!ATTLIST item
+  id ID #REQUIRED
+  type (func|prop|method) "func"
+  result CDATA #IMPLIED
+  objtype CDATA #IMPLIED
+  gc (yes|no) #IMPLIED>
+]>
+<api>
+<item id="createDocumentFragment"/>
+<item id="createTextNode">
+  <arg>data</arg>
+</item>
+<item id="createComment">
+  <arg>data</arg>
+</item>
+<item id="createCDATASection">
+  <arg>data</arg>
+</item>
+<item id="createElement">
+  <arg>tagName</arg>
+</item>
+<item id="createAttribute">
+  <arg>name</arg>
+</item>
+<item id="createEntityReference">
+  <arg>name</arg>
+</item>
+<item id="createProcessingInstruction">
+  <arg>target</arg>
+  <arg>data</arg>
+</item>
+
+<item id="appendChild" result="Node">
+  <arg>newChild</arg>
+</item>
+<item id="insertBefore" result="Node">
+  <arg>newChild</arg>
+  <arg>refChild</arg>
+</item>
+<item id="replaceChild" result="Node">
+  <arg>newChild</arg>
+  <arg>oldChild</arg>
+</item>
+<item id="removeChild" result="Node">
+  <arg>oldChild</arg>
+</item>
+
+<item id="firstChild" result="Node"/>
+<item id="lastChild" result="Node"/>
+<item id="parentNode" result="Node"/>
+<item id="nextSibling" result="Node"/>
+<item id="previousSibling" result="Node"/>
+<item id="ownerDocument" result="Node"/>
+<item id="nodeType"/>
+<item id="attributes"/>
+<item id="name"/>
+<item id="nodeName"/>
+<item id="hasChildNodes"/>
+<item id="doctype"/>
+<item id="documentElement"/>
+<item id="entities"/>
+<item id="notations"/>
+<item id="publicId" type="prop"/> <!-- settable for DOM lvl 3 LSInput -->
+<item id="systemId" type="prop"/>
+<item id="notationName"/>
+<item id="getNamedItem" result="Node">
+  <arg>name</arg>
+</item>
+<item id="setNamedItem">
+  <arg>arg</arg>
+</item>
+<item id="removeNamedItem">
+  <arg>name</arg>
+</item>
+<item id="getAttribute">
+  <arg>name</arg>
+</item>
+<item id="setAttribute" objtype="Element" type="method">
+  <arg>name</arg>
+  <arg>value</arg>
+</item>
+<item id="removeAttribute" objtype="Element" type="method">
+  <arg>name</arg>
+</item>
+<item id="tagName" objtype="Element"/>
+
+<item id="getAttributeNode">
+  <arg>name</arg>
+</item>
+<item id="setAttributeNode">
+  <arg>newAttr</arg>
+</item>
+<item id="removeAttributeNode">
+  <arg>oldAttr</arg>
+</item>
+
+<item id="specified" objtype="Attr"/>
+
+<item id="normalize" type="method"/>
+<item id="substringData">
+  <arg>offset</arg>
+  <arg>count</arg>
+</item>
+<item id="splitText" objtype="Text">
+  <arg>offset</arg>
+</item>
+<item id="appendData" objtype="CharacterData" type="method">
+  <arg>arg</arg>
+</item>
+<item id="deleteData" objtype="CharacterData" type="method">
+  <arg>offset</arg>
+  <arg>count</arg>
+</item>
+<item id="replaceData" objtype="CharacterData" type="method">
+  <arg>offset</arg>
+  <arg>count</arg>
+  <arg>arg</arg>
+</item>
+<item id="insertData" objtype="CharacterData" type="method">
+  <arg>offset</arg>
+  <arg>arg</arg>
+</item>
+
+<item id="cloneNode" result="Node">
+  <arg>deep</arg>
+</item>
+<item id="getElementsByTagName" gc="yes">
+  <arg>tagname</arg>
+</item>
+<item id="childNodes" gc="yes"/>
+
+<item id="value" type="prop"/>
+<item id="nodeValue" type="prop"/>
+<item id="data" type="prop"/>
+<item id="target" type="prop"/>
+
+<!-- Level 2 -->
+<item id="namespaceURI"/>
+<item id="localName"/>
+<item id="internalSubset"/>
+<item id="hasAttributes"/>
+
+<item id="prefix" type="prop"/>
+<item id="ownerElement" objtype="Attr"/>
+
+<item id="hasAttribute">
+  <arg>name</arg>
+</item>
+
+<item id="isSupported">
+  <arg>feature</arg>
+  <arg>version</arg>
+</item>
+<item id="getElementById">
+  <arg>elementId</arg>
+</item>
+<item id="importNode" result="Node">
+  <arg>importedNode</arg>
+  <arg>deep</arg>
+</item>
+<item id="createAttributeNS">
+  <arg>namespaceURI</arg>
+  <arg>qualifiedName</arg>
+</item>
+<item id="createElementNS">
+  <arg>namespaceURI</arg>
+  <arg>qualifiedName</arg>
+</item>
+<item id="createDocument">
+  <arg>namespaceURI</arg>
+  <arg>qualifiedName</arg>
+  <arg>doctype</arg>
+</item>
+<item id="createDocumentType">
+  <arg>qualifiedName</arg>
+  <arg>publicId</arg>
+  <arg>systemId</arg>
+</item>
+<item id="getAttributeNodeNS" objtype="Element">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="getAttributeNS" objtype="Element">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="hasAttributeNS" objtype="Element">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="setAttributeNodeNS" objtype="Element">
+  <arg>newAttr</arg>
+</item>
+<item id="removeAttributeNS" objtype="Element" type="method">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="setAttributeNS" objtype="Element" type="method">
+  <arg>namespaceURI</arg>
+  <arg>qualifiedName</arg>
+  <arg>value</arg>
+</item>
+<item id="getNamedItemNS" result="Node">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="setNamedItemNS">
+  <arg>arg</arg>
+</item>
+<item id="removeNamedItemNS" result="Node">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+<item id="getElementsByTagNameNS" gc="yes">
+  <arg>namespaceURI</arg>
+  <arg>localName</arg>
+</item>
+
+
+<!-- Level 3 -->
+<item id="textContent" type="prop"/>
+<!-- item id="isElementContentWhitespace"/ --><!-- not there yet -->
+<!--
+<item id="domConfig"/>
+<item id="schemaTypeInfo"/>
+<item id="typeName"/>
+<item id="typeNamespace"/>
+<item id="isDerivedFrom"/>
+<item id="canSetParameter"/>
+<item id="setParameter"/>
+<item id="normalizeDocument"/>
+<item id="isId"/>
+
+// assertNotEquals
+// assertLowerSeverity
+
+<item id="getUserData"/>
+<item id="setUserData"/>
+<item id="isEqualNode"/>
+<item id="isSameNode"/>
+<item id="lookupNamespaceURI"/>
+<item id="lookupPrefix"/>
+<item id="isDefaultNamespace"/>
+<item id="adoptNode"/>
+<item id="renameNode"/>
+<item id="replaceWholeText"/>
+<item id="wholeText"/>
+-->
+</api>

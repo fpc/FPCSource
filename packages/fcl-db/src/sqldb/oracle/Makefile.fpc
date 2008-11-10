@@ -9,7 +9,7 @@ main=fcl-db
 units=oracleconnection
 
 [require]
-packages=oracle
+packages=fcl-xml oracle
 
 [compiler]
 options=-S2

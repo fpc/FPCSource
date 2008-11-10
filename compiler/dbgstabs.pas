@@ -583,7 +583,7 @@ implementation
           begin
             case def.ordtype of
               uvoid :
-                ss:=strpnew(def_stab_number(def));
+                ss:=def_stab_number(def);
               pasbool,
               bool8bit,
               bool16bit,
@@ -602,25 +602,25 @@ implementation
           begin
             case def.ordtype of
               uvoid :
-                ss:=strpnew(def_stab_number(def));
+                ss:=def_stab_number(def);
               uchar :
-                ss:=strpnew('-20;');
+                ss:='-20;';
               uwidechar :
-                ss:=strpnew('-30;');
+                ss:='-30;';
               pasbool,
               bool8bit :
-                ss:=strpnew('-21;');
+                ss:='-21;';
               bool16bit :
-                ss:=strpnew('-22;');
+                ss:='-22;';
               bool32bit :
-                ss:=strpnew('-23;');
+                ss:='-23;';
               bool64bit :
                 { no clue if this is correct (FK) }
-                ss:=strpnew('-23;');
+                ss:='-23;';
               u64bit :
-                ss:=strpnew('-32;');
+                ss:='-32;';
               s64bit :
-                ss:=strpnew('-31;');
+                ss:='-31;';
               {u32bit : result:=def_stab_number(s32inttype)+';0;-1;'); }
               else
                 ss:=def_stabstr_evaluate(def,'r${numberstring};$1;$2;',[tostr(longint(def.low.svalue)),tostr(longint(def.high.svalue))]);
@@ -963,7 +963,7 @@ implementation
           begin
             if tabstractnormalvarsym(def.funcretsym).localloc.loc=LOC_REFERENCE then
               begin
-{$warning Need to add gdb support for ret in param register calling}
+{ TODO: Need to add gdb support for ret in param register calling}
                 if paramanager.ret_in_param(def.returndef,def.proccalloption) then
                   hs:='X*'
                 else

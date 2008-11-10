@@ -226,7 +226,7 @@ strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp system$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #

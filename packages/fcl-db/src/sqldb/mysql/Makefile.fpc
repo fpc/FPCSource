@@ -9,7 +9,7 @@ main=fcl-db
 units=mysql40conn mysql41conn mysql50conn mysql4conn
 
 [require]
-packages=mysql
+packages=fcl-xml mysql
 
 [compiler]
 options=-S2

@@ -21,6 +21,8 @@
 { This unit implements support information structures for OS/2 via EMX. }
 unit i_emx;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -94,6 +96,7 @@ unit i_emx;
               );
             first_parm_offset : 8;
             stacksize    : 256*1024;
+            abi          : abi_default;
           );
 
 

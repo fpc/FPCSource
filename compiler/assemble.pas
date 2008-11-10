@@ -510,11 +510,6 @@ Implementation
           result:='-m68000 '+result;
 {$endif}
 
-{$ifdef arm}
-        if current_settings.fputype = fpu_soft then
-         result:='-mfpu=softvfp '+result;
-{$endif arm}
-
         if (cs_link_on_target in current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));

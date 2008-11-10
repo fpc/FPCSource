@@ -653,7 +653,7 @@ implementation
 
         if assigned(s) then
          begin
-{$warning TODO ugly hack}
+{ TODO: ugly hack}
            if s is tsym then
              st:=FindUnitSymtable(tsym(s).owner)
            else
@@ -795,10 +795,11 @@ implementation
 
     function tcompilerppufile.getPtrUInt:TConstPtrUInt;
       begin
-        if sizeof(TConstPtrUInt)=8 then
-          result:=tconstptruint(getint64)
-        else
+        {$if sizeof(TConstPtrUInt)=8}
+          result:=tconstptruint(getint64);
+        {$else}
           result:=TConstPtrUInt(getlongint);
+        {$endif}
       end;
 
 
@@ -907,6 +908,8 @@ implementation
         { calculate info byte }
         if (p.fileindex>$ff) then
          begin
+           info:=info or $1;
+           { uncomment this code if tfileposinfo.fileindex type was changed
            if (p.fileindex<=$ffff) then
             info:=info or $1
            else
@@ -914,6 +917,7 @@ implementation
              info:=info or $2
            else
             info:=info or $3;
+           }
           end;
         if (p.line>$ff) then
          begin
@@ -927,6 +931,8 @@ implementation
           end;
         if (p.column>$ff) then
          begin
+           info:=info or $10;
+           { uncomment this code if tfileposinfo.column type was changed
            if (p.column<=$ffff) then
             info:=info or $10
            else
@@ -934,6 +940,7 @@ implementation
              info:=info or $20
            else
             info:=info or $30;
+           }
           end;
         { write data }
         putbyte(info);
@@ -989,12 +996,14 @@ implementation
 
     procedure tcompilerppufile.PutPtrUInt(v:TConstPtrUInt);
       begin
-        if sizeof(TConstPtrUInt)=8 then
-          putint64(int64(v))
-        else if sizeof(TConstPtrUInt)=4 then
-          putlongint(longint(v))
-        else
+        {$if sizeof(TConstPtrUInt)=8}
+          putint64(int64(v));
+        {$else}
+        {$if sizeof(TConstPtrUInt)=4}
+          putlongint(longint(v));
+        {$else}
           internalerror(2002082601);
+        {$endif} {$endif}
       end;
 
 

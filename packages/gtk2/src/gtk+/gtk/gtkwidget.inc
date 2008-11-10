@@ -1,6 +1,7 @@
 // included by gtk2.pas
 
 {$IFDEF read_forward_definitions}
+   PPGtkWidget = ^PGtkWidget;
    PGtkWidget = ^TGtkWidget;
 {$ENDIF read_forward_definitions}
 
@@ -418,12 +419,7 @@ function gtk_widget_get_toplevel(widget:PGtkWidget):PGtkWidget; cdecl; external 
 function gtk_widget_get_ancestor(widget:PGtkWidget; widget_type:TGtkType):PGtkWidget; cdecl; external gtklib;
 function gtk_widget_get_colormap(widget:PGtkWidget):PGdkColormap; cdecl; external gtklib;
 function gtk_widget_get_visual(widget:PGtkWidget):PGdkVisual; cdecl; external gtklib;
-function gtk_widget_get_screen(widget:PGtkWidget):PGdkScreen; cdecl; external gtklib;
-function gtk_widget_has_screen(widget:PGtkWidget):gboolean; cdecl; external gtklib;
-function gtk_widget_get_display(widget:PGtkWidget):PGdkDisplay; cdecl; external gtklib;
-function gtk_widget_get_root_window(widget:PGtkWidget):PGdkWindow; cdecl; external gtklib;
 function gtk_widget_get_settings(widget:PGtkWidget):PGtkSettings; cdecl; external gtklib;
-function gtk_widget_get_clipboard(widget:PGtkWidget; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
 
 {$ifndef GTK_DISABLE_DEPRECATED}
 procedure gtk_widget_set_visual(widget,visual : pointer);
@@ -493,8 +489,6 @@ procedure gtk_widget_pop_colormap; cdecl; external gtklib;
   }
 procedure gtk_widget_class_install_style_property(klass:PGtkWidgetClass; pspec:PGParamSpec); cdecl; external gtklib;
 procedure gtk_widget_class_install_style_property_parser(klass:PGtkWidgetClass; pspec:PGParamSpec; parser:TGtkRcPropertyParser); cdecl; external gtklib;
-function gtk_widget_class_find_style_property(klass:PGtkWidgetClass; property_name:Pgchar):PGParamSpec; cdecl; external gtklib;
-function gtk_widget_class_list_style_properties(klass:PGtkWidgetClass; n_properties:Pguint):PPGParamSpec; cdecl; external gtklib;
 procedure gtk_widget_style_get_property(widget:PGtkWidget; property_name:Pgchar; value:PGValue); cdecl; external gtklib;
 {$IFNDEF KYLIX}
 procedure gtk_widget_style_get_valist(widget:PGtkWidget; first_property_name:Pgchar; var_args: array of const); cdecl; external gtklib;
@@ -537,6 +531,27 @@ procedure gtk_requisition_free(requisition:PGtkRequisition); cdecl; external gtk
 function _gtk_widget_get_aux_info(widget:PGtkWidget; create:gboolean):PGtkWidgetAuxInfo; cdecl; external gtklib;
 procedure _gtk_widget_propagate_hierarchy_changed(widget:PGtkWidget; previous_toplevel:PGtkWidget); cdecl; external gtklib;
 function _gtk_widget_peek_colormap:PGdkColormap; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_widget_class_find_style_property(klass:PGtkWidgetClass; property_name:Pgchar):PGParamSpec; cdecl; external gtklib;
+function gtk_widget_class_list_style_properties(klass:PGtkWidgetClass; n_properties:Pguint):PPGParamSpec; cdecl; external gtklib;
+function gtk_widget_get_clipboard(widget:PGtkWidget; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
+function gtk_widget_get_display(widget:PGtkWidget):PGdkDisplay; cdecl; external gtklib;
+function gtk_widget_get_root_window(widget:PGtkWidget):PGdkWindow; cdecl; external gtklib;
+function gtk_widget_get_screen(widget:PGtkWidget):PGdkScreen; cdecl; external gtklib;
+function gtk_widget_has_screen(widget:PGtkWidget):gboolean; cdecl; external gtklib;
+{$ENDIF}
+
+{$ifdef HasGTK2_4}
+procedure gtk_widget_add_mnemonic_label(widget:PGtkWidget; _label:PGtkWidget); cdecl; external gtklib;
+function gtk_widget_can_activate_accel(widget:PGtkWidget; signal_id:guint):gboolean; cdecl; external gtklib;
+function gtk_widget_get_no_show_all(widget:PGtkWidget):gboolean; cdecl; external gtklib;
+function gtk_widget_list_mnemonic_labels(widget:PGtkWidget):PGList; cdecl; external gtklib;
+procedure gtk_widget_queue_resize_no_redraw(widget:PGtkWidget); cdecl; external gtklib;
+procedure gtk_widget_remove_mnemonic_label(widget:PGtkWidget; _label:PGtkWidget); cdecl; external gtklib;
+procedure gtk_widget_set_no_show_all(widget:PGtkWidget; no_show_all:gboolean); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

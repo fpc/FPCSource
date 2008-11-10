@@ -68,7 +68,7 @@ implementation
           (nodetype=divn) and
           (ispowerof2(tordconstnode(right).value,power) or
            (tordconstnode(right).value=1) or
-           (tordconstnode(right).value=-1)
+           (tordconstnode(right).value=int64(-1))
           ) and
           not(is_64bitint(resultdef)) then
           result:=nil

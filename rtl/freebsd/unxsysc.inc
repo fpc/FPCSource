@@ -84,38 +84,8 @@ begin
  fpFlock:=do_syscall(syscall_nr_flock,fd,mode);
 end;
 
-// needs oldfpccall;
-Function intAssignPipe(var pipe_in,pipe_out:longint;var errn:cint):cint;  oldfpccall;
-{
-  Sets up a pair of file variables, which act as a pipe. The first one can
-  be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
-}
-
-begin
- asm
-   mov $42,%eax
-   int $0x80
-   jb .Lerror
-   mov pipe_in,%ebx
-   mov %eax,(%ebx)
-   mov pipe_out,%ebx
-   mov $0,%eax
-   mov %edx,(%ebx)
-   mov %eax,%ebx
-   jmp .Lexit
-.Lerror:
-   mov %eax,%ebx
-   mov $-1,%eax
-.Lexit:
-   mov Errn,%edx
-   mov %ebx,(%edx)
- end;
-end;
-
-
 function MUnMap (P : Pointer; Size : size_t) : cint;
 begin
-  MUnMap:=do_syscall(syscall_nr_munmap,longint(P),Size);
+  MUnMap:=do_syscall(syscall_nr_munmap,TSysParam(P),Size);
 end;
 

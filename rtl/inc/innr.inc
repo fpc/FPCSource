@@ -73,6 +73,10 @@ const
    fpc_in_writestr_x        = 62;
    fpc_in_readstr_x         = 63;
    fpc_in_abs_long          = 64;
+   fpc_in_ror_x             = 65;
+   fpc_in_ror_x_x           = 66;
+   fpc_in_rol_x             = 67;
+   fpc_in_rol_x_x           = 68;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

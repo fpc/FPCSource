@@ -16,11 +16,13 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='utmp';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('utmp.pp');
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('testutmp.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

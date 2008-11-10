@@ -29,14 +29,12 @@ interface
        globtype,cclasses,
        symtype,symdef,symbase;
 
-    const
-       { forward types should only be possible inside a TYPE statement }
-       typecanbeforward : boolean = false;
-
     var
        { hack, which allows to use the current parsed }
        { object type as function argument type  }
        testcurobject : byte;
+
+    procedure resolve_forward_types;
 
     { reads a type identifier }
     procedure id_type(var def : tdef;isforwarddef:boolean);
@@ -77,6 +75,72 @@ implementation
        pbase,pexpr,pdecsub,pdecvar,pdecobj;
 
 
+    procedure resolve_forward_types;
+      var
+        i: longint;
+        hpd,
+        def : tdef;
+        srsym  : tsym;
+        srsymtable : TSymtable;
+        hs : string;
+      begin
+        for i:=0 to current_module.checkforwarddefs.Count-1 do
+          begin
+            def:=tdef(current_module.checkforwarddefs[i]);
+            case def.typ of
+              pointerdef,
+              classrefdef :
+                begin
+                  { classrefdef inherits from pointerdef }
+                  hpd:=tabstractpointerdef(def).pointeddef;
+                  { still a forward def ? }
+                  if hpd.typ=forwarddef then
+                   begin
+                     { try to resolve the forward }
+                     if not assigned(tforwarddef(hpd).tosymname) then
+                       internalerror(200211201);
+                     hs:=tforwarddef(hpd).tosymname^;
+                     searchsym(upper(hs),srsym,srsymtable);
+                     { we don't need the forwarddef anymore, dispose it }
+                     hpd.free;
+                     tabstractpointerdef(def).pointeddef:=nil; { if error occurs }
+                     { was a type sym found ? }
+                     if assigned(srsym) and
+                        (srsym.typ=typesym) then
+                      begin
+                        tabstractpointerdef(def).pointeddef:=ttypesym(srsym).typedef;
+                        { avoid wrong unused warnings web bug 801 PM }
+                        inc(ttypesym(srsym).refs);
+                        { we need a class type for classrefdef }
+                        if (def.typ=classrefdef) and
+                           not(is_class(ttypesym(srsym).typedef)) then
+                          MessagePos1(tsym(srsym).fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
+                      end
+                     else
+                      begin
+                        Message1(sym_e_forward_type_not_resolved,hs);
+                        { try to recover }
+                        tabstractpointerdef(def).pointeddef:=generrordef;
+                      end;
+                   end;
+                end;
+              objectdef :
+                begin
+                  { give an error as the implementation may follow in an
+                    other type block which is allowed by FPC modes }
+                  if not(m_fpc in current_settings.modeswitches) and
+                     (oo_is_forward in tobjectdef(def).objectoptions) then
+                    MessagePos1(def.typesym.fileinfo,type_e_type_is_not_completly_defined,def.typename);
+                 end;
+              else
+                internalerror(200811071);
+            end;
+          end;
+        current_module.checkforwarddefs.clear;
+      end;
+
+
+
     procedure generate_specialization(var tt:tdef);
       var
         st  : TSymtable;
@@ -86,7 +150,6 @@ implementation
         err : boolean;
         i   : longint;
         sym : tsym;
-        old_block_type : tblock_type;
         genericdef : tstoreddef;
         generictype : ttypesym;
         generictypelist : TFPObjectList;
@@ -97,6 +160,7 @@ implementation
         specializename : string;
         vmtbuilder : TVMTBuilder;
         onlyparsepara : boolean;
+        specializest : tsymtable;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -131,8 +195,6 @@ implementation
           end;
 
         consume(_LSHARPBRACKET);
-        old_block_type:=block_type;
-        block_type:=bt_specialize;
         { Parse generic parameters, for each undefineddef in the symtable of
           the genericdef we need to have a new def }
         err:=false;
@@ -155,8 +217,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sym.typ=typesym) and
-               (ttypesym(sym).typedef.typ=undefineddef) then
+            if (sp_generic_para in sym.symoptions) then
               begin
                 if not first then
                   consume(_COMMA)
@@ -187,14 +248,22 @@ implementation
           consume(_RSHARPBRACKET);
 
         { Special case if we are referencing the current defined object }
-        if assigned(aktobjectdef) and
-           (aktobjectdef.objname^=uspecializename) then
-          tt:=aktobjectdef;
+        if assigned(current_objectdef) and
+           (current_objectdef.objname^=uspecializename) then
+          tt:=current_objectdef;
+
+        { for units specializations can already be needed in the interface, therefor we
+          will use the global symtable. Programs don't have a globalsymtable and there we
+          use the localsymtable }
+        if current_module.is_unit then
+          specializest:=current_module.globalsymtable
+        else
+          specializest:=current_module.localsymtable;
 
         { Can we reuse an already specialized type? }
         if not assigned(tt) then
           begin
-            srsym:=tsym(tsymtable(current_module.localsymtable).find(uspecializename));
+            srsym:=tsym(specializest.find(uspecializename));
             if assigned(srsym) then
               begin
                 if srsym.typ<>typesym then
@@ -236,7 +305,7 @@ implementation
                 { Firsta new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
-                current_module.localsymtable.insert(srsym);
+                specializest.insert(srsym);
 
                 if not assigned(genericdef.generictokenbuf) then
                   internalerror(200511171);
@@ -263,7 +332,6 @@ implementation
 
         generictypelist.free;
         consume(_RSHARPBRACKET);
-        block_type:=old_block_type;
       end;
 
 
@@ -285,15 +353,15 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         if assigned(aktobjectdef) and
-            (aktobjectdef.objname^=pattern) and
+         if assigned(current_objectdef) and
+            (current_objectdef.objname^=pattern) and
             (
              (testcurobject=2) or
-             is_class_or_interface(aktobjectdef)
+             is_class_or_interface(current_objectdef)
             )then
            begin
              consume(_ID);
-             def:=aktobjectdef;
+             def:=current_objectdef;
              exit;
            end;
          { Use the special searchsym_type that ignores records,objects and
@@ -317,10 +385,10 @@ implementation
          { are we parsing a possible forward def ? }
          if isforwarddef and
             not(is_unit_specific) then
-          begin
-            def:=tforwarddef.create(s,pos);
-            exit;
-          end;
+           begin
+             def:=tforwarddef.create(sorg,pos);
+             exit;
+           end;
          { unknown sym ? }
          if not assigned(srsym) then
           begin
@@ -379,7 +447,28 @@ implementation
                        again:=true;
                      end
                    else
-                     id_type(def,isforwarddef);
+                     begin
+                       id_type(def,isforwarddef);
+                       { handle types inside classes for generics, e.g. TNode.TLongint }
+                       while (token=_POINT) do
+                         begin
+                           if parse_generic then
+                             begin
+                                consume(_POINT);
+                                consume(_ID);
+                             end
+                            else if ((def.typ=objectdef) and (df_specialization in def.defoptions)) then
+                              begin
+                                symtablestack.push(tobjectdef(def).symtable);
+                                consume(_POINT);
+                                id_type(t2,isforwarddef);
+                                symtablestack.pop(tobjectdef(def).symtable);
+                                def:=t2;
+                              end
+                            else
+                              break;
+                         end;
+                     end;
                  end;
 
                else
@@ -406,7 +495,6 @@ implementation
 
       var
          recst : trecordsymtable;
-         storetypecanbeforward : boolean;
          old_object_option : tsymoptions;
       begin
          { create recdef }
@@ -418,13 +506,8 @@ implementation
          consume(_RECORD);
          old_object_option:=current_object_option;
          current_object_option:=[sp_public];
-         storetypecanbeforward:=typecanbeforward;
-         { for tp7 don't allow forward types }
-         if m_tp7 in current_settings.modeswitches then
-           typecanbeforward:=false;
          read_record_fields([vd_record]);
          consume(_END);
-         typecanbeforward:=storetypecanbeforward;
          current_object_option:=old_object_option;
          { make the record size aligned }
          recst.addalignmentpadding;
@@ -460,15 +543,15 @@ implementation
               - classes can be used also in classes
               - objects can be parameters }
            if (token=_ID) and
-              assigned(aktobjectdef) and
-              (aktobjectdef.objname^=pattern) and
+              assigned(current_objectdef) and
+              (current_objectdef.objname^=pattern) and
               (
                (testcurobject=2) or
-               is_class_or_interface(aktobjectdef)
+               is_class_or_interface(current_objectdef)
               )then
              begin
                consume(_ID);
-               def:=aktobjectdef;
+               def:=current_objectdef;
                exit;
              end;
            { Generate a specialization? }
@@ -594,7 +677,7 @@ implementation
           hdef      : tdef;
           arrdef    : tarraydef;
 
-          procedure setdefdecl(def:tdef);
+        procedure setdefdecl(def:tdef);
           begin
             case def.typ of
               enumdef :
@@ -637,8 +720,9 @@ implementation
              begin
                 { defaults }
                 indexdef:=generrordef;
-                lowval:=int64(low(aint));
-                highval:=high(aint);
+                { use defaults which don't overflow the compiler }
+                lowval:=0;
+                highval:=0;
                 repeat
                   { read the expression and check it, check apart if the
                     declaration is an enum declaration because that needs to
@@ -652,43 +736,43 @@ implementation
                    begin
                      pt:=expr;
                      if pt.nodetype=typen then
-                      setdefdecl(pt.resultdef)
+                       setdefdecl(pt.resultdef)
                      else
                        begin
-                          if (pt.nodetype=rangen) then
+                         if (pt.nodetype=rangen) then
                            begin
                              if (trangenode(pt).left.nodetype=ordconstn) and
                                 (trangenode(pt).right.nodetype=ordconstn) then
-                              begin
-                                { make both the same type or give an error. This is not
-                                  done when both are integer values, because typecasting
-                                  between -3200..3200 will result in a signed-unsigned
-                                  conflict and give a range check error (PFV) }
-                                if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
-                                  inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
-                                lowval:=tordconstnode(trangenode(pt).left).value;
-                                highval:=tordconstnode(trangenode(pt).right).value;
-                                if highval<lowval then
-                                 begin
-                                   Message(parser_e_array_lower_less_than_upper_bound);
-                                   highval:=lowval;
-                                 end
-                                else if (lowval<int64(low(aint))) or
-                                        (highval > high(aint)) then
+                               begin
+                                 { make both the same type or give an error. This is not
+                                   done when both are integer values, because typecasting
+                                   between -3200..3200 will result in a signed-unsigned
+                                   conflict and give a range check error (PFV) }
+                                 if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
+                                   inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
+                                 lowval:=tordconstnode(trangenode(pt).left).value;
+                                 highval:=tordconstnode(trangenode(pt).right).value;
+                                 if highval<lowval then
                                   begin
-                                    Message(parser_e_array_range_out_of_bounds);
-                                    lowval :=0;
-                                    highval:=0;
-                                  end;
-                                if is_integer(trangenode(pt).left.resultdef) then
-                                  range_to_type(lowval,highval,indexdef)
-                                else
-                                  indexdef:=trangenode(pt).left.resultdef;
-                              end
+                                    Message(parser_e_array_lower_less_than_upper_bound);
+                                    highval:=lowval;
+                                  end
+                                 else if (lowval<int64(low(aint))) or
+                                         (highval > high(aint)) then
+                                   begin
+                                     Message(parser_e_array_range_out_of_bounds);
+                                     lowval :=0;
+                                     highval:=0;
+                                   end;
+                                 if is_integer(trangenode(pt).left.resultdef) then
+                                   range_to_type(lowval,highval,indexdef)
+                                 else
+                                   indexdef:=trangenode(pt).left.resultdef;
+                               end
                              else
-                              Message(type_e_cant_eval_constant_expr);
+                               Message(type_e_cant_eval_constant_expr);
                            end
-                          else
+                         else
                            Message(sym_e_error_in_type_def)
                        end;
                      pt.free;
@@ -738,6 +822,7 @@ implementation
 
       var
         p  : tnode;
+        hdef : tdef;
         pd : tabstractprocdef;
         is_func,
         enumdupmsg, first : boolean;
@@ -805,7 +890,7 @@ implementation
                   first := false;
                   storepos:=current_tokenpos;
                   current_tokenpos:=defpos;
-                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,l.svalue));
+                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
                   current_tokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
@@ -822,8 +907,10 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,typecanbeforward);
+                single_type(tt2,(block_type=bt_type));
                 def:=tpointerdef.create(tt2);
+                if tt2.typ=forwarddef then
+                  current_module.checkforwarddefs.add(def);
               end;
             _RECORD:
               begin
@@ -848,20 +935,79 @@ implementation
                       current_settings.packrecords:=1
                     else
                       current_settings.packrecords:=bit_alignment;
-                    if token in [_CLASS,_OBJECT] then
-                      def:=object_dec(name,genericdef,genericlist,nil)
-                    else
-                      def:=record_dec;
+                    case token of
+                      _CLASS :
+                        begin
+                          consume(_CLASS);
+                          def:=object_dec(odt_class,name,genericdef,genericlist,nil);
+                        end;
+                      _OBJECT :
+                        begin
+                          consume(_OBJECT);
+                          def:=object_dec(odt_object,name,genericdef,genericlist,nil);
+                        end;
+                      else
+                        def:=record_dec;
+                    end;
                     current_settings.packrecords:=oldpackrecords;
                   end;
               end;
-            _DISPINTERFACE,
-            _CLASS,
-            _CPPCLASS,
-            _INTERFACE,
-            _OBJECT:
+            _DISPINTERFACE :
               begin
-                def:=object_dec(name,genericdef,genericlist,nil);
+                { need extra check here since interface is a keyword
+                  in all pascal modes }
+                if not(m_class in current_settings.modeswitches) then
+                  Message(parser_f_need_objfpc_or_delphi_mode);
+                consume(token);
+                def:=object_dec(odt_dispinterface,name,genericdef,genericlist,nil);
+              end;
+            _CLASS :
+              begin
+                consume(token);
+                { Delphi only allows class of in type blocks }
+                if (token=_OF) and
+                   (
+                    not(m_delphi in current_settings.modeswitches) or
+                    (block_type=bt_type)
+                   ) then
+                  begin
+                    consume(_OF);
+                    single_type(hdef,(block_type=bt_type));
+                    if is_class(hdef) then
+                      def:=tclassrefdef.create(hdef)
+                    else
+                      if hdef.typ=forwarddef then
+                        begin
+                          def:=tclassrefdef.create(hdef);
+                          current_module.checkforwarddefs.add(def);
+                        end
+                    else
+                      Message1(type_e_class_type_expected,hdef.typename);
+                  end
+                else
+                  def:=object_dec(odt_class,name,genericdef,genericlist,nil);
+              end;
+            _CPPCLASS :
+              begin
+                consume(token);
+                def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil);
+              end;
+            _INTERFACE :
+              begin
+                { need extra check here since interface is a keyword
+                  in all pascal modes }
+                if not(m_class in current_settings.modeswitches) then
+                  Message(parser_f_need_objfpc_or_delphi_mode);
+                consume(token);
+                if current_settings.interfacetype=it_interfacecom then
+                  def:=object_dec(odt_interfacecom,name,genericdef,genericlist,nil)
+                else {it_interfacecorba}
+                  def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil);
+              end;
+            _OBJECT :
+              begin
+                consume(token);
+                def:=object_dec(odt_object,name,genericdef,genericlist,nil);
               end;
             _PROCEDURE,
             _FUNCTION:

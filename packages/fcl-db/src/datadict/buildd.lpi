@@ -24,7 +24,7 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="13">
+    <Units Count="14">
       <Unit0>
         <Filename Value="buildd.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -90,10 +90,18 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="fpddregstd"/>
       </Unit12>
+      <Unit13>
+        <Filename Value="fpdddiff.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpdddiff"/>
+      </Unit13>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="5"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="../../units/$(TARGETCPU)-$(TARGETOS)"/>
+    </SearchPaths>
     <CodeGeneration>
       <Generate Value="Faster"/>
     </CodeGeneration>

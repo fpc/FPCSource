@@ -190,8 +190,8 @@ implementation
                                else
                                 Message(type_e_ordinal_expr_expected)
                              end;
-                            p.free;
                             pl.addconst(sl_vec,idx,p.resultdef);
+                            p.free;
                             def:=tarraydef(def).elementdef;
                           end
                          else
@@ -216,6 +216,26 @@ implementation
                Message(parser_e_ill_property_access_sym);
                result:=false;
              end;
+          end;
+
+          function allow_default_property(p : tpropertysym) : boolean;
+
+          begin
+             allow_default_property:=
+               (is_ordinal(p.propdef) or
+{$ifndef cpu64bitaddr}
+               is_64bitint(p.propdef) or
+{$endif cpu64bitaddr}
+               is_class(p.propdef) or
+               is_single(p.propdef) or
+               (p.propdef.typ in [classrefdef,pointerdef]) or
+                 is_smallset(p.propdef)
+               ) and not
+               (
+                (p.propdef.typ=arraydef) and
+                (ppo_indexed in p.propoptions)
+               ) and not
+               (ppo_hasparameters in p.propoptions);
           end;
 
       var
@@ -566,20 +586,7 @@ implementation
            end;
          if try_to_consume(_DEFAULT) then
            begin
-              if not(is_ordinal(p.propdef) or
-{$ifndef cpu64bitaddr}
-                     is_64bitint(p.propdef) or
-{$endif cpu64bitaddr}
-                     is_class(p.propdef) or
-                     is_single(p.propdef) or
-                     (p.propdef.typ in [classrefdef,pointerdef]) or
-                     is_smallset(p.propdef)
-                    ) or
-                    (
-                     (p.propdef.typ=arraydef) and
-                     (ppo_indexed in p.propoptions)
-                    ) or
-                 (ppo_hasparameters in p.propoptions) then
+              if not allow_default_property(p) then
                 begin
                   Message(parser_e_property_cant_have_a_default_value);
                   { Error recovery }
@@ -621,7 +628,12 @@ implementation
          else if try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
+           end
+         else if allow_default_property(p) then
+           begin
+              p.default:=longint($80000000);
            end;
+
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
@@ -758,6 +770,7 @@ implementation
       is_dll,
       is_cdecl,
       is_external_var,
+      is_weak_external,
       is_public_var  : boolean;
       dll_name,
       C_name      : string;
@@ -799,7 +812,9 @@ implementation
         end;
 
       { external }
-      if try_to_consume(_EXTERNAL) then
+      is_weak_external:=try_to_consume(_WEAKEXTERNAL);
+      if is_weak_external or
+         try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
           if not is_cdecl then
@@ -858,6 +873,12 @@ implementation
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           include(vs.varoptions,vo_is_external);
+          if (is_weak_external) then
+            begin
+              if not(target_info.system in system_weak_linking) then
+                message(parser_e_weak_external_not_supported);
+              include(vs.varoptions,vo_is_weak_external);
+            end;
           vs.varregable := vr_none;
           if is_dll then
             current_module.AddExternalImport(dll_name,C_Name,0,true,false)
@@ -1044,7 +1065,7 @@ implementation
          { all variables are public if not in a object declaration }
          current_object_option:=[sp_public];
          old_block_type:=block_type;
-         block_type:=bt_type;
+         block_type:=bt_var;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
            consume(_ID);
@@ -1077,6 +1098,9 @@ implementation
                  end;
                consume(_ID);
              until not try_to_consume(_COMMA);
+
+             { read variable type def }
+             block_type:=bt_var_type;
              consume(_COLON);
 
 {$ifdef gpc_mode}
@@ -1086,13 +1110,13 @@ implementation
                read_gpc_name(sc);
 {$endif}
 
-             { read variable type def }
              read_anon_type(hdef,false);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
                  vs.vardef:=hdef;
                end;
+             block_type:=bt_var;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
@@ -1106,7 +1130,7 @@ implementation
                end;
 
              { Check for EXTERNAL etc directives before a semicolon }
-             if (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) then
+             if (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) then
                begin
                  read_public_and_external_sc(sc);
                  allowdefaultvalue:=false;
@@ -1163,7 +1187,7 @@ implementation
              { Check for EXTERNAL etc directives or, in macpas, if cs_external_var is set}
              if (
                  (
-                  (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
+                  (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
                   (m_cvar_support in current_settings.modeswitches)
                  ) or
                  (
@@ -1197,7 +1221,6 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         old_block_type : tblock_type;
          old_current_object_option : tsymoptions;
          hs,sorg : string;
          hdef,casetype : tdef;
@@ -1238,8 +1261,6 @@ implementation
          { all variables are public if not in a object declaration }
          if not(vd_object in options) then
           current_object_option:=[sp_public];
-         old_block_type:=block_type;
-         block_type:=bt_type;
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
@@ -1521,7 +1542,6 @@ implementation
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
               uniondef.owner.deletedef(uniondef);
            end;
-         block_type:=old_block_type;
          current_object_option:=old_current_object_option;
          { free the list }
          sc.free;

@@ -25,17 +25,31 @@ program chmcmd;
 uses
   Classes, chmfilewriter;
 
+Procedure Usage;
+
+begin
+  Writeln(StdErr,'Usage: chmcmd  <filename>');
+  Halt(1);
+end;
+
+
 var
   OutStream: TFileStream;
   Project: TChmProject;
+
 begin
-  if Paramcount = 1 then begin
+  if (Paramcount=1) and (ParamStr(1)<>'-h') and (ParamStr(1)<>'-?') then 
+    begin
     Project := TChmProject.Create;
     Project.LoadFromFile(ParamStr(1));
     OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
     Project.WriteChm(OutStream);
     OutStream.Free;
     Project.Free;
-  end;
+    end
+  else
+    begin
+    Usage;
+    end; 
 end.
 

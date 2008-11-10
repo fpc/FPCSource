@@ -1,8 +1,15 @@
 {
-  Wince Process .inc.
-}
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2008 by the Free Pascal development team
 
-uses Windows;
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 Const
   PriorityConstants : Array [TProcessPriority] of Cardinal =
@@ -167,10 +174,22 @@ begin
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
-  If FApplicationName<>'' then
-    PName:=PWidechar(FApplicationName);
-  If FCommandLine<>'' then
-    PCommandLine:=PWidechar(FCommandLine);
+    
+  if (FApplicationName='') then
+    begin
+      If (FCommandLine='') then
+        Raise EProcess.Create(SNoCommandline);
+      PCommandLine:=PWidechar(FCommandLine)
+    end
+  else
+    begin
+      PName:=PWidechar(FApplicationName);
+      If (FCommandLine='') then
+        PCommandLine:=PWidechar(FApplicationName)
+      else
+        PCommandLine:=PWidechar(FCommandLine)
+    end;
+    
   If FCurrentDirectory<>'' then
     PDir:=PWidechar(FCurrentDirectory);
   if FEnvironment.Count<>0 then

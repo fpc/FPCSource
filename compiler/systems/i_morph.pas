@@ -21,6 +21,8 @@
 { This unit implements support information structures for the MorphOS. }
 unit i_morph;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -32,7 +34,7 @@ unit i_morph;
             system       : system_powerpc_MorphOS;
             name         : 'MorphOS';
             shortname    : 'MorphOS';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses];
+            flags        : [tf_files_case_aware,tf_use_function_relative_addresses,tf_smartlink_library];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : '';

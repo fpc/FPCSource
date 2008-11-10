@@ -114,7 +114,6 @@ end;
 {$ifndef FPC_SYSTEM_HAS_FILLCHAR}
 Procedure FillChar(var x;count:SizeInt;value:byte);
 var
-  aligncount : sizeint;
   pdest,pend : pbyte;
   v : ptruint;
 begin
@@ -128,9 +127,8 @@ begin
       if sizeof(ptruint)=8 then
         v:=(v shl 32) or v;
       { Align on native pointer size }
-      aligncount:=(PtrUInt(pdest) and (sizeof(PtrUInt)-1));
-      dec(count,aligncount);
-      pend:=pdest+aligncount;
+      pend:=pbyte(align(pdest,sizeof(PtrUInt)));
+      dec(count,pend-pdest);
       while pdest<pend do
         begin
           pdest^:=value;
@@ -1466,6 +1464,16 @@ end;
 
 {$endif ndef FPC_SYSTEM_HAS_SQR_INT64}
 
+{$ifdef CPU16}
+{$ifndef FPC_SYSTEM_HAS_DECLOCKED_SMALLINT}
+function declocked(var l:smallint):boolean;
+  begin
+    Dec(l);
+    declocked:=(l=0);
+  end;
+{$endif FPC_SYSTEM_HAS_DECLOCKED_SMALLINT}
+{$endif CPU16}
+
 {$ifndef FPC_SYSTEM_HAS_DECLOCKED_LONGINT}
 function declocked(var l:longint):boolean;
   begin
@@ -1483,6 +1491,15 @@ function declocked(var l:int64):boolean;
   end;
 {$endif FPC_SYSTEM_HAS_DECLOCKED_INT64}
 
+
+{$ifdef CPU16}
+{$ifndef FPC_SYSTEM_HAS_INCLOCKED_SMALLINT}
+procedure inclocked(var l:smallint);
+  begin
+    Inc(l);
+  end;
+{$endif FPC_SYSTEM_HAS_INCLOCKED_SMALLINT}
+{$endif CPU16}
 
 {$ifndef FPC_SYSTEM_HAS_INCLOCKED_LONGINT}
 procedure inclocked(var l:longint);
@@ -2024,4 +2041,129 @@ procedure WriteBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
 end;
 
-{$endif}
+{$endif FPC_SYSTEM_HAS_MEM_BARRIER}
+
+{$ifndef FPC_HAS_INTERNAL_ROX_BYTE}
+{$ifndef FPC_SYSTEM_HAS_ROX_BYTE}
+
+function Ror(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shr 1) or (AValue shl 7);
+  end;
+  
+
+function Ror(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 7;
+    Result:=(AValue shr Dist) or (AValue shl (8-Dist));
+  end;
+
+
+function Rol(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shl 1) or (AValue shr 7);
+  end;
+
+
+function Rol(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 7;
+    Result:=(AValue shl Dist) or (AValue shr (8-Dist));
+  end;
+
+{$endif FPC_SYSTEM_HAS_ROX_BYTE}
+{$endif FPC_HAS_INTERNAL_ROX_BYTE}
+
+{$ifndef FPC_HAS_INTERNAL_ROX_WORD}
+{$ifndef FPC_SYSTEM_HAS_ROX_WORD}
+
+function Ror(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shr 1) or (AValue shl 15);
+  end;
+
+  
+function Ror(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 15;
+    Result:=(AValue shr Dist) or (AValue shl (16-Dist));
+  end;
+
+
+function Rol(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shl 1) or (AValue shr 15);
+  end;
+
+
+function Rol(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 15;
+    Result:=(AValue shl Dist) or (AValue shr (16-Dist));
+  end;
+
+{$endif FPC_SYSTEM_HAS_ROX_WORD}
+{$endif FPC_HAS_INTERNAL_ROX_WORD}
+
+{$ifndef FPC_HAS_INTERNAL_ROX_DWORD}
+{$ifndef FPC_SYSTEM_HAS_ROX_DWORD}
+
+function Ror(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shr 1) or (AValue shl 31);
+  end;
+
+
+function Ror(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 31;
+    Result:=(AValue shr Dist) or (AValue shl (32-Dist));
+  end;
+
+
+function Rol(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shl 1) or (AValue shr 31);
+  end;
+
+
+function Rol(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 31;
+    Result:=(AValue shl Dist) or (AValue shr (32-Dist));
+  end;
+
+{$endif FPC_SYSTEM_HAS_ROX_DWORD}
+{$endif FPC_HAS_INTERNAL_ROX_DWORD}
+
+{$ifndef FPC_HAS_INTERNAL_ROX_QWORD}
+{$ifndef FPC_SYSTEM_HAS_ROX_QWORD}
+
+function Ror(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shr 1) or (AValue shl 63);
+  end;
+
+
+function Ror(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 63;
+    Result:=(AValue shr Dist) or (AValue shl (64-Dist));
+  end;
+
+
+function Rol(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result:=(AValue shl 1) or (AValue shr 63);
+  end;
+
+
+function Rol(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Dist:=Dist and 63;
+    Result:=(AValue shl Dist) or (AValue shr (64-Dist));
+  end;
+
+{$endif FPC_SYSTEM_HAS_ROX_QWORD}
+{$endif FPC_HAS_INTERNAL_ROX_QWORD}
+

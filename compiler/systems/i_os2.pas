@@ -21,6 +21,8 @@
 { This unit implements support information structures for OS/2. }
 unit i_os2;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

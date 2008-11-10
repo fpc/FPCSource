@@ -60,7 +60,7 @@ type
     public
       constructor Create (ACount : integer);
       destructor destroy; override;
-      procedure GetBoundRect (var aRect : TRect);
+      procedure GetBoundRect (out aRect : TRect);
       property Text : string read FText;
       property Mode : TBitmapType read FMode;
       property Count : integer read GetCount;
@@ -105,7 +105,6 @@ type
       CurFont : TMgrFont;
       CurSize : PMgrSize;
       CurRenderMode : FT_Render_Mode;
-      CurTransform : FT_Matrix;
       UseKerning : boolean;
       function GetSearchPath : string;
       procedure SetSearchPath (AValue : string);
@@ -120,7 +119,7 @@ type
       procedure SetPixelSize (aSize, aResolution : integer);
       function GetGlyph (c : char) : PMgrGlyph;
       function CreateGlyph (c : char) : PMgrGlyph;
-      procedure MakeTransformation (angle:real; var Transformation:FT_Matrix);
+      procedure MakeTransformation (angle:real; out Transformation:FT_Matrix);
       procedure InitMakeString (FontID, Size:integer);
       function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
       function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
@@ -187,6 +186,47 @@ begin
     FTError(Msg,Result);
 end;
 
+{procedure WriteFT_Face(CurFont: PFT_Face);
+var
+  i: Integer;
+begin
+  writeln(' num_faces=',CurFont^.num_faces);
+  writeln(' face_index=',CurFont^.face_index);
+  writeln(' face_flags=',CurFont^.face_flags);
+  writeln(' style_flags=',CurFont^.style_flags);
+  writeln(' num_glyphs=',CurFont^.num_glyphs);
+  writeln(' family_name=',CurFont^.family_name<>nil);
+  writeln(' style_name=',CurFont^.style_name<>nil);
+  {if CurFont^.style_name<>nil then begin
+    writeln('   ',CurFont^.style_name^);
+  end;}
+  writeln(' num_fixed_sizes=',CurFont^.num_fixed_sizes);
+  writeln(' available_sizes=',CurFont^.available_sizes<>nil);
+  for i:=1 to CurFont^.num_fixed_sizes do begin
+    writeln('   ',i,' ',CurFont^.available_sizes^[i-1].width,'x',CurFont^.available_sizes^[i-1].height);
+  end;
+  writeln(' num_charmaps=',CurFont^.num_charmaps);
+  writeln(' charmaps=',CurFont^.charmaps<>nil);
+  writeln(' generic.data=',CurFont^.generic.data<>nil);
+  writeln(' generic.finalizer=',CurFont^.generic.finalizer<>nil);
+  writeln(' bbox.xMin=',CurFont^.bbox.xMin,
+    ' bbox.xMax=',CurFont^.bbox.xMax,
+    ' bbox.yMin=',CurFont^.bbox.yMin,
+    ' bbox.yMax=',CurFont^.bbox.yMax,
+    ' units_per_EM=',CurFont^.units_per_EM,
+    ' ascender=',CurFont^.ascender,
+    ' descender=',CurFont^.descender,
+    ' height=',CurFont^.height,
+    ' max_advance_width=',CurFont^.max_advance_width,
+    ' max_advance_height=',CurFont^.max_advance_height,
+    ' underline_position=',CurFont^.underline_position,
+    ' underline_thickness=',CurFont^.underline_thickness,
+    ' glyph=',CurFont^.glyph<>nil,
+    ' size=',CurFont^.size<>nil,
+    ' charmap=',CurFont^.charmap<>nil,
+    '');
+end;}
+
 { TMgrFont }
 
 constructor TMgrFont.Create (aMgr:TFontManager; afilename:string; anindex:integer);
@@ -199,6 +239,7 @@ begin
   LastSize := nil;
   Try
     FTCheck(FT_New_Face (aMgr.FTLib, pchar(afilename), anindex, font),format (sErrLoadFont,[anindex,afilename]));
+    //WriteFT_Face(font);
   except
     Font:=Nil;
     Raise;
@@ -461,7 +502,7 @@ begin
       end;
 end;
 
-procedure TFontManager.MakeTransformation (angle:real; var Transformation:FT_Matrix);
+procedure TFontManager.MakeTransformation (angle:real; out Transformation:FT_Matrix);
 begin
   with Transformation do
     begin
@@ -476,8 +517,10 @@ function TFontManager.CreateGlyph (c : char) : PMgrGlyph;
 var e : integer;
 begin
   new (result);
+  FillByte(Result^,SizeOf(Result),0);
   result^.character := c;
   result^.GlyphIndex := FT_Get_Char_Index (CurFont.font, ord(c));
+  //WriteFT_Face(CurFont.Font);
   e := FT_Load_Glyph (CurFont.font, result^.GlyphIndex, FT_Load_Default);
   if e <> 0 then
     begin
@@ -517,7 +560,7 @@ function TFontManager.MakeString (FontId:integer; Text:string; size:integer; ang
 var g : PMgrGlyph;
     bm : PFT_BitmapGlyph;
     gl : PFT_Glyph;
-    e, prevIndex, prevx, c, r, rx : integer;
+    prevIndex, prevx, c, r, rx : integer;
     pre, adv, pos, kern : FT_Vector;
     buf : PByteArray;
     reverse : boolean;
@@ -828,7 +871,7 @@ begin
       end;
 end;
 
-procedure TStringBitmaps.GetBoundRect (var aRect : TRect);
+procedure TStringBitmaps.GetBoundRect (out aRect : TRect);
 begin
   aRect := FBounds;
 end;

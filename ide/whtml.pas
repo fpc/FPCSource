@@ -115,6 +115,18 @@ type
       procedure   DocHorizontalRuler; virtual;
     end;
 
+Type
+    PTopicLinkCollection = ^TTopicLinkCollection;
+    TTopicLinkCollection = object(TStringCollection)
+      procedure   Insert(Item: Pointer); virtual;
+      function    At(Index: sw_Integer): PString;
+      function    AddItem(Item: string): integer;
+    end;
+
+function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
+procedure DecodeHTMLCtx(Ctx: longint; var FileID: word; var LinkNo: word);
+
+
 implementation
 
 uses
@@ -175,28 +187,6 @@ begin
 end;
 
 constructor TDOSTextFile.Init(AFileName: string);
-(*{$ifdef TPUNIXLF}
-  procedure readln(var t:text;var s:string);
-  var
-    c : char;
-    i : longint;
-  begin
-    c:=#0;
-    i:=0;
-    while (not eof(t)) and (c<>#10) and (i<255) do
-     begin
-       read(t,c);
-       if (i<255) and (c<>#10) then
-   begin
-     inc(i);
-     s[i]:=c;
-   end;
-     end;
-    if (i>0) and (s[i]=#13) then
-       dec(i);
-    s[0]:=chr(i);
-   end;
-{$endif}*)
 var f: file;
     linecomplete,hasCR: boolean;
     S: string;
@@ -447,7 +437,7 @@ begin
   if (Code=162) or (Name='cent')   then E:='õ'   else { cent sign                     }
   if (Code=163) or (Name='pound')  then E:='ú'   else { pound sterling sign           }
   if (Code=164) or (Name='curren') then E:='$'   else { general currency sign         }
-  if (Code=165) or (Name='yen')    then E:='ù'   else { yen sign                      }
+  if (Code=165) or (Name='yen')    then E:=''   else { yen sign                      }
   if (Code=166) or (Name='brvbar') then E:='|'   else { broken vertical bar           }
   if (Code=167) or (Name='sect')   then E:=''   else { section sign                  }
   if (Code=168) or (Name='uml')    then E:='"'   else { umlaut  (dieresis)            }
@@ -479,11 +469,11 @@ begin
   if (Code=194) or (Name='Acirc')  then E:='A'   else { capital A, circumflex accent  }
   if (Code=195) or (Name='Atilde') then E:='A'   else { capital A, tilde accent       }
   if (Code=196) or (Name='Auml')   then E:='é'   else { capital A, dieresis or umlaut }
-  if (Code=197) or (Name='Aring')  then E:='è'   else { capital A, ring               }
+  if (Code=197) or (Name='Aring')  then E:=''   else { capital A, ring               }
   if (Code=198) or (Name='AElig')  then E:='í'   else { capital AE diphthong          }
   if (Code=199) or (Name='Ccedil') then E:='Ä'   else { capital C, cedilla            }
-  if (Code=200) or (Name='Egrave') then E:='ê'   else { capital E, grave accent       }
-  if (Code=201) or (Name='Eacute') then E:='ê'   else { capital E, acute accent       }
+  if (Code=200) or (Name='Egrave') then E:=''   else { capital E, grave accent       }
+  if (Code=201) or (Name='Eacute') then E:=''   else { capital E, acute accent       }
   if (Code=202) or (Name='Ecirc')  then E:='E'   else { capital E, circumflex accent  }
   if (Code=203) or (Name='Euml')   then E:='E'   else { capital E, dieresis or umlaut }
   if (Code=204) or (Name='Igrave') then E:='I'   else { capital I, grave accent       }
@@ -518,7 +508,7 @@ begin
   if (Code=233) or (Name='eacute') then E:='Ç'   else { small e, acute accent         }
   if (Code=234) or (Name='ecirc')  then E:='à'   else { small e, circumflex accent    }
   if (Code=235) or (Name='euml')   then E:='â'   else { small e, dieresis or umlaut   }
-  if (Code=236) or (Name='igrave') then E:='ç'   else { small i, grave accent         }
+  if (Code=236) or (Name='igrave') then E:=''   else { small i, grave accent         }
   if (Code=237) or (Name='iacute') then E:='°'   else { small i, acute accent         }
   if (Code=238) or (Name='icirc')  then E:='å'   else { small i, circumflex accent    }
   if (Code=239) or (Name='iuml')   then E:='ã'   else { small i, dieresis or umlaut   }
@@ -534,7 +524,7 @@ begin
   if (Code=249) or (Name='ugrave') then E:='ó'   else { small u, grave accent         }
   if (Code=250) or (Name='uacute') then E:='£'   else { small u, acute accent         }
   if (Code=251) or (Name='ucirc')  then E:='ñ'   else { small u, circumflex accent    }
-  if (Code=252) or (Name='uuml')   then E:='Å'   else { small u, dieresis or umlaut   }
+  if (Code=252) or (Name='uuml')   then E:=''   else { small u, dieresis or umlaut   }
   if (Code=253) or (Name='yacute') then E:='y'   else { small y, acute accent         }
 (*  if (Code=254) or (Name='thorn')  then E:='?'   else { small thorn, Icelandic        }*)
   if (Code=255) or (Name='yuml')   then E:='y'   else { small y, dieresis or umlaut   }
@@ -881,6 +871,47 @@ procedure THTMLParser.DocHorizontalRuler;
 begin
 end;
 
+function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
+var Ctx: longint;
+begin
+  Ctx:=(longint(FileID) shl 16)+LinkNo;
+  EncodeHTMLCtx:=Ctx;
+end;
+
+procedure DecodeHTMLCtx(Ctx: longint; var FileID: word; var LinkNo: word);
+begin
+  if (Ctx shr 16)=0 then
+    begin
+      FileID:=$ffff; LinkNo:=0;
+    end
+  else
+    begin
+      FileID:=Ctx shr 16; LinkNo:=Ctx and $ffff;
+    end;
+end;
+
+
+procedure TTopicLinkCollection.Insert(Item: Pointer);
+begin
+  AtInsert(Count,Item);
+end;
+
+function TTopicLinkCollection.At(Index: sw_Integer): PString;
+begin
+  At:=inherited At(Index);
+end;
+
+function TTopicLinkCollection.AddItem(Item: string): integer;
+var Idx: sw_integer;
+begin
+  if Item='' then Idx:=-1 else
+  if Search(@Item,Idx)=false then
+    begin
+      AtInsert(Count,NewStr(Item));
+      Idx:=Count-1;
+    end;
+  AddItem:=Idx;
+end;
 
 
 END.

@@ -4,7 +4,7 @@
 
 [package]
 name=chm
-version=2.0.0
+version=2.2.2
 
 [target]
 units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \

@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for OpenAL bindings
+#
+
+[package]
+name=libxml2
+version=2.2.2
+
+[target]
+units=libxml2 xmlxsd
+exampledirs=examples
+
+[require]
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src tests examples
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:

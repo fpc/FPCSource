@@ -38,10 +38,15 @@ interface
 {$ifdef cpu64bitaddr}
        PUint = qword;
        PInt = int64;
-{$else cpu64bitaddr}
+{$endif cpu64bitaddr}
+{$ifdef cpu32bitaddr}
        PUint = cardinal;
        PInt = longint;
-{$endif cpu64bitaddr}
+{$endif cpu32bitaddr}
+{$ifdef cpu16bitaddr}
+       PUint = word;
+       PInt = Smallint;
+{$endif cpu16bitaddr}
 
        { Natural integer register type and size for the target machine }
 {$ifdef cpu64bitalu}
@@ -50,13 +55,21 @@ interface
 
      Const
        AIntBits = 64;
-{$else cpu64bitalu}
+{$endif cpu64bitalu}
+{$ifdef cpu32bitalu}
        AWord = longword;
        AInt = longint;
 
      Const
        AIntBits = 32;
-{$endif cpu64bitalu}
+{$endif cpu32bitalu}
+{$ifdef cpu16bitalu}
+       AWord = Word;
+       AInt = Smallint;
+
+     Const
+       AIntBits = 16;
+{$endif cpu16bitalu}
 
      Type
        PAWord = ^AWord;
@@ -170,7 +183,7 @@ interface
          cs_opt_level1,cs_opt_level2,cs_opt_level3,
          cs_opt_regvar,cs_opt_uncertain,cs_opt_size,cs_opt_stackframe,
          cs_opt_peephole,cs_opt_asmcse,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_nodecse,
-         cs_opt_nodedfa
+         cs_opt_nodedfa,cs_opt_loopstrength
        );
        toptimizerswitches = set of toptimizerswitch;
 
@@ -178,7 +191,7 @@ interface
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
-         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA'
+         'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
        );
 
        DebugSwitchStr : array[tdebugswitch] of string[9] = ('',
@@ -249,7 +262,7 @@ interface
 
        { currently parsed block type }
        tblock_type = (bt_none,
-         bt_general,bt_type,bt_const,bt_except,bt_body,bt_specialize
+         bt_general,bt_type,bt_const,bt_const_type,bt_var,bt_var_type,bt_except,bt_body
        );
 
        { Temp types }
@@ -373,7 +386,9 @@ interface
          { stack frame optimization not possible (only on x86 probably) }
          pi_needs_stackframe,
          { set if the procedure has at least one register saved on the stack }
-         pi_has_saved_regs
+         pi_has_saved_regs,
+         { dfa was generated for this proc }
+         pi_dfaavailable
        );
        tprocinfoflags=set of tprocinfoflag;
 
@@ -403,6 +418,7 @@ interface
 
        pfileposinfo = ^tfileposinfo;
        tfileposinfo = record
+         { if types of column or fileindex are changed, modify tcompilerppufile.putposinfo }
          line      : longint;
          column    : word;
          fileindex : word;

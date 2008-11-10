@@ -17,8 +17,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-jedi';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
     P.OSes:=[win32,win64];
+    P.Author := 'Marcel van Brakel, Jedi-apilib team';
+    P.License := 'LGPL with modification/MPL dual licensed ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Very complete set of Windows units by Jedi Apilib';
+    P.NeedLibC:= true;
 
     P.Dependencies.Add('winunits-base');
 

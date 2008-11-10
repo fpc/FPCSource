@@ -13,15 +13,15 @@ Var
   UseEmbeddedFirebird : Boolean = False;
 
 {$ELSE}
-uses ctypes;
+uses Dynlibs,ctypes;
 {$ENDIF}
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    gdslib = 'libgds.so';
-    fbclib = 'libfbclient.so';
-    fbembedlib = 'libfbembed.so';
+    gdslib = 'libgds.'+sharedsuffix;
+    fbclib = 'libfbclient.'+sharedsuffix;
+    fbembedlib = 'libfbembed.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}

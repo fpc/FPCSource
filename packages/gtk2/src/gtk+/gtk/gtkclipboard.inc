@@ -21,18 +21,18 @@
 
    TGtkClipboardClearFunc = procedure (clipboard:PGtkClipboard; user_data_or_owner:gpointer); cdecl;
 
+   TGtkClipboardImageReceivedFunc = procedure (clipboard:PGtkClipboard;	pixbuf:PGdkPixbuf; data:gpointer); cdecl;
+   TGtkClipboardTargetsReceivedFunc = procedure (clipboard:PGtkClipboard; atoms: PGdkAtom; n_atoms: gint; data: gpointer); cdecl;
+
 {$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
 
 {$IFDEF read_interface_rest}
-function gtk_clipboard_get_for_display(display:PGdkDisplay; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
-
 {$ifndef GDK_MULTIHEAD_SAFE}
 function gtk_clipboard_get(selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
 {$endif}
 
-function gtk_clipboard_get_display(clipboard:PGtkClipboard):PGdkDisplay; cdecl; external gtklib;
 function gtk_clipboard_set_with_data(clipboard:PGtkClipboard; targets:PGtkTargetEntry; n_targets:guint; get_func:TGtkClipboardGetFunc; clear_func:TGtkClipboardClearFunc;
            user_data:gpointer):gboolean; cdecl; external gtklib;
 function gtk_clipboard_set_with_owner(clipboard:PGtkClipboard; targets:PGtkTargetEntry; n_targets:guint; get_func:TGtkClipboardGetFunc; clear_func:TGtkClipboardClearFunc;
@@ -45,6 +45,27 @@ procedure gtk_clipboard_request_text(clipboard:PGtkClipboard; callback:TGtkClipb
 function gtk_clipboard_wait_for_contents(clipboard:PGtkClipboard; target:TGdkAtom):PGtkSelectionData; cdecl; external gtklib;
 function gtk_clipboard_wait_for_text(clipboard:PGtkClipboard):Pgchar; cdecl; external gtklib;
 function gtk_clipboard_wait_is_text_available(clipboard:PGtkClipboard):gboolean; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_clipboard_get_display(clipboard:PGtkClipboard):PGdkDisplay; cdecl; external gtklib;
+function gtk_clipboard_get_for_display(display:PGdkDisplay; selection:TGdkAtom):PGtkClipboard; cdecl; external gtklib;
+{$ENDIF}
+
+{$ifdef HasGTK2_4}
+procedure gtk_clipboard_request_targets(clipboard: PGtkClipboard; callback: TGtkClipboardTargetsReceivedFunc; user_data: gpointer); cdecl; external gtklib;
+function gtk_clipboard_wait_for_targets(clipboard: PGtkClipboard; targets: PPGdkAtom; n_targets: Pgint):gboolean; cdecl; external gtklib;
+{$endif}
+
+{$ifdef HasGTK2_6}
+procedure gtk_clipboard_request_image(clipboard:PGtkClipboard; callback:TGtkClipboardImageReceivedFunc; user_data:gpointer); cdecl; external gtklib;
+procedure gtk_clipboard_set_can_store(clipboard:PGtkClipboard; targets: PGtkTargetEntry; n_targets:gint); cdecl; external gtklib;
+procedure gtk_clipboard_set_image(clipboard:PGtkClipboard; pixbuf:PGdkPixbuf); cdecl; external gtklib;
+procedure gtk_clipboard_store(clipboard:PGtkClipboard); cdecl; external gtklib;
+function gtk_clipboard_wait_for_image(clipboard:PGtkClipboard):PGdkPixbuf; cdecl; external gtklib;
+function gtk_clipboard_wait_is_image_available(clipboard:PGtkClipboard):gboolean; cdecl; external gtklib;
+function gtk_clipboard_wait_is_target_available(clipboard:PGtkClipboard; target:TGdkAtom):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 // included by gtk2.pas
 

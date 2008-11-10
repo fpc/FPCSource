@@ -60,15 +60,20 @@ procedure gtk_entry_completion_complete(completion:PGtkEntryCompletion);cdecl;ex
 
 
 procedure gtk_entry_completion_insert_action_text(completion:PGtkEntryCompletion; index:gint; text:Pgchar);cdecl;external gtklib name 'gtk_entry_completion_insert_action_text';
-
 procedure gtk_entry_completion_insert_action_markup(completion:PGtkEntryCompletion; index:gint; markup:Pgchar);cdecl;external gtklib name 'gtk_entry_completion_insert_action_markup';
-
 procedure gtk_entry_completion_delete_action(completion:PGtkEntryCompletion; index:gint);cdecl;external gtklib name 'gtk_entry_completion_delete_action';
-
 
 { convenience  }
 procedure gtk_entry_completion_set_text_column(completion:PGtkEntryCompletion; column:gint);cdecl;external gtklib name 'gtk_entry_completion_set_text_column';
 
+{$ifdef HasGTK2_6}
+function gtk_entry_completion_get_inline_completion(completion:PGtkEntryCompletion):gboolean;cdecl;external gtklib;
+function gtk_entry_completion_get_popup_completion(completion:PGtkEntryCompletion):gboolean;cdecl;external gtklib;
+function gtk_entry_completion_get_text_column(completion:PGtkEntryCompletion):gint;cdecl;external gtklib;
+procedure gtk_entry_completion_insert_prefix(completion:PGtkEntryCompletion);cdecl;external gtklib;
+procedure gtk_entry_completion_set_inline_completion(completion:PGtkEntryCompletion; inline_completion:gboolean);cdecl;external gtklib;
+procedure gtk_entry_completion_set_popup_completion(completion:PGtkEntryCompletion; popup_completion:gboolean);cdecl;external gtklib;
+{$endif}
 
 {$endif read_interface_rest}
 

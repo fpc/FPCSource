@@ -178,7 +178,7 @@ unit charset;
          mapcachep : punicodemap = nil;
 
       begin
-         if (mapcache=s) and (mapcachep^.cpname=s) then
+         if (mapcache=s) and assigned(mapcachep) and (mapcachep^.cpname=s) then
            begin
               getmap:=mapcachep;
               exit;

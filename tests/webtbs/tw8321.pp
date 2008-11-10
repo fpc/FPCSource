@@ -19,7 +19,11 @@ begin
  Str(a * w - 256000000,s);
  p:=POinter(a * w - 256000000);
  writeln(s);
+{$ifdef cpu64}
+ if s<>'18446744073454862316' then
+{$else cpu64}
  if s<>'-254689300' then
+{$endif cpu64}
   err:=true;
 
 

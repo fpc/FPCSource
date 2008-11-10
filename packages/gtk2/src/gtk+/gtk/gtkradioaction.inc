@@ -28,35 +28,28 @@ type
 {$ENDIF read_interface_types}
 
 {$IFDEF read_interface_rest}
+
 function GTK_TYPE_RADIO_ACTION : GType;
-
 function GTK_RADIO_ACTION(obj : pointer) : PGtkRadioAction;
-
 function GTK_RADIO_ACTION_CLASS(klass : pointer) : PGtkRadioActionClass;
-
 function GTK_IS_RADIO_ACTION(obj : pointer) : gboolean;
-
 function GTK_IS_RADIO_ACTION_CLASS(klass : pointer) : gboolean;
-
 function GTK_RADIO_ACTION_GET_CLASS(obj : pointer) : PGtkRadioActionClass;
 
 function gtk_radio_action_get_type:GType;cdecl;external gtklib name 'gtk_radio_action_get_type';
-
 function gtk_radio_action_new(name:Pgchar; szLabel:Pgchar; tooltip:Pgchar; stock_id:Pgchar; value:gint):PGtkRadioAction;cdecl;external gtklib name 'gtk_radio_action_new';
-
 function gtk_radio_action_get_group(action:PGtkRadioAction):PGSList;cdecl;external gtklib name 'gtk_radio_action_get_group';
-
 procedure gtk_radio_action_set_group(action:PGtkRadioAction; group:PGSList);cdecl;external gtklib name 'gtk_radio_action_set_group';
-
 function gtk_radio_action_get_current_value(action:PGtkRadioAction):gint;cdecl;external gtklib name 'gtk_radio_action_get_current_value';
 
 {$ENDIF read_interface_rest}
 
 {$IFDEF read_implementation}
+
 function GTK_TYPE_RADIO_ACTION : GType;
-  begin
-     GTK_TYPE_RADIO_ACTION:=gtk_radio_action_get_type;
-  end;
+begin
+   GTK_TYPE_RADIO_ACTION:=gtk_radio_action_get_type;
+end;
 
 function GTK_RADIO_ACTION(obj : pointer) : PGtkRadioAction;
 begin

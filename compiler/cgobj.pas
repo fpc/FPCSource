@@ -83,7 +83,7 @@ unit cgobj;
           function getaddressregister(list:TAsmList):Tregister;virtual;
           function getfpuregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           function getmmregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
-          function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;abstract;
+          function getflagregister(list:TAsmList;size:Tcgsize):Tregister;virtual;
           {Does the generic cg need SIMD registers, like getmmxregister? Or should
            the cpu specific child cg object have such a method?}
 
@@ -196,7 +196,7 @@ unit cgobj;
              a temp register on most cpu's resulting in conflicts with the
              registers used for the parameters (PFV)
           }
-          procedure a_call_name(list : TAsmList;const s : string);virtual; abstract;
+          procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
           procedure a_call_ref(list : TAsmList;ref : treference);virtual; abstract;
           { same as a_call_name, might be overriden on certain architectures to emit
@@ -267,15 +267,15 @@ unit cgobj;
           procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
           { vector register move instructions }
-          procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual; abstract;
-          procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual; abstract;
-          procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual; abstract;
+          procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_ref_reg(list: TAsmList; fromsize, tosize : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
           procedure a_loadmm_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
           procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_parammm_ref(list: TAsmList; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_parammm_loc(list: TAsmList; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;abstract;
+          procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_ref(list: TAsmList; Op: TOpCG; size : tcgsize;reg: tregister;const ref: treference; shuffle : pmmshuffle); virtual;
@@ -476,7 +476,7 @@ unit cgobj;
           procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);virtual;abstract;
           procedure g_adjust_self_value(list:TAsmList;procdef: tprocdef;ioffset: aint);virtual;
 
-          function g_indirect_sym_load(list:TAsmList;const symname: string): tregister;virtual;
+          function g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;virtual;
           { generate a stub which only purpose is to pass control the given external method,
           setting up any additional environment before doing so (if required).
 
@@ -1579,7 +1579,7 @@ implementation
                   SL_SETZERO,
                   SL_SETMAX:
                     a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
-                  else                 
+                  else
                     a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
                 end;
                 valuereg := makeregsize(list,valuereg,loadsize);
@@ -1611,7 +1611,7 @@ implementation
                   SL_SETZERO,
                   SL_SETMAX:
                     a_load_regconst_subsetreg_intern(list,fromsize,subsetsize,fromreg,tosreg,slopt);
-                  else                 
+                  else
                     a_load_subsetreg_subsetreg(list,subsetsize,subsetsize,fromsreg,tosreg);
                 end;
                 extra_value_reg := makeregsize(list,extra_value_reg,loadsize);
@@ -2465,7 +2465,7 @@ implementation
                if a = 0 then
                  op:=OP_NONE;
             end;
-        OP_SAR,OP_SHL,OP_SHR:
+        OP_SAR,OP_SHL,OP_SHR,OP_ROL,OP_ROR:
            begin
               if a = 0 then
                 op:=OP_NONE;
@@ -2534,7 +2534,7 @@ implementation
             LOC_REGISTER,LOC_CREGISTER:
               begin
                 { paramfpu_ref does the check_simpe_location check here if necessary }
-                tg.GetTemp(list,TCGSize2Size[size],tt_normal,ref);
+                tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,ref);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
                 a_paramfpu_ref(list,size,ref,cgpara);
                 tg.Ungettemp(list,ref);
@@ -3072,7 +3072,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_SHORTSTR_ASSIGN');
+        a_call_name(list,'FPC_SHORTSTR_ASSIGN',false);
         deallocallcpuregisters(list);
         cgpara3.done;
         cgpara2.done;
@@ -3094,7 +3094,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE');
+        a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE',false);
         deallocallcpuregisters(list);
         cgpara2.done;
         cgpara1.done;
@@ -3112,13 +3112,15 @@ implementation
          paramanager.getintparaloc(pocall_default,1,cgpara1);
          paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_interfacecom(t) then
-          incrfunc:='FPC_INTF_INCR_REF'
+           incrfunc:='FPC_INTF_INCR_REF'
          else if is_ansistring(t) then
-          incrfunc:='FPC_ANSISTR_INCR_REF'
+           incrfunc:='FPC_ANSISTR_INCR_REF'
          else if is_widestring(t) then
-          incrfunc:='FPC_WIDESTR_INCR_REF'
+           incrfunc:='FPC_WIDESTR_INCR_REF'
+         else if is_unicodestring(t) then
+           incrfunc:='FPC_UNICODESTR_INCR_REF'
          else if is_dynamic_array(t) then
-          incrfunc:='FPC_DYNARRAY_INCR_REF'
+           incrfunc:='FPC_DYNARRAY_INCR_REF'
          else
           incrfunc:='';
          { call the special incr function or the generic addref }
@@ -3134,7 +3136,7 @@ implementation
               a_param_ref(list,OS_ADDR,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,incrfunc);
+            a_call_name(list,incrfunc,false);
             deallocallcpuregisters(list);
           end
          else
@@ -3147,7 +3149,7 @@ implementation
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_ADDREF');
+            a_call_name(list,'FPC_ADDREF',false);
             deallocallcpuregisters(list);
           end;
          cgpara2.done;
@@ -3174,6 +3176,8 @@ implementation
           decrfunc:='FPC_ANSISTR_DECR_REF'
          else if is_widestring(t) then
           decrfunc:='FPC_WIDESTR_DECR_REF'
+         else if is_unicodestring(t) then
+          decrfunc:='FPC_UNICODESTR_DECR_REF'
          else if is_dynamic_array(t) then
           begin
             decrfunc:='FPC_DYNARRAY_DECR_REF';
@@ -3202,7 +3206,7 @@ implementation
             a_param_reg(list,OS_ADDR,tempreg1,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,decrfunc);
+            a_call_name(list,decrfunc,false);
             deallocallcpuregisters(list);
           end
          else
@@ -3215,7 +3219,7 @@ implementation
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_DECREF');
+            a_call_name(list,'FPC_DECREF',false);
             deallocallcpuregisters(list);
          end;
         cgpara2.done;
@@ -3234,6 +3238,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
+            is_unicodestring(t) or
             is_interfacecom(t) or
             is_dynamic_array(t) then
            a_load_const_ref(list,OS_ADDR,0,ref)
@@ -3247,7 +3252,7 @@ implementation
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
-              a_call_name(list,'FPC_INITIALIZE');
+              a_call_name(list,'FPC_INITIALIZE',false);
               deallocallcpuregisters(list);
            end;
         cgpara1.done;
@@ -3266,6 +3271,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
          if is_ansistring(t) or
             is_widestring(t) or
+            is_unicodestring(t) or
             is_interfacecom(t) then
             begin
               g_decrrefcount(list,t,ref);
@@ -3281,7 +3287,7 @@ implementation
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
-              a_call_name(list,'FPC_FINALIZE');
+              a_call_name(list,'FPC_FINALIZE',false);
               deallocallcpuregisters(list);
            end;
         cgpara1.done;
@@ -3426,7 +3432,7 @@ implementation
                     { if low(to) > maxlongint also range error }
                     (lto > aintmax) then
                    begin
-                     a_call_name(list,'FPC_RANGEERROR');
+                     a_call_name(list,'FPC_RANGEERROR',false);
                      exit
                    end;
                  { from is signed and to is unsigned -> when looking at to }
@@ -3441,7 +3447,7 @@ implementation
                  if (lfrom > aintmax) or
                     (hto < 0) then
                    begin
-                     a_call_name(list,'FPC_RANGEERROR');
+                     a_call_name(list,'FPC_RANGEERROR',false);
                      exit
                    end;
                  { from is unsigned and to is signed -> when looking at to }
@@ -3466,7 +3472,7 @@ implementation
         else
 {$endif cpu64bitalu}
           a_cmp_const_reg_label(list,OS_INT,OC_BE,aint(int64(hto-lto)),hreg,neglabel);
-        a_call_name(list,'FPC_RANGEERROR');
+        a_call_name(list,'FPC_RANGEERROR',false);
         a_label(list,neglabel);
       end;
 
@@ -3503,7 +3509,7 @@ implementation
            paramanager.allocparaloc(list,cgpara1);
            a_param_const(list,OS_INT,210,cgpara1);
            paramanager.freeparaloc(list,cgpara1);
-           a_call_name(list,'FPC_HANDLEERROR');
+           a_call_name(list,'FPC_HANDLEERROR',false);
            a_label(list,oklabel);
            cgpara1.done;
          end;
@@ -3529,7 +3535,7 @@ implementation
            paramanager.freeparaloc(list,cgpara1);
            paramanager.freeparaloc(list,cgpara2);
            allocallcpuregisters(list);
-           a_call_name(list,'FPC_CHECK_OBJECT_EXT');
+           a_call_name(list,'FPC_CHECK_OBJECT_EXT',false);
            deallocallcpuregisters(list);
          end
         else
@@ -3539,7 +3545,7 @@ implementation
             a_param_reg(list,OS_ADDR,reg,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
-            a_call_name(list,'FPC_CHECK_OBJECT');
+            a_call_name(list,'FPC_CHECK_OBJECT',false);
             deallocallcpuregisters(list);
           end;
         cgpara1.done;
@@ -3585,7 +3591,7 @@ implementation
         a_param_reg(list,OS_INT,sizereg,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_GETMEM');
+        a_call_name(list,'FPC_GETMEM',false);
         deallocallcpuregisters(list);
         cgpara1.done;
         { return the new address }
@@ -3611,7 +3617,7 @@ implementation
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_MOVE');
+        a_call_name(list,'FPC_MOVE',false);
         deallocallcpuregisters(list);
         cgpara3.done;
         cgpara2.done;
@@ -3631,7 +3637,7 @@ implementation
         a_param_loc(list,l,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
-        a_call_name(list,'FPC_FREEMEM');
+        a_call_name(list,'FPC_FREEMEM',false);
         deallocallcpuregisters(list);
         cgpara1.done;
       end;
@@ -3664,7 +3670,7 @@ implementation
 
         if size>0 then
           begin
-            tg.GetTemp(list,size,tt_noreuse,current_procinfo.save_regs_ref);
+            tg.GetTemp(list,size,sizeof(aint),tt_noreuse,current_procinfo.save_regs_ref);
             include(current_procinfo.flags,pi_has_saved_regs);
 
             { Copy registers to temp }
@@ -3807,11 +3813,11 @@ implementation
 
     procedure tcg.a_call_name_static(list : TAsmList;const s : string);
       begin
-        a_call_name(list,s);
+        a_call_name(list,s,false);
       end;
 
 
-   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string): tregister;
+   function tcg.g_indirect_sym_load(list:TAsmList;const symname: string; weak: boolean): tregister;
       var
         l: tasmsymbol;
         ref: treference;
@@ -3820,14 +3826,18 @@ implementation
         case target_info.system of
           system_powerpc_darwin,
           system_i386_darwin,
-          system_powerpc64_darwin:
+          system_powerpc64_darwin,
+          system_arm_darwin:
             begin
               l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
               if not(assigned(l)) then
                 begin
                   l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
-                  current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)));
+                  if not(weak) then
+                    current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.RefAsmSymbol(symname)))
+                  else
+                    current_asmdata.asmlists[al_picdata].concat(tai_const.create_indirect_sym(current_asmdata.WeakRefAsmSymbol(symname)));
 {$ifdef cpu64bitaddr}
                   current_asmdata.asmlists[al_picdata].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}
@@ -3845,6 +3855,37 @@ implementation
 
     procedure tcg.g_maybe_got_init(list: TAsmList);
       begin
+      end;
+
+
+    procedure tcg.a_loadmm_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister; shuffle: pmmshuffle);
+      begin
+        internalerror(200807231);
+      end;
+
+
+    procedure tcg.a_loadmm_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister; shuffle: pmmshuffle);
+      begin
+        internalerror(200807232);
+      end;
+
+
+    procedure tcg.a_loadmm_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference; shuffle: pmmshuffle);
+      begin
+        internalerror(200807233);
+      end;
+
+
+    procedure tcg.a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size: tcgsize; src, dst: tregister; shuffle: pmmshuffle);
+      begin
+        internalerror(200807234);
+      end;
+
+
+    function tcg.getflagregister(list: TAsmList; size: Tcgsize): Tregister;
+      begin
+        Result:=TRegister(0);
+        internalerror(200807238);
       end;
 
 {*****************************************************************************

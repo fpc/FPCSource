@@ -551,5 +551,9 @@ Begin
   ExitCode  := 0;
   InitSystemThreads;
   initvariantmanager;
+{$ifdef VER2_2}
   initwidestringmanager;
+{$else VER2_2}
+  initunicodestringmanager;
+{$endif VER2_2}
 End.

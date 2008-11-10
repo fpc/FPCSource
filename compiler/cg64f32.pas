@@ -742,7 +742,7 @@ unit cg64f32;
                  cg.a_cmp_const_reg_label(list,OS_32,OC_EQ,-1,hreg,neglabel);
                end;
              { For all other values we have a range check error }
-             cg.a_call_name(list,'FPC_RANGEERROR');
+             cg.a_call_name(list,'FPC_RANGEERROR',false);
 
              { if the high dword = 0, the low dword can be considered a }
              { simple cardinal                                          }
@@ -779,7 +779,7 @@ unit cg64f32;
                  current_asmdata.getjumplabel(neglabel);
                  cg.a_cmp_const_reg_label(list,OS_32,OC_LT,0,hreg,neglabel);
 
-                 cg.a_call_name(list,'FPC_RANGEERROR');
+                 cg.a_call_name(list,'FPC_RANGEERROR',false);
 
                  { if we get here, the 64bit value lies between }
                  { longint($80000000) and -1 (JM)               }
@@ -830,7 +830,7 @@ unit cg64f32;
                current_asmdata.getjumplabel(poslabel);
                cg.a_cmp_const_reg_label(list,opsize,OC_GTE,0,hreg,poslabel);
 
-               cg.a_call_name(list,'FPC_RANGEERROR');
+               cg.a_call_name(list,'FPC_RANGEERROR',false);
                cg.a_label(list,poslabel);
              end;
       end;

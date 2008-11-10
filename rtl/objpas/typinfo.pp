@@ -38,7 +38,7 @@ unit typinfo;
                    tkSet,tkMethod,tkSString,tkLString,tkAString,
                    tkWString,tkVariant,tkArray,tkRecord,tkInterface,
                    tkClass,tkObject,tkWChar,tkBool,tkInt64,tkQWord,
-                   tkDynArray,tkInterfaceRaw);
+                   tkDynArray,tkInterfaceRaw,tkProcVar,tkUString,tkUChar);
 
        TOrdType  = (otSByte,otUByte,otSWord,otUWord,otSLong,otULong);
 
@@ -85,7 +85,7 @@ unit typinfo;
 {$endif FPC_REQUIRES_PROPER_ALIGNMENT}
       record
          case TTypeKind of
-            tkUnKnown,tkLString,tkWString,tkAString,tkVariant:
+            tkUnKnown,tkLString,tkWString,tkAString,tkVariant,tkUString:
               ();
             tkInteger,tkChar,tkEnumeration,tkWChar,tkSet:
               (OrdType : TOrdType;
@@ -200,18 +200,23 @@ unit typinfo;
 // general property handling
 Function GetTypeData(TypeInfo : PTypeInfo) : PTypeData;
 
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string) : PPropInfo;
-Function GetPropInfo(TypeInfo : PTypeInfo;const PropName : string; AKinds : TTypeKinds) : PPropInfo;
-Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string): PPropInfo;
+Function GetPropInfo(TypeInfo: PTypeInfo;const PropName: string; AKinds: TTypeKinds): PPropInfo;
 Function GetPropInfo(Instance: TObject; const PropName: string): PPropInfo;
-Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds) : PPropInfo;
+Function GetPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 Function GetPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+Function GetPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+
 Function FindPropInfo(Instance: TObject; const PropName: string): PPropInfo;
-Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
-Procedure GetPropInfos(TypeInfo : PTypeInfo;PropList : PPropList);
-Function GetPropList(TypeInfo : PTypeInfo;TypeKinds : TTypeKinds; PropList : PPropList;Sorted : boolean = true):longint;
+Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+Function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+Function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+
+Procedure GetPropInfos(TypeInfo: PTypeInfo; PropList: PPropList);
+Function GetPropList(TypeInfo: PTypeInfo; TypeKinds: TTypeKinds; PropList: PPropList; Sorted: boolean = true): longint;
 Function GetPropList(TypeInfo: PTypeInfo; out PropList: PPropList): SizeInt;
-function GetPropList(AObject: TObject; out PropList: PPropList): Integer;
+function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
+function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
 
 
 
@@ -252,6 +257,11 @@ Function GetWideStrProp(Instance: TObject; const PropName: string): WideString;
 Procedure SetWideStrProp(Instance: TObject; const PropName: string; const Value: WideString);
 Procedure SetWideStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: WideString);
 
+Function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeString;
+Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
+Procedure SetUnicodeStrProp(Instance: TObject; const PropName: string; const Value: UnicodeString);
+Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
+
 {$ifndef FPUNONE}
 Function  GetFloatProp(Instance: TObject; PropInfo : PPropInfo) : Extended;
 Function  GetFloatProp(Instance: TObject; const PropName: string): Extended;
@@ -265,8 +275,8 @@ Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo): TObject;
 Function  GetObjectProp(Instance: TObject; PropInfo: PPropInfo; MinClass: TClass): TObject;
 Procedure SetObjectProp(Instance: TObject; const PropName: string; Value: TObject);
 Procedure SetObjectProp(Instance: TObject; PropInfo: PPropInfo; Value: TObject);
-
 Function  GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
+Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
 
 Function  GetMethodProp(Instance: TObject; PropInfo: PPropInfo) : TMethod;
 Function  GetMethodProp(Instance: TObject; const PropName: string): TMethod;
@@ -626,9 +636,25 @@ begin
 end;
 
 
-Function FindPropInfo(AClass:TClass;const PropName: string): PPropInfo;
+Function FindPropInfo(Instance: TObject; const PropName: string; AKinds: TTypeKinds): PPropInfo;
 begin
-  result:=GetPropInfo(AClass,PropName);
+  result:=GetPropInfo(Instance, PropName, AKinds);
+  if Result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
+
+Function FindPropInfo(AClass: TClass; const PropName: string): PPropInfo;
+begin
+  result:=GetPropInfo(AClass, PropName);
+  if result=nil then
+    Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
+end;
+
+
+Function FindPropInfo(AClass: TClass; const PropName: string; AKinds: TTypeKinds): PPropInfo;
+begin
+  result:=GetPropInfo(AClass, PropName, AKinds);
   if result=nil then
     Raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName]);
 end;
@@ -775,10 +801,14 @@ begin
     PropList:=Nil;  
 end;
 
-
-function GetPropList(AObject: TObject; out PropList: PPropList): Integer;
+function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
 begin
-  Result := GetPropList(PTypeInfo(AObject.ClassInfo), PropList);
+  Result := GetPropList(PTypeInfo(AClass.ClassInfo), PropList);
+end;
+
+function GetPropList(Instance: TObject; out PropList: PPropList): Integer;
+begin
+  Result := GetPropList(Instance.ClassType, PropList);
 end;
 
 { ---------------------------------------------------------------------
@@ -1127,7 +1157,12 @@ end;
 
 Function GetObjectPropClass(Instance: TObject; const PropName: string): TClass;
 begin
-  Result:=GetTypeData(FindPropInfo(Instance,PropName)^.PropType)^.ClassType;
+  Result:=GetTypeData(FindPropInfo(Instance,PropName,[tkClass])^.PropType)^.ClassType;
+end;
+
+Function  GetObjectPropClass(AClass: TClass; const PropName: string): TClass;
+begin
+  Result:=GetTypeData(FindPropInfo(AClass,PropName,[tkClass])^.PropType)^.ClassType;
 end;
 
 { ---------------------------------------------------------------------
@@ -1205,6 +1240,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       Result:=GetWideStrProp(Instance,PropInfo);
+    tkUString :
+      Result := GetUnicodeStrProp(Instance,PropInfo);
     tkSString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1261,6 +1298,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkWString:
       SetWideStrProp(Instance,PropInfo,Value);
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,Value);
     tkSString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -1340,6 +1379,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
       Result:=GetStrProp(Instance,PropInfo);
+    tkUString :
+      Result := GetUnicodeStrProp(Instance,PropInfo);
     tkWString:
       begin
         case (PropInfo^.PropProcs) and 3 of
@@ -1374,6 +1415,8 @@ begin
   case Propinfo^.PropType^.Kind of
     tkSString,tkAString:
        SetStrProp(Instance,PropInfo,Value);
+    tkUString:
+       SetUnicodeStrProp(Instance,PropInfo,Value);
     tkWString:
       begin
         case (PropInfo^.PropProcs shr 2) and 3 of
@@ -1396,6 +1439,91 @@ begin
       end;
   end;
 end;
+
+Function GetUnicodeStrProp(Instance: TObject; const PropName: string): UnicodeString;
+begin
+  Result:=GetUnicodeStrProp(Instance, FindPropInfo(Instance, PropName));
+end;
+
+
+procedure SetUnicodeStrProp(Instance: TObject; const PropName: string; const Value: UnicodeString);
+begin
+  SetUnicodeStrProp(Instance,FindPropInfo(Instance,PropName),Value);
+end;
+
+
+Function GetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo): UnicodeString;
+type
+  TGetUnicodeStrProcIndex=function(index:longint):UnicodeString of object;
+  TGetUnicodeStrProc=function():UnicodeString of object;
+var
+  AMethod : TMethod;
+begin
+  Result:='';
+  case Propinfo^.PropType^.Kind of
+    tkSString,tkAString:
+      Result:=GetStrProp(Instance,PropInfo);
+    tkWString:
+      Result:=GetWideStrProp(Instance,PropInfo);      
+    tkUString:
+      begin
+        case (PropInfo^.PropProcs) and 3 of
+          ptField:
+            Result := PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.GetProc))^;
+          ptstatic,
+          ptvirtual :
+            begin
+              if (PropInfo^.PropProcs and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.GetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.GetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                Result:=TGetUnicodeStrProcIndex(AMethod)(PropInfo^.Index)
+              else
+                Result:=TGetUnicodeStrProc(AMethod)();
+            end;
+        end;
+      end;
+  end;
+end;
+
+
+Procedure SetUnicodeStrProp(Instance: TObject; PropInfo: PPropInfo; const Value: UnicodeString);
+type
+  TSetUnicodeStrProcIndex=procedure(index:longint;s:UnicodeString) of object;
+  TSetUnicodeStrProc=procedure(s:UnicodeString) of object;
+var
+  AMethod : TMethod;
+begin
+  case Propinfo^.PropType^.Kind of
+    tkSString,tkAString:
+       SetStrProp(Instance,PropInfo,Value);
+    tkWString:
+       SetWideStrProp(Instance,PropInfo,Value);
+    tkUString:
+      begin
+        case (PropInfo^.PropProcs shr 2) and 3 of
+          ptField:
+            PUnicodeString(Pointer(Instance)+PtrUInt(PropInfo^.SetProc))^:=Value;
+          ptstatic,
+          ptvirtual :
+            begin
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
+                AMethod.Code:=PropInfo^.SetProc
+              else
+                AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
+              AMethod.Data:=Instance;
+              if ((PropInfo^.PropProcs shr 6) and 1)<>0 then
+                TSetUnicodeStrProcIndex(AMethod)(PropInfo^.Index,Value)
+              else
+                TSetUnicodeStrProc(AMethod)(Value);
+            end;
+        end;
+      end;
+  end;
+end;
+
 
 
 {$ifndef FPUNONE}
@@ -1703,7 +1831,7 @@ end;
 
 Function PropIsType(Instance: TObject; const PropName: string; TypeKind: TTypeKind): Boolean;
 begin
-  Result:=FindPropInfo(Instance,PropName)^.PropType^.Kind=TypeKind
+  Result:=PropType(Instance,PropName)=TypeKind
 end;
 
 Function PropIsType(AClass: TClass; const PropName: string; TypeKind: TTypeKind): Boolean;

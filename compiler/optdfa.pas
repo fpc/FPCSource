@@ -116,7 +116,12 @@ unit optdfa;
           loadn:
             begin
               pdfainfo(arg)^.map.Add(n);
-              if nf_write in n.flags then
+              if nf_modify in n.flags then
+                begin
+                  DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
+                  DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
+                end
+              else if nf_write in n.flags then
                 DFASetInclude(pdfainfo(arg)^.def^,n.optinfo^.index)
               else
                 DFASetInclude(pdfainfo(arg)^.use^,n.optinfo^.index);
@@ -137,6 +142,21 @@ unit optdfa;
       begin
         exclude(n.flags,nf_processing);
         result:=fen_false;
+      end;
+
+
+    function ResetDFA(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if assigned(n.optinfo) then
+          begin
+            with n.optinfo^ do
+              begin
+                life:=nil;
+                def:=nil;
+                use:=nil;
+                defsum:=nil;
+              end;
+          end;
       end;
 
 
@@ -199,8 +219,20 @@ unit optdfa;
               end
             else
               begin
-                l:=n.optinfo^.use;
-                DFASetIncludeSet(l,n.optinfo^.life);
+                { last node, not exit or raise node and function? }
+                if assigned(resultnode) and
+                  not(node.nodetype in [raisen,exitn]) then
+                  begin
+                    { if yes, result lifes }
+                    DFASetDiff(l,resultnode.optinfo^.life,n.optinfo^.def);
+                    DFASetIncludeSet(l,n.optinfo^.use);
+                    DFASetIncludeSet(l,n.optinfo^.life);
+                  end
+                else
+                  begin
+                    l:=n.optinfo^.use;
+                    DFASetIncludeSet(l,n.optinfo^.life);
+                  end;
               end;
             updatelifeinfo(n,l);
           end;
@@ -270,7 +302,9 @@ unit optdfa;
                   t1: to
                   t2: body
                 }
-                calclife(node);
+                { take care of the sucessor if it's possible that we don't have one execution of the body }
+                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
+                  calclife(node);
                 node.allocoptinfo;
                 if not(assigned(node.optinfo^.def)) and
                    not(assigned(node.optinfo^.use)) then
@@ -282,9 +316,11 @@ unit optdfa;
                     foreachnodestatic(pm_postprocess,tfornode(node).right,@AddDefUse,@dfainfo);
                     foreachnodestatic(pm_postprocess,tfornode(node).t1,@AddDefUse,@dfainfo);
                   end;
-                calclife(node);
+                { take care of the sucessor if it's possible that we don't have one execution of the body }
+                if not((tfornode(node).right.nodetype=ordconstn) and (tfornode(node).t1.nodetype=ordconstn)) then
+                  calclife(node);
 
-                { create life the body }
+                { create life for the body }
                 CreateInfo(tfornode(node).t2);
 
                 { update for node }
@@ -298,6 +334,9 @@ unit optdfa;
                 CreateInfo(tfornode(node).t2);
               end;
 
+            temprefn,
+            loadn,
+            typeconvn,
             assignn:
               begin
                 if not(assigned(node.optinfo^.def)) and
@@ -352,7 +391,12 @@ unit optdfa;
                   DFASetIncludeSet(l,tifnode(node).t1.optinfo^.life)
                 else
                   if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    DFASetIncludeSet(l,node.successor.optinfo^.life)
+                  { last node and function? }
+                else
+                  if assigned(resultnode) then
+                    DFASetIncludeSet(l,resultnode.optinfo^.life);
+
                 { add use info from the cond. expression }
                 DFASetIncludeSet(l,tifnode(node).optinfo^.use);
                 { finally, update the life info of the node }
@@ -389,7 +433,11 @@ unit optdfa;
                   DFASetIncludeSet(l,tcasenode(node).elseblock.optinfo^.life)
                 else
                   if assigned(node.successor) then
-                    DFASetIncludeSet(l,node.successor.optinfo^.life);
+                    DFASetIncludeSet(l,node.successor.optinfo^.life)
+                  { last node and function? }
+                else
+                  if assigned(resultnode) then
+                    DFASetIncludeSet(l,resultnode.optinfo^.life);
 
                 { add use info from the "case" expression }
                 DFASetIncludeSet(l,tcasenode(node).optinfo^.use);
@@ -403,9 +451,27 @@ unit optdfa;
                 if not(is_void(current_procinfo.procdef.returndef)) and
                   not(current_procinfo.procdef.proctypeoption=potype_constructor) then
                   begin
-                    { get info from faked resultnode }
-                    node.optinfo^.use:=resultnode.optinfo^.use;
-                    node.optinfo^.life:=node.optinfo^.use;
+                    if not(assigned(node.optinfo^.def)) and
+                       not(assigned(node.optinfo^.use)) then
+                      begin
+                        if assigned(texitnode(node).left) then
+                          begin
+                            node.optinfo^.def:=resultnode.optinfo^.def;
+
+                            dfainfo.use:=@node.optinfo^.use;
+                            dfainfo.def:=@node.optinfo^.def;
+                            dfainfo.map:=map;
+                            foreachnodestatic(pm_postprocess,texitnode(node).left,@AddDefUse,@dfainfo);
+                            calclife(node);
+                          end
+                        else
+                          begin
+                            { get info from faked resultnode }
+                            node.optinfo^.use:=resultnode.optinfo^.use;
+                            node.optinfo^.life:=node.optinfo^.use;
+                            changed:=true;
+                          end;
+                      end;
                   end;
               end;
 
@@ -476,6 +542,7 @@ unit optdfa;
             dfarec.def:=@resultnode.optinfo^.def;
             dfarec.map:=map;
             AddDefUse(resultnode,@dfarec);
+            resultnode.optinfo^.life:=resultnode.optinfo^.use;
           end
         else
           resultnode:=nil;
@@ -500,6 +567,7 @@ unit optdfa;
       if the tree has been changed without updating dfa }
     procedure TDFABuilder.resetdfainfo(node : tnode);
       begin
+        foreachnodestatic(pm_postprocess,node,@ResetDFA,nil);
       end;
 
 
@@ -509,7 +577,6 @@ unit optdfa;
           nodemap:=TIndexedNodeSet.Create;
         { add controll flow information }
         SetNodeSucessors(node);
-
         { now, collect life information }
         CreateLifeInfo(node,nodemap);
       end;

@@ -429,7 +429,7 @@ interface
         else
           begin
             location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
-            tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.temptype,tempinfo^.location.reference);
+            tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.typedef.alignment,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         include(tempinfo^.flags,ti_valid);
       end;

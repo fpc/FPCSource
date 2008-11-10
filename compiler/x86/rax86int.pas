@@ -161,7 +161,7 @@ Unit Rax86int;
          actopsize:=S_NO;
 
          { Search opcodes }
-         actopcode:=tasmop(PtrInt(iasmops.Find(s)));
+         actopcode:=tasmop(PtrUInt(iasmops.Find(s)));
          if actopcode<>A_NONE then
            begin
              actasmtoken:=AS_OPCODE;

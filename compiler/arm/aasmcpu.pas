@@ -1034,6 +1034,7 @@ implementation
 
     function taicpu.CheckIfValid:boolean;
       begin
+        Result:=False; { unimplemented }
       end;
 
 
@@ -1122,6 +1123,7 @@ implementation
 
     function  taicpu.InsEnd:longint;
       begin
+        Result:=0; { unimplemented }
       end;
 
 
@@ -1279,8 +1281,8 @@ implementation
        * required to have unspecified size in the instruction too...)
       }
       var
-        i,j,asize,oprs : longint;
-        siz : array[0..3] of longint;
+        i{,j,asize,oprs} : longint;
+        {siz : array[0..3] of longint;}
       begin
         Matches:=100;
         writeln(getstring,'---');
@@ -1369,8 +1371,8 @@ implementation
         { as default an untyped size can get all the sizes, this is different
           from nasm, but else we need to do a lot checking which opcodes want
           size or not with the automatic size generation }
-        asize:=longint($ffffffff);
         (*
+        asize:=longint($ffffffff);
         if (p^.flags and IF_SB)<>0 then
           asize:=OT_BITS8
         else if (p^.flags and IF_SW)<>0 then
@@ -1440,6 +1442,7 @@ implementation
 
     function  taicpu.NeedAddrPrefix(opidx:byte):boolean;
       begin
+        Result:=False; { unimplemented }
       end;
 
 
@@ -1505,7 +1508,7 @@ implementation
             top_const:
               begin
                 i_field:=1;
-                bytes:=bytes or (oper[op]^.val and $fff);
+                bytes:=bytes or dword(oper[op]^.val and $fff);
               end;
             top_reg:
               begin
@@ -1560,7 +1563,7 @@ implementation
 
 
 {$ifdef dummy}
-      (*
+(*
 static void gencode (long segment, long offset, int bits,
                      insn *ins, char *codes, long insn_end)
 {
@@ -1581,7 +1584,7 @@ static void gencode (long segment, long offset, int bits,
     0x05, 0x07, 0x06,
   };
 
-(*
+
 #ifdef DEBUG
 static char *CC[] =
   {                                    /* condition code names */
@@ -1591,7 +1594,7 @@ static char *CC[] =
     "PL", "VC", "VS", "",
     "S"
 };
-*)
+
 
     has_S_code = (ins->condition & C_SSETFLAG);
     has_B_code = (ins->condition & C_BSETFLAG);
@@ -1600,7 +1603,7 @@ static char *CC[] =
     has_F_code = (ins->condition & C_FSETFLAG);
     ins->condition = (ins->condition & 0x0F);
 
-(*
+
     if (rt_debug)
       {
     printf ("gencode: instruction: %s%s", insn_names[ins->opcode],
@@ -1628,7 +1631,7 @@ static char *CC[] =
     bytes[2] = 0xE;
     bytes[3] = 0xF;
       }
-*)
+
     // First condition code in upper nibble
     if (ins->condition < C_NONE)
       {
@@ -2493,10 +2496,8 @@ static char *CC[] =
     out (offset, segment, bytes, OUT_RAWDATA+4, NO_SEG, NO_SEG);
 }
 
-
 *)
-{$endif dummy
-}
+{$endif dummy}
 
 begin
   cai_align:=tai_align;

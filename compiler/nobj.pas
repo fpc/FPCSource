@@ -128,6 +128,7 @@ implementation
     uses
        SysUtils,
        globals,verbose,systems,
+       node,
        symbase,symtable,symconst,symtype,defcmp,
        dbgbase,
        ncgrtti
@@ -292,7 +293,7 @@ implementation
                         (po_virtualmethod in procdefcoll^.data.procoptions) then
                   begin
                     { new one has not override }
-                    if is_class(_class) and
+                    if is_class_or_interface(_class) and
                        not(po_overridingmethod in pd.procoptions) then
                       begin
                         { we start a new virtual tree, hide the old }
@@ -464,7 +465,7 @@ implementation
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
                     if (implprocdef.procsym=tprocsym(srsym)) and
                        (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue])>=te_equal) and
-                       compatible_childmethod_resultdef(proc.returndef,implprocdef.returndef) and
+                       (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
                        (proc.proccalloption=implprocdef.proccalloption) and
                        (proc.proctypeoption=implprocdef.proctypeoption) and
                        ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then

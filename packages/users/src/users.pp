@@ -2,7 +2,7 @@ unit users;
 
 Interface
 {$mode delphi}
-uses BaseUnix,pwd,grp, {$ifdef Linux} shadow,{$endif}SysUtils,Classes;
+uses UnixType,BaseUnix,pwd,grp, {$ifdef Linux} shadow,{$endif}SysUtils,Classes;
 
 Type
   EUserLookupError = Class(Exception);

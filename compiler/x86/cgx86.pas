@@ -52,7 +52,7 @@ unit cgx86;
         procedure dec_fpu_stack;
         procedure inc_fpu_stack;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
         procedure a_call_ref(list : TAsmList;ref : treference);override;
         procedure a_call_name_static(list : TAsmList;const s : string);override;
@@ -117,7 +117,7 @@ unit cgx86;
 
         procedure opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;loc : tlocation;dst: tregister; shuffle : pmmshuffle);
 
-        function get_darwin_call_stub(const s: string): tasmsymbol;
+        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       private
         procedure sizes2load(s1,s2 : tcgsize;var op: tasmop; var s3: topsize);
 
@@ -159,7 +159,7 @@ unit cgx86;
     const
       TOpCG2AsmOp: Array[topcg] of TAsmOp = (A_NONE,A_MOV,A_ADD,A_AND,A_DIV,
                             A_IDIV,A_IMUL,A_MUL,A_NEG,A_NOT,A_OR,
-                            A_SAR,A_SHL,A_SHR,A_SUB,A_XOR);
+                            A_SAR,A_SHL,A_SHR,A_SUB,A_XOR,A_ROL,A_ROR);
 
       TOpCmp2AsmCond: Array[topcmp] of TAsmCond = (C_NONE,
           C_E,C_G,C_L,C_GE,C_LE,C_NE,C_BE,C_B,C_AE,C_A);
@@ -411,14 +411,14 @@ unit cgx86;
           begin
             if assigned(ref.symbol) and
                not(assigned(ref.relsymbol)) and
-               ((ref.symbol.bind = AB_EXTERNAL) or
+               ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                 (cs_create_pic in current_settings.moduleswitches)) then
              begin
-               if (ref.symbol.bind = AB_EXTERNAL) or
+               if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                   ((cs_create_pic in current_settings.moduleswitches) and
                    (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
                  begin
-                   hreg:=g_indirect_sym_load(list,ref.symbol.name);
+                   hreg:=g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
                    ref.symbol:=nil;
                  end
                else
@@ -576,7 +576,7 @@ unit cgx86;
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s),0);
+            reference_reset_symbol(r,get_darwin_call_stub(s,false),0);
             r.refaddr:=addr_full;
             list.concat(taicpu.op_ref(A_JMP,S_NO,r));
           end;
@@ -589,7 +589,7 @@ unit cgx86;
       end;
 
 
-    function tcgx86.get_darwin_call_stub(const s: string): tasmsymbol;
+    function tcgx86.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
       begin
@@ -604,6 +604,9 @@ unit cgx86;
         current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        { register as a weak symbol if necessary }
+        if weak then
+          current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_HLT));
@@ -613,7 +616,7 @@ unit cgx86;
       end;
 
 
-    procedure tcgx86.a_call_name(list : TAsmList;const s : string);
+    procedure tcgx86.a_call_name(list : TAsmList;const s : string; weak: boolean);
       var
         sym : tasmsymbol;
         r : treference;
@@ -621,7 +624,10 @@ unit cgx86;
 
         if (target_info.system <> system_i386_darwin) then
           begin
-            sym:=current_asmdata.RefAsmSymbol(s);
+            if not(weak) then
+              sym:=current_asmdata.RefAsmSymbol(s)
+            else
+              sym:=current_asmdata.WeakRefAsmSymbol(s);
             reference_reset_symbol(r,sym,0);
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }
@@ -637,7 +643,7 @@ unit cgx86;
           end
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s),0);
+            reference_reset_symbol(r,get_darwin_call_stub(s,weak),0);
             r.refaddr:=addr_full;
           end;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
@@ -814,15 +820,15 @@ unit cgx86;
                 if assigned(ref.symbol) then
                   begin
                     if (target_info.system=system_i386_darwin) and
-                       ((ref.symbol.bind = AB_EXTERNAL) or
+                       ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                         (cs_create_pic in current_settings.moduleswitches)) then
                       begin
-                        if (ref.symbol.bind = AB_EXTERNAL) or
+                        if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                            ((cs_create_pic in current_settings.moduleswitches) and
                             (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
                           begin
                              reference_reset_base(tmpref,
-                               g_indirect_sym_load(list,ref.symbol.name),
+                               g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL),
                                offset);
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
@@ -894,7 +900,7 @@ unit cgx86;
                         if segment=NR_FS then
                           begin
                             allocallcpuregisters(list);
-                            a_call_name(list,'GetTls');
+                            a_call_name(list,'GetTls',false);
                             deallocallcpuregisters(list);
                             list.concat(Taicpu.op_reg_reg(A_ADD,tcgsize2opsize[OS_ADDR],NR_EAX,r));
                           end
@@ -940,7 +946,7 @@ unit cgx86;
             (tosize<fromsize) then
            begin
              { can't round down to lower precision in x87 :/ }
-             tg.gettemp(list,tcgsize2size[tosize],tt_normal,href);
+             tg.gettemp(list,tcgsize2size[tosize],tcgsize2size[tosize],tt_normal,href);
              a_loadfpu_reg_ref(list,fromsize,tosize,NR_ST,href);
              a_loadfpu_ref_reg(list,tosize,tosize,href,NR_ST);
              tg.ungettemp(list,href);
@@ -1098,10 +1104,10 @@ unit cgx86;
         opmm2asmop : array[0..1,OS_F32..OS_F64,topcg] of tasmop = (
           ( { scalar }
             ( { OS_F32 }
-              A_NOP,A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP
+              A_NOP,A_NOP,A_ADDSS,A_NOP,A_DIVSS,A_NOP,A_NOP,A_MULSS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSS,A_NOP,A_NOP,A_NOP
             ),
             ( { OS_F64 }
-              A_NOP,A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP
+              A_NOP,A_NOP,A_ADDSD,A_NOP,A_DIVSD,A_NOP,A_NOP,A_MULSD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBSD,A_NOP,A_NOP,A_NOP
             )
           ),
           ( { vectorized/packed }
@@ -1109,10 +1115,10 @@ unit cgx86;
               these
             }
             ( { OS_F32 }
-              A_NOP,A_NOP,A_ADDPS,A_NOP,A_DIVPS,A_NOP,A_NOP,A_MULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPS,A_XORPS
+              A_NOP,A_NOP,A_ADDPS,A_NOP,A_DIVPS,A_NOP,A_NOP,A_MULPS,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPS,A_XORPS,A_NOP,A_NOP
             ),
             ( { OS_F64 }
-              A_NOP,A_NOP,A_ADDPD,A_NOP,A_DIVPD,A_NOP,A_NOP,A_MULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPD,A_XORPD
+              A_NOP,A_NOP,A_ADDPD,A_NOP,A_DIVPD,A_NOP,A_NOP,A_MULPD,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_NOP,A_SUBPD,A_XORPD,A_NOP,A_NOP
             )
           )
         );
@@ -1259,7 +1265,7 @@ unit cgx86;
                    end
             else
               list.concat(taicpu.op_const_reg(TOpCG2AsmOp[op],TCgSize2OpSize[size],a,reg));
-          OP_SHL,OP_SHR,OP_SAR:
+          OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
 {$ifdef x86_64}
               if (a and 63) <> 0 Then
@@ -1375,7 +1381,7 @@ unit cgx86;
             else
               list.concat(taicpu.op_const_ref(TOpCG2AsmOp[op],
                 TCgSize2OpSize[size],a,tmpref));
-          OP_SHL,OP_SHR,OP_SAR:
+          OP_SHL,OP_SHR,OP_SAR,OP_ROL,OP_ROR:
             begin
               if (a and 31) <> 0 then
                 list.concat(taicpu.op_const_ref(
@@ -1407,9 +1413,9 @@ unit cgx86;
             { special stuff, needs separate handling inside code }
             { generator                                          }
             internalerror(200109233);
-          OP_SHR,OP_SHL,OP_SAR:
+          OP_SHR,OP_SHL,OP_SAR,OP_ROL,OP_ROR:
             begin
-              { Use ecx to load the value, that allows beter coalescing }
+              { Use ecx to load the value, that allows better coalescing }
               getcpuregister(list,NR_ECX);
               a_load_reg_reg(list,size,OS_32,src,NR_ECX);
               list.concat(taicpu.op_reg_reg(Topcg2asmop[op],tcgsize2opsize[size],NR_CL,dst));
@@ -1866,21 +1872,21 @@ unit cgx86;
                 new_section(list,sec_code,lower(current_procinfo.procdef.mangledname),0);
                 list.concat(Taicpu.Op_reg(A_PUSH,S_L,NR_EDX));
                 list.concat(Taicpu.Op_sym_ofs_reg(A_MOV,S_L,pl,0,NR_EDX));
-                a_call_name(list,target_info.Cprefix+mcountprefix+'mcount');
+                a_call_name(list,target_info.Cprefix+mcountprefix+'mcount',false);
                 list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
              end;
 
            system_i386_linux:
-             a_call_name(list,target_info.Cprefix+'mcount');
+             a_call_name(list,target_info.Cprefix+'mcount',false);
 
            system_i386_go32v2,system_i386_watcom:
              begin
-               a_call_name(list,'MCOUNT');
+               a_call_name(list,'MCOUNT',false);
              end;
            system_x86_64_linux,
            system_x86_64_darwin:
              begin
-               a_call_name(list,'mcount');
+               a_call_name(list,'mcount',false);
              end;
         end;
       end;
@@ -2062,7 +2068,7 @@ unit cgx86;
          ai.is_jmp:=true;
          list.concat(ai);
 
-         a_call_name(list,'FPC_OVERFLOW');
+         a_call_name(list,'FPC_OVERFLOW',false);
          a_label(list,hl);
       end;
 

@@ -96,7 +96,7 @@ ALLTARGET=all
 else
 ifndef ALLTARGET
 SHAREDTARGETS=
-SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc
+SMARTTARGETS=win32 go32v2 linux freebsd netbsd openbsd netware netwlibc darwin
 ifneq ($(findstring $(OS_TARGET),$(SHAREDTARGETS)),)
 ALLTARGET=shared
 else

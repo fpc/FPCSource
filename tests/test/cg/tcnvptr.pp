@@ -1,4 +1,4 @@
-{ %opt=-Sew }
+{ %opt=-vw -Sew }
 
 var
   p : pointer;

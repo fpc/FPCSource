@@ -129,7 +129,7 @@ unit cpubase;
 
       maxfpuregs = 8;
 
-{$WARNING TODO FIX BSSTART}
+{ TODO: FIX BSSTART}
       regnumber_count_bsstart = 16;
 
       regnumber_table : array[tregisterindex] of tregister = (
@@ -141,7 +141,7 @@ unit cpubase;
       );
 
       regdwarf_table : array[tregisterindex] of shortint = (
-{$warning TODO reused stabs values!}
+{ TODO: reused stabs values!}
         {$i r68ksta.inc}
       );
 
@@ -253,7 +253,7 @@ unit cpubase;
       NR_STACK_POINTER_REG = NR_SP;
       RS_STACK_POINTER_REG = RS_SP;
       {# Frame pointer register }
-{$warning FIX ME!!! frame pointer is A5 on Amiga, but A6 on unixes?}
+{ TODO: FIX ME!!! frame pointer is A5 on Amiga, but A6 on unixes?}
       NR_FRAME_POINTER_REG = NR_A5;
       RS_FRAME_POINTER_REG = RS_A5;
 
@@ -261,10 +261,10 @@ unit cpubase;
          such as in PIC code. The exact meaning is ABI specific. For
          further information look at GCC source : PIC_OFFSET_TABLE_REGNUM
       }
-{$warning FIX ME!!! pic offset reg conflicts with frame pointer?}
+{ TODO: FIX ME!!! pic offset reg conflicts with frame pointer?}
       NR_PIC_OFFSET_REG = NR_A5;
       { Return address for DWARF }
-{$warning TODO just a guess!}
+{ TODO: just a guess!}
       NR_RETURN_ADDRESS_REG = NR_A0;
       { Results are returned in this register (32-bit values) }
       NR_FUNCTION_RETURN_REG = NR_D0;
@@ -410,7 +410,7 @@ implementation
       begin
         case s of
           OS_NO: begin
-{$WARNING FIX ME!!! results in bad code generation}
+{ TODO: FIX ME!!! results in bad code generation}
             cgsize2subreg:=R_SUBWHOLE;
             end;
 
@@ -487,7 +487,7 @@ implementation
     function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
       const
         inverse:array[TAsmCond] of TAsmCond=(C_None,
-{$warning TODO, this is just a copy!}
+{ TODO: TODO, this is just a copy!}
            C_CC,C_LS,C_CS,C_LT,C_EQ,C_MI,C_F,C_NE,
            C_GE,C_PL,C_GT,C_T,C_HI,C_VC,C_LE,C_VS
         );

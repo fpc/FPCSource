@@ -68,7 +68,7 @@ uses Objects,Views,App,MsgBox,
      FPConst,FPVars,FPUtils;
 
 const
-    MaxStatusLevel = {$ifdef FPC}10{$else}1{$endif};
+    MaxStatusLevel = 10;
 
 var StatusStack : array[0..MaxStatusLevel] of string[MaxViewWidth];
 
@@ -455,7 +455,7 @@ begin
   WOS2Help.RegisterHelpType;
   WWinHelp.RegisterHelpType;
   WVPHelp.RegisterHelpType;
-  WHTMLHlp.RegisterHelpType;
+  WHTMLHlp.RegisterHelpType; // Also registers chm and html index (.htx)
 
   PushStatus(msg_LoadingHelpFiles);
   for I:=0 to HelpFiles^.Count-1 do
@@ -658,7 +658,7 @@ begin
 end;
 
 procedure CloseHelpWindows;
-procedure CloseIfHelpWindow(P: PView); {$ifndef FPC}far;{$endif}
+procedure CloseIfHelpWindow(P: PView);
 begin
   if P^.HelpCtx=hcHelpWindow then
     begin

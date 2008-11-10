@@ -29,7 +29,9 @@ const
   {$endif windows}
 {$endif}
 
+{$ifndef windows}
 {$linklib libz}
+{$endif windows}
 
 type
   { Compatible with paszlib }

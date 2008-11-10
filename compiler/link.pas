@@ -376,7 +376,11 @@ Implementation
                     { if smart not avail then try static linking }
                     if (flags and uf_static_linked)<>0 then
                      begin
-                       Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
+                       { if not create_smartlink_library, then smart linking happens using the
+                         regular object files
+                       }
+                       if create_smartlink_library then
+                         Message1(exec_t_unit_not_smart_linkable_switch_to_static,modulename^);
                        mask:=mask or link_static;
                      end
                     else
@@ -866,7 +870,7 @@ Implementation
       var
         objreader : TObjectReader;
       begin
-{$warning TODO Cleanup ignoring of   FPC generated libimp*.a files}
+{ TODO: Cleanup ignoring of   FPC generated libimp*.a files}
         { Don't load import libraries }
         if copy(ExtractFileName(para),1,6)='libimp' then
           exit;
@@ -1018,7 +1022,7 @@ Implementation
       label
         myexit;
       var
-        bsssize : aint;
+        bsssize : aword;
         bsssec  : TExeSection;
         dbgname : TCmdStr;
       begin
@@ -1027,7 +1031,7 @@ Implementation
         Message1(exec_i_linking,outputname);
         FlushOutput;
 
-{$warning TODO Load custom linker script}
+{ TODO: Load custom linker script}
         DefaultLinkScript;
 
         exeoutput:=CExeOutput.Create;
@@ -1084,7 +1088,7 @@ Implementation
             exeoutput.WriteExeFile(outputname);
           end;
 
-{$warning TODO fixed section names}
+{ TODO: fixed section names}
         status.codesize:=exeoutput.findexesection('.text').size;
         status.datasize:=exeoutput.findexesection('.data').size;
         bsssec:=exeoutput.findexesection('.bss');

@@ -48,10 +48,11 @@
 
 {$ifdef i386}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define x86}
   {$define cpuflags}
   {$define cpuextended}
-  {$define USECMOV}
   {$define SUPPORT_MMX}
   {$define cpumm}
   {$define fewintregisters}
@@ -65,7 +66,6 @@
   {$define cpuextended}
   {$define cpufloat128}
   {$define cputargethasfixedstack}
-  {$define USECMOV}
   {$define cpumm}
 {$endif x86_64}
 
@@ -76,12 +76,16 @@
 
 {$ifdef sparc}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cputargethasfixedstack}
 {$endif sparc}
 
 {$ifdef powerpc}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cputargethasfixedstack}
   {$define cpumm}
@@ -97,20 +101,30 @@
 
 {$ifdef arm}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
+  { inherit FPC_ARMEL? }
+  {$if defined(CPUARMEL) and not(defined(FPC_OARM))}
+    {$define FPC_ARMEL}
+  {$endif}
 {$endif arm}
 
 {$ifdef m68k}
   {$define cpu32bit}
+  {$define cpu32bitaddr}
+  {$define cpu32bitalu}
   {$define cpuflags}
   {$define cpufpemu}
 {$endif m68k}
 
 {$ifdef avr}
   {$define cpu16bit}
+  {$define cpu16bitaddr}
+  {$define cpu16bitalu}
   {$define cpuflags}
   {$define cpunofpu}
   {$define cpunodefaultint}

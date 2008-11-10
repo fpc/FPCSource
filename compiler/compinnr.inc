@@ -72,6 +72,11 @@ const
    in_writestr_x        = 62;
    in_readstr_x         = 63;
    in_abs_long          = 64;
+   in_ror_x             = 65;
+   in_ror_x_x           = 66;
+   in_rol_x             = 67;
+   in_rol_x_x           = 68;
+
 
 { Internal constant functions }
    in_const_sqr        = 100;

@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 91;
+  CurrentPPUVersion = 93;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -466,7 +466,7 @@ end;
 
 procedure tppufile.readdata(var b;len:integer);
 var
-  p,pmax,pbuf : pchar;
+  p,pbuf : pchar;
   left : integer;
 begin
   p:=pchar(@b);

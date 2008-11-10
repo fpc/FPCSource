@@ -28,11 +28,8 @@ type
 {$ifdef read_interface_rest}
 
 function GTK_TYPE_FILE_FILTER : GType;
-
 function GTK_FILE_FILTER(obj : pointer) : PGtkFileFilter;
-
 function GTK_IS_FILE_FILTER(obj : pointer) : gboolean;
-
 
 function gtk_file_filter_get_type:GType;cdecl;external gtklib name 'gtk_file_filter_get_type';
 function gtk_file_filter_new:PGtkFileFilter;cdecl;external gtklib name 'gtk_file_filter_new';
@@ -49,14 +46,18 @@ function gtk_file_filter_get_needed(filter:PGtkFileFilter):TGtkFileFilterFlags;c
 
 function gtk_file_filter_filter(filter:PGtkFileFilter; filter_info:PGtkFileFilterInfo):gboolean;cdecl;external gtklib name 'gtk_file_filter_filter';
 
+{$ifdef HasGTK2_6}
+procedure gtk_file_filter_add_pixbuf_formats(filter:PGtkFileFilter);cdecl;external gtklib;
+{$endif}
+
 {$endif}
 
 {$ifdef read_implementation}
 
 function GTK_TYPE_FILE_FILTER : GType;
-  begin
-     GTK_TYPE_FILE_FILTER:=gtk_file_filter_get_type;
-  end;
+begin
+   GTK_TYPE_FILE_FILTER:=gtk_file_filter_get_type;
+end;
 
 function GTK_FILE_FILTER(obj : pointer) : PGtkFileFilter;
 begin

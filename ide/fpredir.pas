@@ -24,9 +24,6 @@ Interface
 {$endif}
 {$endif}
 
-{$ifdef TP}
-{$define implemented}
-{$endif TP}
 {$ifdef Go32v2}
 {$define implemented}
 {$endif}
@@ -48,11 +45,6 @@ Interface
 {$ifdef netware_clib}
 {$define implemented}
 {$endif}
-
-{ be sure msdos is not set for FPC compiler }
-{$ifdef FPC}
-{$UnDef MsDos}
-{$endif FPC}
 
 Var
   IOStatus                   : Integer;
@@ -100,12 +92,8 @@ Uses
   windows,
 {$endif Windows}
 {$ifdef unix}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
-    baseunix,
-    unix,
-  {$endif}
+  baseunix,
+  unix,
 {$endif unix}
   dos;
 
@@ -186,34 +174,6 @@ end;
 
 {$ifdef implemented}
 
-{$ifdef TP}
-
-{$ifndef Windows}
-const
-  UnusedHandle    = -1;
-  StdInputHandle  = 0;
-  StdOutputHandle = 1;
-  StdErrorHandle  = 2;
-{$endif Windows}
-
-Type
-  PtrRec = packed record
-             Ofs, Seg : Word;
-           end;
-
-  PHandles = ^THandles;
-  THandles = Array [Byte] of Byte;
-
-  PWord = ^Word;
-
-Var
-  MinBlockSize : Word;
-  MyBlockSize  : Word;
-  Handles      : PHandles;
-  PrefSeg      : Word;
-  OldHandleOut,OldHandleIn,OldHandleError    : Byte;
-{$endif TP}
-
 var
   TempHOut, TempHIn,TempHError : longint;
 
@@ -292,14 +252,6 @@ end;
 Function fpclose (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  fpclose:=true;
-end;
-{$endif}
-
-{$ifdef TP}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
-begin
-  { if executed as under GO32 this hangs the DOS-prompt }
   fpclose:=true;
 end;
 {$endif}
@@ -384,13 +336,6 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
     RedirErrorOut:=IOResult;
     IOStatus:=RedirErrorOut;
     If IOStatus <> 0 then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldHandleOut:=Handles^[StdOutputHandle];
-    Handles^[StdOutputHandle]:=Handles^[FileRec (FOUT^).Handle];
-    ChangeRedirOut:=True;
-    OutRedirDisabled:=False;
-{$else}
 {$ifdef Windows}
     if SetStdHandle(Std_Output_Handle,FileRec(FOUT^).Handle) then
 {$else not Windows}
@@ -403,7 +348,6 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
          ChangeRedirOut:=True;
          OutRedirDisabled:=False;
       end;
-{$endif def FPC}
      RedirChangedOut:=True;
   end;
 
@@ -417,13 +361,6 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
     RedirErrorIn:=IOResult;
     IOStatus:=RedirErrorIn;
     If IOStatus <> 0 then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldHandleIn:=Handles^[StdInputHandle];
-    Handles^[StdInputHandle]:=Handles^[FileRec (FIN^).Handle];
-    ChangeRedirIn:=True;
-    InRedirDisabled:=False;
-{$else}
 {$ifdef Windows}
     if SetStdHandle(Std_Input_Handle,FileRec(FIN^).Handle) then
 {$else not Windows}
@@ -436,7 +373,6 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
          ChangeRedirIn:=True;
          InRedirDisabled:=False;
       end;
-{$endif def FPC}
      RedirChangedIn:=True;
   end;
 
@@ -454,13 +390,6 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     RedirErrorError:=IOResult;
     IOStatus:=RedirErrorError;
     If IOStatus <> 0 then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    OldHandleError:=Handles^[StdErrorHandle];
-    Handles^[StdErrorHandle]:=Handles^[FileRec (FERR^).Handle];
-    ChangeRedirError:=True;
-    ErrorRedirDisabled:=False;
-{$else}
 {$ifdef Windows}
     if SetStdHandle(Std_Error_Handle,FileRec(FERR^).Handle) then
 {$else not Windows}
@@ -473,59 +402,18 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
          ChangeRedirError:=True;
          ErrorRedirDisabled:=False;
       end;
-{$endif}
      RedirChangedError:=True;
   end;
-
-
-{$IfDef MsDos}
-{Set HeapEnd Pointer to Current Used Heapsize}
-Procedure SmallHeap;assembler;
-asm
-                mov     bx,word ptr HeapPtr
-                shr     bx,4
-                inc     bx
-                add     bx,word ptr HeapPtr+2
-                mov     ax,PrefixSeg
-                sub     bx,ax
-                mov     es,ax
-                mov     ah,4ah
-                int     21h
-end;
-
-
-
-{Set HeapEnd Pointer to Full Heapsize}
-Procedure FullHeap;assembler;
-asm
-                mov     bx,word ptr HeapEnd
-                shr     bx,4
-                inc     bx
-                add     bx,word ptr HeapEnd+2
-                mov     ax,PrefixSeg
-                sub     bx,ax
-                mov     es,ax
-                mov     ah,4ah
-                int     21h
-end;
-
-{$EndIf MsDos}
-
 
   procedure RestoreRedirOut;
 
   begin
     If not RedirChangedOut then Exit;
-{$ifndef FPC}
-    Handles^[StdOutputHandle]:=OldHandleOut;
-    OldHandleOut:=StdOutputHandle;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not Windows}
     fpdup2(TempHOut,StdOutputHandle);
 {$endif not Windows}
-{$endif FPC}
     Close (FOUT^);
     fpclose(TempHOut);
     RedirChangedOut:=false;
@@ -537,16 +425,11 @@ end;
   procedure RestoreRedirIn;
   begin
     If not RedirChangedIn then Exit;
-{$ifndef FPC}
-    Handles^[StdInputHandle]:=OldHandleIn;
-    OldHandleIn:=StdInputHandle;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not Windows}
     fpdup2(TempHIn,StdInputHandle);
 {$endif not Windows}
-{$endif}
     Close (FIn^);
     fpclose(TempHIn);
     RedirChangedIn:=false;
@@ -559,15 +442,11 @@ end;
   begin
     If not RedirChangedIn then Exit;
     If InRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles^[StdInputHandle]:=OldHandleIn;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not Windows}
     fpdup2(TempHIn,StdInputHandle);
 {$endif not Windows}
-{$endif}
     InRedirDisabled:=True;
   end;
 
@@ -578,16 +457,11 @@ end;
   begin
     If not RedirChangedIn then Exit;
     If not InRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    Handles^[StdInputHandle]:=Handles^[FileRec (FIn^).Handle];
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Input_Handle,FileRec(FIn^).Handle);
 {$else not Windows}
     fpdup2(FileRec(FIn^).Handle,StdInputHandle);
 {$endif not Windows}
-{$endif}
     InRedirDisabled:=False;
   end;
 
@@ -598,15 +472,11 @@ end;
   begin
     If not RedirChangedOut then Exit;
     If OutRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles^[StdOutputHandle]:=OldHandleOut;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not Windows}
     fpdup2(TempHOut,StdOutputHandle);
 {$endif not Windows}
-{$endif}
     OutRedirDisabled:=True;
   end;
 
@@ -617,16 +487,11 @@ end;
   begin
     If not RedirChangedOut then Exit;
     If not OutRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    Handles^[StdOutputHandle]:=Handles^[FileRec (FOut^).Handle];
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Output_Handle,FileRec(FOut^).Handle);
 {$else not Windows}
     fpdup2(FileRec(FOut^).Handle,StdOutputHandle);
 {$endif not Windows}
-{$endif}
     OutRedirDisabled:=False;
   end;
 
@@ -636,16 +501,11 @@ end;
 
   begin
     If not RedirChangedError then Exit;
-{$ifndef FPC}
-    Handles^[StdErrorHandle]:=OldHandleError;
-    OldHandleError:=StdErrorHandle;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not Windows}
     fpdup2(TempHError,StdErrorHandle);
 {$endif not Windows}
-{$endif}
     Close (FERR^);
     fpclose(TempHError);
     RedirChangedError:=false;
@@ -658,15 +518,11 @@ end;
   begin
     If not RedirChangedError then Exit;
     If ErrorRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles^[StdErrorHandle]:=OldHandleError;
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not Windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
+    fpdup2(TempHError,StdErrorHandle);
 {$endif not Windows}
-{$endif}
     ErrorRedirDisabled:=True;
   end;
 
@@ -677,16 +533,11 @@ end;
   begin
     If not RedirChangedError then Exit;
     If not ErrorRedirDisabled then Exit;
-{$ifndef FPC}
-    Handles:=Ptr (prefseg, PWord (Ptr (prefseg, $34))^);
-    Handles^[StdErrorHandle]:=Handles^[FileRec (FErr^).Handle];
-{$else}
 {$ifdef Windows}
     SetStdHandle(Std_Error_Handle,FileRec(FErr^).Handle);
 {$else not Windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FERR^).Handle,StdErrorHandle);
+    fpdup2(FileRec(FERR^).Handle,StdErrorHandle);
 {$endif not Windows}
-{$endif}
     ErrorRedirDisabled:=False;
   end;
 
@@ -752,9 +603,6 @@ procedure RedirEnableAll;
 
 procedure InitRedir;
 begin
-{$ifndef FPC}
-  PrefSeg:=PrefixSeg;
-{$endif FPC}
 end;
 
 {$else not  implemented}
@@ -849,6 +697,12 @@ function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirSt
 begin
   ExecuteRedir:=false;
 end;
+
+function LocateExeFile(var FileName:string): boolean;
+begin
+  LocateExeFile:=false;
+end;
+
 {$ENDIF SHELL_IMPLEMENTED}
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
@@ -939,9 +793,6 @@ end;
 {$endif Windows}
 
   Begin
-{$IfDef MsDos}
-  SmallHeap;
-{$EndIf MsDos}
     SwapVectors;
 {$ifdef UNIX}
     IOStatus:=0;
@@ -982,9 +833,6 @@ end;
       fninit
     end;
 {$endif CPU86}
-{$IfDef MsDos}
-  Fullheap;
-{$EndIf MsDos}
 End;
 
 {*****************************************************************************

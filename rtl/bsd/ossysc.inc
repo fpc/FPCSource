@@ -198,7 +198,7 @@ begin
    exit;
   ptr^.dd_fd:=fd;
   ptr^.dd_loc:=-1;
-  ptr^.dd_rewind:=longint(ptr^.dd_buf);
+  ptr^.dd_rewind:=ptrint(ptr^.dd_buf);
   ptr^.dd_size:=0;
 //  ptr^.dd_max:=sizeof(ptr^.dd_buf^);
   Fpopendir:=ptr;
@@ -248,7 +248,7 @@ begin
  if (dirp^.dd_buf=nil) or (dirp^.dd_loc=0) THEN
   exit(nil);
  if (dirp^.dd_loc=-1)   OR     {First readdir on this pdir. Initial fill of buffer}
-   (dirp^.dd_rewind>=(longint(dirp^.dd_buf)+dirp^.dd_size)) then  {no more entries left?}
+   (dirp^.dd_rewind>=(ptrint(dirp^.dd_buf)+dirp^.dd_size)) then  {no more entries left?}
   Begin
     if readbuffer=0 then        {succesful read?}
      Exit(NIL);                 {No more data}
@@ -477,7 +477,7 @@ function FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint; [public, al
 }
 
 begin
-  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,longint(how),longint(nset),longint(oset));
+  FPsigprocmask:=do_syscall(syscall_nr_sigprocmask,tsysparam(how),TSysParam(nset),TSysParam(oset));
 end;
 {$user BLA!}
 Function FpNanoSleep(req : ptimespec;rem : ptimespec) : cint; [public, alias : 'FPC_SYSC_NANOSLEEP'];

@@ -105,8 +105,14 @@ begin
     Writeln ('TFieldDef.CReateField : Result Fieldno : ',Result.FieldNo,' Self : ',FieldNo);
 {$endif dsdebug}
     Result.Dataset:=TFieldDefs(Collection).Dataset;
-    If Result is TFloatField then
+    If (Result is TFloatField) then
       TFloatField(Result).Precision:=FPrecision;
+    if (Result is TBCDField) then
+      TBCDField(Result).Precision:=FPrecision;
+    {Add when implemented:
+    if (Result is TFmtBCDField) then
+      TFmtBCDField(Result).Precision:=FPrecision;
+    }
   except
     Result.Free;
     Raise;
@@ -1173,12 +1179,12 @@ var
   Buffer    : PWideChar;
 begin
   if DataSize <= dsMaxStringSize then begin
-    Result := GetData(@FixBuffer, False);
+    Result := GetData(@FixBuffer, True);
     aValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
-    Result := GetData(Buffer, False);
+    Result := GetData(Buffer, True);
     if Result then
       aValue := Buffer;
   end;
@@ -1280,6 +1286,11 @@ begin
     FEDitFormat:=AVAlue;
     PropertyChanged(True);
     end;
+end;
+
+function TNumericField.GetAsBoolean: Boolean;
+begin
+  Result:=GetAsInteger<>0;
 end;
 
 { ---------------------------------------------------------------------

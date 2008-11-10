@@ -45,7 +45,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
 
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
@@ -119,10 +119,10 @@ unit cgcpu;
 const
   TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDI,A_ANDI_,A_DIVWU,
                         A_DIVW,A_MULLW, A_MULLW, A_NONE,A_NONE,A_ORI,
-                        A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI);
+                        A_SRAWI,A_SLWI,A_SRWI,A_SUBI,A_XORI,A_NONE,A_NONE);
   TOpCG2AsmOpConstHi: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDIS,A_ANDIS_,
                         A_DIVWU,A_DIVW, A_MULLW,A_MULLW,A_NONE,A_NONE,
-                        A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS);
+                        A_ORIS,A_NONE, A_NONE,A_NONE,A_SUBIS,A_XORIS,A_NONE,A_NONE);
 
   implementation
 
@@ -168,7 +168,7 @@ const
              RS_F10,RS_F11,RS_F12,RS_F13,RS_F31,RS_F30,RS_F29,RS_F28,RS_F27,
              RS_F26,RS_F25,RS_F24,RS_F23,RS_F22,RS_F21,RS_F20,RS_F19,RS_F18,
              RS_F17,RS_F16,RS_F15,RS_F14],first_fpu_imreg,[]);
-        {$warning FIX ME}
+        { TODO: FIX ME}
         rg[R_MMREGISTER]:=trgcpu.create(R_MMREGISTER,R_SUBNONE,
             [RS_M0,RS_M1,RS_M2],first_mm_imreg,[]);
       end;
@@ -248,19 +248,23 @@ const
 
 
     { calling a procedure by name }
-    procedure tcgppc.a_call_name(list : TAsmList;const s : string);
+    procedure tcgppc.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
          if (target_info.system <> system_powerpc_darwin) then
            begin
+             if not(weak) then
+               list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+             else
+               list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
              list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
              if target_info.system=system_powerpc_macos then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
-           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
 {
        the compiler does not properly set this flag anymore in pass 1, and
        for now we only need it after pass 2 (I hope) (JM)
@@ -353,7 +357,7 @@ const
           op := loadinstr[fromsize,ref2.index<>NR_NO,false];
           a_load_store(list,op,reg,ref2);
           { sign extend shortint if necessary (because there is
-	   no load instruction to sign extend an 8 bit value automatically) 
+	   no load instruction to sign extend an 8 bit value automatically)
 	   and mask out extra sign bits when loading from a smaller signed
 	   to a larger unsigned type }
           if fromsize = OS_S8 then
@@ -647,7 +651,21 @@ const
                 a_load_reg_reg(list,size,size,src,dst);
               if (a shr 5) <> 0 then
                 internalError(68991);
-            end
+            end;
+	  OP_ROL:
+	    begin
+	      if (not (size in [OS_32, OS_S32])) then begin
+	        internalerror(2008091307);
+	      end;    
+	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
+	    end;
+	  OP_ROR:
+	    begin
+	      if (not (size in [OS_32, OS_S32])) then begin
+		internalerror(2008091308);
+	      end;    
+	      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
+	    end
           else
             internalerror(200109091);
         end;
@@ -669,7 +687,9 @@ const
       const
         op_reg_reg_opcg2asmop: array[TOpCG] of tasmop =
           (A_NONE,A_MR,A_ADD,A_AND,A_DIVWU,A_DIVW,A_MULLW,A_MULLW,A_NEG,A_NOT,A_OR,
-           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR);
+           A_SRAW,A_SLW,A_SRW,A_SUB,A_XOR,A_NONE,A_NONE);
+      var
+        tmpreg : TRegister;
 
        begin
          if (op = OP_MOVE) then
@@ -683,6 +703,22 @@ const
                  { zero/sign extend result again }
                  a_load_reg_reg(list,OS_32,size,dst,dst);
               end;
+	   OP_ROL:
+	     begin
+	       if (not (size in [OS_32, OS_S32])) then begin
+	         internalerror(2008091305);
+	       end;
+	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
+	     end;
+	   OP_ROR:
+	     begin
+	       if (not (size in [OS_32, OS_S32])) then begin
+	         internalerror(2008091306);
+	       end;
+	       tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	       list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
+	       list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
+	     end;	
            else
              list.concat(taicpu.op_reg_reg_reg(op_reg_reg_opcg2asmop[op],dst,src2,src1));
          end;
@@ -750,7 +786,7 @@ const
         p : taicpu;
       begin
          if (target_info.system = system_powerpc_darwin) then
-           p := taicpu.op_sym(A_B,get_darwin_call_stub(s))
+           p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
         else
           p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
         p.is_jmp := true;
@@ -973,7 +1009,7 @@ const
                { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                {$warning TODO: 64 bit support }
+                { TODO: TODO: 64 bit support }
                 dec(href.offset,(RS_R31-firstregint)*sizeof(pint));
                 list.concat(taicpu.op_reg_ref(A_STMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end
@@ -1089,7 +1125,7 @@ const
                 { with RS_R30 it's also already smaller, but too big a speed trade-off to make }
                 (firstregint <= RS_R29)) then
               begin
-                {$warning TODO: 64 bit support }
+                { TODO: TODO: 64 bit support }
                 dec(href.offset,(RS_R31-firstregint)*sizeof(pint));
                 list.concat(taicpu.op_reg_ref(A_LMW,newreg(R_INTREGISTER,firstregint,R_SUBNONE),href));
               end

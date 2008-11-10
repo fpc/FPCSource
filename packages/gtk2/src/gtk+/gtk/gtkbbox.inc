@@ -54,6 +54,10 @@ procedure gtk_button_box_get_child_ipadding(widget:PGtkButtonBox; ipad_x:Pgint; 
 { Internal method - do not use.  }
 
 procedure _gtk_button_box_child_requisition(widget:PGtkWidget; nvis_children:Plongint; nvis_secondaries:Plongint; width:Plongint; height:Plongint); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+function gtk_button_box_get_child_secondary(widget: PGtkButtonBox; child: PGtkWidget):gboolean; cdecl; external gtklib;
+{$endif}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

@@ -298,7 +298,7 @@ implementation
             if assigned(regvarinfo^.regvars[i]) and
                (getsupreg(tvarsym(regvarinfo^.regvars[i]).localloc.register)=supreg) then
               begin
-                {$warning fixme regvar_loaded_int}
+                { TODO: fixme regvar_loaded_int}
 (*                if supreg in rg.regvar_loaded_int then
                   begin
                     vsym := tvarsym(regvarinfo^.regvars[i]);
@@ -306,7 +306,7 @@ implementation
                     { possible that it's been modified  (JM)                  }
                     if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                       begin
-{$warning FIXME Check vsym.localloc for regvars}
+{ TODO: FIXME Check vsym.localloc for regvars}
 //                        reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
                         cgsize:=def_cgsize(vsym.vardef);
                         cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.localloc.register,hr);
@@ -323,7 +323,7 @@ implementation
           for i := 1 to maxvarregs do
             if assigned(regvarinfo^.regvars[i]) then
               begin
-                {$warning fixme regvars}
+                { TODO: fixme regvars}
 (*
                 r:=rg.makeregsize(regvarinfo^.regvars[i].localloc.register,OS_INT);
                 if (r = reg) then
@@ -336,7 +336,7 @@ implementation
                         { possible that it's been modified  (JM)                  }
                         if not(vsym.varspez in [vs_const,vs_var,vs_out]) then
                           begin
-{$warning FIXME Check vsym.localloc for regvars}
+{ TODO: FIXME Check vsym.localloc for regvars}
 //                            reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
                             cgsize:=def_cgsize(vsym.vardef);
                             cg.a_load_reg_ref(asml,cgsize,cgsize,vsym.localloc.register,hr);
@@ -364,7 +364,7 @@ implementation
       exit;
 {$endif i386}
       reg:=vsym.localloc.register;
-      {$warning fixme regvars}
+      { TODO: fixme regvars}
 (*
       if getregtype(reg)=R_INTREGISTER then
         begin
@@ -372,7 +372,7 @@ implementation
           if not(getsupreg(reg) in rg.regvar_loaded_int) then
             begin
               asml.concat(tai_regalloc.alloc(reg));
-{$warning FIXME Check vsym.localloc for regvars}
+{ TODO: FIXME Check vsym.localloc for regvars}
 //              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
               if paramanager.push_addr_param(vsym.varspez,vsym.vardef,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
@@ -389,7 +389,7 @@ implementation
           if not rg.regvar_loaded_other[regidx] then
             begin
               asml.concat(tai_regalloc.alloc(reg));
-{$warning FIXME Check vsym.localloc for regvars}
+{ TODO: FIXME Check vsym.localloc for regvars}
 //              reference_reset_base(hr,current_procinfo.framepointer,vsym.adjusted_address);
               if paramanager.push_addr_param(vsym.varspez,vsym.vardef,current_procinfo.procdef.proccalloption) then
                 opsize := OS_ADDR
@@ -469,7 +469,7 @@ implementation
                 begin
 {$ifdef i386}
                   { reserve place on the FPU stack }
-                  {$warning fixme fpustack}
+                  { TODO: fixme fpustack}
 (*
                   regvarinfo^.fpuregvars[i].localloc.register:=trgcpu(rg).correct_fpuregister(NR_ST0,i-1);
 *)
@@ -578,7 +578,7 @@ implementation
                     begin
                       reg:=cg.makeregsize(reg,OS_INT);
                       regidx:=findreg_by_number(reg);
-                      {$warning fixme regvar dealloc}
+                      { TODO: fixme regvar dealloc}
 {
                       if (rg.regvar_loaded_other[regidx]) then
                        asml.concat(tai_regalloc.dealloc(reg));

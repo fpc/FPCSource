@@ -44,7 +44,7 @@ const
       CPlainCluster          = #7#8#9#9;
 
 type
-    longstring = {$ifdef TP}string{$else}ansistring{$endif};
+    longstring = ansistring;
 
     PCenterDialog = ^TCenterDialog;
     TCenterDialog = object(TDialog)

@@ -44,6 +44,7 @@ Resourcestring
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
+  SIncompatibleTVarRec     = 'Faild to assign one of the TVarRec values into a TField';
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
   SInvalidDisplayValues    = '"%s" are not valid boolean displayvalues';
   SInvalidFieldKind        = '%s : invalid field kind : ';
@@ -94,6 +95,7 @@ Resourcestring
   SDBCreateDropFailed      = 'Creation or dropping of database failed';
   SMaxIndexes              = 'The maximum amount of indexes is reached';
   SMinIndexes              = 'The minimum amount of indexes is 1';
+  STooManyFields           = 'More fields specified then really exist';
 // These are added for Delphi-compatilility, but not used by the fcl:
   SFieldIndexError         = 'Field index out of range';
   SIndexFieldMissing       = 'Cannot access index field ''%s''';
@@ -101,6 +103,8 @@ Resourcestring
   SNotIndexField           = 'Field ''%s'' is not indexed and cannot be modified';
   SErrUnknownConnectorType = 'Unknown connector type';
   SNoIndexFieldNameGiven   = 'There are no fields selected to base the index on';
+  SStreamNotRecognised     = 'The data-stream format is not recognized';
+  SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
   
 

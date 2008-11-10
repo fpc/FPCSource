@@ -45,7 +45,7 @@ type
     procedure a_param_ref(list: TAsmList; size: tcgsize; const r: treference;
       const paraloc: tcgpara); override;
 
-    procedure a_call_name(list: TAsmList; const s: string); override;
+    procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
     procedure a_call_reg(list: TAsmList; reg: tregister); override;
 
     procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:
@@ -128,7 +128,7 @@ type
      if includeCall is true, the method is marked as having a call, not if false. This
      option is particularly useful to prevent generation of a larger stack frame for the
      register save and restore helper functions. }
-    procedure a_call_name_direct(list: TAsmList; s: string; prependDot : boolean;
+    procedure a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
     procedure a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
@@ -379,7 +379,7 @@ begin
      RS_F10, RS_F11, RS_F12, RS_F13, RS_F31, RS_F30, RS_F29, RS_F28, RS_F27,
      RS_F26, RS_F25, RS_F24, RS_F23, RS_F22, RS_F21, RS_F20, RS_F19, RS_F18,
      RS_F17, RS_F16, RS_F15, RS_F14], first_fpu_imreg, []);
-{$WARNING FIX ME}
+{ TODO: FIX ME}
   rg[R_MMREGISTER] := trgcpu.create(R_MMREGISTER, R_SUBNONE,
     [RS_M0, RS_M1, RS_M2], first_mm_imreg, []);
 end;
@@ -505,23 +505,26 @@ end;
 
 { calling a procedure by name }
 
-procedure tcgppc.a_call_name(list: TAsmList; const s: string);
+procedure tcgppc.a_call_name(list: TAsmList; const s: string; weak: boolean);
 begin
     if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, s, false, true)
+      a_call_name_direct(list, s, weak, false, true)
     else
       begin
-        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
         include(current_procinfo.flags,pi_do_call);
       end;
 end;
 
 
-procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
+procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
   if (prependDot) then
     s := '.' + s;
-  list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)));
+  if not(weak) then
+    list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)))
+  else
+    list.concat(taicpu.op_sym(A_BL, current_asmdata.WeakRefAsmSymbol(s)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -569,7 +572,7 @@ begin
     in R11 }
     a_reg_alloc(list, NR_R11);
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
-    a_call_name_direct(list, '.ptrgl', false, false);
+    a_call_name_direct(list, '.ptrgl', false, false, false);
     a_reg_dealloc(list, NR_R11);
   end;
 
@@ -678,7 +681,7 @@ begin
   if not (size in [OS_8, OS_S8, OS_16, OS_S16, OS_32, OS_S32, OS_64, OS_S64]) then
     internalerror(2002090902);
   { if PIC or basic optimizations are enabled, and the number of instructions which would be
-   required to load the value is greater than 2, store (and later load) the value from there } 
+   required to load the value is greater than 2, store (and later load) the value from there }
 //  if (((cs_opt_peephole in current_settings.optimizerswitches) or (cs_create_pic in current_settings.moduleswitches)) and
 //    (getInstructionLength(a) > 2)) then
 //    loadConstantPIC(list, size, a, reg)
@@ -736,7 +739,7 @@ begin
   a_load_store(list, op, reg, ref2);
   { sign extend shortint if necessary (because there is
    no load instruction to sign extend an 8 bit value automatically)
-   and mask out extra sign bits when loading from a smaller 
+   and mask out extra sign bits when loading from a smaller
    signed to a larger unsigned type (where it matters) }
   if (fromsize = OS_S8) then begin
     a_load_reg_reg(list, OS_8, OS_S8, reg, reg);
@@ -784,10 +787,10 @@ begin
   {$ifdef extdebug}
   list.concat(tai_comment.create(strpnew('a_load_subsetreg_reg subsetregsize = ' + cgsize2string(sreg.subsetregsize) + ' subsetsize = ' + cgsize2string(subsetsize) + ' startbit = ' + intToStr(sreg.startbit) + ' tosize = ' + cgsize2string(tosize))));
   {$endif}
-  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets 
+  { do the extraction if required and then extend the sign correctly. (The latter is actually required only for signed subsets
   and if that subset is not >= the tosize). }
   if (sreg.startbit <> 0) or
-     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin 
+     (sreg.bitlen <> tcgsize2size[subsetsize]*8) then begin
     list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, destreg, sreg.subsetreg, (64 - sreg.startbit) and 63, 64 - sreg.bitlen));
     if (subsetsize in [OS_S8..OS_S128]) then
       if ((sreg.bitlen mod 8) = 0) then begin
@@ -1028,6 +1031,26 @@ begin
         list.concat(taicpu.op_reg_reg(A_NOT, dst, src))
       else
         do_lo_hi(A_XORI, A_XORIS);
+    OP_ROL:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, dst, src, a and 63, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, a and 31, 0, 31));
+	end else begin
+	  internalerror(2008091303);
+	end;
+      end;
+    OP_ROR:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const(A_RLDICL, dst, src, ((64 - a) and 63), 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_const_const_const(A_RLWINM, dst, src, (32 - a) and 31, 0, 31));
+	end else begin
+	  internalerror(2008091304);
+	end;
+      end;
     OP_SHL, OP_SHR, OP_SAR:
       begin
         if (size in [OS_64, OS_S64]) then
@@ -1062,10 +1085,12 @@ procedure tcgppc.a_op_reg_reg_reg(list: TAsmList; op: TOpCg;
 const
   op_reg_reg_opcg2asmop32: array[TOpCG] of tasmop =
   (A_NONE, A_MR, A_ADD, A_AND, A_DIVWU, A_DIVW, A_MULLW, A_MULLW, A_NEG, A_NOT, A_OR,
-   A_SRAW, A_SLW, A_SRW, A_SUB, A_XOR);
+   A_SRAW, A_SLW, A_SRW, A_SUB, A_XOR, A_NONE, A_NONE);
   op_reg_reg_opcg2asmop64: array[TOpCG] of tasmop =
   (A_NONE, A_MR, A_ADD, A_AND, A_DIVDU, A_DIVD, A_MULLD, A_MULLD, A_NEG, A_NOT, A_OR,
-   A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR);
+   A_SRAD, A_SLD, A_SRD, A_SUB, A_XOR, A_NONE, A_NONE);
+var
+  tmpreg : TRegister;
 begin
   case op of
     OP_NEG, OP_NOT:
@@ -1074,6 +1099,28 @@ begin
         if (op = OP_NOT) and not (size in [OS_64, OS_S64]) then
           { zero/sign extend result again, fromsize is not important here }
           a_load_reg_reg(list, OS_S64, size, dst, dst)
+      end;
+    OP_ROL:
+      begin
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const(A_RLDCL, dst, src2, src1, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, src1, 0, 31));
+	end else begin
+	  internalerror(2008091301);
+	end;
+      end;
+    OP_ROR:
+      begin
+        tmpreg := getintregister(current_asmdata.CurrAsmList, OS_INT);
+	list.concat(taicpu.op_reg_reg(A_NEG, tmpreg, src1));
+        if (size in [OS_64, OS_S64]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const(A_RLDCL, dst, src2, tmpreg, 0));
+	end else if (size in [OS_32, OS_S32]) then begin
+	  list.concat(taicpu.op_reg_reg_reg_const_const(A_RLWNM, dst, src2, tmpreg, 0, 31));
+	end else begin
+	  internalerror(2008091302);
+	end;
       end;
     else
       if (size in [OS_64, OS_S64]) then begin
@@ -1190,7 +1237,7 @@ var
 begin
   if (target_info.system = system_powerpc64_darwin) then
     begin
-      p := taicpu.op_sym(A_B,get_darwin_call_stub(s));
+      p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false));
       p.is_jmp := true;
       list.concat(p)
     end
@@ -1334,7 +1381,7 @@ procedure tcgppc.g_profilecode(list: TAsmList);
 begin
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
 
-  a_call_name_direct(list, '_mcount', false, true);
+  a_call_name_direct(list, '_mcount', false, false, true);
 
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
 end;
@@ -1372,12 +1419,12 @@ var
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false);
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false);
+        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);
       end else if (gprcount > 0) then
-        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false)
+        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false, false)
       else if (fprcount > 0) then
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false)
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false)
       else
         mayNeedLRStore := true;
     end else begin
@@ -1509,7 +1556,7 @@ var
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false);
+        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false, false);
         a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false);
       end else if (gprcount > 0) then
         a_jmp_name_direct(list, '_restgpr0_' + intToStr(32-gprcount), false)
@@ -1860,7 +1907,7 @@ begin
   end;
 
   { for ppc64/linux emit correct code which sets up a stack frame and then calls the
-  external method normally to ensure that the GOT/TOC will be loaded correctly if 
+  external method normally to ensure that the GOT/TOC will be loaded correctly if
   required.
 
   It's not really advantageous to use cg methods here because they are too specialized.
@@ -1938,7 +1985,7 @@ procedure tcgppc.a_load_store(list: TAsmList; op: tasmop; reg: tregister;
         A_LD, A_LDU, A_STD, A_STDU, A_LWA :
            if ((ref.offset mod 4) <> 0) then begin
             tmpreg := rg[R_INTREGISTER].getregister(list, R_SUBWHOLE);
-    
+
             if (ref.base <> NR_NO) then begin
               a_op_const_reg_reg(list, OP_ADD, OS_ADDR, ref.offset mod 4, ref.base, tmpreg);
               ref.base := tmpreg;

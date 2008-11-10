@@ -37,6 +37,9 @@ Function  FpRmdir   (path : AnsiString): cInt; inline;
 Function  FpRename  (old  : AnsiString;newpath: AnsiString): cInt; inline;
 Function  FpStat    (path: AnsiString; var buf : stat): cInt; inline;
 Function  FpStat    (path: String; var buf : stat): cInt;
+Function  fpLstat   (path: Ansistring; Info: pstat):cint; inline;
+Function  fpLstat   (path:pchar;var Info:stat):cint; inline;
+Function  fpLstat   (Filename: ansistring;var Info:stat):cint; inline;
 Function  FpAccess  (pathname : AnsiString; aMode : cInt): cInt; inline;
 function  FpWaitPid (pid : TPid; Var Status : cInt; Options : cint) : TPid;
 

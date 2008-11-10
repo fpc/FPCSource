@@ -21,6 +21,8 @@
 { This unit implements support information structures for MacOS. }
 unit i_macos;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

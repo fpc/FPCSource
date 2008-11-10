@@ -16,19 +16,32 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='users';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
+    P.Author := 'Michael van Canneyt, Marco van de Voort';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Headers to access Unix groups and users.';
+    P.NeedLibC:= false;
+
     P.SourcePath.Add('src');
 
+    T:=P.Targets.AddUnit('crypth.pp',[linux]);
     T:=P.Targets.AddUnit('grp.pp');
     T:=P.Targets.AddUnit('pwd.pp');
-    T:=P.Targets.AddUnit('shadow.pp');
+    T:=P.Targets.AddUnit('shadow.pp',[linux]);
     T:=P.Targets.AddUnit('users.pp');
       with T.Dependencies do
         begin
           AddUnit('pwd');
-          AddUnit('shadow');
+          AddUnit('shadow',[linux]);
           AddUnit('grp');
         end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('testpass.pp');
+    P.Targets.AddExampleProgram('testpass2.pp');
+    P.Targets.AddExampleProgram('testuser.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -1,8 +1,18 @@
 // included by glib2.pas
-type
+
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
    PGTree = pointer;
    TGTraverseFunc = function (key:gpointer; value:gpointer; data:gpointer):gboolean; cdecl;
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 { Balanced binary trees }
 
 function g_tree_new(key_compare_func:TGCompareFunc):PGTree; cdecl; external gliblib;
@@ -26,5 +36,6 @@ function g_tree_search(tree:PGTree; search_func:TGCompareFunc; user_data:gconstp
 function g_tree_height(tree:PGTree):gint; cdecl; external gliblib;
 function g_tree_nnodes(tree:PGTree):gint; cdecl; external gliblib;
 
+{$ENDIF read_interface_rest}
 // included by glib2.pas
 

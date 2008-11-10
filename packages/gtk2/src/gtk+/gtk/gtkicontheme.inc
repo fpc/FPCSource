@@ -116,9 +116,14 @@ function gtk_icon_info_get_embedded_rect(icon_info:PGtkIconInfo; rectangle:PGdkR
 function gtk_icon_info_get_attach_points(icon_info:PGtkIconInfo; points:PPGdkPoint; n_points:Pgint):gboolean;cdecl;external gtklib name 'gtk_icon_info_get_attach_points';
 function gtk_icon_info_get_display_name(icon_info:PGtkIconInfo):Pgchar;cdecl;external gtklib name 'gtk_icon_info_get_display_name';
 
+{$ifdef HasGTK2_6}
+function gtk_icon_theme_get_icon_sizes(icon_theme:PGtkIconTheme; icon_name:Pgchar):Pgint;cdecl;external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 {$ifdef read_implementation}
+
 function GTK_TYPE_ICON_INFO : GType;
 begin
    GTK_TYPE_ICON_INFO:=gtk_icon_info_get_type;

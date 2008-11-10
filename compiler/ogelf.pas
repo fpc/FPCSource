@@ -57,19 +57,19 @@ interface
          destructor  destroy;override;
          function  sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
          procedure CreateDebugSections;override;
-         procedure writereloc(data,len:aint;p:TObjSymbol;reltype:TObjRelocationType);override;
+         procedure writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);override;
        end;
 
        TElfObjectOutput = class(tObjOutput)
        private
          symtabsect,
          strtabsect,
-         shstrtabsect,
-         gotpcsect,
+         shstrtabsect: TElfObjSection;
+         {gotpcsect,
          gotoffsect,
          goTSect,
          plTSect,
-         symsect  : TElfObjSection;
+         symsect   : TElfObjSection;}
          elf32data : TElfObjData;
          symidx,
          localsyms : longint;
@@ -646,7 +646,7 @@ implementation
       end;
 
 
-    procedure TElfObjData.writereloc(data,len:aint;p:TObjSymbol;reltype:TObjRelocationType);
+    procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
       var
         symaddr : longint;
       begin
@@ -985,7 +985,7 @@ implementation
 
     procedure TElfObjectOutput.section_set_datapos(p:TObject;arg:pointer);
       begin
-        TObjSection(p).setdatapos(paint(arg)^);
+        TObjSection(p).setdatapos(paword(arg)^);
       end;
 
 

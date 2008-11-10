@@ -165,6 +165,12 @@ interface
     {# returns true if p is a wide string type }
     function is_widestring(p : tdef) : boolean;
 
+    {# true if p is an unicode string def }
+    function is_unicodestring(p : tdef) : boolean;
+
+    {# returns true if p is a wide or unicode string type }
+    function is_wide_or_unicode_string(p : tdef) : boolean;
+
     {# Returns true if p is a short string type }
     function is_shortstring(p : tdef) : boolean;
 
@@ -581,6 +587,22 @@ implementation
       end;
 
 
+    { true if p is an wide string def }
+    function is_wide_or_unicode_string(p : tdef) : boolean;
+      begin
+         is_wide_or_unicode_string:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype in [st_widestring,st_unicodestring]);
+      end;
+
+
+    { true if p is an unicode string def }
+    function is_unicodestring(p : tdef) : boolean;
+      begin
+         is_unicodestring:=(p.typ=stringdef) and
+                        (tstringdef(p).stringtype=st_unicodestring);
+      end;
+
+
     { true if p is an short string def }
     function is_shortstring(p : tdef) : boolean;
       begin
@@ -920,12 +942,13 @@ implementation
             begin
               if tprocvardef(def).is_methodpointer and
                  (not tprocvardef(def).is_addressonly) then
-                if (sizeof(pint) = 4) then
+                {$if sizeof(pint) = 4}
                   result:=OS_64
-                else if (sizeof(pint) = 8) then
+                {$else} {$if sizeof(pint) = 8}
                   result:=OS_128
-                else
+                {$else}
                   internalerror(200707141)
+                {$endif} {$endif}
               else
                 result:=OS_ADDR;
             end;

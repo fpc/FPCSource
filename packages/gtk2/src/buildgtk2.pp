@@ -25,7 +25,7 @@ unit buildgtk2; // keep unit name lowercase for kylix
 interface
 
 uses
-  gtk2, libglade2,gdkglext,gtkglext
+  gtk2, libglade2,gdkglext,gtkglext, gtk2ext
 {$ifdef unix}  
   ,gdk2x
 {$endif unix}

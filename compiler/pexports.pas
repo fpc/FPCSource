@@ -204,7 +204,8 @@ implementation
                         exportprocsym(srsym,hpname,index,options);
                       end
                   end
-                else
+                { can also be errorsym }
+                else if (srsym.typ=staticvarsym) then
                   begin
                     if ((options and eo_name)=0) then
                       { for "cvar" }

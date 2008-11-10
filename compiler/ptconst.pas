@@ -374,13 +374,14 @@ implementation
           { const pointer ? }
           if (p.nodetype = pointerconstn) then
             begin
-              if sizeof(TConstPtrUInt)=8 then
-                list.concat(Tai_const.Create_64bit(int64(tpointerconstnode(p).value)))
-              else
-                if sizeof(TConstPtrUInt)=4 then
-                  list.concat(Tai_const.Create_32bit(longint(tpointerconstnode(p).value)))
-              else
-                internalerror(200404122);
+              {$if sizeof(TConstPtrUInt)=8}
+                list.concat(Tai_const.Create_64bit(int64(tpointerconstnode(p).value)));
+              {$else}
+                {$if sizeof(TConstPtrUInt)=4}
+                  list.concat(Tai_const.Create_32bit(longint(tpointerconstnode(p).value)));
+                {$else}
+                  internalerror(200404122);
+              {$endif} {$endif}
             end
           { nil pointer ? }
           else if p.nodetype=niln then
@@ -430,7 +431,7 @@ implementation
                     { convert to widestring stringconstn }
                     inserttypeconv(p,cwidestringtype);
                     if (p.nodetype=stringconstn) and
-                       (tstringconstnode(p).cst_type=cst_widestring) then
+                       (tstringconstnode(p).cst_type in [cst_widestring,cst_unicodestring]) then
                      begin
                        pw:=pcompilerwidestring(tstringconstnode(p).value_str);
                        for i:=0 to tstringconstnode(p).len-1 do
@@ -640,13 +641,19 @@ implementation
         begin
           n:=comp_expr(true);
           { load strval and strlength of the constant tree }
-          if (n.nodetype=stringconstn) or is_widestring(def) or is_constwidecharnode(n) then
+          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) then
             begin
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }
               inserttypeconv(n,def);
-              strlength:=tstringconstnode(n).len;
-              strval:=tstringconstnode(n).value_str;
+              if not codegenerror then
+                begin
+                  strlength:=tstringconstnode(n).len;
+                  strval:=tstringconstnode(n).value_str;
+                end
+              else
+                { an error occurred trying to convert the result to a string }
+                strlength:=-1;
             end
           else if is_constcharnode(n) then
             begin
@@ -710,11 +717,11 @@ implementation
                          current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength));
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                          { ... and vice versa }
                          if (target_info.system in systems_darwin) then
-                           list.concat(tai_directive.create(asd_reference,ll2.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
                          getmem(ca,strlength+1);
                          move(strval^,ca^,strlength);
                          { The terminating #0 to be stored in the .data section (JM) }
@@ -744,11 +751,11 @@ implementation
                            end;
                          { make sure the string doesn't get dead stripped if the header is referenced }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
                          current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                          { ... and vice versa }
                          if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,ll2.name));
+                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
                          for i:=0 to strlength-1 do
                            current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
                          { ending #0 }
@@ -1364,7 +1371,7 @@ implementation
         if (
             (
              (token = _ID) and
-             (idtoken in [_EXPORT,_EXTERNAL,_PUBLIC,_CVAR]) and
+             (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
              (m_cvar_support in current_settings.modeswitches)
             ) or
             (

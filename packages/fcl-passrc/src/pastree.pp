@@ -269,6 +269,7 @@ type
     ObjKind: TPasObjKind;
     AncestorType: TPasType;     // TPasClassType or TPasUnresolvedTypeRef
     IsPacked: Boolean;        // 12/04/04 - Dave - Added
+    IsForward : Boolean;
     Members: TList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
   end;
@@ -356,7 +357,7 @@ type
     function GetDeclaration(full : boolean) : string; override;
   public
     Args: TList;        // List of TPasArgument objects
-    IndexValue, ReadAccessorName, WriteAccessorName,
+    IndexValue, ReadAccessorName, WriteAccessorName,ImplementsName,
       StoredAccessorName, DefaultValue: string;
     IsDefault, IsNodefault: Boolean;
   end;
@@ -1427,7 +1428,11 @@ begin
   else
     S:=' ';
   If Full then
+    begin
     Result:=Name+S+': '+Result;
+    If (ImplementsName<>'') then
+       Result:=Result+' implements '+ImplementsName;
+    end;   
   If IsDefault then
     Result:=Result+'; default'
 end;

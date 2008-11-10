@@ -302,4 +302,98 @@ Const
   syscall_mq_notify                     = syscall_nr_base+278;
   syscall_mq_getsetattr                 = syscall_nr_base+279;
   syscall_waitid                        = syscall_nr_base+280;
+  syscall_socket			= syscall_nr_base+281;
+  syscall_bind			        = syscall_nr_base+282;
+  syscall_connect			= syscall_nr_base+283;
+  syscall_listen			= syscall_nr_base+284;
+  syscall_accept			= syscall_nr_base+285;
+  syscall_getsockname		        = syscall_nr_base+286;
+  syscall_getpeername		        = syscall_nr_base+287;
+  syscall_socketpair			= syscall_nr_base+288;
+  syscall_send		        	= syscall_nr_base+289;
+  syscall_sendto			= syscall_nr_base+290;
+  syscall_recv			        = syscall_nr_base+291;
+  syscall_recvfrom			= syscall_nr_base+292;
+  syscall_shutdown			= syscall_nr_base+293;
+  syscall_setsockopt			= syscall_nr_base+294;
+  syscall_getsockopt			= syscall_nr_base+295;
+  syscall_sendmsg			= syscall_nr_base+296;
+  syscall_recvmsg			= syscall_nr_base+297;
+  syscall_semop		                = syscall_nr_base+298;
+  syscall_semget			= syscall_nr_base+299;
+  syscall_semctl			= syscall_nr_base+300;
+  syscall_msgsnd			= syscall_nr_base+301;
+  syscall_msgrcv			= syscall_nr_base+302;
+  syscall_msgget			= syscall_nr_base+303;
+  syscall_msgctl			= syscall_nr_base+304;
+  syscall_shmat			        = syscall_nr_base+305;
+  syscall_shmdt			        = syscall_nr_base+306;
+  syscall_shmget			= syscall_nr_base+307;
+  syscall_shmctl			= syscall_nr_base+308;
+  syscall_add_key			= syscall_nr_base+309;
+  syscall_request_key		        = syscall_nr_base+310;
+  syscall_keyctl			= syscall_nr_base+311;
+  syscall_semtimedop			= syscall_nr_base+312;
+  syscall_vserver			= syscall_nr_base+313;
+  syscall_ioprio_set			= syscall_nr_base+314;
+  syscall_ioprio_get			= syscall_nr_base+315;
+  syscall_inotify_init	        	= syscall_nr_base+316;
+  syscall_inotify_add_watch		= syscall_nr_base+317;
+  syscall_inotify_rm_watch		= syscall_nr_base+318;
+  syscall_mbind			        = syscall_nr_base+319;
+  syscall_get_mempolicy		        = syscall_nr_base+320;
+  syscall_set_mempolicy	        	= syscall_nr_base+321;
+  syscall_openat			= syscall_nr_base+322;
+  syscall_mkdirat			= syscall_nr_base+323;
+  syscall_mknodat			= syscall_nr_base+324;
+  syscall_fchownat			= syscall_nr_base+325;
+  syscall_futimesat			= syscall_nr_base+326;
+  syscall_fstatat64			= syscall_nr_base+327;
+  syscall_unlinkat			= syscall_nr_base+328;
+  syscall_renameat			= syscall_nr_base+329;
+  syscall_linkat			= syscall_nr_base+330;
+  syscall_symlinkat			= syscall_nr_base+331;
+  syscall_readlinkat			= syscall_nr_base+332;
+  syscall_fchmodat			= syscall_nr_base+333;
+  syscall_faccessat			= syscall_nr_base+334;
+					{* 335 for pselect6 *}
+					{* 336 for ppoll *}
+  syscall_unshare			= syscall_nr_base+337;
+  syscall_set_robust_list		= syscall_nr_base+338;
+  syscall_get_robust_list		= syscall_nr_base+339;
+  syscall_splice			= syscall_nr_base+340;
+  syscall_arm_sync_file_range	        = syscall_nr_base+341;
+  syscall_sync_file_range2		= syscall_arm_sync_file_range;
+  syscall_tee			        = syscall_nr_base+342;
+  syscall_vmsplice			= syscall_nr_base+343;
+  syscall_move_pages			= syscall_nr_base+344;
+  syscall_getcpu			= syscall_nr_base+345;
+					{* 346 for epoll_pwait *}
+  syscall_kexec_load			= syscall_nr_base+347;
+  syscall_utimensat			= syscall_nr_base+348;
+  syscall_signalfd			= syscall_nr_base+349;
+  syscall_timerfd_create		= syscall_nr_base+350;
+  syscall_eventfd			= syscall_nr_base+351;
+  syscall_fallocate			= syscall_nr_base+352;
+  syscall_timerfd_settime		= syscall_nr_base+353;
+  syscall_timerfd_gettime		= syscall_nr_base+354;
+  syscall_signalfd4			= syscall_nr_base+355;
+  syscall_eventfd2			= syscall_nr_base+356;
+  syscall_epoll_create1	    	        = syscall_nr_base+357;
+  syscall_dup3			        = syscall_nr_base+358;
+  syscall_pipe2			        = syscall_nr_base+359;
+  syscall_inotify_init1		        = syscall_nr_base+360;
+
+{*
+ * The following SWIs are ARM private.
+ *}
+  __ARM_NR_BASE			        = syscall_nr_base+$f0000;
+  __ARM_NR_breakpoint		        = __ARM_NR_BASE+1;
+  __ARM_NR_cacheflush		        = __ARM_NR_BASE+2;
+  __ARM_NR_usr26			= __ARM_NR_BASE+3;
+  __ARM_NR_usr32			= __ARM_NR_BASE+4;
+  __ARM_NR_set_tls		        = __ARM_NR_BASE+5;
+
+
+
 

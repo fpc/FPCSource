@@ -78,7 +78,11 @@ const
 {$ifdef Unix}
   AllFiles = '*';
 {$else}
-  AllFiles = '*.*';
+  {$ifdef OS_AMIGA}
+    AllFiles = '*';
+  {$else}
+    AllFiles = '*.*';
+  {$endif}
 {$endif}
 
 type
@@ -664,7 +668,10 @@ begin
     { do not change '/' into '' }
     if (Length(ExpPath)>1) and (ExpPath[Length(ExpPath)] = DirSeparator) then
       Dec(ExpPath[0]);
-    FindFirst(ExpPath, Directory, SR);
+    // This function is called on current directories.
+    // If the current dir starts with a . on Linux it is is hidden.
+    // That's why we allow hidden dirs below (bug 6173)
+    FindFirst(ExpPath, Directory+hidden, SR); 
     PathValid := (DosError = 0) and (SR.Attr and Directory <> 0);
 {$ifdef NetDrive}
     if (DosError<>0) and (length(ExpPath)>2) and

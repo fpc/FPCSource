@@ -772,14 +772,18 @@ function CollectionsEqual(C1, C2: TCollection; Owner1, Owner2: TComponent): Bool
     if (c1.classtype<>c2.classtype) or
       (c1.count<>c2.count) then
       exit;
-
+    if c1.count = 0 then
+      begin
+      result:= true;
+      exit;
+      end;
     s1:=tmemorystream.create;
     try
       s2:=tmemorystream.create;
       try
         stream_collection(s1,c1,owner1);
         stream_collection(s2,c2,owner2);
-        result:=(s1.size=s2.size) and (CompareChar(s1.memory,s2.memory,s1.size)=0);
+        result:=(s1.size=s2.size) and (CompareChar(s1.memory^,s2.memory^,s1.size)=0);
       finally
         s2.free;
       end;
@@ -893,13 +897,16 @@ procedure ObjectBinaryToText(Input, Output: TStream);
   end;
 
   procedure OutString(s: String);
-
   begin
     OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd);
   end;
 
   procedure OutWString(W: WideString);
+  begin
+    OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
+  end;
 
+  procedure OutUString(W: UnicodeString);
   begin
     OutChars(Pointer(W),pwidechar(W)+Length(W),@WideCharToOrd);
   end;
@@ -1043,6 +1050,25 @@ procedure ObjectBinaryToText(Input, Output: TStream);
     end;
   end;
 
+  function ReadUStr: UnicodeString;
+  var
+    len: DWord;
+  {$IFDEF ENDIAN_BIG}
+    i : integer;
+  {$ENDIF}
+  begin
+    len := ReadDWord;
+    SetLength(Result, len);
+    if (len > 0) then
+    begin
+      Input.ReadBuffer(Pointer(@Result[1])^, len*2);
+      {$IFDEF ENDIAN_BIG}
+      for i:=1 to len do
+        Result[i]:=widechar(SwapEndian(word(Result[i])));
+      {$ENDIF}
+    end;
+  end;
+
   procedure ReadPropList(indent: String);
 
     procedure ProcessValue(ValueType: TValueType; Indent: String);
@@ -1130,6 +1156,11 @@ procedure ObjectBinaryToText(Input, Output: TStream);
           OutLn('');
           end;
         vaWString:
+          begin
+          OutWString(ReadWStr);
+          OutLn('');
+          end;
+        vaUString:
           begin
           OutWString(ReadWStr);
           OutLn('');

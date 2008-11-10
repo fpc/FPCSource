@@ -120,7 +120,6 @@ implementation
     uses
       comphook,fmodule,constexp,globals;
 
-
 {****************************************************************************
                        Extra Handlers for default compiler
 ****************************************************************************}
@@ -178,6 +177,31 @@ implementation
       end;
 
 
+    function ClearMessageVerbosity(s: string; var i: integer): boolean;
+      var
+        tok : string;
+        code : longint;
+        msgnr: longint;
+      begin
+        { delete everything up to and including 'm' }
+        delete(s,1,i);
+        { the rest of the string must be message numbers }
+        inc(i,length(s)+1);
+        result:=false;
+        repeat
+          tok:=GetToken(s,',');
+          if (tok='') then
+            break;
+          val(tok, msgnr, code);
+          if (code<>0) then
+            exit;
+          if not msg^.clearverbosity(msgnr) then
+            exit;
+        until false;
+        result:=true;
+      end;
+
+
     function CheckVerbosity(v:longint):boolean;
       begin
         result:=do_checkverbosity(v);
@@ -214,6 +238,7 @@ implementation
                 { handle switch }
                 case c of
                 { Special cases }
+                 '0' : status.verbosity:=V_Default;
                  'A' : status.verbosity:=V_All;
                  'B' : begin
                           if inverse then
@@ -221,12 +246,23 @@ implementation
                           else
                             status.print_source_path:=true;
                        end;
-                 '0' : status.verbosity:=V_Default;
+                 'M' : if inverse or
+                          not ClearMessageVerbosity(s, i) then
+                         begin
+                           result:=false;
+                           exit
+                         end;
                  'P' : begin
                          if inverse then
                           paraprintnodetree:=0
                          else
                           paraprintnodetree:=1;
+                       end;
+                 'Q' : begin
+                          if inverse then
+                            status.showmsgnrs:=false
+                          else
+                            status.showmsgnrs:=true;
                        end;
                  'R' : begin
                           if inverse then
@@ -240,6 +276,7 @@ implementation
                                status.use_stderr:=true;
                             end;
                        end;
+                 'V' : PrepareReport;
                  'Z' : begin
                           if inverse then
                             status.use_stderr:=false
@@ -247,38 +284,6 @@ implementation
                             status.use_stderr:=true;
                        end;
                 { Normal cases - do an or }
-                 'E' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Error)
-                       else
-                         status.verbosity:=status.verbosity or V_Error;
-                 'I' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Info)
-                       else
-                         status.verbosity:=status.verbosity or V_Info;
-                 'W' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Warning)
-                       else
-                         status.verbosity:=status.verbosity or V_Warning;
-                 'N' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Note)
-                       else
-                         status.verbosity:=status.verbosity or V_Note;
-                 'H' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Hint)
-                       else
-                         status.verbosity:=status.verbosity or V_Hint;
-                 'L' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Status)
-                       else
-                         status.verbosity:=status.verbosity or V_Status;
-                 'U' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Used)
-                       else
-                         status.verbosity:=status.verbosity or V_Used;
-                 'T' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Tried)
-                       else
-                         status.verbosity:=status.verbosity or V_Tried;
                  'C' : if inverse then
                          status.verbosity:=status.verbosity and (not V_Conditional)
                        else
@@ -287,15 +292,46 @@ implementation
                          status.verbosity:=status.verbosity and (not V_Debug)
                        else
                          status.verbosity:=status.verbosity or V_Debug;
-                 'X' : if inverse then
-                         status.verbosity:=status.verbosity and (not V_Executable)
+                 'E' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Error)
                        else
-                         status.verbosity:=status.verbosity or V_Executable;
+                         status.verbosity:=status.verbosity or V_Error;
+                 'H' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Hint)
+                       else
+                         status.verbosity:=status.verbosity or V_Hint;
+                 'I' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Info)
+                       else
+                         status.verbosity:=status.verbosity or V_Info;
+                 'L' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Status)
+                       else
+                         status.verbosity:=status.verbosity or V_Status;
+                 'N' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Note)
+                       else
+                         status.verbosity:=status.verbosity or V_Note;
                  'S' : if inverse then
                          status.verbosity:=status.verbosity and (not V_TimeStamps)
                        else
                          status.verbosity:=status.verbosity or V_TimeStamps;
-                 'V' : PrepareReport;
+                 'T' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Tried)
+                       else
+                         status.verbosity:=status.verbosity or V_Tried;
+                 'U' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Used)
+                       else
+                         status.verbosity:=status.verbosity or V_Used;
+                 'W' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Warning)
+                       else
+                         status.verbosity:=status.verbosity or V_Warning;
+                 'X' : if inverse then
+                         status.verbosity:=status.verbosity and (not V_Executable)
+                       else
+                         status.verbosity:=status.verbosity or V_Executable;
                  end;
                 inc(i);
              end;
@@ -520,7 +556,7 @@ implementation
       {Parse options}
         idx:=pos('_',s);
         if idx=0 then
-         v:=V_Normal
+         v:=V_None
         else
          if (idx >= 1) And (idx <= 5) then
           begin
@@ -543,26 +579,29 @@ implementation
                 'W':
                   begin
                     v:=v or V_Warning;
-                    if status.errorwarning then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countWarnings);
+                    if CheckVerbosity(V_Warning) then
+                      if status.errorwarning then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countWarnings);
                   end;
                 'N' :
                   begin
                     v:=v or V_Note;
-                    if status.errornote then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countNotes);
+                    if CheckVerbosity(V_Note) then
+                      if status.errornote then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countNotes);
                   end;
                 'H' :
                   begin
                     v:=v or V_Hint;
-                    if status.errorhint then
-                     inc(status.errorcount)
-                    else
-                     inc(status.countHints);
+                    if CheckVerbosity(V_Hint) then
+                      if status.errorhint then
+                       inc(status.errorcount)
+                      else
+                       inc(status.countHints);
                   end;
                 'I' :
                   v:=v or V_Info;
@@ -587,31 +626,33 @@ implementation
         Delete(s,1,idx);
       { check verbosity level }
         if not CheckVerbosity(v) then
-        begin
-          doqueue := onqueue <> nil;
-          if not doqueue then
-            exit;
-        end;
+          begin
+            doqueue := onqueue <> nil;
+            if not doqueue then
+              exit;
+          end;
         if (v and V_LineInfoMask)<>0 then
           v:=v or V_LineInfo;
       { fix status }
         UpdateStatus;
       { Fix replacements }
         DefaultReplacements(s);
+        if status.showmsgnrs then
+          s:='('+tostr(w)+') '+s;
         if doqueue then
-        begin
-          onqueue(s,v,w);
-          exit;
-        end;
+          begin
+            onqueue(s,v,w);
+            exit;
+          end;
       { show comment }
         if do_comment(v,s) or dostop then
           raise ECompilerAbort.Create;
         if (status.errorcount>=status.maxerrorcount) and not status.skip_error then
-         begin
-           Message1(unit_f_errors_in_unit,tostr(status.errorcount));
-           status.skip_error:=true;
-           raise ECompilerAbort.Create;
-         end;
+          begin
+            Message1(unit_f_errors_in_unit,tostr(status.errorcount));
+            status.skip_error:=true;
+            raise ECompilerAbort.Create;
+          end;
       end;
 
 
@@ -820,16 +861,16 @@ implementation
       end;
 
 
-procedure FlushOutput;
-begin
-  if not (Status.Use_StdErr) then (* StdErr is flushed after every line *)
-    begin
-      if Status.Use_Redir then
-        Flush(Status.RedirFile)
-      else
-        Flush(Output);
-    end;
-end;
+    procedure FlushOutput;
+      begin
+        if not (Status.Use_StdErr) then (* StdErr is flushed after every line *)
+          begin
+            if Status.Use_Redir then
+              Flush(Status.RedirFile)
+            else
+              Flush(Output);
+          end;
+      end;
 
 
 {*****************************************************************************
@@ -853,8 +894,8 @@ end;
         FillChar(Status,sizeof(TCompilerStatus),0);
         status.verbosity:=V_Default;
         Status.MaxErrorCount:=50;
-        Status.codesize:=-1;
-        Status.datasize:=-1;
+        Status.codesize:=aword(-1);
+        Status.datasize:=aword(-1);
         Loadprefixes;
         lastfileidx:=-1;
         lastmoduleidx:=-1;

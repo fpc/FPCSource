@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$define CGIDEBUG}
+{ $define CGIDEBUG}
 {$mode objfpc}
 {$H+}
 
@@ -222,7 +222,15 @@ end;
 Function TCustomCGIApplication.GetTempCGIFileName : String;
 
 begin
-  Result:=GetTempFileName('/tmp/','CGI')
+//Result:=GetTempFileName('/tmp/','CGI') {Hard coded path no good for all OS-es}
+{
+GetTempDir returns the OS temporary directory if possible, or from the
+environment variable TEMP . For CGI programs you need to pass global environment
+ variables, it is not automatic. For example in the Apache httpd.conf with a
+"PassEnv TEMP" or "SetEnv TEMP /pathtotmpdir" line so the web server passes this
+ global environment variable to the CGI programs' local environment variables.
+}
+  Result := GetTempFileName(GetTempDir, 'CGI');
 end;
 
 Procedure TCustomCGIApplication.DeleteFormFiles;
@@ -436,9 +444,9 @@ begin
       end;}
     CT:=ContentType;
     if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
-      ProcessMultiPart(M,CT)
+      ProcessMultiPart(M,CT, ContentFields)
     else if CompareText('APPLICATION/X-WWW-FORM-URLENCODED',CT)=0 then
-      ProcessUrlEncoded(M)
+      ProcessUrlEncoded(M, ContentFields)
     else
       begin
 {$ifdef CGIDEBUG}
@@ -465,7 +473,7 @@ begin
 {$endif}
   FQueryString:=GetEnvironmentVariable('QUERY_STRING');
   If (FQueryString<>'') then
-    ProcessQueryString(FQueryString);
+    ProcessQueryString(FQueryString, QueryFields);
 {$ifdef CGIDEBUG}
   SendMethodExit('InitGetVars');
 {$endif}

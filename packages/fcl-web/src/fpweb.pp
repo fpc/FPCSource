@@ -109,7 +109,6 @@ Type
     procedure SetActionVar(const AValue: String);
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
-
   Protected
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
     Procedure DoAfterResponse(AResponse : TResponse); virtual;
@@ -146,7 +145,7 @@ Type
     Property OnNewSession;
     Property OnSessionExpired;
   end;
-  
+
   EFPWebError = Class(HTTPError);
 
 resourcestring
@@ -159,6 +158,9 @@ implementation
 {$ifdef cgidebug}
 uses dbugintf;
 {$endif cgidebug}
+
+
+{ TFPWebAction }
 
 procedure TFPWebAction.GetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);
 

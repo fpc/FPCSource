@@ -157,7 +157,10 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
         cansistringtype:=tstringdef.createansi;
-        cwidestringtype:=tstringdef.createwide;
+        if target_info.system in system_all_windows then
+          cwidestringtype:=tstringdef.createwide
+        else
+          cwidestringtype:=tstringdef.createunicode;
         cunicodestringtype:=tstringdef.createunicode;
         { length=0 for shortstring is open string (needed for readln(string) }
         openshortstringtype:=tstringdef.createshort(0);
@@ -265,6 +268,7 @@ implementation
         addtype('AnsiString',cansistringtype);
         addtype('WideString',cwidestringtype);
         addtype('UnicodeString',cunicodestringtype);
+
         addtype('OpenString',openshortstringtype);
         addtype('Boolean',booltype);
         addtype('ByteBool',bool8type);
@@ -304,7 +308,7 @@ implementation
         addtype('$longstring',clongstringtype);
         addtype('$ansistring',cansistringtype);
         addtype('$widestring',cwidestringtype);
-        addtype('$unicodestring',cwidestringtype);
+        addtype('$unicodestring',cunicodestringtype);
         addtype('$openshortstring',openshortstringtype);
         addtype('$boolean',booltype);
         addtype('$boolean8',bool8type);
@@ -560,7 +564,7 @@ implementation
         aiclass[ait_ent]:=tai_ent;
 {$endif alpha}
 {$ifdef m68k}
-{$warning FIXME: tai_labeled_instruction doesn't exists}
+{ TODO: FIXME: tai_labeled_instruction doesn't exists}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif m68k}
 {$ifdef ia64}

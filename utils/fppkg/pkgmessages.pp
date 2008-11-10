@@ -78,6 +78,23 @@ Resourcestring
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
   SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
 
+  SLogGlobalCfgHeader        = 'Using global configuration:';
+  SLogGlobalCfgRemoteMirrorsURL = ' RemoteMirrorsURL: "%s"';
+  SLogGlobalCfgRemoteRepository = ' RemoteRepository: "%s"';
+  SLogGlobalCfgLocalRepository = ' LocalRepository: "%s"';
+  SLogGlobalCfgBuildDir      = ' BuildDir: "%s"';
+  SLogGlobalCfgArchivesDir   = ' ArchivesDir: "%s"';
+  SLogGlobalCfgCompilerConfigDir = ' CompilerConfigDir: "%s"';
+  SLogGlobalCfgDefaultCompilerConfig = ' DefaultCompilerConfig: "%s"';
+  SLogGlobalCfgFPMakeCompilerConfig = ' FPMakeCompilerConfig: "%s"';
+  SLogGlobalCfgDownloader    = ' Downloader: "%s"';
+  SLogCompilerCfgHeader      = 'Using %scompiler configuration:';
+  SLogCompilerCfgCompiler    = ' Compiler: "%s"';
+  SLogCompilerCfgTarget      = ' Target: "%s"';
+  SLogCompilerCfgVersion     = ' Version: "%s"';
+  SLogCompilerCfgGlobalInstallDir = ' GlobalInstallDir: "%s"';
+  SLogCompilerCfgLocalInstallDir = ' LocalInstallDir: "%s"';
+
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';
   SDbgDirectoryExists        = 'Directory "%s" %s';

@@ -317,6 +317,8 @@ begin
               LinkRes.Add('ppc64');
             system_x86_64_darwin:
               LinkRes.Add('x86_64');
+            system_arm_darwin:
+              LinkRes.Add('arm');
           end;
       end;
   end;
@@ -762,6 +764,12 @@ initialization
   RegisterExport(system_powerpc64_darwin,texportlibdarwin);
   RegisterTarget(system_powerpc64_darwin_info);
 {$endif powerpc64}
+{$ifdef arm}
+  RegisterExternalLinker(system_arm_darwin_info,TLinkerBSD);
+  RegisterImport(system_arm_darwin,timportlibdarwin);
+  RegisterExport(system_arm_darwin,texportlibdarwin);
+  RegisterTarget(system_arm_darwin_info);
+{$endif arm}
 
   RegisterRes(res_elf_info,TWinLikeResourceFile);
   RegisterRes(res_macho_info,TWinLikeResourceFile);

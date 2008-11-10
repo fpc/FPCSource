@@ -16,8 +16,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='imagemagick';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
+    P.License := 'Library: Imagemagick license, header: LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Header to Imagemagick, a graphics manipulation program .';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('buildim.pp');
       with T.Dependencies do
@@ -51,6 +60,11 @@ begin
           AddUnit('imagemagick');
         end;
 
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('screenshot.lpr');
+    P.Targets.AddExampleProgram('wanddemo.lpr');
+    P.Targets.AddExampleProgram('wanddemo.dpr');
+    // 'image.png
 
     {$ifndef ALLPACKAGES}
         Run;

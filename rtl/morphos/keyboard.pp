@@ -40,9 +40,13 @@ implementation
 //   WinEvent;
 uses
    video,
-   exec,intuition;
+   exec,intuition, inputevent;
 
 {$i keyboard.inc}
+
+var
+   lastShiftState : byte;               {set by handler for PollShiftStateEvent}
+
 
 {*
 const MaxQueueSize = 120;
@@ -273,7 +277,8 @@ end;
 
 procedure SysInitKeyboard;
 begin
-  writeln('sysinitkeyboard');
+//  writeln('sysinitkeyboard');
+  lastShiftState:=0;
 {*
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
@@ -788,7 +793,7 @@ end;
 
 //#define IsMsgPortEmpty(x)  (((x)->mp_MsgList.lh_TailPred) == (struct Node *)(&(x)->mp_MsgList))
 
-function IsMsgPortEmpty(port: PMsgPort): boolean;
+function IsMsgPortEmpty(port: PMsgPort): boolean; inline;
 begin
   IsMsgPortEmpty:=(port^.mp_MsgList.lh_TailPred = @(port^.mp_MsgList));
 end;
@@ -796,29 +801,125 @@ end;
 var
   KeyQueue: TKeyEvent;
 
+
+type 
+  rawCodeEntry = record
+    rc,n,s,c,a : word; { raw code, normal, shift, ctrl, alt }
+  end;
+
+const
+  RCTABLE_MAXIDX = 16;
+  rawCodeTable : array[0..RCTABLE_MAXIDX] of rawCodeEntry = 
+    ((rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
+     (rc: 72; n: $4900; s: $4900; c: $8400; a: $9900; ), // PgUP   // shift?
+     (rc: 73; n: $5100; s: $5100; c: $7600; a: $A100; ), // PgDOWN // shift?
+
+     (rc: 76; n: $4800; s: $4800; c: $8D00; a: $9800; ), // UP     // shift?
+     (rc: 77; n: $5000; s: $5000; c: $9100; a: $A000; ), // DOWN   // shift?
+     (rc: 78; n: $4D00; s: $4D00; c: $7400; a: $9D00; ), // RIGHT  // shift?
+     (rc: 79; n: $4B00; s: $4B00; c: $7300; a: $9B00; ), // LEFT   // shift?
+ 
+     (rc: 80; n: $3B00; s: $5400; c: $5E00; a: $6800; ), // F1
+     (rc: 81; n: $3C00; s: $5500; c: $5F00; a: $6900; ), // F2
+     (rc: 82; n: $3D00; s: $5600; c: $6000; a: $6A00; ), // F3
+     (rc: 83; n: $3E00; s: $5700; c: $6100; a: $6B00; ), // F4
+     (rc: 84; n: $3F00; s: $5800; c: $6200; a: $6C00; ), // F5
+     (rc: 85; n: $4000; s: $5900; c: $6300; a: $6D00; ), // F6
+     (rc: 86; n: $4100; s: $5A00; c: $6400; a: $6E00; ), // F7
+     (rc: 87; n: $4200; s: $5B00; c: $6500; a: $6F00; ), // F8
+     (rc: 88; n: $4300; s: $5C00; c: $6600; a: $7000; ), // F9
+     (rc: 89; n: $4400; s: $5D00; c: $6700; a: $7100; )  // F10
+    );
+
+function rcTableIdx(rc: longint): longint;
+var counter: longint;
+begin
+  rcTableIdx := -1;
+  counter := 0;
+  while (rawCodeTable[counter].rc <> rc) and (counter <= RCTABLE_MAXIDX) do inc(counter);
+  if (counter <= RCTABLE_MAXIDX) then rcTableIdx:=counter;
+end;
+
+
+function hasShift(iMsg: PIntuiMessage) : boolean; inline;
+begin
+  hasShift:=false;
+  if ((iMsg^.qualifier and IEQUALIFIER_LSHIFT) > 0) or
+     ((iMsg^.qualifier and IEQUALIFIER_RSHIFT) > 0) then hasShift:=true;
+end;
+
+function hasCtrl(iMsg: PIntuiMessage) : boolean; inline;
+begin
+  hasCtrl:=false;
+  if ((iMsg^.qualifier and IEQUALIFIER_CONTROL) > 0) then hasCtrl:=true;
+end;
+
+function hasAlt(iMsg: PIntuiMessage) : boolean; inline;
+begin
+  hasAlt:=false;
+  if ((iMsg^.qualifier and IEQUALIFIER_LALT) > 0) or
+     ((iMsg^.qualifier and IEQUALIFIER_RALT) > 0) then hasAlt:=true;
+end;
+
+function rcTableCode(iMsg: PIntuiMessage; Idx: longint): longint;
+begin
+  if (Idx < 0) or (Idx > RCTABLE_MAXIDX) then begin
+    rcTableCode:=-1;
+    exit;
+  end;
+
+  if hasShift(iMsg) then rcTableCode:=rawCodeTable[Idx].s else
+  if hasCtrl(iMsg) then rcTableCode:=rawCodeTable[Idx].c else
+  if hasAlt(iMsg) then rcTableCode:=rawCodeTable[Idx].a else
+  rcTableCode:=rawCodeTable[Idx].n;
+end;
+
+procedure setShiftState(iMsg: PIntuiMessage);
+begin
+  lastShiftState:=0;
+  if ((iMsg^.qualifier and IEQUALIFIER_LSHIFT) > 0) then lastShiftState := lastShiftState or $01;
+  if ((iMsg^.qualifier and IEQUALIFIER_RSHIFT) > 0) then lastShiftState := lastShiftState or $02;
+  if hasCtrl(iMsg) then lastShiftState := lastShiftState or $04;
+  if hasAlt(iMsg)  then lastShiftState := lastShiftState or $08;
+  if ((iMsg^.qualifier and IEQUALIFIER_NUMERICPAD) > 0) then lastShiftState := lastShiftState or $20;
+  if ((iMsg^.qualifier and IEQUALIFIER_CAPSLOCK) > 0)   then lastShiftState := lastShiftState or $40;
+end;
+
+
 function SysPollKeyEvent: TKeyEvent;
 //var t   : TKeyEventRecord;
 //    k   : TKeyEvent;
 var
   iMsg : PIntuiMessage;
   KeyCode: longint;
+  tmpFCode: word;
+  tmpIdx  : longint;
 begin
   KeyCode:=0;
   SysPollKeyEvent:=0;
-
+  
   if KeyQueue<>0 then begin
     SysPollKeyEvent:=KeyQueue;
     exit;
   end;
 
-//  writeln('keyboard/SysPollKeyEvent');
   if videoWindow<>nil then begin
     if IsMsgPortEmpty(videoWindow^.UserPort) then exit;
   end;
+
     PMessage(iMsg):=GetMsg(videoWindow^.UserPort);
     if (iMsg<>nil) then begin
-//      writeln('got msg!');
+      
+      // set Shift state qualifiers. do this for all messages we get.
+      setShiftState(iMsg);
+
       case (iMsg^.iClass) of
+        IDCMP_CLOSEWINDOW: begin
+            GotCloseWindow;
+          end;
+        IDCMP_CHANGEWINDOW: begin
+            GotResizeWindow;
+          end;
         IDCMP_VANILLAKEY: begin
             writeln('vanilla keycode: ',iMsg^.code);
             KeyCode:=iMsg^.code;
@@ -829,33 +930,27 @@ begin
               
               127: KeyCode:=$5300; // Del
 
-              164: KeyCode:=$1200; // Alt-E
+              164: KeyCode:=$1200; // Alt-E //XXX: conflicts with Alt-Z(?)
+              174: KeyCode:=$1300; // Alt-R
+              176: KeyCode:=$1100; // Alt-W
               215: KeyCode:=$2D00; // Alt-X
+              229: KeyCode:=$1000; // Alt-Q
+              254: KeyCode:=$1400; // Alt-T
 
             end;
           end;
         IDCMP_RAWKEY: begin
             writeln('raw keycode: ',iMsg^.code);
+            
             case (iMsg^.code) of
                35: KeyCode:=$2100; // Alt-F
-               
-               71: KeyCode:=$5200; // Ins (Alt/Shift/Ctrl codes needs processing!)
-
-               72: KeyCode:=$4900; // PgUP
-               73: KeyCode:=$5100; // PgDOWN
-
-               76: KeyCode:=$4800; // UP
-               77: KeyCode:=$5000; // DOWN
-               78: KeyCode:=$4D00; // RIGHT
-               79: KeyCode:=$4B00; // LEFT
-
-               80..89: KeyCode:=($3B+(iMsg^.code-80)) shl 8; // F1..F10
 
               112: KeyCode:=$4700; // HOME
               113: KeyCode:=$4F00; // END
 
               else
-                KeyCode:=-1;
+                KeyCode:=rcTableCode(iMsg,rcTableIdx(iMsg^.code));
+
             end;
           end;
         else begin
@@ -992,10 +1087,9 @@ end;
 
 
 function SysGetShiftState: Byte;
-
 begin
-  {may be better to save the last state and return that if no key is in buffer???}
-//  SysGetShiftState:= lastShiftState;
+  //writeln('SysgetShiftState:',hexstr(lastShiftState,2));
+  SysGetShiftState:= lastShiftState;
 end;
 
 Const

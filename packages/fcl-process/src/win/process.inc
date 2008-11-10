@@ -1,8 +1,15 @@
 {
-  Win32 Process .inc.
-}
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2008 by the Free Pascal development team
 
-uses Windows;
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 
 Const
   PriorityConstants : Array [TProcessPriority] of Cardinal =
@@ -150,8 +157,6 @@ end;
 
 
 Procedure TProcess.Execute;
-
-
 Var
   PName,PDir,PCommandLine : PChar;
   FEnv: pointer;
@@ -161,16 +166,27 @@ Var
   FProcessInformation : TProcessInformation;
   FStartupInfo : STARTUPINFO;
   HI,HO,HE : THandle;
-
 begin
   FInheritHandles:=True;
   PName:=Nil;
   PCommandLine:=Nil;
   PDir:=Nil;
-  If FApplicationName<>'' then
-    PName:=Pchar(FApplicationName);
-  If FCommandLine<>'' then
-    PCommandLine:=Pchar(FCommandLine);
+    
+  if (FApplicationName='') then
+    begin
+      If (FCommandLine='') then
+        Raise EProcess.Create(SNoCommandline);
+      PCommandLine:=Pchar(FCommandLine)
+    end
+  else
+    begin
+      PName:=Pchar(FApplicationName);
+      If (FCommandLine='') then
+        PCommandLine:=Pchar(FApplicationName)
+      else
+        PCommandLine:=Pchar(FCommandLine)
+    end;
+
   If FCurrentDirectory<>'' then
     PDir:=Pchar(FCurrentDirectory);
   if FEnvironment.Count<>0 then

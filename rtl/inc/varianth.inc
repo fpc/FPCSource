@@ -243,6 +243,9 @@ operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : shortstring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : ansistring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : widestring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : UnicodeString) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
@@ -297,6 +300,9 @@ operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;
 operator :=(const source : variant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : variant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : variant) dest : unicodestring;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
@@ -388,6 +394,9 @@ operator :=(const source : olevariant) dest : widechar;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : olevariant) dest : shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : ansistring;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : olevariant) dest : widestring;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : olevariant) dest : UnicodeString;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
@@ -442,6 +451,9 @@ operator :=(const source : widechar) dest : olevariant;{$ifdef SYSTEMINLINE}inli
 operator :=(const source : shortstring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : ansistring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
 operator :=(const source : widestring) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+operator :=(const source : UnicodeString) dest : olevariant;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
 { Floats }
 {$ifdef SUPPORT_SINGLE}
@@ -474,10 +486,16 @@ Function Pos (c : Char; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline
 Function Pos (s : ShortString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (a : AnsiString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (w : WideString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function Pos (w : UnicodeString; Const v : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Function Pos (v : Variant; Const c : Char) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (v : Variant; Const s : ShortString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (v : Variant; Const a : AnsiString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 Function Pos (v : Variant; Const w : WideString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+Function Pos (v : Variant; Const w : UnicodeString) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Function Pos (v1 : Variant; Const v2 : Variant) : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
 
 {**********************************************************************

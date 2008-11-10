@@ -31,7 +31,7 @@ interface
       node,cpubase,
       symnot,
       symtype,symbase,symdef,symsym,
-      optunrol;
+      optloop;
 
     type
        { flags used by loop nodes }
@@ -63,7 +63,6 @@ interface
           function dogetcopy : tnode;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           procedure insertintolist(l : tnodelist);override;
@@ -101,6 +100,7 @@ interface
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
+          function simplify : tnode;override;
        end;
        tfornodeclass = class of tfornode;
 
@@ -128,6 +128,9 @@ interface
        tcontinuenodeclass = class of tcontinuenode;
 
        tgotonode = class(tnode)
+       private
+          labelnodeidx : longint;
+       public
           labelsym : tlabelsym;
           labelnode : tlabelnode;
           exceptionblock : integer;
@@ -136,6 +139,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure resolveppuidx;override;
           function dogetcopy : tnode;override;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
@@ -267,15 +271,6 @@ implementation
         ppuwritenode(ppufile,t2);
       end;
 
-
-    procedure tloopnode.derefnode;
-      begin
-        inherited derefnode;
-        if assigned(t1) then
-          t1.derefnode;
-        if assigned(t2) then
-          t2.derefnode;
-      end;
 
     procedure tloopnode.buildderefimpl;
       begin
@@ -764,31 +759,53 @@ implementation
       Tabstractvarsym(symbol).unregister_notification(loopvar_notid);
     end;
 
+
+    function tfornode.simplify : tnode;
+      begin
+        result:=nil;
+        if (t1.nodetype=ordconstn) and
+           (right.nodetype=ordconstn) and
+           (
+            (
+             (lnf_backward in loopflags) and
+             (tordconstnode(right).value<tordconstnode(t1).value)
+            ) or
+            (
+              not(lnf_backward in loopflags) and
+              (tordconstnode(right).value>tordconstnode(t1).value)
+            )
+           ) then
+        result:=cnothingnode.create;
+      end;
+
+
     function tfornode.pass_typecheck:tnode;
       var
-        unrollres : tnode;
+        res : tnode;
       begin
          result:=nil;
          resultdef:=voidtype;
-
-         { loop unrolling }
-         if cs_opt_loopunroll in current_settings.optimizerswitches then
-           begin
-             unrollres:=unroll_loop(self);
-             if assigned(unrollres) then
-               begin
-                 typecheckpass(unrollres);
-                 result:=unrollres;
-                 exit;
-               end;
-           end;
 
          { process the loopvar, from and to, varstates are already set }
          typecheckpass(left);
          typecheckpass(right);
          typecheckpass(t1);
 
-         {Can we spare the first comparision?}
+         set_varstate(left,vs_written,[]);
+
+         { loop unrolling }
+         if cs_opt_loopunroll in current_settings.optimizerswitches then
+           begin
+             res:=unroll_loop(self);
+             if assigned(res) then
+               begin
+                 typecheckpass(res);
+                 result:=res;
+                 exit;
+               end;
+           end;
+
+         { Can we spare the first comparision? }
          if (t1.nodetype=ordconstn) and
             (right.nodetype=ordconstn) and
             (
@@ -942,7 +959,7 @@ implementation
     constructor tgotonode.create(p : tlabelsym);
       begin
         inherited create(goton);
-        exceptionblock:=aktexceptblock;
+        exceptionblock:=current_exceptblock;
         labelnode:=nil;
         labelsym:=p;
       end;
@@ -951,7 +968,7 @@ implementation
     constructor tgotonode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       begin
         inherited ppuload(t,ppufile);
-        labelnode:=tlabelnode(ppuloadnoderef(ppufile));
+        labelnodeidx:=ppufile.getlongint;
         exceptionblock:=ppufile.getbyte;
       end;
 
@@ -959,7 +976,8 @@ implementation
     procedure tgotonode.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
-        ppuwritenoderef(ppufile,labelnode);
+        labelnodeidx:=labelnode.ppuidx;
+        ppufile.putlongint(labelnodeidx);
         ppufile.putbyte(exceptionblock);
       end;
 
@@ -967,14 +985,20 @@ implementation
     procedure tgotonode.buildderefimpl;
       begin
         inherited buildderefimpl;
-        //!!! deref(labelnode);
       end;
 
 
     procedure tgotonode.derefimpl;
       begin
         inherited derefimpl;
-        //!!! deref(labelnode);
+      end;
+
+
+    procedure tgotonode.resolveppuidx;
+      begin
+        labelnode:=tlabelnode(nodeppuidxget(labelnodeidx));
+        if labelnode.nodetype<>labeln then
+          internalerror(200809021);
       end;
 
 
@@ -1015,17 +1039,23 @@ implementation
         p:=tgotonode(inherited dogetcopy);
         p.exceptionblock:=exceptionblock;
 
-        { force a valid labelnode }
+        { generate labelnode if not done yet }
         if not(assigned(labelnode)) then
           begin
             if assigned(labelsym) and assigned(labelsym.code) then
               labelnode:=tlabelnode(labelsym.code)
-            else
-              internalerror(200610291);
           end;
 
         p.labelsym:=labelsym;
-        p.labelnode:=tlabelnode(labelnode.dogetcopy);
+        if assigned(labelnode) then
+          p.labelnode:=tlabelnode(labelnode.dogetcopy)
+        else
+          begin
+            { don't trigger IE when there was already an error, i.e. the
+              label is not defined. See tw11763 (PFV) }
+            if errorcount=0 then
+              internalerror(200610291);
+          end;
         result:=p;
      end;
 
@@ -1043,7 +1073,7 @@ implementation
     constructor tlabelnode.create(l:tnode;alabsym:tlabelsym);
       begin
         inherited create(labeln,l);
-        exceptionblock:=aktexceptblock;
+        exceptionblock:=current_exceptblock;
         labsym:=alabsym;
         { Register labelnode in labelsym }
         labsym.code:=self;
@@ -1137,15 +1167,15 @@ implementation
          resultdef:=voidtype;
          if assigned(left) then
            begin
-              { first para must be a _class_ }
-              typecheckpass(left);
-              set_varstate(left,vs_read,[vsf_must_be_valid]);
-              if codegenerror then
-               exit;
-              if not(is_class(left.resultdef)) then
-                CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-              { insert needed typeconvs for addr,frame }
-              if assigned(right) then
+             { first para must be a _class_ }
+             typecheckpass(left);
+             set_varstate(left,vs_read,[vsf_must_be_valid]);
+             if codegenerror then
+              exit;
+             if not(is_class(left.resultdef)) then
+               CGMessage1(type_e_class_type_expected,left.resultdef.typename);
+             { insert needed typeconvs for addr,frame }
+             if assigned(right) then
                begin
                  { addr }
                  typecheckpass(right);

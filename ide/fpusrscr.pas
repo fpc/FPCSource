@@ -22,12 +22,8 @@ uses
   windows,
 {$endif Windows}
 {$ifdef Unix}
-  {$ifdef VER1_0}
-    linux,
-  {$else}
-    baseunix,
-    termio,
-  {$endif}
+  baseunix,
+  termio,
 {$endif}
   video,Objects;
 
@@ -60,6 +56,36 @@ type
 {$IFDEF netwlibc}
     PNWLScreen = ^TNWLScreen;
     TNWLScreen = object(TScreen)
+      function    GetWidth: integer; virtual;
+      function    GetHeight: integer; virtual;
+      procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
+      procedure   GetCursorPos(var P: TPoint); virtual;
+      { remember the initial video screen }
+      procedure   Capture; virtual;
+      { restore the initial video mode }
+      procedure   Restore; virtual;
+      { saves the current IDE screen }
+      procedure   SaveIDEScreen; virtual;
+      { saves the current console screen }
+      procedure   SaveConsoleScreen; virtual;
+      { restores the saved console screen }
+      procedure   SwitchToConsoleScreen; virtual;
+      { restores the saved IDE screen }
+      procedure   SwitchBackToIDEScreen; virtual;
+    end;
+{$ENDIF}
+
+{$IFDEF AMIGA}
+  {$DEFINE AMIGASCREEN}
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  {$DEFINE AMIGASCREEN}
+{$ENDIF}
+
+{$IFDEF AMIGASCREEN}
+    PAmigaScreen = ^TAmigaScreen;
+    TAmigaScreen = object(TScreen)
       function    GetWidth: integer; virtual;
       function    GetHeight: integer; virtual;
       procedure   GetLine(Line: integer; var Text, Attr: string); virtual;
@@ -238,15 +264,8 @@ implementation
 
 uses
   Dos,WUtils
-(*  {$ifdef TP}
-    {$ifdef DPMI}
-    ,WinAPI
-    {$endif}
-  {$endif}*)
-  {$ifdef FPC}
-    {$ifdef GO32V2}
-    ,Dpmiexcp, Go32
-    {$endif}
+  {$ifdef GO32V2}
+  ,Dpmiexcp, Go32
   {$endif}
     ,Drivers,App
   {$ifdef USE_GRAPH_SWITCH}
@@ -456,11 +475,7 @@ begin
       GetMem(VIDEBuffer,IDEVideoInfo.ScreenSize);
       VIDEBufferSize:=IDEVideoInfo.ScreenSize;
     end;
-{$ifdef FPC}
   DosmemGet(VSeg,SOfs,VIDEBuffer^,IDEVideoInfo.ScreenSize);
-{$else}
-  Move(ptr(VSeg,SOfs)^,VIDEBuffer^,IDEVideoInfo.ScreenSize);
-{$endif}
 end;
 
 procedure TDosScreen.SaveConsoleScreen;
@@ -544,11 +559,7 @@ begin
     else
      VSeg:=SegB800;
     SOfs:=MemW[Seg0040:$4e];
-{$ifdef FPC}
     DosmemGet(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
-{$else}
-    Move(ptr(VSeg,SOfs)^,VBuffer^,ConsoleVideoInfo.ScreenSize);
-{$endif}
   end;
 end;
 
@@ -607,12 +618,8 @@ begin
       else
         VSeg:=SegB800;
       SOfs:=MemW[Seg0040:$4e];
-{$ifdef FPC}
       DosmemPut(VSeg,SOfs,VBuffer^,ConsoleVideoInfo.ScreenSize);
       djgpp_set_ctrl_c(Ctrl_c_state);
-{$else}
-      Move(VBuffer^,ptr(VSeg,SOfs)^,ConsoleVideoInfo.ScreenSize);
-{$endif}
     end;
 end;
 
@@ -628,12 +635,8 @@ begin
    VSeg:=SegB800;
   SOfs:=MemW[Seg0040:$4e];
   if assigned(VIDEBuffer) then
-{$ifdef FPC}
-    DosmemPut(VSeg,SOfs,VIDEBuffer^,IDEVideoInfo.ScreenSize);
-    Ctrl_c_state := djgpp_set_ctrl_c(false);
-{$else}
-    Move(VIDEBuffer^,ptr(VSeg,SOfs)^,IDEVideoInfo.ScreenSize);
-{$endif}
+  DosmemPut(VSeg,SOfs,VIDEBuffer^,IDEVideoInfo.ScreenSize);
+  Ctrl_c_state := djgpp_set_ctrl_c(false);
   { Its difficult to know
     the state of the mouse
     so simply show it always
@@ -667,11 +670,6 @@ end;
 procedure TDOSScreen.GetVideoMode(var MI: TDOSVideoInfo);
 var
   r: registers;
-{$ifdef TP}
-  P: pointer;
-  Sel: longint;
-(*  {$I realintr.inc} *)
-{$endif}
 begin
   if (MI.StateSize>0) and (MI.StateBuf<>nil) then
      begin FreeMem(MI.StateBuf,MI.StateSize); MI.StateBuf:=nil; end;
@@ -696,42 +694,12 @@ begin
     CurPos.X:=r.dl; CurPos.Y:=r.dh;
     CurShapeT:=r.ch; CurShapeB:=r.cl;
   end;
-
-(*
-{$ifdef TP}
-  { check VGA functions }
-  MI.StateSize:=0;
-  r.ah:=$1c; r.al:=0; r.cx:=7; intr($10,r);
-  if (r.al=$1c) and ((r.flags and fCarry)=0) and (r.bx>0) then
-  begin
-    MI.StateSize:=r.bx;
-    GetMem(MI.StateBuf,MI.StateSize); FillChar(MI.StateBuf^,MI.StateSize,0);
-    P:=MI.StateBuf;
-{$ifdef DPMI}
-    Sel:=GlobalDosAlloc(MI.StateSize);
-    P:=Ptr(Sel shr 16,0);
-{$endif}
-    r.ah:=$1c; r.al:=1; r.cx:=7;
-    r.es:=PtrRec(P).Seg; r.bx:=PtrRec(P).Ofs;
-    {$ifdef DPMI}realintr($10,r);{$else}intr($10,r);{$endif}
-{$ifdef DPMI}
-    Move(Ptr(Sel and $ffff,0)^,MI.StateBuf^,MI.StateSize);
-    GlobalDosFree(Sel and $ffff);
-{$endif}
-  end;
-{$endif}
-*)
 end;
 
 
 procedure TDOSScreen.SetVideoMode(MI: TDOSVideoInfo);
 var r: registers;
     CM: TDOSVideoInfo;
-{$ifdef TP}
-    P: pointer;
-    Sel: longint;
-{$I realintr.inc}
-{$endif}
 begin
   FillChar(CM,sizeof(CM),0);
   GetVideoMode(CM);
@@ -755,26 +723,6 @@ begin
   r.ah:=$05; r.al:=MI.Page; intr($10,r);
   r.ah:=$02; r.bh:=MI.Page; r.dl:=MI.CurPos.X; r.dh:=MI.CurPos.Y; intr($10,r);
   r.ah:=$01; r.ch:=MI.CurShapeT; r.cl:=MI.CurShapeB; intr($10,r);
-
-  (*
-{$ifdef TP}
-  if (MI.StateSize>0) and (MI.StateBuf<>nil) then
-  begin
-    P:=MI.StateBuf;
-{$ifdef DPMI}
-    Sel:=GlobalDosAlloc(MI.StateSize);
-    Move(MI.StateBuf^,ptr(Sel and $ffff,0)^,MI.StateSize);
-    P:=Ptr(Sel shr 16,0);
-{$endif}
-    r.ah:=$1c; r.al:=2; r.cx:=7;
-    r.es:=PtrRec(P).Seg; r.bx:=PtrRec(P).Ofs;
-    {$ifdef DPMI}realintr($10,r);{$else}intr($10,r);{$endif}
-{$ifdef DPMI}
-    GlobalDosFree(Sel and $ffff);
-{$endif}
-  end;
-{$endif}
-*)
 end;
 
 {$endif}
@@ -799,7 +747,7 @@ begin
   TTYFd:=-1;
   IsXterm:=getenv('TERM')='xterm';
   ThisTTY:=TTYName(stdinputhandle);
-  if Not IsXterm and {$ifdef ver1_0}IsATTY(stdinputhandle){$else}(IsATTY(stdinputhandle)<>-1){$endif} then
+  if Not IsXterm and (IsATTY(stdinputhandle)<>-1) then
     begin
       Console:=TTyNetwork;  {Default: Network or other vtxxx tty}
       if (Copy(ThisTTY, 1, 8) = '/dev/tty') and (ThisTTY[9]<>'p') Then
@@ -808,11 +756,7 @@ begin
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
                 FName:='/dev/vcsa' + ThisTTY[9];
-{$ifdef ver1_0}
-                TTYFd:=fdOpen(FName, &666, Open_RdWr); { open console }
-{$else}
                 TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
-{$endif}
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
               end;
@@ -823,7 +767,7 @@ begin
        end;
      If Copy(GetEnv('TERM'),1,6)='cons25' Then
        Console:=ttyFreeBSD;
-     {$ifdef ver1_0}ioctl{$else}fpioctl{$endif}(stdinputhandle, TIOCGWINSZ, @WS);
+     fpioctl(stdinputhandle, TIOCGWINSZ, @WS);
      if WS.ws_Col=0 then
        WS.ws_Col:=80;
      if WS.ws_Row=0 then
@@ -914,11 +858,11 @@ begin
     write(#27'7'#27'[?47h')
   else if (TTYfd<>-1) then
     begin
-     {$ifdef ver1_0}fdSeek{$else}fpLSeek{$endif}(TTYFd, 0, Seek_Set);
-     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsHeight,sizeof(byte));
-     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsWidth,sizeof(byte));
-     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsCursorX,sizeof(byte));
-     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsCursorY,sizeof(byte));
+     fpLSeek(TTYFd, 0, Seek_Set);
+     fpread(TTYFd,ConsHeight,sizeof(byte));
+     fpread(TTYFd,ConsWidth,sizeof(byte));
+     fpread(TTYFd,ConsCursorX,sizeof(byte));
+     fpread(TTYFd,ConsCursorY,sizeof(byte));
      NewSize:=ConsWidth*ConsHeight*sizeof(word);
      if (NewSize<>ConsVideoBufSize) and
         assigned(ConsVideoBuf) then
@@ -929,7 +873,7 @@ begin
      If not assigned(ConsVideoBuf) then
        GetMem(ConsVideoBuf,NewSize);
      ConsVideoBufSize:=NewSize;
-     {$ifdef ver1_0}fdread{$else}fpread{$endif}(TTYFd,ConsVideoBuf^,ConsVideoBufSize);
+     fpread(TTYFd,ConsVideoBuf^,ConsVideoBufSize);
     end
   else
     begin
@@ -939,11 +883,7 @@ begin
       ConsCursorY:=0;
       ConsVideoBuf:=nil;
     end;
-{$ifdef ver1_0}
-  ConsTioValid:=TCGetAttr(1,ConsTio);
-{$else}
   ConsTioValid:=(TCGetAttr(1,ConsTio)<>-1);
-{$endif}
 end;
 
 
@@ -956,10 +896,10 @@ begin
     end
   else if (TTyfd<>-1) then
     begin
-      {$ifdef ver1_0}fdSeek{$else}fplSeek{$endif}(TTYFd, 2, Seek_Set);
-      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsCursorX, sizeof(byte));
-      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsCursorY, sizeof(byte));
-      {$ifdef ver1_0}fdwrite{$else}fpwrite{$endif}(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
+      fplSeek(TTYFd, 2, Seek_Set);
+      fpwrite(TTYFd, ConsCursorX, sizeof(byte));
+      fpwrite(TTYFd, ConsCursorY, sizeof(byte));
+      fpwrite(TTYFd, ConsVideoBuf^,ConsVideoBufSize);
       { FreeMem(ConsVideoBuf,ConsVideoBufSize);
       ConsVideoBuf:=nil; }
     end;
@@ -1533,6 +1473,67 @@ end;
 
 
 {****************************************************************************
+                                 TAmigaScreen
+****************************************************************************}
+
+
+{$IFDEF AMIGASCREEN}
+function TAmigaScreen.GetWidth: integer;
+begin
+  GetWidth:=80;
+end;
+
+function TAmigaScreen.GetHeight: integer;
+begin
+  GetHeight:=25;
+end;
+
+procedure TAmigaScreen.GetLine(Line: integer; var Text, Attr: string);
+begin
+  Text:='                                                                               ';
+  Attr:='                                                                               ';
+end;
+
+procedure TAmigaScreen.GetCursorPos(var P: TPoint);
+begin
+  P.X:=1;
+  P.Y:=1;
+end;
+
+{ remember the initial video screen }
+procedure TAmigaScreen.Capture;
+begin
+end;
+
+{ restore the initial video mode }
+procedure TAmigaScreen.Restore;
+begin
+end;
+
+{ saves the current IDE screen }
+procedure TAmigaScreen.SaveIDEScreen;
+begin
+end;
+
+{ saves the current console screen }
+procedure TAmigaScreen.SaveConsoleScreen;
+begin
+end;
+
+{ restores the saved console screen }
+procedure TAmigaScreen.SwitchToConsoleScreen;
+begin
+end;
+
+{ restores the saved IDE screen }
+procedure TAmigaScreen.SwitchBackToIDEScreen;
+begin
+end;
+
+{$ENDIF}
+
+
+{****************************************************************************
                                  Initialize
 ****************************************************************************}
 
@@ -1554,7 +1555,11 @@ begin
         {$ifdef netwlibc}
           UserScreen:=New(PNWLScreen, Init);
         {$else}
-          UserScreen:=New(PScreen, Init);
+          {$ifdef AMIGASCREEN}
+            UserScreen:=New(PAmigaScreen, Init);
+          {$else}
+            UserScreen:=New(PScreen, Init);
+          {$endif AMIGASCREEN}
         {$endif netwlibc}
       {$endif OS2}
     {$endif Windows}

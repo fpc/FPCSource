@@ -35,7 +35,7 @@ Unit aopt;
       TAsmOptimizer = class(TAoptObj)
 
         { _AsmL is the PAasmOutpout list that has to be optimized }
-        Constructor create(_AsmL: TAsmList); virtual;
+        Constructor create(_AsmL: TAsmList); virtual; reintroduce;
 
         { call the necessary optimizer procedures }
         Procedure Optimize;
@@ -71,7 +71,7 @@ Unit aopt;
       { Walks through the paasmlist to find the lowest and highest label number.  }
       { Returns the last Pai object of the current block                          }
       Var LabelFound: Boolean;
-          p, prev: tai;
+          p: tai;
       Begin
         LabelInfo^.LowLabel := High(AWord);
         LabelInfo^.HighLabel := 0;
@@ -79,7 +79,6 @@ Unit aopt;
         LabelInfo^.LabelTable:=nil;
         LabelFound := False;
         P := BlockStart;
-        prev := p;
         With LabelInfo^ Do
           Begin
             While Assigned(P) And
@@ -91,12 +90,11 @@ Unit aopt;
                    (tai_Label(p).labsym.is_used) Then
                   Begin
                     LabelFound := True;
-                    If (tai_Label(p).labsym.labelnr < LowLabel) Then
+                    If (tai_Label(p).labsym.labelnr < aint(LowLabel)) Then
                       LowLabel := tai_Label(p).labsym.labelnr;
-                    If (tai_Label(p).labsym.labelnr > HighLabel) Then
+                    If (tai_Label(p).labsym.labelnr > aint(HighLabel)) Then
                       HighLabel := tai_Label(p).labsym.labelnr
                   End;
-                prev := p;
                 GetNextInstruction(p, p)
               End;
             blockend:=p;
@@ -109,11 +107,11 @@ Unit aopt;
     Procedure TAsmOptimizer.BuildLabelTableAndFixRegAlloc;
     { Builds a table with the locations of the labels in the TAsmList.       }
     { Also fixes some RegDeallocs like "# %eax released; push (%eax)"           }
-    Var p, hp1, hp2: tai;
-        UsedRegs: TRegSet;
+    Var p{, hp1, hp2}: tai;
+        {UsedRegs: TRegSet;}
         LabelIdx : longint;
     Begin
-      UsedRegs := [];
+      {UsedRegs := [];}
       With LabelInfo^ Do
         If (LabelDif <> 0) Then
           Begin
@@ -129,7 +127,7 @@ Unit aopt;
                          (tai_Label(p).labsym.labeltype=alt_jump) then
                         begin
                           LabelIdx:=tai_label(p).labsym.labelnr-LowLabel;
-                          if LabelIdx>LabelDif then
+                          if LabelIdx>aint(LabelDif) then
                             internalerror(200604202);
                           LabelTable^[LabelIdx].PaiObj := p;
                         end;

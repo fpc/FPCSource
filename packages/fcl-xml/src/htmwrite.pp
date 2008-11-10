@@ -28,9 +28,9 @@ procedure WriteHTMLFile(doc: TXMLDocument; const AFileName: String);
 procedure WriteHTMLFile(doc: TXMLDocument; var AFile: Text);
 procedure WriteHTMLFile(doc: TXMLDocument; AStream: TStream);
 
-procedure WriteHTML(Element: TDOMElement; const AFileName: String);
-procedure WriteHTML(Element: TDOMElement; var AFile: Text);
-procedure WriteHTML(Element: TDOMElement; AStream: TStream);
+procedure WriteHTML(Element: TDOMNode; const AFileName: String);
+procedure WriteHTML(Element: TDOMNode; var AFile: Text);
+procedure WriteHTML(Element: TDOMNode; AStream: TStream);
 
 
 // ===================================================================
@@ -39,91 +39,226 @@ implementation
 
 uses SysUtils, HTMLDefs;
 
-// -------------------------------------------------------------------
-//   Writers for the different node types
-// -------------------------------------------------------------------
-
-procedure WriteElement(node: TDOMNode); forward;
-procedure WriteAttribute(node: TDOMNode); forward;
-procedure WriteText(node: TDOMNode); forward;
-procedure WriteCDATA(node: TDOMNode); forward;
-procedure WriteEntityRef(node: TDOMNode); forward;
-procedure WriteEntity(node: TDOMNode); forward;
-procedure WritePI(node: TDOMNode); forward;
-procedure WriteComment(node: TDOMNode); forward;
-procedure WriteDocument(node: TDOMNode); forward;
-procedure WriteDocumentType(node: TDOMNode); forward;
-procedure WriteDocumentFragment(node: TDOMNode); forward;
-procedure WriteNotation(node: TDOMNode); forward;
-
-
 type
-  TWriteNodeProc = procedure(node: TDOMNode);
+  TSpecialCharCallback = procedure(c: WideChar) of object;
 
-const
-  WriteProcs: array[ELEMENT_NODE..NOTATION_NODE] of TWriteNodeProc =
-    (@WriteElement, @WriteAttribute, @WriteText, @WriteCDATA, @WriteEntityRef,
-     @WriteEntity, @WritePI, @WriteComment, @WriteDocument, @WriteDocumentType,
-     @WriteDocumentFragment, @WriteNotation);
+  THTMLWriter = class(TObject)
+  private
+    FInsideTextNode: Boolean;
+    FBuffer: PChar;
+    FBufPos: PChar;
+    FCapacity: Integer;
+    FLineBreak: string;
+    procedure wrtChars(Src: PWideChar; Length: Integer);
+    procedure wrtStr(const ws: WideString); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtChr(c: WideChar); {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
+    procedure wrtQuotedLiteral(const ws: WideString);
+    procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
+      const SpecialCharCallback: TSpecialCharCallback);
+    procedure AttrSpecialCharCallback(c: WideChar);
+    procedure TextNodeSpecialCharCallback(c: WideChar);
+  protected
+    procedure Write(const Buffer; Count: Longint); virtual; abstract;
+    procedure WriteNode(Node: TDOMNode);
+    procedure VisitDocument(Node: TDOMNode);
+    procedure VisitElement(Node: TDOMNode);
+    procedure VisitText(Node: TDOMNode);
+    procedure VisitCDATA(Node: TDOMNode);
+    procedure VisitComment(Node: TDOMNode);
+    procedure VisitFragment(Node: TDOMNode);
+    procedure VisitAttribute(Node: TDOMNode);
+    procedure VisitEntityRef(Node: TDOMNode);
+    procedure VisitDocumentType(Node: TDOMNode);
+    procedure VisitPI(Node: TDOMNode);
+  public
+    constructor Create;
+    destructor Destroy; override;
+  end;
 
-procedure WriteNode(node: TDOMNode);
+  TTextHTMLWriter = Class(THTMLWriter)
+  Private
+    F : ^Text;
+  Protected
+    Procedure Write(Const Buffer; Count : Longint);override;
+  Public
+    constructor Create(var AFile: Text);
+  end;
+
+  TStreamHTMLWriter = Class(THTMLWriter)
+  Private
+    F : TStream;
+  Protected
+    Procedure Write(Const Buffer; Count : Longint);override;
+  Public
+    constructor Create(AStream: TStream);
+  end;
+
+{ ---------------------------------------------------------------------
+    TTextHTMLWriter
+  ---------------------------------------------------------------------}
+
+
+constructor TTextHTMLWriter.Create(var AFile: Text);
 begin
-  WriteProcs[node.NodeType](node);
+  inherited Create;
+  f := @AFile;
 end;
 
-
-// -------------------------------------------------------------------
-//   Text file and TStream support
-// -------------------------------------------------------------------
-
-type
-  TOutputProc = procedure(s: String);
-
+procedure TTextHTMLWriter.Write(const Buffer; Count: Longint);
 var
-  f: ^Text;
-  stream: TStream;
-  wrt, wrtln: TOutputProc;
-  InsideTextNode: Boolean;
-
-
-procedure Text_Write(s: String);
+  s: string;
 begin
-  Write(f^, s);
+  if Count>0 then
+  begin
+    SetString(s, PChar(@Buffer), Count);
+    system.Write(f^, s);
+  end;
 end;
 
-procedure Text_WriteLn(s: String);
-begin
-  WriteLn(f^, s);
-end;
+{ ---------------------------------------------------------------------
+    TStreamHTMLWriter
+  ---------------------------------------------------------------------}
 
-procedure Stream_Write(s: String);
+constructor TStreamHTMLWriter.Create(AStream: TStream);
 begin
-  if Length(s) > 0 then
-    stream.Write(s[1], Length(s));
-end;
-
-procedure Stream_WriteLn(s: String);
-begin
-  if Length(s) > 0 then
-    stream.Write(s[1], Length(s));
-  stream.WriteByte(10);
+  inherited Create;
+  F := AStream;
 end;
 
 
-// -------------------------------------------------------------------
-//   String conversion
-// -------------------------------------------------------------------
+procedure TStreamHTMLWriter.Write(const Buffer; Count: Longint);
+begin
+  if Count > 0 then
+    F.Write(Buffer, Count);
+end;
 
-type
-  TCharacters = set of Char;
-  TSpecialCharCallback = procedure(c: Char);
+
+{ ---------------------------------------------------------------------
+    THTMLWriter
+  ---------------------------------------------------------------------}
+
+constructor THTMLWriter.Create;
+var
+  I: Integer;
+begin
+  inherited Create;
+  // some overhead - always be able to write at least one extra UCS4
+  FBuffer := AllocMem(512+32);
+  FBufPos := FBuffer;
+  FCapacity := 512;
+  // Later on, this may be put under user control
+  // for now, take OS setting
+  FLineBreak := sLineBreak;
+end;
+
+destructor THTMLWriter.Destroy;
+begin
+  if FBufPos > FBuffer then
+    write(FBuffer^, FBufPos-FBuffer);
+
+  FreeMem(FBuffer);
+  inherited Destroy;
+end;
+
+procedure THTMLWriter.wrtChars(Src: PWideChar; Length: Integer);
+var
+  pb: PChar;
+  wc: Cardinal;
+  SrcEnd: PWideChar;
+begin
+  pb := FBufPos;
+  SrcEnd := Src + Length;
+  while Src < SrcEnd do
+  begin
+    if pb >= @FBuffer[FCapacity] then
+    begin
+      write(FBuffer^, FCapacity);
+      Dec(pb, FCapacity);
+      if pb > FBuffer then
+        Move(FBuffer[FCapacity], FBuffer^, pb - FBuffer);
+    end;
+
+    wc := Cardinal(Src^);  Inc(Src);
+    case wc of
+      $0A: pb := StrECopy(pb, PChar(FLineBreak));
+
+      0..$09, $0B..$7F:  begin
+        pb^ := char(wc); Inc(pb);
+      end;
+
+      $80..$7FF: begin
+        pb^ := Char($C0 or (wc shr 6));
+        pb[1] := Char($80 or (wc and $3F));
+        Inc(pb,2);
+      end;
+
+      $D800..$DBFF: begin
+        if (Src < SrcEnd) and (Src^ >= #$DC00) and (Src^ <= #$DFFF) then
+        begin
+          wc := ((LongInt(wc) - $D7C0) shl 10) + LongInt(word(Src^) xor $DC00);
+          Inc(Src);
+
+          pb^ := Char($F0 or (wc shr 18));
+          pb[1] := Char($80 or ((wc shr 12) and $3F));
+          pb[2] := Char($80 or ((wc shr 6) and $3F));
+          pb[3] := Char($80 or (wc and $3F));
+          Inc(pb,4);
+        end
+        else
+          raise EConvertError.Create('High surrogate without low one');
+      end;
+      $DC00..$DFFF:
+        raise EConvertError.Create('Low surrogate without high one');
+      else   // $800 >= wc > $FFFF, excluding surrogates
+      begin
+        pb^ := Char($E0 or (wc shr 12));
+        pb[1] := Char($80 or ((wc shr 6) and $3F));
+        pb[2] := Char($80 or (wc and $3F));
+        Inc(pb,3);
+      end;
+    end;
+  end;
+  FBufPos := pb;
+end;
+
+procedure THTMLWriter.wrtStr(const ws: WideString); { inline }
+begin
+  wrtChars(PWideChar(ws), Length(ws));
+end;
+
+{ No checks here - buffer always has 32 extra bytes }
+procedure THTMLWriter.wrtChr(c: WideChar); { inline }
+begin
+  FBufPos^ := char(ord(c));
+  Inc(FBufPos);
+end;
+
+procedure THTMLWriter.wrtIndent; { inline }
+begin
+  wrtChars(#10, 1);
+end;
+
+procedure THTMLWriter.wrtQuotedLiteral(const ws: WideString);
+var
+  Quote: WideChar;
+begin
+  // TODO: need to check if the string also contains single quote
+  // both quotes present is a error
+  if Pos('"', ws) > 0 then
+    Quote := ''''
+  else
+    Quote := '"';
+  wrtChr(Quote);
+  wrtStr(ws);
+  wrtChr(Quote);
+end;
 
 const
-  AttrSpecialChars = ['"', '&'];
+  AttrSpecialChars = ['<', '"', '&'];
   TextSpecialChars = ['<', '>', '&'];
 
-
-procedure ConvWrite(const s: String; const SpecialChars: TCharacters;
+procedure THTMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
   StartPos, EndPos: Integer;
@@ -132,59 +267,76 @@ begin
   EndPos := 1;
   while EndPos <= Length(s) do
   begin
-    if s[EndPos] in SpecialChars then
+    if (s[EndPos] < #255) and (Char(ord(s[EndPos])) in SpecialChars) then
     begin
-      wrt(Copy(s, StartPos, EndPos - StartPos));
+      wrtChars(@s[StartPos], EndPos - StartPos);
       SpecialCharCallback(s[EndPos]);
       StartPos := EndPos + 1;
     end;
     Inc(EndPos);
   end;
-  if EndPos > StartPos then
-    wrt(Copy(s, StartPos, EndPos - StartPos));
+  if StartPos <= length(s) then
+    wrtChars(@s[StartPos], EndPos - StartPos);
 end;
 
-procedure AttrSpecialCharCallback(c: Char);
+const
+  QuotStr = '&quot;';
+  AmpStr = '&amp;';
+  ltStr = '&lt;';
+  gtStr = '&gt;';
+
+procedure THTMLWriter.AttrSpecialCharCallback(c: WideChar);
 begin
-  if c = '"' then
-    wrt('&quot;')
-  else if c = '&' then
-    wrt('&amp;')
+  case c of
+    '"': wrtStr(QuotStr);
+    '&': wrtStr(AmpStr);
+    '<': wrtStr(ltStr);
   else
-    wrt(c);
+    wrtChr(c);
+  end;
 end;
 
-procedure TextnodeSpecialCharCallback(c: Char);
+procedure THTMLWriter.TextnodeSpecialCharCallback(c: WideChar);
 begin
-  if c = '<' then
-    wrt('&lt;')
-  else if c = '>' then
-    wrt('&gt;')
-  else if c = '&' then
-    wrt('&amp;')
+  case c of
+    '<': wrtStr(ltStr);
+    '>': wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
+    '&': wrtStr(AmpStr);
   else
-    wrt(c);
+    wrtChr(c);
+  end;
 end;
 
-function IsTextNode(Node: TDOMNode): Boolean;
+procedure THTMLWriter.WriteNode(node: TDOMNode);
 begin
-  Result := Node.NodeType in [TEXT_NODE, ENTITY_REFERENCE_NODE];
+  case node.NodeType of
+    ELEMENT_NODE:                VisitElement(node);
+    ATTRIBUTE_NODE:              VisitAttribute(node);
+    TEXT_NODE:                   VisitText(node);
+    CDATA_SECTION_NODE:          VisitCDATA(node);
+    ENTITY_REFERENCE_NODE:       VisitEntityRef(node);
+    PROCESSING_INSTRUCTION_NODE: VisitPI(node);
+    COMMENT_NODE:                VisitComment(node);
+    DOCUMENT_NODE:               VisitDocument(node);
+    DOCUMENT_TYPE_NODE:          VisitDocumentType(node);
+    ENTITY_NODE,
+    DOCUMENT_FRAGMENT_NODE:      VisitFragment(node);
+  end;
 end;
 
 
-// -------------------------------------------------------------------
-//   Node writers implementations
-// -------------------------------------------------------------------
-
-procedure WriteElement(node: TDOMNode);
+procedure THTMLWriter.VisitElement(node: TDOMNode);
 var
   i: Integer;
-  J : THTMLElementTag;
-  attr, child: TDOMNode;
-  s: String;
+  child: TDOMNode;
   SavedInsideTextNode: Boolean;
+  s: string;
   ElFlags: THTMLElementFlags;
+  j: THTMLElementTag;
 begin
+  if not FInsideTextNode then
+    wrtIndent;
+    
   s := LowerCase(node.NodeName);
   ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
@@ -194,121 +346,141 @@ begin
       break;
     end;
 
-  wrt('<' + node.NodeName);
-  for i := 0 to node.Attributes.Length - 1 do
-  begin
-    attr := node.Attributes.Item[i];
-    wrt(' ' + attr.NodeName + '=');
-    s := attr.NodeValue;
-    // !!!: Replace special characters in "s" such as '&', '<', '>'
-    wrt('"');
-    ConvWrite(s, AttrSpecialChars, @AttrSpecialCharCallback);
-    wrt('"');
-  end;
-  wrt('>');
-  if (not InsideTextNode) and not (efPCDATAContent in ElFlags) then
-    wrtln('');
-
+  wrtChr('<');
+  wrtStr(TDOMElement(node).TagName);
+  if node.HasAttributes then
+    for i := 0 to node.Attributes.Length - 1 do
+    begin
+      child := node.Attributes.Item[i];
+      VisitAttribute(child);
+    end;
+  wrtChr('>');
   Child := node.FirstChild;
-  if Assigned(Child) then
+  if Child <> nil then
   begin
-    SavedInsideTextNode := InsideTextNode;
+    SavedInsideTextNode := FInsideTextNode;
+    FInsideTextNode := efPCDATAContent in ElFlags;
     repeat
-      InsideTextNode := efPCDATAContent in ElFlags;
       WriteNode(Child);
       Child := Child.NextSibling;
-    until not Assigned(child);
-    InsideTextNode := SavedInsideTextNode;
+    until Child = nil;
+    FInsideTextNode := SavedInsideTextNode;
   end;
-
+  if (not FInsideTextNode) and not (efPCDATAContent in ElFlags) then
+    wrtIndent;
   if ElFlags * [efSubelementContent, efPCDATAContent] <> [] then
   begin
-    wrt('</' + node.NodeName + '>');
-    if not InsideTextNode then
-      wrtln('');
+    wrtChars('</', 2);
+    wrtStr(TDOMElement(Node).TagName);
+    wrtChr('>');
   end;
 end;
 
-procedure WriteAttribute(node: TDOMNode);
+procedure THTMLWriter.VisitText(node: TDOMNode);
 begin
-  WriteLn('WriteAttribute');
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
 end;
 
-procedure WriteText(node: TDOMNode);
+procedure THTMLWriter.VisitCDATA(node: TDOMNode);
 begin
-  ConvWrite(node.NodeValue, TextSpecialChars, @TextnodeSpecialCharCallback);
+  if not FInsideTextNode then
+    wrtIndent;
+  wrtChars('<![CDATA[', 9);
+  wrtStr(TDOMCharacterData(node).Data);
+  wrtChars(']]>', 3);
 end;
 
-procedure WriteCDATA(node: TDOMNode);
+procedure THTMLWriter.VisitEntityRef(node: TDOMNode);
 begin
-  if InsideTextNode then
-    wrt('<![CDATA[' + node.NodeValue + ']]>')
-  else
-    wrtln('<![CDATA[' + node.NodeValue + ']]>')
+  wrtChr('&');
+  wrtStr(node.NodeName);
+  wrtChr(';');
 end;
 
-procedure WriteEntityRef(node: TDOMNode);
+procedure THTMLWriter.VisitPI(node: TDOMNode);
 begin
-  wrt('&' + node.NodeName + ';');
+  if not FInsideTextNode then wrtIndent;
+  wrtStr('<?');
+  wrtStr(TDOMProcessingInstruction(node).Target);
+  wrtChr(' ');
+  wrtStr(TDOMProcessingInstruction(node).Data);
+  wrtStr('?>');
 end;
 
-procedure WriteEntity(node: TDOMNode);
+procedure THTMLWriter.VisitComment(node: TDOMNode);
 begin
-  WriteLn('WriteEntity');
+  if not FInsideTextNode then wrtIndent;
+  wrtChars('<!--', 4);
+  wrtStr(TDOMCharacterData(node).Data);
+  wrtChars('-->', 3);
 end;
 
-procedure WritePI(node: TDOMNode);
+procedure THTMLWriter.VisitDocument(node: TDOMNode);
 var
-  s: String;
+  child: TDOMNode;
 begin
-  s := '<!' + TDOMProcessingInstruction(node).Target + ' ' +
-    TDOMProcessingInstruction(node).Data + '>';
-  if InsideTextNode then
-    wrt(s)
-  else
-    wrtln( s);
+  child := node.FirstChild;
+  while Assigned(Child) do
+  begin
+    WriteNode(Child);
+    Child := Child.NextSibling;
+  end;
+  wrtChars(#10, 1);
 end;
 
-procedure WriteComment(node: TDOMNode);
-begin
-  if InsideTextNode then
-    wrt('<!--' + node.NodeValue + '-->')
-  else
-    wrtln('<!--' + node.NodeValue + '-->')
-end;
-
-procedure WriteDocument(node: TDOMNode);
-begin
-  WriteLn('WriteDocument');
-end;
-
-procedure WriteDocumentType(node: TDOMNode);
-begin
-  WriteLn('WriteDocumentType');
-end;
-
-procedure WriteDocumentFragment(node: TDOMNode);
-begin
-  WriteLn('WriteDocumentFragment');
-end;
-
-procedure WriteNotation(node: TDOMNode);
-begin
-  WriteLn('WriteNotation');
-end;
-
-
-procedure InitWriter;
-begin
-  InsideTextNode := False;
-end;
-
-procedure RootWriter(doc: TXMLDocument);
+procedure THTMLWriter.VisitAttribute(Node: TDOMNode);
 var
   Child: TDOMNode;
 begin
-  InitWriter;
-  child := doc.FirstChild;
+  wrtChr(' ');
+  wrtStr(TDOMAttr(Node).Name);
+  wrtChars('="', 2);
+  Child := Node.FirstChild;
+  while Assigned(Child) do
+  begin
+    case Child.NodeType of
+      ENTITY_REFERENCE_NODE:
+        VisitEntityRef(Child);
+      TEXT_NODE:
+        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+    end;
+    Child := Child.NextSibling;
+  end;
+  wrtChr('"');
+end;
+
+procedure THTMLWriter.VisitDocumentType(Node: TDOMNode);
+begin
+  wrtStr('<!DOCTYPE ');
+  wrtStr(Node.NodeName);
+  wrtChr(' ');
+  with TDOMDocumentType(Node) do
+  begin
+    if PublicID <> '' then
+    begin
+      wrtStr('PUBLIC ');
+      wrtQuotedLiteral(PublicID);
+      if SystemID <> '' then
+      begin
+        wrtChr(' ');
+        wrtQuotedLiteral(SystemID);
+      end;  
+    end
+    else if SystemID <> '' then
+    begin
+      wrtStr('SYSTEM ');
+      wrtQuotedLiteral(SystemID);
+    end;
+  end;
+  wrtChr('>');
+end;
+
+procedure THTMLWriter.VisitFragment(Node: TDOMNode);
+var
+  Child: TDOMNode;
+begin
+  // Fragment itself should not be written, only its children should...
+  Child := Node.FirstChild;
   while Assigned(Child) do
   begin
     WriteNode(Child);
@@ -322,57 +494,50 @@ end;
 // -------------------------------------------------------------------
 
 procedure WriteHTMLFile(doc: TXMLDocument; const AFileName: String);
+var
+  fs: TFileStream;
 begin
-  Stream := TFileStream.Create(AFileName, fmCreate);
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  RootWriter(doc);
-  Stream.Free;
+  fs := TFileStream.Create(AFileName, fmCreate);
+  try
+    WriteHTMLFile(doc, fs);
+  finally
+    fs.Free;
+  end;
 end;
 
 procedure WriteHTMLFile(doc: TXMLDocument; var AFile: Text);
 begin
-  f := @AFile;
-  wrt := @Text_Write;
-  wrtln := @Text_WriteLn;
-  RootWriter(doc);
+  with TTextHTMLWriter.Create(AFile) do
+  try
+    WriteNode(doc);
+  finally
+    Free;
+  end;
 end;
 
 procedure WriteHTMLFile(doc: TXMLDocument; AStream: TStream);
 begin
-  Stream := AStream;
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  RootWriter(doc);
+  with TStreamHTMLWriter.Create(AStream) do
+  try
+    WriteNode(doc);
+  finally
+    Free;
+  end;
 end;
 
-
-procedure WriteHTML(Element: TDOMElement; const AFileName: String);
+procedure WriteHTML(Element: TDOMNode; const AFileName: String);
 begin
-  Stream := TFileStream.Create(AFileName, fmCreate);
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  InitWriter;
-  WriteNode(Element);
-  Stream.Free;
+  WriteHTMLFile(TXMLDocument(Element), AFileName);
 end;
 
-procedure WriteHTML(Element: TDOMElement; var AFile: Text);
+procedure WriteHTML(Element: TDOMNode; var AFile: Text);
 begin
-  f := @AFile;
-  wrt := @Text_Write;
-  wrtln := @Text_WriteLn;
-  InitWriter;
-  WriteNode(Element);
+  WriteHTMLFile(TXMLDocument(Element), AFile);
 end;
 
-procedure WriteHTML(Element: TDOMElement; AStream: TStream);
+procedure WriteHTML(Element: TDOMNode; AStream: TStream);
 begin
-  stream := AStream;
-  wrt := @Stream_Write;
-  wrtln := @Stream_WriteLn;
-  InitWriter;
-  WriteNode(Element);
+  WriteHTMLFile(TXMLDocument(Element), AStream);
 end;
 
 

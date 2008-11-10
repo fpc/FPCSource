@@ -30,6 +30,42 @@ function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean
 function IsValidXmlEncoding(const Value: WideString): Boolean;
 function Xml11NamePages: PByteArray;
 procedure NormalizeSpaces(var Value: WideString);
+function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
+
+{ a simple hash table with WideString keys }
+
+type
+  PPHashItem = ^PHashItem;
+  PHashItem = ^THashItem;
+  THashItem = record
+    Key: WideString;
+    HashValue: LongWord;
+    Next: PHashItem;
+    Data: TObject;
+  end;
+
+  THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
+
+  THashTable = class(TObject)
+  private
+    FCount: LongWord;
+    FBucketCount: LongWord;
+    FBucket: PPHashItem;
+    FOwnsObjects: Boolean;
+    function Lookup(Key: PWideChar; KeyLength: Integer; var Found: Boolean; CanCreate: Boolean): PHashItem;
+    procedure Resize(NewCapacity: LongWord);
+  public
+    constructor Create(InitSize: Integer; OwnObjects: Boolean);
+    destructor Destroy; override;
+    procedure Clear;
+    function Find(Key: PWideChar; KeyLen: Integer): PHashItem;
+    function FindOrAdd(Key: PWideChar; KeyLen: Integer; var Found: Boolean): PHashItem; overload;
+    function FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem; overload;
+    function Get(Key: PWideChar; KeyLen: Integer): TObject;
+    function Remove(Entry: PHashItem): Boolean;
+    procedure ForEach(proc: THashForEach; arg: Pointer);
+    property Count: LongWord read FCount;
+  end;
 
 {$i names.inc}
 
@@ -106,12 +142,14 @@ begin
 
   I := 0;
   if (Len = 0) or not ((Byte(Value[I]) in NamingBitmap[Pages^[hi(Word(Value[I]))]]) or
+    (Value[I] = ':') or
     (Xml11 and IsXml11Char(Value, I))) then
       Exit;
   Inc(I);
   while I < Len do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
         Exit;
     Inc(I);
@@ -137,6 +175,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[Offset+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
@@ -167,6 +206,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
         Exit;
     Inc(I);
@@ -190,6 +230,7 @@ begin
   while I <= Length(Value) do
   begin
     if not ((Byte(Value[I]) in NamingBitmap[Pages^[$100+hi(Word(Value[I]))]]) or
+      (Value[I] = ':') or
       (Xml11 and IsXml11Char(Value, I))) then
     begin
       if (I = Length(Value)) or (Value[I] <> #32) then
@@ -231,6 +272,191 @@ begin
       if J-I > 1 then Delete(Value, I+1, J-I-1);
     end;
     Inc(I);
+  end;
+end;
+
+function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
+begin
+  Result := InitValue;
+  while KeyLen <> 0 do
+  begin
+    Result := Result * $F4243 xor ord(Key^);
+    Inc(Key);
+    Dec(KeyLen);
+  end;
+end;
+
+function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
+begin
+  Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
+end;
+
+{ THashTable }
+
+constructor THashTable.Create(InitSize: Integer; OwnObjects: Boolean);
+var
+  I: Integer;
+begin
+  inherited Create;
+  FOwnsObjects := OwnObjects;
+  I := 256;
+  while I < InitSize do I := I shl 1;
+  FBucketCount := I;
+  FBucket := AllocMem(I * sizeof(PHashItem));
+end;
+
+destructor THashTable.Destroy;
+begin
+  Clear;
+  FreeMem(FBucket);
+  inherited Destroy;
+end;
+
+procedure THashTable.Clear;
+var
+  I: Integer;
+  item, next: PHashItem;
+begin
+  for I := 0 to FBucketCount-1 do
+  begin
+    item := FBucket[I];
+    while Assigned(item) do
+    begin
+      next := item^.Next;
+      if FOwnsObjects then
+        item^.Data.Free;
+      Dispose(item);
+      item := next;
+    end;
+  end;
+  FillChar(FBucket^, FBucketCount * sizeof(PHashItem), 0);
+end;
+
+function THashTable.Find(Key: PWideChar; KeyLen: Integer): PHashItem;
+var
+  Dummy: Boolean;
+begin
+  Result := Lookup(Key, KeyLen, Dummy, False);
+end;
+
+function THashTable.FindOrAdd(Key: PWideChar; KeyLen: Integer;
+  var Found: Boolean): PHashItem;
+begin
+  Result := Lookup(Key, KeyLen, Found, True);
+end;
+
+function THashTable.FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem;
+var
+  Dummy: Boolean;
+begin
+  Result := Lookup(Key, KeyLen, Dummy, True);
+end;
+
+function THashTable.Get(Key: PWideChar; KeyLen: Integer): TObject;
+var
+  e: PHashItem;
+  Dummy: Boolean;
+begin
+  e := Lookup(Key, KeyLen, Dummy, False);
+  if Assigned(e) then
+    Result := e^.Data
+  else
+    Result := nil;  
+end;
+
+function THashTable.Lookup(Key: PWideChar; KeyLength: Integer;
+  var Found: Boolean; CanCreate: Boolean): PHashItem;
+var
+  Entry: PPHashItem;
+  h: LongWord;
+begin
+  h := Hash(0, Key, KeyLength);
+  Entry := @FBucket[h mod FBucketCount];
+  while Assigned(Entry^) and not ((Entry^^.HashValue = h) and KeyCompare(Entry^^.Key, Key, KeyLength) ) do
+    Entry := @Entry^^.Next;
+  Found := Assigned(Entry^);
+  if Found or (not CanCreate) then
+  begin
+    Result := Entry^;
+    Exit;
+  end;
+  if FCount > FBucketCount then  { arbitrary limit, probably too high }
+  begin
+    Resize(FBucketCount * 2);
+    Result := Lookup(Key, KeyLength, Found, CanCreate);
+  end
+  else
+  begin
+    New(Result);
+    SetString(Result^.Key, Key, KeyLength);
+    Result^.HashValue := h;
+    Result^.Data := nil;
+    Result^.Next := nil;
+    Inc(FCount);
+    Entry^ := Result;
+  end;
+end;
+
+procedure THashTable.Resize(NewCapacity: LongWord);
+var
+  p, chain: PPHashItem;
+  i: Integer;
+  e, n: PHashItem;
+begin
+  p := AllocMem(NewCapacity * sizeof(PHashItem));
+  for i := 0 to FBucketCount-1 do
+  begin
+    e := FBucket[i];
+    while Assigned(e) do
+    begin
+      chain := @p[e^.HashValue mod NewCapacity];
+      n := e^.Next;
+      e^.Next := chain^;
+      chain^ := e;
+      e := n;
+    end;
+  end;
+  FBucketCount := NewCapacity;
+  FreeMem(FBucket);
+  FBucket := p;
+end;
+
+function THashTable.Remove(Entry: PHashItem): Boolean;
+var
+  chain: PPHashItem;
+begin
+  chain := @FBucket[Entry^.HashValue mod FBucketCount];
+  while Assigned(chain^) do
+  begin
+    if chain^ = Entry then
+    begin
+      chain^ := Entry^.Next;
+      if FOwnsObjects then
+        Entry^.Data.Free;
+      Dispose(Entry);
+      Dec(FCount);
+      Result := True;
+      Exit;
+    end;
+    chain := @chain^^.Next;
+  end;
+  Result := False;
+end;
+
+procedure THashTable.ForEach(proc: THashForEach; arg: Pointer);
+var
+  i: Integer;
+  e: PHashItem;
+begin
+  for i := 0 to FBucketCount-1 do
+  begin
+    e := FBucket[i];
+    while Assigned(e) do
+    begin
+      if not proc(e, arg) then
+        Exit;
+      e := e^.Next;
+    end;
   end;
 end;
 

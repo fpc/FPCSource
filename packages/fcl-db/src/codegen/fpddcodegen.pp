@@ -36,6 +36,7 @@ Type
                ptCustom);
                
   TVisibility = (vPrivate,vProtected,vPublic,vPublished);
+  TVisibilities = Set of TVisibility;
   TPropAccess = (paReadWrite,paReadonly,paWriteonly);
 
 
@@ -108,8 +109,12 @@ Type
 
   TCodeGeneratorOptions = Class(TPersistent)
   private
+    FImplementationUnits: String;
+    FInterfaceUnits: String;
     FOptions: TCodeOptions;
     FUnitName: String;
+    procedure SetImplementationUnits(const AValue: String);
+    procedure SetInterfaceUnits(const AValue: String);
     procedure SetUnitname(const AValue: String);
   Protected
     procedure SetOPtions(const AValue: TCodeOptions); virtual;
@@ -119,6 +124,8 @@ Type
   Published
     Property Options : TCodeOptions Read FOptions Write SetOPtions;
     Property UnitName : String Read FUnitName Write SetUnitname;
+    Property InterfaceUnits : String Read FInterfaceUnits Write SetInterfaceUnits;
+    Property ImplementationUnits : String Read FImplementationUnits Write SetImplementationUnits;
   end;
   TCodeGeneratorOptionsClass = Class of TCodeGeneratorOptions;
 
@@ -230,7 +237,9 @@ Type
     procedure CreateClassEnd(Strings : TStrings); virtual;
     // Called right after section start is written.
     procedure WriteVisibilityStart(V: TVisibility; Strings: TStrings); virtual;
-    // Writes a property declaration.
+    // Should a property declaration be written ?
+    function AllowPropertyDeclaration(F: TFieldPropDef; AVisibility: TVisibilities): Boolean; virtual;
+    // Creates a property declaration.
     Function PropertyDeclaration(Strings: TStrings; Def: TFieldPropDef) : String; virtual;
     // Writes private fields for class.
     procedure WritePrivateFields(Strings: TStrings); virtual;
@@ -727,6 +736,12 @@ begin
   end;
 end;
 
+Function TDDClassCodeGenerator.AllowPropertyDeclaration(F : TFieldPropDef; AVisibility : TVisibilities) : Boolean;
+
+begin
+  Result:=Assigned(f) and F.Enabled and ((AVisibility=[]) or (F.PropertyVisibility in AVisibility));
+end;
+
 Procedure TDDClassCodeGenerator.CreateDeclaration(Strings : TStrings);
 
 Const
@@ -751,7 +766,7 @@ begin
       For I:=0 to Fields.Count-1 do
         begin
         F:=Fields[i];
-        if F.Enabled and (F.PropertyVisibility=v) then
+        if AllowPropertyDeclaration(F,[V]) then
           AddLn(Strings,PropertyDeclaration(Strings,F)+';');
         end;
     Finally
@@ -773,7 +788,7 @@ begin
     For I:=0 to Fields.Count-1 do
       begin
       F:=Fields[i];
-      if F.Enabled then
+      if AllowPropertyDeclaration(F,[]) then
         AddLn(Strings,'F%s : %s;',[F.PropertyName,F.ObjPasTypeDef]);
       end;
   Finally
@@ -802,7 +817,7 @@ begin
   For I:=0 to Fields.Count-1 do
     begin
     F:=Fields[i];
-    if F.Enabled and F.HasGetter then
+    if AllowPropertyDeclaration(F,[]) and F.HasGetter then
       begin
       If not B then
         begin
@@ -817,7 +832,7 @@ begin
   For I:=0 to Fields.Count-1 do
     begin
     F:=Fields[i];
-    if F.Enabled and F.HasGetter then
+    if AllowPropertyDeclaration(F,[]) and F.HasGetter then
       begin
       If not B then
         begin
@@ -1028,11 +1043,11 @@ begin
     For I:=0 to Fields.Count-1 do
       begin
       F:=Fields[i];
-      If F.Enabled then
+      If AllowPropertyDeclaration(F,[]) then
         begin
         if (F.Hasgetter) then
           AddLn(Strings,PropertyGetterDeclaration(F,False));
-        if (Fields[i].HasSetter) then
+        if (F.HasSetter) then
           AddLn(Strings,PropertySetterDeclaration(F,False));
         end;
       end;
@@ -1217,11 +1232,13 @@ end;
 function TDDCustomCodeGenerator.GetInterfaceUsesClause: String;
 begin
   Result:='Classes, SysUtils';
+  If (CodeOptions.InterfaceUnits<>'') then
+    Result:=Result+','+CodeOptions.InterfaceUnits;
 end;
 
 function TDDCustomCodeGenerator.GetImplementationUsesClause: String;
 begin
-  Result:='';
+  Result:=CodeOptions.ImplementationUnits;
 end;
 
 procedure TDDCustomCodeGenerator.GenerateCode(Stream: TStream);
@@ -1471,6 +1488,19 @@ begin
   if FUnitName=AValue then exit;
   CheckIdentifier(AValue,False);
   FUnitName:=AValue;
+end;
+
+procedure TCodeGeneratorOptions.SetInterfaceUnits(const AValue: String);
+begin
+  if FInterfaceUnits=AValue then exit;
+  FInterfaceUnits:=AValue;
+  // Do some checks here
+end;
+
+procedure TCodeGeneratorOptions.SetImplementationUnits(const AValue: String);
+begin
+  if FImplementationUnits=AValue then exit;
+  FImplementationUnits:=AValue;
 end;
 
 { TClassCodeGeneratorOptions }

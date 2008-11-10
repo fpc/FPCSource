@@ -47,6 +47,7 @@ interface
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
@@ -62,6 +63,7 @@ interface
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -215,6 +217,14 @@ implementation
       end;
 
 
+    function tloadparentfpnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          (tloadparentfpnode(p).parentpd=parentpd);
+      end;
+
+
     function tloadparentfpnode.dogetcopy : tnode;
       var
          p : tloadparentfpnode;
@@ -323,11 +333,17 @@ implementation
       end;
 
 
-    function taddrnode.dogetcopy : tnode;
+    function taddrnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          (taddrnode(p).getprocvardef=getprocvardef);
+      end;
 
+
+    function taddrnode.dogetcopy : tnode;
       var
          p : taddrnode;
-
       begin
          p:=taddrnode(inherited dogetcopy);
          p.getprocvardef:=getprocvardef;
@@ -449,7 +465,7 @@ implementation
               CGMessage(type_e_variable_id_expected);
           end;
 
-        if (mark_read_written) then
+        if mark_read_written then
           begin
             { This is actually only "read", but treat it nevertheless as  }
             { modified due to the possible use of pointers                }
@@ -561,10 +577,8 @@ implementation
 
 
     function tsubscriptnode.dogetcopy : tnode;
-
       var
          p : tsubscriptnode;
-
       begin
          p:=tsubscriptnode(inherited dogetcopy);
          p.vs:=vs;
@@ -587,10 +601,10 @@ implementation
       end;
 
     procedure Tsubscriptnode.mark_write;
+      begin
+        include(flags,nf_write);
+      end;
 
-    begin
-      include(flags,nf_write);
-    end;
 
     function tsubscriptnode.pass_1 : tnode;
       begin
@@ -669,7 +683,7 @@ implementation
            ansi/widestring needs to be valid }
          valid:=is_dynamic_array(left.resultdef) or
                 is_ansistring(left.resultdef) or
-                is_widestring(left.resultdef) or
+                is_wide_or_unicode_string(left.resultdef) or
                 { implicit pointer dereference -> pointer is read }
                 (left.resultdef.typ = pointerdef);
          if valid then
@@ -829,7 +843,8 @@ implementation
 
          if (nf_callunique in flags) and
             (is_ansistring(left.resultdef) or
-             (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
+             is_unicodestring(left.resultdef) or
+            (is_widestring(left.resultdef) and not(tf_winlikewidestring in target_info.flags))) then
            begin
              left := ctypeconvnode.create_internal(ccallnode.createintern('fpc_'+tstringdef(left.resultdef).stringtypname+'_unique',
                ccallparanode.create(

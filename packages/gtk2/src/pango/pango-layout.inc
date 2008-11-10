@@ -8,7 +8,19 @@
    );
 
    PPangoWrapMode = ^TPangoWrapMode;
-   TPangoWrapMode = (PANGO_WRAP_WORD,PANGO_WRAP_CHAR);
+   TPangoWrapMode = (
+     PANGO_WRAP_WORD,
+     PANGO_WRAP_CHAR,
+     PANGO_WRAP_WORD_CHAR 
+   );
+
+   PPangoEllipsizeMode = ^TPangoEllipsizeMode;
+   TPangoEllipsizeMode = (
+     PANGO_ELLIPSIZE_NONE,
+     PANGO_ELLIPSIZE_START,
+     PANGO_ELLIPSIZE_MIDDLE,
+     PANGO_ELLIPSIZE_END
+   );
 
    { start of line as byte index into layout->text  }
    { length of line in bytes  }

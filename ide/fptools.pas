@@ -150,7 +150,7 @@ const
 
 procedure RegisterFPTools;
 {$ifdef DEBUG}
-Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : string;nrline,nrpos:sw_word);
 {$endif DEBUG}
 
 implementation
@@ -721,7 +721,7 @@ var
   OK: boolean;
   _IS: PINISection;
 
-  procedure ProcessSection(Sec: PINISection);{$ifndef FPC}far;{$endif}
+  procedure ProcessSection(Sec: PINISection);
   var P1,P2: TPoint;
       Typ: string;
       Count: sw_integer;
@@ -1414,7 +1414,7 @@ begin
 end;
 
 procedure DoneToolTempFiles;
-procedure DeleteIt(P: PString); {$ifndef FPC}far;{$endif}
+procedure DeleteIt(P: PString);
 begin
   DeleteFile(GetStr(P));
 end;
@@ -1652,13 +1652,13 @@ begin
 end;
 
 {$ifdef DEBUG}
-Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos :string ;nrline,nrpos:sw_word);
 begin
-  AddToolMessage(AFileName,AText,Aline,APos);
+  AddToolMessage(AFileName,AText,nrline,nrPos);
   UpdateToolMessages;
 end;
 
 begin
-  DebugMessage:=@FpToolsDebugMessage;
+  DebugMessageS:=@FpToolsDebugMessage;
 {$endif DEBUG}
 END.

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <PathDelim Value="/"/>
+    <Version Value="6"/>
+    <General>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
+      <IconPath Value="./"/>
+      <TargetFileExt Value=""/>
+    </General>
+    <VersionInfo>
+      <ProjectVersion Value=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="7">
+      <Unit0>
+        <Filename Value="buildddcg.lpr"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="buildddcg"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="fpddpopcode.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddpopcode"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="fpcgcreatedbf.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgcreatedbf"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="fpcgdbcoll.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgdbcoll"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="fpcgsqlconst.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgsqlconst"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="fpcgtiopf.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpcgtiopf"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="fpddcodegen.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fpddcodegen"/>
+      </Unit6>
+    </Units>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="5"/>
+    <SearchPaths>
+      <UnitOutputDirectory Value="../../units/$(TARGETCPU)-$(TARGETOS)"/>
+    </SearchPaths>
+    <CodeGeneration>
+      <Generate Value="Faster"/>
+    </CodeGeneration>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+</CONFIG>

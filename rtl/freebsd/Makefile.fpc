@@ -74,6 +74,12 @@ else
 CPU_UNITS=
 endif
 
+ifeq ($(CPU_TARGET),x86_64)
+CPU_UNITS=x86 ports 
+else
+CPU_UNITS=
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -145,7 +151,7 @@ baseunix$(PPUEXT) : errno.inc ptypes.inc $(UNIXINC)/ctypes.inc \
   signal.inc $(UNIXINC)/bunxh.inc \
   $(BSDINC)/bunxsysc.inc $(BSDPROCINC)/syscallh.inc sysnr.inc \
   $(BSDINC)/ostypes.inc $(BSDINC)/osmacro.inc $(UNIXINC)/gensigset.inc \
-  $(UNIXINC)/genfuncs.inc $(SYSTEMUNIT)$(PPUEXT)
+  $(UNIXINC)/genfuncs.inc sysctl$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
 
 unix$(PPUEXT) : $(UNIXINC)/unix.pp strings$(PPUEXT) $(INC)/textrec.inc $(INC)/filerec.inc \
@@ -176,7 +182,7 @@ sysutils$(PPUEXT) : $(UNIXINC)/sysutils.pp $(wildcard $(OBJPASDIR)/sysutils/*.in
         $(COMPILER) -Fi$(OBJPASDIR)/sysutils $(UNIXINC)/sysutils.pp
 
 rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp
-	$(COMPILER): $(OBJPASDIR)/rtlconsts.pp
+	$(COMPILER) $(OBJPASDIR)/rtlconsts.pp
 
 classes$(PPUEXT) : $(UNIXINC)/classes.pp $(wildcard $(OBJPASDIR)/classes/*.inc) \
                    sysutils$(PPUEXT) typinfo$(PPUEXT) rtlconsts$(PPUEXT) fgl$(PPUEXT)
@@ -211,7 +217,7 @@ sysconst$(PPUEXT) : $(OBJPASDIR)/sysconst.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
@@ -252,7 +258,7 @@ callspec$(PPUEXT) : $(INC)/callspec.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cmem$(PPUEXT) : $(INC)/cmem.pp $(SYSTEMUNIT)$(PPUEXT)
 
-sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT)
+sysctl$(PPUEXT) : $(BSDINC)/sysctl.pp $(SYSTEMUNIT)$(PPUEXT) syscall$(PPUEXT)
 
 cthreads$(PPUEXT) : $(UNIXINC)/cthreads.pp $(SYSTEMUNIT)$(PPUEXT)
 

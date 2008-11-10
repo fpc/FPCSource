@@ -71,7 +71,7 @@ implementation
 
 uses
   widestr,
-  charset,
+  {$ifdef VER2_2}ccharset{$else VER2_2}charset{$endif VER2_2},
   SysUtils,
   version,
   cutils,cmsgs,
@@ -1611,12 +1611,13 @@ procedure Toption.Interpret_file(const filename : string);
   end;
 
 const
-  maxlevel=16;
+  maxlevel = 15;
 var
   f     : text;
   s, tmp,
   opts  : string;
-  skip  : array[0..maxlevel-1] of boolean;
+  skip  : array[0..maxlevel] of boolean;
+  line,
   level : longint;
   option_read : boolean;
 begin
@@ -1645,9 +1646,11 @@ begin
   Message1(option_start_reading_configfile,filename);
   fillchar(skip,sizeof(skip),0);
   level:=0;
+  line:=0;
   while not eof(f) do
    begin
      readln(f,opts);
+     inc(line);
      RemoveSep(opts);
      if (opts<>'') and (opts[1]<>';') then
       begin
@@ -1669,7 +1672,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message(option_too_many_ifdef);
+                  Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1681,7 +1684,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message(option_too_many_ifdef);
+                  Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1689,14 +1692,22 @@ begin
              end
            else
             if (s='ELSE') then
-             skip[level]:=skip[level-1] or (not skip[level])
+              begin
+                if Level=0 then
+                  begin
+                    Message2(option_else_without_if,filename,tostr(line));
+                    stopOptions(1);
+                  end
+                else
+                  skip[level]:=skip[level-1] or (not skip[level])
+              end
            else
             if (s='ENDIF') then
              begin
                skip[level]:=false;
                if Level=0 then
                 begin
-                  Message(option_too_many_endif);
+                  Message2(option_too_many_endif,filename,tostr(line));
                   stopOptions(1);
                 end;
                dec(level);
@@ -1797,7 +1808,7 @@ begin
         inc(pc);
      { create argument }
        arglen:=pc-argstart;
-{$warning FIXME: silent truncation of environment parameters }
+{ TODO: FIXME: silent truncation of environment parameters }
        if (arglen > 255) then
          arglen := 255;
        setlength(hs,arglen);
@@ -2080,7 +2091,9 @@ function check_configfile(const fn:string;var foundfn:string):boolean;
   end;
 
 var
+{$ifdef Unix}
   hs,
+{$endif Unix}
   configpath : string;
 begin
   foundfn:=fn;
@@ -2194,6 +2207,12 @@ begin
 {$if defined(x86) or defined(powerpc) or defined(powerpc64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$endif}
+  def_system_macro('FPC_HAS_UNICODESTRING');
+
+{ these cpus have an inline rol/ror implementaion }
+{$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+  def_system_macro('FPC_HAS_INTERNAL_ROX');
+{$endif}
 
 {$ifdef SUPPORT_UNALIGNED}
   def_system_macro('FPC_SUPPORTS_UNALIGNED');
@@ -2209,9 +2228,10 @@ begin
   def_system_macro('INTERNAL_BACKTRACE');
 {$endif}
   def_system_macro('STR_CONCAT_PROCS');
+{$warnings off}
   if pocall_default = pocall_register then
     def_system_macro('REGCALL');
-
+{$warnings on}
   { don't remove this, it's also for fpdoc necessary (FK) }
   def_system_macro('FPC_HAS_FEATURE_SUPPORT');
 { using a case is pretty useless here (FK) }
@@ -2500,7 +2520,7 @@ begin
 
   { force fpu emulation on arm/wince, arm/gba and arm/nds}
   if (target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-    system_m68k_linux,system_arm_nds])
+    system_m68k_linux,system_arm_nds,system_arm_darwin])
 {$ifdef arm}
     or (init_settings.fputype=fpu_soft)
     or (target_info.abi=abi_eabi)
@@ -2570,6 +2590,10 @@ begin
   set_system_macro('FPC_VERSION',version_nr);
   set_system_macro('FPC_RELEASE',release_nr);
   set_system_macro('FPC_PATCH',patch_nr);
+  set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
+
+  if not(target_info.system in system_all_windows) then
+    def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');
 
   for i:=low(tfeature) to high(tfeature) do
     if i in features then

@@ -36,7 +36,6 @@ type
 
   TChmProject = class
   private
-    FWriter: TChmWriter;
     FAutoFollowLinks: Boolean;
     FDefaultFont: String;
     FDefaultPage: String;
@@ -86,7 +85,6 @@ begin
   Result := False; // Return true to abort compressing files
 
   TMemoryStream(Stream).LoadFromFile(ProjectDir+DataName);
-  WriteLn('Reading: ', DataName);
   // clean up the filename
   FileName := StringReplace(ExtractFileName(DataName), '\', '/', [rfReplaceAll]);
   FileName := StringReplace(FileName, '//', '/', [rfReplaceAll]);
@@ -99,16 +97,18 @@ procedure TChmProject.LastFileAdded(Sender: TObject);
 var
   IndexStream: TFileStream;
   TOCStream: TFileStream;
+  Writer: TChmWriter;
 begin
   // Assign the TOC and index files
+  Writer := TChmWriter(Sender);
   if (IndexFileName <> '') and FileExists(IndexFileName) then begin
     IndexStream := TFileStream.Create(IndexFileName, fmOpenRead);
-    FWriter.AppendIndex(IndexStream);
+    Writer.AppendIndex(IndexStream);
     IndexStream.Free;
   end;
   if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
     TOCStream := TFileStream.Create(TableOfContentsFileName, fmOpenRead);
-    FWriter.AppendTOC(TOCStream);
+    Writer.AppendTOC(TOCStream);
     TOCStream.Free;
   end;
 
@@ -175,6 +175,7 @@ begin
   Cfg.SetValue('Settings/Title/Value', Title);
   Cfg.SetValue('Settings/OutputFileName/Value', OutputFileName);
   Cfg.SetValue('Settings/DefaultFont/Value', DefaultFont);
+  Cfg.Flush;
   Cfg.Free;
 end;
 
@@ -193,6 +194,7 @@ begin
   TOCStream := nil;
 
   Writer := TChmWriter.Create(AOutStream, False);
+
   // our callback to get data
   Writer.OnGetFileData := @GetData;
   Writer.OnLastFile    := @LastFileAdded;

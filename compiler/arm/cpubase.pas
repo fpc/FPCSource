@@ -89,7 +89,7 @@ unit cpubase;
       first_mm_supreg    = RS_S0;
       first_mm_imreg     = $20;
 
-{$warning TODO Calculate bsstart}
+{ TODO: Calculate bsstart}
       regnumber_count_bsstart = 64;
 
       regnumber_table : array[tregisterindex] of tregister = (

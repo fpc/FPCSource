@@ -23,14 +23,14 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
 
     begin
       If Value<>-1 then exit; // Was already read.
-      OldPos:=chPos;
-      While (Chpos<=Len) and
-            (Pos(Fmt[chpos],'1234567890')<>0) do inc(chpos);
-      If Chpos>len then
+      OldPos:=ChPos;
+      While (ChPos<=Len) and
+            (Fmt[ChPos]<='9') and (Fmt[ChPos]>='0') do inc(ChPos);
+      If ChPos>len then
         DoFormatError(feInvalidFormat);
-      If Fmt[Chpos]='*' then
+      If Fmt[ChPos]='*' then
         begin
-        If (Chpos>OldPos) or (ArgPos>High(Args)) then
+        If (ChPos>OldPos) or (ArgPos>High(Args)) then
           DoFormatError(feInvalidFormat);
         case Args[ArgPos].Vtype of
           vtInteger: Value := Args[ArgPos].VInteger;
@@ -40,11 +40,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
           DoFormatError(feInvalidFormat);
         end;
         Inc(ArgPos);
-        Inc(chPos);
+        Inc(ChPos);
         end
       else
         begin
-        If (OldPos<chPos) Then
+        If (OldPos<ChPos) Then
           begin
           Val (Copy(Fmt,OldPos,ChPos-OldPos),value,code);
           // This should never happen !!
@@ -67,7 +67,7 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
         If Value=-1 then DoFormatError(feMissingArgument);
         Index:=Value;
         Value:=-1;
-        Inc(Chpos);
+        Inc(ChPos);
         end;
 {$ifdef fmtdebug}
       Log ('Read index');
@@ -77,10 +77,10 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Procedure ReadLeft;
 
     begin
-      If Fmt[chpos]='-' then
+      If Fmt[ChPos]='-' then
         begin
         left:=True;
-        Inc(chpos);
+        Inc(ChPos);
         end
       else
         Left:=False;
@@ -106,9 +106,9 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Procedure ReadPrec;
 
     begin
-      If Fmt[chpos]='.' then
+      If Fmt[ChPos]='.' then
         begin
-        inc(chpos);
+        inc(ChPos);
           ReadInteger;
         If Value=-1 then
          Value:=0;
@@ -132,8 +132,8 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     Width:=-1;
     Prec:=-1;
     Value:=-1;
-    inc(chpos);
-    If Fmt[Chpos]='%' then
+    inc(ChPos);
+    If Fmt[ChPos]='%' then
       begin
         Result:='%';
         exit;                           // VP fix
@@ -143,7 +143,11 @@ Var ChPos,OldPos,ArgPos,DoArg,Len : SizeInt;
     ReadWidth;
     ReadPrec;
 {$ifdef INWIDEFORMAT}
+{$ifdef VER2_2}
     FormatChar:=UpCase(Fmt[ChPos])[1];
+{$else VER2_2}
+    FormatChar:=UpCase(UnicodeChar(Fmt[ChPos]));
+{$endif VER2_2}
     if word(FormatChar)>255 then
       ReadFormat:=#255
     else
@@ -198,15 +202,15 @@ Const Zero = '000000000000000000000000000000000000000000000000000000000000000';
 begin
   Result:='';
   Len:=Length(Fmt);
-  Chpos:=1;
+  ChPos:=1;
   OldPos:=1;
   ArgPos:=0;
-  While chpos<=len do
+  While ChPos<=len do
     begin
-    While (ChPos<=Len) and (Fmt[chpos]<>'%') do
-      inc(chpos);
+    While (ChPos<=Len) and (Fmt[ChPos]<>'%') do
+      inc(ChPos);
     If ChPos>OldPos Then
-      Result:=Result+Copy(Fmt,OldPos,Chpos-Oldpos);
+      Result:=Result+Copy(Fmt,OldPos,ChPos-Oldpos);
     If ChPos<Len then
       begin
       FChar:=ReadFormat;
@@ -348,7 +352,7 @@ begin
             ToAdd:=ToAdd+space(Width-Length(ToAdd));
       Result:=Result+ToAdd;
       end;
-    inc(chpos);
-    Oldpos:=chpos;
+    inc(ChPos);
+    Oldpos:=ChPos;
     end;
 end;

@@ -38,7 +38,7 @@ UNIT Drivers;
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {====Include file to sort compiler platform out =====================}
-{$I Platform.inc}
+{$I platform.inc}
 {====================================================================}
 
 {==== Compiler directives ===========================================}
@@ -83,11 +83,7 @@ USES
    {$ENDIF}
 
    {$IFDEF OS_UNIX}
-     {$ifdef VER1_0}
-       linux,
-     {$else}
-       baseunix,unix,
-     {$endif}
+       unixtype,baseunix,unix,
    {$ENDIF}
 
    {$IFDEF OS_NETWARE_LIBC}
@@ -95,6 +91,10 @@ USES
    {$ENDIF}
    {$IFDEF OS_NETWARE_CLIB}
       nwserv,
+   {$ENDIF}
+
+   {$IFDEF OS_AMIGA}
+      doslib,
    {$ENDIF}
 
    video,
@@ -733,14 +733,8 @@ Function GetDosTicks:longint; { returns ticks at 18.2 Hz, just like DOS }
      tv : TimeVal;
   {  tz : TimeZone;}
   begin
-    {$ifdef ver1_0}
-    GetTimeOfDay(tv{,tz});
-    GetDosTicks:=((tv.Sec mod 86400) div 60)*1092+((tv.Sec mod 60)*1000000+tv.USec) div 54945;
-    {$else}
     FPGetTimeOfDay(@tv,nil{,tz});
     GetDosTicks:=((tv.tv_Sec mod 86400) div 60)*1092+((tv.tv_Sec mod 60)*1000000+tv.tv_USec) div 54945;
-
-    {$endif}
   end;
 {$ENDIF OS_UNIX}
 {$IFDEF OS_WINDOWS}
@@ -767,6 +761,12 @@ var
     GetDosTicks := Nwserv.GetCurrentTicks;
   end;
 {$ENDIF}
+{$IFDEF OS_AMIGA}
+  begin
+{$WARNING FIXME: dummy implementation}
+    GetDosTicks:=-1;
+  end;
+{$ENDIF OS_AMIGA}
 
 
 procedure GiveUpTimeSlice;
@@ -784,7 +784,7 @@ end;
 begin
   req.tv_sec:=0;
   req.tv_nsec:=10000000;{ 10 ms }
-  {$ifdef ver1_0}nanosleep(req,rem){$else}fpnanosleep(@req,@rem){$endif};
+  fpnanosleep(@req,@rem);
 end;
 {$ENDIF}
 {$IFDEF OS_OS2}
@@ -815,6 +815,12 @@ end;
     Delay (10);
   end;
 {$ENDIF}
+{$IFDEF OS_AMIGA}
+  begin
+    { AmigaOS Delay() wait's argument in 1/50 seconds }
+    DOSLib.Delay(2);
+  end;
+{$ENDIF OS_AMIGA}
 
 
 {---------------------------------------------------------------------------}
@@ -1058,6 +1064,12 @@ begin
      key:=Keyboard.GetKeyEvent;
      keycode:=Keyboard.GetKeyEventCode(key);
      keyshift:=KeyBoard.GetKeyEventShiftState(key);
+     // some kbds still honour old XT E0 prefix. (org IBM ps/2, win98?) bug #8978
+     if (keycode and $FF = $E0) and
+        (byte(keycode shr 8) in  
+              [$1C,$1D,$2A,$35..$38,$46..$49,$4b,$4d,$4f,$50..$53]) Then
+          keycode := keycode and $FF00;
+     
      { fixup shift-keys }
      if keyshift and kbShift<>0 then
        begin

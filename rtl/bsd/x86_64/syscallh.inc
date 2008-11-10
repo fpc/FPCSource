@@ -32,16 +32,16 @@ Type
 
   TSysParam  = int64;
 
-function do_sysCall(sysnr:TSysParam):TSysResult;oldfpccall;   external name 'FPC_DOSYS0';
-function do_sysCall(sysnr,param1:TSysParam):TSysResult; oldfpccall;external name 'FPC_DOSYS1';
-function do_sysCall(sysnr,param1,param2:TSysParam):TSysResult; oldfpccall; external name 'FPC_DOSYS2';
-function do_sysCall(sysnr,param1,param2,param3:TSysParam):TSysResult;oldfpccall; external name 'FPC_DOSYS3';
-function do_sysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult;oldfpccall; external name 'FPC_DOSYS4';
-function do_sysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; oldfpccall;  external name 'FPC_DOSYS5';
-function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64;oldfpccall;  external name 'FPC_DOSYS6';
-//function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64;oldfpccall;  external name 'FPC_DOSYS7';
+function do_sysCall(sysnr:TSysParam):TSysResult; external name 'FPC_DOSYS0';
+function do_sysCall(sysnr,param1:TSysParam):TSysResult; external name 'FPC_DOSYS1';
+function do_sysCall(sysnr,param1,param2:TSysParam):TSysResult;  external name 'FPC_DOSYS2';
+function do_sysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; external name 'FPC_DOSYS3';
+function do_sysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; external name 'FPC_DOSYS4';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5:TSysParam):TSysResult; external name 'FPC_DOSYS5';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6:TSysParam):int64; external name 'FPC_DOSYS6';
+function do_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7:TSysParam):int64; external name 'FPC_DOSYS7';
 
 // special
-function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; oldfpccall;  external name 'FPC__DOSYS';
+function do__sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7,Param8:TSysParam):TSysResult; external name 'FPC__DOSYS';
 {$endif}
 

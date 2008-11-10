@@ -1,0 +1,140 @@
+
+The fpexprpars unit contains an expression parser.
+The parser compiles the expression into a node tree, which is 
+type checked after it was compiled.
+
+The expression parser handles the following types:
+  String 
+  Integer (64-bit)
+  Float (TExprFloat, normally Double) 
+  TDateTime
+  Boolean 
+
+The following operations are allowed:
+  + - / * 
+  not and or xor
+  ( ) 
+The binary operations can also be done on integer values, in which
+case they act on the bits of the integer.
+
+In the case of strings addition results in concatenation of the strings.
+
+Operator precedence is observed. In case of equal precedence, evaluation
+order is left-to-right.
+
+Normally, both operands of binary operations must have the same type.
+There are 2 exceptions: The engine will convert integers to float or
+TDateTime if it detects that one of the nodes is a float or datetime.
+
+The engine can be extended with variables and functions. There are over
+60 built-in functions, which can be enabled by setting the Builtins property
+of the expression parser to a set of the following values:
+
+ bcStrings: Various string routines
+    length copy delete pos lowercase uppercase stringreplace comparetext
+
+ bcDateTime: Various datetime routines
+    date time now dayofweek extractyear extractmonth extractday extracthour
+    extractmin extractsec extractmsec encodedate encodetime encodedatetime
+    shortdayname shortmonthname longdayname longmonthname formatdatetime   
+
+ bcMath: Various mathematical routines
+    pi cos sin arctan abs sqr sqrt exp ln log frac int round trunc
+
+ bcBoolean: Various boolean routines
+    shl shr IFS IFF IFD IFI  
+
+ bcConversion : Conversion routines
+   inttostr strtoint strtointdef floattostr strtofloat strtofloatdef
+   booltostr strtobool strtobooldef datetostr timetostr strtodate strtodatedef
+   strtotime strtotimedef strtodatetime strtodatetimedef 
+
+Additional functions/variables can be added to the Identifiers collection:
+
+  FP : TFPexpressionParser;
+
+The following will define a TODAY variable which has value equal to the date
+at the moment is is defined:
+
+  FP.Identifiers.AddDateTimeVariable('TODAY',Date);
+  
+The following will define a function echodate:
+
+Procedure EchoDate(Var Result : TFPExpressionResult; Const Args : TExprParameterArray);
+
+begin
+  Result.resDateTime:=Args[0].resDateTime;
+end;
+
+  FP.Identifiers.AddFunction('EchoDate','D','D',@EchoDate);
+
+The arguments are:
+  Name : Name of the function
+  Result type : Character with result type:
+    I : integer
+    S : String
+    F : FLoat
+    D : TDateTime
+    B : Boolean
+  Argument types : A string with each character the type of argument at that position.
+  Callback : executed when the function is called. This can be a procedural
+             variable or an event (procedure of object).
+
+Result and arguments are type-checked.
+  
+The engine knows 2 built-in functions which are handled specially:
+
+  IF(Expr,Res1,Res1)
+
+Will return Res1 if expr evaluates to True, or Res2 if expr evaluates to False.
+The types of Res1 and Res2 must be the same, and expr must be a boolean
+expression.
+
+  CASE(Tag,Def,Label1,Value1,Label2,Value2,...)
+
+Case will examine the value of Tag and compare it with Label1, Label2 etc.
+till a match is found. It will return Value1, Value2 etc. depending on the
+match. If no match is found, Def will be returned. From this it follows that
+1) The number of arguments is always even and is at least 4.
+2) The types of Tag, label1, label2 must be the same;
+3) The types of Def, Value1, Value2 must be the same;
+
+As soon as the expression is set, it is compiled and checked. Thus
+   FP.Expression:='1*2';
+will work.
+
+On the other hand
+   FP.Expression:=' 1 * ''a string''';
+will result in an exception because 1 and ''a string'' do not have the same
+type.
+
+Getting the result is quite simple
+
+  FP.Expression:='1*2';
+  Writeln(FP.AsInteger);
+
+This will raise an exception if the type of the result is not integer.
+
+In case the expression result type is unknown, it can be examined using 
+the ResultType function, as in :
+
+  FP.Expression:='Some user-provided expression';
+  Case FP.ResultType of
+    rtString  : Writeln(FP.Evaluate.ResString);
+    rtInteger : Writeln(FP.Evaluate.ResInteger);
+    rtFloat   : Writeln(FP.Evaluate.ResFloat);
+    rtBoolean : Writeln(FP.Evaluate.ResBoolean);
+    rtDateTime : Writeln(FormatDateTime('cccc',FP.Evaluate.ResDateTime));
+  end;   
+
+Which is equivalent to
+
+  FP.Expression:='Some user-provided expression';
+  Case FP.ResultType of
+    rtString  : Writeln(FP.AsString);
+    rtInteger : Writeln(FP.AsInteger);
+    rtFloat   : Writeln(FP.AsFloat);
+    rtBoolean : Writeln(FP.AsBoolean);
+    rtDateTime : Writeln(FormatDateTime('cccc',FP.AsDateTime));
+  end;
+

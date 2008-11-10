@@ -38,9 +38,12 @@ function GTK_INVISIBLE_GET_CLASS(obj: pointer) : PGtkInvisibleClass;
 
 function gtk_invisible_get_type:TGtkType; cdecl; external gtklib;
 function gtk_invisible_new:PGtkWidget; cdecl; external gtklib;
+
+{$IFDEF HasGTK2_2}
+function gtk_invisible_get_screen(invisible:PGtkInvisible):PGdkScreen; cdecl; external gtklib;
 function gtk_invisible_new_for_screen(screen:PGdkScreen):PGtkWidget; cdecl; external gtklib;
 procedure gtk_invisible_set_screen(invisible:PGtkInvisible; screen:PGdkScreen); cdecl; external gtklib;
-function gtk_invisible_get_screen(invisible:PGtkInvisible):PGdkScreen; cdecl; external gtklib;
+{$ENDIF}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

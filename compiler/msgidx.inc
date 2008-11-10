@@ -335,6 +335,8 @@ const
   parser_e_class_doesnt_implement_interface=03245;
   parser_e_class_implements_must_be_interface=03246;
   parser_e_cant_export_var_different_name=03247;
+  parser_e_weak_external_not_supported=03248;
+  parser_e_forward_mismatch=03249;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -459,6 +461,7 @@ const
   sym_w_identifier_only_read=05061;
   sym_h_abstract_method_list=05062;
   sym_w_experimental_symbol=05063;
+  sym_w_forward_not_resolved=05064;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -651,6 +654,7 @@ const
   execinfo_x_uninitdatasize=09132;
   execinfo_x_stackreserve=09133;
   execinfo_x_stackcommit=09134;
+  link_f_executable_too_big=09200;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -748,13 +752,14 @@ const
   option_config_is_dir=11040;
   option_confict_asm_debug=11041;
   option_ppc386_deprecated=11042;
+  option_else_without_if=11043;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 47095;
+  MsgTxtSize = 47627;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,248,84,64,50,108,22,135,61,
-    43,1,1,1,1,1,1,1,1,1
+    24,87,250,84,65,50,108,22,201,61,
+    44,1,1,1,1,1,1,1,1,1
   );

@@ -126,6 +126,7 @@
      CB_SETLOCALE = 345;
      CB_SETTOPINDEX = 348;
      CB_SHOWDROPDOWN = 335;
+     CB_GETCOMBOBOXINFO = $0162;
   { Combo Box notifications  }
      CBN_CLOSEUP = 8;
      CBN_DBLCLK = 2;
@@ -227,7 +228,8 @@
      EM_STREAMIN = 1097;
      EM_STREAMOUT = 1098;
      EM_UNDO = 199;
-  { Edit control  }
+
+  { Edit control notifications  }
      EN_SETFOCUS     =$0100;
      EN_KILLFOCUS    =$0200;
      EN_CHANGE       =$0300;
@@ -236,6 +238,9 @@
      EN_MAXTEXT      =$0501;
      EN_HSCROLL      =$0601;
      EN_VSCROLL      =$0602;
+     EN_ALIGN_LTR_EC = $0700;
+     EN_ALIGN_RTL_EC = $0701;
+
 
      EN_CORRECTTEXT = 1797;
      EN_DROPFILES = 1795;
@@ -1142,7 +1147,7 @@ Type
     TWMSetFont          = Windows.TWMSetFont;
     TWMShowWindow       = Windows.TWMShowWindow;
     TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
-    LPMSG               = Windows.MSG;
+    LPMSG               = ^Windows.MSG;
     tagMSG              = Windows.tagMSG;
     TMSG                = Windows.TMSG;
     PMSG                = Windows.PMSG;

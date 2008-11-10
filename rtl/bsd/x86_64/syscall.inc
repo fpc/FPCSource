@@ -27,10 +27,10 @@
 function fpsysCall(sysnr:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS0'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
+  movq sysnr,%rax         { Syscall number -> rax.  }
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
- movq  %rax,%rdx
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
@@ -57,10 +57,10 @@ end;
 function fpsysCall(sysnr,param1 : TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS1'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg1. }
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg1. }
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -88,11 +88,11 @@ end;
 function fpsysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS2'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg2. }
-  movq param2, %rsi
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg2. }
+  movq param2,%rsi
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -120,12 +120,12 @@ end;
 function fpsysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS3'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg3. }
-  movq param2, %rsi
-  movq param3, %rdx
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg3. }
+  movq param2,%rsi
+  movq param3,%rdx
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -153,13 +153,13 @@ end;
 function fpsysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS4'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg5. }
-  movq param2, %rsi
-  movq param3, %rdx
-  movq param4, %r10
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg5. }
+  movq param2,%rsi
+  movq param3,%rdx
+  movq param4,%r10
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -187,14 +187,14 @@ end;
 function fpsysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS5'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg5. }
-  movq param2, %rsi
-  movq param3, %rdx
-  movq param4, %r10
-  movq param5, %r8
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg5. }
+  movq param2,%rsi
+  movq param3,%rdx
+  movq param4,%r10
+  movq param5,%r8
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -223,17 +223,17 @@ end;
 function fpsysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC_DOSYS6'];
 
 asm
-  movq sysnr, %rax        { Syscall number -> rax.  }
-  movq param1, %rdi         { shift arg1 - arg6. }
-  movq param2, %rsi
-  movq param3, %rdx
-  movq param4, %r10
-  movq param5, %r8
-  movq param6, %r9
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg6. }
+  movq param2,%rsi
+  movq param3,%rdx
+  movq param4,%r10
+  movq param5,%r8
+  movq param6,%r9
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
 
- movq  %rax,%rdx
+  movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
   movq  (%rax),%rax
@@ -261,14 +261,15 @@ end;
 function fp_sysCall(sysnr,param1,param2,param3,param4,param5,param6 : TSysParam):TSysResult; assembler;[public,alias:'FPC__DOSYS'];
 
 asm
-  sub    $0x18,%rsp
-  movq   param6,%rax	// from caller stack to mine.	
-  movq   %rax,0x8(%rsp)
-  movl   $0, 0(%rsp)    // dummy or caller frame because ?
-  mov    $0xc6,%rax	// __syscall
-  mov    %rcx,%r10
+  movq sysnr,%rax         { Syscall number -> rax.  }
+  movq param1,%rdi        { shift arg1 - arg6. }
+  movq param2,%rsi
+  movq param3,%rdx
+  movq param4,%r10
+  movq param5,%r8
+  movq param6,%r9
   syscall                 { Do the system call. }
-  jge .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
   movq  %rax,%rdx
 {$ifdef FPC_PIC}
   movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
@@ -294,4 +295,45 @@ asm
   add    $0x18,%rsp
 end;
 
+
+//                    edi   esi   edx 	 ecx    r8      r9   stack  stack
+function fp_sysCall(sysnr,param1,param2,param3,param4,param5,param6,param7 : TSysParam):TSysResult; assembler;[public,alias:'FPC__DOSYS7'];
+
+asm
+  sub    $0x10,%rsp
+  movq   sysnr,%rax       { Syscall number -> rax.  }
+  movq   param1,%rdi      { shift arg1 - arg6. }
+  movq   param2,%rsi
+  movq   param3,%rdx
+  movq   param4,%r10
+  movq   param5,%r8
+  movq   param6,%r9
+  movq   param7,%r11
+  movq   %r11,(%rsp)
+  syscall                 { Do the system call. }
+  jnb .LSyscOK            { branch to exit if ok, errorhandler otherwise}
+  movq  %rax,%rdx
+{$ifdef FPC_PIC}
+  movq  fpc_threadvar_relocate_proc@GOTPCREL(%rip),%rax
+  movq  (%rax),%rax
+  movq  Errno@GOTPCREL(%rip),%r11
+{$else FPC_PIC}
+  movq  fpc_threadvar_relocate_proc,%rax
+  leaq  Errno,%r11
+{$endif FPC_PIC}
+  testq %rax,%rax
+  jne   .LThread
+  movl  %edx,8(%r11)
+  jmp   .LNoThread
+.LThread:
+  pushq %rdx
+  movq  (%r11),%rdi
+  call  *%rax
+  popq  %rdx
+  movl  %edx,(%rax)
+.LNoThread:
+  movq  $-1,%rax
+.LSyscOK:
+  add    $0x10,%rsp
+end;
 

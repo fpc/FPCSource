@@ -213,6 +213,9 @@ implementation
 
 
     procedure firstcomplex(p : tbinarynode);
+      var
+        fcl, fcr: longint;
+        ncl, ncr: longint;
       begin
          { always calculate boolean AND and OR from left to right }
          if (p.nodetype in [orn,andn]) and
@@ -222,8 +225,28 @@ implementation
                internalerror(200709253);
            end
          else
-           if node_resources_fpu(p.right)>node_resources_fpu(p.left) then
-             p.swapleftright;
+           begin
+             fcl:=node_resources_fpu(p.left);
+             fcr:=node_resources_fpu(p.right);
+             ncl:=node_complexity(p.left);
+             ncr:=node_complexity(p.right);
+             { We swap left and right if
+                a) right needs more floating point registers than left, and
+                   left needs more than 0 floating point registers (if it
+                   doesn't need any, swapping won't change the floating
+                   point register pressure)
+                b) both left and right need an equal amount of floating
+                   point registers or right needs no floating point registers,
+                   and in addition right has a higher complexity than left
+                   (+- needs more integer registers, but not necessarily)
+             }
+             if ((fcr>fcl) and
+                 (fcl>0)) or
+                (((fcr=fcl) or
+                  (fcr=0)) and
+                 (ncr>ncl)) then
+               p.swapleftright
+           end;
       end;
 
 
@@ -338,10 +361,11 @@ implementation
           begin
             srsym:=search_system_type('JMP_BUF');
             jmp_buf_size:=srsym.typedef.size;
+            jmp_buf_align:=srsym.typedef.alignment;
           end;
-        tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
-        tg.GetTemp(list,jmp_buf_size,tt_persistent,t.jmpbuf);
-        tg.GetTemp(list,sizeof(pint),tt_persistent,t.reasonbuf);
+        tg.GetTemp(list,EXCEPT_BUF_SIZE,sizeof(pint),tt_persistent,t.envbuf);
+        tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
+        tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
       end;
 
 
@@ -374,7 +398,7 @@ implementation
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
         cg.deallocallcpuregisters(list);
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -382,7 +406,7 @@ implementation
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_SETJMP');
+        cg.a_call_name(list,'FPC_SETJMP',false);
         cg.deallocallcpuregisters(list);
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
@@ -398,7 +422,7 @@ implementation
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocallcpuregisters(list);
-         cg.a_call_name(list,'FPC_POPADDRSTACK');
+         cg.a_call_name(list,'FPC_POPADDRSTACK',false);
          cg.deallocallcpuregisters(list);
 
          if not onlyfree then
@@ -659,7 +683,7 @@ implementation
             { if it's in an mm register, store to memory first }
             if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
               begin
-                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
@@ -684,7 +708,7 @@ implementation
             { if it's in an fpu register, store to memory first }
             if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
               begin
-                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
@@ -748,7 +772,7 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -756,7 +780,7 @@ implementation
           LOC_MMREGISTER,
           LOC_CMMREGISTER:
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -765,7 +789,7 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER :
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
 {$ifndef cpu64bitalu}
               if l.size in [OS_64,OS_S64] then
                 cg64.a_load64_loc_ref(list,l,r)
@@ -780,7 +804,7 @@ implementation
           LOC_SUBSETREF,
           LOC_CSUBSETREF:
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_load_loc_ref(list,l.size,l,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -836,64 +860,64 @@ implementation
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
-           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
-         begin
-           location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
-           if is_open_array(tparavarsym(p).vardef) or
-              is_array_of_const(tparavarsym(p).vardef) then
-            begin
-              { cdecl functions don't have a high pointer so it is not possible to generate
-                a local copy }
-              if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
-                begin
-                  hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
-                  if not assigned(hsym) then
-                    internalerror(200306061);
-                  hreg:=cg.getaddressregister(list);
-                  if not is_packed_array(tparavarsym(p).vardef) then
-                    cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
-                  else
-                    internalerror(2006080401);
-//                    cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
-                  cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
-                end;
-            end
-           else
-            begin
-              { Allocate space for the local copy }
-              l:=tparavarsym(p).getsize;
-              localcopyloc.loc:=LOC_REFERENCE;
-              localcopyloc.size:=int_cgsize(l);
-              tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
-              { Copy data }
-              if is_shortstring(tparavarsym(p).vardef) then
-                begin
-                  { this code is only executed before the code for the body and the entry/exit code is generated
-                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                  }
-                  include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
-                end
-              else if tparavarsym(p).vardef.typ = variantdef then
-                begin
-                  { this code is only executed before the code for the body and the entry/exit code is generated
-                    so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
-                  }
-                  include(current_procinfo.flags,pi_do_call);
-                  cg.g_copyvariant(list,href,localcopyloc.reference)
-                end
-              else
-                begin
-                  { pass proper alignment info }
-                  localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
-                  cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
-                end;
-              { update localloc of varsym }
-              tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
-              tparavarsym(p).localloc:=localcopyloc;
-              tparavarsym(p).initialloc:=localcopyloc;
-            end;
-         end;
+          (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+          begin
+            location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
+            if is_open_array(tparavarsym(p).vardef) or
+               is_array_of_const(tparavarsym(p).vardef) then
+              begin
+                { cdecl functions don't have a high pointer so it is not possible to generate
+                  a local copy }
+                if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                  begin
+                    hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
+                    if not assigned(hsym) then
+                      internalerror(200306061);
+                    hreg:=cg.getaddressregister(list);
+                    if not is_packed_array(tparavarsym(p).vardef) then
+                      cg.g_copyvaluepara_openarray(list,href,hsym.initialloc,tarraydef(tparavarsym(p).vardef).elesize,hreg)
+                    else
+                      internalerror(2006080401);
+//                      cg.g_copyvaluepara_packedopenarray(list,href,hsym.intialloc,tarraydef(tparavarsym(p).vardef).elepackedbitsize,hreg);
+                    cg.a_load_reg_loc(list,OS_ADDR,hreg,tparavarsym(p).initialloc);
+                  end;
+              end
+            else
+              begin
+                { Allocate space for the local copy }
+                l:=tparavarsym(p).getsize;
+                localcopyloc.loc:=LOC_REFERENCE;
+                localcopyloc.size:=int_cgsize(l);
+                tg.GetLocal(list,l,tparavarsym(p).vardef,localcopyloc.reference);
+                { Copy data }
+                if is_shortstring(tparavarsym(p).vardef) then
+                  begin
+                    { this code is only executed before the code for the body and the entry/exit code is generated
+                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                    }
+                    include(current_procinfo.flags,pi_do_call);
+                    cg.g_copyshortstring(list,href,localcopyloc.reference,tstringdef(tparavarsym(p).vardef).len)
+                  end
+                else if tparavarsym(p).vardef.typ = variantdef then
+                  begin
+                    { this code is only executed before the code for the body and the entry/exit code is generated
+                      so we're allowed to include pi_do_call here; after pass1 is run, this isn't allowed anymore
+                    }
+                    include(current_procinfo.flags,pi_do_call);
+                    cg.g_copyvariant(list,href,localcopyloc.reference)
+                  end
+                else
+                  begin
+                    { pass proper alignment info }
+                    localcopyloc.reference.alignment:=tparavarsym(p).vardef.alignment;
+                    cg.g_concatcopy(list,href,localcopyloc.reference,tparavarsym(p).vardef.size);
+                  end;
+                { update localloc of varsym }
+                tg.Ungetlocal(list,tparavarsym(p).localloc.reference);
+                tparavarsym(p).localloc:=localcopyloc;
+                tparavarsym(p).initialloc:=localcopyloc;
+              end;
+          end;
       end;
 
 
@@ -1150,11 +1174,14 @@ implementation
              vs_value :
                if needs_inittable then
                  begin
-                   { variants are already handled by the call to fpc_variant_copy_overwrite }
-                   if tparavarsym(p).vardef.typ <> variantdef then begin
-                     location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
-                     cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
-                   end;
+                   { variants are already handled by the call to fpc_variant_copy_overwrite if
+                     they are passed by reference }
+                   if not((tparavarsym(p).vardef.typ=variantdef) and
+                     paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
+                     begin
+                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
+                       cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
+                     end;
                  end;
              vs_out :
                begin
@@ -1802,7 +1829,7 @@ implementation
                   { Arm and Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
                   sizeleft := TCGSize2Size[currpara.initialloc.size];
-                  tg.GetTemp(list,sizeleft,tt_normal,tempref);
+                  tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
                     begin
@@ -1960,7 +1987,7 @@ implementation
          begin
            { initialize units }
            cg.allocallcpuregisters(list);
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false);
            cg.deallocallcpuregisters(list);
          end;
 
@@ -1980,7 +2007,7 @@ implementation
         { call __EXIT for main program }
         if (not DLLsource) and
            (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT');
+          cg.a_call_name(list,'FPC_DO_EXIT',false);
       end;
 
 
@@ -2160,7 +2187,7 @@ implementation
         paramanager.freeparaloc(list,paraloc1);
         { Call the helper }
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_STACKCHECK');
+        cg.a_call_name(list,'FPC_STACKCHECK',false);
         cg.deallocallcpuregisters(list);
         paraloc1.done;
       end;
@@ -2299,7 +2326,7 @@ implementation
               staticvarsym :
                 begin
                   vs:=tabstractnormalvarsym(sym);
-                  { The code in laodnode.pass_generatecode will create the
+                  { The code in loadnode.pass_generatecode will create the
                     LOC_REFERENCE instead for all none register variables. This is
                     required because we can't store an asmsymbol in the localloc because
                     the asmsymbol is invalid after an unit is compiled. This gives

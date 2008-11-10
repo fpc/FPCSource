@@ -9,7 +9,7 @@ main=fcl-db
 units=ibconnection
 
 [require]
-packages=ibase
+packages=fcl-xml ibase 
 
 [compiler]
 options=-S2

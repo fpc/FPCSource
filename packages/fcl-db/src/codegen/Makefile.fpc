@@ -9,7 +9,7 @@ main=fcl-db
 packages=fcl-base
 
 [target]
-units=fpddcodegen fpcgcreatedbf fpcgdbcoll fpcgsqlconst fpcgtiopf
+units=fpddcodegen fpcgcreatedbf fpcgdbcoll fpcgsqlconst fpcgtiopf fpddpopcode
 
 [compiler]
 options=-S2h

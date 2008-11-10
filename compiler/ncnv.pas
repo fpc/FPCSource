@@ -54,6 +54,7 @@ interface
           function simplify:tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
+          function retains_value_location:boolean;
           function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
        private
@@ -61,7 +62,6 @@ interface
           function typecheck_cord_to_pointer : tnode;
           function typecheck_chararray_to_string : tnode;
           function typecheck_string_to_chararray : tnode;
-          function typecheck_string_to_string : tnode;
           function typecheck_char_to_string : tnode;
           function typecheck_char_to_chararray : tnode;
           function typecheck_int_to_real : tnode;
@@ -74,6 +74,7 @@ interface
           function typecheck_arrayconstructor_to_set : tnode;
           function typecheck_set_to_set : tnode;
           function typecheck_pchar_to_string : tnode;
+          function typecheck_interface_to_string : tnode;
           function typecheck_interface_to_guid : tnode;
           function typecheck_dynarray_to_openarray : tnode;
           function typecheck_pwchar_to_string : tnode;
@@ -109,6 +110,7 @@ interface
           function first_arrayconstructor_to_set : tnode;virtual;
           function first_class_to_intf : tnode;virtual;
           function first_char_to_char : tnode;virtual;
+          function first_string_to_string : tnode;virtual;
           function first_call_helper(c : tconverttype) : tnode;
 
           { these wrapper are necessary, because the first_* stuff is called }
@@ -136,6 +138,7 @@ interface
           function _first_class_to_intf : tnode;
           function _first_char_to_char : tnode;
           function _first_set_to_set : tnode;
+          function _first_string_to_string : tnode;
 
           procedure _second_int_to_int;virtual;
           procedure _second_string_to_string;virtual;
@@ -190,6 +193,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
+          function docompare(p: tnode): boolean; override;
           destructor destroy; override;
           call: tnode;
        end;
@@ -780,21 +784,19 @@ implementation
         if left.nodetype=ordconstn then
           begin
             { check if we have a valid pointer constant (JM) }
-            if (sizeof(pointer) > sizeof(TConstPtrUInt)) then
-              if (sizeof(TConstPtrUInt) = 4) then
-                begin
+            {$if sizeof(pointer) > sizeof(TConstPtrUInt)}
+              {$if sizeof(TConstPtrUInt) = 4}
                   if (tordconstnode(left).value < int64(low(longint))) or
                      (tordconstnode(left).value > int64(high(cardinal))) then
                   CGMessage(parser_e_range_check_error);
-                end
-              else if (sizeof(TConstPtrUInt) = 8) then
-                begin
+              {$else} {$if sizeof(TConstPtrUInt) = 8}
                   if (tordconstnode(left).value < int64(low(int64))) or
                      (tordconstnode(left).value > int64(high(qword))) then
                   CGMessage(parser_e_range_check_error);
-                end
-              else
+              {$else}
                 internalerror(2001020801);
+              {$endif} {$endif}
+            {$endif}
             t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
             result:=t;
           end
@@ -901,71 +903,26 @@ implementation
       end;
 
 
-    function ttypeconvnode.typecheck_string_to_string : tnode;
+    function ttypeconvnode.typecheck_char_to_string : tnode;
       var
         procname: string[31];
+        para : tcallparanode;
+        hp : tstringconstnode;
+        ws : pcompilerwidestring;
         newblock : tblocknode;
         newstat  : tstatementnode;
         restemp  : ttempcreatenode;
       begin
          result:=nil;
-         if (left.nodetype=stringconstn) and
-            ((not is_widechararray(left.resultdef) and
-              not is_widestring(left.resultdef)) or
-             (tstringdef(resultdef).stringtype=st_widestring) or
-             { non-ascii chars would be replaced with '?' -> loses info }
-             not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str))) then
-           begin
-             tstringconstnode(left).changestringtype(resultdef);
-             result:=left;
-             left:=nil;
-           end
-         else
-           begin
-             { get the correct procedure name }
-             procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+
-                         '_to_'+tstringdef(resultdef).stringtypname;
-
-             if tstringdef(resultdef).stringtype=st_shortstring then
-               begin
-                 newblock:=internalstatements(newstat);
-                 restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
-                 addstatement(newstat,restemp);
-                 addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
-                   ctemprefnode.create(restemp),nil))));
-                 addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
-                 addstatement(newstat,ctemprefnode.create(restemp));
-                 result:=newblock;
-               end
-             else
-               result := ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
-             left:=nil;
-           end;
-      end;
-
-
-    function ttypeconvnode.typecheck_char_to_string : tnode;
-
-      var
-         procname: string[31];
-         para : tcallparanode;
-         hp : tstringconstnode;
-         ws : pcompilerwidestring;
-         newblock : tblocknode;
-         newstat  : tstatementnode;
-         restemp  : ttempcreatenode;
-
-      begin
-         result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
          if (left.nodetype=ordconstn) and
-            ((tstringdef(resultdef).stringtype=st_widestring) or
+            ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
              { >=128 is destroyed }
              (tordconstnode(left).value.uvalue<128)) then
            begin
-              if tstringdef(resultdef).stringtype=st_widestring then
+              if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
@@ -973,6 +930,7 @@ implementation
                  else
                    concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value.uvalue)));
                  hp:=cstringconstnode.createwstr(ws);
+                 hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
               else
@@ -996,7 +954,7 @@ implementation
                    if torddef(left.resultdef).ordtype<>uwidechar then
                      procname := 'fpc_char_to_'
                    else
-                     procname := 'fpc_wchar_to_';
+                     procname := 'fpc_uchar_to_';
                    procname:=procname+tstringdef(resultdef).stringtypname;
 
                    { and the parameter }
@@ -1037,7 +995,6 @@ implementation
 
 
     function ttypeconvnode.typecheck_char_to_chararray : tnode;
-
       begin
         if resultdef.size <> 1 then
           begin
@@ -1053,10 +1010,8 @@ implementation
 
 
     function ttypeconvnode.typecheck_char_to_char : tnode;
-
       var
-         hp : tordconstnode;
-
+        hp : tordconstnode;
       begin
          result:=nil;
          if (left.nodetype=ordconstn) and
@@ -1236,7 +1191,8 @@ implementation
            inserttypeconv(left,cwidestringtype)
          else
            if is_pchar(resultdef) and
-              is_widestring(left.resultdef) then
+              (is_widestring(left.resultdef) or
+               is_unicodestring(left.resultdef)) then
              begin
                inserttypeconv(left,cansistringtype);
                { the second pass of second_cstring_to_pchar expects a  }
@@ -1322,6 +1278,18 @@ implementation
             'fpc_pchar_to_'+tstringdef(resultdef).stringtypname,
             ccallparanode.create(left,nil),resultdef);
         left:=nil;
+      end;
+
+
+    function ttypeconvnode.typecheck_interface_to_string : tnode;
+      begin
+        if assigned(tobjectdef(left.resultdef).iidstr) then
+          begin
+            if not(oo_has_valid_guid in tobjectdef(left.resultdef).objectoptions) then
+              CGMessage1(type_interface_has_no_guid,tobjectdef(left.resultdef).typename);
+            result:=cstringconstnode.createstr(tobjectdef(left.resultdef).iidstr^);
+            tstringconstnode(result).changestringtype(cshortstringtype);
+          end;
       end;
 
 
@@ -1568,7 +1536,7 @@ implementation
           {none} nil,
           {equal} nil,
           {not_possible} nil,
-          { string_2_string } @ttypeconvnode.typecheck_string_to_string,
+          { string_2_string } nil,
           { char_2_string } @ttypeconvnode.typecheck_char_to_string,
           { char_2_chararray } @ttypeconvnode.typecheck_char_to_chararray,
           { pchar_2_string } @ttypeconvnode.typecheck_pchar_to_string,
@@ -1592,7 +1560,7 @@ implementation
           { arrayconstructor_2_set } @ttypeconvnode.typecheck_arrayconstructor_to_set,
           { set_to_set } @ttypeconvnode.typecheck_set_to_set,
           { cord_2_pointer } @ttypeconvnode.typecheck_cord_to_pointer,
-          { intf_2_string } nil,
+          { intf_2_string } @ttypeconvnode.typecheck_interface_to_string,
           { intf_2_guid } @ttypeconvnode.typecheck_interface_to_guid,
           { class_2_intf } nil,
           { char_2_char } @ttypeconvnode.typecheck_char_to_char,
@@ -1628,8 +1596,7 @@ implementation
       begin
         result:=self;
         while (result.nodetype=typeconvn) and
-              (nf_absolute in result.flags) and
-              (resultdef.size=left.resultdef.size) do
+              ttypeconvnode(result).retains_value_location do
           result:=ttypeconvnode(result).left;
       end;
 
@@ -2064,6 +2031,21 @@ implementation
         { Constant folding and other node transitions to
           remove the typeconv node }
         case left.nodetype of
+          stringconstn :
+            if (convtype=tc_string_2_string) and
+              (
+                ((not is_widechararray(left.resultdef) and
+                  not is_wide_or_unicode_string(left.resultdef)) or
+                 (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
+                 { non-ascii chars would be replaced with '?' -> loses info }
+                 not hasnonasciichars(pcompilerwidestring(tstringconstnode(left).value_str)))
+              ) then
+              begin
+                tstringconstnode(left).changestringtype(resultdef);
+                result:=left;
+                left:=nil;
+                exit;
+              end;
           realconstn :
             begin
               if (convtype = tc_real_2_currency) then
@@ -2546,10 +2528,10 @@ implementation
       begin
         if (torddef(resultdef).ordtype=uchar) and
            (torddef(left.resultdef).ordtype=uwidechar) then
-          fname := 'fpc_wchar_to_char'
+          fname := 'fpc_uchar_to_char'
         else if (torddef(resultdef).ordtype=uwidechar) and
            (torddef(left.resultdef).ordtype=uchar) then
-          fname := 'fpc_char_to_wchar'
+          fname := 'fpc_char_to_uchar'
         else
           internalerror(2007081201);
 
@@ -2602,7 +2584,7 @@ implementation
         { equal sets for the code generator? }
         else if (left.resultdef.size=resultdef.size) and
                 (tsetdef(left.resultdef).setbase=tsetdef(resultdef).setbase) then
-          {$warning This causes wrong (but Delphi-compatible) results for disjoint subsets}
+          { TODO: This causes wrong (but Delphi-compatible) results for disjoint subsets}
           { e.g., this prints true because of this:
               var
                 sa: set of 1..2;
@@ -2730,6 +2712,34 @@ implementation
       end;
 
 
+    function ttypeconvnode.first_string_to_string : tnode;
+      var
+        procname: string[31];
+        newblock : tblocknode;
+        newstat  : tstatementnode;
+        restemp  : ttempcreatenode;
+      begin
+        { get the correct procedure name }
+        procname := 'fpc_'+tstringdef(left.resultdef).stringtypname+
+                    '_to_'+tstringdef(resultdef).stringtypname;
+
+        if tstringdef(resultdef).stringtype=st_shortstring then
+          begin
+            newblock:=internalstatements(newstat);
+            restemp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+            addstatement(newstat,restemp);
+            addstatement(newstat,ccallnode.createintern(procname,ccallparanode.create(left,ccallparanode.create(
+              ctemprefnode.create(restemp),nil))));
+            addstatement(newstat,ctempdeletenode.create_normal_temp(restemp));
+            addstatement(newstat,ctemprefnode.create(restemp));
+            result:=newblock;
+          end
+        else
+          result := ccallnode.createinternres(procname,ccallparanode.create(left,nil),resultdef);
+        left:=nil;
+      end;
+
+
     function ttypeconvnode._first_int_to_int : tnode;
       begin
          result:=first_int_to_int;
@@ -2840,6 +2850,11 @@ implementation
          result:=first_char_to_char;
       end;
 
+    function ttypeconvnode._first_string_to_string : tnode;
+      begin
+        result:=first_string_to_string;
+      end;
+
     function ttypeconvnode.first_call_helper(c : tconverttype) : tnode;
 
       const
@@ -2847,7 +2862,7 @@ implementation
            nil, { none }
            @ttypeconvnode._first_nothing, {equal}
            @ttypeconvnode._first_nothing, {not_possible}
-           nil, { removed in typecheck_string_to_string }
+           @ttypeconvnode._first_string_to_string,
            @ttypeconvnode._first_char_to_string,
            @ttypeconvnode._first_nothing, { char_2_chararray, needs nothing extra }
            nil, { removed in typecheck_chararray_to_string }
@@ -2916,7 +2931,7 @@ implementation
       end;
 
 
-    function ttypeconvnode.assign_allowed:boolean;
+    function ttypeconvnode.retains_value_location:boolean;
       begin
         result:=(convtype=tc_equal) or
                 { typecasting from void is always allowed }
@@ -2936,12 +2951,19 @@ implementation
                 ((convtype in [tc_int_2_bool,tc_bool_2_int,tc_bool_2_bool]) and
                  (nf_explicit in flags) and
                  (resultdef.size=left.resultdef.size));
+      end;
+
+
+    function ttypeconvnode.assign_allowed:boolean;
+      begin
+        result:=retains_value_location;
 
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }
         { the same goes for changing the sign of equal-sized values which
           are smaller than an entire register }
-        if (resultdef.size<left.resultdef.size) or
+        if result and
+           (resultdef.size<left.resultdef.size) or
            ((resultdef.size=left.resultdef.size) and
             (left.resultdef.size<sizeof(aint)) and
             (is_signed(resultdef) xor is_signed(left.resultdef))) then
@@ -3340,6 +3362,14 @@ implementation
           tasnode(result).call := call.getcopy
         else
           tasnode(result).call := nil;
+      end;
+
+
+    function tasnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          tasnode(p).call.isequal(call);
       end;
 
 

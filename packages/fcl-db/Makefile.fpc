@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-db
-version=2.0.0
+version=2.2.2
 
 [target]
 dirs=src/sdf src/memds src/sqldb src/base 
@@ -20,7 +20,7 @@ dirs_win64=src/dbase src/export src/datadict src/codegen
 dirs_wince=src/dbase src/sqlite src/export src/datadict src/codegen
 
 [require]
-packages=fcl-base
+packages=fcl-base fcl-xml
 
 [compiler]
 options=-S2h

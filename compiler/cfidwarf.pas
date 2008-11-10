@@ -395,7 +395,7 @@ implementation
     procedure TDwarfAsmCFI.cfa_offset(list:TAsmList;reg:tregister;ofs:longint);
       begin
         cfa_advance_loc(list);
-{$warning TODO check if ref is a temp}
+{ TODO: check if ref is a temp}
         { offset must be positive }
         DwarfList.concat(tdwarfitem.create_reg_const(DW_CFA_offset_extended,doe_uleb,reg,doe_uleb,ofs div data_alignment_factor));
       end;

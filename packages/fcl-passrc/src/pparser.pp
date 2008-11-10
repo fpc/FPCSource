@@ -1725,6 +1725,9 @@ begin
     if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'WRITE') then
       TPasProperty(Element).WriteAccessorName := GetAccessorName
     else
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'IMPLEMENTS') then
+      TPasProperty(Element).ImplementsName := GetAccessorName
+    else
 //    not write accessor will be recheck for another token
       UngetToken;
     
@@ -2106,7 +2109,9 @@ begin
         // !!!: Store interface name
       end;
       NextToken;
-    end;
+    end
+    else
+      TPasClassType(Result).isForward:=CurToken=tkSemicolon;
 
     if CurToken <> tkSemicolon then
     begin

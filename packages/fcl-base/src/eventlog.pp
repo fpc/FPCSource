@@ -108,10 +108,14 @@ Resourcestring
   SLogDebug     = 'Debug';
   SLogCustom    = 'Custom (%d)';
   SErrLogFailedMsg = 'Failed to log entry (Error: %s)';
-  
+
 implementation
 
-{$i eventlog.inc}
+{$if defined(win32) or defined(win64) or defined(unix)}
+ {$i eventlog.inc}
+{$else}
+ {$i felog.inc}
+{$endif}
 
 { TEventLog }
 
@@ -197,7 +201,7 @@ begin
   except
     On E : Exception do
       S:=E.Message;
-  end;  
+  end;
   If (S<>'') and RaiseExceptionOnError then
     Raise ELogError.CreateFmt(SErrLogFailedMsg,[S]);
 end;

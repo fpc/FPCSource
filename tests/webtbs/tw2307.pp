@@ -1,4 +1,4 @@
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 { Source provided for Free Pascal Bug Report 2307 }
 { Submitted by "Sergey Kosarevsky" on  2003-01-03 }
 { e-mail: netsurfer@au.ru }

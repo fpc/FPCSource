@@ -202,8 +202,6 @@ function gtk_window_get_resizable(window:PGtkWindow):gboolean; cdecl; external g
 procedure gtk_window_set_gravity(window:PGtkWindow; gravity:TGdkGravity); cdecl; external gtklib;
 function gtk_window_get_gravity(window:PGtkWindow):TGdkGravity; cdecl; external gtklib;
 procedure gtk_window_set_geometry_hints(window:PGtkWindow; geometry_widget:PGtkWidget; geometry:PGdkGeometry; geom_mask:TGdkWindowHints); cdecl; external gtklib;
-procedure gtk_window_set_screen(window:PGtkWindow; screen:PGdkScreen); cdecl; external gtklib;
-function gtk_window_get_screen(window:PGtkWindow):PGdkScreen; cdecl; external gtklib;
 { gtk_window_set_has_frame () must be called before realizing the window_ }
 procedure gtk_window_set_has_frame(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 function gtk_window_get_has_frame(window:PGtkWindow):gboolean; cdecl; external gtklib;
@@ -237,12 +235,15 @@ procedure gtk_window_unmaximize(window:PGtkWindow); cdecl; external gtklib;
 {$ifdef HasGTK2_2}
 procedure gtk_window_fullscreen(window: PGtkWindow); cdecl; external gtklib;
 procedure gtk_window_unfullscreen(window: PGtkWindow); cdecl; external gtklib;
-procedure gtk_window_set_keep_above(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
-procedure gtk_window_set_keep_below(window: PGtkWindow; setting: gboolean); cdecl; external gtklib;
-function  gtk_window_get_skip_pager_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
+procedure gtk_window_set_screen(window:PGtkWindow; screen:PGdkScreen); cdecl; external gtklib;
+function gtk_window_get_screen(window:PGtkWindow):PGdkScreen; cdecl; external gtklib;
+function gtk_window_get_skip_pager_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
 procedure gtk_window_set_skip_pager_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
-function  gtk_window_get_skip_taskbar_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
+function gtk_window_get_skip_taskbar_hint(window:PGtkWindow):gboolean; cdecl; external gtklib;
 procedure gtk_window_set_skip_taskbar_hint(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
+procedure gtk_window_set_auto_startup_notification(setting:gboolean); cdecl; external gtklib;
+function gtk_window_set_default_icon_from_file(filename: Pgchar; err: PPGError):gboolean; cdecl; external gtklib;
+function gtk_window_set_icon_from_file(window: PGtkWindow; filename: Pgchar; err: PPGError):gboolean; cdecl; external gtklib;
 {$endif HasGTK2_2}
 
 procedure gtk_window_begin_resize_drag(window:PGtkWindow; edge:TGdkWindowEdge; button:gint; root_x:gint; root_y:gint;
@@ -294,8 +295,18 @@ function gtk_window_get_accept_focus(window:PGtkWindow):gboolean; cdecl; externa
 procedure gtk_window_set_accept_focus(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 function gtk_window_has_toplevel_focus(window: PGtkWindow):gboolean;cdecl; external gtklib;
 function gtk_window_is_active(window: PGtkWindow):gboolean; cdecl; external gtklib;
+procedure gtk_window_set_default_icon(icon:PGdkPixbuf); cdecl; external gtklib;
+procedure gtk_window_set_keep_above(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
+procedure gtk_window_set_keep_below(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
+{$ifdef HasGTK2_6}
+function gtk_window_get_focus_on_map(window:PGtkWindow):gboolean; cdecl; external gtklib;
+function gtk_window_get_icon_name(window:PGtkWindow):Pgchar; cdecl; external gtklib;
+procedure gtk_window_set_default_icon_name(name:Pgchar); cdecl; external gtklib;
+procedure gtk_window_set_focus_on_map(window:PGtkWindow; setting:gboolean); cdecl; external gtklib;
+procedure gtk_window_set_icon_name(window:PGtkWindow; name:Pgchar); cdecl; external gtklib;
+{$endif}
 
 {$ENDIF read_interface_rest}
 

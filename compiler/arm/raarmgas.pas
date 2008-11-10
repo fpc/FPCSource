@@ -262,9 +262,7 @@ Unit raarmgas;
 
       procedure read_index(require_rbracket : boolean);
         var 
-          i : longint; 
-          w : word; 
-          recname : string; 
+          recname : string;
           o_int,s_int : aint;
         begin
           case actasmtoken of
@@ -651,7 +649,7 @@ Unit raarmgas;
         tempreg : tregister;
         ireg : tsuperregister;
         hl : tasmlabel;
-        ofs : longint;
+        {ofs : longint;}
         registerset : tcpuregisterset;
       Begin
         expr:='';
@@ -928,9 +926,7 @@ Unit raarmgas;
           PF_B,PF_D,PF_E,PF_P,PF_T,PF_H,PF_S);
 
       var
-        len,
-        j,
-        sufidx : longint;
+        j  : longint;
         hs : string;
         maxlen : longint;
         icond : tasmcond;
@@ -963,7 +959,7 @@ Unit raarmgas;
         actopcode:=A_NONE;
         for j:=maxlen downto 1 do
           begin
-            actopcode:=tasmop(PtrInt(iasmops.Find(copy(hs,1,j))));
+            actopcode:=tasmop(PtrUInt(iasmops.Find(copy(hs,1,j))));
             if actopcode<>A_NONE then
               begin
                 actasmtoken:=AS_OPCODE;

@@ -302,7 +302,7 @@ Resourcestring
   SMethodNotFound = 'Method <%s> not found';
   SNoValidInheritance = ' does not inherit from TTestCase';
   SNoValidTests = 'No valid tests found in ';
-
+  SNoException = 'no exception';
 
 implementation
 
@@ -712,6 +712,7 @@ begin
   Passed := False;
   try
     AMethod;
+    ExceptionName:=SNoException;
   except
     on E: Exception do
     begin
@@ -1034,6 +1035,7 @@ begin
   FTests.Add(ATest);
   if ATest.TestSuiteName = '' then
     ATest.TestSuiteName := Self.TestName;
+  ATest.EnableIgnores := Self.EnableIgnores;
 end;
 
 

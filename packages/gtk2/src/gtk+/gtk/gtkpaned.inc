@@ -113,6 +113,11 @@ procedure gtk_paned_set_gutter_size(p: pointer; s : gint);
 {$endif}
 { GTK_DISABLE_DEPRECATED  }
 
+{$ifdef HasGTK2_4}
+function gtk_paned_get_child1(paned: PGtkPaned): PGtkWidget; cdecl; external gtklib;
+function gtk_paned_get_child2(paned: PGtkPaned): PGtkWidget; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

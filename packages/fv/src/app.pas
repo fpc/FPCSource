@@ -38,7 +38,7 @@ UNIT App;
 {<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>}
 
 {====Include file to sort compiler platform out =====================}
-{$I Platform.inc}
+{$I platform.inc}
 {====================================================================}
 
 {==== Compiler directives ===========================================}
@@ -1069,6 +1069,7 @@ BEGIN                                                 { Compatability only }
 {  InitDosMem;}
   drivers.initkeyboard;
   drivers.initvideo;
+  Video.SetCursorType(crHidden);
   InitScreen;
   InitEvents;
   InitSysError;

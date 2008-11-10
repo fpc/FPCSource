@@ -409,7 +409,7 @@ implementation
         { the variables are always public }
         current_object_option:=[sp_public];
         inc(testcurobject);
-        block_type:=bt_type;
+        block_type:=bt_var;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -467,8 +467,10 @@ implementation
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
               begin
+                block_type:=bt_var_type;
                 consume(_COLON);
                 single_type(pv.returndef,false);
+                block_type:=bt_var;
               end;
              hdef:=pv;
              { possible proc directives }
@@ -517,7 +519,11 @@ implementation
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else
-                  single_type(hdef,false);
+                  begin
+                    block_type:=bt_var_type;
+                    single_type(hdef,false);
+                    block_type:=bt_var;
+                  end;
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
@@ -901,6 +907,7 @@ implementation
         pd : tprocdef;
         isclassmethod : boolean;
         locationstr: string;
+        old_parse_generic,
         popclass : boolean;
       begin
         locationstr:='';
@@ -929,6 +936,7 @@ implementation
                     begin
                       if try_to_consume(_COLON) then
                        begin
+                         old_parse_generic:=parse_generic;
                          inc(testcurobject);
                          { Add ObjectSymtable to be able to find generic type definitions }
                          popclass:=false;
@@ -938,11 +946,13 @@ implementation
                            begin
                              symtablestack.push(pd._class.symtable);
                              popclass:=true;
+                             parse_generic:=(df_generic in pd._class.defoptions);
                            end;
                          single_type(pd.returndef,false);
                          if popclass then
                            symtablestack.pop(pd._class.symtable);
                          dec(testcurobject);
+                         parse_generic:=old_parse_generic;
 
                          if (target_info.system in [system_m68k_amiga]) then
                           begin
@@ -1605,6 +1615,15 @@ begin
 end;
 
 
+procedure pd_weakexternal(pd:tabstractprocdef);
+begin
+  if not(target_info.system in system_weak_linking) then
+    message(parser_e_weak_external_not_supported)
+  else
+    pd_external(pd);
+end;
+
+
 type
    pd_handler=procedure(pd:tabstractprocdef);
    proc_dir_rec=record
@@ -1619,7 +1638,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=39;
+  num_proc_directives=40;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1916,7 +1935,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_STATIC;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_implemen,pd_body,pd_object,pd_notobjintf];
       handler  : @pd_static;
       pocall   : pocall_none;
       pooption : [po_staticmethod];
@@ -1981,6 +2000,19 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_WEAKEXTERNAL;
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
+      handler  : @pd_weakexternal;
+      pocall   : pocall_none;
+      { mark it both external and weak external, so we don't have to
+        adapt all code for external symbols to also check for weak external
+      }
+      pooption : [po_external,po_weakexternal];
+      mutexclpocall : [pocall_internproc,pocall_syscall];
+      { allowed for external cpp classes }
+      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     )
    );
 
@@ -2243,8 +2275,13 @@ const
                     if s<>'' then
                       begin
                         { Replace ? and @ in import name }
-                        Replace(s,'?','__q$$');
-                        Replace(s,'@','__a$$');
+                        { these replaces broke existing code on i386-win32 at least, while fixed
+                          bug 8391 on arm-wince so limit this to arm-wince (KB) }
+                        if target_info.system in [system_arm_wince] then
+                          begin
+                            Replace(s,'?','__q$$');
+                            Replace(s,'@','__a$$');
+                          end;
                         pd.setmangledname(s);
                       end;
                   end;
@@ -2406,7 +2443,7 @@ const
              because a constant/default value follows }
            if res then
             begin
-              if (block_type in [bt_const,bt_type]) and
+              if (block_type=bt_const_type) and
                  (token=_EQUAL) then
                break;
               { support procedure proc;stdcall export; }

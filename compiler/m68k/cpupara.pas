@@ -144,7 +144,7 @@ unit cpupara;
       end;
 
 
-{$warning copied from ppc cg, needs work}
+{ TODO: copied from ppc cg, needs work}
     function tm68kparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;

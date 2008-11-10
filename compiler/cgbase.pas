@@ -102,7 +102,9 @@ interface
           OP_SHL,       { logical shift left       }
           OP_SHR,       { logical shift right      }
           OP_SUB,       { simple subtraction       }
-          OP_XOR        { simple exclusive or      }
+          OP_XOR,       { simple exclusive or      }
+          OP_ROL,       { rotate left              }
+          OP_ROR        { rotate right             }
         );
 
        {# Generic flag values - used for jump locations }
@@ -638,7 +640,7 @@ implementation
       const
         list: array[topcg] of boolean =
           (true,false,true,true,false,false,true,true,false,false,
-           true,false,false,false,false,true);
+           true,false,false,false,false,true,false,false);
       begin
         commutativeop := list[op];
       end;

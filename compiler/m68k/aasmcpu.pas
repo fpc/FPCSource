@@ -107,7 +107,7 @@ type
       globtype;
 
 
-{$WARNING FIX ME!! useful for debug, remove it, same table as in ag68kgas }
+{ TODO: FIX ME!! useful for debug, remove it, same table as in ag68kgas }
     const
       gas_op2str:op2strtable=
     {  warning: CPU32 opcodes are not fully compatible with the MC68020. }
@@ -526,7 +526,7 @@ type
           A_NEG, A_EXT, A_EXTB, A_NOT:
             result:=operand_readwrite;
           else begin
-{$WARNING FIX ME!!! remove ugly debug code ... }
+{ TODO: FIX ME!!! remove ugly debug code ... }
             writeln('M68K: unknown opcode when spilling: ',gas_op2str[opcode]);
             internalerror(200404091);
           end;

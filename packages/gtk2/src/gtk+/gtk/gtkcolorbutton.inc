@@ -35,8 +35,6 @@ function GTK_IS_COLOR_BUTTON(obj : pointer) : gboolean;
 function GTK_IS_COLOR_BUTTON_CLASS(klass : pointer) : gboolean;
 function GTK_COLOR_BUTTON_GET_CLASS(obj : pointer) : PGtkColorButtonClass;
 
-
-
 function gtk_color_button_get_type:GType;cdecl;external gtklib name 'gtk_color_button_get_type';
 function gtk_color_button_new:PGtkWidget;cdecl;external gtklib name 'gtk_color_button_new';
 

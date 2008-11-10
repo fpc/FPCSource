@@ -493,8 +493,7 @@ unit cgcpu;
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) and
-           not(po_kylixlocal in current_procinfo.procdef.procoptions) then
+           (pi_needs_got in current_procinfo.flags) then
           begin
             if (target_info.system<>system_i386_darwin) then
               begin
@@ -654,7 +653,7 @@ unit cgcpu;
             else
               begin
                 { case 1 }
-                cg.a_call_name(list,procdef.mangledname);
+                cg.a_call_name(list,procdef.mangledname,false);
               end;
             { restore param1 value self to interface }
             g_adjust_self_value(list,procdef,-ioffset);
@@ -694,7 +693,7 @@ unit cgcpu;
                 list.concat(taicpu.op_sym(A_JMP,S_NO,lab))
               end
             else
-              list.concat(taicpu.op_sym(A_JMP,S_NO,get_darwin_call_stub(procdef.mangledname)))
+              list.concat(taicpu.op_sym(A_JMP,S_NO,get_darwin_call_stub(procdef.mangledname,false)))
           end;
 
         List.concat(Tai_symbol_end.Createname(labelname));

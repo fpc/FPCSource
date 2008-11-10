@@ -413,7 +413,7 @@ implementation
                             else if (cs_ansistrings in current_settings.localswitches) and
                                (tstringdef(def_to).stringtype=st_ansistring) then
                               eq:=te_equal
-                            else if tstringdef(def_to).stringtype=st_widestring then
+                            else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
                               eq:=te_convert_l3
                             else
                               eq:=te_convert_l1;
@@ -425,7 +425,7 @@ implementation
                             begin
                               if is_ansistring(def_to) then
                                 eq:=te_convert_l1
-                              else if is_widestring(def_to) then
+                              else if is_widestring(def_to) or is_unicodestring(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -446,7 +446,7 @@ implementation
                                   else
                                     eq:=te_convert_l2;
                                 end
-                              else if is_widestring(def_to) then
+                              else if is_widestring(def_to) or is_unicodestring(def_to) then
                                 eq:=te_convert_l3
                               else
                                 eq:=te_convert_l2;
@@ -458,7 +458,7 @@ implementation
                       if is_widechararray(def_from) or is_open_widechararray(def_from) then
                        begin
                          doconv:=tc_chararray_2_string;
-                         if is_widestring(def_to) then
+                         if is_widestring(def_to) or is_unicodestring(def_to) then
                            eq:=te_convert_l1
                          else
                            { size of widechar array is double due the sizeof a widechar }
@@ -490,12 +490,21 @@ implementation
                           else if is_pwidechar(def_from) then
                            begin
                              doconv:=tc_pwchar_2_string;
-                             if is_widestring(def_to) then
+                             if is_widestring(def_to) or is_unicodestring(def_to)  then
                                eq:=te_convert_l1
                              else
                                eq:=te_convert_l3;
                            end;
                        end;
+                   end;
+                 objectdef :
+                   begin
+                     { corba interface -> id string }
+                     if is_interfacecorba(def_from) then
+                      begin
+                        doconv:=tc_intf_2_string;
+                        eq:=te_convert_l1;
+                      end;
                    end;
                end;
              end;
@@ -881,18 +890,14 @@ implementation
                    begin
                      { string constant (which can be part of array constructor)
                        to zero terminated string constant }
-                     if (((fromtreetype = arrayconstructorn) and
-                          { can't use is_chararray, because returns false for }
-                          { array constructors                                }
-                          is_char(tarraydef(def_from).elementdef)) or
-                         (fromtreetype = stringconstn)) and
+                     if (fromtreetype = stringconstn) and
                         (is_pchar(def_to) or is_pwidechar(def_to)) then
                       begin
                         doconv:=tc_cstring_2_pchar;
                         eq:=te_convert_l2;
                       end
                      else
-                      if cdo_explicit in cdoptions then
+                      if (cdo_explicit in cdoptions) or (fromtreetype = arrayconstructorn) then
                        begin
                          { pchar(ansistring) }
                          if is_pchar(def_to) and
@@ -904,7 +909,7 @@ implementation
                          else
                           { pwidechar(widestring) }
                           if is_pwidechar(def_to) and
-                             is_widestring(def_from) then
+                            is_wide_or_unicode_string(def_from) then
                            begin
                              doconv:=tc_ansistring_2_pchar;
                              eq:=te_convert_l1;
@@ -1259,7 +1264,7 @@ implementation
                      end
                    { ugly, but delphi allows it }
                    else if (eq=te_incompatible) and
-                     (def_from.typ=orddef) and
+                     (def_from.typ in [orddef,enumdef]) and
                      (m_delphi in current_settings.modeswitches) and
                      (cdo_explicit in cdoptions) then
                      begin
@@ -1362,8 +1367,8 @@ implementation
            recorddef :
              begin
                { interface -> guid }
-               if is_interface(def_from) and
-                  (def_to=rec_tguid) then
+               if (def_to=rec_tguid) and
+                  (is_interfacecom(def_from) or is_dispinterface(def_from)) then
                 begin
                   doconv:=tc_intf_2_guid;
                   eq:=te_convert_l1;

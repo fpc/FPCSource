@@ -1,7 +1,11 @@
 // included by glib2.pas
 
-{ --- typedefs ---  }
-type
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
    PGSignalInvocationHint = ^TGSignalInvocationHint;
 
    PGSignalCMarshaller = ^TGSignalCMarshaller;
@@ -34,7 +38,11 @@ type
         n_params : guint;
         param_types : PGType;
      end;
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
 
 const
    G_SIGNAL_RUN_FIRST = 1 shl 0;
@@ -146,5 +154,6 @@ procedure g_signal_handlers_unblock_by_func(instance: gpointer; func, data: gpoi
 procedure g_signal_handlers_destroy(instance:gpointer); cdecl; external gobjectlib;
 procedure _g_signals_destroy(itype:GType); cdecl; external gobjectlib;
 
+{$ENDIF read_interface_rest}
 // included by glib2.pas
 

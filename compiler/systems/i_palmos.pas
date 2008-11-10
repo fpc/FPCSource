@@ -21,6 +21,8 @@
 { This unit implements support information structures for PalmOS. }
 unit i_palmos;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -90,7 +92,11 @@ unit i_palmos;
           (
             id     : res_m68k_palmos;
             resbin : 'pilrc';
-            rescmd : '-I $INC $RES'
+            rescmd : '-I $INC $RES';
+            rcbin  : '';
+            rccmd  : '';
+            resourcefileclass : nil;
+            resflags : [];
           );
 
        system_arm_palmos_info : tsysteminfo =
@@ -156,7 +162,11 @@ unit i_palmos;
           (
             id     : res_m68k_palmos;
             resbin : 'pilrc';
-            rescmd : '-I $INC $RES'
+            rescmd : '-I $INC $RES';
+            rcbin  : '';
+            rccmd  : '';
+            resourcefileclass : nil;
+            resflags : [];
           );
 
 implementation

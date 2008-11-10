@@ -16,11 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='tcl';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('tcl80.pp');
 
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('tcl_demo.pp');
+    // 'test.tcl
 
 {$ifndef ALLPACKAGES}
     Run;

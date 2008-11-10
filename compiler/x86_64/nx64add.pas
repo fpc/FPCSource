@@ -30,7 +30,8 @@ interface
 
     type
        tx8664addnode = class(tx86addnode)
-          procedure second_mul;override;
+          procedure second_addordinal; override;
+          procedure second_mul;
        end;
 
   implementation
@@ -41,6 +42,24 @@ interface
       defutil,
       cgbase,cgutils,cga,cgobj,
       tgobj;
+
+{*****************************************************************************
+                                Addordinal
+*****************************************************************************}
+
+    procedure tx8664addnode.second_addordinal;
+    begin
+      { filter unsigned MUL opcode, which requires special handling }
+      if (nodetype=muln) and
+        (not(is_signed(left.resultdef)) or
+         not(is_signed(right.resultdef))) then
+      begin
+        second_mul;
+        exit;
+      end;
+
+      inherited second_addordinal;
+    end;
 
 {*****************************************************************************
                                 MUL
@@ -88,7 +107,7 @@ interface
        begin
          current_asmdata.getjumplabel(hl4);
          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4);
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
          cg.a_label(current_asmdata.CurrAsmList,hl4);
        end;
       { Free RDX,RAX }

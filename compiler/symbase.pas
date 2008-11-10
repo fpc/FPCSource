@@ -104,8 +104,8 @@ interface
           function  getcopy:TSymtable;
           procedure clear;virtual;
           function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
-          procedure insert(sym:TSymEntry;checkdup:boolean=true);
-          procedure Delete(sym:TSymEntry);
+          procedure insert(sym:TSymEntry;checkdup:boolean=true);virtual;
+          procedure Delete(sym:TSymEntry);virtual;
           function  Find(const s:TIDString) : TSymEntry;
           function  FindWithHash(const s:THashedIDString) : TSymEntry;virtual;
           procedure insertdef(def:TDefEntry);virtual;
@@ -214,7 +214,7 @@ implementation
              name:=nil;
              realname:=nil;
            end;
-         symtabletype:=abstracTSymtable;
+         symtabletype:=abstractsymtable;
          symtablelevel:=0;
          defowner:=nil;
          DefList:=TFPObjectList.Create(true);
@@ -230,9 +230,9 @@ implementation
           exit;
         Clear;
         DefList.Free;
-        { SymList can already be disposed or set to nil for withsymtable }
-        if assigned(SymList) then
-          SymList.Free;
+        { SymList can already be disposed or set to nil for withsymtable, }
+        { but in that case Free does nothing                              }
+        SymList.Free;
         stringdispose(name);
         stringdispose(realname);
       end;

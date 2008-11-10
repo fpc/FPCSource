@@ -24,6 +24,7 @@ type
 {$ENDIF read_interface_types}
 
 {$IFDEF read_interface_rest}
+
 function GTK_TYPE_COMBO_BOX_ENTRY : GType;
 function GTK_COMBO_BOX_ENTRY(obj : pointer) : PGtkComboBoxEntry;
 function GTK_COMBO_BOX_ENTRY_CLASS(vtable : pointer) : PGtkComboBoxEntryClass;

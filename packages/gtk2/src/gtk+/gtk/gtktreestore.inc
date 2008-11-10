@@ -84,18 +84,13 @@ function gtk_tree_store_is_ancestor(tree_store:PGtkTreeStore; iter:PGtkTreeIter;
 function gtk_tree_store_iter_depth(tree_store:PGtkTreeStore; iter:PGtkTreeIter):gint; cdecl; external gtklib;
 procedure gtk_tree_store_clear(tree_store:PGtkTreeStore); cdecl; external gtklib;
 
-{$IFDEF GTK2_2}
-function gtk_tree_store_iter_is_valid(tree_store:PGtkTreeStore;
-  iter:PGtkTreeIter):gboolean; cdecl; external gtklib;
-procedure gtk_tree_store_reorder(tree_store:PGtkTreeStore;
-  parent:PGtkTreeIter; new_order:pgint); cdecl; external gtklib;
-procedure gtk_tree_store_swap(tree_store:PGtkTreeStore;
-  a:PGtkTreeIter; b:PGtkTreeIter); cdecl; external gtklib;
-procedure gtk_tree_store_move_before(tree_store:PGtkTreeStore;
-  iter:PGtkTreeIter; position:PGtkTreeIter); cdecl; external gtklib;
-procedure gtk_tree_store_move_after(tree_store:PGtkTreeStore;
-  iter:PGtkTreeIter; position:PGtkTreeIter); cdecl; external gtklib;
-{$ENDIF}
+{$IFDEF HasGTK2_2}
+function gtk_tree_store_iter_is_valid(tree_store:PGtkTreeStore; iter:PGtkTreeIter):gboolean; cdecl; external gtklib;
+procedure gtk_tree_store_reorder(tree_store:PGtkTreeStore; parent:PGtkTreeIter; new_order:pgint); cdecl; external gtklib;
+procedure gtk_tree_store_swap(tree_store:PGtkTreeStore; a:PGtkTreeIter; b:PGtkTreeIter); cdecl; external gtklib;
+procedure gtk_tree_store_move_before(tree_store:PGtkTreeStore; iter:PGtkTreeIter; position:PGtkTreeIter); cdecl; external gtklib;
+procedure gtk_tree_store_move_after(tree_store:PGtkTreeStore; iter:PGtkTreeIter; position:PGtkTreeIter); cdecl; external gtklib;
+{$ENDIF HasGTK2_2}
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

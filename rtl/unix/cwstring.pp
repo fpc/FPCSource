@@ -705,7 +705,7 @@ end;
 
 Procedure SetCWideStringManager;
 Var
-  CWideStringManager : TWideStringManager;
+  CWideStringManager : TUnicodeStringManager;
 begin
   CWideStringManager:=widestringmanager;
   With CWideStringManager do
@@ -733,8 +733,15 @@ begin
       StrUpperAnsiStringProc:=@AnsiStrUpper;
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
+{$ifndef VER2_2}
+      { Unicode }
+      Unicode2AnsiMoveProc:=@Wide2AnsiMove;
+      Ansi2UnicodeMoveProc:=@Ansi2WideMove;
+      UpperUnicodeStringProc:=@UpperWideString;
+      LowerUnicodeStringProc:=@LowerWideString;
+{$endif VER2_2}
     end;
-  SetWideStringManager(CWideStringManager);
+  SetUnicodeStringManager(CWideStringManager);
 end;
 
 
@@ -752,3 +759,4 @@ finalization
   { fini conversion tables for main program }
   FiniThread;
 end.
+

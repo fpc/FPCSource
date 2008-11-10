@@ -1399,8 +1399,7 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       if (block_type<>bt_specialize) and
-                          try_to_consume(_LKLAMMER) then
+                       if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
@@ -1486,7 +1485,7 @@ implementation
                                 { For a type block we simply return only
                                   the type. For all other blocks we return
                                   a loadvmt node }
-                                if not(block_type in [bt_type,bt_specialize]) then
+                                if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
                                   p1:=cloadvmtaddrnode.create(p1);
                               end;
                            end
@@ -1568,6 +1567,8 @@ implementation
                     { property of a class/object? }
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
+                        if (srsymtable.symtabletype=ObjectSymtable) then
+                          p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype=ObjectSymtable) then
@@ -2158,7 +2159,7 @@ implementation
            again:=true;
            { Handle references to self }
            if (idtoken=_SELF) and
-              not(block_type in [bt_const,bt_type]) and
+              not(block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) and
               assigned(current_procinfo) and
               assigned(current_procinfo.procdef._class) then
              begin
@@ -2232,22 +2233,23 @@ implementation
                      check_hints(srsym,srsym.symoptions);
                      { load the procdef from the inherited class and
                        not from self }
-                     if srsym.typ in [procsym,propertysym] then
-                      begin
-                        if (srsym.typ = procsym) then
-                          begin
-                            hdef:=hclassdef;
-                            if (po_classmethod in current_procinfo.procdef.procoptions) or
-                               (po_staticmethod in current_procinfo.procdef.procoptions) then
-                              hdef:=tclassrefdef.create(hdef);
-                            p1:=ctypenode.create(hdef);
-                          end;
-                      end
-                     else
-                      begin
-                        Message(parser_e_methode_id_expected);
-                        p1:=cerrornode.create;
-                      end;
+                     case srsym.typ of
+                       procsym:
+                         begin
+                           hdef:=hclassdef;
+                           if (po_classmethod in current_procinfo.procdef.procoptions) or
+                              (po_staticmethod in current_procinfo.procdef.procoptions) then
+                             hdef:=tclassrefdef.create(hdef);
+                           p1:=ctypenode.create(hdef);
+                         end;
+                       propertysym:
+                         ;
+                       else
+                         begin
+                           Message(parser_e_methode_id_expected);
+                           p1:=cerrornode.create;
+                         end;
+                     end;
                      do_member_read(hclassdef,getaddr,srsym,p1,again,[cnf_inherited,cnf_anon_inherited]);
                    end
                   else

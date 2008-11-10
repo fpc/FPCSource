@@ -15,10 +15,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='pxlib';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     T:=P.Targets.AddUnit('src/pxlib.pp');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/ppxview.pp');
+      T.OSes:=[Linux];
 {$ifndef ALLPACKAGES}
     Run;
     end;

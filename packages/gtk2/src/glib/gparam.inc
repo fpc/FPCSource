@@ -1,48 +1,61 @@
 // included by glib2.pas
 
 {$IFDEF read_forward_definitions}
-{ --- flags ---  }
-   PGParamFlags = ^TGParamFlags;
-   TGParamFlags = longint;
+  PGParamFlags = ^TGParamFlags;
+  TGParamFlags = longint;
 
-{ --- typedefs & structures ---  }
-{ class using this property  }
-{< private > }
-{ sort-criteria  }
-   PGParamSpec = ^TGParamSpec;
-   PPGParamSpec = ^PGParamSpec;
-   TGParamSpec = record
-        g_type_instance : TGTypeInstance;
-        name : Pgchar;
-        flags : TGParamFlags;
-        value_type : GType;
-        owner_type : GType;
-        _nick : Pgchar;
-        _blurb : Pgchar;
-        qdata : PGData;
-        ref_count : guint;
-        param_id : guint;
-     end;
+  PGParamSpec = ^TGParamSpec;
+  PPGParamSpec = ^PGParamSpec;
 
-{ GParam methods  }
-   PGParamSpecClass = ^TGParamSpecClass;
-   TGParamSpecClass = record
-        g_type_class : TGTypeClass;
-        value_type : GType;
-        finalize : procedure (pspec:PGParamSpec); cdecl;
-        value_set_default : procedure (pspec:PGParamSpec; value:PGValue); cdecl;
-        value_validate : function (pspec:PGParamSpec; value:PGValue):gboolean; cdecl;
-        values_cmp : function (pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl;
-        dummy : array[0..3] of gpointer;
-     end;
+  PGParamSpecClass = ^TGParamSpecClass;
 
-{ auxillary structure for _setv() variants  }
-   PGParameter = ^TGParameter;
-   TGParameter = record
-        name : Pgchar;
-        value : TGValue;
-     end;
+  PGParameter = ^TGParameter;
+
+  PGParamSpecTypeInfo = ^TGParamSpecTypeInfo;
 {$ENDIF read_forward_definitions}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_types}
+  TGParamSpec = record
+    g_type_instance : TGTypeInstance;
+    name : Pgchar;
+    flags : TGParamFlags;
+    value_type : GType;
+    owner_type : GType;
+    _nick : Pgchar;
+    _blurb : Pgchar;
+    qdata : PGData;
+    ref_count : guint;
+    param_id : guint;
+  end;
+
+  TGParamSpecClass = record
+    g_type_class : TGTypeClass;
+    value_type : GType;
+    finalize : procedure (pspec:PGParamSpec); cdecl;
+    value_set_default : procedure (pspec:PGParamSpec; value:PGValue); cdecl;
+    value_validate : function (pspec:PGParamSpec; value:PGValue):gboolean; cdecl;
+    values_cmp : function (pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl;
+    dummy : array[0..3] of gpointer;
+  end;
+
+  TGParameter = record
+    name : Pgchar;
+    value : TGValue;
+  end;
+
+  TGParamSpecTypeInfo = record
+    instance_size : guint16;
+    n_preallocs : guint16;
+    instance_init : procedure (pspec:PGParamSpec); cdecl;
+    value_type : GType;
+    finalize : procedure (pspec:PGParamSpec); cdecl;
+    value_set_default : procedure (pspec:PGParamSpec; value:PGValue); cdecl;
+    value_validate : function (pspec:PGParamSpec; value:PGValue):gboolean; cdecl;
+    values_cmp : function (pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl;
+  end;
+{$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------
 
@@ -101,30 +114,6 @@ function g_value_dup_param(value:PGValue):PGParamSpec; cdecl; external gliblib;
 { --- marshaller specific ---  }
 procedure g_value_set_param_take_ownership(value:PGValue; param:PGParamSpec); cdecl; external gliblib;
 { --- convenience functions ---  }
-
-
-type
-{ type system portion  }
-{ obligatory  }
-{ optional  }
-{ optional  }
-{ class portion  }
-{ obligatory  }
-{ optional  }
-{ recommended  }
-{ optional  }
-{ recommended  }
-   PGParamSpecTypeInfo = ^TGParamSpecTypeInfo;
-   TGParamSpecTypeInfo = record
-        instance_size : guint16;
-        n_preallocs : guint16;
-        instance_init : procedure (pspec:PGParamSpec); cdecl;
-        value_type : GType;
-        finalize : procedure (pspec:PGParamSpec); cdecl;
-        value_set_default : procedure (pspec:PGParamSpec; value:PGValue); cdecl;
-        value_validate : function (pspec:PGParamSpec; value:PGValue):gboolean; cdecl;
-        values_cmp : function (pspec:PGParamSpec; value1:PGValue; value2:PGValue):gint; cdecl;
-     end;
 
 
 function g_param_type_register_static(name:Pgchar; pspec_info:PGParamSpecTypeInfo):GType; cdecl; external gliblib;

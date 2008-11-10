@@ -25,14 +25,23 @@ unit switches;
 
 interface
 
+uses
+  globtype;
+
 procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
 
+procedure recordpendingverbosityswitch(sw: char; state: char);
+procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
+procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
+procedure recordpendingverbosityfullswitch(verbosity: longint);
+procedure flushpendingswitchesstate;
 
 implementation
 uses
-  globtype,systems,cpuinfo,
-  globals,verbose,fmodule;
+  systems,cpuinfo,
+  globals,verbose,comphook,
+  fmodule;
 
 {****************************************************************************
                           Main Switches Parsing
@@ -149,15 +158,7 @@ begin
        unsupportedsw :
          Message1(scan_w_unsupported_switch,'$'+switch);
        localsw :
-         begin
-           if not localswitcheschanged then
-             nextlocalswitches:=current_settings.localswitches;
-           if state='+' then
-            include(nextlocalswitches,tlocalswitch(setsw))
-           else
-            exclude(nextlocalswitches,tlocalswitch(setsw));
-           localswitcheschanged:=true;
-         end;
+         recordpendinglocalswitch(tlocalswitch(setsw),state);
        modulesw :
          begin
            if current_module.in_global then
@@ -254,6 +255,66 @@ begin
      CheckSwitch:=found;
    end;
 end;
+
+
+procedure recordpendingverbosityswitch(sw: char; state: char);
+  begin
+    pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
+  end;
+
+
+procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
+  begin
+    if not pendingstate.localswitcheschanged then
+       pendingstate.nextlocalswitches:=current_settings.localswitches;
+    if state='-' then
+      exclude(pendingstate.nextlocalswitches,sw)
+    else if state='+' then
+      include(pendingstate.nextlocalswitches,sw)
+    else { state = '*' }
+      begin
+        if sw in init_settings.localswitches then
+         include(pendingstate.nextlocalswitches,sw)
+        else
+         exclude(pendingstate.nextlocalswitches,sw);
+      end;
+    pendingstate.localswitcheschanged:=true;
+  end;
+
+
+procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
+  begin
+    pendingstate.nextlocalswitches:=switches;
+    pendingstate.localswitcheschanged:=true;
+  end;
+
+
+procedure recordpendingverbosityfullswitch(verbosity: longint);
+  begin
+    pendingstate.nextverbositystr:='';
+    pendingstate.nextverbosityfullswitch:=verbosity;
+    pendingstate.verbosityfullswitched:=true;
+  end;
+
+
+procedure flushpendingswitchesstate;
+  begin
+    if pendingstate.localswitcheschanged then
+      begin
+        current_settings.localswitches:=pendingstate.nextlocalswitches;
+        pendingstate.localswitcheschanged:=false;
+      end;
+    if pendingstate.verbosityfullswitched then
+      begin
+        status.verbosity:=pendingstate.nextverbosityfullswitch;
+        pendingstate.verbosityfullswitched:=false;
+      end;
+    if pendingstate.nextverbositystr<>'' then
+      begin
+        setverbosity(pendingstate.nextverbositystr);
+        pendingstate.nextverbositystr:='';
+      end;
+  end;
 
 
 end.

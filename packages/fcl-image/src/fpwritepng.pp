@@ -412,7 +412,7 @@ begin
         FPalette.Build (TheImage);
         end;
       if ThePalette.count > 256 then
-        raise PNGImageException.Create ('To many colors to use indexed PNG color type');
+        raise PNGImageException.Create ('Too many colors to use indexed PNG color type');
       ColorType := 3;
       FUsetRNS := C > 1;
       BitDepth := 8;

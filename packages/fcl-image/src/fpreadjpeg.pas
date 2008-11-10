@@ -223,6 +223,7 @@ var
     LinesRead: Cardinal;
     x: Integer;
     y: Integer;
+    c: word;
   begin
     InitReadingPixels;
 
@@ -253,11 +254,22 @@ var
           Img.Colors[x,y]:=CorrectCMYK(Color);
         end
         else
-        for x:=0 to FInfo.output_width-1 do begin
-          Color.Red:=SampRow^[x*3+0] shl 8;
-          Color.Green:=SampRow^[x*3+1] shl 8;
-          Color.Blue:=SampRow^[x*3+2] shl 8;
-          Img.Colors[x,y]:=Color;
+        if fgrayscale then begin
+         for x:=0 to FInfo.output_width-1 do begin
+           c:= SampRow^[x] shl 8;
+           Color.Red:=c;
+           Color.Green:=c;
+           Color.Blue:=c;
+           Img.Colors[x,y]:=Color;
+         end;
+        end
+        else begin
+         for x:=0 to FInfo.output_width-1 do begin
+           Color.Red:=SampRow^[x*3+0] shl 8;
+           Color.Green:=SampRow^[x*3+1] shl 8;
+           Color.Blue:=SampRow^[x*3+2] shl 8;
+           Img.Colors[x,y]:=Color;
+         end;
         end;
         inc(y);
       end;

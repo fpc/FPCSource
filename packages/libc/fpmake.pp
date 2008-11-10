@@ -16,8 +16,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libc';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Peter Vreman and Michael van Canneyt (?)';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Kylix compatibility libc header, (linux/x86 only, deprecated for new development)';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
     P.OSES:=[linux];
     p.cpus:=[i386];
     T:=P.Targets.AddUnit('kerneldefs.pp');
@@ -256,7 +265,7 @@ begin
           AddUnit('kerneldefs');
           AddUnit('kernelioctl');
         end;
-
+     p.Sources.Adddoc('README');
 
 {$ifndef ALLPACKAGES}
     Run;

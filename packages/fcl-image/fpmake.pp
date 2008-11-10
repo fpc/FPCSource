@@ -16,11 +16,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-image';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
-
+    P.Version:='2.2.2-0';
     P.Dependencies.Add('pasjpeg');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
+
+    P.Author := 'Michael Van Canneyt of the Free Pascal development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -29,6 +35,11 @@ begin
       with T.Dependencies do
         begin
           AddUnit('fpimgcmn');
+        end;
+    T:=P.Targets.AddUnit('fptiffcmn.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
         end;
     T:=P.Targets.AddUnit('clipping.pp');
     T:=P.Targets.AddUnit('ellipses.pp');
@@ -134,6 +145,12 @@ begin
           AddUnit('fpimage');
           AddUnit('targacmn');
         end;
+    T:=P.Targets.AddUnit('fpreadtiff.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fptiffcmn');
+        end;
     T:=P.Targets.AddUnit('fpreadxpm.pp');
       with T.Dependencies do
         begin
@@ -174,6 +191,12 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('targacmn');
+        end;
+    T:=P.Targets.AddUnit('fpwritetiff.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fptiffcmn');
         end;
     T:=P.Targets.AddUnit('fpwritexpm.pp');
       with T.Dependencies do
@@ -219,8 +242,13 @@ begin
         end;
     T:=P.Targets.AddUnit('targacmn.pp');
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('drawing.pp');
+    T:=P.Targets.AddExampleProgram('imgconv.pp');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+

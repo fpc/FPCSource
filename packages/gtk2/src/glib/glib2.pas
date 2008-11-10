@@ -76,101 +76,31 @@ const
   {$WARNINGS OFF}
 {$ENDIF}
 
+// {$define HasGLIB2_10}
+
 {$DEFINE read_forward_definitions}
 type
   // internal types
   PGTypePlugin = pointer;
   PGParamSpecPool = pointer;
 
-{$include gtypes.inc}
-{$include glibconfig.inc}
-{$include gquark.inc}
-{$include gvaluecollector.inc}
-{$include gtype.inc}
-{$include genums.inc}
-{$include gvalue.inc}
-{$include gtypeplugin.inc}
-{$include gdataset.inc}
-{$include gslist.inc}
-{$include glist.inc}
-{$include gparam.inc}
-{$include gboxed.inc}
+{$include gincludes.inc}
 {$UNDEF read_forward_definitions}
 
+{$DEFINE read_interface_types}
+{$include gincludes.inc}
+{$UNDEF read_interface_types}
+
 {$DEFINE read_interface_rest}
-{$include gtype.inc}
-
-{$include gvalue.inc}
-{$include gvaluearray.inc}
-{$include gvaluecollector.inc}
-{$include gvaluetypes.inc}
-
-{$include gparam.inc}
-{$include gclosure.inc}
-{$include gsignal.inc}
-{$include gtypeplugin.inc}
-{$include gobject.inc}
-
-{$include gmacros.inc}
-{$include gtypes.inc}
-{$include genums.inc}
-{$include glibconfig.inc}
-{$include gstrfuncs.inc}
-{$include gutils.inc}
-{$include galloca.inc}
-{$include ghash.inc}
-{$include gquark.inc}
-{$include gerror.inc}
-{$include gbacktrace.inc}
-{$include gmem.inc}
-{$include garray.inc}
-{$include gslist.inc}
-{$include glist.inc}
-{$include gcache.inc}
-{$include gcompletion.inc}
-{$include gconvert.inc}
-{$include gdataset.inc}
-{$include gdate.inc}
-{$include gdir.inc}
-{$include gfileutils.inc}
-{$include ghook.inc}
-
-{$include gthread.inc}
-{$include gthreadpool.inc}
-{$include gtimer.inc}
-{$include gmain.inc}
-{$include gasyncqueue.inc}
-
-{$include gunicode.inc}
-{$include gstring.inc}
-{$include giochannel.inc}
-
-{$include gmessages.inc}
-{$include gmarkup.inc}
-{$include gnode.inc}
-{$include gtree.inc}
-{$include gpattern.inc}
-{$include gprimes.inc}
-{$include gqsort.inc}
-{$include gqueue.inc}
-{$include grand.inc}
-{$include grel.inc}
-{$include gscanner.inc}
-{$include gshell.inc}
-{$include gspawn.inc}
-{$include gboxed.inc}
-
-{$include gmodule.inc}
-
-{$include gmarshal.inc}
-
-{$IFDEF win32}
-{$include gwin32.inc}
-{$ENDIF}
-
+{$include gincludes.inc}
 {$UNDEF read_interface_rest}
 
 implementation
+
+{$DEFINE read_implementation}
+{$include gincludes.inc}
+{$UNDEF read_implementation}
+
 
 {$IFNDEF KYLIX}
 { There is a bug in the compiler. If an external variable is not used, it will

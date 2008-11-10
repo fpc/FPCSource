@@ -34,7 +34,7 @@ uses
 *****************************************************************************}
 
     type
-{$WARNING CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
+{ TODO: CPU32 opcodes do not fully include the Ultra SPRAC instruction set.}
       { don't change the order of these opcodes! }
       TAsmOp=({$i opcode.inc});
 
@@ -75,7 +75,7 @@ uses
       first_mm_supreg    = 0;
       first_mm_imreg     = 1;
 
-{$warning TODO Calculate bsstart}
+{ TODO: Calculate bsstart}
       regnumber_count_bsstart = 128;
 
       regnumber_table : array[tregisterindex] of tregister = (
@@ -198,7 +198,7 @@ uses
       usableregsaddr = [];
       c_countusableregsaddr = 0;
 
-{$warning firstsaveintreg shall be RS_NO}
+{ TODO: firstsaveintreg shall be RS_NO}
       firstsaveintreg = RS_L0; { Temporary, having RS_NO is broken }
       lastsaveintreg = RS_L0; { L0..L7 are already saved, I0..O7 are parameter }
       firstsavefpureg = RS_F2; { F0..F1 is used for return value }
@@ -259,7 +259,7 @@ uses
 
          Taken from GCC rs6000.h
       }
-{$warning As indicated in rs6000.h, but can't find it anywhere else!}
+{ TODO: As indicated in rs6000.h, but can't find it anywhere else!}
       {PIC_OFFSET_REG = R_30;}
       { Return address for DWARF }
       NR_RETURN_ADDRESS_REG = NR_I7;

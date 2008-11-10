@@ -72,6 +72,7 @@ SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 
 ifeq ($(ARCH),x86_64)
+CPU_UNITS=x86 ports
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
@@ -254,7 +255,7 @@ stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #

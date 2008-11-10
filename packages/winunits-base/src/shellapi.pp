@@ -1178,7 +1178,7 @@ Type
        PAPPBARDATA        = ^_AppBarData;
 
 
-Function SHAppBarMessage(dwMessage : DWORD; pData : APPBARDATA):UINT_PTR;external 'shell32.dll' name 'SHAppBarMessage';
+Function SHAppBarMessage(dwMessage : DWORD; pData : pAPPBARDATA):UINT_PTR;external 'shell32.dll' name 'SHAppBarMessage';
 
     //
     //  EndAppBar

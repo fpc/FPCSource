@@ -5,7 +5,7 @@
 [package]
 main=rtl
 
-# disabled units: serial ipc
+# disabled units: serial
 [target]
 loaders=
 units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixutil \
@@ -13,7 +13,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       dos dl objects printer sockets \
       sysutils typinfo fgl classes math varutils types \
       charset ucomplex getopts heaptrc lineinfo lnfodwrf \
-      errors terminfo termio video crt mouse keyboard console \
+      errors ipc terminfo termio video crt mouse keyboard console \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
       fpintres fpextres clocale
@@ -235,7 +235,7 @@ stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUE
 # Mac Pascal Model
 #
 
-macpas$(PPUEXT) : $(INC)/macpas.pp $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT)
+macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
         $(COMPILER) $(INC)/macpas.pp $(REDIR)
 
 #
@@ -280,7 +280,7 @@ sockets$(PPUEXT) : $(UNIXINC)/sockets.pp $(INC)/textrec.inc $(INC)/filerec.inc \
 
 errors$(PPUEXT) : $(UNIXINC)/errors.pp strings$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT)
 
-ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) syscall$(PPUEXT)
+ipc$(PPUEXT) : $(UNIXINC)/ipc.pp unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT)
 
 terminfo$(PPUEXT) : terminfo.pp baseunix$(PPUEXT)
 

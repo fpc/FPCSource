@@ -45,26 +45,13 @@ Function AssignPipe(var pipe_in,pipe_out:cint):cint; [public, alias : 'FPC_SYSC_
 {
   Sets up a pair of file variables, which act as a pipe. The first one can
   be read from, the second one can be written to.
-  If the operation was unsuccesful, linuxerror is set.
+  If the operation was unsuccesful, errno is set.
 }
 var
-  ret  : longint;
-  errn : cint;
-  {$ifdef FPC_USE_LIBC}
-   fdis : array[0..1] of cint;
-  {$endif}
+  pip  : tfildes;
 begin
-{$ifndef FPC_USE_LIBC}
- ret:=intAssignPipe(pipe_in,pipe_out,errn);
- if ret=-1 Then
-  fpseterrno(errn);
-{$ELSE}
- fdis[0]:=pipe_in;
- fdis[1]:=pipe_out;
- ret:=pipe(fdis);
- pipe_in:=fdis[0];
- pipe_out:=fdis[1];
-{$ENDIF}
- AssignPipe:=ret;
+  assignPipe:=fppipe(pip);
+  pipe_in:=pip[0];
+  pipe_out:=pip[1];
 end;
 

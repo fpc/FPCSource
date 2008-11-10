@@ -16,10 +16,15 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='newt';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('newt.pp');
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('newt3.pas');
+    P.Targets.AddExampleProgram('newt2.pas');
+    P.Targets.AddExampleProgram('newt1.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

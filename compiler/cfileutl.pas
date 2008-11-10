@@ -81,7 +81,7 @@ interface
       PCachedDirectoryEntry =  ^TCachedDirectoryEntry;
       TCachedDirectoryEntry = record
         RealName: TCmdStr;
-        Attr    : byte;
+        Attr    : longint;
       end;
 
       TDirectoryCache = class
@@ -298,7 +298,6 @@ implementation
     function TCachedDirectory.FileExistsCaseAware(const path, fn: TCmdStr; out FoundName: TCmdStr):boolean;
       var
         entry : PCachedDirectoryEntry;
-        Attr  : Longint;
       begin
         if (tf_files_case_aware in source_info.flags) then
           begin
@@ -984,10 +983,12 @@ implementation
         exit;
      { Support default macro's }
        DefaultReplacements(s);
+{$warnings off}
        if PathSeparator <> ';' then
         for i:=1 to length(s) do
          if s[i]=PathSeparator then
           s[i]:=';';
+{$warnings on}
      { get current dir }
        CurrentDir:=GetCurrentDir;
        repeat

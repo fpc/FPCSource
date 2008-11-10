@@ -121,7 +121,6 @@ interface
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          procedure derefnode;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
           function  dogetcopy : tnode;override;
@@ -604,7 +603,7 @@ implementation
                here to make the change permanent. in the overload
                choosing the changes are only made temporary }
              if (left.resultdef.typ=procvardef) and
-                (parasym.vardef.typ<>procvardef) then
+                not(parasym.vardef.typ in [procvardef,formaldef]) then
                begin
                  if maybe_call_procvar(left,true) then
                    resultdef:=left.resultdef;
@@ -975,7 +974,7 @@ implementation
         funcretnode:=ppuloadnode(ppufile);
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableprocentryderef);
-{$warning FIXME: No withsymtable support}
+{ TODO: FIXME: No withsymtable support}
         symtableproc:=nil;
         ppufile.getderef(procdefinitionderef);
         ppufile.getsmallset(callnodeflags);
@@ -992,20 +991,6 @@ implementation
         ppufile.putderef(symtableprocentryderef);
         ppufile.putderef(procdefinitionderef);
         ppufile.putsmallset(callnodeflags);
-      end;
-
-
-    procedure tcallnode.derefnode;
-      begin
-        if assigned(callinitblock) then
-          callinitblock.derefnode;
-        if assigned(methodpointer) then
-          methodpointer.derefnode;
-        if assigned(callcleanupblock) then
-          callcleanupblock.derefnode;
-        if assigned(funcretnode) then
-          funcretnode.derefnode;
-        inherited derefnode;
       end;
 
 
@@ -1575,14 +1560,21 @@ implementation
                 without specifying self explicit }
               if (cnf_member_call in callnodeflags) then
                 begin
-                  { destructor: don't release instance, vmt=0
-                    constructor:
-                      if called from a constructor in the same class then
+                  { destructor (in the same class, since cnf_member_call):
+                    if not called from a destructor then
+                      call beforedestruction and release instance, vmt=1
+                    else
+                      don't release instance, vmt=0
+                    constructor (in the same class, since cnf_member_call):
+                      if called from a constructor then
                         don't call afterconstruction, vmt=0
                       else
                         call afterconstrution, vmt=1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
-                    vmttree:=cpointerconstnode.create(0,voidpointertype)
+                    if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
+                      vmttree:=cpointerconstnode.create(1,voidpointertype)
+                    else
+                      vmttree:=cpointerconstnode.create(0,voidpointertype)
                   else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
                     vmttree:=cpointerconstnode.create(0,voidpointertype)
@@ -1601,7 +1593,7 @@ implementation
                     if called from a constructor in the same class using self.create then
                       don't call afterconstruction, vmt=0
                     else
-                      call afterconstrution, vmt=1 }
+                      call afterconstruction, vmt=1 }
                 if (procdefinition.proctypeoption=potype_destructor) then
                   if not(cnf_create_failed in callnodeflags) then
                     vmttree:=cpointerconstnode.create(1,voidpointertype)
@@ -1704,6 +1696,15 @@ implementation
             result:=true;
             exit;
           end;
+
+        { if the result is the same as the self parameter (in case of objects),
+          we can't optimise. We have to check this explicitly becaise
+          hidden parameters such as self have not yet been inserted at this
+          point
+        }
+        if assigned(methodpointer) and
+           realassignmenttarget.isequal(methodpointer.actualtargetnode) then
+          exit;
 
         { when we substitute a function result inside an inlined function,
           we may take the address of this function result. Therefore the
@@ -1903,7 +1904,6 @@ implementation
         objectinfo : tobjectinfoitem;
         pd : tprocdef;
         i  : integer;
-        first : boolean;
       begin
         objectdf := nil;
         { verify if trying to create an instance of a class which contains
@@ -1954,17 +1954,12 @@ implementation
         if assigned(parents) then
           parents.free;
         { Finally give out a warning for each abstract method still in the list }
-        first:=true;
         for i:=0 to AbstractMethodsList.Count-1 do
           begin
             pd:=tprocdef(AbstractMethodsList[i]);
             if po_abstractmethod in pd.procoptions then
               begin
-                if first then
-                  begin
-                    Message1(type_w_instance_with_abstract,objectdf.objrealname^);
-                    first:=false;
-                  end;
+                Message2(type_w_instance_with_abstract,objectdf.objrealname^,pd.procsym.RealName);
                 MessagePos1(pd.fileinfo,sym_h_abstract_method_list,pd.fullprocname(true));
               end;
           end;
@@ -2263,6 +2258,7 @@ implementation
                               symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;
+                      candidates.free;
                       goto errorexit;
                     end;
 
@@ -2364,7 +2360,7 @@ implementation
 
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
-                    ((block_type in [bt_const,bt_type]) or
+                    ((block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
                      (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
           if (procdefinition.proccalloption=pocall_internproc) or is_const then
            begin
@@ -2769,7 +2765,7 @@ implementation
          if assigned(callcleanupblock) then
            firstpass(callcleanupblock);
 
-         if not (block_type in [bt_const,bt_type]) then
+         if not (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
            include(current_procinfo.flags,pi_do_call);
 
          { order parameters }
@@ -2785,7 +2781,8 @@ implementation
              else
              { ansi/widestrings must be registered, so we can dispose them }
               if is_ansistring(resultdef) or
-                 is_widestring(resultdef) then
+                 is_widestring(resultdef) or
+                 is_unicodestring(resultdef) then
                begin
                  expectloc:=LOC_REFERENCE;
                end
@@ -3040,8 +3037,8 @@ implementation
                       { call-by-reference const's may need to be passed by }
                       { reference to function called in the inlined code   }
                       (paramanager.push_addr_param(vs_const,para.parasym.vardef,procdefinition.proccalloption) and
-                       (not valid_for_addr(para.left,false) or
-                        is_constnode(para.left)))))
+                       not valid_for_addr(para.left,false))
+                     ))
                    )
                   ) then
                   begin

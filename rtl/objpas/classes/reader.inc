@@ -79,6 +79,17 @@ begin
   Result:=LEtoN(Result);
 end;
 
+{$IFDEF FPC_DOUBLE_HILO_SWAPPED}
+procedure SwapDoubleHiLo(var avalue: double); {$ifdef CLASSESINLINE}inline{$endif CLASSESINLINE}
+var dwo1 : dword;
+type tdoublerec = array[0..1] of dword;
+begin
+  dwo1:= tdoublerec(avalue)[0];
+  tdoublerec(avalue)[0]:=tdoublerec(avalue)[1];
+  tdoublerec(avalue)[1]:=dwo1;
+end;
+{$ENDIF FPC_DOUBLE_HILO_SWAPPED}
+
 {$ifndef FPUNONE}
 function TBinaryObjectReader.ReadExtended : extended; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
 {$IFNDEF FPC_HAS_TYPE_EXTENDED}
@@ -88,6 +99,9 @@ begin
   {$IFNDEF FPC_HAS_TYPE_EXTENDED}
   Read(ext[0],10);
   Result:=ExtendedToDouble(@(ext[0]));
+  {$IFDEF FPC_DOUBLE_HILO_SWAPPED}
+  SwapDoubleHiLo(result);
+  {$ENDIF}
   {$ELSE}
   Read(Result,sizeof(Result));
   {$ENDIF}
@@ -325,6 +339,25 @@ begin
   end;
 end;
 
+function TBinaryObjectReader.ReadUnicodeString: UnicodeString;
+var
+  len: DWord;
+{$IFDEF ENDIAN_BIG}
+  i : integer;
+{$ENDIF}
+begin
+  len := ReadDWord;
+  SetLength(Result, len);
+  if (len > 0) then
+  begin
+    Read(Pointer(@Result[1])^, len*2);
+    {$IFDEF ENDIAN_BIG}
+    for i:=1 to len do
+      Result[i]:=UnicodeChar(SwapEndian(word(Result[i])));
+    {$ENDIF}
+  end;
+end;
+
 procedure TBinaryObjectReader.SkipComponent(SkipComponentInfos: Boolean);
 var
   Flags: TFilerFlags;
@@ -391,6 +424,11 @@ begin
         SkipBytes(Count);
       end;
     vaWString:
+      begin
+        Count:=LongInt(ReadDWord);
+        SkipBytes(Count*sizeof(widechar));
+      end;
+    vaUString:
       begin
         Count:=LongInt(ReadDWord);
         SkipBytes(Count*sizeof(widechar));
@@ -735,12 +773,26 @@ begin
     raise EReadError.Create(SInvalidPropertyValue);
 end;
             
+function TReader.ReadUnicodeChar: UnicodeChar;
+
+var
+  U: UnicodeString;
+  
+begin
+  U := ReadUnicodeString;
+  if Length(U) = 1 then
+    Result := U[1]
+  else
+    raise EReadError.Create(SInvalidPropertyValue);
+end;
+            
 procedure TReader.ReadCollection(Collection: TCollection);
 var
   Item: TCollectionItem;
 begin
   Collection.BeginUpdate;
-  Collection.Clear;
+  if not EndOfList then
+    Collection.Clear;
   while not EndOfList do begin
     ReadListBegin;
     Item := Collection.Add;
@@ -1157,7 +1209,7 @@ begin
       SetOrdProp(Instance, PropInfo, Ord(ReadBoolean));
     tkChar:
       SetOrdProp(Instance, PropInfo, Ord(ReadChar));
-    tkWChar:
+    tkWChar,tkUChar:
       SetOrdProp(Instance, PropInfo, Ord(ReadWideChar));  
     tkEnumeration:
       begin
@@ -1196,13 +1248,15 @@ begin
         end;
       end;
     tkSString, tkLString, tkAString:
-    begin
-      TmpStr:=ReadString;
-      if Assigned(FOnReadStringProperty) then
-        FOnReadStringProperty(Self,Instance,PropInfo,TmpStr);
-      SetStrProp(Instance, PropInfo, TmpStr);
-    end;
-    tkWstring:
+      begin
+        TmpStr:=ReadString;
+        if Assigned(FOnReadStringProperty) then
+          FOnReadStringProperty(Self,Instance,PropInfo,TmpStr);
+        SetStrProp(Instance, PropInfo, TmpStr);
+      end;
+    tkUstring:
+      SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
+    tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
     {!!!: tkVariant}
     tkClass:
@@ -1350,6 +1404,8 @@ begin
     end
   else if StringType in [vaWString] then
     Result:= FDriver.ReadWidestring
+  else if StringType in [vaUString] then
+    Result:= FDriver.ReadUnicodeString
   else
     raise EReadError.Create(SInvalidPropertyValue);
 end;
@@ -1360,20 +1416,46 @@ var
  s: String;
  i: Integer;
 begin
-  if NextValue in [vaWString,vaUTF8String] then
-  begin
-    ReadValue;
-    Result := FDriver.ReadWideString
-  end
-  else begin
-    //data probable from ObjectTextToBinary
-    s := ReadString;
-    setlength(result,length(s));
-    for i:= 1 to length(s) do begin
-     result[i]:= widechar(ord(s[i])); //no code conversion
+  if NextValue in [vaWString,vaUString,vaUTF8String] then
+    //vaUTF8String needs conversion? 2008-09-06 mse
+    begin
+      ReadValue;
+      Result := FDriver.ReadWideString
+    end
+  else
+    begin
+      //data probable from ObjectTextToBinary
+      s := ReadString;
+      setlength(result,length(s));
+      for i:= 1 to length(s) do begin
+        result[i]:= widechar(ord(s[i])); //no code conversion
     end;
   end;
 end;
+
+
+function TReader.ReadUnicodeString: UnicodeString;
+var
+ s: String;
+ i: Integer;
+begin
+  if NextValue in [vaWString,vaUString,vaUTF8String] then 
+    //vaUTF8String needs conversion? 2008-09-06 mse
+    begin
+      ReadValue;
+      Result := FDriver.ReadUnicodeString
+    end
+  else
+    begin
+      //data probable from ObjectTextToBinary
+      s := ReadString;
+      setlength(result,length(s));
+      for i:= 1 to length(s) do begin
+        result[i]:= UnicodeChar(ord(s[i])); //no code conversion
+    end;
+  end;
+end;
+
 
 function TReader.ReadValue: TValueType;
 begin

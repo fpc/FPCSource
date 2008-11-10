@@ -1,5 +1,5 @@
 { %norun }
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 procedure t;
 var

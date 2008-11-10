@@ -16,12 +16,18 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-web';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
-
+    P.Version:='2.2.2-0';
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
+
+    P.Author := 'FreePascal development team';
+    P.License := 'LGPL with modification, ';
+    P.ExternalURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Web(app) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
 

@@ -36,20 +36,12 @@ type
 
 {$IFDEF read_interface_rest}
 
-
 function GTK_TYPE_ACTION : GType;
-
 function GTK_ACTION(obj : pointer) : PGtkAction;
-
 function GTK_ACTION_CLASS(klass : pointer) : PGtkActionClass;
-
 function GTK_IS_ACTION(obj : pointer) : gboolean;
-
 function GTK_IS_ACTION_CLASS(klass : pointer) : gboolean;
-
 function GTK_ACTION_GET_CLASS(obj : pointer) : PGtkActionClass;
-
-
 
 function gtk_action_get_type:GType;cdecl;external gtklib name 'gtk_action_get_type';
 function gtk_action_new(name:Pgchar; szLabel:Pgchar; tooltip:Pgchar; stock_id:Pgchar):PGtkAction;cdecl;external gtklib name 'gtk_action_new';
@@ -78,10 +70,18 @@ procedure _gtk_action_emit_activate(action:PGtkAction);cdecl;external gtklib nam
 
 procedure gtk_action_set_accel_path(action:PGtkAction; accel_path:Pgchar);cdecl;external gtklib name 'gtk_action_set_accel_path';
 procedure gtk_action_set_accel_group(action:PGtkAction; accel_group:PGtkAccelGroup);cdecl;external gtklib name 'gtk_action_set_accel_group';
+
+{$ifdef HasGTK2_6}
+function gtk_action_get_accel_path(action: PGtkAction): Pgchar; cdecl;external gtklib name 'gtk_action_get_accel_path';
+function gtk_action_group_translate_string(action_group:PGtkActionGroup; _string:Pgchar):Pgchar; cdecl;external gtklib;
+procedure gtk_action_set_sensitive(action:PGtkAction; sensitive:gboolean); cdecl;external gtklib;
+procedure gtk_action_set_visible(action:PGtkAction; visible:gboolean); cdecl;external gtklib;
+{$endif}
 {$endif read_interface_rest}
 
 
 {$ifdef read_implementation}
+
 function GTK_TYPE_ACTION : GType;
 begin
    GTK_TYPE_ACTION:=gtk_action_get_type;

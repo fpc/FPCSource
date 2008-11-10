@@ -24,6 +24,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -588,18 +589,43 @@ end;
 function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
                                                                        integer;
 var
+  tmpPath: AnsiString;
+  convPath: AnsiString;
   CommandLine: AnsiString;
+  tmpLock: longint;
+
   E: EOSError;
-
 begin
-  Dos.Exec (Path, ComLine);
-  if DosError <> 0 then begin
+  DosError:= 0;
+  
+  convPath:=PathConv(Path);
+  tmpPath:=convPath+' '+ComLine;
+  
+  { Here we must first check if the command we wish to execute }
+  { actually exists, because this is NOT handled by the        }
+  { _SystemTagList call (program will abort!!)                 }
 
+  { Try to open with shared lock }
+  tmpLock:=Lock(PChar(convPath),SHARED_LOCK);
+  if tmpLock<>0 then
+    begin
+      { File exists - therefore unlock it }
+      Unlock(tmpLock);
+      result:=SystemTagList(PChar(tmpPath),nil);
+      { on return of -1 the shell could not be executed }
+      { probably because there was not enough memory    }
+      if result = -1 then
+        DosError:=8;
+    end
+  else
+    DosError:=3;
+  
+  if DosError <> 0 then begin
     if ComLine = '' then
       CommandLine := Path
     else
       CommandLine := Path + ' ' + ComLine;
-
+    
     E := EOSError.CreateFmt (SExecuteProcessFailed, [CommandLine, DosError]);
     E.ErrorCode := DosError;
     raise E;
@@ -620,6 +646,12 @@ begin
    else
     CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+procedure Sleep (Milliseconds: cardinal);
+begin
+ // Amiga/MorphOS dos.library Delay() has precision of 1/50 seconds
+ Delay(Milliseconds div 20);
 end;
 
 

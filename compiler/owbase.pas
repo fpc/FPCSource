@@ -34,22 +34,22 @@ type
     f      : TCFileStream;
     opened : boolean;
     buf    : pchar;
-    bufidx : longint;
+    bufidx : longword;
     procedure writebuf;
   protected
     fsize,
-    fobjsize  : longint;
+    fobjsize  : longword;
   public
     constructor create;
     destructor  destroy;override;
     function  createfile(const fn:string):boolean;virtual;
     procedure closefile;virtual;
     procedure writesym(const sym:string);virtual;
-    procedure write(const b;len:longint);virtual;
-    procedure WriteZeros(l:longint);
+    procedure write(const b;len:longword);virtual;
+    procedure WriteZeros(l:longword);
     procedure writearray(a:TDynamicArray);
-    property Size:longint read FSize;
-    property ObjSize:longint read FObjSize;
+    property Size:longword read FSize;
+    property ObjSize:longword read FObjSize;
   end;
 
   tobjectreader=class
@@ -151,11 +151,11 @@ begin
 end;
 
 
-procedure tobjectwriter.write(const b;len:longint);
+procedure tobjectwriter.write(const b;len:longword);
 var
   p   : pchar;
   bufleft,
-  idx : longint;
+  idx : longword;
 begin
   inc(fsize,len);
   inc(fobjsize,len);
@@ -182,7 +182,7 @@ begin
 end;
 
 
-procedure tobjectwriter.WriteZeros(l:longint);
+procedure tobjectwriter.WriteZeros(l:longword);
 var
   empty : array[0..1023] of byte;
 begin

@@ -84,12 +84,13 @@ type
     countNotes,
     countHints    : longint;  { number of found errors/warnings/notes/hints }
     codesize,
-    datasize      : aint;
+    datasize      : aword;
   { program info }
     isexe,
     ispackage,
     islibrary     : boolean;
   { Settings for the output }
+    showmsgnrs    : boolean;
     verbosity     : longint;
     maxerrorcount : longint;
     errorwarning,
@@ -337,7 +338,8 @@ begin
     end;
 
   { Display line }
-  if ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then
+  if (Level<>V_None) and
+     ((status.verbosity and (Level and V_LevelMask))=(Level and V_LevelMask)) then
    begin
      if status.use_stderr then
       begin
@@ -375,7 +377,8 @@ end;
 function def_CheckVerbosity(v:longint):boolean;
 begin
   result:=status.use_bugreport or
-          ((status.verbosity and (v and V_LevelMask))=(v and V_LevelMask));
+          ((v<>V_None) and
+           ((status.verbosity and (v and V_LevelMask))=(v and V_LevelMask)));
 end;
 
 procedure def_initsymbolinfo;

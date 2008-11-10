@@ -11,20 +11,6 @@
  **********************************************************************}
 
 { --- Special OS settings --- }
-{$ifdef TP}
-  {$define SUPPORTVESA}
-  {$define TPUNIXLF}
-  {$define WinClipSupported}
-  {$define FSCaseInsensitive}
-  {$C FIXED PRELOAD PERMANENT}
-  {
-    Without defining this I got almost always SEGMENT NOT PRESENT (exc 11)
-    on exiting the IDE, when run on under NT4.0... Strange a bit, not?
-    (Actually the fault occours in TDOSScreen.GetVideoMode() at the
-     BIOS call, but I just can't figure out why....)
-  }
-{$endif}
-
 {$ifdef Go32V2}
   {$define SUPPORTVESA}
   {$define SUPPORTREDIR}
@@ -96,6 +82,14 @@
   {$define FSCaseInsensitive}
 {$endif}
 
+{$ifdef Amiga}
+  {$define FSCaseInsensitive}
+{$endif}
+
+{$ifdef MorphOS}
+  {$define FSCaseInsensitive}
+{$endif}
+
 { --- Exclude debugger support --- }
 {.$DEFINE NODEBUG}
 
@@ -117,7 +111,6 @@
 
 { ----------- define DOS for DOS targets ---------- }
 {$ifdef GO32V2}{$define DOS}{$endif}
-{$ifdef TP}{$define DOS}{$endif}
 
 { include Undo/Redo code from Visa Harvey }
 { let everybody try it out  PM }
@@ -137,19 +130,15 @@
   {$define EXEDEBUG}
 {$endif DEBUG}
 
-{$ifdef FPC}
-  {$ifndef ver2_0}
-    {$define USERESSTRINGS}
-  {$endif}
-  {$define USE_FREEVISION}
-  {$define HASOUTLINE}
-
-  { Use inlining for small functions }
-  {$ifndef VER1_0}
-    {$inline on}
-    {.$define USEINLINE}
-  {$endif}
+{$ifndef ver2_0}
+  {$define USERESSTRINGS}
 {$endif}
+{$define USE_FREEVISION}
+{$define HASOUTLINE}
+
+{ Use inlining for small functions }
+  {$inline on}
+  {.$define USEINLINE}
 
 {$define TEST_PARTIAL_SYNTAX}
 { $ undef UNDO}

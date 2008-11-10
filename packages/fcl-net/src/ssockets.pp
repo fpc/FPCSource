@@ -42,6 +42,7 @@ type
 
   TSocketStream = class(THandleStream)
   Private
+    FSocketInitialized : Boolean;
     FSocketOptions : TSocketOptions;
     Procedure GetSockOptions;
     Procedure SetSocketOptions(Value : TSocketOptions);
@@ -215,11 +216,13 @@ Constructor TSocketStream.Create (AHandle : Longint);
 
 begin
   Inherited Create(AHandle);
+  FSocketInitialized := true;
   GetSockOptions;
 end;
 
 destructor TSocketStream.Destroy;
 begin
+  if FSocketInitialized then
   {$ifdef netware}
   CloseSocket(Handle);
   {$else}
@@ -555,8 +558,7 @@ begin
       end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := hosttonet(a.s_addr); // hosttonet(A).s_addr;
-//Cardinal(A);
+  addr.addr := a.s_addr;
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);

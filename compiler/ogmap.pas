@@ -36,7 +36,7 @@ interface
        texemap = class
        private
          t : text;
-         FImageBase : aint;
+         FImageBase : aword;
        public
          constructor Create(const s:string);
          destructor Destroy;override;

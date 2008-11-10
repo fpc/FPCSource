@@ -35,6 +35,19 @@ begin
    end;
 end;
 
+FUNCTION NewStr (Const S: ShortString): PShortString;
+VAR P: PShortString;
+BEGIN
+   If (S = '') Then 
+     P := Nil 
+    Else 
+     Begin               { Return nil }
+     GetMem(P, Length(S) + 1);                        { Allocate memory }
+     If (P<>Nil) Then P^ := S;                        { Hold string }
+     End;
+   NewStr := P;                                       { Return result }
+END;
+
 {   DisposeStr frees the memory occupied by S   }
 
 procedure DisposeStr(S: PString);
@@ -45,6 +58,12 @@ begin
      S:=nil;
    end;
 end;
+
+PROCEDURE DisposeStr (S: PShortString);
+BEGIN
+   If (S <> Nil) Then FreeMem(S, Length(S^) + 1);     { Release memory }
+END;
+
 
 {   AssignStr assigns S to P^   }
 
@@ -1721,6 +1740,12 @@ begin
     Result:='0';
 end;
 
+// from textmode IDE util funcs.
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string; 
+begin
+  if B then Result:=TrueS else BoolToStr:=FalseS;
+end;
+
 function StrToBoolDef(const S: string; Default: Boolean): Boolean;
 begin
   if not(TryStrToBool(S,Result)) then
@@ -2006,7 +2031,13 @@ Var
           Digits[DecimalPoint] := ' ';
       { Convert spaces left from obligatory decimal point to zeroes. }
       I:=DecimalPoint-Placehold[2];
-      While (I<DecimalPoint) And (Digits[I]=' ') Do
+      If (Value<0) and (I<DecimalPoint) then
+        begin
+        Insert('-',Digits,I);
+        Inc(DecimalPoint);
+        Inc(I);
+        end;
+      While (I<DecimalPoint) And (Digits[I] in [' ','-']) Do
         Begin
         Digits[I] := '0';
         Inc(I);

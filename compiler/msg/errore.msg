@@ -23,7 +23,8 @@
 #   parser_   parser
 #   type_     type checking
 #   general_  general info
-#   exec_     calls to assembler, linker, binder
+#   exec_     calls to assembler, external linker, binder
+#   link_     internal linker
 #
 # <type> the type of the message it should normally used for
 #   f_   fatal error
@@ -38,6 +39,7 @@
 #   c_   conditional
 #   d_   debug message
 #   x_   executable informations
+#   o_   normal (e.g., "press enter to continue")
 #
 
 #
@@ -364,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03247 is the last used one
+# 03248 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1163,7 +1165,14 @@ parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported wit
 % is exported inside the \var{exports} statement of a library.
 % In that case, you have to specify the export name at the point where the
 % variable is declared, using the \var{export} and \var{alias} directives.
-
+parser_e_weak_external_not_supported=03248_E_Weak external symbols are not supported for the current target
+% A "weak external" symbol is a symbol which may or may not exist at (either static
+% or dynamic) link time. This concept may not be available (or implemented yet)
+% on the current cpu/OS target.
+parser_e_forward_mismatch=03249_E_Forward type definition does not match
+% Classes and interfaces being defined forward must have the same type
+% when being implemented. A forward interface can not be changed into a class.
+%
 % \end{description}
 #
 # Type Checking
@@ -1363,7 +1372,7 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 % There is a comparison between an unsigned value and a signed constant which is
 % less than zero. Because of type promotion, the statement will always evaluate to
 % true. Explicitly typecast the constant to the correct range to avoid this problem.
-type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract methods
+type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
 % routine is ever called. All abstract methods should be overriden.
@@ -1456,7 +1465,7 @@ type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 #
 # Symtable
 #
-# 05062 is the last used one
+# 05064 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1624,6 +1633,9 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 % declared as \var{experimental} is used. Experimental symbols
 % might disappear or change semantics in future versions. Usage of this symbol
 % should be avoided as much as possible.
+sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
+% This happens if you declare a function in the \var{interface} of a unit in macpas mode,
+% but do not implement it.
 % \end{description}
 #
 # Codegenerator
@@ -2162,6 +2174,20 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 # EndOfTeX
 
 #
+# Internal linker messages
+#
+# 09200 is the last used one
+#
+# BeginOfTeX
+% \section{Linker messages}
+% This section lists messages produced by internal linker.
+% \begin{description}
+link_f_executable_too_big=09200_F_Executable image size is too big for $1 target.
+% Fatal error when resulting executable is too big.
+%\end{description}
+# EndOfTeX
+
+#
 # Unit loading
 #
 # 10060 is the last used one
@@ -2400,13 +2426,13 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_too many IF(N)DEFs
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_too many ENDIFs
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_open conditional at the end of the file
+option_too_less_endif=11015_F_Open conditional at the end of the options file
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_no_debug_support=11016_W_Debug information generation is not supported by this executable
@@ -2440,7 +2466,7 @@ option_using_env=11027_T_Reading options from environment $1
 % Options are also read from this environment string.
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled.
-option_help_press_enter=11029__*** press enter ***
+option_help_press_enter=11029_O_*** press enter ***
 % Message shown when help is shown page per page. When pressing the ENTER
 % Key, the next page of help is shown. If you press q and then ENTER, the
 % compiler exits.
@@ -2472,6 +2498,8 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
+option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
+% An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 %\end{description}
 # EndOfTeX
 
@@ -2734,7 +2762,8 @@ S*2Tlinux_Linux
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_b : Write file names messages with full path
 **2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info
+**2*_    lots of debugging info      q : Show message numbers
+**2*_m<x>,<y> : Don't show messages numbered <x> and <y>
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
 P*1W<x>_Target-specific options (targets)

@@ -268,7 +268,7 @@ implementation
           begin
             load_fpu_location;
             location_reset(location,LOC_REFERENCE,OS_S64);
-            tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+            tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             emit_none(A_FWAIT,S_NO);
            end;
@@ -303,20 +303,20 @@ implementation
               begin
                 load_fpu_location;
                 location_reset(location,LOC_REFERENCE,OS_S64);
-                tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+                tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
               end
             else
               begin
-                tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,oldcw);
-                tg.GetTemp(current_asmdata.CurrAsmList,2,tt_normal,newcw);
+                tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,oldcw);
+                tg.GetTemp(current_asmdata.CurrAsmList,2,2,tt_normal,newcw);
                 emit_ref(A_FNSTCW,S_NO,newcw);
                 emit_ref(A_FNSTCW,S_NO,oldcw);
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location;
                 emit_ref(A_FLDCW,S_NO,newcw);
                 location_reset(location,LOC_REFERENCE,OS_S64);
-                tg.GetTempTyped(current_asmdata.CurrAsmList,resultdef,tt_normal,location.reference);
+                tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTP,S_IQ,location.reference);
                 emit_ref(A_FLDCW,S_NO,oldcw);
                 emit_none(A_FWAIT,S_NO);

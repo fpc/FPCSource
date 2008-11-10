@@ -1,25 +1,18 @@
-{ GObject - GLib Type, Object, Parameter and Signal Library
-   Copyright (C) 1997-1999, 2000-2001 Tim Janik and Red Hat, Inc.
+// included by glib2.pas
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+//------------------------------------------------------------------------------
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-   Boston, MA 02111-1307, USA.
+{$IFDEF read_interface_types}
+   Pgchararray = ^Tgchararray;
+   Tgchararray = gchar;
+{$ENDIF read_interface_types}
 
-   gvaluetypes.h: GLib default values
-  }
+//------------------------------------------------------------------------------
 
-
+{$IFDEF read_interface_rest}
 { --- type macros ---  }
 
 function G_VALUE_HOLDS_CHAR(value : PGValue) : boolean;
@@ -102,10 +95,6 @@ function g_strdup_value_contents(value:PGValue):Pgchar; cdecl; external gobjectl
 { --- marshaller specific ---  }
 procedure g_value_set_string_take_ownership(value:PGValue; v_string:Pgchar); cdecl; external gobjectlib;
 { humpf, need a C representable type name for G_TYPE_STRING  }
-type
 
-   Pgchararray = ^Tgchararray;
-   Tgchararray = gchar;
-
-
-
+{$ENDIF read_interface_rest}
+// included by glib2.pas

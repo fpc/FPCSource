@@ -296,13 +296,13 @@ implementation
     procedure trgx86fpu.saveusedfpuregisters(list: TAsmList;
                                              var saved : tpushedsavedfpu;
                                              const s: tcpuregisterset);
-      var
+     { var
          r : tregister;
-         hr : treference;
+         hr : treference; }
       begin
         used_in_proc:=used_in_proc+s;
 
-{$warning TODO firstsavefpureg}
+{ TODO: firstsavefpureg}
 (*
         { don't try to save the fpu registers if not desired (e.g. for }
         { the 80x86)                                                   }
@@ -332,13 +332,13 @@ implementation
 
     procedure trgx86fpu.restoreusedfpuregisters(list : TAsmList;
                                                 const saved : tpushedsavedfpu);
-
+{
       var
          r,r2 : tregister;
          hr : treference;
-
+}
       begin
-{$warning TODO firstsavefpureg}
+{ TODO: firstsavefpureg}
 (*
         if firstsavefpureg <> R_NO then
           for r.enum:=lastsavefpureg downto firstsavefpureg do

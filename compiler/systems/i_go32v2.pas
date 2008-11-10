@@ -21,6 +21,8 @@
 { This unit implements support information structures for go32v2. }
 unit i_go32v2;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses
@@ -83,6 +85,7 @@ unit i_go32v2;
               );
             first_parm_offset : 8;
             stacksize    : 262144;
+            abi          : abi_default;
           );
 
   implementation

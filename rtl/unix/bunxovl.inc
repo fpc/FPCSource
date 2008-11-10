@@ -110,6 +110,23 @@ begin
   FpStat:=FpStat(pchar(path),buf);
 End;
 
+Function  fpLstat   (path: Ansistring; Info: pstat):cint; inline;
+begin
+  fplstat:=fplstat(pchar(path), info);
+end;
+
+Function  fpLstat   (path:pchar;var Info:stat):cint; inline;
+
+begin
+  fpLstat:=fplstat(path,@info);
+end;
+
+Function  fpLstat   (Filename: ansistring;var Info:stat):cint; inline;
+
+begin
+  fpLstat:=fplstat(filename,@info);
+end;
+
 Function FpAccess (pathname : AnsiString; aMode : cInt): cInt; {$ifdef VER2_0}inline;{$endif}
 Begin
   FpAccess:=FpAccess(pchar(pathname),amode);

@@ -850,49 +850,56 @@ implementation
              loadn :
                begin
                  if (tloadnode(p).symtableentry.typ in [localvarsym,paravarsym,staticvarsym]) then
-                  begin
-                    hsym:=tabstractvarsym(tloadnode(p).symtableentry);
-                    if (vsf_must_be_valid in varstateflags) and
-                       (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
-                      begin
-                        { Give warning/note for uninitialized locals }
-                        if assigned(hsym.owner) and
-                          not(cs_opt_nodedfa in current_settings.optimizerswitches) and
-                           not(vo_is_external in hsym.varoptions) and
-                           (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
-                           ((hsym.owner=current_procinfo.procdef.localst) or
-                            (hsym.owner=current_procinfo.procdef.parast)) then
-                          begin
-                            if (vo_is_funcret in hsym.varoptions) then
-                              begin
-                                if (vsf_use_hints in varstateflags) then
-                                  CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
-                                else
-                                  CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
-                              end
-                            else
-                              begin
-                                if tloadnode(p).symtable.symtabletype=localsymtable then
-                                  begin
-                                    if (vsf_use_hints in varstateflags) then
-                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
-                                    else
-                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
-                                  end
-                                else
-                                  begin
-                                    if (vsf_use_hints in varstateflags) then
-                                      CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
-                                    else
-                                      CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
-                                  end;
-                              end;
-                          end
-                        else if (newstate = vs_read) then
-                          newstate := vs_read_not_warned;
-                      end;
-                    hsym.varstate := vstrans[hsym.varstate,newstate];
-                  end;
+                   begin
+                     hsym:=tabstractvarsym(tloadnode(p).symtableentry);
+                     if (vsf_must_be_valid in varstateflags) and
+                        (hsym.varstate in [vs_declared,vs_read_not_warned,vs_referred_not_inited]) then
+                       begin
+                         { Give warning/note for uninitialized locals }
+                         if assigned(hsym.owner) and
+                           not(cs_opt_nodedfa in current_settings.optimizerswitches) and
+                            not(vo_is_external in hsym.varoptions) and
+                            (hsym.owner.symtabletype in [parasymtable,localsymtable,staticsymtable]) and
+                            ((hsym.owner=current_procinfo.procdef.localst) or
+                             (hsym.owner=current_procinfo.procdef.parast)) then
+                           begin
+                             if (vo_is_funcret in hsym.varoptions) then
+                               begin
+                                 if (vsf_use_hints in varstateflags) then
+                                   CGMessagePos(p.fileinfo,sym_h_function_result_uninitialized)
+                                 else
+                                   CGMessagePos(p.fileinfo,sym_w_function_result_uninitialized)
+                               end
+                             else
+                               begin
+                                 if tloadnode(p).symtable.symtabletype=localsymtable then
+                                   begin
+                                     if (vsf_use_hints in varstateflags) then
+                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_local_variable,hsym.realname)
+                                     else
+                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_local_variable,hsym.realname);
+                                   end
+                                 else
+                                   begin
+                                     if (vsf_use_hints in varstateflags) then
+                                       CGMessagePos1(p.fileinfo,sym_h_uninitialized_variable,hsym.realname)
+                                     else
+                                       CGMessagePos1(p.fileinfo,sym_w_uninitialized_variable,hsym.realname);
+                                   end;
+                               end;
+                           end
+                         else if (newstate = vs_read) then
+                           newstate := vs_read_not_warned;
+                       end;
+                     hsym.varstate := vstrans[hsym.varstate,newstate];
+                   end;
+                 case newstate of
+                   vs_written:
+                     include(tloadnode(p).flags,nf_write);
+                   vs_readwritten:
+                     if not(nf_write in tloadnode(p).flags) then
+                       include(tloadnode(p).flags,nf_modify);
+                 end;
                  break;
                end;
              callparan :
@@ -1534,7 +1541,7 @@ implementation
                   ) or
                   (
                    is_widechar(p.resultdef) and
-                   is_widestring(def_to)
+                   (is_widestring(def_to) or is_unicodestring(def_to))
                   ) then
                 eq:=te_equal
             end;
@@ -1998,8 +2005,8 @@ implementation
                internalerror(200212092);
 
               { Convert tp procvars when not expecting a procvar }
-              if (def_to.typ<>procvardef) and
-                 (currpt.left.resultdef.typ=procvardef) and
+             if (currpt.left.resultdef.typ=procvardef) and
+                not(def_to.typ in [procvardef,formaldef]) and
                  { Only convert to call when there is no overload or the return type
                    is equal to the expected type. }
                  (
@@ -2226,12 +2233,12 @@ implementation
            tve_shortint,tve_smallint,tve_longint,tve_chari64,
            tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,tve_boolformal,
            tve_chari64,tve_chari64,tve_dblcurrency);
-{$warning fixme for 128 bit floats }
+{ TODO: fixme for 128 bit floats }
         variantfloatdef_cl: array[tfloattype] of tvariantequaltype =
           (tve_single,tve_dblcurrency,tve_extended,
            tve_dblcurrency,tve_dblcurrency,tve_extended);
         variantstringdef_cl: array[tstringtype] of tvariantequaltype =
-          (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_unicodestring);
+          (tve_sstring,tve_astring,tve_astring,tve_wstring,tve_ustring);
       begin
         case def.typ of
           orddef:
@@ -2430,9 +2437,9 @@ implementation
         else if (currvcl=tve_boolformal) or
                 (bestvcl=tve_boolformal) then
           if (currvcl=tve_boolformal) then
-            result:=ord(bestvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+            result:=ord(bestvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring,tve_ustring])
           else
-            result:=-ord(currvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring])
+            result:=-ord(currvcl in [tve_chari64,tve_sstring,tve_astring,tve_wstring,tve_ustring])
         { byte is better than everything else (we assume both aren't byte, }
         { since there's only one parameter and that one can't be the same) }
         else if (currvcl=tve_byte) or
@@ -2490,7 +2497,11 @@ implementation
         { widestring is better than everything left }
         else if (currvcl=tve_wstring) or
                 (bestvcl=tve_wstring) then
-          result:=1-2*ord(bestvcl=tve_wstring);
+          result:=1-2*ord(bestvcl=tve_wstring)
+        { unicodestring is better than everything left }
+        else if (currvcl=tve_ustring) or
+                (bestvcl=tve_ustring) then
+          result:=1-2*ord(bestvcl=tve_ustring);
 
         { all possibilities should have been checked now }
         if (result=-5) then

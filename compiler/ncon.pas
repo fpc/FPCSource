@@ -866,7 +866,8 @@ implementation
             resultdef:=cshortstringtype;
           cst_ansistring :
             resultdef:=cansistringtype;
-          cst_unicodestring,
+          cst_unicodestring :
+            resultdef:=cunicodestringtype;
           cst_widestring :
             resultdef:=cwidestringtype;
           cst_longstring :
@@ -877,11 +878,15 @@ implementation
     function tstringconstnode.pass_1 : tnode;
       begin
         result:=nil;
-        if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) and
-           (len=0) then
-         expectloc:=LOC_CONSTANT
+        if (cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
+          begin
+            if len=0 then
+              expectloc:=LOC_CONSTANT
+            else
+              expectloc:=LOC_REGISTER
+          end
         else
-         expectloc:=LOC_CREFERENCE;
+          expectloc:=LOC_CREFERENCE;
       end;
 
 
@@ -920,8 +925,8 @@ implementation
         if def.typ<>stringdef then
           internalerror(200510011);
         { convert ascii 2 unicode }
-        if (tstringdef(def).stringtype=st_widestring) and
-           (cst_type<>cst_widestring) then
+        if (tstringdef(def).stringtype in [st_widestring,st_unicodestring]) and
+           not(cst_type in [cst_widestring,cst_unicodestring]) then
           begin
             initwidestring(pw);
             ascii2unicode(value_str,len,pw);
@@ -930,8 +935,8 @@ implementation
           end
         else
           { convert unicode 2 ascii }
-          if (cst_type=cst_widestring) and
-            (tstringdef(def).stringtype<>st_widestring) then
+          if (cst_type in [cst_widestring,cst_unicodestring]) and
+            not(tstringdef(def).stringtype in [st_widestring,st_unicodestring]) then
             begin
               pw:=pcompilerwidestring(value_str);
               getmem(pc,getlengthwidestring(pw)+1);

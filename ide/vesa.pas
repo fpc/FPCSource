@@ -56,8 +56,7 @@ const
      vesa_mw_WindowB                  = $0001;
 
 type
-     {$ifdef FPC}tregisters=registers;{$endif}
-     {$ifdef TP}tregisters=registers;{$endif}
+     tregisters=registers;
 
      PtrRec16 = record
        Ofs,Seg: word;
@@ -134,9 +133,7 @@ Procedure FreeVesaModes;
 implementation
 
 uses
-{$ifdef FPC}
   video, mouse,
-{$endif FPC}
 {$ifdef TESTGRAPHIC}
   graph,
 {$endif TESTGRAPHIC}
@@ -363,7 +360,6 @@ begin
   VESAInit:=OK;
 end;
 
-{$ifdef FPC}
 Function VesaGetVideoModeData (Index : Word; Var Data : TVideoMode) : boolean;
 Var
   PrevCount : word;
@@ -710,5 +706,4 @@ BEGIN
 {$endif TESTGRAPHIC}
 
   SetVideoDriver (Driver);
-{$endif FPC}
 END.

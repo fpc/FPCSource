@@ -62,7 +62,7 @@ type
 
     PCodeEditorCore = ^TCodeEditorCore;
     TCodeEditorCore = object(TCustomCodeEditorCore)
-    {$ifdef TP}public{$else}protected{$endif}
+    protected
       Lines      : PLineCollection;
       CanUndo    : Boolean;
       StoreUndo  : boolean;
@@ -91,7 +91,7 @@ type
       function    GetLastSyntaxedLine: sw_integer; virtual;
       procedure   SetLastSyntaxedLine(ALine: sw_integer); virtual;
       { Storage }
-    {$ifdef TP}public{$else}protected{$endif}
+    protected
       { Text & info storage abstraction }
       procedure   ISetLineFlagState(Binding: PEditorBinding; LineNo: sw_integer; Flag: longint; ASet: boolean); virtual;
       procedure   IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:string); virtual;
@@ -328,7 +328,7 @@ begin
 end;
 
 function TLine.GetEditorInfo(Editor: PCustomCodeEditor): PEditorLineInfo;
-function Match(P: PEditorLineInfo): boolean; {$ifdef TP}far;{$endif}
+function Match(P: PEditorLineInfo): boolean;
 begin
   Match:=P^.Editor=Editor;
 end;
@@ -470,7 +470,7 @@ begin
 end;
 
 procedure TCodeEditorCore.GetContent(ALines: PUnsortedStringCollection);
-procedure AddIt(P: PCustomLine); {$ifndef FPC}far;{$endif}
+procedure AddIt(P: PCustomLine);
 begin
   if Assigned(P) then
     ALines^.Insert(NewStr(P^.GetText));
@@ -481,7 +481,7 @@ begin
 end;
 
 procedure TCodeEditorCore.SetContent(ALines: PUnsortedStringCollection);
-procedure AddIt(P: PString); {$ifndef FPC}far;{$endif}
+procedure AddIt(P: PString);
 begin
   AddLine(GetStr(P));
 end;
@@ -533,7 +533,7 @@ end;
 
 procedure TCodeEditorCore.LinesInsert(Idx: sw_integer; Line: PLine);
 var I: sw_integer;
-procedure RegLine(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure RegLine(P: PEditorBinding);
 begin
   Line^.AddEditorInfo(I,P^.Editor);
   Inc(I);

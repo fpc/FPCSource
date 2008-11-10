@@ -585,7 +585,7 @@ end;
 
 function WriteOpenWindows(F: PResourceFile): boolean;
 var S: PMemoryStream;
-procedure CollectInfo(P: PView); {$ifndef FPC}far;{$endif}
+procedure CollectInfo(P: PView);
 var W: PWindow;
     SW: PSourceWindow absolute W;
     WI: TWindowInfo;

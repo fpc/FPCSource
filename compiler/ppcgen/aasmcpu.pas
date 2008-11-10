@@ -65,6 +65,7 @@ uses
          constructor op_reg_bool_reg_reg(op : tasmop;_op1: tregister;_op2:boolean;_op3,_op4:tregister);
          constructor op_reg_bool_reg_const(op : tasmop;_op1: tregister;_op2:boolean;_op3:tregister;_op4: aint);
 
+         constructor op_reg_reg_reg_const(op : tasmop; _op1, _op2, _op3 : tregister; _op4 : aint);
          constructor op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : aint);
          constructor op_reg_reg_const_const_const(op : tasmop;_op1,_op2 : tregister;_op3,_op4,_op5 : aint);
 
@@ -294,6 +295,15 @@ uses cutils, cclasses;
          loadconst(0,cardinal(_op4));
       end;
 
+     constructor taicpu.op_reg_reg_reg_const(op : tasmop; _op1, _op2, _op3 : tregister; _op4 : aint);
+      begin
+        inherited create(op);
+	ops := 4;
+	loadreg(0, _op1);
+	loadreg(1, _op2);
+	loadreg(2, _op3);
+	loadconst(3, cardinal(_op4));
+      end;
 
      constructor taicpu.op_reg_reg_reg_const_const(op : tasmop;_op1,_op2,_op3 : tregister;_op4,_op5 : aint);
       begin

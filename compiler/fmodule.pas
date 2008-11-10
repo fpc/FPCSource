@@ -109,6 +109,7 @@ interface
         requires_ecx_pic_helper,
         { generate pic helper which loads eip in ebx (for non leave procedures) }
         requires_ebx_pic_helper : boolean;
+        interface_only: boolean; { interface-only macpas unit; flag does not need saving/restoring to ppu }
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
@@ -124,6 +125,7 @@ interface
         derefmapsize  : longint;  { number of units in the map }
         derefdataintflen : longint;
         derefdata     : tdynamicarray;
+        checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
         globalsymtable,           { pointer to the global symtable of this unit }
@@ -486,6 +488,7 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        checkforwarddefs:=TFPObjectList.Create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -592,6 +595,7 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
+        checkforwarddefs.free;
         if assigned(globalsymtable) then
           globalsymtable.free;
         if assigned(localsymtable) then
@@ -666,6 +670,8 @@ implementation
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        checkforwarddefs.free;
+        checkforwarddefs:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then

@@ -29,13 +29,11 @@ unit cutils;
 
 interface
 
+  type
+    Tcharset=set of char;
 
-    type
-       pshortstring = ^string;
-       Tcharset=set of char;
-
-    var
-      internalerrorproc : procedure(i:longint);
+  var
+    internalerrorproc : procedure(i:longint);
 
 
     {# Returns the minimal value between @var(a) and @var(b) }
@@ -1270,8 +1268,8 @@ implementation
 
     // Case x=NAN or y=NAN
 
-    if ( (ix>=$7ff00000) and (((ix-$7ff00000) or lx) <> 0) )
-        or ( (iy>=$7ff00000) and (((iy-$7ff00000) OR ly) <> 0) )
+    if ( (ix>=$7ff00000) and ((longword(ix-$7ff00000) or lx) <> 0) )
+        or ( (iy>=$7ff00000) and ((longword(iy-$7ff00000) OR ly) <> 0) )
     then exit(x+y);
 
     // Case x=y
@@ -1280,7 +1278,7 @@ implementation
 
     // Case x=0
 
-    if (ix or lx)=0
+    if (longword(ix) or lx)=0
     then begin
           twoword(x).hi:=hy and $80000000;  // return +-minimalSubnormal
           twoword(x).lo:=1;

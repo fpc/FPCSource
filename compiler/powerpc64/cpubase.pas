@@ -93,7 +93,7 @@ type
     A_CMPD, A_CMPDI, A_CMPLD, A_CMPLDI,
     A_SRDI, A_SRADI,
     A_SLDI,
-    A_RLDICL,
+    A_RLDCL, A_RLDICL,
     A_DIVDU, A_DIVDU_, A_DIVD, A_DIVD_, A_MULLD, A_MULLD_, A_MULHD, A_MULHD_, A_SRAD, A_SLD, A_SRD,
     A_DIVDUO_, A_DIVDO_,
     A_LWA, A_LWAX, A_LWAUX,
@@ -146,7 +146,7 @@ const
   { MM Super register first and last }
   first_mm_imreg = $20;
 
-{$WARNING TODO Calculate bsstart}
+{ TODO: Calculate bsstart}
   regnumber_count_bsstart = 64;
 
   regnumber_table: array[tregisterindex] of tregister = (
@@ -317,7 +317,7 @@ const
 
      Taken from GCC rs6000.h
   }
-{$WARNING As indicated in rs6000.h, but can't find it anywhere else!}
+{ TODO: As indicated in rs6000.h, but can't find it anywhere else!}
   NR_PIC_OFFSET_REG = NR_R30;
   { Return address of a function }
   NR_RETURN_ADDRESS_REG = NR_R0;

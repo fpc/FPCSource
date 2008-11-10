@@ -156,7 +156,6 @@ procedure write_ar(const name:string;size:longint);
 
 var ar:ar_hdr;        {PackTime is platform independent}
     time:TSystemTime;
-    dummy:word;
     numtime:longint;
     tmp:string[19];
 begin
@@ -291,6 +290,7 @@ var tmp1,tmp2,tmp3:string;
     func : string;
 begin
     aout_init;
+    func:='';
     tmp2:=func;
     if profile_flag and not (copy(func,1,4)='_16_') then
         begin
@@ -456,7 +456,6 @@ var
   AppTypeStr,
   StripStr: string[40];
   RsrcStr : string;
-  DS,NS,ES : string;
   OutName: string;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then

@@ -66,6 +66,19 @@ interface
         al_end
       );
 
+      { Type of constant 'pools'. Currently contains only string types,
+        but may be extended with reals, sets, etc. }
+      
+      TConstPoolType = (
+         sp_invalid,
+         sp_conststr,
+         sp_shortstr,
+         sp_longstr,
+         sp_ansistr,
+         sp_widestr,
+         sp_unicodestr
+      );
+      
     const
       AsmListTypeStr : array[TAsmListType] of string[24] =(
         'al_begin',
@@ -126,10 +139,13 @@ interface
         { Assembler lists }
         AsmLists      : array[TAsmListType] of TAsmList;
         CurrAsmList   : TAsmList;
+        { hash tables for reusing constant storage }
+        ConstPools    : array[TConstPoolType] of THashSet;
         constructor create(const n:string);
         destructor  destroy;override;
         { asmsymbol }
         function  DefineAsmSymbol(const s : string;_bind:TAsmSymBind;_typ:Tasmsymtype) : TAsmSymbol;
+        function  WeakRefAsmSymbol(const s : string) : TAsmSymbol;
         function  RefAsmSymbol(const s : string) : TAsmSymbol;
         function  GetAsmSymbol(const s : string) : TAsmSymbol;
         { create new assembler label }
@@ -283,7 +299,7 @@ implementation
         for hal:=low(TAsmListType) to high(TAsmListType) do
           AsmLists[hal]:=TAsmList.create;
         { PIC data }
-        if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin]) then
+        if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_arm_darwin]) then
           AsmLists[al_picdata].concat(tai_directive.create(asd_non_lazy_symbol_pointer,''));
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
@@ -293,6 +309,7 @@ implementation
     destructor TAsmData.destroy;
       var
         hal : TAsmListType;
+        hp  : TConstPoolType;
       begin
         { Symbols }
 {$ifdef MEMDEBUG}
@@ -321,6 +338,8 @@ implementation
 {$ifdef MEMDEBUG}
          memasmlists.stop;
 {$endif}
+         for hp := low(TConstPoolType) to high(TConstPoolType) do
+           ConstPools[hp].Free;
       end;
 
 
@@ -355,7 +374,18 @@ implementation
       begin
         result:=TAsmSymbol(FAsmSymbolDict.Find(s));
         if not assigned(result) then
-          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE);
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_EXTERNAL,AT_NONE)
+        { one normal reference removes the "weak" character of a symbol }
+        else if (result.bind=AB_WEAK_EXTERNAL) then
+          result.bind:=AB_EXTERNAL;
+      end;
+
+
+    function TAsmData.WeakRefAsmSymbol(const s : string) : TAsmSymbol;
+      begin
+        result:=TAsmSymbol(FAsmSymbolDict.Find(s));
+        if not assigned(result) then
+          result:=TAsmSymbol.create(AsmSymbolDict,s,AB_WEAK_EXTERNAL,AT_NONE);
       end;
 
 

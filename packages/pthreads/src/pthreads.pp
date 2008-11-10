@@ -25,16 +25,16 @@ uses initc,BaseUnix, unixtype;
 {$i pthrbsd.inc}
 {$else}
  {$ifdef linux}
- uses initc,unixtype;
+ uses initc, ctypes, unixtype;
  {$i pthrlinux.inc}
  {$else}
 
   {$ifdef sunos}
-  uses initc,unixtype;
+  uses initc, ctypes, unixtype;
   {$i pthrsnos.inc}
   {$else}
    {$ifdef beos}
-   uses initc, baseunix, unixtype;
+   uses initc, ctypes, baseunix, unixtype;
    {$i pthrbeos.inc}
    {$else}
     {$error operating system not detected}

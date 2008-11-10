@@ -216,6 +216,7 @@ type
     procedure Clear;
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
     function Expand: TFPHashList;
@@ -283,6 +284,7 @@ type
     function Add(const AName:shortstring;AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
     function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function GetNextCollision(Index: Integer): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Delete(Index: Integer);
     function Expand: TFPHashObjectList; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -423,7 +425,7 @@ type
        tdynamicblock = record
          pos,
          size,
-         used : integer;
+         used : longword;
          Next : pdynamicblock;
          data : tdynamicblockdata;
        end;
@@ -434,32 +436,76 @@ type
      type
        tdynamicarray = class
        private
-         FPosn       : integer;
+         FPosn       : longword;
          FPosnblock  : pdynamicblock;
          FCurrBlocksize,
-         FMaxBlocksize  : integer;
+         FMaxBlocksize  : longword;
          FFirstblock,
          FLastblock  : pdynamicblock;
          procedure grow;
        public
-         constructor Create(Ablocksize:integer);
+         constructor Create(Ablocksize:longword);
          destructor  Destroy;override;
          procedure reset;
-         function  size:integer;
-         procedure align(i:integer);
-         procedure seek(i:integer);
-         function  read(var d;len:integer):integer;
-         procedure write(const d;len:integer);
+         function  size:longword;
+         procedure align(i:longword);
+         procedure seek(i:longword);
+         function  read(var d;len:longword):longword;
+         procedure write(const d;len:longword);
          procedure writestr(const s:string); {$ifdef CCLASSESINLINE}inline;{$endif}
-         procedure readstream(f:TCStream;maxlen:longint);
+         procedure readstream(f:TCStream;maxlen:longword);
          procedure writestream(f:TCStream);
-         property  CurrBlockSize : integer read FCurrBlocksize;
+         property  CurrBlockSize : longword read FCurrBlocksize;
          property  FirstBlock : PDynamicBlock read FFirstBlock;
-         property  Pos : integer read FPosn;
+         property  Pos : longword read FPosn;
        end;
 
 
+{******************************************************************
+   THashSet (keys not limited to ShortString, no indexed access)
+*******************************************************************}
+
+       PPHashSetItem = ^PHashSetItem;
+       PHashSetItem = ^THashSetItem;
+       THashSetItem = record
+         Next: PHashSetItem;
+         Key: Pointer;
+         KeyLength: Integer;
+         HashValue: LongWord;
+         Data: TObject;
+       end;
+
+       THashSet = class(TObject)
+       private
+         FCount: LongWord;
+         FBucketCount: LongWord;
+         FBucket: PPHashSetItem;
+         FOwnsObjects: Boolean;
+         FOwnsKeys: Boolean;
+         function Lookup(Key: Pointer; KeyLen: Integer; var Found: Boolean;
+           CanCreate: Boolean): PHashSetItem;
+         procedure Resize(NewCapacity: LongWord);
+       public
+         constructor Create(InitSize: Integer; OwnKeys, OwnObjects: Boolean);
+         destructor Destroy; override;
+         procedure Clear;
+         { finds an entry by key }
+         function Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer;
+           var Found: Boolean): PHashSetItem;
+         { finds an entry, creates one if not exists }
+         function FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
+         { returns Data by given Key }
+         function Get(Key: Pointer; KeyLen: Integer): TObject;
+         { removes an entry, returns False if entry wasn't there }
+         function Remove(Entry: PHashSetItem): Boolean;
+         property Count: LongWord read FCount;
+      end;
+
+
     function FPHash(const s:shortstring):LongWord;
+    function FPHash(P: PChar; Len: Integer): LongWord;
 
 
 implementation
@@ -1010,26 +1056,6 @@ end;
                             TFPHashList
 *****************************************************************************}
 
-    function FPHash1(const s:shortstring):LongWord;
-      Var
-        g : LongWord;
-        p,pmax : pchar;
-      begin
-        result:=0;
-        p:=@s[1];
-        pmax:=@s[length(s)+1];
-        while (p<pmax) do
-          begin
-            result:=result shl 4 + LongWord(p^);
-            g:=result and LongWord($F0000000);
-            if g<>0 then
-              result:=result xor (g shr 24) xor g;
-            inc(p);
-          end;
-        If result=0 then
-          result:=$ffffffff;
-      end;
-
     function FPHash(const s:shortstring):LongWord;
       Var
         p,pmax : pchar;
@@ -1043,7 +1069,28 @@ end;
         pmax:=@s[length(s)+1];
         while (p<pmax) do
           begin
-            result:=LongWord((result shl 5) - result) xor LongWord(P^);
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
+            inc(p);
+          end;
+{$ifdef overflowon}
+{$Q+}
+{$undef overflowon}
+{$endif}
+      end;
+
+    function FPHash(P: PChar; Len: Integer): LongWord;
+      Var
+        pmax : pchar;
+      begin
+{$ifopt Q+}
+{$define overflowon}
+{$Q-}
+{$endif}
+        result:=0;
+        pmax:=p+len;
+        while (p<pmax) do
+          begin
+            result:=LongWord(LongInt(result shl 5) - LongInt(result)) xor LongWord(P^);
             inc(p);
           end;
 {$ifdef overflowon}
@@ -1097,6 +1144,14 @@ begin
 end;
 
 
+function TFPHashList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result:=-1;
+  if ((Index > -1) and (Index < FCount)) then
+    Result:=FHashList^[Index].NextIndex;
+end;
+
+
 function TFPHashList.Extract(item: Pointer): Pointer;
 var
   i : Integer;
@@ -1119,6 +1174,9 @@ begin
     exit;
   ReallocMem(FHashList, NewCapacity*SizeOf(THashItem));
   FCapacity := NewCapacity;
+  { Maybe expand hash also }
+  if FCapacity>FHashCapacity*MaxItemsPerHash then
+    SetHashCapacity(FCapacity div MaxItemsPerHash);
 end;
 
 
@@ -1237,6 +1295,7 @@ begin
       FHashList := nil;
     end;
   SetHashCapacity(1);
+  FHashTable^[0]:=-1; // sethashcapacity does not always call rehash
   if Assigned(FStrs) then
     begin
       FStrCount:=0;
@@ -1289,9 +1348,6 @@ begin
   else if FCapacity >= sizeof(ptrint) then
     inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
-  { Maybe expand hash also }
-  if FCount>FHashCapacity*MaxItemsPerHash then
-    SetHashCapacity(FCount div MaxItemsPerHash);
 end;
 
 procedure TFPHashList.StrExpand(MinIncSize:Integer);
@@ -1660,6 +1716,11 @@ begin
   Result := FHashList.HashOfIndex(Index);
 end;
 
+function TFPHashObjectList.GetNextCollision(Index: Integer): Integer;
+begin
+  Result := FHashList.GetNextCollision(Index);
+end;
+
 procedure TFPHashObjectList.Delete(Index: Integer);
 begin
   if OwnsObjects then
@@ -1762,7 +1823,6 @@ procedure TFPHashObjectList.ForEachCall(proc2call:TObjectListStaticCallback;arg:
 begin
   FHashList.ForEachCall(TListStaticCallBack(proc2call),arg);
 end;
-
 
 
 {****************************************************************************
@@ -2226,16 +2286,14 @@ end;
     function TCmdStrList.Find(const s:TCmdStr):TCmdStrListItem;
       var
         NewNode : TCmdStrListItem;
-        ups     : string;
       begin
         result:=nil;
         if s='' then
          exit;
-        ups:=upper(s);
         NewNode:=TCmdStrListItem(FFirst);
         while assigned(NewNode) do
          begin
-           if upper(NewNode.FPStr)=ups then
+           if SysUtils.CompareText(s, NewNode.FPStr)=0 then
             begin
               result:=NewNode;
               exit;
@@ -2261,7 +2319,7 @@ end;
                                 tdynamicarray
 ****************************************************************************}
 
-    constructor tdynamicarray.create(Ablocksize:integer);
+    constructor tdynamicarray.create(Ablocksize:longword);
       begin
         FPosn:=0;
         FPosnblock:=nil;
@@ -2286,7 +2344,7 @@ end;
       end;
 
 
-    function  tdynamicarray.size:integer;
+    function  tdynamicarray.size:longword;
       begin
         if assigned(FLastblock) then
          size:=FLastblock^.pos+FLastblock^.used
@@ -2351,9 +2409,9 @@ end;
       end;
 
 
-    procedure tdynamicarray.align(i:integer);
+    procedure tdynamicarray.align(i:longword);
       var
-        j : integer;
+        j : longword;
       begin
         j:=(FPosn mod i);
         if j<>0 then
@@ -2372,7 +2430,7 @@ end;
       end;
 
 
-    procedure tdynamicarray.seek(i:integer);
+    procedure tdynamicarray.seek(i:longword);
       begin
         if (i<FPosnblock^.pos) or (i>=FPosnblock^.pos+FPosnblock^.size) then
          begin
@@ -2403,10 +2461,10 @@ end;
       end;
 
 
-    procedure tdynamicarray.write(const d;len:integer);
+    procedure tdynamicarray.write(const d;len:longword);
       var
         p : pchar;
-        i,j : integer;
+        i,j : longword;
       begin
         p:=pchar(@d);
         while (len>0) do
@@ -2448,10 +2506,10 @@ end;
       end;
 
 
-    function tdynamicarray.read(var d;len:integer):integer;
+    function tdynamicarray.read(var d;len:longword):longword;
       var
         p : pchar;
-        i,j,res : integer;
+        i,j,res : longword;
       begin
         res:=0;
         p:=pchar(@d);
@@ -2484,12 +2542,10 @@ end;
       end;
 
 
-    procedure tdynamicarray.readstream(f:TCStream;maxlen:longint);
+    procedure tdynamicarray.readstream(f:TCStream;maxlen:longword);
       var
-        i,left : integer;
+        i,left : longword;
       begin
-        if maxlen=-1 then
-         maxlen:=maxlongint;
         repeat
           left:=FPosnblock^.size-FPosnblock^.used;
           if left>maxlen then
@@ -2521,6 +2577,184 @@ end;
            f.Write(hp^.data,hp^.used);
            hp:=hp^.Next;
          end;
+      end;
+
+{****************************************************************************
+                                thashset
+****************************************************************************}
+
+    constructor THashSet.Create(InitSize: Integer; OwnKeys, OwnObjects: Boolean);
+      var
+        I: Integer;
+      begin
+        inherited Create;
+        FOwnsObjects := OwnObjects;
+        FOwnsKeys := OwnKeys;
+        I := 64;
+        while I < InitSize do I := I shl 1;
+        FBucketCount := I;
+        FBucket := AllocMem(I * sizeof(PHashSetItem));
+      end;
+
+
+    destructor THashSet.Destroy;
+      begin
+        Clear;
+        FreeMem(FBucket);
+        inherited Destroy;
+      end;
+
+
+    procedure THashSet.Clear;
+      var
+        I: Integer;
+        item, next: PHashSetItem;
+      begin
+        for I := 0 to FBucketCount-1 do
+        begin
+          item := FBucket[I];
+          while Assigned(item) do
+          begin
+            next := item^.Next;
+            if FOwnsObjects then
+              item^.Data.Free;
+            if FOwnsKeys then
+              FreeMem(item^.Key);
+            Dispose(item);
+            item := next;
+          end;
+        end;
+        FillChar(FBucket^, FBucketCount * sizeof(PHashSetItem), 0);
+      end;
+
+
+    function THashSet.Find(Key: Pointer; KeyLen: Integer): PHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Dummy, False);
+      end;
+
+
+    function THashSet.FindOrAdd(Key: Pointer; KeyLen: Integer;
+        var Found: Boolean): PHashSetItem;
+      begin
+        Result := Lookup(Key, KeyLen, Found, True);
+      end;
+
+
+    function THashSet.FindOrAdd(Key: Pointer; KeyLen: Integer): PHashSetItem;
+      var
+        Dummy: Boolean;
+      begin
+        Result := Lookup(Key, KeyLen, Dummy, True);
+      end;
+
+
+    function THashSet.Get(Key: Pointer; KeyLen: Integer): TObject;
+      var
+        e: PHashSetItem;
+        Dummy: Boolean;
+      begin
+        e := Lookup(Key, KeyLen, Dummy, False);
+        if Assigned(e) then
+          Result := e^.Data
+        else
+          Result := nil;
+      end;
+
+
+    function THashSet.Lookup(Key: Pointer; KeyLen: Integer;
+      var Found: Boolean; CanCreate: Boolean): PHashSetItem;
+      var
+        Entry: PPHashSetItem;
+        h: LongWord;
+      begin
+        h := FPHash(Key, KeyLen);
+        Entry := @FBucket[h mod FBucketCount];
+        while Assigned(Entry^) and
+          not ((Entry^^.HashValue = h) and (Entry^^.KeyLength = KeyLen) and
+            (CompareByte(Entry^^.Key^, Key^, KeyLen) = 0)) do
+              Entry := @Entry^^.Next;
+        Found := Assigned(Entry^);
+        if Found or (not CanCreate) then
+          begin
+            Result := Entry^;
+            Exit;
+          end;
+        if FCount > FBucketCount then  { arbitrary limit, probably too high }
+          begin
+            { rehash and repeat search }
+            Resize(FBucketCount * 2);
+            Result := Lookup(Key, KeyLen, Found, CanCreate);
+          end
+        else
+          begin
+            New(Result);
+            if FOwnsKeys then
+            begin
+              GetMem(Result^.Key, KeyLen);
+              Move(Key^, Result^.Key^, KeyLen);
+            end
+            else
+              Result^.Key := Key;
+            Result^.KeyLength := KeyLen;
+            Result^.HashValue := h;
+            Result^.Data := nil;
+            Result^.Next := nil;
+            Inc(FCount);
+            Entry^ := Result;
+          end;
+        end;
+
+
+    procedure THashSet.Resize(NewCapacity: LongWord);
+      var
+        p, chain: PPHashSetItem;
+        i: Integer;
+        e, n: PHashSetItem;
+      begin
+        p := AllocMem(NewCapacity * sizeof(PHashSetItem));
+        for i := 0 to FBucketCount-1 do
+          begin
+            e := FBucket[i];
+            while Assigned(e) do
+            begin
+              chain := @p[e^.HashValue mod NewCapacity];
+              n := e^.Next;
+              e^.Next := chain^;
+              chain^ := e;
+              e := n;
+            end;
+          end;
+        FBucketCount := NewCapacity;
+        FreeMem(FBucket);
+        FBucket := p;
+      end;
+
+
+    function THashSet.Remove(Entry: PHashSetItem): Boolean;
+      var
+        chain: PPHashSetItem;
+      begin
+        chain := @FBucket[Entry^.HashValue mod FBucketCount];
+        while Assigned(chain^) do
+          begin
+            if chain^ = Entry then
+              begin
+                chain^ := Entry^.Next;
+                if FOwnsObjects then
+                  Entry^.Data.Free;
+                if FOwnsKeys then
+                  FreeMem(Entry^.Key);
+                Dispose(Entry);
+                Dec(FCount);
+                Result := True;
+                Exit;
+              end;
+            chain := @chain^^.Next;
+          end;
+        Result := False;
       end;
 
 end.

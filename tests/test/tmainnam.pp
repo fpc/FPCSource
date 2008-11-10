@@ -1,6 +1,6 @@
 { %recompile }
 { %fail }
-{ %opt=-Sew -Cn }
+{ %opt=-vw -Sew -Cn }
 
 uses umainnam;
 

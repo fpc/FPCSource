@@ -1003,6 +1003,8 @@ implementation
                     ot:=OT_IMM8 or OT_SIGNED
                   else
                     ot:=OT_IMMEDIATE or opsize_2_type[i,opsize];
+                  if (val=1) and (i=1) then
+                    ot := ot or OT_ONENESS;
                 end;
               top_none :
                 begin
@@ -1644,12 +1646,12 @@ implementation
            if (ir=NR_NO) and (br<>NR_ESP) then
             begin
               output.sib_present:=false;
-              output.modrm:=(md shl 6) or (rfield shl 3) or base;
+              output.modrm:=(longint(md) shl 6) or (rfield shl 3) or base;
             end
            else
             begin
               output.sib_present:=true;
-              output.modrm:=(md shl 6) or (rfield shl 3) or 4;
+              output.modrm:=(longint(md) shl 6) or (rfield shl 3) or 4;
               output.sib:=(scalefactor shl 6) or (index shl 3) or base;
             end;
          end;
@@ -1965,7 +1967,7 @@ implementation
         ea_data : ea;
       begin
         { safety check }
-        if objdata.currobjsec.size<>insoffset then
+        if objdata.currobjsec.size<>longword(insoffset) then
            internalerror(200130121);
         { load data to write }
         codes:=insentry^.code;

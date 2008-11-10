@@ -132,16 +132,6 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
                               Parameter Handling
 *****************************************************************************}
 
-var
-  ModuleName : array[0..255] of char;
-
-function GetCommandFile:pchar;
-begin
-  GetModuleFileName(0,@ModuleName,255);
-  GetCommandFile:=@ModuleName;
-end;
-
-
 procedure setup_arguments;
 var
   arglen,
@@ -150,6 +140,7 @@ var
   pc,arg  : pchar;
   quote   : char;
   argvlen : longint;
+  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
 
   procedure allocarg(idx,len:longint);
     var
@@ -175,13 +166,10 @@ begin
   count:=0;
   argv:=nil;
   argvlen:=0;
-  pc:=getcommandfile;
-  Arglen:=0;
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen]=#0);
-  allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen+1);
+  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
+  buf[ArgLen] := #0; // be safe
+  allocarg(0,arglen);
+  move(buf,argv[0]^,arglen+1);
   { Setup cmdline variable }
   cmdline:=GetCommandLine;
   { process arguments }
@@ -271,7 +259,7 @@ begin
                   break;
                end;
              '"' :
-               begin
+                begin
                  if quote<>'''' then
                   begin
                     if pchar(pc+1)^<>'"' then
@@ -325,11 +313,11 @@ begin
  {$EndIf SYSTEM_DEBUG_STARTUP}
      inc(count);
    end;
-  { get argc and create an nil entry }
+  { get argc }
   argc:=count;
-  allocarg(argc,0);
-  { free unused memory }
-  sysreallocmem(argv,(argc+1)*sizeof(pointer));
+  { free unused memory, leaving a nil entry at the end }
+  sysreallocmem(argv,(count+1)*sizeof(pointer));
+  argv[count] := nil;
 end;
 
 
@@ -1008,127 +996,11 @@ function Win32WideLower(const s : WideString) : WideString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
+{******************************************************************************}
+{ include code common with win64 }
 
-{ there is a similiar procedure in sysutils which inits the fields which
-  are only relevant for the sysutils units }
-procedure InitWin32Widestrings;
-  begin
-    widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
-    widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
-    widestringmanager.UpperWideStringProc:=@Win32WideUpper;
-    widestringmanager.LowerWideStringProc:=@Win32WideLower;
-  end;
-
-
-
-{****************************************************************************
-                    Error Message writing using messageboxes
-****************************************************************************}
-
-function MessageBox(w1:longint;l1,l2:pointer;w2:longint):longint;
-   stdcall;external 'user32' name 'MessageBoxA';
-
-const
-  ErrorBufferLength = 1024;
-var
-  ErrorBuf : array[0..ErrorBufferLength] of char;
-  ErrorLen : longint;
-
-Function ErrorWrite(Var F: TextRec): Integer;
-{
-  An error message should always end with #13#10#13#10
-}
-var
-  p : pchar;
-  i : longint;
-Begin
-  while F.BufPos>0 do
-    begin
-      begin
-        if F.BufPos+ErrorLen>ErrorBufferLength then
-          i:=ErrorBufferLength-ErrorLen
-        else
-          i:=F.BufPos;
-        Move(F.BufPtr^,ErrorBuf[ErrorLen],i);
-        inc(ErrorLen,i);
-        ErrorBuf[ErrorLen]:=#0;
-      end;
-      if ErrorLen=ErrorBufferLength then
-        begin
-          MessageBox(0,@ErrorBuf,pchar('Error'),0);
-          ErrorLen:=0;
-        end;
-      Dec(F.BufPos,i);
-    end;
-  ErrorWrite:=0;
-End;
-
-
-Function ErrorClose(Var F: TextRec): Integer;
-begin
-  if ErrorLen>0 then
-   begin
-     MessageBox(0,@ErrorBuf,pchar('Error'),0);
-     ErrorLen:=0;
-   end;
-  ErrorLen:=0;
-  ErrorClose:=0;
-end;
-
-
-Function ErrorOpen(Var F: TextRec): Integer;
-Begin
-  TextRec(F).InOutFunc:=@ErrorWrite;
-  TextRec(F).FlushFunc:=@ErrorWrite;
-  TextRec(F).CloseFunc:=@ErrorClose;
-  ErrorLen:=0;
-  ErrorOpen:=0;
-End;
-
-
-procedure AssignError(Var T: Text);
-begin
-  Assign(T,'');
-  TextRec(T).OpenFunc:=@ErrorOpen;
-  Rewrite(T);
-end;
-
-
-procedure SysInitStdIO;
-begin
-  { Setup stdin, stdout and stderr, for GUI apps redirect stderr,stdout to be
-    displayed in a messagebox }
-  StdInputHandle:=THandle(GetStdHandle(STD_INPUT_HANDLE));
-  StdOutputHandle:=THandle(GetStdHandle(STD_OUTPUT_HANDLE));
-  StdErrorHandle:=THandle(GetStdHandle(STD_ERROR_HANDLE));
-  if not IsConsole then
-   begin
-     AssignError(stderr);
-     AssignError(StdOut);
-     Assign(Output,'');
-     Assign(Input,'');
-     Assign(ErrOutput,'');
-   end
-  else
-   begin
-     OpenStdIO(Input,fmInput,StdInputHandle);
-     OpenStdIO(Output,fmOutput,StdOutputHandle);
-     OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
-     OpenStdIO(StdOut,fmOutput,StdOutputHandle);
-     OpenStdIO(StdErr,fmOutput,StdErrorHandle);
-   end;
-end;
-
-(* ProcessID cached to avoid repeated calls to GetCurrentProcess. *)
-
-var
-  ProcessID: SizeUInt;
-
-function GetProcessID: SizeUInt;
-begin
- GetProcessID := ProcessID;
-end;
-
+{$I syswin.inc}
+{******************************************************************************}
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;assembler;
 asm
@@ -1149,7 +1021,7 @@ begin
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    SysInstance:=getmodulehandle(GetCommandFile);
+    SysInstance:=getmodulehandle(nil);
   MainInstance:=SysInstance;
   cmdshow:=startupinfo.wshowwindow;
   { Setup heap }
@@ -1169,6 +1041,9 @@ begin
   errno:=0;
   initvariantmanager;
   initwidestringmanager;
+{$ifndef VER2_2}
+  initunicodestringmanager;
+{$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
 end.

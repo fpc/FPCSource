@@ -1,88 +1,91 @@
-{*
- * gunicode.inc
- *
- * depends on gerror.inc, gtypes.inc
- *}
+// included by glib2.pas
 
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-    type
-       Pgunichar  = ^gunichar;
-       gunichar   = guint32;
+//------------------------------------------------------------------------------
 
-       Pgunichar2 = ^gunichar2;
-       gunichar2 = guint16;
+{$IFDEF read_interface_types}
+   Pgunichar  = ^gunichar;
+   gunichar   = guint32;
 
-    { These are the possible character classifications.
-       See http://www.unicode.org/Public/UNIDATA/UnicodeData.html
-      }
+   Pgunichar2 = ^gunichar2;
+   gunichar2 = guint16;
 
-       PGUnicodeType = ^TGUnicodeType;
-       TGUnicodeType = (G_UNICODE_CONTROL,
-                        G_UNICODE_FORMAT,
-                        G_UNICODE_UNASSIGNED,
-                        G_UNICODE_PRIVATE_USE,
-                        G_UNICODE_SURROGATE,
-                        G_UNICODE_LOWERCASE_LETTER,
-                        G_UNICODE_MODIFIER_LETTER,
-                        G_UNICODE_OTHER_LETTER,
-                        G_UNICODE_TITLECASE_LETTER,
-                        G_UNICODE_UPPERCASE_LETTER,
-                        G_UNICODE_COMBINING_MARK,
-                        G_UNICODE_ENCLOSING_MARK,
-                        G_UNICODE_NON_SPACING_MARK,
-                        G_UNICODE_DECIMAL_NUMBER,
-                        G_UNICODE_LETTER_NUMBER,
-                        G_UNICODE_OTHER_NUMBER,
-                        G_UNICODE_CONNECT_PUNCTUATION,
-                        G_UNICODE_DASH_PUNCTUATION,
-                        G_UNICODE_CLOSE_PUNCTUATION,
-                        G_UNICODE_FINAL_PUNCTUATION,
-                        G_UNICODE_INITIAL_PUNCTUATION,
-                        G_UNICODE_OTHER_PUNCTUATION,
-                        G_UNICODE_OPEN_PUNCTUATION,
-                        G_UNICODE_CURRENCY_SYMBOL,
-                        G_UNICODE_MODIFIER_SYMBOL,
-                        G_UNICODE_MATH_SYMBOL,
-                        G_UNICODE_OTHER_SYMBOL,
-                        G_UNICODE_LINE_SEPARATOR,
-                        G_UNICODE_PARAGRAPH_SEPARATOR,
-                        G_UNICODE_SPACE_SEPARATOR);
+   PGUnicodeType = ^TGUnicodeType;
+   TGUnicodeType = (
+     G_UNICODE_CONTROL,
+     G_UNICODE_FORMAT,
+     G_UNICODE_UNASSIGNED,
+     G_UNICODE_PRIVATE_USE,
+     G_UNICODE_SURROGATE,
+     G_UNICODE_LOWERCASE_LETTER,
+     G_UNICODE_MODIFIER_LETTER,
+     G_UNICODE_OTHER_LETTER,
+     G_UNICODE_TITLECASE_LETTER,
+     G_UNICODE_UPPERCASE_LETTER,
+     G_UNICODE_COMBINING_MARK,
+     G_UNICODE_ENCLOSING_MARK,
+     G_UNICODE_NON_SPACING_MARK,
+     G_UNICODE_DECIMAL_NUMBER,
+     G_UNICODE_LETTER_NUMBER,
+     G_UNICODE_OTHER_NUMBER,
+     G_UNICODE_CONNECT_PUNCTUATION,
+     G_UNICODE_DASH_PUNCTUATION,
+     G_UNICODE_CLOSE_PUNCTUATION,
+     G_UNICODE_FINAL_PUNCTUATION,
+     G_UNICODE_INITIAL_PUNCTUATION,
+     G_UNICODE_OTHER_PUNCTUATION,
+     G_UNICODE_OPEN_PUNCTUATION,
+     G_UNICODE_CURRENCY_SYMBOL,
+     G_UNICODE_MODIFIER_SYMBOL,
+     G_UNICODE_MATH_SYMBOL,
+     G_UNICODE_OTHER_SYMBOL,
+     G_UNICODE_LINE_SEPARATOR,
+     G_UNICODE_PARAGRAPH_SEPARATOR,
+     G_UNICODE_SPACE_SEPARATOR
+   );
 
-    { These are the possible line break classifications.
-       See http://www.unicode.org/unicode/reports/tr14/
-      }
+   PGUnicodeBreakType = ^TGUnicodeBreakType;
+   TGUnicodeBreakType = (
+     G_UNICODE_BREAK_MANDATORY,
+     G_UNICODE_BREAK_CARRIAGE_RETURN,
+     G_UNICODE_BREAK_LINE_FEED,
+     G_UNICODE_BREAK_COMBINING_MARK,
+     G_UNICODE_BREAK_SURROGATE,
+     G_UNICODE_BREAK_ZERO_WIDTH_SPACE,
+     G_UNICODE_BREAK_INSEPARABLE,
+     G_UNICODE_BREAK_NON_BREAKING_GLUE,
+     G_UNICODE_BREAK_CONTINGENT,
+     G_UNICODE_BREAK_SPACE,
+     G_UNICODE_BREAK_AFTER,
+     G_UNICODE_BREAK_BEFORE,
+     G_UNICODE_BREAK_BEFORE_AND_AFTER,
+     G_UNICODE_BREAK_HYPHEN,
+     G_UNICODE_BREAK_NON_STARTER,
+     G_UNICODE_BREAK_OPEN_PUNCTUATION,
+     G_UNICODE_BREAK_CLOSE_PUNCTUATION,
+     G_UNICODE_BREAK_QUOTATION,
+     G_UNICODE_BREAK_EXCLAMATION,
+     G_UNICODE_BREAK_IDEOGRAPHIC,
+     G_UNICODE_BREAK_NUMERIC,
+     G_UNICODE_BREAK_INFIX_SEPARATOR,
+     G_UNICODE_BREAK_SYMBOL,
+     G_UNICODE_BREAK_ALPHABETIC,
+     G_UNICODE_BREAK_PREFIX,
+     G_UNICODE_BREAK_POSTFIX,
+     G_UNICODE_BREAK_COMPLEX_CONTEXT,
+     G_UNICODE_BREAK_AMBIGUOUS,
+     G_UNICODE_BREAK_UNKNOWN
+   );
 
-       PGUnicodeBreakType = ^TGUnicodeBreakType;
-       TGUnicodeBreakType = (G_UNICODE_BREAK_MANDATORY,
-                             G_UNICODE_BREAK_CARRIAGE_RETURN,
-                             G_UNICODE_BREAK_LINE_FEED,
-                             G_UNICODE_BREAK_COMBINING_MARK,
-                             G_UNICODE_BREAK_SURROGATE,
-                             G_UNICODE_BREAK_ZERO_WIDTH_SPACE,
-                             G_UNICODE_BREAK_INSEPARABLE,
-                             G_UNICODE_BREAK_NON_BREAKING_GLUE,
-                             G_UNICODE_BREAK_CONTINGENT,
-                             G_UNICODE_BREAK_SPACE,
-                             G_UNICODE_BREAK_AFTER,
-                             G_UNICODE_BREAK_BEFORE,
-                             G_UNICODE_BREAK_BEFORE_AND_AFTER,
-                             G_UNICODE_BREAK_HYPHEN,
-                             G_UNICODE_BREAK_NON_STARTER,
-                             G_UNICODE_BREAK_OPEN_PUNCTUATION,
-                             G_UNICODE_BREAK_CLOSE_PUNCTUATION,
-                             G_UNICODE_BREAK_QUOTATION,
-                             G_UNICODE_BREAK_EXCLAMATION,
-                             G_UNICODE_BREAK_IDEOGRAPHIC,
-                             G_UNICODE_BREAK_NUMERIC,
-                             G_UNICODE_BREAK_INFIX_SEPARATOR,
-                             G_UNICODE_BREAK_SYMBOL,
-                             G_UNICODE_BREAK_ALPHABETIC,
-                             G_UNICODE_BREAK_PREFIX,
-                             G_UNICODE_BREAK_POSTFIX,
-                             G_UNICODE_BREAK_COMPLEX_CONTEXT,
-                             G_UNICODE_BREAK_AMBIGUOUS,
-                             G_UNICODE_BREAK_UNKNOWN);
+   PGNormalizeMode = ^TGNormalizeMode;
+   TGNormalizeMode = gint;
+{$ENDIF read_interface_types}
 
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
     { Returns TRUE if current locale uses UTF-8 charset.  If CHARSET is
        not null, sets  CHARSET to the name of the current locale's
        charset.  This value is statically allocated, and should be copied
@@ -221,10 +224,6 @@
     function g_utf8_casefold(str:Pgchar; len:gssize):Pgchar;cdecl;external gliblib name 'g_utf8_casefold';
 
 
-    type
-
-       PGNormalizeMode = ^TGNormalizeMode;
-       TGNormalizeMode = gint;
     const G_NORMALIZE_DEFAULT         = 0;
           G_NORMALIZE_NFD             = G_NORMALIZE_DEFAULT;
           G_NORMALIZE_DEFAULT_COMPOSE = 1;
@@ -239,3 +238,4 @@
     function g_utf8_collate(str1:Pgchar; str2:Pgchar):gint;cdecl;external gliblib name 'g_utf8_collate';
 
     function g_utf8_collate_key(str:Pgchar; len:gssize):Pgchar;cdecl;external gliblib name 'g_utf8_collate_key';
+{$ENDIF read_interface_rest}

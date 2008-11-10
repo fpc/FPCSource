@@ -110,6 +110,11 @@ procedure gtk_button_get_alignment(window:PGtkButton; x,y: PGFloat) cdecl; exter
 procedure gtk_button_set_alignment(window:PGtkButton; x,y: GFloat); cdecl; external gtklib;
 {$ENDIF HasGTK2_4}
 
+{$ifdef HasGTK2_6}
+function gtk_button_get_image(button:PGtkButton):PGtkWidget; cdecl; external gtklib;
+procedure gtk_button_set_image(button:PGtkButton;image:PGtkWidget); cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

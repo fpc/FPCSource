@@ -92,18 +92,22 @@ function TStrings.GetCommaText: string;
 
 Var
   C1,C2 : Char;
+  FSD : Boolean;
 
 begin
   CheckSpecialChars;
+  FSD:=StrictDelimiter;
   C1:=Delimiter;
   C2:=QuoteChar;
   Delimiter:=',';
   QuoteChar:='"';
+  StrictDelimiter:=False;
   Try
     Result:=GetDelimitedText;
   Finally
     Delimiter:=C1;
     QuoteChar:=C2;
+    StrictDelimiter:=FSD;
   end;
 end;
 
@@ -113,22 +117,31 @@ Function TStrings.GetDelimitedText: string;
 Var
   I : integer;
   p : pchar;
+  c : set of char;
+  S : String;
+  
 begin
   CheckSpecialChars;
   result:='';
+  if StrictDelimiter then
+    c:=[#0,Delimiter]
+  else  
+    c:=[#0..' ',QuoteChar,Delimiter];
   For i:=0 to count-1 do
     begin
-    p:=pchar(strings[i]);
-    while not(p^ in [#0..' ',QuoteChar,Delimiter]) do
+    S:=Strings[i];
+    p:=pchar(S);
+    while not(p^ in c) do
      inc(p);
 // strings in list may contain #0
-    if p<>pchar(strings[i])+length(strings[i]) then
-     Result:=Result+QuoteString (Strings[I],QuoteChar)
+    if (p<>pchar(S)+length(S)) and not StrictDelimiter then
+      Result:=Result+QuoteString(S,QuoteChar)
     else
-     result:=result+strings[i];
-    if I<Count-1 then Result:=Result+Delimiter;
+      Result:=Result+S;
+    if I<Count-1 then 
+      Result:=Result+Delimiter;
     end;
-  If (Length(Result)=0)and(count=1) then
+  If (Length(Result)=0) and (Count=1) then
     Result:=QuoteChar+QuoteChar;
 end;
 
@@ -222,7 +235,6 @@ end;
 
 
 Procedure TStrings.SetDelimitedText(const AValue: string);
-
 var i,j:integer;
     aNotFirst:boolean;
 begin
@@ -230,52 +242,71 @@ begin
  BeginUpdate;
 
  i:=1;
+ j:=1;
  aNotFirst:=false;
 
  try
   Clear;
-  while i<=length(AValue) do begin
-   // skip delimiter
-   if aNotFirst and (i<=length(AValue)) and (AValue[i]=FDelimiter) then inc(i);
+  If StrictDelimiter then
+    begin
+    // Easier, faster loop.
+    While I<=Length(AValue) do
+      begin
+      If (AValue[I] in [FDelimiter,#0]) then
+        begin
+        Add(Copy(AValue,J,I-J));
+        J:=I+1;
+        end;
+      Inc(i);
+      end;
+    If (Length(AValue)>0) then
+      Add(Copy(AValue,J,I-J));  
+    end
+  else 
+    begin
+    while i<=length(AValue) do begin
+     // skip delimiter
+     if aNotFirst and (i<=length(AValue)) and (AValue[i]=FDelimiter) then inc(i);
 
-   // skip spaces
-   while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
-  
-   // read next string
-   if i<=length(AValue) then begin
-    if AValue[i]=FQuoteChar then begin
-     // next string is quoted
-     j:=i+1;
-     while (j<=length(AValue)) and
-           ( (AValue[j]<>FQuoteChar) or
-             ( (j+1<=length(AValue)) and (AValue[j+1]=FQuoteChar) ) ) do begin
-      if (j<=length(AValue)) and (AValue[j]=FQuoteChar) then inc(j,2)
-                                                        else inc(j);
+     // skip spaces
+     while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
+    
+     // read next string
+     if i<=length(AValue) then begin
+      if AValue[i]=FQuoteChar then begin
+       // next string is quoted
+       j:=i+1;
+       while (j<=length(AValue)) and
+             ( (AValue[j]<>FQuoteChar) or
+               ( (j+1<=length(AValue)) and (AValue[j+1]=FQuoteChar) ) ) do begin
+        if (j<=length(AValue)) and (AValue[j]=FQuoteChar) then inc(j,2)
+                                                          else inc(j);
+       end;
+       // j is position of closing quote
+       Add( StringReplace (Copy(AValue,i+1,j-i-1),
+                           FQuoteChar+FQuoteChar,FQuoteChar, [rfReplaceAll]));
+       i:=j+1;
+      end else begin
+       // next string is not quoted
+       j:=i;
+       while (j<=length(AValue)) and
+             (Ord(AValue[j])>Ord(' ')) and
+             (AValue[j]<>FDelimiter) do inc(j);
+       Add( Copy(AValue,i,j-i));
+       i:=j;
+      end;
+     end else begin
+      if aNotFirst then Add('');
      end;
-     // j is position of closing quote
-     Add( StringReplace (Copy(AValue,i+1,j-i-1),
-                         FQuoteChar+FQuoteChar,FQuoteChar, [rfReplaceAll]));
-     i:=j+1;
-    end else begin
-     // next string is not quoted
-     j:=i;
-     while (j<=length(AValue)) and
-           (Ord(AValue[j])>Ord(' ')) and
-           (AValue[j]<>FDelimiter) do inc(j);
-     Add( Copy(AValue,i,j-i));
-     i:=j;
+
+     // skip spaces
+     while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
+
+     aNotFirst:=true;
     end;
-   end else begin
-    if aNotFirst then Add('');
-   end;
-
-   // skip spaces
-   while (i<=length(AValue)) and (Ord(AValue[i])<=Ord(' ')) do inc(i);
-
-   aNotFirst:=true;
-  end;
+    end;
  finally
-  EndUpdate;
+   EndUpdate;
  end;
 end;
 

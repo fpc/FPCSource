@@ -162,7 +162,7 @@ Var
   HaveFpmake : boolean;
   P : TFPPackage;
 begin
-  P:=InstalledRepository.PackageByName(PackageName);
+  P:=AvailableRepository.PackageByName(PackageName);
   OOptions:='';
   SetCurrentDir(PackageBuildPath(P));
   // Check for fpmake source
@@ -256,7 +256,7 @@ begin
   OOptions:='';
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
-    P:=InstalledRepository.PackageByName(PackageName)
+    P:=AvailableRepository.PackageByName(PackageName)
   else
     P:=nil;
   if assigned(P) then

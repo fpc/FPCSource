@@ -233,6 +233,8 @@ CONST
     S_IWOTH =  %0000000010;     { Write permission for world  }
     S_IXOTH =  %0000000001;     { Exec permission for world   }
     S_IRWXU =  S_IRUSR or S_IWUSR or S_IXUSR;
+    S_IRWXG =  S_IRGRP or S_IWGRP or S_IXGRP;
+    S_IRWXO =  S_IROTH or S_IWOTH or S_IXOTH;
 
     { Used for waitpid }
     WNOHANG   =          1;     { don't block waiting               }

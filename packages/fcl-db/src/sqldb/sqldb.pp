@@ -20,7 +20,7 @@ unit sqldb;
 
 interface
 
-uses SysUtils, Classes, DB, bufdataset;
+uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat,sqQuoteFieldnames);
@@ -212,7 +212,7 @@ type
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
-
+    FOpenDidPrepare : Boolean;
     procedure FreeFldBuffers;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetStatementType : TStatementType;
@@ -359,24 +359,37 @@ type
 
 { TSQLScript }
 
-  TSQLScript = class (Tcomponent)
+  TSQLScript = class (TCustomSQLscript)
   private
-    FScript  : TStrings;
+    FOnDirective: TSQLScriptDirectiveEvent;
     FQuery   : TCustomSQLQuery;
     FDatabase : TDatabase;
     FTransaction : TDBTransaction;
   protected
-    procedure SetScript(const AValue: TStrings);
+    procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
+    procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
+    procedure ExecuteCommit; override;
     Procedure SetDatabase (Value : TDatabase); virtual;
     Procedure SetTransaction(Value : TDBTransaction); virtual;
     Procedure CheckDatabase;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    procedure Execute; override;
     procedure ExecuteScript;
-    Property Script : TStrings Read FScript Write SetScript;
+  published
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
+    property OnDirective: TSQLScriptDirectiveEvent read FOnDirective write FOnDirective;
+    property Directives;
+    property Defines;
+    property Script;
+    property Terminator;
+    property CommentsinSQL;
+    property UseSetTerm;
+    property UseCommit;
+    property UseDefines;
+    property OnException;
   end;
 
   { TSQLConnector }
@@ -980,7 +993,11 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
-  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
+  if (FOpenDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
+    begin
+    FOpenDidPrepare:=False;
+    TSQLConnection(database).UnPrepareStatement(FCursor);
+    end;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -1161,41 +1178,50 @@ var tel, fieldc : integer;
     f           : TField;
     s           : string;
     IndexFields : TStrings;
+    ReadFromFile: Boolean;
 begin
   try
-    Prepare;
+    ReadFromFile:=IsReadFromPacket;
+    FOpenDidPrepare:=Not Prepared;
+    If FOpenDidPrepare then
+      Prepare;
     if FCursor.FStatementType in [stSelect] then
       begin
-      Execute;
-      // InternalInitFieldDef is only called after a prepare. i.e. not twice if
-      // a dataset is opened - closed - opened.
-      if FCursor.FInitFieldDef then InternalInitFieldDefs;
-      if DefaultFields then
+      if not ReadFromFile then
         begin
-        CreateFields;
-
-        if FUpdateable then
+        Execute;
+        // InternalInitFieldDef is only called after a prepare. i.e. not twice if
+        // a dataset is opened - closed - opened.
+        if FCursor.FInitFieldDef then InternalInitFieldDefs;
+        if DefaultFields then
           begin
-          if FusePrimaryKeyAsKey then
+          CreateFields;
+
+          if FUpdateable then
             begin
-            UpdateServerIndexDefs;
-            for tel := 0 to ServerIndexDefs.count-1 do
+            if FusePrimaryKeyAsKey then
               begin
-              if ixPrimary in ServerIndexDefs[tel].options then
+              UpdateServerIndexDefs;
+              for tel := 0 to ServerIndexDefs.count-1 do
                 begin
-                  IndexFields := TStringList.Create;
-                  ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
-                  for fieldc := 0 to IndexFields.Count-1 do
-                    begin
-                    F := Findfield(IndexFields[fieldc]);
-                    if F <> nil then
-                      F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                    end;
-                  IndexFields.Free;
+                if ixPrimary in ServerIndexDefs[tel].options then
+                  begin
+                    IndexFields := TStringList.Create;
+                    ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
+                    for fieldc := 0 to IndexFields.Count-1 do
+                      begin
+                      F := Findfield(IndexFields[fieldc]);
+                      if F <> nil then
+                        F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                      end;
+                    IndexFields.Free;
+                  end;
                 end;
               end;
             end;
-          end;
+          end
+        else
+          BindFields(True);
         end
       else
         BindFields(True);
@@ -1217,14 +1243,21 @@ end;
 // public part
 
 procedure TCustomSQLQuery.ExecSQL;
+
+Var
+  ExecDidPrepare : Boolean;
+
 begin
   try
-    Prepare;
+    ExecDidPrepare:=Not IsPrepared;
+    If ExecDidPrepare then
+      Prepare;
     Execute;
   finally
     // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     // called, so UnPrepareStatement shoudn't be called either
-    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(Fcursor);
+    if (ExecDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
+      TSQLConnection(database).UnPrepareStatement(Fcursor);
   end;
 end;
 
@@ -1536,9 +1569,29 @@ end;
 
 { TSQLScript }
 
-procedure TSQLScript.SetScript(const AValue: TStrings);
+procedure TSQLScript.ExecuteStatement(SQLStatement: TStrings;
+  var StopExecution: Boolean);
 begin
-  FScript.assign(AValue);
+  fquery.SQL.assign(SQLStatement);
+  fquery.ExecSQL;
+end;
+
+procedure TSQLScript.ExecuteDirective(Directive, Argument: String;
+  var StopExecution: Boolean);
+begin
+  if assigned (FOnDirective) then
+    FOnDirective (Self, Directive, Argument, StopExecution);
+end;
+
+procedure TSQLScript.ExecuteCommit;
+begin
+  if FTransaction is TSQLTransaction then
+    TSQLTransaction(FTransaction).CommitRetaining
+  else
+    begin
+    FTransaction.Active := false;
+    FTransaction.Active := true;
+    end;
 end;
 
 procedure TSQLScript.SetDatabase(Value: TDatabase);
@@ -1560,48 +1613,27 @@ end;
 constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FScript := TStringList.Create;
-  FQuery := TCustomSQLQuery.Create(nil);
+  FQuery := TCustomSQLQuery.Create(nil); 
 end;
 
 destructor TSQLScript.Destroy;
 begin
-  FScript.Free;
   FQuery.Free;
   inherited Destroy;
 end;
 
-procedure TSQLScript.ExecuteScript;
-
-var BufStr         : String;
-    pBufStatStart,
-    pBufPos        : PChar;
-    Statement      : String;
-
+procedure TSQLScript.Execute;
 begin
   FQuery.DataBase := FDatabase;
   FQuery.Transaction := FTransaction;
-
-  BufStr := FScript.Text;
-  pBufPos := @BufStr[1];
-
-  repeat
-
-  pBufStatStart := pBufPos;
-  repeat
-  inc(pBufPos);
-  until (pBufPos^ = ';') or (pBufPos^ = #0);
-  SetLength(statement,pbufpos-pBufStatStart);
-  move(pBufStatStart^,Statement[1],pbufpos-pBufStatStart);
-  if trim(statement) <> '' then
-    begin
-    fquery.SQL.Text := Statement;
-    fquery.ExecSQL;
-    inc(pBufPos);
-    end;
-
-  until pBufPos^ = #0;
+  inherited Execute;
 end;
+
+procedure TSQLScript.ExecuteScript;
+begin
+  Execute;
+end;
+
 
 { Connection definitions }
 

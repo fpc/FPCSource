@@ -531,7 +531,7 @@ implementation
         if not assigned(p.resultdef) then
           typecheckpass(p);
         if is_ansistring(p.resultdef) or
-           is_widestring(p.resultdef) or
+           is_wide_or_unicode_string(p.resultdef) or
            is_interfacecom(p.resultdef) or
            is_dynamic_array(p.resultdef) then
           begin
@@ -576,6 +576,18 @@ implementation
           begin
             result:=internalstatements(newstatement);
             addstatement(newstatement,ccallnode.createintern('fpc_widestr_decr_ref',
+                  ccallparanode.create(
+                    ctypeconvnode.create_internal(p,voidpointertype),
+                  nil)));
+            addstatement(newstatement,cassignmentnode.create(
+               ctypeconvnode.create_internal(p.getcopy,voidpointertype),
+               cnilnode.create
+               ));
+          end
+        else if is_unicodestring(p.resultdef) then
+          begin
+            result:=internalstatements(newstatement);
+            addstatement(newstatement,ccallnode.createintern('fpc_unicodestr_decr_ref',
                   ccallparanode.create(
                     ctypeconvnode.create_internal(p,voidpointertype),
                   nil)));
@@ -696,6 +708,7 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
+              stringconstn,
               tempcreaten,
               tempdeleten,
               ordconstn,
@@ -775,7 +788,7 @@ implementation
                         inc(result);
                         exit;
                       end;
-          
+
                     in_inc_x,
                     in_dec_x,
                     in_include_x_y,
@@ -785,13 +798,15 @@ implementation
                         { operation (add, sub, or, and }
                         inc(result);
                         { left expression }
-                        inc(result,node_complexity(tbinarynode(p).left));
+                        inc(result,node_complexity(tcallparanode(tunarynode(p).left).left));
                         if (result >= NODE_COMPLEXITY_INF) then
                           begin
                             result := NODE_COMPLEXITY_INF;
                             exit;
                           end;
-                        p := tbinarynode(p).right;
+                        p:=tcallparanode(tunarynode(p).left).right;
+                        if assigned(p) then
+                          p:=tcallparanode(p).left;
                       end;
                     else
                       begin
@@ -799,7 +814,7 @@ implementation
                         exit;
                       end;
                   end;
-                  
+
                 end;
               else
                 begin

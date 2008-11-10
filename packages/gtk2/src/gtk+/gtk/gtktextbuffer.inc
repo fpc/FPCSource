@@ -176,6 +176,15 @@ procedure _gtk_text_buffer_spew(buffer:PGtkTextBuffer); cdecl; external gtklib;
 function _gtk_text_buffer_get_btree(buffer:PGtkTextBuffer):PGtkTextBTree; cdecl; external gtklib;
 function _gtk_text_buffer_get_line_log_attrs(buffer:PGtkTextBuffer; anywhere_in_line:PGtkTextIter; char_len:Pgint):PPangoLogAttr; cdecl; external gtklib;
 procedure _gtk_text_buffer_notify_will_remove_tag(buffer:PGtkTextBuffer; tag:PGtkTextTag); cdecl; external gtklib;
+
+{$ifdef HasGTK2_4}
+procedure gtk_text_buffer_select_range(buffer: PGtkTextBuffer; ins: PGtkTextIter; bound: PGtkTextIter); cdecl; external gtklib;
+{$endif}
+
+{$ifdef HasGTK2_6}
+function gtk_text_buffer_backspace(buffer:PGtkTextBuffer; iter:PGtkTextIter; interactive:gboolean; default_editable:gboolean):gboolean; cdecl; external gtklib;
+{$endif}
+
 {$ENDIF read_interface_rest}
 
 //------------------------------------------------------------------------------

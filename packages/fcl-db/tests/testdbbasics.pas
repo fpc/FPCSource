@@ -22,13 +22,18 @@ type
 
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
+    procedure FTestXMLDatasetDefinition(ADataset : TDataset);
     procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestFileNameProperty;
+    procedure TestClientDatasetAsMemDataset;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
+    procedure TestSafeAsXML;
+    procedure TestAppendInsertRecord;
     procedure TestBookmarks;
     procedure TestBookmarkValid;
 
@@ -495,6 +500,90 @@ begin
   DBConnector.StopTest;
 end;
 
+procedure TTestDBBasics.TestSafeAsXML;
+var ds    : TDataset;
+    LoadDs: TBufDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  TBufDataset(ds).SaveToFile('test.xml');
+  ds.close;
+
+  LoadDs := TBufDataset.Create(nil);
+  LoadDs.LoadFromFile('test.xml');
+  FTestXMLDatasetDefinition(LoadDS);
+end;
+
+procedure TTestDBBasics.TestFileNameProperty;
+var ds    : TDataset;
+    LoadDs: TBufDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  TBufDataset(ds).FileName:='test.xml';
+  ds.close;
+
+  ds := DBConnector.GetNDataset(True,7);
+  TBufDataset(ds).FileName:='test.xml';
+  ds.Open;
+  FTestXMLDatasetDefinition(Ds);
+end;
+
+procedure TTestDBBasics.TestClientDatasetAsMemDataset;
+var ds : TBufDataset;
+    i  : integer;
+begin
+  ds := TBufDataset.Create(nil);
+  DS.FieldDefs.Add('ID',ftInteger);
+  DS.FieldDefs.Add('NAME',ftString,50);
+  DS.CreateDataset;
+  DS.Open;
+  for i := 1 to 10 do
+    begin
+    ds.Append;
+    ds.FieldByName('ID').AsInteger := i;
+    ds.FieldByName('NAME').AsString := 'TestName' + inttostr(i);
+    DS.Post;
+    end;
+  ds.first;
+  for i := 1 to 10 do
+    begin
+    AssertEquals(i,ds.fieldbyname('ID').asinteger);
+    AssertEquals('TestName' + inttostr(i),ds.fieldbyname('NAME').AsString);
+    ds.next;
+    end;
+  AssertTrue(ds.EOF);
+  DS.Close;
+end;
+
+procedure TTestDBBasics.TestAppendInsertRecord;
+begin
+  with DBConnector.GetNDataset(true,6) do
+    begin
+    open;
+    // InsertRecord should insert a record, set the values, post the record and
+    // make the new record active.
+    InsertRecord([152,'TestInsRec']);
+    AssertEquals(152,fields[0].AsInteger);
+    AssertEquals('TestInsRec',fields[1].AsString);
+    AssertTrue(state=dsBrowse);
+
+    // AppendRecord should append a record, further the same as InsertRecord
+    AppendRecord([151,'TestInsRec']);
+    AssertEquals(151,fields[0].AsInteger);
+    AssertEquals('TestInsRec',fields[1].AsString);
+    AssertTrue(state=dsBrowse);
+    next;
+    AssertTrue(EOF);
+    end;
+end;
+
 procedure TTestDBBasics.TestBookmarks;
 var BM1,BM2,BM3,BM4,BM5 : TBookmark;
 begin
@@ -849,6 +938,19 @@ begin
       close;
       end;
     end;
+end;
+
+procedure TTestDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
+begin
+  AssertEquals(2,ADataset.FieldDefs.Count);
+  AssertEquals(5,ADataset.RecordCount);
+  AssertEquals(2,ADataset.Fields.Count);
+  AssertEquals('ID',ADataset.Fields[0].FieldName);
+  AssertEquals('NAME',ADataset.Fields[1].FieldName);
+  AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
+  AssertEquals('TestName1',ADataset.FieldByName('name').AsString);
+  ADataset.Next;
+  AssertEquals('TestName2',ADataset.FieldByName('name').AsString);
 end;
 
 procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);

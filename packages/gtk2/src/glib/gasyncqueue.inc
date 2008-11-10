@@ -1,13 +1,20 @@
-{$ifndef __G_ASYNCQUEUE_H__}
-{$define __G_ASYNCQUEUE_H__}
+// included by glib2.pas
 
-// {$include gthread.inc}
+{$IFDEF read_forward_definitions}
+{$ENDIF read_forward_definitions}
 
-{* Asyncronous Queues, can be used to communicate between threads
- *}
+//------------------------------------------------------------------------------
 
-    type
-      PGAsyncQueue = pointer;
+{$IFDEF read_interface_types}
+  PGAsyncQueue = pointer;
+{$ENDIF read_interface_types}
+
+//------------------------------------------------------------------------------
+
+{$IFDEF read_interface_rest}
+
+{ Asyncronous Queues, can be used to communicate between threads }
+
 {* Get a new GAsyncQueue with the ref_count 1 *}
 
     function g_async_queue_new:PGAsyncQueue;cdecl;external gliblib name 'g_async_queue_new';
@@ -62,5 +69,4 @@
     function g_async_queue_length(queue:PGAsyncQueue):gint;cdecl;external gliblib name 'g_async_queue_length';
     function g_async_queue_length_unlocked(queue:PGAsyncQueue):gint;cdecl;external gliblib name 'g_async_queue_length_unlocked';
 
-{$endif}
-
+{$ENDIF read_interface_rest}

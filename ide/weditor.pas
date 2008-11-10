@@ -13,7 +13,6 @@
 
  **********************************************************************}
 {$I globdir.inc}
-{$ifdef TP}{$L-}{$endif}
 unit WEditor;
 
 interface
@@ -60,9 +59,9 @@ const
       cmExpandFold           = 51267;
       cmDelToEndOfWord       = 51268;
 
-      EditorTextBufSize = {$ifdef FPC}32768{$else} 4096{$endif};
+      EditorTextBufSize = 32768;
       MaxLineLength     = 255;
-      MaxLineCount      = {$ifdef FPC}2000000{$else}16380{$endif};
+      MaxLineCount      = 2000000;
 
 
       CodeTemplateCursorChar = '|'; { char to signal cursor pos in templates }
@@ -349,7 +348,7 @@ type
 
     PCustomCodeEditorCore = ^TCustomCodeEditorCore;
     TCustomCodeEditorCore = object(TObject)
-    {$ifdef TP}public{$else}protected{$endif}
+    protected
       Bindings    : PEditorBindingCollection;
       LockFlag    : sw_integer;
       ChangedLine : sw_integer;
@@ -405,7 +404,7 @@ type
       function    LoadFromStream(Editor: PCustomCodeEditor; Stream: PFastBufStream): boolean; virtual;
       function    SaveToStream(Editor: PCustomCodeEditor; Stream: PStream): boolean; virtual;
       function    SaveAreaToStream(Editor: PCustomCodeEditor; Stream: PStream; StartP,EndP: TPoint): boolean; virtual;
-    {$ifdef TP}public{$else}protected{$endif}
+    protected
       { Text & info storage abstraction }
    {a}procedure   ISetLineFlagState(Binding: PEditorBinding; LineNo: sw_integer; Flag: longint; ASet: boolean); virtual;
    {a}procedure   IGetDisplayTextFormat(Binding: PEditorBinding; LineNo: sw_integer;var DT,DF:string); virtual;
@@ -603,7 +602,7 @@ type
    {a}procedure   CloseGroupedAction(AAction : byte); virtual;
    {a}function    GetUndoActionCount: sw_integer; virtual;
    {a}function    GetRedoActionCount: sw_integer; virtual;
-    {$ifdef TP}public{$else}protected{$endif}
+    protected
       LastLocalCmd: word;
       KeyState    : Integer;
       Bookmarks   : array[0..9] of TEditorBookmark;
@@ -982,7 +981,7 @@ begin
   upper[0]:=s[0];
 end;
 }
-type TPosOfs = {$ifdef TP}longint{$endif}{$ifdef FPC}int64{$endif};
+type TPosOfs = int64;
 
 function PosToOfs(const X,Y: sw_integer): TPosOfs;
 begin
@@ -1037,13 +1036,8 @@ end;}
 *****************************************************************************}
 
 Const
-{$ifndef FPC}
-  MaxBufLength   = $7f00;
-  NotFoundValue  = -1;
-{$else}
   MaxBufLength   = $7fffff00;
   NotFoundValue  = -1;
-{$endif}
 
 Type
   Btable = Array[0..255] of Byte;
@@ -1411,7 +1405,7 @@ end;
 
 function TFold.GetLineCount: sw_integer;
 var Count: sw_integer;
-procedure AddIt(P: PFold); {$ifndef FPC}far;{$endif}
+procedure AddIt(P: PFold);
 begin
   Inc(Count,P^.GetLineCount);
 end;
@@ -1583,7 +1577,7 @@ begin
 end;
 
 function TCustomCodeEditorCore.SearchBinding(AEditor: PCustomCodeEditor): PEditorBinding;
-function SearchEditor(P: PEditorBinding): boolean; {$ifndef FPC}far;{$endif}
+function SearchEditor(P: PEditorBinding): boolean;
 begin
   SearchEditor:=P^.Editor=AEditor;
 end;
@@ -1635,7 +1629,7 @@ end;
 
 
 function TCustomCodeEditorCore.IsClipboard: Boolean;
-function IsClip(P: PEditorBinding): boolean; {$ifndef FPC}far;{$endif}
+function IsClip(P: PEditorBinding): boolean;
 begin
   IsClip:=(P^.Editor=Clipboard);
 end;
@@ -1707,7 +1701,7 @@ end;
 
 
 procedure TCustomCodeEditorCore.BindingsChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.BindingsChanged;
 end;
@@ -1716,7 +1710,7 @@ begin
 end;
 
 procedure TCustomCodeEditorCore.DoLimitsChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.DoLimitsChanged;
 end;
@@ -1725,7 +1719,7 @@ begin
 end;
 
 procedure TCustomCodeEditorCore.DoContentsChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.ContentsChanged;
 end;
@@ -1734,7 +1728,7 @@ begin
 end;
 
 procedure TCustomCodeEditorCore.DoModifiedChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.ModifiedChanged;
 end;
@@ -1743,7 +1737,7 @@ begin
 end;
 
 procedure TCustomCodeEditorCore.DoTabSizeChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.TabSizeChanged;
 end;
@@ -1752,7 +1746,7 @@ begin
 end;
 
 procedure TCustomCodeEditorCore.UpdateUndoRedo(cm : word; action : byte);
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   if (P^.Editor^.State and sfActive)<>0 then
     begin
@@ -1771,7 +1765,7 @@ end;
 
 
 procedure TCustomCodeEditorCore.DoStoreUndoChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.StoreUndoChanged;
 end;
@@ -1779,7 +1773,7 @@ begin
   Bindings^.ForEach(@CallIt);
 end;
 procedure   TCustomCodeEditorCore.DoSyntaxStateChanged;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   P^.Editor^.SyntaxStateChanged;
 end;
@@ -1790,7 +1784,7 @@ end;
 function TCustomCodeEditorCore.GetLastVisibleLine : sw_integer;
 var
   y : sw_integer;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 begin
   if y < P^.Editor^.Delta.Y+P^.Editor^.Size.Y then
     y:=P^.Editor^.Delta.Y+P^.Editor^.Size.Y;
@@ -2038,7 +2032,7 @@ end;
 
 function TCustomCodeEditorCore.UpdateAttrs(FromLine: sw_integer; Attrs: byte): sw_integer;
 var MinLine: sw_integer;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 var I: sw_integer;
 begin
   I:=DoUpdateAttrs(P^.Editor,FromLine,Attrs);
@@ -2052,7 +2046,7 @@ end;
 
 function TCustomCodeEditorCore.UpdateAttrsRange(FromLine, ToLine: sw_integer; Attrs: byte): sw_integer;
 var MinLine: sw_integer;
-procedure CallIt(P: PEditorBinding); {$ifndef FPC}far;{$endif}
+procedure CallIt(P: PEditorBinding);
 var I: sw_integer;
 begin
   I:=DoUpdateAttrsRange(P^.Editor,FromLine,ToLine,Attrs);
@@ -7224,10 +7218,6 @@ begin
           end;
         if DriveNumber<>0 then
           ChDir(StoreDir2);
-{$ifndef FPC}
-        if (Length(StoreDir)>1) and (StoreDir[2]=':') then
-          ChDir(Copy(StoreDir,1,2));
-{$endif not FPC}
         if StoreDir<>'' then
           ChDir(TrimEndSlash(StoreDir));
 

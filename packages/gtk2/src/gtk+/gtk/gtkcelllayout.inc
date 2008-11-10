@@ -55,6 +55,7 @@ procedure gtk_cell_layout_reorder(cell_layout:PGtkCellLayout; cell:PGtkCellRende
 {$endif read_interface_rest}
 
 {$ifdef read_implementation}
+
 function GTK_TYPE_CELL_LAYOUT : GType;
 begin
    GTK_TYPE_CELL_LAYOUT:=gtk_cell_layout_get_type;

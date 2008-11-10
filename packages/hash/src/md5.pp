@@ -149,13 +149,6 @@ function MD5Match(const Digest1, Digest2: TMD5Digest): Boolean; inline;
 
 implementation
 
-
-function rol(x: Cardinal; n: Byte): Cardinal;
-begin
-  Result := (x shl n) or (x shr (32 - n));
-end;
-
-
 // inverts the bytes of (Count div 4) cardinals from source to target.
 procedure Invert(Source, Dest: Pointer; Count: PtrUInt);
 var
@@ -241,19 +234,19 @@ procedure MD4Transform(var Context: TMDContext; Buffer: Pointer);
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // F(x,y,z) = (x and y) or ((not x) and z)
   begin
-    a := rol(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x, s);
+    a := rol(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x), s);
   end;
 
   procedure R2(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // G(x,y,z) = (x and y) or (x and z) or (y and z);
   begin
-    a := rol(a + {G(b,c,d)}((b and c) or (b and d) or (c and d)) + x + $5A827999, s);
+    a := rol(dword(a + {G(b,c,d)}((b and c) or (b and d) or (c and d)) + x + $5A827999), s);
   end;
 
   procedure R3(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // H(x,y,z) = x xor y xor z
   begin
-    a := rol(a + {H(b,c,d)}(b xor c xor d) + x + $6ED9EBA1, s);
+    a := rol(dword(a + {H(b,c,d)}(b xor c xor d) + x + $6ED9EBA1), s);
   end;
 
 var
@@ -297,25 +290,25 @@ procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // F(x,y,z) = (x and y) or ((not x) and z)
   begin
-    a := b + rol(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x + ac, s);
+    a := b + rol(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x + ac), s);
   end;
 
   procedure R2(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // G(x,y,z) = (x and z) or (y and (not z))
   begin
-    a := b + rol(a + {G(b,c,d)}((b and d) or (c and (not d))) + x + ac, s);
+    a := b + rol(dword(a + {G(b,c,d)}((b and d) or (c and (not d))) + x + ac), s);
   end;
 
   procedure R3(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // H(x,y,z) = x xor y xor z;
   begin
-    a := b + rol(a + {H(b,c,d)}(b xor c xor d) + x + ac, s);
+    a := b + rol(dword(a + {H(b,c,d)}(b xor c xor d) + x + ac), s);
   end;
 
   procedure R4(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // I(x,y,z) = y xor (x or (not z));
   begin
-    a := b + rol(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac, s);
+    a := b + rol(dword(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac), s);
   end;
 
 var

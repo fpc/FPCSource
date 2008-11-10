@@ -161,6 +161,15 @@ interface
         property items[I:longint]:TLinkRec read getlinkrec; default;
       end;
 
+      tpendingstate = record
+        nextverbositystr : string;
+        nextlocalswitches : tlocalswitches;
+        nextverbosityfullswitch: longint;
+        verbosityfullswitched,
+        localswitcheschanged : boolean;
+      end;
+
+
     var
        { specified inputfile }
        inputfilepath     : string;
@@ -244,22 +253,20 @@ interface
        block_type : tblock_type;         { type of currently parsed block }
 
        compile_level : word;
-       resolving_forward : boolean;      { used to add forward reference as second ref }
        exceptblockcounter    : integer;  { each except block gets a unique number check gotos      }
-       aktexceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
+       current_exceptblock        : integer;  { the exceptblock number of the current block (0 if none) }
        LinkLibraryAliases : TLinkStrMap;
        LinkLibraryOrder   : TLinkStrMap;
 
        init_settings,
        current_settings   : tsettings;
 
-       nextlocalswitches : tlocalswitches;
-       localswitcheschanged : boolean;
-
+       pendingstate       : tpendingstate;
      { Memory sizes }
        heapsize,
        stacksize,
-       jmp_buf_size : longint;
+       jmp_buf_size,
+       jmp_buf_align : longint;
 
 {$Ifdef EXTDEBUG}
      { parameter switches }
@@ -1255,7 +1262,6 @@ implementation
         do_make:=true;
         compile_level:=0;
         DLLsource:=false;
-        resolving_forward:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;
         paratargetdbg:=dbg_none;

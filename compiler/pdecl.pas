@@ -96,7 +96,7 @@ implementation
              end;
            stringconstn:
              begin
-               if is_widestring(p.resultdef) then
+               if is_wide_or_unicode_string(p.resultdef) then
                  begin
                    initwidestring(pw);
                    copywidestring(pcompilerwidestring(tstringconstnode(p).value_str),pw);
@@ -194,7 +194,7 @@ implementation
                 begin
                    { set the blocktype first so a consume also supports a
                      caret, to support const s : ^string = nil }
-                   block_type:=bt_type;
+                   block_type:=bt_const_type;
                    consume(_COLON);
                    read_anon_type(hdef,false);
                    block_type:=bt_const;
@@ -276,100 +276,6 @@ implementation
       end;
 
 
-    { search in symtablestack used, but not defined type }
-    procedure resolve_type_forward(p:TObject;arg:pointer);
-      var
-        hpd,pd : tdef;
-        stpos  : tfileposinfo;
-        again  : boolean;
-        srsym  : tsym;
-        srsymtable : TSymtable;
-
-      begin
-         { Check only typesyms or record/object fields }
-         case tsym(p).typ of
-           typesym :
-             pd:=ttypesym(p).typedef;
-           fieldvarsym :
-             pd:=tfieldvarsym(p).vardef
-           else
-             exit;
-         end;
-         repeat
-           again:=false;
-           case pd.typ of
-             arraydef :
-               begin
-                 { elementdef could also be defined using a forwarddef }
-                 pd:=tarraydef(pd).elementdef;
-                 again:=true;
-               end;
-             pointerdef,
-             classrefdef :
-               begin
-                 { classrefdef inherits from pointerdef }
-                 hpd:=tabstractpointerdef(pd).pointeddef;
-                 { still a forward def ? }
-                 if hpd.typ=forwarddef then
-                  begin
-                    { try to resolve the forward }
-                    { get the correct position for it }
-                    stpos:=current_tokenpos;
-                    current_tokenpos:=tforwarddef(hpd).forwardpos;
-                    resolving_forward:=true;
-                    if not assigned(tforwarddef(hpd).tosymname) then
-                      internalerror(20021120);
-                    searchsym(tforwarddef(hpd).tosymname^,srsym,srsymtable);
-                    resolving_forward:=false;
-                    current_tokenpos:=stpos;
-                    { we don't need the forwarddef anymore, dispose it }
-                    hpd.free;
-                    tabstractpointerdef(pd).pointeddef:=nil; { if error occurs }
-                    { was a type sym found ? }
-                    if assigned(srsym) and
-                       (srsym.typ=typesym) then
-                     begin
-                       tabstractpointerdef(pd).pointeddef:=ttypesym(srsym).typedef;
-                       { avoid wrong unused warnings web bug 801 PM }
-                       inc(ttypesym(srsym).refs);
-                       { we need a class type for classrefdef }
-                       if (pd.typ=classrefdef) and
-                          not(is_class(ttypesym(srsym).typedef)) then
-                         Message1(type_e_class_type_expected,ttypesym(srsym).typedef.typename);
-                     end
-                    else
-                     begin
-                       MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
-                       { try to recover }
-                       tabstractpointerdef(pd).pointeddef:=generrordef;
-                     end;
-                  end;
-               end;
-             recorddef :
-               trecorddef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
-             objectdef :
-               begin
-                 if not(m_fpc in current_settings.modeswitches) and
-                    (oo_is_forward in tobjectdef(pd).objectoptions) then
-                  begin
-                    { only give an error as the implementation may follow in an
-                      other type block which is allowed by FPC modes }
-                    MessagePos1(tsym(p).fileinfo,sym_e_forward_type_not_resolved,tsym(p).realname);
-                  end
-                 else
-                  begin
-                    { Check all fields of the object declaration, but don't
-                      check objectdefs in objects/records, because these
-                      can't exist (anonymous objects aren't allowed) }
-                    if not(tsym(p).owner.symtabletype in [ObjectSymtable,recordsymtable]) then
-                     tobjectdef(pd).symtable.SymList.ForEachCall(@resolve_type_forward,nil);
-                  end;
-               end;
-          end;
-        until not again;
-      end;
-
-
     procedure types_dec;
 
         function parse_generic_parameters:TFPObjectList;
@@ -381,6 +287,7 @@ implementation
             if token=_ID then
               begin
                 generictype:=ttypesym.create(orgpattern,cundefinedtype);
+                include(generictype.symoptions,sp_generic_para);
                 result.add(generictype);
               end;
             consume(_ID);
@@ -395,6 +302,7 @@ implementation
          hdef     : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
+         objecttype : tobjecttyp;
          isgeneric,
          isunique,
          istyperenaming : boolean;
@@ -404,7 +312,6 @@ implementation
       begin
          old_block_type:=block_type;
          block_type:=bt_type;
-         typecanbeforward:=true;
          repeat
            defpos:=current_tokenpos;
            istyperenaming:=false;
@@ -459,9 +366,22 @@ implementation
                     is_class_or_interface_or_dispinterface(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
-                    { we can ignore the result   }
-                    { the definition is modified }
-                    object_dec(orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
+                    case token of
+                      _CLASS :
+                        objecttype:=odt_class;
+                      _INTERFACE :
+                        if current_settings.interfacetype=it_interfacecom then
+                          objecttype:=odt_interfacecom
+                        else
+                          objecttype:=odt_interfacecorba;
+                      _DISPINTERFACE :
+                        objecttype:=odt_dispinterface;
+                      else
+                        internalerror(200811072);
+                    end;
+                    consume(token);
+                    { we can ignore the result, the definition is modified }
+                    object_dec(objecttype,orgtypename,nil,nil,tobjectdef(ttypesym(sym).typedef));
                     newtype:=ttypesym(sym);
                     hdef:=newtype.typedef;
                   end
@@ -519,6 +439,7 @@ implementation
               case hdef.typ of
                 pointerdef :
                   begin
+                    try_consume_hintdirective(newtype.symoptions);
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
@@ -530,13 +451,21 @@ implementation
                   begin
                     { in case of type renaming, don't parse proc directives }
                     if istyperenaming then
-                     consume(_SEMICOLON)
+                      begin
+                        try_consume_hintdirective(newtype.symoptions);
+                        consume(_SEMICOLON);
+                      end
                     else
                      begin
                        if not check_proc_directive(true) then
-                        consume(_SEMICOLON);
+                         begin
+                           try_consume_hintdirective(newtype.symoptions);
+                           consume(_SEMICOLON);
+                         end;
                        parse_var_proc_directives(tsym(newtype));
                        handle_calling_convention(tprocvardef(hdef));
+                       if try_consume_hintdirective(newtype.symoptions) then
+                         consume(_SEMICOLON);
                      end;
                   end;
                 objectdef :
@@ -559,7 +488,10 @@ implementation
                     consume(_SEMICOLON);
                   end;
                 else
-                  consume(_SEMICOLON);
+                  begin
+                    try_consume_hintdirective(newtype.symoptions);
+                    consume(_SEMICOLON);
+                  end;
               end;
             end;
 
@@ -577,8 +509,7 @@ implementation
            if assigned(generictypelist) then
              generictypelist.free;
          until token<>_ID;
-         typecanbeforward:=false;
-         symtablestack.top.SymList.ForEachCall(@resolve_type_forward,nil);
+         resolve_forward_types;
          block_type:=old_block_type;
       end;
 

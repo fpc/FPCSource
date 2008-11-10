@@ -1,4 +1,4 @@
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 { %fail }
 { this should generate a warning
   because s is not initialized }

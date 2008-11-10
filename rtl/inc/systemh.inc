@@ -40,6 +40,10 @@
   {$goto+}
 {$endif CPUPOWERPC}
 
+{$ifdef CPUAVR}
+  {$goto+}
+{$endif CPUAVR}
+
 
 { needed for insert,delete,readln }
 {$P+}
@@ -74,6 +78,12 @@
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
 {$endif FPC_HAS_FEATURE_SUPPORT}
+
+{$ifndef VER2_2}
+{$ifndef FPC_HAS_UNICODESTRING}
+{$error Building trunk is only supported when using the latest release as a starting compiler}
+{$endif}
+{$endif}
 
 {****************************************************************************
                          Global Types and Constants
@@ -274,7 +284,11 @@ Type
 
   UCS4Char            = type 0..$10ffff;
   PUCS4Char           = ^UCS4Char;
+{$ifdef CPU16}
+  TUCS4CharArray      = array[0..32767 div sizeof(UCS4Char)-1] of UCS4Char;
+{$else CPU16}
   TUCS4CharArray      = array[0..$effffff] of UCS4Char;
+{$endif CPU16}
   PUCS4CharArray      = ^TUCS4CharArray;
   UCS4String          = array of UCS4Char;
 
@@ -337,6 +351,14 @@ Type
   PUCS2Char           = PWideChar;
   PWideString         = ^WideString;
 
+  UnicodeChar         = WideChar;
+  PUnicodeChar        = ^UnicodeChar;
+{$ifdef VER2_2}
+  { this is only to avoid too much ifdefs in the code }
+  UnicodeString       = type WideString;
+{$endif VER2_2}
+  PUnicodeString      = ^UnicodeString;
+
   { Needed for fpc_get_output }
   PText               = ^Text;
 
@@ -370,14 +392,26 @@ const
   maxint   = maxsmallint;
 
 type
+{$ifdef CPU16}
+  IntegerArray  = array[0..maxSmallint div sizeof(Integer)-1] of Integer;
+{$else CPU16}
   IntegerArray  = array[0..$effffff] of Integer;
+{$endif CPU16}
   PIntegerArray = ^IntegerArray;
-  PointerArray = array [0..512*1024*1024 - 2] of Pointer;
+{$ifdef CPU16}
+  PointerArray = array [0..32767 div sizeof(Pointer)-1] of Pointer;
+{$else CPU16}
+  PointerArray = array [0..512*1024*1024-2] of Pointer;
+{$endif CPU16}
   PPointerArray = ^PointerArray;
 
   TBoundArray = array of SizeInt;
 
+{$ifdef CPU16}
+  TPCharArray = packed array[0..(MaxSmallint div SizeOf(PChar))-1] of PChar;
+{$else CPU16}
   TPCharArray = packed array[0..(MaxLongint div SizeOf(PChar))-1] of PChar;
+{$endif CPU16}
   PPCharArray = ^TPCharArray;
 
 (* CtrlBreak set to true signalizes Ctrl-Break signal, otherwise Ctrl-C. *)
@@ -588,6 +622,82 @@ function NtoLE(const AValue: DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: Int64): Int64;{$ifdef SYSTEMINLINE}inline;{$endif}
 function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
+{$ifdef FPC_HAS_INTERNAL_ROX}
+
+{$if defined(cpux86_64) or defined(cpui386)}
+{$define FPC_HAS_INTERNAL_ROX_BYTE}
+{$define FPC_HAS_INTERNAL_ROX_WORD}
+{$endif defined(cpux86_64) or defined(cpui386)}
+
+{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_ROX_DWORD}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+
+{$if defined(cpux86_64) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_ROX_QWORD}
+{$endif defined(cpux86_64) or defined(powerpc64)}
+
+{$endif FPC_HAS_INTERNAL_ROX}
+
+{$ifdef FPC_HAS_INTERNAL_ROX_BYTE}
+function Ror(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
+function Ror(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
+
+function Rol(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
+function Rol(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
+{$else FPC_HAS_INTERNAL_ROX_BYTE}
+function Ror(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Ror(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+function Rol(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Rol(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ROX_BYTE}
+
+
+{$ifdef FPC_HAS_INTERNAL_ROX_WORD}
+function Ror(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
+function Ror(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
+
+function Rol(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
+function Rol(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
+{$else FPC_HAS_INTERNAL_ROX_WORD}
+function Ror(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Ror(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+function Rol(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Rol(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ROX_WORD}
+
+
+{$ifdef FPC_HAS_INTERNAL_ROX_DWORD}
+function Ror(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
+function Ror(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
+
+function Rol(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
+function Rol(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
+{$else FPC_HAS_INTERNAL_ROX_DWORD}
+function Ror(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Ror(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+function Rol(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Rol(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ROX_DWORD}
+
+
+{$ifdef FPC_HAS_INTERNAL_ROX_QWORD}
+function Ror(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
+function Ror(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
+
+function Rol(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
+function Rol(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
+{$else FPC_HAS_INTERNAL_ROX_QWORD}
+function Ror(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Ror(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+function Rol(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function Rol(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_ROX_QWORD}
+
 {$ifndef FPUNONE}
 { float math routines }
 {$I mathh.inc}
@@ -665,7 +775,14 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$i wstringh.inc}
+{$ifdef VER2_2}
+{$i wstring22h.inc}
+{$else VER2_2}
+  {$i ustringh.inc}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+    {$i wstringh.inc}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
@@ -784,7 +901,7 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_addr(framebp:pointer):pointer;
 function get_caller_frame(framebp:pointer):pointer;
 
-Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function IOResult:Word;
 Function Sptr:Pointer;[internconst:fpc_in_const_ptr];
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}

@@ -276,6 +276,8 @@ interface
           function GetTypeName:string;override;
           procedure buildderef;override;
           procedure deref;override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           function  getparentdef:tdef;override;
           function  size : aint;override;
           function  alignment:shortint;override;
@@ -596,7 +598,7 @@ interface
        Tdefmatch=(dm_exact,dm_equal,dm_convertl1);
 
     var
-       aktobjectdef : tobjectdef;  { used for private functions check !! }
+       current_objectdef : tobjectdef;  { used for private functions check !! }
 
     { default types }
        generrordef,              { error in definition }
@@ -1575,7 +1577,7 @@ implementation
 
     function torddef.alignment:shortint;
       begin
-        if (target_info.system = system_i386_darwin) and
+        if (target_info.system in [system_i386_darwin,system_arm_darwin]) and
            (ordtype in [s64bit,u64bit]) then
           result := 4
         else
@@ -1701,7 +1703,7 @@ implementation
 
     function tfloatdef.alignment:shortint;
       begin
-        if (target_info.system = system_i386_darwin) then
+        if (target_info.system in [system_i386_darwin,system_arm_darwin]) then
           case floattype of
             s80real : result:=16;
             s64real,
@@ -2418,7 +2420,7 @@ implementation
         { prevent overflow, return -1 to indicate overflow }
         { also make sure we don't need 64/128 bit arithmetic to calculate offsets }
         if (cachedelecount > high(aint)) or
-           ((high(aint) div cachedelesize) < cachedelecount) or
+           ((high(aint) div cachedelesize) < aint(cachedelecount)) or
            { also lowrange*elesize must be < high(aint) to prevent overflow when
              accessing the array, see ncgmem (PFV) }
            ((high(aint) div cachedelesize) < abs(lowrange)) then
@@ -2428,9 +2430,9 @@ implementation
           end;
 
         if (ado_IsBitPacked in arrayoptions) then
-          size:=(cachedelesize * cachedelecount + 7) div 8
+          size:=(cachedelesize * aint(cachedelecount) + 7) div 8
         else
-          result:=cachedelesize*cachedelecount;
+          result:=cachedelesize*aint(cachedelecount);
       end;
 
 
@@ -2807,7 +2809,7 @@ implementation
          minparacount:=0;
          maxparacount:=0;
          ppufile.getderef(returndefderef);
-{$warning TODO remove fpu_used loading}
+{ TODO: remove fpu_used loading}
          ppufile.getbyte;
          proctypeoption:=tproctypeoption(ppufile.getbyte);
          proccalloption:=tproccalloption(ppufile.getbyte);
@@ -2907,7 +2909,13 @@ implementation
                   case hpc.consttyp of
                     conststring,
                     constresourcestring :
-                      hs:=strpas(pchar(hpc.value.valueptr));
+                      begin
+                      If hpc.value.len>0 then
+                        begin
+                        setLength(hs,hpc.value.len);
+                        move(hpc.value.valueptr^,hs[1],hpc.value.len);
+                        end;
+                      end;
                     constreal :
                       str(pbestreal(hpc.value.valueptr)^,hs);
                     constpointer :
@@ -2986,7 +2994,6 @@ implementation
     constructor tprocdef.ppuload(ppufile:tcompilerppufile);
       var
         i,aliasnamescount : longint;
-        item : TCmdStrListItem;
         level : byte;
       begin
          inherited ppuload(procdef,ppufile);
@@ -3252,9 +3259,12 @@ implementation
               not(is_void(returndef)) then
               s:=s+':'+returndef.GetTypeName;
         end;
+        s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
-          s:=s+';'+ProcCallOptionStr[proccalloption];
+          s:=s+' '+ProcCallOptionStr[proccalloption]+';';
+        if po_staticmethod in procoptions then
+          s:=s+' Static;';
         fullprocname:=s;
       end;
 
@@ -3935,7 +3945,7 @@ implementation
               ppufile.putstring(iidstr^);
            end;
 
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              ppufile.putlongint(ImplementedInterfaces.Count);
              for i:=0 to ImplementedInterfaces.Count-1 do
@@ -3958,7 +3968,7 @@ implementation
 
     function tobjectdef.GetTypeName:string;
       begin
-        if (self <> aktobjectdef) then
+        if (self <> current_objectdef) then
           GetTypeName:=typename
         else
           { in this case we will go in endless recursion, because then  }
@@ -3980,7 +3990,7 @@ implementation
          else
            tstoredsymtable(symtable).buildderef;
 
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).buildderef;
@@ -4001,7 +4011,7 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
                TImplementedInterface(ImplementedInterfaces[i]).deref;
@@ -4009,9 +4019,25 @@ implementation
       end;
 
 
+    procedure tobjectdef.buildderefimpl;
+      begin
+         inherited buildderefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).buildderefimpl;
+      end;
+
+
+    procedure tobjectdef.derefimpl;
+      begin
+         inherited derefimpl;
+         if not (df_copied_def in defoptions) then
+           tstoredsymtable(symtable).derefimpl;
+      end;
+
+
     function tobjectdef.getparentdef:tdef;
       begin
-{$warning TODO Remove getparentdef hack}
+{ TODO: Remove getparentdef hack}
         { With 2 forward declared classes with the child class before the
           parent class the child class is written earlier to the ppu. Leaving it
           possible to have a reference to the parent class for property overriding,
@@ -4038,35 +4064,28 @@ implementation
 
     procedure tobjectdef.set_parent( c : tobjectdef);
       begin
-        { nothing to do if the parent was not forward !}
         if assigned(childof) then
           exit;
         childof:=c;
-        { some options are inherited !! }
-        if assigned(c) then
+        if not assigned(c) then
+          exit;
+        { inherit options and status }
+        objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
+        { add the data of the anchestor class/object }
+        if (objecttype in [odt_class,odt_object]) then
           begin
-             { only important for classes }
-             objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
-             if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
-               begin
-                  { add the data of the anchestor class }
-                  tObjectSymtable(symtable).datasize:=
-                    tObjectSymtable(symtable).datasize+
-                    tObjectSymtable(c.symtable).datasize;
-                  { inherit recordalignment }
-                  tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
-                  if (oo_has_vmt in objectoptions) and
-                     (oo_has_vmt in c.objectoptions) then
-                    tObjectSymtable(symtable).datasize:=
-                      tObjectSymtable(symtable).datasize-sizeof(pint);
-                  { if parent has a vmt field then
-                    the offset is the same for the child PM }
-                  if (oo_has_vmt in c.objectoptions) or is_class(self) then
-                    begin
-                       vmt_offset:=c.vmt_offset;
-                       include(objectoptions,oo_has_vmt);
-                    end;
-               end;
+            tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
+            { inherit recordalignment }
+            tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            if (oo_has_vmt in objectoptions) and
+               (oo_has_vmt in c.objectoptions) then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);
+            { if parent has a vmt field then the offset is the same for the child PM }
+            if (oo_has_vmt in c.objectoptions) or is_class(self) then
+              begin
+                vmt_offset:=c.vmt_offset;
+                include(objectoptions,oo_has_vmt);
+              end;
           end;
       end;
 
@@ -4377,22 +4396,13 @@ implementation
 
 
     procedure TImplementedInterface.AddImplProc(pd:tprocdef);
-      var
-        i : longint;
-        found : boolean;
       begin
         if not assigned(procdefs) then
           procdefs:=TFPObjectList.Create(false);
-        { No duplicate entries of the same procdef }
-        found:=false;
-        for i:=0 to procdefs.count-1 do
-          if tprocdef(procdefs[i])=pd then
-            begin
-              found:=true;
-              break;
-            end;
-        if not found then
-          procdefs.Add(pd);
+        { duplicate entries must be stored, because multiple }
+        { interfaces can declare methods with the same name  }
+        { and all of these get their own VMT entry           }
+        procdefs.Add(pd);
       end;
 
 
@@ -4492,6 +4502,8 @@ implementation
     constructor terrordef.create;
       begin
         inherited create(errordef);
+        { prevent consecutive faults }
+        savesize:=1;
       end;
 
 

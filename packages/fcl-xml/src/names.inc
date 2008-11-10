@@ -16,7 +16,8 @@ type
   TSetOfByte = set of Byte;
 
 const
-  ns_ASCII = [$3A, $41..$5A, $5F, $61..$7A, $C0..$D6, $D8..$F6, $F8..$FF];
+// colon ($3a) is excluded, it is handled in the code
+  ns_ASCII = [{ $3A,} $41..$5A, $5F, $61..$7A, $C0..$D6, $D8..$F6, $F8..$FF];
   ns_0200  = [0..$17, $50..$A8, $BB..$C1];
   ns_0300  = [$86, $88..$8A, $8C, $8E..$A1,
               $A3..$CE, $D0..$D6, $DA, $DC,
