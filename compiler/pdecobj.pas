@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
 
 implementation
 
@@ -632,9 +632,7 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
-      label
-        myexit;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
       var
         old_object_option : tsymoptions;
         old_current_objectdef : tobjectdef;
@@ -731,7 +729,6 @@ implementation
         { return defined objectdef }
         result:=current_objectdef;
 
-      myexit:
         { restore old state }
         current_objectdef:=old_current_objectdef;
         current_object_option:=old_object_option;
