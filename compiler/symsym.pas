@@ -363,6 +363,7 @@ implementation
          { Register symbol }
          current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
+         visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
       end;
 
@@ -372,6 +373,7 @@ implementation
          ppufile.putlongint(SymId);
          ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
+         ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
       end;
 
@@ -470,7 +472,7 @@ implementation
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
            always visible }
-         symoptions:=[sp_public];
+         visibility:=vis_public;
          overloadchecked:=false;
       end;
 

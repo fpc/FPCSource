@@ -108,7 +108,6 @@ implementation
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
-           vs.symoptions:=[sp_public];
            pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.typ=procdef then
@@ -136,7 +135,6 @@ implementation
             vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
                   ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
-            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
 
             current_tokenpos:=storepos;
@@ -156,7 +154,6 @@ implementation
           begin
             { Generate self variable }
             vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
-            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
           end
         else
@@ -179,7 +176,6 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
-                   vs.symoptions:=[sp_public];
                    pd.parast.insert(vs);
                  end;
 
@@ -197,7 +193,6 @@ implementation
                     hdef:=tprocdef(pd)._class;
                   end;
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
-                vs.symoptions:=[sp_public];
                 pd.parast.insert(vs);
 
                 current_tokenpos:=storepos;
@@ -282,7 +277,7 @@ implementation
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
                hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
-               hvs.symoptions:=[sp_public];
+               hvs.symoptions:=[];
                owner.insert(hvs);
              end
            else
@@ -382,7 +377,6 @@ implementation
         varspez : Tvarspez;
         defaultvalue : tconstsym;
         defaultrequired : boolean;
-        old_object_option : tsymoptions;
         old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
@@ -391,7 +385,6 @@ implementation
         paranr : integer;
         dummytype : ttypesym;
       begin
-        old_object_option:=current_object_option;
         old_block_type:=block_type;
         explicit_paraloc:=false;
         consume(_LKLAMMER);
@@ -406,8 +399,6 @@ implementation
         sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
-        { the variables are always public }
-        current_object_option:=[sp_public];
         inc(testcurobject);
         block_type:=bt_var;
         repeat
@@ -618,7 +609,6 @@ implementation
         sc.free;
         { reset object options }
         dec(testcurobject);
-        current_object_option:=old_object_option;
         block_type:=old_block_type;
         consume(_RKLAMMER);
       end;
@@ -873,7 +863,7 @@ implementation
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
-        pd.symoptions:=current_object_option;
+        pd.visibility:=symtablestack.top.currentvisibility;
 
         { parse parameters }
         if token=_LKLAMMER then

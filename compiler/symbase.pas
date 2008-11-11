@@ -95,6 +95,7 @@ interface
           defowner  : TDefEntry; { for records and objects }
           moduleid  : longint;
           refcount  : smallint;
+          currentvisibility : tvisibility;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;
@@ -220,6 +221,7 @@ implementation
          DefList:=TFPObjectList.Create(true);
          SymList:=TFPHashObjectList.Create(true);
          refcount:=1;
+         currentvisibility:=vis_public;
       end;
 
 

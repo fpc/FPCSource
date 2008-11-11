@@ -1011,7 +1011,7 @@ implementation
           begin
             pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
             if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
+               (pd.visibility=vis_published) then
               inc(plongint(arg)^);
           end;
       end;
@@ -1029,7 +1029,7 @@ implementation
           begin
             pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
             if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
+               (pd.visibility=vis_published) then
               begin
                 current_asmdata.getdatalabel(l);
 
@@ -1092,8 +1092,8 @@ implementation
         for i:=0 to _class.symtable.SymList.Count-1 do
           begin
             sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
+            if (sym.typ=fieldvarsym) and
+               (sym.visibility=vis_published) then
              begin
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
                   internalerror(200611032);
@@ -1113,8 +1113,8 @@ implementation
         for i:=0 to _class.symtable.SymList.Count-1 do
           begin
             sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
+            if (sym.typ=fieldvarsym) and
+               (sym.visibility=vis_published) then
               begin
                 if (tf_requires_proper_alignment in target_info.flags) then
                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(pint)));

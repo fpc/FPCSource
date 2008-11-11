@@ -97,6 +97,7 @@ interface
       public
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
+         visibility : tvisibility;
          refs       : longint;
          reflist    : TLinkedList;
          isdbgwritten : boolean;
@@ -194,9 +195,6 @@ interface
       memproclocalst,
       memprocnodetree : tmemdebug;
 {$endif MEMDEBUG}
-
-    const
-       current_object_option : tsymoptions = [sp_public];
 
     function  FindUnitSymtable(st:TSymtable):TSymtable;
 
@@ -334,7 +332,7 @@ implementation
          symoptions:=[];
          fileinfo:=current_tokenpos;
          isdbgwritten := false;
-         symoptions:=current_object_option;
+         visibility:=vis_public;
       end;
 
     destructor  Tsym.destroy;
@@ -396,20 +394,20 @@ implementation
 
         { private symbols are allowed when we are in the same
           module as they are defined }
-        if (sp_private in symoptions) and
+        if (visibility=vis_private) and
            assigned(owner.defowner) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            (not owner.defowner.owner.iscurrentunit) then
           exit;
 
-        if (sp_strictprivate in symoptions) then
+        if (visibility=vis_strictprivate) then
           begin
             result:=assigned(currobjdef) and
               (context=tdef(owner.defowner));
             exit;
           end;
 
-        if (sp_strictprotected in symoptions) then
+        if (visibility=vis_strictprotected) then
           begin
             result:=assigned(context) and
               context.is_related(tdef(owner.defowner));
@@ -418,7 +416,7 @@ implementation
 
         { protected symbols are visible in the module that defines them and
           also visible to related objects }
-        if (sp_protected in symoptions) and
+        if (visibility=vis_protected) and
            (
             (
              assigned(owner.defowner) and

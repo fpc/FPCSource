@@ -88,8 +88,7 @@ interface
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure alignrecord(fieldoffset:aint;varalign:shortint);
-          procedure addfield(sym:tfieldvarsym);
-          procedure insertfield(sym:tfieldvarsym);
+          procedure addfield(sym:tfieldvarsym;vis:tvisibility);
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
@@ -636,7 +635,7 @@ implementation
 
     procedure TStoredSymtable.TestPrivate(sym:TObject;arg:pointer);
       begin
-        if sp_private in tsym(sym).symoptions then
+        if tsym(sym).visibility=vis_private then
           varsymbolused(sym,arg);
       end;
 
@@ -658,6 +657,14 @@ implementation
          if tsym(sym).typ=procsym then
            tprocsym(sym).unchain_overload;
       end;
+
+
+   procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
+     begin
+        if (tsym(sym).typ=propertysym) and
+           (ppo_defaultproperty in tpropertysym(sym).propoptions) then
+          ppointer(arg)^:=sym;
+     end;
 
 
 {***********************************************
@@ -815,7 +822,7 @@ implementation
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
-    procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym);
+    procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym;vis:tvisibility);
       var
         l      : aint;
         varalignfield,
@@ -826,6 +833,8 @@ implementation
           internalerror(200602031);
         if sym.fieldoffset<>-1 then
           internalerror(200602032);
+        { set visibility for the symbol }
+        sym.visibility:=vis;
         { this symbol can't be loaded to a register }
         sym.varregable:=vr_none;
         { Calculate field offset }
@@ -911,13 +920,6 @@ implementation
           _datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
         alignrecord(sym.fieldoffset,varalign);
-      end;
-
-
-    procedure tabstractrecordsymtable.insertfield(sym:tfieldvarsym);
-      begin
-        insert(sym);
-        addfield(sym);
       end;
 
 
@@ -1503,7 +1505,7 @@ implementation
     procedure hidesym(sym:TSymEntry);
       begin
         sym.realname:='$hidden'+sym.realname;
-        include(tsym(sym).symoptions,sp_hidden);
+        tsym(sym).visibility:=vis_hidden;
       end;
 
 
@@ -1950,14 +1952,6 @@ implementation
            objdef:=objdef.childof;
          end;
       end;
-
-
-   procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
-     begin
-        if (tsym(sym).typ=propertysym) and
-           (ppo_defaultproperty in tpropertysym(sym).propoptions) then
-          ppointer(arg)^:=sym;
-     end;
 
 
    function search_default_property(pd : tobjectdef) : tpropertysym;

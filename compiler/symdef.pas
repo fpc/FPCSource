@@ -427,6 +427,7 @@ interface
             EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
 {$endif}
+          visibility : tvisibility;
           symoptions : tsymoptions;
           { symbol owning this definition }
           procsym : tsym;
@@ -560,8 +561,6 @@ interface
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
        end;
-
-       Tdefmatch=(dm_exact,dm_equal,dm_convertl1);
 
     var
        current_objectdef : tobjectdef;  { used for private functions check !! }
@@ -2779,19 +2778,17 @@ implementation
                  s:=s+'<';
                case hp.varspez of
                  vs_var :
-                   s:=s+'var';
+                   s:=s+'var ';
                  vs_const :
-                   s:=s+'const';
+                   s:=s+'const ';
                  vs_out :
-                   s:=s+'out';
+                   s:=s+'out ';
                end;
                if assigned(hp.vardef.typesym) then
                  begin
-                   if s<>'(' then
-                    s:=s+' ';
                    hs:=hp.vardef.typesym.realname;
                    if hs[1]<>'$' then
-                     s:=s+hp.vardef.typesym.realname
+                     s:=s+hs
                    else
                      s:=s+hp.vardef.GetTypeName;
                  end
@@ -2902,6 +2899,7 @@ implementation
          ppufile.getderef(_classderef);
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
+         visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
@@ -3038,6 +3036,7 @@ implementation
          ppufile.putderef(_classderef);
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
+         ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
@@ -3192,18 +3191,18 @@ implementation
 
         { private symbols are allowed when we are in the same
           module as they are defined }
-        if (sp_private in symoptions) and
+        if (visibility=vis_private) and
            (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
            not(owner.defowner.owner.iscurrentunit or (owner.defowner.owner=contextst)) then
           exit;
 
-        if (sp_strictprivate in symoptions) then
+        if (visibility=vis_strictprivate) then
           begin
             result:=currobjdef=tobjectdef(owner.defowner);
             exit;
           end;
 
-        if (sp_strictprotected in symoptions) then
+        if (visibility=vis_strictprotected) then
           begin
              result:=assigned(currobjdef) and
                currobjdef.is_related(tobjectdef(owner.defowner));
@@ -3213,7 +3212,7 @@ implementation
         { protected symbols are visible in the module that defines them and
           also visible to related objects. The related object must be defined
           in the current module }
-        if (sp_protected in symoptions) and
+        if (visibility=vis_protected) and
            (
             (
              (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
@@ -4010,7 +4009,7 @@ implementation
              vs:=tfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
              hidesym(vs);
              tObjectSymtable(symtable).insert(vs);
-             tObjectSymtable(symtable).addfield(vs);
+             tObjectSymtable(symtable).addfield(vs,vis_hidden);
              include(objectoptions,oo_has_vmt);
           end;
      end;

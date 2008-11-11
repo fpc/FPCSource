@@ -351,19 +351,23 @@ implementation
         newss   : ansistring;
         ss      : pansistring absolute arg;
       begin
-        if (sp_hidden in tsym(p).symoptions) then
+        if (tsym(p).visibility=vis_hidden) then
           exit;
         { static variables from objects are like global objects }
         if (Tsym(p).typ=fieldvarsym) and
            not(sp_static in Tsym(p).symoptions) then
           begin
-            if ([sp_protected,sp_strictprotected]*tsym(p).symoptions)<>[] then
-              spec:='/1'
-            else if ([sp_private,sp_strictprivate]*tsym(p).symoptions)<>[] then
-              spec:='/0'
-            else
-              spec:='';
-            if (tabstractrecordsymtable(tsym(p).owner).usefieldalignment<>bit_alignment) then
+           case tsym(p).visibility of
+             vis_private,
+             vis_strictprivate :
+               spec:='/0';
+             vis_protected,
+             vis_strictprotected :
+               spec:='/1';
+             else
+               spec:='';
+           end;
+           if (tabstractrecordsymtable(tsym(p).owner).usefieldalignment<>bit_alignment) then
               begin
                 varsize:=tfieldvarsym(p).vardef.size;
                 { open arrays made overflows !! }
@@ -447,12 +451,16 @@ implementation
               end;
            { here 2A must be changed for private and protected }
            { 0 is private 1 protected and 2 public }
-           if ([sp_private,sp_strictprivate]*tsym(p).symoptions)<>[] then
-             sp:='0'
-           else if ([sp_protected,sp_strictprotected]*tsym(p).symoptions)<>[] then
-             sp:='1'
-           else
-             sp:='2';
+           case tsym(p).visibility of
+             vis_private,
+             vis_strictprivate :
+               sp:='0';
+             vis_protected,
+             vis_strictprotected :
+               sp:='1'
+             else
+               sp:='2';
+           end;
            newss:=def_stabstr_evaluate(nil,'$1::$2=##$3;:$4;$5A$6;',[GetSymName(tsym(p)),def_stab_number(pd),
                                     def_stab_number(pd.returndef),argnames,sp,
                                     virtualind]);

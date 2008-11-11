@@ -91,14 +91,14 @@ implementation
                   case sym.typ of
                     fieldvarsym :
                       begin
-                        if not(sp_private in current_object_option) then
+                        if (symtablestack.top.currentvisibility<>vis_private) then
                           addsymref(sym);
                         pl.addsym(sl_load,sym);
                         def:=tfieldvarsym(sym).vardef;
                       end;
                     procsym :
                       begin
-                        if not(sp_private in current_object_option) then
+                        if (symtablestack.top.currentvisibility<>vis_private) then
                           addsymref(sym);
                         pl.addsym(sl_call,sym);
                       end;
@@ -284,12 +284,13 @@ implementation
            end;
          { Generate propertysym and insert in symtablestack }
          p:=tpropertysym.create(orgpattern);
+         p.visibility:=symtablestack.top.currentvisibility;
          symtablestack.top.insert(p);
          consume(_ID);
          { property parameters ? }
          if try_to_consume(_LECKKLAMMER) then
            begin
-              if (sp_published in current_object_option) and
+              if (p.visibility=vis_published) and
                 not (m_delphi in current_settings.modeswitches) then
                 Message(parser_e_cant_publish_that_property);
               { create a list of the parameters }
@@ -414,9 +415,12 @@ implementation
                   message(parser_e_no_property_found_to_override);
                 end;
            end;
-         if ((sp_published in current_object_option) or is_dispinterface(aclass)) and
+         if ((p.visibility=vis_published) or is_dispinterface(aclass)) and
             not(p.propdef.is_publishable) then
-           Message(parser_e_cant_publish_that_property);
+           begin
+             Message(parser_e_cant_publish_that_property);
+             p.visibility:=vis_public;
+           end;
 
          if not(is_dispinterface(aclass)) then
            begin
@@ -1057,13 +1061,9 @@ implementation
          semicoloneaten,
          allowdefaultvalue,
          hasdefaultvalue : boolean;
-         old_current_object_option : tsymoptions;
          hintsymoptions  : tsymoptions;
          old_block_type  : tblock_type;
       begin
-         old_current_object_option:=current_object_option;
-         { all variables are public if not in a object declaration }
-         current_object_option:=[sp_public];
          old_block_type:=block_type;
          block_type:=bt_var;
          { Force an expected ID error message }
@@ -1211,7 +1211,6 @@ implementation
                end;
            end;
          block_type:=old_block_type;
-         current_object_option:=old_current_object_option;
          { free the list }
          sc.free;
       end;
@@ -1221,7 +1220,6 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         old_current_object_option : tsymoptions;
          hs,sorg : string;
          hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
@@ -1236,6 +1234,7 @@ implementation
          vs    : tabstractvarsym;
          srsym : tsym;
          srsymtable : TSymtable;
+         visibility : tvisibility;
          recst : tabstractrecordsymtable;
          unionsymtable : trecordsymtable;
          offset : longint;
@@ -1251,10 +1250,6 @@ implementation
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_field := true;
 {$endif powerpc or powerpc64}
-         old_current_object_option:=current_object_option;
-         { all variables are public if not in a object declaration }
-         if not(vd_object in options) then
-          current_object_option:=[sp_public];
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
           consume(_ID);
@@ -1264,6 +1259,7 @@ implementation
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
            begin
+             visibility:=symtablestack.top.currentvisibility;
              semicoloneaten:=false;
              sc.clear;
              repeat
@@ -1370,26 +1366,19 @@ implementation
                  consume(_SEMICOLON);
                end;
 
-             if (sp_published in current_object_option) and
+             if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
                  Message(parser_e_cant_publish_that);
-                 exclude(current_object_option,sp_published);
-                 { recover by changing access type to public }
-                 for i:=0 to sc.count-1 do
-                   begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     exclude(fieldvs.symoptions,sp_published);
-                     include(fieldvs.symoptions,sp_public);
-                   end;
-               end
-             else
-              if (sp_published in current_object_option) and
-                 not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
-                 not(m_delphi in current_settings.modeswitches) then
+                 visibility:=vis_public;
+               end;
+
+             if (visibility=vis_published) and
+                not(oo_can_have_published in tobjectdef(hdef).objectoptions) and
+                not(m_delphi in current_settings.modeswitches) then
                begin
                  Message(parser_e_only_publishable_classes_can_be_published);
-                 exclude(current_object_option,sp_published);
+                 visibility:=vis_public;
                end;
 
              { Generate field in the recordsymtable }
@@ -1397,13 +1386,9 @@ implementation
                begin
                  fieldvs:=tfieldvarsym(sc[i]);
                  { static data fields are already inserted in the globalsymtable }
-                 if not(sp_static in current_object_option) then
-                   recst.addfield(fieldvs);
+                 if not(sp_static in fieldvs.symoptions) then
+                   recst.addfield(fieldvs,visibility);
                end;
-
-             { restore current_object_option, it can be changed for
-               publishing or static }
-             current_object_option:=old_current_object_option;
            end;
 
          { Check for Case }
@@ -1429,7 +1414,7 @@ implementation
               if assigned(fieldvs) then
                 begin
                   fieldvs.vardef:=casetype;
-                  recst.addfield(fieldvs);
+                  recst.addfield(fieldvs,recst.currentvisibility);
                 end;
               if not(is_ordinal(casetype))
 {$ifndef cpu64bitaddr}
@@ -1519,7 +1504,6 @@ implementation
               trecordsymtable(recst).insertunionst(Unionsymtable,offset);
               uniondef.owner.deletedef(uniondef);
            end;
-         current_object_option:=old_current_object_option;
          { free the list }
          sc.free;
 {$ifdef powerpc}
