@@ -152,7 +152,7 @@ interface
          procedure generate;
          // helpers
          procedure appenddefoffset(vardef:tdef; fieldoffset: aint; derefclass: boolean);
-         procedure findvariantstarts(item: TObject; arg: pointer);
+         procedure findvariantstarts(variantstarts: tfplist);
          procedure addalignmentpadding(finalsize: aint);
          procedure buildmapping(variantstarts: tfplist);
          procedure buildtable(variantstarts: tfplist);
@@ -1209,7 +1209,7 @@ implementation
       begin
         equivst:=st;
         curroffset:=0;
-        symdeflist:=tfpobjectlist.create(false);
+        symdeflist:=tfpobjectlist.create(true);
         generate;
       end;
       
@@ -1301,41 +1301,82 @@ implementation
       end;
 
 
-    procedure tllvmshadowsymtable.findvariantstarts(item: TObject; arg: pointer);
+    procedure tllvmshadowsymtable.findvariantstarts(variantstarts: tfplist);
       var
-        variantstarts: tfplist absolute arg;
-        sym: tfieldvarsym absolute item;
+        sym: tfieldvarsym;
         lastoffset: aint;
         newalignment: aint;
+        i, j: longint;
       begin
-        if (tsym(item).typ<>fieldvarsym) then
-          exit;
-        { a "better" algorithm might be to use the largest }
-        { variant in case of (bit)packing, since then      }
-        { alignment doesn't matter                         }
-        if (vo_is_first_field in sym.varoptions) then
+        i:=0;
+        while (i<equivst.symlist.count) do
           begin
-            { we assume that all fields are processed in order. }
-            { the most deeply nested variant always comes last  }
-            { in Pascal                                         }
-            if (variantstarts.count<>0) then
-              lastoffset:=tfieldvarsym(variantstarts[variantstarts.count-1]).fieldoffset
-            else
-              lastoffset:=-1;
-
-            if (lastoffset=sym.fieldoffset) then
+            if (tsym(equivst.symlist[i]).typ<>fieldvarsym) then
               begin
-                if (equivst.fieldalignment<>bit_alignment) then
-                  newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                inc(i);
+                continue;
+              end;
+            sym:=tfieldvarsym(equivst.symlist[i]);
+            { a "better" algorithm might be to use the largest }
+            { variant in case of (bit)packing, since then      }
+            { alignment doesn't matter                         }
+            if (vo_is_first_field in sym.varoptions) then
+              begin
+                { we assume that all fields are processed in order. }
+                if (variantstarts.count<>0) then
+                  lastoffset:=tfieldvarsym(variantstarts[variantstarts.count-1]).fieldoffset
                 else
-                  newalignment:=1;
-                if (newalignment>tfieldvarsym(variantstarts[variantstarts.count-1]).vardef.alignment) then
-                  tfieldvarsym(variantstarts[variantstarts.count-1]):=sym
-              end
-            else if (lastoffset<sym.fieldoffset) then
-              variantstarts.add(sym)
-            else
-              internalerror(2008051003);
+                  lastoffset:=-1;
+
+                { new variant at same level as last one: use if higher alignment }
+                if (lastoffset=sym.fieldoffset) then
+                  begin
+                    if (equivst.fieldalignment<>bit_alignment) then
+                      newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                    else
+                      newalignment:=1;
+                    if (newalignment>tfieldvarsym(variantstarts[variantstarts.count-1]).vardef.alignment) then
+                      variantstarts[variantstarts.count-1]:=sym;
+                  end
+                { variant at deeper level than last one -> add }
+                else if (lastoffset<sym.fieldoffset) then
+                  variantstarts.add(sym)
+                else
+                  begin
+                    { a variant at a less deep level, so backtrack }
+                    j:=variantstarts.count-2;
+                    while (j>=0) do
+                      begin
+                        if (tfieldvarsym(variantstarts[j]).fieldoffset=sym.fieldoffset) then
+                          break;
+                        dec(j);
+                      end;
+                    if (j<0) then
+                      internalerror(2008051003);
+                    { new variant has higher alignment? }
+                    if (equivst.fieldalignment<>bit_alignment) then
+                      newalignment:=used_align(sym.vardef.alignment,current_settings.alignment.recordalignmin,equivst.fieldalignment)
+                    else
+                      newalignment:=1;
+                    { yes, replace and remove previous nested variants }
+                    if (newalignment>tfieldvarsym(variantstarts[j]).vardef.alignment) then
+                      begin
+                        variantstarts[j]:=sym;
+                        variantstarts.count:=j+1;
+                      end
+                   { no, skip this variant }
+                    else
+                      begin
+                        inc(i);
+                        while (i<equivst.symlist.count) and
+                              ((tsym(equivst.symlist[i]).typ<>fieldvarsym) or
+                               (tfieldvarsym(equivst.symlist[i]).fieldoffset>sym.fieldoffset)) do
+                          inc(i);
+                        continue;
+                      end;
+                  end;
+              end;
+            inc(i);
           end;
       end;
 
@@ -1365,10 +1406,10 @@ implementation
               begin
                 { if we want to process the same variant offset twice, it means that we  }
                 { got to the end and are trying to process the next variant part -> stop }
-                if (tfieldvarsym(equivst.symlist[i]).fieldoffset=lastvaroffsetprocessed) then
+                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<=lastvaroffsetprocessed) then
                   break;
-                if (varcount>=variantstarts.count) or
-                   (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+
+                if (varcount>=variantstarts.count) then
                   internalerror(2008051005);
                 { new variant part -> use the one with the biggest alignment }
                 i:=equivst.symlist.indexof(tobject(variantstarts[varcount]));
@@ -1404,11 +1445,16 @@ implementation
             { start of a new variant? }
             if (vo_is_first_field in tfieldvarsym(equivst.symlist[i]).varoptions) then
               begin
-                { the variant can either come after the current one, or }
-                { be at the same level                                  }
-                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                { back up to a less deeply nested variant level? }
+                while (tfieldvarsym(equivst.symlist[i]).fieldoffset<tfieldvarsym(variantstarts[varcount]).fieldoffset) do
                   dec(varcount);
-                if (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                { it's possible that some variants are more deeply nested than the
+                  one we recorded in the shadowsymtable (since we recorded the one
+                  with the biggest alignment, not necessarily the biggest one in size
+                }
+                if (tfieldvarsym(equivst.symlist[i]).fieldoffset>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
+                  varcount:=variantstarts.count-1
+                else if (tfieldvarsym(equivst.symlist[i]).fieldoffset<>tfieldvarsym(variantstarts[varcount]).fieldoffset) then
                   internalerror(2008051006);
                 { reset the shadowindex to the start of this variant. }
                 { in case the llvmfieldnr is not (yet) set for this   }
@@ -1443,7 +1489,7 @@ implementation
         { first go through the entire record and }
         { store the fieldvarsyms of the variants }
         { with the highest alignment             }
-        equivst.symlist.foreachcall(@findvariantstarts,pointer(variantstarts));
+        findvariantstarts(variantstarts);
 
         { now go through the regular fields and the selected variants, }
         { and add them to the  llvm shadow record symtable             }
