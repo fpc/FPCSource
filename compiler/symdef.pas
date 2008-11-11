@@ -298,6 +298,7 @@ interface
 {$ifdef support_llvm}
           property llvm_class_struct_name_sym: tasmsymbol read get_llvm_class_struct_name_sym;
           property llvm_vmt_name_sym: tasmsymbol read get_llvm_vmt_name_sym;
+          procedure reset; override;
 {$endif support_llvm}
        end;
 
@@ -986,7 +987,7 @@ implementation
       begin
         if assigned(typesym) and
            (owner.symtabletype in [staticsymtable,globalsymtable]) then
-          result:=make_mangledname('llvm$$$',owner,typesym.name)
+          result:=make_mangledname('llvm$$$',owner,typesym.name+'_DEF'+tostr(DefId))
         else
           result:=make_mangledname('llvm$$$',findunitsymtable(owner),'DEF'+tostr(DefId));
         result:='%'+result;
@@ -996,6 +997,10 @@ implementation
 
     procedure Tstoreddef.reset;
       begin
+{$ifdef support_llvm}
+        fllvm_name_sym:=nil;
+        fllvm_pointer_name_sym:=nil;
+{$endif support_llvm}
       end;
 
 
@@ -4186,6 +4191,17 @@ implementation
         result := (ImplementedInterfaces.Count > 0) or
           (assigned(childof) and childof.implements_any_interfaces);
       end;
+
+
+{$ifdef support_llvm}
+    procedure tobjectdef.reset;
+      begin
+        fllvm_class_struct_name_sym:=nil;
+        fllvm_vmt_name_sym:=nil;
+        inherited reset;
+      end;
+{$endif support_llvm}
+
 
     function tobjectdef.size : aint;
       begin
