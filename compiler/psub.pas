@@ -1820,7 +1820,7 @@ implementation
                        current_filepos:=oldcurrent_filepos;
                      end
                    else
-                     MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
+                     MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
                  end;
              end;
           end;
