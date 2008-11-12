@@ -84,7 +84,6 @@ interface
           FProcdefList   : TFPObjectList;
           FProcdefDerefList : TFPList;
        public
-          overloadchecked : boolean;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -97,7 +96,6 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
@@ -473,7 +471,6 @@ implementation
          { the tprocdef have their own symoptions, make the procsym
            always visible }
          visibility:=vis_public;
-         overloadchecked:=false;
       end;
 
 
@@ -604,20 +601,6 @@ implementation
             d.dataidx:=PtrInt(FProcdefDerefList[i]);
             pd:=tprocdef(d.resolve);
             ProcdefList.Add(pd);
-          end;
-      end;
-
-
-    procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            if Aprocsym.find_procdef_bypara(pd.paras,nil,cpoptions)=nil then
-              Aprocsym.ProcdefList.Add(pd);
           end;
       end;
 
@@ -775,9 +758,6 @@ implementation
         i  : longint;
         pd : tprocdef;
       begin
-        { remove all overloaded procdefs from the
-          procdeflist that are not in the current symtable }
-        overloadchecked:=false;
         { reset new lists }
         for i:=0 to ProcdefList.Count-1 do
           begin

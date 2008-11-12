@@ -1060,6 +1060,8 @@ implementation
               parse_proc_head(aclass,potype_operator,pd);
               if assigned(pd) then
                 begin
+                  { operators always need to be searched in all units }
+                  include(pd.procoptions,po_overload);
                   if pd.parast.symtablelevel>normal_function_level then
                     Message(parser_e_no_local_operator);
                   if token<>_ID then

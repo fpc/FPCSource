@@ -209,7 +209,6 @@ interface
     function  defined_macro(const s : string):boolean;
 
 {*** Object Helpers ***}
-    procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
 
 {*** Macro Helpers ***}
@@ -1902,46 +1901,6 @@ implementation
 {****************************************************************************
                               Object Helpers
 ****************************************************************************}
-
-    procedure search_class_overloads(aprocsym : tprocsym);
-    { searches n in symtable of pd and all anchestors }
-      var
-        hashedid : THashedIDString;
-        srsym    : tprocsym;
-        objdef   : tobjectdef;
-      begin
-        if aprocsym.overloadchecked then
-         exit;
-        aprocsym.overloadchecked:=true;
-        if (aprocsym.owner.symtabletype<>ObjectSymtable) then
-         internalerror(200111021);
-        objdef:=tobjectdef(aprocsym.owner.defowner);
-        { we start in the parent }
-        if not assigned(objdef.childof) then
-         exit;
-        objdef:=objdef.childof;
-        hashedid.id:=aprocsym.name;
-        while assigned(objdef) do
-         begin
-           srsym:=tprocsym(objdef.symtable.FindWithHash(hashedid));
-           if assigned(srsym) then
-            begin
-              if (srsym.typ<>procsym) then
-               internalerror(200111022);
-              if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner),tobjectdef(aprocsym.owner.defowner)) then
-               begin
-                 srsym.add_para_match_to(Aprocsym,[cpo_ignorehidden,cpo_allowdefaults]);
-                 { we can stop if the overloads were already added
-                  for the found symbol }
-                 if srsym.overloadchecked then
-                  break;
-               end;
-            end;
-           { next parent }
-           objdef:=objdef.childof;
-         end;
-      end;
-
 
    function search_default_property(pd : tobjectdef) : tpropertysym;
    { returns the default property of a class, searches also anchestors }

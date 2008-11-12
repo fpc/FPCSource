@@ -2116,6 +2116,7 @@ implementation
         paraidx,
         cand_cnt : integer;
         i : longint;
+        ignorevisibility,
         is_const : boolean;
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
@@ -2211,9 +2212,10 @@ implementation
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags),
-                     { ignore possible private in delphi mode for anon. inherited (FK) }
-                     (m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
+                  { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
+                  ignorevisibility:=(nf_isproperty in flags) or
+                                    ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
