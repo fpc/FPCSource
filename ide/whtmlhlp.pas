@@ -1696,9 +1696,9 @@ begin
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1',0,0);
 {$endif WDEBUG}
-          Link:=FormatPath(Link);
+          Link:=FormatLink(Link);
 {$IFDEF WDEBUG}
-          DebugMessageS({$i %file%},' Looking for (after formatpath)  "'+Link+'"',{$i %line%},'1',0,0);
+          DebugMessageS({$i %file%},' Looking for (after formatlink)  "'+Link+'"',{$i %line%},'1',0,0);
 {$endif WDEBUG}
           P:=Pos('#',Link);
           if P>0 then
