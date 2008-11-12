@@ -1,12 +1,12 @@
-﻿#
+#
 #   German (UTF-8) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 9207 + one
+#   Based on errore.msg of SVN revision 10552
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2000 by the Free Pascal Development team
+#   Copyright (c) 1998-2008 by the Free Pascal Development team
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -357,11 +357,12 @@ scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur fü
 % Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungültige minimale Präzision von Fliesskommakonstanten
 % Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
+scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird mehrfach überschrieben. Es war bisher auf "$1" gesetzt
 % \end{description}
 #
 # Parser
 #
-# 03237 is the last used one
+# 03247 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1138,7 +1139,20 @@ parser_e_no_generics_as_types=03236_E_Generische Typen können nicht ohne Spezia
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Registerliste wird in reinen Assemblerroutinen ignoriert
 % When using pure assembler routines, the list with modified registers is ignored.
-% \end{description}
+parser_e_implements_must_be_class_or_interface=03238_E_Die Implements-Eigenschaft muss einen Klassen- oder Interface-Typ haben
+parser_e_implements_must_have_correct_type=03239_E_Die Implements-Eigenschaft muss ein Interface mit dem richtigen Typ implementieren; es wurde Typ "$1" gefunden, aber Typ "$2" erwartet.
+parser_e_implements_must_read_specifier=03240_E_Die Implements-Eigenschaft muss einen Lesen-Bezeichner haben
+parser_e_implements_must_not_have_write_specifier=03241_E_Die Implements-Eigenschaft darf keinen Schreib-Bezeichner haben
+parser_e_implements_must_not_have_stored_specifier=03242_E_Die Implements-Eigenschaft darf keinen Gespeichert-Bezeichner haben
+parser_e_implements_uses_non_implemented_interface=03243_E_Die Implements-Eigenschaft benutzt das nicht implementierte Interface "$1"
+parser_e_unsupported_real=03244_E_Fliesskommavariablen werden für dieses Ziel nicht unterstützt
+% The compiler parsed a floating point expression, but it is not supported.
+parser_e_class_doesnt_implement_interface=03245_E_Klasse "$1" implementiert das Interface "$2" nicht
+% The delegated interface is not implemented by the class given in the implements clause
+parser_e_class_implements_must_be_interface=03246_E_Der von Implements benutzte Typ muss ein Interface sein
+parser_e_cant_export_var_different_name=03247_E_Variablen können für dieses Target nicht mit einem anderen Namen exportiert werden; füge der Deklaration den Namen mit einer "export" Direktive hinzu (Variablenname: $1, deklarierter Name für den Export: $2)
+% On most targets it is not possible to change the name under which a variable is exported inside the \var{exports} statement of a library.
+% In that case, you have to specify the export name at the point where the variable is declared, using the \var{export} and \var{alias} directives.
 #
 # Type Checking
 #
@@ -1587,6 +1601,11 @@ sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr ab
 sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden 
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to find the affected method.
+sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{experimental} is used. Experimental symbols
+% might disappear or change semantics in future versions. Usage of this symbol
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator
@@ -2002,7 +2021,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit Operanden werden nicht unterstüt
 #
 # Executing linker/assembler
 #
-# 09028 is the last used one
+# 09032 is the last used one
 #
 # BeginOfTeX
 %
@@ -2065,7 +2084,7 @@ exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstützt
 % not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Schliesse Skript $1
 % Informational message showing when the external assembling an linking script is finished.
-exec_e_res_not_found=09021_E_Resourcen Compiler nicht gefunden, schalte um zu externem Modus
+exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_Übersetze Resource $1
@@ -2080,9 +2099,19 @@ exec_e_unit_not_smart_or_static_linkable=09026_E_Unit $1 kann weder smart noch s
 % Smart or static linking was requested, but a unit which cannot be used for either  was used.
 exec_e_unit_not_shared_or_static_linkable=09027_E_Unit $1 kann weder shared noch statisch gelinkt werden
 % Shared or static linking was requested, but a unit which cannot be used for either  was used.
-exec_d_resbin_params=09028_D_Resource Compiler "$1" wird mit "$2" als Kommandozeile aufgerufen
+exec_d_resbin_params=09028_D_Resource-Compiler "$1" wird mit "$2" als Kommandozeile aufgerufen
 % An informational message showing which command-line is used for the resource compiler.
 %\end{description}
+exec_e_error_while_compiling_resources=09029_E_Fehler beim Übersetzen von Resourcen
+% The resource compiler or converter returned an error
+exec_e_cant_call_resource_compiler=09030_E_Der Resource-Compiler "$1" kann nicht aufgerufen werden, schalte um auf externen Modus
+% An error occurred when calling a resource compiler, the compiler will produce
+% a script that can be used to assemble, compile resources and link or
+% postprocess the program.
+exec_e_cant_open_resource_file=09031_E_Kann die Resourcedatei "$1" nicht öffnen
+% An error occurred resource file can not be opened
+exec_e_cant_write_resource_file=09032_E_Kann die Resourcedatei "$1" nicht schreiben
+% An error occurred resource file can not be written
 # EndOfTeX
 
 #
@@ -2115,7 +2144,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Unit loading
 #
-# 10059 is the last used one
+# 10060 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2305,6 +2334,9 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 % When you use the \var{-vu} flag, the compiler warns that it
 % skips to recalculate the internal data of the unit because there
 % is no data to recalculate
+unit_u_unload_resunit=10060_U_Entlade die Resource Unit $1 (wird nicht benötigt) 
+% When you use the \var{-vu} flag, the compiler warns that it is unloading the 
+% resource handling unit, since no resources are used.
 % \end{description}
 # EndOfTeX
 
@@ -2435,6 +2467,9 @@ Unterstützte CPU Instruktionen:
 Unterstützte FPU Instruktionen:
   $FPUINSTRUCTIONSETS
 
+Unterstützte ABI Ziele:
+  $ABITARGETS
+
 Unterstützte Optimierungen:
   $OPTIMIZATIONS
 
@@ -2484,9 +2519,9 @@ option_help_pages=11025_[
 3*2Anasmobj_Obj Datei mit Hilfe von Nasm
 3*2Amasm_Obj Datei mit Hilfe von Masm (Microsoft)
 3*2Atasm_Obj Datei mit Hilfe von Tasm (Borland)
-3*2Aelf_ELF32 (Linux) mit Hilfe von internen Schreiber
-3*2Acoff_COFF (Go32v2) mit Hilfe von internen Schreiber
-3*2Apecoff_PE_COFF (Win32) mit Hilfe von internen Schreiber
+3*2Aelf_ELF32 (Linux) mit Hilfe vom internen Schreiber
+3*2Acoff_COFF (Go32v2) mit Hilfe vom internen Schreiber
+3*2Apecoff_PE_COFF (Win32) mit Hilfe vom internen Schreiber
 4*2Aas_Assembliere mit Hilfe von GNU AS
 6*2Aas_Unix o-file mit Hilfe von GNU AS
 6*2Agas_GNU Motorola Assembler
@@ -2499,10 +2534,12 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2bl_Erzeuge Info zu lokalen Symbolen
 **1B_Erzeuge alle Module (Build)
 **1C<x>_Optionen für Code-Erzeugung:
+**2Ca<x>_Wähle ABI aus; fpc -i gibt die möglichen Werte aus
+**2Cb_Erzeuge "big-endian" Code
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstützt)
 **2Ce_Übersetze mit emulierten Fliesskomma opcodes
-**2Cf<x>_Wähle den Fliesskomma instruction set aus, siehe fpc -i wegen möglicher Werte
+**2Cf<x>_Wähle den Fliesskomma instruction set aus; fpc -i gibt die möglichen Werte aus
 **2CF<x>_Minimale Präzission von Fliesskommakonstanten (default, 32, 64)
 **2Cg_Erzeuge PIC code
 **2Ch<n>_<n> Bytes Heap (zwischen 1023 und 67107840)
@@ -2510,7 +2547,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Cn_Lasse die Linkstufe aus
 **2Co_Prüfe auf Überlauf von Integer-Operationen
 **2CO_Prüfe auf möglichen Überlauf von Integer-Operationen
-**2Cp<x>_Wähle instruction set aus, siehe fpc -i wegen möglicher Werte
+**2Cp<x>_Wähle instruction set aus; fpc -i gibt die möglichen Werte aus
 **2CP<x>=<y>_ Einstellungen für packing
 **3CPPACKSET=<y>_ <y> Belegung von Sets: 0, 1 oder DEFAULT oder NORMAL, 2, 4 und 8
 **2Cr_Führe Bereichsprüfung durch
@@ -2580,8 +2617,8 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2O2_Level 2 Optimierung (-O1 + schnelle Optimierungen)
 **2O3_Level 3 Optimierung (-O2 + langsame Optimierungen)
 **2Oa<x>=<y>_Ausrichtung (alignment) von Mengen
-**2Oo[NO]<x>_Optimierungen ein- oder ausschalten, siehe fpc -i für mögliche Werte
-**2Op<x>_Setze Zielprozessor für die Optimierung, siehe fpc -i für mögliche Werte
+**2Oo[NO]<x>_Optimierungen ein- oder ausschalten; fpc -i gibt die möglichen Werte aus
+**2Op<x>_Setze Zielprozessor für die Optimierung; fpc -i gibt die möglichen Werte aus
 **2Os_Erzeuge kürzeren Code
 **1pg_Erzeuge Profiler-Code für gprof
 **1R<x>_Assembler Code Format:
@@ -2619,7 +2656,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **1T<x>_Zielbetriebssystem::
 3*2Temx_OS/2 via EMX (einschliesslich EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
-3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Tgo32v2_Version 2 des DJ Delorie DOS extender
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
@@ -2640,8 +2677,8 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 6*2Tpalmos_PalmOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
-P*2Tamiga_AmigaOS on PowerPC
-P*2Tdarwin_Darwin und Mac OS X on PowerPC
+P*2Tamiga_AmigaOS auf PowerPC
+P*2Tdarwin_Darwin und Mac OS X auf PowerPC
 P*2Tlinux_Linux auf PowerPC
 P*2Tmacos_Mac OS (classic) auf PowerPC
 P*2Tmorphos_MorphOS
@@ -2662,25 +2699,39 @@ S*2Tlinux_Linux
 **2*_b : Schreibe bei Meldungen mit Dateinamen den vollständigem Pfad
 **2*_v : Schreibe fpcdebug.txt mit     p : Schreibe tree.log mit Analysenbaum (parse tree)
 **2*_   ganz viel Information
-3*1W<x>_Win32-ähnliche Ziel-Optionen
+3*1W<x>_Ziel-spezifische Optionen (Ziele)
+A*1W<x>_Ziel-spezifische Optionen (Ziele)
+P*1W<x>_Ziel-spezifische Optionen (Ziele)
 3*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 P*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
 p*2Wb_Erzeuge statt einer Bibliothek ein Bundle (Darwin)
-3*2WB_Erzeuge ein relozierbares Image
-3*2WB<x>_Setze die Image base auf den Hexadezimal Wert <x>
-3*2WC_Spezifiziere "console type application"
-3*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren
-3*2WF_Spezifiziere "full-screen type application" (nur OS/2)
-3*2WG_Spezifiziere "graphic type application"
-3*2WN_Erzeuge keinen "relocation code" (notwendig für debugging)
-3*2WR_Erzeuge "relocation code"
-P*2WC_Spezifiziere "console type application" (nur Mac OS)
-P*2WG_Spezifiziere "graphic type application" (nur Mac OS)
-P*2WT_Spezifiziere "tool type application"    (MPW tool, nur Mac OS)
+3*2WB_Erzeuge ein relozierbares Image (Windows)
+A*2WB_Erzeuge ein relozierbares Image (Windows, Symbian)
+3*2WC_Spezifiziere "console type application" (EMX, OS/2, Windows)
+A*2WC_Spezifiziere "console type application" (Windows)
+P*2WC_Spezifiziere "console type application" (Classic Mac OS)
+3*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren (Windows)
+A*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren (Windows)
+3*2We_Benutze externe Resourcen (Darwin)
+P*2We_Benutze externe Resourcen (Darwin)
+p*2We_Benutze externe resoResourcenurces (Darwin)
+3*2WF_Spezifiziere "full-screen type application" (EMX, OS/2)
+3*2WG_Spezifiziere "graphic type application" (EMX, OS/2, Windows)
+A*2WG_Spezifiziere "graphic type application" (Windows)
+P*2WG_Spezifiziere "graphic type application" (Classic Mac OS)
+3*2Wi_Benutze interne Resourcen (Darwin)
+P*2Wi_Benutze interne Resourcen (Darwin)
+p*2Wi_Benutze interne Resourcen (Darwin)
+3*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
+A*2WN_Erzeuge keinen "relocation code" (notwendig für debugging) (Windows)
+3*2WR_Erzeuge "relocation code" (Windows)
+A*2WR_Erzeuge "relocation code" (Windows)
+P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 **1X_Programm-Optionen:
 **2Xc_Übergebe --shared an den Linker (nur Unix)
 **2Xd_Den Standard Bibliotheks-Suchpfad NICHT nutzen (benötigt für cross compile)
 **2Xe_Verwende den externen Linker
+**2Xg_Erstelle die Debug-Informationen in einer separaten Datei und einen "Debug-Link"-Abschnitt im ausführbaren Programm
 **2XD_Versuche Units dynamisch zu linken             (definiert FPC_LINK_DYNAMIC)
 **2Xi_Verwende den internen Linker
 **2Xm_Erzeuge die "link map"
