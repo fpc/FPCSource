@@ -394,7 +394,6 @@ unit optloop;
     function OptimizeInductionVariablesSingleForLoop(node : tnode) : tnode;
       var
         loopcode,
-        newcode : tblocknode;
         loopcodestatements,
         newcodestatements : tstatementnode;
         fornode : tfornode;
