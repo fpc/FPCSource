@@ -92,7 +92,6 @@ interface
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
-          procedure unchain_overload;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
@@ -750,27 +749,6 @@ implementation
               end;
           end;
         result:=bestpd;
-      end;
-
-
-    procedure tprocsym.unchain_overload;
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        { reset new lists }
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            { only keep the proc definitions:
-              - are not deref'd (def=nil)
-              - are in the same symtable as the procsym (for example both
-                are in the staticsymtable) }
-            if not(pd.owner=owner) then
-              ProcdefList[i]:=nil;
-          end;
-        { Remove cleared entries }
-        ProcdefList.Pack;
       end;
 
 

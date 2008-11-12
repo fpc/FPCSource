@@ -1349,8 +1349,6 @@ implementation
              tstoredsymtable(procdef.localst).check_forwards;
              { check if all labels are used }
              tstoredsymtable(procdef.localst).checklabels;
-             { remove cross unit overloads }
-             tstoredsymtable(procdef.localst).unchain_overloaded;
              { check for unused symbols, but only if there is no asm block }
              if not(pi_has_assembler_block in flags) then
                begin

@@ -52,7 +52,6 @@ interface
           procedure varsymbolused(sym:TObject;arg:pointer);
           procedure TestPrivate(sym:TObject;arg:pointer);
           procedure objectprivatesymbolused(sym:TObject;arg:pointer);
-          procedure unchain_overloads(sym:TObject;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
           procedure writedefs(ppufile:tcompilerppufile);
@@ -74,7 +73,6 @@ interface
           procedure check_forwards;
           procedure checklabels;
           function  needs_init_final : boolean;
-          procedure unchain_overloaded;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
        end;
 
@@ -651,13 +649,6 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.unchain_overloads(sym:TObject;arg:pointer);
-      begin
-         if tsym(sym).typ=procsym then
-           tprocsym(sym).unchain_overload;
-      end;
-
-
    procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
      begin
         if (tsym(sym).typ=propertysym) and
@@ -705,12 +696,6 @@ implementation
     procedure tstoredsymtable.allprivatesused;
       begin
          SymList.ForEachCall(@objectprivatesymbolused,nil);
-      end;
-
-
-    procedure tstoredsymtable.unchain_overloaded;
-      begin
-         SymList.ForEachCall(@unchain_overloads,nil);
       end;
 
 
