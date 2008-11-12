@@ -1637,12 +1637,7 @@ implementation
            st.defowner.owner.iscurrentunit then
           topclassh:=tobjectdef(st.defowner)
         else
-          begin
-            if assigned(current_procinfo) then
-              topclassh:=current_procinfo.procdef._class
-            else
-              topclassh:=nil;
-          end;
+          topclassh:=current_objectdef;
 
         { link all procedures which have the same # of parameters }
         for j:=0 to sym.ProcdefList.Count-1 do

@@ -3863,14 +3863,14 @@ implementation
 
     function tobjectdef.GetTypeName:string;
       begin
-        if (self <> current_objectdef) then
-          GetTypeName:=typename
+        { in this case we will go in endless recursion, because then  }
+        { there is no tsym associated yet with the def. It can occur  }
+        { (tests/webtbf/tw4757.pp), so for now give a generic name    }
+        { instead of the actual type name                             }
+        if not assigned(typesym) then
+          result:='<Currently Parsed Class>'
         else
-          { in this case we will go in endless recursion, because then  }
-          { there is no tsym associated yet with the def. It can occur  }
-          { (tests/webtbf/tw4757.pp), so for now give a generic name    }
-          { instead of the actual type name                             }
-          GetTypeName:='<Currently Parsed Class>';
+          result:=typename;
       end;
 
 

@@ -1579,14 +1579,8 @@ implementation
                    (srsymtable.defowner.owner.iscurrentunit) then
                   topclass:=tobjectdef(srsymtable.defowner)
                 else
-                  begin
-                    if assigned(current_procinfo) then
-                      topclass:=current_procinfo.procdef._class;
-                  end;
-                if assigned(current_procinfo) then
-                  context:=current_procinfo.procdef._class
-                else
-                  context:=nil;
+                  topclass:=current_objectdef;
+                context:=current_objectdef;
                 if tsym(srsym).is_visible_for_object(topclass,context) then
                   begin
                     { we need to know if a procedure references symbols
@@ -1636,8 +1630,8 @@ implementation
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
-                   (not assigned(current_procinfo) or
-                    tsym(srsym).is_visible_for_object(current_procinfo.procdef._class,current_procinfo.procdef._class)) then
+                   (not assigned(current_objectdef) or
+                    tsym(srsym).is_visible_for_object(current_objectdef,current_objectdef)) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -1697,20 +1691,15 @@ implementation
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid      : THashedIDString;
-        currentclassh : tobjectdef;
       begin
         result:=false;
         hashedid.id:=s;
-        if assigned(current_procinfo) and assigned(current_procinfo.procdef) then
-          currentclassh:=current_procinfo.procdef._class
-        else
-          currentclassh:=nil;
         while assigned(classh) do
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               tsym(srsym).is_visible_for_object(contextclassh,currentclassh) then
+               tsym(srsym).is_visible_for_object(contextclassh,current_objectdef) then
               begin
                 addsymref(srsym);
                 result:=true;
@@ -2155,7 +2144,6 @@ implementation
        class_tobject:=nil;
        interface_iunknown:=nil;
        rec_tguid:=nil;
-       current_objectdef:=nil;
        dupnr:=0;
      end;
 
