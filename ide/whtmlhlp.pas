@@ -1366,7 +1366,7 @@ end;
 
 function TCustomHTMLHelpFile.FormatLink(const s:String):string;
 begin
- result:=formatpath(s);
+ formatlink:=formatpath(s);
 end;
 
 function TCustomHTMLHelpFile.GetTopicInfo(T: PTopic) : string;
@@ -1608,7 +1608,7 @@ end;
 function TCHMHelpFile.FormatLink(const s:String):string;
 // do not reformat for chms, we assume them internally consistent.
 begin
- result:=s;
+ formatlink:=s;
 end;
 
 function TChmHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
