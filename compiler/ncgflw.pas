@@ -1471,7 +1471,9 @@ implementation
          { finally code }
          flowcontrol:=[fc_inflowcontrol];
          secondpass(right);
-         if flowcontrol<>[fc_inflowcontrol] then
+         { goto is allowed if it stays inside the finally block,
+           this is checked using the exception block number }
+         if (flowcontrol-[fc_gotolabel])<>[fc_inflowcontrol] then
            CGMessage(cg_e_control_flow_outside_finally);
          if codegenerror then
            exit;
