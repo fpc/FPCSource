@@ -1326,7 +1326,7 @@ type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
+type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,

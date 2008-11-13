@@ -371,7 +371,7 @@ const
   type_e_no_assign_to_const=04032;
   type_e_array_required=04033;
   type_e_interface_type_expected=04034;
-  type_w_mixed_signed_unsigned=04035;
+  type_h_mixed_signed_unsigned=04035;
   type_w_mixed_signed_unsigned2=04036;
   type_e_typecast_wrong_size_for_assignment=04037;
   type_e_array_index_enums_with_assign_not_possible=04038;

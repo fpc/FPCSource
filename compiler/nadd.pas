@@ -1123,7 +1123,7 @@ implementation
                     (nodetype=subn) then
                    begin
                      if nodetype<>subn then
-                       CGMessage(type_w_mixed_signed_unsigned);
+                       CGMessage(type_h_mixed_signed_unsigned);
                      { mark as internal in case added for a subn, so }
                      { ttypeconvnode.simplify can remove the 64 bit  }
                      { typecast again if semantically correct. Even  }
