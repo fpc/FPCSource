@@ -22,8 +22,7 @@ interface
 {$S-}
 {$Q-}
 
-procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
-
+function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
 
 implementation
 
@@ -71,16 +70,24 @@ var
   linestab,             { stab with current line info }
   dirstab,              { stab with current directory info }
   filestab   : tstab;   { stab with current file info }
-
-
-function OpenStabs:boolean;
-var
+  filename,
   dbgfn : string;
+
+
+function OpenStabs(addr : pointer) : boolean;
+  var
+    baseaddr : pointer;
 begin
   OpenStabs:=false;
   if staberr then
     exit;
-  if not OpenExeFile(e,paramstr(0)) then
+
+  GetModuleByAddr(addr,baseaddr,filename);
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
+{$endif DEBUG_LINEINFO}
+
+  if not OpenExeFile(e,filename) then
     exit;
   if ReadDebugLink(e,dbgfn) then
     begin
@@ -88,6 +95,7 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
+  e.processaddress:=e.processaddress+dword(baseaddr);
   StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
@@ -109,7 +117,7 @@ begin
 end;
 
 
-procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
+function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
 var
   res,
   stabsleft,
@@ -117,6 +125,10 @@ var
   found : boolean;
   lastfunc : tstab;
 begin
+  GetLineInfo:=false;
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,'GetLineInfo called');
+{$endif DEBUG_LINEINFO}
   fillchar(func,high(func)+1,0);
   fillchar(source,high(source)+1,0);
   line:=0;
@@ -124,13 +136,17 @@ begin
     exit;
   if not e.isopen then
    begin
-     if not OpenStabs then
+     if not OpenStabs(pointer(addr)) then
       exit;
    end;
 
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
   addr := addr - e.processaddress;
+
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,'Addr: ',hexstr(addr,sizeof(addr)*2));
+{$endif DEBUG_LINEINFO}
 
   fillchar(funcstab,sizeof(tstab),0);
   fillchar(filestab,sizeof(tstab),0);
@@ -230,6 +246,9 @@ begin
      if i>0 then
       Delete(func,i,255);
    end;
+  if e.isopen then
+    CloseStabs;
+  GetLineInfo:=true;
 end;
 
 
@@ -240,11 +259,16 @@ var
   hs     : string[32];
   line   : longint;
   Store  : TBackTraceStrFunc;
+  Success : boolean;
 begin
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,'StabBackTraceStr called');
+{$endif DEBUG_LINEINFO}
   { reset to prevent infinite recursion if problems inside the code PM }
+  Success:=false;
   Store:=BackTraceStrFunc;
   BackTraceStrFunc:=@SysBackTraceStr;
-  GetLineInfo(ptruint(addr),func,source,line);
+  Success:=GetLineInfo(ptruint(addr),func,source,line);
 { create string }
 {$ifdef netware}
   { we need addr relative to code start on netware }
@@ -254,7 +278,7 @@ begin
   StabBackTraceStr:='  $'+HexStr(ptruint(addr),sizeof(ptruint)*2);
 {$endif}
   if func<>'' then
-   StabBackTraceStr:=StabBackTraceStr+'  '+func;
+    StabBackTraceStr:=StabBackTraceStr+'  '+func;
   if source<>'' then
    begin
      if func<>'' then
@@ -266,7 +290,7 @@ begin
       end;
      StabBackTraceStr:=StabBackTraceStr+' of '+source;
    end;
-  if e.IsOpen then
+  if Success then
     BackTraceStrFunc:=Store;
 end;
 
@@ -277,5 +301,4 @@ initialization
 finalization
   if e.isopen then
    CloseStabs;
-
 end.

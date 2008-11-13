@@ -800,10 +800,14 @@ Begin
    End;
 
   { Make sure that all output is written to the redirected file }
-  Flush(Output);
-  Flush(ErrOutput);
-  Flush(pstdout^);
-  Flush(StdErr);
+  if Textrec(Output).Mode=fmOutput then
+    Flush(Output);
+  if Textrec(ErrOutput).Mode=fmOutput then
+    Flush(ErrOutput);
+  if Textrec(pstdout^).Mode=fmOutput then
+    Flush(pstdout^);
+  if Textrec(StdErr).Mode=fmOutput then
+    Flush(StdErr);
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
 {$if defined(MSWINDOWS) or defined(OS2)}

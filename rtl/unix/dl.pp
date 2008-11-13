@@ -1,11 +1,25 @@
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 1999-2008 by the Free Pascal development team
+
+    This file implements dyn. lib calls calls for Unix
+
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
 unit dl;
 
 interface
 
 const
- {$ifdef BSD}   // dlopen is in libc on FreeBSD.
+{$ifdef BSD}   // dlopen is in libc on FreeBSD.
   LibDL = 'c';
- {$else}
+{$else}
   LibDL = 'dl';
 {$endif}
 
@@ -19,18 +33,17 @@ const
   RTLD_BINDING_MASK = $003;
   RTLD_GLOBAL       = $100;
   RTLD_NEXT         = pointer(-1);
-  {$ifdef LINUX}
+{$ifdef LINUX}
   RTLD_DEFAULT      = nil;
-  {$endif}
-  {$ifdef BSD}
+{$endif}
+{$ifdef BSD}
   RTLD_DEFAULT      = pointer(-2);
   RTLD_MODEMASK     = RTLD_BINDING_MASK;
-  {$endif}
+{$endif}
 
 type
   Pdl_info = ^dl_info;
-  dl_info =
-  record
+  dl_info = record
     dli_fname      : Pchar;
     dli_fbase      : pointer;
     dli_sname      : Pchar;
@@ -48,4 +61,36 @@ function dladdr(Lib: pointer; info: Pdl_info): Longint; cdecl; external;
 
 implementation
 
+  function PosLastSlash(const s : string) : longint;
+    var
+      i : longint;
+    begin 
+      PosLastSlash:=0;
+      for i:=1 to length(s) do
+        if s[i]='/' then
+          PosLastSlash:=i;
+    end;
+    
+    
+  function SimpleExtractFilename(const s : string) : string;
+    begin
+      SimpleExtractFilename:=Copy(s,PosLastSlash(s)+1,Length(s)-PosLastSlash(s));
+    end;
+      
+
+  procedure UnixGetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: openstring);
+    var
+      dlinfo: dl_info;
+    begin
+      baseaddr:=nil;
+      FillChar(dlinfo, sizeof(dlinfo), 0);
+      dladdr(addr, @dlinfo);
+      baseaddr:=dlinfo.dli_fbase;
+      filename:=String(dlinfo.dli_fname);
+      if SimpleExtractFilename(filename)=SimpleExtractFilename(ParamStr(0)) then
+        baseaddr:=nil;
+    end;
+
+begin
+  UnixGetModuleByAddrHook:=@UnixGetModuleByAddr;
 end.

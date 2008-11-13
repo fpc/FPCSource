@@ -25,7 +25,7 @@ interface
 
 {$S-}
 
-procedure GetLineInfo(addr:ptruint;var func,source:string;var line:longint);
+function GetLineInfo(addr:ptruint;var func,source:string;var line:longint) : boolean;
 
 implementation
 
@@ -129,15 +129,22 @@ type
 var
   base, limit : SizeInt;
   index : SizeInt;
-
-function Opendwarf:boolean;
-var
+  baseaddr : pointer;
+  filename,
   dbgfn : string;
+
+function Opendwarf(addr : pointer) : boolean;
 begin
   Opendwarf:=false;
   if dwarferr then
     exit;
-  if not OpenExeFile(e,paramstr(0)) then
+
+  GetModuleByAddr(addr,baseaddr,filename);
+{$ifdef DEBUG_LINEINFO}
+  writeln(stderr,filename,' Baseaddr: ',hexstr(ptruint(baseaddr),sizeof(baseaddr)*2));
+{$endif DEBUG_LINEINFO}
+
+  if not OpenExeFile(e,filename) then
     exit;
   if ReadDebugLink(e,dbgfn) then
     begin
@@ -145,6 +152,9 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
+
+  e.processaddress:=e.processaddress+dword(baseaddr);
+
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
     Opendwarf:=true
   else
@@ -667,7 +677,7 @@ begin
   end;
 end;
 
-procedure GetLineInfo(addr : ptruint; var func, source : string; var line : longint);
+function GetLineInfo(addr : ptruint; var func, source : string; var line : longint) : boolean;
 var
   current_offset : QWord;
   end_offset : QWord;
@@ -678,14 +688,16 @@ begin
   func := '';
   source := '';
   found := false;
-
+  GetLineInfo:=false;
   if DwarfErr then
     exit;
   if not e.isopen then
    begin
-     if not OpenDwarf then
+     if not OpenDwarf(pointer(addr)) then
       exit;
    end;
+
+  addr := addr - e.processaddress;
 
   current_offset := DwarfOffset;
   end_offset := DwarfOffset + DwarfSize;
@@ -695,6 +707,9 @@ begin
     current_offset := ParseCompilationUnit(addr, current_offset,
       source, line, found);
   end;
+  if e.isopen then
+    CloseDwarf;
+  GetLineInfo:=true;
 end;
 
 
@@ -705,11 +720,13 @@ var
   hs     : string[32];
   line   : longint;
   Store  : TBackTraceStrFunc;
+  Success : boolean;
 begin
   { reset to prevent infinite recursion if problems inside the code }
+  Success:=false;
   Store := BackTraceStrFunc;
   BackTraceStrFunc := @SysBackTraceStr;
-  GetLineInfo(ptruint(addr), func, source, line);
+  Success:=GetLineInfo(ptruint(addr), func, source, line);
   { create string }
   DwarfBackTraceStr :='  $' + HexStr(ptruint(addr), sizeof(ptruint) * 2);
   if func<>'' then
@@ -724,7 +741,7 @@ begin
     end;
     DwarfBackTraceStr := DwarfBackTraceStr + ' of ' + source;
   end;
-  if e.IsOpen then
+  if Success then
     BackTraceStrFunc := Store;
 end;
 

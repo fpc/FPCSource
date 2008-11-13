@@ -145,24 +145,15 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
                               Parameter Handling
 *****************************************************************************}
 
-var
-  ModuleName : array[0..255] of char;
-
-function GetCommandFile:pchar;
-begin
-  GetModuleFileName(0,@ModuleName,255);
-  GetCommandFile:=@ModuleName;
-end;
-
-
 procedure setup_arguments;
 var
   arglen,
   count   : longint;
   argstart,
   pc,arg  : pchar;
-  quote   : char;
+  quote   : Boolean;
   argvlen : longint;
+  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
 
   procedure allocarg(idx,len:longint);
     var
@@ -188,13 +179,10 @@ begin
   count:=0;
   argv:=nil;
   argvlen:=0;
-  pc:=getcommandfile;
-  Arglen:=0;
-  repeat
-    Inc(Arglen);
-  until (pc[Arglen]=#0);
-  allocarg(count,arglen);
-  move(pc^,argv[count]^,arglen+1);
+  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
+  buf[ArgLen] := #0; // be safe
+  allocarg(0,arglen);
+  move(buf,argv[0]^,arglen+1);
   { Setup cmdline variable }
   cmdline:=GetCommandLine;
   { process arguments }
@@ -210,7 +198,7 @@ begin
      if pc^=#0 then
       break;
      { calc argument length }
-     quote:=' ';
+     quote:=False;
      argstart:=pc;
      arglen:=0;
      while (pc^<>#0) do
@@ -218,20 +206,15 @@ begin
         case pc^ of
           #1..#32 :
             begin
-              if quote<>' ' then
+              if quote then
                inc(arglen)
               else
                break;
             end;
           '"' :
-            if pchar(pc+1)^<>'"' then
-            begin
-              if quote='"' then
-               quote:=' '
+            if pc[1]<>'"' then
+              quote := not quote
               else
-               quote:='"';
-            end
-            else
               inc(pc);
           else
             inc(arglen);
@@ -243,7 +226,7 @@ begin
      If Count<>0 then
       begin
         allocarg(count,arglen);
-        quote:=' ';
+        quote:=False;
         pc:=argstart;
         arg:=argv[count];
         while (pc^<>#0) do
@@ -251,7 +234,7 @@ begin
            case pc^ of
              #1..#32 :
                begin
-                 if quote<>' ' then
+                 if quote then
                   begin
                     arg^:=pc^;
                     inc(arg);
@@ -260,14 +243,9 @@ begin
                   break;
                end;
              '"' :
-               if pchar(pc+1)^<>'"' then
-                begin
-                  if quote='"' then
-                   quote:=' '
+               if pc[1]<>'"' then
+                 quote := not quote
                   else
-                   quote:='"';
-                end
-               else
                 inc(pc);
              else
                begin
@@ -284,11 +262,11 @@ begin
  {$EndIf SYSTEM_DEBUG_STARTUP}
      inc(count);
    end;
-  { get argc and create an nil entry }
+  { get argc }
   argc:=count;
-  allocarg(argc,0);
-  { free unused memory }
-  sysreallocmem(argv,(argc+1)*sizeof(pointer));
+  { free unused memory, leaving a nil entry at the end }
+  sysreallocmem(argv,(count+1)*sizeof(pointer));
+  argv[count] := nil;
 end;
 
 
@@ -1203,7 +1181,7 @@ begin
   { some misc Win32 stuff }
   hprevinst:=0;
   if not IsLibrary then
-    SysInstance:=getmodulehandle(GetCommandFile);
+    SysInstance:=getmodulehandle(nil);
 
   MainInstance:=HInstance;
 

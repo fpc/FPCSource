@@ -645,19 +645,29 @@ var
   WinAttr : word;
   i: integer;
 begin
-  WritePos.X := currX - 1;
-  WritePos.Y := currY - 1;
-
-  WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[1], Length(s), writePos, numWritten);
+  WritePos.X:=currX-2;
+  WritePos.Y:=currY-1;
 
   WinAttr:=TextAttr;
-  dec(WritePos.X);
-  for i:=0 to Length(s)-1 do
+  for i:=1 to Length(s) do
     begin
-      inc(WritePos.X);
+      Inc(WritePos.X);
+      WriteConsoleOutputCharacter(GetStdhandle(STD_OUTPUT_HANDLE), @s[i], 1, writePos, numWritten);
       WriteConsoleOutputAttribute(GetStdhandle(STD_OUTPUT_HANDLE),@WinAttr, 1, writePos, numWritten);
+      Inc(CurrX);
+      if CurrX>WindMaxX then
+        begin
+          CurrX:=WindMinX;
+          Inc(CurrY);
+          While CurrY>WindMaxY do
+            begin
+              RemoveLine(1);
+              Dec(CurrY);
+            end;
+          WritePos.X:=currX-2;
+          WritePos.Y:=currY-1;
+        end;
     end;
-  Inc(CurrX,Length(s));
 end;
 
 
@@ -678,7 +688,7 @@ begin
         if s<>'' then
           begin
             WriteStr(s);
- 	          s:='';
+ 	    s:='';
           end;
         WriteChar(f.buffer[i]);
       end

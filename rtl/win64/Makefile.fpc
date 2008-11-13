@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system objpas macpas buildrtl
+units=system objpas macpas buildrtl lineinfo lnfodwrf
 implicitunits=ctypes strings \
       lineinfo lnfodwrf heaptrc matrix \
       dos crt objects messages \

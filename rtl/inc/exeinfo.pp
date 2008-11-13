@@ -46,12 +46,63 @@ function FindExeSection(var e:TExeFile;const secname:string;var secofs,seclen:lo
 function CloseExeFile(var e:TExeFile):boolean;
 function ReadDebugLink(var e:TExeFile;var dbgfn:string):boolean;
 
+procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
 
 implementation
 
 uses
-  strings;
+  strings{$ifdef windows},windows{$endif windows};
 
+{$ifdef unix}
+
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+    begin
+      if assigned(UnixGetModuleByAddrHook) then
+        UnixGetModuleByAddrHook(addr,baseaddr,filename)
+      else
+        begin
+          baseaddr:=nil;
+          filename:=ParamStr(0);
+        end;
+    end;
+
+{$else unix}
+{$ifdef windows}
+
+  var
+    Tmm: TMemoryBasicInformation;
+{$ifdef wince}
+    TST: array[0..Max_Path] of WideChar;
+{$else wince}
+    TST: array[0..Max_Path] of Char;
+{$endif wince}
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+    begin
+      baseaddr:= nil;
+      if VirtualQuery(addr, @Tmm, SizeOf(Tmm))<>sizeof(Tmm) then
+        filename:=ParamStr(0)
+      else
+        begin
+          TST[0]:= #0;
+          GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
+{$ifdef wince}
+          filename:= String(PWideChar(@TST));
+{$else wince}
+          filename:= String(PChar(@TST));
+{$endif wince}
+        end;
+    end;
+
+{$else windows}
+
+  procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
+    begin
+      baseaddr:= nil;
+      filename:=ParamStr(0);
+    end;
+
+{$endif windows}
+{$endif unix}
 
 {****************************************************************************
                              Executable Loaders
