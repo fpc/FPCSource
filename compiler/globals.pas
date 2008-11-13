@@ -359,6 +359,7 @@ interface
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
+    function floating_point_range_check_error : boolean;
 
 implementation
 
@@ -1095,6 +1096,14 @@ implementation
 {$endif FPC_DOUBLE_HILO_SWAPPED}
       end;
 {$endif ARM}
+
+
+    function floating_point_range_check_error : boolean;
+      begin
+        result:=((([cs_check_range,cs_check_overflow]*current_settings.localswitches)<>[]) and not
+                   (m_delphi in current_settings.modeswitches)
+                ); // or (cs_ieee_errors in current_settings.localswitches);
+      end;
 
 {****************************************************************************
                                     Init

@@ -1242,8 +1242,7 @@ implementation
       function handle_ln_const(r : bestreal) : tnode;
         begin
           if r<=0.0 then
-            if (cs_check_range in current_settings.localswitches) or
-               (cs_check_overflow in current_settings.localswitches) then
+            if floating_point_range_check_error then
                begin
                  result:=crealconstnode.create(0,pbestrealtype^);
                  CGMessage(type_e_wrong_math_argument)
@@ -1263,8 +1262,7 @@ implementation
       function handle_sqrt_const(r : bestreal) : tnode;
         begin
           if r<0.0 then
-            if (cs_check_range in current_settings.localswitches) or
-               (cs_check_overflow in current_settings.localswitches) then
+            if floating_point_range_check_error then
                begin
                  result:=crealconstnode.create(0,pbestrealtype^);
                  CGMessage(type_e_wrong_math_argument)
@@ -1535,8 +1533,7 @@ implementation
                     begin
                       result:=crealconstnode.create(exp(getconstrealvalue),pbestrealtype^);
                       if (trealconstnode(result).value_real=MathInf.Value) and
-                         ((cs_check_range in current_settings.localswitches) or
-                          (cs_check_overflow in current_settings.localswitches)) then
+                         floating_point_range_check_error then
                         begin
                           result:=crealconstnode.create(0,pbestrealtype^);
                           CGMessage(parser_e_range_check_error);

@@ -195,6 +195,8 @@ implementation
               logsecond(p.nodetype,false);
             if (not codegenerror) then
              begin
+               if (p.location.loc<>p.expectloc) then
+                 Comment(V_Warning,'Location not equal to expectloc: '+nodetype2str[p.nodetype]);
                if (p.location.loc=LOC_INVALID) then
                  Comment(V_Warning,'Location not set in secondpass: '+nodetype2str[p.nodetype]);
              end;

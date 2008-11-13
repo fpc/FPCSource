@@ -40,7 +40,7 @@ Unit Rax86int;
       AS_RPAREN,AS_COLON,AS_DOT,AS_PLUS,AS_MINUS,AS_STAR,
       AS_SEPARATOR,AS_ID,AS_REGISTER,AS_OPCODE,AS_SLASH,
        {------------------ Assembler directives --------------------}
-      AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_END,
+      AS_ALIGN,AS_DB,AS_DW,AS_DD,AS_DQ,AS_END,
        {------------------ Assembler Operators  --------------------}
       AS_BYTE,AS_WORD,AS_DWORD,AS_QWORD,AS_TBYTE,AS_DQWORD,AS_NEAR,AS_FAR,
       AS_HIGH,AS_LOW,AS_OFFSET,AS_SIZEOF,AS_VMTOFFSET,AS_SEG,AS_TYPE,AS_PTR,AS_MOD,AS_SHL,AS_SHR,AS_NOT,
@@ -109,7 +109,7 @@ Unit Rax86int;
        _count_asmoperators  = longint(lastoperator)-longint(firstoperator);
 
        _asmdirectives : array[0.._count_asmdirectives] of tasmkeyword =
-       ('ALIGN','DB','DW','DD','END');
+       ('ALIGN','DB','DW','DD','DQ','END');
 
        { problems with shl,shr,not,and,or and xor, they are }
        { context sensitive.                                 }
@@ -123,7 +123,7 @@ Unit Rax86int;
         ',','[',']','(',
         ')',':','.','+','-','*',
         ';','identifier','register','opcode','/',
-        '','','','','END',
+        '','','','','','END',
         '','','','','','','','','',
         '','','sizeof','vmtoffset','','type','ptr','mod','shl','shr','not',
         'and','or','xor'
@@ -877,7 +877,7 @@ Unit Rax86int;
                        if mangledname<>'' then
                          { procsym }
                          Message(asmr_e_wrong_sym_type);
-                     end                         
+                     end
                    else
                     begin
                       searchsym(tempstr,sym,srsymtable);
@@ -1069,6 +1069,7 @@ Unit Rax86int;
             AS_DB,
             AS_DW,
             AS_DD,
+            AS_DQ,
             AS_END,
             AS_RBRACKET,
             AS_SEPARATOR,
@@ -1148,7 +1149,7 @@ Unit Rax86int;
 
           Case actasmtoken of
             AS_ID, { Constant reference expression OR variable reference expression }
-            AS_VMTOFFSET: 
+            AS_VMTOFFSET:
               Begin
                 if not GotPlus then
                   Message(asmr_e_invalid_reference_syntax);
@@ -2039,6 +2040,7 @@ Unit Rax86int;
             AS_DB,
             AS_DW,
             AS_DD,
+            AS_DQ,
             AS_OPCODE,
             AS_END,
             AS_SEPARATOR:
@@ -2118,13 +2120,23 @@ Unit Rax86int;
               inexpression:=false;
             end;
 
-           AS_ALIGN:
-             Begin
-               Consume(AS_ALIGN);
-               ConcatAlign(curlist,BuildConstExpression);
-               if actasmtoken<>AS_SEPARATOR then
+{$ifdef cpu64bitaddr}
+          AS_DQ:
+            Begin
+              inexpression:=true;
+              Consume(AS_DQ);
+              BuildConstant(8);
+              inexpression:=false;
+            end;
+{$endif cpu64bitaddr}
+
+          AS_ALIGN:
+            Begin
+              Consume(AS_ALIGN);
+              ConcatAlign(curlist,BuildConstExpression);
+              if actasmtoken<>AS_SEPARATOR then
                 Consume(AS_SEPARATOR);
-             end;
+            end;
 
           AS_OPCODE :
             Begin

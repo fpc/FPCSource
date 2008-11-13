@@ -167,8 +167,7 @@ implementation
             ((rt = realconstn) and
              (trealconstnode(right).value_real = 0.0))) then
           begin
-            if (cs_check_range in current_settings.localswitches) or
-               (cs_check_overflow in current_settings.localswitches) then
+            if floating_point_range_check_error then
                begin
                  result:=crealconstnode.create(1,pbestrealtype^);
                  Message(parser_e_division_by_zero);
