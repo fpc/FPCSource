@@ -28,6 +28,8 @@ interface
 
 {$define DISABLE_NO_THREAD_MANAGER}
 
+{$define FPC_RTLSTRING_UTF16}
+
 { include system-independent routine headers }
 {$I systemh.inc}
 

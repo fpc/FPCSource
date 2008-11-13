@@ -359,6 +359,15 @@ Type
 {$endif VER2_2}
   PUnicodeString      = ^UnicodeString;
 
+{$ifdef FPC_RTLSTRING_UTF16}
+  RtlString           = UnicodeString;
+  RtlChar             = UnicodeChar;
+{$else}
+  RtlString           = AnsiString;
+  RtlChar             = AnsiChar;
+{$endif FPC_RTLSTRING_UTF16}
+  PRtlChar            = ^RtlChar;
+
   { Needed for fpc_get_output }
   PText               = ^Text;
 
