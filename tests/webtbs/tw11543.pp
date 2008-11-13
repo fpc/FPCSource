@@ -1,4 +1,5 @@
-unit test;
+{ %norun }
+unit tw11543;
 {$ifdef fpc}{$mode objfpc}{$endif}
 
 interface
