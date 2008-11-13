@@ -21,6 +21,8 @@
 { This unit implements support information structures for atari. }
 unit i_atari;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

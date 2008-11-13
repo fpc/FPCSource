@@ -619,7 +619,7 @@ implementation
           hdef      : tdef;
           arrdef    : tarraydef;
 
-          procedure setdefdecl(def:tdef);
+        procedure setdefdecl(def:tdef);
           begin
             case def.typ of
               enumdef :
@@ -662,8 +662,9 @@ implementation
              begin
                 { defaults }
                 indexdef:=generrordef;
-                lowval:=low(aint);
-                highval:=high(aint);
+                { use defaults which don't overflow the compiler }
+                lowval:=0;
+                highval:=0;
                 repeat
                   { read the expression and check it, check apart if the
                     declaration is an enum declaration because that needs to
@@ -677,43 +678,43 @@ implementation
                    begin
                      pt:=expr;
                      if pt.nodetype=typen then
-                      setdefdecl(pt.resultdef)
+                       setdefdecl(pt.resultdef)
                      else
                        begin
-                          if (pt.nodetype=rangen) then
+                         if (pt.nodetype=rangen) then
                            begin
                              if (trangenode(pt).left.nodetype=ordconstn) and
                                 (trangenode(pt).right.nodetype=ordconstn) then
-                              begin
-                                { make both the same type or give an error. This is not
-                                  done when both are integer values, because typecasting
-                                  between -3200..3200 will result in a signed-unsigned
-                                  conflict and give a range check error (PFV) }
-                                if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
-                                  inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
-                                lowval:=tordconstnode(trangenode(pt).left).value;
-                                highval:=tordconstnode(trangenode(pt).right).value;
-                                if highval<lowval then
-                                 begin
-                                   Message(parser_e_array_lower_less_than_upper_bound);
-                                   highval:=lowval;
-                                 end
-                                else if (lowval < low(aint)) or
-                                        (highval > high(aint)) then
+                               begin
+                                 { make both the same type or give an error. This is not
+                                   done when both are integer values, because typecasting
+                                   between -3200..3200 will result in a signed-unsigned
+                                   conflict and give a range check error (PFV) }
+                                 if not(is_integer(trangenode(pt).left.resultdef) and is_integer(trangenode(pt).left.resultdef)) then
+                                   inserttypeconv(trangenode(pt).left,trangenode(pt).right.resultdef);
+                                 lowval:=tordconstnode(trangenode(pt).left).value;
+                                 highval:=tordconstnode(trangenode(pt).right).value;
+                                 if highval<lowval then
                                   begin
-                                    Message(parser_e_array_range_out_of_bounds);
-                                    lowval :=0;
-                                    highval:=0;
-                                  end;
-                                if is_integer(trangenode(pt).left.resultdef) then
-                                  range_to_type(lowval,highval,indexdef)
-                                else
-                                  indexdef:=trangenode(pt).left.resultdef;
-                              end
+                                    Message(parser_e_array_lower_less_than_upper_bound);
+                                    highval:=lowval;
+                                  end
+                                 else if (lowval<int64(low(aint))) or
+                                         (highval > high(aint)) then
+                                   begin
+                                     Message(parser_e_array_range_out_of_bounds);
+                                     lowval :=0;
+                                     highval:=0;
+                                   end;
+                                 if is_integer(trangenode(pt).left.resultdef) then
+                                   range_to_type(lowval,highval,indexdef)
+                                 else
+                                   indexdef:=trangenode(pt).left.resultdef;
+                               end
                              else
-                              Message(type_e_cant_eval_constant_expr);
+                               Message(type_e_cant_eval_constant_expr);
                            end
-                          else
+                         else
                            Message(sym_e_error_in_type_def)
                        end;
                      pt.free;

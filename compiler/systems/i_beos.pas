@@ -21,6 +21,8 @@
 { This unit implements support information structures for BeOS. }
 unit i_beos;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

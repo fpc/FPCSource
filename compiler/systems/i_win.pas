@@ -21,6 +21,8 @@
 { This unit implements support information structures for win32. }
 unit i_win;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

@@ -21,6 +21,8 @@
 { This unit implements support information structures for the AmigaOS. }
 unit i_amiga;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

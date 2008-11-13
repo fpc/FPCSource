@@ -2369,13 +2369,13 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_too many IF(N)DEFs
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many #IF(N)DEFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_too many ENDIFs
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected #ENDIFs encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_open conditional at the end of the file
+option_too_less_endif=11015_F_Open conditional at the end of the options file
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_no_debug_support=11016_W_Debug information generation is not supported by this executable
@@ -2442,6 +2442,8 @@ option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
 %\end{description}
+option_else_without_if=11043_F_In options file $1 at line $2 #ELSE directive without #IF(N)DEF found
+% An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 # EndOfTeX
 
 #

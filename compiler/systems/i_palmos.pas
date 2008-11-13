@@ -21,6 +21,8 @@
 { This unit implements support information structures for PalmOS. }
 unit i_palmos;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

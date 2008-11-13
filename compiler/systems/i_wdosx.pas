@@ -21,6 +21,8 @@
 { This unit implements support information structures for wdosx. }
 unit i_wdosx;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

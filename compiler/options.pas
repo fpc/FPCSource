@@ -1557,12 +1557,13 @@ procedure Toption.Interpret_file(const filename : string);
   end;
 
 const
-  maxlevel=16;
+  maxlevel = 15;
 var
   f     : text;
   s, tmp,
   opts  : string;
-  skip  : array[0..maxlevel-1] of boolean;
+  skip  : array[0..maxlevel] of boolean;
+  line,
   level : longint;
   option_read : boolean;
 begin
@@ -1591,9 +1592,11 @@ begin
   Message1(option_start_reading_configfile,filename);
   fillchar(skip,sizeof(skip),0);
   level:=0;
+  line:=0;
   while not eof(f) do
    begin
      readln(f,opts);
+     inc(line);
      RemoveSep(opts);
      if (opts<>'') and (opts[1]<>';') then
       begin
@@ -1615,7 +1618,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message(option_too_many_ifdef);
+                  Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1627,7 +1630,7 @@ begin
                RemoveSep(opts);
                if Level>=maxlevel then
                 begin
-                  Message(option_too_many_ifdef);
+                  Message2(option_too_many_ifdef,filename,tostr(line));
                   stopOptions(1);
                 end;
                inc(Level);
@@ -1635,14 +1638,22 @@ begin
              end
            else
             if (s='ELSE') then
-             skip[level]:=skip[level-1] or (not skip[level])
+              begin
+                if Level=0 then
+                  begin
+                    Message2(option_else_without_if,filename,tostr(line));
+                    stopOptions(1);
+                  end
+                else
+                  skip[level]:=skip[level-1] or (not skip[level])
+              end
            else
             if (s='ENDIF') then
              begin
                skip[level]:=false;
                if Level=0 then
                 begin
-                  Message(option_too_many_endif);
+                  Message2(option_too_many_endif,filename,tostr(line));
                   stopOptions(1);
                 end;
                dec(level);
@@ -2526,6 +2537,7 @@ begin
   set_system_macro('FPC_VERSION',version_nr);
   set_system_macro('FPC_RELEASE',release_nr);
   set_system_macro('FPC_PATCH',patch_nr);
+  set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
 
   for i:=low(tfeature) to high(tfeature) do
     if i in features then
