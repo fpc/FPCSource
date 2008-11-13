@@ -40,6 +40,8 @@ typedef void (*XML_AttlistDeclHandler) (void           *userData,
 void proc(int *,int);
 void proc(int *p,int i);
 
+float f();
+
 typedef enum { First, second, third } C;
 
 typedef enum { DFirst = 1, DSecond = 2, DThird = 3 } D;

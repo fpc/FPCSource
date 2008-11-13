@@ -46,7 +46,7 @@ program h2pas;
 
      INT64_STR  = 'int64';
      QWORD_STR  = 'qword';
-     REAL_STR   = 'double';
+     FLOAT_STR  = 'single';
      WCHAR_STR  = 'widechar';
 
   {ctypes strings}
@@ -1312,7 +1312,7 @@ const SHORT = 280;
 const UNSIGNED = 281;
 const LONG = 282;
 const INT = 283;
-const REAL = 284;
+const FLOAT = 284;
 const _CHAR = 285;
 const VOID = 286;
 const _CONST = 287;
@@ -2551,7 +2551,10 @@ begin
        end;
   78 : begin
          
-         yyval:=new(presobject,init_intid(REAL_STR));
+         if UseCTypesUnit then
+         yyval:=new(presobject,init_id(cfloat_STR))
+         else
+         yyval:=new(presobject,init_intid(FLOAT_STR));
          
        end;
   79 : begin

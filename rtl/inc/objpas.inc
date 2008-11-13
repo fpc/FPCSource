@@ -634,6 +634,43 @@
             IInterface(obj)._AddRef;
         end;
 
+      function getcorbainterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
+        var
+          Getter: function: IInterface of object;
+        begin
+          Pointer(Obj) := nil;
+          if Assigned(IEntry) and Assigned(Instance) then
+          begin
+            case IEntry^.IType of
+              etStandard:
+                begin
+                  //writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
+                  Pbyte(Obj):=Pbyte(instance)+IEntry^.IOffset;
+                end;
+              etFieldValue:
+                begin
+                  //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
+                  Pointer(obj) := ppointer(Pbyte(Instance)+IEntry^.IOffset)^;
+                end;
+              etVirtualMethodResult:
+                begin
+                  //writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
+                  TMethod(Getter).data := Instance;
+                  TMethod(Getter).code := ppointer(Pbyte(Instance) + IEntry^.IOffset)^;
+                  Pointer(obj) := Pointer(Getter());
+                end;
+              etStaticMethodResult:
+                begin
+                  //writeln('Doing etStaticMethodResult cast of ', TObject(Instance).classname());
+                  TMethod(Getter).data := Instance;
+                  TMethod(Getter).code := pointer(IEntry^.IOffset);
+                  Pointer(obj) := Pointer(Getter());
+                end;
+            end;
+          end;
+          result := assigned(pointer(obj));
+        end;
+
       function TObject.getinterface(const iid : tguid;out obj) : boolean;
         begin
           Result := getinterfacebyentry(self, getinterfaceentry(iid), obj);
@@ -641,7 +678,12 @@
 
       function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
         begin
-          Result := getinterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
+          Result := getcorbainterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
+        end;
+
+      function TObject.getinterface(const iidstr : string;out obj) : boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
+        begin
+          Result := getinterfacebystr(iidstr,obj);
         end;
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
