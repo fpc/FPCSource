@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, typinfo, fpdatadict, db;
 
 Type
-  TDDCodeGenOption = (dcoFields,dcoIndexes,dcoProcedurePerTable,dcoUseWith,dcoClassDecl);
+  TDDCodeGenOption = (dcoFields,dcoIndexes,dcoProcedurePerTable,dcoUseWith,
+                      dcoClassDecl,dcoGenerators,dcoDomains,dcoMergeDomains);
   TDDCodeGenOptions = Set of TDDCodeGenoption;
   
   { TFPDDPopulateCodeGenerator }
@@ -45,11 +46,24 @@ Type
     Function DoTable (Const ATable : TDDtableDef) : Boolean; virtual;
     procedure CreateTableCode(T: TDDTableDef; Lines: TStrings);
     procedure AddTableVars(Lines: TStrings);
+    procedure AddDomainVars(Lines: TStrings);
+    procedure AddSequenceVars(Lines: TStrings);
     procedure DoTableHeader(ATable: TDDTableDef; Lines: TStrings);
     procedure DoTableFooter(ATable: TDDTableDef; Lines: TStrings);
     // Field code
     Function DoField (Const ATable : TDDtableDef; Const AField : TDDFieldDef) : Boolean; virtual;
     procedure CreateFieldCode(ATable: TDDTableDef; AField: TDDFieldDef;  Lines: TStrings);
+    // Index code
+    Function DoIndex (Const ATable : TDDtableDef; Const AIndex : TDDIndexDef) : Boolean; virtual;
+    procedure CreateIndexCode(ATable: TDDTableDef; AIndex: TDDIndexDef;  Lines: TStrings);
+    // Sequence code
+    Procedure WriteSequences(Const ASequences : TDDSequenceDefs; Lines :TStrings);
+    Function DoSequence (Const ASequence : TDDSequenceDef) : Boolean; virtual;
+    procedure CreateSequenceCode(ASequence: TDDSequenceDef;  Lines: TStrings);
+    // Domain code
+    Procedure WriteDomains(Const ADomains : TDDDomainDefs; Lines :TStrings);
+    Function DoDomain (Const ADomain : TDDDomainDef) : Boolean; virtual;
+    procedure CreateDomainCode(ADomain: TDDDomainDef;  Lines: TStrings);
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -179,6 +193,24 @@ begin
   AddLine('T : TDDTableDef;',lines);
   If dcoFields in Options then
     AddLine('F : TDDFieldDef;',lines);
+  If dcoIndexes in Options then
+    AddLine('ID : TDDIndexDef;',lines);
+  Undent;
+end;
+
+procedure TFPDDPopulateCodeGenerator.AddDomainVars(Lines: TStrings);
+begin
+  AddLine('Var',Lines);
+  Indent;
+  AddLine('D : TDDDomainDef;',lines);
+  Undent;
+end;
+
+procedure TFPDDPopulateCodeGenerator.AddSequenceVars(Lines: TStrings);
+begin
+  AddLine('Var',Lines);
+  Indent;
+  AddLine('D : TDDSequenceDef;',lines);
   Undent;
 end;
 
@@ -234,6 +266,10 @@ end;
 
 procedure TFPDDPopulateCodeGenerator.CreateFieldCode(ATable : TDDTableDef; AField : TDDFieldDef; Lines: TStrings);
 
+Var
+  I : Integer;
+  S : String;
+
 begin
   AddLine(Format('F:=T.Fields.AddField(''%s'');',[AField.FieldName]),Lines);
   If (dcoUseWith in Options) then
@@ -251,21 +287,171 @@ begin
   AddStringProperty('F','DBDefault',AField.DBDefault,Lines);
   AddStringProperty('F','DefaultExpression',AField.DefaultExpression,Lines);
   AddStringProperty('F','DisplayLabel',AField.DisplayLabel,Lines);
+  AddStringProperty('F','DomainName',AField.DomainName,Lines);
   If (AField.DisplayWidth<>0) then
-    AddProperty('F','DisplayWidth',IntToStr(AField.DisplayWidth),Lines);
+    AddProperty('F','DisplayWidth1',IntToStr(AField.DisplayWidth),Lines);
   AddStringProperty('F','Constraint',AField.Constraint,Lines);
   AddProperty('F','ReadOnly',AField.ReadOnly,Lines);
-  AddProperty('F','Required',AField.Required,Lines);
+  If (dcoMergeDomains in Options) then
+    AddProperty('F','Required',AField.FieldIsRequired,Lines)
+  else
+    AddProperty('F','Required',AField.Required,Lines);
   AddProperty('F','Visible',AField.Visible,Lines);
   If (AField.Size<>0) then
     AddProperty('F','Size',IntToStr(AField.Size),Lines);
   If (AField.Precision<>0) then
     AddProperty('F','Precision',IntToStr(AField.Precision),Lines);
   AddStringProperty('F','Hint',AField.Hint,Lines);
+  I:=Integer(AField.ProviderFlags);
+  S:=SetToString(PTypeInfo(TypeInfo(TProviderFlags)),I,True);
+  AddProperty('F','ProviderFlags',S,Lines);
   If (dcoUseWith in Options) then
      begin
      AddLine('end;',Lines);
      Undent;
+     end;
+end;
+
+function TFPDDPopulateCodeGenerator.DoIndex(const ATable: TDDtableDef;
+  const AIndex: TDDIndexDef): Boolean;
+begin
+  Result:=Assigned(ATable) and Assigned(AIndex);
+end;
+
+procedure TFPDDPopulateCodeGenerator.CreateIndexCode(ATable: TDDTableDef;
+  AIndex: TDDIndexDef; Lines: TStrings);
+
+Var
+  S : string;
+  I : Integer;
+
+begin
+  AddLine(Format('ID:=T.Indexes.AddIndex(''%s'');',[AIndex.IndexName]),Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('With ID do',Lines);
+     Indent;
+     AddLine('begin',Lines);
+     end;
+  AddStringProperty('ID','Expression',AIndex.Expression,Lines);
+  AddStringProperty('ID','Fields',AIndex.Fields,Lines);
+  AddStringProperty('ID','CaseInsFields',AIndex.CaseInsFields,Lines);
+  AddStringProperty('ID','DescFields',AIndex.DescFields,Lines);
+  AddStringProperty('ID','Source',AIndex.Source,Lines);
+  I:=Integer(AIndex.Options);
+  S:=SetToString(PTypeInfo(TypeInfo(TIndexOptions)),I,True);
+  AddProperty('ID','Options',S,Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('end;',Lines);
+     Undent;
+     end;
+
+end;
+
+procedure TFPDDPopulateCodeGenerator.WriteSequences(
+  const ASequences: TDDSequenceDefs; Lines: TStrings);
+
+Var
+  I : Integer;
+  S : TDDSequenceDef;
+
+begin
+  If (dcoProcedurePerTable in Options) then
+    begin
+    AddProcedure('PopulateSequences',Lines);
+    AddSequenceVars(Lines);
+    AddLine('',Lines);
+    AddLine('begin',Lines);
+    Indent;
+    end;
+  For I:=0 to ASequences.Count-1 do
+    begin
+    S:=ASequences[i];
+    If DoSequence(S) then
+      CreateSequenceCode(S,Lines);
+    end;
+  If (dcoProcedurePerTable in Options) then
+    EndProcedure(Lines);
+end;
+
+function TFPDDPopulateCodeGenerator.DoSequence(const ASequence: TDDSequenceDef): Boolean;
+begin
+  Result:=Assigned(ASequence);
+end;
+
+procedure TFPDDPopulateCodeGenerator.CreateSequenceCode(ASequence: TDDSequenceDef; Lines: TStrings);
+begin
+  AddLine(Format('S:=%s.Sequences.AddSequence(''%s'');',[FDDV,ASequence.SequenceName]),Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('With S do',Lines);
+     Indent;
+     AddLine('begin',Lines);
+     end;
+  If (ASequence.StartValue<>0) then
+    AddProperty('S','StartValue',IntToStr(ASequence.StartValue),Lines);
+  If (ASequence.Increment<>0) then
+    AddProperty('S','Increment',IntToStr(ASequence.Increment),Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('end;',Lines);
+     Indent;
+     end;
+end;
+
+procedure TFPDDPopulateCodeGenerator.WriteDomains(const ADomains: TDDDomainDefs; Lines :TStrings);
+
+Var
+  I : Integer;
+  D : TDDDomainDef;
+
+begin
+  If (dcoProcedurePerTable in Options) then
+    begin
+    AddProcedure('PopulateDomains',Lines);
+    AddDomainVars(Lines);
+    AddLine('',Lines);
+    AddLine('begin',Lines);
+    Indent;
+    end;
+  For I:=0 to FDD.Domains.Count-1 do
+    begin
+    D:=FDD.Domains[i];
+    If DoDomain(D) then
+      CreateDomainCode(D,Lines);
+    end;
+  If (dcoProcedurePerTable in Options) then
+    EndProcedure(Lines);
+end;
+
+function TFPDDPopulateCodeGenerator.DoDomain(const ADomain: TDDDomainDef
+  ): Boolean;
+begin
+  Result:=Assigned(ADomain);
+end;
+
+procedure TFPDDPopulateCodeGenerator.CreateDomainCode(ADomain: TDDDomainDef;
+  Lines: TStrings);
+begin
+  AddLine(Format('D:=%s.Domains.AddDomain(''%s'');',[FDDV,ADomain.DomainName]),Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('With D do',Lines);
+     Indent;
+     AddLine('begin',Lines);
+     end;
+  if (ADomain.FieldType<>ftUnknown) then
+    AddProperty('D','FieldType',GetEnumName(TypeInfo(TFieldType),Ord(ADomain.FieldType)),Lines);
+  AddProperty('D','Required',ADomain.Required,Lines);
+  If (ADomain.Size<>0) then
+    AddProperty('D','Size',IntToStr(ADomain.Size),Lines);
+  If (ADomain.Precision<>0) then
+    AddProperty('D','Precision',IntToStr(ADomain.Precision),Lines);
+  If (dcoUseWith in Options) then
+     begin
+     AddLine('end;',Lines);
+     Indent;
      end;
 end;
 
@@ -315,7 +501,8 @@ procedure TFPDDPopulateCodeGenerator.CreateTableCode(T : TDDTableDef; Lines: TSt
 Var
   I : Integer;
   F : TDDFieldDef;
-  
+  Id : TDDindexDef;
+
 begin
   DoTableHeader(T,Lines);
   try
@@ -325,6 +512,13 @@ begin
         F:=T.Fields[I];
         If DoField(T,F) then
           CreateFieldcode(T,F,Lines);
+        end;
+    If dcoIndexes in Options then
+      For I:=0 to T.Indexes.Count-1 Do
+        begin
+        ID:=T.Indexes[I];
+        If DoIndex(T,ID) then
+          CreateIndexCode(T,ID,Lines);
         end;
   Finally
     DoTableFooter(T,Lines);
@@ -369,12 +563,16 @@ begin
   try
     CreateHeader(Lines);
     Try
-    For I:=0 to FDD.Tables.Count-1 do
-      begin
-      T:=FDD.Tables[i];
-      If DoTable(T) then
-        CreateTableCode(T,Lines);
-      end;
+      If (FDD.Domains.Count>0) then
+        WriteDomains(FDD.Domains,Lines);
+      If (FDD.Sequences.Count>0) then
+        WriteSequences(FDD.Sequences,Lines);
+      For I:=0 to FDD.Tables.Count-1 do
+        begin
+        T:=FDD.Tables[i];
+        If DoTable(T) then
+          CreateTableCode(T,Lines);
+        end;
     Finally
       CreateFooter(Lines);
     end;

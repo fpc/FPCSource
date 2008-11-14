@@ -136,9 +136,9 @@ end;
 function THTMLWriter.EscapeText(AText: String): String;
 begin
   // replace by a more sensitive method.
-  Result:=StringReplace(AText,'&','&amp',[rfReplaceAll]);
-  Result:=StringReplace(Result,'<','&lt',[rfReplaceAll]);
-  Result:=StringReplace(Result,'>','&gt',[rfReplaceAll]);
+  Result:=StringReplace(AText,'&','&amp;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'<','&lt;',[rfReplaceAll]);
+  Result:=StringReplace(Result,'>','&gt;',[rfReplaceAll]);
   Result:=StringReplace(Result,#10,'<BR>',[rfreplaceAll]);
 end;
 

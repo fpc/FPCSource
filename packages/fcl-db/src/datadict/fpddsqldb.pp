@@ -115,6 +115,7 @@ end;
 function TSQLDBDDEngine.GetTableList(List: TStrings): Integer;
 begin
   FConn.GetTableNames(List,False);
+  result := list.count;
 end;
 
 function TSQLDBDDEngine.ImportFields(Table: TDDTableDef): Integer;
@@ -124,7 +125,7 @@ Const
 
 Var
   Q : TSQLQuery;
-  
+
 begin
   Q:=CreateSQLQuery(Nil);
   try
