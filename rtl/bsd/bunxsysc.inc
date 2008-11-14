@@ -446,15 +446,6 @@ begin
  fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(path),TSysParam(info));
 end;
 
-Function fpLstat(Filename: ansistring;Info:pstat):cint;
-{
-  Get all information on a link (the link itself), and return it in info.
-}
-
-begin
- fpLStat:=do_syscall(syscall_nr_lstat,TSysParam(pchar(filename)),TSysParam(info));
-end;
-
 function fpNice(N:cint):cint;
 {
   Set process priority. A positive N means a lower priority.

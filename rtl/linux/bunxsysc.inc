@@ -415,21 +415,6 @@ begin
     TSysParam(path),TSysParam(info));
 end;
 
-Function fpLstat(Filename: ansistring;Info:pstat):cint;
-{
-  Get all information on a link (the link itself), and return it in info.
-}
-
-begin
- fpLStat:=do_syscall(
-{$ifdef cpux86_64}
-    syscall_nr_lstat,
-{$else}
-    syscall_nr_lstat64,
-{$endif}
-    TSysParam(pchar(filename)),TSysParam(info));
-end;
-
 
 function fpNice(N:cint):cint;
 {
