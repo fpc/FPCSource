@@ -22,7 +22,7 @@ unit chmwriter;
 {$MODE OBJFPC}{$H+}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles;
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer;
 
 type
 
@@ -50,7 +50,11 @@ type
     FCurrentStream: TStream; // used to buffer the files that are to be compressed
     FCurrentIndex: Integer;
     FOnGetFileData: TGetDataFunc;
-    FStringsStream: TMemoryStream;
+    FStringsStream: TMemoryStream; // the #STRINGS file
+    FTopicsStream: TMemoryStream;  // the #TOPICS file
+    FURLTBLStream: TMemoryStream;  // the #URLTBL file. has offsets of strings in URLSTR
+    FURLSTRStream: TMemoryStream;  // the #URLSTR file
+    FFiftiMainStream: TMemoryStream;
     FContextStream: TMemoryStream; // the #IVB file
     FSection0: TMemoryStream;
     FSection1: TStream; // Compressed Stream
@@ -67,6 +71,7 @@ type
     FHasIndex: Boolean;
     FWindowSize: LongWord;
     FReadCompressedSize: QWord; // Current Size of Uncompressed data that went in Section1 (compressed)
+    FIndexedFiles: TIndexedWordList;
     // Linear order of file
     ITSFHeader: TITSFHeader;
     HeaderSection0Table: TITSFHeaderEntry;  // points to HeaderSection0
@@ -88,12 +93,19 @@ type
     procedure WriteSYSTEM;
     procedure WriteITBITS;
     procedure WriteSTRINGS;
+    procedure WriteTOPICS;
     procedure WriteIVB; // context ids
+    procedure WriteURL_STR_TBL;
+    procedure WriteOBJINST;
+    procedure WriteFiftiMain;
     procedure WriteREADMEFile;
+    procedure WriteFinalCompressedFiles;
     procedure WriteSection0;
     procedure WriteSection1;
     procedure WriteDataSpaceFiles(const AStream: TStream);
     function AddString(AString: String): LongWord;
+    function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
+    procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
     // callbacks for lzxcomp
     function  AtEndOfData: Longbool;
     function  GetData(Count: LongInt; Buffer: PByte): LongInt;
@@ -125,12 +137,14 @@ type
   end;
 
 implementation
-uses dateutils, sysutils, paslzxcomp;
+uses dateutils, sysutils, paslzxcomp, chmFiftiMain;
 
 const
 
   LZX_WINDOW_SIZE = 16; // 16 = 2 frames = 1 shl 16
   LZX_FRAME_SIZE = $8000;
+
+{$I chmobjinstconst.inc}
 
 { TChmWriter }
 
@@ -390,14 +404,25 @@ var
   Entry: TFileEntryRec;
   TmpStr: String;
   TmpTitle: String;
+  TmpStream: TMemoryStream;
 const
   VersionStr = 'HHA Version 4.74.8702'; // does this matter?
 begin
+
+
   // this creates the /#SYSTEM file
   Entry.Name := '#SYSTEM';
   Entry.Path := '/';
   Entry.Compressed := False;
   Entry.DecompressedOffset := FSection0.Position;
+
+ { if FileExists('#SYSTEM') then
+  begin
+    TmpStream := TMemoryStream.Create;
+    TmpStream.LoadFromFile('#SYSTEM');
+    TmpStream.Position := 0;
+    FSection0.CopyFrom(TmpStream, TmpStream.Size);
+  end;                                    }
   // EntryCodeOrder: 10 9 4 2 3 16 6 0 1 5
   FSection0.WriteDWord(NToLE(Word(3))); // Version
   if Title <> '' then
@@ -418,11 +443,13 @@ begin
   // 4 A struct that is only needed to set if full text search is on.
   FSection0.WriteWord(NToLE(Word(4)));
   FSection0.WriteWord(NToLE(Word(36))); // size
+
   FSection0.WriteDWord(NToLE(DWord($0409)));
+  FSection0.WriteDWord(1);
   FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch))));
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
-  FSection0.WriteDWord(0);
+
   // two for a QWord
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
@@ -459,6 +486,10 @@ begin
   
   // 6
   // unneeded. if output file is :  /somepath/OutFile.chm the value here is outfile(lowercase)
+  {FSection0.WriteWord(6);
+  FSection0.WriteWord(Length('test1')+1);
+  Fsection0.Write('test1', 5);
+  FSection0.WriteByte(0);}
   
   // 0 Table of contents filename
   if FHasTOC then begin
@@ -479,7 +510,7 @@ begin
   end;
   // 5 Default Window.
   // Not likely needed
-  
+// }
   Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
   FInternalFiles.AddEntry(Entry);
 end;
@@ -492,7 +523,7 @@ begin
   Entry.Name := '#ITBITS';
   Entry.Path := '/';
   Entry.Compressed := False;
-  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedOffset :=0;// FSection0.Position;
   Entry.DecompressedSize := 0;
   
   FInternalFiles.AddEntry(Entry);
@@ -503,7 +534,36 @@ begin
   if FStringsStream.Size = 0 then;
     FStringsStream.WriteByte(0);
   FStringsStream.Position := 0;
-  AddStreamToArchive('#STRINGS', '/', FStringsStream);
+  PostAddStreamToArchive('#STRINGS', '/', FStringsStream);
+end;
+
+procedure TChmWriter.WriteTOPICS;
+var
+  AWord: TIndexedWord;
+  FHits: Integer;
+  i: Integer;
+begin
+  if FTopicsStream.Size = 0 then
+    Exit;
+  FTopicsStream.Position := 0;
+  PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
+
+  AWord := FIndexedFiles.FirstWord;
+  WriteLn('Writing TOPICS');
+  while AWord <> nil do
+  begin
+    FHits := 0;
+    for i := 0 to AWord.DocumentCount-1 do
+    begin
+      Inc(FHits, Length(AWord.GetLogicalDocument(i).WordIndex));
+    //if AWord.IsTitle then
+
+    end;
+    //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' hits = ', FHits, ' is title = ', AWord.IsTitle);
+    AWord := AWord.NextWord;
+  end;
+
+
 end;
 
 procedure TChmWriter.WriteIVB;
@@ -516,6 +576,156 @@ begin
   
   FContextStream.Position := 0;
   AddStreamToArchive('#IVB', '/', FContextStream);
+end;
+
+procedure TChmWriter.WriteURL_STR_TBL;
+begin
+  if FURLSTRStream.Size <> 0 then begin
+    FURLSTRStream.Position := 0;
+    PostAddStreamToArchive('#URLSTR', '/', FURLSTRStream);
+  end;
+  if FURLTBLStream.Size <> 0 then begin
+    FURLTBLStream.Position := 0;
+    PostAddStreamToArchive('#URLTBL', '/', FURLTBLStream);
+  end;
+end;
+
+procedure TChmWriter.WriteOBJINST;
+var
+  Entry: TFileEntryRec;
+  i: Integer;
+  TmpPos: Integer;
+  ObjStream: TMemoryStream;
+  //Flags: Word;
+begin
+  ObjStream := TMemorystream.Create;
+  // this file is needed to enable searches for the ms reader
+  ObjStream.WriteDWord(NtoLE($04000000));
+  ObjStream.WriteDWord(NtoLE(Dword(2))); // two entries
+
+  ObjStream.WriteDWord(NtoLE(DWord(24))); // offset into file of entry
+  ObjStream.WriteDWord(NtoLE(DWord(2691))); // size
+
+  ObjStream.WriteDWord(NtoLE(DWord(2715))); // offset into file of entry
+  ObjStream.WriteDWord(NtoLE(DWord(36))); // size
+
+  // first entry
+  // write guid 4662DAAF-D393-11D0-9A56-00C04FB68BF7
+  ObjStream.WriteDWord(NtoLE($4662DAAF));
+  ObjStream.WriteWord(NtoLE($D393));
+  ObjStream.WriteWord(NtoLE($11D0));
+  ObjStream.WriteWord(NtoLE($569A));
+  ObjStream.WriteByte($00);
+  ObjStream.WriteByte($C0);
+  ObjStream.WriteByte($4F);
+  ObjStream.WriteByte($B6);
+  ObjStream.WriteByte($8B);
+  ObjStream.WriteByte($F7);
+
+  ObjStream.WriteDWord(NtoLE($04000000));
+  ObjStream.WriteDWord(NtoLE(11));  // bit flags
+  ObjStream.WriteDWord(NtoLE(DWord(1252)));
+  ObjStream.WriteDWord(NtoLE(DWord(1033)));
+  ObjStream.WriteDWord(NtoLE($00000000));
+  ObjStream.WriteDWord(NtoLE($00000000));
+  ObjStream.WriteDWord(NtoLE($00145555));
+  ObjStream.WriteDWord(NtoLE($00000A0F));
+  ObjStream.WriteWord(NtoLE($0100));
+  ObjStream.WriteDWord(NtoLE($00030005));
+  for i := 0 to 5 do
+    ObjStream.WriteDWord($00000000);
+  ObjStream.WriteWord($0000);
+  // okay now the fun stuff
+  for i := 0 to $FF do
+  ObjStream.Write(ObjInstEntries[i], SizeOF(TObjInstEntry));
+  {begin
+    if i = 1 then
+      Flags := 7
+    else
+      Flags := 0;
+    if (i >= $41) and (i <= $5A) then
+      Flags := Flags or 2;
+    if (i >= $61) and (i <= $7A) then
+      Flags := Flags or 1;
+    if i = $27 then
+      Flags := Flags or 6;
+    ObjStream.WriteWord(NtoLE(Flags));
+    ObjStream.WriteWord(NtoLE(Word(i)));
+    if (i >= $41) and (i <= $5A) then
+      ObjStream.WriteByte(NtoLE(i+$20))
+    else
+      ObjStream.WriteByte(NtoLE(i));
+    ObjStream.WriteByte(NtoLE(i));
+    ObjStream.WriteByte(NtoLE(i));
+    ObjStream.WriteByte(NtoLE(i));
+    ObjStream.WriteWord(NtoLE($0000));
+  end;}
+  ObjStream.WriteDWord(NtoLE($E66561C6));
+  ObjStream.WriteDWord(NtoLE($73DF6561));
+  ObjStream.WriteDWord(NtoLE($656F8C73));
+  ObjStream.WriteWord(NtoLE($6F9C));
+  ObjStream.WriteByte(NtoLE($65));
+  // third bit of second entry
+  // write guid 8FA0D5A8-DEDF-11D0-9A61-00C04FB68BF7
+  ObjStream.WriteDWord(NtoLE($8FA0D5A8));
+  ObjStream.WriteWord(NtoLE($DEDF));
+  ObjStream.WriteWord(NtoLE($11D0));
+  ObjStream.WriteWord(NtoLE($619A));
+  ObjStream.WriteByte($00);
+  ObjStream.WriteByte($C0);
+  ObjStream.WriteByte($4F);
+  ObjStream.WriteByte($B6);
+  ObjStream.WriteByte($8B);
+  ObjStream.WriteByte($F7);
+
+  ObjStream.WriteDWord(NtoLE($04000000));
+  ObjStream.WriteDWord(NtoLE(DWord(1)));
+  ObjStream.WriteDWord(NtoLE(DWord(1252)));
+  ObjStream.WriteDWord(NtoLE(DWord(1033)));
+  ObjStream.WriteDWord(NtoLE(DWord(0)));
+
+  // second entry
+  // write guid 4662DAB0-D393-11D0-9A56-00C04FB68B66
+  ObjStream.WriteDWord(NtoLE($4662DAB0));
+  ObjStream.WriteWord(NtoLE($D393));
+  ObjStream.WriteWord(NtoLE($11D0));
+  ObjStream.WriteWord(NtoLE($569A));
+  ObjStream.WriteByte($00);
+  ObjStream.WriteByte($C0);
+  ObjStream.WriteByte($4F);
+  ObjStream.WriteByte($B6);
+  ObjStream.WriteByte($8B);
+  ObjStream.WriteByte($66);
+
+  ObjStream.WriteDWord(NtoLE(DWord(666))); // not kidding
+  ObjStream.WriteDWord(NtoLE(DWord(1252)));
+  ObjStream.WriteDWord(NtoLE(DWord(1033)));
+  ObjStream.WriteDWord(NtoLE(DWord(10031)));
+  ObjStream.WriteDWord(NtoLE(DWord(0)));
+
+  ObjStream.Position := 0;
+  AddStreamToArchive('$OBJINST', '/', ObjStream, True);
+  ObjStream.Free;
+
+end;
+
+procedure TChmWriter.WriteFiftiMain;
+var
+  SearchWriter: TChmSearchWriter;
+begin
+  if FTopicsStream.Size = 0 then
+    Exit;
+  SearchWriter := TChmSearchWriter.Create(FFiftiMainStream, FIndexedFiles);
+  SearchWriter.WriteToStream;
+  SearchWriter.Free;
+
+  WriteLn('FIftiMain Size = ', FFiftiMainStream.Size);
+
+  if FFiftiMainStream.Size = 0 then
+    Exit;
+
+  FFiftiMainStream.Position := 0;
+  PostAddStreamToArchive('$FIftiMain', '/', FFiftiMainStream);
 end;
 
 procedure TChmWriter.WriteREADMEFile;
@@ -531,6 +741,14 @@ begin
   Entry.Path := '/';
   Entry.Name := '_#_README_#_'; //try to use a name that won't conflict with normal names
   FInternalFiles.AddEntry(Entry);
+end;
+
+procedure TChmWriter.WriteFinalCompressedFiles;
+begin
+  WriteTOPICS;
+  WriteURL_STR_TBL;
+  WriteSTRINGS;
+  WriteFiftiMain;
 end;
 
 
@@ -609,6 +827,45 @@ begin
   FStringsStream.WriteByte(0);
 end;
 
+function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
+
+  procedure CheckURLStrBlockCanHold(AString: String);
+  var
+    Rem: LongWord;
+    Len: LongWord;
+  begin
+    Rem := $4000 - (FURLSTRStream.Size mod $4000);
+    WriteLn(Rem);
+    Len := 9 + Length(AString);
+    if Rem < Len then
+      while Rem > 0 do
+      begin
+        FURLSTRStream.WriteByte(0);
+        Dec(Rem);
+      end;
+  end;
+
+  function AddURLString(AString: String): DWord;
+  begin
+    CheckURLStrBlockCanHold(AString);
+    if FURLSTRStream.Size mod $4000 = 0 then
+      FURLSTRStream.WriteByte(0);
+      Result := FURLSTRStream.Position;
+      FURLSTRStream.WriteDWord(NToLE(DWord(0))); // URL Offset for topic??
+      FURLSTRStream.WriteDWord(NToLE(DWord(0))); // Offset of FrameName??
+      FURLSTRStream.Write(AString[1], Length(AString));
+      FURLSTRStream.WriteByte(0); //NT
+  end;
+begin
+  if AURL[1] = '/' then Delete(AURL,1,1);
+  if $1000 - (FURLTBLStream.Size mod $1000) = 4 then
+    FURLTBLStream.WriteDWord(NtoLE(DWord(4096)));
+  Result := FURLTBLStream.Position;
+  FURLTBLStream.WriteDWord($231e9f5c); //unknown
+  FURLTBLStream.WriteDWord(NtoLE(TopicsIndex)); // Index of topic in #TOPICS
+  FURLTBLStream.WriteDWord(NtoLE(AddURLString(AURL)));
+end;
+
 function _AtEndOfData(arg: pointer): LongBool; cdecl;
 begin
   Result := TChmWriter(arg).AtEndOfData;
@@ -643,6 +900,9 @@ begin
       FileEntry.DecompressedOffset := FReadCompressedSize; //269047723;//to test writing really large numbers
       FileEntry.Compressed := True;
       
+      if FullTextSearch then
+        CheckFileMakeSearchable(FCurrentStream, FileEntry);
+
       FInternalFiles.AddEntry(FileEntry);
       // So the next file knows it's offset
       Inc(FReadCompressedSize,  FileEntry.DecompressedSize);
@@ -657,6 +917,7 @@ begin
       if Assigned(FOnLastFile) then
         FOnLastFile(Self);
       FCurrentStream.Free;
+      WriteFinalCompressedFiles;
       FCurrentStream := FPostStream;
       FCurrentStream.Position := 0;
       Inc(FReadCompressedSize, FCurrentStream.Size);
@@ -730,6 +991,45 @@ begin
   // We have to trim the last entry off when we are done because there is no next block in that case
 end;
 
+procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
+type
+  TTopicEntry = record
+    TocOffset,
+    StringsOffset,
+    URLTableOffset: DWord;
+    InContents: Word;// 2 = in contents 6 = not in contents
+    Unknown: Word; // 0,2,4,8,10,12,16,32
+  end;
+
+  function GetNewTopicsIndex: Integer;
+  begin
+    Result := FTopicsStream.Size div 16;
+  end;
+  var
+    TopicEntry: TTopicEntry;
+    ATitle: String;
+begin
+  if Pos('.ht', AFileEntry.Name) > 0 then
+  begin
+    WriteLn('Should Search ', AFileEntry.Name);
+    ATitle := FIndexedFiles.IndexFile(AStream, GetNewTopicsIndex);
+    if ATitle <> '' then
+      TopicEntry.StringsOffset := AddString(ATitle)
+    else
+      TopicEntry.StringsOffset := $FFFFFFFF;
+    TopicEntry.URLTableOffset := AddURL(AFileEntry.Path+AFileEntry.Name, GetNewTopicsIndex);
+    TopicEntry.InContents := 2;
+    TopicEntry.Unknown := 0;
+    TopicEntry.TocOffset := 0;
+    FTopicsStream.WriteDWord(LEtoN(TopicEntry.TocOffset));
+    FTopicsStream.WriteDWord(LEtoN(TopicEntry.StringsOffset));
+    FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
+    FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
+    FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
+  end
+  else  WriteLn('Don''t Search ', AFileEntry.Name);
+end;
+
 constructor TChmWriter.Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   if OutStream = nil then Raise Exception.Create('TChmWriter.OutStream Cannot be nil!');
@@ -738,6 +1038,10 @@ begin
   FOutStream := OutStream;
   FInternalFiles := TFileEntryList.Create;
   FStringsStream := TmemoryStream.Create;
+  FTopicsStream := TMemoryStream.Create;
+  FURLSTRStream := TMemoryStream.Create;
+  FURLTBLStream := TMemoryStream.Create;
+  FFiftiMainStream := TMemoryStream.Create;
   FSection0 := TMemoryStream.Create;
   FSection1 := TMemoryStream.Create;
   FSection1ResetTable := TMemoryStream.Create;
@@ -745,6 +1049,7 @@ begin
   FPostStream := TMemoryStream.Create;;
   FDestroyStream := FreeStreamOnDestroy;
   FFileNames := TStringList.Create;
+  FIndexedFiles := TIndexedWordList.Create;
 end;
 
 destructor TChmWriter.Destroy;
@@ -754,11 +1059,16 @@ begin
   FInternalFiles.Free;
   FCurrentStream.Free;
   FStringsStream.Free;
+  FTopicsStream.Free;
+  FURLSTRStream.Free;
+  FURLTBLStream.Free;
+  FFiftiMainStream.Free;
   FSection0.Free;
   FSection1.Free;
   FSection1ResetTable.Free;
   FDirectoryListings.Free;
   FFileNames.Free;
+  FIndexedFiles.Free;
   inherited Destroy;
 end;
 
@@ -770,10 +1080,11 @@ begin
 
   // write any internal files to FCurrentStream that we want in the compressed section
   WriteIVB;
-  WriteSTRINGS;
   
   // written to Section0 (uncompressed)
   WriteREADMEFile;
+
+  WriteOBJINST;
   
   // move back to zero so that we can start reading from zero :)
   FReadCompressedSize := FCurrentStream.Size;
@@ -789,6 +1100,7 @@ begin
   WriteITBITS;
   // This creates and writes the #SYSTEM file to section0
   WriteSystem;
+
 
   //this creates all special files in the archive that start with ::DataSpace
   WriteDataSpaceFiles(FSection0);
@@ -843,6 +1155,8 @@ begin
   Entry.Compressed :=  Compress;
   Entry.DecompressedOffset := TargetStream.Position;
   Entry.DecompressedSize := AStream.Size;
+  if FullTextSearch then
+    CheckFileMakeSearchable(AStream, Entry); // Must check before we add it to the list so we know if the name needs to be added to #STRINGS
   FInternalFiles.AddEntry(Entry);
   AStream.Position := 0;
   TargetStream.CopyFrom(AStream, AStream.Size);
@@ -871,6 +1185,8 @@ begin
   FInternalFiles.AddEntry(Entry);
   AStream.Position := 0;
   TargetStream.CopyFrom(AStream, AStream.Size);
+  if FullTextSearch then
+    CheckFileMakeSearchable(AStream, Entry);
 end;
 
 procedure TChmWriter.AddContext(AContext: DWord; ATopic: String);
@@ -909,3 +1225,4 @@ begin
 end;
 
 end.
+

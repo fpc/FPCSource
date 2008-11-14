@@ -171,7 +171,7 @@ var
   Value: QWord = 0;
   TheEnd: DWord = 0;
 begin
-  bit := (sizeof(dWord)*8)div 7*7;
+  bit := 28; //((sizeof(dWord)*8)div 7)*7; // = 28
   buf := @Value;
   while True do begin
     mask := $7f shl bit;

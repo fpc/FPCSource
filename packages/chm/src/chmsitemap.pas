@@ -186,10 +186,9 @@ procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
     end;
 var
   TagName,
-  TagAttribute,
+  //TagAttribute,
   TagAttributeName,
   TagAttributeValue: String;
-  I: Integer;
 begin
   //WriteLn('TAG:', AActualTag);
   TagName := GetTagName(ACaseInsensitiveTag);
