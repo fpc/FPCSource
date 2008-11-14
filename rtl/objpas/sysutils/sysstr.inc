@@ -1982,7 +1982,14 @@ Var
           Digits[DecimalPoint] := ' ';
       { Convert spaces left from obligatory decimal point to zeroes. }
       I:=DecimalPoint-Placehold[2];
-      While (I<DecimalPoint) And (Digits[I]=' ') Do
+      If (Value<0) and (I<DecimalPoint) and (Digits[1]<>'-') then
+        begin
+        Writeln('Inserting - at ',I);
+        Insert('-',Digits,I);
+        Inc(DecimalPoint);
+        Inc(I);
+        end;
+      While (I<DecimalPoint) And (Digits[I] in [' ','-']) Do
         Begin
         Digits[I] := '0';
         Inc(I);
