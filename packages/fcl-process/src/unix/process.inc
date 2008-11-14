@@ -1,14 +1,15 @@
 {
-  Unix Process .inc.
-}
+    This file is part of the Free Component Library (FCL)
+    Copyright (c) 1999-2008 by the Free Pascal development team
 
-uses
-   Unix,
-   Baseunix;
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-resourcestring
-  SErrNoSuchProgram = 'Executable not found: "%s"';
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+ **********************************************************************}
 Const
   PriorityConstants : Array [TProcessPriority] of Integer =
                       (20,20,0,-20);
@@ -16,8 +17,6 @@ Const
 Const
   GeometryOption : String = '-geometry';
   TitleOption : String ='-title';
-
-
 
 procedure TProcess.CloseProcessHandles;
 
@@ -133,14 +132,11 @@ end;
 
 Function MakeCommand(P : TProcess) : PPchar;
 
-Const
-  SNoCommandLine = 'Cannot execute empty command-line';
-
 Var
   Cmd : String;
   S  : TStringList;
   G : String;
-
+  
 begin
   if (P.ApplicationName='') then
     begin

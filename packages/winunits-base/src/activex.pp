@@ -3100,7 +3100,6 @@ TYPE
     function GetClassInfo(out pptti : ITypeInfo):HResult; StdCall;
   end;
 
-
   IProvideClassInfo2 = Interface (IProvideClassInfo)
     ['{A6BC3AC0-DBAA-11CE-9DE3-00AA004BB851}']
     function GetGUID(dwguid:DWord;out pguid:TGUID):HResult; StdCall;

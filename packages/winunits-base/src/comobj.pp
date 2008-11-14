@@ -175,6 +175,28 @@ unit comobj;
         property ThreadingModel: TThreadingModel read FThreadingModel;
       end;
 
+      { TTypedComObject }
+
+      TTypedComObject = class(TComObject, IProvideClassInfo)
+        function GetClassInfo(out pptti : ITypeInfo):HResult; StdCall;
+      end;
+
+      TTypedComClass = class of TTypedComObject;
+
+      { TTypedComObjectFactory }
+
+      TTypedComObjectFactory = class(TComObjectFactory)
+      private
+        FClassInfo: ITypeInfo;
+      public
+        constructor Create(AComServer: TComServerObject; TypedComClass: TTypedComClass; const AClassID: TGUID;
+          AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
+        function GetInterfaceTypeInfo(TypeFlags: Integer) : ITypeInfo;
+        procedure UpdateRegistry(Register: Boolean);override;
+        property ClassInfo : ITypeInfo read FClassInfo;
+      end;
+
+
     function CreateClassID : ansistring;
 
     function CreateComObject(const ClassID: TGUID) : IUnknown;
@@ -1034,6 +1056,35 @@ implementation
           DispatchInvokeError(invokeresult,exceptioninfo);
         if desc^.calldesc.argcount>Length(preallocateddata) then
           FreeMem(Arguments);
+      end;
+
+    { TTypedComObject }
+
+    function TTypedComObject.GetClassInfo(out pptti: ITypeInfo): HResult;stdcall;
+      begin
+        Result:=S_OK;
+        pptti:=TTypedComObjectFactory(factory).classinfo;
+      end;
+
+
+    { TTypedComObjectFactory }
+
+    constructor TTypedComObjectFactory.Create(AComServer: TComServerObject; TypedComClass: TTypedComClass; const AClassID: TGUID;
+      AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
+      begin
+        RunError(217);
+      end;
+
+
+    function TTypedComObjectFactory.GetInterfaceTypeInfo(TypeFlags: Integer): ITypeInfo;
+      begin
+        RunError(217);
+      end;
+
+
+    procedure TTypedComObjectFactory.UpdateRegistry(Register: Boolean);
+      begin
+        RunError(217);
       end;
 
 

@@ -139,6 +139,20 @@ Type
 
 implementation
 
+{$ifdef WINDOWS}
+Uses
+  Windows;
+{$endif WINDOWS}
+{$ifdef UNIX}
+uses
+   Unix,
+   Baseunix;
+{$endif UNIX}
+
+Resourcestring
+  SNoCommandLine = 'Cannot execute empty command-line';
+  SErrNoSuchProgram = 'Executable not found: "%s"';
+
 {$i process.inc}
 
 Constructor TProcess.Create (AOwner : TComponent);
