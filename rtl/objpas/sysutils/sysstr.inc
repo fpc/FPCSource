@@ -1984,7 +1984,6 @@ Var
       I:=DecimalPoint-Placehold[2];
       If (Value<0) and (I<DecimalPoint) and (Digits[1]<>'-') then
         begin
-        Writeln('Inserting - at ',I);
         Insert('-',Digits,I);
         Inc(DecimalPoint);
         Inc(I);
