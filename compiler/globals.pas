@@ -48,26 +48,26 @@ interface
       globtype,version,systems;
 
     const
-       delphimodeswitches : tmodeswitches=
+       delphimodeswitches =
          [m_delphi,m_all,m_class,m_objpas,m_result,m_string_pchar,
           m_pointer_2_procedure,m_autoderef,m_tp_procvar,m_initfinal,m_default_ansistring,
           m_out,m_default_para,m_duplicate_names,m_hintdirective,m_add_pointer,
           m_property,m_default_inline,m_except];
-       fpcmodeswitches    : tmodeswitches=
+       fpcmodeswitches =
          [m_fpc,m_all,m_string_pchar,m_nested_comment,m_repeat_forward,
           m_cvar_support,m_initfinal,m_add_pointer,m_hintdirective,
           m_property,m_default_inline];
-       objfpcmodeswitches : tmodeswitches=
+       objfpcmodeswitches =
          [m_objfpc,m_fpc,m_all,m_class,m_objpas,m_result,m_string_pchar,m_nested_comment,
           m_repeat_forward,m_cvar_support,m_initfinal,m_add_pointer,m_out,m_default_para,m_hintdirective,
           m_property,m_default_inline,m_except];
-       tpmodeswitches     : tmodeswitches=
+       tpmodeswitches =
          [m_tp7,m_all,m_tp_procvar,m_duplicate_names];
 {$ifdef gpc_mode}
-       gpcmodeswitches    : tmodeswitches=
+       gpcmodeswitches =
          [m_gpc,m_all,m_tp_procvar];
 {$endif}
-       macmodeswitches : tmodeswitches=
+       macmodeswitches =
          [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar];
 
        { maximum nesting of routines }
@@ -316,6 +316,79 @@ interface
        localvartrashing: longint = -1;
        { actual values are defined in ncgutil.pas }
        nroftrashvalues = 4;
+
+    const
+      default_settings : TSettings = (
+        globalswitches : [cs_check_unit_name,cs_link_static];
+        moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
+        localswitches : [cs_check_io,cs_typed_const_writable];
+        modeswitches : fpcmodeswitches;
+        optimizerswitches : [];
+        debugswitches : [];
+        setalloc : 0;
+        packenum : 4;
+        alignment : (
+          procalign : 0;
+          loopalign : 0;
+          jumpalign : 0;
+          constalignmin : 0;
+          constalignmax : 0;
+          varalignmin : 0;
+          varalignmax : 0;
+          localalignmin : 0;
+          localalignmax : 0;
+          recordalignmin : 0;
+          recordalignmax : 0;
+          maxCrecordalign : 0;
+        );
+{$ifdef i386}
+        cputype : cpu_Pentium;
+        optimizecputype : cpu_Pentium3;
+        fputype : fpu_x87;
+{$endif i386}
+{$ifdef m68k}
+        cputype : cpu_MC68020;
+        optimizecputype : cpu_MC68020;
+        fputype : fpu_soft;
+{$endif m68k}
+{$ifdef powerpc}
+        cputype : cpu_PPC604;
+        optimizecputype : cpu_ppc7400;
+        fputype : fpu_standard;
+{$endif powerpc}
+{$ifdef POWERPC64}
+        cputype : cpu_PPC970;
+        optimizecputype : cpu_ppc970;
+        fputype : fpu_standard;
+{$endif POWERPC64}
+{$ifdef sparc}
+        cputype : cpu_SPARC_V8;
+        optimizecputype : cpu_SPARC_V8;
+        fputype : fpu_hard;
+{$endif sparc}
+{$ifdef arm}
+        cputype : cpu_armv3;
+        optimizecputype : cpu_armv3;
+        fputype : fpu_fpa;
+{$endif arm}
+{$ifdef x86_64}
+        cputype : cpu_athlon64;
+        optimizecputype : cpu_athlon64;
+        fputype : fpu_sse64;
+{$endif x86_64}
+{$ifdef avr}
+        cputype : cpuinfo.cpu_avr;
+        optimizecputype : cpuinfo.cpu_avr;
+        fputype : fpu_none;
+{$endif avr}
+        asmmode : asmmode_standard;
+        interfacetype : it_interfacecom;
+        defproccall : pocall_default;
+        sourcecodepage : '8859-1';
+        packrecords     : 0;
+        maxfpuregisters : 0;
+        minfpconstprec : s32real;
+      );
 
     var
       starttime  : real;
@@ -1231,57 +1304,7 @@ implementation
         apptype:=app_cui;
 
         { Init values }
-        init_settings.modeswitches:=fpcmodeswitches;
-        init_settings.localswitches:=[cs_check_io,cs_typed_const_writable];
-        init_settings.moduleswitches:=[cs_extsyntax,cs_implicit_exceptions];
-        init_settings.globalswitches:=[cs_check_unit_name,cs_link_static];
-        init_settings.optimizerswitches:=[];
-        init_settings.debugswitches:=[];
-        init_settings.sourcecodepage:='8859-1';
-        init_settings.packenum:=4;
-        init_settings.setalloc:=0;
-        fillchar(init_settings.alignment,sizeof(talignmentinfo),0);
-        init_settings.minfpconstprec:=s32real;
-        { might be overridden later }
-        init_settings.asmmode:=asmmode_standard;
-        init_settings.cputype:=cpu_none;
-        init_settings.optimizecputype:=cpu_none;
-        init_settings.fputype:=fpu_none;
-        init_settings.interfacetype:=it_interfacecom;
-        init_settings.defproccall:=pocall_default;
-
-        { Target specific defaults, these can override previous default options }
-{$ifdef i386}
-        init_settings.cputype:=cpu_Pentium;
-        init_settings.optimizecputype:=cpu_Pentium3;
-        init_settings.fputype:=fpu_x87;
-{$endif i386}
-{$ifdef m68k}
-        init_settings.cputype:=cpu_MC68020;
-        init_settings.fputype:=fpu_soft;
-{$endif m68k}
-{$ifdef powerpc}
-        init_settings.cputype:=cpu_PPC604;
-        init_settings.optimizecputype:=cpu_ppc7400;
-        init_settings.fputype:=fpu_standard;
-{$endif powerpc}
-{$ifdef POWERPC64}
-        init_settings.cputype:=cpu_PPC970;
-        init_settings.optimizecputype:=cpu_ppc970;
-        init_settings.fputype:=fpu_standard;
-{$endif POWERPC64}
-{$ifdef sparc}
-        init_settings.cputype:=cpu_SPARC_V8;
-        init_settings.fputype:=fpu_hard;
-{$endif sparc}
-{$ifdef arm}
-        init_settings.cputype:=cpu_armv3;
-        init_settings.fputype:=fpu_fpa;
-{$endif arm}
-{$ifdef x86_64}
-        init_settings.cputype:=cpu_athlon64;
-        init_settings.fputype:=fpu_sse64;
-{$endif x86_64}
+        init_settings:=default_settings;
         if init_settings.optimizecputype=cpu_none then
           init_settings.optimizecputype:=init_settings.cputype;
 

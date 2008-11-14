@@ -114,7 +114,6 @@ uses
 
 function Compile(const cmd:string):longint;
 
-
 implementation
 
 uses
