@@ -14,6 +14,7 @@ type
     FIndexName,
     FDefaultPage: String;
     FCSSFile: String;
+    FMakeSearchable,
     FAutoTOC,
     FAutoIndex: Boolean;
     FOtherFiles: String;
@@ -59,6 +60,8 @@ begin
   begin
     FChm.FilesToCompress.LoadFromFile(FOtherFiles);
   end;
+
+  FChm.FullTextSearch := FMakeSearchable;
 
 end;
 
@@ -492,6 +495,8 @@ begin
     FAutoIndex := True
   else if Cmd = '--auto-toc' then
     FAutoTOC := True
+  else if Cmd = '--make-searchable' then
+    FMakeSearchable := True
   else
     Result:=inherited InterPretOption(Cmd, Arg);
 end;
