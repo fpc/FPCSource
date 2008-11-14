@@ -783,7 +783,7 @@ begin
   result:=IntToHex(Int64(Value),Digits);
 end;
 
-function TryStrToInt(const s: string; var i : integer) : boolean;
+function TryStrToInt(const s: string; out i : integer) : boolean;
 var Error : word;
 begin
   Val(s, i, Error);
@@ -809,7 +809,7 @@ begin
 end;
 
 
-function TryStrToInt64(const s: string; var i : int64) : boolean;
+function TryStrToInt64(const s: string; Out i : int64) : boolean;
 var Error : word;
 begin
   Val(s, i, Error);
@@ -825,7 +825,7 @@ begin
 end;
 
 
-function TryStrToQWord(const s: string; var Q: QWord): boolean;
+function TryStrToQWord(const s: string; Out Q: QWord): boolean;
 var Error : word;
 begin
   Val(s, Q, Error);

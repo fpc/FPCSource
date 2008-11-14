@@ -29,7 +29,7 @@ var
 
 function PascalType(const s: WideString): string;
 begin
-  if (s = 'DOMString') or (s = 'boolean') or (s = 'DOMError') then
+  if (s = 'DOMString') or (s = 'boolean') or (s = 'DOMError') or (s = 'double') then
     result := s
   else if s = 'int' then
     result := 'Integer'
@@ -39,7 +39,7 @@ begin
     result := '_collection'
   else if s = 'List' then
     result := '_list'
-  else if Pos(WideString('DOM'), s) = 1 then
+  else if (Pos(WideString('DOM'), s) = 1) or (Pos(WideString('XPath'), s) = 1) then
     result := 'T' + s
   else
     result := 'TDOM'+s;
@@ -146,6 +146,11 @@ begin
       r := 'Pos(WideString(' +  replaceQuotes(e['str']) + '), ' + e['obj'] + ') > 0'
     else
       r := 'bad_condition(''contains intf=' + e['interface'] + ''')';
+  end
+  else if e.TagName = 'same' then
+  begin
+  // maybe it would be sufficient to just compare pointers, but let's emit a helper for now
+    r := 'IsSame('+ e['expected'] + ', ' + e['actual'] + ')';
   end
   else if e.TagName = 'not' then
   begin
@@ -304,6 +309,10 @@ begin
 
   s := node.TagName;
   apinode := api.GetElementById(s);
+  // If not found by name only, try prepending the interface name.
+  // This enables support of same-named methods with different param lists on different objects
+  if (apinode = nil) and node.HasAttribute('interface') then
+    apinode := api.GetElementById(node['interface'] + '.' + s);
   if assigned(apinode) then
   begin
     // handle most of DOM API in consistent way
@@ -369,9 +378,15 @@ begin
   // service (non-DOM) statements follow
   
   else if s = 'append' then
-    rslt.Add(indent + '_append(' + node['collection'] + ', ' + node['item'] + ');')
+    rslt.Add(indent + '_append(' + node['collection'] + ', ' + ReplaceQuotes(node['item']) + ');')
   else if s = 'assign' then
-    rslt.Add(indent + '_assign(' + node['var'] + ', ' + node['value'] + ');')
+  begin
+    cond := TypeOfVar(node['var']);
+    if (cond = '_collection') or (cond = '_list') then
+      rslt.Add(indent + '_assign(' + node['var'] + ', ' + node['value'] + ');')
+    else // emit an assignment operator. Force type for the case where they assign Document to Element.
+      rslt.Add(indent + node['var'] + ' := ' + TypeOfVar(node['var']) + '(' + ReplaceQuotes(node['value']) + ');');
+  end  
   else if s = 'increment' then
     rslt.Add(indent + 'Inc(' + node['var'] + ', ' + node['value'] + ');')
   else if s = 'decrement' then
@@ -433,6 +448,10 @@ begin
     rslt.Add(indent + 'Load('+node['var']+', '''+ node['href']+''');')
   else if s = 'implementationAttribute' then
     rslt.Add(indent + s + '[''' + node['name'] + '''] := ' + node['value'] + ';')
+  else if s = 'createXPathEvaluator' then
+    rslt.Add(indent + node['var'] + ' := CreateXPathEvaluator(' + node['document'] + ');')
+  else if s = 'comment' then
+    rslt.Add(indent + '{ Source comment: ' + node.TextContent + ' }')
   else
   begin
     if not FailFlag then
@@ -442,12 +461,44 @@ begin
   end;
 end;
 
+procedure ConvertException(el: TDOMElement; const ExceptClass: string; indent: string);
+var
+  excode: string;
+begin
+  if not SuccessVarFlag then
+    rslt.Insert(2, '  success: Boolean;');
+  SuccessVarFlag := True;
+  rslt.Add(indent+'success := False;');
+  rslt.Add(indent+'try');
+  child := el.FirstChild;
+  while assigned(child) do
+  begin
+    if child.nodeType = ELEMENT_NODE then
+    begin
+      excode := child.nodeName;
+      subchild := child.FirstChild;
+      while Assigned(subchild) do
+      begin
+        if subchild.nodeType = ELEMENT_NODE then
+          ConvertStatement(TDOMElement(subchild), indent + '  ');
+        subchild := subchild.NextSibling;
+      end;
+    end;
+    child := child.NextSibling;
+  end;
+  rslt.Add(indent+'except');
+  rslt.Add(indent+'  on E: Exception do');
+  rslt.Add(indent+'    success := (E is ' + ExceptClass +') and (' + ExceptClass + '(E).Code = ' + excode + ');');
+  rslt.Add(indent+'end;');
+  rslt.Add(indent+'AssertTrue('''+el['id']+''', success);');
+end;
+
 procedure ConvertBlock(el: TDOMNode; indent: string);
 var
   curr: TDOMNode;
   element: TDOMElement;
   List: TList;
-  cond, excode: string;
+  cond: string;
   Frag: TDOMDocumentFragment;
   I: Integer;
   ElseNode: TDOMNode;
@@ -467,34 +518,9 @@ begin
     element := TDOMElement(curr);
     n := element.TagName;
     if n = 'assertDOMException' then
-    begin
-      if not SuccessVarFlag then
-        rslt.Insert(2, '  success: Boolean;');
-      SuccessVarFlag := True;
-      rslt.Add(indent+'success := False;');
-      rslt.Add(indent+'try');
-      child := curr.FirstChild;
-      while assigned(child) do
-      begin
-        if child.nodeType = ELEMENT_NODE then
-        begin
-          excode := child.nodeName;
-          subchild := child.FirstChild;
-          while Assigned(subchild) do
-          begin
-            if subchild.nodeType = ELEMENT_NODE then
-              ConvertStatement(TDOMElement(subchild), indent + '  ');
-            subchild := subchild.NextSibling;
-          end;
-        end;
-        child := child.NextSibling;
-      end;
-      rslt.Add(indent+'except');
-      rslt.Add(indent+'  on E: Exception do');
-      rslt.Add(indent+'    success := (E is EDOMError) and (EDOMError(E).Code = ' + excode + ');');
-      rslt.Add(indent+'end;');
-      rslt.Add(indent+'AssertTrue('''+element['id']+''', success);');
-    end
+      ConvertException(element, 'EDOMError', indent)
+    else if n = 'assertXPathException' then
+      ConvertException(element, 'EXPathException', indent)
     else if n = 'try' then
     begin
       GetChildElements(curr, List);
@@ -658,7 +684,11 @@ begin
         try
           if subvars.Count > 0 then
           begin
-            TypedConsts.Add('  ' + Node['name'] + ': array[0..' + IntToStr(subvars.Count-1) + '] of DOMString = (');
+            if TDOMElement(subvars[0]).HasAttribute('type') then
+              hs := PascalType(TDOMElement(subvars[0]).GetAttribute('type'))
+            else
+              hs := 'DOMString';
+            TypedConsts.Add('  ' + Node['name'] + ': array[0..' + IntToStr(subvars.Count-1) + '] of ' + hs + ' = (');
             for J := 0 to subvars.Count-1 do
             begin
               hs := '    ' + ReplaceQuotes(subvars[J].TextContent);
@@ -817,7 +847,12 @@ begin
       if root['name'] = 'attrname' then
         root['name'] := 'attr_name';
       sl.Add('procedure ' + class_name + '.' + root['name'] + ';');
+      try
       ConvertTest(root, sl);
+      except
+        Writeln('An exception occured while converting '+root['name']);
+        raise;
+      end;
       if sl.Count > 0 then
       begin
         all.add('    procedure '+root['name']+';');

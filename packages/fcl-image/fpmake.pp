@@ -30,6 +30,11 @@ begin
         begin
           AddUnit('fpimgcmn');
         end;
+    T:=P.Targets.AddUnit('fptiffcmn.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
     T:=P.Targets.AddUnit('clipping.pp');
     T:=P.Targets.AddUnit('ellipses.pp');
       with T.Dependencies do
@@ -134,6 +139,12 @@ begin
           AddUnit('fpimage');
           AddUnit('targacmn');
         end;
+    T:=P.Targets.AddUnit('fpreadtiff.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fptiffcmn');
+        end;
     T:=P.Targets.AddUnit('fpreadxpm.pp');
       with T.Dependencies do
         begin
@@ -174,6 +185,12 @@ begin
         begin
           AddUnit('fpimage');
           AddUnit('targacmn');
+        end;
+    T:=P.Targets.AddUnit('fpwritetiff.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('fptiffcmn');
         end;
     T:=P.Targets.AddUnit('fpwritexpm.pp');
       with T.Dependencies do

@@ -268,9 +268,9 @@ type
     procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
-    Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String); virtual;
-    Procedure ProcessQueryString(Const FQueryString : String); virtual;
-    procedure ProcessURLEncoded(Stream : TStream); virtual;
+    Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
+    Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
+    procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
     Function  GetTempUploadFileName : String; virtual;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
   public
@@ -656,6 +656,7 @@ constructor THttpHeader.Create;
 begin
   FCookieFields:=TStringList.Create;
   FQueryFields:=TStringList.Create;
+  FContentFields:=TStringList.Create;
   FHttpVersion := '1.1';
 end;
 
@@ -664,6 +665,7 @@ destructor THttpHeader.Destroy;
 begin
   FreeAndNil(FCookieFields);
   FreeAndNil(FQueryFields);
+  FreeAndNil(FContentFields);
   inherited Destroy;
 end;
 
@@ -935,7 +937,7 @@ begin
     Result := Result + ' HTTP/' + HttpVersion;
 end;
 
-Procedure TRequest.ProcessQueryString(Const FQueryString : String);
+Procedure TRequest.ProcessQueryString(Const FQueryString : String; SL:TStrings);
 
 
 var
@@ -1038,19 +1040,20 @@ begin
     if (QueryItem<>'') then
       begin
       QueryItem:=HTTPDecode(QueryItem);
-      FQueryFields.Add(QueryItem);
+      SL.Add(QueryItem);
       end;
     end;
 {$ifdef CGIDEBUG}SendMethodExit('ProcessQueryString');{$endif CGIDEBUG}
 end;
 
 function TRequest.GetTempUploadFileName: String;
+
 begin
-  Result:=GetTempFileName('/tmp/','CGI')
+  Result := GetTempFileName(GetTempDir, 'CGI');
 end;
 
 
-Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String);
+Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String; SL:TStrings);
 
 Var
   L : TList;
@@ -1129,7 +1132,7 @@ begin
         end;
       FI.Free;
       L[i]:=Nil;
-      QueryFields.Add(Key+'='+Value)
+      SL.Add(Key+'='+Value)
       end;
   Finally
     For I:=0 to L.Count-1 do
@@ -1139,7 +1142,7 @@ begin
 {$ifdef CGIDEBUG}  SendMethodExit('ProcessMultiPart');{$endif CGIDEBUG}
 end;
 
-Procedure TRequest.ProcessURLEncoded(Stream: TStream);
+Procedure TRequest.ProcessURLEncoded(Stream: TStream; SL:TStrings);
 
 var
   S : String;
@@ -1149,7 +1152,7 @@ begin
   SetLength(S,Stream.Size); // Skip added Null.
   Stream.ReadBuffer(S[1],Stream.Size);
 {$ifdef CGIDEBUG}SendDebugFmt('Query string : %s',[s]);{$endif CGIDEBUG}
-  ProcessQueryString(S);
+  ProcessQueryString(S,SL);
 {$ifdef CGIDEBUG} SendMethodEnter('ProcessURLEncoded');{$endif CGIDEBUG}
 end;
 

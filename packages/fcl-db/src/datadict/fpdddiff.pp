@@ -11,7 +11,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
- **********************************************************************}
+  **********************************************************************}
 unit fpdddiff;
 
 {$mode objfpc}{$H+}
@@ -188,8 +188,8 @@ begin
     FieldDifference(dtSurplus, nil, Targ)
   else if (Not FieldTypesEqual(Src,Targ))
           or (Src.required <> Targ.required)
-          or (Src.DomainName <> Targ.DomainName)
-          or (Src.DefaultExpression <> Targ.DefaultExpression)
+          or (comparetext(Src.DomainName, Targ.DomainName) <> 0)
+          or (comparetext(Src.DefaultExpression, Targ.DefaultExpression) <> 0)
           or ((Src.Size <> Targ.Size) and not (Src.Fieldtype in [ftBlob]))
           or (Src.Precision <> Targ.Precision) then
     FieldDifference(dtDifferent, Src, Targ)

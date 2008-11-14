@@ -199,8 +199,11 @@ begin
   If (Pos(' ',E)<>0) then
     E:='"'+E+'"';
   E:=E+' --run'; // Add --run argument;
+  If (DD.RunArguments<>'') then
+    E:=E+' '+DD.RunArguments;
   N:=DD.Name;
   DN:=DD.DisplayName;
+  
   With DD.WinBindings do
     begin
     LG:=GroupName;

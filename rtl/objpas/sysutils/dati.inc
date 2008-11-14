@@ -516,15 +516,37 @@ begin
 end ;
 
 {   StrToDateTime converts the string S to a TDateTime value
-    if S does not represent a valid date and time value
+    if S does not represent a valid date and/or time value
     an EConvertError will be raised   }
 
 function StrToDateTime(const s: string): TDateTime;
-var i: integer;
+var
+  i, j, k, l: integer;
+  sd, st: string;
 begin
-i := pos(' ', s);
-if i > 0 then result := ComposeDateTime(StrToDate(Copy(S, 1, i - 1)), StrToTime(Copy(S, i + 1, length(S))))
-else result := StrToDate(S);
+  l := Length(s);
+  i := 1;
+  while (i <= l) and (s[i] = ' ') do
+    Inc(i);
+  j := i;
+  while (j <= l) and (s[j] <> ' ') do
+    Inc(j);
+  k := j;
+  while (k <= l) and (s[k] = ' ') do
+    Inc(k);
+  sd := Copy(s, i, j - i);
+  st := Copy(s, k, l);
+  if (st = '') and (Pos(TimeSeparator, sd) > 0) then
+  begin
+    st := sd;
+    sd := '';
+  end;
+  if (sd <> '') and (st <> '') then
+    Result := ComposeDateTime(StrToDate(sd), StrToTime(st))
+  else if st = '' then
+    Result := StrToDate(sd)
+  else
+    Result := StrToTime(st);
 end ;
 
 {   FormatDateTime formats DateTime to the given format string FormatStr   }

@@ -224,6 +224,7 @@ Type
     FOptions: TDaemonOptions;
     FServiceName: String;
     FWinBindings: TWinBindings;
+    FRunArgs : String;
     procedure SetName(const AValue: String);
     procedure SetWinBindings(const AValue: TWinBindings);
   Protected
@@ -237,6 +238,7 @@ Type
     Property DaemonClassName : String Read FDaemonClassName Write FDaemonClassName;
     Property Name : String Read FName Write SetName;
     Property DisplayName : String Read FDisplayName Write FDisplayName;
+    Property RunArguments : String Read FRunArgs Write FRunArgs;
     Property Options : TDaemonOptions Read FOptions Write FOptions;
     Property Enabled : Boolean Read FEnabled Write FEnabled default true;
     Property WinBindings : TWinBindings Read FWinBindings Write SetWinBindings;
