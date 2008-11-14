@@ -518,6 +518,8 @@ begin
   List.Add(SCHMUsageAutoIDX);
   List.add('--auto-toc');
   List.Add(SCHMUsageAutoTOC);
+  List.add('--make-searchable');
+  List.Add(SCHMUsageMakeSearch);
 end;
 
 
