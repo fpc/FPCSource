@@ -102,12 +102,13 @@ Type
 
 Resourcestring
 
-  SLogInfo    = 'Info';
-  SLogWarning = 'Warning';
-  SLogError   = 'Error';
-  SLogDebug   = 'Debug';
-  SLogCustom  = 'Custom (%d)';
-
+  SLogInfo      = 'Info';
+  SLogWarning   = 'Warning';
+  SLogError     = 'Error';
+  SLogDebug     = 'Debug';
+  SLogCustom    = 'Custom (%d)';
+  SErrLogFailedMsg = 'Failed to log entry (Error: %s)';
+  
 implementation
 
 {$i eventlog.inc}
@@ -190,7 +191,15 @@ begin
   TS:=FormatDateTime(FTimeStampFormat,Now);
   T:=EventTypeToString(EventType);
   S:=Format('%s [%s %s] %s%s',[Identification,TS,T,Msg,LineEnding]);
-  FStream.Write(S[1],Length(S));
+  try
+    FStream.WriteBuffer(S[1],Length(S));
+    S:='';
+  except
+    On E : Exception do
+      S:=E.Message;
+  end;  
+  If (S<>'') and RaiseExceptionOnError then
+    Raise ELogError.CreateFmt(SErrLogFailedMsg,[S]);
 end;
 
 procedure TEventLog.Log(Fmt: String; Args: array of const);

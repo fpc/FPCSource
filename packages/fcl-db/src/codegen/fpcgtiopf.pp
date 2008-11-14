@@ -23,7 +23,7 @@ uses
   Classes, SysUtils, db, fpddcodegen;
   
 TYpe
-  TClassOption = (caConstructor,caDestructor,caCreateList,caListAddMethod,caListItemsProperty);
+  TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,caListAddMethod,caListItemsProperty);
   TClassOptions = Set of TClassOption;
   TVisitorOption = (voRead,voReadList,voCreate,voDelete,voUpdate);
   TVisitorOptions = set of TVisitorOption;
@@ -61,13 +61,16 @@ TYpe
     procedure DeclareObjectvariable(Strings: TStrings;
       const ObjectClassName: String);
   private
+    Function CreateSQLStatement(V: TVisitorOption) : String;
     function GetOpt: TTiOPFCodeOptions;
     procedure WriteCreateVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteDeleteVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef);
-    procedure WriteParamAssign(Strings: TStrings; F: TFieldPropDef);
+    procedure WriteAssignToParam(Strings: TStrings; F: TFieldPropDef);
     procedure WriteReadListVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteReadVisitor(Strings: TStrings; const ObjectClassName: String );
+    procedure WriteSetSQL(Strings: TStrings; const ASQL: String);
+    procedure WriteSQLConstants(Strings: TStrings);
     procedure WriteUpdateVisitor(Strings: TStrings; const ObjectClassName: String);
     procedure WriteVisitorDeclaration(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
     procedure WriteVisitorImplementation(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
@@ -75,6 +78,7 @@ TYpe
     // Not to be overridden.
     procedure WriteListAddObject(Strings: TStrings; const ListClassName, ObjectClassName: String);
     // Overrides of parent objects
+    function AllowPropertyDeclaration(F: TFieldPropDef; AVisibility: TVisibilities): Boolean; override;
     Function GetInterfaceUsesClause : string; override;
     Procedure DoGenerateInterface(Strings: TStrings); override;
     Procedure DoGenerateImplementation(Strings: TStrings); override;
@@ -92,6 +96,9 @@ TYpe
     Property TiOPFOptions : TTiOPFCodeOptions Read GetOpt;
   end;
 
+Const
+  SOID = 'OID'; // OID property.
+  
 implementation
 
 { TTiOPFCodeOptions }
@@ -118,7 +125,7 @@ end;
 constructor TTiOPFCodeOptions.Create;
 begin
   inherited Create;
-  FListAncestorName:='TObjectList';
+  FListAncestorName:='TTiObjectList';
   AncestorClass:='TTiObject';
   ObjectClassName:='MyObject';
   FVisitorOptions:=[voRead,voCreate,voDelete,voUpdate];
@@ -179,7 +186,7 @@ begin
   Result:=inherited GetInterfaceUsesClause;
   If (Result<>'') then
     Result:=Result+',';
-  Result:=Result+'tiVisitor, tiObject';
+  Result:=Result+'tiVisitor, tiVisitorDB, tiObject';
 end;
 
 procedure TTiOPFCodeGenerator.DoGenerateInterface(Strings: TStrings);
@@ -188,7 +195,13 @@ Var
   V : TVisitorOption;
 
 begin
-  inherited DoGenerateInterface(Strings);
+  If (caCreateClass in TiOPFOptions.ClassOptions) then
+    inherited DoGenerateInterface(Strings)
+  else
+    begin
+    Addln(Strings,'Type');
+    Addln(Strings);
+    end;
   With TiOPFOptions do
     begin
     IncIndent;
@@ -247,6 +260,110 @@ begin
   AddlN(Strings);
 end;
 
+Function TTiOPFCodeGenerator.CreateSQLStatement(V : TVisitorOption) : String;
+
+  Function AddToS(Const S,Add : String) : string;
+  
+  begin
+    Result:=S;
+    If (Result<>'') then
+      Result:=Result+', ';
+    Result:=Result+Add;
+  end;
+
+Var
+  I : integer;
+  W,S,VS,TN : String;
+  F : TFieldPropDef;
+
+begin
+  TN:='MyTable';
+  S:='';
+  VS:='';
+  W:='Your condition here';
+  Result:='';
+  Case V of
+   voRead,
+   voReadList : begin
+                Result:='SELECT ';
+                For I:=0 to Fields.Count-1 do
+                  begin
+                  F:=Fields[i];
+                  If F.Enabled then
+                    begin
+                    S:=AddToS(S,F.FieldName);
+                    If (V=voRead) and (F.PropertyName=SOID) then
+                      W:=Format('%s = :%s',[F.FieldName,F.FieldName]);
+                    end;
+                  end;
+                Result:=Result+S+Format(' FROM %s WHERE (%s);',[TN,W]);
+                end;
+   voCreate : begin
+              Result:=Format('INSERT INTO %s (',[TN]);
+              For I:=0 to Fields.Count-1 do
+                begin
+                F:=Fields[i];
+                If F.Enabled then
+                  begin
+                  S:=AddToS(S,F.FieldName);
+                  VS:=AddToS(VS,':'+F.FieldName);
+                  end;
+                end;
+              Result:=Result+S+') VALUES ('+VS+');';
+              end;
+   voDelete : begin
+              For I:=0 to Fields.Count-1 do
+                begin
+                F:=Fields[i];
+                If (F.PropertyName=SOID) then
+                  W:=Format('%s = :%s',[F.FieldName,F.FieldName]);
+                end;
+              Result:=Format('DELETE FROM %s WHERE (%s);',[TN,W]);
+              end;
+   voUpdate : begin
+              Result:=Format('UPDATE %s SET ',[TN]);
+              For I:=0 to Fields.Count-1 do
+                 begin
+                  F:=Fields[i];
+                  If F.Enabled then
+                    If (F.PropertyName=SOID) then
+                      W:=Format('%s = :%s',[F.FieldName,F.FieldName])
+                    else
+                      S:=AddToS(S,F.FieldName+' = :'+F.FieldName);
+                  end;
+              Result:=Result+S+Format(' WHERE (%s);',[W]);
+              end;
+  end;
+end;
+
+procedure TTiOPFCodeGenerator.WriteSQLConstants(Strings : TStrings);
+
+Const
+  VisSQL : Array [TVisitorOption] of string
+         = ('Read','ReadList','Create','Delete','Update');
+
+Var
+  OCN,S : String;
+  V : TVisitorOption;
+
+begin
+  AddLn(Strings,'Const');
+  IncIndent;
+  try
+    OCN:=StripType(TiOPFOptions.ObjectClassName);
+    For V:=Low(TVisitorOption) to High(TVisitorOption) do
+      If V in TiOPFOptions.VisitorOptions then
+        begin
+        S:=CreateSQLStatement(V);
+        S:=Format('SQL%s%s = ''%s'';',[VisSQL[V],OCN,S]);
+        AddLn(Strings,S);
+        end;
+  finally
+    DecIndent;
+  end;
+  AddLn(Strings,'');
+end;
+
 
 procedure TTiOPFCodeGenerator.DoGenerateImplementation(Strings: TStrings);
 
@@ -254,9 +371,12 @@ Var
   V : TVisitorOption;
 
 begin
-  inherited DoGenerateImplementation(Strings);
+  If (caCreateClass in TiOPFOptions.ClassOptions) then
+    inherited DoGenerateImplementation(Strings);
   With TiOPFOptions do
     begin
+    If (VisitorOptions<>[])   then
+      WriteSQLConstants(Strings);
     If caCreateList in ClassOptions then
       CreateListImplementation(Strings,ObjectClassName,ListClassName);
     For V:=Low(TVisitorOption) to High(TVisitorOption) do
@@ -308,9 +428,9 @@ begin
   If DeclareObject Then
     DeclareObjectVariable(Strings,ObjectClassName);
   AddLn(Strings,'begin');
+  IncIndent;
   If DeclareObject Then
     Addln(Strings,'O:=%s(Visited);',[ObjectClassName]);
-  IncIndent;
 end;
 
 Procedure TTiOPFCodeGenerator.DeclareObjectvariable(Strings : TStrings; Const ObjectClassName : String);
@@ -343,16 +463,19 @@ end;
 procedure TTiOPFCodeGenerator.WriteReadVisitor(Strings : TStrings; Const ObjectClassName : String);
 
 Var
-  C,S : String;
+  OCN,CS,C,S : String;
   I : Integer;
+  F : TFieldPropDef;
 
 begin
-  C:=Format('TRead%sVisitor',[StripType(ObjectClassName)]);
+  OCN:=StripType(ObjectClassName);
+  CS:=Format('SQLRead%s',[OCN]);
+  C:=Format('TRead%sVisitor',[OCN]);
   Addln(Strings,'{ %s }',[C]);
   Addln(Strings);
   // Init
   S:=BeginInit(Strings,C);
-  Addln(Strings,'Query.SQL.Text:=SQLReadList;');
+  WriteSetSQL(Strings,CS);
   DecIndent;
   EndMethod(Strings,S);
   // AcceptVisitor
@@ -360,12 +483,17 @@ begin
   DecIndent;
   EndMethod(Strings,S);
   // AcceptSetupParams
-  S:=BeginSetupParams(Strings,C,'',False);
-  AddLn(Strings,'// Set up as needed');
+  F:=Fields.FindPropName('OID');
+  S:=BeginSetupParams(Strings,C,ObjectClassName,F<>Nil);
+  If (F<>Nil) then
+    WriteAssignToParam(Strings,F)
+  else
+    AddLn(Strings,'// Set up as needed');
   DecIndent;
   EndMethod(Strings,S);
   // MapRowToObject
   S:=BeginMapRowToObject(Strings,C,ObjectClassName);
+  Addln(Strings,'O:=%s(Visited);',[ObjectClassName]);
   Addln(Strings,'With Query do',[ObjectClassName]);
   IncINdent;
   try
@@ -373,7 +501,7 @@ begin
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
         WriteFieldAssign(Strings,Fields[i]);
-    Addln(Strings,'end');
+    Addln(Strings,'end;');
   finally
     DecIndent;
   end;
@@ -390,43 +518,46 @@ begin
   PN:=F.PropertyName;
   FN:=F.FieldName;
   SFN:=CreateString(FN);
-  Case F.PropertyType of
-    ptBoolean :
-      S:='AsBoolean';
-    ptShortint, ptByte,
-    ptSmallInt, ptWord,
-    ptLongint, ptCardinal :
-      S:='AsInteger';
-    ptInt64, ptQWord:
-      If F.FieldType=ftLargeInt then
-        R:=Format('O.%s:=(FieldByName(%s) as TLargeIntField).AsLargeInt;',[PN,SFN])
-      else
+  If (PN=SOID) then
+    R:=Format('O.OID.AssignFromTIQuery(''%s'',Query);',[FN])
+  else
+    Case F.PropertyType of
+      ptBoolean :
+        S:='AsBoolean';
+      ptShortint, ptByte,
+      ptSmallInt, ptWord,
+      ptLongint, ptCardinal :
         S:='AsInteger';
-    ptShortString, ptAnsiString, ptWideString :
-      S:='AsString';
-    ptSingle, ptDouble, ptExtended, ptComp :
-      S:='AsFloat';
-    ptCurrency :
-      S:='AsCurrency';
-    ptDateTime :
-      S:='AsDateTime';
-    ptEnumerated :
-      R:=Format('Integer(O.%s):=FieldAsInteger[%s];',[PN,SFN]);
-    ptSet :
-      S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
-    ptStream :
-      R:=Format('FieldByName(%s).SaveToStream(O.%s);',[SFN,PN]);
-    ptTStrings :
-      R:=Format('O.%s.Text:=FieldAsString[%s];',[PN,SFN]);
-    ptCustom :
-      R:=Format('// Add custom loading code here for %s from %s',[PN,FN]);
-  end;
+      ptInt64, ptQWord:
+        If F.FieldType=ftLargeInt then
+          R:=Format('O.%s:=(FieldByName(%s) as TLargeIntField).AsLargeInt;',[PN,SFN])
+        else
+          S:='AsInteger';
+      ptShortString, ptAnsiString, ptWideString :
+        S:='AsString';
+      ptSingle, ptDouble, ptExtended, ptComp :
+        S:='AsFloat';
+      ptCurrency :
+        S:='AsCurrency';
+      ptDateTime :
+        S:='AsDateTime';
+      ptEnumerated :
+        R:=Format('Integer(O.%s):=FieldAsInteger[%s];',[PN,SFN]);
+      ptSet :
+        S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
+      ptStream :
+        R:=Format('FieldByName(%s).SaveToStream(O.%s);',[SFN,PN]);
+      ptTStrings :
+        R:=Format('O.%s.Text:=FieldAsString[%s];',[PN,SFN]);
+      ptCustom :
+        R:=Format('// Add custom loading code here for %s from %s',[PN,FN]);
+    end;
   If (S<>'') then
     R:=Format('O.%s:=Field%s[%s];',[PN,S,SFN]);
   AddLn(Strings,R);
 end;
 
-procedure TTiOPFCodeGenerator.WriteParamAssign(Strings : TStrings; F : TFieldPropDef);
+procedure TTiOPFCodeGenerator.WriteAssignToParam(Strings : TStrings; F : TFieldPropDef);
 
 Var
   PN,FN,SFN,R,S : String;
@@ -435,39 +566,42 @@ begin
   PN:=F.PropertyName;
   FN:=F.FieldName;
   SFN:=CreateString(FN);
-  Case F.PropertyType of
-    ptBoolean :
-      S:='AsBoolean';
-    ptShortint, ptByte,
-    ptSmallInt, ptWord,
-    ptLongint, ptCardinal :
-      S:='AsInteger';
-    ptInt64, ptQWord:
-      If F.FieldType=ftLargeInt then
-        R:=Format('O.%s:=(Name(%s) as TLargeIntField).AsLargeInt;',[PN,SFN])
-      else
+  If (PN=SOID) then
+    R:=Format('O.OID.AssignToTIQuery(''%s'',Query);',[FN])
+  else
+    Case F.PropertyType of
+      ptBoolean :
+        S:='AsBoolean';
+      ptShortint, ptByte,
+      ptSmallInt, ptWord,
+      ptLongint, ptCardinal :
         S:='AsInteger';
-    ptShortString, ptAnsiString, ptWideString :
-      S:='AsString';
-    ptSingle, ptDouble, ptExtended, ptComp :
-      S:='AsFloat';
-    ptCurrency :
-      S:='AsCurrency';
-    ptDateTime :
-      S:='AsDateTime';
-    ptEnumerated :
-      R:=Format('ParamAsInteger[%s]:=Integer(O.%s);',[SFN,PN]);
-    ptSet :
-      S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
-    ptStream :
-      R:=Format('AssignParamFromStream(%s,%s);',[SFN,PN]);
-    ptTStrings :
-      R:=Format('ParamAsString[%s]:=O.%s.Text;',[SFN,PN]);
-    ptCustom :
-      R:=Format('// Add custom loading code here for %s from %s',[PN,FN]);
-  end;
+      ptInt64, ptQWord:
+        If F.FieldType=ftLargeInt then
+          R:=Format('O.%s:=(Name(%s) as TLargeIntField).AsLargeInt;',[PN,SFN])
+        else
+          S:='AsInteger';
+      ptShortString, ptAnsiString, ptWideString :
+        S:='AsString';
+      ptSingle, ptDouble, ptExtended, ptComp :
+        S:='AsFloat';
+      ptCurrency :
+        S:='AsCurrency';
+      ptDateTime :
+        S:='AsDateTime';
+      ptEnumerated :
+        R:=Format('ParamAsInteger[%s]:=Integer(O.%s);',[SFN,PN]);
+      ptSet :
+        S:=Format('// Add custom set loading code here for %s from %s',[PN,FN]);
+      ptStream :
+        R:=Format('AssignParamFromStream(%s,%s);',[SFN,PN]);
+      ptTStrings :
+        R:=Format('ParamAsString[%s]:=O.%s.Text;',[SFN,PN]);
+      ptCustom :
+        R:=Format('// Add custom loading code here for %s from %s',[PN,FN]);
+    end;
   If (S<>'') then
-    R:=Format('O.%s:=Param%s[%s];',[PN,S,SFN]);
+    R:=Format('Param%s[%s]:=O.%s;',[S,SFN,PN]);
   AddLn(Strings,R);
 end;
 
@@ -478,17 +612,19 @@ end;
 procedure TTiOPFCodeGenerator.WriteReadListVisitor(Strings : TStrings; Const ObjectClassName : String);
 
 Var
-  C,S,LN : String;
+  OCN,CS,C,S,LN : String;
   I : Integer;
 
 begin
   LN:=tiOPFOptions.ListClassName;
-  C:=Format('TRead%sVisitor',[StripType(LN)]);
+  OCN:=StripType(ObjectClassName);
+  CS:=Format('SQLReadList%s',[OCN]);
+  C:=Format('TReadList%sVisitor',[StripType(OCN)]);
   Addln(Strings,'{ %s }',[C]);
   Addln(Strings);
   // Init
   S:=BeginInit(Strings,C);
-  Addln(Strings,'Query.SQL.Text:=SQLReadList;');
+  WriteSetSQL(Strings,CS);
   DecIndent;
   EndMethod(Strings,C);
   // AcceptVisitor
@@ -500,11 +636,19 @@ begin
   DecIndent;
   EndMethod(Strings,S);
   // MapRowToObject
-  S:=BeginMapRowToObject(Strings,S,ObjectClassName);
+  S:=BeginMapRowToObject(Strings,C,ObjectClassName);
   Addln(Strings,'O:=%s.Create;',[ObjectClassName]);
-  For I:=0 to Fields.Count-1 do
-    If Fields[i].Enabled then
-      WriteFieldAssign(Strings,Fields[i]);
+  Addln(Strings,'With Query do',[ObjectClassName]);
+  IncINdent;
+  try
+    Addln(Strings,'begin');
+    For I:=0 to Fields.Count-1 do
+      If Fields[i].Enabled then
+        WriteFieldAssign(Strings,Fields[i]);
+    Addln(Strings,'end;');
+  finally
+    DecIndent;
+  end;
   Addln(Strings,'O.ObjectState:=posClean;');
   Addln(Strings,'%s(Visited).Add(O);',[LN]);
   DecIndent;
@@ -519,16 +663,18 @@ procedure TTiOPFCodeGenerator.WriteCreateVisitor(Strings : TStrings; Const Objec
 
 
 Var
-  C,S : String;
+  OCN,CS,C,S : String;
   I : Integer;
 
 begin
-  C:=Format('TCreate%sVisitor',[StripType(ObjectClassName)]);
+  OCN:=StripType(ObjectClassName);
+  CS:=Format('SQLCreate%s',[OCN]);
+  C:=Format('TCreate%sVisitor',[OCN]);
   Addln(Strings,'{ %s }',[C]);
   Addln(Strings);
   // Init
   S:=BeginInit(Strings,C);
-  Addln(Strings,'Query.SQL.Text:=SQLCreateObject;');
+  WriteSetSQL(Strings,CS);
   DecIndent;
   EndMethod(Strings,S);
   // AcceptVisitor
@@ -544,7 +690,7 @@ begin
     Addln(Strings,'begin');
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
-        WriteParamAssign(Strings,Fields[i]);
+        WriteAssignToParam(Strings,Fields[i]);
     Addln(Strings,'end;');
   finally
     DecIndent;
@@ -553,17 +699,26 @@ begin
   EndMethod(Strings,S);
 end;
 
+procedure TTiOPFCodeGenerator.WriteSetSQL(Strings : TStrings; Const ASQL : String);
+
+begin
+  Addln(Strings,Format('Query.SQL.Text:=%s;',[ASQL]));
+end;
+
 procedure TTiOPFCodeGenerator.WriteDeleteVisitor(Strings : TStrings; Const ObjectClassName : String);
 
 Var
-  C,S : String;
-
+  OCN,CS, C,S : String;
+  F : TFieldPropDef;
+  
 begin
+  OCN:=StripType(ObjectClassName);
+  CS:=Format('SQLDelete%s',[OCN]);
   C:=Format('TDelete%sVisitor',[StripType(ObjectClassName)]);
   Addln(Strings,'{ %s }',[C]);
   // Init
   S:=BeginInit(Strings,C);
-  Addln(Strings,'Query.SQL.Text:=SQLDeleteObject;');
+  WriteSetSQL(Strings,CS);
   DecIndent;
   EndMethod(Strings,S);
   // AcceptVisitor
@@ -573,7 +728,11 @@ begin
   EndMethod(Strings,S);
   // SetupParams
   S:=BeginSetupParams(Strings,C,ObjectClassName,True);
-  AddLn(Strings,'// Add parameter setup code here ');
+  F:=Fields.FindPropName('OID');
+  If (F<>Nil) then
+    WriteAssignToParam(Strings,F)
+  else
+    AddLn(Strings,'// Add parameter setup code here ');
   DecIndent;
   EndMethod(Strings,S);
 end;
@@ -581,16 +740,18 @@ end;
 procedure TTiOPFCodeGenerator.WriteUpdateVisitor(Strings : TStrings; Const ObjectClassName : String);
 
 Var
-  C,S : String;
+  OCN,CS,C,S : String;
   I : Integer;
 
 begin
-  C:=Format('TUpdate%sVisitor',[StripType(ObjectClassName)]);
+  OCN:=StripType(ObjectClassName);
+  CS:=Format('SQLUpdate%s',[OCN]);
+  C:=Format('TUpdate%sVisitor',[OCN]);
   Addln(Strings,'{ %s }',[C]);
   Addln(Strings);
   // Init
   S:=BeginInit(Strings,C);
-  Addln(Strings,'Query.SQL.Text:=SQLUpdateObject;');
+  WriteSetSQl(Strings,CS);
   DecIndent;
   EndMethod(Strings,S);
   // AcceptVisitor
@@ -606,7 +767,7 @@ begin
     Addln(Strings,'begin');
     For I:=0 to Fields.Count-1 do
       If Fields[i].Enabled then
-        WriteParamAssign(Strings,Fields[i]);
+        WriteAssignToParam(Strings,Fields[i]);
     Addln(Strings,'end;');
   finally
     DecIndent;
@@ -630,8 +791,8 @@ begin
     AddLn(Strings,'Private');
     IncIndent;
     Try
-      AddLn(Strings,'Function GetObj(Index : Integer) : %s;',[ObjectClassname]);
-      AddLn(Strings,'Procedure SetObj(Index : Integer; AValue : %s);',[ObjectClassname]);
+      AddLn(Strings,'Function GetObj(AIndex : Integer) : %s;',[ObjectClassname]);
+      AddLn(Strings,'Procedure SetObj(AIndex : Integer; AValue : %s);',[ObjectClassname]);
     Finally
       DecIndent;
     end;
@@ -641,7 +802,7 @@ begin
     AddLn(Strings,'Public');
     IncIndent;
     Try
-      Addln(Strings,'Procedure Add(AnItem : %s); reintroduce;',[ObjectClassName]);
+      Addln(Strings,'Function Add(AnItem : %s) : Integer; reintroduce;',[ObjectClassName]);
     Finally
       DecIndent;
     end;
@@ -668,6 +829,7 @@ begin
   Addln(Strings,'%s = Class(%s)',[ListClassName,ListAncestorName]);
   DoCreateListDeclaration(Strings,ObjectClassName,ListClassName,ListAncestorName);
   AddLn(Strings,'end;');
+  Addln(Strings);
 end;
 
 procedure TTiOPFCodeGenerator.WriteListAddObject(Strings: TStrings;
@@ -677,16 +839,26 @@ Var
   S : String;
   
 begin
-   S:=Format('Procedure %s.Add(AnItem : %s);',[ListClassName,ObjectClassName]);
+   S:=Format('Function %s.Add(AnItem : %s) : Integer;',[ListClassName,ObjectClassName]);
    BeginMethod(Strings,S);
    Addln(Strings,'begin');
    IncIndent;
    try
-     Addln(Strings,'inherited Add(AnItem);');
+     Addln(Strings,'Result:=inherited Add(AnItem);');
    finally
      DecIndent;
    end;
    EndMethod(Strings,S);
+   Addln(Strings);
+end;
+
+function TTiOPFCodeGenerator.AllowPropertyDeclaration(F: TFieldPropDef;
+  AVisibility: TVisibilities): Boolean;
+begin
+  If F.PropertyName=SOID then
+    Result:=False
+  else
+    Result:=inherited AllowPropertyDeclaration(F, AVisibility);
 end;
 
 
@@ -700,27 +872,31 @@ begin
     begin
     AddLn(Strings,'{ %s }',[ListClassName]);
     AddLn(Strings);
-    S:=Format('Function %s.GetObj(Index : Integer) : %s;',[ListClassName,ObjectClassname]);
+    S:=Format('Function %s.GetObj(AIndex : Integer) : %s;',[ListClassName,ObjectClassname]);
     BeginMethod(Strings,S);
     AddLn(Strings,'begin');
     IncIndent;
     try
-      AddLn(Strings,'Result:=%s(Inherited Items[Index]);',[ObjectClassname]);
+      AddLn(Strings,'Result:=%s(Inherited Items[AIndex]);',[ObjectClassname]);
     finally
       DecIndent;
     end;
     EndMethod(Strings,S);
-    S:=Format('Procedure %s.SetObj(Index : Integer; AValue : %s);',[ListClassName,ObjectClassname]);
+    Addln(Strings);
+    S:=Format('Procedure %s.SetObj(AIndex : Integer; AValue : %s);',[ListClassName,ObjectClassname]);
     BeginMethod(Strings,S);
     AddLn(Strings,'begin');
     IncIndent;
     try
-      AddLn(Strings,'Inherited Items[Index]:=AValue;');
+      AddLn(Strings,'Inherited Items[AIndex]:=AValue;');
     finally
       DecIndent;
     end;
     EndMethod(Strings,S);
+    Addln(Strings);
     end;
+  If (caListAddMethod in tiOPFOptions.ClassOptions) then
+    WriteListAddObject(Strings,ListClassName,ObjectClassName);
 end;
 
 Initialization

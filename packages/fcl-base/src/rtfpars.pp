@@ -85,6 +85,7 @@ TRTFParser = class(TObject)
     Procedure UngetToken;
     Procedure SetToken (Aclass, major, minor, param : Integer; text : string);
     Procedure ExpandStyle (n : Integer);
+    Function GetRtfBuf : String;
     { Properties }
     Property Colors [Index : Integer]: PRTFColor Read GetColor;
     Property ClassCallBacks [AClass : Integer]: TRTFFuncptr
@@ -728,6 +729,13 @@ While true do
      Error ('FTErr - missing font name');
   fp^.rtffname:=bp;
   { Read alternate font}
+  if rtfclass=rtfgroup then
+    begin
+    SkipGroup;
+    if Not rtfMajor=ord(';') then
+      Error('Alternate font badly terminated');
+    GetToken;
+    end;
   if (old=0) then       { need to see "End;" here }
     Begin
     GetToken;
@@ -795,6 +803,7 @@ var
   sp          : PRTFStyle;
   sep,sepLast : PRTFStyleElt;
   bp          : string[rtfBufSiz];
+  I : Integer;
 
 Begin
 While true do
@@ -815,40 +824,40 @@ While true do
   FstyleList := sp;
   if not CheckCM (rtfGroup, rtfBeginGroup) then
      Error ('SSErr - missing {');
-  while (GetToken=rtfControl) or (FTokenClass=rtfControl) do
+  I:=0;
+  GetToken;
+  while (fRTFClass=rtfControl) or (FTokenClass=rtfControl) or (FRTFClass=rtfGroup) do
     Begin
-    if rtfClass=rtfUnknown then
-      continue;
-    if (CheckMM (rtfParAttr, rtfStyleNum)) then
-      Begin
-      sp^.rtfSNum:=rtfParam;
-      continue;
-      End;
-    if (CheckMM (rtfStyleAttr, rtfBasedOn)) then
-      Begin
-      sp^.rtfSBasedOn:=rtfParam;
-      continue;
-      End;
-    if (CheckMM (rtfStyleAttr, rtfNext)) then
-      Begin
-      sp^.rtfSNextPar:=rtfParam;
-      Continue;
-      End;
-    new(sep);
-    if sep=nil then
-      Error ('SSErr - cannot allocate style element');
-    sep^.rtfSEClass:=rtfClass;
-    sep^.rtfSEMajor:=rtfMajor;
-    sep^.rtfSEMinor:=rtfMinor;
-    sep^.rtfSEParam:=rtfParam;
-    sep^.rtfSEText:=rtfTextBuf;
-    if sepLast=nil then
-       sp^.rtfSSEList:=sep      { first element }
-    else                                { add to end }
-       sepLast^.rtfNextSE:=sep;
-    sep^.rtfNextSE:=nil;
-    sepLast:=sep;
-  End;
+    If CheckCM(rtfGroup, rtfBeginGroup) then
+      SkipGroup
+    else if rtfClass<>rtfUnknown then
+      begin
+      if (CheckMM (rtfParAttr, rtfStyleNum)) then
+        sp^.rtfSNum:=rtfParam
+      else if (CheckMM (rtfStyleAttr, rtfBasedOn)) then
+        sp^.rtfSBasedOn:=rtfParam
+      else if (CheckMM (rtfStyleAttr, rtfNext)) then
+        sp^.rtfSNextPar:=rtfParam
+      else
+        begin
+        new(sep);
+        if sep=nil then
+          Error ('SSErr - cannot allocate style element');
+        sep^.rtfSEClass:=rtfClass;
+        sep^.rtfSEMajor:=rtfMajor;
+        sep^.rtfSEMinor:=rtfMinor;
+        sep^.rtfSEParam:=rtfParam;
+        sep^.rtfSEText:=rtfTextBuf;
+        if sepLast=nil then
+           sp^.rtfSSEList:=sep      { first element }
+        else                                { add to end }
+           sepLast^.rtfNextSE:=sep;
+        sep^.rtfNextSE:=nil;
+        sepLast:=sep;
+        end;
+      end;
+    GetToken;
+    End;
   if sp^.rtfSNextPar=-1 then            { \snext not given }
     sp^.rtfSNextPar:=sp^.rtfSNum;       { next is itself }
   if rtfClass<>rtfText then
@@ -993,6 +1002,11 @@ while se<>nil do
   End;
 s^.rtfExpanding:=0;     { done - clear expansion flag }
 End;
+
+function TRTFParser.GetRtfBuf: String;
+begin
+  Result:=rtfTextBuf;
+end;
 
 { ---------------------------------------------------------------------
        Initialize lookup table hash values.

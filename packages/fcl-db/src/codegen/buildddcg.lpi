@@ -24,72 +24,42 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="13">
+    <Units Count="7">
       <Unit0>
-        <Filename Value="buildd.lpr"/>
+        <Filename Value="buildddcg.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="buildd"/>
+        <UnitName Value="buildddcg"/>
       </Unit0>
       <Unit1>
-        <Filename Value="fpddsqldb.pp"/>
+        <Filename Value="fpddpopcode.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddsqldb"/>
+        <UnitName Value="fpddpopcode"/>
       </Unit1>
       <Unit2>
-        <Filename Value="fpdatadict.pp"/>
+        <Filename Value="fpcgcreatedbf.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpdatadict"/>
+        <UnitName Value="fpcgcreatedbf"/>
       </Unit2>
       <Unit3>
-        <Filename Value="fpdddbf.pp"/>
+        <Filename Value="fpcgdbcoll.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddDbf"/>
+        <UnitName Value="fpcgdbcoll"/>
       </Unit3>
       <Unit4>
-        <Filename Value="fpddfb.pp"/>
+        <Filename Value="fpcgsqlconst.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddfb"/>
+        <UnitName Value="fpcgsqlconst"/>
       </Unit4>
       <Unit5>
-        <Filename Value="fpddmysql40.pp"/>
+        <Filename Value="fpcgtiopf.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddmysql40"/>
+        <UnitName Value="fpcgtiopf"/>
       </Unit5>
       <Unit6>
-        <Filename Value="fpddmysql41.pp"/>
+        <Filename Value="fpddcodegen.pp"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddmysql41"/>
+        <UnitName Value="fpddcodegen"/>
       </Unit6>
-      <Unit7>
-        <Filename Value="fpddmysql50.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddmysql50"/>
-      </Unit7>
-      <Unit8>
-        <Filename Value="fpddpq.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddpq"/>
-      </Unit8>
-      <Unit9>
-        <Filename Value="fpddodbc.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddodbc"/>
-      </Unit9>
-      <Unit10>
-        <Filename Value="fpddoracle.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddoracle"/>
-      </Unit10>
-      <Unit11>
-        <Filename Value="fpddsqlite3.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddsqlite3"/>
-      </Unit11>
-      <Unit12>
-        <Filename Value="fpddregstd.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="fpddregstd"/>
-      </Unit12>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

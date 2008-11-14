@@ -28,6 +28,9 @@ Type
                  otConnection,otTableData,otIndexDefs,otIndexDef);
   TDDProgressEvent = Procedure(Sender : TObject; Const Msg : String) of Object;
 
+  TFPDDFieldList = Class;
+  TFPDDIndexList = Class;
+
   { TDDFieldDef }
 
   TDDFieldDef = Class(TIniCollectionItem)
@@ -44,6 +47,7 @@ Type
     FFieldType: TFieldType;
     FHint: String;
     FPrecision: Integer;
+    FProviderFlags: TProviderFlags;
     FReadOnly: Boolean;
     FRequired: Boolean;
     FSize: Integer;
@@ -77,6 +81,7 @@ Type
     Property Size : Integer Read FSize Write FSize Stored IsSizeStored;
     Property Precision : Integer Read FPrecision Write FPrecision Stored IsPrecisionStored;
     Property Hint : String Read FHint Write FHint;
+    Property ProviderFlags : TProviderFlags Read FProviderFlags Write FProviderFlags;
   end;
   
   { TDDFieldDefs }
@@ -93,6 +98,7 @@ Type
     Function IndexOfField(AFieldName : String) : Integer;
     Function FindField(AFieldName : String) : TDDFieldDef;
     Function FieldByName(AFieldName : String) : TDDFieldDef;
+    Procedure FillFieldList(Const AFieldNames: String; List : TFPDDFieldList);
     Property Fields[Index : Integer] : TDDFieldDef Read GetField Write SetField; default;
     Property TableName : String Read FTableName Write SetTableName;
   end;
@@ -111,6 +117,9 @@ Type
     function GetSectionName: String; override;
     procedure SetSectionName(const Value: String); override;
     procedure Assign(ASource : TPersistent); override;
+  Public
+    Procedure SaveToIni(Ini: TCustomInifile; ASection : String); override;
+    Procedure LoadFromIni(Ini: TCustomInifile; ASection : String); override;
   Published
     Property IndexName : String Read FIndexName Write FIndexName;
     property Expression: string read FExpression write FExpression;
@@ -232,6 +241,17 @@ Type
     Property FieldDefs[Index : Integer] : TDDFieldDef Read GetFieldDef Write SetFieldDef; default;
   end;
   
+  { TFPDDIndexList }
+
+  TFPDDIndexList = Class(TObjectList)
+  private
+    function GetIndexDef(AIndex : Integer): TDDIndexDef;
+    procedure SetIndexDef(AIndex : Integer; const AValue: TDDIndexDef);
+  Public
+    Constructor CreateFromIndexDefs(FD : TDDIndexDefs);
+    Property IndexDefs[AIndex : Integer] : TDDIndexDef Read GetIndexDef Write SetIndexDef; default;
+  end;
+
   
 
   
@@ -249,6 +269,7 @@ Type
     FOptions: TSQLEngineOptions;
     FTableDef: TDDTableDef;
     FNoIndent : Boolean;
+    FTerminator: String;
     FTerminatorChar : Char;
   Protected
     procedure CheckTableDef;
@@ -279,12 +300,18 @@ Type
     Procedure CreateDeleteSQLStrings(KeyFields : TFPDDFieldList; SQL : TStrings);
     Procedure CreateCreateSQLStrings(Fields,KeyFields : TFPDDFieldList; SQL : TStrings);
     Procedure CreateCreateSQLStrings(KeyFields : TFPDDFieldList; SQL : TStrings);
+    Procedure CreateIndexesSQLStrings(Indexes : TFPDDIndexList; SQL : TStrings);
     Function  CreateSelectSQL(FieldList,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateInsertSQL(FieldList : TFPDDFieldList) : String; virtual;
     Function  CreateUpdateSQL(FieldList,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateDeleteSQL(KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateCreateSQL(Fields,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateCreateSQL(KeyFields : TFPDDFieldList) : String; virtual;
+    Function  CreateIndexSQL(Index : TDDIndexDef) : String; virtual;
+    Function  CreateIndexesSQL(Indexes : TFPDDIndexList) : String;
+    Function  CreateIndexesSQL(Indexes : TDDIndexDefs) : String;
+    Function  CreateTableSQL : String;
+    Procedure CreateTableSQLStrings(SQL : TStrings);
     Property TableDef : TDDTableDef Read FTableDef Write FTableDef;
   Published
     Property MaxLineLength : Integer Read FMaxLineLength Write FMaxLineLength default 72;
@@ -404,8 +431,18 @@ Const
   KeyRequired               = 'Required';
   KeyVisible                = 'Visible';
   KeySize                   = 'Size';
+  KeyPrecision              = 'Precision';
   KeyFieldType              = 'FieldType';
   KeyHint                   = 'Hint';
+  KeyProviderFlags          = 'Providerflags';
+  
+  // Index saving
+  KeyExpression             = 'Expression';
+  KeyFields                 = 'Fields';
+  KeyCaseInsFields          = 'CaseInsFields';
+  KeyDescFields             = 'DescFields';
+  KeySource                 = 'Source';
+  KeyOptions                = 'Options';
 
   // SQL Keywords
   SSelect      = 'SELECT';
@@ -430,7 +467,7 @@ Const
     'BOOL', 'FLOAT', 'DECIMAL','DECIMAL','DATE', 'TIME', 'TIMESTAMP',
     '', '', 'INT', 'BLOB', 'BLOB', 'BLOB', 'BLOB',
     '', '', '', '', 'CHAR',
-    'CHAR', 'DOUBLE PRECISION', '', '', '',
+    'CHAR', 'BIGINT', '', '', '',
     '', '', '', '', '',
     '', '', 'TIMESTAMP', 'DECIMAL','CHAR','BLOB');
     
@@ -729,6 +766,7 @@ begin
     ReadOnly:=F.ReadOnly;
     Required:=F.Required;
     Visible:=F.Visible;
+    ProviderFlags:=F.ProviderFlags;
   end;
 end;
 
@@ -749,7 +787,7 @@ begin
   F.ReadOnly               := ReadOnly;
   F.Required               := Required;
   F.Visible                := Visible;
-
+  F.ProviderFlags          := ProviderFlags;
 end;
 
 procedure TDDFieldDef.Assign(Source: TPersistent);
@@ -779,18 +817,26 @@ begin
     ReadOnly:=DF.ReadOnly;
     Required:=DF.Required;
     Visible:=DF.Visible;
+    ProviderFlags:=DF.ProviderFlags;
     end
   else
     Inherited;
 end;
 
 procedure TDDFieldDef.SaveToIni(Ini: TCustomInifile; ASection: String);
+
+Var
+  T : PTypeInfo;
+  O : Integer;
+
 begin
   With Ini do
     begin
     WriteInteger(ASection,KeyFieldType,Ord(Fieldtype));
     If IsSizeStored then
-      WriteInteger(ASection,KeySize,Ord(Size));
+      WriteInteger(ASection,KeySize,Size);
+    If IsPrecisionStored then
+      WriteInteger(ASection,KeyPrecision,Precision);
     WriteInteger(ASection,KeyAlignMent,Ord(AlignMent));
     WriteInteger(ASection,KeyDisplayWidth,DisplayWidth);
     WriteString(ASection,KeyCustomConstraint,CustomConstraint);
@@ -801,6 +847,9 @@ begin
     WriteString(ASection,KeyFieldName,FieldName);
     WriteString(ASection,KeyConstraint,Constraint);
     WriteString(ASection,KeyHint,Hint);
+    O:=Integer(ProviderFlags);
+    T:=TypeInfo(TProviderFlags);
+    WriteString(ASection,KeyProviderFlags,SetToString(T,O,False));
     WriteBool(ASection,KeyReadOnly,ReadOnly);
     WriteBool(ASection,KeyRequired,Required);
     WriteBool(ASection,KeyVisible,Visible);
@@ -809,12 +858,20 @@ end;
 
 procedure TDDFieldDef.LoadFromIni(Ini: TCustomInifile; ASection: String);
 
+Var
+  T : PTypeInfo;
+  O : Integer;
+  PF : TProviderFlags;
+  S : String;
+
 begin
   With Ini do
     begin
     FieldType:=TFieldType(ReadInteger(ASection,KeyFieldType,Ord(Fieldtype)));
     If IsSizeStored then
       Size:=ReadInteger(ASection,KeySize,0);
+    If IsPrecisionStored then
+      Precision:=ReadInteger(ASection,KeyPrecision,0);
     Alignment:=TAlignment(ReadInteger(ASection,KeyAlignMent,Ord(AlignMent)));
     DisplayWidth:=ReadInteger(ASection,KeyDisplayWidth,DisplayWidth);
     CustomConstraint:=ReadString(ASection,KeyCustomConstraint,CustomConstraint);
@@ -825,6 +882,11 @@ begin
     FieldName:=ReadString(ASection,KeyFieldName,FieldName);
     Constraint:=ReadString(ASection,KeyConstraint,Constraint);
     Hint:=ReadString(ASection,KeyHint,Hint);
+    S:=ReadString(ASection,KeyProviderFlags,'');
+    T:=TypeInfo(TProviderFlags);
+    O:=StringToSet(T,S);
+    Integer(PF):=O;
+    ProviderFlags:=PF;
     ReadOnly:=ReadBool(ASection,KeyReadOnly,ReadOnly);
     Required:=ReadBool(ASection,KeyRequired,Required);
     Visible:=ReadBool(ASection,KeyVisible,Visible);
@@ -904,6 +966,26 @@ begin
   Result:=FindField(AFieldName);
   If Result=Nil then
     Raise EDatadict.CreateFmt(SErrFieldNotFound,[TableName,AFieldName]);
+end;
+
+procedure TDDFieldDefs.FillFieldList(const AFieldNames: String;
+  List: TFPDDFieldList);
+
+Var
+  I : Integer;
+  S,T : String;
+  F : TDDFieldDef;
+  
+begin
+  T:=Trim(AFieldNames);
+  Repeat
+    I:=Pos(';',T);
+    If I=0 Then
+      I:=Length(T)+1;
+    S:=Trim(Copy(T,1,I-1));
+    System.Delete(T,1,I);
+    List.Add(FieldByName(S));
+  Until (T='');
 end;
 
 { ---------------------------------------------------------------------
@@ -1572,7 +1654,7 @@ begin
       Result:=Result+Format('(%d)',[FD.Size]);
     ftBCD,
     ftFMTBCD :
-      Result:=Result+Format('(%d,%d)',[FD.Precision,FD.Size]);
+      Result:=Result+Format('(%d,%d)',[FD.Size,FD.Precision]);
   end;
 end;
 
@@ -1776,9 +1858,127 @@ begin
   CheckTableDef;
   FL:=TFPDDfieldList.CreateFromTableDef(TableDef);
   try
+    FL.OwnsObjects:=False;
     Result:=CreateCreateSQL(FL,KeyFields);
   finally
     FL.Free;
+  end;
+end;
+
+function TFPDDSQLEngine.CreateIndexSQL(Index: TDDIndexDef): String;
+
+Var
+  L : TFPDDFieldList;
+  I : Integer;
+  
+begin
+  Result:='CREATE ';
+  If ixUnique in Index.Options then
+    Result:=Result+'UNIQUE ';
+  If ixDescending in Index.Options then
+    Result:=Result+'DESCENDING ';
+  Result:=Result+'INDEX '+Index.IndexName;
+  Result:=Result+' ON '+TableDef.TableName+' (';
+  L:=TFPDDFieldList.Create;
+  try
+    L.OwnsObjects:=False;
+    TableDef.Fields.FillFieldList(Index.Fields,L);
+    For I:=0 to L.Count-1 do
+      begin
+      If (I>0) then
+        Result:=Result+',';
+      Result:=Result+L[I].FieldName;
+      end;
+  finally
+    L.Free;
+  end;
+  Result:=Result+')';
+end;
+
+function TFPDDSQLEngine.CreateIndexesSQL(Indexes: TFPDDIndexList): String;
+
+Var
+  SQL : TStringList;
+
+begin
+  SQL:=TStringList.Create;
+  try
+    CreateIndexesSQLStrings(Indexes,SQL);
+    Result:=SQL.Text;
+  finally
+    SQL.free;
+  end;
+end;
+
+function TFPDDSQLEngine.CreateIndexesSQL(Indexes: TDDIndexDefs): String;
+
+Var
+  IL : TFPDDIndexList;
+
+begin
+  IL:=TFPDDIndexList.CreateFromIndexDefs(Indexes);
+  try
+    IL.OwnsObjects:=False;
+    Result:=CreateIndexesSQL(IL);
+  finally
+    IL.Free;
+  end;
+end;
+
+function TFPDDSQLEngine.CreateTableSQL: String;
+
+Var
+  SQL : TStrings;
+
+begin
+  SQL:=TStringList.Create;
+  try
+    CreateTableSQLStrings(SQL);
+    Result:=SQL.Text;
+  finally
+    SQL.Free;
+  end;
+end;
+
+procedure TFPDDSQLEngine.CreateTableSQLStrings(SQL: TStrings);
+
+Var
+  L : TStrings;
+  I : Integer;
+  KF : TFPDDFieldlist;
+  ID : TDDIndexDef;
+  FD : TDDFieldDef;
+  
+begin
+  CheckTableDef;
+  L:=TStringList.Create;
+  try
+    KF:=TFPDDFieldlist.Create(False);
+    try
+      KF.OwnsObjects:=False;
+      I:=0;
+      While (I<TableDef.Indexes.Count) and (KF.Count=0) do
+        begin
+        ID:=TableDef.Indexes[i];
+        If (ixPrimary in ID.Options) then
+          TableDef.Fields.FillFieldList(ID.Fields,KF);
+        Inc(I);
+        end;
+      If (KF.Count=0) then
+        For I:=0 to TableDef.Fields.Count-1 do
+          begin
+          FD:=TableDef.Fields[I];
+          If pfInKey in FD.ProviderFlags then
+            KF.Add(FD);
+          end;
+      CreateCreateSQLStrings(KF,SQL);
+      L.Text:=CreateIndexesSQL(TableDef.Indexes);
+      SQL.AddStrings(L);
+    finally
+      KF.Free;
+    end;
+  finally
+    L.Free;
   end;
 end;
 
@@ -1819,6 +2019,16 @@ begin
   SQL.Text:=CreateCreateSQL(KeyFields);
 end;
 
+procedure TFPDDSQLEngine.CreateIndexesSQLStrings(Indexes: TFPDDIndexList; SQL: TStrings);
+
+Var
+  I : integer;
+
+begin
+  For I:=0 to Indexes.Count-1 do
+    SQL.Add(CreateIndexSQL(Indexes[i])+TerminatorChar);
+end;
+
 { ---------------------------------------------------------------------
   TDDFieldList
   ---------------------------------------------------------------------}
@@ -1849,6 +2059,28 @@ begin
   Capacity:=FD.Count;
   For I:=0 to FD.Count-1 do
     Add(FD[i]);
+end;
+
+function TFPDDIndexList.GetIndexDef(AIndex: Integer): TDDIndexDef;
+begin
+  Result:=TDDIndexDef(Items[AIndex]);
+end;
+
+procedure TFPDDIndexList.SetIndexDef(AIndex: Integer; const AValue: TDDIndexDef
+  );
+begin
+  Items[AIndex]:=AValue
+end;
+
+constructor TFPDDIndexList.CreateFromIndexDefs(FD: TDDIndexDefs);
+
+var
+  I : Integer;
+
+begin
+  Inherited Create;
+  For I:=0 to FD.Count-1 do
+    Add(FD[I]);
 end;
 
 { TDDIndexDef }
@@ -1894,6 +2126,50 @@ begin
     end
   else
     inherited Assign(ASource);
+end;
+
+procedure TDDIndexDef.SaveToIni(Ini: TCustomInifile; ASection: String);
+
+Var
+  O : Integer;
+  T : PTypeInfo;
+  
+begin
+  With Ini do
+    begin
+    WriteString(ASection,KeyExpression,Expression);
+    WriteString(ASection,KeyFields,Fields);
+    WriteString(ASection,KeyCaseInsFields,CaseInsFields);
+    WriteString(ASection,KeyDescFields,DescFields);
+    WriteString(ASection,KeySource,Source);
+    O:=Integer(Options);
+    T:=TypeInfo(TIndexOptions);
+    WriteString(ASection,KeyOptions,SetToString(T,O,False));
+    end;
+end;
+
+procedure TDDIndexDef.LoadFromIni(Ini: TCustomInifile; ASection: String);
+
+Var
+  O : Integer;
+  OP : TIndexOptions;
+  T : PTypeInfo;
+  S : String;
+
+begin
+  With Ini do
+    begin
+    Expression:=ReadString(ASection,KeyExpression,'');
+    Fields:=ReadString(ASection,KeyFields,'');
+    CaseInsFields:=ReadString(ASection,KeyCaseInsFields,'');
+    DescFields:=ReadString(ASection,KeyDescFields,'');
+    Source:=ReadString(ASection,KeySource,'');
+    S:=ReadString(ASection,KeyOptions,'');
+    T:=TypeInfo(TIndexOptions);
+    O:=StringToSet(T,S);
+    OP:=TIndexOptions(O);
+    Options:=OP;
+    end;
 end;
 
 { TDDIndexDefs }

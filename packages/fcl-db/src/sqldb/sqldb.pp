@@ -20,7 +20,7 @@ unit sqldb;
 
 interface
 
-uses SysUtils, Classes, DB, bufdataset;
+uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
      TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat,sqQuoteFieldnames);
@@ -359,24 +359,37 @@ type
 
 { TSQLScript }
 
-  TSQLScript = class (Tcomponent)
+  TSQLScript = class (TCustomSQLscript)
   private
-    FScript  : TStrings;
+    FOnDirective: TSQLScriptDirectiveEvent;
     FQuery   : TCustomSQLQuery;
     FDatabase : TDatabase;
     FTransaction : TDBTransaction;
   protected
-    procedure SetScript(const AValue: TStrings);
+    procedure ExecuteStatement (SQLStatement: TStrings; var StopExecution: Boolean); override;
+    procedure ExecuteDirective (Directive, Argument: String; var StopExecution: Boolean); override;
+    procedure ExecuteCommit; override;
     Procedure SetDatabase (Value : TDatabase); virtual;
     Procedure SetTransaction(Value : TDBTransaction); virtual;
     Procedure CheckDatabase;
   public
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
+    procedure Execute; override;
     procedure ExecuteScript;
-    Property Script : TStrings Read FScript Write SetScript;
+  published
     Property DataBase : TDatabase Read FDatabase Write SetDatabase;
     Property Transaction : TDBTransaction Read FTransaction Write SetTransaction;
+    property OnDirective: TSQLScriptDirectiveEvent read FOnDirective write FOnDirective;
+    property Directives;
+    property Defines;
+    property Script;
+    property Terminator;
+    property CommentsinSQL;
+    property UseSetTerm;
+    property UseCommit;
+    property UseDefines;
+    property OnException;
   end;
 
   { TSQLConnector }
@@ -1521,7 +1534,8 @@ begin
     If Assigned(AValue) then
       begin
       AValue.FreeNotification(Self);  
-      FMasterLink:=TMasterParamsDataLink.Create(Self);
+      If (FMasterLink=Nil) then
+        FMasterLink:=TMasterParamsDataLink.Create(Self);
       FMasterLink.Datasource:=AValue;
       end
     else
@@ -1548,9 +1562,29 @@ end;
 
 { TSQLScript }
 
-procedure TSQLScript.SetScript(const AValue: TStrings);
+procedure TSQLScript.ExecuteStatement(SQLStatement: TStrings;
+  var StopExecution: Boolean);
 begin
-  FScript.assign(AValue);
+  fquery.SQL.assign(SQLStatement);
+  fquery.ExecSQL;
+end;
+
+procedure TSQLScript.ExecuteDirective(Directive, Argument: String;
+  var StopExecution: Boolean);
+begin
+  if assigned (FOnDirective) then
+    FOnDirective (Self, Directive, Argument, StopExecution);
+end;
+
+procedure TSQLScript.ExecuteCommit;
+begin
+  if FTransaction is TSQLTransaction then
+    TSQLTransaction(FTransaction).CommitRetaining
+  else
+    begin
+    FTransaction.Active := false;
+    FTransaction.Active := true;
+    end;
 end;
 
 procedure TSQLScript.SetDatabase(Value: TDatabase);
@@ -1572,48 +1606,27 @@ end;
 constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FScript := TStringList.Create;
-  FQuery := TCustomSQLQuery.Create(nil);
+  FQuery := TCustomSQLQuery.Create(nil); 
 end;
 
 destructor TSQLScript.Destroy;
 begin
-  FScript.Free;
   FQuery.Free;
   inherited Destroy;
 end;
 
-procedure TSQLScript.ExecuteScript;
-
-var BufStr         : String;
-    pBufStatStart,
-    pBufPos        : PChar;
-    Statement      : String;
-
+procedure TSQLScript.Execute;
 begin
   FQuery.DataBase := FDatabase;
   FQuery.Transaction := FTransaction;
-
-  BufStr := FScript.Text;
-  pBufPos := @BufStr[1];
-
-  repeat
-
-  pBufStatStart := pBufPos;
-  repeat
-  inc(pBufPos);
-  until (pBufPos^ = ';') or (pBufPos^ = #0);
-  SetLength(statement,pbufpos-pBufStatStart);
-  move(pBufStatStart^,Statement[1],pbufpos-pBufStatStart);
-  if trim(statement) <> '' then
-    begin
-    fquery.SQL.Text := Statement;
-    fquery.ExecSQL;
-    inc(pBufPos);
-    end;
-
-  until pBufPos^ = #0;
+  inherited Execute;
 end;
+
+procedure TSQLScript.ExecuteScript;
+begin
+  Execute;
+end;
+
 
 { Connection definitions }
 
