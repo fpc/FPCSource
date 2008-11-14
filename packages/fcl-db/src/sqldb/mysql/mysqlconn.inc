@@ -133,27 +133,27 @@ Type
   EMySQLError = Class(Exception);
 
 {$IfDef mysql50}
-  TMySQL50Connection = TConnectionName;
-  TMySQL50ConnectionDef = TMySQLConnectionDef;
-  TMySQL50Transaction = TTransactionName;
-  TMySQL50Cursor = TCursorName;
+  TMySQL50Connection = Class(TConnectionName);
+  TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
+  TMySQL50Transaction = Class(TTransactionName);
+  TMySQL50Cursor = Class(TCursorName);
 {$ELSE}
   {$IfDef mysql41}
-    TMySQL41Connection = TConnectionName;
-    TMySQL41ConnectionDef = TMySQLConnectionDef;
-    TMySQL41Transaction = TTransactionName;
-    TMySQL41Cursor = TCursorName;
+    TMySQL41Connection = Class(TConnectionName);
+    TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL41Transaction = Class(TTransactionName);
+    TMySQL41Cursor = Class(TCursorName);
   {$ELSE}
     {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
-      TMySQLConnection = TConnectionName;
-      TMySQL40ConnectionDef = TMySQLConnectionDef;
-      TMySQLTransaction = TTransactionName;
-      TMySQLCursor = TCursorName;
+      TMySQLConnection = Class(TConnectionName);
+      TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQLTransaction = Class(TTransactionName);
+      TMySQLCursor = Class(TCursorName);
     {$ELSE}
-      TMySQL40Connection = TConnectionName;
-      TMySQL40ConnectionDef = TMySQLConnectionDef;
-      TMySQL40Transaction = TTransactionName;
-      TMySQL40Cursor = TCursorName;
+      TMySQL40Connection = Class(TConnectionName);
+      TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQL40Transaction = Class(TTransactionName);
+      TMySQL40Cursor = Class(TCursorName);
     {$EndIf}
   {$EndIf}
 {$EndIf}
