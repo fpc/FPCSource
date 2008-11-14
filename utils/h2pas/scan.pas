@@ -1100,7 +1100,7 @@ begin
   86:
                         if NotInCPlusBlock then return(INT64) else skip_until_eol;
   87:
-                        if NotInCPlusBlock then return(REAL) else skip_until_eol;
+                        if NotInCPlusBlock then return(FLOAT) else skip_until_eol;
   88:
                         if NotInCPlusBlock then return(_CONST) else skip_until_eol;
   89:
