@@ -457,7 +457,7 @@ var
    begin
    result := -1;
    Inc(Current);
-   while (result = -1) and (Current < Len) do 
+   while (result = -1) and (Current <= Len) do
      begin
        if S[Current] in ['0'..'9'] then 
           begin
