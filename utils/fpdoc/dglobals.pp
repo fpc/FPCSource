@@ -116,6 +116,7 @@ resourcestring
   SCHMUsageCSSFile = 'Filename of a .css file to be included in the chm.';
   SCHMUsageAutoTOC = 'Automatically generate a Table of Contents. Ignores --toc-file';
   SCHMUsageAutoIDX = 'Automatically generate an Index. Ignores --index-file';
+  SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
 
   STitle           = 'FPDoc - Free Pascal Documentation Tool';
   SVersion         = 'Version %s [%s]';
