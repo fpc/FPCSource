@@ -129,10 +129,8 @@
 {$define HASOUTLINE}
 
 { Use inlining for small functions }
-{$ifndef VER1_0}
   {$inline on}
   {.$define USEINLINE}
-{$endif}
 
 {$define TEST_PARTIAL_SYNTAX}
 { $ undef UNDO}

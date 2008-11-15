@@ -144,6 +144,44 @@ begin
   result:=true;
 end;
 
+procedure splitline(idestream:PMemoryTextFile;s:ansistring);
+
+function scanvalue:integer; // searches for a possible breaking point left of char 255.
+var n,i  : integer;
+    lastpoint:integer;
+    inquote : boolean;
+begin
+  lastpoint:=-1;
+  n:=length(s);
+  if n>250 then n:=250;
+  i:=1; inquote:=false;
+  while (i<=n) do
+    begin
+      while (s[i]<>' ') and (s[i]<>'"') and (i<=n) do inc(i);
+      if (s[i]=' ') and not inquote then lastpoint:=i;
+      if (s[i]='"') then inquote:=not inquote;
+      inc(i);
+    end;  
+  scanvalue:=lastpoint;
+end;
+
+var position : longint;
+
+begin
+  position:=0;
+  while (length(s)>250) and (position<>-1) do
+    begin
+      position:=scanvalue;
+      if position<>-1 then
+        begin
+          idestream.addline(copy(s,1,position-1));
+          delete(s,1,position);
+        end;
+    end;
+  if length(s)<>0 then
+    idestream.addline(s);
+end;
+
 function   TChmWrapper.GetTopic(name:string):PMemoryTextFile;
 
 var
@@ -170,7 +208,12 @@ begin
     linedata.loadfromstream(m);
     result:=new(PMemoryTextFile,Init);
     for i:=0 to linedata.count-1 do
-       result.addline(linedata[i]);
+       begin
+         if length(linedata[i])>250 Then
+             splitline(result,linedata[i])
+         else
+           result.addline(linedata[i]);
+       end;
   finally
     m.free;
     linedata.free;

@@ -24,11 +24,7 @@
   it should use ioctl to get information about resizing of windows }
 
 uses
-{$ifdef VER1_0}
-  linux;
-{$else}
   BaseUnix,termio;
-{$endif}
 
 Const
   SystemEventActive : Boolean = false;
@@ -48,11 +44,7 @@ begin
   PendingSystemEvents:=0;
   FillChar(LastSystemEvent,sizeof(TSystemEvent),0);
   FillChar(WinSize,sizeof(WinSize),0);
-{$ifdef VER1_0}
-  ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-{$else}
   fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-{$endif}
   LastXSize:=WinSize.ws_row;
   LastYSize:=WinSize.ws_col;
   If LastXSize=0 then
@@ -103,11 +95,7 @@ begin
   else
    begin
      FillChar(WinSize,sizeof(WinSize),0);
-{$ifdef VER1_0}
-     ioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-{$else}
      fpioctl(stdinputhandle,TIOCGWINSZ,@winsize);
-{$endif}
      if (winsize.ws_col<>0) and (winsize.ws_row<>0) and
         ((winsize.ws_row<>lastxsize) or (winsize.ws_col<>lastysize)) then
        begin
