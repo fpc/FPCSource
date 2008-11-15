@@ -287,6 +287,9 @@ const
         _noExtensionEvent        = 9;
 
 const
+        _devicePresence = 0;
+
+const
         XI_BadDevice  = 0;
         XI_BadEvent   = 1;
         XI_BadMode    = 2;

@@ -19,10 +19,10 @@ packages_darwin=x11
 [target]
 units=src/buildgtk2 
 exampledirs=examples
-implicitunits=glib2 gtkhtml atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext $(GDK2X)
+implicitunits=glib2 gtkhtml atk pango gdk2pixbuf gdk2 gtk2 libglade2 gtkglext gdkglext gtk2ext $(GDK2X)
 
 [compiler]
-unitdir=src src/glib src/atk src/pango src/gtk+/gdk-pixbuf src/gtk+/gdk src/gtk+/gtk src/libglade src/gtkglext src/gtkhtml src/$(GTK2X11)
+unitdir=src src/glib src/atk src/pango src/gtk+/gdk-pixbuf src/gtk+/gdk src/gtk+/gtk src/libglade src/gtkglext src/gtkhtml src/gtkext src/$(GTK2X11)
 includedir=$(GTK2X11INCLUDE)
 
 [install]

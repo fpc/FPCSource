@@ -558,8 +558,7 @@ begin
       end;
   addr.family := AF_INET;
   addr.port := ShortHostToNet(FPort);
-  addr.addr := hosttonet(a.s_addr); // hosttonet(A).s_addr;
-//Cardinal(A);
+  addr.addr := a.s_addr;
 
   If not Sockets.Connect(ASocket, addr, sizeof(addr)) then
     raise ESocketError.Create(seConnectFailed, [Format('%s:%d',[FHost, FPort])]);

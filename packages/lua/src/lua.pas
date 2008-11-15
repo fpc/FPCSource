@@ -97,7 +97,7 @@ type
 (*
 ** prototype for memory-allocation functions
 *)
-  lua_Alloc = procedure(ud, ptr: Pointer; osize, nsize: size_t); cdecl;
+  lua_Alloc = function(ud, ptr: Pointer; osize, nsize: size_t): Pointer; cdecl;
 
 (*
 ** basic types

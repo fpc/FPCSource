@@ -124,6 +124,62 @@ const
   SSL_ERROR_ZERO_RETURN = 6;
   SSL_ERROR_WANT_CONNECT = 7;
   SSL_ERROR_WANT_ACCEPT = 8;
+  
+     SSL_CTRL_NEED_TMP_RSA = 1;
+     SSL_CTRL_SET_TMP_RSA = 2;
+     SSL_CTRL_SET_TMP_DH = 3;
+     SSL_CTRL_SET_TMP_ECDH = 4;
+     SSL_CTRL_SET_TMP_RSA_CB = 5;
+     SSL_CTRL_SET_TMP_DH_CB = 6;
+     SSL_CTRL_SET_TMP_ECDH_CB = 7;
+     SSL_CTRL_GET_SESSION_REUSED = 8;
+     SSL_CTRL_GET_CLIENT_CERT_REQUEST = 9;
+     SSL_CTRL_GET_NUM_RENEGOTIATIONS = 10;
+     SSL_CTRL_CLEAR_NUM_RENEGOTIATIONS = 11;
+     SSL_CTRL_GET_TOTAL_RENEGOTIATIONS = 12;
+     SSL_CTRL_GET_FLAGS = 13;
+     SSL_CTRL_EXTRA_CHAIN_CERT = 14;
+     SSL_CTRL_SET_MSG_CALLBACK = 15;
+     SSL_CTRL_SET_MSG_CALLBACK_ARG = 16;
+  { only applies to datagram connections  }
+     SSL_CTRL_SET_MTU = 17;
+  { Stats  }
+     SSL_CTRL_SESS_NUMBER = 20;
+     SSL_CTRL_SESS_CONNECT = 21;
+     SSL_CTRL_SESS_CONNECT_GOOD = 22;
+     SSL_CTRL_SESS_CONNECT_RENEGOTIATE = 23;
+     SSL_CTRL_SESS_ACCEPT = 24;
+     SSL_CTRL_SESS_ACCEPT_GOOD = 25;
+     SSL_CTRL_SESS_ACCEPT_RENEGOTIATE = 26;
+     SSL_CTRL_SESS_HIT = 27;
+     SSL_CTRL_SESS_CB_HIT = 28;
+     SSL_CTRL_SESS_MISSES = 29;
+     SSL_CTRL_SESS_TIMEOUTS = 30;
+     SSL_CTRL_SESS_CACHE_FULL = 31;
+     SSL_CTRL_OPTIONS = 32;
+     SSL_CTRL_MODE = 33;
+     SSL_CTRL_GET_READ_AHEAD = 40;
+     SSL_CTRL_SET_READ_AHEAD = 41;
+     SSL_CTRL_SET_SESS_CACHE_SIZE = 42;
+     SSL_CTRL_GET_SESS_CACHE_SIZE = 43;
+     SSL_CTRL_SET_SESS_CACHE_MODE = 44;
+     SSL_CTRL_GET_SESS_CACHE_MODE = 45;
+     SSL_CTRL_GET_MAX_CERT_LIST = 50;
+     SSL_CTRL_SET_MAX_CERT_LIST = 51;
+
+{* Allow SSL_write(..., n) to return r with 0 < r < n (i.e. report success
+ * when just a single record has been written): *}
+  SSL_MODE_ENABLE_PARTIAL_WRITE = 1;
+{* Make it possible to retry SSL_write() with changed buffer location
+ * (buffer contents must stay the same!); this is not the default to avoid
+ * the misconception that non-blocking SSL_write() behaves like
+ * non-blocking write(): *}
+  SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = 2;
+{* Never bother the application with retries if the transport
+ * is blocking: *}
+  SSL_MODE_AUTO_RETRY = 4;
+{* Don't attempt to automatically build certificate chain *}
+  SSL_MODE_NO_AUTO_CHAIN = 8;
 
   SSL_OP_NO_SSLv2 = $01000000;
   SSL_OP_NO_SSLv3 = $02000000;
@@ -193,6 +249,15 @@ var
   function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
   procedure SslCtxFree(arg0: PSSL_CTX);
   function SslSetFd(s: PSSL; fd: cInt):cInt;
+  
+  function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
+  function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong;
+
+  function SSLCTXSetMode(ctx: PSSL_CTX; mode: cLong): cLong;
+  function SSLSetMode(s: PSSL; mode: cLong): cLong;
+  function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
+  function SSLGetMode(s: PSSL): cLong;
+  
   function SslMethodV2:PSSL_METHOD;
   function SslMethodV3:PSSL_METHOD;
   function SslMethodTLSV1:PSSL_METHOD;
@@ -299,6 +364,8 @@ type
   TSslCtxNew = function(meth: PSSL_METHOD):PSSL_CTX; cdecl;
   TSslCtxFree = procedure(arg0: PSSL_CTX); cdecl;
   TSslSetFd = function(s: PSSL; fd: cInt):cInt; cdecl;
+  TSslCtrl = function(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
+  TSslCTXCtrl = function(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer): cLong; cdecl;
   TSslMethodV2 = function:PSSL_METHOD; cdecl;
   TSslMethodV3 = function:PSSL_METHOD; cdecl;
   TSslMethodTLSV1 = function:PSSL_METHOD; cdecl;
@@ -397,6 +464,8 @@ var
   _SslCtxNew: TSslCtxNew = nil;
   _SslCtxFree: TSslCtxFree = nil;
   _SslSetFd: TSslSetFd = nil;
+  _SslCtrl: TSslCtrl = nil;
+  _SslCTXCtrl: TSslCTXCtrl = nil;
   _SslMethodV2: TSslMethodV2 = nil;
   _SslMethodV3: TSslMethodV3 = nil;
   _SslMethodTLSV1: TSslMethodTLSV1 = nil;
@@ -539,6 +608,43 @@ begin
     Result := _SslSetFd(s, fd)
   else
     Result := 0;
+end;
+
+function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
+begin
+  if InitSSLInterface and Assigned(_SslCtrl) then
+    Result := _SslCtrl(ssl, cmd, larg, parg)
+  else
+    Result := 0;
+end;
+
+function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer
+  ): cLong;
+begin
+  if InitSSLInterface and Assigned(_SslCTXCtrl) then
+    Result := _SslCTXCtrl(ctx, cmd, larg, parg)
+  else
+    Result := 0;
+end;
+
+function SSLCTXSetMode(ctx: PSSL_CTX; mode: cLong): cLong;
+begin
+  Result := SslCTXCtrl(ctx, SSL_CTRL_MODE, mode, nil);
+end;
+
+function SSLSetMode(s: PSSL; mode: cLong): cLong;
+begin
+  Result := SSLctrl(s, SSL_CTRL_MODE, mode, nil);
+end;
+
+function SSLCTXGetMode(ctx: PSSL_CTX): cLong;
+begin
+  Result := SSLCTXctrl(ctx, SSL_CTRL_MODE, 0, nil);
+end;
+
+function SSLGetMode(s: PSSL): cLong;
+begin
+  Result := SSLctrl(s, SSL_CTRL_MODE, 0, nil);
 end;
 
 function SslMethodV2:PSSL_METHOD;
@@ -1206,6 +1312,8 @@ begin
         _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new');
         _SslCtxFree := GetProcAddr(SSLLibHandle, 'SSL_CTX_free');
         _SslSetFd := GetProcAddr(SSLLibHandle, 'SSL_set_fd');
+        _SslCtrl := GetProcAddr(SSLLibHandle, 'SSL_ctrl');
+        _SslCTXCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_ctrl');
         _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method');
         _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method');
         _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method');
@@ -1357,6 +1465,8 @@ begin
     _SslCtxNew := nil;
     _SslCtxFree := nil;
     _SslSetFd := nil;
+    _SslCtrl := nil;
+    _SslCTXCtrl := nil;
     _SslMethodV2 := nil;
     _SslMethodV3 := nil;
     _SslMethodTLSV1 := nil;
