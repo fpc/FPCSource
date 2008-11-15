@@ -29,11 +29,6 @@ begin
   fpstatfs:=do_SysCall(SysCall_nr_statfs,TSysParam(path),TSysParam(Info))
 end;
 
-Function  fpfdatasync (fd : cint) : cint;
-begin
-  fpfdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
-end;
-
 Function  fpfsync (fd : cint) : cint;
 
 begin

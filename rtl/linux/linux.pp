@@ -106,6 +106,10 @@ function futex_op(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inli
 {$endif}
 
 const
+  POLLMSG     = $0400;
+  POLLREMOVE  = $1000;
+  POLLRDHUP   = $2000;
+
   EPOLLIN  = $01; { The associated file is available for read(2) operations. }
   EPOLLPRI = $02; { There is urgent data available for read(2) operations. }
   EPOLLOUT = $04; { The associated file is available for write(2) operations. }
@@ -326,6 +330,7 @@ const
   SYNC_FILE_RANGE_WAIT_AFTER  = 4;
 
 function sync_file_range(fd: cInt; offset, nbytes: off64_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
+function fdatasync (fd: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
 
 implementation
 
@@ -485,6 +490,11 @@ begin
     TSysParam(hi(offset)), TSysParam(lo(nbytes)), TSysParam(hi(nbytes)), TSysParam(flags));
 {$endif}
 {$endif}
+end;
+
+function fdatasync (fd: cint): cint;
+begin
+  fpfdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
 end;
 
 {$endif} // non-libc
