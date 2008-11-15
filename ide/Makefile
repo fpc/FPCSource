@@ -281,6 +281,14 @@ endif
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
 endif
 ifeq ($(LIBGDBFILE),)
+SYSLIBDIR=/lib /usr/lib /usr/local/lib
+override LIBGDBFILE=$(firstword $(wildcard $(addsuffix /libgdb.a,$(SYSLIBDIR))))
+ifneq (${LIBGDBFILE},)
+$(warning Using system sefault libgdb file located in ${LIBGDBFILE})
+GDBLIBDIR=$(dir ${LIBGDBFILE})
+endif
+endif
+ifeq ($(LIBGDBFILE),)
 GDB=
 else
 GDB=1
