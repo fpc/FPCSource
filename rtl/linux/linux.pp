@@ -494,7 +494,7 @@ end;
 
 function fdatasync (fd: cint): cint;
 begin
-  fpfdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
+  fdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
 end;
 
 {$endif} // non-libc
