@@ -313,8 +313,8 @@ function power(base,exponent : float) : float;
 { base^exponent }
 function intpower(base : float;const exponent : Integer) : float;
 
-operator ** (bas,expo : float) e: float; inline;
-operator ** (bas,expo : int64) i: int64; inline;
+operator ** (bas,expo : float) e: float;
+operator ** (bas,expo : int64) i: int64;
 
 { number converting }
 
@@ -908,13 +908,13 @@ function intpower(base : float;const exponent : Integer) : float;
   end;
 
 
-operator ** (bas,expo : float) e: float; inline;
+operator ** (bas,expo : float) e: float;
   begin
     e:=power(bas,expo);
   end;
 
 
-operator ** (bas,expo : int64) i: int64; inline;
+operator ** (bas,expo : int64) i: int64;
   begin
     i:=round(intpower(bas,expo));
   end;
