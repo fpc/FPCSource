@@ -315,7 +315,7 @@ begin
 
     if ParaPackages.Count=0 then
       begin
-        ActionPackage:=InstalledRepository.AddPackage(CurrentDirPackageName);
+        ActionPackage:=AvailableRepository.AddPackage(CurrentDirPackageName);
         pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction);
       end
     else
@@ -325,7 +325,7 @@ begin
           begin
             if FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=InstalledRepository.AddPackage(CmdLinePackageName);
+                ActionPackage:=AvailableRepository.AddPackage(CmdLinePackageName);
                 ActionPackage.LocalFileName:=ExpandFileName(ParaPackages[i]);
                 pkghandler.ExecuteAction(CmdLinePackageName,ParaAction);
               end
