@@ -133,7 +133,8 @@ implementation
         if (tf_needs_dwarf_cfi in target_info.flags) and
            (af_supports_dwarf in target_asm.flags) then
           begin
-            current_asmdata.asmlists[al_dwarf]:=TAsmList.create;
+            current_asmdata.asmlists[al_dwarf].Free;
+            current_asmdata.asmlists[al_dwarf] := TAsmList.create;
             current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf]);
           end;
       end;

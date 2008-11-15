@@ -167,4 +167,19 @@ const
   MSG_NOTIFICATION = $0100;           { Notification, not data }
   MSG_XPG4_2       = $8000;	      { Private: XPG4.2 flag }
   MSG_MAXIOVLEN    =    16;
+  
+     TCP_NODELAY = $01;
+  { set maximum segment size  }
+     TCP_MAXSEG = $02;
+  { set keepalive timer  }
+     TCP_KEEPALIVE = $8;
+     TCP_NOTIFY_THRESHOLD = $10;
+     TCP_ABORT_THRESHOLD = $11;
+     TCP_CONN_NOTIFY_THRESHOLD = $12;
+     TCP_CONN_ABORT_THRESHOLD = $13;
+     TCP_RECVDSTADDR = $14;
+     TCP_INIT_CWND = $15;
+     TCP_KEEPALIVE_THRESHOLD = $16;
+     TCP_KEEPALIVE_ABORT_THRESHOLD = $17;
+     TCP_CORK = $18;
 

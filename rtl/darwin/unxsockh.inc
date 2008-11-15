@@ -324,3 +324,16 @@ Const
   MSG_COMPAT     = $8000;              { used in sendit() }
   MSG_NEEDSA     = $10000;             { Fail receive if socket address cannot be allocated }
 
+     TCP_NODELAY = $01;
+  { set maximum segment size  }
+     TCP_MAXSEG = $02;
+  { don't push last block of write  }
+     TCP_NOPUSH = $04;
+  { don't use TCP options  }
+     TCP_NOOPT = $08;
+  { idle time used when SO_KEEPALIVE is enabled  }
+     TCP_KEEPALIVE = $10;
+     
+  { don't checksum outbound payloads }
+     UDP_NOCKSUM = $01;
+
