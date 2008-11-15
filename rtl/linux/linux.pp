@@ -22,7 +22,7 @@ unit Linux;
 interface
 
 uses
-  BaseUnix;//, ctypes;
+  BaseUnix, unixtype;
 
 type
   TSysInfo = record
@@ -312,13 +312,20 @@ const
 function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'vmsplice'; {$ENDIF}
 
 {* Splice two files together.  *}
-// NOTE: offin and offout should be "off64_t" but we don't have that type. It's an "always 64 bit offset" so I use cint64
-function splice (fdin: cInt; offin: cInt64; fdout: cInt;
-                             offout: cInt64; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
+function splice (fdin: cInt; offin: off64_t; fdout: cInt;
+                             offout: off64_t; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'splice'; {$ENDIF}
                              
 function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'tee'; {$ENDIF}
 
 {$endif} // x86
+
+const
+  { flags for sync_file_range }
+  SYNC_FILE_RANGE_WAIT_BEFORE = 1;
+  SYNC_FILE_RANGE_WRITE       = 2;
+  SYNC_FILE_RANGE_WAIT_AFTER  = 4;
+
+function sync_file_range(fd: cInt; offset, nbytes: off64_t; flags: cuInt): cInt; {$ifdef FPC_USE_LIBC} cdecl; external name 'sync_file_range'; {$ENDIF}
 
 implementation
 
@@ -446,13 +453,14 @@ end;
 
 function vmsplice (fdout: cInt; iov: PIOVec; count: size_t; flags: cuInt): cInt;
 begin
-  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov), TSysParam(count), TSysParam(flags));
+  vmsplice := do_syscall(syscall_nr_vmsplice, TSysParam(fdout), TSysParam(iov), 
+    TSysParam(count), TSysParam(flags));
 end;
 
-function splice (fdin: cInt; offin: cint64; fdout: cInt; offout: cint64; len: size_t; flags: cuInt): cInt; 
+function splice (fdin: cInt; offin: off64_t; fdout: cInt; offout: off64_t; len: size_t; flags: cuInt): cInt; 
 begin
-  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(offin), TSysParam(fdout), TSysParam(offout), 
-                       TSysParam(len), TSysParam(flags));
+  splice := do_syscall(syscall_nr_splice, TSysParam(fdin), TSysParam(@offin), 
+    TSysParam(fdout), TSysParam(@offout), TSysParam(len), TSysParam(flags));
 end;
 
 function tee(fd_in: cInt; fd_out: cInt; len: size_t; flags: cuInt): cInt;
@@ -462,6 +470,22 @@ begin
 end;
 
 {$endif} // x86
+
+function sync_file_range(fd: cInt; offset: off64_t; nbytes: off64_t; flags: cuInt): cInt;
+begin
+{$ifdef cpu64}
+  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(offset), 
+    TSysParam(nbytes), TSysParam(flags));
+{$else}
+{$if defined(cpupowerpc) or defined(cpuarm)}
+  sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags), 
+    TSysParam(hi(offset)), TSysParam(lo(offset)), TSysParam(hi(nbytes)), TSysParam(lo(nbytes)));
+{$else}
+  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(lo(offset)),
+    TSysParam(hi(offset)), TSysParam(lo(nbytes)), TSysParam(hi(nbytes)), TSysParam(flags));
+{$endif}
+{$endif}
+end;
 
 {$endif} // non-libc
 
