@@ -70,14 +70,10 @@ endif
 
 ifeq ($(CPU_TARGET),i386)
 CPU_UNITS=x86 ports cpu mmx
-else
-CPU_UNITS=
 endif
 
 ifeq ($(CPU_TARGET),x86_64)
 CPU_UNITS=x86 ports 
-else
-CPU_UNITS=
 endif
 
 
