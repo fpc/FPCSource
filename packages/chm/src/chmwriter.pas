@@ -549,7 +549,6 @@ begin
   PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
 
   AWord := FIndexedFiles.FirstWord;
-  WriteLn('Writing TOPICS');
   while AWord <> nil do
   begin
     FHits := 0;
@@ -719,8 +718,6 @@ begin
   SearchWriter.WriteToStream;
   SearchWriter.Free;
 
-  WriteLn('FIftiMain Size = ', FFiftiMainStream.Size);
-
   if FFiftiMainStream.Size = 0 then
     Exit;
 
@@ -835,7 +832,6 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
     Len: LongWord;
   begin
     Rem := $4000 - (FURLSTRStream.Size mod $4000);
-    WriteLn(Rem);
     Len := 9 + Length(AString);
     if Rem < Len then
       while Rem > 0 do
@@ -1011,7 +1007,6 @@ type
 begin
   if Pos('.ht', AFileEntry.Name) > 0 then
   begin
-    WriteLn('Should Search ', AFileEntry.Name);
     ATitle := FIndexedFiles.IndexFile(AStream, GetNewTopicsIndex);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
@@ -1026,8 +1021,7 @@ begin
     FTopicsStream.WriteDWord(LEtoN(TopicEntry.URLTableOffset));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
-  end
-  else  WriteLn('Don''t Search ', AFileEntry.Name);
+  end;
 end;
 
 constructor TChmWriter.Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
