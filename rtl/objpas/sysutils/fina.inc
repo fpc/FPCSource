@@ -20,7 +20,7 @@
     System Utilities For Free Pascal
 }
 
-function ChangeFileExt(const FileName, Extension: string): string;
+function ChangeFileExt(const FileName, Extension: RtlString): RtlString;
 var
   i : longint;
   EndSep : Set of Char;
@@ -34,7 +34,7 @@ begin
   Result := Copy(FileName, 1, I - 1) + Extension;
 end;
 
-function ExtractFilePath(const FileName: string): string;
+function ExtractFilePath(const FileName: RtlString): RtlString;
 var
   i : longint;
   EndSep : Set of Char;
@@ -49,7 +49,7 @@ begin
     Result:='';
 end;
 
-function ExtractFileDir(const FileName: string): string;
+function ExtractFileDir(const FileName: RtlString): RtlString;
 var
   i : longint;
   EndSep : Set of Char;
@@ -64,7 +64,7 @@ begin
   Result := Copy(FileName, 1, I);
 end;
 
-function ExtractFileDrive(const FileName: string): string;
+function ExtractFileDrive(const FileName: RtlString): RtlString;
 
 var
   i,l: longint;
@@ -86,7 +86,7 @@ begin
     end;
 end;
 
-function ExtractFileName(const FileName: string): string;
+function ExtractFileName(const FileName: RtlString): RtlString;
 var
   i : longint;
   EndSep : Set of Char;
@@ -98,7 +98,7 @@ begin
   Result := Copy(FileName, I + 1, MaxInt);
 end;
 
-function ExtractFileExt(const FileName: string): string;
+function ExtractFileExt(const FileName: RtlString): RtlString;
 var
   i : longint;
   EndSep : Set of Char;
@@ -113,28 +113,32 @@ begin
     Result := '';
 end;
 
-function ExtractShortPathName(Const FileName : String) : String;
-
+function ExtractShortPathName(Const FileName : RtlString) : RtlString;
+{$ifdef MSWINDOWS}
+var
+  res: UnicodeString;
+{$endif}
 begin
 {$ifdef MSWINDOWS}
-  SetLength(Result,Max_Path);
-  SetLength(Result,GetShortPathName(PChar(FileName), Pchar(Result),Length(Result)));
+  SetLength(res,Max_Path);
+  SetLength(res,GetShortPathNameW(_W(FileName), PWideChar(res),Length(res)));
+  Result:=res;
 {$else}
   Result:=FileName;
 {$endif}
 end;
 
 type
-  PathStr=string;
+  PathStr=RtlString;
 
 {$DEFINE FPC_FEXPAND_SYSUTILS}
 
 {$I fexpand.inc}
 
 
-function ExpandFileName (Const FileName : string): String;
+function ExpandFileName (Const FileName : RtlString): RtlString;
 
-Var S : String;
+Var S : RtlString;
 
 Begin
  S:=FileName;
@@ -144,7 +148,7 @@ end;
 
 
 {$ifndef HASEXPANDUNCFILENAME}
-function ExpandUNCFileName (Const FileName : string): String;
+function ExpandUNCFileName (Const FileName : RtlString): RtlString;
 begin
   Result:=ExpandFileName (FileName);
   //!! Here should follow code to replace the drive: part with UNC...
@@ -155,11 +159,11 @@ end;
 Const
   MaxDirs = 129;
 
-function ExtractRelativepath (Const BaseName,DestName : String): String;
+function ExtractRelativepath (Const BaseName,DestName : RtlString): RtlString;
 
-Var Source, Dest : String;
+Var Source, Dest : RtlString;
     Sc,Dc,I,J    : Longint;
-    SD,DD        : Array[1..MaxDirs] of PChar;
+    SD,DD        : Array[1..MaxDirs] of PRtlChar;
 
 Const OneLevelBack = '..'+DirectorySeparator;
 
@@ -176,7 +180,7 @@ begin
   I:=1;
   While (I<=DC) and (I<=SC) do
     begin
-    If StrIcomp(DD[i],SD[i])=0 then
+    If AnsiCompareText(DD[i],SD[i])=0 then
       Inc(i)
     else
       Break;
@@ -187,7 +191,7 @@ begin
   Result:=Result+ExtractFileName(DestNAme);
 end;
 
-Procedure DoDirSeparators (Var FileName : String);
+Procedure DoDirSeparators (Var FileName : RtlString);
 
 VAr I : longint;
 
@@ -198,7 +202,7 @@ begin
 end;
 
 
-Function SetDirSeparators (Const FileName : string) : String;
+Function SetDirSeparators (Const FileName : RtlString) : RtlString;
 
 begin
   Result:=FileName;
@@ -212,7 +216,7 @@ end;
   if none were found.
 }
 
-Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
+Function GetDirs (Var DirName : RtlString; Var Dirs : Array of PRtlChar) : Longint;
 
 Var I : Longint;
 
@@ -234,7 +238,7 @@ begin
   If Result>-1 then inc(Result);
 end;
 
-function IncludeTrailingPathDelimiter(Const Path : String) : String;
+function IncludeTrailingPathDelimiter(Const Path : RtlString) : RtlString;
 
 Var
   l : Integer;
@@ -246,19 +250,19 @@ begin
     Result:=Result+DirectorySeparator;
 end;
 
-function IncludeTrailingBackslash(Const Path : String) : String;
+function IncludeTrailingBackslash(Const Path : RtlString) : RtlString;
 
 begin
   Result:=IncludeTrailingPathDelimiter(Path);
 end;
 
-function ExcludeTrailingBackslash(Const Path: string): string;
+function ExcludeTrailingBackslash(Const Path: RtlString): RtlString;
 
 begin
   Result:=ExcludeTrailingPathDelimiter(Path);
 end;
 
-function ExcludeTrailingPathDelimiter(Const Path: string): string;
+function ExcludeTrailingPathDelimiter(Const Path: RtlString): RtlString;
 
 Var
   L : Integer;
@@ -270,7 +274,7 @@ begin
   Result:=Copy(Path,1,L);
 end;
 
-function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
+function IsPathDelimiter(Const Path: RtlString; Index: Integer): Boolean;
 
 begin
   Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index] in AllowDirectorySeparators);

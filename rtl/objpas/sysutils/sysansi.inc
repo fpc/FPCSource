@@ -18,7 +18,7 @@
     *********************************************************************
 }
 
-Function AnsiCompareFileName(const S1, S2: string): SizeInt;
+Function AnsiCompareFileName(const S1, S2: RtlString): SizeInt;
 
 begin
   If FileNameCaseSensitive then
@@ -27,7 +27,7 @@ begin
     Result:=AnsiCompareText(S1,S2); // Compare case insensitive. No MBCS yet.
 end;
 
-Function SameFileName(const S1, S2: string): Boolean;
+Function SameFileName(const S1, S2: RtlString): Boolean;
 
 begin
   Result:=AnsiCompareFileName(S1,S2)=0;

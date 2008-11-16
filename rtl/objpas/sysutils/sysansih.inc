@@ -18,7 +18,7 @@
     *********************************************************************
 }
 
-function AnsiCompareFileName(const S1, S2 : string) : SizeInt;
+function AnsiCompareFileName(const S1, S2 : RtlString) : SizeInt;
 function AnsiLowerCaseFileName(const s : string) : string;
 function AnsiUpperCaseFileName(const s : string) : string;
 function AnsiPos(const substr,s : string) : SizeInt;

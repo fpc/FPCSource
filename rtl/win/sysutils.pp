@@ -56,7 +56,7 @@ function CheckWin32Version(Major,Minor : Integer ): Boolean;
 function CheckWin32Version(Major : Integer): Boolean;
 Procedure RaiseLastWin32Error;
 
-function GetFileVersion(const AFileName: string): Cardinal;
+function GetFileVersion(const AFileName: RtlString): Cardinal;
 
 procedure GetFormatSettings;
 
@@ -64,6 +64,11 @@ implementation
 
   uses
     sysconst;
+
+function _W(const s: RtlString): PWideChar; inline;
+begin
+  Result:=PWideChar(UnicodeString(s));
+end;
 
 function WinCheck(res:boolean):boolean;
   begin
@@ -98,12 +103,12 @@ function CheckWin32Version(Major,Minor: Integer): Boolean;
   end;
 
 
-function GetFileVersion(const AFileName:string):Cardinal;
+function GetFileVersion(const AFileName:RtlString):Cardinal;
   var
     { usefull only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
     bufp : pointer;
-    fn : string;
+    fn : RtlString;
     valsize,
     size : DWORD;
     h : DWORD;
@@ -112,12 +117,12 @@ function GetFileVersion(const AFileName:string):Cardinal;
     result:=$fffffff;
     fn:=AFileName;
     UniqueString(fn);
-    size:=GetFileVersionInfoSize(pchar(fn),@h);
+    size:=GetFileVersionInfoSizeW(_W(fn),@h);
     if size>sizeof(buf) then
       begin
         getmem(bufp,size);
         try
-          if GetFileVersionInfo(pchar(fn),h,size,bufp) then
+          if GetFileVersionInfoW(_W(fn),h,size,bufp) then
             if VerQueryValue(bufp,'\',valrec,valsize) then
               result:=valrec^.dwFileVersionMS;
         finally
@@ -143,16 +148,15 @@ function GetFileVersion(const AFileName:string):Cardinal;
 
 { Include platform independent implementation part }
 {$i sysutils.inc}
-
-function SysGetTempFileName(lpPathName:LPCSTR;
-                            lpPrefixString:LPCSTR;
+{
+function SysGetTempFileName(lpPathName:LPWSTR;
+                            lpPrefixString:LPWSTR;
                             uUnique:UINT;
-                            lpTempFileName:LPSTR):UINT;stdcall;external 'kernel32' name 'GetTempFileNameA';
-
-function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
-
+                            lpTempFileName:LPWTR):UINT;stdcall;external 'kernel32' name 'GetTempFileNameW';
+}
+function GetTempFileName(Dir,Prefix: PRtlChar; uUnique: DWORD; TempFileName: PRtlChar):DWORD;
 begin
-  Result:=SysGetTempFileName(Dir,Prefix,uUnique,TempFileName);
+  Result:=Windows.GetTempFileNameW(_W(Dir),_W(Prefix),uUnique,TempFileName);
 end;
 
 
@@ -166,13 +170,13 @@ begin
 end;
 
 
-function ExpandUNCFileName (const filename:string) : string;
+function ExpandUNCFileName (const filename:RtlString) : RtlString;
 { returns empty string on errors }
 var
-  s    : ansistring;
+  s    : RtlString;
   size : dword;
   rc   : dword;
-  buf : pchar;
+  buf : PWideChar;
 begin
   s := ExpandFileName (filename);
 
@@ -182,15 +186,15 @@ begin
   getmem(buf,size);
 
   try
-    rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+    rc := WNetGetUniversalNameW(_W(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
 
     if rc=ERROR_MORE_DATA then
       begin
         buf:=reallocmem(buf,size);
-        rc := WNetGetUniversalName (pchar(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
+        rc := WNetGetUniversalNameW(_W(s), UNIVERSAL_NAME_INFO_LEVEL, buf, @size);
       end;
     if rc = NO_ERROR then
-      Result := PRemoteNameInfo(buf)^.lpUniversalName
+      Result := buf
     else if rc = ERROR_NOT_CONNECTED then
       Result := filename
     else
@@ -556,27 +560,27 @@ begin
 end;
 
 
-Function GetCurrentDir : String;
+Function GetCurrentDir : RtlString;
 begin
   GetDir(0, result);
 end;
 
 
-Function SetCurrentDir (Const NewDir : String) : Boolean;
+Function SetCurrentDir (Const NewDir : RtlString) : Boolean;
 begin
-  Result:=SetCurrentDirectory(PChar(NewDir));
+  Result:=SetCurrentDirectoryW(_W(NewDir));
 end;
 
 
-Function CreateDir (Const NewDir : String) : Boolean;
+Function CreateDir (Const NewDir : RtlString) : Boolean;
 begin
-  Result:=CreateDirectory(PChar(NewDir),nil);
+  Result:=CreateDirectoryW(_W(NewDir),nil);
 end;
 
 
-Function RemoveDir (Const Dir : String) : Boolean;
+Function RemoveDir (Const Dir : RtlString) : Boolean;
 begin
-  Result:=RemoveDirectory(PChar(Dir));
+  Result:=RemoveDirectoryW(_W(Dir));
 end;
 
 

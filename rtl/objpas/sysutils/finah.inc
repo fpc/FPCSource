@@ -20,23 +20,23 @@
     System Utilities For Free Pascal
 }
 
-function ChangeFileExt(const FileName, Extension: string): string;
-function ExtractFilePath(const FileName: string): string;
-function ExtractFileDrive(const FileName: string): string;
-function ExtractFileName(const FileName: string): string;
-function ExtractFileExt(const FileName: string): string;
-function ExtractFileDir(Const FileName : string): string;
-function ExtractShortPathName(Const FileName : String) : String;
-function ExpandFileName (Const FileName : string): String;
-function ExpandUNCFileName (Const FileName : string): String;
-function ExtractRelativepath (Const BaseName,DestNAme : String): String;
-function IncludeTrailingPathDelimiter(Const Path : String) : String;
-function IncludeTrailingBackslash(Const Path : String) : String;
-function ExcludeTrailingBackslash(Const Path: string): string;
-function ExcludeTrailingPathDelimiter(Const Path: string): string;
-function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
-Procedure DoDirSeparators (Var FileName : String);
-Function SetDirSeparators (Const FileName : String) : String;
-Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
-Function SameFileName(const S1, S2: string): Boolean;
+function ChangeFileExt(const FileName, Extension: RtlString): RtlString;
+function ExtractFilePath(const FileName: RtlString): RtlString;
+function ExtractFileDrive(const FileName: RtlString): RtlString;
+function ExtractFileName(const FileName: RtlString): RtlString;
+function ExtractFileExt(const FileName: RtlString): RtlString;
+function ExtractFileDir(Const FileName : RtlString): RtlString;
+function ExtractShortPathName(Const FileName : RtlString) : RtlString;
+function ExpandFileName (Const FileName : RtlString): RtlString;
+function ExpandUNCFileName (Const FileName : RtlString): RtlString;
+function ExtractRelativepath (Const BaseName,DestNAme : RtlString): RtlString;
+function IncludeTrailingPathDelimiter(Const Path : RtlString) : RtlString;
+function IncludeTrailingBackslash(Const Path : RtlString) : RtlString;
+function ExcludeTrailingBackslash(Const Path: RtlString): RtlString;
+function ExcludeTrailingPathDelimiter(Const Path: RtlString): RtlString;
+function IsPathDelimiter(Const Path: RtlString; Index: Integer): Boolean;
+Procedure DoDirSeparators (Var FileName : RtlString);
+Function SetDirSeparators (Const FileName : RtlString) : RtlString;
+Function GetDirs (Var DirName : RtlString; Var Dirs : Array of PRtlChar) : Longint;
+Function SameFileName(const S1, S2: RtlString): Boolean;
 

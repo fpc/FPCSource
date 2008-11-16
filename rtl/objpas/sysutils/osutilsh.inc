@@ -33,7 +33,7 @@ Function GetTempDir : String;
 Function GetTempFileName(Const Dir,Prefix : String) : String;
 Function GetTempFileName : String;
 { For windows compatibility }
-function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
+function GetTempFileName(Dir,Prefix: PRtlChar; uUnique: DWORD; TempFileName: PRtlChar):DWORD;
 Function GetAppConfigDir(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean) : String;
 Function GetAppConfigFile(Global : Boolean; SubDir : Boolean) : String;

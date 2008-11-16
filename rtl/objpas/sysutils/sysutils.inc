@@ -531,16 +531,16 @@ end;
     Diskh functions, OS independent.
   ---------------------------------------------------------------------}
 
-function ForceDirectories(Const Dir: string): Boolean;
+function ForceDirectories(Const Dir: RtlString): Boolean;
 
 var
   E: EInOutError;
-  ADrv : String;
+  ADrv : RtlString;
 
-function DoForceDirectories(Const Dir: string): Boolean;
+function DoForceDirectories(Const Dir: RtlString): Boolean;
 var
-  ADir : String;
-  APath: String;
+  ADir : RtlString;
+  APath: RtlString;
 begin
   Result:=True;
   ADir:=ExcludeTrailingPathDelimiter(Dir);
@@ -557,7 +557,7 @@ begin
     end;
 end;
 
-function IsUncDrive(const Drv: String): Boolean;
+function IsUncDrive(const Drv: RtlString): Boolean;
 begin
   Result := (Length(Drv) > 2) and (Drv[1] = PathDelim) and (Drv[2] = PathDelim);
 end;

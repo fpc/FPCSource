@@ -15,9 +15,9 @@
 
 Function  DiskFree(drive: byte) : int64;
 Function  DiskSize(drive: byte) : int64;
-Function GetCurrentDir : String;
-Function SetCurrentDir (Const NewDir : String) : Boolean;
-Function CreateDir (Const NewDir : String) : Boolean;
-Function RemoveDir (Const Dir : String) : Boolean;
-Function ForceDirectories(Const Dir: string): Boolean;
+Function GetCurrentDir : RtlString;
+Function SetCurrentDir (Const NewDir : RtlString) : Boolean;
+Function CreateDir (Const NewDir : RtlString) : Boolean;
+Function RemoveDir (Const Dir : RtlString) : Boolean;
+Function ForceDirectories(Const Dir: RtlString): Boolean;
 
