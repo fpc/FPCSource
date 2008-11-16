@@ -51,7 +51,7 @@ function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
 function  WinThreadGetPriority (threadHandle : THandle): LongInt; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetThreadPriority';
 {$ifndef WINCE}
-function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pchar): THandle; stdcall; external KernelDLL name 'CreateEventA';
+function  CreateEvent(lpEventAttributes:pointer;bManualReset:longbool;bInitialState:longbool;lpName:pwidechar): THandle; stdcall; external KernelDLL name 'CreateEventW';
 function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'ResetEvent';
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
 {$endif WINCE}
@@ -320,11 +320,11 @@ type Tbasiceventstate=record
      plocaleventrec= ^tbasiceventstate;
 
 function intBasicEventCreate(EventAttributes : Pointer;
-AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
+AManualReset,InitialState : Boolean;const Name : RtlString):pEventState;
 
 begin
   new(plocaleventrec(result));
-  plocaleventrec(result)^.FHandle := CreateEvent(EventAttributes, AManualReset, InitialState,PChar(Name));
+  plocaleventrec(result)^.FHandle := CreateEvent(EventAttributes, AManualReset, InitialState,_W(Name));
 end;
 
 procedure intbasiceventdestroy(state:peventstate);

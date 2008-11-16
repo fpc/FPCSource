@@ -41,7 +41,7 @@ type
   TReleaseThreadVarsHandler = Procedure;
   TBasicEventHandler        = procedure(state:peventstate);
   TBasicEventWaitForHandler = function (timeout:cardinal;state:peventstate):longint;
-  TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:ansistring):pEventState;
+  TBasicEventCreateHandler  = function (EventAttributes :Pointer;  AManualReset,InitialState : Boolean;const Name:RtlString):pEventState;
   TRTLEventHandler          = procedure(AEvent:PRTLEvent);
   TRTLEventHandlerTimeout   = procedure(AEvent:PRTLEvent;timeout : longint);
   TRTLCreateEventHandler    = function:PRTLEvent;
