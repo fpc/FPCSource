@@ -29,6 +29,7 @@ interface
 {$define DISABLE_NO_THREAD_MANAGER}
 
 {$define FPC_RTLSTRING_UTF16}
+{$define HAS_CMDLINE}
 
 { include system-independent routine headers }
 {$I systemh.inc}
@@ -95,9 +96,6 @@ type
   end;
 
 var
-{ C compatible arguments }
-  argc : longint;
-  argv : ^PRtlChar;
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
@@ -115,6 +113,11 @@ const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
+
+function CmdLine: PRtlChar;
+{ C compatible arguments }
+function argc: longint;
+function argv: PPRtlChar;
 
 implementation
 
@@ -147,141 +150,139 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
                               Parameter Handling
 *****************************************************************************}
 
+var
+  FArgs: PRtlChar;
+  FCmdLine: PRtlChar;
+{$ifndef FPC_RTLSTRING_UTF16}
+  FCmdLineStr: RtlString;
+{$endif FPC_RTLSTRING_UTF16}
+  Fargc: longint;
+  Fargv: PPRtlChar;
+
 procedure setup_arguments;
 var
-  arglen,
-  count   : longint;
-  argstart,
-  pc      : pwidechar;
-  arg     : PRtlChar;
-  quote   : Boolean;
-  argvlen : longint;
+  i, argvlen: longint;
+  pc, dst, argstart: PRtlChar;
+  quote: Boolean;
   buf: array[0..259] of WideChar;  // need MAX_PATH bytes, not 256!
-
-  procedure allocarg(idx,len:longint);
-    var
-      oldargvlen : longint;
-    begin
-      if idx>=argvlen then
-       begin
-         oldargvlen:=argvlen;
-         argvlen:=(idx+8) and (not 7);
-         sysreallocmem(argv,argvlen*sizeof(pointer));
-         fillchar(argv[oldargvlen],(argvlen-oldargvlen)*sizeof(pointer),0);
-       end;
-      { use realloc to reuse already existing memory }
-      { always allocate, even if length is zero, since }
-      { the arg. is still present!                     }
-      sysreallocmem(argv[idx],len+1);
-    end;
-
+{$ifndef FPC_RTLSTRING_UTF16}
+  s: RtlString;
+{$endif FPC_RTLSTRING_UTF16}
 begin
-  SetupProcVars;
-  { create commandline, it starts with the executed filename which is argv[0] }
-  { Win32 passes the command NOT via the args, but via getmodulefilename}
-  count:=0;
-  argv:=nil;
-  argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], High(buf)-1);
-  buf[ArgLen] := #0; // be safe
-  allocarg(0,arglen);
-  move(buf,argv[0]^,arglen+1);
-  { Setup cmdline variable }
-  cmdline:=GetCommandLine;
-  { process arguments }
-  pc:=cmdline;
-{$IfDef SYSTEM_DEBUG_STARTUP}
-  Writeln(stderr,'Win32 GetCommandLine is #',pc,'#');
-{$EndIf }
-  while pc^<>#0 do
+  if FCmdLine <> nil then exit;
+  // Alloc argv buffer
+  argvlen:=20;
+  Fargv:=SysGetMem(argvlen*SizeOf(pointer));
+  // Get command line
+{$ifdef FPC_RTLSTRING_UTF16}
+  FCmdLine:=GetCommandLine;
+{$else}
+  FCmdLineStr:=GetCommandLine;
+  FCmdLine:=PRtlChar(FCmdLineStr);
+{$endif FPC_RTLSTRING_UTF16}
+  // Get exe name
+  i:=GetModuleFileName(0, buf, High(buf)-1);
+  buf[i]:=#0; // be safe
+{$ifndef FPC_RTLSTRING_UTF16}
+  s:=buf;
+  i:=Length(s);
+{$endif FPC_RTLSTRING_UTF16}
+  Inc(i);
+  // Alloc space for arguments
+  FArgs:=SysGetMem((i + strlen(FCmdLine) + 1)*SizeOf(RtlChar));
+  // Copy exe name
+  Move(buf, FArgs^, i*SizeOf(RtlChar));
+  Fargv[0]:=FArgs;
+  Fargc:=0;
+
+  // Process arguments
+  pc:=FCmdLine;
+  dst:=FArgs + i;
+  while pc^ <> #0 do
    begin
      { skip leading spaces }
-     while pc^ in [#1..#32] do
-      inc(pc);
-     if pc^=#0 then
-      break;
-     { calc argument length }
+     while (pc^ <> #0) and (pc^ <= ' ') do
+       Inc(pc);
+     if pc^ = #0 then
+       break;
+
+     argstart:=dst;
+
+     { copy argument }
      quote:=False;
-     argstart:=pc;
-     arglen:=0;
-     while (pc^<>#0) do
+     while pc^ <> #0 do
       begin
         case pc^ of
           #1..#32 :
-            begin
-              if quote then
-               inc(arglen)
-              else
-               break;
-            end;
+            if not quote then
+              break;
           '"' :
-            if pc[1]<>'"' then
-              quote := not quote
-              else
-              inc(pc);
-          else
-            inc(arglen);
+            begin
+              Inc(pc);
+              if pc^ <> '"' then
+               begin
+                 quote := not quote;
+                 continue;
+               end;
+            end;
         end;
-        inc(pc);
+        // don't copy the first argument. It is exe name
+        if Fargc > 0 then
+          begin
+            dst^:=pc^;
+            Inc(dst);
+          end;
+        Inc(pc);
       end;
-     { copy argument }
-     { Don't copy the first one, it is already there.}
-     If Count<>0 then
-      begin
-        allocarg(count,arglen);
-        quote:=False;
-        pc:=argstart;
-        arg:=argv[count];
-        while (pc^<>#0) do
-         begin
-           case pc^ of
-             #1..#32 :
-               begin
-                 if quote then
-                  begin
-                    arg^:=pc^;
-                    inc(arg);
-                  end
-                 else
-                  break;
-               end;
-             '"' :
-               if pc[1]<>'"' then
-                 quote := not quote
-                  else
-                inc(pc);
-             else
-               begin
-                 arg^:=pc^;
-                 inc(arg);
-               end;
-           end;
-           inc(pc);
-         end;
-        arg^:=#0;
-      end;
- {$IfDef SYSTEM_DEBUG_STARTUP}
-     Writeln(stderr,'dos arg ',count,' #',arglen,'#',argv[count],'#');
- {$EndIf SYSTEM_DEBUG_STARTUP}
-     inc(count);
+
+      if Fargc > 0 then
+        begin
+          // null-terminate the argument
+          dst^:=#0;
+          Inc(dst);
+          if Fargc >= argvlen then
+            begin
+              Inc(argvlen, 20);
+              SysReAllocMem(Fargv, argvlen*SizeOf(pointer));
+            end;
+          Fargv[Fargc]:=argstart;
+        end;
+
+      Inc(Fargc);
    end;
-  { get argc }
-  argc:=count;
-  { free unused memory, leaving a nil entry at the end }
-  sysreallocmem(argv,(count+1)*sizeof(pointer));
-  argv[count] := nil;
+   // Truncate buffers
+   SysReAllocMem(FArgs, dst - FArgs);
+   SysReAllocMem(Fargv, Fargc*SizeOf(pointer));
 end;
 
+function CmdLine: PRtlChar;
+begin
+  setup_arguments;
+  Result:=FCmdLine;
+end;
+
+function argc: longint;
+begin
+  setup_arguments;
+  Result:=Fargc;
+end;
+
+function argv: PPRtlChar;
+begin
+  setup_arguments;
+  Result:=Fargv;
+end;
 
 function paramcount : longint;
 begin
   paramcount := argc - 1;
 end;
 
-function paramstr(l : longint) : string;
+function paramstr(l : longint) : RtlString;
 begin
-  if (l>=0) and (l<argc) then
-    paramstr:=strpas(argv[l])
+  setup_arguments;
+  if (l>=0) and (l<Fargc) then
+    paramstr:=Fargv[l]
   else
     paramstr:='';
 end;
@@ -308,6 +309,8 @@ procedure asm_exit;stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
+  SysFreeMem(FArgs);
+  SysFreeMem(FArgv);
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
@@ -1067,9 +1070,7 @@ begin
   SysInitExceptions;
   { setup fastmove stuff }
   fpc_cpucodeinit;
-  SysInitStdIO;
-  { Arguments }
-  setup_arguments;
+  SetupProcVars;
   { Reset IO Error }
   InOutRes:=0;
   ProcessID := GetCurrentProcessID;
@@ -1084,5 +1085,6 @@ begin
 {$endif VER2_2}
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
+  SysInitStdIO;
 end.
 
