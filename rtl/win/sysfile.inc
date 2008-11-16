@@ -39,7 +39,7 @@ end;
 procedure do_erase(p : PRtlChar);
 begin
    DoDirSeparators(p);
-   if DeleteFile(p)=0 then
+   if DeleteFile(_W(p))=0 then
     Begin
       errno:=GetLastError;
       if errno=5 then
@@ -56,7 +56,7 @@ procedure do_rename(p1,p2 : PRtlChar);
 begin
   DoDirSeparators(p1);
   DoDirSeparators(p2);
-  if MoveFile(p1,p2)=0 then
+  if MoveFile(_W(p1),_W(p2))=0 then
    Begin
       errno:=GetLastError;
       Errno2InoutRes;

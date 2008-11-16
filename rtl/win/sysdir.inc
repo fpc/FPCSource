@@ -36,7 +36,7 @@ end;
 
 function CreateDirectoryTrunc(name:PRtlChar):longbool;stdcall;
 begin
-  CreateDirectoryTrunc:=CreateDirectory(name,nil);
+  CreateDirectoryTrunc:=CreateDirectory(_W(name),nil);
 end;
 
 procedure mkdir(const s:RtlString);[IOCHECK];
@@ -82,7 +82,7 @@ const
   Drive:array[0..3]of RtlChar=(#0,':',#0,#0);
 var
   defaultdrive:boolean;
-  DirBuf,SaveBuf:array[0..259] of RtlChar;
+  DirBuf,SaveBuf:array[0..259] of WideChar;
 {$endif WINCE}
 begin
 {$ifndef WINCE}
