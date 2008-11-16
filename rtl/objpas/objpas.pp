@@ -50,32 +50,26 @@ Var
 
     { Untyped file support }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
      Procedure CloseFile(var f:File);
 
      { Text file support }
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
      Procedure CloseFile(Var t:Text);
 
      { Typed file supoort }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
-
-     { ParamStr should return also an ansistring }
-     Function ParamStr(Param : Integer) : Ansistring;
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
+     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
 
 {****************************************************************************
                              Resource strings.
 ****************************************************************************}
 
    type
-     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
+     TResourceIterator = Function (Name,Value : RtlString; Hash : Longint; arg:pointer) : RtlString;
 
    Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
@@ -94,9 +88,9 @@ Var
 
    { Delphi compatibility }
    type
-     PResStringRec=^AnsiString;
-     TResStringRec=AnsiString;
-   Function LoadResString(p:PResStringRec):AnsiString;
+     PResStringRec=^RtlString;
+     TResStringRec=RtlString;
+   Function LoadResString(p:PResStringRec):RtlString;
 
   implementation
 
@@ -106,22 +100,16 @@ Var
 
 { Untyped file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
 
 begin
   System.Assign (F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
 
 begin
   System.Assign (F,P);
-end;
-
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
-
-begin
-  System.Assign (F,C);
 end;
 
 Procedure CloseFile(Var f:File); [IOCheck];
@@ -133,22 +121,16 @@ end;
 
 { Text file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
 
 begin
   System.Assign (T,S);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
 
 begin
   System.Assign (T,P);
-end;
-
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
-
-begin
-  System.Assign (T,C);
 end;
 
 Procedure CloseFile(Var t:Text); [IOCheck];
@@ -160,52 +142,17 @@ end;
 
 { Typed file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
 
 begin
   system.Assign(F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
 
 begin
   system.Assign (F,p);
 end;
-
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
-
-begin
-  system.Assign (F,C);
-end;
-
-Function ParamStr(Param : Integer) : Ansistring;
-
-Var Len : longint;
-
-begin
-{
-  Paramstr(0) should return the name of the binary.
-  Since this functionality is included in the system unit,
-  we fetch it from there.
-  Normally, pathnames are less than 255 chars anyway,
-  so this will work correct in 99% of all cases.
-  In time, the system unit should get a GetExeName call.
-}
-  if (Param=0) then
-    Result:=System.Paramstr(0)
-  else if (Param>0) and (Param<argc) then
-    begin
-    Len:=0;
-    While Argv[Param][Len]<>#0 do
-      Inc(len);
-    SetLength(Result,Len);
-    If Len>0 then
-      Move(Argv[Param][0],Result[1],Len);
-    end
-  else
-    paramstr:='';
-end;
-
 
 
 { ---------------------------------------------------------------------
@@ -506,7 +453,7 @@ end;
 
 {$endif RESSTRSECTIONS}
 
-Function LoadResString(p:PResStringRec):AnsiString;
+Function LoadResString(p:PResStringRec):RtlString;
 begin
   Result:=p^;
 end;
