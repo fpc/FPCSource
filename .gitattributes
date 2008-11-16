@@ -7800,6 +7800,7 @@ tests/test/tparray7.pp svneol=native#text/plain
 tests/test/tparray8.pp svneol=native#text/plain
 tests/test/tparray9.pp svneol=native#text/plain
 tests/test/tpftch1.pp svneol=native#text/plain
+tests/test/tpoll.pp svneol=native#text/plain
 tests/test/tprec1.pp svneol=native#text/plain
 tests/test/tprec10.pp svneol=native#text/plain
 tests/test/tprec11.pp svneol=native#text/plain
