@@ -2580,17 +2580,19 @@ end;
 Function StrCharLength(const Str: PWideChar): Integer;
 var
   c: WideChar;
+  s: PWideChar;
 begin
-  Result:=0;
-  c:=Str^;
-  if c = #0 then exit;
-  Inc(Result);
-  Inc(Str);
-  if (c >= #$d800) and (c <= #$dbff) then begin
-    c:=Str^;
-    if (c <> #0) and (c >= #$dc00) and (c <= #$dfff) then
-      Inc(Result);
+  s:=Str;
+  c:=s^;
+  if c <> #0 then begin
+    Inc(s);
+    if (c >= #$d800) and (c <= #$dbff) then begin
+      c:=s^;
+      if (c <> #0) and (c >= #$dc00) and (c <= #$dfff) then
+        Inc(s);
+    end;
   end;
+  Result:=s - Str;
 end;
 
 
