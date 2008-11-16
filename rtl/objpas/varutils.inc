@@ -297,7 +297,7 @@ begin
     Result:=vatWideString
   else if (psa^.Flags and ARR_VARIANT) <> 0 then
     Result := vatVariant
-  else    
+  else
     Result:=vatNormal;
 end;
 
@@ -313,7 +313,7 @@ begin
     vat:=VariantArrayType(psa);
     case vat of
       vatNormal : FillChar(psa^.Data^,Count*psa^.ElementSize,0);
-      vatInterface : 
+      vatInterface :
          for j := 0 to Count - 1 do
            begin
            P := SafeArrayCalculateElementAddress(psa,j);
@@ -325,7 +325,7 @@ begin
            P := SafeArrayCalculateElementAddress(psa,j);
            WideString(PPointer(P)^):='';
            end;
-      vatVariant :       
+      vatVariant :
          for j := 0 to Count - 1 do
            begin
            P := SafeArrayCalculateElementAddress(psa,j);
@@ -350,7 +350,7 @@ begin
     vat:=VariantArrayType(psa);
     case vat of
       vatNormal: Move(psa^.Data^,psaOut^.Data^,Count*psa^.ElementSize);
-      vatInterface : 
+      vatInterface :
          for j := 0 to Count - 1 do
            begin
            P1 := SafeArrayCalculateElementAddress(psa,j);
@@ -364,7 +364,7 @@ begin
            P2 := SafeArrayCalculateElementAddress(psaOut,j);
            WideString(PPointer(P2)^):=WideString(PPointer(P1)^);
            end;
-      vatVariant :       
+      vatVariant :
          for j := 0 to Count - 1 do
            begin
            P1 := SafeArrayCalculateElementAddress(psa,j);
@@ -379,22 +379,38 @@ begin
   end;
 end;
 
-Type
-  TVartypes = varEmpty..varByte;
-
 Const
-  Supportedpsas : set of TVarTypes =
-    [varSmallint,varInteger,
+  Supportedpsas = [varSmallint,varInteger,
 {$ifndef FPUNONE}
      varSingle,varDouble,varCurrency,varDate,
 {$endif}
-     varOleStr,varDispatch,varError,varBoolean,varVariant,varUnknown,varByte];
-  psaElementSizes : Array [varEmpty..varByte] of Byte =
-    (0,0,2,4,4,8,8,8,4,4,4,2,16,4,0,0,0,1);
-  psaElementFlags : Array [varEmpty..varByte] of Longint =
+     varOleStr,varDispatch,varError,varBoolean,varVariant,varUnknown,varShortInt,varByte,
+     varWord,varLongWord,varInt64,varQWord];
+  psaElementFlags : Array [varEmpty..varQWord] of Longint =
     (ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,
      ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_VARIANT,ARR_UNKNOWN,
-     ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
+     ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
+  psaElementSizes : Array [varEmpty..varQWord] of Byte =
+    (0,0,
+     SizeOf(SmallInt),
+     SizeOf(Integer),
+     SizeOf(Single),
+     SizeOf(Double),
+     SizeOf(TTimeDate),
+     SizeOf(Currency),
+     SizeOf(PWideString),
+     SizeOf(IInterface),
+     SizeOf(TError),
+     SizeOf(Boolean),
+     SizeOf(TVarData),
+     SizeOf(IUnknown),
+     0, // Decimal
+     SizeOf(ShortInt),
+     SizeOf(Byte),
+     SizeOf(Word),
+     SizeOf(LognWord),
+     SizeOf(Int64),
+     SizeOf(QWord));
 
 Function SafeArrayCreate(VarType, Dim: DWord; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
   var
@@ -722,7 +738,7 @@ begin
       vatInterface:
         NoInterfaces; // Just assign...
       vatWideString:
-        NoWideStrings; // Just assign...
+        CopyAsWideString(PWideChar(Data^), PWideChar(P^));
     end;
   except
     On E : Exception do
@@ -747,7 +763,7 @@ begin
       vatInterface:
         NoInterfaces;
       vatWideString:
-        NoWideStrings;
+        CopyAsWideString(PWideChar(P^), PWideChar(Data));
     end;
   except
     On E : Exception do
