@@ -707,7 +707,8 @@ var
 
     NameLength := GetCompressedInteger(ChunkStream);
     SetLength(Result, NameLength);
-    ChunkStream.Read(Result[1], NameLength);
+    if NameLength>0 then
+      ChunkStream.Read(Result[1], NameLength);
   end;
 var
   PMGLChunk: TPMGListChunk;
