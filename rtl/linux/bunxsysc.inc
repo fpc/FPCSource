@@ -407,7 +407,7 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 
 begin
  fpLStat:=do_syscall(
-{$ifdef cpux86_64}
+{$ifdef cpu64}
     syscall_nr_lstat,
 {$else}
     syscall_nr_lstat64,
