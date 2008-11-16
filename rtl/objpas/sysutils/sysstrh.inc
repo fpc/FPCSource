@@ -230,8 +230,10 @@ Function StrByteType(Str: PChar; Index: Cardinal): TMbcsByteType;
 Function ByteToCharLen(const S: string; MaxLen: Integer): Integer;
 Function CharToByteLen(const S: string; MaxLen: Integer): Integer;
 Function ByteToCharIndex(const S: string; Index: Integer): Integer;
-Function StrCharLength(const Str: PChar): Integer;
-function StrNextChar(const Str: PChar): PChar;
+Function StrCharLength(const Str: PAnsiChar): Integer; overload;
+Function StrCharLength(const Str: PWideChar): Integer; overload;
+function StrNextChar(const Str: PAnsiChar): PAnsiChar; overload;
+function StrNextChar(const Str: PWideChar): PWideChar; overload;
 
 
 const

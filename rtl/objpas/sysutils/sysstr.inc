@@ -2571,15 +2571,38 @@ begin
 end;
 
 
-Function StrCharLength(const Str: PChar): Integer;
+Function StrCharLength(const Str: PAnsiChar): Integer;
 begin
   result:=widestringmanager.CharLengthPCharProc(Str);
 end;
 
 
-function StrNextChar(const Str: PChar): PChar;
+Function StrCharLength(const Str: PWideChar): Integer;
+var
+  c: WideChar;
+begin
+  Result:=0;
+  c:=Str^;
+  if c = #0 then exit;
+  Inc(Result);
+  Inc(Str);
+  if (c >= #$d800) and (c <= #$dbff) then begin
+    c:=Str^;
+    if (c <> #0) and (c >= #$dc00) and (c <= #$dfff) then
+      Inc(Result);
+  end;
+end;
+
+
+function StrNextChar(const Str: PAnsiChar): PAnsiChar;
 begin
   result:=Str+StrCharLength(Str);
+end;
+
+
+function StrNextChar(const Str: PWideChar): PWideChar;
+begin
+  Result:=Str+StrCharLength(Str);
 end;
 
 
