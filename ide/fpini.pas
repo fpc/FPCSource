@@ -233,7 +233,8 @@ function strtopalette(S: string): string;
 {Converts a string in palette string format, i.e #$41#$42#$43 or
 #65#66#67 to an actual format.}
 
-var i,p,x,len:byte;
+var i: integer;
+    p,x,len:byte;
     code:integer;
 
 begin
