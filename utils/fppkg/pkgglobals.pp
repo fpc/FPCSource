@@ -158,10 +158,7 @@ begin
     vlDebug :
       Prefix:='D: '; }
   end;
-  if Level in [vlError,vlWarning] then
-    Writeln(stdErr,Prefix,Msg)
-  else
-    Writeln(stdOut,Prefix,Msg);
+  Writeln(stdOut,Prefix,Msg);
 end;
 
 

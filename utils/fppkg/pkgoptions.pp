@@ -55,6 +55,7 @@ Type
     Procedure InitGlobalDefaults;
     Procedure LoadGlobalFromFile(const AFileName : String);
     Procedure SaveGlobalToFile(const AFileName : String);
+    procedure LogValues;
     Property Dirty : Boolean Read FDirty;
     Property ConfigVersion : Integer read FConfigVersion;
     function LocalPackagesFile:string;
@@ -100,6 +101,7 @@ Type
     Procedure InitCompilerDefaults;
     Procedure LoadCompilerFromFile(const AFileName : String);
     Procedure SaveCompilerToFile(const AFileName : String);
+    procedure LogValues(const ACfgName:string);
     Property Dirty : Boolean Read FDirty;
     Property ConfigVersion : Integer read FConfigVersion;
     Function LocalUnitDir:string;
@@ -295,9 +297,7 @@ begin
               Error(SErrUnsupportedConfigVersion,[AFileName]);
           end;
         FRemoteMirrorsURL:=ReadString(SDefaults,KeyRemoteMirrorsURL,FRemoteMirrorsURL);
-{$warning Temporary Config check, can be removed in March-2008}
-        if FConfigVersion>=1 then
-          FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
+        FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
         FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
         FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir));
@@ -338,6 +338,21 @@ begin
   finally
     Ini.Free;
   end;
+end;
+
+
+procedure TGlobalOptions.LogValues;
+begin
+  Log(vlDebug,SLogGlobalCfgHeader);
+  Log(vlDebug,SLogGlobalCfgRemoteMirrorsURL,[FRemoteMirrorsURL]);
+  Log(vlDebug,SLogGlobalCfgRemoteRepository,[FRemoteRepository]);
+  Log(vlDebug,SLogGlobalCfgLocalRepository,[FLocalRepository]);
+  Log(vlDebug,SLogGlobalCfgBuildDir,[FBuildDir]);
+  Log(vlDebug,SLogGlobalCfgArchivesDir,[FArchivesDir]);
+  Log(vlDebug,SLogGlobalCfgCompilerConfigDir,[FCompilerConfigDir]);
+  Log(vlDebug,SLogGlobalCfgDefaultCompilerConfig,[FDefaultCompilerConfig]);
+  Log(vlDebug,SLogGlobalCfgFPMakeCompilerConfig,[FFPMakeCompilerConfig]);
+  Log(vlDebug,SLogGlobalCfgDownloader,[FDownloader]);
 end;
 
 
@@ -521,6 +536,17 @@ begin
   finally
     Ini.Free;
   end;
+end;
+
+
+procedure TCompilerOptions.LogValues(const ACfgName:string);
+begin
+  Log(vlDebug,SLogCompilerCfgHeader,[ACfgName]);
+  Log(vlDebug,SLogCompilerCfgCompiler,[FCompiler]);
+  Log(vlDebug,SLogCompilerCfgTarget,[MakeTargetString(CompilerCPU,CompilerOS)]);
+  Log(vlDebug,SLogCompilerCfgVersion,[FCompilerVersion]);
+  Log(vlDebug,SLogCompilerCfgGlobalInstallDir,[FGlobalInstallDir]);
+  Log(vlDebug,SLogCompilerCfgLocalInstallDir,[FLocalInstallDir]);
 end;
 
 
