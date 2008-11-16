@@ -25,7 +25,7 @@ const
   TextRecBufSize    = 256;
 type
   TLineEndStr = string [3];
-  TextBuf = array[0..TextRecBufSize-1] of char;
+  TextBuf = array[0..(TextRecBufSize div SizeOf(RtlChar))-1] of RtlChar;
   TextRec = Packed Record
     Handle    : THandle;
     Mode      : longint;
@@ -39,7 +39,7 @@ type
     flushfunc,
     closefunc : pointer;
     UserData  : array[1..32] of byte;
-    name      : array[0..textrecnamelength-1] of char;
+    name      : array[0..(TextRecNameLength div SizeOf(RtlChar))-1] of RtlChar;
     LineEnd   : TLineEndStr;
     buffer    : textbuf;
   End;

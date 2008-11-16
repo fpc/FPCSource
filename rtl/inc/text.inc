@@ -57,7 +57,7 @@ Begin
      exit;
    end;
   End;
-  Do_Open(t,PChar(@t.Name),Flags);
+  Do_Open(t,PRtlChar(@t.Name),Flags);
   t.CloseFunc:=@FileCloseFunc;
   t.FlushFunc:=nil;
   if t.Mode=fmInput then
@@ -75,7 +75,7 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:String);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
 Begin
   FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
@@ -93,15 +93,15 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
 begin
-  Assign(t,StrPas(p));
+  Assign(t,p);
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:RtlChar);
 begin
-  Assign(t,string(c));
+  Assign(t,RtlString(c));
 end;
 
 
@@ -198,25 +198,33 @@ Begin
   If InOutRes <> 0 then
    exit;
   If TextRec(t).mode=fmClosed Then
-   Do_Erase(PChar(@TextRec(t).Name));
+   Do_Erase(PRtlChar(@TextRec(t).Name));
 End;
 
 
-Procedure Rename(var t : text;p:pchar);[IOCheck];
+Procedure Rename(var t : text;p:PRtlChar);[IOCheck];
+var
+  len: longint;
 Begin
   If InOutRes <> 0 then
    exit;
   If TextRec(t).mode=fmClosed Then
    Begin
-     Do_Rename(PChar(@TextRec(t).Name),p);
+     Do_Rename(PRtlChar(@TextRec(t).Name),p);
      { check error code of do_rename }
      If InOutRes = 0 then
-         Move(p^,TextRec(t).Name,StrLen(p)+1);
+      begin
+        len:=StrLen(p)*SizeOf(RtlChar);
+        if len > SizeOf(TextRec(t).Name) - SizeOf(RtlChar) then
+          len:=SizeOf(TextRec(t).Name) - SizeOf(RtlChar);
+        Move(p^,TextRec(t).Name,len);
+        TextRec(t).Name[len]:=#0;
+      end;
    End;
 End;
 
 
-Procedure Rename(var t : Text;const s : string);[IOCheck];
+Procedure Rename(var t : Text;const s : RtlString);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
@@ -228,7 +236,7 @@ Begin
 End;
 
 
-Procedure Rename(var t : Text;c : char);[IOCheck];
+Procedure Rename(var t : Text;c : RtlChar);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin

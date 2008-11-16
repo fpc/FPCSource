@@ -485,7 +485,7 @@ var
 
 {$ifndef HAS_CMDLINE}
 {Value should be changed during system initialization as appropriate.}
-var cmdline:Pchar=nil;
+var cmdline:PRtlChar=nil;
 {$endif}
 
 
@@ -728,7 +728,8 @@ Function  Sseg:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 ****************************************************************************}
 
 function strpas(p:pchar):shortstring;{$ifdef SYSTEMINLINE}inline;{$endif}
-function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH';
+function strlen(p:pchar):longint;external name 'FPC_PCHAR_LENGTH'; overload;
+function strlen(p:PWideChar):longint; external name 'FPC_PWIDECHAR_LENGTH'; overload;
 
 { Shortstring functions }
 Procedure Delete(var s:shortstring;index:SizeInt;count:SizeInt);
@@ -800,9 +801,9 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:RtlChar);
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -825,9 +826,9 @@ Function  FileSize(var f:File):Int64;
 Procedure Seek(var f:File;Pos:Int64);
 Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
-Procedure Rename(var f:File;const s:string);
-Procedure Rename(var f:File;p:pchar);
-Procedure Rename(var f:File;c:char);
+Procedure Rename(var f:File;const s:RtlString);
+Procedure Rename(var f:File;p:PRtlChar);
+Procedure Rename(var f:File;c:RtlChar);
 Procedure Truncate (var F:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -849,18 +850,18 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:RtlChar);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
 Procedure Append(var t:Text);
 Procedure Flush(var t:Text);
 Procedure Erase(var t:Text);
-Procedure Rename(var t:Text;const s:string);
-Procedure Rename(var t:Text;p:pchar);
-Procedure Rename(var t:Text;c:char);
+Procedure Rename(var t:Text;const s:RtlString);
+Procedure Rename(var t:Text;p:PRtlChar);
+Procedure Rename(var t:Text;c:RtlChar);
 Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(var t:Text):Boolean;
@@ -880,12 +881,12 @@ Procedure SetTextLineEnding(var f:Text; Ending:string);
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:string);
-Procedure mkdir(const s:string);
-Procedure rmdir(const s:string);
-Procedure getdir(drivenr:byte;var dir:shortstring);
+Procedure chdir(const s:RtlString);
+Procedure mkdir(const s:RtlString);
+Procedure rmdir(const s:RtlString);
+Procedure getdir(drivenr:byte;var dir:RtlString);
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-Procedure getdir(drivenr:byte;var dir:ansistring);
+//Procedure getdir(drivenr:byte;var dir:RtlString);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
 

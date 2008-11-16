@@ -111,15 +111,9 @@ type
    UINT  = cardinal;
    BOOL  = longbool;
 //   WCHAR = word;
-{$ifdef UNICODE}
-   LPTCH   = ^word;
-   LPTSTR  = ^word;
-   LPCTSTR = ^word;
-{$else UNICODE}
-   LPTCH   = ^char;
-   LPTSTR  = ^char;
-   LPCTSTR = ^char;
-{$endif UNICODE}
+   LPTCH   = ^wchar;
+   LPTSTR  = ^wchar;
+   LPCTSTR = ^wchar;
    LPWSTR  = ^wchar;
    PVOID   = pointer;
    LPVOID  = pointer;
@@ -187,15 +181,12 @@ threadvar
 
    { Startup }
    procedure GetStartupInfo(p : pointer);
-     stdcall;external KernelDLL name 'GetStartupInfoA';
+     stdcall;external KernelDLL name 'GetStartupInfoW';
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
    { command line/enviroment functions }
-   function GetCommandLine : pchar;
-     stdcall;external KernelDLL name 'GetCommandLineA';
-
-   function GetCommandLineW : pwidechar;
+   function GetCommandLine : pwidechar;
      stdcall;external KernelDLL name 'GetCommandLineW';
 
   function GetCurrentProcessId:DWORD;
@@ -206,10 +197,10 @@ threadvar
 {$endif WINCE}
 
    { module functions }
-   function GetModuleFileName(l1:longint;p:pointer;l2:longint):longint;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileName' + ApiSuffix;
-   function GetModuleHandle(p : pointer) : PtrUInt;
-     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandle' + ApiSuffix;
+   function GetModuleFileName(l1:thandle;p:pwidechar;l2:dword):longint;
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleFileNameW';
+   function GetModuleHandle(p : pwidechar) : PtrUInt;
+     {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'GetModuleHandleW';
 
    { file functions }
    function WriteFile(fh:thandle;buf:pointer;len:longint;var loaded:longint;
@@ -229,30 +220,22 @@ threadvar
    function FreeLibrary(hLibModule:THandle):ByteBool; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'FreeLibrary';
 
 {$ifndef WINCE}
-   function LoadLibrary(lpLibFileName:pchar):THandle; stdcall; external KernelDLL name 'LoadLibraryA';
-   function GetFileType(Handle:thandle):DWord;
-     stdcall;external KernelDLL name 'GetFileType';
-   function GetFileAttributes(p : pchar) : dword;
-     stdcall;external KernelDLL name 'GetFileAttributesA';
-   function DeleteFile(p : pchar) : longint;
-     stdcall;external KernelDLL name 'DeleteFileA';
-   function MoveFile(old,_new : pchar) : longint;
-     stdcall;external KernelDLL name 'MoveFileA';
-   function CreateFile(lpFileName:pchar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
+   function LoadLibrary(lpLibFileName:pwidechar):THandle; stdcall; external KernelDLL name 'LoadLibraryW';
+   function GetFileType(Handle:thandle):DWord; stdcall;external KernelDLL name 'GetFileType';
+   function GetFileAttributes(p : pwidechar) : dword; stdcall;external KernelDLL name 'GetFileAttributesW';
+   function DeleteFile(p : pwidechar) : longint; stdcall;external KernelDLL name 'DeleteFileW';
+   function MoveFile(old,_new : pwidechar) : longint; stdcall;external KernelDLL name 'MoveFileW';
+   function CreateFile(lpFileName:pwidechar; dwDesiredAccess:DWORD; dwShareMode:DWORD;
                        lpSecurityAttributes:PSECURITYATTRIBUTES; dwCreationDisposition:DWORD;
                        dwFlagsAndAttributes:DWORD; hTemplateFile:DWORD):THandle;
-     stdcall;external KernelDLL name 'CreateFileA';
-   function GetProcAddress(hModule:THandle; lpProcName:pchar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
+     stdcall;external KernelDLL name 'CreateFileW';
+   function GetProcAddress(hModule:THandle; lpProcName:pansichar):pointer; stdcall; external KernelDLL name 'GetProcAddress';
 
    { Directory }
-   function CreateDirectory(name : pointer;sec : pointer) : longbool;
-     stdcall;external KernelDLL name 'CreateDirectoryA';
-   function RemoveDirectory(name:pointer):longbool;
-     stdcall;external KernelDLL name 'RemoveDirectoryA';
-   function SetCurrentDirectory(name : pointer) : longbool;
-     stdcall;external KernelDLL name 'SetCurrentDirectoryA';
-   function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
-     stdcall;external KernelDLL name 'GetCurrentDirectoryA';
+   function CreateDirectory(name : pwidechar;sec : pointer) : longbool; stdcall;external KernelDLL name 'CreateDirectoryW';
+   function RemoveDirectory(name:pwidechar):longbool; stdcall;external KernelDLL name 'RemoveDirectoryW';
+   function SetCurrentDirectory(name : pwidechar) : longbool; stdcall;external KernelDLL name 'SetCurrentDirectoryW';
+   function GetCurrentDirectory(bufsize : longint;name : pwidechar) : longbool; stdcall;external KernelDLL name 'GetCurrentDirectoryW';
 
    var
      SetFilePointerEx : function(hFile : THandle;

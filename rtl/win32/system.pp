@@ -97,7 +97,7 @@ type
 var
 { C compatible arguments }
   argc : longint;
-  argv : ppchar;
+  argv : ^PRtlChar;
 { Win32 Info }
   startupinfo : tstartupinfo;
   hprevinst,
@@ -117,6 +117,11 @@ const
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
 implementation
+
+function _W(const s: RtlString): PWideChar; inline;
+begin
+  Result:=PWideChar(UnicodeString(s));
+end;
 
 var
   EntryInformation : TEntryInformation;
@@ -147,10 +152,11 @@ var
   arglen,
   count   : longint;
   argstart,
-  pc,arg  : pchar;
+  pc      : pwidechar;
+  arg     : PRtlChar;
   quote   : Boolean;
   argvlen : longint;
-  buf: array[0..259] of char;  // need MAX_PATH bytes, not 256!
+  buf: array[0..259] of WideChar;  // need MAX_PATH bytes, not 256!
 
   procedure allocarg(idx,len:longint);
     var
@@ -176,7 +182,7 @@ begin
   count:=0;
   argv:=nil;
   argvlen:=0;
-  ArgLen := GetModuleFileName(0, @buf[0], sizeof(buf));
+  ArgLen := GetModuleFileName(0, @buf[0], High(buf)-1);
   buf[ArgLen] := #0; // be safe
   allocarg(0,arglen);
   move(buf,argv[0]^,arglen+1);

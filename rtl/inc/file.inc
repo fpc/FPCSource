@@ -18,7 +18,7 @@
 type
   UnTypedFile=File;
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -30,21 +30,21 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
 {
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,StrPas(p));
+  Assign(f,p);
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:RtlChar);
 {
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,string(c));
+  Assign(f,c);
 end;
 
 
@@ -69,7 +69,7 @@ Begin
   else
    Begin
      { Reopen with filemode 2, to be Tp compatible (PFV) }
-     Do_Open(f,PChar(@FileRec(f).Name),$1002);
+     Do_Open(f,PRtlChar(@FileRec(f).Name),$1002);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -95,7 +95,7 @@ Begin
    InOutRes:=2
   else
    Begin
-     Do_Open(f,PChar(@FileRec(f).Name),Filemode);
+     Do_Open(f,PRtlChar(@FileRec(f).Name),Filemode);
      FileRec(f).RecSize:=l;
    End;
 End;
@@ -383,25 +383,33 @@ Begin
   If InOutRes <> 0 then
    exit;
   If FileRec(f).mode=fmClosed Then
-   Do_Erase(PChar(@FileRec(f).Name));
+   Do_Erase(PRtlChar(@FileRec(f).Name));
 End;
 
 
-Procedure Rename(var f : File;p:pchar);[IOCheck];
+Procedure Rename(var f : File;p:PRtlChar);[IOCheck];
+var
+  len: longint;
 Begin
   If InOutRes <> 0 then
    exit;
   If FileRec(f).mode=fmClosed Then
    Begin
-     Do_Rename(PChar(@FileRec(f).Name),p);
+     Do_Rename(PRtlChar(@FileRec(f).Name),p);
      { check error code of do_rename }
      If InOutRes = 0 then
-        Move(p^,FileRec(f).Name,StrLen(p)+1);
+      begin
+        len:=StrLen(p)*SizeOf(RtlChar);
+        if len > SizeOf(FileRec(f).Name) - SizeOf(RtlChar) then
+          len:=SizeOf(FileRec(f).Name) - SizeOf(RtlChar);
+        Move(p^,FileRec(f).Name,len);
+        FileRec(f).Name[len]:=#0;
+      end;
    End;
 End;
 
 
-Procedure Rename(var f : File;const s : string);[IOCheck];
+Procedure Rename(var f : File;const s : RtlString);[IOCheck];
 var
   p : array[0..255] Of Char;
 Begin
@@ -413,7 +421,7 @@ Begin
 End;
 
 
-Procedure Rename(var f : File;c : char);[IOCheck];
+Procedure Rename(var f : File;c : RtlChar);[IOCheck];
 var
   p : array[0..1] Of Char;
 Begin

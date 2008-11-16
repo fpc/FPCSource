@@ -36,7 +36,7 @@ begin
 end;
 
 
-procedure do_erase(p : pchar);
+procedure do_erase(p : PRtlChar);
 begin
    DoDirSeparators(p);
    if DeleteFile(p)=0 then
@@ -44,7 +44,7 @@ begin
       errno:=GetLastError;
       if errno=5 then
        begin
-         if ((GetFileAttributes(p) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
+         if ((GetFileAttributes(_W(p)) and FILE_ATTRIBUTE_DIRECTORY)=FILE_ATTRIBUTE_DIRECTORY) then
           errno:=2;
        end;
       Errno2InoutRes;
@@ -52,7 +52,7 @@ begin
 end;
 
 
-procedure do_rename(p1,p2 : pchar);
+procedure do_rename(p1,p2 : PRtlChar);
 begin
   DoDirSeparators(p1);
   DoDirSeparators(p2);
@@ -189,7 +189,7 @@ begin
 end;
 
 
-procedure do_open(var f;p:pchar;flags:longint);
+procedure do_open(var f;p:PRtlChar;flags:longint);
 {
   filerec and textrec have both handle and mode as the first items so
   they could use the same routine for opening/creating.
@@ -276,7 +276,7 @@ begin
   security.nLength := Sizeof(TSecurityAttributes);
   security.bInheritHandle:=true;
   security.lpSecurityDescriptor:=nil;
-  filerec(f).handle:=CreateFile(p,oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
+  filerec(f).handle:=CreateFile(_W(p),oflags,shflags,@security,cd,FILE_ATTRIBUTE_NORMAL,0);
 
   { append mode }
   if ((flags and $100)<>0) and

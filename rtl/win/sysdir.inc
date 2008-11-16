@@ -19,35 +19,34 @@
 *****************************************************************************}
 
 type
- TDirFnType=function(name:pointer):longbool;stdcall;
+ TDirFnType=function(name:PRtlChar):longbool;stdcall;
 
-procedure dirfn(afunc : TDirFnType;const s:string);
+procedure dirfn(afunc : TDirFnType;const s:RtlString);
 var
-  buffer : array[0..255] of char;
+  buffer : RtlString;
 begin
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
-  DoDirSeparators(pchar(@buffer));
-  if not aFunc(@buffer) then
+  buffer:=s;
+  DoDirSeparators(PRtlChar(buffer));
+  if not aFunc(PRtlChar(buffer)) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
     end;
 end;
 
-function CreateDirectoryTrunc(name:pointer):longbool;stdcall;
+function CreateDirectoryTrunc(name:PRtlChar):longbool;stdcall;
 begin
   CreateDirectoryTrunc:=CreateDirectory(name,nil);
 end;
 
-procedure mkdir(const s:string);[IOCHECK];
+procedure mkdir(const s:RtlString);[IOCHECK];
 begin
   If (s='') or (InOutRes <> 0) then
    exit;
   dirfn(TDirFnType(@CreateDirectoryTrunc),s);
 end;
 
-procedure rmdir(const s:string);[IOCHECK];
+procedure rmdir(const s:RtlString);[IOCHECK];
 begin
   if (s ='.') then
     InOutRes := 16;
@@ -64,7 +63,7 @@ begin
 {$endif WINCE}
 end;
 
-procedure chdir(const s:string);[IOCHECK];
+procedure chdir(const s:RtlString);[IOCHECK];
 begin
 {$ifndef WINCE}
   If (s='') or (InOutRes <> 0) then
@@ -77,34 +76,34 @@ begin
 {$endif WINCE}
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure GetDir (DriveNr: byte; var Dir: RtlString);
 {$ifndef WINCE}
 const
-  Drive:array[0..3]of char=(#0,':',#0,#0);
+  Drive:array[0..3]of RtlChar=(#0,':',#0,#0);
 var
   defaultdrive:boolean;
-  DirBuf,SaveBuf:array[0..259] of Char;
+  DirBuf,SaveBuf:array[0..259] of RtlChar;
 {$endif WINCE}
 begin
 {$ifndef WINCE}
   defaultdrive:=drivenr=0;
   if not defaultdrive then
    begin
-    byte(Drive[0]):=Drivenr+64;
-    GetCurrentDirectory(SizeOf(SaveBuf),SaveBuf);
+    Drive[0]:=RtlChar(Drivenr+64);
+    GetCurrentDirectory(High(SaveBuf)+1,SaveBuf);
     if not SetCurrentDirectory(@Drive) then
      begin
       errno := word (GetLastError);
       Errno2InoutRes;
-      Dir := char (DriveNr + 64) + ':\';
+      Dir := RtlChar (DriveNr + 64) + ':\';
       SetCurrentDirectory(@SaveBuf);
       Exit;
      end;
    end;
-  GetCurrentDirectory(SizeOf(DirBuf),DirBuf);
+  GetCurrentDirectory(High(SaveBuf)+1,DirBuf);
   if not defaultdrive then
    SetCurrentDirectory(@SaveBuf);
-  dir:=strpas(DirBuf);
+  dir:=DirBuf;
   if not FileNameCaseSensitive then
    dir:=upcase(dir);
 {$else WINCE}

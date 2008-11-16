@@ -29,6 +29,6 @@ type
     RecSize   : SizeInt;
     _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
     UserData  : array[1..32] of byte;
-    name      : array[0..filerecnamelength] of char;
+    name      : array[0..filerecnamelength div SizeOf(RtlChar)] of RtlChar;
   End;
 

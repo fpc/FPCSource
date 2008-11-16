@@ -52,10 +52,8 @@ type
 const
 {$ifdef WINCE}
   KernelDLL = 'coredll';
-  ApiSuffix = 'W';
 {$else WINCE}
   KernelDLL = 'kernel32';
-  ApiSuffix = 'A';
 {$endif WINCE}
 
 function OleStrToString(source: PWideChar) : ansistring;inline;

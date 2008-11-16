@@ -587,7 +587,8 @@ End;
 *****************************************************************************}
 
 {$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
+(*
+Procedure getdir(drivenr:byte;Var dir:RtlString);
 { this is needed to also allow ansistrings, the shortstring version is
   OS dependent }
 var
@@ -596,6 +597,7 @@ begin
   getdir(drivenr,s);
   dir:=s;
 end;
+*)
 {$endif}
 
 {$ifopt R+}
@@ -1273,13 +1275,13 @@ end;
 *****************************************************************************}
 
 { Allow slash and backslash as separators }
-procedure DoDirSeparators(p:Pchar);
-var
-  i : longint;
+procedure DoDirSeparators(p:PRtlChar);
 begin
-  for i:=0 to strlen(p) do
-    if p[i] in AllowDirectorySeparators then
-      p[i]:=DirectorySeparator;
+  while p^ <> #0 do begin
+    if AnsiChar(p^) in AllowDirectorySeparators then
+      p^:=DirectorySeparator;
+    Inc(p);
+  end;
 end;
 
 procedure DoDirSeparators(var p:shortstring);
@@ -1337,3 +1339,4 @@ begin
   CtrlBreakHandler := Handler;
 end;
 {$ENDIF FPC_HAS_SETCTRLBREAKHANDLER}
+
