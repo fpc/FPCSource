@@ -245,15 +245,15 @@ implementation
                      else
                       begin
                         if cdo_explicit in cdoptions then
-                         doconv:=basedefconvertsexplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]]
+                          doconv:=basedefconvertsexplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]]
                         else
-                         doconv:=basedefconvertsimplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]];
+                          doconv:=basedefconvertsimplicit[basedeftbl[torddef(def_from).ordtype],basedeftbl[torddef(def_to).ordtype]];
                         if (doconv=tc_not_possible) then
                           eq:=te_incompatible
                         else if (not is_in_limit(def_from,def_to)) then
                           { "punish" bad type conversions :) (JM) }
                           eq:=te_convert_l3
-                         else
+                        else
                           eq:=te_convert_l1;
                       end;
                    end;
