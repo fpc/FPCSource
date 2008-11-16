@@ -39,15 +39,6 @@ begin
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:RtlChar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,RtlString(c));
-end;
-
-
 Procedure Rewrite(var f:File;l:Longint);[IOCheck];
 {
   Create file f with recordsize of l
@@ -412,17 +403,5 @@ End;
 Procedure Rename(var f : File;const s : RtlString);[IOCheck];
 Begin
   Rename(f,PRtlChar(s));
-End;
-
-
-Procedure Rename(var f : File;c : RtlChar);[IOCheck];
-var
-  p : array[0..1] Of RtlChar;
-Begin
-  If InOutRes <> 0 then
-   exit;
-  p[0]:=c;
-  p[1]:=#0;
-  Rename(f,@p);
 End;
 

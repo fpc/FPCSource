@@ -99,12 +99,6 @@ begin
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:RtlChar);
-begin
-  Assign(t,RtlString(c));
-end;
-
-
 Procedure Close(var t : Text);[IOCheck];
 Begin
   if InOutRes<>0 then
@@ -227,18 +221,6 @@ End;
 Procedure Rename(var t : Text;const s : RtlString);[IOCheck];
 Begin
   Rename(t,PRtlChar(s));
-End;
-
-
-Procedure Rename(var t : Text;c : RtlChar);[IOCheck];
-var
-  p : array[0..1] Of RtlChar;
-Begin
-  If InOutRes <> 0 then
-   exit;
-  p[0]:=c;
-  p[1]:=#0;
-  Rename(t,@p);
 End;
 
 

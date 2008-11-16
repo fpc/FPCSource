@@ -804,7 +804,6 @@ function  lowercase(const s : ansistring) : ansistring;
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:RtlChar);
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -829,7 +828,6 @@ Function  EOF(var f:File):Boolean;
 Procedure Erase(var f:File);
 Procedure Rename(var f:File;const s:RtlString);
 Procedure Rename(var f:File;p:PRtlChar);
-Procedure Rename(var f:File;c:RtlChar);
 Procedure Truncate (var F:File);
 {$endif FPC_HAS_FEATURE_FILEIO}
 
@@ -841,7 +839,6 @@ Procedure Truncate (var F:File);
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:RtlChar);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -853,7 +850,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:RtlChar);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
@@ -862,7 +858,6 @@ Procedure Flush(var t:Text);
 Procedure Erase(var t:Text);
 Procedure Rename(var t:Text;const s:RtlString);
 Procedure Rename(var t:Text;p:PRtlChar);
-Procedure Rename(var t:Text;c:RtlChar);
 Function  EOF(var t:Text):Boolean;
 Function  EOF:Boolean;
 Function  EOLn(var t:Text):Boolean;

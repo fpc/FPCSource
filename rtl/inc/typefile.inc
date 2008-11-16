@@ -36,15 +36,6 @@ begin
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:RtlChar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,RtlString(c));
-end;
-
-
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED']; compilerproc;
 Begin
   If InOutRes <> 0 then
