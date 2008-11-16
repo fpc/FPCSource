@@ -50,6 +50,7 @@ type
     FCurrentStream: TStream; // used to buffer the files that are to be compressed
     FCurrentIndex: Integer;
     FOnGetFileData: TGetDataFunc;
+    FSearchTitlesOnly: Boolean;
     FStringsStream: TMemoryStream; // the #STRINGS file
     FTopicsStream: TMemoryStream;  // the #TOPICS file
     FURLTBLStream: TMemoryStream;  // the #URLTBL file. has offsets of strings in URLSTR
@@ -130,6 +131,7 @@ type
     property OutStream: TStream read FOutStream;
     property Title: String read FTitle write FTitle;
     property FullTextSearch: Boolean read FFullTextSearch write FFullTextSearch;
+    property SearchTitlesOnly: Boolean read FSearchTitlesOnly write FSearchTitlesOnly;
     property DefaultFont: String read FDefaultFont write FDefaultFont;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
@@ -404,7 +406,6 @@ var
   Entry: TFileEntryRec;
   TmpStr: String;
   TmpTitle: String;
-  TmpStream: TMemoryStream;
 const
   VersionStr = 'HHA Version 4.74.8702'; // does this matter?
 begin
@@ -591,9 +592,7 @@ end;
 
 procedure TChmWriter.WriteOBJINST;
 var
-  Entry: TFileEntryRec;
   i: Integer;
-  TmpPos: Integer;
   ObjStream: TMemoryStream;
   //Flags: Word;
 begin
@@ -832,7 +831,7 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
     Len: LongWord;
   begin
     Rem := $4000 - (FURLSTRStream.Size mod $4000);
-    Len := 9 + Length(AString);
+    Len := 9 + Length(AString);  // 2 dwords the string and NT
     if Rem < Len then
       while Rem > 0 do
       begin
@@ -847,17 +846,18 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
     if FURLSTRStream.Size mod $4000 = 0 then
       FURLSTRStream.WriteByte(0);
       Result := FURLSTRStream.Position;
-      FURLSTRStream.WriteDWord(NToLE(DWord(0))); // URL Offset for topic??
+      FURLSTRStream.WriteDWord(NToLE(DWord(0))); // URL Offset for topic after the the "Local" value
       FURLSTRStream.WriteDWord(NToLE(DWord(0))); // Offset of FrameName??
       FURLSTRStream.Write(AString[1], Length(AString));
       FURLSTRStream.WriteByte(0); //NT
   end;
 begin
   if AURL[1] = '/' then Delete(AURL,1,1);
-  if $1000 - (FURLTBLStream.Size mod $1000) = 4 then
-    FURLTBLStream.WriteDWord(NtoLE(DWord(4096)));
+  //if $1000 - (FURLTBLStream.Size mod $1000) = 4 then // we are at 4092
+  if FURLTBLStream.Size and $FFC = $FFC then // faster :)
+    FURLTBLStream.WriteDWord(0);
   Result := FURLTBLStream.Position;
-  FURLTBLStream.WriteDWord($231e9f5c); //unknown
+  FURLTBLStream.WriteDWord(0);//($231e9f5c); //unknown
   FURLTBLStream.WriteDWord(NtoLE(TopicsIndex)); // Index of topic in #TOPICS
   FURLTBLStream.WriteDWord(NtoLE(AddURLString(AURL)));
 end;
@@ -1007,7 +1007,7 @@ type
 begin
   if Pos('.ht', AFileEntry.Name) > 0 then
   begin
-    ATitle := FIndexedFiles.IndexFile(AStream, GetNewTopicsIndex);
+    ATitle := FIndexedFiles.IndexFile(AStream, GetNewTopicsIndex, FSearchTitlesOnly);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
     else

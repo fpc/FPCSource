@@ -68,6 +68,7 @@ Type
 
   TIndexedWordList = class(TObject)
   private
+    FIndexTitlesOnly: Boolean;
     FIndexedFileCount: DWord;
     //vars while processing page
     FInTitle,
@@ -83,6 +84,7 @@ Type
     FLongestWord: DWord;
     FFirstWord: TIndexedWord;
     FCachedWord: TIndexedWord;
+    FParser: THTMLParser;
     function AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
     function GetWordForward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
     function GetWordBackward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
@@ -95,7 +97,7 @@ Type
   public
     constructor Create;
     destructor  Destroy; override;
-    function  IndexFile(AStream: TStream; ATOPICIndex: Integer): String; // returns the documents <Title>
+    function  IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): String; // returns the documents <Title>
     procedure Clear;
     procedure AddWord(const AWord: TIndexedWord; StartingWord: TIndexedWord; AIsTitle: Boolean);
     property FirstWord: TIndexedWord read FFirstWord;
@@ -231,7 +233,7 @@ begin
     else if NoCaseTag = '<BODY>' then FInBody := True
     else
   end;
-
+  if FInBody and FIndexTitlesOnly then FParser.Done := True;
 end;
 
 procedure TIndexedWordList.CBFountText(Text: string);
@@ -325,13 +327,13 @@ begin
   inherited Destroy;
 end;
 
-function TIndexedWordList.IndexFile(AStream: TStream; ATOPICIndex: Integer): String;
+function TIndexedWordList.IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): String;
 var
   TheFile: String;
-  Parser: THTMLParser;
 begin
   FInBody := False;
   FInTitle:= False;
+  FIndexTitlesOnly := AIndexOnlyTitles;
   FWordCount := 0;
   FTopicIndex := ATOPICIndex;
   FIndexedFileCount := FIndexedFileCount +1;
@@ -341,11 +343,11 @@ begin
   AStream.Read(TheFile[1], AStream.Size);
   TheFile[Length(TheFile)] := #0;
 
-  Parser := THTMLParser.Create(@TheFile[1]);
-  Parser.OnFoundTag := @CBFoundTag;
-  Parser.OnFoundText := @CBFountText;
-  Parser.Exec;
-  Parser.Free;
+  FParser := THTMLParser.Create(@TheFile[1]);
+  FParser.OnFoundTag := @CBFoundTag;
+  FParser.OnFoundText := @CBFountText;
+  FParser.Exec;
+  FParser.Free;
 
   Result := FDocTitle;
   FDocTitle := '';
