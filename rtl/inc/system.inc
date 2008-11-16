@@ -805,7 +805,7 @@ Procedure InternalExit;
 var
   current_exit : Procedure;
   pstdout : ^Text;
-{$if defined(MSWINDOWS) or defined(OS2)}
+{$if defined(OS2)}
   i : longint;
 {$endif}
 Begin
@@ -845,7 +845,7 @@ Begin
     Flush(StdErr);
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
 
-{$if defined(MSWINDOWS) or defined(OS2)}
+{$if defined(OS2)}
   { finally release the heap if possible, especially
     important for DLLs }
   for i:=0 to argc do

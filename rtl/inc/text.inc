@@ -89,13 +89,13 @@ Begin
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
   End;
-  Move(s[1],TextRec(t).Name,Length(s));
+  Move(s[1],TextRec(t).Name,Length(s)*SizeOf(RtlChar));
 End;
 
 
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
 begin
-  Assign(t,p);
+  Assign(t,RtlString(p));
 end;
 
 
@@ -215,7 +215,7 @@ Begin
      If InOutRes = 0 then
       begin
         len:=StrLen(p)*SizeOf(RtlChar);
-        if len > SizeOf(TextRec(t).Name) - SizeOf(RtlChar) then
+        if len >= SizeOf(TextRec(t).Name) then
           len:=SizeOf(TextRec(t).Name) - SizeOf(RtlChar);
         Move(p^,TextRec(t).Name,len);
         TextRec(t).Name[len]:=#0;
@@ -225,26 +225,20 @@ End;
 
 
 Procedure Rename(var t : Text;const s : RtlString);[IOCheck];
-var
-  p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
-  Move(s[1],p,Length(s));
-  p[Length(s)]:=#0;
-  Rename(t,Pchar(@p));
+  Rename(t,PRtlChar(s));
 End;
 
 
 Procedure Rename(var t : Text;c : RtlChar);[IOCheck];
 var
-  p : array[0..1] Of Char;
+  p : array[0..1] Of RtlChar;
 Begin
   If InOutRes <> 0 then
    exit;
   p[0]:=c;
   p[1]:=#0;
-  Rename(t,Pchar(@p));
+  Rename(t,@p);
 End;
 
 

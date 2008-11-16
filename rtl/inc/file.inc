@@ -26,7 +26,7 @@ Begin
   FillChar(f,SizeOf(FileRec),0);
   FileRec(f).Handle:=UnusedHandle;
   FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
+  Move(Name[1],FileRec(f).Name,Length(Name)*SizeOf(RtlChar));
 End;
 
 
@@ -35,7 +35,7 @@ Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,p);
+  Assign(f,RtlString(p));
 end;
 
 
@@ -44,7 +44,7 @@ Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:RtlChar);
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,c);
+  Assign(f,RtlString(c));
 end;
 
 
@@ -400,7 +400,7 @@ Begin
      If InOutRes = 0 then
       begin
         len:=StrLen(p)*SizeOf(RtlChar);
-        if len > SizeOf(FileRec(f).Name) - SizeOf(RtlChar) then
+        if len >= SizeOf(FileRec(f).Name) then
           len:=SizeOf(FileRec(f).Name) - SizeOf(RtlChar);
         Move(p^,FileRec(f).Name,len);
         FileRec(f).Name[len]:=#0;
@@ -410,25 +410,19 @@ End;
 
 
 Procedure Rename(var f : File;const s : RtlString);[IOCheck];
-var
-  p : array[0..255] Of Char;
 Begin
-  If InOutRes <> 0 then
-   exit;
-  Move(s[1],p,Length(s));
-  p[Length(s)]:=#0;
-  Rename(f,Pchar(@p));
+  Rename(f,PRtlChar(s));
 End;
 
 
 Procedure Rename(var f : File;c : RtlChar);[IOCheck];
 var
-  p : array[0..1] Of Char;
+  p : array[0..1] Of RtlChar;
 Begin
   If InOutRes <> 0 then
    exit;
   p[0]:=c;
   p[1]:=#0;
-  Rename(f,Pchar(@p));
+  Rename(f,@p);
 End;
 

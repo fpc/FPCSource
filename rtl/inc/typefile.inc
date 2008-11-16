@@ -15,7 +15,7 @@
                     subroutines for typed file handling
 ****************************************************************************}
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -23,25 +23,25 @@ Begin
   FillChar(f,SizeOF(FileRec),0);
   FileRec(f).Handle:=UnusedHandle;
   FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name));
+  Move(Name[1],FileRec(f).Name,Length(Name)*SizeOf(RtlChar));
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
 {
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,StrPas(p));
+  Assign(f,RtlString(p));
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:RtlChar);
 {
   Assign Name to file f so it can be used with the file routines
 }
 begin
-  Assign(f,string(c));
+  Assign(f,RtlString(c));
 end;
 
 

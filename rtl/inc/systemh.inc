@@ -367,6 +367,7 @@ Type
   RtlChar             = AnsiChar;
 {$endif FPC_RTLSTRING_UTF16}
   PRtlChar            = ^RtlChar;
+  PPRtlChar           = ^PRtlChar;
 
   { Needed for fpc_get_output }
   PText               = ^Text;
@@ -838,9 +839,9 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
+Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:RtlChar);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -975,7 +976,7 @@ Const
 Procedure Error(RunTimeError : TRunTimeError);
 {$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function  Paramcount:Longint;
-Function  ParamStr(l:Longint):string;
+Function  ParamStr(l:Longint):RtlString;
 {$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}

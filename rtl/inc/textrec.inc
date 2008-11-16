@@ -25,7 +25,7 @@ const
   TextRecBufSize    = 256;
 type
   TLineEndStr = string [3];
-  TextBuf = array[0..(TextRecBufSize div SizeOf(RtlChar))-1] of RtlChar;
+  TextBuf = array[0..TextRecBufSize-1] of AnsiChar;
   TextRec = Packed Record
     Handle    : THandle;
     Mode      : longint;
