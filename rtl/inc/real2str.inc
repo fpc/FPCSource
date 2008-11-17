@@ -367,7 +367,8 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
-          d:=d+roundCorr;
+          if (d<>0.0) then
+            d:=d+roundCorr;
           if d >= corrVal then
             d := d + corrVal;
           if int(d) = 1 then
