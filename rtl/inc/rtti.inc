@@ -167,7 +167,10 @@ begin
         PPointer(Data)^:=nil;
       end;
     tkDynArray:
-      fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
+      begin
+        fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
+        PPointer(Data)^:=nil;
+      end;
     tkVariant:
       variant_clear(PVarData(Data)^);
   end;

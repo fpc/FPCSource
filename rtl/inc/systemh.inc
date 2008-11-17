@@ -720,7 +720,7 @@ function get_frame:pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_addr(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 function get_caller_frame(framebp:pointer):pointer;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-Function IOResult:Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+Function IOResult:Word;
 Function Sptr:Pointer;{$ifdef SYSTEMINLINE}inline;{$endif}[internconst:fpc_in_const_ptr];
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}

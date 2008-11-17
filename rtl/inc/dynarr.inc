@@ -106,8 +106,10 @@ procedure fpc_dynarray_decr_ref(var p : pointer;ti : pointer); [Public,Alias:'FP
      { decr. ref. count }
      { should we remove the array? }
      if declocked(realp^.refcount) then
-       fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(ti));
-     p := nil;
+       begin
+         fpc_dynarray_clear_internal(realp,pdynarraytypeinfo(ti));
+         p := nil;
+       end;
   end;
 
 { provide local access to dynarr_decr_ref for dynarr_setlength }
