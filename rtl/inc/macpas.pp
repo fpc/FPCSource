@@ -105,6 +105,9 @@ function BNot(i: qword): qword; {$ifdef systeminline}inline;{$endif}
 
 implementation
 
+uses
+  math;
+
 {$r-}
 {$q-}
 
@@ -386,10 +389,6 @@ begin
 end;
 
 
-{$ifdef cpupowerpc}
 begin
-  asm
-    mtfsfi 6,1
-  end;
-{$endif cpupowerpc}
+  SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide, exOverflow, exUnderflow, exPrecision])
 end.
