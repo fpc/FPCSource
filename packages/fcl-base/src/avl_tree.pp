@@ -40,8 +40,6 @@ type
     Data: Pointer;
     procedure Clear;
     function TreeDepth: integer; // longest WAY down. e.g. only one node => 0 !
-    constructor Create;
-    destructor Destroy; override;
   end;
 
   TAVLTree = class
@@ -1032,18 +1030,6 @@ end;
 
 
 { TAVLTreeNode }
-
-constructor TAVLTreeNode.Create;
-begin
-  inherited Create;
-
-end;
-
-destructor TAVLTreeNode.Destroy;
-begin
-
-  inherited Destroy;
-end;
 
 function TAVLTreeNode.TreeDepth: integer;
 // longest WAY down. e.g. only one node => 0 !
