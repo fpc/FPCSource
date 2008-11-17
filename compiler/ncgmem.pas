@@ -353,11 +353,22 @@ implementation
                LOC_CSUBSETREG:
                  begin
                    location.size:=def_cgsize(resultdef);
-                   if (target_info.endian = ENDIAN_BIG) then
-                     inc(location.sreg.startbit, (left.resultdef.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
+                   if not is_packed_record_or_object(left.resultdef) then
+                     begin
+                       if (target_info.endian = ENDIAN_BIG) then
+                         inc(location.sreg.startbit, (left.resultdef.size - tcgsize2size[location.size] - vs.fieldoffset) * 8)
+                       else
+                         inc(location.sreg.startbit, vs.fieldoffset * 8);
+                       location.sreg.bitlen := tcgsize2size[location.size] * 8;
+                     end
                    else
-                     inc(location.sreg.startbit, vs.fieldoffset * 8);
-                   location.sreg.bitlen := tcgsize2size[location.size] * 8;
+                     begin
+                       location.sreg.bitlen := resultdef.packedbitsize;
+                       if (target_info.endian = ENDIAN_BIG) then
+                         inc(location.sreg.startbit, left.location.sreg.bitlen - location.sreg.bitlen - vs.fieldoffset)
+                       else
+                         inc(location.sreg.startbit, vs.fieldoffset);
+                     end;
                  end;
                else
                  internalerror(2006031901);
