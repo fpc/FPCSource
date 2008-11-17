@@ -1305,7 +1305,7 @@ type
 const
   symopts=14;
   symopt : array[1..symopts] of tsymopt=(
-     (mask:oo_has_virtual;        str:'IsForward'),
+     (mask:oo_is_forward;         str:'IsForward'),
      (mask:oo_has_virtual;        str:'HasVirtual'),
      (mask:oo_has_private;        str:'HasPrivate'),
      (mask:oo_has_protected;      str:'HasProtected'),

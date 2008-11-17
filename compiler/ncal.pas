@@ -1697,14 +1697,21 @@ implementation
                 without specifying self explicit }
               if (cnf_member_call in callnodeflags) then
                 begin
-                  { destructor: don't release instance, vmt=0
-                    constructor:
-                      if called from a constructor in the same class then
+                  { destructor (in the same class, since cnf_member_call):
+                    if not called from a destructor then
+                      call beforedestruction and release instance, vmt=1
+                    else
+                      don't release instance, vmt=0
+                    constructor (in the same class, since cnf_member_call):
+                      if called from a constructor then
                         don't call afterconstruction, vmt=0
                       else
                         call afterconstrution, vmt=1 }
                   if (procdefinition.proctypeoption=potype_destructor) then
-                    vmttree:=cpointerconstnode.create(0,voidpointertype)
+                    if (current_procinfo.procdef.proctypeoption<>potype_constructor) then
+                      vmttree:=cpointerconstnode.create(1,voidpointertype)
+                    else
+                      vmttree:=cpointerconstnode.create(0,voidpointertype)
                   else if (current_procinfo.procdef.proctypeoption=potype_constructor) and
                           (procdefinition.proctypeoption=potype_constructor) then
                     vmttree:=cpointerconstnode.create(0,voidpointertype)
@@ -1723,7 +1730,7 @@ implementation
                     if called from a constructor in the same class using self.create then
                       don't call afterconstruction, vmt=0
                     else
-                      call afterconstrution, vmt=1 }
+                      call afterconstruction, vmt=1 }
                 if (procdefinition.proctypeoption=potype_destructor) then
                   if not(cnf_create_failed in callnodeflags) then
                     vmttree:=cpointerconstnode.create(1,voidpointertype)
