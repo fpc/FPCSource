@@ -396,7 +396,8 @@ Const
      SizeOf(Integer),
      SizeOf(Single),
      SizeOf(Double),
-     SizeOf(TTimeDate),
+     0, // unused
+     SizeOf(TDateTime),
      SizeOf(Currency),
      SizeOf(PWideString),
      SizeOf(IInterface),
@@ -408,7 +409,7 @@ Const
      SizeOf(ShortInt),
      SizeOf(Byte),
      SizeOf(Word),
-     SizeOf(LognWord),
+     SizeOf(LongWord),
      SizeOf(Int64),
      SizeOf(QWord));
 
