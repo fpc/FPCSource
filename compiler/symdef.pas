@@ -487,7 +487,6 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-          function  is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
        end;
 
        { single linked list of overloaded procs }
@@ -3174,60 +3173,6 @@ implementation
       begin
         result:=assigned(owner) and
                 (owner.symtabletype<>ObjectSymtable);
-      end;
-
-
-    function tprocdef.is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
-      var
-        contextst : TSymtable;
-      begin
-        result:=false;
-
-        { Support passing a context in which module we are to find protected members }
-        if assigned(contextobjdef) then
-          contextst:=contextobjdef.owner
-        else
-          contextst:=nil;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (visibility=vis_private) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           not(owner.defowner.owner.iscurrentunit or (owner.defowner.owner=contextst)) then
-          exit;
-
-        if (visibility=vis_strictprivate) then
-          begin
-            result:=currobjdef=tobjectdef(owner.defowner);
-            exit;
-          end;
-
-        if (visibility=vis_strictprotected) then
-          begin
-             result:=assigned(currobjdef) and
-               currobjdef.is_related(tobjectdef(owner.defowner));
-             exit;
-          end;
-
-        { protected symbols are visible in the module that defines them and
-          also visible to related objects. The related object must be defined
-          in the current module }
-        if (visibility=vis_protected) and
-           (
-            (
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             not((owner.defowner.owner.iscurrentunit) or (owner.defowner.owner=contextst))
-            ) and
-            not(
-                assigned(currobjdef) and
-                (currobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                (currobjdef.owner.iscurrentunit) and
-                currobjdef.is_related(tobjectdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        result:=true;
       end;
 
 

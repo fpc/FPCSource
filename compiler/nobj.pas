@@ -210,7 +210,7 @@ implementation
         new(procdefcoll);
         procdefcoll^.data:=pd;
         procdefcoll^.hidden:=false;
-        procdefcoll^.visible:=pd.is_visible_for_object(_class,nil);
+        procdefcoll^.visible:=is_visible_for_object(pd,_class);
         VMTSymEntry.ProcdefList.Add(procdefcoll);
 
         { Register virtual method and give it a number }
@@ -252,7 +252,7 @@ implementation
           procdefs, because they can be reused in the next class.
           The check to skip the invisible methods that are in the
           list is futher down in the code }
-        is_visible:=pd.is_visible_for_object(_class,nil);
+        is_visible:=is_visible_for_object(pd,_class);
         { Load other values for easier readability }
         hasoverloads:=(tprocsym(pd.procsym).ProcdefList.Count>1);
         pdoverload:=(po_overload in pd.procoptions);

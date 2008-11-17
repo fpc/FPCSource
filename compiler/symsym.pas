@@ -99,9 +99,6 @@ interface
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
-          { currobjdef is the object def to assume, this is necessary for protected and
-            private, context is the object def we're really in, this is for the strict stuff }
-          function is_visible_for_object(currobjdef:tdef;context:tdef):boolean;override;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -749,27 +746,6 @@ implementation
               end;
           end;
         result:=bestpd;
-      end;
-
-
-    function tprocsym.is_visible_for_object(currobjdef:tdef;context:tdef):boolean;
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        { This procsym is visible, when there is at least
-          one of the procdefs visible }
-        result:=false;
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            if (pd.owner=owner) and
-                pd.is_visible_for_object(tobjectdef(currobjdef),tobjectdef(context)) then
-              begin
-                result:=true;
-                exit;
-              end;
-          end;
       end;
 
 

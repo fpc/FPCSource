@@ -1781,7 +1781,7 @@ implementation
                (
                 ignorevisibility or
                 (pd.owner.symtabletype<>objectsymtable) or
-                pd.is_visible_for_object(contextobjdef,nil)
+                is_visible_for_object(pd,contextobjdef)
                ) then
               begin
                 { don't add duplicates, only compare visible parameters for the user }

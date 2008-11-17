@@ -190,6 +190,9 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
+    function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+    function  is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
+    function  is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -1094,8 +1097,9 @@ implementation
               hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
                  (
-                  (not(m_delphi in current_settings.modeswitches) and
-                   tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner))
+                  (
+                   not(m_delphi in current_settings.modeswitches) and
+                   is_visible_for_object(hsym,tobjectdef(defowner))
                   ) or
                   (
                    { In Delphi, you can repeat members of a parent class. You can't }
@@ -1537,11 +1541,95 @@ implementation
        end;
 
 
+    function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+      var
+        symownerdef : tobjectdef;
+      begin
+        result:=false;
+
+        { Get objdectdef owner of the symtable for the is_related checks }
+        if not assigned(symst) or
+           (symst.symtabletype<>objectsymtable) then
+          internalerror(200810285);
+        symownerdef:=tobjectdef(symst.defowner);
+        case symvisibility of
+          vis_private :
+            begin
+              { private symbols are allowed when we are in the same
+                module as they are defined }
+              result:=(symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                      (symownerdef.owner.iscurrentunit);
+            end;
+          vis_strictprivate :
+            begin
+              result:=assigned(current_objectdef) and
+                      (current_objectdef=symownerdef);
+            end;
+          vis_strictprotected :
+            begin
+               result:=assigned(current_objectdef) and
+                       current_objectdef.is_related(symownerdef);
+            end;
+          vis_protected :
+            begin
+              { protected symbols are visible in the module that defines them and
+                also visible to related objects. The related object must be defined
+                in the current module }
+              result:=(
+                       (
+                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (symownerdef.owner.iscurrentunit)
+                       ) or
+                       (
+                        assigned(contextobjdef) and
+                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (contextobjdef.owner.iscurrentunit) and
+                        contextobjdef.is_related(symownerdef)
+                       )
+                      );
+            end;
+          vis_public,
+          vis_published :
+            result:=true;
+        end;
+      end;
+
+
+    function is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
+      begin
+        result:=is_visible_for_object(pd.owner,pd.visibility,contextobjdef);
+      end;
+
+
+    function is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        if sym.typ=procsym then
+          begin
+            { A procsym is visible, when there is at least one of the procdefs visible }
+            result:=false;
+            for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+              begin
+                pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
+                if (pd.owner=sym.owner) and
+                   is_visible_for_object(pd,contextobjdef) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end
+        else
+          result:=is_visible_for_object(sym.owner,sym.visibility,contextobjdef);
+      end;
+
+
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid   : THashedIDString;
-        topclass   : tobjectdef;
-        context    : tobjectdef;
+        contextobjdef : tobjectdef;
         stackitem  : psymtablestackitem;
       begin
         result:=false;
@@ -1553,7 +1641,6 @@ implementation
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
-                topclass:=nil;
                 { use the class from withsymtable only when it is
                   defined in this unit }
                 if (srsymtable.symtabletype=withsymtable) and
@@ -1561,11 +1648,11 @@ implementation
                    (srsymtable.defowner.typ=objectdef) and
                    (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
                    (srsymtable.defowner.owner.iscurrentunit) then
-                  topclass:=tobjectdef(srsymtable.defowner)
+                  contextobjdef:=tobjectdef(srsymtable.defowner)
                 else
-                  topclass:=current_objectdef;
-                context:=current_objectdef;
-                if tsym(srsym).is_visible_for_object(topclass,context) then
+                  contextobjdef:=current_objectdef;
+                if (srsym.owner.symtabletype<>objectsymtable) or
+                   is_visible_for_object(srsym,contextobjdef) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -1614,8 +1701,10 @@ implementation
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
-                   (not assigned(current_objectdef) or
-                    tsym(srsym).is_visible_for_object(current_objectdef,current_objectdef)) then
+                   (
+                    (srsym.owner.symtabletype<>objectsymtable) or
+                    is_visible_for_object(srsym,current_objectdef)
+                   ) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -1674,8 +1763,14 @@ implementation
 
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        hashedid      : THashedIDString;
+        hashedid : THashedIDString;
       begin
+        { The contextclassh is used for visibility. The classh must be equal to
+          or be a parent of contextclassh. E.g. for inherited searches the classh is the
+          parent. }
+        if assigned(classh) and
+           not contextclassh.is_related(classh) then
+          internalerror(200811161);
         result:=false;
         hashedid.id:=s;
         while assigned(classh) do
@@ -1683,7 +1778,7 @@ implementation
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               tsym(srsym).is_visible_for_object(contextclassh,current_objectdef) then
+               is_visible_for_object(srsym,contextclassh) then
               begin
                 addsymref(srsym);
                 result:=true;
