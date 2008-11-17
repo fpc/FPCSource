@@ -437,48 +437,6 @@ Software IEC/IEEE floating-point underflow tininess-detection mode.
 
 {*
 -------------------------------------------------------------------------------
-Software IEC/IEEE floating-point rounding mode.
--------------------------------------------------------------------------------
-*}
-{
-Round to nearest.
-This is the default mode. It should be used unless there is a specific
-need for one of the others. In this mode results are rounded to the
-nearest representable value. If the result is midway between two
-representable values, the even representable is chosen. Even here
-means the lowest-order bit is zero. This rounding mode prevents
-statistical bias and guarantees numeric stability: round-off errors
-in a lengthy calculation will remain smaller than half of FLT_EPSILON.
-
-Round toward plus Infinity.
-All results are rounded to the smallest representable value which is
-greater than the result.
-
-Round toward minus Infinity.
-All results are rounded to the largest representable value which is
-less than the result.
-
-Round toward zero.
-All results are rounded to the largest representable value whose
-magnitude is less than that of the result. In other words, if the
-result is negative it is rounded up; if it is positive, it is
-rounded down.
-}
-    float_round_nearest_even = 0;
-    float_round_down         = 1;
-    float_round_up           = 2;
-    float_round_to_zero      = 3;
-
-{*
--------------------------------------------------------------------------------
-Floating-point rounding mode and exception flags.
--------------------------------------------------------------------------------
-*}
-const
- float_rounding_mode : Byte = float_round_nearest_even;
-
-{*
--------------------------------------------------------------------------------
 Underflow tininess-detection mode, statically initialized to default value.
 (The declaration in `softfloat.h' must match the `int8' type here.)
 -------------------------------------------------------------------------------
@@ -521,7 +479,7 @@ var
     roundIncrement, roundBits: int8;
     z: int32;
 begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := ord( roundingMode = float_round_nearest_even );
     roundIncrement := $40;
     if ( roundNearestEven=0 ) then
@@ -583,7 +541,7 @@ var
 label
     overflow;
 begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := ord( roundingMode = float_round_nearest_even );
     increment := ord( sbits64(absZ1) < 0 );
     if ( roundNearestEven=0 ) then
@@ -2083,7 +2041,7 @@ Function roundAndPackFloat32( zSign : Flag; zExp : Int16; zSig : Bits32 ) : floa
    roundIncrement, roundBits : BYTE;
    IsTiny : Flag;
  Begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     if (roundingMode = float_round_nearest_even) then
       Begin
         roundNearestEven := Flag(TRUE);
@@ -2316,7 +2274,7 @@ Procedure
    roundNearestEven, increment, isTiny : Flag;
  Begin
 
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := flag( roundingMode = float_round_nearest_even );
     increment := flag( sbits32 (zSig2) < 0 );
     if ( roundNearestEven  = flag(FALSE) ) then
@@ -2427,7 +2385,7 @@ var
     roundIncrement, roundBits: int16;
     isTiny: flag;
 begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := ord( roundingMode = float_round_nearest_even );
     roundIncrement := $200;
     if ( roundNearestEven=0 ) then
@@ -2650,7 +2608,7 @@ Function float32_to_int32( a : float32rec) : int32;compilerproc;
         if ( aSigExtra<>0 ) then
           softfloat_exception_flags := softfloat_exception_flags
              or float_flag_inexact;
-        roundingMode := float_rounding_mode;
+        roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
           Begin
             if ( sbits32 (aSigExtra) < 0 ) then
@@ -2816,7 +2774,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
           := softfloat_exception_flags OR  float_flag_inexact;
         aSign := extractFloat32Sign( a.float32 );
 
-        case ( float_rounding_mode ) of
+        case ( softfloat_rounding_mode ) of
          float_round_nearest_even:
             Begin
               if ( ( aExp = $7E ) and (extractFloat32Frac( a.float32 )<>0) ) then
@@ -2849,7 +2807,7 @@ Function float32_round_to_int( a: float32rec): float32rec;compilerproc;
     lastBitMask := lastBitMask shl ($96 - aExp);
     roundBitsMask := lastBitMask - 1;
     z := a.float32;
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     if ( roundingMode = float_round_nearest_even ) then
       Begin
         z := z + (lastBitMask shr 1);
@@ -3020,7 +2978,7 @@ Function subFloat32Sigs( a:float32; b:float32; zSign:flag ): float32;
     End;
     if ( bSig < aSig ) Then goto aBigger;
     if ( aSig < bSig ) Then goto bBigger;
-    subFloat32Sigs := packFloat32( flag(float_rounding_mode = float_round_down), 0, 0 );
+    subFloat32Sigs := packFloat32( flag(softfloat_rounding_mode = float_round_down), 0, 0 );
     exit;
  bExpBigger:
     if ( bExp = $FF ) then
@@ -3735,7 +3693,7 @@ Begin
             absZ := aSig0 shr ( - shiftCount );
         End;
     End;
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     if ( roundingMode = float_round_nearest_even ) then
     Begin
         if ( sbits32(aSigExtra) < 0 ) then
@@ -3925,7 +3883,7 @@ Begin
         lastBitMask := ( lastBitMask shl ( $432 - aExp ) ) shl 1;
         roundBitsMask := lastBitMask - 1;
         z := a;
-        roundingMode := float_rounding_mode;
+        roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
         Begin
             if ( lastBitMask <> 0) then
@@ -3966,7 +3924,7 @@ Begin
             softfloat_exception_flags := softfloat_exception_flags or
                float_flag_inexact;
             aSign := extractFloat64Sign( a );
-            case ( float_rounding_mode ) of
+            case ( softfloat_rounding_mode ) of
              float_round_nearest_even:
                Begin
                 if (    ( aExp = $3FE )
@@ -4003,7 +3961,7 @@ Begin
         roundBitsMask := lastBitMask - 1;
         z.low := 0;
         z.high := a.high;
-        roundingMode := float_rounding_mode;
+        roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
         Begin
             z.high := z.high + lastBitMask shr 1;
@@ -4193,7 +4151,7 @@ Begin
     if ( aSig0 < bSig0 ) then goto bBigger;
     if ( bSig1 < aSig1 ) then goto aBigger;
     if ( aSig1 < bSig1 ) then goto bBigger;
-    packFloat64( flag(float_rounding_mode = float_round_down), 0, 0, 0 , out);
+    packFloat64( flag(softfloat_rounding_mode = float_round_down), 0, 0, 0 , out);
     exit;
  bExpBigger:
     if ( bExp = $7FF ) then
@@ -5353,7 +5311,7 @@ var
 label
     precision80;
 begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := flag( roundingMode = float_round_nearest_even );
     if ( roundingPrecision = 80 ) then
       goto precision80;
@@ -5806,7 +5764,7 @@ begin
         end;
         softfloat_exception_flags or= float_flag_inexact;
         aSign := extractFloatx80Sign( a );
-        switch ( float_rounding_mode ) begin
+        switch ( softfloat_rounding_mode ) begin
          case float_round_nearest_even:
             if ( ( aExp = $3FFE ) and (bits64) ( extractFloatx80Frac( a ) shl 1 )
                ) begin
@@ -5830,7 +5788,7 @@ begin
     lastBitMask  shl = $403E - aExp;
     roundBitsMask := lastBitMask - 1;
     z := a;
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     if ( roundingMode = float_round_nearest_even ) begin
         z.low += lastBitMask>>1;
         if ( ( z.low and roundBitsMask ) = 0 ) z.low &= ~ lastBitMask;
@@ -5954,7 +5912,7 @@ begin
     zSig1 := 0;
     if ( bSig < aSig ) goto aBigger;
     if ( aSig < bSig ) goto bBigger;
-    result := packFloatx80( float_rounding_mode = float_round_down, 0, 0 );
+    result := packFloatx80( softfloat_rounding_mode = float_round_down, 0, 0 );
  bExpBigger:
     if ( bExp = $7FFF ) begin
         if ( (bits64) ( bSig shl 1 ) ) result := propagateFloatx80NaN( a, b );
@@ -6660,7 +6618,7 @@ var
     roundingMode: int8;
     roundNearestEven, increment, isTiny: flag;
 begin
-    roundingMode := float_rounding_mode;
+    roundingMode := softfloat_rounding_mode;
     roundNearestEven := ord( roundingMode = float_round_nearest_even );
     increment := ord( sbits64(zSig2) < 0 );
     if ( roundNearestEven=0 ) then
@@ -7156,7 +7114,7 @@ begin
         lastBitMask := ( lastBitMask shl ( $406E - aExp ) ) shl 1;
         roundBitsMask := lastBitMask - 1;
         z := a;
-        roundingMode := float_rounding_mode;
+        roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) then
         begin
             if ( lastBitMask )<>0 then
@@ -7194,7 +7152,7 @@ begin
               end;
             softfloat_exception_flags := softfloat_exception_flags or float_flag_inexact;
             aSign := extractFloat128Sign( a );
-            case float_rounding_mode of
+            case softfloat_rounding_mode of
             float_round_nearest_even:
                 if (    ( aExp = $3FFE )
                      and (   extractFloat128Frac0( a )
@@ -7227,7 +7185,7 @@ begin
         roundBitsMask := lastBitMask - 1;
         z.low := 0;
         z.high := a.high;
-        roundingMode := float_rounding_mode;
+        roundingMode := softfloat_rounding_mode;
         if ( roundingMode = float_round_nearest_even ) begin
             z.high += lastBitMask>>1;
             if ( ( ( z.high and roundBitsMask ) or a.low ) = 0 ) begin
@@ -7367,11 +7325,12 @@ begin
         aExp := 1;
         bExp := 1;
     end;
-    if ( bSig0 < aSig0 ) goto aBigger;
-    if ( aSig0 < bSig0 ) goto bBigger;
-    if ( bSig1 < aSig1 ) goto aBigger;
-    if ( aSig1 < bSig1 ) goto bBigger;
-    result := packFloat128( float_rounding_mode = float_round_down, 0, 0, 0 );
+    if ( bSig0 < aSig0 ) then goto aBigger;
+    if ( aSig0 < bSig0 ) then goto bBigger;
+    if ( bSig1 < aSig1 ) then goto aBigger;
+    if ( aSig1 < bSig1 ) then goto bBigger;
+    result := packFloat128( ord(softfloat_rounding_mode = float_round_down), 0, 0, 0 );
+    exit;
  bExpBigger:
     if ( bExp = $7FFF ) begin
         if ( bSig0 or bSig1 ) result := propagateFloat128NaN( a, b );
