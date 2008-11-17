@@ -40,6 +40,16 @@ function GetRoundMode: TFPURoundingMode;
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
+    case (RoundMode) of
+      rmNearest :
+        softfloat_rounding_mode := float_round_nearest_even;
+      rmTruncate :
+        softfloat_rounding_mode := float_round_to_zero;
+      rmUp :
+        softfloat_rounding_mode := float_round_up;
+      rmDown :
+        softfloat_rounding_mode := float_round_down;
+    end;
     set_fsr((get_fsr and $3fffffff) or (dword(RoundMode) shl 30));
     result:=TFPURoundingMode(get_fsr shr 30);
   end;

@@ -941,26 +941,49 @@ invalid:
 {$ifndef FPC_SYSTEM_HAS_ROUND}
     function fpc_round_real(d : ValReal) : int64;compilerproc;
      var
-      fr: Real;
+      fr: ValReal;
       tr: Int64;
     Begin
-       fr := abs(Frac(d));
-       tr := Trunc(d);
-       if fr > 0.5 then
-         if d >= 0 then
-           result:=tr+1
-         else
-           result:=tr-1
-       else
-       if fr < 0.5 then
-          result:=tr
-       else { fr = 0.5 }
-          { check sign to decide ... }
-          { as in Turbo Pascal...    }
-          if d >= 0.0 then
+      fr := abs(Frac(d));
+      tr := Trunc(d);
+      case softfloat_rounding_mode of
+        float_round_nearest_even:
+          begin
+            if fr > 0.5 then
+              if d >= 0 then
+                result:=tr+1
+              else
+                result:=tr-1
+            else
+            if fr < 0.5 then
+               result:=tr
+            else { fr = 0.5 }
+               { check sign to decide ... }
+               { as in Turbo Pascal...    }
+              begin
+                if d >= 0.0 then
+                  result:=tr+1
+                else
+                  result:=tr;
+                { round to even }
+                result:=result and not(1);
+              end;
+          end;
+        float_round_down:
+          if (d >= 0.0) or
+             (fr = 0.0) then
+            result:=tr
+          else
+            result:=tr-1;
+        float_round_up:
+          if (d >= 0.0) and
+             (fr <> 0.0) then
             result:=tr+1
           else
             result:=tr;
+        float_round_to_zero:
+          result:=tr;
+      end;
     end;
 {$endif FPC_SYSTEM_HAS_EXP}
 

@@ -56,10 +56,36 @@ var
   mode : DWord;
 begin
   case (RoundMode) of
-    rmNearest : mode := 0;
-    rmTruncate : mode := 1;
-    rmUp : mode := 2;
-    rmDown : mode := 3;
+    rmNearest :
+      begin
+        mode := 0;
+{ 2.3.x has internal rounding support, which does the right thing }
+{ automatically                                                   }
+{$ifdef VER2_2}
+        softfloat_rounding_mode := float_round_nearest_even;
+{$endif}
+      end;
+    rmTruncate :
+      begin
+        mode := 1;
+{$ifdef VER2_2}
+        softfloat_rounding_mode := float_round_to_zero;
+{$endif}
+      end;
+    rmUp :
+      begin
+        mode := 2;
+{$ifdef VER2_2}
+        softfloat_rounding_mode := float_round_up;
+{$endif}
+      end;
+    rmDown :
+      begin
+        mode := 3;
+{$ifdef VER2_2}
+        softfloat_rounding_mode := float_round_down;
+{$endif}
+      end;
   end;
   setFPSCR((getFPSCR and (not RoundModeMask)) or mode);
   result := RoundMode;

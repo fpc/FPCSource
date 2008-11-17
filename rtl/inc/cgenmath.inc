@@ -96,28 +96,6 @@
 {$endif}
 
 
-{ Not supported everywhere (also not on Mac OS X 10.1, but that's deprecated. }
-{ It is supported on linux, but at least for linux/i386 we should call        }
-{ llroundl() instead (for extended support).                                  }
-
-{$if defined(darwin) }
-
-{$ifndef FPC_SYSTEM_HAS_ROUND}
-{$define FPC_SYSTEM_HAS_ROUND}
-
-    function c_llround(d: double): int64; cdecl; external 'c' name 'llround';
-
-//    function round(d : Real) : int64; external name 'FPC_ROUND';
-
-    function fpc_round_real(d : ValReal) : int64;[public, alias:'FPC_ROUND'];compilerproc;
-    begin
-      fpc_round_real := c_llround(d);
-    end;
-{$endif not FPC_SYSTEM_HAS_ROUND}
-
-{$endif darwin}
-
-
 {$ifndef FPC_SYSTEM_HAS_LN}
 {$define FPC_SYSTEM_HAS_LN}
 

@@ -91,6 +91,16 @@ function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var
   c: dword;
 begin
+  case (RoundMode) of
+    rmNearest :
+      softfloat_rounding_mode := float_round_nearest_even;
+    rmTruncate :
+      softfloat_rounding_mode := float_round_to_zero;
+    rmUp :
+      softfloat_rounding_mode := float_round_up;
+    rmDown :
+      softfloat_rounding_mode := float_round_down;
+  end;
   c:=Ord(RoundMode) shl 16;
   c:=_controlfp(c, _MCW_RC);
   Result:=TFPURoundingMode((c shr 16) and 3);
