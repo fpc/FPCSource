@@ -275,7 +275,7 @@ Const
   syscall_nr_epoll_ctl                  = syscall_nr_base+251;
   syscall_nr_epoll_wait                 = syscall_nr_base+252;
   syscall_nr_remap_file_pages           = syscall_nr_base+253;
-  syscall_set_tid_address               = syscall_nr_base+256;
+  syscall_nr_set_tid_address            = syscall_nr_base+256;
 					{ 254 for set_thread_area }
 					{ 255 for get_thread_area }
   syscall_nr_timer_create               = syscall_nr_base+257;
