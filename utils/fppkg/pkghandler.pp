@@ -20,7 +20,6 @@ type
   TPackageHandler = Class(TComponent)
   private
     FPackageName : string;
-    FIsLocalPackage : boolean;
   Protected
     Procedure Log(Level: TLogLevel;Msg : String);
     Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
@@ -34,7 +33,6 @@ type
     procedure ExecuteAction(const APackageName,AAction:string);
     procedure Execute; virtual; abstract;
     Property PackageName:string Read FPackageName;
-    Property IsLocalPackage:boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
   TPackageHandlerClass = class of TPackageHandler;
 
@@ -100,9 +98,6 @@ begin
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackageName) do
     try
-      if (APackageName=CmdLinePackageName) or
-         (APackageName=CurrentDirPackageName) then
-        IsLocalPackage:=true;
       Log(vlDebug,SLogRunAction+' start',[AAction]);
       Execute;
       Log(vlDebug,SLogRunAction+' end',[AAction]);

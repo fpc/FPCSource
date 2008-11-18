@@ -192,10 +192,7 @@ Var
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  if IsLocalPackage then
-    P:=InstalledRepository.PackageByName(PackageName)
-  else
-    P:=AvailableRepository.PackageByName(PackageName);
+  P:=AvailableRepository.PackageByName(PackageName);
   BuildDir:=PackageBuildPath(P);
   ArchiveFile:=PackageLocalArchive(P);
   if not FileExists(ArchiveFile) then
@@ -223,11 +220,16 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
         end
+      else
+        if (PackageName=CurrentDirPackageName) then
+          begin
+            ExecuteAction(PackageName,'installdependencies');
+          end
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
@@ -244,11 +246,16 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
         end
+      else
+        if (PackageName=CurrentDirPackageName) then
+          begin
+            ExecuteAction(PackageName,'installdependencies');
+          end
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
@@ -268,7 +275,7 @@ begin
     begin
       ExecuteAction(PackageName,'build');
       ExecuteAction(PackageName,'fpmakeinstall');
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
         begin
           // Load package name from manifest
           if not FileExists(ManifestFileName) then
@@ -316,14 +323,17 @@ var
   AvailP : TFPPackage;
   L : TStringList;
   status : string;
+  FreeManifest : boolean;
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
+  FreeManifest:=false;
   // Load dependencies for local packages
-  if IsLocalPackage then
+  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
       P:=LoadManifestFromFile(ManifestFileName);
+      FreeManifest:=true;
     end
   else
     P:=AvailableRepository.PackageByName(PackageName);
@@ -378,7 +388,7 @@ begin
   for i:=0 to L.Count-1 do
     ExecuteAction(L[i],'install');
   FreeAndNil(L);
-  if IsLocalPackage then
+  if FreeManifest then
     FreeAndNil(P);
 end;
 
