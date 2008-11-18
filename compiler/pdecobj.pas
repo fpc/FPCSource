@@ -720,6 +720,10 @@ implementation
            ) then
           current_objectdef.insertvmt;
 
+        if (oo_has_vmt in current_objectdef.objectoptions) and
+           not(oo_has_constructor in current_objectdef.objectoptions) then
+          Message1(parser_w_virtual_without_constructor,current_objectdef.objrealname^);
+
         if is_interface(current_objectdef) then
           setinterfacemethodoptions;
 

@@ -221,6 +221,14 @@ interface
          function  IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
        end;
 
+       { tvmtentry }
+       tvmtentry = record
+         procdef      : tprocdef;
+         procdefderef : tderef;
+         visibility   : tvisibility;
+       end;
+       pvmtentry = ^tvmtentry;
+
        { tobjectdef }
 
        tobjectdef = class(tabstractrecorddef)
@@ -234,7 +242,7 @@ interface
           objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
-          vmtentries     : TFPObjectList;
+          vmtentries     : TFPList;
           vmt_offset     : longint;
           writing_class_record_dbginfo : boolean;
           objecttype     : tobjecttyp;
@@ -252,6 +260,8 @@ interface
           procedure deref;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure resetvmtentries;
+          procedure copyvmtentries(objdef:tobjectdef);
           function  getparentdef:tdef;override;
           function  size : aint;override;
           function  alignment:shortint;override;
@@ -3620,7 +3630,7 @@ implementation
         childof:=nil;
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
-        vmtentries:=nil;
+        vmtentries:=TFPList.Create;
         vmt_offset:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
@@ -3642,6 +3652,7 @@ implementation
          implintfcount : longint;
          d : tderef;
          ImplIntf : TImplementedInterface;
+         vmtentry : pvmtentry;
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
@@ -3652,7 +3663,6 @@ implementation
          tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
          tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
-         vmtentries:=nil;
          ppufile.getderef(childofderef);
          ppufile.getsmallset(objectoptions);
 
@@ -3663,6 +3673,18 @@ implementation
               new(iidguid);
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
+           end;
+
+         vmtentries:=TFPList.Create;
+         vmtentries.count:=ppufile.getlongint;
+         for i:=0 to vmtentries.count-1 do
+           begin
+             ppufile.getderef(d);
+             new(vmtentry);
+             vmtentry^.procdef:=nil;
+             vmtentry^.procdefderef:=d;
+             vmtentry^.visibility:=tvisibility(ppufile.getbyte);
+             vmtentries[i]:=vmtentry;
            end;
 
          { load implemented interfaces }
@@ -3723,6 +3745,7 @@ implementation
            end;
          if assigned(vmtentries) then
            begin
+             resetvmtentries;
              vmtentries.free;
              vmtentries:=nil;
            end;
@@ -3759,8 +3782,8 @@ implementation
           end;
         if assigned(vmtentries) then
           begin
-            tobjectdef(result).vmtentries:=TFPobjectList.Create(false);
-            tobjectdef(result).vmtentries.Assign(vmtentries);
+            tobjectdef(result).vmtentries:=TFPList.Create;
+            tobjectdef(result).copyvmtentries(self);
           end;
       end;
 
@@ -3768,6 +3791,7 @@ implementation
     procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
       var
          i : longint;
+         vmtentry : pvmtentry;
          ImplIntf : TImplementedInterface;
       begin
          inherited ppuwrite(ppufile);
@@ -3784,6 +3808,15 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
+
+         ppufile.putlongint(vmtentries.count);
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             ppufile.putderef(vmtentry^.procdefderef);
+             ppufile.putbyte(byte(vmtentry^.visibility));
+           end;
+
 
          if assigned(ImplementedInterfaces) then
            begin
@@ -3822,6 +3855,7 @@ implementation
     procedure tobjectdef.buildderef;
       var
          i : longint;
+         vmtentry : pvmtentry;
       begin
          inherited buildderef;
          childofderef.build(childof);
@@ -3829,6 +3863,12 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
+
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             vmtentry^.procdefderef.build(vmtentry^.procdef);
+           end;
 
          if assigned(ImplementedInterfaces) then
            begin
@@ -3841,6 +3881,7 @@ implementation
     procedure tobjectdef.deref;
       var
          i : longint;
+         vmtentry : pvmtentry;
       begin
          inherited deref;
          childof:=tobjectdef(childofderef.resolve);
@@ -3851,6 +3892,11 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             vmtentry^.procdef:=tprocdef(vmtentry^.procdefderef.resolve);
+           end;
          if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
@@ -3873,6 +3919,32 @@ implementation
          if not (df_copied_def in defoptions) then
            tstoredsymtable(symtable).derefimpl;
       end;
+
+
+    procedure tobjectdef.resetvmtentries;
+      var
+        i : longint;
+      begin
+        for i:=0 to vmtentries.Count-1 do
+          Dispose(pvmtentry(vmtentries[i]));
+        vmtentries.clear;
+      end;
+
+
+    procedure tobjectdef.copyvmtentries(objdef:tobjectdef);
+      var
+        i : longint;
+        vmtentry : pvmtentry;
+      begin
+        resetvmtentries;
+        vmtentries.count:=objdef.vmtentries.count;
+        for i:=0 to objdef.vmtentries.count-1 do
+          begin
+            new(vmtentry);
+            vmtentry^:=pvmtentry(objdef.vmtentries[i])^;
+            vmtentries[i]:=vmtentry;
+          end;
+       end;
 
 
     function tobjectdef.getparentdef:tdef;
