@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Library: Howard Chu, Pierangelo Masarati and Kurt Zeilenga, header: Ivo Steinmann';
     P.License := 'Library: OpenLDAP Public License (3 clause BSD like), header: LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Header to openldap, a library that to access directory services';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Apache License 2, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Headers for the Apache 1.3 www server';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

@@ -20,7 +20,7 @@ begin
 
     P.Author := 'FPC development team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Windows registry + emulation parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Library: Daniel Stenberg, header: Free Pascal development team';
     P.License := 'Library: MIT, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Library to fetch files from URLs using many protocols.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

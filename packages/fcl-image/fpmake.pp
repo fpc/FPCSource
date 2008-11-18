@@ -23,7 +23,7 @@ begin
 
     P.Author := 'Michael Van Canneyt of the Free Pascal development team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Image loading and conversion parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

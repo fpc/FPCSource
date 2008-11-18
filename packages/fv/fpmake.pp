@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Leon De Boer and Pierre Mueller';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Free Vision, a portable Turbo Vision clone.';
     P.NeedLibC:= false;

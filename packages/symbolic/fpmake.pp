@@ -18,7 +18,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Marco van de Voort';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Expression parser with support for fast evaluation';
     P.NeedLibC:= false;

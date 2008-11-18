@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Library : Cygnus, header: Peter Vreman';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Interface to libgdb, the GDB debugger in library format';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

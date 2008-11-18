@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Peter Vreman and Michael van Canneyt (?)';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Kylix compatibility libc header, (linux/x86 only, deprecated for new development)';
     P.NeedLibC:= true;

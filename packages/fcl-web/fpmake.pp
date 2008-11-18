@@ -24,7 +24,7 @@ begin
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Web(app) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

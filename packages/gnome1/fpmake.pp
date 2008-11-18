@@ -21,7 +21,7 @@ begin
 
     P.Author := 'Library: Gnome project, header: FPC team';
     P.License := 'Library: LGPL2 or later, header: LGPL2 with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Header for main library of Gnome (1?).';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

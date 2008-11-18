@@ -20,7 +20,7 @@ begin
 
     P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
     P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'The New Aspell, spelling library';
     P.NeedLibC:= true;

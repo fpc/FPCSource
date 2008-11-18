@@ -21,7 +21,7 @@ begin
 
     P.Author := 'Andrew Haines';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Standalone CHM reader and writer library';
     P.NeedLibC:= false;

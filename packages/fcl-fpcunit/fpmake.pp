@@ -23,7 +23,7 @@ begin
 
     P.Author := ' Dean Zobec, Michael van Canneyt';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Unit testing system inspired by JUnit of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

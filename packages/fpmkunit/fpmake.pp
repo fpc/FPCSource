@@ -16,15 +16,15 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpmkunit';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.2.2-1';
     P.Description:='Free Pascal Make Tool';
     P.Author := 'Peter Vreman';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Basic library of the fpmake/fppkg build system.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc?
-    
+
     // All dependencies (including implicit) are listed
     // here to be able to update all requirements to
     // compile fpmake from a single place
@@ -34,7 +34,7 @@ begin
       D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-process');
       D.Version:='2.2.2-0';
-      
+
     P.Targets.AddUnit('src/fpmkunit.pp');
 
 {$ifndef ALLPACKAGES}

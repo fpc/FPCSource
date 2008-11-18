@@ -20,7 +20,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Author := 'Sebastian Guenther';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Pascal parsing parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

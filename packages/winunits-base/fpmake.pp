@@ -20,7 +20,7 @@ begin
     P.OSes:=[win32,win64];
     P.Author := 'Florian Klaempfl, Marco van de Voort';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Base Delphi compatible windows headers units outside the RTL';
     P.NeedLibC:= true;

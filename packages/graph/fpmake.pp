@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'FPC team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'A portable, yet usable substitute for the Turbo Pascal Graph unit.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
