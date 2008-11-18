@@ -208,7 +208,7 @@ begin
       with T.Dependencies do
         begin
           AddInclude('unixsmsg.inc',AllUnixOSes);
-          AddInclude('win32smsg.inc',[win32,win64]);
+          AddInclude('w32smsg.inc',[win32,win64]);
           AddInclude('go32smsg.inc',[go32v2]);
         end;
     T:=P.Targets.AddUnit('tabs.pas');

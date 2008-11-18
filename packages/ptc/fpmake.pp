@@ -40,7 +40,6 @@ begin
   T:=P.Targets.AddUnit('ptc.pp');
   with T.Dependencies do
     begin
-      AddInclude('extensions.inc');
       AddInclude('coreinterface.inc');
       AddInclude('aread.inc');
       AddInclude('colord.inc');
@@ -77,7 +76,8 @@ begin
       AddInclude('baseconsolei.inc');
       AddInclude('surfacei.inc');
       AddInclude('timeri.inc');
-      AddInclude('includes.inc');
+      AddInclude('includes.inc',allunixoses+[WinCE]);
+      AddInclude('extensions.inc',allunixoses);
       AddInclude('x11modesd.inc',allunixoses);
       AddInclude('x11imaged.inc',allunixoses);
       AddInclude('x11displayd.inc',allunixoses);
