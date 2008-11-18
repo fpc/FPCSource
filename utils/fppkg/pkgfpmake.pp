@@ -5,7 +5,8 @@ unit pkgfpmake;
 interface
 
 uses
-  Classes, SysUtils,pkghandler;
+  Classes,SysUtils,DateUtils,
+  pkghandler;
 
 implementation
 
@@ -151,10 +152,9 @@ var
     OOptions:=OOptions+maybequoted(s);
   end;
 
-const
-  TempBuildDir = 'build-fpmake';
 Var
   i : Integer;
+  TempBuildDir,
   DepDir,
   FPMakeBin,
   FPMakeSrc : string;
@@ -163,8 +163,11 @@ Var
   P : TFPPackage;
 begin
   P:=AvailableRepository.PackageByName(PackageName);
+  NeedFPMKUnitSource:=false;
   OOptions:='';
   SetCurrentDir(PackageBuildPath(P));
+  // Generate random name for build path
+  TempBuildDir:='build_fpmake_'+HexStr(DateTimeToUnix(Now),8)+HexStr(GetProcessId,4);
   // Check for fpmake source
   FPMakeBin:='fpmake'+ExeExt;
   FPMakeSrc:='fpmake.pp';
