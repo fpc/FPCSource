@@ -27,19 +27,21 @@ rsts=process simpleipc
 [compiler]
 options=-S2h
 includedir=src/$(OS_TARGET) src
-includedir_linux=src/unix
-includedir_freebsd=src/unix
-includedir_darwin=src/unix
-includedir_netbsd=src/unix
-includedir_openbsd=src/unix
-includedir_solaris=src/unix
-includedir_qnx=src/unix
-includedir_beos=src/unix
-includedir_haiku=src/unix
-includedir_emx=src/os2
-includedir_win32=src/win
-includedir_win64=src/win
-includedir_wince=src/win
+includedir_linux=src/unix src/dummy
+includedir_freebsd=src/unix src/dummy
+includedir_darwin=src/unix src/dummy
+includedir_netbsd=src/unix src/dummy
+includedir_openbsd=src/unix src/dummy
+includedir_solaris=src/unix src/dummy
+includedir_qnx=src/unix src/dummy
+includedir_beos=src/unix src/dummy
+includedir_haiku=src/unix src/dummy
+includedir_emx=src/os2 src/dummy
+includedir_win32=src/win src/dummy
+includedir_win64=src/win src/dummy
+includedir_wince=src/win src/dummy
+includedir_go32v2=src/win src/dummy
+includedir_os2=src/os2 src/dummy
 sourcedir=src/$(OS_TARGET) src
 
 [install]
