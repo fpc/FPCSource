@@ -1180,12 +1180,12 @@ implementation
         optimize }
         if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
          begin
+           current_filepos:=fileinfo;
            { We need intel style operands }
            SetOperandOrder(op_intel);
            { create the .ot fields }
            create_ot(objdata);
            { set the file postion }
-           current_filepos:=fileinfo;
          end
         else
          begin
