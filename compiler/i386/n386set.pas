@@ -91,9 +91,12 @@ implementation
           begin
             if assigned(t^.less) then
               genitem(list,t^.less);
+
             { fill possible hole }
-            for i:=last+1 to t^._low-1 do
-              list.concat(Tai_const.Create_sym(elselabel));
+            { avoid wrap around }
+            if last+1<t^._low then
+              for i:=last+1 to t^._low-1 do
+                list.concat(Tai_const.Create_sym(elselabel));
             for i:=t^._low to t^._high do
               list.concat(Tai_const.Create_sym(blocklabel(t^.blockid)));
             last:=t^._high;
