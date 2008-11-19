@@ -78,6 +78,7 @@ type
   u_long  = culong;
   u_short = cushort;
 
+  coff_t = clong;
 {$endif}
 
 implementation

@@ -52,3 +52,5 @@ type
   cdouble                = UnixType.cdouble;     pcdouble               = UnixType.pcdouble;
   clongdouble            = UnixType.clongdouble; pclongdouble           = UnixType.pclongdouble;
 
+  coff_t                 = UnixType.TOff;
+
