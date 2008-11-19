@@ -286,21 +286,8 @@ type
   { TBufDatasetReader }
 
 type
-  TChangeLogInfo = record
-       FirstChangeNode : pointer;
-       SecondChangeNode : pointer;
-       Bookmark   : TBufBookmark;
-  end;
-  TChangeLogEntry = record
-       UpdateKind : TUpdateKind;
-       OrigEntry  : integer;
-       NewEntry   : integer;
-  end;
-  TChangeLogInfoArr = array of TChangeLogInfo;
-  TChangeLogEntryArr = array of TChangeLogEntry;
   TRowStateValue = (rsvOriginal, rsvDeleted, rsvInserted, rsvUpdated, rsvDetailUpdates);
   TRowState = set of TRowStateValue;
-
 
 type
 
@@ -314,18 +301,28 @@ type
     class function ByteToRowState(const AByte : Byte) : TRowState;
   public
     constructor create(AStream : TStream); virtual;
-
+    // Load a dataset from stream:
+    // Load the field-definitions from a stream.
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs); virtual; abstract;
-    procedure StoreFieldDefs(AFieldDefs : TFieldDefs); virtual; abstract;
-    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
-    procedure EndStoreRecord; virtual; abstract;
-    function GetCurrentRecord : boolean; virtual; abstract;
-    procedure GotoNextRecord; virtual; abstract;
-    function GetCurrentElement : pointer; virtual; abstract;
-    procedure GotoElement(const AnElement : pointer); virtual; abstract;
-    procedure RestoreRecord(ADataset : TBufDataset); virtual; abstract;
-    procedure StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); virtual; abstract;
+    // Is called before the records are loaded
     procedure InitLoadRecords; virtual; abstract;
+    // Return the RowState of the current record, and the order of the update
+    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; virtual; abstract;
+    // Returns if there is at least one more record available in the stream
+    function GetCurrentRecord : boolean; virtual; abstract;
+    // Store a record from stream in the current record-buffer
+    procedure RestoreRecord(ADataset : TBufDataset); virtual; abstract;
+    // Move the stream to the next record
+    procedure GotoNextRecord; virtual; abstract;
+
+    // Store a dataset to stream:
+    // Save the field-definitions to a stream.
+    procedure StoreFieldDefs(AFieldDefs : TFieldDefs); virtual; abstract;
+    // Save a record from the current record-buffer to the stream
+    procedure StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); virtual; abstract;
+    // Is called after all records are stored
+    procedure FinalizeStoreRecords; virtual; abstract;
+    // Checks if the provided stream is of the right format for this class
     class function RecognizeStream(AStream : TStream) : boolean; virtual; abstract;
     property Stream: TStream read FStream;
   end;
@@ -337,12 +334,10 @@ type
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure EndStoreRecord; override;
+    procedure FinalizeStoreRecords; override;
     function GetCurrentRecord : boolean; override;
     procedure GotoNextRecord; override;
-    procedure GotoElement(const AnElement : pointer); override;
     procedure InitLoadRecords; override;
-    function GetCurrentElement: pointer; override;
     procedure RestoreRecord(ADataset : TBufDataset); override;
     procedure StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
@@ -659,6 +654,7 @@ destructor TBufDataset.Destroy;
 Var
   I : Integer;
 begin
+  if Active then Close;
   SetLength(FUpdateBuffer,0);
   SetLength(FBlobBuffers,0);
   SetLength(FUpdateBlobBuffers,0);
@@ -1675,11 +1671,7 @@ begin
     DatabaseErrorFmt(SNotEditing,[Name],self);
     exit;
     end;
-  if state = dsFilter then  // Set the value into the 'temporary' FLastRecBuf buffer for Locate and Lookup
-    with FCurrentIndex do
-      CurrBuff := SpareBuffer
-  else
-    CurrBuff := GetCurrentBuffer;
+  CurrBuff := GetCurrentBuffer;
   If Field.Fieldno > 0 then // If = 0, then calculated field or something
     begin
     NullMask := CurrBuff;
@@ -2353,8 +2345,6 @@ begin
     ABookMark:=@ATBookmark;
     FDatasetReader.StoreFieldDefs(FieldDefs);
 
-    EntryNr:=1;
-
     StoreDSState:=State;
     SetTempState(dsFilter);
     ScrollResult:=FCurrentIndex.ScrollFirst;
@@ -2390,14 +2380,21 @@ begin
       else
         RowState:=[];
       FFilterBuffer:=FCurrentIndex.CurrentBuffer;
-      FDatasetReader.StoreRecord(Self,RowState,FCurrentUpdateBuffer);
+      if RowState=[] then
+        FDatasetReader.StoreRecord(Self,[])
+      else
+        FDatasetReader.StoreRecord(Self,RowState,FCurrentUpdateBuffer);
 
-      inc(EntryNr);
       ScrollResult:=FCurrentIndex.ScrollForward;
+      if ScrollResult<>grOK then
+        begin
+        if getnextpacket>0 then
+          ScrollResult := FCurrentIndex.ScrollForward;
+        end;
       end;
     RestoreState(StoreDSState);
 
-    FDatasetReader.EndStoreRecord;
+    FDatasetReader.FinalizeStoreRecords;
   finally
     FDatasetReader := nil;
   end;
@@ -2477,14 +2474,12 @@ end;
 procedure TBufDataset.IntLoadRecordsFromFile;
 
 var StoreState      : TDataSetState;
-    EntryNr         : integer;
     AddRecordBuffer : boolean;
     ARowState       : TRowState;
     AUpdOrder       : integer;
 
 begin
   FDatasetReader.InitLoadRecords;
-  EntryNr:=1;
   StoreState:=SetTempState(dsFilter);
 
   while FDatasetReader.GetCurrentRecord do
@@ -2553,7 +2548,6 @@ begin
       end;
 
     FDatasetReader.GotoNextRecord;
-    inc(EntryNr);
     end;
 
   RestoreState(StoreState);
@@ -3070,7 +3064,7 @@ begin
     AUpdOrder := 0;
 end;
 
-procedure TFpcBinaryDatapacketReader.EndStoreRecord;
+procedure TFpcBinaryDatapacketReader.FinalizeStoreRecords;
 begin
 //  Do nothing
 end;
@@ -3086,19 +3080,9 @@ begin
 //  Do Nothing
 end;
 
-procedure TFpcBinaryDatapacketReader.GotoElement(const AnElement: pointer);
-begin
-//  Do nothing
-end;
-
 procedure TFpcBinaryDatapacketReader.InitLoadRecords;
 begin
 //  SetLength(AChangeLog,0);
-end;
-
-function TFpcBinaryDatapacketReader.GetCurrentElement: pointer;
-begin
-//  Do nothing
 end;
 
 procedure TFpcBinaryDatapacketReader.RestoreRecord(ADataset: TBufDataset);
