@@ -115,7 +115,8 @@ type
     FEmail: String;
     FLicense: String;
     FName: String;
-    FExternalURL: String;
+    FHomepageURL: String;
+    FDownloadURL: String;
     FFileName: String;
     FVersion: TFPVersion;
     FDependencies : TFPDependencies;
@@ -141,7 +142,8 @@ type
     Property Version : TFPVersion Read FVersion Write SetVersion;
     Property License : String Read FLicense Write FLicense;
     Property Description : String Read FDescription Write FDescription;
-    Property ExternalURL : String Read FExternalURL Write FExternalURL;
+    Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
+    Property DownloadURL : String Read FDownloadURL Write FDownloadURL;
     Property FileName : String Read GetFileName Write FFileName;
     Property Email : String Read FEmail Write FEmail;
     Property OSes : TOSes Read FOSes Write FOses;
@@ -507,7 +509,7 @@ var
 begin
   if FFileName='' then
     begin
-      URI:=ParseURI(ExternalURL);
+      URI:=ParseURI(DownloadURL);
       Result:=URI.Document;
     end
   else
@@ -527,7 +529,8 @@ begin
   Author:=ReadString(Stream);
   License:=ReadString(Stream);
   Description:=ReadString(Stream);
-  ExternalURL:=ReadString(Stream);
+  HomepageURL:=ReadString(Stream);
+  DownloadURL:=ReadString(Stream);
   FileName:=ReadString(Stream);
   Email:=ReadString(Stream);
   Count:=ReadInteger(Stream);
@@ -566,7 +569,8 @@ begin
   WriteString(Stream,Author);
   WriteString(Stream,License);
   WriteString(Stream,Description);
-  WriteString(Stream,ExternalURL);
+  WriteString(Stream,HomepageURL);
+  WriteString(Stream,DownloadURL);
   WriteString(Stream,FileName);
   WriteString(Stream,Email);
   { Write it like this, makes error checking easier when reading. }
@@ -607,7 +611,8 @@ begin
       Author:=P.Author;
       Version:=P.Version;
       Description:=P.Description;
-      ExternalURL:=P.ExternalURL;
+      HomepageURL:=P.HomepageURL;
+      DownloadURL:=P.DownloadURL;
       FileName:=P.FileName;
       Checksum:=P.Checksum;
       Dependencies.Clear;

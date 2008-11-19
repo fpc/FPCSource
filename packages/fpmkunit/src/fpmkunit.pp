@@ -519,7 +519,8 @@ Type
     FFileName: String;
     FAuthor: String;
     FLicense: String;
-    FExternalURL: String;
+    FHomepageURL: String;
+    FDownloadURL: String;
     FVersion: TFPVersion;
     FEmail : String;
     FNeedLibC : Boolean;
@@ -548,7 +549,8 @@ Type
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
-    Property ExternalURL : String Read FExternalURL Write FExternalURL;
+    Property HomepageURL : String Read FHomepageURL Write FHomepageURL;
+    Property DownloadURL : String Read FDownloadURL Write FDownloadURL;
     Property Email : String Read FEmail Write FEmail;
     Property Author : String Read FAuthor Write FAuthor;
     Property License : String Read FLicense Write FLicense;
@@ -2040,8 +2042,10 @@ begin
     Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
     Add(Format(' <author>%s</author>',[QuoteXml(Author)]));
     Add(Format(' <license>%s</license>',[QuoteXml(License)]));
-    if ExternalURL<>'' then
-      Add(Format(' <externalurl>%s</externalurl>',[QuoteXml(ExternalURL)]));
+    if HomepageURL<>'' then
+      Add(Format(' <homepageurl>%s</homepageurl>',[QuoteXml(HomepageURL)]));
+    if DownloadURL<>'' then
+      Add(Format(' <downloadurl>%s</downloadurl>',[QuoteXml(DownloadURL)]));
     Add(Format(' <email>%s</email>',[QuoteXMl(Email)]));
     S:=Description;
     If (S<>'') then

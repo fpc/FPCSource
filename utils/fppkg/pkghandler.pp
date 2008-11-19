@@ -10,10 +10,6 @@ uses
   pkgoptions,
   fprepos;
 
-const
-  CmdLinePackageName='<cmdline>';
-  CurrentDirPackageName='<currentdir>';
-
 type
   { TPackageHandler }
 
@@ -124,8 +120,8 @@ begin
     Error(SErrNoPackageSpecified)
   else if APackage.Name=CmdLinePackageName then
     Error(SErrPackageIsLocal);
-  if APackage.ExternalURL<>'' then
-    Result:=APackage.ExternalURL
+  if APackage.DownloadURL<>'' then
+    Result:=APackage.DownloadURL
   else
     Result:=GetRemoteRepositoryURL(APackage.FileName);
 end;

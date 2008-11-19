@@ -21,7 +21,7 @@ procedure CheckFPMakeDependencies;
 function  PackageInstalledVersionStr(const AName:String):string;
 function  PackageAvailableVersionStr(const AName:String):string;
 procedure ListAvailablePackages;
-procedure ListInstalledPackages;
+procedure ListPackages;
 
 procedure ListRemoteRepository;
 procedure RebuildRemoteRepository;
@@ -400,7 +400,7 @@ begin
       if P<>nil then
         begin
           AvailP:=AvailableRepository.FindPackage(FPMKUnitDeps[i].package);
-          if P<>nil then
+          if AvailP<>nil then
             AvailVerStr:=AvailP.Version.AsString
           else
             AvailVerStr:='<not available>';
@@ -502,22 +502,26 @@ begin
 end;
 
 
-procedure ListInstalledPackages;
+procedure ListPackages;
 var
-  P : TFPPackage;
   i : integer;
   SL : TStringList;
+  PackageName : String;
 begin
   SL:=TStringList.Create;
   SL.Sorted:=true;
+  SL.Duplicates:=dupIgnore;
+  for i:=0 to AvailableRepository.PackageCount-1 do
+    SL.Add(AvailableRepository.Packages[i].Name);
   for i:=0 to InstalledRepository.PackageCount-1 do
-    begin
-      P:=InstalledRepository.Packages[i];
-      SL.Add(Format('%-20s %-12s %-12s',[P.Name,P.Version.AsString,PackageAvailableVersionStr(P.Name)]));
-    end;
+    SL.Add(InstalledRepository.Packages[i].Name);
   Writeln(Format('%-20s %-12s %-12s',['Name','Installed','Available']));
   for i:=0 to SL.Count-1 do
-    Writeln(SL[i]);
+    begin
+      PackageName:=SL[i];
+      if (PackageName<>CmdLinePackageName) and (PackageName<>CurrentDirPackageName) then
+        Writeln(Format('%-20s %-12s %-12s',[PackageName,PackageInstalledVersionStr(PackageName),PackageAvailableVersionStr(PackageName)]));
+    end;
   FreeAndNil(SL);
 end;
 

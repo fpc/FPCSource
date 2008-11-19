@@ -33,16 +33,9 @@ type
     Procedure Execute;override;
   end;
 
-  { TCommandShowAll }
+  { TCommandListPackages }
 
-  TCommandShowAll = Class(TPackagehandler)
-  Public
-    Procedure Execute;override;
-  end;
-
-  { TCommandShowAvail }
-
-  TCommandShowAvail = Class(TPackagehandler)
+  TCommandListPackages = Class(TPackagehandler)
   Public
     Procedure Execute;override;
   end;
@@ -152,23 +145,16 @@ begin
 end;
 
 
-procedure TCommandShowAll.Execute;
+procedure TCommandListPackages.Execute;
 begin
-  ListInstalledPackages;
-end;
-
-
-procedure TCommandShowAvail.Execute;
-begin
-  ListAvailablePackages;
+  ListPackages;
 end;
 
 
 procedure TCommandScanPackages.Execute;
 begin
-  RebuildRemoteRepository;
-  ListRemoteRepository;
-  SaveRemoteRepository;
+  { nothing, already handled in fppkg.pp as special case
+    before the local fppkg directory is processed }
 end;
 
 
@@ -415,8 +401,7 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
-  RegisterPkgHandler('showall',TCommandShowAll);
-  RegisterPkgHandler('showavail',TCommandShowAvail);
+  RegisterPkgHandler('list',TCommandListPackages);
   RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);
   RegisterPkgHandler('unzip',TCommandUnzip);

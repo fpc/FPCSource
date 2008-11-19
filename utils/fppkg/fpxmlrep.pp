@@ -114,7 +114,8 @@ Const
   SNodePackage      = 'package';
   SNodeAuthor       = 'author';
   SNodeLicense      = 'license';
-  SNodeExternalURL  = 'externalurl';
+  SNodeHomepageURL  = 'homepageurl';
+  SNodeDownloadURL  = 'downloadurl';
   SNodeFileName     = 'filename';
   SNodeEmail        = 'email';
   SNodeVersion      = 'version';
@@ -318,7 +319,8 @@ begin
     // Version
     VersionToXML(P.Version,XML,Result);
     AddTextNode(SNodeAuthor,P.Author,XML,Result);
-    AddTextNode(SNodeExternalURL,P.ExternalURL,XML,Result);
+    AddTextNode(SNodeHomepageURL,P.HomepageURL,XML,Result);
+    AddTextNode(SNodeDownloadURL,P.DownloadURL,XML,Result);
     AddTextNode(SNodeFileName,P.FileName,XML,Result);
     AddTextNode(SNodeEmail,P.Email,XML,Result);
     AddTextNode(SNodeDescription,P.Description,XML,Result);
@@ -645,8 +647,10 @@ begin
     begin
       if (N.NodeName=sNodeAuthor) then
         P.Author:=NodeText(N)
-      else if (N.NodeName=sNodeExternalURL) then
-        P.ExternalURL:=NodeText(N)
+      else if (N.NodeName=sNodeHomepageURL) then
+        P.HomepageURL:=NodeText(N)
+      else if (N.NodeName=sNodeDownloadURL) then
+        P.DownloadURL:=NodeText(N)
       else if (N.NodeName=sNodeFileName) then
         P.FileName:=NodeText(N)
       else if (N.NodeName=sNodeEmail) then
