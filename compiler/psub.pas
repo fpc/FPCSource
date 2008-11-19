@@ -105,7 +105,7 @@ implementation
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,
+       optcse,optloop,
        optutils
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
@@ -696,6 +696,7 @@ implementation
         headertai : tai;
         i : integer;
         varsym : tabstractnormalvarsym;
+        RedoDFA : boolean;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -767,8 +768,7 @@ implementation
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
           { creating dfa is not always possible }
           ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                  pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
-                  pi_needs_stackframe])=[]) then
+                  pi_needs_implicit_finally,pi_has_implicit_finally])=[]) then
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
@@ -799,6 +799,15 @@ implementation
                       end;
                   end;
               end;
+            include(flags,pi_dfaavailable);
+          end;
+
+        if (cs_opt_loopstrength in current_settings.optimizerswitches)
+          { our induction variable strength reduction doesn't like
+            for loops with more than one entry }
+          and not(pi_has_goto in current_procinfo.flags) then
+          begin
+            RedoDFA:=OptimizeInductionVariables(code);
           end;
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
