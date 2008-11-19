@@ -11,7 +11,8 @@ interface
 {$ifdef unix}
   {$linklib c}
 {$endif}
-{$PACKRECORDS 4}
+
+{$packrecords c}
 
 uses
   ctypes;
@@ -35,13 +36,12 @@ const
 
 type
   { Compatible with paszlib }
-  Uint    = Longint;
-  Ulong   = Longint;
-  Ulongf  = Longint;
+  Uint    = cuint;
+  Ulong   = culong;
+  Ulongf  = Ulong;
   Pulongf = ^Ulongf;
-  z_off_t = longint;
-  pbyte   = ^byte;
-  pbytef  = ^byte;
+  z_off_t = coff_t;
+  pbytef  = pbyte;
 
   TAllocfunc = function (opaque:pointer; items:uInt; size:uInt):pointer;cdecl;
   TFreeFunc = procedure (opaque:pointer; address:pointer);cdecl;
@@ -62,7 +62,7 @@ type
     zalloc : TAllocFunc;
     zfree : TFreeFunc;
     opaque : pointer;
-    data_type : longint;
+    data_type : cint;
     adler : uLong;
     reserved : uLong;
   end;
