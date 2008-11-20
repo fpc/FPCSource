@@ -359,6 +359,11 @@ Type
 {$endif VER2_2}
   PUnicodeString      = ^UnicodeString;
 
+{$ifdef VER2_2}
+  {$undef FPC_RTLSTRING_UTF16}
+  {$undef FPC_RTLSTRING_UTF8}
+{$endif VER2_2}
+
 {$ifdef FPC_RTLSTRING_UTF16}
   RtlString           = UnicodeString;
   RtlChar             = UnicodeChar;

@@ -342,6 +342,13 @@ Function fpc_PWideChar_To_WideStr(const p : pwidechar): widestring; compilerproc
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 {$endif  defined(WINDOWS) or defined(VER2_2)}
 
+{$ifdef VER2_2}
+{ Compatibility for FPC 2.2.x as bootstrap compiler }
+Function fpc_WideCharArray_To_AnsiStr(const arr: array of widechar; zerobased: boolean = true): AnsiString; compilerproc;
+Function fpc_WideCharArray_To_WideStr(const arr: array of widechar; zerobased: boolean = true): WideString; compilerproc;
+Function fpc_PWideChar_To_AnsiStr(const p : pwidechar): ansistring; compilerproc;
+{$endif VER2_2}
+
 {*****************************************************************************
                         Unicode string support
 *****************************************************************************}
