@@ -57,11 +57,11 @@ Const
 
 Type
 { Needed for LFN Support }
-  ComStr  = String[FileNameLen];
-  PathStr = String[FileNameLen];
-  DirStr  = String[FileNameLen];
-  NameStr = String[FileNameLen];
-  ExtStr  = String[FileNameLen];
+  ComStr  = RtlString;
+  PathStr = RtlString;
+  DirStr  = RtlString;
+  NameStr = RtlString;
+  ExtStr  = RtlString;
 
 {
   filerec.inc contains the definition of the filerec.
@@ -113,7 +113,7 @@ Procedure FindClose(Var f: SearchRec);
 {File}
 Procedure GetFAttr(var f; var attr: word);
 Procedure GetFTime(var f; var time: longint);
-Function  FSearch(path: pathstr; dirlist: string): pathstr;
+Function  FSearch(path: pathstr; dirlist: RtlString): pathstr;
 Function  FExpand(const path: pathstr): pathstr;
 Procedure FSplit(path: pathstr; var dir: dirstr; var name: namestr; var ext: extstr);
 function  GetShortName(var p : String) : boolean;

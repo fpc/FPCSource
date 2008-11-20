@@ -520,10 +520,10 @@ function GetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime
   stdcall; external 'kernel32' name 'GetFileTime';
 function SetWinFileTime(h : longint;creation,lastaccess,lastwrite : PWinFileTime) : longbool;
   stdcall; external 'kernel32' name 'SetFileTime';
-function SetFileAttributes(lpFileName : pchar;dwFileAttributes : longint) : longbool;
-  stdcall; external 'kernel32' name 'SetFileAttributesA';
-function GetFileAttributes(lpFileName : pchar) : longint;
-  stdcall; external 'kernel32' name 'GetFileAttributesA';
+function SetFileAttributes(lpFileName : pwidechar;dwFileAttributes : longint) : longbool;
+  stdcall; external 'kernel32' name 'SetFileAttributesW';
+function GetFileAttributes(lpFileName : pwidechar) : longint;
+  stdcall; external 'kernel32' name 'GetFileAttributesW';
 
 
 { <immobilizer> }
@@ -534,7 +534,7 @@ function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWO
     stdcall; external 'kernel32' name 'GetShortPathNameA';
 
 
-Function FSearch(path: pathstr; dirlist: string): pathstr;
+Function FSearch(path: pathstr; dirlist: RtlString): pathstr;
 var
   p1     : longint;
   s      : searchrec;
