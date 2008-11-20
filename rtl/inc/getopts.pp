@@ -60,7 +60,7 @@ Implementation
                                Create an ArgV
 ***************************************************************************}
 
-{$IF not Declared(argv)} //{$ifdef TP}
+{$IF not Declared(argv) or (sizeof(RtlChar)<>1)} //{$ifdef TP}
 
 type
   ppchar = ^pchar;
@@ -84,7 +84,8 @@ begin
   s:=paramstr(0);
   arglen:=length(s);
   getmem(argsbuf[0],arglen + 1);
-  strpcopy(argsbuf[0],s);
+  move(s[1], argsbuf[0]^, arglen);
+  argsbuf[0][arglen]:=#0;
 { create commandline }
   s:='';
   for i:=1 to paramcount do
@@ -501,7 +502,7 @@ end;
   {$endif}
 {$endif}
 { create argv if running under TP }
-{$ifndef FPC}
+{$if not defined(FPC) or (sizeof(RtlChar)<>1)}
   setup_arguments;
 {$endif}
 { Needed to detect startup }
