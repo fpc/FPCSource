@@ -615,7 +615,7 @@ var
    l : longint;
 begin
   doserror:=0;
-  l:=GetFileAttributes(filerec(f).name);
+  l:=GetFileAttributes(PWideChar(UnicodeString(filerec(f).name)));
   if l=longint($ffffffff) then
    begin
      doserror:=getlasterror;
@@ -632,7 +632,7 @@ begin
   if (attr and VolumeID)<>0 then
     doserror:=5
   else
-   if SetFileAttributes(filerec(f).name,attr) then
+   if SetFileAttributes(PWideChar(UnicodeString(filerec(f).name)),attr) then
     doserror:=0
   else
     doserror:=getlasterror;

@@ -156,7 +156,11 @@ function SysGetTempFileName(lpPathName:LPWSTR;
 }
 function GetTempFileName(Dir,Prefix: PRtlChar; uUnique: DWORD; TempFileName: PRtlChar):DWORD;
 begin
-  Result:=Windows.GetTempFileNameW(_W(Dir),_W(Prefix),uUnique,TempFileName);
+{$if sizeof(RtlChar)>1}
+  Result:=Windows.GetTempFileNameW(Dir,Prefix,uUnique,TempFileName);
+{$else}
+  Result:=Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
+{$endif}
 end;
 
 
