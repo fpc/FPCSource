@@ -30,15 +30,6 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
-{
-  Assign Name to file f so it can be used with the file routines
-}
-begin
-  Assign(f,RtlString(p));
-end;
-
-
 Procedure Rewrite(var f:File;l:Longint);[IOCheck];
 {
   Create file f with recordsize of l

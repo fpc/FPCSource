@@ -93,12 +93,6 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
-begin
-  Assign(t,RtlString(p));
-end;
-
-
 Procedure Close(var t : Text);[IOCheck];
 Begin
   if InOutRes<>0 then

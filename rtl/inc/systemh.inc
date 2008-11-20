@@ -803,7 +803,6 @@ function  lowercase(const s : ansistring) : ansistring;
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:RtlString);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:PRtlChar);
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -838,7 +837,6 @@ Procedure Truncate (var F:File);
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:RtlString);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:PRtlChar);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -849,7 +847,6 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:RtlString);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:PRtlChar);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
