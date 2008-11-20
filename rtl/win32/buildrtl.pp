@@ -3,7 +3,7 @@ unit buildrtl;
   interface
 
     uses
-      sysinitpas, sysinitcyg, sysinitgprof,
+      sysinitpas, sysinitcyg, sysinitgprof, fpintres,
       ctypes, strings,
       heaptrc, matrix,
       windows, winsock, winsock2, initc, cmem, dynlibs, signals,
@@ -13,7 +13,7 @@ unit buildrtl;
       convutils, stdconvs, cpu, mmx, charset, ucomplex, getopts,
       winevent, sockets, printer,
       video, mouse, keyboard, fmtbcd,
-      winsysut, sharemem, fpintres;
+      winsysut, sharemem;
 
   implementation
 
