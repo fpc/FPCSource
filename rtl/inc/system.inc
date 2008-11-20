@@ -586,18 +586,16 @@ End;
                              Directory support.
 *****************************************************************************}
 
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-(*
-Procedure getdir(drivenr:byte;Var dir:RtlString);
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS) and defined(FPC_RTLSTRING_UTF16)}
+Procedure getdir(drivenr:byte;Var dir:AnsiString);
 { this is needed to also allow ansistrings, the shortstring version is
   OS dependent }
 var
-  s : shortstring;
+  s : RtlString;
 begin
   getdir(drivenr,s);
   dir:=s;
 end;
-*)
 {$endif}
 
 {$ifopt R+}

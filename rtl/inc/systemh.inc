@@ -883,9 +883,9 @@ Procedure chdir(const s:RtlString);
 Procedure mkdir(const s:RtlString);
 Procedure rmdir(const s:RtlString);
 Procedure getdir(drivenr:byte;var dir:RtlString);
-{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
-//Procedure getdir(drivenr:byte;var dir:RtlString);
-{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$if defined(FPC_HAS_FEATURE_ANSISTRINGS) and defined(FPC_RTLSTRING_UTF16)}
+Procedure getdir(drivenr:byte;var dir:AnsiString);
+{$endif}
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 
