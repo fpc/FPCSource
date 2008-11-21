@@ -280,6 +280,7 @@ implementation
            end;
          { Generate propertysym and insert in symtablestack }
          p:=tpropertysym.create(orgpattern);
+         p.default:=longint($80000000);
          symtablestack.top.insert(p);
          consume(_ID);
          { property parameters ? }
@@ -620,12 +621,13 @@ implementation
          else if try_to_consume(_NODEFAULT) then
            begin
               p.default:=longint($80000000);
-           end
-         else if allow_default_property(p) then
+           end;
+(*
+         else {if allow_default_property(p) then
            begin
               p.default:=longint($80000000);
            end;
-  
+*)
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
