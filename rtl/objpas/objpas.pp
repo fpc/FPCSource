@@ -69,7 +69,7 @@ Var
 ****************************************************************************}
 
    type
-     TResourceIterator = Function (Name,Value : RtlString; Hash : Longint; arg:pointer) : RtlString;
+     TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
 
    Function Hash(S : AnsiString) : LongWord;
    Procedure ResetResourceTables;
@@ -88,9 +88,9 @@ Var
 
    { Delphi compatibility }
    type
-     PResStringRec=^RtlString;
-     TResStringRec=RtlString;
-   Function LoadResString(p:PResStringRec):RtlString;
+     PResStringRec=^AnsiString;
+     TResStringRec=AnsiString;
+   Function LoadResString(p:PResStringRec):AnsiString;
 
   implementation
 
@@ -453,7 +453,7 @@ end;
 
 {$endif RESSTRSECTIONS}
 
-Function LoadResString(p:PResStringRec):RtlString;
+Function LoadResString(p:PResStringRec):AnsiString;
 begin
   Result:=p^;
 end;
