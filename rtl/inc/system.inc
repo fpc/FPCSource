@@ -588,7 +588,7 @@ End;
 
 {$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS) and defined(FPC_RTLSTRING_UTF16)}
 Procedure getdir(drivenr:byte;Var dir:AnsiString);
-{ this is needed to also allow ansistrings, the shortstring version is
+{ this is needed to also allow ansistrings, the RtlString version is
   OS dependent }
 var
   s : RtlString;
@@ -597,6 +597,16 @@ begin
   dir:=s;
 end;
 {$endif}
+
+Procedure getdir(drivenr:byte;Var dir:ShortString);
+{ this is needed to also allow shortstrings, the RtlString version is
+  OS dependent }
+var
+  s : RtlString;
+begin
+  getdir(drivenr,s);
+  dir:=s;
+end;
 
 {$ifopt R+}
 {$define RangeCheckWasOn}
