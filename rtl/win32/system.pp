@@ -292,6 +292,7 @@ begin
     paramstr:='';
 end;
 
+{$ifdef FPC_RTLSTRING_UTF16}
 function argv: PPAnsiChar;
 var
   s: AnsiString;
@@ -314,6 +315,13 @@ begin
   end;
   Result:=FAnsiArgv;
 end;
+{$else}
+function argv: PPAnsiChar;
+begin
+  setup_arguments;
+  Result:=Fargv;
+end;
+{$endif FPC_RTLSTRING_UTF16}
 
 procedure randomize;
 begin
