@@ -23,7 +23,7 @@ Begin
   FillChar(f,SizeOF(FileRec),0);
   FileRec(f).Handle:=UnusedHandle;
   FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name)*SizeOf(RtlChar));
+  StrLCopy(FileRec(f).Name, PRtlChar(Name), SizeOf(FileRec(f).Name) div SizeOf(RtlChar));
 End;
 
 

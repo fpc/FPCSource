@@ -89,7 +89,7 @@ Begin
     tlbsCRLF: TextRec(t).LineEnd := #13#10;
     tlbsCR: TextRec(t).LineEnd := #13;
   End;
-  Move(s[1],TextRec(t).Name,Length(s)*SizeOf(RtlChar));
+  StrLCopy(TextRec(t).Name, PRtlChar(s), SizeOf(TextRec(t).Name) div SizeOf(RtlChar));
 End;
 
 
@@ -191,8 +191,6 @@ End;
 
 
 Procedure Rename(var t : text;p:PRtlChar);[IOCheck];
-var
-  len: longint;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -201,13 +199,7 @@ Begin
      Do_Rename(PRtlChar(@TextRec(t).Name),p);
      { check error code of do_rename }
      If InOutRes = 0 then
-      begin
-        len:=StrLen(p)*SizeOf(RtlChar);
-        if len >= SizeOf(TextRec(t).Name) then
-          len:=SizeOf(TextRec(t).Name) - SizeOf(RtlChar);
-        Move(p^,TextRec(t).Name,len);
-        TextRec(t).Name[len]:=#0;
-      end;
+       StrLCopy(TextRec(t).Name, p, SizeOf(TextRec(t).Name) div SizeOf(RtlChar));
    End;
 End;
 

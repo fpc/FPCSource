@@ -126,6 +126,11 @@ begin
   Result:=PWideChar(UnicodeString(s));
 end;
 
+function _W(p: PWideChar): PWideChar; inline;
+begin
+  Result:=p;
+end;
+
 var
   EntryInformation : TEntryInformation;
   SysInstance : Longint;public name '_FPC_SysInstance';

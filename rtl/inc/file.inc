@@ -26,7 +26,7 @@ Begin
   FillChar(f,SizeOf(FileRec),0);
   FileRec(f).Handle:=UnusedHandle;
   FileRec(f).mode:=fmClosed;
-  Move(Name[1],FileRec(f).Name,Length(Name)*SizeOf(RtlChar));
+  StrLCopy(FileRec(f).Name, PRtlChar(Name), SizeOf(FileRec(f).Name) div SizeOf(RtlChar));
 End;
 
 
@@ -370,8 +370,6 @@ End;
 
 
 Procedure Rename(var f : File;p:PRtlChar);[IOCheck];
-var
-  len: longint;
 Begin
   If InOutRes <> 0 then
    exit;
@@ -380,13 +378,7 @@ Begin
      Do_Rename(PRtlChar(@FileRec(f).Name),p);
      { check error code of do_rename }
      If InOutRes = 0 then
-      begin
-        len:=StrLen(p)*SizeOf(RtlChar);
-        if len >= SizeOf(FileRec(f).Name) then
-          len:=SizeOf(FileRec(f).Name) - SizeOf(RtlChar);
-        Move(p^,FileRec(f).Name,len);
-        FileRec(f).Name[len]:=#0;
-      end;
+       StrLCopy(FileRec(f).Name, p, SizeOf(FileRec(f).Name) div SizeOf(RtlChar));
    End;
 End;
 

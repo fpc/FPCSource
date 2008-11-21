@@ -215,6 +215,24 @@ begin
 end;
 
 
+Function StrLCopy(Dest,Source: PRtlChar; MaxLen: SizeInt): PRtlChar;
+var
+  counter: SizeInt;
+Begin
+  counter := 0;
+  while (Source^ <> #0) and (counter < MaxLen) do
+  Begin
+     Dest^ := Source^;
+     Inc(Dest);
+     Inc(Source);
+     Inc(counter);
+  end;
+  { terminate the string }
+  Dest^ := #0;
+  StrLCopy := Dest;
+end;
+
+
 { Include generic pascal only routines which are not defined in the processor
   specific include file }
 {$I generic.inc}

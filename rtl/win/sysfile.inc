@@ -53,10 +53,20 @@ end;
 
 
 procedure do_rename(p1,p2 : PRtlChar);
+{$if SizeOf(RtlChar)<>2}
+var
+  s1, s2: UnicodeString;
+{$endif}
 begin
   DoDirSeparators(p1);
   DoDirSeparators(p2);
-  if MoveFile(_W(p1),_W(p2))=0 then
+{$if SizeOf(RtlChar)<>2}
+  s1:=p1;
+  s2:=p2;
+  if MoveFile(PWideChar(s1),PWideChar(s2))=0 then
+{$else}
+  if MoveFile(p1,p2)=0 then
+{$endif}
    Begin
       errno:=GetLastError;
       Errno2InoutRes;
