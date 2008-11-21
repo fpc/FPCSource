@@ -314,8 +314,6 @@ procedure asm_exit;stdcall;external name 'asm_exit';
 
 Procedure system_exit;
 begin
-  SysFreeMem(FArgs);
-  SysFreeMem(FArgv);
   { don't call ExitProcess inside
     the DLL exit code !!
     This crashes Win95 at least PM }
@@ -1050,7 +1048,7 @@ function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 	end;
 
 
-begin
+initialization
   { get some helpful informations }
   GetStartupInfo(@startupinfo);
 
@@ -1091,5 +1089,10 @@ begin
   InitWin32Widestrings;
   DispCallByIDProc:=@DoDispCallByIDError;
   SysInitStdIO;
+
+finalization
+  SysFreeMem(FArgs);
+  SysFreeMem(FArgv);
+
 end.
 
