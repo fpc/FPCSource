@@ -21,7 +21,8 @@
 }
 
 const
-  filerecnamelength = 255;
+  filerecnamelength = {$ifdef VER2_2} 256 {$else} 512 {$endif};
+
 type
   FileRec = Packed Record
     Handle    : THandle;
@@ -29,6 +30,6 @@ type
     RecSize   : SizeInt;
     _private  : array[1..3 * SizeOf(SizeInt) + 5 * SizeOf (pointer)] of byte;
     UserData  : array[1..32] of byte;
-    name      : array[0..filerecnamelength div SizeOf(RtlChar)] of RtlChar;
+    name      : array[0..(filerecnamelength div SizeOf(RtlChar))-1] of RtlChar;
   End;
 

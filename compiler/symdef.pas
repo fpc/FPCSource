@@ -1776,23 +1776,23 @@ implementation
         case filetyp of
           ft_text :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=632{+8}
+              savesize:=888{+8}
             else
-              savesize:=628{+8};
+              savesize:=884{+8};
           ft_typed,
           ft_untyped :
             if target_info.system in [system_x86_64_win64,system_ia64_win64] then
-              savesize:=372
+              savesize:=628
             else
-              savesize:=368;
+              savesize:=624;
         end;
 {$else cpu64bitaddr}
         case filetyp of
           ft_text :
-            savesize:=592{+4};
+            savesize:=848{+4};
           ft_typed,
           ft_untyped :
-            savesize:=332;
+            savesize:=588;
         end;
 {$endif cpu64bitaddr}
       end;

@@ -21,7 +21,7 @@
 }
 
 const
-  TextRecNameLength = 256;
+  TextRecNameLength = {$ifdef VER2_2} 256 {$else} 512 {$endif};
   TextRecBufSize    = 256;
 type
   TLineEndStr = string [3];
