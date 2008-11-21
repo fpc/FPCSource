@@ -221,8 +221,13 @@ resourcestring
  { TFPgtkApplication }
 
 constructor TFPgtkApplication.Create;
+var
+  _argv: PPAnsiChar;
+  _argc: LongInt;
 begin
-  gtk_init (@argc, @argv);
+  _argc:=argc;
+  _argv:=argv;
+  gtk_init (@_argc, @_argv);
   inherited create;
   FMainWindow := nil;
 end;
