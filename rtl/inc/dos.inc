@@ -16,7 +16,7 @@
 
  **********************************************************************}
 
-procedure DoDirSeparators(var p:RtlString);
+procedure DoDirSeparators(var p:shortstring);
 var
   i : longint;
 begin

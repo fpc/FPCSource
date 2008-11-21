@@ -534,7 +534,7 @@ function GetShortPathName(lpszLongPath:pchar; lpszShortPath:pchar; cchBuffer:DWO
     stdcall; external 'kernel32' name 'GetShortPathNameA';
 
 
-Function FSearch(path: pathstr; dirlist: RtlString): pathstr;
+Function FSearch(path: pathstr; dirlist: string): pathstr;
 var
   p1     : longint;
   s      : searchrec;

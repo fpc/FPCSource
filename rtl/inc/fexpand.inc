@@ -50,7 +50,7 @@
  {$DEFINE FPC_FEXPAND_UPDIR_HELPER}
 {$ENDIF FPC_FEXPAND_DIRSEP_IS_UPDIR}
 
-procedure GetDirIO (DriveNr: byte; var Dir: RtlString);
+procedure GetDirIO (DriveNr: byte; var Dir: PathStr);
 
 (* GetDirIO is supposed to return the root of the given drive   *)
 (* in case of an error for compatibility of FExpand with TP/BP. *)
