@@ -256,7 +256,7 @@ begin
       Inc(Fargc);
    end;
    // Truncate buffers
-   SysReAllocMem(FArgs, dst - FArgs);
+   SysReAllocMem(FArgs, pointer(dst) - pointer(FArgs));
    SysReAllocMem(Fargv, Fargc*SizeOf(pointer));
 end;
 
