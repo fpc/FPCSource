@@ -115,9 +115,9 @@ const
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
 
 function CmdLine: PRtlChar;
-{ C compatible arguments }
+{ C compatible arguments ANSI only}
 function argc: longint;
-function argv: PPRtlChar;
+function argv: PPAnsiChar;
 
 implementation
 
@@ -158,11 +158,14 @@ function SysReAllocStringLen(var bstr:pointer;psz: pointer;
 var
   FArgs: PRtlChar;
   FCmdLine: PRtlChar;
-{$ifndef FPC_RTLSTRING_UTF16}
-  FCmdLineStr: RtlString;
-{$endif FPC_RTLSTRING_UTF16}
   Fargc: longint;
   Fargv: PPRtlChar;
+{$ifdef FPC_RTLSTRING_UTF16}
+  FAnsiArgs: PAnsiChar;
+  FAnsiArgv: PPAnsiChar;
+{$else}
+  FCmdLineStr: RtlString;
+{$endif FPC_RTLSTRING_UTF16}
 
 procedure setup_arguments;
 var
@@ -194,7 +197,7 @@ begin
 {$endif FPC_RTLSTRING_UTF16}
   Inc(i);
   // Alloc space for arguments
-  FArgs:=SysGetMem((i + strlen(FCmdLine) + 1)*SizeOf(RtlChar));
+  FArgs:=SysGetMem((i + strlen(FCmdLine) + 2)*SizeOf(RtlChar));
   // Copy exe name
   Move(buf, FArgs^, i*SizeOf(RtlChar));
   Fargv[0]:=FArgs;
@@ -255,6 +258,9 @@ begin
 
       Inc(Fargc);
    end;
+   // Terminate FArgs with double null
+   dst^:=#0;
+   Inc(dst);
    // Truncate buffers
    SysReAllocMem(FArgs, pointer(dst) - pointer(FArgs));
    SysReAllocMem(Fargv, Fargc*SizeOf(pointer));
@@ -272,12 +278,6 @@ begin
   Result:=Fargc;
 end;
 
-function argv: PPRtlChar;
-begin
-  setup_arguments;
-  Result:=Fargv;
-end;
-
 function paramcount : longint;
 begin
   paramcount := argc - 1;
@@ -292,6 +292,28 @@ begin
     paramstr:='';
 end;
 
+function argv: PPAnsiChar;
+var
+  s: AnsiString;
+  i, j, len: cardinal;
+begin
+  if FAnsiArgv = nil then begin
+    setup_arguments;
+    FAnsiArgv:=SysGetMem((ParamCount + 1)*SizeOf(pointer));
+    len:=0;
+    for i:=0 to ParamCount do begin
+      s:=ParamStr(i);
+      j:=Length(s) + 1;
+      SysReAllocMem(FAnsiArgs, len + j);
+      Move(s[1], FAnsiArgs[len], j);
+      FAnsiArgv[i]:=pointer(len);
+      Inc(len, j);
+    end;
+    for i:=0 to ParamCount do
+      FAnsiArgv[i]:=pointer(FAnsiArgs) + ptruint(FAnsiArgv[i]);
+  end;
+  Result:=FAnsiArgv;
+end;
 
 procedure randomize;
 begin
@@ -1093,6 +1115,10 @@ initialization
 finalization
   SysFreeMem(FArgs);
   SysFreeMem(FArgv);
+{$ifdef FPC_RTLSTRING_UTF16}
+  SysFreeMem(FAnsiArgs);
+  SysFreeMem(FAnsiArgv);
+{$endif FPC_RTLSTRING_UTF16}
 
 end.
 
