@@ -2346,8 +2346,7 @@ implementation
                 if is_signed(left.resultdef) then
                   fname:='int32_to_'
                 else
-                  { we can't do better currently }
-                  fname:='int32_to_';
+                  fname:='int64_to_';
                 firstpass(left);
               end;
             if tfloatdef(resultdef).floattype=s64real then
