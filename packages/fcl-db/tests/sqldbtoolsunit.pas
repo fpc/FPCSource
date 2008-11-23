@@ -295,7 +295,7 @@ begin
   try
     if SQLDbType = INTERBASE then
       begin
-      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''FPDEV_FIELD'')) '+
+      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
              'then execute statement ''drop table ' + ATAbleName + ';'';end');
       FTransaction.CommitRetaining;
       end;
