@@ -85,6 +85,7 @@ type
     procedure TestSupportDateFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
+    procedure TestSupportFixedStringFields;
 
     procedure TestIsEmpty;
     procedure TestAppendOnEmptyDataset;
@@ -93,6 +94,7 @@ type
     procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestEofAfterFirst;           //bug 7211
     procedure TestBufDatasetCancelUpd1;
+    procedure TestMultipleDeleteUpdateBuffer;
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -123,7 +125,7 @@ type
 
 implementation
 
-uses toolsunit, bufdataset, variants;
+uses toolsunit, bufdataset, variants, strutils;
 
 type THackDataLink=class(TdataLink);
 
@@ -151,6 +153,7 @@ begin
     AssertTrue(eof);
     AssertTrue(bof);
     append;
+    FieldByName('id').AsInteger:=0;
     AssertFalse(Bof);
     AssertTrue(Eof);
     post;
@@ -169,6 +172,7 @@ begin
     AssertTrue(bof);
     AssertTrue(IsEmpty);
     insert;
+    FieldByName('id').AsInteger:=0;
     AssertTrue(Bof);
     AssertTrue(Eof);
     AssertFalse(IsEmpty);
@@ -1804,6 +1808,24 @@ begin
   ds.close;
 end;
 
+procedure TTestDBBasics.TestSupportFixedStringFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftFixedChar,10,ds,Fld);
+  for i := 0 to testValuesCount-1 do
+    begin
+    if Fld.IsNull then // If the field is null, .AsString always returns an empty, non-padded string
+      AssertEquals(testStringValues[i],Fld.AsString)
+    else
+      AssertEquals(PadRight(testStringValues[i],10),Fld.AsString);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
 procedure TTestDBBasics.TestDoubleClose;
 begin
   with DBConnector.GetNDataset(1) do
@@ -1992,6 +2014,32 @@ begin
       Prior;
       end;
     end;
+end;
+
+procedure TTestDBBasics.TestMultipleDeleteUpdateBuffer;
+var ds    : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  with TBufDataset(ds) do
+    begin
+    AssertEquals(0,ChangeCount);
+    edit;
+    fieldbyname('id').asinteger := 500;
+    fieldbyname('name').AsString := 'JoJo';
+    post;
+    AssertEquals(1,ChangeCount);
+    next; next;
+    Delete;
+    AssertEquals(2,ChangeCount);
+    Delete;
+    AssertEquals(3,ChangeCount);
+    CancelUpdates;
+    end;
+  ds.close;
 end;
 
 procedure TTestDBBasics.TestNullAtOpen;
