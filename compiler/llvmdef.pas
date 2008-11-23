@@ -968,14 +968,8 @@ implementation
           { the other fields }
           for i:=1 to 8 do
             defstr:=defstr+'void*, ';
-          if not assigned(def.VMTEntries) then
-            with TVMTBuilder.create(def) do
-              begin
-                generate_vmt;
-                free;
-              end;
           for i:= 0 to def.VMTEntries.Count-1 do
-            defstr:=defstr+def_llvm_pointer_name(tprocdef(def.VMTEntries[i])).name+', ';
+            defstr:=defstr+def_llvm_pointer_name(pvmtentry(def.VMTEntries[i])^.procdef).name+', ';
           setlength(defstr,length(defstr)-2);
           defstr:=defstr+' >*';
           list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_vmt_name(def),defstr));
