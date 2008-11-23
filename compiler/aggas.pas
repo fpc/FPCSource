@@ -40,12 +40,16 @@ interface
       {# This is a derived class which is used to write
          GAS styled assembler.
       }
+
+      { TGNUAssembler }
+
       TGNUAssembler=class(texternalassembler)
       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;virtual;
         procedure WriteSection(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder);
         procedure WriteExtraHeader;virtual;
         procedure WriteInstruction(hp: tai);
+        procedure WriteWeakSymbolDef(s: tasmsymbol); virtual;
        public
         function MakeCmdLine: TCmdStr; override;
         procedure WriteTree(p:TAsmList);override;
@@ -75,8 +79,12 @@ interface
       end;
 
 
+      { TAppleGNUAssembler }
+
       TAppleGNUAssembler=class(TGNUAssembler)
+       protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
+        procedure WriteWeakSymbolDef(s: tasmsymbol); override;
        private
         debugframecount: aint;
        end;
@@ -1082,10 +1090,17 @@ implementation
       end;
 
 
+    procedure TGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+      begin
+        AsmWriteLn(#9'.weak '+s.name);
+      end;
+
+
     procedure TGNUAssembler.WriteAsmList;
     var
       n : string;
       hal : tasmlisttype;
+      i: longint;
     begin
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -1096,7 +1111,13 @@ implementation
         n:=ExtractFileName(current_module.mainsource^)
       else
         n:=InputFileName;
-      AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+
+      { gcc does not add it either for Darwin (and AIX). Grep for
+        TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
+      }
+      if not(target_info.system in systems_darwin) then
+        AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+
       WriteExtraHeader;
       AsmStartSize:=AsmSize;
       symendcount:=0;
@@ -1107,6 +1128,11 @@ implementation
           writetree(current_asmdata.asmlists[hal]);
           AsmWriteLn(target_asm.comment+'End asmlist '+AsmlistTypeStr[hal]);
         end;
+
+      { add weak symbol markers }
+      for i:=0 to current_asmdata.asmsymboldict.count-1 do
+        if (tasmsymbol(current_asmdata.asmsymboldict[i]).bind=AB_WEAK_EXTERNAL) then
+          writeweaksymboldef(tasmsymbol(current_asmdata.asmsymboldict[i]));
 
       if create_smartlink_sections and
          (target_info.system in systems_darwin) then
@@ -1181,6 +1207,12 @@ implementation
               end;
           end;
         result := inherited sectionname(atype,aname,aorder);
+      end;
+
+
+    procedure TAppleGNUAssembler.WriteWeakSymbolDef(s: tasmsymbol);
+      begin
+        AsmWriteLn(#9'.weak_reference '+s.name);
       end;
 
 

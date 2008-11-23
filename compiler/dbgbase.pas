@@ -430,7 +430,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if not(sp_hidden in sym.symoptions) and
+            if (sym.visibility<>vis_hidden) and
                (not sym.isdbgwritten) then
               appendsym(list,sym);
           end;

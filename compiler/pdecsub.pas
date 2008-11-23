@@ -108,7 +108,6 @@ implementation
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
-           vs.symoptions:=[sp_public];
            pd.parast.insert(vs);
            { Store the this symbol as funcretsym for procedures }
            if pd.typ=procdef then
@@ -136,7 +135,6 @@ implementation
             vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
                   ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
-            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
 
             current_tokenpos:=storepos;
@@ -156,7 +154,6 @@ implementation
           begin
             { Generate self variable }
             vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
-            vs.symoptions:=[sp_public];
             pd.parast.insert(vs);
           end
         else
@@ -179,7 +176,6 @@ implementation
                    { can't use classrefdef as type because inheriting
                      will then always file because of a type mismatch }
                    vs:=tparavarsym.create('$vmt',paranr_vmt,vs_value,voidpointertype,[vo_is_vmt,vo_is_hidden_para]);
-                   vs.symoptions:=[sp_public];
                    pd.parast.insert(vs);
                  end;
 
@@ -197,7 +193,6 @@ implementation
                     hdef:=tprocdef(pd)._class;
                   end;
                 vs:=tparavarsym.create('$self',paranr_self,vsp,hdef,[vo_is_self,vo_is_hidden_para]);
-                vs.symoptions:=[sp_public];
                 pd.parast.insert(vs);
 
                 current_tokenpos:=storepos;
@@ -282,7 +277,7 @@ implementation
            if paramanager.push_high_param(varspez,vardef,pd.proccalloption) then
              begin
                hvs:=tparavarsym.create('$high'+name,paranr+1,vs_const,sinttype,[vo_is_high_para,vo_is_hidden_para]);
-               hvs.symoptions:=[sp_public];
+               hvs.symoptions:=[];
                owner.insert(hvs);
              end
            else
@@ -382,7 +377,6 @@ implementation
         varspez : Tvarspez;
         defaultvalue : tconstsym;
         defaultrequired : boolean;
-        old_object_option : tsymoptions;
         old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
@@ -391,7 +385,6 @@ implementation
         paranr : integer;
         dummytype : ttypesym;
       begin
-        old_object_option:=current_object_option;
         old_block_type:=block_type;
         explicit_paraloc:=false;
         consume(_LKLAMMER);
@@ -406,10 +399,8 @@ implementation
         sc:=TFPObjectList.create(false);
         defaultrequired:=false;
         paranr:=0;
-        { the variables are always public }
-        current_object_option:=[sp_public];
         inc(testcurobject);
-        block_type:=bt_type;
+        block_type:=bt_var;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -467,8 +458,10 @@ implementation
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
               begin
+                block_type:=bt_var_type;
                 consume(_COLON);
                 single_type(pv.returndef,false);
+                block_type:=bt_var;
               end;
              hdef:=pv;
              { possible proc directives }
@@ -517,7 +510,11 @@ implementation
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else
-                  single_type(hdef,false);
+                  begin
+                    block_type:=bt_var_type;
+                    single_type(hdef,false);
+                    block_type:=bt_var;
+                  end;
 
                 { open string ? }
                 if (varspez in [vs_out,vs_var]) and
@@ -612,7 +609,6 @@ implementation
         sc.free;
         { reset object options }
         dec(testcurobject);
-        current_object_option:=old_object_option;
         block_type:=old_block_type;
         consume(_RKLAMMER);
       end;
@@ -867,7 +863,7 @@ implementation
 
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
-        pd.symoptions:=current_object_option;
+        pd.visibility:=symtablestack.top.currentvisibility;
 
         { parse parameters }
         if token=_LKLAMMER then
@@ -1064,6 +1060,8 @@ implementation
               parse_proc_head(aclass,potype_operator,pd);
               if assigned(pd) then
                 begin
+                  { operators always need to be searched in all units }
+                  include(pd.procoptions,po_overload);
                   if pd.parast.symtablelevel>normal_function_level then
                     Message(parser_e_no_local_operator);
                   if token<>_ID then
@@ -1609,6 +1607,15 @@ begin
 end;
 
 
+procedure pd_weakexternal(pd:tabstractprocdef);
+begin
+  if not(target_info.system in system_weak_linking) then
+    message(parser_e_weak_external_not_supported)
+  else
+    pd_external(pd);
+end;
+
+
 type
    pd_handler=procedure(pd:tabstractprocdef);
    proc_dir_rec=record
@@ -1623,7 +1630,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=39;
+  num_proc_directives=40;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1985,6 +1992,19 @@ const
       mutexclpocall : [];
       mutexclpotype : [potype_constructor,potype_destructor];
       mutexclpo     : [po_interrupt]
+    ),(
+      idtok:_WEAKEXTERNAL;
+      pd_flags : [pd_implemen,pd_interface,pd_notobject,pd_notobjintf,pd_cppobject];
+      handler  : @pd_weakexternal;
+      pocall   : pocall_none;
+      { mark it both external and weak external, so we don't have to
+        adapt all code for external symbols to also check for weak external
+      }
+      pooption : [po_external,po_weakexternal];
+      mutexclpocall : [pocall_internproc,pocall_syscall];
+      { allowed for external cpp classes }
+      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     )
    );
 
@@ -2247,9 +2267,9 @@ const
                     if s<>'' then
                       begin
                         { Replace ? and @ in import name }
-                        { these replaces broke existing code on i386-win32 at least, while fixed 
+                        { these replaces broke existing code on i386-win32 at least, while fixed
                           bug 8391 on arm-wince so limit this to arm-wince (KB) }
-                        if target_info.system in [system_arm_wince] then 
+                        if target_info.system in [system_arm_wince] then
                           begin
                             Replace(s,'?','__q$$');
                             Replace(s,'@','__a$$');
@@ -2415,7 +2435,7 @@ const
              because a constant/default value follows }
            if res then
             begin
-              if (block_type in [bt_const,bt_type]) and
+              if (block_type=bt_const_type) and
                  (token=_EQUAL) then
                break;
               { support procedure proc;stdcall export; }

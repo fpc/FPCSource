@@ -1,4 +1,4 @@
-{ %opt=-O2 -Sew }
+{ %opt=-O2 -Sew -vw }
 
 {$inline on}
 

@@ -39,6 +39,9 @@ program pp;
                       MMX instructions
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles, default for TP
+  FPC_ARMEL           create an arm eabi compiler
+  FPC_OARM            create an arm oabi compiler, only needed when the host
+                      compiler is ARMEL
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software

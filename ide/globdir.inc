@@ -82,6 +82,14 @@
   {$define FSCaseInsensitive}
 {$endif}
 
+{$ifdef Amiga}
+  {$define FSCaseInsensitive}
+{$endif}
+
+{$ifdef MorphOS}
+  {$define FSCaseInsensitive}
+{$endif}
+
 { --- Exclude debugger support --- }
 {.$DEFINE NODEBUG}
 
@@ -129,10 +137,8 @@
 {$define HASOUTLINE}
 
 { Use inlining for small functions }
-{$ifndef VER1_0}
   {$inline on}
   {.$define USEINLINE}
-{$endif}
 
 {$define TEST_PARTIAL_SYNTAX}
 { $ undef UNDO}

@@ -305,7 +305,7 @@ implementation
               make it 64bits }
             if (torddef(left.resultdef).ordtype=u32bit) then
               begin
-                tg.GetTemp(current_asmdata.CurrAsmList,8,tt_normal,href);
+                tg.GetTemp(current_asmdata.CurrAsmList,8,8,tt_normal,href);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
                 cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
                 inc(href.offset,4);

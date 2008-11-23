@@ -1718,6 +1718,7 @@ unit rgobj;
         spill_temps : ^Tspill_temp_list;
         supreg : tsuperregister;
         templist : TAsmList;
+        size: ptrint;
       begin
         spill_registers:=false;
         live_registers.clear;
@@ -1739,9 +1740,10 @@ unit rgobj;
               {Get a temp for the spilled register, the size must at least equal a complete register,
                take also care of the fact that subreg can be larger than a single register like doubles
                that occupy 2 registers }
+              size:=max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
+                             tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))]);
               tg.gettemp(templist,
-                         max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
-                             tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))]),
+                         size,size,
                          tt_noreuse,spill_temps^[t]);
             end;
         list.insertlistafter(headertai,templist);

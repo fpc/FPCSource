@@ -105,7 +105,7 @@ implementation
        ncgutil,regvars,
        optbase,
        opttail,
-       optcse,
+       optcse,optloop,
        optutils
 {$if defined(arm) or defined(powerpc) or defined(powerpc64)}
        ,aasmcpu
@@ -266,19 +266,18 @@ implementation
         srsym        : tsym;
         para         : tcallparanode;
         newstatement : tstatementnode;
-        hdef         : tdef;
       begin
         result:=internalstatements(newstatement);
 
-        if assigned(current_procinfo.procdef._class) then
+        if assigned(current_objectdef) then
           begin
             { a constructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) then
               begin
-                if is_class(current_procinfo.procdef._class) then
+                if is_class(current_objectdef) then
                   begin
                     include(current_procinfo.flags,pi_needs_implicit_finally);
-                    srsym:=search_class_member(current_procinfo.procdef._class,'NEWINSTANCE');
+                    srsym:=search_class_member(current_objectdef,'NEWINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -300,17 +299,15 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_procinfo.procdef._class) then
+                  if is_object(current_objectdef) then
                     begin
-                      hdef:=current_procinfo.procdef._class;
-                      hdef:=tpointerdef.create(hdef);
                       { parameter 3 : vmt_offset }
                       { parameter 2 : address of pointer to vmt,
                         this is required to allow setting the vmt to -1 to indicate
                         that memory was allocated }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
+                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -341,9 +338,9 @@ implementation
 
             { maybe call BeforeDestruction for classes }
             if (current_procinfo.procdef.proctypeoption=potype_destructor) and
-               is_class(current_procinfo.procdef._class) then
+               is_class(current_objectdef) then
               begin
-                srsym:=search_class_member(current_procinfo.procdef._class,'BEFOREDESTRUCTION');
+                srsym:=search_class_member(current_objectdef,'BEFOREDESTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -373,7 +370,7 @@ implementation
       begin
         result:=internalstatements(newstatement);
 
-        if assigned(current_procinfo.procdef._class) then
+        if assigned(current_objectdef) then
           begin
             { Don't test self and the vmt here. The reason is that  }
             { a constructor already checks whether these are valid  }
@@ -384,9 +381,9 @@ implementation
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
             { maybe call AfterConstruction for classes }
             if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-               is_class(current_procinfo.procdef._class) then
+               is_class(current_objectdef) then
               begin
-                srsym:=search_class_member(current_procinfo.procdef._class,'AFTERCONSTRUCTION');
+                srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
                 if assigned(srsym) and
                    (srsym.typ=procsym) then
                   begin
@@ -410,9 +407,9 @@ implementation
             { a destructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_destructor) then
               begin
-                if is_class(current_procinfo.procdef._class) then
+                if is_class(current_objectdef) then
                   begin
-                    srsym:=search_class_member(current_procinfo.procdef._class,'FREEINSTANCE');
+                    srsym:=search_class_member(current_objectdef,'FREEINSTANCE');
                     if assigned(srsym) and
                        (srsym.typ=procsym) then
                       begin
@@ -434,16 +431,16 @@ implementation
                       internalerror(200305108);
                   end
                 else
-                  if is_object(current_procinfo.procdef._class) then
+                  if is_object(current_objectdef) then
                     begin
                       { finalize object data }
-                      if current_procinfo.procdef._class.needs_inittable then
+                      if current_objectdef.needs_inittable then
                         addstatement(newstatement,finalize_data_node(load_self_node));
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
                       { parameter 1 : self pointer }
                       para:=ccallparanode.create(
-                                cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
+                                cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
                             ccallparanode.create(
                                 ctypeconvnode.create_internal(
                                     load_vmt_pointer_node,
@@ -474,14 +471,14 @@ implementation
 
         { a constructor needs call destructor (if available) when it
           is not inherited }
-        if assigned(current_procinfo.procdef._class) and
+        if assigned(current_objectdef) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
             { Don't test self and the vmt here. See generate_bodyexit_block }
             { why (JM)                                                      }
             oldlocalswitches:=current_settings.localswitches;
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-            pd:=current_procinfo.procdef._class.Finddestructor;
+            pd:=current_objectdef.Finddestructor;
             if assigned(pd) then
               begin
                 { if vmt<>0 then call destructor }
@@ -691,13 +688,15 @@ implementation
 
     procedure tcgprocinfo.generate_code;
       var
-        oldprocinfo : tprocinfo;
+        old_current_procinfo : tprocinfo;
         oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
+        old_current_objectdef : tobjectdef;
         templist : TAsmList;
         headertai : tai;
         i : integer;
         varsym : tabstractnormalvarsym;
+        RedoDFA : boolean;
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -717,12 +716,14 @@ implementation
         if assigned(tg) then
           internalerror(200309201);
 
-        oldprocinfo:=current_procinfo;
+        old_current_procinfo:=current_procinfo;
         oldfilepos:=current_filepos;
+        old_current_objectdef:=current_objectdef;
         oldmaxfpuregisters:=current_settings.maxfpuregisters;
 
         current_procinfo:=self;
         current_filepos:=entrypos;
+        current_objectdef:=procdef._class;
 
         templist:=TAsmList.create;
 
@@ -767,8 +768,7 @@ implementation
         if (cs_opt_nodedfa in current_settings.optimizerswitches) and
           { creating dfa is not always possible }
           ((flags*[pi_has_assembler_block,pi_uses_exceptions,pi_is_assembler,
-                  pi_needs_implicit_finally,pi_has_implicit_finally,pi_has_stackparameter,
-                  pi_needs_stackframe])=[]) then
+                  pi_needs_implicit_finally,pi_has_implicit_finally])=[]) then
           begin
             dfabuilder:=TDFABuilder.Create;
             dfabuilder.createdfainfo(code);
@@ -799,6 +799,15 @@ implementation
                       end;
                   end;
               end;
+            include(flags,pi_dfaavailable);
+          end;
+
+        if (cs_opt_loopstrength in current_settings.optimizerswitches)
+          { our induction variable strength reduction doesn't like
+            for loops with more than one entry }
+          and not(pi_has_goto in current_procinfo.flags) then
+          begin
+            RedoDFA:=OptimizeInductionVariables(code);
           end;
 
         if cs_opt_nodecse in current_settings.optimizerswitches then
@@ -1063,6 +1072,7 @@ implementation
 {$if defined(x86) or defined(arm)}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
+               (target_info.system in system_all_windows) and
                (procdef.proccalloption=pocall_safecall) then
               cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
 {$endif}
@@ -1138,7 +1148,8 @@ implementation
         templist.free;
         current_settings.maxfpuregisters:=oldmaxfpuregisters;
         current_filepos:=oldfilepos;
-        current_procinfo:=oldprocinfo;
+        current_objectdef:=old_current_objectdef;
+        current_procinfo:=old_current_procinfo;
       end;
 
 
@@ -1265,21 +1276,22 @@ implementation
 
     procedure tcgprocinfo.parse_body;
       var
-         oldprocinfo : tprocinfo;
-         oldblock_type : tblock_type;
+         old_current_procinfo : tprocinfo;
+         old_block_type : tblock_type;
          st : TSymtable;
+         old_current_objectdef : tobjectdef;
       begin
-         oldprocinfo:=current_procinfo;
-         oldblock_type:=block_type;
-
-         { reset break and continue labels }
-         block_type:=bt_body;
+         old_current_procinfo:=current_procinfo;
+         old_block_type:=block_type;
+         old_current_objectdef:=current_objectdef;
 
          current_procinfo:=self;
+         current_objectdef:=procdef._class;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
            Message(parser_e_too_much_lexlevel);
+         block_type:=bt_body;
 
     {$ifdef state_tracking}
 {    aktstate:=Tstate_storage.create;}
@@ -1346,8 +1358,6 @@ implementation
              tstoredsymtable(procdef.localst).check_forwards;
              { check if all labels are used }
              tstoredsymtable(procdef.localst).checklabels;
-             { remove cross unit overloads }
-             tstoredsymtable(procdef.localst).unchain_overloaded;
              { check for unused symbols, but only if there is no asm block }
              if not(pi_has_assembler_block in flags) then
                begin
@@ -1382,10 +1392,11 @@ implementation
 {    aktstate.destroy;}
     {$endif state_tracking}
 
-         current_procinfo:=oldprocinfo;
+         current_objectdef:=old_current_objectdef;
+         current_procinfo:=old_current_procinfo;
 
          { Restore old state }
-         block_type:=oldblock_type;
+         block_type:=old_block_type;
       end;
 
 
@@ -1525,23 +1536,22 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
+        old_current_objectdef : tobjectdef;
         pdflags    : tpdflags;
         pd,firstpd : tprocdef;
         s          : string;
       begin
          { save old state }
          old_current_procinfo:=current_procinfo;
+         old_current_objectdef:=current_objectdef;
 
          { reset current_procinfo.procdef to nil to be sure that nothing is writing
            to an other procdef }
          current_procinfo:=nil;
+         current_objectdef:=nil;
 
          { parse procedure declaration }
-         if assigned(old_current_procinfo) and
-            assigned(old_current_procinfo.procdef) then
-          pd:=parse_proc_dec(old_current_procinfo.procdef._class)
-         else
-          pd:=parse_proc_dec(nil);
+         pd:=parse_proc_dec(old_current_objectdef);
 
          { set the default function options }
          if parse_only then
@@ -1585,7 +1595,7 @@ implementation
            begin
              { A method must be forward defined (in the object declaration) }
              if assigned(pd._class) and
-                (not assigned(old_current_procinfo.procdef._class)) then
+                (not assigned(old_current_objectdef)) then
               begin
                 MessagePos1(pd.fileinfo,parser_e_header_dont_match_any_member,pd.fullprocname(false));
                 tprocsym(pd.procsym).write_parameter_lists(pd);
@@ -1666,6 +1676,7 @@ implementation
                current_asmdata.DefineAsmSymbol(pd.mangledname,AB_LOCAL,AT_FUNCTION);
            end;
 
+         current_objectdef:=old_current_objectdef;
          current_procinfo:=old_current_procinfo;
       end;
 
@@ -1863,7 +1874,7 @@ implementation
                        current_filepos:=oldcurrent_filepos;
                      end
                    else
-                     MessagePos1(tprocdef(tprocdef(hp).genericdef).fileinfo,sym_e_forward_not_resolved,tprocdef(tprocdef(hp).genericdef).fullprocname(false));
+                     MessagePos1(tprocdef(hp).fileinfo,sym_e_forward_not_resolved,tprocdef(hp).fullprocname(false));
                  end;
              end;
           end;

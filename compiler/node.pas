@@ -298,6 +298,7 @@ interface
          resultdefderef : tderef;
          fileinfo      : tfileposinfo;
          localswitches : tlocalswitches;
+         verbosity     : longint;
          optinfo : poptinfo;
          constructor create(t:tnodetype);
          { this constructor is only for creating copies of class }
@@ -466,7 +467,7 @@ interface
 implementation
 
     uses
-       cutils,verbose,ppu,
+       cutils,verbose,ppu,comphook,
        symconst,
        nutils,nflw,
        defutil;
@@ -695,6 +696,7 @@ implementation
          { save local info }
          fileinfo:=current_filepos;
          localswitches:=current_settings.localswitches;
+         verbosity:=status.verbosity;
          resultdef:=nil;
          flags:=[];
       end;
@@ -712,6 +714,7 @@ implementation
         blocktype:=tblock_type(ppufile.getbyte);
         ppufile.getposinfo(fileinfo);
         ppufile.getsmallset(localswitches);
+        verbosity:=ppufile.getlongint;
         ppufile.getderef(resultdefderef);
         ppufile.getsmallset(flags);
         { updated by firstpass }
@@ -726,6 +729,7 @@ implementation
         ppufile.putbyte(byte(block_type));
         ppufile.putposinfo(fileinfo);
         ppufile.putsmallset(localswitches);
+        ppufile.putlongint(verbosity);
         ppufile.putderef(resultdefderef);
         ppufile.putsmallset(flags);
       end;
@@ -887,6 +891,7 @@ implementation
          p.resultdef:=resultdef;
          p.fileinfo:=fileinfo;
          p.localswitches:=localswitches;
+         p.verbosity:=verbosity;
 {         p.list:=list; }
          result:=p;
       end;

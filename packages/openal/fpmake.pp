@@ -16,8 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='openal';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
   T:=P.Targets.AddUnit('openal.pas');
   with T.Dependencies do
@@ -26,6 +27,9 @@ begin
       AddInclude('alch.inc');
       AddInclude('alexth.inc');
     end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('madopenal.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

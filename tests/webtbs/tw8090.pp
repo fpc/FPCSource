@@ -1,4 +1,4 @@
-{ %opt=-Sen }
+{ %opt=-Sen -vn }
 program notusedbug;
 
 {$mode objfpc}{$H+}

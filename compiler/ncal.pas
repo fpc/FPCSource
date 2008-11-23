@@ -1810,6 +1810,15 @@ implementation
             exit;
           end;
 
+        { if the result is the same as the self parameter (in case of objects),
+          we can't optimise. We have to check this explicitly becaise
+          hidden parameters such as self have not yet been inserted at this
+          point
+        }
+        if assigned(methodpointer) and
+           realassignmenttarget.isequal(methodpointer.actualtargetnode) then
+          exit;
+
         { when we substitute a function result inside an inlined function,
           we may take the address of this function result. Therefore the
           substituted function result may not be in a register, as we cannot
@@ -2220,6 +2229,7 @@ implementation
         paraidx,
         cand_cnt : integer;
         i : longint;
+        ignorevisibility,
         is_const : boolean;
         statements : tstatementnode;
         converted_result_data : ttempcreatenode;
@@ -2315,9 +2325,10 @@ implementation
               { do we know the procedure to call ? }
               if not(assigned(procdefinition)) then
                 begin
-                   candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,(nf_isproperty in flags),
-                     { ignore possible private in delphi mode for anon. inherited (FK) }
-                     (m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
+                  { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
+                  ignorevisibility:=(nf_isproperty in flags) or
+                                    ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -2464,7 +2475,7 @@ implementation
 
           { handle predefined procedures }
           is_const:=(po_internconst in procdefinition.procoptions) and
-                    ((block_type in [bt_const,bt_type]) or
+                    ((block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) or
                      (assigned(left) and (tcallparanode(left).left.nodetype in [realconstn,ordconstn])));
           if (procdefinition.proccalloption=pocall_internproc) or is_const then
            begin
@@ -2875,7 +2886,7 @@ implementation
          if assigned(callcleanupblock) then
            firstpass(callcleanupblock);
 
-         if not (block_type in [bt_const,bt_type]) then
+         if not (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
            include(current_procinfo.flags,pi_do_call);
 
          { order parameters }

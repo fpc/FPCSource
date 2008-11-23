@@ -1,5 +1,5 @@
 { %fail }
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 var
   a: longint;

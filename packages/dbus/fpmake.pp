@@ -16,7 +16,15 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='dbus';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Library: Red Hat, header: Unknown (but probably Sebastian Guenther)';
+    P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'D-Bus message bus interface. (Pre 1.0?)';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
@@ -40,6 +48,8 @@ begin
           AddInclude('dbus-threads.inc');
         end;
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('busexample.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -430,7 +430,7 @@ implementation
             { search the constructor also in the symbol tables of
               the parents }
             afterassignment:=false;
-            searchsym_in_class(classh,nil,pattern,srsym,srsymtable);
+            searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
             consume(_ID);
             do_member_read(classh,false,srsym,p1,again,[cnf_new_call]);
             { we need to know which procedure is called }

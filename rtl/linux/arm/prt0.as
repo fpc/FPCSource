@@ -62,9 +62,11 @@ _start:
 	str sp,[a3]
    	str a2,[ip]
 
-    /* Save initial stackpointer */
+        /* Save initial stackpointer */
 	ldr ip,=__stkptr
 	str sp,[ip]
+        /* align sp again to 8 byte boundary, needed by eabi */
+        sub sp,sp,#4
 
 	/* Let the libc call main and exit with its return code.  */
 	bl PASCALMAIN

@@ -21,6 +21,8 @@
 { This unit implements support information structures for the MorphOS. }
 unit i_morph;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

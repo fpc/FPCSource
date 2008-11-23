@@ -132,14 +132,18 @@ unit agppcgas;
 	       s := s + ')@got';
 {$endif cpu64bitaddr}
 
-           if (index=NR_NO) and (base<>NR_NO) then
+           if (index=NR_NO) then
              begin
                 if offset=0 then
                   begin
                     if not (assigned(symbol)) then
                       s:=s+'0';
                   end;
-                s:=s+'('+gas_regname(base)+')';
+                if (base<>NR_NO) then
+                  s:=s+'('+gas_regname(base)+')'
+                else if not assigned(symbol) and
+                        not(refaddr in verbose_refaddrs) then
+                  s:=s+'(0)';
              end
            else if (index<>NR_NO) and (base<>NR_NO) then
              begin

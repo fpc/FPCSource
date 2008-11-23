@@ -1,4 +1,4 @@
-{ %OPT= -Sen }
+{ %OPT= -Sen -vn }
 
 { Old file: tbs0317.pp }
 

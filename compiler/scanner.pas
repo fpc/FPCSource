@@ -332,11 +332,7 @@ implementation
         if b then
          begin
            { resolve all postponed switch changes }
-           if localswitcheschanged then
-             begin
-               current_settings.localswitches:=nextlocalswitches;
-               localswitcheschanged:=false;
-             end;
+           flushpendingswitchesstate;
 
            HandleModeSwitches(changeinit);
 
@@ -526,11 +522,7 @@ implementation
 
     procedure dir_ifopt;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
         current_scanner.ifpreprocstack(pp_ifopt,@opt_check,scan_c_ifopt_found);
       end;
 
@@ -3200,11 +3192,7 @@ In case not, the value returned can be arbitrary.
       label
          exit_label;
       begin
-        if localswitcheschanged then
-          begin
-            current_settings.localswitches:=nextlocalswitches;
-            localswitcheschanged:=false;
-          end;
+        flushpendingswitchesstate;
 
         { record tokens? }
         if allowrecordtoken and
@@ -3627,7 +3615,7 @@ In case not, the value returned can be arbitrary.
                   begin
                     readchar;
                     c:=upcase(c);
-                    if (block_type in [bt_type,bt_specialize]) or
+                    if (block_type in [bt_type,bt_const_type,bt_var_type]) or
                        (lasttoken=_ID) or (lasttoken=_NIL) or (lasttoken=_OPERATOR) or
                        (lasttoken=_RKLAMMER) or (lasttoken=_RECKKLAMMER) or (lasttoken=_CARET) then
                      begin
@@ -3867,7 +3855,7 @@ In case not, the value returned can be arbitrary.
              '>' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_specialize]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_RSHARPBRACKET
                  else
                    begin
@@ -3899,7 +3887,7 @@ In case not, the value returned can be arbitrary.
              '<' :
                begin
                  readchar;
-                 if (block_type in [bt_type,bt_specialize]) then
+                 if (block_type in [bt_type,bt_var_type,bt_const_type]) then
                    token:=_LSHARPBRACKET
                  else
                    begin

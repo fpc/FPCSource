@@ -1,5 +1,5 @@
 { %fail }
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 { Source provided for Free Pascal Bug Report 3553 }
 { Submitted by "Naj Kejah" on  2005-01-15 }

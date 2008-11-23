@@ -1,5 +1,5 @@
 { %FAIL }
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 
 { Old file: tbf0351.pp }
 

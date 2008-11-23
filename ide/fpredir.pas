@@ -697,6 +697,12 @@ function ExecuteRedir (Const ProgName, ComLine, RedirStdIn, RedirStdOut, RedirSt
 begin
   ExecuteRedir:=false;
 end;
+
+function LocateExeFile(var FileName:string): boolean;
+begin
+  LocateExeFile:=false;
+end;
+
 {$ENDIF SHELL_IMPLEMENTED}
 
 function  ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;

@@ -150,7 +150,7 @@ const
 
 procedure RegisterFPTools;
 {$ifdef DEBUG}
-Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : string;nrline,nrpos:sw_word);
 {$endif DEBUG}
 
 implementation
@@ -1652,13 +1652,13 @@ begin
 end;
 
 {$ifdef DEBUG}
-Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos : sw_word);
+Procedure FpToolsDebugMessage(AFileName, AText : string; ALine, APos :string ;nrline,nrpos:sw_word);
 begin
-  AddToolMessage(AFileName,AText,Aline,APos);
+  AddToolMessage(AFileName,AText,nrline,nrPos);
   UpdateToolMessages;
 end;
 
 begin
-  DebugMessage:=@FpToolsDebugMessage;
+  DebugMessageS:=@FpToolsDebugMessage;
 {$endif DEBUG}
 END.

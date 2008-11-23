@@ -361,10 +361,11 @@ implementation
           begin
             srsym:=search_system_type('JMP_BUF');
             jmp_buf_size:=srsym.typedef.size;
+            jmp_buf_align:=srsym.typedef.alignment;
           end;
-        tg.GetTemp(list,EXCEPT_BUF_SIZE,tt_persistent,t.envbuf);
-        tg.GetTemp(list,jmp_buf_size,tt_persistent,t.jmpbuf);
-        tg.GetTemp(list,sizeof(pint),tt_persistent,t.reasonbuf);
+        tg.GetTemp(list,EXCEPT_BUF_SIZE,sizeof(pint),tt_persistent,t.envbuf);
+        tg.GetTemp(list,jmp_buf_size,jmp_buf_align,tt_persistent,t.jmpbuf);
+        tg.GetTemp(list,sizeof(pint),sizeof(pint),tt_persistent,t.reasonbuf);
       end;
 
 
@@ -397,7 +398,7 @@ implementation
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR');
+        cg.a_call_name(list,'FPC_PUSHEXCEPTADDR',false);
         cg.deallocallcpuregisters(list);
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
@@ -405,7 +406,7 @@ implementation
         cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_SETJMP');
+        cg.a_call_name(list,'FPC_SETJMP',false);
         cg.deallocallcpuregisters(list);
         cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
 
@@ -421,7 +422,7 @@ implementation
     procedure free_exception(list:TAsmList;const t:texceptiontemps;a:aint;endexceptlabel:tasmlabel;onlyfree:boolean);
      begin
          cg.allocallcpuregisters(list);
-         cg.a_call_name(list,'FPC_POPADDRSTACK');
+         cg.a_call_name(list,'FPC_POPADDRSTACK',false);
          cg.deallocallcpuregisters(list);
 
          if not onlyfree then
@@ -682,7 +683,7 @@ implementation
             { if it's in an mm register, store to memory first }
             if (l.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
               begin
-                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
@@ -707,7 +708,7 @@ implementation
             { if it's in an fpu register, store to memory first }
             if (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
               begin
-                tg.GetTemp(list,tcgsize2size[l.size],tt_normal,href);
+                tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
                 location_reset(l,LOC_REFERENCE,l.size);
                 l.reference:=href;
@@ -771,7 +772,7 @@ implementation
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER :
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -779,7 +780,7 @@ implementation
           LOC_MMREGISTER,
           LOC_CMMREGISTER:
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -788,7 +789,7 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER :
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
 {$ifndef cpu64bitalu}
               if l.size in [OS_64,OS_S64] then
                 cg64.a_load64_loc_ref(list,l,r)
@@ -803,7 +804,7 @@ implementation
           LOC_SUBSETREF,
           LOC_CSUBSETREF:
             begin
-              tg.GetTemp(list,TCGSize2Size[l.size],tt_normal,r);
+              tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_load_loc_ref(list,l.size,l,r);
               location_reset(l,LOC_REFERENCE,l.size);
               l.reference:=r;
@@ -1828,7 +1829,7 @@ implementation
                   { Arm and Sparc passes floats in int registers, when loading to fpu register
                     we need a temp }
                   sizeleft := TCGSize2Size[currpara.initialloc.size];
-                  tg.GetTemp(list,sizeleft,tt_normal,tempref);
+                  tg.GetTemp(list,sizeleft,sizeleft,tt_normal,tempref);
                   href:=tempref;
                   while assigned(paraloc) do
                     begin
@@ -1986,7 +1987,7 @@ implementation
          begin
            { initialize units }
            cg.allocallcpuregisters(list);
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS');
+           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false);
            cg.deallocallcpuregisters(list);
          end;
 
@@ -2006,7 +2007,7 @@ implementation
         { call __EXIT for main program }
         if (not DLLsource) and
            (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT');
+          cg.a_call_name(list,'FPC_DO_EXIT',false);
       end;
 
 
@@ -2186,7 +2187,7 @@ implementation
         paramanager.freeparaloc(list,paraloc1);
         { Call the helper }
         cg.allocallcpuregisters(list);
-        cg.a_call_name(list,'FPC_STACKCHECK');
+        cg.a_call_name(list,'FPC_STACKCHECK',false);
         cg.deallocallcpuregisters(list);
         paraloc1.done;
       end;

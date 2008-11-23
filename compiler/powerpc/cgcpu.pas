@@ -45,7 +45,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
 
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; reg: TRegister); override;
@@ -248,19 +248,23 @@ const
 
 
     { calling a procedure by name }
-    procedure tcgppc.a_call_name(list : TAsmList;const s : string);
+    procedure tcgppc.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
          { MacOS: The linker on MacOS (PPCLink) inserts a call to glue code,
            if it is a cross-TOC call. If so, it also replaces the NOP
            with some restore code.}
          if (target_info.system <> system_powerpc_darwin) then
            begin
+             if not(weak) then
+               list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+             else
+               list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
              list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
              if target_info.system=system_powerpc_macos then
                list.concat(taicpu.op_none(A_NOP));
            end
          else
-           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+           list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
 {
        the compiler does not properly set this flag anymore in pass 1, and
        for now we only need it after pass 2 (I hope) (JM)
@@ -782,7 +786,7 @@ const
         p : taicpu;
       begin
          if (target_info.system = system_powerpc_darwin) then
-           p := taicpu.op_sym(A_B,get_darwin_call_stub(s))
+           p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false))
         else
           p := taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(s));
         p.is_jmp := true;

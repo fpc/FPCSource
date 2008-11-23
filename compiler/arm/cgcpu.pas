@@ -46,7 +46,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
         procedure a_call_ref(list : TAsmList;ref: treference);override;
 
@@ -112,7 +112,7 @@ unit cgcpu;
         { clear out potential overflow bits from 8 or 16 bit operations  }
         { the upper 24/16 bits of a register after an operation          }
         procedure maybeadjustresult(list: TAsmList; op: TOpCg; size: tcgsize; dst: tregister);
-        function get_darwin_call_stub(const s: string): tasmsymbol;
+        function get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       end;
 
       tcg64farm = class(tcg64f32)
@@ -286,12 +286,15 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_call_name(list : TAsmList;const s : string);
+    procedure tcgarm.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
         if target_info.system<>system_arm_darwin then
-          list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+          if not weak then
+            list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
+          else
+            list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)))
         else
-          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+          list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -1669,7 +1672,7 @@ unit cgcpu;
         paramanager.freeparaloc(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
-        a_call_name(list,'FPC_MOVE');
+        a_call_name(list,'FPC_MOVE',false);
         dealloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         paraloc3.done;
@@ -1943,7 +1946,7 @@ unit cgcpu;
             internalerror(200409281);
         end;
 
-        a_call_name(list,'FPC_OVERFLOW');
+        a_call_name(list,'FPC_OVERFLOW',false);
         a_label(list,hl);
       end;
 
@@ -2110,7 +2113,7 @@ unit cgcpu;
       end;
 
 
-    function tcgarm.get_darwin_call_stub(const s: string): tasmsymbol;
+    function tcgarm.get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
       var
         stubname: string;
         l1: tasmsymbol;
@@ -2128,6 +2131,9 @@ unit cgcpu;
         current_asmdata.asmlists[al_imports].concat(Tai_align.Create(4));
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
+        { register as a weak symbol if necessary }
+        if weak then
+          current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         
         if not(cs_create_pic in current_settings.moduleswitches) then

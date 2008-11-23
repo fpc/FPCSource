@@ -16,11 +16,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='uuid';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('libuuid.pp');
     T:=P.Targets.AddUnit('macuuid.pp');
+
+    P.Sources.AddSrc('README');
+
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testlibuid.pp');
+    P.Targets.AddExampleProgram('testuid.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

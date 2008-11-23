@@ -120,7 +120,7 @@ endif
 
 # Subdirs available in the test subdir
 TESTSUBDIRS=cg cg/variants cg/cdecl opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem
-TESTPACKAGESUBDIRS=cg packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process
+TESTPACKAGESUBDIRS=cg packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib
 
 ifdef QUICKTEST
 export QUICKTEST
@@ -168,10 +168,17 @@ units:
 #
 
 copyfiles: $(TEST_OUTPUTDIR)
+ifneq ($(TEST_ABI),)
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/ctest.o test/cg
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext3.o test/cg
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext4.o test/cg
+        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext5.o test/cg
+else
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
         $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
+endif
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
         $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
 

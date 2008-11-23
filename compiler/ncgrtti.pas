@@ -165,7 +165,7 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (sp_published in tsym(sym).symoptions) then
+            if (sym.visibility=vis_published) then
               begin
                 case tsym(sym).typ of
                   propertysym:
@@ -188,7 +188,7 @@ implementation
           begin
             sym:=tsym(st.SymList[i]);
             if (tsym(sym).typ=propertysym) and
-               (sp_published in tsym(sym).symoptions) then
+               (sym.visibility=vis_published) then
               inc(result);
           end;
       end;
@@ -206,7 +206,7 @@ implementation
           begin
             sym:=tsym(objdef.symtable.SymList[i]);
             if (tsym(sym).typ=propertysym) and
-               (sp_published in tsym(sym).symoptions) then
+               (sym.visibility=vis_published) then
               begin
                 pn:=TPropNameListItem(propnamelist.Find(tsym(sym).name));
                 if not assigned(pn) then
@@ -312,7 +312,7 @@ implementation
           begin
             sym:=tsym(st.SymList[i]);
             if (sym.typ=propertysym) and
-               (sp_published in sym.symoptions) then
+               (sym.visibility=vis_published) then
               begin
                 if ppo_indexed in tpropertysym(sym).propoptions then
                   proctypesinfo:=$40

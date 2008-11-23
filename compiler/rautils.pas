@@ -118,7 +118,7 @@ type
     constructor create(optype : tcoperand);virtual;
     destructor  destroy;override;
     { converts the instruction to an instruction how it's used by the assembler writer
-      and concats it to the passed list. The newly created item is returned if the 
+      and concats it to the passed list. The newly created item is returned if the
       instruction was valid, otherwise nil is returned }
     function ConcatInstruction(p:TAsmList) : tai;virtual;
     Procedure Swapoperands;
@@ -693,7 +693,7 @@ end;
 Function TOperand.SetupSelf:boolean;
 Begin
   SetupSelf:=false;
-  if assigned(current_procinfo.procdef._class) then
+  if assigned(current_objectdef) then
     SetupSelf:=setupvar('self',false)
   else
     Message(asmr_e_cannot_use_SELF_outside_a_method);
@@ -1294,7 +1294,7 @@ Begin
   base:=Copy(s,1,i-1);
   delete(s,1,i);
   if base='SELF' then
-   st:=current_procinfo.procdef._class.symtable
+   st:=current_objectdef.symtable
   else
    begin
      asmsearchsym(base,sym,srsymtable);

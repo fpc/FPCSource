@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=2.0.0
+version=2.2.2
 
 [target]
 dirs=compiler
@@ -21,7 +21,7 @@ fpcpackage=y
 options=-Sg
 
 [require]
-packages=fv gdbint regexpr
+packages=fv gdbint regexpr chm
 packages_go32v2=graph
 libc=y
 
@@ -60,6 +60,17 @@ override GDBLIBDIR=$(FPCDIR)/libgdb/$(OS_TARGET)
 endif
 # Detect if libgdb.a is available
 override LIBGDBFILE:=$(firstword $(wildcard $(addsuffix /libgdb.a,$(GDBLIBDIR))))
+endif
+
+# No custom libgdb.a found, try using system default library if available
+ifeq ($(LIBGDBFILE),)
+SYSLIBDIR=/lib /usr/lib /usr/local/lib
+# Detect if libgdb.a is available
+override LIBGDBFILE=$(firstword $(wildcard $(addsuffix /libgdb.a,$(SYSLIBDIR))))
+ifneq (${LIBGDBFILE},)
+$(warning Using system sefault libgdb file located in ${LIBGDBFILE})
+GDBLIBDIR=$(dir ${LIBGDBFILE})
+endif
 endif
 
 # Disable GDB when no libgdb.a found

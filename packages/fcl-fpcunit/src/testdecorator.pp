@@ -33,6 +33,9 @@ type
     function GetTestName: string; override;
     function GetTestSuiteName: string; override;
     procedure SetTestSuiteName(const aName: string); override;
+  protected
+    function GetEnableIgnores: boolean; override;
+    procedure SetEnableIgnores(Value: boolean); override;
   public
     function CountTestCases: integer; override;
     constructor Create(aTest: TTest); reintroduce; overload;
@@ -69,6 +72,16 @@ end;
 procedure TTestDecorator.SetTestSuiteName(const aName: string);
 begin
   FTest.TestSuiteName := aName;
+end;
+
+function TTestDecorator.GetEnableIgnores: boolean;
+begin
+  result := FTest.EnableIgnores;
+end;
+
+procedure TTestDecorator.SetEnableIgnores(Value: boolean);
+begin
+  FTest.EnableIgnores := Value;
 end;
 
 function TTestDecorator.CountTestCases: integer;

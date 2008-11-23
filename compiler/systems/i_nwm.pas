@@ -21,6 +21,8 @@
 { This unit implements support information structures for Netware modules. }
 unit i_nwm;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

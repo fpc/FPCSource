@@ -17,10 +17,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='chm';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Andrew Haines';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Standalone CHM reader and writer library';
+    P.NeedLibC:= false;
 
     D:=P.Dependencies.Add('fcl-xml');
-      D.Version:='2.2.1';
+    D.Version:='2.2.2-0';
     
     P.SourcePath.Add('src');
 
@@ -52,6 +59,12 @@ begin
         begin
           AddUnit('chmbase');
         end;
+    T:=P.Targets.AddUnit('htmlindexer.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fasthtmlparser');
+          AddUnit('htmlutil');
+        end;
     T:=P.Targets.AddUnit('chmwriter.pas');
       with T.Dependencies do
         begin
@@ -59,6 +72,7 @@ begin
           AddUnit('chmtypes');
           AddUnit('chmspecialfiles');
           AddUnit('paslzxcomp');
+          AddUnit('chmfiftimain');
         end;
     T:=P.Targets.AddUnit('fasthtmlparser.pas');
     T:=P.Targets.AddUnit('htmlutil.pas');
@@ -69,6 +83,15 @@ begin
         begin
           AddUnit('paslznonslide');
         end;
+    T:=P.Targets.AddUnit('chmfiftimain.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('htmlindexer');
+        end;
+
+//    P.ProgramPath.Add('src');
+    T:=P.Targets.AddProgram('chmls.lpr');
+    T:=P.Targets.AddProgram('chmcmd.lpr');
 
 
 {$ifndef ALLPACKAGES}

@@ -893,7 +893,7 @@
      DC_EXTRA = 9;
      DC_FIELDS = 1;
      DC_FILEDEPENDENCIES = 14;
-      
+
      DC_MAXEXTENT = 5;
      DC_MINEXTENT = 4;
      DC_ORIENTATION = 17;
@@ -1136,7 +1136,7 @@
   { EnumCalendarInfo  }
      ENUM_ALL_CALENDARS     = dword(-1);
      ENUM_CURRENT_SETTINGS  = dword(-1);
-     ENUM_REGISTRY_SETTINGS = dword(-2);     
+     ENUM_REGISTRY_SETTINGS = dword(-2);
   { EnumDateFormats  }
      DATE_SHORTDATE = 1;
      DATE_LONGDATE = 2;
@@ -2539,7 +2539,7 @@ Type
      OCR_SIZEWE = 32644;
      OCR_SIZENS = 32645;
      OCR_SIZEALL = 32646;
-     OCR_ICOCUR  =  32647;   // OBSOLETE: use OIC_WINLOGO 
+     OCR_ICOCUR  =  32647;   // OBSOLETE: use OIC_WINLOGO
      OCR_NO = 32648;
      OCR_APPSTARTING = 32650;
      OCR_HAND = 32649;
@@ -4347,7 +4347,6 @@ Type
      FAILED_ACCESS_ACE_FLAG = $80;
   { SECURITY_DESCRIPTOR_CONTROL  }
      {SECURITY_DESCRIPTOR_REVISION = 1;already defined above }
-     SECURITY_DESCRIPTOR_MIN_LENGTH = 20;
      SE_OWNER_DEFAULTED = 1;
      SE_GROUP_DEFAULTED = 2;
      SE_DACL_PRESENT = 4;
@@ -4361,11 +4360,11 @@ Type
      SE_PRIVILEGE_USED_FOR_ACCESS = $80000000;
      PRIVILEGE_SET_ALL_NECESSARY = $1;
   { OPENFILENAME structure  }
-     
-     
+
+
      OFN_READONLY                 = $1;
      OFN_OVERWRITEPROMPT          = $2;
-     OFN_HIDEREADONLY             = $4;	 
+     OFN_HIDEREADONLY             = $4;	
      OFN_NOCHANGEDIR              = $8;
      OFN_SHOWHELP                 = $10;
      OFN_ENABLEHOOK               = $20;
@@ -4382,19 +4381,19 @@ Type
      OFN_NOTESTFILECREATE         =    $10000;
      OFN_NONETWORKBUTTON          =    $20000;
      OFN_NOLONGNAMES              =    $40000;
-     OFN_EXPLORER                 =    $80000;     
+     OFN_EXPLORER                 =    $80000;
      OFN_NODEREFERENCELINKS       =   $100000;
      OFN_LONGNAMES                =   $200000;
      OFN_ENABLEINCLUDENOTIFY      = $00400000;
      OFN_ENABLESIZING             = $00800000;
      OFN_DONTADDTORECENT          = $02000000;
-     OFN_FORCESHOWHIDDEN          = $10000000;    
-          
+     OFN_FORCESHOWHIDDEN          = $10000000;
+
   { SHAREVISTRING message  }
      OFN_SHAREFALLTHROUGH = $2;
      OFN_SHARENOWARN = $1;
      OFN_SHAREWARN = 0;
-	 
+	
      OFN_EX_NOPLACESBAR         = $00000001;
   { Open/Save notifications  }
      CDN_INITDONE = $fffffda7;
@@ -5627,8 +5626,8 @@ const
   GA_ROOT       = 2;  { The window's root window }
   GA_ROOTOWNER  = 3;  { The window's owner }
 
-  AC_SRC_OVER = $00;     
-  AC_SRC_ALPHA = $01;     
+  AC_SRC_OVER = $00;
+  AC_SRC_ALPHA = $01;
 
   DMDO_DEFAULT    = 0;
   DMDO_90         = 1;

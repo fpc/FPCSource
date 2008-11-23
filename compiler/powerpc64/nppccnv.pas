@@ -125,7 +125,7 @@ begin
   { fcfid frD,frD # point integer (no round) }
   { fmadd frD,frC,frT1,frD # (2^32)*high + low }
   { # (only add can round) }
-  tg.Gettemp(current_asmdata.CurrAsmList, 8, tt_normal, disp);
+  tg.Gettemp(current_asmdata.CurrAsmList, 8, 8, tt_normal, disp);
 
   { do the signed case for everything but 64 bit unsigned integers }
   signed := (left.location.size <> OS_64);
@@ -143,7 +143,7 @@ begin
       internalerror(200110011);
 
     // allocate second temp memory
-    tg.Gettemp(current_asmdata.CurrAsmList, 8, tt_normal, disp2);
+    tg.Gettemp(current_asmdata.CurrAsmList, 8, 8, tt_normal, disp2);
   end;
 
   if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then

@@ -16,7 +16,15 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='aspell';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'header:Aleš Katona, library: Kevin Atkinson';
+    P.License := 'header: LGPL with modification, library: LGPL 2.0 or 2.1';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'The New Aspell, spelling library';
+    P.NeedLibC:= true;
+
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');
@@ -28,6 +36,9 @@ begin
 
     P.Sources.AddSrc('LICENSE');
     P.Sources.AddSrc('LICENSE.ADDON');
+
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('example.pas');
     
 {$ifndef ALLPACKAGES}
     Run;

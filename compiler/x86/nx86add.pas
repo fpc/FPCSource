@@ -41,12 +41,10 @@ unit nx86add;
 
         procedure second_cmpfloatsse;
         procedure second_addfloatsse;
-        procedure second_mul;virtual;abstract;
       public
         procedure second_addfloat;override;
         procedure second_addsmallset;override;
         procedure second_add64bit;override;
-        procedure second_addordinal;override;
         procedure second_cmpfloat;override;
         procedure second_cmpsmallset;override;
         procedure second_cmp64bit;override;
@@ -181,7 +179,7 @@ unit nx86add;
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_AE,hl4)
               else
                 cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NO,hl4);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
               cg.a_label(current_asmdata.CurrAsmList,hl4);
             end;
          end;
@@ -992,21 +990,6 @@ unit nx86add;
 {*****************************************************************************
                                   AddOrdinal
 *****************************************************************************}
-
-    procedure tx86addnode.second_addordinal;
-      begin
-         { filter unsigned MUL opcode, which requires special handling }
-         if (nodetype=muln) and
-            (not(is_signed(left.resultdef)) or
-             not(is_signed(right.resultdef))) then
-           begin
-             second_mul;
-             exit;
-           end;
-
-         inherited second_addordinal;
-      end;
-
 
     procedure tx86addnode.second_cmpordinal;
       var

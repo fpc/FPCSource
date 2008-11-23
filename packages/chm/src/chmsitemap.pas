@@ -186,10 +186,9 @@ procedure TChmSiteMap.FoundTag(ACaseInsensitiveTag, AActualTag: string);
     end;
 var
   TagName,
-  TagAttribute,
+  //TagAttribute,
   TagAttributeName,
   TagAttributeValue: String;
-  I: Integer;
 begin
   //WriteLn('TAG:', AActualTag);
   TagName := GetTagName(ACaseInsensitiveTag);
@@ -277,6 +276,7 @@ begin
   FSiteMapType := AType;
   FSiteMapTags := [smtNone];
   FSiteMapBodyTags := [smbtNone];
+  FHTMLParser:=nil;
   FItems := TChmSiteMapItems.Create(Self, nil);  ;
 end;
 
@@ -302,7 +302,7 @@ begin
   FHTMLParser.OnFoundTag := @FoundTag;
   FHTMLParser.OnFoundText := @FoundText;
   FHTMLParser.Exec;
-  FHTMLParser.Free;
+  FreeAndNil(FHTMLParser);
 end;
 
 procedure TChmSiteMap.LoadFromStream(AStream: TStream);
@@ -316,7 +316,7 @@ begin
     FHTMLParser.OnFoundTag := @FoundTag;
     FHTMLParser.OnFoundText := @FoundText;
     FHTMLParser.Exec;
-    FHTMLParser.Free;
+    FreeAndNil(FHTMLParser);
   end;
 end;
 

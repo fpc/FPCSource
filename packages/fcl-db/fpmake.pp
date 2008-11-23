@@ -13,11 +13,45 @@ begin
 {$endif ALLPACKAGES}
 
     P:=AddPackage('fcl-db');
+
+    P.Author := '<various>';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Database library of Free Component Libraries(FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
+
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-db';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/base');
+    P.SourcePath.Add('src/paradox');
+    P.SourcePath.Add('src/sqldb');
+    P.SourcePath.Add('src/sqldb/postgres');
+    P.SourcePath.Add('src/sqldb/sqlite');
+    P.SourcePath.Add('src/sqldb/interbase');
+    P.SourcePath.Add('src/sqldb/mysql');
+    P.SourcePath.Add('src/sqldb/odbc');
+    P.SourcePath.Add('src/sqldb/examples');
+    P.SourcePath.Add('src/sqldb/oracle');
+    P.SourcePath.Add('src/sdf');
+    P.SourcePath.Add('src/datadict');
+    P.SourcePath.Add('src/memds');
+    P.SourcePath.Add('src/codegen');
+    P.SourcePath.Add('src/export');
+    P.SourcePath.Add('src/sqlite');
+    P.SourcePath.Add('src/dbase');
+    P.IncludePath.Add('src/base');
+    P.IncludePath.Add('src/sqldb');
+    P.IncludePath.Add('src/sqldb/postgres');
+    P.IncludePath.Add('src/sqldb/mysql');
+    P.IncludePath.Add('src/sdf');
+    P.IncludePath.Add('src/memds');  
+    P.IncludePath.Add('src/sqlite');
+    P.IncludePath.Add('src/dbase');
+
 
     T:=P.Targets.AddUnit('bufdataset.pas');
       with T.Dependencies do
@@ -550,9 +584,27 @@ begin
           AddUnit('db');
         end;
 
+    P.ExamplePath.Add('tests');
+    T:=P.Targets.AddExampleProgram('dbftoolsunit.pas');
+    T:=P.Targets.AddExampleProgram('dbtestframework.pas');
+    T:=P.Targets.AddExampleProgram('memdstoolsunit.pas');
+    T:=P.Targets.AddExampleProgram('sdfdstoolsunit.pas');
+    T:=P.Targets.AddExampleProgram('sqldbtoolsunit.pas');
+    T:=P.Targets.AddExampleProgram('testbasics.pas');
+    T:=P.Targets.AddExampleProgram('testdatasources.pas');
+    T:=P.Targets.AddExampleProgram('testdbbasics.pas');
+    T:=P.Targets.AddExampleProgram('testdddiff.pp');
+    T:=P.Targets.AddExampleProgram('testfieldtypes.pas');
+    T:=P.Targets.AddExampleProgram('testsqlscript.pas');
+    T:=P.Targets.AddExampleProgram('toolsunit.pas');
+    // database.ini.txt
+    // README.txt
 
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+
+
+

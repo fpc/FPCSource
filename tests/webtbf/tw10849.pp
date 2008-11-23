@@ -1,5 +1,5 @@
 { %fail }
-{ %opt=-Se1w2 }
+{ %opt=-Se1w2 -vw }
 
 var
   pc: pchar;

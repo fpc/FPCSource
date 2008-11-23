@@ -86,11 +86,14 @@ const
 {$ifdef beos}
   {$ifdef haiku}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'network' name 'poll';
   {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'net' name 'poll';
   {$endif}  
 {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
 {$endif}
     function  fpgetenv  (name : pchar):pchar; cdecl; external clib name 'getenv';
     Function  FpKill       (pid : TPid; sig: cInt): cInt; cdecl; external clib name 'kill';
@@ -108,8 +111,9 @@ const
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl external clib name 'fcntl';
-    Function  FpPause   : cInt; cdecl external clib name 'pause';
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl; external clib name 'fcntl';
+    Function  FpPause   : cInt; cdecl; external clib name 'pause';
+    Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
 {$ifdef solaris}   
 {$linklib md5} 
 {$linklib aio}

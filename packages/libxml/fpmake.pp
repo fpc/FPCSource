@@ -16,8 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
-    P.Version:='2.6.32';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
   T:=P.Targets.AddUnit('libxml2.pas');
   with T.Dependencies do
@@ -35,7 +36,7 @@ begin
       AddInclude('uri.inc');
       AddInclude('debugXML.inc');
       AddInclude('xmlunicode.inc');
-      AddInclude('DOCBparser.inc');
+//      AddInclude('DOCBparser.inc');
       AddInclude('xmlIO.inc');
       AddInclude('xmlsave.inc');
       AddInclude('HTMLtree.inc');
@@ -70,6 +71,19 @@ begin
       AddInclude('c14n.inc');
       AddInclude('schematron.inc');
     end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('reader1.pas');
+    P.Targets.AddExampleProgram('io2.pas');
+    P.Targets.AddExampleProgram('io1.pas');
+    P.Targets.AddExampleProgram('tree1.pas');
+    P.Targets.AddExampleProgram('tree2.pas');
+    P.Targets.AddExampleProgram('exutils.pas');
+    P.Targets.AddExampleProgram('reader2.pas');
+    // 'Makefile
+    // 'Makefile.fpc
+    // 'test1.xml
+    // 'test2.xml
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -92,7 +92,9 @@ begin
   if GeneratedConfig then
     Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile])
+    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
+  // Log configuration
+  GlobalOptions.LogValues;
 end;
 
 
@@ -129,6 +131,8 @@ begin
       else
         Error(SErrMissingCompilerConfig,[S]);
     end;
+  // Log compiler configuration
+  CompilerOptions.LogValues('');
   // Load FPMake compiler config, this is normally the same config as above
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   if FileExists(S) then
@@ -140,6 +144,8 @@ begin
     end
   else
     Error(SErrMissingCompilerConfig,[S]);
+  // Log compiler configuration
+  FPMakeCompilerOptions.LogValues('fpmake-building ');
 end;
 
 
@@ -156,8 +162,7 @@ begin
   Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
-  Writeln('  showavail          List available packages');
-  Writeln('  showall            Show all (including local) packages');
+  Writeln('  list               List available and installed packages');
   Writeln('  build              Build package');
   Writeln('  compile            Compile package');
   Writeln('  install            Install package');
@@ -279,6 +284,16 @@ begin
   Try
     LoadGlobalDefaults;
     ProcessCommandLine;
+
+    // Scan is special, it doesn't need a valid local setup
+    if (ParaAction='scan') then
+      begin
+        RebuildRemoteRepository;
+        ListRemoteRepository;
+        SaveRemoteRepository;
+        halt(0);
+      end;
+
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
 
@@ -315,7 +330,7 @@ begin
 
     if ParaPackages.Count=0 then
       begin
-        ActionPackage:=InstalledRepository.AddPackage(CurrentDirPackageName);
+        ActionPackage:=AvailableRepository.AddPackage(CurrentDirPackageName);
         pkghandler.ExecuteAction(CurrentDirPackageName,ParaAction);
       end
     else
@@ -325,7 +340,7 @@ begin
           begin
             if FileExists(ParaPackages[i]) then
               begin
-                ActionPackage:=InstalledRepository.AddPackage(CmdLinePackageName);
+                ActionPackage:=AvailableRepository.AddPackage(CmdLinePackageName);
                 ActionPackage.LocalFileName:=ExpandFileName(ParaPackages[i]);
                 pkghandler.ExecuteAction(CmdLinePackageName,ParaAction);
               end

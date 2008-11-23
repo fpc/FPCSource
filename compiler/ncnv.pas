@@ -54,6 +54,7 @@ interface
           function simplify:tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
+          function retains_value_location:boolean;
           function assign_allowed:boolean;
           procedure second_call_helper(c : tconverttype);
        private
@@ -192,6 +193,7 @@ interface
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
+          function docompare(p: tnode): boolean; override;
           destructor destroy; override;
           call: tnode;
        end;
@@ -1594,8 +1596,7 @@ implementation
       begin
         result:=self;
         while (result.nodetype=typeconvn) and
-              (nf_absolute in result.flags) and
-              (resultdef.size=left.resultdef.size) do
+              ttypeconvnode(result).retains_value_location do
           result:=ttypeconvnode(result).left;
       end;
 
@@ -2345,8 +2346,7 @@ implementation
                 if is_signed(left.resultdef) then
                   fname:='int32_to_'
                 else
-                  { we can't do better currently }
-                  fname:='int32_to_';
+                  fname:='int64_to_';
                 firstpass(left);
               end;
             if tfloatdef(resultdef).floattype=s64real then
@@ -2497,14 +2497,13 @@ implementation
             (left.resultdef.size=resultdef.size) and
             (left.expectloc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_CREGISTER]) then
            exit;
-         { when converting 64bit int to C-ctyle boolean, first convert to a 32bit int and then   }
+         { when converting 64bit int to C-ctyle boolean, first convert to an int32 and then }
          { convert to a boolean (only necessary for 32bit processors) }
          if (left.resultdef.size > sizeof(aint)) and (left.resultdef.size<>resultdef.size)
             and is_cbool(resultdef) then
            begin
-             result := ctypeconvnode.create_internal(left,s32inttype);
-             left := nil;
-             firstpass(result);
+             left:=ctypeconvnode.create_internal(left,s32inttype);
+             firstpass(left);
              exit;
            end;
          expectloc:=LOC_REGISTER;
@@ -2930,7 +2929,7 @@ implementation
       end;
 
 
-    function ttypeconvnode.assign_allowed:boolean;
+    function ttypeconvnode.retains_value_location:boolean;
       begin
         result:=(convtype=tc_equal) or
                 { typecasting from void is always allowed }
@@ -2950,12 +2949,19 @@ implementation
                 ((convtype in [tc_int_2_bool,tc_bool_2_int,tc_bool_2_bool]) and
                  (nf_explicit in flags) and
                  (resultdef.size=left.resultdef.size));
+      end;
+
+
+    function ttypeconvnode.assign_allowed:boolean;
+      begin
+        result:=retains_value_location;
 
         { When using only a part of the value it can't be in a register since
           that will load the value in a new register first }
         { the same goes for changing the sign of equal-sized values which
           are smaller than an entire register }
-        if (resultdef.size<left.resultdef.size) or
+        if result and
+           (resultdef.size<left.resultdef.size) or
            ((resultdef.size=left.resultdef.size) and
             (left.resultdef.size<sizeof(aint)) and
             (is_signed(resultdef) xor is_signed(left.resultdef))) then
@@ -3354,6 +3360,14 @@ implementation
           tasnode(result).call := call.getcopy
         else
           tasnode(result).call := nil;
+      end;
+
+
+    function tasnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          tasnode(p).call.isequal(call);
       end;
 
 

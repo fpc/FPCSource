@@ -1,10 +1,11 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 1999-2000 by Michael Van Canneyt,
+    Copyright (c) 2005-06 by Thomas Schatzl,
     member of the Free Pascal development team.
 
-    Syscall nrs for 2.6.11
+    Syscall numbers for 2.6.23
 
+    This file contains the system call numbers.
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
 
@@ -13,13 +14,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-
-{
-  Automatically converted by H2Pas 1.0.0 from 
-  /usr/include/asm-ppc/unistd.h
-}
-
-{ This file contains the system call numbers.  }
 
 const
   syscall_nr_exit = 1;
@@ -217,19 +211,23 @@ const
   { SuS compliant getrlimit  }
   syscall_nr_ugetrlimit = 190;
   syscall_nr_readahead = 191;
+{$ifdef cpu32}
   syscall_nr_mmap2 = 192;
   syscall_nr_truncate64 = 193;
   syscall_nr_ftruncate64 = 194;
   syscall_nr_stat64 = 195;
   syscall_nr_lstat64 = 196;
   syscall_nr_fstat64 = 197;
+{$endif}
   syscall_nr_pciconfig_read = 198;
   syscall_nr_pciconfig_write = 199;
   syscall_nr_pciconfig_iobase = 200;
   syscall_nr_multiplexer = 201;
   syscall_nr_getdents64 = 202;
   syscall_nr_pivot_root = 203;
+{$ifdef cpu32}
   syscall_nr_fcntl64 = 204;
+{$endif}
   syscall_nr_madvise = 205;
   syscall_nr_mincore = 206;
   syscall_nr_gettid = 207;
@@ -251,7 +249,9 @@ const
   syscall_nr_sched_getaffinity = 223;
   { 224 currently unused  }
   syscall_nr_tuxcall = 225;
+{$ifdef cpu32}
   syscall_nr_sendfile64 = 226;
+{$endif}
   syscall_nr_io_setup = 227;
   syscall_nr_io_destroy = 228;
   syscall_nr_io_getevents = 229;
@@ -279,7 +279,9 @@ const
   syscall_nr_utimes = 251;
   syscall_nr_statfs64 = 252;
   syscall_nr_fstatfs64 = 253;
+{$ifdef cpu32}
   syscall_nr_fadvise64_64 = 254;
+{$endif}
   syscall_nr_rtas = 255;
   syscall_nr_mq_open = 262;
   syscall_nr_mq_unlink = 263;
@@ -297,3 +299,39 @@ const
   syscall_nr_inotify_init = 275;
   syscall_nr_inotify_add_watch = 276;
   syscall_nr_inotify_rm_watch = 277;
+  syscall_nr_spu_run          = 278;
+  syscall_nr_spu_create       = 278;
+  syscall_nr_pselect6         = 289;
+  syscall_nr_ppoll            = 281;
+  syscall_nr_unshare          = 282;
+  syscall_nr_splice           = 283;
+  syscall_nr_tee              = 284;
+  syscall_nr_vmsplice         = 285;
+  syscall_nr_openat           = 286;
+  syscall_nr_mkdirat          = 287;
+  syscall_nr_mknodat          = 288;
+  syscall_nr_fchownat         = 289;
+  syscall_nr_futimesat        = 290;
+  syscall_nr_sys_fstatat64    = 291;
+  syscall_nr_unlinkat         = 292;
+  syscall_nr_renameat         = 293;
+  syscall_nr_linkat           = 294;
+  syscall_nr_symlinkat        = 295;
+  syscall_nr_readlinkat       = 296;
+  syscall_nr_fchmodat         = 297;
+  syscall_nr_faccessat        = 298;
+  syscall_nr_get_robust_list  = 299;
+  syscall_nr_set_robust_list  = 300;
+  syscall_nr_move_pages       = 301;
+  syscall_nr_getcpu           = 302;
+  syscall_nr_epoll_pwait      = 303;
+  syscall_nr_utimensat        = 304;
+  syscall_nr_fallocate        = 305;
+  syscall_nr_signalfd         = 306;
+  syscall_nr_timerfd          = 307;
+  syscall_nr_eventfd          = 308;
+  syscall_nr_sync_file_range2 = 309;
+
+  syscall_nr_pwrite64 = syscall_nr_pwrite;
+  syscall_nr_pread64 = syscall_nr_pread;
+

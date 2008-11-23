@@ -1399,8 +1399,7 @@ implementation
                        if (hdef=cvarianttype) and
                           not(cs_compilesystem in current_settings.moduleswitches) then
                          current_module.flags:=current_module.flags or uf_uses_variants;
-                       if (block_type<>bt_specialize) and
-                          try_to_consume(_LKLAMMER) then
+                       if try_to_consume(_LKLAMMER) then
                         begin
                           p1:=comp_expr(true);
                           consume(_RKLAMMER);
@@ -1411,15 +1410,14 @@ implementation
                            is_object(hdef) then
                          begin
                            consume(_POINT);
-                           if assigned(current_procinfo) and
-                              assigned(current_procinfo.procdef._class) and
+                           if assigned(current_objectdef) and
                               not(getaddr) then
                             begin
-                              if current_procinfo.procdef._class.is_related(tobjectdef(hdef)) then
+                              if current_objectdef.is_related(tobjectdef(hdef)) then
                                begin
                                  p1:=ctypenode.create(hdef);
                                  { search also in inherited methods }
-                                 searchsym_in_class(tobjectdef(hdef),current_procinfo.procdef._class,pattern,srsym,srsymtable);
+                                 searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
                                  if assigned(srsym) then
                                    check_hints(srsym,srsym.symoptions);
                                  consume(_ID);
@@ -1486,7 +1484,7 @@ implementation
                                 { For a type block we simply return only
                                   the type. For all other blocks we return
                                   a loadvmt node }
-                                if not(block_type in [bt_type,bt_specialize]) then
+                                if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
                                   p1:=cloadvmtaddrnode.create(p1);
                               end;
                            end
@@ -2160,9 +2158,8 @@ implementation
            again:=true;
            { Handle references to self }
            if (idtoken=_SELF) and
-              not(block_type in [bt_const,bt_type]) and
-              assigned(current_procinfo) and
-              assigned(current_procinfo.procdef._class) then
+              not(block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) and
+              assigned(current_objectdef) then
              begin
                p1:=load_self_node;
                consume(_ID);
@@ -2199,9 +2196,9 @@ implementation
                again:=true;
                consume(_INHERITED);
                if assigned(current_procinfo) and
-                  assigned(current_procinfo.procdef._class) then
+                  assigned(current_objectdef) then
                 begin
-                  hclassdef:=current_procinfo.procdef._class.childof;
+                  hclassdef:=current_objectdef.childof;
                   { if inherited; only then we need the method with
                     the same name }
                   if token in endtokens then
@@ -2219,7 +2216,7 @@ implementation
                       if (po_msgstr in pd.procoptions) then
                         searchsym_in_class_by_msgstr(hclassdef,pd.messageinf.str^,srsym,srsymtable)
                      else
-                       searchsym_in_class(hclassdef,current_procinfo.procdef._class,hs,srsym,srsymtable);
+                       searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
                    end
                   else
                    begin
@@ -2227,7 +2224,7 @@ implementation
                      hsorg:=orgpattern;
                      consume(_ID);
                      anon_inherited:=false;
-                     searchsym_in_class(hclassdef,current_procinfo.procdef._class,hs,srsym,srsymtable);
+                     searchsym_in_class(hclassdef,current_objectdef,hs,srsym,srsymtable);
                    end;
                   if assigned(srsym) then
                    begin

@@ -386,6 +386,40 @@ type
   PSockAddr = ^TSockAddr;
   TSockAddr = TSockAddrIn;
 
+{*
+ * Portable socket structure (RFC 2553).
+ *}
+
+{*
+ * Desired design of maximum size and alignment.
+ * These are implementation specific.
+ *}
+const
+      _SS_MAXSIZE = 128;                  // Maximum size.
+      _SS_ALIGNSIZE = SizeOf(Int64);  // Desired alignment.
+
+{*
+ * Definitions used for sockaddr_storage structure paddings design.
+ *}
+const
+      _SS_PAD1SIZE = _SS_ALIGNSIZE - SizeOf(SmallInt);
+      _SS_PAD2SIZE = _SS_MAXSIZE - (SizeOf(SmallInt) + _SS_PAD1SIZE  + _SS_ALIGNSIZE);
+
+type
+     sockaddr_storage = record
+       ss_family:SmallInt;                          // Address family.
+       __ss_pad1:array[0.._SS_PAD1SIZE-1] of char;  // 6 byte pad, this is to make
+                                                    // implementation specific pad up to
+                                                    // alignment field that follows explicit
+                                                    // in the data structure.
+       __ss_align:Int64;                            // Field to force desired structure.
+       __ss_pad2:array[0.._SS_PAD2SIZE-1] of char;  // 112 byte pad to achieve desired size;
+                                                    // _SS_MAXSIZE value minus size of
+                                                    // ss_family, __ss_pad1, and
+                                                    // __ss_align fields is 112.
+     end;
+
+
   { Structure used by kernel to pass protocol information in raw sockets. }
   PSockProto = ^TSockProto;
   TSockProto = record

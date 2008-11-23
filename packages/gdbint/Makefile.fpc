@@ -5,11 +5,11 @@
 
 [package]
 name=gdbint
-version=2.0.0
+version=2.2.2
 
 [target]
 units=gdbint gdbcon
-examples=testgdb symify
+examples=examples/testgdb examples/symify
 
 [compiler]
 objectdir=$(GDBLIBDIR)

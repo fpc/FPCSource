@@ -34,30 +34,11 @@ interface
        ;
 
     type
-      pprocdefentry = ^tprocdefentry;
-      tprocdefentry = record
-         data    : tprocdef;
-         hidden  : boolean;
-         visible : boolean;
-      end;
-
-      { tvmtsymentry }
-
-      tvmtsymentry = class(TFPHashObject)
-        procdeflist : TFPList;
-        constructor Create(AList:TFPHashObjectList;const AName:shortstring);
-        destructor Destroy;override;
-      end;
-
       TVMTBuilder=class
       private
         _Class : tobjectdef;
-        VMTSymEntryList : TFPHashObjectList;
-        has_constructor,
-        has_virtual_method : boolean;
-        function is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
-        procedure add_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef);
-        procedure add_vmt_entries(objdef:tobjectdef);
+        function  is_new_vmt_entry(pd:tprocdef):boolean;
+        procedure add_new_vmt_entry(pd:tprocdef);
         function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
         procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
         procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
@@ -137,28 +118,6 @@ implementation
 
 
 {*****************************************************************************
-                              TVMTSymEntry
-*****************************************************************************}
-
-    constructor tvmtsymentry.Create(AList:TFPHashObjectList;const AName:shortstring);
-      begin
-        inherited Create(AList,AName);
-        procdeflist:=TFPList.Create;
-      end;
-
-
-    destructor TVMTSymEntry.Destroy;
-      var
-        i : longint;
-      begin
-        for i:=0 to procdeflist.Count-1 do
-          Dispose(pprocdefentry(procdeflist[i]));
-        procdeflist.free;
-        inherited Destroy;
-      end;
-
-
-{*****************************************************************************
                               TVMTBuilder
 *****************************************************************************}
 
@@ -166,278 +125,196 @@ implementation
       begin
         inherited Create;
         _Class:=c;
-        VMTSymEntryList:=TFPHashObjectList.Create;
       end;
 
 
     destructor TVMTBuilder.destroy;
       begin
-        VMTSymEntryList.free;
       end;
 
 
-    procedure TVMTBuilder.add_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef);
+    procedure TVMTBuilder.add_new_vmt_entry(pd:tprocdef);
       var
-        procdefcoll : pprocdefentry;
         i : longint;
-        oldpd : tprocdef;
+        vmtentry : pvmtentry;
+        vmtpd : tprocdef;
       begin
-        if (_class=pd._class) then
-          begin
-            { new entry is needed, override was not possible }
-            if (po_overridingmethod in pd.procoptions) then
-              MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
+        { new entry is needed, override was not possible }
+        if (po_overridingmethod in pd.procoptions) then
+          MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
 
-            { check that all methods have overload directive }
-            if not(m_fpc in current_settings.modeswitches) then
+        { check that all methods have overload directive }
+        if not(m_fpc in current_settings.modeswitches) then
+          begin
+            for i:=0 to _class.vmtentries.count-1 do
               begin
-                for i:=0 to VMTSymentry.ProcdefList.Count-1 do
+                vmtentry:=pvmtentry(_class.vmtentries[i]);
+                vmtpd:=tprocdef(vmtentry^.procdef);
+                if (vmtpd.procsym=pd.procsym) and
+                   (not(po_overload in pd.procoptions) or
+                    not(po_overload in vmtpd.procoptions)) then
                   begin
-                    oldpd:=pprocdefentry(VMTSymentry.ProcdefList[i])^.data;
-                    if (oldpd._class=pd._class) and
-                       (not(po_overload in pd.procoptions) or
-                        not(po_overload in oldpd.procoptions)) then
-                      begin
-                        MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
-                        { recover }
-                        include(oldpd.procoptions,po_overload);
-                        include(pd.procoptions,po_overload);
-                      end;
+                    MessagePos1(pd.fileinfo,parser_e_no_overload_for_all_procs,pd.procsym.realname);
+                    { recover }
+                    include(vmtpd.procoptions,po_overload);
+                    include(pd.procoptions,po_overload);
                   end;
               end;
           end;
 
-        { generate new entry }
-        new(procdefcoll);
-        procdefcoll^.data:=pd;
-        procdefcoll^.hidden:=false;
-        procdefcoll^.visible:=pd.is_visible_for_object(_class,nil);
-        VMTSymEntry.ProcdefList.Add(procdefcoll);
-
         { Register virtual method and give it a number }
         if (po_virtualmethod in pd.procoptions) then
           begin
-             if not assigned(_class.VMTEntries) then
-               _class.VMTEntries:=TFPObjectList.Create(false);
-             if pd.extnumber=$ffff then
-               pd.extnumber:=_class.VMTEntries.Count
-             else
-               begin
-                 if pd.extnumber<>_class.VMTEntries.Count then
-                   internalerror(200611081);
-               end;
-             _class.VMTEntries.Add(pd);
-             has_virtual_method:=true;
+             { store vmt entry number in procdef }
+             if (pd.extnumber<>$ffff) and
+                (pd.extnumber<>_class.VMTEntries.Count) then
+               internalerror(200810283);
+             pd.extnumber:=_class.VMTEntries.Count;
+             new(vmtentry);
+             vmtentry^.procdef:=pd;
+             vmtentry^.procdefderef.reset;
+             vmtentry^.visibility:=pd.visibility;
+             _class.VMTEntries.Add(vmtentry);
           end;
-
-        if (pd.proctypeoption=potype_constructor) then
-          has_constructor:=true;
       end;
 
 
-    function TVMTBuilder.is_new_vmt_entry(VMTSymEntry:TVMTSymEntry;pd:tprocdef):boolean;
+    function TVMTBuilder.is_new_vmt_entry(pd:tprocdef):boolean;
       const
         po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
         i : longint;
-        is_visible,
+        hasequalpara,
         hasoverloads,
         pdoverload : boolean;
-        procdefcoll : pprocdefentry;
+        vmtentry : pvmtentry;
+        vmtpd : tprocdef;
       begin
         result:=false;
-        { is this procdef visible from the class that we are
-          generating. This will be used to hide the other procdefs.
-          When the symbol is not visible we don't hide the other
-          procdefs, because they can be reused in the next class.
-          The check to skip the invisible methods that are in the
-          list is futher down in the code }
-        is_visible:=pd.is_visible_for_object(_class,nil);
         { Load other values for easier readability }
         hasoverloads:=(tprocsym(pd.procsym).ProcdefList.Count>1);
         pdoverload:=(po_overload in pd.procoptions);
 
         { compare with all stored definitions }
-        for i:=0 to VMTSymEntry.ProcdefList.Count-1 do
+        for i:=0 to _class.vmtentries.Count-1 do
           begin
-            procdefcoll:=pprocdefentry(VMTSymEntry.ProcdefList[i]);
-            { skip definitions that are already hidden }
-            if procdefcoll^.hidden then
+            vmtentry:=pvmtentry(_class.vmtentries[i]);
+            vmtpd:=tprocdef(vmtentry^.procdef);
+
+            { ignore hidden entries (e.g. virtual overridden by a static) that are not visible anymore }
+            if vmtentry^.visibility=vis_hidden then
               continue;
 
-            { check if one of the two methods has virtual }
-            if (po_virtualmethod in procdefcoll^.data.procoptions) or
-               (po_virtualmethod in pd.procoptions) then
+            { ignore different names }
+            if vmtpd.procsym.name<>pd.procsym.name then
+              continue;
+
+            { hide private methods that are not visible anymore. For this check we
+              must override the visibility with the highest value in the override chain.
+              This is required for case (see tw3292) with protected-private-protected where the
+              same vmtentry is used (PFV) }
+            if not is_visible_for_object(vmtpd.owner,vmtentry^.visibility,_class) then
+              continue;
+
+            { inherit overload }
+            if (po_overload in vmtpd.procoptions) then
               begin
-                { if the current definition has no virtual then hide the
-                  old virtual if the new definition has the same arguments or
-                  when it has no overload directive and no overloads }
-                if not(po_virtualmethod in pd.procoptions) then
+                include(pd.procoptions,po_overload);
+                pdoverload:=true;
+              end;
+
+            { compare parameter types only, no specifiers yet }
+            hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[])>=te_equal);
+
+            { old definition has virtual
+              new definition has no virtual or override }
+            if (po_virtualmethod in vmtpd.procoptions) and
+               (
+                not(po_virtualmethod in pd.procoptions) or
+                { new one has not override }
+                (is_class_or_interface(_class) and not(po_overridingmethod in pd.procoptions))
+               ) then
+              begin
+                if (
+                    not(pdoverload or hasoverloads) or
+                    hasequalpara
+                   ) then
                   begin
-                    if procdefcoll^.visible and
-                       (
-                        not(pdoverload or hasoverloads) or
-                        (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
-                       ) then
-                      begin
-                        if is_visible then
-                          procdefcoll^.hidden:=true;
-                        if (pd._class=procdefcoll^.data._class) then
-                           MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                        else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                          MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                      end;
-                  end
-                { if both are virtual we check the header }
-                else if (po_virtualmethod in pd.procoptions) and
-                        (po_virtualmethod in procdefcoll^.data.procoptions) then
-                  begin
-                    { new one has not override }
-                    if is_class_or_interface(_class) and
-                       not(po_overridingmethod in pd.procoptions) then
-                      begin
-                        { we start a new virtual tree, hide the old }
-                        if (not(pdoverload or hasoverloads) or
-                            (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)) and
-                           (procdefcoll^.visible) then
-                          begin
-                            if is_visible then
-                              procdefcoll^.hidden:=true;
-                            if (pd._class=procdefcoll^.data._class) then
-                              MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                            else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
-                          end;
-                      end
-                    { same parameter and return types (parameter specifiers will be checked below) }
-                    else if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_none,[])>=te_equal) and
-                            compatible_childmethod_resultdef(procdefcoll^.data.returndef,pd.returndef) then
-                      begin
-                        { overload is inherited }
-                        if (po_overload in procdefcoll^.data.procoptions) then
-                         include(pd.procoptions,po_overload);
-
-                        { inherite calling convention when it was force and the
-                          current definition has none force }
-                        if (po_hascallingconvention in procdefcoll^.data.procoptions) and
-                           not(po_hascallingconvention in pd.procoptions) then
-                          begin
-                            pd.proccalloption:=procdefcoll^.data.proccalloption;
-                            include(pd.procoptions,po_hascallingconvention);
-                          end;
-
-                        { All parameter specifiers and some procedure the flags have to match
-                          except abstract and override }
-                        if (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])<te_equal) or
-                           (procdefcoll^.data.proccalloption<>pd.proccalloption) or
-                           (procdefcoll^.data.proctypeoption<>pd.proctypeoption) or
-                           ((procdefcoll^.data.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
-                           begin
-                             MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
-                             tprocsym(procdefcoll^.data.procsym).write_parameter_lists(pd);
-                           end;
-
-                        { check if the method to override is visible, check is only needed
-                          for the current parsed class. Parent classes are already validated and
-                          need to include all virtual methods including the ones not visible in the
-                          current class }
-                        if (_class=pd._class) and
-                           (po_overridingmethod in pd.procoptions) and
-                           (not procdefcoll^.visible) then
-                          MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
-
-                        { override old virtual method in VMT }
-                        if (procdefcoll^.data.extnumber>=_class.VMTEntries.Count) or
-                           (_class.VMTEntries[procdefcoll^.data.extnumber]<>procdefcoll^.data) then
-                          internalerror(200611084);
-                        _class.VMTEntries[procdefcoll^.data.extnumber]:=pd;
-                        pd.extnumber:=procdefcoll^.data.extnumber;
-                        procdefcoll^.data:=pd;
-                        if is_visible then
-                          procdefcoll^.visible:=true;
-
-                        exit;
-                      end
-                    { different parameters }
-                    else
-                     begin
-                       { when we got an override directive then can search futher for
-                         the procedure to override.
-                         If we are starting a new virtual tree then hide the old tree }
-                       if not(po_overridingmethod in pd.procoptions) and
-                          not (pdoverload or hasoverloads) then
-                        begin
-                          if is_visible then
-                            procdefcoll^.hidden:=true;
-                          if (pd._class=procdefcoll^.data._class) then
-                            MessagePos(pd.fileinfo,parser_e_overloaded_have_same_parameters)
-                          else if (_class=pd._class) and not(po_reintroduce in pd.procoptions) then
-                            if not is_object(_class) then
-                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
-                            else
-                              { objects don't allow starting a new virtual tree }
-                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,procdefcoll^.data.fullprocname(false));
-                        end;
-                     end;
-                  end
-                else
-                  begin
-                    { the new definition is virtual and the old static, we hide the old one
-                      if the new defintion has not the overload directive }
-                    if is_visible and
-                       (
-                        (not(pdoverload or hasoverloads)) or
-                        (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
-                       ) then
-                      procdefcoll^.hidden:=true;
+                    if not(po_reintroduce in pd.procoptions) then
+                      MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                    { disable/hide old VMT entry }
+                    vmtentry^.visibility:=vis_hidden;
                   end;
               end
-            else
+            { both are virtual? }
+            else if (po_virtualmethod in pd.procoptions) and
+                    (po_virtualmethod in vmtpd.procoptions) then
               begin
-                { both are static, we hide the old one if the new defintion
-                  has not the overload directive }
-                if is_visible and
-                   (
-                    not(pdoverload or hasoverloads) or
-                    (compare_paras(procdefcoll^.data.paras,pd.paras,cp_all,[])>=te_equal)
-                   ) then
-                  procdefcoll^.hidden:=true;
-               end;
+                { same parameter and return types (parameter specifiers will be checked below) }
+                if hasequalpara and
+                   compatible_childmethod_resultdef(vmtpd.returndef,pd.returndef) then
+                  begin
+                    { inherite calling convention when it was explicit and the
+                      current definition has none explicit set }
+                    if (po_hascallingconvention in vmtpd.procoptions) and
+                       not(po_hascallingconvention in pd.procoptions) then
+                      begin
+                        pd.proccalloption:=vmtpd.proccalloption;
+                        include(pd.procoptions,po_hascallingconvention);
+                      end;
+
+                    { All parameter specifiers and some procedure the flags have to match
+                      except abstract and override }
+                    if (compare_paras(vmtpd.paras,pd.paras,cp_all,[])<te_equal) or
+                       (vmtpd.proccalloption<>pd.proccalloption) or
+                       (vmtpd.proctypeoption<>pd.proctypeoption) or
+                       ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
+                       begin
+                         MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                         tprocsym(vmtpd.procsym).write_parameter_lists(pd);
+                       end;
+
+                    { Give a note if the new visibility is lower. For a higher
+                      visibility update the vmt info }
+                    if vmtentry^.visibility>pd.visibility then
+                      MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,pd.fullprocname(false),
+                           visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentry^.visibility])
+                    else if pd.visibility>vmtentry^.visibility then
+                      vmtentry^.visibility:=pd.visibility;
+
+                    { override old virtual method in VMT }
+                    if (vmtpd.extnumber<>i) then
+                      internalerror(200611084);
+                    pd.extnumber:=vmtpd.extnumber;
+                    vmtentry^.procdef:=pd;
+                    exit;
+                  end
+                { different parameters }
+                else
+                 begin
+                   { when we got an override directive then can search futher for
+                     the procedure to override.
+                     If we are starting a new virtual tree then hide the old tree }
+                   if not(po_overridingmethod in pd.procoptions) and
+                      not(pdoverload or hasoverloads) then
+                     begin
+                       if not(po_reintroduce in pd.procoptions) then
+                         begin
+                           if not is_object(_class) then
+                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                           else
+                             { objects don't allow starting a new virtual tree }
+                             MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
+                         end;
+                       { disable/hide old VMT entry }
+                       vmtentry^.visibility:=vis_hidden;
+                     end;
+                 end;
+              end;
           end;
         { No entry found, we need to create a new entry }
         result:=true;
-      end;
-
-
-    procedure TVMTBuilder.add_vmt_entries(objdef:tobjectdef);
-      var
-         def : tdef;
-         pd  : tprocdef;
-         i   : longint;
-         VMTSymEntry : TVMTSymEntry;
-      begin
-        { start with the base class }
-        if assigned(objdef.childof) then
-          add_vmt_entries(objdef.childof);
-        { process all procdefs, we must process the defs to
-          keep the same order as that is written in the source
-          to be compatible with the indexes in the interface vtable (PFV) }
-        for i:=0 to objdef.symtable.DefList.Count-1 do
-          begin
-            def:=tdef(objdef.symtable.DefList[i]);
-            if def.typ=procdef then
-              begin
-                pd:=tprocdef(def);
-                { Find VMT procsym }
-                VMTSymEntry:=TVMTSymEntry(VMTSymEntryList.Find(pd.procsym.name));
-                if not assigned(VMTSymEntry) then
-                  VMTSymEntry:=TVMTSymEntry.Create(VMTSymEntryList,pd.procsym.name);
-                { VMT entry }
-                if is_new_vmt_entry(VMTSymEntry,pd) then
-                  add_new_vmt_entry(VMTSymEntry,pd);
-              end;
-          end;
       end;
 
 
@@ -667,16 +544,36 @@ implementation
     procedure TVMTBuilder.generate_vmt;
       var
         i : longint;
+        def : tdef;
         ImplIntf : TImplementedInterface;
+        old_current_objectdef : tobjectdef;
       begin
-        { Find VMT entries }
-        has_constructor:=false;
-        has_virtual_method:=false;
-        add_vmt_entries(_class);
-        if not(is_interface(_class)) and
-           has_virtual_method and
-           not(has_constructor) then
-          Message1(parser_w_virtual_without_constructor,_class.objrealname^);
+        old_current_objectdef:=current_objectdef;
+        current_objectdef:=_class;
+
+        _class.resetvmtentries;
+
+        { inherit (copy) VMT from parent object }
+        if assigned(_class.childof) then
+          begin
+            if not assigned(_class.childof.vmtentries) then
+              internalerror(200810281);
+            _class.copyvmtentries(_class.childof);
+          end;
+
+        { process all procdefs, we must process the defs to
+          keep the same order as that is written in the source
+          to be compatible with the indexes in the interface vtable (PFV) }
+        for i:=0 to _class.symtable.DefList.Count-1 do
+          begin
+            def:=tdef(_class.symtable.DefList[i]);
+            if def.typ=procdef then
+              begin
+                { VMT entry }
+                if is_new_vmt_entry(tprocdef(def)) then
+                  add_new_vmt_entry(tprocdef(def));
+              end;
+          end;
 
         { Find Procdefs implementing the interfaces }
         if assigned(_class.ImplementedInterfaces) then
@@ -692,6 +589,8 @@ implementation
             { Allocate interface tables }
             intf_allocate_vtbls;
           end;
+
+        current_objectdef:=old_current_objectdef;
       end;
 
 
@@ -1012,7 +911,7 @@ implementation
           begin
             pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
             if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
+               (pd.visibility=vis_published) then
               inc(plongint(arg)^);
           end;
       end;
@@ -1030,7 +929,7 @@ implementation
           begin
             pd:=tprocdef(Tprocsym(p).ProcdefList[i]);
             if (pd.procsym=tsym(p)) and
-               (sp_published in pd.symoptions) then
+               (pd.visibility=vis_published) then
               begin
                 current_asmdata.getdatalabel(l);
 
@@ -1093,8 +992,8 @@ implementation
         for i:=0 to _class.symtable.SymList.Count-1 do
           begin
             sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
+            if (sym.typ=fieldvarsym) and
+               (sym.visibility=vis_published) then
              begin
                 if tfieldvarsym(sym).vardef.typ<>objectdef then
                   internalerror(200611032);
@@ -1114,8 +1013,8 @@ implementation
         for i:=0 to _class.symtable.SymList.Count-1 do
           begin
             sym:=tsym(_class.symtable.SymList[i]);
-            if (tsym(sym).typ=fieldvarsym) and
-               (sp_published in tsym(sym).symoptions) then
+            if (sym.typ=fieldvarsym) and
+               (sym.visibility=vis_published) then
               begin
                 if (tf_requires_proper_alignment in target_info.flags) then
                   current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(pint)));
@@ -1295,7 +1194,8 @@ implementation
 
     procedure TVMTWriter.writevirtualmethods(List:TAsmList);
       var
-         pd : tprocdef;
+         vmtpd : tprocdef;
+         vmtentry : pvmtentry;
          i  : longint;
          procname : string;
 {$ifdef vtentry}
@@ -1306,15 +1206,17 @@ implementation
           exit;
         for i:=0 to _class.VMTEntries.Count-1 do
          begin
-           pd:=tprocdef(_class.VMTEntries[i]);
-           if not(po_virtualmethod in pd.procoptions) then
+           vmtentry:=pvmtentry(_class.vmtentries[i]);
+           vmtpd:=vmtentry^.procdef;
+           { safety checks }
+           if not(po_virtualmethod in vmtpd.procoptions) then
              internalerror(200611082);
-           if pd.extnumber<>i then
+           if vmtpd.extnumber<>i then
              internalerror(200611083);
-           if (po_abstractmethod in pd.procoptions) then
+           if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
            else if not wpoinfomanager.optimized_name_for_vmt(_class,pd,procname) then
-             procname:=pd.mangledname;
+             procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}
            hs:='VTENTRY'+'_'+_class.vmt_mangledname+'$$'+tostr(_class.vmtmethodoffset(i) div sizeof(pint));

@@ -24,6 +24,7 @@ interface
 { force ansistrings }
 {$H+}
 
+{$DEFINE HAS_SLEEP}
 { Include platform independent interface part }
 {$i sysutilh.inc}
 
@@ -645,6 +646,12 @@ begin
    else
     CommandLine := CommandLine + ' ' + Comline [I];
   ExecuteProcess := ExecuteProcess (Path, CommandLine);
+end;
+
+procedure Sleep (Milliseconds: cardinal);
+begin
+ // Amiga/MorphOS dos.library Delay() has precision of 1/50 seconds
+ Delay(Milliseconds div 20);
 end;
 
 

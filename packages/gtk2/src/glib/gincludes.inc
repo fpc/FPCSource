@@ -72,4 +72,8 @@
 
 {$include goption.inc}
 
+{$ifdef HasGLIB2_10}
+{$include gslice.inc}
+{$endif}
+
 // included by glib2.pas

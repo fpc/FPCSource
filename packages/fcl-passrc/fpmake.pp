@@ -16,9 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-passrc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
-
+    P.Version:='2.2.2-0';
     P.Dependencies.Add('fcl-base');
+    P.Author := 'Sebastian Guenther';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Pascal parsing parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
 

@@ -774,11 +774,10 @@ implementation
            end;
 
 
-         { Kylix allows enum+ordconstn in an enum declaration (blocktype
-           is bt_type), we need to do the conversion here before the
-           constant folding }
+         { Kylix allows enum+ordconstn in an enum type declaration, we need to do
+           the conversion here before the constant folding }
          if (m_delphi in current_settings.modeswitches) and
-            (blocktype=bt_type) then
+            (blocktype in [bt_type,bt_const_type,bt_var_type]) then
           begin
             if (left.resultdef.typ=enumdef) and
                (right.resultdef.typ=orddef) then
@@ -1124,7 +1123,7 @@ implementation
                     (nodetype=subn) then
                    begin
                      if nodetype<>subn then
-                       CGMessage(type_w_mixed_signed_unsigned);
+                       CGMessage(type_h_mixed_signed_unsigned);
                      { mark as internal in case added for a subn, so }
                      { ttypeconvnode.simplify can remove the 64 bit  }
                      { typecast again if semantically correct. Even  }

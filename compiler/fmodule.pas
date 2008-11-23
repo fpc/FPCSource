@@ -127,6 +127,7 @@ interface
         derefmapsize  : longint;  { number of units in the map }
         derefdataintflen : longint;
         derefdata     : tdynamicarray;
+        checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
         wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
@@ -219,7 +220,7 @@ implementation
       SysUtils,globals,
       verbose,systems,
       scanner,ppu,dbgbase,
-      procinfo;
+      procinfo,symdef;
 
 {$ifdef MEMDEBUG}
     var
@@ -491,6 +492,7 @@ implementation
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
         wpoinfo:=nil;
+        checkforwarddefs:=TFPObjectList.Create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
         globalmacrosymtable:=nil;
@@ -552,7 +554,10 @@ implementation
         if assigned(procinfo) then
           begin
             if current_procinfo=tprocinfo(procinfo) then
-             current_procinfo:=nil;
+              begin
+                current_procinfo:=nil;
+                current_objectdef:=nil;
+              end;
             { release procinfo tree }
             while assigned(procinfo) do
              begin
@@ -598,6 +603,7 @@ implementation
         deflist.free;
         symlist.free;
         wpoinfo.free;
+        checkforwarddefs.free;
         globalsymtable.free;
         localsymtable.free;
         globalmacrosymtable.free;
@@ -627,7 +633,10 @@ implementation
         if assigned(procinfo) then
           begin
             if current_procinfo=tprocinfo(procinfo) then
-             current_procinfo:=nil;
+              begin
+                current_procinfo:=nil;
+                current_objectdef:=nil;
+              end;
             { release procinfo tree }
             while assigned(procinfo) do
              begin
@@ -658,6 +667,8 @@ implementation
         symlist:=TFPObjectList.Create(false);
         wpoinfo.free;
         wpoinfo:=nil;
+        checkforwarddefs.free;
+        checkforwarddefs:=TFPObjectList.Create(false);
         derefdata.free;
         derefdata:=TDynamicArray.Create(1024);
         if assigned(unitmap) then

@@ -47,6 +47,7 @@ tloadvmtaddrnode = class(tunarynode)
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
+          function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
        end;
        tloadparentfpnodeclass = class of tloadparentfpnode;
@@ -62,6 +63,7 @@ tloadvmtaddrnode = class(tunarynode)
           procedure mark_write;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          function docompare(p: tnode): boolean; override;
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
@@ -220,6 +222,14 @@ implementation
       end;
 
 
+    function tloadparentfpnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          (tloadparentfpnode(p).parentpd=parentpd);
+      end;
+
+
     function tloadparentfpnode.dogetcopy : tnode;
       var
          p : tloadparentfpnode;
@@ -328,11 +338,17 @@ implementation
       end;
 
 
-    function taddrnode.dogetcopy : tnode;
+    function taddrnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          (taddrnode(p).getprocvardef=getprocvardef);
+      end;
 
+
+    function taddrnode.dogetcopy : tnode;
       var
          p : taddrnode;
-
       begin
          p:=taddrnode(inherited dogetcopy);
          p.getprocvardef:=getprocvardef;

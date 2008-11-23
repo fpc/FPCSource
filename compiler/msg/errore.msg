@@ -39,6 +39,7 @@
 #   c_   conditional
 #   d_   debug message
 #   x_   executable informations
+#   o_   normal (e.g., "press enter to continue")
 #
 
 #
@@ -365,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03247 is the last used one
+# 03250 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1164,7 +1165,17 @@ parser_e_cant_export_var_different_name=03247_E_Variables cannot be exported wit
 % is exported inside the \var{exports} statement of a library.
 % In that case, you have to specify the export name at the point where the
 % variable is declared, using the \var{export} and \var{alias} directives.
-
+parser_e_weak_external_not_supported=03248_E_Weak external symbols are not supported for the current target
+% A "weak external" symbol is a symbol which may or may not exist at (either static
+% or dynamic) link time. This concept may not be available (or implemented yet)
+% on the current cpu/OS target.
+parser_e_forward_mismatch=03249_E_Forward type definition does not match
+% Classes and interfaces being defined forward must have the same type
+% when being implemented. A forward interface can not be changed into a class.
+parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibility ($2) than parent class $3 ($4)
+% The virtual method overrides an method that is declared with a higher visibility. This might give
+% unexpected results. In case the new visibility is private than it might be that a call to inherited in a
+% new child class will call the higher visible method in a parent class and ignores the private method.
 % \end{description}
 #
 # Type Checking
@@ -1318,7 +1329,7 @@ type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
+type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,
@@ -1628,7 +1639,6 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
-% \end{itemize}
 % \end{description}
 #
 # Codegenerator
@@ -2419,13 +2429,13 @@ option_target_is_already_set=11011_W_Target is already set to: $1
 option_no_shared_lib_under_dos=11012_W_Shared libs not supported on DOS platform, reverting to static
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos.
-option_too_many_ifdef=11013_F_too many IF(N)DEFs
+option_too_many_ifdef=11013_F_In options file $1 at line $2 too many \var{\#IF(N)DEFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_too many ENDIFs
+option_too_many_endif=11014_F_In options file $1 at line $2 unexpected \var{\#ENDIFs} encountered
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_less_endif=11015_F_open conditional at the end of the file
+option_too_less_endif=11015_F_Open conditional at the end of the options file
 % The \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_no_debug_support=11016_W_Debug information generation is not supported by this executable
@@ -2459,7 +2469,7 @@ option_using_env=11027_T_Reading options from environment $1
 % Options are also read from this environment string.
 option_handling_option=11028_D_Handling option "$1"
 % Debug info that an option is found and will be handled.
-option_help_press_enter=11029__*** press enter ***
+option_help_press_enter=11029_O_*** press enter ***
 % Message shown when help is shown page per page. When pressing the ENTER
 % Key, the next page of help is shown. If you press q and then ENTER, the
 % compiler exits.
@@ -2491,6 +2501,8 @@ option_confict_asm_debug=11041_W_Assembler output selected "$1" cannot generate 
 option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc.cfg instead
 % Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
+option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
+% An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 %\end{description}
 # EndOfTeX
 
@@ -2836,7 +2848,8 @@ S*2Tlinux_Linux
 **2*_a : Show everything             x : Executable info (Win32 only)
 **2*_b : Write file names messages with full path
 **2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info
+**2*_    lots of debugging info      q : Show message numbers
+**2*_m<x>,<y> : Don't show messages numbered <x> and <y>
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
 P*1W<x>_Target-specific options (targets)

@@ -41,6 +41,10 @@ const
   EsockEPROTONOSUPPORT = WSAEPROTONOSUPPORT;
   EsockEWOULDBLOCK     = WSAEWOULDBLOCK;
 
+  SHUT_RD          = SD_RECEIVE; // aliases so we are cross-platform
+  SHUT_WR          = SD_SEND;
+  SHUT_RDWR        = SD_BOTH;
+
 {$i socketsh.inc}
 {$i fpwinsockh.inc}
 

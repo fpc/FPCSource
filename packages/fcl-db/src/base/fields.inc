@@ -1288,6 +1288,11 @@ begin
     end;
 end;
 
+function TNumericField.GetAsBoolean: Boolean;
+begin
+  Result:=GetAsInteger<>0;
+end;
+
 { ---------------------------------------------------------------------
     TLongintField
   ---------------------------------------------------------------------}

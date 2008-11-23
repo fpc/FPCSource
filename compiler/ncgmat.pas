@@ -149,7 +149,7 @@ implementation
         { get a temporary memory reference to store the floating
           point value
         }
-        tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tt_normal,href);
+        tg.gettemp(current_asmdata.CurrAsmList,tcgsize2size[_size],tcgsize2size[_size],tt_normal,href);
         { store the floating point value in the temporary memory area }
         cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,_size,_size,r,href);
         { only single and double ieee are supported, for little endian
@@ -193,7 +193,7 @@ implementation
               location.register64.reglo,tr);
             current_asmdata.getjumplabel(hl);
             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,tr,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -244,7 +244,7 @@ implementation
           begin
             current_asmdata.getjumplabel(hl);
             cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_SINT,OC_NE,low(aint),location.register,hl);
-            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW');
+            cg.a_call_name(current_asmdata.CurrAsmList,'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList,hl);
           end;
       end;
@@ -371,7 +371,7 @@ implementation
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paraloc1);
                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR');
+                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
                   paraloc1.done;
                   cg.a_label(current_asmdata.CurrAsmList,hl);
                   if nodetype = modn then

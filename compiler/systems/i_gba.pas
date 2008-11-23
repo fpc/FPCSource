@@ -21,6 +21,8 @@
 { This unit implements support information structures for gba. }
 unit i_gba;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

@@ -556,7 +556,7 @@ implementation
                     structs with up to 16 bytes are returned in registers }
                   if cgsize in [OS_128,OS_S128] then
                     begin
-                      tg.GetTemp(current_asmdata.CurrAsmList,16,tt_normal,ref);
+                      tg.GetTemp(current_asmdata.CurrAsmList,16,8,tt_normal,ref);
                       location_reset(location,LOC_REFERENCE,OS_NO);
                       location.reference:=ref;
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].register,ref);
@@ -1023,9 +1023,9 @@ implementation
                         extra_interrupt_code;
                       extra_call_code;
                       if (name_to_call='') then
-                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname)
+                        cg.a_call_name(current_asmdata.CurrAsmList,tprocdef(procdefinition).mangledname,po_weakexternal in procdefinition.procoptions)
                       else
-                        cg.a_call_name(current_asmdata.CurrAsmList,name_to_call);
+                        cg.a_call_name(current_asmdata.CurrAsmList,name_to_call,po_weakexternal in procdefinition.procoptions);
                       extra_post_call_code;
                     end;
                end;
@@ -1112,7 +1112,8 @@ implementation
            end;
 
 {$if defined(x86) or defined(arm)}
-         if procdefinition.proccalloption=pocall_safecall then
+         if (procdefinition.proccalloption=pocall_safecall) and
+            (target_info.system in system_all_windows) then
            begin
 {$ifdef x86_64}
              cgpara.init;
@@ -1121,7 +1122,7 @@ implementation
              cgpara.done;
 {$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK');
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_SAFECALLCHECK',false);
              cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
 {$endif}
@@ -1159,7 +1160,7 @@ implementation
             not(po_virtualmethod in procdefinition.procoptions) then
            begin
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
-              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK');
+              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
       end;

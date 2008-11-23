@@ -1,4 +1,4 @@
-{%OPT=-Sew}
+{%OPT=-Sew -vw}
 {$mode objfpc}
 
 function f: longint;

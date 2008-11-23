@@ -16,11 +16,15 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='sndfile';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-//    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('sndfile.pp');
+
+    P.Sources.AddSrc('README');
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('sfplay.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

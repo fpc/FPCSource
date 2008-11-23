@@ -115,6 +115,18 @@ type
       procedure   DocHorizontalRuler; virtual;
     end;
 
+Type
+    PTopicLinkCollection = ^TTopicLinkCollection;
+    TTopicLinkCollection = object(TStringCollection)
+      procedure   Insert(Item: Pointer); virtual;
+      function    At(Index: sw_Integer): PString;
+      function    AddItem(Item: string): integer;
+    end;
+
+function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
+procedure DecodeHTMLCtx(Ctx: longint; var FileID: word; var LinkNo: word);
+
+
 implementation
 
 uses
@@ -859,6 +871,47 @@ procedure THTMLParser.DocHorizontalRuler;
 begin
 end;
 
+function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
+var Ctx: longint;
+begin
+  Ctx:=(longint(FileID) shl 16)+LinkNo;
+  EncodeHTMLCtx:=Ctx;
+end;
+
+procedure DecodeHTMLCtx(Ctx: longint; var FileID: word; var LinkNo: word);
+begin
+  if (Ctx shr 16)=0 then
+    begin
+      FileID:=$ffff; LinkNo:=0;
+    end
+  else
+    begin
+      FileID:=Ctx shr 16; LinkNo:=Ctx and $ffff;
+    end;
+end;
+
+
+procedure TTopicLinkCollection.Insert(Item: Pointer);
+begin
+  AtInsert(Count,Item);
+end;
+
+function TTopicLinkCollection.At(Index: sw_Integer): PString;
+begin
+  At:=inherited At(Index);
+end;
+
+function TTopicLinkCollection.AddItem(Item: string): integer;
+var Idx: sw_integer;
+begin
+  if Item='' then Idx:=-1 else
+  if Search(@Item,Idx)=false then
+    begin
+      AtInsert(Count,NewStr(Item));
+      Idx:=Count-1;
+    end;
+  AddItem:=Idx;
+end;
 
 
 END.

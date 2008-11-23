@@ -171,10 +171,10 @@ type
         target_arm_symbian,        { 60 }
         target_x86_64_darwin,      { 61 }
         target_avr_embedded,       { 62 }
-        target_i386_haiku          { 63 }             
+        target_i386_haiku          { 63 }
   );
 const
-  Targets : array[ttarget] of string[17]=(
+  Targets : array[ttarget] of string[18]=(
   { 0 }   'none',
   { 1 }   'GO32V1 (obsolete)',
   { 2 }   'GO32V2',
@@ -238,7 +238,7 @@ const
   { 60 }  'Symbian-arm',
   { 61 }  'MacOSX-x64',
   { 62 }  'Embedded-avr',
-  { 63 }  'Haiku-i386'        
+  { 63 }  'Haiku-i386'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -278,6 +278,20 @@ begin
     Varregable2Str:=varregablestr[w]
   else
     Varregable2Str:='<!! Unknown regable value '+tostr(w)+'>';
+end;
+
+
+Function Visibility2Str(w:longint):string;
+const
+  visibilitystr : array[0..6] of string[16]=(
+    'hidden','strict private','private','strict protected','protected',
+    'public','published'
+  );
+begin
+  if w<=ord(high(visibilitystr)) then
+    result:=visibilitystr[w]
+  else
+    result:='<!! Unknown visibility value '+tostr(w)+'>';
 end;
 
 
@@ -703,18 +717,18 @@ end;
 
 procedure readsymoptions;
 type
+  { symbol options }
   tsymoption=(sp_none,
-    sp_public,
-    sp_private,
-    sp_published,
-    sp_protected,
     sp_static,
     sp_hint_deprecated,
     sp_hint_platform,
     sp_hint_library,
     sp_hint_unimplemented,
+    sp_hint_experimental,
     sp_has_overloaded,
-    sp_internal  { internal symbol, not reported as unused }
+    sp_internal,  { internal symbol, not reported as unused }
+    sp_implicitrename,
+    sp_generic_para
   );
   tsymoptions=set of tsymoption;
   tsymopt=record
@@ -722,19 +736,18 @@ type
     str  : string[30];
   end;
 const
-  symopts=11;
+  symopts=10;
   symopt : array[1..symopts] of tsymopt=(
-     (mask:sp_public;         str:'Public'),
-     (mask:sp_private;        str:'Private'),
-     (mask:sp_published;      str:'Published'),
-     (mask:sp_protected;      str:'Protected'),
      (mask:sp_static;         str:'Static'),
      (mask:sp_hint_deprecated;str:'Hint Deprecated'),
-     (mask:sp_hint_deprecated;str:'Hint Platform'),
-     (mask:sp_hint_deprecated;str:'Hint Library'),
-     (mask:sp_hint_deprecated;str:'Hint Unimplemented'),
+     (mask:sp_hint_platform;  str:'Hint Platform'),
+     (mask:sp_hint_library;   str:'Hint Library'),
+     (mask:sp_hint_unimplemented;str:'Hint Unimplemented'),
+     (mask:sp_hint_experimental;str:'Hint Experimental'),
      (mask:sp_has_overloaded; str:'Has overloaded'),
-     (mask:sp_internal;       str:'Internal')
+     (mask:sp_internal;       str:'Internal'),
+     (mask:sp_implicitrename; str:'Implicit Rename'),
+     (mask:sp_generic_para;   str:'Generic Parameter')
   );
 var
   symoptions : tsymoptions;
@@ -763,9 +776,10 @@ procedure readcommonsym(const s:string);
 begin
   writeln(space,'** Symbol Id ',ppufile.getlongint,' **');
   writeln(space,s,ppufile.getstring);
-  write(space,'     File Pos : ');
+  write  (space,'     File Pos : ');
   readposinfo;
-  write(space,'   SymOptions : ');
+  writeln(space,'   Visibility : ',Visibility2Str(ppufile.getbyte));
+  write  (space,'   SymOptions : ');
   readsymoptions;
 end;
 
@@ -1793,6 +1807,7 @@ begin
              readderef;
              write  (space,'         File Pos : ');
              readposinfo;
+             writeln(space,'       Visibility : ',Visibility2Str(ppufile.getbyte));
              write  (space,'       SymOptions : ');
              readsymoptions;
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then

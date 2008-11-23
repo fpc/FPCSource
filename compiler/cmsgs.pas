@@ -52,6 +52,7 @@ type
     procedure ClearIdx;
     procedure CreateIdx;
     function  GetPChar(nr:longint):pchar;
+    function  ClearVerbosity(nr:longint):boolean;
     function  Get(nr:longint;const args:array of string):ansistring;
   end;
 
@@ -374,6 +375,33 @@ begin
   GetPChar:=msgidx[nr div 1000]^[nr mod 1000];
 end;
 
+function TMessage.ClearVerbosity(nr:longint):boolean;
+var
+  hp: pchar;
+  i, txtbegin: longint;
+begin
+   result:=false;
+  if ((nr div 1000) < low(msgidx)) or
+     ((nr div 1000) > msgparts) then
+    exit;
+  hp := GetPChar(nr);
+  if (hp=nil) then
+    exit;
+  txtbegin:=-1;
+  for i:=0 to 4 do
+    begin
+      if hp[i]=#0 then
+        exit;
+      if hp[i]='_' then
+        begin
+          txtbegin:=i;
+          break;
+        end;
+    end;
+  for i:=0 to txtbegin-1 do
+    hp[i]:='_';
+  result:=true;
+end;
 
 function TMessage.Get(nr:longint;const args:array of string):ansistring;
 var

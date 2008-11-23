@@ -103,7 +103,7 @@ type
  }
   apr_fileperms_t = apr_int32_t;
 
-{$if defined(WIN32) or defined(NETWARE)}
+{$if defined(WINDOWS) or defined(NETWARE)}
 {
  * Structure for determining the inode of the file.
  }

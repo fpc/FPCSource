@@ -16,11 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='openssl';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('openssl.pas');
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('test1.pas');
 
 {$ifndef ALLPACKAGES}
     Run;

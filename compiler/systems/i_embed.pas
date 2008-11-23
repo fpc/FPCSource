@@ -20,6 +20,8 @@
 }
 unit i_embed;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

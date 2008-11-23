@@ -24,6 +24,14 @@ uses
   Classes, SysUtils, Bufdataset, dom, db;
 
 type
+  TChangeLogEntry = record
+       UpdateKind : TUpdateKind;
+       OrigEntry  : integer;
+       NewEntry   : integer;
+  end;
+  TChangeLogEntryArr = array of TChangeLogEntry;
+
+type
   { TXMLDatapacketReader }
 
   TXMLDatapacketReader = class(TDataPacketReader)
@@ -34,21 +42,21 @@ type
     FChangeLogNode,
     FParamsNode,
     FRowDataNode,
-    FRecordNode       : TDOMNode;
+    FRecordNode    : TDOMNode;
+    FChangeLog     : TChangeLogEntryArr;
+    FEntryNr       : integer;
+    FLastChange    : integer;
   public
     destructor destroy; override;
-    procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
-    procedure GetRecordUpdState(var AIsUpdate, AAddRecordBuffer,
-                     AIsFirstEntry: boolean); override;
-    procedure EndStoreRecord(const AChangeLog : TChangeLogEntryArr); override;
+    procedure StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure FinalizeStoreRecords; override;
+    procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
+    procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
-    procedure GotoNextRecord; override;
-    procedure GotoElement(const AnElement : pointer); override;
-    procedure InitLoadRecords(var AChangeLog : TChangeLogEntryArr); override;
-    function GetCurrentElement: pointer; override;
+    function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
     procedure RestoreRecord(ADataset : TBufDataset); override;
-    procedure StoreRecord(ADataset : TBufDataset; RowState : TRowState); override;
+    procedure GotoNextRecord; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
 
@@ -101,6 +109,9 @@ const
       ''
     );
 
+resourcestring
+  sUnknownXMLDatasetFormat = 'Unknown XML Dataset format';
+
 { TXMLDatapacketReader }
 
 destructor TXMLDatapacketReader.destroy;
@@ -131,13 +142,13 @@ var i           : integer;
 begin
   ReadXMLFile(XMLDocument,Stream);
   DataPacketNode := XMLDocument.FindNode('DATAPACKET') as TDOMElement;
-  if not assigned(DataPacketNode) then DatabaseError('Onbekend formaat');
+  if not assigned(DataPacketNode) then DatabaseError(sUnknownXMLDatasetFormat);
 
   MetaDataNode := DataPacketNode.FindNode('METADATA');
-  if not assigned(MetaDataNode) then DatabaseError('Onbekend formaat');
+  if not assigned(MetaDataNode) then DatabaseError(sUnknownXMLDatasetFormat);
 
   FieldsNode := MetaDataNode.FindNode('FIELDS');
-  if not assigned(FieldsNode) then DatabaseError('Onbekend formaat');
+  if not assigned(FieldsNode) then DatabaseError(sUnknownXMLDatasetFormat);
 
   with FieldsNode.ChildNodes do for i := 0 to Count - 1 do
     begin
@@ -166,7 +177,6 @@ begin
 
   FRowDataNode := DataPacketNode.FindNode('ROWDATA');
   FRecordNode := nil;
-
 end;
 
 procedure TXMLDatapacketReader.StoreFieldDefs(AFieldDefs: TFieldDefs);
@@ -214,43 +224,24 @@ begin
   MetaDataNode.AppendChild(FParamsNode);
   DataPacketNode.AppendChild(MetaDataNode);
   FRowDataNode := XMLDocument.CreateElement('ROWDATA');
+  setlength(FChangeLog,0);
+  FEntryNr:=0;
+  FLastChange:=-1;
 end;
 
-procedure TXMLDatapacketReader.GetRecordUpdState(var AIsUpdate,
-  AAddRecordBuffer, AIsFirstEntry: boolean);
-var ARowStateNode  : TDOmNode;
-    ARowState      : integer;
-
-begin
-  ARowStateNode := FRecordNode.Attributes.GetNamedItem('RowState');
-  if ARowStateNode = nil then // This item is not edited
-    begin
-    AIsUpdate:=False;
-    AAddRecordBuffer:=True;
-    end
-  else
-    begin
-    AIsUpdate:=True;
-    ARowState:=StrToIntDef(ARowStateNode.NodeValue,0);
-    AAddRecordBuffer:=((ARowState and 5) = 4)      // This item contains an inserted record which is not edited afterwards
-                      or ((ARowState and 9) = 8); // This item contains the last edited record
-    AIsFirstEntry:=((ARowState and 2) = 2)         // This item is deleted
-                 or ((ARowState and 8) = 8)       // This item is a change
-    end;
-end;
-
-procedure TXMLDatapacketReader.EndStoreRecord(const AChangeLog : TChangeLogEntryArr);
+procedure TXMLDatapacketReader.FinalizeStoreRecords;
 var ChangeLogStr : String;
     i            : integer;
 begin
   ChangeLogStr:='';
-  for i := 0 to length(AChangeLog) -1 do with AChangeLog[i] do
+  for i := 0 to length(FChangeLog)-1 do with FChangeLog[i] do
     begin
     ChangeLogStr:=ChangeLogStr+' '+inttostr(NewEntry)+' '+inttostr(OrigEntry)+' ';
     if UpdateKind=ukModify then ChangeLogStr := ChangeLogStr+'8';
     if UpdateKind=ukInsert then ChangeLogStr := ChangeLogStr+'4';
     if UpdateKind=ukDelete then ChangeLogStr := ChangeLogStr+'2';
     end;
+  setlength(FChangeLog,0);
 
   if ChangeLogStr<>'' then
     (FParamsNode as TDomElement).SetAttribute('CHANGE_LOG',Trim(ChangeLogStr));
@@ -266,8 +257,35 @@ begin
   Result := assigned(FRecordNode);
 end;
 
-procedure TXMLDatapacketReader.InitLoadRecords(
-  var AChangeLog: TChangeLogEntryArr);
+function TXMLDatapacketReader.GetRecordRowState(out AUpdOrder: Integer
+  ): TRowState;
+var ARowStateNode  : TDOmNode;
+    ARowState      : integer;
+    i              : integer;
+begin
+  ARowStateNode := FRecordNode.Attributes.GetNamedItem('RowState');
+  if ARowStateNode = nil then // This item is not edited
+    Result := []
+  else
+    begin
+    Result := ByteToRowState(StrToIntDef(ARowStateNode.NodeValue,0));
+    if Result = [rsvOriginal] then
+      begin
+      for i := 0 to length(FChangeLog)-1 do
+        if FChangeLog[i].NewEntry=FEntryNr then break;
+      assert(FChangeLog[i].NewEntry=FEntryNr);
+      end
+    else
+      begin
+      for i := 0 to length(FChangeLog)-1 do
+        if FChangeLog[i].OrigEntry=FEntryNr then break;
+      assert(FChangeLog[i].OrigEntry=FEntryNr);
+      end;
+    AUpdOrder:=i;
+    end;
+end;
+
+procedure TXMLDatapacketReader.InitLoadRecords;
 
 var ChangeLogStr : String;
     i,cp         : integer;
@@ -275,6 +293,8 @@ var ChangeLogStr : String;
 
 begin
   FRecordNode := FRowDataNode.FirstChild;
+  FEntryNr := 1;
+  setlength(FChangeLog,0);
   if assigned(FChangeLogNode) then
     ChangeLogStr:=FChangeLogNode.NodeValue
   else
@@ -289,28 +309,23 @@ begin
       begin
       case (cp mod 3) of
         0 : begin
-            SetLength(AChangeLog,length(AChangeLog)+1);
-            AChangeLog[cp div 3].OrigEntry:=StrToIntDef(ps,0);
+            SetLength(FChangeLog,length(FChangeLog)+1);
+            FChangeLog[cp div 3].OrigEntry:=StrToIntDef(ps,0);
             end;
-        1 : AChangeLog[cp div 3].NewEntry:=StrToIntDef(ps,0);
+        1 : FChangeLog[cp div 3].NewEntry:=StrToIntDef(ps,0);
         2 : begin
             if ps = '2' then
-              AChangeLog[cp div 3].UpdateKind:=ukDelete
+              FChangeLog[cp div 3].UpdateKind:=ukDelete
             else if ps = '4' then
-              AChangeLog[cp div 3].UpdateKind:=ukInsert
+              FChangeLog[cp div 3].UpdateKind:=ukInsert
             else if ps = '8' then
-              AChangeLog[cp div 3].UpdateKind:=ukModify;
+              FChangeLog[cp div 3].UpdateKind:=ukModify;
             end;
       end; {case}
       ps := '';
       inc(cp);
       end;
     end;
-end;
-
-function TXMLDatapacketReader.GetCurrentElement: pointer;
-begin
-  Result:=FRecordNode;
 end;
 
 procedure TXMLDatapacketReader.RestoreRecord(ADataset : TBufDataset);
@@ -322,29 +337,37 @@ begin
     AFieldNode := FRecordNode.Attributes.GetNamedItem(Fields[FieldNr].FieldName);
     if assigned(AFieldNode) then
       begin
-      Fields[FieldNr].AsString := AFieldNode.NodeValue;  // set it to the sparebuf
+      Fields[FieldNr].AsString := AFieldNode.NodeValue;  // set it to the filterbuffer
       end
     end;
 end;
 
-procedure TXMLDatapacketReader.StoreRecord(ADataset: TBufDataset;
-  RowState: TRowState);
+procedure TXMLDatapacketReader.StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
-    RowStateInt : Integer;
     ARecordNode : TDOMElement;
 begin
+  inc(FEntryNr);
   ARecordNode := XMLDocument.CreateElement('ROW');
   for FieldNr := 0 to ADataset.Fields.Count-1 do
     begin
     ARecordNode.SetAttribute(ADataset.fields[FieldNr].FieldName,ADataset.fields[FieldNr].AsString);
     end;
-  RowStateInt:=0;
-  if rsvOriginal in RowState then RowStateInt := RowStateInt+1;
-  if rsvInserted in RowState then RowStateInt := RowStateInt+4;
-  if rsvUpdated in RowState then RowStateInt := RowStateInt+8;
-  RowStateInt:=integer(RowState);
-  if RowStateInt<>0 then
-    ARecordNode.SetAttribute('RowState',inttostr(RowStateInt));
+  if ARowState<>[] then
+    begin
+    ARecordNode.SetAttribute('RowState',inttostr(RowStateToByte(ARowState)));
+    if AUpdOrder>=length(FChangeLog) then
+      setlength(FChangeLog,AUpdOrder+1);
+    if (rsvOriginal in ARowState) or (rsvDeleted in ARowState) then
+      FChangeLog[AUpdOrder].OrigEntry:=FEntryNr;
+    if (rsvDeleted in ARowState) or (rsvUpdated in ARowState) or (rsvInserted in ARowState) then
+      FChangeLog[AUpdOrder].NewEntry:=FEntryNr;
+    if ARowState=[rsvUpdated] then
+      FChangeLog[AUpdOrder].UpdateKind := ukModify;
+    if ARowState=[rsvInserted] then
+      FChangeLog[AUpdOrder].UpdateKind := ukInsert;
+    if ARowState=[rsvDeleted] then
+      FChangeLog[AUpdOrder].UpdateKind := ukDelete;
+    end;
   FRowDataNode.AppendChild(ARecordNode);
 end;
 
@@ -365,13 +388,9 @@ end;
 procedure TXMLDatapacketReader.GotoNextRecord;
 begin
   FRecordNode := FRecordNode.NextSibling;
+  inc(FEntryNr);
   while assigned(FRecordNode) and (FRecordNode.CompareName('ROW')<>0) do
     FRecordNode := FRecordNode.NextSibling;
-end;
-
-procedure TXMLDatapacketReader.GotoElement(const AnElement: pointer);
-begin
-  FRecordNode:=TDomNode(AnElement);
 end;
 
 initialization

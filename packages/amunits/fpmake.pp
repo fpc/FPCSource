@@ -14,8 +14,17 @@ begin
 
     P:=AddPackage('amunits');
 {$ifdef ALLPACKAGES}
+    P.Directory:='amunits';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.2-0';
+
+    P.Author := 'Nils Sjoholm';
+    P.License := 'LGPL with modification';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'A set of units for Amiga OS. 68k only?';
+    P.NeedLibC:= false;
+
     P.CPUs:=[m68k];
     P.OSes:=[Amiga];
 
@@ -165,8 +174,9 @@ begin
     T:=P.Targets.AddExampleProgram('envprint.pas');
     T:=P.Targets.AddExampleProgram('penshare.pas');
 
-    P.Sources.AddSrc('README');
-    P.Sources.AddSrc('units.txt');
+    P.Sources.AddDoc('README');
+    P.Sources.AddDoc('units.txt');
+
 {$ifndef ALLPACKAGES}
     Run;
     end;

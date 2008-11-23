@@ -338,6 +338,16 @@ begin
   GetDosTicks := Nwserv.GetCurrentTicks;
 end;
 {$endif}
+{$ifdef amiga}
+begin
+  GetDosTicks := -1;
+end;
+{$endif}
+{$ifdef morphos}
+begin
+  GetDosTicks := -1;
+end;
+{$endif}
 
 
 procedure DisposeRecord(var R: TRecord);

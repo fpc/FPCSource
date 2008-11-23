@@ -10,17 +10,12 @@ uses
   pkgoptions,
   fprepos;
 
-const
-  CmdLinePackageName='<cmdline>';
-  CurrentDirPackageName='<currentdir>';
-
 type
   { TPackageHandler }
 
   TPackageHandler = Class(TComponent)
   private
     FPackageName : string;
-    FIsLocalPackage : boolean;
   Protected
     Procedure Log(Level: TLogLevel;Msg : String);
     Procedure Log(Level: TLogLevel;Fmt : String; const Args : array of const);
@@ -34,7 +29,6 @@ type
     procedure ExecuteAction(const APackageName,AAction:string);
     procedure Execute; virtual; abstract;
     Property PackageName:string Read FPackageName;
-    Property IsLocalPackage:boolean Read FIsLocalPackage Write FIsLocalPackage;
   end;
   TPackageHandlerClass = class of TPackageHandler;
 
@@ -100,9 +94,6 @@ begin
   pkghandlerclass:=GetPkgHandler(AAction);
   With pkghandlerclass.Create(nil,APackageName) do
     try
-      if (APackageName=CmdLinePackageName) or
-         (APackageName=CurrentDirPackageName) then
-        IsLocalPackage:=true;
       Log(vlDebug,SLogRunAction+' start',[AAction]);
       Execute;
       Log(vlDebug,SLogRunAction+' end',[AAction]);
@@ -129,8 +120,8 @@ begin
     Error(SErrNoPackageSpecified)
   else if APackage.Name=CmdLinePackageName then
     Error(SErrPackageIsLocal);
-  if APackage.ExternalURL<>'' then
-    Result:=APackage.ExternalURL
+  if APackage.DownloadURL<>'' then
+    Result:=APackage.DownloadURL
   else
     Result:=GetRemoteRepositoryURL(APackage.FileName);
 end;

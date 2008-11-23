@@ -3238,7 +3238,7 @@ function VarTypeIsValidElementType(const aVarType: TVarType): Boolean;
       Result:=true
     else
       begin
-        Result:=(aVarType and not(varByRef)) in [varEmpty,varNull,varSmallInt,varInteger,
+        Result:=(aVarType and not(varByRef) and not(varArray)) in [varEmpty,varNull,varSmallInt,varInteger,
 {$ifndef FPUNONE}
           varSingle,varDouble,varDate,
 {$endif}

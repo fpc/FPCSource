@@ -21,6 +21,8 @@
 { This unit implements support information structures for nds. }
 unit i_nds;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

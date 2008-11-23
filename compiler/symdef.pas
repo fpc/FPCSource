@@ -221,6 +221,14 @@ interface
          function  IsImplMergePossible(MergingIntf:TImplementedInterface;out weight: longint): boolean;
        end;
 
+       { tvmtentry }
+       tvmtentry = record
+         procdef      : tprocdef;
+         procdefderef : tderef;
+         visibility   : tvisibility;
+       end;
+       pvmtentry = ^tvmtentry;
+
        { tobjectdef }
 
        tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
@@ -241,7 +249,7 @@ interface
           objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
-          vmtentries     : TFPObjectList;
+          vmtentries     : TFPList;
           vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
           objecttype     : tobjecttyp;
@@ -263,6 +271,8 @@ interface
           procedure deref;override;
           procedure buildderefimpl;override;
           procedure derefimpl;override;
+          procedure resetvmtentries;
+          procedure copyvmtentries(objdef:tobjectdef);
           function  getparentdef:tdef;override;
           function  size : aint;override;
           function  alignment:shortint;override;
@@ -444,6 +454,7 @@ interface
             EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
 {$endif}
+          visibility : tvisibility;
           symoptions : tsymoptions;
           { symbol owning this definition }
           procsym : tsym;
@@ -503,7 +514,6 @@ interface
           function  cplusplusmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
-          function  is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
        end;
 
        { single linked list of overloaded procs }
@@ -578,10 +588,8 @@ interface
           function  is_publishable : boolean;override;
        end;
 
-       Tdefmatch=(dm_exact,dm_equal,dm_convertl1);
-
     var
-       aktobjectdef : tobjectdef;  { used for private functions check !! }
+       current_objectdef : tobjectdef;  { used for private functions check !! }
 
     { default types }
        generrordef,              { error in definition }
@@ -2808,19 +2816,17 @@ implementation
                  s:=s+'<';
                case hp.varspez of
                  vs_var :
-                   s:=s+'var';
+                   s:=s+'var ';
                  vs_const :
-                   s:=s+'const';
+                   s:=s+'const ';
                  vs_out :
-                   s:=s+'out';
+                   s:=s+'out ';
                end;
                if assigned(hp.vardef.typesym) then
                  begin
-                   if s<>'(' then
-                    s:=s+' ';
                    hs:=hp.vardef.typesym.realname;
                    if hs[1]<>'$' then
-                     s:=s+hp.vardef.typesym.realname
+                     s:=s+hs
                    else
                      s:=s+hp.vardef.GetTypeName;
                  end
@@ -2931,6 +2937,7 @@ implementation
          ppufile.getderef(_classderef);
          ppufile.getderef(procsymderef);
          ppufile.getposinfo(fileinfo);
+         visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
@@ -3067,6 +3074,7 @@ implementation
          ppufile.putderef(_classderef);
          ppufile.putderef(procsymderef);
          ppufile.putposinfo(fileinfo);
+         ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
@@ -3204,60 +3212,6 @@ implementation
       begin
         result:=assigned(owner) and
                 (owner.symtabletype<>ObjectSymtable);
-      end;
-
-
-    function tprocdef.is_visible_for_object(currobjdef,contextobjdef:tobjectdef):boolean;
-      var
-        contextst : TSymtable;
-      begin
-        result:=false;
-
-        { Support passing a context in which module we are to find protected members }
-        if assigned(contextobjdef) then
-          contextst:=contextobjdef.owner
-        else
-          contextst:=nil;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (sp_private in symoptions) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           not(owner.defowner.owner.iscurrentunit or (owner.defowner.owner=contextst)) then
-          exit;
-
-        if (sp_strictprivate in symoptions) then
-          begin
-            result:=currobjdef=tobjectdef(owner.defowner);
-            exit;
-          end;
-
-        if (sp_strictprotected in symoptions) then
-          begin
-             result:=assigned(currobjdef) and
-               currobjdef.is_related(tobjectdef(owner.defowner));
-             exit;
-          end;
-
-        { protected symbols are visible in the module that defines them and
-          also visible to related objects. The related object must be defined
-          in the current module }
-        if (sp_protected in symoptions) and
-           (
-            (
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             not((owner.defowner.owner.iscurrentunit) or (owner.defowner.owner=contextst))
-            ) and
-            not(
-                assigned(currobjdef) and
-                (currobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                (currobjdef.owner.iscurrentunit) and
-                currobjdef.is_related(tobjectdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        result:=true;
       end;
 
 
@@ -3705,7 +3659,7 @@ implementation
         childof:=nil;
         symtable:=tObjectSymtable.create(self,n,current_settings.packrecords);
         { create space for vmt !! }
-        vmtentries:=nil;
+        vmtentries:=TFPList.Create;
         vmt_offset:=0;
         set_parent(c);
         objname:=stringdup(upper(n));
@@ -3728,6 +3682,7 @@ implementation
          vmtentrycount  : longint;
          d : tderef;
          ImplIntf : TImplementedInterface;
+         vmtentry : pvmtentry;
       begin
          inherited ppuload(objectdef,ppufile);
          objecttype:=tobjecttyp(ppufile.getbyte);
@@ -3738,7 +3693,6 @@ implementation
          tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
          tObjectSymtable(symtable).recordalignment:=ppufile.getbyte;
          vmt_offset:=ppufile.getlongint;
-         vmtentries:=nil;
          ppufile.getderef(childofderef);
          ppufile.getsmallset(objectoptions);
 
@@ -3749,6 +3703,18 @@ implementation
               new(iidguid);
               ppufile.getguid(iidguid^);
               iidstr:=stringdup(ppufile.getstring);
+           end;
+
+         vmtentries:=TFPList.Create;
+         vmtentries.count:=ppufile.getlongint;
+         for i:=0 to vmtentries.count-1 do
+           begin
+             ppufile.getderef(d);
+             new(vmtentry);
+             vmtentry^.procdef:=nil;
+             vmtentry^.procdefderef:=d;
+             vmtentry^.visibility:=tvisibility(ppufile.getbyte);
+             vmtentries[i]:=vmtentry;
            end;
 
          { load implemented interfaces }
@@ -3820,6 +3786,7 @@ implementation
            end;
          if assigned(vmtentries) then
            begin
+             resetvmtentries;
              vmtentries.free;
              vmtentries:=nil;
            end;
@@ -3861,8 +3828,8 @@ implementation
           end;
         if assigned(vmtentries) then
           begin
-            tobjectdef(result).vmtentries:=TFPobjectList.Create(false);
-            tobjectdef(result).vmtentries.Assign(vmtentries);
+            tobjectdef(result).vmtentries:=TFPList.Create;
+            tobjectdef(result).copyvmtentries(self);
           end;
       end;
 
@@ -3870,6 +3837,7 @@ implementation
     procedure tobjectdef.ppuwrite(ppufile:tcompilerppufile);
       var
          i : longint;
+         vmtentry : pvmtentry;
          ImplIntf : TImplementedInterface;
       begin
          inherited ppuwrite(ppufile);
@@ -3886,6 +3854,15 @@ implementation
               ppufile.putguid(iidguid^);
               ppufile.putstring(iidstr^);
            end;
+
+         ppufile.putlongint(vmtentries.count);
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             ppufile.putderef(vmtentry^.procdefderef);
+             ppufile.putbyte(byte(vmtentry^.visibility));
+           end;
+
 
          if assigned(ImplementedInterfaces) then
            begin
@@ -3920,20 +3897,21 @@ implementation
 
     function tobjectdef.GetTypeName:string;
       begin
-        if (self <> aktobjectdef) then
-          GetTypeName:=typename
+        { in this case we will go in endless recursion, because then  }
+        { there is no tsym associated yet with the def. It can occur  }
+        { (tests/webtbf/tw4757.pp), so for now give a generic name    }
+        { instead of the actual type name                             }
+        if not assigned(typesym) then
+          result:='<Currently Parsed Class>'
         else
-          { in this case we will go in endless recursion, because then  }
-          { there is no tsym associated yet with the def. It can occur  }
-          { (tests/webtbf/tw4757.pp), so for now give a generic name    }
-          { instead of the actual type name                             }
-          GetTypeName:='<Currently Parsed Class>';
+          result:=typename;
       end;
 
 
     procedure tobjectdef.buildderef;
       var
          i : longint;
+         vmtentry : pvmtentry;
       begin
          inherited buildderef;
          childofderef.build(childof);
@@ -3941,6 +3919,12 @@ implementation
            cloneddefderef.build(symtable.defowner)
          else
            tstoredsymtable(symtable).buildderef;
+
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             vmtentry^.procdefderef.build(vmtentry^.procdef);
+           end;
 
          if assigned(ImplementedInterfaces) then
            begin
@@ -3960,6 +3944,7 @@ implementation
     procedure tobjectdef.deref;
       var
          i : longint;
+         vmtentry : pvmtentry;
       begin
          inherited deref;
          childof:=tobjectdef(childofderef.resolve);
@@ -3970,6 +3955,11 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+         for i:=0 to vmtentries.count-1 do
+           begin
+             vmtentry:=pvmtentry(vmtentries[i]);
+             vmtentry^.procdef:=tprocdef(vmtentry^.procdefderef.resolve);
+           end;
          if assigned(ImplementedInterfaces) then
            begin
              for i:=0 to ImplementedInterfaces.count-1 do
@@ -4002,6 +3992,32 @@ implementation
       end;
 
 
+    procedure tobjectdef.resetvmtentries;
+      var
+        i : longint;
+      begin
+        for i:=0 to vmtentries.Count-1 do
+          Dispose(pvmtentry(vmtentries[i]));
+        vmtentries.clear;
+      end;
+
+
+    procedure tobjectdef.copyvmtentries(objdef:tobjectdef);
+      var
+        i : longint;
+        vmtentry : pvmtentry;
+      begin
+        resetvmtentries;
+        vmtentries.count:=objdef.vmtentries.count;
+        for i:=0 to objdef.vmtentries.count-1 do
+          begin
+            new(vmtentry);
+            vmtentry^:=pvmtentry(objdef.vmtentries[i])^;
+            vmtentries[i]:=vmtentry;
+          end;
+       end;
+
+
     function tobjectdef.getparentdef:tdef;
       begin
 { TODO: Remove getparentdef hack}
@@ -4031,35 +4047,28 @@ implementation
 
     procedure tobjectdef.set_parent( c : tobjectdef);
       begin
-        { nothing to do if the parent was not forward !}
         if assigned(childof) then
           exit;
         childof:=c;
-        { some options are inherited !! }
-        if assigned(c) then
+        if not assigned(c) then
+          exit;
+        { inherit options and status }
+        objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
+        { add the data of the anchestor class/object }
+        if (objecttype in [odt_class,odt_object]) then
           begin
-             { only important for classes }
-             objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
-             if not (objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
-               begin
-                  { add the data of the anchestor class }
-                  tObjectSymtable(symtable).datasize:=
-                    tObjectSymtable(symtable).datasize+
-                    tObjectSymtable(c.symtable).datasize;
-                  { inherit recordalignment }
-                  tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
-                  if (oo_has_vmt in objectoptions) and
-                     (oo_has_vmt in c.objectoptions) then
-                    tObjectSymtable(symtable).datasize:=
-                      tObjectSymtable(symtable).datasize-sizeof(pint);
-                  { if parent has a vmt field then
-                    the offset is the same for the child PM }
-                  if (oo_has_vmt in c.objectoptions) or is_class(self) then
-                    begin
-                       vmt_offset:=c.vmt_offset;
-                       include(objectoptions,oo_has_vmt);
-                    end;
-               end;
+            tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
+            { inherit recordalignment }
+            tObjectSymtable(symtable).recordalignment:=tObjectSymtable(c.symtable).recordalignment;
+            if (oo_has_vmt in objectoptions) and
+               (oo_has_vmt in c.objectoptions) then
+              tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize-sizeof(pint);
+            { if parent has a vmt field then the offset is the same for the child PM }
+            if (oo_has_vmt in c.objectoptions) or is_class(self) then
+              begin
+                vmt_offset:=c.vmt_offset;
+                include(objectoptions,oo_has_vmt);
+              end;
           end;
       end;
 
@@ -4088,7 +4097,7 @@ implementation
              vs:=tfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
              hidesym(vs);
              tObjectSymtable(symtable).insert(vs);
-             tObjectSymtable(symtable).addfield(vs);
+             tObjectSymtable(symtable).addfield(vs,vis_hidden);
              include(objectoptions,oo_has_vmt);
           end;
      end;

@@ -78,7 +78,11 @@ const
 {$ifdef Unix}
   AllFiles = '*';
 {$else}
-  AllFiles = '*.*';
+  {$ifdef OS_AMIGA}
+    AllFiles = '*';
+  {$else}
+    AllFiles = '*.*';
+  {$endif}
 {$endif}
 
 type

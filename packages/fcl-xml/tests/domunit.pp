@@ -62,6 +62,7 @@ type
 
 procedure _append(var coll: _collection; const Value: DOMString);
 procedure _assign(out rslt: _collection; const value: array of DOMString);
+function IsSame(exp, act: TDOMNode): Boolean;
 
 implementation
 
@@ -84,6 +85,11 @@ begin
   SetLength(rslt, Length(value));
   for I := 0 to High(value) do
     rslt[I] := value[I];
+end;
+
+function IsSame(exp, act: TDOMNode): Boolean;
+begin
+  Result := exp = act;
 end;
 
 procedure TDOMTestBase.SetUp;

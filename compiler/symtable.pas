@@ -52,7 +52,6 @@ interface
           procedure varsymbolused(sym:TObject;arg:pointer);
           procedure TestPrivate(sym:TObject;arg:pointer);
           procedure objectprivatesymbolused(sym:TObject;arg:pointer);
-          procedure unchain_overloads(sym:TObject;arg:pointer);
           procedure loaddefs(ppufile:tcompilerppufile);
           procedure loadsyms(ppufile:tcompilerppufile);
           procedure writedefs(ppufile:tcompilerppufile);
@@ -72,10 +71,8 @@ interface
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure check_forwards;
-          procedure resolve_forward_types;
           procedure checklabels;
           function  needs_init_final : boolean;
-          procedure unchain_overloaded;
           procedure testfordefaultproperty(sym:TObject;arg:pointer);
        end;
 
@@ -89,8 +86,7 @@ interface
           procedure ppuload(ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure alignrecord(fieldoffset:aint;varalign:shortint);
-          procedure addfield(sym:tfieldvarsym);
-          procedure insertfield(sym:tfieldvarsym);
+          procedure addfield(sym:tfieldvarsym;vis:tvisibility);
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
@@ -194,6 +190,9 @@ interface
 
 {*** Search ***}
     procedure addsymref(sym:tsym);
+    function  is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+    function  is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
+    function  is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
@@ -211,7 +210,6 @@ interface
     function  defined_macro(const s : string):boolean;
 
 {*** Object Helpers ***}
-    procedure search_class_overloads(aprocsym : tprocsym);
     function search_default_property(pd : tobjectdef) : tpropertysym;
 
 {*** Macro Helpers ***}
@@ -288,19 +286,11 @@ implementation
     procedure tstoredsymtable.insert(sym:TSymEntry;checkdup:boolean=true);
       begin
         inherited insert(sym,checkdup);
-        { keep track of syms whose type may need forward resolving later on }
-        if (sym.typ in [typesym,fieldvarsym]) then
-          forwardchecksyms.add(sym);
       end;
 
 
     procedure tstoredsymtable.delete(sym:TSymEntry);
       begin
-        { this must happen before inherited() is called, because }
-        { the sym is owned by symlist and will consequently be   }
-        { freed and invalid afterwards                           }
-        if (sym.typ in [typesym,fieldvarsym]) then
-          forwardchecksyms.remove(sym);
         inherited delete(sym);
       end;
 
@@ -645,7 +635,7 @@ implementation
 
     procedure TStoredSymtable.TestPrivate(sym:TObject;arg:pointer);
       begin
-        if sp_private in tsym(sym).symoptions then
+        if tsym(sym).visibility=vis_private then
           varsymbolused(sym,arg);
       end;
 
@@ -662,11 +652,12 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.unchain_overloads(sym:TObject;arg:pointer);
-      begin
-         if tsym(sym).typ=procsym then
-           tprocsym(sym).unchain_overload;
-      end;
+   procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
+     begin
+        if (tsym(sym).typ=propertysym) and
+           (ppo_defaultproperty in tpropertysym(sym).propoptions) then
+          ppointer(arg)^:=sym;
+     end;
 
 
 {***********************************************
@@ -711,12 +702,6 @@ implementation
       end;
 
 
-    procedure tstoredsymtable.unchain_overloaded;
-      begin
-         SymList.ForEachCall(@unchain_overloads,nil);
-      end;
-
-
     procedure TStoredSymtable._needs_init_final(sym:TObject;arg:pointer);
       begin
          if b_needs_init_final then
@@ -741,17 +726,6 @@ implementation
          b_needs_init_final:=false;
          SymList.ForEachCall(@_needs_init_final,nil);
          needs_init_final:=b_needs_init_final;
-      end;
-
-
-    procedure tstoredsymtable.resolve_forward_types;
-      var
-        i: longint;
-      begin
-        for i:=0 to forwardchecksyms.Count-1 do
-          tstoredsym(forwardchecksyms[i]).resolve_type_forward;
-        { don't free, may still be reused }
-        forwardchecksyms.clear;
       end;
 
 
@@ -835,7 +809,7 @@ implementation
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
-    procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym);
+    procedure tabstractrecordsymtable.addfield(sym:tfieldvarsym;vis:tvisibility);
       var
         l      : aint;
         varalignfield,
@@ -846,6 +820,8 @@ implementation
           internalerror(200602031);
         if sym.fieldoffset<>-1 then
           internalerror(200602032);
+        { set visibility for the symbol }
+        sym.visibility:=vis;
         { this symbol can't be loaded to a register }
         sym.varregable:=vr_none;
         { Calculate field offset }
@@ -931,13 +907,6 @@ implementation
           _datasize:=sym.fieldoffset+l;
         { Calc alignment needed for this record }
         alignrecord(sym.fieldoffset,varalign);
-      end;
-
-
-    procedure tabstractrecordsymtable.insertfield(sym:tfieldvarsym);
-      begin
-        insert(sym);
-        addfield(sym);
       end;
 
 
@@ -1094,11 +1063,6 @@ implementation
             def:=TDef(unionst.DefList[i]);
             def.ChangeOwner(self);
           end;
-        { add the types that may need to be forward-checked }
-        forwardchecksyms.capacity:=forwardchecksyms.capacity+unionst.forwardchecksyms.count;
-        for i:=0 to unionst.forwardchecksyms.count-1 do
-          forwardchecksyms.add(tsym(unionst.forwardchecksyms[i]));
-        unionst.forwardchecksyms.clear;
         _datasize:=storesize;
         fieldalignment:=storealign;
       end;
@@ -1133,8 +1097,9 @@ implementation
               hsym:=search_class_member(tobjectdef(defowner),hashedid.id);
               if assigned(hsym) and
                  (
-                  (not(m_delphi in current_settings.modeswitches) and
-                   tsym(hsym).is_visible_for_object(tobjectdef(defowner),tobjectdef(defowner))
+                  (
+                   not(m_delphi in current_settings.modeswitches) and
+                   is_visible_for_object(hsym,tobjectdef(defowner))
                   ) or
                   (
                    { In Delphi, you can repeat members of a parent class. You can't }
@@ -1528,7 +1493,7 @@ implementation
     procedure hidesym(sym:TSymEntry);
       begin
         sym.realname:='$hidden'+sym.realname;
-        include(tsym(sym).symoptions,sp_hidden);
+        tsym(sym).visibility:=vis_hidden;
       end;
 
 
@@ -1576,11 +1541,95 @@ implementation
        end;
 
 
+    function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+      var
+        symownerdef : tobjectdef;
+      begin
+        result:=false;
+
+        { Get objdectdef owner of the symtable for the is_related checks }
+        if not assigned(symst) or
+           (symst.symtabletype<>objectsymtable) then
+          internalerror(200810285);
+        symownerdef:=tobjectdef(symst.defowner);
+        case symvisibility of
+          vis_private :
+            begin
+              { private symbols are allowed when we are in the same
+                module as they are defined }
+              result:=(symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                      (symownerdef.owner.iscurrentunit);
+            end;
+          vis_strictprivate :
+            begin
+              result:=assigned(current_objectdef) and
+                      (current_objectdef=symownerdef);
+            end;
+          vis_strictprotected :
+            begin
+               result:=assigned(current_objectdef) and
+                       current_objectdef.is_related(symownerdef);
+            end;
+          vis_protected :
+            begin
+              { protected symbols are visible in the module that defines them and
+                also visible to related objects. The related object must be defined
+                in the current module }
+              result:=(
+                       (
+                        (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (symownerdef.owner.iscurrentunit)
+                       ) or
+                       (
+                        assigned(contextobjdef) and
+                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (contextobjdef.owner.iscurrentunit) and
+                        contextobjdef.is_related(symownerdef)
+                       )
+                      );
+            end;
+          vis_public,
+          vis_published :
+            result:=true;
+        end;
+      end;
+
+
+    function is_visible_for_object(pd:tprocdef;contextobjdef:tobjectdef):boolean;
+      begin
+        result:=is_visible_for_object(pd.owner,pd.visibility,contextobjdef);
+      end;
+
+
+    function is_visible_for_object(sym:tsym;contextobjdef:tobjectdef):boolean;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        if sym.typ=procsym then
+          begin
+            { A procsym is visible, when there is at least one of the procdefs visible }
+            result:=false;
+            for i:=0 to tprocsym(sym).ProcdefList.Count-1 do
+              begin
+                pd:=tprocdef(tprocsym(sym).ProcdefList[i]);
+                if (pd.owner=sym.owner) and
+                   is_visible_for_object(pd,contextobjdef) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end
+        else
+          result:=is_visible_for_object(sym.owner,sym.visibility,contextobjdef);
+      end;
+
+
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid   : THashedIDString;
-        topclass   : tobjectdef;
-        context    : tobjectdef;
+        contextobjdef : tobjectdef;
         stackitem  : psymtablestackitem;
       begin
         result:=false;
@@ -1592,7 +1641,6 @@ implementation
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) then
               begin
-                topclass:=nil;
                 { use the class from withsymtable only when it is
                   defined in this unit }
                 if (srsymtable.symtabletype=withsymtable) and
@@ -1600,17 +1648,11 @@ implementation
                    (srsymtable.defowner.typ=objectdef) and
                    (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
                    (srsymtable.defowner.owner.iscurrentunit) then
-                  topclass:=tobjectdef(srsymtable.defowner)
+                  contextobjdef:=tobjectdef(srsymtable.defowner)
                 else
-                  begin
-                    if assigned(current_procinfo) then
-                      topclass:=current_procinfo.procdef._class;
-                  end;
-                if assigned(current_procinfo) then
-                  context:=current_procinfo.procdef._class
-                else
-                  context:=nil;
-                if tsym(srsym).is_visible_for_object(topclass,context) then
+                  contextobjdef:=current_objectdef;
+                if (srsym.owner.symtabletype<>objectsymtable) or
+                   is_visible_for_object(srsym,contextobjdef) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -1659,8 +1701,10 @@ implementation
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
                 if assigned(srsym) and
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
-                   (not assigned(current_procinfo) or
-                    tsym(srsym).is_visible_for_object(current_procinfo.procdef._class,current_procinfo.procdef._class)) then
+                   (
+                    (srsym.owner.symtabletype<>objectsymtable) or
+                    is_visible_for_object(srsym,current_objectdef)
+                   ) then
                   begin
                     { we need to know if a procedure references symbols
                       in the static symtable, because then it can't be
@@ -1719,21 +1763,22 @@ implementation
 
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
-        hashedid      : THashedIDString;
-        currentclassh : tobjectdef;
+        hashedid : THashedIDString;
       begin
+        { The contextclassh is used for visibility. The classh must be equal to
+          or be a parent of contextclassh. E.g. for inherited searches the classh is the
+          parent. }
+        if assigned(classh) and
+           not contextclassh.is_related(classh) then
+          internalerror(200811161);
         result:=false;
         hashedid.id:=s;
-        if assigned(current_procinfo) and assigned(current_procinfo.procdef) then
-          currentclassh:=current_procinfo.procdef._class
-        else
-          currentclassh:=nil;
         while assigned(classh) do
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
             if assigned(srsym) and
-               tsym(srsym).is_visible_for_object(contextclassh,currentclassh) then
+               is_visible_for_object(srsym,contextclassh) then
               begin
                 addsymref(srsym);
                 result:=true;
@@ -1937,54 +1982,6 @@ implementation
                               Object Helpers
 ****************************************************************************}
 
-    procedure search_class_overloads(aprocsym : tprocsym);
-    { searches n in symtable of pd and all anchestors }
-      var
-        hashedid : THashedIDString;
-        srsym    : tprocsym;
-        objdef   : tobjectdef;
-      begin
-        if aprocsym.overloadchecked then
-         exit;
-        aprocsym.overloadchecked:=true;
-        if (aprocsym.owner.symtabletype<>ObjectSymtable) then
-         internalerror(200111021);
-        objdef:=tobjectdef(aprocsym.owner.defowner);
-        { we start in the parent }
-        if not assigned(objdef.childof) then
-         exit;
-        objdef:=objdef.childof;
-        hashedid.id:=aprocsym.name;
-        while assigned(objdef) do
-         begin
-           srsym:=tprocsym(objdef.symtable.FindWithHash(hashedid));
-           if assigned(srsym) then
-            begin
-              if (srsym.typ<>procsym) then
-               internalerror(200111022);
-              if srsym.is_visible_for_object(tobjectdef(aprocsym.owner.defowner),tobjectdef(aprocsym.owner.defowner)) then
-               begin
-                 srsym.add_para_match_to(Aprocsym,[cpo_ignorehidden,cpo_allowdefaults]);
-                 { we can stop if the overloads were already added
-                  for the found symbol }
-                 if srsym.overloadchecked then
-                  break;
-               end;
-            end;
-           { next parent }
-           objdef:=objdef.childof;
-         end;
-      end;
-
-
-   procedure tstoredsymtable.testfordefaultproperty(sym:TObject;arg:pointer);
-     begin
-        if (tsym(sym).typ=propertysym) and
-           (ppo_defaultproperty in tpropertysym(sym).propoptions) then
-          ppointer(arg)^:=sym;
-     end;
-
-
    function search_default_property(pd : tobjectdef) : tpropertysym;
    { returns the default property of a class, searches also anchestors }
      var
@@ -2186,7 +2183,6 @@ implementation
        class_tobject:=nil;
        interface_iunknown:=nil;
        rec_tguid:=nil;
-       aktobjectdef:=nil;
        dupnr:=0;
      end;
 

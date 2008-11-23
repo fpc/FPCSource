@@ -16,10 +16,14 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libgd';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('gd.pp');
+
+    P.ExamplePath.Add('tests');
+    P.Targets.AddExampleProgram('gdtestcgi.pp');
+    P.Targets.AddExampleProgram('gdtest.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

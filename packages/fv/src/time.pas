@@ -186,7 +186,11 @@ PROCEDURE SecondsToTime (Sd: LongInt; Var Hour24, Minute, Second: Word);
 
 {$ifdef OS_NETWARE}
   USES Dos;
-{$endif OS_GO32}
+{$endif OS_NETWARE}
+
+{$ifdef OS_AMIGA}
+  USES Dos;
+{$endif OS_AMIGA}
 
 {***************************************************************************}
 {                            INTERFACE ROUTINES                             }
@@ -325,6 +329,12 @@ BEGIN
  {settime is dummy in Netware (Libc and Clib) }
 END;
 {$ENDIF OS_NETWARE}
+{$IFDEF OS_AMIGA}
+BEGIN
+ { settime is dummy on Amiga }
+ { probably could be implemented, but it's low pri... (KB) }
+END;
+{$ENDIF OS_AMIGA}
 
 {---------------------------------------------------------------------------}
 {  GetTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 06Nov97 LdB           }
@@ -442,6 +452,11 @@ BEGIN
   Dos.GetTime(Hour,Minute,Second,Sec100);
 END;
 {$ENDIF OS_NETWARE}
+{$IFDEF OS_AMIGA}
+BEGIN
+  Dos.GetTime(Hour,Minute,Second,Sec100);
+END;
+{$ENDIF OS_AMIGA}
 
 {---------------------------------------------------------------------------}
 {  MinutesToTime -> Platforms DOS/DPMI/WIN/NT/OS2 - Updated 19Jun97 LdB     }

@@ -1,6 +1,6 @@
 { %cpu=i386 }
 { %target=go32v2,linux,freebsd,win32}
-{ %opt=-Sew }
+{ %opt=-Sew -vw }
 
 {$mode delphi}
 

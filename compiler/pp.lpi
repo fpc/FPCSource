@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="\"/>
-    <Version Value="5"/>
+    <PathDelim Value="/"/>
+    <Version Value="6"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
@@ -11,7 +11,6 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="pp"/>
     </General>
@@ -26,33 +25,41 @@
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="4">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
-        <Filename Value="x86\aasmcpu.pas"/>
+        <Filename Value="x86/aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="aasmcpu"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="wpo.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="wpo"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="optdead.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="optdead"/>
+      </Unit3>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
-    <PathDelim Value="\"/>
+    <Version Value="8"/>
     <Target>
-      <Filename Value="i386\pp"/>
+      <Filename Value="i386/pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="i386\"/>
-      <OtherUnitFiles Value="i386\;x86\;systems\"/>
-      <UnitOutputDirectory Value="i386\lazbuild"/>
+      <IncludeFiles Value="i386/"/>
+      <OtherUnitFiles Value="i386/;x86/;systems/"/>
+      <UnitOutputDirectory Value="i386/lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
-        <D2Extensions Value="False"/>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
         <CPPInline Value="False"/>
@@ -72,8 +79,7 @@
       <ConfigFile>
         <StopAfterErrCount Value="50"/>
       </ConfigFile>
-      <CustomOptions Value="-di386
-"/>
+      <CustomOptions Value="-di386 -dgdb -ap"/>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>

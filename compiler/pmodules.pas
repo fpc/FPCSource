@@ -1158,15 +1158,12 @@ implementation
              tstoredsymtable(current_module.globalsymtable).check_forwards;
              { check if all private fields are used }
              tstoredsymtable(current_module.globalsymtable).allprivatesused;
-             { remove cross unit overloads }
-             tstoredsymtable(current_module.globalsymtable).unchain_overloaded;
 
              { test static symtable }
              tstoredsymtable(current_module.localsymtable).allsymbolsused;
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
              tstoredsymtable(current_module.localsymtable).checklabels;
-             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
 
              { used units }
              current_module.allunitsused;
@@ -1244,10 +1241,7 @@ implementation
              Message1(unit_u_implementation_crc_changed,current_module.ppufilename^);
 {$endif EXTDEBUG}
 
-         { release all overload references and local symtables that
-           are not needed anymore }
-         tstoredsymtable(current_module.localsymtable).unchain_overloaded;
-         tstoredsymtable(current_module.globalsymtable).unchain_overloaded;
+         { release local symtables that are not needed anymore }
          free_localsymtables(current_module.globalsymtable);
          free_localsymtables(current_module.localsymtable);
 
@@ -1719,7 +1713,6 @@ implementation
              tstoredsymtable(current_module.localsymtable).allsymbolsused;
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
-             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
 
              current_module.allunitsused;
            end;
@@ -2090,7 +2083,6 @@ implementation
              tstoredsymtable(current_module.localsymtable).allsymbolsused;
              tstoredsymtable(current_module.localsymtable).allprivatesused;
              tstoredsymtable(current_module.localsymtable).check_forwards;
-             tstoredsymtable(current_module.localsymtable).unchain_overloaded;
 
              current_module.allunitsused;
            end;

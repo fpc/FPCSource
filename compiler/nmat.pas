@@ -253,7 +253,7 @@ implementation
              ((ld.ordtype = u32bit) and
               is_signed(rd)) then
            begin
-              CGMessage(type_w_mixed_signed_unsigned);
+              CGMessage(type_h_mixed_signed_unsigned);
               if (ld.ordtype<>s64bit) then
                 inserttypeconv(left,s64inttype);
               if (rd.ordtype<>s64bit) then

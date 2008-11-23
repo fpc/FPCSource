@@ -340,7 +340,7 @@ implementation
                 newparaloc^.register:=cg.getmmregister(list,paraloc^.size);
               LOC_REFERENCE :
                 begin
-                  tg.gettemp(list,len,tt_persistent,href);
+                  tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
                   newparaloc^.reference.index:=href.base;
                   newparaloc^.reference.offset:=href.offset;
                 end;

@@ -16,8 +16,22 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='httpd20';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.0';
+    P.Version:='2.2.2-0';
+    P.Author := 'Library: Apache Foundation, header: Felipe Monteiro de Carvalho';
+    P.License := 'Library: Apache License 2, header: LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'Headers for the Apache 2.0(.58) www server';
+    P.NeedLibC:= true;  // true for headers that indirectly link to libc?
+
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/apr');
+    P.SourcePath.Add('src/apriconv');
+    P.SourcePath.Add('src/aprutil');
+    P.IncludePath.Add('src');
+    P.IncludePath.Add('src/apr');
+    P.IncludePath.Add('src/apriconv');
+    P.IncludePath.Add('src/aprutil');
 //    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('apriconv.pas');
@@ -86,6 +100,15 @@ begin
           AddUnit('aprutil');
         end;
 
+    P.ExamplePath.Add('examples');
+    T:=P.Targets.AddExampleProgram('minimain.pas');
+    T:=P.Targets.AddExampleProgram('mod_hello.pp');
+    T:=P.Targets.AddExampleProgram('mod_example.pp'); 
+    T.Dependencies.AddInclude('define.inc');	
+    T:=P.Targets.AddExampleProgram('mod_spelling.pp');
+    T.Dependencies.AddInclude('define.inc');	
+    T:=P.Targets.AddExampleProgram('testmodule.pp');
+    T.Dependencies.AddInclude('define.inc');	
 
 {$ifndef ALLPACKAGES}
     Run;

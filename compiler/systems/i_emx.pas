@@ -21,6 +21,8 @@
 { This unit implements support information structures for OS/2 via EMX. }
 unit i_emx;
 
+{$i fpcdefs.inc}
+
   interface
 
     uses

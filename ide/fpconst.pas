@@ -79,7 +79,7 @@ const
      NGExt                = '.ng';
      INFExt               = '.inf';
      WinHelpExt           = '.hlp';
-     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt+';*'+INFExt;
+     HelpFileExts         = '*.tph;*.htm*;*'+HTMLIndexExt+';*'+NGExt+';*'+WinHelpExt+';*'+INFExt+';*'+ExtChm;
 
      EnterSign            = #17#196#217;
 

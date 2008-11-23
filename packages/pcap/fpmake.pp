@@ -16,9 +16,8 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='pcap';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
-//    P.Dependencies.Add('x11');
 
     T:=P.Targets.AddUnit('pcap.pp');
 

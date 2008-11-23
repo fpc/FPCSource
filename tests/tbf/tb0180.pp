@@ -1,5 +1,5 @@
 { %fail }
-{ %OPT=-Sew }
+{ %OPT=-Sew -vw }
 {$calling }
 
 begin

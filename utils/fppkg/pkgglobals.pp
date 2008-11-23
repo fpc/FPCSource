@@ -28,20 +28,23 @@ Type
   end;
 
 Const
+  CmdLinePackageName='<cmdline>';
+  CurrentDirPackageName='<currentdir>';
+
   // Dependencies for compiling the fpmkunit unit
   FPMKUnitDepCount=4;
   FPMKUnitDeps : array[1..4] of TFPMKUnitDep = (
     (package: 'hash';
-     reqver : '2.2.1';
+     reqver : '2.2.2';
      undef  : 'NO_UNIT_ZIPPER'),
     (package: 'paszlib';
-     reqver : '2.2.1';
+     reqver : '2.2.2';
      undef  : 'NO_UNIT_ZIPPER'),
     (package: 'fcl-process';
-     reqver : '2.2.1';
+     reqver : '2.2.2';
      undef  : 'NO_UNIT_PROCESS'),
     (package: 'fpmkunit';
-     reqver : '2.2.1';
+     reqver : '2.2.2-1';
      undef  : '')
   );
 
@@ -158,10 +161,7 @@ begin
     vlDebug :
       Prefix:='D: '; }
   end;
-  if Level in [vlError,vlWarning] then
-    Writeln(stdErr,Prefix,Msg)
-  else
-    Writeln(stdOut,Prefix,Msg);
+  Writeln(stdOut,Prefix,Msg);
 end;
 
 

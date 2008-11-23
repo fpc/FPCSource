@@ -17,12 +17,18 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
-
+    P.Version:='2.2.2-0';
     D:=P.Dependencies.Add('paszlib');
-      D.Version:='2.2.1';
+      D.Version:='2.2.2-0';
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.2.1';
+      D.Version:='2.2.2-0';
+
+    P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
+    P.License := 'LGPL with modification, ';
+    P.HomepageURL := 'www.freepascal.org';
+    P.Email := '';
+    P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
+    P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
@@ -124,8 +130,23 @@ begin
           AddUnit('htmldefs');
         end;
 
+ 
+    P.Sources.AddSrc('src/README');
+
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('tests/xmlts.pp');
+    P.Targets.AddExampleProgram('tests/domunit.pp');
+    P.Targets.AddExampleProgram('tests/testgen.pp');
+    // 'tests/api.xml
+    // 'tests/README_DOM
+    // 'tests/README
+    // 'tests/template.xml
+
+
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+

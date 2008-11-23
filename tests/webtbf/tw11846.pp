@@ -1,4 +1,4 @@
-{ %OPT=-Sew -Oodfa }
+{ %OPT=-Sew -vw -Oodfa }
 { %NORUN }
 { %fail }
 {$mode objfpc}

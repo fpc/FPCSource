@@ -45,7 +45,7 @@ dirs_win32=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc p
                gdbint libpng mad tcl opengl gtk1 gtk2 a52 cdrom fpgtk openal fftw lua \
                oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml
 dirs_win64=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-                tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom numlib
+                tcl opengl gtk1 gtk2 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib
 dirs_wince=winceunits fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -127,11 +127,11 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all
-fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug
-fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart
-fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release
-fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all httpd22_all
+fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug
+fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart
+fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release httpd22_release
+fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared
 
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-base_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all

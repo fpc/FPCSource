@@ -16,8 +16,9 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ncurses';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('menu.pp');
       with T.Dependencies do
@@ -46,6 +47,30 @@ begin
         begin
           AddUnit('ncurses');
         end;
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('t2menu.pp');
+    P.Targets.AddExampleProgram('t3form.pp');
+    P.Targets.AddExampleProgram('t1panel.pp');
+    P.Targets.AddExampleProgram('screen_demo.pp');
+    P.Targets.AddExampleProgram('tevent.pp');
+    P.Targets.AddExampleProgram('t1form.pp');
+    P.Targets.AddExampleProgram('tclock.pp');
+    P.Targets.AddExampleProgram('menu_demo.pp');
+    P.Targets.AddExampleProgram('twindow.pp');
+    P.Targets.AddExampleProgram('tpad.pp');
+    P.Targets.AddExampleProgram('t1menu.pp');
+    P.Targets.AddExampleProgram('t2panel.pp');
+    P.Targets.AddExampleProgram('tbackground.pp');
+    P.Targets.AddExampleProgram('tnlshello.pp');
+    P.Targets.AddExampleProgram('edit_demo.pp');
+    P.Targets.AddExampleProgram('firework.pp');
+    P.Targets.AddExampleProgram('db_demo.pp');
+    P.Targets.AddExampleProgram('t2form.pp');
+    P.Targets.AddExampleProgram('ocrt_demo.pp');
+    P.Targets.AddExampleProgram('tmouse.pp');
+    // 'tnlshello_ru_UTF8.pot
+
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -42,7 +42,9 @@ function WriteNameListToStream(const AStream: TStream; SectionNames: TSectionNam
 var
   MSCompressedName: WideString = 'MSCompressed'#0; // Length 13
   UnCompressedName: WideString = 'Uncompressed'#0;
+{$IFDEF ENDIAN_BIG}
   I: Integer;
+{$ENDIF}
   Size: Word = 2;
   NEntries: Word = 0;
 begin

@@ -122,12 +122,19 @@ type
     deref_defid
   );
 
+  { symbol visibility }
+  tvisibility=(
+    vis_hidden,
+    vis_strictprivate,
+    vis_private,
+    vis_strictprotected,
+    vis_protected,
+    vis_public,
+    vis_published
+  );
+
   { symbol options }
   tsymoption=(sp_none,
-    sp_public,
-    sp_private,
-    sp_published,
-    sp_protected,
     sp_static,
     sp_hint_deprecated,
     sp_hint_platform,
@@ -135,10 +142,7 @@ type
     sp_hint_unimplemented,
     sp_has_overloaded,
     sp_internal,  { internal symbol, not reported as unused }
-    sp_strictprivate,
-    sp_strictprotected,
     sp_implicitrename,
-    sp_hidden,
     sp_hint_experimental,
     sp_generic_para
   );
@@ -266,7 +270,9 @@ type
     po_has_importdll,
     po_has_importname,
     po_kylixlocal,
-    po_dispid
+    po_dispid,
+    { weakly linked (i.e., may or may not exist at run time) }
+    po_weakexternal
   );
   tprocoptions=set of tprocoption;
 
@@ -353,7 +359,8 @@ type
     vo_is_typed_const,
     vo_is_range_check,
     vo_is_overflow_check,
-    vo_is_typinfo_para
+    vo_is_typinfo_para,
+    vo_is_weak_external
   );
   tvaroptions=set of tvaroption;
 
@@ -476,7 +483,8 @@ type
 
 const
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
-                oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor];
+                oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
+                oo_can_have_published];
    clearstack_pocalls = [
      pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
    ];
@@ -500,6 +508,11 @@ const
      EqualTypeName : array[tequaltype] of string[16] = (
        'incompatible','convert_operator','convert_l5','convert_l4','convert_l3','convert_l2',
        'convert_l1','equal','exact'
+     );
+
+     visibilityName : array[tvisibility] of string[16] = (
+       'hidden','strict private','private','strict protected','protected',
+       'public','published'
      );
 
 implementation

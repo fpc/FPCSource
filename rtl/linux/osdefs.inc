@@ -33,7 +33,40 @@
   {$endif}
 {$endif}
 
-{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386)}
+{$if defined(cpupowerpc) or defined(cpupowerpc64) or defined(cpui386) or
+  (defined(cpuarm) and defined(FPC_ABI_EABI))}
   {$DEFINE has_ugetrlimit}
 {$endif}
+
+{$if (defined(cpuarm) and defined(FPC_ABI_EABI))}
+{$define FPC_USEGETTIMEOFDAY}
+{$endif}
+
+ {$ifdef CPUARM}
+{$define WAIT4}
+{$endif CPUARM}
+
+{$ifdef CPUx86_64}
+{$define WAIT4}
+{$endif CPUx86_64}
+
+{$ifdef CPUSPARC}
+{$define WAIT4}
+{$endif CPUSPARC}
+
+{$ifdef cpui386}
+{$define OLDMMAP}
+{$endif cpui386}
+
+{$ifdef cpum68k}
+{$define OLDMMAP}
+{$endif cpum68k}
+
+{$ifdef cpuarm}
+  {$ifdef FPC_ABI_EABI}
+    {$define MMAP2}
+  {$else FPC_ABI_EABI}
+    {$define OLDMMAP}
+  {$endif FPC_ABI_EABI}
+{$endif cpuarm}
 

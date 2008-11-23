@@ -41,8 +41,8 @@ implementation
       fksysutl,
 {$ENDIF}
       cutils,cclasses,
-      globtype,version,tokens,systems,globals,verbose,
-      symbase,symtable,symsym,
+      globtype,version,tokens,systems,globals,verbose,switches,
+      symbase,symtable,symdef,symsym,
       finput,fmodule,fppu,
       aasmbase,aasmtai,aasmdata,
       cgbase,
@@ -64,6 +64,7 @@ implementation
          current_module:=nil;
          current_asmdata:=nil;
          current_procinfo:=nil;
+         current_objectdef:=nil;
 
          loaded_units:=TLinkedList.Create;
 
@@ -133,6 +134,7 @@ implementation
          current_module:=nil;
          current_procinfo:=nil;
          current_asmdata:=nil;
+         current_objectdef:=nil;
 
          { unload units }
          if assigned(loaded_units) then
@@ -284,6 +286,11 @@ implementation
          olddata : polddata;
          hp,hp2 : tmodule;
        begin
+         { parsing a procedure or declaration should be finished }
+         if assigned(current_procinfo) then
+           internalerror(200811121);
+         if assigned(current_objectdef) then
+           internalerror(200811122);
          inc(compile_level);
          parser_current_file:=filename;
          { Uses heap memory instead of placing everything on the
@@ -309,11 +316,7 @@ implementation
             oldparse_only:=parse_only;
           { save akt... state }
           { handle the postponed case first }
-           if localswitcheschanged then
-             begin
-               current_settings.localswitches:=nextlocalswitches;
-               localswitcheschanged:=false;
-             end;
+            flushpendingswitchesstate;
             oldcurrent_filepos:=current_filepos;
             old_settings:=current_settings;
           end;

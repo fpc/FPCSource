@@ -16,11 +16,17 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='svgalib';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('svgalib.pp');
     T:=P.Targets.AddUnit('vgamouse.pp');
+
+    P.Sources.AddSrc('README');
+ 
+    P.ExamplePath.Add('tests/');
+    P.Targets.AddExampleProgram('testvga.pp');
+    P.Targets.AddExampleProgram('vgatest.pp');
 
 {$ifndef ALLPACKAGES}
     Run;

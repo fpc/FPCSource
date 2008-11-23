@@ -1,4 +1,4 @@
-{ %OPT=-Sew -Oodfa }
+{ %OPT=-Sew -vw -Oodfa }
 { %norun }
 {$mode objfpc}
 procedure GiveMe(out i: integer);

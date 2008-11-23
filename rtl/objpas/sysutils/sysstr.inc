@@ -2031,7 +2031,7 @@ Var
           Digits[DecimalPoint] := ' ';
       { Convert spaces left from obligatory decimal point to zeroes. }
       I:=DecimalPoint-Placehold[2];
-      If (Value<0) and (I<DecimalPoint) then
+      If (Value<0) and (I<DecimalPoint) and (Digits[1]<>'-') then
         begin
         Insert('-',Digits,I);
         Inc(DecimalPoint);

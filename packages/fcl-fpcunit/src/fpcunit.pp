@@ -1035,6 +1035,7 @@ begin
   FTests.Add(ATest);
   if ATest.TestSuiteName = '' then
     ATest.TestSuiteName := Self.TestName;
+  ATest.EnableIgnores := Self.EnableIgnores;
 end;
 
 

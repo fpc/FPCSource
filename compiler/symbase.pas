@@ -87,8 +87,6 @@ interface
 ************************************************}
 
        TSymtable = class
-       protected
-          forwardchecksyms : TFPObjectList;
        public
           name      : pshortstring;
           realname  : pshortstring;
@@ -97,6 +95,7 @@ interface
           defowner  : TDefEntry; { for records and objects }
           moduleid  : longint;
           refcount  : smallint;
+          currentvisibility : tvisibility;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;
@@ -106,7 +105,6 @@ interface
           function  getcopy:TSymtable;
           procedure clear;virtual;
           function  checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;virtual;
-          procedure checkforwardtype(sym:TSymEntry);
           procedure insert(sym:TSymEntry;checkdup:boolean=true);virtual;
           procedure Delete(sym:TSymEntry);virtual;
           function  Find(const s:TIDString) : TSymEntry;
@@ -222,9 +220,8 @@ implementation
          defowner:=nil;
          DefList:=TFPObjectList.Create(true);
          SymList:=TFPHashObjectList.Create(true);
-         { the syms are owned by symlist, so don't free }
-         forwardchecksyms:=TFPObjectList.Create(false);
          refcount:=1;
+         currentvisibility:=vis_public;
       end;
 
 
@@ -238,7 +235,6 @@ implementation
         { SymList can already be disposed or set to nil for withsymtable, }
         { but in that case Free does nothing                              }
         SymList.Free;
-        forwardchecksyms.free;
         stringdispose(name);
         stringdispose(realname);
       end;
@@ -269,7 +265,6 @@ implementation
       var
         i : integer;
       begin
-         forwardchecksyms.clear;
          SymList.Clear;
          { Prevent recursive calls between TDef.destroy and TSymtable.Remove }
          if DefList.OwnsObjects then
@@ -284,12 +279,6 @@ implementation
     function TSymtable.checkduplicate(var s:THashedIDString;sym:TSymEntry):boolean;
       begin
         result:=(FindWithHash(s)<>nil);
-      end;
-
-
-    procedure TSymtable.checkforwardtype(sym:TSymEntry);
-      begin
-        forwardchecksyms.add(sym);
       end;
 
 

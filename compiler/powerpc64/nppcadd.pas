@@ -346,7 +346,7 @@ begin
             { g_overflowcheck generates a OC_AE instead of OC_EQ :/ }
             current_asmdata.getjumplabel(hl);
             tcgppc(cg).a_jmp_cond(current_asmdata.CurrAsmList, OC_EQ, hl);
-            cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW');
+            cg.a_call_name(current_asmdata.CurrAsmList, 'FPC_OVERFLOW',false);
             cg.a_label(current_asmdata.CurrAsmList, hl);
           end;
       end;

@@ -125,7 +125,7 @@ implementation
   function packet_error : longint;
       { return type might be wrong }
       begin
-         packet_error:= not (dword(0));
+         packet_error:= not ({dword}(0));
       end;
 
 // Next function also defined in mysql4_comdyn

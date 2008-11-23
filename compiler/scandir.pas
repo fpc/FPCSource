@@ -41,11 +41,17 @@ implementation
       rabase;
 
     const
-      localswitchesstackmax = 20;
+      switchesstatestackmax = 20;
+
+    type
+      tsavedswitchesstate = record
+        localsw: tlocalswitches;
+        verbosity: longint;
+      end;
 
     var
-      localswitchesstack: array[0..localswitchesstackmax] of tlocalswitches;
-      localswitchesstackpos: Integer;
+      switchesstatestack: array[0..switchesstatestackmax] of tsavedswitchesstate;
+      switchesstatestackpos: Integer;
 
 {*****************************************************************************
                                     Helpers
@@ -68,7 +74,7 @@ implementation
       begin
       { support ON/OFF }
         state:=current_scanner.ReadState;
-        SetVerbosity(flag+state);
+        recordpendingverbosityswitch(flag,state);
       end;
 
 
@@ -93,15 +99,7 @@ implementation
       begin
         state:=current_scanner.readstate;
         if (sw<>cs_localnone) and (state in ['-','+']) then
-         begin
-           if not localswitcheschanged then
-             nextlocalswitches:=current_settings.localswitches;
-           if state='-' then
-            exclude(nextlocalswitches,sw)
-           else
-            include(nextlocalswitches,sw);
-           localswitcheschanged:=true;
-         end;
+          recordpendinglocalswitch(sw,state);
       end;
 
     procedure do_localswitchdefault(sw:tlocalswitch);
@@ -110,23 +108,7 @@ implementation
       begin
         state:=current_scanner.readstatedefault;
         if (sw<>cs_localnone) and (state in ['-','+','*']) then
-         begin
-           if not localswitcheschanged then
-             nextlocalswitches:=current_settings.localswitches;
-           if state='-' then
-            exclude(nextlocalswitches,sw)
-           else
-            if state='+' then
-             include(nextlocalswitches,sw)
-            else
-             begin
-              if sw in init_settings.localswitches then
-               include(nextlocalswitches,sw)
-              else
-               exclude(nextlocalswitches,sw);
-             end;
-           localswitcheschanged:=true;
-         end;
+          recordpendinglocalswitch(sw,state);
       end;
 
 
@@ -945,16 +927,12 @@ implementation
     procedure dir_pop;
 
     begin
-      if localswitchesstackpos < 1 then
+      if switchesstatestackpos < 1 then
         Message(scan_e_too_many_pop);
 
-      if not localswitcheschanged then
-        nextlocalswitches:=current_settings.localswitches;
-
-      Dec(localswitchesstackpos);
-      nextlocalswitches:= localswitchesstack[localswitchesstackpos];
-
-      localswitcheschanged:=true;
+      Dec(switchesstatestackpos);
+      recordpendinglocalfullswitch(switchesstatestack[switchesstatestackpos].localsw);
+      recordpendingverbosityfullswitch(switchesstatestack[switchesstatestackpos].verbosity);
     end;
 
     procedure dir_profile;
@@ -970,17 +948,14 @@ implementation
     procedure dir_push;
 
     begin
-      if localswitchesstackpos > localswitchesstackmax then
+      if switchesstatestackpos > switchesstatestackmax then
         Message(scan_e_too_many_push);
 
-      if localswitcheschanged then
-        begin
-          current_settings.localswitches:=nextlocalswitches;
-          localswitcheschanged:=false;
-        end;
+      flushpendingswitchesstate;
 
-      localswitchesstack[localswitchesstackpos]:= current_settings.localswitches;
-      Inc(localswitchesstackpos);
+      switchesstatestack[switchesstatestackpos].localsw:= current_settings.localswitches;
+      switchesstatestack[switchesstatestackpos].verbosity:=status.verbosity;
+      Inc(switchesstatestackpos);
     end;
 
     procedure dir_rangechecks;
@@ -1434,5 +1409,5 @@ implementation
       end;
 
 begin
-  localswitchesstackpos:= 0;
+  switchesstatestackpos:= 0;
 end.

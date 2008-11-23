@@ -45,7 +45,7 @@ type
     procedure a_param_ref(list: TAsmList; size: tcgsize; const r: treference;
       const paraloc: tcgpara); override;
 
-    procedure a_call_name(list: TAsmList; const s: string); override;
+    procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
     procedure a_call_reg(list: TAsmList; reg: tregister); override;
 
     procedure a_op_const_reg(list: TAsmList; Op: TOpCG; size: TCGSize; a:
@@ -128,7 +128,7 @@ type
      if includeCall is true, the method is marked as having a call, not if false. This
      option is particularly useful to prevent generation of a larger stack frame for the
      register save and restore helper functions. }
-    procedure a_call_name_direct(list: TAsmList; s: string; prependDot : boolean;
+    procedure a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean;
       addNOP : boolean; includeCall : boolean = true);
 
     procedure a_jmp_name_direct(list : TAsmList; s : string; prependDot : boolean);
@@ -505,23 +505,26 @@ end;
 
 { calling a procedure by name }
 
-procedure tcgppc.a_call_name(list: TAsmList; const s: string);
+procedure tcgppc.a_call_name(list: TAsmList; const s: string; weak: boolean);
 begin
     if (target_info.system <> system_powerpc64_darwin) then
-      a_call_name_direct(list, s, false, true)
+      a_call_name_direct(list, s, weak, false, true)
     else
       begin
-        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s)));
+        list.concat(taicpu.op_sym(A_BL,get_darwin_call_stub(s,weak)));
         include(current_procinfo.flags,pi_do_call);
       end;
 end;
 
 
-procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; prependDot : boolean; addNOP : boolean; includeCall : boolean);
+procedure tcgppc.a_call_name_direct(list: TAsmList; s: string; weak: boolean; prependDot : boolean; addNOP : boolean; includeCall : boolean);
 begin
   if (prependDot) then
     s := '.' + s;
-  list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)));
+  if not(weak) then
+    list.concat(taicpu.op_sym(A_BL, current_asmdata.RefAsmSymbol(s)))
+  else
+    list.concat(taicpu.op_sym(A_BL, current_asmdata.WeakRefAsmSymbol(s)));
   if (addNOP) then
     list.concat(taicpu.op_none(A_NOP));
 
@@ -569,7 +572,7 @@ begin
     in R11 }
     a_reg_alloc(list, NR_R11);
     a_load_reg_reg(list, OS_ADDR, OS_ADDR, reg, NR_R11);
-    a_call_name_direct(list, '.ptrgl', false, false);
+    a_call_name_direct(list, '.ptrgl', false, false, false);
     a_reg_dealloc(list, NR_R11);
   end;
 
@@ -1234,7 +1237,7 @@ var
 begin
   if (target_info.system = system_powerpc64_darwin) then
     begin
-      p := taicpu.op_sym(A_B,get_darwin_call_stub(s));
+      p := taicpu.op_sym(A_B,get_darwin_call_stub(s,false));
       p.is_jmp := true;
       list.concat(p)
     end
@@ -1378,7 +1381,7 @@ procedure tcgppc.g_profilecode(list: TAsmList);
 begin
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_savepara), list);
 
-  a_call_name_direct(list, '_mcount', false, true);
+  a_call_name_direct(list, '_mcount', false, false, true);
 
   current_procinfo.procdef.paras.ForEachCall(TObjectListCallback(@profilecode_restorepara), list);
 end;
@@ -1416,12 +1419,12 @@ var
       mayNeedLRStore := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false);
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false);
+        a_call_name_direct(list, '_savegpr1_' + intToStr(32-gprcount), false, false, false, false);
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false);
       end else if (gprcount > 0) then
-        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false)
+        a_call_name_direct(list, '_savegpr0_' + intToStr(32-gprcount), false, false, false, false)
       else if (fprcount > 0) then
-        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false)
+        a_call_name_direct(list, '_savefpr_' + intToStr(32-fprcount), false, false, false, false)
       else
         mayNeedLRStore := true;
     end else begin
@@ -1553,7 +1556,7 @@ var
       needsExitCode := false;
       if ((fprcount > 0) and (gprcount > 0)) then begin
         a_op_const_reg_reg(list, OP_SUB, OS_INT, 8 * fprcount, NR_R1, NR_R12);
-        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false);
+        a_call_name_direct(list, '_restgpr1_' + intToStr(32-gprcount), false, false, false, false);
         a_jmp_name_direct(list, '_restfpr_' + intToStr(32-fprcount), false);
       end else if (gprcount > 0) then
         a_jmp_name_direct(list, '_restgpr0_' + intToStr(32-gprcount), false)

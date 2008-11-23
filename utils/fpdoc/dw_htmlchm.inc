@@ -14,6 +14,7 @@ type
     FIndexName,
     FDefaultPage: String;
     FCSSFile: String;
+    FMakeSearchable,
     FAutoTOC,
     FAutoIndex: Boolean;
     FOtherFiles: String;
@@ -59,6 +60,8 @@ begin
   begin
     FChm.FilesToCompress.LoadFromFile(FOtherFiles);
   end;
+
+  FChm.FullTextSearch := FMakeSearchable;
 
 end;
 
@@ -282,6 +285,10 @@ begin
     for i := 0 to Package.Modules.Count - 1 do
     begin
       AModule := TPasModule(Package.Modules[i]);
+      ParentItem := Index.Items.NewItem;
+      ParentItem.Text := AModule.Name;
+      ParentItem.Local := Allocator.GetFilename(AModule, 0);
+
       //  classes
       for j := 0 to AModule.InterfaceSection.Classes.Count-1 do
       begin
@@ -488,6 +495,8 @@ begin
     FAutoIndex := True
   else if Cmd = '--auto-toc' then
     FAutoTOC := True
+  else if Cmd = '--make-searchable' then
+    FMakeSearchable := True
   else
     Result:=inherited InterPretOption(Cmd, Arg);
 end;
@@ -509,6 +518,8 @@ begin
   List.Add(SCHMUsageAutoIDX);
   List.add('--auto-toc');
   List.Add(SCHMUsageAutoTOC);
+  List.add('--make-searchable');
+  List.Add(SCHMUsageMakeSearch);
 end;
 
 

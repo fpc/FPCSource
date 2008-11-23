@@ -16,13 +16,21 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='rexx';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
     P.Oses:=[emx,os2];
-//    P.Dependencies.Add('x11');
+    p.Targets.AddUnit('rexxsaa.pp',[OS2]);
+
+    P.Sources.AddSrc('readme.txt');
+
+    P.ExamplePath.Add('examples');
+    P.Targets.AddExampleProgram('callrexx.pas',[OS2]);
+    // 'backward.fnc
 
 {$ifndef ALLPACKAGES}
     Run;
     end;
 end.
 {$endif ALLPACKAGES}
+
+

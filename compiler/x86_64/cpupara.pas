@@ -202,8 +202,13 @@ unit cpupara;
             result:=(calloption=pocall_safecall) or
               (def.size>8) or not(def.size in [1,2,4,8])
           else
+            { return method pointers in LOC_REGISTER like records of the same size;
+              this is SysV only }              
+            if (def.typ=procvardef) and
+              (po_methodpointer in tprocvardef(def).procoptions) then
+              result:=false
             { handle objectdefs by the default code because they have no equivalence in C }
-            if (def.typ in [recorddef {,arraydef }]) and (def.size<=16) then
+            else if (def.typ in [recorddef {,arraydef }]) and (def.size<=16) then
               begin
                 case def.typ of
                   recorddef:
@@ -456,6 +461,12 @@ unit cpupara;
                       p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
                     end;
                 end;
+              end
+            else if retcgsize in [OS_128,OS_S128] then
+              begin
+                p.funcretloc[side].size:=retcgsize;
+                p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);                
               end
             else
               begin
