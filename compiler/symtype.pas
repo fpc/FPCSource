@@ -115,6 +115,7 @@ interface
       public
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
+         visibility : tvisibility;
          refs       : longint;
          reflist    : TLinkedList;
          isdbgwritten : boolean;
@@ -123,11 +124,6 @@ interface
          function  mangledname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
-         { currobjdef is the object def to assume, this is necessary for protected and
-           private,
-           context is the object def we're really in, this is for the strict stuff
-         }
-         function is_visible_for_object(currobjdef:tdef;context : tdef):boolean;virtual;
          procedure ChangeOwner(st:TSymtable);
          procedure IncRefCount;
          procedure IncRefCountBy(AValue : longint);
@@ -212,9 +208,6 @@ interface
       memproclocalst,
       memprocnodetree : tmemdebug;
 {$endif MEMDEBUG}
-
-    const
-       current_object_option : tsymoptions = [sp_public];
 
     function  FindUnitSymtable(st:TSymtable):TSymtable;
 
@@ -352,7 +345,7 @@ implementation
          symoptions:=[];
          fileinfo:=current_tokenpos;
          isdbgwritten := false;
-         symoptions:=current_object_option;
+         visibility:=vis_public;
       end;
 
     destructor  Tsym.destroy;
@@ -408,58 +401,8 @@ implementation
       end;
 
 
-    function tsym.is_visible_for_object(currobjdef:Tdef;context : tdef):boolean;
-      begin
-        is_visible_for_object:=false;
-
-        { private symbols are allowed when we are in the same
-          module as they are defined }
-        if (sp_private in symoptions) and
-           assigned(owner.defowner) and
-           (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-           (not owner.defowner.owner.iscurrentunit) then
-          exit;
-
-        if (sp_strictprivate in symoptions) then
-          begin
-            result:=assigned(currobjdef) and
-              (context=tdef(owner.defowner));
-            exit;
-          end;
-
-        if (sp_strictprotected in symoptions) then
-          begin
-            result:=assigned(context) and
-              context.is_related(tdef(owner.defowner));
-            exit;
-          end;
-
-        { protected symbols are visible in the module that defines them and
-          also visible to related objects }
-        if (sp_protected in symoptions) and
-           (
-            (
-             assigned(owner.defowner) and
-             (owner.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-             (not owner.defowner.owner.iscurrentunit)
-            ) and
-            not(
-                assigned(currobjdef) and
-                (currobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                (currobjdef.owner.iscurrentunit) and
-                currobjdef.is_related(tdef(owner.defowner))
-               )
-           ) then
-          exit;
-
-        is_visible_for_object:=true;
-      end;
-
-
     procedure tsym.ChangeOwner(st:TSymtable);
       begin
-//        if assigned(Owner) then
-//          Owner.SymList.List.List^[i].Data:=nil;
         Owner:=st;
         inherited ChangeOwner(Owner.SymList);
       end;

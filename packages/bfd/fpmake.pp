@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Library: Cygnus Support, header: by Uli Tessel';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Binary File Descriptor library.';
     P.NeedLibC:= true;

@@ -22,7 +22,7 @@ begin
     P.Author := 'Library: Julian R. Seward, header: Daniel Mantione';
     // 3 clause becaue "prominent notice" is not required.
     P.License := 'Library: 3 clause BSD, header: 3 clause BSD ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'BZip2 decompression unit.';
     P.NeedLibC:= true;

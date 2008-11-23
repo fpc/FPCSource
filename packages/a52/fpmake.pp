@@ -16,7 +16,7 @@ begin
     P:=AddPackage('a52');
     P.Author := 'Library: Michel Lespinasse and Aaron Holtzman, header: Ivo Steimann';
     P.License := 'Library: GPL2 or later, header: LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'A free library for decoding ATSC A/52 streams.';
     P.NeedLibC:= true;

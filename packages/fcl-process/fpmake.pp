@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Michael van Canneyt and Free Pascal Development team';
     P.License := 'LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Process (execution) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
@@ -28,6 +28,8 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
+    P.IncludePath.Add('src/dummy');
+
     T:=P.Targets.AddUnit('pipes.pp');
       T.Dependencies.AddInclude('pipes.inc');
     T:=P.Targets.AddUnit('process.pp');

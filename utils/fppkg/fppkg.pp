@@ -162,8 +162,7 @@ begin
   Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
   Writeln('Actions:');
   Writeln('  update             Update packages list');
-  Writeln('  showavail          List available packages');
-  Writeln('  showall            Show all (including local) packages');
+  Writeln('  list               List available and installed packages');
   Writeln('  build              Build package');
   Writeln('  compile            Compile package');
   Writeln('  install            Install package');
@@ -285,6 +284,16 @@ begin
   Try
     LoadGlobalDefaults;
     ProcessCommandLine;
+
+    // Scan is special, it doesn't need a valid local setup
+    if (ParaAction='scan') then
+      begin
+        RebuildRemoteRepository;
+        ListRemoteRepository;
+        SaveRemoteRepository;
+        halt(0);
+      end;
+
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
 

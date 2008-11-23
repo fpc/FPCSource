@@ -71,6 +71,10 @@ Type
     TOff     = off_t;
     pOff     = ^off_t;
 
+    off64_t  = cint64;
+    TOff64   = off64_t;
+    pOff64   = ^off64_t;
+
     pid_t    = cint;          { used as process identifier   }
     TPid     = pid_t;
     pPid     = ^pid_t;

@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'Library: ?, header: Sebastian Guenther';
     P.License := 'Library: ?, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'a project that aims to develop a reliable, stable and fast graphics system that works everywhere.';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

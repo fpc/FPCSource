@@ -159,7 +159,12 @@ type
   TOnFoundText = procedure(Text: string) of object;
 
   // Lars's modified html parser, case insensitive or case sensitive 
+
+  { THTMLParser }
+
   THTMLParser = class(TObject)
+    private
+      FDone: Boolean;
     public
       OnFoundTag: TOnFoundTag;
       OnFoundText: TOnFoundText;
@@ -169,6 +174,7 @@ type
       procedure Exec;
       procedure NilOnFoundTag(NoCaseTag, ActualTag: string);
       procedure NilOnFoundText(Text: string);
+      property Done: Boolean read FDone write FDone;
   end;
 
 
@@ -220,7 +226,6 @@ var
   L: Integer;
   TL: Integer;
   I: Integer;
-  Done: Boolean;
   TagStart,
   TextStart,
   P: PChar;   // Pointer to current char.

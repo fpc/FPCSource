@@ -1,6 +1,5 @@
 
 {$mode objfpc}{$H+}
-{$MACRO on}
 
 interface
 
@@ -8,30 +7,14 @@ uses
   Classes, SysUtils,bufdataset,sqldb,db,dynlibs,
 {$IfDef mysql50}
   mysql50dyn;
-  {$DEFINE TConnectionName:=TMySQL50Connection}
-  {$DEFINE TMySQLConnectionDef:=TMySQL50ConnectionDef}
-  {$DEFINE TTransactionName:=TMySQL50Transaction}
-  {$DEFINE TCursorName:=TMySQL50Cursor}
 {$ELSE}
   {$IfDef mysql41}
     mysql41dyn;
-    {$DEFINE TConnectionName:=TMySQL41Connection}
-    {$DEFINE TMySQLConnectionDef:=TMySQL41ConnectionDef}
-    {$DEFINE TTransactionName:=TMySQL41Transaction}
-    {$DEFINE TCursorName:=TMySQL41Cursor}
   {$ELSE}
     {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
       mysql40dyn;
-      {$DEFINE TConnectionName:=TMySQLConnection}
-      {$DEFINE TMySQLConnectionDef:=TMySQL40ConnectionDef}
-      {$DEFINE TTransactionName:=TMySQLTransaction}
-      {$DEFINE TCursorName:=TMySQLCursor}
     {$ELSE}
       mysql40dyn;
-      {$DEFINE TConnectionName:=TMySQL40Connection}
-      {$DEFINE TMySQLConnectionDef:=TMySQL40ConnectionDef}
-      {$DEFINE TTransactionName:=TMySQL40Transaction}
-      {$DEFINE TCursorName:=TMySQL40Cursor}
     {$EndIf}
   {$EndIf}
 {$EndIf}
@@ -148,6 +131,33 @@ Type
 
 
   EMySQLError = Class(Exception);
+
+{$IfDef mysql50}
+  TMySQL50Connection = Class(TConnectionName);
+  TMySQL50ConnectionDef = Class(TMySQLConnectionDef);
+  TMySQL50Transaction = Class(TTransactionName);
+  TMySQL50Cursor = Class(TCursorName);
+{$ELSE}
+  {$IfDef mysql41}
+    TMySQL41Connection = Class(TConnectionName);
+    TMySQL41ConnectionDef = Class(TMySQLConnectionDef);
+    TMySQL41Transaction = Class(TTransactionName);
+    TMySQL41Cursor = Class(TCursorName);
+  {$ELSE}
+    {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      TMySQLConnection = Class(TConnectionName);
+      TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQLTransaction = Class(TTransactionName);
+      TMySQLCursor = Class(TCursorName);
+    {$ELSE}
+      TMySQL40Connection = Class(TConnectionName);
+      TMySQL40ConnectionDef = Class(TMySQLConnectionDef);
+      TMySQL40Transaction = Class(TTransactionName);
+      TMySQL40Cursor = Class(TCursorName);
+    {$EndIf}
+  {$EndIf}
+{$EndIf}
+
 
 implementation
 
@@ -349,7 +359,19 @@ end;
 
 function TConnectionName.AllocateCursorHandle: TSQLCursor;
 begin
-  Result:=TCursorName.Create;
+  {$IfDef mysql50}
+    Result:=TMySQL50Cursor.Create;
+  {$ELSE}
+    {$IfDef mysql41}
+      Result:=TMySQL41Cursor.Create;
+    {$ELSE}
+      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+        Result:=TMySQLCursor.Create;
+      {$ELSE}
+        Result:=TMySQL40Cursor.Create;
+      {$EndIf}
+    {$EndIf}
+  {$EndIf}
 end;
 
 Procedure TConnectionName.DeAllocateCursorHandle(var cursor : TSQLCursor);
@@ -957,7 +979,19 @@ end;
 
 class function TMySQLConnectionDef.ConnectionClass: TSQLConnectionClass;
 begin
-  Result:=TConnectionName;
+  {$IfDef mysql50}
+    Result:=TMySQL50Connection;
+  {$ELSE}
+    {$IfDef mysql41}
+      Result:=TMySQL41Connection;
+    {$ELSE}
+      {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+        Result:=TMySQLConnection;
+      {$ELSE}
+        Result:=TMySQL40Connection;
+      {$EndIf}
+    {$EndIf}
+  {$EndIf}
 end;
 
 class function TMySQLConnectionDef.Description: String;
@@ -965,8 +999,30 @@ begin
   Result:='Connect to a MySQL '+MySQLVersion+'database directly via the client library';
 end;
 
-initialization
-  RegisterConnection(TMySQLConnectionDef);
-finalization
-  UnRegisterConnection(TMySQLConnectionDef);
+{$IfDef mysql50}
+  initialization
+    RegisterConnection(TMySQL50ConnectionDef);
+  finalization
+    UnRegisterConnection(TMySQL50ConnectionDef);
+{$ELSE}
+  {$IfDef mysql41}
+    initialization
+      RegisterConnection(TMySQL41ConnectionDef);
+    finalization
+      UnRegisterConnection(TMySQL41ConnectionDef);
+  {$ELSE}
+    {$IFDEF mysql4} // temporary backwards compatibility for Lazarus
+      initialization
+        RegisterConnection(TMySQL40ConnectionDef);
+      finalization
+        UnRegisterConnection(TMySQL40ConnectionDef);
+    {$ELSE}
+      initialization
+        RegisterConnection(TMySQL40ConnectionDef);
+      finalization
+        UnRegisterConnection(TMySQL40ConnectionDef);
+    {$EndIf}
+  {$EndIf}
+{$EndIf}
+
 end.

@@ -474,9 +474,9 @@ implementation
         result:=internalstatements(newstatement);
 
         { call fail helper and exit normal }
-        if is_class(current_procinfo.procdef._class) then
+        if is_class(current_objectdef) then
           begin
-            srsym:=search_class_member(current_procinfo.procdef._class,'FREEINSTANCE');
+            srsym:=search_class_member(current_objectdef,'FREEINSTANCE');
             if assigned(srsym) and
                (srsym.typ=procsym) then
               begin
@@ -496,13 +496,13 @@ implementation
               internalerror(200305108);
           end
         else
-          if is_object(current_procinfo.procdef._class) then
+          if is_object(current_objectdef) then
             begin
               { parameter 3 : vmt_offset }
               { parameter 2 : pointer to vmt }
               { parameter 1 : self pointer }
               para:=ccallparanode.create(
-                        cordconstnode.create(current_procinfo.procdef._class.vmt_offset,s32inttype,false),
+                        cordconstnode.create(current_objectdef.vmt_offset,s32inttype,false),
                     ccallparanode.create(
                         ctypeconvnode.create_internal(
                             load_vmt_pointer_node,

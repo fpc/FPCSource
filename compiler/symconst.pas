@@ -122,12 +122,19 @@ type
     deref_defid
   );
 
+  { symbol visibility }
+  tvisibility=(
+    vis_hidden,
+    vis_strictprivate,
+    vis_private,
+    vis_strictprotected,
+    vis_protected,
+    vis_public,
+    vis_published
+  );
+
   { symbol options }
   tsymoption=(sp_none,
-    sp_public,
-    sp_private,
-    sp_published,
-    sp_protected,
     sp_static,
     sp_hint_deprecated,
     sp_hint_platform,
@@ -135,10 +142,7 @@ type
     sp_hint_unimplemented,
     sp_has_overloaded,
     sp_internal,  { internal symbol, not reported as unused }
-    sp_strictprivate,
-    sp_strictprotected,
     sp_implicitrename,
-    sp_hidden,
     sp_hint_experimental,
     sp_generic_para
   );
@@ -505,6 +509,11 @@ const
      EqualTypeName : array[tequaltype] of string[16] = (
        'incompatible','convert_operator','convert_l5','convert_l4','convert_l3','convert_l2',
        'convert_l1','equal','exact'
+     );
+
+     visibilityName : array[tvisibility] of string[16] = (
+       'hidden','strict private','private','strict protected','protected',
+       'public','published'
      );
 
 implementation

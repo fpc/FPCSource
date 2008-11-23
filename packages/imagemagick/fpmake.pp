@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Imagemagick license, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Header to Imagemagick, a graphics manipulation program .';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

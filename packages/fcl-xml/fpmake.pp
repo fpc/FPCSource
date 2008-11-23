@@ -25,7 +25,7 @@ begin
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'XML and DOM parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;

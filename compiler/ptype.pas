@@ -492,10 +492,8 @@ implementation
 
     { reads a record declaration }
     function record_dec : tdef;
-
       var
          recst : trecordsymtable;
-         old_object_option : tsymoptions;
       begin
          { create recdef }
          recst:=trecordsymtable.create(current_settings.packrecords);
@@ -504,11 +502,8 @@ implementation
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         old_object_option:=current_object_option;
-         current_object_option:=[sp_public];
          read_record_fields([vd_record]);
          consume(_END);
-         current_object_option:=old_object_option;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }

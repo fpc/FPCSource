@@ -21,7 +21,7 @@ begin
 
     P.Author := 'Michael van Canneyt';
     P.License := 'LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Unit to read a CDROM disc TOC and get a list of CD Rom devices';
     P.NeedLibC:= False;

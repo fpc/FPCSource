@@ -46,7 +46,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
         procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
         procedure a_call_ref(list : TAsmList;ref: treference);override;
 
@@ -230,7 +230,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_call_name(list : TAsmList;const s : string);
+    procedure tcgavr.a_call_name(list : TAsmList;const s : string; weak: boolean);
       begin
         list.concat(taicpu.op_sym(A_RCALL,current_asmdata.RefAsmSymbol(s)));
 {
@@ -685,7 +685,7 @@ unit cgcpu;
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
-        a_call_name(list,'FPC_MOVE');
+        a_call_name_static(list,'FPC_MOVE');
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         paraloc3.done;
         paraloc2.done;

@@ -304,7 +304,7 @@ Const
         syscall_nr_mq_getsetattr         = syscall_nr_mq_open+5;
         syscall_nr_sys_kexec_load        = 283;
         syscall_nr_waitid                = 284;
-        {   syscall_sys_setaltroot     285 }
+        {   syscall_sys_nr_setaltroot      285 }
         syscall_nr_add_key               = 286;
         syscall_nr_request_key           = 287;
         syscall_nr_keyctl                = 288;

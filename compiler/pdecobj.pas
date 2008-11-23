@@ -30,7 +30,7 @@ interface
       globtype,symconst,symtype,symdef;
 
     { parses a object declaration }
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
 
 implementation
 
@@ -400,9 +400,9 @@ implementation
         parse_generic:=(df_generic in current_objectdef.defoptions);
         { in "publishable" classes the default access type is published }
         if (oo_can_have_published in current_objectdef.objectoptions) then
-          current_object_option:=[sp_published]
+          current_objectdef.symtable.currentvisibility:=vis_published
         else
-          current_object_option:=[sp_public];
+          current_objectdef.symtable.currentvisibility:=vis_public;
         testcurobject:=1;
         has_destructor:=false;
         object_member_blocktype:=bt_general;
@@ -430,7 +430,7 @@ implementation
                       if is_interface(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PRIVATE);
-                       current_object_option:=[sp_private];
+                       current_objectdef.symtable.currentvisibility:=vis_private;
                        include(current_objectdef.objectoptions,oo_has_private);
                      end;
                    _PROTECTED :
@@ -438,7 +438,7 @@ implementation
                        if is_interface(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PROTECTED);
-                       current_object_option:=[sp_protected];
+                       current_objectdef.symtable.currentvisibility:=vis_protected;
                        include(current_objectdef.objectoptions,oo_has_protected);
                      end;
                    _PUBLIC :
@@ -446,7 +446,7 @@ implementation
                        if is_interface(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
-                       current_object_option:=[sp_public];
+                       current_objectdef.symtable.currentvisibility:=vis_public;
                      end;
                    _PUBLISHED :
                      begin
@@ -456,7 +456,7 @@ implementation
                        if is_interface(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLISHED);
-                       current_object_option:=[sp_published];
+                       current_objectdef.symtable.currentvisibility:=vis_published;
                      end;
                    _STRICT :
                      begin
@@ -469,13 +469,13 @@ implementation
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
-                                  current_object_option:=[sp_strictprivate];
+                                  current_objectdef.symtable.currentvisibility:=vis_strictprivate;
                                   include(current_objectdef.objectoptions,oo_has_strictprivate);
                                 end;
                               _PROTECTED:
                                 begin
                                   consume(_PROTECTED);
-                                  current_object_option:=[sp_strictprotected];
+                                  current_objectdef.symtable.currentvisibility:=vis_strictprotected;
                                   include(current_objectdef.objectoptions,oo_has_strictprotected);
                                 end;
                               else
@@ -492,8 +492,8 @@ implementation
                             if is_interface(current_objectdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
-                            if (sp_published in current_object_option) and
-                              not(oo_can_have_published in current_objectdef.objectoptions) then
+                            if (current_objectdef.symtable.currentvisibility=vis_published) and
+                               not(oo_can_have_published in current_objectdef.objectoptions) then
                               Message(parser_e_cant_have_published);
 
                             read_record_fields([vd_object])
@@ -511,7 +511,7 @@ implementation
             _FUNCTION,
             _CLASS :
               begin
-                if (sp_published in current_object_option) and
+                if (current_objectdef.symtable.currentvisibility=vis_published) and
                    not(oo_can_have_published in current_objectdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
@@ -554,12 +554,11 @@ implementation
               end;
             _CONSTRUCTOR :
               begin
-                if (sp_published in current_object_option) and
+                if (current_objectdef.symtable.currentvisibility=vis_published) and
                   not(oo_can_have_published in current_objectdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
-                if not(sp_public in current_object_option) and
-                   not(sp_published in current_object_option) then
+                if not(current_objectdef.symtable.currentvisibility in [vis_public,vis_published]) then
                   Message(parser_w_constructor_should_be_public);
 
                 if is_interface(current_objectdef) then
@@ -584,7 +583,7 @@ implementation
               end;
             _DESTRUCTOR :
               begin
-                if (sp_published in current_object_option) and
+                if (current_objectdef.symtable.currentvisibility=vis_published) and
                    not(oo_can_have_published in current_objectdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
@@ -595,7 +594,7 @@ implementation
                 if is_interface(current_objectdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
-                if not(sp_public in current_object_option) then
+                if (current_objectdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
 
                 oldparse_only:=parse_only;
@@ -632,14 +631,10 @@ implementation
       end;
 
 
-    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tdef;
-      label
-        myexit;
+    function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
       var
-        old_object_option : tsymoptions;
         old_current_objectdef : tobjectdef;
       begin
-        old_object_option:=current_object_option;
         old_current_objectdef:=current_objectdef;
 
         current_objectdef:=nil;
@@ -725,16 +720,18 @@ implementation
            ) then
           current_objectdef.insertvmt;
 
+        if (oo_has_vmt in current_objectdef.objectoptions) and
+           not(oo_has_constructor in current_objectdef.objectoptions) then
+          Message1(parser_w_virtual_without_constructor,current_objectdef.objrealname^);
+
         if is_interface(current_objectdef) then
           setinterfacemethodoptions;
 
         { return defined objectdef }
         result:=current_objectdef;
 
-      myexit:
         { restore old state }
         current_objectdef:=old_current_objectdef;
-        current_object_option:=old_object_option;
       end;
 
 end.

@@ -19,10 +19,15 @@ begin
     P.Version:='2.2.2-0';
     P.Author := 'FPC team';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'A portable, yet usable substitute for the Turbo Pascal Graph unit.';
     P.NeedLibC:= false;  // true for headers that indirectly link to libc? OS specific?
+
+    P.CPUs:=[i386,powerpc];
+    P.OSes:=[win32,linux,freebsd,darwin];
+
+    P.Dependencies.Add('sdl',[i386,powerpc],[win32,linux,freebsd,darwin]);
 
     P.SourcePath.Add('src');
     P.SourcePath.Add('src/macosx',[darwin]);
@@ -61,7 +66,7 @@ begin
           AddInclude('gtext.inc');
           AddInclude('graph16.inc',[freebsd,linux]);
         end;
-    T:=P.Targets.AddUnit('sdlgraph.pp');
+    T:=P.Targets.AddUnit('src/sdlgraph/sdlgraph.pp',[i386,powerpc],[win32,linux,freebsd,darwin]);
       with T.Dependencies do
         begin
           AddInclude('graphh.inc');
@@ -75,6 +80,16 @@ begin
           AddUnit('sdl');
           AddUnit('sdlutils');
           AddUnit('logger');
+        end;
+    T:=P.Targets.AddUnit('wincrt.pp',[win32]);
+      with T.Dependencies do
+        begin
+          AddUnit('graph');
+        end;
+    T:=P.Targets.AddUnit('winmouse.pp',[win32]);
+      with T.Dependencies do
+        begin
+          AddUnit('graph');
         end;
 
 

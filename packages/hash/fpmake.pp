@@ -19,7 +19,7 @@ begin
 
     P.Author := 'Free Pascal development team, Mark Adler, Jacques Nomssi Nzali';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Several hash algorithms (MD5,CRC,Linux crypt and NTLM1).';
     P.NeedLibC:= false;

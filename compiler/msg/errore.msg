@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03248 is the last used one
+# 03250 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1172,7 +1172,10 @@ parser_e_weak_external_not_supported=03248_E_Weak external symbols are not suppo
 parser_e_forward_mismatch=03249_E_Forward type definition does not match
 % Classes and interfaces being defined forward must have the same type
 % when being implemented. A forward interface can not be changed into a class.
-%
+parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibility ($2) than parent class $3 ($4)
+% The virtual method overrides an method that is declared with a higher visibility. This might give
+% unexpected results. In case the new visibility is private than it might be that a call to inherited in a
+% new child class will call the higher visible method in a parent class and ignores the private method.
 % \end{description}
 #
 # Type Checking
@@ -1326,7 +1329,7 @@ type_e_interface_type_expected=04034_E_interface type expected, but got "$1"
 % Type
 %   TMyStream = Class(TStream,Integer)
 % \end{verbatim}
-type_w_mixed_signed_unsigned=04035_W_Mixing signed expressions and longwords gives a 64bit result
+type_h_mixed_signed_unsigned=04035_H_Mixing signed expressions and longwords gives a 64bit result
 % If you divide (or calculate the modulus of) a signed expression by a longword (or vice versa),
 % or if you have overflow and/or range checking turned on and use an arithmetic
 % expression (+, -, *, div, mod) in which both signed numbers and longwords appear,

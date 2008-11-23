@@ -21,7 +21,7 @@ begin
     P.OSes:=[win32,win64];
     P.Author := 'Marcel van Brakel, Jedi-apilib team';
     P.License := 'LGPL with modification/MPL dual licensed ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Very complete set of Windows units by Jedi Apilib';
     P.NeedLibC:= true;

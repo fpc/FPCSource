@@ -159,6 +159,7 @@ type
       function    GetTopicInfo(T: PTopic) : string; virtual;
       function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
+      function    FormatLink(const s:String):string; virtual;
     private
       DefaultFileName: string;
       CurFileName: string;
@@ -183,6 +184,7 @@ type
       function    ReadTopic(T: PTopic): boolean; virtual;
       function    GetTopicInfo(T: PTopic) : string; virtual;
       function    SearchTopic(HelpCtx: THelpCtx): PTopic; virtual;
+      function    FormatLink(const s:String):string; virtual;
     private
       Chmw: TCHMWrapper;
     end;
@@ -1362,6 +1364,11 @@ begin
   SearchTopic:=P;
 end;
 
+function TCustomHTMLHelpFile.FormatLink(const s:String):string;
+begin
+ formatlink:=formatpath(s);
+end;
+
 function TCustomHTMLHelpFile.GetTopicInfo(T: PTopic) : string;
 var OK: boolean;
     Name: string;
@@ -1384,7 +1391,7 @@ begin
           DebugMessageS({$i %file%},'(Topicinfo) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
           
-          Link:=FormatPath(Link);
+          Link:=FormatLink(Link);
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},'(Topicinfo) Link after formatpath "'+link+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
@@ -1598,6 +1605,12 @@ begin
     loadindex:=chmw.loadindex(id,TopicLinks,IndexEntries,helpfacility);
 end;
 
+function TCHMHelpFile.FormatLink(const s:String):string;
+// do not reformat for chms, we assume them internally consistent.
+begin
+ formatlink:=s;
+end;
+
 function TChmHelpFile.SearchTopic(HelpCtx: THelpCtx): PTopic;
 function MatchCtx(P: PTopic): boolean;
 begin
@@ -1683,9 +1696,9 @@ begin
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},' Looking for  "'+Link+'"',{$i %line%},'1',0,0);
 {$endif WDEBUG}
-          Link:=FormatPath(Link);
+          Link:=FormatLink(Link);
 {$IFDEF WDEBUG}
-          DebugMessageS({$i %file%},' Looking for (after formatpath)  "'+Link+'"',{$i %line%},'1',0,0);
+          DebugMessageS({$i %file%},' Looking for (after formatlink)  "'+Link+'"',{$i %line%},'1',0,0);
 {$endif WDEBUG}
           P:=Pos('#',Link);
           if P>0 then

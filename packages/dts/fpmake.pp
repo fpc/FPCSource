@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Library: Gildas Bazin, header: Ivo Steinmann';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'a low-level interface to decoding audio frames encoded using DTS Coherent Acoustics';
     P.NeedLibC:= true;

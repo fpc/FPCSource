@@ -77,6 +77,9 @@ type
   u_short = cushort;
 
 
+  coff_t = clong;
+
+
 {$ifndef FPUNONE}
   cfloat                 = single;             pcfloat                = ^cfloat;
   cdouble                = double;             pcdouble               = ^cdouble;

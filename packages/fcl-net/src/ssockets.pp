@@ -546,8 +546,8 @@ Var
   addr: TInetSockAddr;
 
 begin
-  A := StrToNetAddr(FHost);
-  if A.s_bytes[4] = 0 then
+  A := StrToHostAddr(FHost);
+  if A.s_bytes[1] = 0 then
     With THostResolver.Create(Nil) do
       try
         If Not NameLookup(FHost) then

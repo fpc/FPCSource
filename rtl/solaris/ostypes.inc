@@ -240,3 +240,28 @@ type
          end;
  TTms= tms;
  pTms= ^tms;
+
+const
+  POLLIN      = $0001;
+  POLLPRI     = $0002;
+  POLLOUT     = $0004;
+  POLLERR     = $0008;
+  POLLHUP     = $0010;
+  POLLNVAL    = $0020;
+
+  { XOpen, XPG 4.2 }
+  POLLRDNORM  = $0040;
+  POLLRDBAND  = $0080;
+  POLLWRNORM  = POLLOUT;
+  POLLWRBAND  = $0100;
+
+type
+  pollfd = record
+    fd: cint;
+    events: cshort;
+    revents: cshort;
+  end;
+  tpollfd = pollfd;
+  ppollfd = ^pollfd;
+
+

@@ -997,7 +997,8 @@ implementation
               top_const :
                 begin
                   { allow 2nd or 3rd operand being a constant and expect no size for shuf* etc. }
-                  if (opsize=S_NO) and not(i in [1,2]) then
+                  { further, allow AAD and AAM with imm. operand }
+                  if (opsize=S_NO) and not((i in [1,2]) or ((i=0) and (opcode in [A_AAD,A_AAM]))) then
                     message(asmr_e_invalid_opcode_and_operand);
                   if (opsize<>S_W) and (aint(val)>=-128) and (val<=127) then
                     ot:=OT_IMM8 or OT_SIGNED
@@ -1180,12 +1181,12 @@ implementation
         optimize }
         if (Insentry=nil) or ((InsEntry^.flags and IF_PASS2)<>0) then
          begin
+           current_filepos:=fileinfo;
            { We need intel style operands }
            SetOperandOrder(op_intel);
            { create the .ot fields }
            create_ot(objdata);
            { set the file postion }
-           current_filepos:=fileinfo;
          end
         else
          begin

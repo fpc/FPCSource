@@ -33,16 +33,9 @@ type
     Procedure Execute;override;
   end;
 
-  { TCommandShowAll }
+  { TCommandListPackages }
 
-  TCommandShowAll = Class(TPackagehandler)
-  Public
-    Procedure Execute;override;
-  end;
-
-  { TCommandShowAvail }
-
-  TCommandShowAvail = Class(TPackagehandler)
+  TCommandListPackages = Class(TPackagehandler)
   Public
     Procedure Execute;override;
   end;
@@ -152,23 +145,16 @@ begin
 end;
 
 
-procedure TCommandShowAll.Execute;
+procedure TCommandListPackages.Execute;
 begin
-  ListInstalledPackages;
-end;
-
-
-procedure TCommandShowAvail.Execute;
-begin
-  ListAvailablePackages;
+  ListPackages;
 end;
 
 
 procedure TCommandScanPackages.Execute;
 begin
-  RebuildRemoteRepository;
-  ListRemoteRepository;
-  SaveRemoteRepository;
+  { nothing, already handled in fppkg.pp as special case
+    before the local fppkg directory is processed }
 end;
 
 
@@ -192,10 +178,7 @@ Var
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
-  if IsLocalPackage then
-    P:=InstalledRepository.PackageByName(PackageName)
-  else
-    P:=AvailableRepository.PackageByName(PackageName);
+  P:=AvailableRepository.PackageByName(PackageName);
   BuildDir:=PackageBuildPath(P);
   ArchiveFile:=PackageLocalArchive(P);
   if not FileExists(ArchiveFile) then
@@ -223,11 +206,16 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
         end
+      else
+        if (PackageName=CurrentDirPackageName) then
+          begin
+            ExecuteAction(PackageName,'installdependencies');
+          end
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
@@ -244,11 +232,16 @@ begin
     begin
       // For local files we need the information inside the zip to get the
       // dependencies
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) then
         begin
           ExecuteAction(PackageName,'unzip');
           ExecuteAction(PackageName,'installdependencies');
         end
+      else
+        if (PackageName=CurrentDirPackageName) then
+          begin
+            ExecuteAction(PackageName,'installdependencies');
+          end
       else
         begin
           ExecuteAction(PackageName,'installdependencies');
@@ -268,7 +261,7 @@ begin
     begin
       ExecuteAction(PackageName,'build');
       ExecuteAction(PackageName,'fpmakeinstall');
-      if IsLocalPackage then
+      if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
         begin
           // Load package name from manifest
           if not FileExists(ManifestFileName) then
@@ -316,14 +309,17 @@ var
   AvailP : TFPPackage;
   L : TStringList;
   status : string;
+  FreeManifest : boolean;
 begin
   if PackageName='' then
     Error(SErrNoPackageSpecified);
+  FreeManifest:=false;
   // Load dependencies for local packages
-  if IsLocalPackage then
+  if (PackageName=CmdLinePackageName) or (PackageName=CurrentDirPackageName) then
     begin
       ExecuteAction(PackageName,'fpmakemanifest');
       P:=LoadManifestFromFile(ManifestFileName);
+      FreeManifest:=true;
     end
   else
     P:=AvailableRepository.PackageByName(PackageName);
@@ -378,7 +374,7 @@ begin
   for i:=0 to L.Count-1 do
     ExecuteAction(L[i],'install');
   FreeAndNil(L);
-  if IsLocalPackage then
+  if FreeManifest then
     FreeAndNil(P);
 end;
 
@@ -405,8 +401,7 @@ end;
 
 initialization
   RegisterPkgHandler('update',TCommandUpdate);
-  RegisterPkgHandler('showall',TCommandShowAll);
-  RegisterPkgHandler('showavail',TCommandShowAvail);
+  RegisterPkgHandler('list',TCommandListPackages);
   RegisterPkgHandler('scan',TCommandScanPackages);
   RegisterPkgHandler('download',TCommandDownload);
   RegisterPkgHandler('unzip',TCommandUnzip);

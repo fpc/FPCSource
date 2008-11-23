@@ -400,6 +400,11 @@ begin
 {$endif bunxfunc_fpselect_implemented}
 end;
 
+function fpPoll(fds: ppollfd; nfds: cuint; timeout: clong): cint;
+begin
+  fpPoll:=do_syscall(syscall_nr_poll,tsysparam(fds),tsysparam(nfds),tsysparam(timeout));
+end;
+
 Function fpLstat(path:pchar;Info:pstat):cint;
 {
   Get all information on a link (the link itself), and return it in info.
@@ -407,7 +412,7 @@ Function fpLstat(path:pchar;Info:pstat):cint;
 
 begin
  fpLStat:=do_syscall(
-{$ifdef cpux86_64}
+{$ifdef cpu64}
     syscall_nr_lstat,
 {$else}
     syscall_nr_lstat64,

@@ -456,6 +456,11 @@ begin
  fpSelect:=do_syscall(syscall_nr_select,n,TSysParam(readfds),TSysParam(writefds),TSysParam(exceptfds),TSysParam(timeout));
 end;
 
+function fpPoll(fds: ppollfd; nfds: cuint; timeout: clong): cint;
+begin
+  fpPoll:=do_syscall(syscall_nr_poll,tsysparam(fds),tsysparam(nfds),tsysparam(timeout));
+end;
+
 Function fpLstat(path:pchar;Info:pstat):cint;
 {
   Get all information on a link (the link itself), and return it in info.

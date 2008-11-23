@@ -163,6 +163,29 @@ type
   ptimezone =^timezone;
   TTimeZone = timezone;
 
+const
+  POLLIN      = $0001;
+  POLLPRI     = $0002;
+  POLLOUT     = $0004;
+  POLLERR     = $0008;
+  POLLHUP     = $0010;
+  POLLNVAL    = $0020;
+
+  { XOpen, XPG 4.2 }
+  POLLRDNORM  = $0040;
+  POLLRDBAND  = $0080;
+  POLLWRNORM  = $0100;
+  POLLWRBAND  = $0200;
+
+type
+  pollfd = record
+    fd: cint;
+    events: cshort;
+    revents: cshort;
+  end;
+  tpollfd = pollfd;
+  ppollfd = ^pollfd;
+
 {***********************************************************************}
 {                  POSIX CONSTANT ROUTINE DEFINITIONS                   }
 {***********************************************************************}

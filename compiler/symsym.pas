@@ -84,7 +84,6 @@ interface
           FProcdefList   : TFPObjectList;
           FProcdefDerefList : TFPList;
        public
-          overloadchecked : boolean;
           constructor create(const n : string);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -93,18 +92,13 @@ interface
           { tests, if all procedures definitions are defined and not }
           { only forward                                             }
           procedure check_forward;
-          procedure unchain_overload;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
-          { currobjdef is the object def to assume, this is necessary for protected and
-            private, context is the object def we're really in, this is for the strict stuff }
-          function is_visible_for_object(currobjdef:tdef;context:tdef):boolean;override;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -372,6 +366,7 @@ implementation
          { Register symbol }
          current_module.symlist[SymId]:=self;
          ppufile.getposinfo(fileinfo);
+         visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
       end;
 
@@ -381,6 +376,7 @@ implementation
          ppufile.putlongint(SymId);
          ppufile.putstring(realname);
          ppufile.putposinfo(fileinfo);
+         ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
       end;
 
@@ -479,8 +475,7 @@ implementation
          FProcdefderefList:=nil;
          { the tprocdef have their own symoptions, make the procsym
            always visible }
-         symoptions:=[sp_public];
-         overloadchecked:=false;
+         visibility:=vis_public;
       end;
 
 
@@ -611,20 +606,6 @@ implementation
             d.dataidx:=PtrInt(FProcdefDerefList[i]);
             pd:=tprocdef(d.resolve);
             ProcdefList.Add(pd);
-          end;
-      end;
-
-
-    procedure Tprocsym.add_para_match_to(Aprocsym:Tprocsym;cpoptions:tcompare_paras_options);
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            if Aprocsym.find_procdef_bypara(pd.paras,nil,cpoptions)=nil then
-              Aprocsym.ProcdefList.Add(pd);
           end;
       end;
 
@@ -774,51 +755,6 @@ implementation
               end;
           end;
         result:=bestpd;
-      end;
-
-
-    procedure tprocsym.unchain_overload;
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        { remove all overloaded procdefs from the
-          procdeflist that are not in the current symtable }
-        overloadchecked:=false;
-        { reset new lists }
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            { only keep the proc definitions:
-              - are not deref'd (def=nil)
-              - are in the same symtable as the procsym (for example both
-                are in the staticsymtable) }
-            if not(pd.owner=owner) then
-              ProcdefList[i]:=nil;
-          end;
-        { Remove cleared entries }
-        ProcdefList.Pack;
-      end;
-
-
-    function tprocsym.is_visible_for_object(currobjdef:tdef;context:tdef):boolean;
-      var
-        i  : longint;
-        pd : tprocdef;
-      begin
-        { This procsym is visible, when there is at least
-          one of the procdefs visible }
-        result:=false;
-        for i:=0 to ProcdefList.Count-1 do
-          begin
-            pd:=tprocdef(ProcdefList[i]);
-            if (pd.owner=owner) and
-                pd.is_visible_for_object(tobjectdef(currobjdef),tobjectdef(context)) then
-              begin
-                result:=true;
-                exit;
-              end;
-          end;
       end;
 
 

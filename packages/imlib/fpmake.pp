@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Library: Carsten Haitzler, header: ?';
     P.License := 'Library: LGPL 2 or later, header: LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Headers to imlib, an efficient bitmap manipulation program';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Nils Sjoholm';
     P.License := 'LGPL with modification';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'A set of units for Amiga OS. 68k only?';
     P.NeedLibC:= false;

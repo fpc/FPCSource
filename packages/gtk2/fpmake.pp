@@ -20,7 +20,7 @@ begin
     P.OSes:=AllUnixOSes+[Win32,Win64];
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Mattias Gaertner, Olaf Leidinger';
     P.License := 'Library: LGPL2.1, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Header to the GTK widgetset (v2.x).';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

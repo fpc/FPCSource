@@ -217,7 +217,7 @@ implementation
       SysUtils,globals,
       verbose,systems,
       scanner,ppu,dbgbase,
-      procinfo;
+      procinfo,symdef;
 
 {$ifdef MEMDEBUG}
     var
@@ -550,7 +550,10 @@ implementation
         if assigned(procinfo) then
           begin
             if current_procinfo=tprocinfo(procinfo) then
-             current_procinfo:=nil;
+              begin
+                current_procinfo:=nil;
+                current_objectdef:=nil;
+              end;
             { release procinfo tree }
             while assigned(procinfo) do
              begin
@@ -629,7 +632,10 @@ implementation
         if assigned(procinfo) then
           begin
             if current_procinfo=tprocinfo(procinfo) then
-             current_procinfo:=nil;
+              begin
+                current_procinfo:=nil;
+                current_objectdef:=nil;
+              end;
             { release procinfo tree }
             while assigned(procinfo) do
              begin

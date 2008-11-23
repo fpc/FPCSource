@@ -1148,7 +1148,13 @@ implementation
         n:=ExtractFileName(current_module.mainsource^)
       else
         n:=InputFileName;
-      AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+
+      { gcc does not add it either for Darwin (and AIX). Grep for
+        TARGET_ASM_FILE_START_FILE_DIRECTIVE in gcc/config/*.h
+      }
+      if not(target_info.system in systems_darwin) then
+        AsmWriteLn(#9'.file "'+FixFileName(n)+'"');
+
       WriteExtraHeader;
       AsmStartSize:=AsmSize;
       symendcount:=0;

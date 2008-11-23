@@ -20,7 +20,7 @@ begin
 
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Nikolay Nikolov';
     P.License := 'Library: GPL2, header: LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
+    P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Library for pixel graphics conversion';
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?

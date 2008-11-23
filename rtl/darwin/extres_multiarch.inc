@@ -42,7 +42,11 @@ const
           {$IFDEF CPUPOWERPC64}
           '.powerpc64';
           {$ELSE}
-          '';
+            {$IFDEF CPUARM}
+            '.arm';
+            {$ELSE}
+              '';
+            {$ENDIF}
           {$ENDIF}
         {$ENDIF}
       {$ENDIF}
