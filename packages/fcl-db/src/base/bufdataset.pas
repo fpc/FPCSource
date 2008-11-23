@@ -1176,6 +1176,7 @@ procedure TDoubleLinkedBufIndex.RemoveRecordFromIndex(const ABookmark : TBufBook
 var ARecord : PBufRecLinkItem;
 begin
   ARecord := ABookmark.BookmarkData;
+  if ARecord = FCurrentRecBuf then DoScrollForward;
   if ARecord <> FFirstRecBuf then
     ARecord[IndNr].prior[IndNr].next := ARecord[IndNr].next
   else
@@ -1184,7 +1185,6 @@ begin
     FLastRecBuf[IndNr].next := FFirstRecBuf;
     end;
   ARecord[IndNr].next[IndNr].prior := ARecord[IndNr].prior;
-  DoScrollForward;
 end;
 
 function TDoubleLinkedBufIndex.GetRecNo(const ABookmark: PBufBookmark): integer;
@@ -1939,7 +1939,7 @@ begin
       SetLength(FUpdateBlobBuffers,0);
       end;
 
-    GotoBookmark(@StoreCurrRec);
+    InternalGotoBookmark(@StoreCurrRec);
     Resync([]);
     EnableControls;
   end;
