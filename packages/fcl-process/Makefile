@@ -791,7 +791,7 @@ ifeq ($(FULL_TARGET),i386-linux)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/unix src/dummy
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/win src/dummy
+override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/dummy
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 override COMPILER_INCLUDEDIR+=src/$(OS_TARGET) src  src/win src/dummy
