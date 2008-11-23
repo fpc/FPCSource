@@ -98,6 +98,7 @@ type
     FMasterLink: TMasterDataLink;
     FIndexFieldNames: String;
     FIndexFieldList: TList;
+    FOnGetHandle: TDataSetNotifyEvent;
     FOptions: TSqliteOptions;
     FSqlList:TStrings;
     procedure CopyCacheToItem(AItem: PDataRecord);
@@ -228,6 +229,7 @@ type
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write SetFileName;
     property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
+    property OnGetHandle: TDataSetNotifyEvent read FOnGetHandle write FOnGetHandle;
     property Options: TSqliteOptions read FOptions write SetOptions;
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
@@ -1097,6 +1099,8 @@ begin
   if FFileName = '' then
     DatabaseError('Filename not set',Self);
   FSqliteHandle := InternalGetHandle;
+  if Assigned(FOnGetHandle) then
+    FOnGetHandle(Self);
 end;
 
 procedure TCustomSqliteDataset.FreeItem(AItem: PDataRecord);
