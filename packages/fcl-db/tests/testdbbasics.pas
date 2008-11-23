@@ -95,6 +95,7 @@ type
     procedure TestEofAfterFirst;           //bug 7211
     procedure TestBufDatasetCancelUpd1;
     procedure TestMultipleDeleteUpdateBuffer;
+    procedure TestDoubleDelete;
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -945,16 +946,20 @@ begin
 end;
 
 procedure TTestDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
+var i : integer;
 begin
   AssertEquals(2,ADataset.FieldDefs.Count);
-  AssertEquals(5,ADataset.RecordCount);
   AssertEquals(2,ADataset.Fields.Count);
   AssertEquals('ID',ADataset.Fields[0].FieldName);
   AssertEquals('NAME',ADataset.Fields[1].FieldName);
   AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
-  AssertEquals('TestName1',ADataset.FieldByName('name').AsString);
-  ADataset.Next;
-  AssertEquals('TestName2',ADataset.FieldByName('name').AsString);
+  i := 1;
+  while not ADataset.EOF do
+    begin
+    AssertEquals('TestName'+inttostr(i),ADataset.FieldByName('name').AsString);
+    ADataset.Next;
+    inc(i);
+    end;
 end;
 
 procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
@@ -2040,6 +2045,42 @@ begin
     CancelUpdates;
     end;
   ds.close;
+end;
+
+procedure TTestDBBasics.TestDoubleDelete;
+var ds    : TBufDataset;
+begin
+  ds := TBufDataset(DBConnector.GetNDataset(true,5));
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  with ds do
+    begin
+    open;
+    next; next;
+    Delete;
+    Delete;
+
+    first;
+    AssertEquals(1,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(2,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(5,fieldbyname('id').AsInteger);
+
+    CancelUpdates;
+
+    first;
+    AssertEquals(1,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(2,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(3,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(4,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(5,fieldbyname('id').AsInteger);
+    end;
 end;
 
 procedure TTestDBBasics.TestNullAtOpen;
