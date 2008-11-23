@@ -80,6 +80,9 @@ type
 
   TGetSqlStrFunction = function (APChar: PChar): String;
 
+  TSqliteOption = (soWildcardKey);
+  TSqliteOptions = set of TSqliteOption;
+
   { TCustomSqliteDataset }
 
   TCustomSqliteDataset = class(TDataSet)
@@ -95,12 +98,14 @@ type
     FMasterLink: TMasterDataLink;
     FIndexFieldNames: String;
     FIndexFieldList: TList;
+    FOptions: TSqliteOptions;
     FSqlList:TStrings;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
     procedure SetMasterIndexValue;
+    procedure SetOptions(const AValue: TSqliteOptions);
     procedure UpdateIndexFields;
-    function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
+    function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync:Boolean):PDataRecord;
   protected
     FPrimaryKey: String;
     FPrimaryKeyNo: Integer;
@@ -184,8 +189,8 @@ type
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; override;
-    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean; override;
-    function LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
+    function Locate(const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean; override;
+    function LocateNext(const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean;
     function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;override;
     // Additional procedures
     function ApplyUpdates: Boolean;
@@ -223,6 +228,7 @@ type
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write SetFileName;
     property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
+    property Options: TSqliteOptions read FOptions write SetOptions;
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
@@ -533,6 +539,11 @@ var
 begin
   for i := 0 to FIndexFieldList.Count - 1 do
     TField(FIndexFieldList[i]).AsString := TField(FMasterLink.Fields[i]).AsString;
+end;
+
+procedure TCustomSqliteDataset.SetOptions(const AValue: TSqliteOptions);
+begin
+  FOptions := AValue;
 end;
 
 procedure TCustomSqliteDataset.DisposeLinkedList;
@@ -901,7 +912,7 @@ begin
 end;
 
 type
-  TLocateCompareFunction = function (Value, Key: PChar): Boolean;
+  TLocateCompareFunction = function (Value: PChar; const Key: String): Boolean;
   
   TLocateFieldInfo = record
     Index: Integer;
@@ -909,39 +920,56 @@ type
     CompFunction: TLocateCompareFunction;
   end;
 
-function CompInsensitivePartial(Value, Key: PChar): Boolean;
+function CompInsensitivePartial(Value: PChar; const Key: String): Boolean;
 begin
   if Value <> nil then
-    Result := StrLIComp(Value, Key, StrLen(Key)) = 0
+    Result := StrLIComp(Value, PChar(Key), Length(Key)) = 0
   else
     Result := False;
 end;
 
-function CompSensitivePartial(Value, Key: PChar): Boolean;
+function CompSensitivePartial(Value: PChar; const Key: String): Boolean;
 begin
   if Value <> nil then
-    Result := StrLComp(Value, Key, StrLen(Key)) = 0
+    Result := StrLComp(Value, PChar(Key), Length(Key)) = 0
   else
     Result := False;
 end;
 
-function CompInsensitive(Value, Key: PChar): Boolean;
+function CompInsensitive(Value: PChar; const Key: String): Boolean;
 begin
   if Value <> nil then
-    Result := StrIComp(Value, Key) = 0
+    Result := StrIComp(Value, PChar(Key)) = 0
   else
     Result := False;
 end;
 
-function CompSensitive(Value, Key: PChar): Boolean;
+function CompSensitive(Value: PChar; const Key: String): Boolean;
 begin
   if Value <> nil then
-    Result := StrComp(Value, Key) = 0
+    Result := StrComp(Value, PChar(Key)) = 0
   else
     Result := False;
 end;
 
-function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
+function CompSensitiveWild(Value: PChar; const Key: String): Boolean;
+begin
+  if Value <> nil then
+    Result := IsWild(String(Value), Key, False)
+  else
+    Result := False;
+end;
+
+function CompInsensitiveWild(Value: PChar; const Key: String): Boolean;
+begin
+  if Value <> nil then
+    Result := IsWild(String(Value), Key, True)
+  else
+    Result := False;
+end;
+
+
+function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync:Boolean):PDataRecord;
 var
   LocateFields: array of TLocateFieldInfo;
   AFieldList: TList;
@@ -960,11 +988,11 @@ begin
     begin
       if VarIsArray(KeyValues) then
       begin
-        if Succ(VarArrayHighBound(KeyValues,1)) <> AFieldCount then
-          DatabaseError('Number of fields does not correspond to number of values',Self);
+        if Succ(VarArrayHighBound(KeyValues, 1)) <> AFieldCount then
+          DatabaseError('Number of fields does not correspond to number of values', Self);
       end
       else
-        DatabaseError('Wrong number of values specified: expected an array of variants got a variant',Self);
+        DatabaseError('Wrong number of values specified: expected an array of variants got a variant', Self);
     end;
     
     //set the array of the fields info
@@ -973,21 +1001,29 @@ begin
     for i := 0 to AFieldCount - 1 do
       with TField(AFieldList[i]) do
       begin
-        if not (DataType in [ftFloat,ftDateTime,ftTime,ftDate]) then
+        if not (DataType in [ftFloat, ftDateTime, ftTime, ftDate]) then
         begin
           //the loPartialKey and loCaseInsensitive is ignored in numeric fields
           if DataType in [ftString, ftMemo] then
           begin
-            if loPartialKey in Options then
+            if loPartialKey in LocateOptions then
             begin
-              if loCaseInsensitive in Options then
+              if loCaseInsensitive in LocateOptions then
                 LocateFields[i].CompFunction := @CompInsensitivePartial
               else
                 LocateFields[i].CompFunction := @CompSensitivePartial;
             end
             else
+            if soWildcardKey in FOptions then
             begin
-              if loCaseInsensitive in Options then
+              if loCaseInsensitive in LocateOptions then
+                LocateFields[i].CompFunction := @CompInsensitiveWild
+              else
+                LocateFields[i].CompFunction := @CompSensitiveWild;
+            end
+            else
+            begin
+              if loCaseInsensitive in LocateOptions then
                 LocateFields[i].CompFunction := @CompInsensitive
               else
                 LocateFields[i].CompFunction := @CompSensitive;
@@ -1034,7 +1070,7 @@ begin
     for i:= 0 to AFieldCount - 1 do
     begin
       with LocateFields[i] do
-      if not CompFunction(TempItem^.Row[Index], PChar(Key)) then
+      if not CompFunction(TempItem^.Row[Index], Key) then
       begin
         MatchRecord := False;
         Break;//for
@@ -1073,16 +1109,16 @@ begin
   Dispose(AItem);
 end;
 
-function TCustomSqliteDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
+function TCustomSqliteDataset.Locate(const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean;
 begin
   CheckBrowseMode;
-  Result := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, Options, True) <> nil;
+  Result := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, LocateOptions, True) <> nil;
 end;
   
-function TCustomSqliteDataset.LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
+function TCustomSqliteDataset.LocateNext(const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean;
 begin
   CheckBrowseMode;
-  Result := FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next, KeyFields, KeyValues, Options, True) <> nil;
+  Result := FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next, KeyFields, KeyValues, LocateOptions, True) <> nil;
 end;
   
 function TCustomSqliteDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
