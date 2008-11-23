@@ -144,6 +144,7 @@ type
     procedure StoreCurrentRecIntoBookmark(const ABookmark: PBufBookmark);  virtual; abstract;
     procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark);  virtual; abstract;
     procedure GotoBookmark(const ABookmark : PBufBookmark); virtual; abstract;
+    function BookmarkValid(const ABookmark: PBufBookmark): boolean; virtual;
 
     procedure InitialiseIndex; virtual; abstract;
 
@@ -467,6 +468,7 @@ type
     procedure LoadFromFile(AFileName: string = ''; Format: TDataPacketFormat = dfAny);
     procedure SaveToFile(AFileName: string = ''; Format: TDataPacketFormat = dfBinary);
     procedure CreateDataset;
+    function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
 
     property ChangeCount : Integer read GetChangeCount;
@@ -1039,6 +1041,11 @@ constructor TBufIndex.Create(const ADataset: TBufDataset);
 begin
   inherited create;
   FDataset := ADataset;
+end;
+
+function TBufIndex.BookmarkValid(const ABookmark: PBufBookmark): boolean;
+begin
+  Result := assigned(ABookmark) and assigned(ABookmark^.BookmarkData);
 end;
 
 function TBufIndex.CompareBookmarks(const ABookmark1, ABookmark2: PBufBookmark): boolean;
@@ -2497,6 +2504,11 @@ procedure TBufDataset.CreateDataset;
 begin
   CheckInactive;
   CreateFields;
+end;
+
+function TBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
+begin
+  Result:=FCurrentIndex.BookmarkValid(ABookmark);
 end;
 
 function TBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
