@@ -368,7 +368,7 @@ unit optvirt;
     procedure tinheritancetree.markvmethods(node: tinheritancetreenode; p: pointer);
       var
         currnode: tinheritancetreenode;
-        pd: tobject;
+        pd: tprocdef;
         i: longint;
         makeallvirtual: boolean;
       begin
@@ -376,18 +376,18 @@ unit optvirt;
         writeln('processing leaf node ',node.def.typename);
         {$ENDIF}
         { todo: also process interfaces (ImplementedInterfaces) }
-        if not assigned(node.def.vmtentries) then
+        if (node.def.vmtentries.count=0) then
           exit;
         { process all vmt entries for this class/object }
         for i:=0 to node.def.vmtentries.count-1 do
           begin
             currnode:=node;
-            pd:=currnode.def.vmtentries[i];
+            pd:=pvmtentry(currnode.def.vmtentries[i])^.procdef;
             { abstract methods cannot be called directly }
-            if (po_abstractmethod in tprocdef(pd).procoptions) then
+            if (po_abstractmethod in pd.procoptions) then
               continue;
             {$IFDEF DEBUG_DEVIRT}
-            writeln('  method ',tprocdef(pd).typename);
+            writeln('  method ',pd.typename);
             {$ENDIF}
             { Now mark all virtual methods static that are the same in parent
               classes as in this instantiated child class (only instantiated
@@ -401,9 +401,7 @@ unit optvirt;
             }
             makeallvirtual:=false;
             repeat
-                 { this parent may not have any virtual methods }
-              if not assigned(currnode.def.vmtentries) or
-                 { stop when this method does not exist in a parent }
+              if { stop when this method does not exist in a parent }
                  (currnode.def.vmtentries.count<=i) then
                 break;
               
@@ -415,7 +413,7 @@ unit optvirt;
                   { methods in uninstantiated classes can be made static if
                     they are the same in all instantiated derived classes
                   }
-                  if ((currnode.def.vmtentries[i]=pd) or
+                  if ((pvmtentry(currnode.def.vmtentries[i])^.procdef=pd) or
                       (not currnode.instantiated and
                        (currnode.def.vmcallstaticinfo^[i]=vmcs_default))) and
                       not makeallvirtual then
@@ -427,7 +425,7 @@ unit optvirt;
                       { this is in case of a non-instantiated parent of an instantiated child:
                         the method declared in the child will always be called here
                       }
-                      currnode.def.vmtentries[i]:=pd;
+                      pvmtentry(currnode.def.vmtentries[i])^.procdef:=pd;
                     end
                   else
                     begin
@@ -469,19 +467,19 @@ unit optvirt;
         totaldevirtualised:=0;
         totalvirtual:=0;
         writeln(node.def.typename);
-        if not assigned(node.def.vmtentries) then
+        if (node.def.vmtentries.count=0) then
           begin
             writeln('  No virtual methods!');
             exit;
           end;
         for i:=0 to node.def.vmtentries.count-1 do
-          if (po_virtualmethod in tabstractprocdef(node.def.vmtentries[i]).procoptions) then
+          if (po_virtualmethod in pvmtentry(node.def.vmtentries[i])^.procdef.procoptions) then
             begin
               inc(totalvirtual);
               if (node.def.vmcallstaticinfo^[i]=vmcs_yes) then
                 begin
                   inc(totaldevirtualised);
-                  writeln('  Devirtualised: ',tabstractprocdef(node.def.vmtentries[i]).typename);
+                  writeln('  Devirtualised: ',pvmtentry(node.def.vmtentries[i])^.procdef.typename);
                 end;
             end;
         writeln('Total devirtualised: ',totaldevirtualised,'/',totalvirtual);
@@ -611,7 +609,7 @@ unit optvirt;
         classdevirtinfo: tclassdevirtinfo;
       begin
         if (not node.instantiated) and
-           not assigned(node.def.vmtentries) then
+           (node.def.vmtentries.count=0) then
           exit;
         { always add a class entry for an instantiated class, so we can
           fill the vmt's of non-instantiated classes with calls to
@@ -620,14 +618,14 @@ unit optvirt;
         defunitclassname(node.def,unitid,classid);
         unitdevirtinfo:=addunitifnew(unitid^);
         classdevirtinfo:=unitdevirtinfo.addclass(classid^,node.instantiated);
-        if not assigned(node.def.vmtentries) then
+        if (node.def.vmtentries.count=0) then
           exit;
         for i:=0 to node.def.vmtentries.count-1 do
-          if (po_virtualmethod in tabstractprocdef(node.def.vmtentries[i]).procoptions) and
+          if (po_virtualmethod in pvmtentry(node.def.vmtentries[i])^.procdef.procoptions) and
              (node.def.vmcallstaticinfo^[i]=vmcs_yes) then
             begin
               { add info about devirtualised vmt entry }
-              classdevirtinfo.addstaticmethod(i,tprocdef(node.def.vmtentries[i]).mangledname);
+              classdevirtinfo.addstaticmethod(i,pvmtentry(node.def.vmtentries[i])^.procdef.mangledname);
             end;
       end;
 

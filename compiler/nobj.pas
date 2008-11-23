@@ -1215,7 +1215,7 @@ implementation
              internalerror(200611083);
            if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
-           else if not wpoinfomanager.optimized_name_for_vmt(_class,pd,procname) then
+           else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}
