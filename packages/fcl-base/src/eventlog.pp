@@ -111,11 +111,9 @@ Resourcestring
 
 implementation
 
-{$if defined(win32) or defined(win64) or defined(unix)}
- {$i eventlog.inc}
-{$else}
- {$i felog.inc}
-{$endif}
+{$i eventlog.inc}
+(* File based dummy implementation is used for all platforms not providing
+   specific implementation of eventlog.inc for the particular platform. *)
 
 { TEventLog }
 

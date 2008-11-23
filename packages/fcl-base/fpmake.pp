@@ -21,7 +21,7 @@ begin
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
-    P.HomepageURL := 'www.freepascal.org';
+    P.ExternalURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
@@ -34,6 +34,7 @@ begin
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
+    P.IncludePath.Add('src/dummy',AllOSes);
 
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
@@ -55,8 +56,7 @@ begin
       T.ResourceStrings:=true;
       with T.Dependencies do
         begin
-          AddInclude('eventlog.inc',AllUnixOSes+[Win32,Win64]);
-          AddInclude('felog.inc',AllOSes-AllUnixOSes-[Win32,Win64]);
+          AddInclude('eventlog.inc');
         end;
     T:=P.Targets.AddUnit('fptimer.pp',AllWindowsOSes+AllUnixOSes);
     T:=P.Targets.AddUnit('gettext.pp');

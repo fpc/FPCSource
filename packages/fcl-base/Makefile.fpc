@@ -49,6 +49,7 @@ includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
 sourcedir=src/$(OS_TARGET) src
+includedir_linux=src/dummy
 
 [prerules]
 ifeq ($(OS_TARGET),win32)
