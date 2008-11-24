@@ -13,6 +13,7 @@ var AVar          : Variant;
     PassException : boolean;
 
 begin
+  DBConnectorName := 'dbf';
   InitialiseDBConnector;
   with DBConnector.GetNDataset(true,14) do
     begin

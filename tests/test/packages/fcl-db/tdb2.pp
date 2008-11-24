@@ -13,6 +13,7 @@ uses
 var PassException : boolean;
 
 begin
+  DBConnectorName := 'dbf';
   InitialiseDBConnector;
   with DBConnector.GetNDataset(true,11) do
     begin

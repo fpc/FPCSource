@@ -7587,7 +7587,6 @@ tests/test/opt/treg4.pp svneol=native#text/plain
 tests/test/opt/tretopt.pp svneol=native#text/plain
 tests/test/opt/tspace.pp svneol=native#text/plain
 tests/test/packages/fcl-db/assertions.pas svneol=native#text/plain
-tests/test/packages/fcl-db/database.ini svneol=native#text/plain
 tests/test/packages/fcl-db/dbftoolsunit.pas svneol=native#text/plain
 tests/test/packages/fcl-db/tdb1.pp svneol=native#text/plain
 tests/test/packages/fcl-db/tdb2.pp svneol=native#text/plain
