@@ -1166,6 +1166,8 @@ procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 var
   TempStr:String;
+  FloatStr: PChar;
+  FloatLen: Integer;
 begin
   if not (State in [dsEdit, dsInsert]) then
     DatabaseErrorFmt(SNotEditing,[Name],Self);
@@ -1192,11 +1194,22 @@ begin
       end;  
     ftFloat,ftDateTime,ftDate,ftTime,ftCurrency:
       begin
-        Str(Double(Buffer^),TempStr);  
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr));
-        //Skips the first space that str returns
-        //todo: make a custom Str?
-        Move((PChar(TempStr)+1)^,(FCacheItem^.Row[Pred(Field.FieldNo)])^,Length(TempStr));
+        Str(Double(Buffer^),TempStr);
+        //Str returns a space as the first character for positive values
+        //and the - sign for negative values. It's necessary to remove the extra
+        //space while keeping the - sign
+        if TempStr[1] = ' ' then
+        begin
+          FloatStr := PChar(TempStr) + 1;
+          FloatLen := Length(TempStr);
+        end
+        else
+        begin
+          FloatStr := PChar(TempStr);
+          FloatLen := Length(TempStr) + 1;
+        end;
+        FCacheItem^.Row[Pred(Field.FieldNo)] := StrAlloc(FloatLen);
+        Move(FloatStr^, (FCacheItem^.Row[Pred(Field.FieldNo)])^, FloatLen);
       end;
     ftLargeInt:
       begin
