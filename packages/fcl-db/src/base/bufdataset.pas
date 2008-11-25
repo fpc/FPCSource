@@ -1730,12 +1730,7 @@ begin
   for i := StartInd to FIndexesCount-1 do
     findexes[i].RemoveRecordFromIndex(RemRecBookmrk);
 
-// If a modified record is deleted, and GetRecordUpdateBuffer is used, problems
-// may arise. The 'delete' is placed in the update-buffer before the actual delete
-// took place. This can lead into troubles, because other updates can depend on
-// the record still being available.
-  if not GetActiveRecordUpdateBuffer or
-    (FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind = ukModify) then
+  if not GetActiveRecordUpdateBuffer then
     begin
     FCurrentUpdateBuffer := length(FUpdateBuffer);
     SetLength(FUpdateBuffer,FCurrentUpdateBuffer+1);
