@@ -1782,10 +1782,63 @@ begin
 end;
 
 procedure TBufDataset.CancelUpdates;
+var StoreRecBM     : TBufBookmark;
+  procedure CancelUpdBuffer(var AUpdBuffer : TRecUpdateBuffer);
+  var
+    TmpBuf         : PChar;
+    StoreUpdBuf    : integer;
+    Bm             : TBufBookmark;
+  begin
+    with AUpdBuffer do if assigned(BookmarkData.BookmarkData) then // this is used to exclude buffers which are already handled
+      begin
+      if (UpdateKind = ukModify) then
+        begin
+        FCurrentIndex.GotoBookmark(@BookmarkData);
+        move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+        FreeRecordBuffer(OldValuesBuffer);
+        end
+      else if (UpdateKind = ukDelete) and (assigned(OldValuesBuffer)) then
+        begin
+        FCurrentIndex.GotoBookmark(@BookmarkData);
+        FCurrentIndex.InsertRecordBeforeCurrentRecord(IntAllocRecordBuffer);
+        FCurrentIndex.ScrollBackward;
+        move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
+        FreeRecordBuffer(OldValuesBuffer);
+        inc(FBRecordCount);
+        end
+      else if (UpdateKind = ukInsert) then
+        begin
+        // Process all upd-buffers linked to this record before this record is removed
+        StoreUpdBuf:=FCurrentUpdateBuffer;
+        Bm := BookmarkData;
+        BookmarkData.BookmarkData:=nil; // Avoid infinite recursion...
+        if GetRecordUpdateBuffer(Bm,True,False) then
+          begin
+          repeat
+          if (FCurrentUpdateBuffer<>StoreUpdBuf) then CancelUpdBuffer(FUpdateBuffer[FCurrentUpdateBuffer]);
+          until not GetRecordUpdateBuffer(Bm,True,True);
+          end;
+        FCurrentUpdateBuffer:=StoreUpdBuf;
+
+        FCurrentIndex.GotoBookmark(@Bm);
+        TmpBuf:=FCurrentIndex.CurrentRecord;
+        // resync won't work if the currentbuffer is freed...
+        if FCurrentIndex.CompareBookmarks(@Bm,@StoreRecBM) then with FCurrentIndex do
+          begin
+          GotoBookmark(@StoreRecBM);
+          if ScrollForward = grEOF then
+            ScrollBackward;
+          StoreCurrentRecIntoBookmark(@StoreRecBM);
+          end;
+        FCurrentIndex.RemoveRecordFromIndex(Bm);
+        FreeRecordBuffer(TmpBuf);
+        dec(FBRecordCount);
+        end;
+      BookmarkData.BookmarkData:=nil;
+      end;
+  end;
 
 var r              : Integer;
-    StoreRecBM     : TBufBookmark;
-    TmpBuf         : PChar;
 
 begin
   CheckBrowseMode;
@@ -1794,41 +1847,9 @@ begin
     begin
     FCurrentIndex.StoreCurrentRecIntoBookmark(@StoreRecBM);
     r := Length(FUpdateBuffer) -1;
-    while r > -1 do with FUpdateBuffer[r] do
+    while r > -1 do
       begin
-        begin
-        if UpdateKind = ukModify then
-          begin
-          FCurrentIndex.GotoBookmark(@BookmarkData);
-          move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-          FreeRecordBuffer(OldValuesBuffer);
-          end
-        else if (UpdateKind = ukDelete) and (assigned(FUpdateBuffer[r].OldValuesBuffer)) then
-          begin
-          FCurrentIndex.GotoBookmark(@BookmarkData);
-          FCurrentIndex.InsertRecordBeforeCurrentRecord(IntAllocRecordBuffer);
-          FCurrentIndex.ScrollBackward;
-          move(pchar(OldValuesBuffer)^,pchar(FCurrentIndex.CurrentBuffer)^,FRecordSize);
-          FreeRecordBuffer(OldValuesBuffer);
-          inc(FBRecordCount);
-          end
-        else if UpdateKind = ukInsert then
-          begin
-          FCurrentIndex.GotoBookmark(@BookmarkData);
-          TmpBuf:=FCurrentIndex.CurrentRecord;
-          // resync won't work if the currentbuffer is freed...
-          if FCurrentIndex.CompareBookmarks(@BookmarkData,@StoreRecBM) then with FCurrentIndex do
-            begin
-            GotoBookmark(@StoreRecBM);
-            if ScrollForward = grEOF then
-              ScrollBackward;
-            StoreCurrentRecIntoBookmark(@StoreRecBM);
-            end;
-          FCurrentIndex.RemoveRecordFromIndex(BookmarkData);
-          FreeRecordBuffer(TmpBuf);
-          dec(FBRecordCount);
-          end;
-        end;
+      CancelUpdBuffer(FUpdateBuffer[r]);
       dec(r)
       end;
 
