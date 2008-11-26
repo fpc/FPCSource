@@ -166,19 +166,23 @@ var maxy : integer;
     rx,ry : integer;
 begin
   tempimage := TFPMemoryImage.Create (w,image.height);
-  tempimage.UsePalette := false;
-  xfactor := image.Width / w;
-  yfactor := image.Height / h;
-  if xfactor > 1.0 then
-    xsupport := MaxSupport
-  else
-    xsupport := xfactor * MaxSupport;
-  if yfactor > 1.0 then
-    ysupport := MaxSupport
-  else
-    ysupport := yfactor * MaxSupport;
-  Horizontal (w);
-  Vertical (x,y,w,h);
+  try
+    tempimage.UsePalette := false;
+    xfactor := image.Width / w;
+    yfactor := image.Height / h;
+    if xfactor > 1.0 then
+      xsupport := MaxSupport
+    else
+      xsupport := xfactor * MaxSupport;
+    if yfactor > 1.0 then
+      ysupport := MaxSupport
+    else
+      ysupport := yfactor * MaxSupport;
+    Horizontal (w);
+    Vertical (x,y,w,h);
+  finally
+    tempimage.Free;
+  end;
 end;
 
 { TMitchelInterpolation }

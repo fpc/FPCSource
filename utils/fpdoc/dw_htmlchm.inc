@@ -179,12 +179,12 @@ begin
         // by unit
         TmpItem := ObjUnitItem.Children.NewItem;
         TmpItem.Text := Element.Name;
-        TmpItem.Local := Allocator.GetFilename(Element, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(Element, 0));
         
         //alpha
         TmpItem := GetAlphaItem(AlphaObjItem.Children, UpperCase(Copy(Element.Name, 1, 2))).Children.NewItem;
         TmpItem.Text := Element.Name;
-        TmpItem.Local := Allocator.GetFilename(Element, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(Element, 0));
         
       end;
       
@@ -195,12 +195,12 @@ begin
         // by unit
         TmpItem := RoutinesUnitItem.Children.NewItem;
         TmpItem.Text := Element.Name;
-        TmpItem.Local := Allocator.GetFilename(Element, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(Element, 0));
         
         // alpha
         TmpItem := GetAlphaItem(AlphaRoutinesItem.Children, UpperCase(Element.Name[1])).Children.NewItem;
         TmpItem.Text := Element.Name;
-        TmpItem.Local := Allocator.GetFilename(Element, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(Element, 0));
       end;
     end;
   end;
@@ -287,7 +287,7 @@ begin
       AModule := TPasModule(Package.Modules[i]);
       ParentItem := Index.Items.NewItem;
       ParentItem.Text := AModule.Name;
-      ParentItem.Local := Allocator.GetFilename(AModule, 0);
+      ParentItem.Local := FixHTMLpath(Allocator.GetFilename(AModule, 0));
 
       //  classes
       for j := 0 to AModule.InterfaceSection.Classes.Count-1 do
@@ -295,7 +295,7 @@ begin
         ParentElement := TPasClassType(AModule.InterfaceSection.Classes[j]);
         ParentItem := Index.Items.NewItem;
         ParentItem.Text := ParentELement.Name;
-        ParentItem.Local := Allocator.GetFilename(ParentElement, 0);
+        ParentItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
         for k := 0 to TPasClassType(ParentElement).Members.Count-1 do
         begin
           TmpElement := TPasElement(TPasClassType(ParentElement).Members.Items[k]);
@@ -314,7 +314,7 @@ begin
             cmtInterface   : TmpItem.Text := TmpElement.Name + ' interface';
             cmtUnknown     : TmpItem.Text := TmpElement.Name;
           end;
-          TmpItem.Local := Allocator.GetFilename(TmpElement, 0);
+          TmpItem.Local := FixHTMLpath(Allocator.GetFilename(TmpElement, 0));
           {
           ParentElement = Class
              TmpElement = Member
@@ -322,11 +322,11 @@ begin
           MemberItem := nil;
           MemberItem := GetAlphaItem(Index.Items, TmpElement.Name);
           // ahh! if MemberItem.Local is empty MemberType is not shown!
-          MemberItem.Local := Allocator.GetFilename(TmpElement, 0);
+          MemberItem.Local := FixHTMLpath(Allocator.GetFilename(TmpElement, 0));
 
           TmpItem := MemberItem.Children.NewItem;
           TmpItem.Text := ParentElement.Name;
-          TmpITem.Local := Allocator.GetFilename(TmpElement, 0);
+          TmpITem.Local := FixHTMLpath(Allocator.GetFilename(TmpElement, 0));
         end;
       end;
       // routines
@@ -335,7 +335,7 @@ begin
         ParentElement := TPasProcedureType(AModule.InterfaceSection.Functions[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name + ' ' + TPasFunction(ParentElement).ElementTypeName;
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // consts
       for j := 0 to AModule.InterfaceSection.Consts.Count-1 do
@@ -343,7 +343,7 @@ begin
         ParentElement := TPasElement(AModule.InterfaceSection.Consts[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name;
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // types
       for j := 0 to AModule.InterfaceSection.Types.Count-1 do
@@ -351,7 +351,7 @@ begin
         ParentElement := TPasType(AModule.InterfaceSection.Types[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name;
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
         // enums
         if ParentELement is TPasEnumType then
         begin
@@ -376,7 +376,7 @@ begin
         ParentElement := TPasElement(AModule.InterfaceSection.Variables[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name + ' var';
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // declarations
       {
@@ -385,7 +385,7 @@ begin
         ParentElement := TPasElement(AModule.InterfaceSection.Declarations[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name;
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       // resource strings
       for j := 0 to AModule.InterfaceSection.ResStrings.Count-1 do
@@ -393,7 +393,7 @@ begin
         ParentElement := TPasElement(AModule.InterfaceSection.ResStrings[j]);
         TmpItem := Index.Items.NewItem;
         TmpItem.Text := ParentElement.Name;
-        TmpItem.Local := Allocator.GetFilename(ParentElement, 0);
+        TmpItem.Local := FixHTMLpath(Allocator.GetFilename(ParentElement, 0));
       end;
       }
     end;
