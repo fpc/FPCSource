@@ -1034,14 +1034,10 @@ end;
 function aspell_init(const libn: ansistring): Boolean;
 var
   libname: ansistring;
-  {$IFDEF WINDOWS}
   bversion, path: ansistring;
   version: dword;
-  {$ENDIF}
-  {$ifdef linux}
   i: Integer;
   s: string;
-  {$endif}
 begin
   aspell_init := True;
   libname := libn;
