@@ -15,28 +15,16 @@ interface
 uses
   cTypes;
 
-{$IFDEF Linux}
-  const libaspell = '/usr/lib/libaspell.so';
-{$ENDIF}
-
-{$IFDEF FreeBSD}
-  const libaspell = '/usr/local/lib/libaspell.so';
-{$ENDIF}
-
-{$IFDEF darwin}
- const libaspell = '/opt/local/lib/libaspell.dylib';
-{$ENDIF}
-
-{$IFDEF windows}
+{$IFDEF UNIX}
+  // TODO: check if it works pathless in beosOB
+  {$ifndef DARWIN}
+  const libaspell = 'libaspell.so';
+  {$ELSE}
+  {WARNING Is it possible to omit the path?}
+  const libaspell = '/opt/local/lib/libaspell.dylib';
+  {$ENDIF}
+{$ELSE} // windows
  const libaspell = 'aspell-%s.dll';
-{$ENDIF}
-
-{$IFDEF BeOS}
- const libaspell = '/boot/home/config/lib/libaspell.so';
-{$ENDIF}
-
-{$IFDEF Solaris}
- const libaspell = '/opt/csw/lib/libpspell.so.15';
 {$ENDIF}
 
 {$IFDEF SkyOS}
@@ -1074,11 +1062,10 @@ begin
     libname := '/sw/lib/libaspell.dylib';
     LibHandle := LoadLibrary(libname);
   end;
-  {$endif}
-
-  {$ifdef linux}
+  {$else}
+    {$ifdef unix} // we're not in windblows
   if LibHandle = 0 then begin
-    for i := 15 to 30 do begin // TODO: make sure to up this when required
+    for i := 15 to 20 do begin // TODO: make sure to cut this if they break compat
       str(i, s);
       libname := libn + '.' + s;
       LibHandle := LoadLibrary(libname);
@@ -1086,7 +1073,8 @@ begin
         Break;
     end;
   end;
-  {$endif}
+    {$endif} // unix
+  {$endif} // darwin
 
   if LibHandle = 0 then
     Exit(False);
