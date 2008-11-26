@@ -1405,59 +1405,6 @@ begin
   FCurrentIndex.GotoBookmark(ABookmark);
 end;
 
-(*
-procedure TBufDataset.AddRecordToIndex(var AIndex: TBufIndex; ARecBuf : pchar);
-var cp : integer;
-    NewValueBufLen : Integer;
-    NewValueBuf,CompValueBuf : pchar;
-    RecInd : integer;
-    HighVal,LowVal : Integer;
-begin
-  if not assigned(AIndex.Fields) then
-    AIndex.Fields := FieldByName(AIndex.FieldsName);
-
-  NewValueBuf:=pchar(ARecBuf);
-  inc(NewValueBuf,FFieldBufPositions[AIndex.Fields.FieldNo-1]);
-
-  NewValueBufLen:= Length(NewValueBuf);
-  HighVal := AIndex.FLastRecInd;
-  LowVal := 0;
-
-  repeat
-  RecInd := lowval+((HighVal-LowVal) div 2);
-  CompValueBuf:=AIndex.FRecordArray[RecInd]+FFieldBufPositions[AIndex.Fields.FieldNo-1];
-  if AIndex.Fields.DataType = ftString then
-    begin
-    cp := DBCompareText(NewValueBuf,CompValueBuf,NewValueBufLen,[]);
-    if cp >0 then
-      LowVal := RecInd
-    else
-      HighVal := RecInd;
-    end;
-  until abs(HighVal-LowVal)<2;
-  if cp <0 then RecInd:=RecInd else RecInd := RecInd+1;
-  if recind > AIndex.FLastRecInd then recind := AIndex.FLastRecInd;
-{
-  Write('New: ' + NewValueBuf);
-  Write(' Verg: ' + CompValueBuf);
-  CompValueBuf:=AIndex.FRecordArray[LowVal]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
-  Write(' Low: ' + CompValueBuf + '('+inttostr(LowVal)+')');
-  CompValueBuf:=AIndex.FRecordArray[HighVal]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
-  Write(' High: ' + CompValueBuf + '('+inttostr(HighVal)+')');
-  CompValueBuf:=AIndex.FRecordArray[RecInd]+FFieldBufPositions[AIndex.SortField.FieldNo-1];
-  Write(' RecIND: ' + CompValueBuf + '('+inttostr(RecInd)+')');
-  Writeln(' cp: ' + inttostr(cp));
-}
-
-  if (AIndex.FLastRecInd+1) >= length(AIndex.FRecordArray) then
-    SetLength(AIndex.FRecordArray,length(AIndex.FRecordArray)+FGrowBuffer);
-
-  move(AIndex.FRecordArray[RecInd],AIndex.FRecordArray[RecInd+1],sizeof(pointer)*(AIndex.FLastRecInd-RecInd+5)); // Let op. Moet zijn +1?
-  AIndex.FRecordArray[RecInd]:= ARecBuf;
-  inc(AIndex.FLastRecInd)
-end;
-*)
-
 function TBufDataset.getnextpacket : integer;
 
 var i : integer;
@@ -2059,48 +2006,6 @@ begin
     end;
 
   move(ActiveBuffer^,FCurrentIndex.CurrentBuffer^,FRecordSize);
-//  CurrBuff:=pchar(tmpRecBuffer);
-// The next part has to be rewritten.
-{
-  CurrBuff := FCurrentIndex.CurrentBuffer;
-  if FCurrentIndex=FIndexes[1] then StartInd := 1 else StartInd := 2;
-  for i := StartInd to FIndexesCount-1 do
-    begin
-    IndNr:=(FIndexes[i] as TDoubleLinkedBufIndex).IndNr;
-    if (assigned(PBufRecLinkItem(CurrBuff)[IndNr].prior)) and
-       (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[IndNr].prior,FIndexes[i].DBCompareStruct) < 0) then
-      begin
-      // Remove record from index
-      RemoveRecordFromIndex(PBufRecLinkItem(CurrBuff),FIndexes[i]);
-      // iterate to new position
-      tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].prior;
-      while assigned(tmpRecBuffer[IndNr].prior) and
-           (IndexCompareRecords(CurrBuff,tmpRecBuffer[indnr].prior,FIndexes[i].DBCompareStruct) < 0) do
-        begin
-        tmpRecBuffer:=tmpRecBuffer[IndNr].prior;
-        end;
-      // Place record at new position
-      AddRecordToIndex(PBufRecLinkItem(CurrBuff),tmpRecBuffer,FIndexes[i]);
-      end
-    else if (PBufRecLinkItem(CurrBuff)[IndNr].next <> (FIndexes[i] as TDoubleLinkedBufIndex).FLastRecBuf) and
-            (IndexCompareRecords(CurrBuff,PBufRecLinkItem(CurrBuff)[(FIndexes[i] as TDoubleLinkedBufIndex).IndNr].next,FIndexes[i].DBCompareStruct) > 0) then
-      begin
-      // Remove record from index
-      RemoveRecordFromIndex(PBufRecLinkItem(CurrBuff),FIndexes[i]);
-      // iterate to new position
-      tmpRecBuffer:=PBufRecLinkItem(CurrBuff)[IndNr].next;
-      while (tmpRecBuffer<>(FIndexes[i] as TDoubleLinkedBufIndex).FLastRecBuf) and
-           (IndexCompareRecords(CurrBuff,tmpRecBuffer[indnr].next,FIndexes[i].DBCompareStruct) > 0) do
-        begin
-        tmpRecBuffer:=tmpRecBuffer[IndNr].next;
-        end;
-      // The record should be added _after_ the the current record, not before
-      if (tmpRecBuffer<>(FIndexes[i] as TDoubleLinkedBufIndex).FLastRecBuf) then
-        tmpRecBuffer:=tmpRecBuffer[IndNr].next;
-      // Place record at new position
-      AddRecordToIndex(PBufRecLinkItem(CurrBuff),tmpRecBuffer,FIndexes[i]);
-      end;
-    end;}
 end;
 
 procedure TBufDataset.CalcRecordSize;
