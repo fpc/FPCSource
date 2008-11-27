@@ -170,10 +170,7 @@ begin
         ftsmallint: checkerror(sqlite3_bind_int(fstatement,I,p.asinteger));
         ftword:     checkerror(sqlite3_bind_int(fstatement,I,P.asword));
         ftlargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.aslargeint));
-        ftbcd: begin
-               cu1:= P.ascurrency;
-               checkerror(sqlite3_bind_int64(fstatement,I,pint64(@cu1)^));
-               end;
+        ftbcd,
         ftfloat,
         ftcurrency,
         ftdatetime,
@@ -482,7 +479,7 @@ var
  str1: string;
  ar1,ar2: TStringArray;
  st    : psqlite3_stmt;
- 
+
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
   fnum:= FieldDef.fieldno - 1;
@@ -496,8 +493,8 @@ begin
     ftSmallInt : psmallint(buffer)^ := sqlite3_column_int(st,fnum);
     ftWord     : pword(buffer)^     := sqlite3_column_int(st,fnum);
     ftBoolean  : pwordbool(buffer)^ := sqlite3_column_int(st,fnum)<>0;
-    ftLargeInt,
-    ftBCD      : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
+    ftLargeInt : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
+    ftBCD      : PCurrency(buffer)^:= FloattoCurr(sqlite3_column_double(st,fnum));
     ftFloat,
     ftCurrency : pdouble(buffer)^:= sqlite3_column_double(st,fnum);
     ftDateTime,
