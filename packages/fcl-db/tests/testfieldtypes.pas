@@ -76,6 +76,7 @@ type
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestFloatParamQuery;
+    procedure TestBCDParamQuery;
     procedure TestAggregates;
   end;
 
@@ -88,6 +89,9 @@ Type HackedDataset = class(TDataset);
 const
   testFloatValuesCount = 21;
   testFloatValues : Array[0..testFloatValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
+
+  testBCDValuesCount = 10;
+  testBCDValues : Array[0..testBCDValuesCount-1] of currency = (-100,54.53,1.2345,123.5345,0,1,-1,0,1.42,1324.4324);
 
   testIntValuesCount = 17;
   testIntValues : Array[0..testIntValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
@@ -695,6 +699,11 @@ begin
   TestXXParamQuery(ftFloat,'FLOAT',testFloatValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBCDParamQuery;
+begin
+  TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -737,6 +746,7 @@ begin
       case ADataType of
         ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
         ftDate   : if cross then
@@ -760,6 +770,7 @@ begin
       case ADataType of
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
+        ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
         ftFixedChar,
         ftString : begin
                    if FieldByName('FIELD1').isnull then
