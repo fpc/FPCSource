@@ -504,6 +504,31 @@ begin
   Result:=nil;
 end;
 
+function TDataSet.GetRecordSize: Word;
+begin
+  Result := 0;
+end;
+
+procedure TDataSet.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalDelete;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalFirst;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalGotoBookmark(ABookmark: Pointer);
+begin
+  // empty stub
+end;
+
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 begin
@@ -973,6 +998,16 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
+procedure TDataSet.InternalInitRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalLast;
+begin
+  // empty stub
+end;
+
 procedure TDataSet.InternalPost;
 
   Procedure Checkrequired;
@@ -990,6 +1025,21 @@ procedure TDataSet.InternalPost;
 
 begin
   Checkrequired;
+end;
+
+procedure TDataSet.InternalSetToRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
 end;
 
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
@@ -1320,6 +1370,26 @@ Procedure TDataset.UpdateIndexDefs;
 
 begin
   // Empty Abstract
+end;
+
+function TDataSet.AllocRecordBuffer: PChar;
+begin
+  Result := nil;
+end;
+
+procedure TDataSet.FreeRecordBuffer(var Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
+end;
+
+function TDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+begin
+  Result := bfCurrent;
 end;
 
 Function TDataset.ControlsDisabled: Boolean;
