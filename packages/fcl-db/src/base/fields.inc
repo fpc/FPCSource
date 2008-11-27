@@ -1179,12 +1179,12 @@ var
   Buffer    : PWideChar;
 begin
   if DataSize <= dsMaxStringSize then begin
-    Result := GetData(@FixBuffer, True);
+    Result := GetData(@FixBuffer, False);
     aValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
-    Result := GetData(Buffer, True);
+    Result := GetData(Buffer, False);
     if Result then
       aValue := Buffer;
   end;

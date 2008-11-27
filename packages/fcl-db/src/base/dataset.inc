@@ -537,10 +537,27 @@ end;
 
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
-  
+
+ // There seems to be no WStrCopy defined, this is a copy of
+ // the generic StrCopy function, adapted for WideChar.
+ Function WStrCopy(Dest, Source:PWideChar): PWideChar;
+ var
+   counter : SizeInt;
+ Begin
+   counter := 0;
+   while Source[counter] <> #0 do
+   begin
+     Dest[counter] := char(Source[counter]);
+     Inc(counter);
+   end;
+   { terminate the string }
+   Dest[counter] := #0;
+   WStrCopy := Dest;
+ end;
+
 var
   DT : TFieldType;
-  
+
 begin
   DT := aField.DataType;
   if aToNative then
@@ -550,11 +567,10 @@ begin
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
       ftBCD                     : TBCD(aDest^) := CurrToBCD(Currency(aSource^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
-  // See notes from mantis bug-report 7204 for more information
+  // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -566,8 +582,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
@@ -2292,6 +2307,7 @@ end;
 Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
 
 begin
+  CheckBiDirectional;
   Result := False;
 end;
 
