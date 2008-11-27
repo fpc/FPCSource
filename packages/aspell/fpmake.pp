@@ -28,6 +28,7 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');
+    T:=P.Targets.AddUnit('aspelldyn.pp');
     T:=P.Targets.AddUnit('spellcheck.pp');
     with T.Dependencies do
       begin
