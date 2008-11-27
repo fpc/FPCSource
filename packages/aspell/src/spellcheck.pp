@@ -23,8 +23,7 @@ type
   TLineErrors = array of TWordError;
   TLineErrorsArray = array of TLineErrors;
 
-  { TSpeller }
-  { Abstract ancestor, don't use directly }
+  { TSpellCheck }
 
   TSpeller = class // abstract class, basis for all checkers
    protected
@@ -44,13 +43,14 @@ type
     property Encoding: string read FEncoding write SetEncoding;
     property Language: string read FLanguage write SetLanguage;
   end;
-
-  { TWordSpeller }
-  { Basic spelling class for spelling single words without context }
   
+  { TWordSpeller }
+
   TWordSpeller = class(TSpeller) // class for simple per-word checking
    private
     FSpeller: PAspellSpeller;
+    FLastError: string;
+    function DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
    protected
     procedure CreateSpeller; override;
     procedure FreeSpeller; override;
@@ -59,9 +59,6 @@ type
   end;
   
   { TDocumentSpeller }
-  { This speller is used to spellcheck lines or even whole documents.
-    It is usefull when different mode (like "tex") is used so you can pass
-    everything to aspell and let it take care of the context }
 
   TDocumentSpeller = class(TWordSpeller)
    private
@@ -136,29 +133,48 @@ end;
 
 { TWordSpeller }
 
-procedure TWordSpeller.CreateSpeller;
+function TWordSpeller.DoCreateSpeller(Lang, Enc, aMode: pChar): PAspellSpeller;
 var
-  Config: Paspellconfig;
   Error: Paspellcanhaveerror;
 begin
-  Config := new_aspell_config();
+  Result := new_aspell_config();
 
   if Length(FLanguage) > 0 then
-    aspell_config_replace(Config, 'lang', pChar(FLanguage));
+    aspell_config_replace(Result, 'lang', Lang);
   if Length(FEncoding) > 0 then
-    aspell_config_replace(Config, 'encoding', pChar(FEncoding));
+    aspell_config_replace(Result, 'encoding', Enc);
   if Length(FMode) > 0 then
-    aspell_config_replace(Config, 'mode', pChar(FMode));
+    aspell_config_replace(Result, 'mode', aMode);
 
-  Error := new_aspell_speller(Config);
+  Error := new_aspell_speller(Result);
 
-  delete_aspell_config(Config);
+  delete_aspell_config(Result);
+
+  if aspell_error_number(Error) <> 0 then begin
+    FLastError := aspell_error_message(Error);
+    delete_aspell_can_have_error(Error);
+    Result := nil;
+  end else
+    Result := to_aspell_speller(Error);
+end;
+
+procedure TWordSpeller.CreateSpeller;
+begin
+  FLastError := '';
   FreeSpeller;
 
-  if aspell_error_number(Error) <> 0 then
-    raise Exception.Create('Error on speller creation: ' + aspell_error_message(Error))
-  else
-    FSpeller := to_aspell_speller(Error);
+  FSpeller := DoCreateSpeller(pChar(FLanguage), pChar(FEncoding), pChar(FMode));
+  if not Assigned(FSpeller) then
+    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), pChar(FMode));
+  if not Assigned(FSpeller) then
+    FSpeller := DoCreateSpeller(nil, pChar(FEncoding), nil);
+  if not Assigned(FSpeller) then
+    FSpeller := DoCreateSpeller(nil, nil, pChar(FMode));
+  if not Assigned(FSpeller) then
+    FSpeller := DoCreateSpeller(nil, nil, nil);
+
+  if not Assigned(FSpeller) then
+    raise Exception.Create('Error on speller creation: ' + FLastError);
 end;
 
 procedure TWordSpeller.FreeSpeller;
