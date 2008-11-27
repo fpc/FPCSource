@@ -9,7 +9,7 @@ main=fcl-db
 units=odbcconn
 
 [require]
-packages=odbc
+packages=fcl-xml odbc
 
 [compiler]
 options=-S2

@@ -9,7 +9,7 @@ main=fcl-db
 units=sqlite3conn
 
 [require]
-packages=sqlite
+packages=fcl-xml sqlite
 
 [compiler]
 options=-S2

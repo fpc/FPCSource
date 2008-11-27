@@ -10,7 +10,7 @@ rsts=pqconnection
 units=pqconnection
 
 [require]
-packages=postgres
+packages=fcl-xml postgres
 
 [compiler]
 options=-S2
