@@ -1,4 +1,4 @@
-unit sqliteds;
+unit SqliteDS;
 
 {
   This is TSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -33,42 +33,42 @@ unit sqliteds;
 
 {$mode objfpc}
 {$H+}
-{ $Define DEBUG}
+{.$Define DEBUG_SQLITEDS}
 
 interface
 
 uses
-  Classes, SysUtils, customsqliteds;
+  Classes, SysUtils, CustomSqliteDS;
 
 type
   { TSqliteDataset }
 
-  TSqliteDataset = class (TCustomSqliteDataset)
+  TSqliteDataset = class(TCustomSqliteDataset)
   private
-    function SqliteExec(ASql:PChar; ACallback: TSqliteCdeclCallback; Data: Pointer):Integer;override;
+    function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
     function InternalGetHandle: Pointer; override;
     function GetSqliteEncoding: String;
     function GetSqliteVersion: String; override;
-    procedure InternalCloseHandle;override;
+    procedure InternalCloseHandle; override;
     procedure BuildLinkedList; override;
   protected
     procedure InternalInitFieldDefs; override;
     function GetRowsAffected:Integer; override;
   public
-    procedure ExecuteDirect(const ASql: String);override;
+    procedure ExecuteDirect(const ASQL: String); override;
     function ReturnString: String; override;
-    function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;override;
+    function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;
     property SqliteEncoding: String read GetSqliteEncoding;
   end;
 
 implementation
 
 uses
-  sqlite,db;
+  sqlite, db;
 
 //function sqlite_last_statement_changes(dbhandle:Pointer):longint;cdecl;external 'sqlite' name 'sqlite_last_statement_changes';
 
-function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): integer; cdecl;
+function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPChar; ColumnNames: PPChar): Integer; cdecl;
 var
   CodeError, TempInt: Integer;
 begin
@@ -85,15 +85,15 @@ end;
 
 { TSqliteDataset }
 
-function TSqliteDataset.SqliteExec(ASql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
+function TSqliteDataset.SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer;
 begin
-  Result:=sqlite_exec(FSqliteHandle, ASql, ACallback, Data, nil);
+  Result := sqlite_exec(FSqliteHandle, ASQL, ACallback, Data, nil);
 end;
 
 procedure TSqliteDataset.InternalCloseHandle;
 begin
   sqlite_close(FSqliteHandle);
-  FSqliteHandle:=nil;
+  FSqliteHandle := nil;
 end;
 
 function TSqliteDataset.InternalGetHandle: Pointer;
@@ -103,29 +103,29 @@ begin
   Result := sqlite_open(PChar(FFileName), 0, @ErrorStr);
   if Result = nil then
   begin
-    DatabaseError('Error opening "' + FFileName +'": ' + String(ErrorStr));
+    DatabaseError('Error opening "' + FFileName + '": ' + String(ErrorStr));
     sqlite_freemem(ErrorStr);
   end;
 end;
 
 procedure TSqliteDataset.InternalInitFieldDefs;
 var
-  ColumnCount,i:Integer;
-  AType:TFieldType;
-  vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  ColumnStr:String;
+  ColumnCount, i:Integer;
+  AType: TFieldType;
+  vm: Pointer;
+  ColumnNames, ColumnValues:PPChar;
+  ColumnStr: String;
 begin
   FieldDefs.Clear;
   FAutoIncFieldNo := -1;
-  FReturnCode := sqlite_compile(FSqliteHandle,PChar(FSql),nil,@vm,nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
-  sqlite_step(vm,@ColumnCount,@ColumnValues,@ColumnNames);
+  sqlite_step(vm, @ColumnCount, @ColumnValues, @ColumnNames);
   //Prepare the array of pchar2sql functions
-  SetLength(FGetSqlStr,ColumnCount);
+  SetLength(FGetSqlStr, ColumnCount);
   //Set BufferSize
-  FRowBufferSize:=(SizeOf(PPChar)*ColumnCount);
+  FRowBufferSize := (SizeOf(PPChar) * ColumnCount);
   // Sqlite is typeless (allows any type in any field)
   // regardless of what is in Create Table, but returns
   // exactly what is in Create Table statement
@@ -144,18 +144,18 @@ begin
       end
       else
         AType := ftInteger;
-    end else if Pos('VARCHAR',ColumnStr) = 1 then
+    end else if Pos('VARCHAR', ColumnStr) = 1 then
     begin
       AType := ftString;
-    end else if Pos('BOOL',ColumnStr) = 1 then
+    end else if Pos('BOOL', ColumnStr) = 1 then
     begin
       AType := ftBoolean;
-    end else if Pos('AUTOINC',ColumnStr) = 1 then
+    end else if Pos('AUTOINC', ColumnStr) = 1 then
     begin
       AType := ftAutoInc;
       if FAutoIncFieldNo = -1 then
         FAutoIncFieldNo := i;
-    end else if (Pos('FLOAT',ColumnStr)=1) or (Pos('NUMERIC',ColumnStr)=1) then
+    end else if (Pos('FLOAT', ColumnStr)=1) or (Pos('NUMERIC', ColumnStr) = 1) then
     begin
       AType := ftFloat;
     end else if (ColumnStr = 'DATETIME') then
@@ -188,10 +188,10 @@ begin
     else
       FieldDefs.Add(String(ColumnNames[i]), AType);  
     //Set the pchar2sql function
-    if AType in [ftString,ftMemo] then
-      FGetSqlStr[i]:=@Char2SqlStr
+    if AType in [ftString, ftMemo] then
+      FGetSqlStr[i] := @Char2SQLStr
     else
-      FGetSqlStr[i]:=@Num2SqlStr;
+      FGetSqlStr[i] := @Num2SQLStr;
   end;
   sqlite_finalize(vm, nil);
   {
@@ -202,108 +202,116 @@ end;
 
 function TSqliteDataset.GetRowsAffected: Integer;
 begin
-  Result:=sqlite_changes(FSqliteHandle);
-  //Result:=sqlite_last_statement_changes(FSqliteHandle);
+  Result := sqlite_changes(FSqliteHandle);
+  //Result := sqlite_last_statement_changes(FSqliteHandle);
 end;
 
-procedure TSqliteDataset.ExecuteDirect(const ASql: String);
+procedure TSqliteDataset.ExecuteDirect(const ASQL: String);
 var
-  vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  ColCount:Integer;
+  vm: Pointer;
+  ColumnNames, ColumnValues: PPChar;
+  ColCount: Integer;
 begin
-  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(ASql),nil,@vm,nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, Pchar(ASQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
 
-  FReturnCode:=sqlite_step(vm,@ColCount,@ColumnValues,@ColumnNames);
+  FReturnCode := sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
 
   sqlite_finalize(vm, nil);
 end;
 
 procedure TSqliteDataset.BuildLinkedList;
 var
-  TempItem:PDataRecord;
-  vm:Pointer;
-  ColumnNames,ColumnValues:PPChar;
-  Counter:Integer;
+  TempItem: PDataRecord;
+  vm: Pointer;
+  ColumnNames, ColumnValues: PPChar;
+  Counter: Integer;
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
-    sqlite_exec(FSqliteHandle,PChar('Select Max('+Fields[FAutoIncFieldNo].FieldName+') from ' + FTableName),
-      @GetAutoIncValue,@FNextAutoInc,nil);
+    sqlite_exec(FSqliteHandle, PChar('Select Max(' + Fields[FAutoIncFieldNo].FieldName + ') from ' + FTableName),
+      @GetAutoIncValue, @FNextAutoInc, nil);
 
-  FReturnCode:=sqlite_compile(FSqliteHandle,Pchar(FSql),nil,@vm,nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
-    DatabaseError(ReturnString,Self);
+    DatabaseError(ReturnString, Self);
 
-  FDataAllocated:=True;
+  FDataAllocated := True;
 
-  TempItem:=FBeginItem;
-  FRecordCount:=0;
-  FReturnCode:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+  TempItem := FBeginItem;
+  FRecordCount := 0;
+  FReturnCode := sqlite_step(vm, @FRowCount, @ColumnValues, @ColumnNames);
   while FReturnCode = SQLITE_ROW do
   begin
     Inc(FRecordCount);
     New(TempItem^.Next);
-    TempItem^.Next^.Previous:=TempItem;
-    TempItem:=TempItem^.Next;
-    GetMem(TempItem^.Row,FRowBufferSize);
+    TempItem^.Next^.Previous := TempItem;
+    TempItem := TempItem^.Next;
+    GetMem(TempItem^.Row, FRowBufferSize);
     for Counter := 0 to FRowCount - 1 do
-      TempItem^.Row[Counter]:=StrNew(ColumnValues[Counter]);
-    FReturnCode:=sqlite_step(vm,@FRowCount,@ColumnValues,@ColumnNames);
+      TempItem^.Row[Counter] := StrNew(ColumnValues[Counter]);
+    FReturnCode := sqlite_step(vm, @FRowCount, @ColumnValues, @ColumnNames);
   end;
   sqlite_finalize(vm, nil);
 
   // Attach EndItem
-  TempItem^.Next:=FEndItem;
-  FEndItem^.Previous:=TempItem;
+  TempItem^.Next := FEndItem;
+  FEndItem^.Previous := TempItem;
 
   // Alloc item used in append/insert
-  GetMem(FCacheItem^.Row,FRowBufferSize);
+  GetMem(FCacheItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
-    FCacheItem^.Row[Counter]:=nil;
+    FCacheItem^.Row[Counter] := nil;
   // Fill FBeginItem.Row with nil -> necessary for avoid exceptions in empty datasets
-  GetMem(FBeginItem^.Row,FRowBufferSize);
+  GetMem(FBeginItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
-    FBeginItem^.Row[Counter]:=nil;
+    FBeginItem^.Row[Counter] := nil;
 end;
 
 function TSqliteDataset.ReturnString: String;
 begin
- case FReturnCode of
-      SQLITE_OK           : Result := 'SQLITE_OK';
-      SQLITE_ERROR        : Result := 'SQLITE_ERROR';
-      SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
-      SQLITE_PERM         : Result := 'SQLITE_PERM';
-      SQLITE_ABORT        : Result := 'SQLITE_ABORT';
-      SQLITE_BUSY         : Result := 'SQLITE_BUSY';
-      SQLITE_LOCKED       : Result := 'SQLITE_LOCKED';
-      SQLITE_NOMEM        : Result := 'SQLITE_NOMEM';
-      SQLITE_READONLY     : Result := 'SQLITE_READONLY';
-      SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT';
-      SQLITE_IOERR        : Result := 'SQLITE_IOERR';
-      SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT';
-      SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND';
-      SQLITE_FULL         : Result := 'SQLITE_FULL';
-      SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN';
-      SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL';
-      SQLITE_EMPTY        : Result := 'SQLITE_EMPTY';
-      SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA';
-      SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG';
-      SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT';
-      SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH';
-      SQLITE_MISUSE       : Result := 'SQLITE_MISUSE';
-      SQLITE_NOLFS        : Result := 'SQLITE_NOLFS';
-      SQLITE_AUTH         : Result := 'SQLITE_AUTH';
-      SQLITE_FORMAT       : Result := 'SQLITE_FORMAT';
-      SQLITE_RANGE        : Result := 'SQLITE_RANGE';
-      SQLITE_ROW          : begin Result := 'SQLITE_ROW - not an error'; Exit; end;
-      SQLITE_DONE         : begin Result := 'SQLITE_DONE - not an error'; Exit; end;
+  case FReturnCode of
+    SQLITE_OK           : Result := 'SQLITE_OK';
+    SQLITE_ERROR        : Result := 'SQLITE_ERROR';
+    SQLITE_INTERNAL     : Result := 'SQLITE_INTERNAL';
+    SQLITE_PERM         : Result := 'SQLITE_PERM';
+    SQLITE_ABORT        : Result := 'SQLITE_ABORT';
+    SQLITE_BUSY         : Result := 'SQLITE_BUSY';
+    SQLITE_LOCKED       : Result := 'SQLITE_LOCKED';
+    SQLITE_NOMEM        : Result := 'SQLITE_NOMEM';
+    SQLITE_READONLY     : Result := 'SQLITE_READONLY';
+    SQLITE_INTERRUPT    : Result := 'SQLITE_INTERRUPT';
+    SQLITE_IOERR        : Result := 'SQLITE_IOERR';
+    SQLITE_CORRUPT      : Result := 'SQLITE_CORRUPT';
+    SQLITE_NOTFOUND     : Result := 'SQLITE_NOTFOUND';
+    SQLITE_FULL         : Result := 'SQLITE_FULL';
+    SQLITE_CANTOPEN     : Result := 'SQLITE_CANTOPEN';
+    SQLITE_PROTOCOL     : Result := 'SQLITE_PROTOCOL';
+    SQLITE_EMPTY        : Result := 'SQLITE_EMPTY';
+    SQLITE_SCHEMA       : Result := 'SQLITE_SCHEMA';
+    SQLITE_TOOBIG       : Result := 'SQLITE_TOOBIG';
+    SQLITE_CONSTRAINT   : Result := 'SQLITE_CONSTRAINT';
+    SQLITE_MISMATCH     : Result := 'SQLITE_MISMATCH';
+    SQLITE_MISUSE       : Result := 'SQLITE_MISUSE';
+    SQLITE_NOLFS        : Result := 'SQLITE_NOLFS';
+    SQLITE_AUTH         : Result := 'SQLITE_AUTH';
+    SQLITE_FORMAT       : Result := 'SQLITE_FORMAT';
+    SQLITE_RANGE        : Result := 'SQLITE_RANGE';
+    SQLITE_ROW          :
+      begin
+        Result := 'SQLITE_ROW - not an error';
+        Exit;
+      end;
+    SQLITE_DONE         :
+      begin
+        Result := 'SQLITE_DONE - not an error';
+        Exit;
+      end;
   else
-    Result:='Unknow Return Value';
- end;
- Result:=Result+' - '+sqlite_error_string(FReturnCode);
+    Result := 'Unknow Return Value';
+  end;
+  Result := Result + ' - ' + sqlite_error_string(FReturnCode);
 end;
 
 function TSqliteDataset.GetSqliteEncoding: String;
@@ -316,7 +324,7 @@ begin
   Result := String(sqlite_version);
 end;
 
-function TSqliteDataset.QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;
+function TSqliteDataset.QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String;
 var
   vm: Pointer;
   ColumnNames, ColumnValues: PPChar;
@@ -335,15 +343,16 @@ var
     while FReturnCode = SQLITE_ROW do
     begin
       // I know, this code is really dirty!!
-      AStrList.AddObject(String(ColumnValues[0]), TObject(PtrInt(StrToInt(String(ColumnValues[1])))));
-      FReturnCode:=sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
+      AStrList.AddObject(String(ColumnValues[0]),
+        TObject(PtrInt(StrToInt(String(ColumnValues[1])))));
+      FReturnCode := sqlite_step(vm, @ColCount, @ColumnValues, @ColumnNames);
     end;
   end;    
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
   Result := '';
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(ASql), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(ASQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString,Self);
     
