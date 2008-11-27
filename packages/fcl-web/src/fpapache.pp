@@ -17,7 +17,8 @@ unit fpapache;
 
 interface
 
-uses SysUtils,Classes,CustApp,httpDefs,fpHTTP,httpd, apr;
+uses
+  SysUtils,Classes,CustApp,httpDefs,fpHTTP,httpd, apr, SyncObjs;
 
 Type
 
@@ -69,6 +70,10 @@ Type
 
   TCustomApacheApplication = Class(TCustomApplication)
   private
+    FMaxRequests: Integer;             //Maximum number of simultaneous web module requests (default=64, if set to zero no limit)
+    FWorkingWebModules: TList;         //List of currently running web modules handling requests
+    FIdleWebModules: TList;            //List of idle web modules available
+    FCriticalSection: TCriticalSection;
     FAdministrator: String;
     FBaseLocation: String;
     FBeforeRequest: TBeforeRequestEvent;
@@ -83,6 +88,8 @@ Type
     function GetModules(Index: integer): TStrings;
     procedure SetModules(Index: integer; const AValue: TStrings);
     procedure ShowRequestException(R: TResponse; E: Exception);
+    function GetIdleModuleCount : Integer;
+    function GetWorkingModuleCount : Integer;
   Protected
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Function GetModuleName(ARequest : TRequest) : string;
@@ -91,6 +98,7 @@ Type
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
+    Destructor Destroy; override;
     Procedure SetModuleRecord(Var ModuleRecord : Module);
     Procedure Initialize; override;
     Procedure ShowException(E : Exception); override;
@@ -107,6 +115,9 @@ Type
     Property BeforeRequest : TBeforeRequestEvent Read FBeforeRequest Write FBeforeRequest;
     Property Email : String Read FEmail Write FEmail;
     Property Administrator : String Read FAdministrator Write FAdministrator;
+    Property MaxRequests: Integer read FMaxRequests write FMaxRequests;
+    Property IdleWebModuleCount: Integer read GetIdleModuleCount;
+    Property WorkingWebModuleCount: Integer read GetWorkingModuleCount;
   end;
 
   TApacheApplication = Class(TCustomApacheApplication)
@@ -118,6 +129,9 @@ Type
     Property OnGetModule;
     Property BaseLocation;
     Property ModuleName;
+    Property MaxRequests;
+    Property IdleWebModuleCount;
+    Property WorkingWebModuleCount;
   end;
   
 
@@ -135,6 +149,7 @@ resourcestring
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
   SErrNoModuleRecord = 'No module record location set.';
   SErrNoModuleName = 'No module name set';
+  SErrTooManyRequests = 'Too many simultaneous requests.';
   SModuleError  = 'Module Error';
   SAppEncounteredError = 'The application encountered the following error:';
   SError     = 'Error: ';
@@ -166,7 +181,7 @@ Function DefaultApacheHandler(P : PRequest_Rec) : integer;cdecl;
 
 begin
   If (AlternateHandler<>Nil) then
-    Result:=AlterNateHandler(P)
+    Result:=AlternateHandler(P)
   else
     If Application.AllowRequest(P) then
       Result:=Application.ProcessRequest(P)
@@ -218,6 +233,8 @@ begin
     Resp:=TApacheResponse.CreateApache(Req);
     Try
       HandleRequest(Req,Resp);
+      If Not Resp.ContentSent then
+        Resp.SendContent;
     Finally
       Result:=OK;
       Resp.Free;
@@ -228,9 +245,8 @@ begin
 end;
 
 function TCustomApacheApplication.GetModuleName(Arequest: TRequest): string;
-
-
 begin
+  if (Pos('/', pchar(@ARequest.PathInfo[2])) <= 0) and AllowDefaultModule then Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
   Result:=ARequest.GetNextPathInfo;
 end;
 
@@ -271,7 +287,25 @@ begin
   inherited Create(AOwner);
   FAllowDefaultModule:=True;
   FPriority:=hpMiddle;
+  FMaxRequests:=64;
+  FWorkingWebModules:=TList.Create;
+  FIdleWebModules:=TList.Create;
+  FCriticalSection:=TCriticalSection.Create;
 end;
+
+destructor TCustomApacheApplication.Destroy;
+var I:Integer;
+begin
+  FCriticalSection.Free;
+  for I := FIdleWebModules.Count - 1 downto 0 do
+    TComponent(FIdleWebModules[I]).Free;
+  FIdleWebModules.Free;
+  for I := FWorkingWebModules.Count - 1 downto 0 do
+    TComponent(FWorkingWebModules[I]).Free;
+  FWorkingWebModules.Free;
+  inherited Destroy;
+end;
+
 
 procedure TCustomApacheApplication.SetModuleRecord(var ModuleRecord: Module);
 begin
@@ -350,6 +384,26 @@ begin
   Reference:=AClass.Create(Self);
 end;
 
+function TCustomApacheApplication.GetIdleModuleCount : Integer;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FIdleWebModules.Count;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
+function TCustomApacheApplication.GetWorkingModuleCount : Integer;
+begin
+  FCriticalSection.Enter;
+  try
+    Result := FWorkingWebModules.Count;
+  finally
+    FCriticalSection.Leave;
+  end;
+end;
+
 procedure TCustomApacheApplication.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 
 Var
@@ -357,14 +411,44 @@ Var
   M  : TCustomHTTPModule;
   MN : String;
   MI : TModuleItem;
-  
+
+  Procedure GetAWebModule;
+  Var II:Integer;
+  begin
+    FCriticalSection.Enter;
+    try
+      if (FMaxRequests>0) and (FWorkingWebModules.Count>=FMaxRequests) then
+        Raise EFPApacheError.Create(SErrTooManyRequests);
+      if (FIdleWebModules.Count>0) then
+      begin
+        II := FIdleWebModules.Count - 1;
+        while (II>=0) and not (TComponent(FIdleWebModules[II]) is MC) do
+          Dec(II);
+        if (II>=0) then
+        begin
+          M:=TCustomHTTPModule(FIdleWebModules[II]);
+          FIdleWebModules.Delete(II);
+        end;
+      end;
+      if (M=nil) then
+      begin
+        M:=MC.Create(Self);
+        M.Name := '';
+      end;
+      FWorkingWebModules.Add(M);
+    finally
+      FCriticalSection.Leave;
+    end;
+  end;
+
 begin
   try
     MC:=Nil;
+    M := Nil;
     If (OnGetModule<>Nil) then
       OnGetModule(Self,ARequest,MC);
     If (MC=Nil) then
-      begin
+    begin
       MN:=GetModuleName(ARequest);
       If (MN='') and Not AllowDefaultModule then
         Raise EFPApacheError.Create(SErrNoModuleNameForRequest);
@@ -372,20 +456,20 @@ begin
       If (MI=Nil) and (ModuleFactory.Count=1) then
         MI:=ModuleFactory[0];
       if (MI=Nil) then
-        begin
         Raise EFPApacheError.CreateFmt(SErrNoModuleForRequest,[MN]);
-        end;
+
       MC:=MI.ModuleClass;
-      end;
-    M:=FindModule(MC); // Check if a module exists already
-    If (M=Nil) then
-      begin
-      If MC.UseStreaming then
-        M:=MC.Create(Self)
-      else  
-        M:=MC.CreateNew(Self,0);
-      end;
+    end;
+    GetAWebModule;
     M.HandleRequest(ARequest,AResponse);
+
+    FCriticalSection.Enter;
+    try
+      FWorkingWebModules.Remove(M);
+      FIdleWebModules.Add(M);
+    finally
+      FCriticalSection.Leave;
+    end;
   except
     On E : Exception do
       ShowRequestException(AResponse,E);
@@ -576,8 +660,15 @@ begin
   Inherited Create(Req);
 end;
 
+function __dummythread(p: pointer): ptrint;
+begin
+//empty
+end;
 
 Initialization
+  BeginThread(@__dummythread);//crash prevention for simultaneous requests
+  sleep(300);
+
   InitApache;
   
 Finalization
