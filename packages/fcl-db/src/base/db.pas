@@ -794,7 +794,6 @@ type
     FTransliterate : Boolean;
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
   protected
-    procedure AssignTo(Dest: TPersistent); override;
     procedure FreeBuffers; override;
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
@@ -808,7 +807,6 @@ type
     procedure SetAsWideString(const aValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Assign(Source: TPersistent); override;
     procedure Clear; override;
     class function IsBlob: Boolean; override;
     procedure LoadFromFile(const FileName: string);

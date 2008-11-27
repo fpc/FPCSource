@@ -2330,13 +2330,6 @@ end;
 
 { TBlobField }
 
-
-procedure TBlobField.AssignTo(Dest: TPersistent);
-
-begin
-  //!! To be implemented
-end;
-
 Function TBlobField.GetBlobStream(Mode : TBlobStreamMode) : TStream;
 
 begin
@@ -2489,13 +2482,6 @@ constructor TBlobField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOWner);
   SetDataType(ftBlob);
-end;
-
-
-procedure TBlobField.Assign(Source: TPersistent);
-
-begin
-  //!! To be implemented
 end;
 
 
