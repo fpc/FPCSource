@@ -86,7 +86,7 @@ begin
   if DebugDisabled then exit;
   try
     If (DebugClient=Nil) then
-      InitDebugClient;
+      if InitDebugClient = false then exit;
     if (Indent>0) then
       Msg.Msg:=StringOfChar(' ',Indent)+Msg.Msg;
     WriteMessage(Msg);
