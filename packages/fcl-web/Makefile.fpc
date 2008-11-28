@@ -8,11 +8,11 @@ version=2.2.3
 
 [target]
 units=httpdefs fphttp custcgi fpcgi fptemplate fphtml websession fpweb \
-      webutil fpdatasetform cgiapp ezcgi fpapache
+      webutil fpdatasetform cgiapp ezcgi fpapache 
 rsts=fpcgi fphtml fpweb websession cgiapp
 
 [require]
-packages=fcl-base fcl-xml fcl-db fcl-process
+packages=fcl-base fcl-xml fcl-db fcl-process httpd22
 
 [compiler]
 options=-S2h
