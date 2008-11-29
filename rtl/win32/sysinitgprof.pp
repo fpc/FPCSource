@@ -171,10 +171,11 @@ unit sysinitgprof;
       end;
 
 {$warnings off}
+    {$linklib c}
     {$linklib gmon}
-    {$linklib gcc}
     {$linklib cygwin}
     {$linklib user32}
     {$linklib kernel32}
+    {$linklib gcc}
 
 end.
