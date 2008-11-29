@@ -880,21 +880,7 @@ begin
     Insert;
 
   for i := 0 to ValuesSize-1 do with values[i] do
-    case VType of
-      vtInteger   : fields[i].AsInteger    := VInteger;
-      vtBoolean   : fields[i].AsBoolean    := VBoolean;
-      vtChar      : fields[i].AsString     := VChar;
-      vtWideChar  : fields[i].AsString     := VWideChar;
-      vtString    : fields[i].AsString     := AnsiString(VString);
-      vtAnsiString: fields[i].AsString     := AnsiString(VAnsiString);
-      vtCurrency  : fields[i].AsCurrency   := VCurrency^;
-//      vtWideString: fields[i].AsWideString := VWideString;
-      vtInt64     : fields[i].AsLargeInt   := VInt64^;
-      vtQWord     : fields[i].AsLargeInt   := VQWord^;
-      vtVariant   : fields[i].AsVariant    := VVariant^;
-    else
-      DatabaseError(SIncompatibleTVarRec);
-    end; {case}
+    fields[i].AssignValue(values[i]);
   Post;
 
 end;

@@ -369,7 +369,7 @@ begin
       vtWideString:
         AsWideString := WideString(VWideString);
       vtInt64:
-        Self.Value := VInt64^;
+        AsLargeInt := VInt64^;
     else
       Error;
     end;
