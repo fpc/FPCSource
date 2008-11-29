@@ -17,7 +17,7 @@ unit FPCanvas;
 
 interface
 
-uses sysutils, classes, FPImage;
+uses Math, sysutils, classes, FPImage;
 
 const
   PatternBitCount = sizeof(longword) * 8;
@@ -171,15 +171,12 @@ type
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
   private
-    xfactor, yfactor : double;
-    xsupport,ysupport : double;
-    tempimage : TFPCustomImage;
-    procedure Horizontal (width : integer);
-    procedure vertical (dx,dy,width,height: integer);
+    procedure CreatePixelWeights (OldSize, NewSize: integer;
+      out Entries: Pointer; out EntrySize: integer; out Support: integer);
   protected
-    procedure Execute (x,y,w,h:integer); override;
-    function Filter (x : double) : double; virtual; abstract;
-    function MaxSupport : double; virtual; abstract;
+    procedure Execute (x,y,w,h : integer); override;
+    function Filter (x : double): double; virtual;
+    function MaxSupport : double; virtual;
   end;
 
   { TMitchelInterpolation }

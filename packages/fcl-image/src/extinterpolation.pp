@@ -224,7 +224,7 @@ begin
 end;
 
 function BesselOrderOne (x : double) : double;
-var p,q, OneOverSqrt2,sinx,cosx : double;
+var p,OneOverSqrt2,sinx,cosx : double;
 begin
   if x = 0.0 then
     result := 0.0
