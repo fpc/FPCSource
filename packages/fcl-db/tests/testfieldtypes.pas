@@ -1402,7 +1402,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if SQLDbType in [interbase,mysql40,mysql41,mysql50] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+  if SQLDbType in [interbase,mysql40,mysql41,mysql50,sqlite3] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin
