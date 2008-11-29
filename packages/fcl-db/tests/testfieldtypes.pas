@@ -28,7 +28,6 @@ type
     procedure RunTest; override;
   published
     procedure TestClearUpdateableStatus;
-    procedure TestFixedStringParamQuery;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
     procedure TestDoubleFieldNames; // bug 8457
@@ -73,6 +72,7 @@ type
     procedure TestNullValues;
     procedure TestParamQuery;
     procedure TestStringParamQuery;
+    procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestFloatParamQuery;
@@ -771,13 +771,14 @@ begin
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
         ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
-        ftFixedChar,
-        ftString : begin
+        ftFixedChar :
+                   begin
                    if FieldByName('FIELD1').isnull then
                      AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString)
                    else
                      AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
                    end;
+        ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
       else
         AssertTrue('no test for paramtype available',False);
