@@ -860,7 +860,6 @@ begin
 end;
 
 
-{$define FPC_USE_FPEXEC}  // leave the old code under IFDEF for a while.
 function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
 var
   pid    : longint;
@@ -873,7 +872,8 @@ Begin
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes!
   }
-  {$ifdef FPC_USE_FPEXEC}       // Only place we still parse
+
+   // Only place we still parse
    cmdline2:=nil;
    if Comline<>'' Then
      begin
@@ -890,14 +890,7 @@ Begin
        cmdline2^:=pchar(Path);
        cmdline2[1]:=nil;
      end;
-  {$else}
-  if Pos ('"', Path) = 0 then
-    CommandLine := '"' + Path + '"'
-  else
-    CommandLine := Path;
-  if ComLine <> '' then
-    CommandLine := Commandline + ' ' + ComLine;
-  {$endif}
+
   {$ifdef USE_VFORK}
   pid:=fpvFork;
   {$else USE_VFORK}
@@ -906,11 +899,7 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-    {$ifdef FPC_USE_FPEXEC}
       fpexecv(pchar(pointer(Path)),Cmdline2);
-    {$else}
-      Execl(CommandLine);
-    {$endif}
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -925,10 +914,8 @@ Begin
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
-  {$ifdef FPC_USE_FPEXEC}
   if Comline<>'' Then
     freemem(cmdline2);
-  {$endif}
 
   if (result<0) or (result=127) then
     begin
