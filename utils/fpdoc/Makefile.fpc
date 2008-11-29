@@ -10,7 +10,7 @@ version=2.2.3
 packages=fcl-xml fcl-passrc chm
 
 [target]
-programs=fpdoc makeskel unitdiff
+programs=fpdoc makeskel unitdiff fpclasschart
 rst=dwriter fpdoc dglobals makeskel dwlinear
 # removed to reduce dependencies of rpm.
 #dirs_linux_i386=fpde

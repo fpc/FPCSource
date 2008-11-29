@@ -189,8 +189,8 @@ end;
 constructor TTiOPFCodeOptions.Create;
 begin
   inherited Create;
-  FListAncestorName:='TTiObjectList';
-  AncestorClass:='TTiObject';
+  FListAncestorName:='TtiObjectList';
+  AncestorClass:='TtiObject';
   ObjectClassName:='MyObject';
   TableName:=SDefTableName;
   FVisitorOptions:=[voRead,voCreate,voDelete,voUpdate];
@@ -368,7 +368,7 @@ function TTiOPFCodeGenerator.GetInterfaceUsesClause: string;
 begin
   Result:=inherited GetInterfaceUsesClause;
   If (Result<>'') then
-    Result:=Result+',';
+    Result:=Result+', ';
   Result:=Result+'tiVisitor, tiVisitorDB, tiObject';
 end;
 
@@ -923,7 +923,7 @@ end;
 procedure TTiOPFCodeGenerator.WriteSetSQL(Strings : TStrings; Const ASQL : String);
 
 begin
-  Addln(Strings,Format('Query.SQL.Text:=%s;',[ASQL]));
+  Addln(Strings,Format('Query.SQLText:=%s;',[ASQL]));
 end;
 
 procedure TTiOPFCodeGenerator.WriteDeleteVisitor(Strings : TStrings; Const ObjectClassName : String);
