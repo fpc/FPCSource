@@ -478,16 +478,21 @@ end;
 
 function sync_file_range(fd: cInt; offset: off64_t; nbytes: off64_t; flags: cuInt): cInt;
 begin
-{$ifdef cpu64}
-  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(offset), 
-    TSysParam(nbytes), TSysParam(flags));
-{$else}
 {$if defined(cpupowerpc) or defined(cpuarm)}
   sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags), 
     TSysParam(hi(offset)), TSysParam(lo(offset)), TSysParam(hi(nbytes)), TSysParam(lo(nbytes)));
 {$else}
+{$if defined(cpupowerpc64)}
+  sync_file_range := do_syscall(syscall_nr_sync_file_range2, TSysParam(fd), TSysParam(flags),
+    TSysParam(offset), TSysParam(nbytes));
+{$else}
+{$ifdef cpu64}
+  sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(offset), 
+    TSysParam(nbytes), TSysParam(flags));
+{$else}
   sync_file_range := do_syscall(syscall_nr_sync_file_range, TSysParam(fd), TSysParam(lo(offset)),
     TSysParam(hi(offset)), TSysParam(lo(nbytes)), TSysParam(hi(nbytes)), TSysParam(flags));
+{$endif}
 {$endif}
 {$endif}
 end;
