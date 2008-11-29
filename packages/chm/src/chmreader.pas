@@ -28,7 +28,7 @@ unit chmreader;
 interface
 
 uses
-  Classes, SysUtils, chmbase, paslzx;
+  Classes, SysUtils, chmbase, paslzx, chmFIftiMain;
   
 type
 
@@ -99,14 +99,22 @@ type
     fTitle: String;
     fPreferedFont: String;
     fContextList: TContextList;
+    fTOPICSStream,
+    fURLSTRStream,
+    fURLTBLStream,
+    fStringsStream: TMemoryStream;
     fLocaleID: DWord;
   private
+    FSearchReader: TChmSearchReader;
     procedure ReadCommonData;
+    function  ReadStringsEntry(APosition: DWord): String;
+    function  ReadURLSTR(APosition: DWord): String;
   public
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
   public
     function GetContextUrl(Context: THelpContext): String;
+    function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
     function HasContextList: Boolean;
     property DefaultPage: String read fDefaultPage;
     property IndexFile: String read fIndexFile;
@@ -114,6 +122,7 @@ type
     property Title: String read fTitle write fTitle;
     property PreferedFont: String read fPreferedFont;
     property LocaleID: dword read fLocaleID;
+    property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
   end;
 
   { TChmFileList }
@@ -430,6 +439,41 @@ begin
    {$ENDIF}
 end;
 
+function TChmReader.ReadStringsEntry ( APosition: DWord ) : String;
+begin
+  Result := '';
+  if fStringsStream = nil then
+    fStringsStream := GetObject('/#STRINGS');
+  if fStringsStream = nil then
+    Exit;
+  if APosition < fStringsStream.Size-1 then
+  begin
+    Result := PChar(fStringsStream.Memory+APosition);
+  end;
+end;
+
+function TChmReader.ReadURLSTR ( APosition: DWord ) : String;
+var
+  URLStrURLOffset: DWord;
+begin
+  if fURLSTRStream = nil then
+    fURLSTRStream := GetObject('/#URLSTR');
+  if fURLTBLStream = nil then
+    fURLTBLStream := GetObject('/#URLTBL');
+  if (fURLTBLStream <> nil) and (fURLSTRStream <> nil) then
+  begin
+
+    fURLTBLStream.Position := APosition;
+    fURLTBLStream.ReadDWord; // unknown
+    fURLTBLStream.ReadDWord; // TOPIC index #
+    fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
+    fURLSTRStream.ReadDWord;
+    fURLSTRStream.ReadDWord;
+    if fURLSTRStream.Position < fURLSTRStream.Size-1 then
+      Result := '/'+PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
+  end;
+end;
+
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   inherited Create(AStream, FreeStreamOnDestroy);
@@ -442,6 +486,11 @@ end;
 destructor TChmReader.Destroy;
 begin
   fContextList.Free;
+  FreeAndNil(FSearchReader);
+  FreeAndNil(fTOPICSStream);
+  FreeAndNil(fURLSTRStream);
+  FreeAndNil(fURLTBLStream);
+  FreeAndNil(fStringsStream);
   inherited Destroy;
 end;
 
@@ -785,6 +834,31 @@ function TChmReader.GetContextUrl(Context: THelpContext): String;
 begin
   // will get '' if context not found
  Result := fContextList.GetURL(Context);
+end;
+
+function TChmReader.LookupTopicByID ( ATopicID: Integer; out ATitle: String) : String;
+var
+  TopicURLTBLOffset: DWord;
+  TopicTitleOffset: DWord;
+begin
+  Result := '';
+  ATitle := '';
+  //WriteLn('Getting topic# ',ATopicID);
+  if fTOPICSStream = nil then;
+    fTOPICSStream := GetObject('/#TOPICS');
+  if fTOPICSStream = nil then
+    Exit;
+  fTOPICSStream.Position := ATopicID * 16;
+  if fTOPICSStream.Position = ATopicID * 16 then
+  begin
+    fTOPICSStream.ReadDWord;
+    TopicTitleOffset := LEtoN(fTOPICSStream.ReadDWord);
+    TopicURLTBLOffset := LEtoN(fTOPICSStream.ReadDWord);
+    if TopicTitleOffset <> $FFFFFFFF then
+      ATitle := ReadStringsEntry(TopicTitleOffset);
+     //WriteLn('Got a title: ', ATitle);
+    Result := ReadURLSTR(TopicURLTBLOffset);
+  end;
 end;
 
 function TChmReader.HasContextList: Boolean;
