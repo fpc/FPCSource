@@ -130,7 +130,7 @@ type
     property OnLogin;
   end;
 
-  EODBCException = class(Exception)
+  EODBCException = class(EDatabaseError)
     // currently empty; perhaps we can add fields here later that describe the error instead of one simple message string
   end;
 
