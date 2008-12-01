@@ -240,7 +240,7 @@ type
     property MasterFields: String read GetMasterFields write SetMasterFields;
     
     property Active;
-       
+    property FieldDefs;   
     //Events
     property BeforeOpen;
     property AfterOpen;
