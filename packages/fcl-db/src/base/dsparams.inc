@@ -1,4 +1,27 @@
 
+procedure SkipQuotesString(var p : pchar; QuoteChar : char; EscapeSlash, EscapeRepeat : Boolean);
+var notRepeatEscaped : boolean;
+begin
+  Inc(p);
+  repeat
+    notRepeatEscaped := True;
+    while not (p^ in [#0, QuoteChar]) do
+    begin
+      if EscapeSlash and (p^='\') and (p[1] <> #0) then Inc(p,2) // make sure we handle \' and \\ correct
+      else Inc(p);
+    end;
+    if p^=QuoteChar then
+    begin
+      Inc(p); // skip final '
+      if (p^=QuoteChar) and EscapeRepeat then // Handle escaping by ''
+      begin
+      notRepeatEscaped := False;
+      inc(p);
+      end
+    end;
+  until notRepeatEscaped;
+end;
+
 { TParams }
 
 Function TParams.GetItem(Index: Integer): TParam;
@@ -177,36 +200,20 @@ begin
 end;
 
 function SkipComments(var p: PChar; EscapeSlash, EscapeRepeat : Boolean) : Boolean;
-var notRepeatEscaped : boolean;
-
-  procedure SkipQuotesString(QuoteChar : char);
-  begin
-    Inc(p);
-    Result := True;
-    repeat
-      notRepeatEscaped := True;
-      while not (p^ in [#0, QuoteChar]) do
-      begin
-        if EscapeSlash and (p^='\') and (p[1] <> #0) then Inc(p,2) // make sure we handle \' and \\ correct
-        else Inc(p);
-      end;
-      if p^=QuoteChar then
-      begin
-        Inc(p); // skip final '
-        if (p^=QuoteChar) and EscapeRepeat then // Handle escaping by ''
-        begin
-        notRepeatEscaped := False;
-        inc(p);
-        end
-      end;
-    until notRepeatEscaped;
-  end;
 
 begin
   result := false;
   case p^ of
-    '''': SkipQuotesString('''');       // single quote delimited string
-    '"':  SkipQuotesString('"');        // double quote delimited string
+    '''':
+      begin
+        SkipQuotesString(p,'''',EscapeSlash,EscapeRepeat); // single quote delimited string
+        Result := True;
+      end;
+    '"':
+      begin
+        SkipQuotesString(p,'"',EscapeSlash,EscapeRepeat);  // double quote delimited string
+        Result := True;
+      end;
     '-': // possible start of -- comment
       begin
         Inc(p);
@@ -295,10 +302,21 @@ begin
             end
             else
             begin
-              ParamNameStart:=p;
-              while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']','|'])) do
-                Inc(p);
-              ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
+              if p^='"' then // Check if the parameter-name is between quotes
+                begin
+                ParamNameStart:=p;
+                SkipQuotesString(p,'"',EscapeSlash,EscapeRepeat);
+                // Do not include the quotes in ParamName, but they must be included
+                // when the parameter is replaced by some place-holder.
+                ParamName:=Copy(ParamNameStart+1,1,p-ParamNameStart-2);
+                end
+              else
+                begin
+                ParamNameStart:=p;
+                while not (p^ in (SQLDelimiterCharacters+[#0,'=','+','-','*','\','/','[',']','|'])) do
+                  Inc(p);
+                ParamName:=Copy(ParamNameStart,1,p-ParamNameStart);
+                end;
             end;
           end
           else

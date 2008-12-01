@@ -34,6 +34,7 @@ type
     procedure TestParseUnion; // bug 8442
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
+    procedure TestApplyUpdFieldnames; // Bug 12275;
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
@@ -1129,6 +1130,35 @@ begin
       AssertEquals('test3',FieldByName('3TEST').AsString);
       close;
       end;
+    end;
+end;
+
+procedure TTestFieldTypes.TestApplyUpdFieldnames;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    AssertEquals(-1,query.RowsAffected);
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL            , ' +
+                              '  "NAME-TEST" VARCHAR(250),  ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    Connection.ExecuteDirect('insert into FPDEV2(ID,"NAME-TEST") values (1,''test1'')');
+    Query.SQL.Text := 'select * from fpdev2';
+    Query.Open;
+    AssertEquals(1,Query.FieldByName('ID').AsInteger);
+    AssertEquals('test1',Query.FieldByName('NAME-TEST').AsString);
+    Query.Edit;
+    Query.FieldByName('NAME-TEST').AsString:='Edited';
+    Query.Post;
+    Query.ApplyUpdates;
+    Query.Close;
+    Query.Open;
+    AssertEquals(1,Query.FieldByName('ID').AsInteger);
+    AssertEquals('Edited',Query.FieldByName('NAME-TEST').AsString);
+    Query.Close;
     end;
 end;
 
