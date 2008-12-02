@@ -16,6 +16,11 @@ uses
   oratypes;
 
 type
+  EOraDatabaseError = class(EDatabaseError)
+    public
+      ORAErrorCode : Longint;
+  end;
+
   TOracleTrans = Class(TSQLHandle)
     protected
   end;
@@ -92,10 +97,18 @@ procedure TOracleConnection.HandleError;
 
 var errcode : sb4;
     buf     : array[0..1023] of char;
+    E       : EOraDatabaseError;
 
 begin
-  OCIErrorGet(FOciError,1,nil,errcode,@buf[1],1023,OCI_HTYPE_ERROR);
-  DatabaseErrorFmt(SErrOracle+LineEnding+buf,[inttostr(errcode)],self);
+  OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
+
+  if (Self.Name <> '') then
+    E := EOraDatabaseError.CreateFmt('%s : %s',[Self.Name,buf])
+  else
+    E := EOraDatabaseError.Create(buf);
+
+  E.ORAErrorCode := errcode;
+  Raise E;
 end;
 
 procedure TOracleConnection.DoInternalConnect;
