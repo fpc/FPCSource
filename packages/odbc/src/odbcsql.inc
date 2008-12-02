@@ -22,16 +22,14 @@
 interface
 
 uses
-{$IFDEF DYNLOADINGODBC}
      Dynlibs,
-{$ENDIF}
      ctypes,
      sysutils;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
   const
-    odbclib = 'libodbc.so';
+    odbclib = 'libodbc.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Windows}
   {$DEFINE extdecl:=stdcall}

@@ -7,9 +7,11 @@
 
 interface
 
+uses
 {$ifdef LOAD_DYNAMICALLY}
-uses 
   SysUtils, DynLibs;
+{$else}
+  DynLibs;
 {$endif}
 
 {
@@ -28,7 +30,7 @@ const
 {$IFDEF WINDOWS}
   Sqlite3Lib = 'sqlite3.dll';
 {$else}
-  Sqlite3Lib = 'libsqlite3.so';
+  Sqlite3Lib = 'libsqlite3.'+sharedsuffix;
 {$endif}
 
   SQLITE_INTEGER = 1;   
