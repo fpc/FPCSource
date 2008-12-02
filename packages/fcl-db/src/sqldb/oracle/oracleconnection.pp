@@ -156,7 +156,7 @@ var tel : word;
 begin
   with cursor as TOracleCursor do
     begin
-    OCIHandleFree(FOciStmt,OCI_HTYPE_ERROR);
+    OCIHandleFree(FOciStmt,OCI_HTYPE_STMT);
     if Length(FieldBuffers) > 0 then
       for tel := 0 to high(FieldBuffers) do freemem(FieldBuffers[tel].buffer);
     end;
