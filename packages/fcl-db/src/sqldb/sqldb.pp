@@ -298,7 +298,7 @@ type
     property DeleteSQL : TStringlist read FDeleteSQL;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
-    property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
+    property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
