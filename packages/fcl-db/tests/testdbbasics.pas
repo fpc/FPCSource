@@ -126,7 +126,7 @@ type
 
 implementation
 
-uses toolsunit, bufdataset, variants, strutils, XMLDatapacketReader;
+uses toolsunit, bufdataset, variants, strutils;
 
 type THackDataLink=class(TdataLink);
 
@@ -1526,14 +1526,6 @@ begin
     AddIndex('testindex','F'+FieldTypeNames[AfieldType],[]);
     IndexName:='testindex';
     open;
-
-{    while not eof do
-      begin
-      writeln(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      next;
-      end;
-    first;}
-
     OldStringValue:=FieldByName('F'+FieldTypeNames[AfieldType]).AsString;
     next;
     AssertTrue(OldStringValue<=FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
@@ -1545,23 +1537,10 @@ begin
     edit;
     FieldByName('F'+FieldTypeNames[AfieldType]).AsString := 'ZZZ';
     post;
-
-writeln('----');
-    first;
-    while not eof do
-      begin
-      writeln(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-      next;
-      end;
-    first;
-
-
     prior;
-    writeln(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
-//    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
+    AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)>=0);
     next;
     next;
-    writeln(FieldByName('F'+FieldTypeNames[AfieldType]).AsString);
     AssertTrue(AnsiCompareStr('ZZZ',FieldByName('F'+FieldTypeNames[AfieldType]).AsString)<=0);
     close;
     end;
@@ -1827,7 +1806,6 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
-    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
     AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
     AssertEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;

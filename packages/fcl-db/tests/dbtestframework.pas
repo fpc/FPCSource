@@ -20,8 +20,7 @@ uses
   testbasics,
   testfieldtypes,
   TestDatasources,
-  testdbbasics,
-  TestBufDatasetStreams;
+  testdbbasics;
 
 var
   FXMLResultsWriter: TXMLResultsWriter;
