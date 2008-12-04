@@ -76,6 +76,10 @@ user=root
 password=
 hostname=127.0.0.1
 
+[sqlite]
+connector=sql
+connectorparams=sqlite3
+name=test.db
 
 ; This section is for a connector for TDbf:
 [dbf]
