@@ -1139,6 +1139,7 @@ type
     Procedure UnRegisterDataSource(ADatasource : TDatasource);
     Procedure UpdateFieldDefs;
     Procedure SetFieldDefs(AFieldDefs: TFieldDefs);
+    procedure DoInsertAppendRecord(const Values: array of const; DoAppend : boolean);
   protected
     procedure RecalcBufListSize;
     procedure ActivateBuffers; virtual;
