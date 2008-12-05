@@ -309,6 +309,12 @@ implementation
 uses
   testutils;
 
+Const
+  sExpectedButWasFmt = 'Expected:' + LineEnding + '"%s"' + LineEnding + 'But was:' + LineEnding + '"%s"';
+  sExpectedButWasAndMessageFmt = '%s' + LineEnding + sExpectedButWasFmt;
+  sMsgActualEqualsExpFmt = '%s' + LineEnding + 'Expected ' + LineEnding + '< %s > ' + LineEnding + 'equals actual ' + LineEnding + '< %s >';
+  sActualEqualsExpFmt = 'Expected ' + LineEnding + '< %s > ' + LineEnding + 'equals actual ' + LineEnding + '< %s >';
+
 
 { This lets us use a single include file for both the Interface and
   Implementation sections. }
