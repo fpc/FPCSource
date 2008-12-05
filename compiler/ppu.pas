@@ -127,6 +127,7 @@ const
   ibasmsymbols     = 81;
   ibresources      = 82;
   ibcreatedobjtypes = 83;
+  ibwpofile         = 84;
 
   ibmainname       = 90;
   { target-specific things }

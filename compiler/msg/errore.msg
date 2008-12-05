@@ -2193,7 +2193,7 @@ link_f_executable_too_big=09200_F_Executable image size is too big for $1 target
 #
 # Unit loading
 #
-# 10060 is the last used one
+# 10061 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2386,6 +2386,10 @@ unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still lo
 unit_u_unload_resunit=10060_U_Unloading resource unit $1 (not needed)
 % When you use the \var{-vu} flag, the compiler warns that it is unloading the
 % resource handling unit, since no resources are used.
+unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole program optimization feedback input ($2, $3); recompile it without wpo or use the same wpo feedback input file for this compilation invocation
+% When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
+% this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
+% any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
 % \end{description}
 # EndOfTeX
 

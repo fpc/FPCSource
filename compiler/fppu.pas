@@ -40,6 +40,9 @@ interface
        symbase,ppu,symtype;
 
     type
+
+       { tppumodule }
+
        tppumodule = class(tmodule)
           ppufile    : tcompilerppufile; { the PPU file }
           sourcefn   : pshortstring; { Source specified with "uses .. in '..'" }
@@ -79,6 +82,7 @@ interface
           procedure readderefdata;
           procedure readImportSymbols;
           procedure readResources;
+          procedure readwpofile;
 {$IFDEF MACRO_DIFF_HINT}
           procedure writeusedmacro(p:TNamedIndexItem;arg:pointer);
           procedure writeusedmacros;
@@ -903,6 +907,25 @@ uses
       end;
 
 
+    procedure tppumodule.readwpofile;
+      var
+        orgwpofilename: string;
+        orgwpofiletime: longint;
+      begin
+        { check whether we are using the same wpo feedback input file as when
+          this unit was compiled (same file name and file date)
+        }
+        orgwpofilename:=ppufile.getstring;
+        orgwpofiletime:=ppufile.getlongint;
+        if (extractfilename(orgwpofilename)<>extractfilename(wpofeedbackinput)) or
+           (orgwpofiletime<>GetNamedFileTime(orgwpofilename)) then
+          { make sure we don't throw away a precompiled unit if the user simply
+            forgot to specify the right wpo feedback file
+          }
+          message3(unit_e_different_wpo_file,ppufilename^,orgwpofilename,filetimestring(orgwpofiletime));
+      end;
+
+
     procedure tppumodule.load_interface;
       var
         b : byte;
@@ -960,6 +983,8 @@ uses
                readderefdata;
              ibresources:
                readResources;
+             ibwpofile:
+               readwpofile;
              ibendinterface :
                break;
            else
@@ -1036,9 +1061,21 @@ uses
          { write interface uses }
          writeusedunit(true);
 
+         { write after source files, so that we know whether or not the compiler
+           will recompile the unit when checking whether the correct wpo file is
+           used (if it will recompile the unit anyway, it doesn't matter)
+         }
+         if (wpofeedbackinput<>'') then
+           begin
+             ppufile.putstring(wpofeedbackinput);
+             ppufile.putlongint(getnamedfiletime(wpofeedbackinput));
+             ppufile.writeentry(ibwpofile);
+           end;
+
          { write the objectfiles and libraries that come for this unit,
            preserve the containers becuase they are still needed to load
-           the link.res. All doesn't depend on the crc! It doesn't matter
+           the link.res.
+            All doesn't depend on the crc! It doesn't matter
            if a unit is in a .o or .a file }
          ppufile.do_crc:=false;
          writelinkcontainer(linkunitofiles,iblinkunitofiles,true);
