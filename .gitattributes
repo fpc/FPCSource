@@ -1700,6 +1700,7 @@ packages/fv/src/amismsg.inc svneol=native#text/plain
 packages/fv/src/app.pas svneol=native#text/plain
 packages/fv/src/asciitab.pas svneol=native#text/plain
 packages/fv/src/buildfv.pas svneol=native#text/plain
+packages/fv/src/colorsel.pas svneol=native#text/plain
 packages/fv/src/colortxt.pas svneol=native#text/plain
 packages/fv/src/dialogs.pas svneol=native#text/plain
 packages/fv/src/drivers.pas svneol=native#text/plain
