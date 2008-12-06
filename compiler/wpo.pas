@@ -38,6 +38,7 @@ implementation
 
   uses
     globals,
+    comphook,
     wpobase, wpoinfo;
 
   { called after command line parameters have been parsed }
@@ -58,6 +59,10 @@ implementation
 
       { parse input }
       wpoinfomanager.parseandcheckwpoinfo;
+
+      { abort if error }
+      if (codegenerror) then
+        raise ECompilerAbort.Create;
     end;
 
 
