@@ -1061,6 +1061,12 @@ uses
          { write interface uses }
          writeusedunit(true);
 
+         { write the objectfiles and libraries that come for this unit,
+           preserve the containers becuase they are still needed to load
+           the link.res.
+            All doesn't depend on the crc! It doesn't matter
+           if a unit is in a .o or .a file }
+         ppufile.do_crc:=false;
          { write after source files, so that we know whether or not the compiler
            will recompile the unit when checking whether the correct wpo file is
            used (if it will recompile the unit anyway, it doesn't matter)
@@ -1071,13 +1077,6 @@ uses
              ppufile.putlongint(getnamedfiletime(wpofeedbackinput));
              ppufile.writeentry(ibwpofile);
            end;
-
-         { write the objectfiles and libraries that come for this unit,
-           preserve the containers becuase they are still needed to load
-           the link.res.
-            All doesn't depend on the crc! It doesn't matter
-           if a unit is in a .o or .a file }
-         ppufile.do_crc:=false;
          writelinkcontainer(linkunitofiles,iblinkunitofiles,true);
          writelinkcontainer(linkunitstaticlibs,iblinkunitstaticlibs,true);
          writelinkcontainer(linkunitsharedlibs,iblinkunitsharedlibs,true);
