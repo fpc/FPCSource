@@ -2581,6 +2581,8 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness i
 % Whether or not a symbol is live is determined by looking whether it exists in the final linked program.
 % Without smart linking/dead code stripping, all symbols are always included, regardless of whether they are
 % actually used or not. So in that case all symbols will be seen as live, even if they are not.
+wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
+% The compile is unable to create the file specified using the -FW parameter to store the whole program optimisation information in.
 %\end{description}
 # EndOfTeX
 

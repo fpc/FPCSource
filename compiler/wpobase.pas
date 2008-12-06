@@ -509,7 +509,14 @@ implementation
     var
       i: longint;
     begin
+{$i-}
       rewrite(foutputfile);
+{$i+}
+      if (ioresult <> 0) then
+        begin
+          cgmessage1(wpo_cant_create_feedback_file,ffilename);
+          exit;
+        end;
       for i:=0 to fsectioncontents.count-1 do
         twpocomponentbase(fsectioncontents[i]).storewpofilesection(self);
       close(foutputfile);

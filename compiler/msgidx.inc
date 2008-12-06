@@ -774,13 +774,14 @@ const
   wpo_error_reading_symbol_file=12016;
   wpo_error_executing_symbol_prog=12017;
   wpo_symbol_live_info_needs_smart_linking=12018;
+  wpo_cant_create_feedback_file=12019;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 50125;
+  MsgTxtSize = 50203;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,251,84,65,50,108,22,201,62,
-    44,19,1,1,1,1,1,1,1,1
+    44,20,1,1,1,1,1,1,1,1
   );
