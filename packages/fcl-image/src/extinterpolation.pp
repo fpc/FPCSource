@@ -12,7 +12,7 @@ of Bessel and Sinc are windowed with Blackman filter.
 interface
 
 uses
-  Classes, SysUtils, FPImage, FPCanvas;
+  Math, Classes, SysUtils, FPImage, FPCanvas;
 
 type
 
@@ -224,7 +224,7 @@ begin
 end;
 
 function BesselOrderOne (x : double) : double;
-var p,q, OneOverSqrt2,sinx,cosx : double;
+var p,OneOverSqrt2,sinx,cosx : double;
 begin
   if x = 0.0 then
     result := 0.0

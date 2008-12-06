@@ -34,7 +34,7 @@ rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]
 options=-S2h
-includedir=src/$(OS_TARGET) src
+includedir=src/$(OS_TARGET) src src/dummy
 includedir_linux=src/unix
 includedir_freebsd=src/unix
 includedir_darwin=src/unix
@@ -49,7 +49,6 @@ includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
 sourcedir=src/$(OS_TARGET) src
-includedir_linux=src/dummy
 
 [prerules]
 ifeq ($(OS_TARGET),win32)

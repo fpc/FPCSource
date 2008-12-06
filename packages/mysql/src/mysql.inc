@@ -1486,8 +1486,8 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-Function InitialiseMysql(Const LibraryName : String) : Integer;
-Function InitialiseMysql : Integer;
+Function InitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Procedure ReleaseMysql;
 
 var MysqlLibraryHandle : TLibHandle;
@@ -1506,7 +1506,7 @@ var
   RefCount : integer;
   LoadedLibrary : String;
 
-Function TryInitialiseMysql(Const LibraryName : String) : Integer;
+Function TryInitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 
 
 begin
@@ -1619,26 +1619,28 @@ begin
     pointer(mysql_stmt_affected_rows) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_affected_rows');
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
+
+    mysql_library_init(0,nil,nil);
     end
   else
     inc(RefCount);
   Result:=RefCount;
 end;
 
-Function InitialiseMysql : Integer;
+Function InitialiseMysql(argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 
 begin
   Result := 0;
-  If (TryInitialiseMysql(mysqlvlib) = 0) and
-     (TryInitialiseMysql(mysqllib) = 0) then
+  If (TryInitialiseMysql(mysqlvlib,argc,argv,groups) = 0) and
+     (TryInitialiseMysql(mysqllib,argc,argv,groups) = 0) then
       Raise EInOutError.CreateFmt(SErrDefaultsFailed,[mysqlvlib,mysqllib]);
   Result := RefCount;
 end;
 
-Function InitialiseMysql(Const LibraryName : String) : Integer;
+Function InitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 
 begin
-  Result := TryInitialiseMysql(LibraryName);
+  Result := TryInitialiseMysql(LibraryName,argc,argv,groups);
   If Result = 0 then
     Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
   else If (LibraryName<>LoadedLibrary) then
@@ -1654,12 +1656,16 @@ Procedure ReleaseMysql;
 begin
   if RefCount> 1 then
     Dec(RefCount)
-  else if UnloadLibrary(MysqlLibraryHandle) then 
+  else if RefCount = 1 then
     begin
-    Dec(RefCount);
-    MysqlLibraryHandle := NilHandle;
-    LoadedLibrary:='';
-    end;
+    mysql_library_end;
+    if UnloadLibrary(MysqlLibraryHandle) then
+      begin
+      Dec(RefCount);
+      MysqlLibraryHandle := NilHandle;
+      LoadedLibrary:='';
+      end
+    end
 end;
 
 {$ENDIF}
@@ -1715,5 +1721,8 @@ end;
       result := -1;
     end;
 
-
+{$IFDEF LinkDynamically}
+initialization
+  Refcount := 0;
+{$ENDIF}
 end.

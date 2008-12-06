@@ -453,7 +453,7 @@ begin
       begin
       If Assigned(DS) then
         F:=DS.FindField(FParams[i].Name);
-      If (Not Assigned(DS)) or (F<>Nil) then
+      If (Not Assigned(DS)) or (not DS.Active) or (F<>Nil) then
         begin
         If (FN<>'') then
           FN:=FN+';';

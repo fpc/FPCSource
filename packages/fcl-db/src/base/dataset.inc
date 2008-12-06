@@ -504,6 +504,31 @@ begin
   Result:=nil;
 end;
 
+function TDataSet.GetRecordSize: Word;
+begin
+  Result := 0;
+end;
+
+procedure TDataSet.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalDelete;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalFirst;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalGotoBookmark(ABookmark: Pointer);
+begin
+  // empty stub
+end;
+
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 begin
@@ -512,10 +537,27 @@ end;
 
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
-  
+
+ // There seems to be no WStrCopy defined, this is a copy of
+ // the generic StrCopy function, adapted for WideChar.
+ Function WStrCopy(Dest, Source:PWideChar): PWideChar;
+ var
+   counter : SizeInt;
+ Begin
+   counter := 0;
+   while Source[counter] <> #0 do
+   begin
+     Dest[counter] := char(Source[counter]);
+     Inc(counter);
+   end;
+   { terminate the string }
+   Dest[counter] := #0;
+   WStrCopy := Dest;
+ end;
+
 var
   DT : TFieldType;
-  
+
 begin
   DT := aField.DataType;
   if aToNative then
@@ -525,11 +567,10 @@ begin
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
       ftBCD                     : TBCD(aDest^) := CurrToBCD(Currency(aSource^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
-  // See notes from mantis bug-report 7204 for more information
+  // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -541,8 +582,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
@@ -840,21 +880,7 @@ begin
     Insert;
 
   for i := 0 to ValuesSize-1 do with values[i] do
-    case VType of
-      vtInteger   : fields[i].AsInteger    := VInteger;
-      vtBoolean   : fields[i].AsBoolean    := VBoolean;
-      vtChar      : fields[i].AsString     := VChar;
-      vtWideChar  : fields[i].AsString     := VWideChar;
-      vtString    : fields[i].AsString     := AnsiString(VString);
-      vtAnsiString: fields[i].AsString     := AnsiString(VAnsiString);
-      vtCurrency  : fields[i].AsCurrency   := VCurrency^;
-//      vtWideString: fields[i].AsWideString := VWideString;
-      vtInt64     : fields[i].AsLargeInt   := VInt64^;
-      vtQWord     : fields[i].AsLargeInt   := VQWord^;
-      vtVariant   : fields[i].AsVariant    := VVariant^;
-    else
-      DatabaseError(SIncompatibleTVarRec);
-    end; {case}
+    fields[i].AssignValue(values[i]);
   Post;
 
 end;
@@ -973,6 +999,16 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
+procedure TDataSet.InternalInitRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalLast;
+begin
+  // empty stub
+end;
+
 procedure TDataSet.InternalPost;
 
   Procedure Checkrequired;
@@ -990,6 +1026,21 @@ procedure TDataSet.InternalPost;
 
 begin
   Checkrequired;
+end;
+
+procedure TDataSet.InternalSetToRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
 end;
 
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
@@ -1320,6 +1371,26 @@ Procedure TDataset.UpdateIndexDefs;
 
 begin
   // Empty Abstract
+end;
+
+function TDataSet.AllocRecordBuffer: PChar;
+begin
+  Result := nil;
+end;
+
+procedure TDataSet.FreeRecordBuffer(var Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
+end;
+
+function TDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+begin
+  Result := bfCurrent;
 end;
 
 Function TDataset.ControlsDisabled: Boolean;
@@ -2222,6 +2293,7 @@ end;
 Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
 
 begin
+  CheckBiDirectional;
   Result := False;
 end;
 

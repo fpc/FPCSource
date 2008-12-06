@@ -44,7 +44,6 @@ Resourcestring
   STransNotActive          = 'Operation cannot be performed on an inactive transaction';
   STransActive             = 'Operation cannot be performed on an active transaction';
   SFieldNotFound           = 'Field not found : "%s"';
-  SIncompatibleTVarRec     = 'Faild to assign one of the TVarRec values into a TField';
   SInactiveDataset         = 'Operation cannot be performed on an inactive dataset';
   SInvalidDisplayValues    = '"%s" are not valid boolean displayvalues';
   SInvalidFieldKind        = '%s : invalid field kind : ';

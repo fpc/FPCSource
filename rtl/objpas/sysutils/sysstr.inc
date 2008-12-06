@@ -2016,7 +2016,6 @@ Var
         Else
           Digits[DecimalPoint-1]:=' ';
         End;
-
       { Convert optional zeroes to spaces. }
       I:=len;
       J:=DecimalPoint+Placehold[3];
@@ -2031,17 +2030,23 @@ Var
           Digits[DecimalPoint] := ' ';
       { Convert spaces left from obligatory decimal point to zeroes. }
       I:=DecimalPoint-Placehold[2];
-      If (Value<0) and (I<DecimalPoint) and (Digits[1]<>'-') then
-        begin
-        Insert('-',Digits,I);
-        Inc(DecimalPoint);
-        Inc(I);
-        end;
-      While (I<DecimalPoint) And (Digits[I] in [' ','-']) Do
+      While (I<DecimalPoint) And (Digits[I] in [' ']) Do
         Begin
         Digits[I] := '0';
         Inc(I);
         End;
+      { Convert zeroes left from minus sign to spaces}  
+      // Search minus sign
+      I:=DecimalPoint;
+      While (I>0) and (Digits[i]<>'-') do
+        Dec(i);
+      // Now convert  
+      Dec(I);
+      While (I>0) and (Digits[i]='0') do
+        begin
+        Digits[I] := ' ';
+        Inc(I);
+        end;
       Exp := 0;
       End
     Else

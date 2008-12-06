@@ -234,7 +234,7 @@ end;
 {$ifdef windows}
 procedure GetLanguageIDs(var Lang, FallbackLang: string);
 var
-  Buffer: array[1..4] of char;
+  Buffer: array[1..4] of {$ifdef Wince}WideChar{$else}char{$endif};
   Country: string;
   UserLCID: LCID;
 begin

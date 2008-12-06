@@ -173,18 +173,18 @@ type
     FInternalCalcField : Boolean;
     FPrecision : Longint;
     FRequired : Boolean;
-    FSize : Word;
+    FSize : Integer;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
     procedure SetAttributes(AValue: TFieldAttributes);
     procedure SetDataType(AValue: TFieldType);
     procedure SetPrecision(const AValue: Longint);
-    procedure SetSize(const AValue: Word);
+    procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
     constructor create(ACollection : TCollection); overload;
     constructor Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
+      ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
     procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
@@ -196,7 +196,7 @@ type
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
     property Precision: Longint read FPrecision write SetPrecision;
-    property Size: Word read FSize write SetSize;
+    property Size: Integer read FSize write SetSize;
   end;
 
 { TFieldDefs }
@@ -290,7 +290,7 @@ type
     FOrigin : String;
     FReadOnly : Boolean;
     FRequired : Boolean;
-    FSize : Word;
+    FSize : integer;
     FValidChars : TFieldChars;
     FValueBuffer : Pointer;
     FValidating : Boolean;
@@ -333,7 +333,7 @@ type
     function GetAsWideString: WideString; virtual;
     function GetCanModify: Boolean; virtual;
     function GetClassDesc: String; virtual;
-    function GetDataSize: Word; virtual;
+    function GetDataSize: Integer; virtual;
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;
     function GetCurValue: Variant; virtual;
@@ -359,7 +359,7 @@ type
     procedure SetDataset(AValue : TDataset); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
-    procedure SetSize(AValue: Word); virtual;
+    procedure SetSize(AValue: Integer); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
     procedure SetText(const AValue: string); virtual;
     procedure SetVarValue(const AValue: Variant); virtual;
@@ -395,7 +395,7 @@ type
     property CanModify: Boolean read GetCanModify;
     property CurValue: Variant read GetCurValue;
     property DataSet: TDataSet read FDataSet write SetDataSet;
-    property DataSize: Word read GetDataSize;
+    property DataSize: Integer read GetDataSize;
     property DataType: TFieldType read FDataType;
     property DisplayName: String Read GetDisplayName;
     property DisplayText: String read GetDisplayText;
@@ -404,7 +404,7 @@ type
     property IsNull: Boolean read GetIsNull;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
-    property Size: Word read FSize write SetSize;
+    property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
@@ -453,7 +453,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: string): Boolean;
@@ -489,7 +489,7 @@ type
     function GetAsWideString: WideString; override;
     procedure SetAsWideString(const aValue: WideString); override;
 
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(aOwner: TComponent); override;
     property Value: WideString read GetAsWideString write SetAsWideString;
@@ -530,7 +530,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
@@ -563,7 +563,7 @@ type
     function GetAsLargeint: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
@@ -584,7 +584,7 @@ type
 
   TSmallintField = class(TLongintField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -593,7 +593,7 @@ type
 
   TWordField = class(TLongintField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -621,7 +621,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
@@ -660,7 +660,7 @@ type
     function GetAsBoolean: Boolean; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsString(const AValue: string); override;
@@ -683,7 +683,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
@@ -732,7 +732,7 @@ type
 
   TBytesField = class(TBinaryField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -741,7 +741,7 @@ type
 
   TVarBytesField = class(TBytesField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -762,7 +762,7 @@ type
     function GetAsString: string; override;
     function GetValue(var AValue: Currency): Boolean;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
@@ -794,7 +794,6 @@ type
     FTransliterate : Boolean;
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
   protected
-    procedure AssignTo(Dest: TPersistent); override;
     procedure FreeBuffers; override;
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
@@ -808,7 +807,6 @@ type
     procedure SetAsWideString(const aValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Assign(Source: TPersistent); override;
     procedure Clear; override;
     class function IsBlob: Boolean; override;
     procedure LoadFromFile(const FileName: string);
@@ -1235,30 +1233,30 @@ type
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
     property Constraints: TCheckConstraints read FConstraints write FConstraints;
-  protected { abstract methods }
-    function AllocRecordBuffer: PChar; virtual; abstract;
-    procedure FreeRecordBuffer(var Buffer: PChar); virtual; abstract;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
+    function AllocRecordBuffer: PChar; virtual;
+    procedure FreeRecordBuffer(var Buffer: PChar); virtual;
+    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
+    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual;
     function GetDataSource: TDataSource; virtual;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
-    function GetRecordSize: Word; virtual; abstract;
-    procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual; abstract;
-    procedure InternalClose; virtual; abstract;
-    procedure InternalDelete; virtual; abstract;
-    procedure InternalFirst; virtual; abstract;
-    procedure InternalGotoBookmark(ABookmark: Pointer); virtual; abstract;
+    function GetRecordSize: Word; virtual;
+    procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual;
+    procedure InternalDelete; virtual;
+    procedure InternalFirst; virtual;
+    procedure InternalGotoBookmark(ABookmark: Pointer); virtual;
     procedure InternalHandleException; virtual;
-    procedure InternalInitFieldDefs; virtual; abstract;
-    procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
-    procedure InternalLast; virtual; abstract;
-    procedure InternalOpen; virtual; abstract;
+    procedure InternalInitRecord(Buffer: PChar); virtual;
+    procedure InternalLast; virtual;
     procedure InternalPost; virtual;
-    procedure InternalSetToRecord(Buffer: PChar); virtual; abstract;
-    function IsCursorOpen: Boolean; virtual; abstract;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
+    procedure InternalSetToRecord(Buffer: PChar); virtual;
+    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual;
+    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
+  protected { abstract methods }
+    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
+    procedure InternalClose; virtual; abstract;
+    procedure InternalOpen; virtual; abstract;
+    procedure InternalInitFieldDefs; virtual; abstract;
+    function IsCursorOpen: Boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;

@@ -85,6 +85,7 @@ type
     procedure TestSupportDateFields;
     procedure TestSupportCurrencyFields;
     procedure TestSupportBCDFields;
+    procedure TestSupportFixedStringFields;
 
     procedure TestIsEmpty;
     procedure TestAppendOnEmptyDataset;
@@ -93,6 +94,8 @@ type
     procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestEofAfterFirst;           //bug 7211
     procedure TestBufDatasetCancelUpd1;
+    procedure TestMultipleDeleteUpdateBuffer;
+    procedure TestDoubleDelete;
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -123,7 +126,7 @@ type
 
 implementation
 
-uses toolsunit, bufdataset, variants;
+uses toolsunit, bufdataset, variants, strutils;
 
 type THackDataLink=class(TdataLink);
 
@@ -151,6 +154,7 @@ begin
     AssertTrue(eof);
     AssertTrue(bof);
     append;
+    FieldByName('id').AsInteger:=0;
     AssertFalse(Bof);
     AssertTrue(Eof);
     post;
@@ -169,6 +173,7 @@ begin
     AssertTrue(bof);
     AssertTrue(IsEmpty);
     insert;
+    FieldByName('id').AsInteger:=0;
     AssertTrue(Bof);
     AssertTrue(Eof);
     AssertFalse(IsEmpty);
@@ -941,16 +946,20 @@ begin
 end;
 
 procedure TTestDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
+var i : integer;
 begin
   AssertEquals(2,ADataset.FieldDefs.Count);
-  AssertEquals(5,ADataset.RecordCount);
   AssertEquals(2,ADataset.Fields.Count);
   AssertEquals('ID',ADataset.Fields[0].FieldName);
   AssertEquals('NAME',ADataset.Fields[1].FieldName);
   AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
-  AssertEquals('TestName1',ADataset.FieldByName('name').AsString);
-  ADataset.Next;
-  AssertEquals('TestName2',ADataset.FieldByName('name').AsString);
+  i := 1;
+  while not ADataset.EOF do
+    begin
+    AssertEquals('TestName'+inttostr(i),ADataset.FieldByName('name').AsString);
+    ADataset.Next;
+    inc(i);
+    end;
 end;
 
 procedure TTestDBBasics.TestOnFilterProc(DataSet: TDataSet; var Accept: Boolean);
@@ -1804,6 +1813,24 @@ begin
   ds.close;
 end;
 
+procedure TTestDBBasics.TestSupportFixedStringFields;
+var i          : byte;
+    ds         : TDataset;
+    Fld        : TField;
+
+begin
+  TestfieldDefinition(ftFixedChar,10,ds,Fld);
+  for i := 0 to testValuesCount-1 do
+    begin
+    if Fld.IsNull then // If the field is null, .AsString always returns an empty, non-padded string
+      AssertEquals(testStringValues[i],Fld.AsString)
+    else
+      AssertEquals(PadRight(testStringValues[i],10),Fld.AsString);
+    ds.Next;
+    end;
+  ds.close;
+end;
+
 procedure TTestDBBasics.TestDoubleClose;
 begin
   with DBConnector.GetNDataset(1) do
@@ -1991,6 +2018,68 @@ begin
       AssertEquals('TestName'+inttostr(i),fields[1].AsString);
       Prior;
       end;
+    end;
+end;
+
+procedure TTestDBBasics.TestMultipleDeleteUpdateBuffer;
+var ds    : TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  ds.open;
+  with TBufDataset(ds) do
+    begin
+    AssertEquals(0,ChangeCount);
+    edit;
+    fieldbyname('id').asinteger := 500;
+    fieldbyname('name').AsString := 'JoJo';
+    post;
+    AssertEquals(1,ChangeCount);
+    next; next;
+    Delete;
+    AssertEquals(2,ChangeCount);
+    Delete;
+    AssertEquals(3,ChangeCount);
+    CancelUpdates;
+    end;
+  ds.close;
+end;
+
+procedure TTestDBBasics.TestDoubleDelete;
+var ds    : TBufDataset;
+begin
+  ds := TBufDataset(DBConnector.GetNDataset(true,5));
+  if not (ds is TBufDataset) then
+    Ignore('This test only applies to TBufDataset and descendents.');
+
+  with ds do
+    begin
+    open;
+    next; next;
+    Delete;
+    Delete;
+
+    first;
+    AssertEquals(1,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(2,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(5,fieldbyname('id').AsInteger);
+
+    CancelUpdates;
+
+    first;
+    AssertEquals(1,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(2,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(3,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(4,fieldbyname('id').AsInteger);
+    next;
+    AssertEquals(5,fieldbyname('id').AsInteger);
     end;
 end;
 

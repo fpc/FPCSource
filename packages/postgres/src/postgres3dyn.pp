@@ -12,11 +12,11 @@ unit postgres3dyn;
 interface
 
 uses
-  dynlibs, SysUtils, dllistdyn;
+  dynlibs, SysUtils, dllistdyn, ctypes;
 
 {$IFDEF Unix}
   const
-    pqlib = 'libpq.so';
+    pqlib = 'libpq.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Win32}
   const

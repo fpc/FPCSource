@@ -298,7 +298,7 @@ type
     property DeleteSQL : TStringlist read FDeleteSQL;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
-    property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey;
+    property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
     Property DataSource : TDatasource Read GetDataSource Write SetDatasource;
@@ -1366,7 +1366,7 @@ var FieldNamesQuoteChar : char;
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
        ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
-      sql_where := sql_where + '(' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + '= :OLD_' + fields[x].FieldName + ') and ';
+      sql_where := sql_where + '(' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + '= :' + FieldNamesQuoteChar + 'OLD_' + fields[x].FieldName + FieldNamesQuoteChar +') and ';
   end;
 
   function ModifyRecQuery : string;
@@ -1383,7 +1383,7 @@ var FieldNamesQuoteChar : char;
       UpdateWherePart(sql_where,x);
 
       if (pfInUpdate in Fields[x].ProviderFlags) then
-        sql_set := sql_set +FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +'=:' + fields[x].FieldName + ',';
+        sql_set := sql_set +FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +'=:' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + ',';
       end;
 
     if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
@@ -1408,7 +1408,7 @@ var FieldNamesQuoteChar : char;
       if (not fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) then
         begin
         sql_fields := sql_fields + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + ',';
-        sql_values := sql_values + ':' + fields[x].FieldName + ',';
+        sql_values := sql_values + ':' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +',';
         end;
       end;
     if length(sql_fields) = 0 then DatabaseErrorFmt(sNoUpdateFields,['insert'],self);

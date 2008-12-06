@@ -36,7 +36,7 @@ begin
 end;
 
 Constructor TFieldDef.Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint);
+      ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint);
 
 begin
 {$ifdef dsdebug }
@@ -138,7 +138,7 @@ begin
   Changed(False);
 end;
 
-procedure TFieldDef.SetSize(const AValue: Word);
+procedure TFieldDef.SetSize(const AValue: Integer);
 begin
   FSize := AValue;
   Changed(False);
@@ -369,7 +369,7 @@ begin
       vtWideString:
         AsWideString := WideString(VWideString);
       vtInt64:
-        Self.Value := VInt64^;
+        AsLargeInt := VInt64^;
     else
       Error;
     end;
@@ -564,7 +564,7 @@ begin
     Result:=FDataset.GetFieldData(Self,Buffer,NativeFormat);
 end;
 
-function TField.GetDataSize: Word;
+function TField.GetDataSize: Integer;
 
 begin
   Result:=0;
@@ -860,7 +860,7 @@ begin
     DataSet := AParent as TDataSet;
 end;
 
-procedure TField.SetSize(AValue: Word);
+procedure TField.SetSize(AValue: Integer);
 
 begin
   CheckInactive;
@@ -1058,7 +1058,7 @@ begin
 end;
 
 
-function TStringField.GetDataSize: Word;
+function TStringField.GetDataSize: Integer;
 
 begin
   Result:=Size+1;
@@ -1179,12 +1179,12 @@ var
   Buffer    : PWideChar;
 begin
   if DataSize <= dsMaxStringSize then begin
-    Result := GetData(@FixBuffer, True);
+    Result := GetData(@FixBuffer, False);
     aValue := FixBuffer;
   end else begin
     SetLength(DynBuffer, Succ(Size));
     Buffer := PWideChar(DynBuffer);
-    Result := GetData(Buffer, True);
+    Result := GetData(Buffer, False);
     if Result then
       aValue := Buffer;
   end;
@@ -1234,7 +1234,7 @@ begin
   SetData(Buffer, False);
 end;
 
-function TWideStringField.GetDataSize: Word;
+function TWideStringField.GetDataSize: Integer;
 begin
   Result :=
     (Size + 1) * 2;
@@ -1343,7 +1343,7 @@ begin
     Result:='';
 end;
 
-function TLongintField.GetDataSize: Word;
+function TLongintField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(Longint);
@@ -1513,7 +1513,7 @@ begin
     Result:='';
 end;
 
-function TLargeintField.GetDataSize: Word;
+function TLargeintField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(Largeint);
@@ -1632,7 +1632,7 @@ end;
 
 { TSmallintField }
 
-function TSmallintField.GetDataSize: Word;
+function TSmallintField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(SmallInt);
@@ -1650,7 +1650,7 @@ end;
 
 { TWordField }
 
-function TWordField.GetDataSize: Word;
+function TWordField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(Word);
@@ -1725,7 +1725,7 @@ begin
     Result:='';
 end;
 
-function TFloatField.GetDataSize: Word;
+function TFloatField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(Double);
@@ -1865,7 +1865,7 @@ begin
     result:='';
 end;
 
-function TBooleanField.GetDataSize: Word;
+function TBooleanField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(wordBool);
@@ -1984,7 +1984,7 @@ begin
 end;
 
 
-function TDateTimeField.GetDataSize: Word;
+function TDateTimeField.GetDataSize: Integer;
 
 begin
   Result:=SizeOf(TDateTime);
@@ -2145,7 +2145,7 @@ end;
 
 { TBytesField }
 
-function TBytesField.GetDataSize: Word;
+function TBytesField.GetDataSize: Integer;
 
 begin
   Result:=Size;
@@ -2164,7 +2164,7 @@ end;
 
 { TVarBytesField }
 
-function TVarBytesField.GetDataSize: Word;
+function TVarBytesField.GetDataSize: Integer;
 
 begin
   Result:=Size+2;
@@ -2237,7 +2237,7 @@ begin
   Result := GetData(@AValue);
 end;
 
-function TBCDField.GetDataSize: Word;
+function TBCDField.GetDataSize: Integer;
 
 begin
   result := sizeof(system.currency);
@@ -2329,13 +2329,6 @@ end;
 
 
 { TBlobField }
-
-
-procedure TBlobField.AssignTo(Dest: TPersistent);
-
-begin
-  //!! To be implemented
-end;
 
 Function TBlobField.GetBlobStream(Mode : TBlobStreamMode) : TStream;
 
@@ -2489,13 +2482,6 @@ constructor TBlobField.Create(AOwner: TComponent);
 begin
   Inherited Create(AOWner);
   SetDataType(ftBlob);
-end;
-
-
-procedure TBlobField.Assign(Source: TPersistent);
-
-begin
-  //!! To be implemented
 end;
 
 

@@ -28,13 +28,13 @@ type
     procedure RunTest; override;
   published
     procedure TestClearUpdateableStatus;
-    procedure TestFixedStringParamQuery;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
     procedure TestDoubleFieldNames; // bug 8457
     procedure TestParseUnion; // bug 8442
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
+    procedure TestApplyUpdFieldnames; // Bug 12275;
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
@@ -73,9 +73,11 @@ type
     procedure TestNullValues;
     procedure TestParamQuery;
     procedure TestStringParamQuery;
+    procedure TestFixedStringParamQuery;
     procedure TestDateParamQuery;
     procedure TestIntParamQuery;
     procedure TestFloatParamQuery;
+    procedure TestBCDParamQuery;
     procedure TestAggregates;
   end;
 
@@ -88,6 +90,9 @@ Type HackedDataset = class(TDataset);
 const
   testFloatValuesCount = 21;
   testFloatValues : Array[0..testFloatValuesCount-1] of double = (-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,0.123456,-0.123456,4.35,12.434E7,9.876e-5,123.45678);
+
+  testBCDValuesCount = 10;
+  testBCDValues : Array[0..testBCDValuesCount-1] of currency = (-100,54.53,1.2345,123.5345,0,1,-1,0,1.42,1324.4324);
 
   testIntValuesCount = 17;
   testIntValues : Array[0..testIntValuesCount-1] of integer = (-maxInt,-maxSmallint-1,-maxSmallint,-256,-255,-128,-127,-1,0,1,127,128,255,256,maxSmallint,maxSmallint+1,MaxInt);
@@ -695,6 +700,11 @@ begin
   TestXXParamQuery(ftFloat,'FLOAT',testFloatValuesCount);
 end;
 
+procedure TTestFieldTypes.TestBCDParamQuery;
+begin
+  TestXXParamQuery(ftBCD,'NUMERIC(10,4)',testBCDValuesCount);
+end;
+
 procedure TTestFieldTypes.TestStringParamQuery;
 
 begin
@@ -737,6 +747,7 @@ begin
       case ADataType of
         ftInteger: Params.ParamByName('field1').asinteger := testIntValues[i];
         ftFloat  : Params.ParamByName('field1').AsFloat   := testFloatValues[i];
+        ftBCD    : Params.ParamByName('field1').AsCurrency:= testBCDValues[i];
         ftFixedChar,
         ftString : Params.ParamByName('field1').AsString  := testStringValues[i];
         ftDate   : if cross then
@@ -760,13 +771,15 @@ begin
       case ADataType of
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
-        ftFixedChar,
-        ftString : begin
+        ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
+        ftFixedChar :
+                   begin
                    if FieldByName('FIELD1').isnull then
                      AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString)
                    else
                      AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
                    end;
+        ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
       else
         AssertTrue('no test for paramtype available',False);
@@ -1120,6 +1133,35 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestApplyUpdFieldnames;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    AssertEquals(-1,query.RowsAffected);
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  ID INT NOT NULL            , ' +
+                              '  "NAME-TEST" VARCHAR(250),  ' +
+                              '  PRIMARY KEY (ID)           ' +
+                              ')                            ');
+// Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+    TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+    Connection.ExecuteDirect('insert into FPDEV2(ID,"NAME-TEST") values (1,''test1'')');
+    Query.SQL.Text := 'select * from fpdev2';
+    Query.Open;
+    AssertEquals(1,Query.FieldByName('ID').AsInteger);
+    AssertEquals('test1',Query.FieldByName('NAME-TEST').AsString);
+    Query.Edit;
+    Query.FieldByName('NAME-TEST').AsString:='Edited';
+    Query.Post;
+    Query.ApplyUpdates;
+    Query.Close;
+    Query.Open;
+    AssertEquals(1,Query.FieldByName('ID').AsInteger);
+    AssertEquals('Edited',Query.FieldByName('NAME-TEST').AsString);
+    Query.Close;
+    end;
+end;
+
 procedure TTestFieldTypes.TestRowsAffected;
 begin
   with TSQLDBConnector(DBConnector) do
@@ -1390,7 +1432,7 @@ procedure TTestFieldTypes.TestParametersAndDates;
 // See bug 7205
 var ADateStr : String;
 begin
-  if SQLDbType in [interbase,mysql40,mysql41,mysql50] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
+  if SQLDbType in [interbase,mysql40,mysql41,mysql50,sqlite3] then Ignore('This test does not apply to this sqldb-connection type, since it doesn''t use semicolons for casts');
 
   with TSQLDBConnector(DBConnector).Query do
     begin

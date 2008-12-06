@@ -46,9 +46,10 @@ type
     FText: String;
     FURL: String;
     procedure SetChildren(const AValue: TChmSiteMapItems);
-  published
+  public
     constructor Create(AOwner: TChmSiteMapItems);
     destructor Destroy; override;
+  published
     property Children: TChmSiteMapItems read FChildren write SetChildren;
     property Text: String read FText write FText; // Name for TOC; KeyWord for index
     property KeyWord: String read FKeyWord write FKeyWord;
@@ -349,8 +350,8 @@ var
          WriteParam('Keyword', Item.Text);
       //if Item.KeyWord <> '' then WriteParam('Keyword', Item.KeyWord);
       if Item.Text <> '' then WriteParam('Name', Item.Text);
-      if (Item.Local <> '') or (SiteMapType = stIndex) then WriteParam('Local', Item.Local);
-      if Item.URL <> '' then WriteParam('URL', Item.URL);
+      if (Item.Local <> '') or (SiteMapType = stIndex) then WriteParam('Local', StringReplace(Item.Local, '\', '/', [rfReplaceAll]));
+      if Item.URL <> '' then WriteParam('URL', StringReplace(Item.URL, '\', '/', [rfReplaceAll]));
       if (SiteMapType = stIndex) and (Item.SeeAlso <> '') then WriteParam('See Also', Item.SeeAlso);
       //if Item.FrameName <> '' then WriteParam('FrameName', Item.FrameName);
       //if Item.WindowName <> '' then WriteParam('WindowName', Item.WindowName);
