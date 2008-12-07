@@ -3,7 +3,7 @@
    (Still unused) skeleton for Colorsel replacement, based on mostly the 
      use by the fpmopts.inc file, to be added on as details emerge.
 
-   Copyright 2008 by Marco van de Voort
+   Copyright 2008 by Marco van de Voort and Andreas Jakobsche
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -20,69 +20,52 @@
    Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
  ****************************************************************************}
-
-unit Colorsel;
+}
+unit ColorSel;
 
 interface
 
-Uses Objects,Dialogs;
+uses Objects, Dialogs, Views;
 
-Type
-    PColorItem  = ^TColorItem;
-    TColorItem  = Record
-                    Next : PColorItem;
-                    Name : PString;
-            		    Index: Longint;
-                    end;
+type
 
-    PColorGroup = ^TColorGroup;
-    TColorGroup = Record
-            		    Next  : PColorGroup;
-            		    Name  : PString;
-            		    Index : Longint;
-            		    Items : PColorItem;
-                	  end;
+  PColorItem = ^TColorItem;
+  TColorItem = record
+    Name: PString;
+    Index: Byte;
+    Next: PColorItem;
+  end;
 
-    PColorDialog = ^TColorDialog;
-    TColorDialog = object(TDialog)
-                       constructor Init(APalette:integer;colGroup:PColorGroup);  //
-                       constructor Load(var S: TStream);
-                       procedure Store(var S: TStream);
-                      end;
+  PColorGroup = ^TColorGroup;
+  TColorGroup = record
+    Name: PString;
+    Index: Byte;
+    Items: PColorItem;
+    Next: PColorGroup;
+  end;
 
-function ColorItem(Name:String;Index:integer;Item:PColorItem):PColorItem;
-function ColorGroup(Name:String;item:PColorItem;Group:PColorGroup):PColorGroup;
+  PColorGroupList = ^TColorGroupList;
+  TColorGroupList = object(TListViewer)
+    Groups: PColorGroup;
+    constructor Init(var Bounds: TRect; AScrollBar: PScrollBar; AGroups: PColorGroup);
+  end;
 
-// function MenuColorItems(p:pointer):PColorItem; ??
+  PColorDialog = ^TColorDialog;
+  TColorDialog = object(TDialog)
+    Groups: PColorGroupList;
+    Pal: TPalette;
+    constructor Init(APalette: TPalette; AGroups: PColorGroup);
+    constructor Load(var S: TStream);
+    procedure Store(var S: TStream);
+  end;
 
-procedure RegisterColorSel;
+function ColorGroup(Name: string; Items: PColorItem; Next: PColorGroup): PColorGroup;
+
+function ColorItem(Name: string; Index: Byte; Next: PColorItem): PColorItem;
 
 implementation
 
-Uses fvconsts; // idcolordialog
-
-function ColorItem(Name:String;index:integer;Item:PColorItem):PColorItem;
-
-var p : PColorItem;
-begin
-  new(p);
-  new(p^.Name);
-  p^.Name^:=Name;
-  p^.index:=index;
-  p^.next:=item;
-  ColorItem:=p;
-end;
-
-function ColorGroup(Name:String;item:PColorItem;Group:PColorGroup):PColorGroup;
-var p : PColorGroup;
-begin
-  new(p);
-  new(p^.Name);
-  p^.Name^:=Name;
-  p^.next:=group;
-  p^.items:=item;
-  ColorGroup:=p;
-end;
+uses App;
 
 const
   RColorDialog: TStreamRec = (
@@ -91,7 +74,6 @@ const
      Load:    @TColorDialog.Load;
      Store:   @TColorDialog.Store
   );
-
 
 procedure RegisterColorsel;
 begin
@@ -106,12 +88,63 @@ begin
 end ;
 
 
-constructor TColorDialog.Init(APalette:integer;colGroup:PColorGroup);
+function ColorGroup(Name: string; Items: PColorItem; Next: PColorGroup): PColorGroup;
+var
+  R: PColorGroup;
 begin
+  New(R);
+  R^.Name := NewStr(Name);
+  R^.Items := Items;
+  R^.Next := Next;
+  ColorGroup := R;
 end;
+
+
+function ColorItem(Name: string; Index: Byte; Next: PColorItem): PColorItem;
+var R: PColorItem;
+begin
+  New(R);
+  R^.Name := NewStr(Name);
+  R^.Index := Index;
+  R^.Next := Next;
+  ColorItem := R
+end;
+
+
+constructor TColorGroupList.Init(var Bounds: TRect; AScrollBar: PScrollBar; AGroups: PColorGroup);
+var
+  x: PColorGroup;
+begin
+  inherited Init(Bounds, 1, nil, AScrollBar);
+  Range := 0;
+  Groups := AGroups;
+  x := AGroups;
+  while Assigned(x) do begin
+    x^.Index := Range;
+    Inc(Range);
+    x := x^.Next
+  end;
+end;
+
+
+constructor TColorDialog.Init(APalette: TPalette; AGroups: PColorGroup);
+var
+  Bounds: TRect;
+begin
+  Bounds.Assign(0, 0, 62, 19);
+  inherited Init(Bounds, 'Colors');
+  Options := Options or ofCentered;
+  Pal := APalette;
+  Bounds.Grow(-1, -1);
+  Groups := New(PColorGroupList, Init(Bounds, nil, AGroups));
+end;
+
+
 constructor TColorDialog.Load(var S: TStream);
 begin
 end;
+
+
 procedure TColorDialog.Store(var S: TStream);
 begin
 end;
