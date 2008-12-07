@@ -413,8 +413,6 @@ begin
                              // low 16 bits. Both with an offset of 4.
                              // In this case we need the scale:
                              size := (PQfmod(res,Tuple)-4) and $FFFF;
-                             if size = -1 then
-                               size := 4
                              end;
     Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
