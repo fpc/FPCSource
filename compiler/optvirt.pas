@@ -135,6 +135,7 @@ unit optvirt;
         function addunitifnew(const n: shortstring): tunitdevirtinfo;
         function findunit(const n: shortstring): tunitdevirtinfo;
         function getstaticname(forvmtentry: boolean; objdef, procdef: tdef; out staticname: string): boolean;
+        procedure documentformat(writer: twposectionwriterintf);
        public
         constructor create; override;
         destructor destroy; override;
@@ -946,6 +947,41 @@ unit optvirt;
       end;
 
 
+    procedure tprogdevirtinfo.documentformat(writer: twposectionwriterintf);
+      begin
+        writer.sectionputline('# section format:');
+        writer.sectionputline('# unit1^');
+        writer.sectionputline('# class1&                ; classname&');
+        writer.sectionputline('# 1                      ; instantiated or not');
+        writer.sectionputline('# basevmt                ; vmt type (base or some interface)');
+        writer.sectionputline('# # vmt entry nr');
+        writer.sectionputline('# 0                      ; vmt entry nr');
+        writer.sectionputline('# staticvmtentryforslot0 ; name or routine to call instead');
+        writer.sectionputline('# 5');
+        writer.sectionputline('# staticvmtentryforslot5');
+        writer.sectionputline('# intfvmt1');
+        writer.sectionputline('# 0');
+        writer.sectionputline('# staticvmtentryforslot0');
+        writer.sectionputline('#');
+        writer.sectionputline('# class2&');
+        writer.sectionputline('# 0                      ; non-instantiated class (can be variables of this type, e.g. TObject)');
+        writer.sectionputline('# basevmt');
+        writer.sectionputline('# 1');
+        writer.sectionputline('# staticvmtentryforslot1');
+        writer.sectionputline('#');
+        writer.sectionputline('# class3&                ; instantiated class without optimisable virtual methods');
+        writer.sectionputline('# 1');
+        writer.sectionputline('#');
+        writer.sectionputline('# unit2^');
+        writer.sectionputline('# 1');
+        writer.sectionputline('# class3&');
+        writer.sectionputline('# ...');
+        writer.sectionputline('#');
+        writer.sectionputline('# currently, only basevmt is supported (no interfaces yet)');
+        writer.sectionputline('#');
+      end;
+
+
     procedure tprogdevirtinfo.storewpofilesection(writer: twposectionwriterintf);
       var
         unitcount,
@@ -959,6 +995,7 @@ unit optvirt;
         if not assigned(funits) then
           exit;
         writer.startsection(DEVIRT_SECTION_NAME);
+        documentformat(writer);
         for unitcount:=0 to funits.count-1 do
           begin
             unitdevirtinfo:=tunitdevirtinfo(funits[unitcount]);

@@ -41,6 +41,7 @@ unit optdead;
         { hashtable of symbols which are live }
         fsymbols     : tfphashlist;
 
+        procedure documentformat(writer: twposectionwriterintf);
        public
         constructor create; override;
         destructor destroy; override;
@@ -153,11 +154,22 @@ unit optdead;
     end;
 
 
+  procedure twpodeadcodeinfo.documentformat(writer: twposectionwriterintf);
+    begin
+      writer.sectionputline('# section format:');
+      writer.sectionputline('# symbol1_that_is_live');
+      writer.sectionputline('# symbol2_that_is_live');
+      writer.sectionputline('# ...');
+      writer.sectionputline('#');
+    end;
+
+
   procedure twpodeadcodeinfo.storewpofilesection(writer: twposectionwriterintf);
     var
       i: longint;
     begin
       writer.startsection(SYMBOL_SECTION_NAME);
+      documentformat(writer);
       for i:=0 to fsymbols.count-1 do
         writer.sectionputline(fsymbols.nameofindex(i));
     end;
