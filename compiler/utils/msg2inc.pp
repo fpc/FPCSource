@@ -161,10 +161,10 @@ begin
      writeln('aborting');
      halt(1);
    end;
-{ no linebreak after last entry }
-  dec(msgsize);
 { alloc memory }
   getmem(msgtxt,msgsize);
+{ no linebreak after last entry }
+  dec(msgsize);
   ptxt:=msgtxt;
   getmem(enumtxt,enumsize);
   penum:=enumtxt;
