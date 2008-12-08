@@ -24,7 +24,7 @@ unit DOM_HTML;
 
 interface
 
-uses DOM;
+uses DOM, xmlutils;
 
 type
 
@@ -59,8 +59,6 @@ type
     procedure SetDir(const Value: DOMString);
     function GetClassName: DOMString;
     procedure SetClassName(const Value: DOMString);
-  protected
-    constructor Create(AOwner: THTMLDocument; const ATagName: DOMString);
   public
     property ID: DOMString read GetID write SetID;
     property Title: DOMString read GetTitle write SetTitle;
@@ -607,6 +605,7 @@ type
     procedure Write(const AText: DOMString);
     procedure WriteLn(const AText: DOMString);
     function GetElementsByName(const ElementName: DOMString): TDOMNodeList;
+    function HashForName(const aName: DOMString): PHashItem;
 
     // Helper functions (not in DOM standard):
     function CreateElement(const tagName: DOMString): THTMLElement;
@@ -715,13 +714,6 @@ end;
 function THTMLOptionsCollection.NamedItem(const Index: DOMString): TDOMNode;
 begin
   Result := nil;
-end;
-
-
-constructor THTMLElement.Create(AOwner: THTMLDocument; const ATagName: DOMString);
-begin
-  inherited Create(AOwner);
-  FNodeName := ATagName;
 end;
 
 function THTMLElement.GetID: DOMString; begin Result := GetAttribute('id') end;
@@ -875,7 +867,13 @@ end;
 
 function THTMLDocument.CreateElement(const tagName: DOMString): THTMLElement;
 begin
-  Result := THTMLElement.Create(Self, tagName);
+  Result := THTMLElement.Create(Self);
+  Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(tagName), Length(tagName));
+end;
+
+function THTMLDocument.HashForName(const aName: DOMString): PHashItem;
+begin
+  Result := FNames.FindOrAdd(DOMPChar(aName), Length(aName));
 end;
 
 function THTMLDocument.CreateSubElement: THTMLElement; begin Result := CreateElement('sub') end;
@@ -906,18 +904,59 @@ function THTMLDocument.CreateNoFramesElement: THTMLElement; begin Result := Crea
 function THTMLDocument.CreateNoScriptElement: THTMLElement; begin Result := CreateElement('noscript') end;
 function THTMLDocument.CreateAddressElement: THTMLElement; begin Result := CreateElement('address') end;
 function THTMLDocument.CreateCenterElement: THTMLElement; begin Result := CreateElement('center') end;
-function THTMLDocument.CreateHtmlElement: THTMLHtmlElement; begin Result := THTMLHtmlElement.Create(Self, 'html') end;
-function THTMLDocument.CreateHeadElement: THTMLHeadElement; begin Result := THTMLHeadElement.Create(Self, 'head') end;
-function THTMLDocument.CreateLinkElement: THTMLLinkElement; begin Result := THTMLLinkElement.Create(Self, 'a') end;
+
+function THTMLDocument.CreateHtmlElement: THTMLHtmlElement;
+begin
+  Result := THTMLHtmlElement.Create(Self);
+  Result.FNSI.QName := HashForName('html');
+end;
+
+function THTMLDocument.CreateHeadElement: THTMLHeadElement;
+begin
+  Result := THTMLHeadElement.Create(Self);
+  Result.FNSI.QName := HashForName('head');
+end;
+
+function THTMLDocument.CreateLinkElement: THTMLLinkElement;
+begin
+  Result := THTMLLinkElement.Create(Self);
+  Result.FNSI.QName := HashForName('a');
+end;
+
+function THTMLDocument.CreateBodyElement: THTMLBodyElement;
+begin
+  Result := THTMLBodyElement.Create(Self);
+  Result.FNSI.QName := HashForName('body');
+end;
+
+function THTMLDocument.CreateUListElement: THTMLUListElement;
+begin
+  Result := THTMLUListElement.Create(Self);
+  Result.FNSI.QName := HashForName('ul');
+end;
+
+function THTMLDocument.CreateOListElement: THTMLOListElement;
+begin
+  Result := THTMLOListElement.Create(Self);
+  Result.FNSI.QName := HashForName('ol');
+end;
+
+function THTMLDocument.CreateDListElement: THTMLDListElement;
+begin
+  Result := THTMLDListElement.Create(Self);
+  Result.FNSI.QName := HashForName('dl');
+end;
+
+function THTMLDocument.CreateLIElement: THTMLLIElement;
+begin
+  Result := THTMLLIElement.Create(Self);
+  Result.FNSI.QName := HashForName('li');
+end;
 //...
-function THTMLDocument.CreateBodyElement: THTMLBodyElement; begin Result := THTMLBodyElement.Create(Self, 'body') end;
-//...
-function THTMLDocument.CreateUListElement: THTMLUListElement; begin Result := THTMLUListElement.Create(Self, 'ul') end;
-function THTMLDocument.CreateOListElement: THTMLOListElement; begin Result := THTMLOListElement.Create(Self, 'ol') end;
-function THTMLDocument.CreateDListElement: THTMLDListElement; begin Result := THTMLDListElement.Create(Self, 'dl') end;
-// ...
-function THTMLDocument.CreateLIElement: THTMLLIElement; begin Result := THTMLLIElement.Create(Self, 'li') end;
-//...
-function THTMLDocument.CreateParagraphElement: THTMLParagraphElement; begin Result := THTMLParagraphElement.Create(Self, 'p') end;
+function THTMLDocument.CreateParagraphElement: THTMLParagraphElement;
+begin
+  Result := THTMLParagraphElement.Create(Self);
+  Result.FNSI.QName := HashForName('p');
+end;
 
 end.
