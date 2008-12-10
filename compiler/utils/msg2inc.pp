@@ -163,6 +163,8 @@ begin
    end;
 { alloc memory }
   getmem(msgtxt,msgsize);
+{ no linebreak after last entry }
+  dec(msgsize);
   ptxt:=msgtxt;
   getmem(enumtxt,enumsize);
   penum:=enumtxt;
