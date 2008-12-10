@@ -17,6 +17,7 @@
 Unit Redir;
 Interface
 
+{$H+}
 {$R-}
 {$ifndef Linux}
 {$ifndef Unix}
@@ -89,6 +90,10 @@ const
 
 Implementation
 
+{$ifdef macos}
+{$define usedos}
+{$endif}
+
 Uses
 {$ifdef go32v2}
   go32,
@@ -104,7 +109,11 @@ Uses
     unix,
   {$endif}
 {$endif unix}
+{$ifdef usedos}
   dos;
+{$else}
+  sysutils;
+{$endif}
 
 Const
 {$ifdef UNIX}
@@ -123,6 +132,31 @@ Const
 {$endif MACOS}
 {$endif UNIX}
 
+{$ifndef usedos}
+{ code from:                                                 }
+{ Lithuanian Text Tool version 0.9.0  (2001-04-19)           }
+{ Copyright (c) 1999-2001 Marius Gedminas <mgedmin@delfi.lt> }
+{ (GPLv2 or later)                                           }
+
+function FExpand(const S: string): string;
+begin
+  FExpand := ExpandFileName(S);
+end;
+
+type
+  PathStr = string;
+  DirStr = string;
+  NameStr = string;
+  ExtStr = string;
+
+procedure FSplit(Path: PathStr; var Dir: DirStr; var Name: NameStr; var Ext: ExtStr);
+begin
+  Dir := ExtractFilePath(Path);
+  Name := ChangeFileExt(ExtractFileName(Path), '');
+  Ext := ExtractFileExt(Path);
+end;
+
+{$endif}
 
 var
   FIN,FOUT,FERR     : ^File;
@@ -142,12 +176,12 @@ var
   i : longint;
 begin
   { Fix separator }
+  setlength(fixpath,length(s));
   for i:=1 to length(s) do
    if s[i] in ['/','\'] then
     fixpath[i]:=DirSep
    else
     fixpath[i]:=s[i];
-  fixpath[0]:=s[0];
 end;
 
 
@@ -280,13 +314,19 @@ end;
 
 {$I-}
 function FileExist(const FileName : PathStr) : Boolean;
+{$ifdef usedos}
 var
   f : file;
   Attr : word;
+{$endif}
 begin
+{$ifdef usedos}
   Assign(f, FileName);
   GetFAttr(f, Attr);
   FileExist := DosError = 0;
+{$else}
+  FileExist := Sysutils.FileExists(filename);
+{$endif}
 end;
 
 function CompleteDir(const Path: string): string;
@@ -321,7 +361,11 @@ begin
       Exit;
     end;
 
+{$ifdef usedos}
   S:=GetEnv('PATH');
+{$else}
+  S:=GetEnvironmentVariable('PATH');
+{$endif}
   While Length(S)>0 do
     begin
       i:=1;
@@ -963,7 +1007,9 @@ end;
 {$IfDef MsDos}
   SmallHeap;
 {$EndIf MsDos}
+{$ifdef usedos}
     SwapVectors;
+{$endif usedos}
     { Must use shell() for linux for the wildcard expansion (PFV) }
 {$ifdef UNIX}
     IOStatus:=0;
@@ -991,12 +1037,12 @@ end;
   {$endif windows}
     DosError:=0;
     If UseComSpec then
-      Dos.Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+      Sysutils.ExecuteProcess (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
     else
       begin
         if LocateExeFile(progname) then
           {$ifndef macos}
-          Dos.Exec(ProgName,Comline)
+          Sysutils.ExecuteProcess(ProgName,Comline)
           {$else}
           Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
           {$endif}
@@ -1010,7 +1056,9 @@ end;
     IOStatus:=DosError;
     ExecuteResult:=DosExitCode;
 {$endif}
+{$ifdef usedos}
     SwapVectors;
+{$endif}
 {$ifdef CPU86}
     { reset the FPU }
     {$asmmode att}
