@@ -1999,8 +1999,10 @@ Var
       Width:=Placehold[1]+Placehold[2]+Decimals;
       If (Decimals=0) Then
         Str(Value:Width:0,Digits)
-      Else
-        Str(Value:Width+1:Decimals,Digits);
+      Else if Value>=0 then
+        Str(Value:Width+1:Decimals,Digits)
+      else
+        Str(Value:Width+2:Decimals,Digits);
       len:=Length(Digits);
       { Find the decimal point }
       If (Decimals=0) Then
@@ -2028,25 +2030,19 @@ Var
         places, remove decimal point. }
       If (DecimalPoint < len) And (Digits[DecimalPoint + 1] = ' ') Then
           Digits[DecimalPoint] := ' ';
-      { Convert spaces left from obligatory decimal point to zeroes. }
+      { Convert spaces left from obligatory decimal point to zeroes. 
+        MVC : If - sign is encountered, replace it too, and put at position 1}
       I:=DecimalPoint-Placehold[2];
-      While (I<DecimalPoint) And (Digits[I] in [' ']) Do
+      J:=0;
+      While (I<DecimalPoint) And (Digits[I] in [' ','-']) Do
         Begin
+        If Digits[i]='-' then
+          J:=I;
         Digits[I] := '0';
         Inc(I);
         End;
-      { Convert zeroes left from minus sign to spaces}  
-      // Search minus sign
-      I:=DecimalPoint;
-      While (I>0) and (Digits[i]<>'-') do
-        Dec(i);
-      // Now convert  
-      Dec(I);
-      While (I>0) and (Digits[i]='0') do
-        begin
-        Digits[I] := ' ';
-        Inc(I);
-        end;
+      If (J<>0) then
+        Digits[1]:='-';
       Exp := 0;
       End
     Else
