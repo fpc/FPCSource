@@ -1347,7 +1347,15 @@ packages/fcl-fpcunit/src/example_output/results.pdf -text
 packages/fcl-fpcunit/src/example_output/results.txt svneol=native#text/plain
 packages/fcl-fpcunit/src/example_xsl/fpcunit.css svneol=native#text/plain
 packages/fcl-fpcunit/src/example_xsl/fpcunit.xsl svneol=native#text/plain
+packages/fcl-fpcunit/src/example_xsl/images/lastlink.gif -text
+packages/fcl-fpcunit/src/example_xsl/images/link.gif -text
+packages/fcl-fpcunit/src/example_xsl/images/minus.gif -text
+packages/fcl-fpcunit/src/example_xsl/images/plus.gif -text
+packages/fcl-fpcunit/src/example_xsl/images/testcase.gif -text
+packages/fcl-fpcunit/src/example_xsl/images/testsuite.gif -text
 packages/fcl-fpcunit/src/example_xsl/readme.txt svneol=native#text/plain
+packages/fcl-fpcunit/src/example_xsl/scripts/fpcunit.css svneol=native#text/plain
+packages/fcl-fpcunit/src/example_xsl/scripts/treeview.js svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/Makefile svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/Makefile.fpc svneol=native#text/plain
 packages/fcl-fpcunit/src/exampletests/fpcunittests.pp svneol=native#text/plain
