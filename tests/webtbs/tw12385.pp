@@ -1,4 +1,6 @@
+{$ifdef fpc}
 {$mode objfpc}
+{$endif}
 program tw12385;
 
 uses
@@ -9,8 +11,22 @@ var
   cr: Extended; 
 
 begin
+  cr := 1234.567;
+  s:=FormatFloat('00000000.00', cr);
+  if s<>'00001234.57' then 
+    begin
+    Writeln(S,'<> 00001234.57 (latter is correct)');
+    Halt(1);
+    end;
   cr := -1234.567;
-  s:=FormatFloat('0.00', cr);
+  s:=FormatFloat('00000000.00', cr);
+  if s<>'-00001234.57' then 
+    begin
+    Writeln(S,'<> -00001234.57 (latter is correct)');
+    Halt(1);
+    end;
+  cr := -1234.567;
+  s:=FormatFloat('000.00', cr);
   if s<>'-1234.57' then 
     begin
     Writeln(S,'<> -1234.57 (latter is correct)');
