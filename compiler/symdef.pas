@@ -3674,8 +3674,7 @@ implementation
     constructor tobjectdef.ppuload(ppufile:tcompilerppufile);
       var
          i,
-         implintfcount,
-         vmtentrycount  : longint;
+         implintfcount : longint;
          d : tderef;
          ImplIntf : TImplementedInterface;
          vmtentry : pvmtentry;
