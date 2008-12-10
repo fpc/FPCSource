@@ -456,7 +456,7 @@ end;
                                Write(Ln)
 *****************************************************************************}
 
-Procedure fpc_WriteBuffer(var f:Text;const b;len:SizeInt);[Public,Alias:'FPC_WRITEBUFFER'];
+Procedure fpc_WriteBuffer(var f:Text;const b;len:SizeInt);
 var
   p   : pchar;
   left,
@@ -479,7 +479,7 @@ begin
 end;
 
 
-Procedure fpc_WriteBlanks(var f:Text;len:longint);[Public,Alias:'FPC_WRITEBLANKS'];
+Procedure fpc_WriteBlanks(var f:Text;len:longint);
 var
   left : longint;
 begin
@@ -497,14 +497,14 @@ begin
 end;
 
 
-Procedure fpc_Write_End(var f:Text);[Public,Alias:'FPC_WRITE_END']; iocheck; compilerproc;
+Procedure fpc_Write_End(var f:Text); iocheck; compilerproc;
 begin
   if TextRec(f).FlushFunc<>nil then
    FileFunc(TextRec(f).FlushFunc)(TextRec(f));
 end;
 
 
-Procedure fpc_Writeln_End(var f:Text);[Public,Alias:'FPC_WRITELN_END']; iocheck; compilerproc;
+Procedure fpc_Writeln_End(var f:Text); iocheck; compilerproc;
 begin
   If InOutRes <> 0 then exit;
   case TextRec(f).mode of
@@ -541,7 +541,7 @@ End;
 { provide local access to write_str }
 procedure Write_Str(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
 
-Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_ARRAY']; compilerproc;
+Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); iocheck; compilerproc;
 var
   ArrayLen : longint;
   p : pchar;
@@ -573,7 +573,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_PCHAR_AS_POINTER']; compilerproc;
+Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); iocheck; compilerproc;
 var
   PCharLen : longint;
 Begin
@@ -593,7 +593,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); iocheck; [Public,alias:'FPC_WRITE_TEXT_ANSISTR']; compilerproc;
+Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); iocheck; compilerproc;
 {
  Writes a AnsiString to the Text file T
 }
@@ -617,7 +617,7 @@ begin
 end;
 
 
-Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_UNICODESTR']; compilerproc;
+Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : WideString); iocheck; compilerproc;
 {
  Writes a UnicodeString to the Text file T
 }
@@ -643,7 +643,7 @@ begin
 end;
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
-Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideString); iocheck; [Public,alias:'FPC_WRITE_TEXT_WIDESTR']; compilerproc;
+Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideString); iocheck; compilerproc;
 {
  Writes a WideString to the Text file T
 }
@@ -669,7 +669,7 @@ begin
 end;
 {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 
-Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SINT']; compilerproc;
+Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); iocheck; compilerproc;
 var
   s : String;
 Begin
@@ -680,7 +680,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); iocheck; [Public,Alias:'FPC_WRITE_TEXT_UINT']; compilerproc;
+Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); iocheck; compilerproc;
 var
   s : String;
 Begin
@@ -693,7 +693,7 @@ End;
 
 {$ifndef CPU64}
 
-procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; [public,alias:'FPC_WRITE_TEXT_QWORD']; compilerproc;
+procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
   s : string;
 begin
@@ -703,7 +703,7 @@ begin
   write_str(len,t,s);
 end;
 
-procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; [public,alias:'FPC_WRITE_TEXT_INT64']; compilerproc;
+procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
   s : string;
 begin
@@ -716,7 +716,7 @@ end;
 {$endif CPU64}
 
 {$ifndef FPUNONE}
-Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; [Public,Alias:'FPC_WRITE_TEXT_FLOAT']; compilerproc;
+Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); iocheck; compilerproc;
 var
   s : String;
 Begin
@@ -727,7 +727,7 @@ Begin
 End;
 {$endif}
 
-procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; [Public,Alias:'FPC_WRITE_TEXT_ENUM']; compilerproc;
+procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; compilerproc;
 
 type  Ptypeinfo=^Ttypeinfo;
       Ttypeinfo=packed record
@@ -822,7 +822,7 @@ begin
 end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}
-Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CURRENCY']; compilerproc;
+Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); iocheck; compilerproc;
 var
   s : String;
 Begin
@@ -833,7 +833,7 @@ Begin
 End;
 {$endif FPC_HAS_STR_CURRENCY}
 
-Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; [Public,Alias:'FPC_WRITE_TEXT_BOOLEAN']; compilerproc;
+Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
 Begin
   If (InOutRes<>0) then
    exit;
@@ -845,7 +845,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; [Public,Alias:'FPC_WRITE_TEXT_CHAR']; compilerproc;
+Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; compilerproc;
 Begin
   If (InOutRes<>0) then
     exit;
@@ -866,7 +866,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; [Public,Alias:'FPC_WRITE_TEXT_WIDECHAR']; compilerproc;
+Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; compilerproc;
 var
   a : ansistring;
 Begin
@@ -1086,19 +1086,19 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); iocheck; [Public,Alias:'FPC_READ_TEXT_SHORTSTR']; compilerproc;
+Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); iocheck; compilerproc;
 Begin
   s[0]:=chr(ReadPCharLen(f,pchar(@s[1]),high(s)));
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PChar); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_POINTER']; compilerproc;
+Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PChar); iocheck; compilerproc;
 Begin
   pchar(s+ReadPCharLen(f,s,$7fffffff))^:=#0;
 End;
 
 
-Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerobased: boolean = false); iocheck; [Public,Alias:'FPC_READ_TEXT_PCHAR_AS_ARRAY']; compilerproc;
+Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerobased: boolean = false); iocheck; compilerproc;
 var
   len: longint;
 Begin
@@ -1111,7 +1111,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; [Public,Alias:'FPC_READ_TEXT_ANSISTR']; compilerproc;
+Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; compilerproc;
 var
   slen,len : SizeInt;
 Begin
@@ -1126,7 +1126,7 @@ Begin
   SetLength(S,Slen);
 End;
 
-procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck; [Public,Alias:'FPC_READ_TEXT_CHAR'];compilerproc;
+procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck;compilerproc;
 Begin
   c:=#0;
   If not CheckRead(f) then
@@ -1141,7 +1141,7 @@ Begin
 end;
 
 
-Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; [Public,Alias:'FPC_READ_TEXT_SINT']; compilerproc;
+Procedure fpc_Read_Text_SInt(var f : Text; out l : ValSInt); iocheck; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1171,7 +1171,7 @@ Begin
 End;
 
 
-Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; [Public,Alias:'FPC_READ_TEXT_UINT']; compilerproc;
+Procedure fpc_Read_Text_UInt(var f : Text; out u : ValUInt);  iocheck; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1200,7 +1200,7 @@ End;
 
 
 {$ifndef FPUNONE}
-procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; [Public,Alias:'FPC_READ_TEXT_FLOAT']; compilerproc;
+procedure fpc_Read_Text_Float(var f : Text; out v : ValReal); iocheck; compilerproc;
 var
   hs : string;
   code : Word;
@@ -1223,7 +1223,7 @@ begin
 end;
 {$endif}
 
-procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck; [Public,Alias:'FPC_READ_TEXT_ENUM'];compilerproc;
+procedure fpc_read_text_enum(str2ordindex:pointer;var t:text;out ordinal:longint); iocheck;compilerproc;
 
 var s:string;
     code:valsint;
@@ -1244,7 +1244,7 @@ begin
    InOutRes:=106;
 end;
 
-procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; [Public,Alias:'FPC_READ_TEXT_CURRENCY']; compilerproc;
+procedure fpc_Read_Text_Currency(var f : Text; out v : Currency); iocheck; compilerproc;
 var
   hs : string;
   code : Word;
@@ -1273,7 +1273,7 @@ end;
 
 {$ifndef cpu64}
 
-procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; [public,alias:'FPC_READ_TEXT_QWORD']; compilerproc;
+procedure fpc_Read_Text_QWord(var f : text; out q : qword); iocheck; compilerproc;
 var
   hs   : String;
   code : longint;
@@ -1295,7 +1295,7 @@ Begin
    InOutRes:=106;
 End;
 
-procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; [public,alias:'FPC_READ_TEXT_INT64']; compilerproc;
+procedure fpc_Read_Text_Int64(var f : text; out i : int64); iocheck; compilerproc;
 var
   hs   : String;
   code : Longint;
