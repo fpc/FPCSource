@@ -525,7 +525,10 @@ end;
 
 function RunCompiler:boolean;
 var
-  args    : string;
+  args,
+  wpoargs : string;
+  passnr,
+  passes  : longint;
   execres : boolean;
 begin
   RunCompiler:=false;
@@ -547,50 +550,66 @@ begin
 {$endif unix}
   if Config.NeedOptions<>'' then
    args:=args+' '+Config.NeedOptions;
+  wpoargs:='';
+  if (Config.WpoPasses=0) or
+     (Config.WpoParas='') then
+    passes:=1
+  else
+    passes:=config.wpopasses+1;
   args:=args+' '+ppfile;
-  Verbose(V_Debug,'Executing '+compilerbin+' '+args);
-  { also get the output from as and ld that writes to stderr sometimes }
-{$ifndef macos}
-  execres:=ExecuteRedir(CompilerBin,args,'',CompilerLogFile,'stdout');
-{$else macos}
-  {Due to that Toolserver is not reentrant, we have to asm and link via script.}
-  execres:=ExecuteRedir(CompilerBin,'-s '+args,'',CompilerLogFile,'stdout');
-  if execres then
-    execres:=ExecuteRedir(TestOutputDir + ':ppas','','',CompilerLogFile,'stdout');
-{$endif macos}
-  Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
-  { Error during execution? }
-  if (not execres) and (ExecuteResult=0) then
+  for passnr:=1 to passes do
     begin
-      AddLog(FailLogFile,TestName);
-      AddLog(ResLogFile,failed_to_compile+PPFileInfo);
-      AddLog(LongLogFile,line_separation);
-      AddLog(LongLogFile,failed_to_compile+PPFileInfo);
-      CopyFile(CompilerLogFile,LongLogFile,true);
-      { avoid to try again }
-      AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
-      Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
-      exit;
-    end;
+      if (passes>1) then
+        begin
+          wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName(ppfile,'wp'+tostr(passnr));
+          if (passnr>1) then
+            wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName(ppfile,'wp'+tostr(passnr-1));
+        end;
+      Verbose(V_Debug,'Executing '+compilerbin+' '+args+wpoargs);
+      { also get the output from as and ld that writes to stderr sometimes }
+    {$ifndef macos}
+      execres:=ExecuteRedir(CompilerBin,args+wpoargs,'',CompilerLogFile,'stdout');
+    {$else macos}
+      {Due to that Toolserver is not reentrant, we have to asm and link via script.}
+      execres:=ExecuteRedir(CompilerBin,'-s '+args+wpoargs,'',CompilerLogFile,'stdout');
+      if execres then
+        execres:=ExecuteRedir(TestOutputDir + ':ppas','','',CompilerLogFile,'stdout');
+    {$endif macos}
+      Verbose(V_Debug,'Exitcode '+ToStr(ExecuteResult));
 
-  { Check for internal error }
-  if ExitWithInternalError(CompilerLogFile) then
-   begin
-     AddLog(FailLogFile,TestName);
-     if Config.Note<>'' then
-      AddLog(FailLogFile,Config.Note);
-     AddLog(ResLogFile,failed_to_compile+PPFileInfo+' internalerror generated');
-     AddLog(LongLogFile,line_separation);
-     AddLog(LongLogFile,failed_to_compile+PPFileInfo);
-     if Config.Note<>'' then
-      AddLog(LongLogFile,Config.Note);
-     CopyFile(CompilerLogFile,LongLogFile,true);
-     { avoid to try again }
-     AddLog(ExeLogFile,'Failed to compile '+PPFileInfo);
-     Verbose(V_Abort,'Internal error in compiler');
-     exit;
-   end;
+      { Error during execution? }
+      if (not execres) and (ExecuteResult=0) then
+        begin
+          AddLog(FailLogFile,TestName);
+          AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+          AddLog(LongLogFile,line_separation);
+          AddLog(LongLogFile,failed_to_compile+PPFileInfo);
+          CopyFile(CompilerLogFile,LongLogFile,true);
+          { avoid to try again }
+          AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
+          Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
+          exit;
+        end;
+
+      { Check for internal error }
+      if ExitWithInternalError(CompilerLogFile) then
+       begin
+         AddLog(FailLogFile,TestName);
+         if Config.Note<>'' then
+          AddLog(FailLogFile,Config.Note);
+         AddLog(ResLogFile,failed_to_compile+PPFileInfo+' internalerror generated');
+         AddLog(LongLogFile,line_separation);
+         AddLog(LongLogFile,failed_to_compile+PPFileInfo);
+         if Config.Note<>'' then
+          AddLog(LongLogFile,Config.Note);
+         CopyFile(CompilerLogFile,LongLogFile,true);
+         { avoid to try again }
+         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo);
+         Verbose(V_Abort,'Internal error in compiler');
+         exit;
+       end;
+    end;
 
   { Should the compile fail ? }
   if Config.ShouldFail then

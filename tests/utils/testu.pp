@@ -38,6 +38,8 @@ type
     Category      : string;
     Note          : string;
     Files         : string;
+    WpoParas      : string;
+    WpoPasses     : longint;
   end;
 
 Const
@@ -263,6 +265,12 @@ begin
               else
                if GetEntry('FILES') then
                 r.Files:=res
+              else
+                if GetEntry('WPOPARAS') then
+                 r.wpoparas:=res
+              else
+                if GetEntry('WPOPASSES') then
+                 val(res,r.wpopasses,code)
               else
                Verbose(V_Error,'Unknown entry: '+s);
             end;
