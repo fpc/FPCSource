@@ -2112,7 +2112,6 @@ begin
         exit;
       end;
   end;
-  raise EKeyNotFound.CreateFmt(KeyNotFoundMsg, ['Delete', aKey]);
 end;
 
 function TFPCustomHashTable.IsEmpty: boolean;
