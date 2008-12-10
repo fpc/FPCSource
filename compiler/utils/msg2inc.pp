@@ -612,15 +612,21 @@ Var
 begin
   hs:='';
   for i:=1 to length(s) do
-    if (S[i]='$') then
-     begin
-       if (s[i+1] in ['0'..'9']) then
-        hs:=hs+'arg'
-       else
-        hs:=hs+'\$';
-     end
+    case S[i] of
+      '$' :
+        if (s[i+1] in ['0'..'9']) then
+          hs:=hs+'arg'
+        else
+          hs:=hs+'\$';
+      '&','{','}','#','_','%':            // Escape these characters
+        hs := hs + '\' + S[i];
+      '~','^':
+        hs := hs + '\'+S[i]+' ';
+      '\':
+        hs:=hs+'$\backslash$'
     else
-      hs:=hs+s[i];
+      hs := hs + S[i];
+    end;  
   EscapeString:=hs;
 end;
 
