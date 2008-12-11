@@ -2201,7 +2201,7 @@ Var
                 Else
                   Buf[0] := Digits[Dig];
                 Inc(Buf);
-                If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) Then
+                If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) and (Digits[Dig]<>'-') Then
                   Begin
                   Buf[0] := FormatSettings.ThousandSeparator;
                   Inc(Buf);
