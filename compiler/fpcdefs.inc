@@ -3,6 +3,7 @@
 {$H-}
 {$goto on}
 {$inline on}
+{$interfaces corba}
 
 {$ifdef win32}
   { 256 MB stack }

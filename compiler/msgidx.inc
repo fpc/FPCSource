@@ -715,6 +715,7 @@ const
   unit_u_reresolving_unit=10058;
   unit_u_skipping_reresolving_unit=10059;
   unit_u_unload_resunit=10060;
+  unit_e_different_wpo_file=10061;
   option_usage=11000;
   option_only_one_source_support=11001;
   option_def_only_for_os2=11002;
@@ -754,13 +755,33 @@ const
   option_confict_asm_debug=11041;
   option_ppc386_deprecated=11042;
   option_else_without_if=11043;
+  wpo_cant_find_file=12000;
+  wpo_begin_processing=12001;
+  wpo_end_processing=12002;
+  wpo_expected_section=12003;
+  wpo_no_section_handler=12004;
+  wpo_found_section=12005;
+  wpo_no_input_specified=12006;
+  wpo_not_enough_info=12007;
+  wpo_no_output_specified=12008;
+  wpo_output_without_info_gen=12009;
+  wpo_input_without_info_use=12010;
+  wpo_skipping_unnecessary_section=12011;
+  wpo_duplicate_wpotype=12012;
+  wpo_cannot_extract_live_symbol_info_strip=12013;
+  wpo_cannot_extract_live_symbol_info_no_link=12014;
+  wpo_cannot_find_symbol_progs=12015;
+  wpo_error_reading_symbol_file=12016;
+  wpo_error_executing_symbol_prog=12017;
+  wpo_symbol_live_info_needs_smart_linking=12018;
+  wpo_cant_create_feedback_file=12019;
   option_logo=11023;
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 47709;
+  MsgTxtSize = 50203;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,251,84,65,50,108,22,201,61,
-    44,1,1,1,1,1,1,1,1,1
+    24,87,251,84,65,50,108,22,201,62,
+    44,20,1,1,1,1,1,1,1,1
   );

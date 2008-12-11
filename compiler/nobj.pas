@@ -112,7 +112,8 @@ implementation
        node,
        symbase,symtable,symconst,symtype,defcmp,
        dbgbase,
-       ncgrtti
+       ncgrtti,
+       wpobase
        ;
 
 
@@ -1214,7 +1215,7 @@ implementation
              internalerror(200611083);
            if (po_abstractmethod in vmtpd.procoptions) then
              procname:='FPC_ABSTRACTERROR'
-           else
+           else if not wpoinfomanager.optimized_name_for_vmt(_class,vmtpd,procname) then
              procname:=vmtpd.mangledname;
            List.concat(Tai_const.createname(procname,0));
 {$ifdef vtentry}

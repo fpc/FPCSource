@@ -231,6 +231,9 @@ interface
 
        { tobjectdef }
 
+       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
+       pmvcallstaticinfo = ^tmvcallstaticinfo;
+       tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
        tobjectdef = class(tabstractrecorddef)
        public
           dwarf_struct_lab : tasmsymbol;
@@ -243,11 +246,24 @@ interface
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
           vmtentries     : TFPList;
+          vmcallstaticinfo : pmvcallstaticinfo;
           vmt_offset     : longint;
-          writing_class_record_dbginfo : boolean;
           objecttype     : tobjecttyp;
           iidguid        : pguid;
           iidstr         : pshortstring;
+          writing_class_record_dbginfo,
+          { a class of this type has been created in this module }
+          created_in_current_module,
+          { a loadvmtnode for this class has been created in this
+            module, so if a classrefdef variable of this or a parent
+            class is used somewhere to instantiate a class, then this
+            class may be instantiated
+          }
+          maybe_created_in_current_module,
+          { a "class of" this particular class has been created in
+            this module
+          }
+          classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
           constructor create(ot : tobjecttyp;const n : string;c : tobjectdef);
@@ -279,14 +295,20 @@ interface
           procedure set_parent(c : tobjectdef);
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
+          procedure reset; override;
+          procedure register_created_object_type;override;
+          procedure register_maybe_created_object_type;
+          procedure register_created_classref_type;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
           constructor create(def:tdef);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          function GetTypeName:string;override;
+          function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          procedure register_created_object_type;override;
+          procedure reset;override;
        end;
 
        tarraydef = class(tstoreddef)
@@ -2040,7 +2062,19 @@ implementation
       begin
          result:=true;
       end;
+      
 
+    procedure tclassrefdef.reset;
+      begin
+        tobjectdef(pointeddef).classref_created_in_current_module:=false;
+        inherited reset;
+      end;
+
+
+    procedure tclassrefdef.register_created_object_type;
+      begin
+        tobjectdef(pointeddef).register_created_classref_type;
+      end;
 
 {***************************************************************************
                                    TSETDEF
@@ -3749,6 +3783,11 @@ implementation
              vmtentries.free;
              vmtentries:=nil;
            end;
+         if assigned(vmcallstaticinfo) then
+           begin
+             freemem(vmcallstaticinfo);
+             vmcallstaticinfo:=nil;
+           end;
          inherited destroy;
       end;
 
@@ -4195,6 +4234,49 @@ implementation
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
       end;
 
+
+    procedure tobjectdef.reset;
+      begin
+        inherited reset;
+        created_in_current_module:=false;
+        maybe_created_in_current_module:=false;
+        classref_created_in_current_module:=false;
+      end;
+
+
+    procedure tobjectdef.register_created_classref_type;
+      begin
+        if not classref_created_in_current_module then
+          begin
+            classref_created_in_current_module:=true;
+            current_module.wpoinfo.addcreatedobjtypeforclassref(self);
+          end;
+      end;
+
+
+    procedure tobjectdef.register_created_object_type;
+      begin
+        if not created_in_current_module then
+          begin
+            created_in_current_module:=true;
+            current_module.wpoinfo.addcreatedobjtype(self);
+          end;
+      end;
+
+
+    procedure tobjectdef.register_maybe_created_object_type;
+      begin
+        { if we know it has been created for sure, no need
+          to also record that it maybe can be created in
+          this module
+        }
+        if not (created_in_current_module) and
+           not (maybe_created_in_current_module) then
+          begin
+            maybe_created_in_current_module:=true;
+            current_module.wpoinfo.addmaybecreatedbyclassref(self);
+          end;
+      end;
 
 {****************************************************************************
                              TImplementedInterface

@@ -2193,7 +2193,7 @@ link_f_executable_too_big=09200_F_Executable image size is too big for $1 target
 #
 # Unit loading
 #
-# 10060 is the last used one
+# 10061 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2386,6 +2386,10 @@ unit_u_skipping_reresolving_unit=10059_U_Skipping re-resolving unit $1, still lo
 unit_u_unload_resunit=10060_U_Unloading resource unit $1 (not needed)
 % When you use the \var{-vu} flag, the compiler warns that it is unloading the
 % resource handling unit, since no resources are used.
+unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole program optimization feedback input ($2, $3); recompile it without wpo or use the same wpo feedback input file for this compilation invocation
+% When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
+% this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
+% any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
 % \end{description}
 # EndOfTeX
 
@@ -2507,6 +2511,83 @@ option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} direct
 # EndOfTeX
 
 #
+#  Whole program optimization
+#
+# 12004 is the last used one
+#
+# BeginOfTeX
+%
+% \section{Whole program optimisation messages}
+% This section lists errors that occur when the compiler is performing
+% whole program optimization.
+wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file $1
+% The compiler cannot open the specified feedback file with whole program optimization information.
+wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
+% The compiler starts processing whole program optimization information found in the named file.
+wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file $1
+% The compiler has finished processing the whole program optimization information found in the named file.
+wpo_expected_section=12003_E_Expected section header, but got "$2" at line $1 of wpo feedback file
+% The compiler expected a section header in the whole program optimization file (starting with \%),
+% but did not find it.
+wpo_no_section_handler=12004_W_No handler registered for whole program optimization section "$2" at line $1 of wpo feedback file, ignoring
+% The compiler has no handler to deal with the mentioned whole program optimization information
+% section, and will therefore ignore it and skip to the next section.
+wpo_found_section=12005_D_Found whole program optimization section "$1" with information about "$2"
+% The compiler encountered a section with whole program optimization information, and according
+% to its handler this section contains information usable for the mentioned purpose.
+wpo_no_input_specified=12006_F_The selected whole program optimizations require a previously generated feedback file (use -Fw to specify)
+% The compiler needs information gathered during a previous compilation run to perform the selected
+% whole program optimizations. You can specify the location of the feedback file containing this
+% information using the -Fw switch.
+wpo_not_enough_info=12007_E_No collected information necessary to perform "$1" whole program optimization found
+% While you pointed the compiler to a file containing whole program optimization feedback, it
+% did not contain the information necessary to perform the selected optimizations. You most likely
+% have to recompile the program using the appropate -OWxxx switch.
+wpo_no_output_specified=12008_F_Specify a whole program optimization feedback file to store the generated info in (using -FW)
+% You have to specify the feedback file in which the compiler has to store the whole program optimization
+% information that is generated during the compilation run. This can be done using the -FW switch.
+wpo_output_without_info_gen=12009_E_Not generating any whole program optimization information, yet a feedback file was specified (using -FW)
+% The compiler was instructed to store whole program optimization feedback into a file specified using -FW,
+% but not to actually generated any whole program optimization feedback. The classes of to be
+% generated information can be speciied using -OWxxx
+wpo_input_without_info_use=12010_E_Not performing any whole program optimizations, yet an input feedback file was specified (using -Fw)
+% The compiler was not instructed to perform any whole program optimizations (no -Owxxx parameters),
+% but nevertheless an input file with such feedback was specified (using -Fwyyy). Since this can
+% indicate that you forgot to specify an -Owxxx parameter, the compiler generates an error in this case.
+wpo_skipping_unnecessary_section=12011_D_Skipping whole program optimization section "$1", because not needed by the requested optimizations
+% The whole program optimization feedback file contains a section with information that is not
+% required by the selected whole program optimizations
+wpo_duplicate_wpotype=12012_W_Overriding previously read information for "$1" from feedback input file using information in section "$2"
+% The feedback file contains multiple sections that provide the same class of information (e.g.,
+% information about which virtual methods can be devirtualized). In this case, the information in last encountered
+% seciont is used. Turn on debugging output (-vd) to see for each section what class of information
+% it provides.
+wpo_cannot_extract_live_symbol_info_strip=12013_E_Cannot extract symbol liveness information from program when stripping symbols, use -Xs-
+% Certain symbol liveness collectors extract the symbol information from the linked program. If the symbol information
+% is stripped (option -Xs), this is not possible.
+wpo_cannot_extract_live_symbol_info_no_link=12014_E_Cannot extract symbol liveness information from program when when not linking on host
+% Certain symbol liveness collectors extract the symbol information from the linked program. If the program does not
+% get linked by the compiler, this is not possible.
+wpo_cannot_find_symbol_progs=12015_F_Cannot find "$1" or "$2" to extract symbol liveness information from linked program
+% Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
+% This helper program is normally 'nm', which is part of the GNU binutils
+wpo_error_reading_symbol_file=12016_E_Error during reading symbol liveness information produced by "$2"
+% An error occurred during the reading of the symbol liveness file that was generated using the 'nm' or 'objdump' program. The reason
+% can be that it was shorter than expected, or that its format was not understood.
+wpo_error_executing_symbol_prog=12017_F_Error executing "$1" (exitcode: $2) to extract symbol information from linked program
+% Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
+% The helper program produced the reported error code when it was ran on the linked program.
+wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness information can only help when using smart linking, use -CX -XX
+% Whether or not a symbol is live is determined by looking whether it exists in the final linked program.
+% Without smart linking/dead code stripping, all symbols are always included, regardless of whether they are
+% actually used or not. So in that case all symbols will be seen as live, even if they are not.
+wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
+% The compile is unable to create the file specified using the -FW parameter to store the whole program optimisation information in.
+%\end{description}
+# EndOfTeX
+
+
+#
 # Logo (option -l)
 #
 option_logo=11023_[
@@ -2537,6 +2618,10 @@ Supported ABI targets:
 
 Supported Optimizations:
   $OPTIMIZATIONS
+
+Supported Whole Program Optimizations:
+  All
+  $WPOPTIMIZATIONS
 
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
@@ -2645,6 +2730,8 @@ S*2Aas_Assemble using GNU AS
 **2FR<x>_Set resource (.res) linker to <x>
 **2Fu<x>_Add <x> to unit path
 **2FU<x>_Set unit output path to <x>, overrides -FE
+**2FW<x>_Store generated whole-program optimization feedback in <x>
+**2Fw<x>_Load previously stored whole-program optimization feedback from <x>
 *g1g_Generate debug information (default format for target)
 *g2gc_Generate checks for pointers
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
@@ -2687,6 +2774,8 @@ S*2Aas_Assemble using GNU AS
 **2Oa<x>=<y>_Set alignment
 **2Oo[NO]<x>_Enable or disable optimizations, see fpc -i for possible values
 **2Op<x>_Set target cpu for optimizing, see fpc -i for possible values
+**2OW<x>_Generate whole-program optimization feedback for optimization <x>, see fpc -i for possible values
+**2Ow<x>_Perform whole-program optimization <x>, see fpc -i for possible values
 **2Os_Optimize for size rather than speed
 **1pg_Generate profile code for gprof (defines FPC_PROFILE)
 **1R<x>_Assembler reading style:

@@ -40,7 +40,7 @@ uses
 {$ENDIF}
   verbose,comphook,systems,
   cutils,cfileutl,cclasses,globals,options,fmodule,parser,symtable,
-  assemble,link,dbgbase,import,export,tokens,pass_1
+  assemble,link,dbgbase,import,export,tokens,pass_1,wpobase,wpo
   { cpu parameter handling }
   ,cpupara
   { procinfo stuff }
@@ -145,6 +145,7 @@ begin
      DoneExport;
      DoneLinker;
      DoneAsm;
+     DoneWpo;
    end;
 { Free memory for the others }
   CompilerInited:=false;
@@ -184,6 +185,8 @@ begin
   InitExport;
   InitLinker;
   InitAsm;
+  InitWpo;
+
   CompilerInitedAfterArgs:=true;
 end;
 

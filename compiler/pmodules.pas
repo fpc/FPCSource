@@ -38,12 +38,14 @@ implementation
        cutils,cfileutl,cclasses,comphook,
        globals,verbose,fmodule,finput,fppu,
        symconst,symbase,symtype,symdef,symsym,symtable,
+       wpoinfo,
        aasmtai,aasmdata,aasmcpu,aasmbase,
        cgbase,cgobj,
        nbas,ncgutil,
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
+       wpobase,
        scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
 {$ifdef i386}
        { fix me! }
@@ -891,6 +893,9 @@ implementation
 {$ifdef i386}
          gotvarsym : tstaticvarsym;
 {$endif i386}
+{$ifdef debug_devirt}
+         i: longint;
+{$endif debug_devirt}
       begin
          init_procinfo:=nil;
          finalize_procinfo:=nil;
@@ -1029,7 +1034,7 @@ implementation
          current_module.interface_compiled:=true;
 
          { First reload all units depending on our interface, we need to do this
-           in the implementation part to prevent errorneous circular references }
+           in the implementation part to prevent erroneous circular references }
          reload_flagged_units;
 
          { Parse the implementation section }
@@ -1040,7 +1045,7 @@ implementation
 
          parse_only:=false;
 
-         { generates static symbol table }
+         { create static symbol table }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
 {$ifdef i386}
@@ -1075,6 +1080,9 @@ implementation
 
          symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
+
+         { create whole program optimisation information }
+         current_module.wpoinfo:=tunitwpoinfo.create;
 
          if not current_module.interface_only then
            begin
@@ -1244,6 +1252,44 @@ implementation
             status.skip_error:=true;
             exit;
           end;
+
+{$ifdef debug_devirt}
+         { print out all instantiated class/object types }
+         writeln('constructed object/class/classreftypes in ',current_module.realmodulename^);
+         for i := 0 to current_module.wpoinfo.createdobjtypes.count-1 do
+           begin
+             write('  ',tdef(current_module.wpoinfo.createdobjtypes[i]).GetTypeName);
+             case tdef(current_module.wpoinfo.createdobjtypes[i]).typ of
+               objectdef:
+                 case tobjectdef(current_module.wpoinfo.createdobjtypes[i]).objecttype of
+                   odt_object:
+                     writeln(' (object)');
+                   odt_class:
+                     writeln(' (class)');
+                   else
+                     internalerror(2008101103);
+                 end;
+               else
+                 internalerror(2008101104);
+             end;
+           end;
+
+         for i := 0 to current_module.wpoinfo.createdclassrefobjtypes.count-1 do
+           begin
+             write('  Class Of ',tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).GetTypeName);
+             case tdef(current_module.wpoinfo.createdclassrefobjtypes[i]).typ of
+               objectdef:
+                 case tobjectdef(current_module.wpoinfo.createdclassrefobjtypes[i]).objecttype of
+                   odt_class:
+                     writeln(' (classrefdef)');
+                   else
+                     internalerror(2008101105);
+                 end
+               else
+                 internalerror(2008101102);
+             end;
+           end;
+{$endif debug_devirt}
 
         Message1(unit_u_finished_compiling,current_module.modulename^);
       end;
@@ -1636,6 +1682,9 @@ implementation
 
          symtablestack.push(current_module.localsymtable);
 
+         { create whole program optimisation information }
+         current_module.wpoinfo:=tunitwpoinfo.create;
+
          { should we force unit initialization? }
          force_init_final:=tstaticsymtable(current_module.localsymtable).needs_init_final;
          if force_init_final then
@@ -1940,6 +1989,9 @@ implementation
 
          symtablestack.push(current_module.localsymtable);
 
+         { create whole program optimisation information }
+         current_module.wpoinfo:=tunitwpoinfo.create;
+
          { The program intialization needs an alias, so it can be called
            from the bootstrap code.}
          if islibrary then
@@ -2129,7 +2181,10 @@ implementation
          { We might need the symbols info if not using
            the default do_extractsymbolinfo
            which is a dummy function PM }
-         needsymbolinfo:=do_extractsymbolinfo<>@def_extractsymbolinfo;
+         needsymbolinfo:=
+           (do_extractsymbolinfo<>@def_extractsymbolinfo) or
+           ((current_settings.genwpoptimizerswitches*WPOptimizationsNeedingAllUnitInfo)<>[]);
+
          { release all local symtables that are not needed anymore }
          if (not needsymbolinfo) then
            free_localsymtables(current_module.localsymtable);
@@ -2176,7 +2231,11 @@ implementation
                    linker.MakeSharedLibrary
                  else
                    linker.MakeExecutable;
+
+                 { collect all necessary information for whole-program optimization }
+                 wpoinfomanager.extractwpoinfofromprogram;
                end;
+
 
              { Give Fatal with error count for linker errors }
              if (Errorcount>0) and not status.skip_error then

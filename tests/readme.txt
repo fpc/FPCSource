@@ -85,6 +85,13 @@ KNOWNCOMPILEERROR..Known bug, which manifest itself at compile time. To
                    from compiler, followed by an optional note. Will not
                    be logged as a bug.
 QUICKTEST..........If set, only tests without package dependencies are executed
+WPOPARAS...........Parameters to be added after -OW/-Ow to perform whole
+                   program optimization tests
+WPOPASSES..........Number of whole program optimization iterations to perform
+                   ("1" means compile once with "-FWsomefile -OW<wpoparas>"
+                    and then again with "-FWsomefile2 -OW<wpoparas>
+                    -Fwsomefile1 -Ow<wpoparas>", "2" means another pass but
+                   using somefile2 as input and somefile3 as output, etc.)
 
   NOTE: A list consists of comma separated items, e. g. CPU=i386,m68k,powerpc
         No space between the elements and the comma.

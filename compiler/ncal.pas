@@ -72,6 +72,8 @@ interface
           procedure order_parameters;
           procedure check_inlining;
           function  pass1_normal:tnode;
+          procedure register_created_object_types;
+
 
           { inlining support }
           inlinelocals            : TFPObjectList;
@@ -206,7 +208,8 @@ implementation
       htypechk,pass_1,
       ncnv,nld,ninl,nadd,ncon,nmem,nset,
       procinfo,cpuinfo,
-      cgbase
+      cgbase,
+      wpobase
       ;
 
     type
@@ -1514,6 +1517,115 @@ implementation
       end;
 
 
+    procedure tcallnode.register_created_object_types;
+
+      function checklive(def: tdef): boolean;
+        begin
+          if assigned(current_procinfo) and
+             not(po_inline in current_procinfo.procdef.procoptions) and
+             not wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+            begin
+{$ifdef debug_deadcode}
+              writeln(' NOT adding creadion of ',def.typename,' because performed in dead stripped proc: ',current_procinfo.procdef.typename);
+{$endif debug_deadcode}
+              result:=false;
+            end
+          else
+            result:=true;
+        end;
+
+      var
+        crefdef,
+        systobjectdef : tdef;
+      begin
+        { only makes sense for methods }
+        if not assigned(methodpointer) then
+          exit;
+        if (methodpointer.resultdef.typ=classrefdef) then
+          begin
+            { constructor call via classreference => allocate memory }
+            if (procdefinition.proctypeoption=potype_constructor) then
+              begin
+                { Only a typenode can be passed when it is called with <class of xx>.create }
+                if (methodpointer.nodetype=typen) then
+                  begin
+                    if checklive(methodpointer.resultdef) then
+                      { we know the exact class type being created }
+                      tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                  end
+                else
+                  begin
+                    { the loadvmtaddrnode is already created in case of classtype.create }
+                    if (methodpointer.nodetype=loadvmtaddrn) and
+                       (tloadvmtaddrnode(methodpointer).left.nodetype=typen) then
+                      begin
+                        if checklive(methodpointer.resultdef) then
+                          tclassrefdef(methodpointer.resultdef).pointeddef.register_created_object_type
+                      end
+                    else
+                      begin
+                        if checklive(methodpointer.resultdef) then
+                          begin
+                            { special case: if the classref comes from x.classtype (with classtype,
+                              being tobject.classtype) then the created instance is x or a descendant
+                              of x (rather than tobject or a descendant of tobject)
+                            }
+                            systobjectdef:=search_system_type('TOBJECT').typedef;
+                            if (methodpointer.nodetype=calln) and
+                               { not a procvar call }
+                               not assigned(right) and
+                               { procdef is owned by system.tobject }
+                               (tprocdef(tcallnode(methodpointer).procdefinition).owner.defowner=systobjectdef) and
+                               { we're calling system.tobject.classtype }
+                               (tcallnode(methodpointer).symtableprocentry.name='CLASSTYPE') and
+                               { could again be a classrefdef, but unlikely }
+                               (tcallnode(methodpointer).methodpointer.resultdef.typ=objectdef) and
+                               { don't go through this trouble if it was already a tobject }
+                               (tcallnode(methodpointer).methodpointer.resultdef<>systobjectdef) then
+                              begin
+                                { register this object type as classref, so all descendents will also
+                                  be marked as instantiatable (only the pointeddef will actually be
+                                  recorded, so it's no problem that the clasrefdef is only temporary)
+                                }
+                                crefdef:=tclassrefdef.create(tcallnode(methodpointer).methodpointer.resultdef);
+                                { and register it }
+                                crefdef.register_created_object_type;
+                              end
+                             else
+                              { the created class can be any child class as well -> register classrefdef }
+                              methodpointer.resultdef.register_created_object_type;
+                          end;
+                      end;
+                  end;
+              end
+          end
+        else
+        { Old style object }
+         if is_object(methodpointer.resultdef) then
+          begin
+            { constructor with extended syntax called from new }
+            if (cnf_new_call in callnodeflags) then
+              begin
+                if checklive(methodpointer.resultdef) then
+                  methodpointer.resultdef.register_created_object_type;
+              end
+            else
+            { normal object call like obj.proc }
+              if not(cnf_dispose_call in callnodeflags) and
+                 not(cnf_inherited in callnodeflags) and
+                 not(cnf_member_call in callnodeflags) then
+             begin
+               if (procdefinition.proctypeoption=potype_constructor) then
+                 begin
+                   if (methodpointer.nodetype<>typen) and
+                      checklive(methodpointer.resultdef) then
+                     methodpointer.resultdef.register_created_object_type;
+                 end
+             end;
+          end;
+       end;
+
+
     function tcallnode.gen_vmt_tree:tnode;
       var
         vmttree : tnode;
@@ -1652,6 +1764,7 @@ implementation
           end;
         result:=vmttree;
       end;
+
 
 
     function check_funcret_used_as_para(var n: tnode; arg: pointer): foreachnoderesult;
@@ -2685,6 +2798,12 @@ implementation
 
          { Check if the call can be inlined, sets the cnf_do_inline flag }
          check_inlining;
+
+         { must be called before maybe_load_in_temp(methodpointer), because
+           it converts the methodpointer into a temp in case it's a call
+           (and we want to know the original call)
+         }
+         register_created_object_types;
 
          { Maybe optimize the loading of the methodpointer using a temp. When the methodpointer
            is a calln this is even required to not execute the calln twice.
