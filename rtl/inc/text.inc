@@ -593,7 +593,7 @@ Begin
 End;
 
 
-Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); iocheck; compilerproc;
+Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); iocheck; [Public,alias:'FPC_WRITE_TEXT_ANSISTR']; compilerproc;
 {
  Writes a AnsiString to the Text file T
 }
