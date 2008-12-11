@@ -252,8 +252,17 @@ interface
           iidguid        : pguid;
           iidstr         : pshortstring;
           writing_class_record_dbginfo,
+          { a class of this type has been created in this module }
           created_in_current_module,
+          { a loadvmtnode for this class has been created in this
+            module, so if a classrefdef variable of this or a parent
+            class is used somewhere to instantiate a class, then this
+            class may be instantiated
+          }
           maybe_created_in_current_module,
+          { a "class of" this particular class has been created in
+            this module
+          }
           classref_created_in_current_module : boolean;
           { store implemented interfaces defs and name mappings }
           ImplementedInterfaces : TFPObjectList;
