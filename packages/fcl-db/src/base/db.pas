@@ -251,7 +251,9 @@ type
     destructor Destroy; override;
     procedure Add(const AKey, AValue: Variant);
     procedure Clear;
+    function FirstKeyByValue(const AValue: Variant): Variant;
     function ValueOfKey(const AKey: Variant): Variant;
+    procedure ValuesToStrings(AStrings: TStrings);
   end;
 
   { TField }
@@ -2314,6 +2316,20 @@ begin
   FList.Clear;
 end;
 
+function TLookupList.FirstKeyByValue(const AValue: Variant): Variant;
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    with PLookupListRec(FList[i])^ do
+      if Value = AValue then
+        begin
+        Result := Key;
+        exit;
+        end;
+  Result := Null;
+end;
+
 function TLookupList.ValueOfKey(const AKey: Variant): Variant;
 
   Function VarArraySameValues(VarArray1,VarArray2 : Variant) : Boolean;
@@ -2344,6 +2360,19 @@ begin
   else
     while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
+end;
+
+procedure TLookupList.ValuesToStrings(AStrings: TStrings);
+var
+  i: Integer;
+  p: PLookupListRec;
+begin
+  AStrings.Clear;
+  for i := 0 to FList.Count - 1 do
+    begin
+    p := PLookupListRec(FList[i]);
+    AStrings.AddObject(p^.Value, TObject(p));
+    end;
 end;
 
 procedure DisposeMem(var Buffer; Size: Integer);
