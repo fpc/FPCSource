@@ -63,7 +63,7 @@ TYPE
                 Version : Array[0..UTSNAME_LENGTH -1] OF Char;   // Version level.
                 Machine : Array[0..UTSNAME_LENGTH -1] OF Char;   // Hardware type.
                {$ifdef usedomain}
-                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char;  // Linux addition "Domain"
+                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
                {$endif}
                end;
   TUtsName   = UtsName;
