@@ -72,3 +72,4 @@ operatingsystem_parameters:
         .set operatingsystem_parameter_argc,operatingsystem_parameters+4
         .set operatingsystem_parameter_argv,operatingsystem_parameters+8
 
+.section .note.GNU-stack,"",%progbits

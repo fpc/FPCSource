@@ -1461,6 +1461,18 @@ begin
                         else
                           apptype:=app_tool;
                       end;
+                    'X':
+                      begin
+                        if (target_info.system in system_linux) then
+                          begin
+                            if UnsetBool(More, j) then
+                              exclude(init_settings.moduleswitches,cs_executable_stack)
+                            else
+                              include(init_settings.moduleswitches,cs_executable_stack)
+                          end
+                        else
+                          IllegalPara(opt);
+                      end
                     else
                       IllegalPara(opt);
                   end;

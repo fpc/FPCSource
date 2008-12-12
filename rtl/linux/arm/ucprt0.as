@@ -181,3 +181,5 @@ __data_start:
 2:      .long 0
         .long 2,0,0
 3:      .align 4
+
+.section .note.GNU-stack,"",%progbits

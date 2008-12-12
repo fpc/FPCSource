@@ -128,7 +128,9 @@ interface
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
-         cs_browser,cs_local_browser
+         cs_browser,cs_local_browser,
+         { target specific }
+         cs_executable_stack
        );
        tmoduleswitches = set of tmoduleswitch;
 

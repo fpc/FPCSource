@@ -1138,6 +1138,13 @@ implementation
          (target_info.system in systems_darwin) then
         AsmWriteLn(#9'.subsections_via_symbols');
 
+      { "no executable stack" marker for Linux }
+      if (target_info.system in system_linux) and
+         not(cs_executable_stack in current_settings.moduleswitches) then
+        begin
+          AsmWriteLn('.section .note.GNU-stack,"",%progbits');
+        end;
+
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then

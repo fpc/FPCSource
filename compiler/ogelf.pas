@@ -1021,6 +1021,10 @@ implementation
            symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
            strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
            shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
+           { "no executable stack" marker for Linux }
+           if (target_info.system in system_linux) and
+              not(cs_executable_stack in current_settings.moduleswitches) then
+             TElfObjSection.create_ext(ObjSectionList,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
            { insert the empty and filename as first in strtab }
            strtabsect.writestr(#0);
            strtabsect.writestr(ExtractFileName(current_module.mainsource^)+#0);
