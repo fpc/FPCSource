@@ -385,7 +385,7 @@ interface
        system_any = system_none;
 
        system_wince = [system_arm_wince,system_i386_wince];
-       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
+       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux];
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
