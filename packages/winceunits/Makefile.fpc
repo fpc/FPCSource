@@ -11,7 +11,7 @@ units_wince=comobj buildwinceunits
 implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi \
                     gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
-                    phone onnmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
+                    phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
                     activex ole2 comconst
 
 units_win32=rapi cesync
