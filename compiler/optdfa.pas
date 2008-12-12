@@ -157,6 +157,7 @@ unit optdfa;
                 defsum:=nil;
               end;
           end;
+        result:=fen_false;
       end;
 
 
