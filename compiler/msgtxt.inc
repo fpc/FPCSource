@@ -881,7 +881,7 @@ const msgtxt : array[0..000209,1..240] of char=(
   '12015_F_Cannot find "$1" or "$2" to extract symbol liveness informatio'+
   'n from linked program'#000+
   '12016_E_Error during reading symbol liveness information produced by "'+
-  '$2"'#000+
+  '$1"'#000+
   '12017_F_Error executing "$1" (','exitcode: $2) to extract symbol inform'+
   'ation from linked program'#000+
   '12018_E_Collection of symbol liveness information can only help when u'+

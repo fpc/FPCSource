@@ -284,7 +284,7 @@ const
         result:=error;
         if not result then
           exit;
-        cgmessage1(wpo_error_reading_symbol_file,'fullutilname');
+        cgmessage1(wpo_error_reading_symbol_file,symbolprogfullpath);
 {$i-}
         close(fsymfile);
 {$i+}
@@ -349,11 +349,11 @@ const
 
 
     begin { twpodeadcodeinfofromexternallinker }
-      { try nm }
-      symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
       { gnu-nm (e.g., on solaris) }
+      symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);
+      { regular nm }
       if not symbolprogfound then
-        symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);
+        symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
       if not symbolprogfound then
         begin
           { try objdump }

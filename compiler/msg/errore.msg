@@ -2571,7 +2571,7 @@ wpo_cannot_extract_live_symbol_info_no_link=12014_E_Cannot extract symbol livene
 wpo_cannot_find_symbol_progs=12015_F_Cannot find "$1" or "$2" to extract symbol liveness information from linked program
 % Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
 % This helper program is normally 'nm', which is part of the GNU binutils
-wpo_error_reading_symbol_file=12016_E_Error during reading symbol liveness information produced by "$2"
+wpo_error_reading_symbol_file=12016_E_Error during reading symbol liveness information produced by "$1"
 % An error occurred during the reading of the symbol liveness file that was generated using the 'nm' or 'objdump' program. The reason
 % can be that it was shorter than expected, or that its format was not understood.
 wpo_error_executing_symbol_prog=12017_F_Error executing "$1" (exitcode: $2) to extract symbol information from linked program
