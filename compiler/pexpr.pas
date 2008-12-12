@@ -129,10 +129,10 @@ implementation
            end
           else
             begin
-               if cs_ansistrings in current_settings.localswitches then
-                 def:=cansistringtype
-               else
-                 def:=cshortstringtype;
+              if cs_ansistrings in current_settings.localswitches then
+                def:=cansistringtype
+              else
+                def:=cshortstringtype;
             end;
        end;
 
