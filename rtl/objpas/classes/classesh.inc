@@ -411,7 +411,6 @@ type
   protected
     procedure SetCollection(Value: TCollection);virtual;
     procedure Changed(AllItems: Boolean);
-    function GetNamePath: string; override;
     function GetOwner: TPersistent; override;
     function GetDisplayName: string; virtual;
     procedure SetIndex(Value: Integer); virtual;
@@ -420,6 +419,7 @@ type
   public
     constructor Create(ACollection: TCollection); virtual;
     destructor Destroy; override;
+    function GetNamePath: string; override;
     property Collection: TCollection read FCollection write SetCollection;
     property ID: Integer read FID;
     property Index: Integer read GetIndex write SetIndex;
@@ -445,7 +445,6 @@ type
     function GetAttrCount: Integer; dynamic;
     function GetAttr(Index: Integer): string; dynamic;
     function GetItemAttr(Index, ItemIndex: Integer): string; dynamic;
-    function GetNamePath: string; override;
     procedure Changed;
     function GetItem(Index: Integer): TCollectionItem;
     procedure SetItem(Index: Integer; Value: TCollectionItem);
@@ -465,6 +464,7 @@ type
     procedure Clear;
     procedure EndUpdate; virtual;
     procedure Delete(Index: Integer);
+    function GetNamePath: string; override;
     function Insert(Index: Integer): TCollectionItem;
     function FindItemID(ID: Integer): TCollectionItem;
     property Count: Integer read GetCount;
@@ -1511,7 +1511,6 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); dynamic;
     function GetChildOwner: TComponent; dynamic;
     function GetChildParent: TComponent; dynamic;
-    function GetNamePath: string; override;
     function GetOwner: TPersistent; override;
     procedure Loaded; virtual;
     procedure Loading; virtual;
@@ -1562,6 +1561,7 @@ type
     procedure FreeNotification(AComponent: TComponent);
     procedure RemoveFreeNotification(AComponent: TComponent);
     procedure FreeOnRelease;
+    function GetNamePath: string; override;
     function GetParentComponent: TComponent; dynamic;
     function HasParent: Boolean; dynamic;
     procedure InsertComponent(AComponent: TComponent);

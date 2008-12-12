@@ -114,6 +114,7 @@ type
    EHeapMemoryError = class(Exception)
      protected
        AllowFree : boolean;
+     public
        procedure FreeInstance;override;
    end;
 
