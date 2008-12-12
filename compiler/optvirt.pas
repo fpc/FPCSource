@@ -991,10 +991,10 @@ unit optvirt;
         classdevirtinfo: tclassdevirtinfo;
         first: boolean;
       begin
+        writer.startsection(DEVIRT_SECTION_NAME);
         { if there are no optimised virtual methods, we have stored no info }
         if not assigned(funits) then
           exit;
-        writer.startsection(DEVIRT_SECTION_NAME);
         documentformat(writer);
         for unitcount:=0 to funits.count-1 do
           begin
@@ -1033,6 +1033,12 @@ unit optvirt;
         vmtentry: longint;
         realobjdef: tobjectdef;
       begin
+         { if we don't have any devirtualisation info, exit }
+         if not assigned(funits) then
+           begin
+             result:=false;
+             exit
+           end;
          { class methods are in the regular vmt, so we can handle classrefs
            the same way as plain objectdefs
          }
