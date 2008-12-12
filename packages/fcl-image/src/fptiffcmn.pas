@@ -62,6 +62,7 @@ type
     CellWidth: DWord;
     ColorMap: DWord;// tiff position of entry
     Compression: DWord;
+    Predictor: Word;
     Copyright: string;
     DateAndTime: string;
     DocumentName: string;
@@ -161,6 +162,7 @@ begin
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=0;
   Compression:=0;
+  Predictor:=1;
   ImageHeight:=0;
   ImageWidth:=0;
   ImageIsThumbNail:=false;
@@ -202,6 +204,7 @@ begin
   PhotoMetricInterpretation:=IDF.PhotoMetricInterpretation;
   PlanarConfiguration:=IDF.PlanarConfiguration;
   Compression:=IDF.Compression;
+  Predictor:=IDF.Predictor;
   ImageHeight:=IDF.ImageHeight;
   ImageWidth:=IDF.ImageWidth;
   ImageIsThumbNail:=IDF.ImageIsThumbNail;

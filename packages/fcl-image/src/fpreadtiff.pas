@@ -18,11 +18,11 @@
     RGB 8,16bit (optional alpha),
     Orientation,
     skipping Thumbnail to read first image,
-    compression: packbits, (LZW started)
+    compression: packbits, LZW
     endian
 
   ToDo:
-    Compression: LZW, deflate, jpeg, ...
+    Compression: deflate, jpeg, ...
     Planar
     ColorMap
     multiple images
@@ -34,6 +34,8 @@
 unit FPReadTiff;
 
 {$mode objfpc}{$H+}
+
+{$inline on}
 
 interface
 
@@ -78,6 +80,8 @@ type
     procedure ReadShortValues(StreamPos: DWord;
                               out Buffer: PWord; out Count: DWord);
     procedure ReadImage(Index: integer);
+    procedure ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
+      Predictor: word; var LastValue: word; out Value: Word); inline;
     function FixEndian(w: Word): Word; inline;
     function FixEndian(d: DWord): DWord; inline;
     procedure DecompressPackBits(var Buffer: Pointer; var Count: PtrInt);
@@ -107,6 +111,31 @@ begin
   if fStartPos>0 then
     Msg:=Msg+'(TiffPosition='+IntToStr(fStartPos)+')';
   raise Exception.Create(Msg);
+end;
+
+procedure TFPReaderTiff.ReadImgValue(BitCount: Word; var Run: Pointer; x: dword;
+  Predictor: word; var LastValue: word; out Value: Word); inline;
+begin
+  if BitCount=8 then begin
+    Value:=PCUInt8(Run)^;
+    if Predictor=2 then begin
+      // horizontal difference
+      if x>0 then
+        Value:=(Value+LastValue) and $ff;
+      LastValue:=Value;
+    end;
+    Value:=Value shl 8+Value;
+    inc(Run);
+  end else if BitCount=16 then begin
+    Value:=FixEndian(PCUInt16(Run)^);
+    if Predictor=2 then begin
+      // horizontal difference
+      if x>0 then
+        Value:=(Value+LastValue) and $ffff;
+      LastValue:=Value;
+    end;
+    inc(Run,2);
+  end;
 end;
 
 procedure TFPReaderTiff.SetStreamPos(p: DWord);
@@ -594,6 +623,19 @@ begin
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry HostComputer="',IDF.HostComputer,'"');
     end;
+  317:
+    begin
+      // Predictor
+      UValue:=word(ReadEntryUnsigned);
+      case UValue of
+      1: ;
+      2: ;
+      else TiffError('expected Predictor, but found '+IntToStr(UValue));
+      end;
+      IDF.Predictor:=UValue;
+      if Debug then
+        writeln('TFPReaderTiff.ReadDirectoryEntry Predictor="',IDF.Predictor,'"');
+    end;
   320:
     begin
       // ColorMap: N = 3*2^BitsPerSample
@@ -885,21 +927,21 @@ var
   CurOffset: DWord;
   CurByteCnt: PtrInt;
   Strip: PByte;
-  Run: Dword;
+  Run: PByte;
   y: DWord;
   y2: DWord;
   x: DWord;
-  GrayValue: DWord;
   dx: LongInt;
   dy: LongInt;
   SampleCnt: DWord;
   SampleBits: PWord;
   ExtraSampleCnt: DWord;
   ExtraSamples: PWord;
-  RedValue: Word;
-  GreenValue: Word;
-  BlueValue: Word;
-  AlphaValue: Word;
+  GrayValue, LastGrayValue: Word;
+  RedValue, LastRedValue: Word;
+  GreenValue, LastGreenValue: Word;
+  BlueValue, LastBlueValue: Word;
+  AlphaValue, LastAlphaValue: Word;
   Col: TFPColor;
   i: Integer;
   CurImg: TFPCustomImage;
@@ -909,7 +951,9 @@ var
   BlueBits: Word;
   AlphaBits: Word;
   BytesPerPixel: Integer;
+  StripBitsPerPixel: DWord;
   aContinue: Boolean;
+  ExpectedStripLength: PtrInt;
 begin
   CurImg:=nil;
   if Debug then
@@ -973,6 +1017,14 @@ begin
     BlueBits:=0;
     AlphaBits:=0;
     BytesPerPixel:=0;
+    StripBitsPerPixel:=0;
+    for i:=0 to SampleCnt-1 do begin
+      if SampleBits[i]>64 then
+        TiffError('Samples bigger than 64 bit not supported');
+      if SampleBits[i] and 7<>0 then
+        TiffError('Only samples of 8 and 16 bit supported');
+      inc(StripBitsPerPixel,SampleBits[i]);
+    end;
     case IDF.PhotoMetricInterpretation of
     0,1:
       begin
@@ -983,6 +1035,10 @@ begin
             AlphaBits:=SampleBits[1+i];
             IDF.AlphaBits:=AlphaBits;
           end;
+        if not (GrayBits in [8,16]) then
+          TiffError('gray image only supported with gray BitsPerSample 8 or 16');
+        if not (AlphaBits in [0,8,16]) then
+          TiffError('gray image only supported with alpha BitsPerSample 8 or 16');
       end;
     2:
       begin
@@ -997,6 +1053,14 @@ begin
             AlphaBits:=SampleBits[3+i];
             IDF.AlphaBits:=AlphaBits;
           end;
+        if not (RedBits in [8,16]) then
+          TiffError('RGB image only supported with red BitsPerSample 8 or 16');
+        if not (GreenBits in [8,16]) then
+          TiffError('RGB image only supported with green BitsPerSample 8 or 16');
+        if not (BlueBits in [8,16]) then
+          TiffError('RGB image only supported with blue BitsPerSample 8 or 16');
+        if not (AlphaBits in [0,8,16]) then
+          TiffError('RGB image only supported with alpha BitsPerSample 8 or 16');
       end;
     5:
       begin
@@ -1013,6 +1077,16 @@ begin
             AlphaBits:=SampleBits[4+i];
             IDF.AlphaBits:=AlphaBits;
           end;
+        if not (RedBits in [8,16]) then
+          TiffError('CMYK image only supported with cyan BitsPerSample 8 or 16');
+        if not (GreenBits in [8,16]) then
+          TiffError('CMYK image only supported with magenta BitsPerSample 8 or 16');
+        if not (BlueBits in [8,16]) then
+          TiffError('CMYK image only supported with yellow BitsPerSample 8 or 16');
+        if not (GrayBits in [8,16]) then
+          TiffError('CMYK image only supported with black BitsPerSample 8 or 16');
+        if not (AlphaBits in [0,8,16]) then
+          TiffError('CMYK image only supported with alpha BitsPerSample 8 or 16');
       end;
     end;
     BytesPerPixel:=(GrayBits+RedBits+GreenBits+BlueBits+AlphaBits) div 8;
@@ -1095,43 +1169,34 @@ begin
         TiffError('compression '+IntToStr(IDF.Compression)+' not supported yet');
       end;
       if CurByteCnt<=0 then continue;
+      ExpectedStripLength:=(StripBitsPerPixel*IDF.ImageWidth+7) div 8;
+      ExpectedStripLength:=ExpectedStripLength*Min(IDF.RowsPerStrip,IDF.ImageHeight-y);
+      // writeln('TFPReaderTiff.ReadImage StripBitsPerPixel=',StripBitsPerPixel,' IDF.ImageWidth=',IDF.ImageWidth,' IDF.ImageHeight=',IDF.ImageHeight,' y=',y,' IDF.RowsPerStrip=',IDF.RowsPerStrip,' ExpectedStripLength=',ExpectedStripLength,' CurByteCnt=',CurByteCnt);
+      if CurByteCnt<ExpectedStripLength then
+        TiffError('TFPReaderTiff.ReadImage Strip too short ByteCnt='+IntToStr(CurByteCnt)+' y='+IntToStr(y)+' expected='+IntToStr(ExpectedStripLength));
 
-      Run:=0;
+      Run:=Strip;
       dx:=0;
       dy:=0;
       for y2:=0 to IDF.RowsPerStrip-1 do begin
         if y>=IDF.ImageHeight then break;
         //writeln('TFPReaderTiff.ReadImage y=',y,' IDF.ImageWidth=',IDF.ImageWidth);
+        LastRedValue:=0;
+        LastGreenValue:=0;
+        LastBlueValue:=0;
+        LastGrayValue:=0;
+        LastAlphaValue:=0;
         for x:=0 to IDF.ImageWidth-1 do begin
-          if PtrInt(Run)+BytesPerPixel>CurByteCnt then begin
-            TiffError('TFPReaderTiff.ReadImage Strip too short Run='+IntToStr(Run)+' CurByteCnt='+IntToStr(CurByteCnt)+' x='+IntToStr(x)+' y='+IntToStr(y)+' y2='+IntToStr(y2));
-            break;
-          end;
           case IDF.PhotoMetricInterpretation of
           0,1:
             begin
-              if GrayBits=8 then begin
-                GrayValue:=PCUInt8(Strip)[Run];
-                GrayValue:=GrayValue shl 8+GrayValue;
-                inc(Run);
-              end else if GrayBits=16 then begin
-                GrayValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end else
-                TiffError('gray image only supported with BitsPerSample 8 or 16 not yet supported');
+              ReadImgValue(GrayBits,Run,x,IDF.Predictor,LastGrayValue,GrayValue);
               if IDF.PhotoMetricInterpretation=0 then
                 GrayValue:=$ffff-GrayValue;
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i]=2 then begin
-                  if SampleBits[1+i]=8 then begin
-                    AlphaValue:=PCUInt8(Strip)[Run];
-                    AlphaValue:=AlphaValue shl 8+AlphaValue;
-                    inc(Run);
-                  end else begin
-                    AlphaValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                    inc(Run,2);
-                  end;
+                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1141,41 +1206,13 @@ begin
 
           2: // RGB(A)
             begin
-              if RedBits=8 then begin
-                RedValue:=PCUInt8(Strip)[Run];
-                RedValue:=RedValue shl 8+RedValue;
-                inc(Run);
-              end else begin
-                RedValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
-              if GreenBits=8 then begin
-                GreenValue:=PCUInt8(Strip)[Run];
-                GreenValue:=GreenValue shl 8+GreenValue;
-                inc(Run);
-              end else begin
-                GreenValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
-              if BlueBits=8 then begin
-                BlueValue:=PCUInt8(Strip)[Run];
-                BlueValue:=BlueValue shl 8+BlueValue;
-                inc(Run);
-              end else begin
-                BlueValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
+              ReadImgValue(RedBits,Run,x,IDF.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,x,IDF.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,x,IDF.Predictor,LastBlueValue,BlueValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i]=2 then begin
-                  if SampleBits[3+i]=8 then begin
-                    AlphaValue:=PCUInt8(Strip)[Run];
-                    AlphaValue:=AlphaValue shl 8+AlphaValue;
-                    inc(Run);
-                  end else begin
-                    AlphaValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                    inc(Run,2);
-                  end;
+                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1185,49 +1222,14 @@ begin
 
           5: // CMYK plus optional alpha
             begin
-              if RedBits=8 then begin
-                RedValue:=PCUInt8(Strip)[Run];
-                RedValue:=RedValue shl 8+RedValue;
-                inc(Run);
-              end else begin
-                RedValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
-              if GreenBits=8 then begin
-                GreenValue:=PCUInt8(Strip)[Run];
-                GreenValue:=GreenValue shl 8+GreenValue;
-                inc(Run);
-              end else begin
-                GreenValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
-              if BlueBits=8 then begin
-                BlueValue:=PCUInt8(Strip)[Run];
-                BlueValue:=BlueValue shl 8+BlueValue;
-                inc(Run);
-              end else begin
-                BlueValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
-              if GrayBits=8 then begin
-                GrayValue:=PCUInt8(Strip)[Run];
-                GrayValue:=GrayValue shl 8+GrayValue;
-                inc(Run);
-              end else begin
-                GrayValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                inc(Run,2);
-              end;
+              ReadImgValue(RedBits,Run,x,IDF.Predictor,LastRedValue,RedValue);
+              ReadImgValue(GreenBits,Run,x,IDF.Predictor,LastGreenValue,GreenValue);
+              ReadImgValue(BlueBits,Run,x,IDF.Predictor,LastBlueValue,BlueValue);
+              ReadImgValue(GrayBits,Run,x,IDF.Predictor,LastGrayValue,GrayValue);
               AlphaValue:=alphaOpaque;
               for i:=0 to ExtraSampleCnt-1 do begin
                 if ExtraSamples[i]=2 then begin
-                  if SampleBits[4+i]=8 then begin
-                    AlphaValue:=PCUInt8(Strip)[Run];
-                    AlphaValue:=AlphaValue shl 8+AlphaValue;
-                    inc(Run);
-                  end else begin
-                    AlphaValue:=FixEndian(PCUInt16(@Strip[Run])^);
-                    inc(Run,2);
-                  end;
+                  ReadImgValue(AlphaBits,Run,x,IDF.Predictor,LastAlphaValue,AlphaValue);
                 end else begin
                   inc(Run,ExtraSamples[i] div 8);
                 end;
@@ -1362,8 +1364,8 @@ type
   end;
   PLZWString = ^TLZWString;
 const
-  EoiCode = 257;
-  ClearCode = 256;
+  ClearCode = 256; // clear table, start with 9bit codes
+  EoiCode = 257; // end of input
 var
   NewBuffer: PByte;
   NewCount: PtrInt;
@@ -1383,7 +1385,7 @@ var
   begin
     Result:=0;
     // CurBitLength can be 9 to 12
-    writeln('GetNextCode CurBitLength=',CurBitLength,' SrcPos=',SrcPos,' SrcPosBit=',SrcPosBit,' ',hexstr(PByte(Buffer)[SrcPos],2),' ',hexstr(PByte(Buffer)[SrcPos+1],2),' ',hexstr(PByte(Buffer)[SrcPos+2],2));
+    //writeln('GetNextCode CurBitLength=',CurBitLength,' SrcPos=',SrcPos,' SrcPosBit=',SrcPosBit,' ',hexstr(PByte(Buffer)[SrcPos],2),' ',hexstr(PByte(Buffer)[SrcPos+1],2),' ',hexstr(PByte(Buffer)[SrcPos+2],2));
     // read two or three bytes
     if CurBitLength+SrcPosBit>16 then begin
       // read from three bytes
@@ -1406,7 +1408,7 @@ var
     end;
     Result:=v and ((1 shl CurBitLength)-1);
     SrcPosBit:=(SrcPosBit+CurBitLength) and 7;
-    writeln('GetNextCode END SrcPos=',SrcPos,' SrcPosBit=',SrcPosBit,' Result=',Result,' Result=',hexstr(Result,4));
+    //writeln('GetNextCode END SrcPos=',SrcPos,' SrcPosBit=',SrcPosBit,' Result=',Result,' Result=',hexstr(Result,4));
   end;
 
   procedure ClearTable;
@@ -1433,44 +1435,43 @@ var
   var
     s: TLZWString;
     b: byte;
-    i: Integer;
   begin
-    WriteLn('WriteStringFromCode Code=',Code,' AddFirstChar=',AddFirstChar);
+    //WriteLn('WriteStringFromCode Code=',Code,' AddFirstChar=',AddFirstChar,' x=',(NewCount div 4) mod IDF.ImageWidth,' y=',(NewCount div 4) div IDF.ImageWidth,' PixelByte=',NewCount mod 4);
     if Code<256 then begin
       // write byte
       b:=Code;
       s.Data:=@b;
       s.Count:=1;
-    end else begin
+    end else if Code>=258 then begin
       // write string
       if Code-258>=TableCount then
         TiffError('LZW code out of bounds');
       s:=Table[Code-258];
-    end;
+    end else
+      TiffError('LZW code out of bounds');
     if NewCount+s.Count+1>NewCapacity then begin
       NewCapacity:=NewCapacity*2+8;
       ReAllocMem(NewBuffer,NewCapacity);
     end;
     System.Move(s.Data^,NewBuffer[NewCount],s.Count);
-    for i:=0 to s.Count-1 do
-      write(HexStr(NewBuffer[NewCount+i],2));
+    //for i:=0 to s.Count-1 do write(HexStr(NewBuffer[NewCount+i],2)); // debug
     inc(NewCount,s.Count);
     if AddFirstChar then begin
       NewBuffer[NewCount]:=s.Data^;
-      write(HexStr(NewBuffer[NewCount],2));
+      //write(HexStr(NewBuffer[NewCount],2)); // debug
       inc(NewCount);
     end;
-    writeln(',WriteStringFromCode');
+    //writeln(',WriteStringFromCode'); // debug
   end;
 
   procedure AddStringToTable(Code, AddFirstCharFromCode: integer);
   // add string from code plus first character of string from code as new string
   var
-    b: byte;
+    b1, b2: byte;
     s1, s2: TLZWString;
     p: PByte;
   begin
-    WriteLn('AddStringToTable Code=',Code,' FCFCode=',AddFirstCharFromCode,' TableCount=',TableCount,' TableCapacity=',TableCapacity);
+    //WriteLn('AddStringToTable Code=',Code,' FCFCode=',AddFirstCharFromCode,' TableCount=',TableCount,' TableCapacity=',TableCapacity);
     // grow table
     if TableCount>=TableCapacity then begin
       TableCapacity:=TableCapacity*2+128;
@@ -1479,20 +1480,21 @@ var
     // find string 1
     if Code<256 then begin
       // string is byte
-      b:=Code;
-      s1.Data:=@b;
+      b1:=Code;
+      s1.Data:=@b1;
       s1.Count:=1;
-    end else begin
+    end else if Code>=258 then begin
       // normal string
       if Code-258>=TableCount then
         TiffError('LZW code out of bounds');
       s1:=Table[Code-258];
-    end;
+    end else
+      TiffError('LZW code out of bounds');
     // find string 2
     if AddFirstCharFromCode<256 then begin
       // string is byte
-      b:=AddFirstCharFromCode;
-      s2.Data:=@b;
+      b2:=AddFirstCharFromCode;
+      s2.Data:=@b2;
       s2.Count:=1;
     end else begin
       // normal string
@@ -1517,10 +1519,11 @@ var
   end;
 
 begin
-  WriteLn('TFPReaderTiff.DecompressLZW START Count=',Count);
-  for SrcPos:=0 to 19 do
-    write(HexStr(PByte(Buffer)[SrcPos],2));
-  writeln();
+  if Count=0 then exit;
+  //WriteLn('TFPReaderTiff.DecompressLZW START Count=',Count);
+  //for SrcPos:=0 to 19 do
+  //  write(HexStr(PByte(Buffer)[SrcPos],2));
+  //writeln();
 
   NewBuffer:=nil;
   NewCount:=0;
@@ -1536,12 +1539,15 @@ begin
   try
     repeat
       Code:=GetNextCode;
-      WriteLn('TFPReaderTiff.DecompressLZW Code=',Code);
+      //WriteLn('TFPReaderTiff.DecompressLZW Code=',Code);
       if Code=EoiCode then break;
       if Code=ClearCode then begin
         InitializeTable;
         Code:=GetNextCode;
+        //WriteLn('TFPReaderTiff.DecompressLZW after clear Code=',Code);
         if Code=EoiCode then break;
+        if Code=ClearCode then
+          TiffError('LZW code out of bounds');
         WriteStringFromCode(Code);
         OldCode:=Code;
       end else begin
