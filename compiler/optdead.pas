@@ -302,6 +302,11 @@ const
         result:=false;
         fsymtypepos:=pos(' ',line)+1;
         fsymnamepos:=fsymtypepos+2;
+        { on Linux/ppc64, there is an extra '.' at the start
+          of public function names
+        }
+        if (target_info.system=system_powerpc64_linux) then
+          inc(fsymnamepos);
         if failiferror(fsymtypepos<=0) then
           exit;
         { make sure there's room for the name }
