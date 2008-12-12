@@ -351,6 +351,9 @@ const
     begin { twpodeadcodeinfofromexternallinker }
       { try nm }
       symbolprogfound:=findutil('nm',nmfullname,symbolprogfullpath);
+      { gnu-nm (e.g., on solaris) }
+      if not symbolprogfound then
+        symbolprogfound:=findutil('gnm',nmfullname,symbolprogfullpath);
       if not symbolprogfound then
         begin
           { try objdump }
