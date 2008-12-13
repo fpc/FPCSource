@@ -167,6 +167,7 @@ type
     procedure FillSectionList(AStrings: TStrings);
     Procedure DeleteSection(ASection : TIniFileSection);
     Procedure MaybeDeleteSection(ASection : TIniFileSection);
+    procedure SetCacheUpdates(const AValue: Boolean);
   protected
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
@@ -184,7 +185,7 @@ type
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
     property Stream: TStream read FStream;
-    property CacheUpdates : Boolean Read FCacheUpdates Write FCacheUpdates;
+    property CacheUpdates : Boolean read FCacheUpdates write SetCacheUpdates;
   end;
 
   TMemIniFile = class(TIniFile)
@@ -757,6 +758,13 @@ begin
   end;
 end;
 
+procedure TIniFile.SetCacheUpdates(const AValue: Boolean);
+begin
+  if FCacheUpdates and not AValue and FDirty then
+    UpdateFile;
+  FCacheUpdates := AValue;
+end;
+
 procedure TIniFile.WriteString(const Section, Ident, Value: String);
 var
   oSection: TIniFileSection;
@@ -940,6 +948,7 @@ begin
     else if FStream <> nil then
       slLines.SaveToStream(FStream);
     FillSectionList(slLines);
+    FDirty := false;
   finally
     slLines.Free;
   end;
