@@ -90,7 +90,7 @@ const
 
 Implementation
 
-{$ifdef macos}
+{$if defined(macos) or defined(windows)}
 {$define usedos}
 {$endif}
 
@@ -342,7 +342,10 @@ end;
 
 function LocateExeFile(var FileName:string): boolean;
 var
-  dir,s,d,n,e : string;
+  dir,s: string;
+  d: dirstr;
+  n: namestr;
+  e: extstr;
   i : longint;
 begin
   LocateExeFile:=False;
@@ -1037,11 +1040,15 @@ end;
   {$endif windows}
     DosError:=0;
     If UseComSpec then
+      {$ifndef usedos}
       Sysutils.ExecuteProcess (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+      {$else}
+      Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+      {$endif}
     else
       begin
         if LocateExeFile(progname) then
-          {$ifndef macos}
+          {$ifndef usedos}
           Sysutils.ExecuteProcess(ProgName,Comline)
           {$else}
           Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
