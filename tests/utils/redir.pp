@@ -1051,7 +1051,11 @@ end;
           {$ifndef usedos}
           Sysutils.ExecuteProcess(ProgName,Comline)
           {$else}
+          {$ifdef macos}
           Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
+          {$else}
+          Dos.Exec(ProgName,Comline)
+          {$endif}
           {$endif}
         else
           DosError:=2;
