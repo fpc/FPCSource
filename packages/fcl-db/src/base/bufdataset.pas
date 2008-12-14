@@ -399,6 +399,7 @@ type
     procedure ParseFilter(const AFilter: string);
     procedure IntLoadFielddefsFromFile;
     procedure IntLoadRecordsFromFile;
+    procedure CurrentRecordToBuffer(Buffer: PChar);
   protected
     procedure UpdateIndexDefs; override;
     function GetNewBlobBuffer : PBlobBuffer;
@@ -1240,11 +1241,24 @@ begin
   if FCursOnFirstRec then FCurrentRecBuf:=FLastRecBuf;
 end;
 
+procedure TBufDataset.CurrentRecordToBuffer(Buffer: PChar);
+var ABookMark : PBufBookmark;
+begin
+  with FCurrentIndex do
+    begin
+    move(CurrentBuffer^,buffer^,FRecordSize);
+    ABookMark:=PBufBookmark(Buffer + FRecordSize);
+    ABookmark^.BookmarkFlag:=bfCurrent;
+    StoreCurrentRecIntoBookmark(ABookMark);
+    end;
+
+  GetCalcFields(Buffer);
+end;
+
 function TBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
 
 var Acceptable : Boolean;
     SaveState : TDataSetState;
-    ABookMark : PBufBookmark;
 
 begin
   Result := grOK;
@@ -1267,15 +1281,7 @@ begin
 
     if Result = grOK then
       begin
-      with FCurrentIndex do
-        begin
-        move(CurrentBuffer^,buffer^,FRecordSize);
-        ABookMark:=PBufBookmark(Buffer + FRecordSize);
-        ABookmark^.BookmarkFlag:=bfCurrent;
-        StoreCurrentRecIntoBookmark(ABookMark);
-        end;
-
-      GetCalcFields(Buffer);
+      CurrentRecordToBuffer(buffer);
 
       if Filtered then
         begin
@@ -1825,7 +1831,7 @@ begin
         begin
         FCurrentIndex.GotoBookmark(@FUpdateBuffer[r].BookmarkData);
         // Synchronise the Currentbuffer to the ActiveBuffer
-        GetRecord(ActiveBuffer,gmCurrent,True);
+        CurrentRecordToBuffer(ActiveBuffer);
         Response := rrApply;
         try
           ApplyRecUpdate(FUpdateBuffer[r].UpdateKind);
