@@ -64,12 +64,14 @@ const
   tkUString  = 24;
   tkUChar    = 25;
 
-  otSByte    = 0;
-  otUByte    = 1;
-  otSWord    = 2;
-  otUWord    = 3;
-  otSLong    = 4;
-  otULong    = 5;
+  otSByte     = 0;
+  otUByte     = 1;
+  otSWord     = 2;
+  otUWord     = 3;
+  otSLong     = 4;
+  otULong     = 5;
+  otSLongLong = 6;
+  otULongLong = 7;
 
   ftSingle   = 0;
   ftDouble   = 1;

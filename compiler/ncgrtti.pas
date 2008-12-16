@@ -535,6 +535,8 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUWord));
              4:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+             else
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
            end;
            if (tf_requires_proper_alignment in target_info.flags) then
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
