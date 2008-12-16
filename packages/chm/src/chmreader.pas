@@ -146,7 +146,7 @@ type
     destructor Destroy; override;
     function GetObject(Name: String): TMemoryStream;
     function IsAnOpenFile(AFileName: String): Boolean;
-    function ObjectExists(Name: String; fChm: TChmReader = nil): QWord;
+    function ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
     //properties
     property Chm[Index: Integer]: TChmReader read GetChm;
     property FileName[Index: Integer]: String read GetFileName;
@@ -845,7 +845,7 @@ begin
   Result := '';
   ATitle := '';
   //WriteLn('Getting topic# ',ATopicID);
-  if fTOPICSStream = nil then;
+  if fTOPICSStream = nil then
     fTOPICSStream := GetObject('/#TOPICS');
   if fTOPICSStream = nil then
     Exit;
@@ -1118,12 +1118,18 @@ end;
 
 function TChmFileList.GetChm(AIndex: Integer): TChmReader;
 begin
-  Result := TChmReader(Objects[AIndex]);
+  if AIndex = -1 then
+    Result := fLastChm
+  else
+    Result := TChmReader(Objects[AIndex]);
 end;
 
 function TChmFileList.GetFileName(AIndex: Integer): String;
 begin
-  Result := Strings[AIndex];
+  if AIndex = -1 then
+    AIndex := IndexOfObject(fLastChm);
+
+   Result := Strings[AIndex];
 end;
 
 procedure TChmFileList.OpenNewFile(AFileName: String);
@@ -1228,7 +1234,7 @@ begin
   fUnNotifiedFiles.Clear;
 end;
 
-function TChmFileList.ObjectExists(Name: String; fChm: TChmReader = nil): QWord;
+function TChmFileList.ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
 begin
   Result := 0;
   if Count = 0 then exit;
@@ -1241,6 +1247,8 @@ begin
   if Result = 0 then begin
     Result := MetaObjectExists(Name);
   end;
+  if (Result <> 0) and (fChm = nil) then
+    fChm := fLastChm;
 end;
 
 function TChmFileList.GetObject(Name: String): TMemoryStream;
