@@ -4648,6 +4648,7 @@ packages/winceunits/src/sipapi.pp svneol=native#text/plain
 packages/winceunits/src/sms.pp svneol=native#text/plain
 packages/winceunits/src/tapi.pp svneol=native#text/plain
 packages/winceunits/src/todaycmn.pp svneol=native#text/plain
+packages/winceunits/src/wap.pp svneol=native#text/plain
 packages/winceunits/src/windbase.pp svneol=native#text/plain
 packages/winceunits/src/windbase_edb.inc svneol=native#text/plain
 packages/winceunits/src/wininet.pp svneol=native#text/plain

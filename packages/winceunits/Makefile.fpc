@@ -12,7 +12,7 @@ implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shel
                     gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl \
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
                     phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
-                    sip projects \
+                    sip projects wap \
                     activex ole2 comconst
 
 units_win32=rapi cesync
