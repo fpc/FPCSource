@@ -274,10 +274,10 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=buildwinceunits
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror
+override TARGET_IMPLICITUNITS+=aygshell commctrl commdlg iphlpapi notify oleauto power shellapi simmgr tapi gpsapi todaycmn windbase cesync gx winioctl msgqueue pm service htmlctrl sipapi cpl bt_api bt_sdp bthapi bthutil ril sms ws2bth keybd nled phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror sip projects wap
 endif
 override INSTALL_BUILDUNIT=buildwinceunits
 override INSTALL_FPCPACKAGE=y

@@ -2895,10 +2895,10 @@ function UpdateWindow(hWnd:HWND):WINBOOL; external KernelDLL name 'UpdateWindow'
 function ValidateRect(hWnd:HWND; const lpRect:RECT):WINBOOL; external KernelDLL name 'ValidateRect';
 function ValidateRect(hWnd:HWND;lpRect:LPRECT):WINBOOL; external KernelDLL name 'ValidateRect';
 function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external KernelDLL name 'ValidateRgn';
-function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var puLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var uLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; var puLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; var uLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
 function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external KernelDLL name 'VirtualAlloc';
 function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external KernelDLL name 'VirtualFree';
 function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external KernelDLL name 'VirtualQuery';

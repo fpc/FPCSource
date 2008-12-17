@@ -25,7 +25,7 @@ uses
   gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl,
   sipapi, cpl, bt_api, bt_sdp, bthapi, bthutil, ril, sms, ws2bth,
   keybd, nled, phone, connmgr, devload, devmgmt, mmreg, mmsystem, msacm,
-  wininet, ras, raserror;
+  wininet, ras, raserror, sip, projects, wap;
 
 implementation
 
