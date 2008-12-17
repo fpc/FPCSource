@@ -769,6 +769,15 @@ begin
 end;
 
 
+procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
+
+procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
+begin
+  IsLibrary:=true;
+  internal_initializeunits;
+end;
+
+
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
   with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}

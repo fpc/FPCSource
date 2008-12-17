@@ -36,6 +36,8 @@ const
 procedure Test;export;
 
  begin
+   if not islibrary then
+     halt(1);
    writeln('Hoi');
  end;
 

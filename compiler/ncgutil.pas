@@ -1960,13 +1960,7 @@ implementation
 
 
     procedure gen_entry_code(list:TAsmList);
-      var
-        paraloc1,
-        paraloc2 : tcgpara;
       begin
-        paraloc1.init;
-        paraloc2.init;
-
         { the actual profile code can clobber some registers,
           therefore if the context must be saved, do it before
           the actual call to the profile code
@@ -1987,7 +1981,10 @@ implementation
          begin
            { initialize units }
            cg.allocallcpuregisters(list);
-           cg.a_call_name(list,'FPC_INITIALIZEUNITS',false);
+           if not(current_module.islibrary) then
+             cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+           else
+             cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
            cg.deallocallcpuregisters(list);
          end;
 
@@ -1996,9 +1993,6 @@ implementation
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
 {$endif OLDREGVARS}
-
-        paraloc1.done;
-        paraloc2.done;
       end;
 
 
