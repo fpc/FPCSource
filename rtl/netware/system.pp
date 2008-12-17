@@ -476,7 +476,6 @@ Begin
   SysInitStdIO;
 
 {Delphi Compatible}
-  IsLibrary := FALSE;
   IsConsole := TRUE;
   ExitCode  := 0;
   InitSystemThreads;

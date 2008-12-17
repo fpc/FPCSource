@@ -1086,8 +1086,6 @@ const
 {* ST: pointer;}
 {*}
 begin
-    IsLibrary := FALSE;
-
 {$IFDEF OS2EXCEPTIONS}
 (*    asm
       { allocate space for exception registration record }

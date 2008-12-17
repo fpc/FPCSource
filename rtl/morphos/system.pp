@@ -397,7 +397,6 @@ end;
 
 begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
   SysResetFPU;

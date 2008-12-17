@@ -460,7 +460,6 @@ const
  FatalHeap: array [0..33] of char = 'FATAL: Cannot initialize heap!!'#13#10'$';
 
 begin
-    IsLibrary := FALSE;
     {Determine the operating system we are running on.}
 {$ASMMODE INTEL}
     asm

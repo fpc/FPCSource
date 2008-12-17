@@ -305,7 +305,6 @@ end;
 
 Begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
   { Set up signals handlers }
