@@ -1142,7 +1142,7 @@ Type
     TWMSetFont          = Windows.TWMSetFont;
     TWMShowWindow       = Windows.TWMShowWindow;
     TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
-    LPMSG               = Windows.MSG;
+    LPMSG               = ^Windows.MSG;
     tagMSG              = Windows.tagMSG;
     TMSG                = Windows.TMSG;
     PMSG                = Windows.PMSG;

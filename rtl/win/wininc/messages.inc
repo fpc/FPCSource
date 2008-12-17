@@ -1184,7 +1184,7 @@
     TWMShowWindow       = Windows.TWMShowWindow;
     TWMEraseBkgnd       = Windows.TWMEraseBkgnd;
     TWMIconEraseBkgnd   = TWMEraseBkgnd;
-    LPMSG               = Windows.MSG;
+    LPMSG               = ^Windows.MSG;
     tagMSG              = Windows.tagMSG;
     TMSG                = Windows.TMSG;
     PMSG                = Windows.PMSG;
