@@ -23,7 +23,9 @@ interface
 uses
   aygshell,commctrl,commdlg,iphlpapi,notify,oleauto,power,shellapi,simmgr,tapi,
   gpsapi,todaycmn,windbase,cesync,gx,winioctl,msgqueue,pm,service,htmlctrl,
-  sipapi, cpl;
+  sipapi, cpl, bt_api, bt_sdp, bthapi, bthutil, ril, sms, ws2bth,
+  keybd, nled, phone, connmgr, devload, devmgmt, mmreg, mmsystem, msacm,
+  wininet, ras, raserror;
 
 implementation
 

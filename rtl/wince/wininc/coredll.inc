@@ -215,10 +215,8 @@
       30C DumpKCallProfile
       3DB EnableCaretSystemWide
       553 EnableEUDC
-       BF EnumDevices
       50E EnumDisplayDevices
       666 EnumDisplayMonitors
-       BE EnumPnpIds
       14D EnumUILanguagesW
       374 ExtractResource
       17F FileSystemPowerFunction
@@ -239,7 +237,6 @@
        29 GetCurrentFT
       39F GetCurrentPermissions
       186 GetDeviceByIndex
-       C0 GetDeviceKeys
       2FA GetEventData
       394 GetFSHeapInfo
       407 GetForegroundInfo
@@ -263,8 +260,6 @@
       377 GetRomFileBytes
       376 GetRomFileInfo
       102 GetStoreInformation
--      40E GetSystemPowerStatusEx -> power.inc
--      40F GetSystemPowerStatusEx2 -> power.inc
       2D0 GetUserDirectory
       1B7 GetWindowTextWDirect
       37E GiveKPhys
@@ -377,11 +372,8 @@
       33C NKDbgPrintfW
       3A7 NKTerminateThread
       36F NKvDbgPrintfW
-      49F NLedGetDeviceInfo
-      4A0 NLedSetDevice
       30F NotifyForceCleanboot
       410 NotifyWinUserSystem
-       C1 OpenDeviceKey
       395 OtherThreadsRunning
       3BB PPSHRestart
         C PSLNotify
@@ -405,7 +397,6 @@
       2D4 PegSetUserNotification
       1CE PegWriteRecordProps
       2F1 PerformCallBack4
-      267 PlaySoundW
       3A3 PowerOffSystem
       37C PrintTrackedItem
       373 ProcessDetachAllDLLs
@@ -418,31 +409,6 @@
       485 QAUnhookWindowsJournalHook
       2F2 QueryAPISetID
        91 Random
-      1FC RasDeleteEntry
-      207 RasDevConfigDialogEditW
-      1F3 RasDial
-      1FE RasEnumConnections
-      203 RasEnumDevicesW
-      1F6 RasEnumEntries
-      1FF RasGetConnectStatus
-      206 RasGetDispPhoneNumW
-      20A RasGetEapConnectionData
-      208 RasGetEapUserData
-      200 RasGetEntryDevConfig
-      1F7 RasGetEntryDialParams
-      1F9 RasGetEntryProperties
-      205 RasGetLinkStatistics
-      204 RasGetProjectionInfoW
-      1F5 RasHangUp
-      1F4 RasHangup
-      202 RasIOControl
-      1FD RasRenameEntry
-      20B RasSetEapConnectionData
-      209 RasSetEapUserData
-      201 RasSetEntryDevConfig
-      1F8 RasSetEntryDialParams
-      1FA RasSetEntryProperties
-      1FB RasValidateEntryName
       181 ReadFileWithSeek
       3C0 ReadRegistryFromOEM
       1BE RectangleAnimation
@@ -1811,8 +1777,6 @@
       58C _ltoa
       58D _ltow
       602 _mbmemset
-      590 _memccpy
-      593 _memicmp
       597 _msize
       598 _nextafter
       5C1 _purecall
@@ -1826,27 +1790,10 @@
       60A _snprintf
       605 _snwprintf
       5A4 _statusfp
-       71 _strdup
-       77 _stricmp
-       75 _strlwr
-       78 _strnicmp
-       72 _strnset
-       73 _strrev
-       74 _strset
-       76 _strupr
-      5B0 _swab
       5B3 _ultoa
       5B4 _ultow
       60B _vsnprintf
       606 _vsnwprintf
-       64 _wcsdup
-      146 _wcsicmp
-      147 _wcslwr
-      145 _wcsnicmp
-       5D _wcsnset
-       60 _wcsrev
-       61 _wcsset
-      148 _wcsupr
       61E _wfdopen
       63D _wfopen
       61F _wfreopen
@@ -1856,36 +1803,6 @@
       5B9 _y1
       5BA _yn
       559 abs
-      28B acmDriverAdd
-      28C acmDriverClose
-      28D acmDriverDetails
-      28E acmDriverEnum
-      28F acmDriverID
-      290 acmDriverMessage
-      291 acmDriverOpen
-      292 acmDriverPriority
-      293 acmDriverRemove
-      2A8 acmFilterChoose
-      294 acmFilterDetails
-      295 acmFilterEnum
-      296 acmFilterTagDetails
-      297 acmFilterTagEnum
-      2A7 acmFormatChoose
-      298 acmFormatDetails
-      299 acmFormatEnum
-      29A acmFormatSuggest
-      29B acmFormatTagDetails
-      29C acmFormatTagEnum
-      2A5 acmGetVersion
-      2A6 acmMetrics
-      29D acmStreamClose
-      29E acmStreamConvert
-      29F acmStreamMessage
-      2A0 acmStreamOpen
-      2A1 acmStreamPrepareHeader
-      2A2 acmStreamReset
-      2A3 acmStreamSize
-      2A4 acmStreamUnprepareHeader
       55A acos
       55B asin
       55C atan
@@ -1893,7 +1810,6 @@
       560 atof
       55E atoi
       55F atol
-      58F calloc
       564 ceil
       68A ceilf
       629 clearerr
@@ -1924,7 +1840,6 @@
       639 fputwc
       63C fputws
       622 fread
-      577 free
       579 frexp
       619 fscanf
       62C fseek
@@ -1941,16 +1856,6 @@
       584 ldexp
       585 ldiv
       589 longjmp
-      2B2 mixerClose
-      2A9 mixerGetControlDetails
-      2AA mixerGetDevCaps
-      2AB mixerGetID
-      2AC mixerGetLineControls
-      2AD mixerGetLineInfo
-      2AE mixerGetNumDevs
-      2AF mixerMessage
-      2B0 mixerOpen
-      2B1 mixerSetControlDetails
       596 modf
       599 pow
       60D printf
@@ -1959,13 +1864,11 @@
       635 putwchar
       59A qsort
       59B rand
-      59C realloc
       60C scanf
       601 setjmp
       62F setvbuf
       5A0 sin
       5A1 sinh
-      266 sndPlaySoundW
       608 sprintf
       5A2 sqrt
       68E sqrtf
@@ -2004,41 +1907,6 @@
       609 vsprintf
       604 vswprintf
       633 vwprintf
-      283 waveInAddBuffer
-      280 waveInClose
-      27E waveInGetDevCaps
-      27F waveInGetErrorText
-      288 waveInGetID
-      27D waveInGetNumDevs
-      287 waveInGetPosition
-      289 waveInMessage
-      28A waveInOpen
-      281 waveInPrepareHeader
-      286 waveInReset
-      284 waveInStart
-      285 waveInStop
-      282 waveInUnprepareHeader
-      274 waveOutBreakLoop
-      26D waveOutClose
-      269 waveOutGetDevCaps
-      26C waveOutGetErrorText
-      27A waveOutGetID
-      268 waveOutGetNumDevs
-      276 waveOutGetPitch
-      278 waveOutGetPlaybackRate
-      275 waveOutGetPosition
-      26A waveOutGetVolume
-      27B waveOutMessage
-      27C waveOutOpen
-      271 waveOutPause
-      26E waveOutPrepareHeader
-      273 waveOutReset
-      272 waveOutRestart
-      277 waveOutSetPitch
-      279 waveOutSetPlaybackRate
-      26B waveOutSetVolume
-      26F waveOutUnprepareHeader
-      270 waveOutWrite
       632 wprintf
       631 wscanf
 
@@ -2097,6 +1965,9 @@ function BeginDeferWindowPos(nNumWindows:longint):HDWP; external KernelDLL name 
 function BeginPaint(hWnd:HWND; lpPaint:LPPAINTSTRUCT):HDC; external KernelDLL name 'BeginPaint';
 function BitBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:DWORD):WINBOOL; external KernelDLL name 'BitBlt';
 function BringWindowToTop(hWnd:HWND):WINBOOL; external KernelDLL name 'BringWindowToTop';
+
+// Allocates an array in memory with elements initialized to 0.
+function calloc(num:SIZE_T; _size:SIZE_T):pointer; external KernelDLL name 'calloc'; // index 58F
 function CallNextHookEx(hhk:HHOOK; nCode:longint; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'CallNextHookEx';
 function CallWindowProc(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'CallWindowProcW';
 function CallWindowProcW(lpPrevWndFunc:WNDPROC; hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'CallWindowProcW';
@@ -2300,6 +2171,7 @@ function FoldString(dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestSt
 function FoldStringW(dwMapFlags:DWORD; lpSrcStr:LPCWSTR; cchSrc:longint; lpDestStr:LPWSTR; cchDest:longint):longint; external KernelDLL name 'FoldStringW';
 function FormatMessage(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;nSize:DWORD; Arguments:va_list):DWORD; external KernelDLL name 'FormatMessageW';
 function FormatMessageW(dwFlags:DWORD; lpSource:LPCVOID; dwMessageId:DWORD; dwLanguageId:DWORD; lpBuffer:LPWSTR;nSize:DWORD; Arguments:va_list):DWORD; external KernelDLL name 'FormatMessageW';
+procedure free(memblock:pointer); external KernelDLL name 'free'; // index 577
 function FreeLibrary(hLibModule:HMODULE):WINBOOL; external KernelDLL name 'FreeLibrary';
 procedure FreeLibraryAndExitThread(hLibModule:HMODULE; dwExitCode:DWORD); external KernelDLL name 'FreeLibraryAndExitThread';
 function GetActiveWindow:HWND; external KernelDLL name 'GetActiveWindow';
@@ -2771,6 +2643,7 @@ procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberO
 function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL; external KernelDLL name 'ReadFile'; // index F4
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external KernelDLL name 'ReadProcessMemory';
 function RealizePalette(_para1:HDC):UINT; external KernelDLL name 'RealizePalette'; // index 52F
+function realloc(memblock:pointer; _size:SIZE_T):pointer; external KernelDLL name 'realloc'; // index 59C
 function RectInRegion(_para1:HRGN; const _para2:RECT):WINBOOL; external KernelDLL name 'RectInRegion';
 function RectVisible(_para1:HDC; const _para2:RECT):WINBOOL; external KernelDLL name 'RectVisible';
 function Rectangle(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint):WINBOOL; external KernelDLL name 'Rectangle';
@@ -3085,6 +2958,42 @@ function wsprintfW(lpBuffer:LPWSTR; lpFormat:LPCWSTR):longint; external KernelDL
 function wvsprintf(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):longint; external KernelDLL name 'wvsprintfW';
 function wvsprintfW(_para1:LPWSTR; _para2:LPCWSTR; arglist:va_list):longint; external KernelDLL name 'wvsprintfW';
 procedure ZeroMemory(Destination:PVOID; Length:DWORD);
+
+// dest - pointer to destination.
+// src - pointer to source.
+// c - last character to copy.
+// count - number of characters.
+// Returns: if the character c is copied, _memccpy returns a pointer to the
+// byte in dest that immediately follows the character. If c is not copied, it
+// returns NULL.
+function _memccpy(dest:pointer; src:pointer; c:longint; _count:Cardinal):pointer; external KernelDLL name '_memccpy'; // index 590
+function _memicmp(buf1:pointer; buf2:pointer; _count:Cardinal):longint; external KernelDLL name '_memicmp'; // index 593
+
+// _strdup function calls malloc to allocate storage space for a copy of
+// strSource and then copies strSource to the allocated space.
+function _strdup(strSource:PAnsiChar):PAnsiChar; external KernelDLL name '_strdup'; // index 71
+function _stricmp(string1:PAnsiChar; string2:PAnsiChar):longint; external KernelDLL name '_stricmp'; // index 77
+function _strlwr(_string:PAnsiChar):PAnsiChar; external KernelDLL name '_strlwr'; // index 75
+function _strnicmp(string1:PAnsiChar; string2:PAnsiChar; _count:SIZE_T):longint; external KernelDLL name '_strnicmp'; // index 78
+function _strnset(_string:PAnsiChar; c:longint; _count:SIZE_T):PAnsiChar; external KernelDLL name '_strnset'; // index 72
+function _strrev(_string:PAnsiChar):PAnsiChar; external KernelDLL name '_strrev'; // index 73
+function _strset(_string:PAnsiChar; c:longint):PAnsiChar; external KernelDLL name '_strset'; // index 74
+function _strupr(_string:PAnsiChar):PAnsiChar; external KernelDLL name '_strupr'; // index 76
+
+// The _swab function copies n bytes from src, swaps each pair of adjacent bytes,
+// and stores the result at dest. The integer n should be an even number to allow
+// for swapping. _swab is typically used to prepare binary data for transfer to
+// a machine that uses a different byte order.
+procedure _swab(src:PAnsiChar; dest:PAnsiChar; n:longint); external KernelDLL name '_swab'; // index 5B0
+
+function _wcsdup(strSource:PWideChar):PWideChar; external KernelDLL name '_wcsdup'; // index 64
+function _wcsicmp(string1:PWideChar; string2:PWideChar):longint; external KernelDLL name '_wcsicmp'; // index 146
+function _wcslwr(_string:PWideChar):PWideChar; external KernelDLL name '_wcslwr'; // index 147
+function _wcsnicmp(string1:PWideChar; string2:PWideChar; _count:SIZE_T):longint; external KernelDLL name '_wcsnicmp'; // index 145
+function _wcsnset(_string:PWideChar; c:WCHAR; _count:SIZE_T):PWideChar; external KernelDLL name '_wcsnset'; // index 5D
+function _wcsrev(_string:PWideChar):PWideChar; external KernelDLL name '_wcsrev'; // index 60
+function _wcsset(_string:PWideChar; c:WCHAR):PWideChar; external KernelDLL name '_wcsset'; // index 61
+function _wcsupr(_string:PWideChar):PWideChar; external KernelDLL name '_wcsupr'; // index 148
 
 {$endif read_interface}
 
@@ -4177,6 +4086,7 @@ begin
 end;
 
 {$endif read_implementation}
+
 
 
 

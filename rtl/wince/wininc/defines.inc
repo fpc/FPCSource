@@ -667,7 +667,7 @@
      WS_BORDER = $800000;
      WS_CAPTION = $c00000;
      WS_CHILD = $40000000;
-     WS_CHILDWINDOW = $40000000;
+{     WS_CHILDWINDOW = $40000000; // Not declared in WinCE }
      WS_CLIPCHILDREN = $2000000;
      WS_CLIPSIBLINGS = $4000000;
      WS_DISABLED = $8000000;
@@ -684,6 +684,7 @@
      WS_THICKFRAME = $40000;
      WS_VISIBLE = $10000000;
      WS_VSCROLL = $200000;
+
      BS_3STATE = $5;
      BS_AUTO3STATE = $6;
      BS_AUTOCHECKBOX = $3;
@@ -704,12 +705,13 @@
      BS_PUSHLIKE = $1000;
      BS_RADIOBUTTON = $4;
      BS_RIGHT = $200;
-     BS_RIGHTBUTTON = $20;
+     BS_RIGHTBUTTON = BS_LEFTTEXT;
      BS_TEXT = 0;
      BS_TOP = $400;
-     BS_USERBUTTON = $8;
+{     BS_USERBUTTON = $8; // Unsupported under WinCE. }
      BS_VCENTER = $c00;
-     BS_FLAT = $8000;
+{     BS_FLAT = $8000; // Unsupported under WinCE. }
+
      CBS_AUTOHSCROLL = $40;
      CBS_DISABLENOSCROLL = $800;
      CBS_DROPDOWN = $2;
@@ -718,11 +720,23 @@
      CBS_LOWERCASE = $4000;
      CBS_NOINTEGRALHEIGHT = $400;
      CBS_OEMCONVERT = $80;
-     CBS_OWNERDRAWFIXED = $10;
-     CBS_OWNERDRAWVARIABLE = $20;
-     CBS_SIMPLE = $1;
+{     CBS_OWNERDRAWFIXED = $10; // Unsupported under WinCE. }
+{     CBS_OWNERDRAWVARIABLE = $20; // Unsupported under WinCE. }
+{     CBS_SIMPLE = $1; // Unsupported under WinCE. }
      CBS_SORT = $100;
      CBS_UPPERCASE = $2000;
+
+{ Extended combo box styles }
+    CBS_EX_CONSTSTRINGDATA  = $00000002;
+{ If you specify the CBS_EX_CONSTSTRINGDATA style when the application 
+  inserts a string into the list part of a combo box, the combo box 
+  stores the pointer passed to it by the application rather than copying 
+  the string. This saves RAM resources when you have a large table of 
+  strings in ROM that you want to insert into a combo box. }
+
+
+
+{ Edit Control Styles }
      ES_AUTOHSCROLL = $80;
      ES_AUTOVSCROLL = $40;
      ES_CENTER = $1;
@@ -737,6 +751,9 @@
      ES_RIGHT = $2;
      ES_UPPERCASE = $8;
      ES_WANTRETURN = $1000;
+     ES_COMBOBOX   = $0200; { Indicates that the edit control is part of a combo box. }
+
+{ List box styles }
      LBS_DISABLENOSCROLL = $1000;
      LBS_EXTENDEDSEL = $800;
      LBS_HASSTRINGS = $40;
@@ -750,89 +767,105 @@
      LBS_OWNERDRAWFIXED = $10;
      LBS_OWNERDRAWVARIABLE = $20;
      LBS_SORT = $2;
-     LBS_STANDARD = $a00003;
+//     LBS_STANDARD = $a00003;
      LBS_USETABSTOPS = $80;
      LBS_WANTKEYBOARDINPUT = $400;
-     SBS_BOTTOMALIGN = $4;
+     LBS_STANDARD = LBS_NOTIFY or LBS_SORT or WS_VSCROLL or WS_BORDER;
+
+{ Extended list box styles }
+     LBS_EX_CONSTSTRINGDATA   = $00000002;
+{ Windows CE supports the LBS_EX_CONSTSTRINGDATA style that saves RAM 
+  resources when you have a large table of strings in ROM that you want 
+  to insert into a list box. }
+
+{ Scroll bar styles }
+{     SBS_BOTTOMALIGN = $4; // Unsupported under WinCE. }
      SBS_HORZ = 0;
-     SBS_LEFTALIGN = $2;
-     SBS_RIGHTALIGN = $4;
-     SBS_SIZEBOX = $8;
-     SBS_SIZEBOXBOTTOMRIGHTALIGN = $4;
-     SBS_SIZEBOXTOPLEFTALIGN = $2;
-     SBS_SIZEGRIP = $10;
-     SBS_TOPALIGN = $2;
+{     SBS_LEFTALIGN = $2; // Unsupported under WinCE. }
+{     SBS_RIGHTALIGN = $4; // Unsupported under WinCE. }
+{     SBS_SIZEBOX = $8; // Unsupported under WinCE. }
+{     SBS_SIZEBOXBOTTOMRIGHTALIGN = $4; // Unsupported under WinCE. }
+{     SBS_SIZEBOXTOPLEFTALIGN = $2; // Unsupported under WinCE. }
+{     SBS_SIZEGRIP = $10; // Unsupported under WinCE. }
+{     SBS_TOPALIGN = $2; // Unsupported under WinCE. }
      SBS_VERT = $1;
+
+{ Static control styles }
      SS_BITMAP = $e;
-     SS_BLACKFRAME = $7;
-     SS_BLACKRECT = $4;
+{     SS_BLACKFRAME = $7; // Unsupported under WinCE. }
+{     SS_BLACKRECT = $4; // Unsupported under WinCE. }
      SS_CENTER = $1;
      SS_CENTERIMAGE = $200;
-     SS_ENHMETAFILE = $f;
-     SS_ETCHEDFRAME = $12;
-     SS_ETCHEDHORZ = $10;
-     SS_ETCHEDVERT = $11;
-     SS_GRAYFRAME = $8;
-     SS_GRAYRECT = $5;
+{     SS_ENHMETAFILE = $f; // Unsupported under WinCE. }
+{     SS_ETCHEDFRAME = $12; // Unsupported under WinCE. }
+{     SS_ETCHEDHORZ = $10; // Unsupported under WinCE. }
+{     SS_ETCHEDVERT = $11; // Unsupported under WinCE. }
+{     SS_GRAYFRAME = $8; // Unsupported under WinCE. }
+{     SS_GRAYRECT = $5; // Unsupported under WinCE. }
      SS_ICON = $3;
      SS_LEFT = 0;
      SS_LEFTNOWORDWRAP = $c;
      SS_NOPREFIX = $80;
      SS_NOTIFY = $100;
-     SS_OWNERDRAW = $d;
-     SS_REALSIZEIMAGE = $800;
+{     SS_OWNERDRAW = $d; // Unsupported under WinCE. }
+{     SS_REALSIZEIMAGE = $800; // Unsupported under WinCE. }
      SS_RIGHT = $2;
-     SS_RIGHTJUST = $400;
-     SS_SIMPLE = $b;
-     SS_SUNKEN = $1000;
-     SS_USERITEM = $a;
-     SS_WHITEFRAME = $9;
-     SS_WHITERECT = $6;
+{     SS_RIGHTJUST = $400; // Unsupported under WinCE. }
+{     SS_SIMPLE = $b; // Unsupported under WinCE. }
+{     SS_SUNKEN = $1000; // Unsupported under WinCE. }
+{     SS_USERITEM = $a; // Unsupported under WinCE. }
+{     SS_WHITEFRAME = $9; // Unsupported under WinCE. }
+{     SS_WHITERECT = $6; // Unsupported under WinCE. }
+
     { Dialog styles }
-     DS_ABSALIGN      = $1;
-     DS_SYSMODAL      = $2;
+{     DS_ABSALIGN      = $1; // Unsupported under WinCE. }
+{     DS_SYSMODAL      = $2; // Unsupported under WinCE. }
      DS_3DLOOK        = $4;
-     DS_FIXEDSYS      = $8;
-     DS_NOFAILCREATE  = $10;
-     DS_LOCALEDIT     = $20;
-     DS_SETFONT       = $40;
-     DS_MODALFRAME    = $80;
-     DS_NOIDLEMSG     = $100;
-     DS_SETFOREGROUND = $200;
+{     DS_FIXEDSYS      = $8; // Unsupported under WinCE. }
+{     DS_NOFAILCREATE  = $10; // Unsupported under WinCE. }
+     DS_LOCALEDIT     = $20; { Edit items get Local storage. }
+     DS_SETFONT       = $40; { User specified font for Dlg controls. }
+     DS_MODALFRAME    = $80; { Can be combined with WS_CAPTION. }
+{     DS_NOIDLEMSG     = $100; // Unsupported under WinCE. }
+     DS_SETFOREGROUND = $200; { not in Windows 3.1 }
      DS_CONTROL       = $400;
      DS_CENTER        = $800;
-     DS_CENTERMOUSE   = $1000;
-     DS_CONTEXTHELP   = $2000;
-     DS_NOCLOSEBTN    =	$4000;
+{     DS_CENTERMOUSE   = $1000; // Unsupported under WinCE. }
+{     DS_CONTEXTHELP   = $2000; // Unsupported under WinCE. }
+     DS_NOCLOSEBTN    = $4000;
 
   { CreateWindowEx  }
-     WS_EX_LEFT             = 0;
-     WS_EX_LTRREADING       = 0;
-     WS_EX_RIGHTSCROLLBAR   = 0;
+{     WS_EX_LEFT             = 0; // Not declared. }
+{     WS_EX_LTRREADING       = 0; // Not declared. }
+{     WS_EX_RIGHTSCROLLBAR   = 0; // Not declared. }
      WS_EX_DLGMODALFRAME    = $1;
-     WS_EX_NOPARENTNOTIFY   = $4;
+{     WS_EX_NOPARENTNOTIFY   = $4; // Unsupported under WinCE. }
      WS_EX_TOPMOST          = $8;
-     WS_EX_ACCEPTFILES      = $10;
-     WS_EX_TRANSPARENT      = $20;
-     WS_EX_MDICHILD         = $40;
+{     WS_EX_ACCEPTFILES      = $10; // Unsupported under WinCE. }
+{     WS_EX_TRANSPARENT      = $20; // Unsupported under WinCE. }
+{     WS_EX_MDICHILD         = $40; // Unsupported under WinCE. }
      WS_EX_TOOLWINDOW       = $80;
-     WS_EX_PALETTEWINDOW    = $188;
+{     WS_EX_PALETTEWINDOW    = $188; // Unsupported under WinCE. }
      WS_EX_WINDOWEDGE       = $100;
      WS_EX_CLIENTEDGE       = $200;
-     WS_EX_OVERLAPPEDWINDOW = $300;
+     WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE or WS_EX_CLIENTEDGE;
      WS_EX_CONTEXTHELP      = $400;
      WS_EX_RIGHT            = $1000;
      WS_EX_RTLREADING       = $2000;
      WS_EX_LEFTSCROLLBAR    = $4000;
-     WS_EX_CONTROLPARENT    = $10000;
+{     WS_EX_CONTROLPARENT    = $10000; // Unsupported under WinCE. }
      WS_EX_STATICEDGE       = $20000;
-     WS_EX_APPWINDOW        = $40000;
-     WS_EX_NOANIMATION	    = $4000000;
+{     WS_EX_APPWINDOW        = $40000; // Unsupported under WinCE. }
+     WS_EX_NOANIMATION      = $4000000;
      WS_EX_NOACTIVATE       = $8000000;
-     WS_EX_INK		    = $10000000;
-     WS_EX_ABOVESTARTUP	    = $20000000;
+     WS_EX_INK              = $10000000;
+     WS_EX_ABOVESTARTUP     = $20000000;
      WS_EX_NODRAG           = $40000000;
      WS_EX_CAPTIONOKBTN     = $80000000;
+
+     WS_EX_NOINHERITLAYOUT  = $00100000; // Disable inheritence of mirroring by children
+     WS_EX_LAYOUTRTL        = $00400000; // Right to left mirroring
+     
 
   { CreateWindowStation  }
      WINSTA_ACCESSCLIPBOARD = $4;
@@ -1191,13 +1224,13 @@
      {STARTDOC = 10; conflicts with AbortDoc function }
      cSTARTDOC = 10;
   { EscapeCommFunction  }
-     CLRDTR = 6;				  //winbase
-     CLRRTS = 4;				  //winbase
-     SETDTR = 5;				  //winbase
-     SETRTS = 3;				  //winbase	
-     SETXOFF = 1;				  //winbase
-     SETXON = 2;				  //winbase
-     SETBREAK = 8;				  //winbase
+     CLRDTR = 6;          //winbase
+     CLRRTS = 4;          //winbase
+     SETDTR = 5;          //winbase
+     SETRTS = 3;          //winbase 
+     SETXOFF = 1;         //winbase
+     SETXON = 2;          //winbase
+     SETBREAK = 8;          //winbase
      CLRBREAK = 9;                                //winbase
      // Some CE devices share a UART between an IRDA port and a serial port.
      // These escape functions allow control over the mode.
@@ -1323,6 +1356,10 @@
      CP_ACP = 0;
      CP_MACCP = 2;
      CP_OEMCP = 1;
+     { WinCE 5.0+}
+     CP_UTF7 = 65000;
+     CP_UTF8 = 65001;
+     
   { GetDateFormat  }
   { already defined above !!
   #define DATE_SHORTDATE        (1)
@@ -1563,12 +1600,13 @@
      QS_SENDMESSAGE = 64;
      QS_TIMER = 16;
   { GetScrollInfo, SetScrollInfo  }
-     SIF_ALL = 23;
+{     SIF_ALL = 23; }
      SIF_PAGE = 2;
      SIF_POS = 4;
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
      SIF_TRACKPOS = $10;
+     SIF_ALL = SIF_RANGE or SIF_PAGE or SIF_POS or SIF_TRACKPOS;
   { GetStdHandle  }
 
 
@@ -1673,7 +1711,7 @@
      COLOR_STATICTEXT              =26 or SYS_COLOR_INDEX_FLAG;
      COLOR_GRADIENTACTIVECAPTION   =27 or SYS_COLOR_INDEX_FLAG;
      COLOR_GRADIENTINACTIVECAPTION =28 or SYS_COLOR_INDEX_FLAG;
-     C_SYS_COLOR_TYPES		   =29;
+     C_SYS_COLOR_TYPES       =29;
 
      COLOR_DESKTOP           =COLOR_BACKGROUND;
      COLOR_3DFACE            =COLOR_BTNFACE;
@@ -1831,11 +1869,11 @@
      LMEM_DISCARDABLE    = $0F00;      //**** Ignored ****/
      LMEM_VALID_FLAGS    = $0F72;
      LMEM_INVALID_HANDLE = $8000;
-     LMEM_DDESHARE       = $0000;	 //**** Ignored ****/
-     LMEM_LOWER          = $0000;	 //**** Ignored ****/
-     LMEM_NOT_BANKED     = $0000;	 //**** Ignored ****/
-     LMEM_NOTIFY         = $0000;	 //**** Ignored ****/
-     LMEM_SHARE          = $0000;	 //**** Ignored ****/
+     LMEM_DDESHARE       = $0000;  //**** Ignored ****/
+     LMEM_LOWER          = $0000;  //**** Ignored ****/
+     LMEM_NOT_BANKED     = $0000;  //**** Ignored ****/
+     LMEM_NOTIFY         = $0000;  //**** Ignored ****/
+     LMEM_SHARE          = $0000;  //**** Ignored ****/
      LPTR                = LMEM_FIXED or LMEM_ZEROINIT;
      LHND                = LMEM_MOVEABLE or LMEM_ZEROINIT;
      NONZEROLHND         = LMEM_MOVEABLE;
@@ -2695,13 +2733,13 @@
      SH_LAST_NOTIFY   = 16; // Last set notified on Thread/Process Termination
      SH_GDI           = 16;
      SH_WMGR          = 17;
-     SH_WNET	      = 18; // WNet APIs for network redirector
+     SH_WNET        = 18; // WNet APIs for network redirector
      SH_COMM          = 19; // Communications not "COM"
      SH_FILESYS_APIS  = 20; // File system APIS
      SH_SHELL         = 21;
      SH_DEVMGR_APIS   = 22; // File system device manager
-     SH_TAPI	      = 23;
-     SH_PATCHER	      = 24;
+     SH_TAPI        = 23;
+     SH_PATCHER       = 24;
      SH_SERVICES      = 26;
      SH_LASTRESERVED  = 26;
 
@@ -3637,20 +3675,20 @@
      LPSTR_TEXTCALLBACKA = LPSTR(-(1));
 
 
-	{$ifdef UNICODE}
+  {$ifdef UNICODE}
 
      {const this is a function in fact !!
               LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKW;}
      LPSTR_TEXTCALLBACK          = LPWSTR(-(1));
 
-	{$else}
+  {$else}
 
-	 {const
-	 LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKA; }
+   {const
+   LPSTR_TEXTCALLBACK = LPSTR_TEXTCALLBACKA; }
      LPSTR_TEXTCALLBACK          =LPSTR(-(1));
-	{$endif}
+  {$endif}
 
-	 { LV_ITEM structure  }
+   { LV_ITEM structure  }
 
   const
      LVIF_TEXT = 1;
@@ -5073,6 +5111,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
      LB_ERRSPACE = -(2);
      LB_OKAY = 0;
   { CB_DIR message  }
+     CB_OKAY = 0;
      CB_ERR = -(1);
      CB_ERRSPACE = -(2);
   { WM_IME_CONTROL message  }
@@ -5607,7 +5646,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
 // The following flags control the contents of the CONTEXT structure.
 //
      CONTEXT_SH3 = $00000040;
-     CONTEXT_SH4	= $000000c0;	// CONTEXT_SH3 | 0x80 - must contain the SH3 bits
+     CONTEXT_SH4  = $000000c0;  // CONTEXT_SH3 | 0x80 - must contain the SH3 bits
 
 {$ifdef SH3}
      CONTEXT_CONTROL = CONTEXT_SH3 or $00000001;
@@ -5615,7 +5654,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
      CONTEXT_DEBUG_REGISTERS = CONTEXT_SH3 or $00000008;
      CONTEXT_DSP_REGISTERS = CONTEXT_SH3 or $00000010;
      CONTEXT_FULL = CONTEXT_CONTROL or CONTEXT_INTEGER or CONTEXT_DEBUG_REGISTERS or CONTEXT_DSP_REGISTERS;
-{$else}	// SH4
+{$else} // SH4
      CONTEXT_CONTROL = CONTEXT_SH4 or $00000001;
      CONTEXT_INTEGER = CONTEXT_SH4 or $00000002;
      CONTEXT_DEBUG_REGISTERS = CONTEXT_SH4 or $00000008;
@@ -5655,7 +5694,7 @@ PROCESSOR_ARM_V4TFP_INSTRUCTION        PROCESSOR_ARM_V4TFP_INSTRUCTION
 
 
 // Specific OEM extentions
-     PF_ARM_INTEL_XSCALE				     = $80010001;
+     PF_ARM_INTEL_XSCALE             = $80010001;
      PF_ARM_INTEL_PMU                = $80010002;
      PF_ARM_INTEL_WMMX               = $80010003;
 
