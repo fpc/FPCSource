@@ -90,7 +90,7 @@ const
 
 Implementation
 
-{$if defined(macos) or defined(windows)}
+{$if defined(macos) or defined(windows) or defined(shell_implemented)}
 {$define usedos}
 {$endif}
 
@@ -827,10 +827,13 @@ begin
    CompleteDir:=Path;
 end;
 
-
 function LocateExeFile(var FileName:string): boolean;
 var
+{$IFDEF USEDOS}
+  dir,s,d,n,e : shortstring;
+{$ELSE USEDOS}
   dir,s,d,n,e : string;
+{$ENDIF USEDOS}
   i : longint;
 begin
   LocateExeFile:=False;
