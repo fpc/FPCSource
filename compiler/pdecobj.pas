@@ -204,7 +204,6 @@ implementation
             current_objectdef.iidstr:=stringdup(strpas(tstringconstnode(p).value_str));
             valid:=string2guid(current_objectdef.iidstr^,current_objectdef.iidguid^);
             if (current_objectdef.objecttype in [odt_interfacecom,odt_dispinterface]) and
-               not assigned(current_objectdef.iidguid) and
                not valid then
               Message(parser_e_improper_guid_syntax);
             include(current_objectdef.objectoptions,oo_has_valid_guid);
