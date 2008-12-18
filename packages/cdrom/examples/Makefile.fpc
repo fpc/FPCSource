@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for dbus units example
+#
+
+[target]
+programs=getdiscid showcds
+
+[require]
+packages=cdrom
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
