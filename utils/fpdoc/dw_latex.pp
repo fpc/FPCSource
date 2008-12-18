@@ -676,7 +676,7 @@ procedure TLatexWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
 
 begin
   WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
-    [Format(SDocUsedUnitsByUnitXY, [AModuleName]), AModuleName]);
+    [Format(SDocUsedUnitsByUnitXY, [EscapeText(AModuleName)]), AModuleName]);
   WriteLn('Name & Page \\ \hline');
 end;
 
