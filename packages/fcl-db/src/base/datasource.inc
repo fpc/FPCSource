@@ -300,6 +300,25 @@ begin
   end;
 end;
 
+function TDataLink.ExecuteAction(Action: TBasicAction): Boolean;
+begin
+ if Action.HandlesTarget(DataSource) then
+ begin
+   Action.ExecuteTarget(DataSource);
+   Result := True;
+ end
+ else Result := False;
+end;
+
+function TDataLink.UpdateAction(Action: TBasicAction): Boolean;
+begin
+ if Action.HandlesTarget(DataSource) then
+ begin
+   Action.UpdateTarget(DataSource);
+   Result := True;
+ end
+ else Result := False;
+end;
 
 
 { ---------------------------------------------------------------------

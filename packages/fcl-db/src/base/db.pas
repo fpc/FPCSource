@@ -1409,6 +1409,8 @@ type
     destructor Destroy; override;
     function  Edit: Boolean;
     procedure UpdateRecord;
+    function ExecuteAction(Action: TBasicAction): Boolean; virtual;
+    function UpdateAction(Action: TBasicAction): Boolean; virtual;
     property Active: Boolean read FActive;
     property ActiveRecord: Integer read GetActiveRecord write SetActiveRecord;
     property BOF: Boolean read GetBOF;
