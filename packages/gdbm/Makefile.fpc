@@ -8,7 +8,7 @@ version=2.2.2
 
 [target]
 units=gdbm
-examples=testgdbm testgdbm2
+exampledirs=examples
 
 [require]
 package=rtl
@@ -30,6 +30,4 @@ build=n
 
 [rules]
 .NOTPARALLEL:
-testgdbm$(EXEEXT): testgdbm.pp gdbm$(PPUEXT)
 
-testgdbm2$(EXEEXT): testgdbm2.pp gdbm$(PPUEXT)
