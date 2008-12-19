@@ -68,6 +68,8 @@ type
 var
   argc  : longint;
   argv  : apchar;
+const
+  CHAR_SIZE = SizeOf(Char);
 
 procedure setup_arguments;
 var
@@ -83,7 +85,7 @@ begin
 { create argv[0] which is the started filename }
   s:=paramstr(0);
   arglen:=length(s);
-  getmem(argsbuf[0],arglen + 1);
+  getmem(argsbuf[0], ( ( arglen + 1 ) * CHAR_SIZE ) );
   strpcopy(argsbuf[0],s);
 { create commandline }
   s:='';
@@ -97,16 +99,16 @@ begin
   repeat
   { skip leading spaces }
     while cmdline^ in [' ',#9,#13] do
-     inc(PtrInt(cmdline));
+     inc(PtrInt(cmdline),CHAR_SIZE);
     case cmdline^ of
       #0 : break;
      '"' : begin
              quote:=['"'];
-             inc(PtrInt(cmdline));
+             inc(PtrInt(cmdline),CHAR_SIZE);
            end;
     '''' : begin
              quote:=[''''];
-             inc(PtrInt(cmdline));
+             inc(PtrInt(cmdline),CHAR_SIZE);
            end;
     else
      quote:=[' ',#9,#13];
@@ -114,15 +116,15 @@ begin
   { scan until the end of the argument }
     argstart:=cmdline;
     while (cmdline^<>#0) and not(cmdline^ in quote) do
-     inc(PtrInt(cmdline));
+     inc(PtrInt(cmdline),CHAR_SIZE);
   { reserve some memory }
     arglen:=cmdline-argstart;
-    getmem(argsbuf[count],arglen+1);
-    move(argstart^,argsbuf[count]^,arglen);
+    getmem(argsbuf[count],(arglen+1) * CHAR_SIZE);
+    move(argstart^,argsbuf[count]^,arglen * CHAR_SIZE);
     argsbuf[count][arglen]:=#0;
   { skip quote }
     if cmdline^ in quote then
-     inc(PtrInt(cmdline));
+     inc(PtrInt(cmdline),CHAR_SIZE);
     inc(count);
   until false;
 { create argc }
