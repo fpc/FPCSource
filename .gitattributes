@@ -3613,12 +3613,14 @@ packages/numlib/tests/turte.pas svneol=native#text/plain
 packages/odbc/Makefile svneol=native#text/plain
 packages/odbc/Makefile.fpc svneol=native#text/plain
 packages/odbc/README svneol=native#text/plain
+packages/odbc/examples/Makefile svneol=native#text/plain
+packages/odbc/examples/Makefile.fpc svneol=native#text/plain
+packages/odbc/examples/testodbc.mdb -text
+packages/odbc/examples/testodbc.pp svneol=native#text/plain
 packages/odbc/fpmake.pp svneol=native#text/plain
 packages/odbc/src/odbcsql.inc svneol=native#text/plain
 packages/odbc/src/odbcsql.pas svneol=native#text/plain
 packages/odbc/src/odbcsqldyn.pas svneol=native#text/plain
-packages/odbc/tests/testodbc.mdb -text
-packages/odbc/tests/testodbc.pp svneol=native#text/plain
 packages/oggvorbis/Makefile svneol=native#text/plain
 packages/oggvorbis/Makefile.fpc svneol=native#text/plain
 packages/oggvorbis/fpmake.pp svneol=native#text/plain

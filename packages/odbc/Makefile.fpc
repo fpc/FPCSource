@@ -7,7 +7,7 @@ version=2.2.2
 
 [target]
 units=odbcsql odbcsqldyn
-examples=testodbc
+exampledirs=examples
 
 [require]
 libc=n
@@ -20,7 +20,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests examples
+sourcedir=src
 
 [shared]
 build=n

@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for odbc units example
+#
+
+[target]
+programs=testodbc
+
+[require]
+packages=odbc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
