@@ -584,7 +584,11 @@ begin
     InitVariantManager;
 
 {$ifdef HASWIDESTRING}
+ {$ifdef VER2_2}
     InitWideStringManager;
+ {$else VER2_2}
+    InitUnicodeStringManager;
+ {$endif VER2_2}
 {$endif HASWIDESTRING}
 
     if os_Mode in [osDOS,osDPMI] then
