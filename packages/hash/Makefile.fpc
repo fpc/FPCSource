@@ -9,7 +9,7 @@ version=2.2.2
 [target]
 units=md5 crc ntlm uuid
 units_linux=unixcrypt
-examples=mdtest
+exampledirs=examples
 
 [install]
 fpcpackage=y
