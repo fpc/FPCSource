@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for newt units example
+#
+
+[target]
+programs=newt1 newt2 newt3
+
+[require]
+packages=newt
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

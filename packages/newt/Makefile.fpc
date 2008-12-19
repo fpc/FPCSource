@@ -8,7 +8,7 @@ version=2.2.2
 
 [target]
 units=newt
-examples=newt1 newt2 newt3
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 [shared]
 build=n
