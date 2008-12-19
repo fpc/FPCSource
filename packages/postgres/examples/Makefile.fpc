@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for postgres units example
+#
+
+[target]
+programs=testpg1 testpg2
+
+[require]
+packages=postgres
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

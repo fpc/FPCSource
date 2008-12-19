@@ -8,7 +8,7 @@ version=2.2.2
 
 [target]
 units=dllist dllistdyn postgres postgres3 postgres3dyn
-examples=testpg1 testpg2
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests examples
+sourcedir=src
 
 [shared]
 build=n
