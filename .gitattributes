@@ -1760,6 +1760,7 @@ packages/gdbint/src/gdbver_nogdb.inc svneol=native#text/x-pascal
 packages/gdbm/Makefile svneol=native#text/plain
 packages/gdbm/Makefile.fpc svneol=native#text/plain
 packages/gdbm/README svneol=native#text/plain
+packages/gdbm/examples/Makefile svneol=native#text/plain
 packages/gdbm/examples/testgdbm.pp svneol=native#text/plain
 packages/gdbm/examples/testgdbm2.pp svneol=native#text/plain
 packages/gdbm/fpmake.pp svneol=native#text/plain
