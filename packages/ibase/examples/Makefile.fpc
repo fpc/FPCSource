@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for ibase units example
+#
+
+[target]
+programs=testib40 testib60
+
+[require]
+packages=ibase
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
