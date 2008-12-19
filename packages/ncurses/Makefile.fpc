@@ -8,7 +8,7 @@ version=2.2.2
 
 [target]
 units=ncurses panel ncrt ocrt menu form
-examples=firework testn ocrt_demo edit_demo db_demo screen_demo t1form t1menu t1panel t2form t2menu t2panel t3form tbackground tclock tevent tmouse tnlshello tpad twindow
+exampledirs=examples
 
 [require]
 libc=y
@@ -18,7 +18,7 @@ fpcpackage=y
 
 [compiler]
 includedir=src
-sourcedir=src tests examples
+sourcedir=src
 
 [default]
 fpcdir=../..
