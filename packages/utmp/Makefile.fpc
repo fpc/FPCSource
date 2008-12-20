@@ -8,14 +8,14 @@ version=2.2.2
 
 [target]
 units=utmp
-examples=testutmp
+exampledirs=examples
 
 [install]
 fpcpackage=y
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 [default]
 fpcdir=../..
