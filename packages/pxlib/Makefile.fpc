@@ -14,13 +14,13 @@ units_darwin=pxlib
 units_freebsd=pxlib
 units_openbsd=pxlib
 units_netbsd=pxlib
-examples_beos=ppxview
-examples_linux=ppxview
-examples_win32=ppxview
-examples_darwin=ppxview
-examples_freebsd=ppxview
-examples_openbsd=ppxview
-examples_netbsd=ppxview
+exampledirs_beos=examples
+exampledirs_linux=examples
+exampledirs_win32=examples
+exampledirs_darwin=examples
+exampledirs_freebsd=examples
+exampledirs_openbsd=examples
+exampledirs_netbsd=examples
 
 [install]
 fpcpackage=y

@@ -1,0 +1,21 @@
+#
+#  Makefile.fpc for pxlib units example
+#
+
+[target]
+programs_beos=ppxview
+programs_linux=ppxview
+programs_win32=ppxview
+programs_darwin=ppxview
+programs_freebsd=ppxview
+programs_openbsd=ppxview
+programs_netbsd=ppxview
+
+[require]
+packages=pxlib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
