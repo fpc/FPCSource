@@ -9,8 +9,7 @@ version=2.2.2
 [target]
 units=grp pwd users
 units_linux=shadow crypth
-examples=testuser testpass2
-examples_linux=testpass
+exampledirs=examples
 
 [require]
 libc=y
@@ -23,7 +22,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests examples
+sourcedir=src
 
 [shared]
 build=n

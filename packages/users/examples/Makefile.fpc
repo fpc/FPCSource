@@ -1,0 +1,16 @@
+#
+#  Makefile.fpc for users units example
+#
+
+[target]
+programs=testuser testpass2
+programs_linux=testpass
+
+[require]
+packages=users
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
