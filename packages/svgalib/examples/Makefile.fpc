@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for svgalib units example
+#
+
+[target]
+programs=testvga vgatest
+
+[require]
+packages=svgalib
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
