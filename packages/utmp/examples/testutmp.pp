@@ -1,6 +1,6 @@
 Program testu;
 
-uses utmp,linux;
+uses utmp,unixutil;
 
 Const UTMPFile = '/var/run/utmp';
 
