@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for regexpr units example
+#
+
+[target]
+programs=testreg1
+
+[require]
+packages=regexpr
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

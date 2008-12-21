@@ -10,7 +10,7 @@ version=2.2.3
 units=cdrom discid
 implicitunits_win32=scsidefs wnaspi32 cdromioctl wincd
 implicitunits_linux=major lincd
-examples=showcds getdiscid
+exampledirs=examples
 
 [install]
 fpcpackage=y

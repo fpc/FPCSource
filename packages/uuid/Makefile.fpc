@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=macuuid libuuid
-examples=testuid testlibuid
+exampledirs=examples
 
 [require]
 package=rtl

@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for mysql units example
+#
+
+[target]
+programs=testdb4 mysqls testdb3
+
+[require]
+packages=mysql
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

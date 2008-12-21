@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=gii ggi ggi2d
-examples=ggi1
+exampledirs=examples
 
 [require]
 libc=y

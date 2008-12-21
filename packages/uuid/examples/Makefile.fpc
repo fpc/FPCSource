@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for uuid units example
+#
+
+[target]
+programs=testuid testlibuid
+
+[require]
+packages=uuid
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

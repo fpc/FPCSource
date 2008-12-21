@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=svgalib vgamouse
-examples=testvga vgatest
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests examples
+sourcedir=src
 
 
 [rules]

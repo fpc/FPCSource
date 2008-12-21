@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=regex regexpr
-examples=testreg1
+exampledirs=examples
 
 [compiler]
 options=-S2

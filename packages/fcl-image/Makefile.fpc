@@ -19,7 +19,7 @@ units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont
 units_solaris=freetypeh freetype ftfont
 rsts=pscanvas
-examples=imgconv
+exampledirs=examples
 
 [require]
 packages=pasjpeg paszlib fcl-base

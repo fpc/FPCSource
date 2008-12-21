@@ -11,7 +11,7 @@ libc=y
 
 [target]
 units=gd
-examples=gdtest
+exampledirs=examples
 
 [install]
 fpcpackage=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 
 [shared]

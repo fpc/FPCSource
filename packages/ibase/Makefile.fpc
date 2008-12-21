@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=ibase40 ibase60 ibase60dyn
-examples=testib40 testib60
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 [shared]
 build=n

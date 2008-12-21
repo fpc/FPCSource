@@ -8,7 +8,7 @@ version=2.2.3
 
 [target]
 units=systemlog
-examples=testlog
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 [rules]
 .NOTPARALLEL:

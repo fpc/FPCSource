@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for gdbm units example
+#
+
+[target]
+programs=testgdbm testgdbm2
+
+[require]
+packages=gdbm
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

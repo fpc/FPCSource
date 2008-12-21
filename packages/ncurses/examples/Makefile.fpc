@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for ncurses units example
+#
+
+[target]
+programs=firework testn ocrt_demo edit_demo db_demo screen_demo t1form t1menu t1panel t2form t2menu t2panel t3form tbackground tclock tevent tmouse tnlshello tpad twindow
+
+[require]
+packages=ncurses
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

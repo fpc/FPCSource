@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for cdrom units example
+#
+
+[target]
+programs=getdiscid showcds
+
+[require]
+packages=cdrom
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
