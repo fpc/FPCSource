@@ -1,6 +1,6 @@
 program testlog;
 
-uses linux,systemlog,sysutils;
+uses systemlog,sysutils;
 
 procedure dotest;
 
@@ -8,7 +8,7 @@ var i : longint;
     prefix : ansistring;
 
 begin
-  i:=getpid;
+  i:=GetProcessID;
   prefix:=format('testlog[%d] ',[i]);
   // prefix will be prepended to every message now.
   openlog(pchar(prefix),LOG_NOWAIT,LOG_DEBUG);
