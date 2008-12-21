@@ -641,13 +641,13 @@ end;
 procedure TLatexWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
 
 begin
-  WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,AName,Access,ADescr]);
+  WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,EscapeText(AName),Access,ADescr]);
 end;
 
 procedure TLatexWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
 
 begin
-  WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,AName,ADescr]);
+  WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,EscapeText(AName),ADescr]);
 end;
 
 class function TLaTeXWriter.FileNameExtension: String;
@@ -676,7 +676,7 @@ procedure TLatexWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
 
 begin
   WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
-    [Format(SDocUsedUnitsByUnitXY, [AModuleName]), AModuleName]);
+    [Format(SDocUsedUnitsByUnitXY, [EscapeText(AModuleName)]), StripText(AModuleName)]);
   WriteLn('Name & Page \\ \hline');
 end;
 
@@ -684,7 +684,7 @@ procedure TLatexWriter.WriteUnitEntry(UnitRef : TPasType);
 
 begin
   WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
-     [UnitRef.Name, UnitRef.Name, StripText(GetLabel(UnitRef))]);
+     [EscapeText(UnitRef.Name), EscapeText(UnitRef.Name), StripText(GetLabel(UnitRef))]);
 end;
 
 procedure TLatexWriter.EndUnitOverview;
