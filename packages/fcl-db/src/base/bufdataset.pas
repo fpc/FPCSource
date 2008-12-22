@@ -2279,35 +2279,56 @@ procedure TBufDataset.GetDatasetPacket(AWriter: TDataPacketReader);
 
   procedure StoreUpdateBuffer(AUpdBuffer : TRecUpdateBuffer; var ARowState: TRowState);
   var AThisRowState : TRowState;
+      AStoreUpdBuf  : Integer;
   begin
-    FFilterBuffer:=AUpdBuffer.OldValuesBuffer;
     if AUpdBuffer.UpdateKind = ukModify then
       begin
       AThisRowState := [rsvOriginal];
       ARowState:=[rsvUpdated];
       end
     else if AUpdBuffer.UpdateKind = ukDelete then
-      AThisRowState := [rsvDeleted]
+      begin
+      AStoreUpdBuf:=FCurrentUpdateBuffer;
+      if GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True) then
+        begin
+        repeat
+        if FCurrentIndex.CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData, @AUpdBuffer.BookmarkData) then
+          StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
+        until not GetRecordUpdateBuffer(AUpdBuffer.BookmarkData,True,True)
+        end;
+      FCurrentUpdateBuffer:=AStoreUpdBuf;
+      AThisRowState := [rsvDeleted];
+      end
     else // ie: updatekind = ukInsert
       begin
       ARowState := [rsvInserted];
       Exit;
       end;
+    FFilterBuffer:=AUpdBuffer.OldValuesBuffer;
     FDatasetReader.StoreRecord(Self,AThisRowState,FCurrentUpdateBuffer);
   end;
 
-  procedure HandleUpdateBuffersFromRecord(ARecBookmark : TBufBookmark; var ARowState: TRowState);
+  procedure HandleUpdateBuffersFromRecord(AFirstCall : boolean;ARecBookmark : TBufBookmark; var ARowState: TRowState);
+  var StoreUpdBuf1,StoreUpdBuf2 : Integer;
   begin
-    if GetRecordUpdateBuffer(ARecBookmark,True) then
+    if AFirstCall then ARowState:=[];
+    if GetRecordUpdateBuffer(ARecBookmark,True,not AFirstCall) then
       begin
-      // Loop to see if there is more then one update-buffer
-      // linked to the current record
-      repeat
-      StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
-      until not GetRecordUpdateBuffer(ARecBookmark,True,True)
+      if FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind=ukDelete then
+        begin
+        StoreUpdBuf1:=FCurrentUpdateBuffer;
+        HandleUpdateBuffersFromRecord(False,ARecBookmark,ARowState);
+        StoreUpdBuf2:=FCurrentUpdateBuffer;
+        FCurrentUpdateBuffer:=StoreUpdBuf1;
+        StoreUpdateBuffer(FUpdateBuffer[StoreUpdBuf1], ARowState);
+        FCurrentUpdateBuffer:=StoreUpdBuf2;
+        end
+      else
+        begin
+        StoreUpdateBuffer(FUpdateBuffer[FCurrentUpdateBuffer], ARowState);
+        HandleUpdateBuffersFromRecord(False,ARecBookmark,ARowState);
+        end;
       end
-    else
-      ARowState:=[];
   end;
 
 var ScrollResult   : TGetResult;
@@ -2330,7 +2351,7 @@ begin
       begin
       RowState:=[];
       FCurrentIndex.StoreCurrentRecIntoBookmark(ABookmark);
-      HandleUpdateBuffersFromRecord(ABookmark^,RowState);
+      HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
       FFilterBuffer:=FCurrentIndex.CurrentBuffer;
       if RowState=[] then
         FDatasetReader.StoreRecord(Self,[])
@@ -2346,7 +2367,7 @@ begin
       end;
     // There could be a update-buffer linked to the last (spare) record
     FCurrentIndex.StoreSpareRecIntoBookmark(ABookmark);
-    HandleUpdateBuffersFromRecord(ABookmark^,RowState);
+    HandleUpdateBuffersFromRecord(True,ABookmark^,RowState);
 
     RestoreState(StoreDSState);
 
@@ -2438,6 +2459,7 @@ var StoreState      : TDataSetState;
     AddRecordBuffer : boolean;
     ARowState       : TRowState;
     AUpdOrder       : integer;
+    x               : integer;
 
 begin
   FDatasetReader.InitLoadRecords;
@@ -2495,6 +2517,10 @@ begin
       FIndexes[0].AddRecord(IntAllocRecordBuffer);
       FIndexes[0].RemoveRecordFromIndex(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
+
+      for x := FCurrentUpdateBuffer+1 to length(FUpdateBuffer)-1 do
+        if Findexes[0].CompareBookmarks(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData,@FUpdateBuffer[x].NextBookmarkData) then
+          FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[x].NextBookmarkData);
 
       AddRecordBuffer:=False;
       end
