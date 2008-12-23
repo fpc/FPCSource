@@ -55,7 +55,7 @@ function fpFD_ISSET(fdno:cint;const nset : TFDSet): cint;
 Begin
    if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-    if ((nset[(fdno) shr ln2bitsinword]) and (1 shl ((fdno) and ln2bitmask)))>0 Then
+    if ((nset[fdno shr ln2bitsinword]) and (culong(1) shl ((fdno) and ln2bitmask)))>0 Then
      fpFD_ISSET:=1
     else
      fpFD_ISSET:=0;
