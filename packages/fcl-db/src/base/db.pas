@@ -402,6 +402,7 @@ type
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
+    property Lookup: Boolean read GetLookup write SetLookup;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
     property Size: Integer read FSize write SetSize;
@@ -423,7 +424,6 @@ type
     property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
     property KeyFields: string read FKeyFields write FKeyFields;
-    property Lookup: Boolean read GetLookup write SetLookup;
     property LookupCache: Boolean read FLookupCache write FLookupCache;
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
