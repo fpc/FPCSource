@@ -389,7 +389,7 @@ begin
                              size := PQfsize(Res, Tuple);
                              if (size = -1) then
                                begin
-                               size := pqfmod(res,Tuple)-4;
+                               size := (PQfmod(res,Tuple)-4) and $FFFF;
                                if size = -5 then size := dsMaxStringSize;
                                end;
                              if size > dsMaxStringSize then size := dsMaxStringSize;
@@ -409,11 +409,10 @@ begin
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
-                             size := PQfmod(res,Tuple);
-                             if size = -1 then
-                               size := 4
-                             else
-                               size := size -4;
+                             // The precision is the high 16 bits, the scale the
+                             // low 16 bits. Both with an offset of 4.
+                             // In this case we need the scale:
+                             size := (PQfmod(res,Tuple)-4) and $FFFF;
                              end;
     Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
