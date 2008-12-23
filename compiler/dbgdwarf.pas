@@ -1326,11 +1326,11 @@ implementation
             { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)}
             { insert location attribute manually }
             {
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(1));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_push_object));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_deref));
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_data_location)));
+            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(2));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
             }
 
             finish_entry;
