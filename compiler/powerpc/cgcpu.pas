@@ -259,7 +259,7 @@ const
                list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)))
              else
                list.concat(taicpu.op_sym(A_BL,current_asmdata.WeakRefAsmSymbol(s)));
-             list.concat(taicpu.op_sym(A_BL,current_asmdata.RefAsmSymbol(s)));
+
              if target_info.system=system_powerpc_macos then
                list.concat(taicpu.op_none(A_NOP));
            end
