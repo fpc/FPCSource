@@ -804,12 +804,17 @@ implementation
 
     procedure TDebugInfoStabs.appenddef_array(list:TAsmList;def:tarraydef);
       var
-        tempstr,
+        tempstr: shortstring;
         ss : ansistring;
       begin
         if not is_packed_array(def) then
-          ss:=def_stabstr_evaluate(def,'ar$1;$2;$3;$4',[def_stab_number(tarraydef(def).rangedef),
-                   tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)])
+          begin
+            tempstr:='ar$1;$2;$3;$4';
+            if is_dynamic_array(def) then
+              tempstr:='*'+tempstr;
+            ss:=def_stabstr_evaluate(def,tempstr,[def_stab_number(tarraydef(def).rangedef),
+                     tostr(tarraydef(def).lowrange),tostr(tarraydef(def).highrange),def_stab_number(tarraydef(def).elementdef)])
+          end
         else
           begin
             // the @P seems to be ignored by gdb

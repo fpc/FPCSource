@@ -310,6 +310,7 @@ interface
       TDebugInfoDwarf3 = class(TDebugInfoDwarf)
       private
       protected
+        procedure appenddef_array(list:TAsmList;def:tarraydef); override;
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
@@ -1297,62 +1298,66 @@ implementation
       var
         size : aint;
         elesize : aint;
+        labsym: tasmlabel;
       begin
-        if is_special_array(def) then
-          size:=def.elesize
-        else
-          size:=def.size;
+        if is_dynamic_array(def) then
+          begin
+            { It's a pointer to the actual array }
+            current_asmdata.getaddrlabel(labsym);
+            append_entry(DW_TAG_pointer_type,false,[]);
+            append_labelentry_ref(DW_AT_type,labsym);
+            finish_entry;
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          end;
 
         if not is_packed_array(def) then
           elesize := def.elesize*8
         else
           elesize := def.elepackedbitsize;
 
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_array_type,true,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_byte_size,DW_FORM_udata,size,
-            DW_AT_stride_size,DW_FORM_udata,elesize
-            ])
-        else
-          append_entry(DW_TAG_array_type,true,[
-            DW_AT_byte_size,DW_FORM_udata,size,
-            DW_AT_stride_size,DW_FORM_udata,elesize
-            ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
-        if is_dynamic_array(def) then
+        if is_special_array(def) then
           begin
-            { !!! FIXME !!! }
-            { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)}
-            { insert location attribute manually }
-            {
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_data_location)));
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(2));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
-            }
-
+            { no known size, no known upper bound }
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                DW_AT_stride_size,DW_FORM_udata,elesize
+                ])
+            else
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_stride_size,DW_FORM_udata,elesize
+                ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
-            { to simplify things, we don't write a multidimensional array here }
+            { a missing upper bound means "unknown"/default }
             append_entry(DW_TAG_subrange_type,false,[
-              DW_AT_lower_bound,DW_FORM_udata,0,
-              DW_AT_upper_bound,DW_FORM_udata,0
+              DW_AT_lower_bound,DW_FORM_sdata,def.lowrange
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
-            finish_entry;
           end
         else
           begin
+            size:=def.size;
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                DW_AT_byte_size,DW_FORM_udata,size,
+                DW_AT_stride_size,DW_FORM_udata,elesize
+                ])
+            else
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_byte_size,DW_FORM_udata,size,
+                DW_AT_stride_size,DW_FORM_udata,elesize
+                ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
             { to simplify things, we don't write a multidimensional array here }
             append_entry(DW_TAG_subrange_type,false,[
               DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
               DW_AT_upper_bound,DW_FORM_sdata,def.highrange
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
-            finish_entry;
           end;
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
+        finish_entry;
         finish_children;
       end;
 
@@ -2835,6 +2840,49 @@ implementation
 {****************************************************************************
                               TDebugInfoDwarf3
 ****************************************************************************}
+
+    procedure tdebuginfodwarf3.appenddef_array(list: tasmlist; def: tarraydef);
+      var
+        elesize : aint;
+      begin
+        if not is_dynamic_array(def) then
+          begin
+            inherited appenddef_array(list,def);
+            exit;
+          end;
+
+        elesize := def.elesize*8;
+
+        if assigned(def.typesym) then
+          append_entry(DW_TAG_array_type,true,[
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+            DW_AT_stride_size,DW_FORM_udata,elesize,
+            DW_AT_data_location,DW_FORM_block1,2
+            ])
+        else
+          append_entry(DW_TAG_array_type,true,[
+            DW_AT_stride_size,DW_FORM_udata,elesize,
+            DW_AT_data_location,DW_FORM_block1,2
+            ]);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+        finish_entry;
+        { to simplify things, we don't write a multidimensional array here }
+        append_entry(DW_TAG_subrange_type,false,[
+          DW_AT_lower_bound,DW_FORM_udata,0,
+          DW_AT_upper_bound,DW_FORM_block1,5
+          ]);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
+        finish_entry;
+
+        finish_children;
+      end;
 
     procedure TDebugInfoDwarf3.appenddef_file(list:TAsmList;def: tfiledef);
       begin
