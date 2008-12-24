@@ -1419,6 +1419,7 @@ packages/fcl-image/src/fppen.inc svneol=native#text/plain
 packages/fcl-image/src/fppixlcanv.pp svneol=native#text/plain
 packages/fcl-image/src/fpquantizer.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadbmp.pp svneol=native#text/plain
+packages/fcl-image/src/fpreadgif.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadjpeg.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadpcx.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadpng.pp svneol=native#text/plain
