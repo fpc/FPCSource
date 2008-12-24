@@ -1348,6 +1348,7 @@ begin
     FCurrentIndex:=FIndexes[1];
     if active then
       begin
+      FetchAll;
       BuildIndex(FIndexes[1]);
       Resync([rmCenter]);
       end;
