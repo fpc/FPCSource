@@ -329,6 +329,11 @@ begin
   if (origin=sofrombeginning) or
      ((origin=sofromcurrent) and (offset+raw_read>=0)) then
     begin
+      if origin = sofromcurrent then 
+        seek := compressed_read - offset
+      else
+        seek := offset;
+        
       if origin=sofrombeginning then
         dec(offset,raw_read);
       if offset<0 then
