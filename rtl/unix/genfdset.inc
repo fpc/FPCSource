@@ -19,7 +19,7 @@ function fpFD_SET(fdno:cint;var nset : TFDSet): cint;
 Begin
    if (fdno<0) or (fdno > FD_MAXFDSET) Then
        exit(-1);
-   nset[fdno shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] OR (1 shl ((fdno) and ln2bitmask));
+   nset[fdno shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] OR (culong(1) shl ((fdno) and ln2bitmask));
    fpFD_SET:=0;
 End;
 
@@ -28,7 +28,7 @@ function fpFD_CLR(fdno:cint;var nset : TFDSet): cint;
 Begin
    if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-   nset[(fdno) shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] AND Cardinal(NOT (1 shl ((fdno) and ln2bitmask)));
+   nset[(fdno) shr ln2bitsinword]:=nset[(fdno) shr ln2bitsinword] AND Cardinal(NOT (culong(1) shl ((fdno) and ln2bitmask)));
    fpFD_CLR:=0;
 End;
 
@@ -55,7 +55,7 @@ function fpFD_ISSET(fdno:cint;const nset : TFDSet): cint;
 Begin
    if (fdno<0) or (fdno >  FD_MAXFDSET) Then
        exit(-1);
-    if ((nset[(fdno) shr ln2bitsinword]) and (1 shl ((fdno) and ln2bitmask)))>0 Then
+    if ((nset[fdno shr ln2bitsinword]) and (culong(1) shl ((fdno) and ln2bitmask)))>0 Then
      fpFD_ISSET:=1
     else
      fpFD_ISSET:=0;
