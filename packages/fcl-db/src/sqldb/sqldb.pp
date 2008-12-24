@@ -85,7 +85,7 @@ type
     FHostName            : string;
     FCharSet             : string;
     FRole                : String;
-    
+
     function GetPort: cardinal;
     procedure Setport(const AValue: cardinal);
   protected
@@ -206,13 +206,12 @@ type
 
     FServerFilterText    : string;
     FServerFiltered      : Boolean;
-    
+
     FServerIndexDefs     : TServerIndexDefs;
 
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
-    FOpenDidPrepare : Boolean;
     procedure FreeFldBuffers;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetStatementType : TStatementType;
@@ -245,7 +244,7 @@ type
     procedure SetServerFiltered(Value: Boolean); virtual;
     procedure SetServerFilterText(const Value: string); virtual;
     Function GetDataSource : TDatasource; override;
-    Procedure SetDataSource(AValue : TDatasource); 
+    Procedure SetDataSource(AValue : TDatasource);
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
   public
     procedure Prepare; virtual;
@@ -258,7 +257,7 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function RowsAffected: TRowsCount; virtual;
   protected
-      
+
     // redeclared data set properties
     property Active;
     property Filter;
@@ -993,11 +992,7 @@ procedure TCustomSQLQuery.InternalClose;
 begin
   if StatementType = stSelect then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
-  if (FOpenDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
-    begin
-    FOpenDidPrepare:=False;
-    TSQLConnection(database).UnPrepareStatement(FCursor);
-    end;
+  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -1049,7 +1044,7 @@ begin
 
   FWhereStartPos := 0;
   FWhereStopPos := 0;
-  
+
   ConnOptions := TSQLConnection(DataBase).ConnOptions;
   FUpdateable := False;
 
@@ -1060,7 +1055,7 @@ begin
     EndOfComment := SkipComments(CurrentP,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions);
     if EndOfcomment then dec(currentp);
     if EndOfComment and (ParsePart = ppStart) then PhraseP := CurrentP;
-    
+
     // skip everything between bracket, since it could be a sub-select, and
     // further nothing between brackets could be interesting for the parser.
     if currentp^='(' then
@@ -1182,9 +1177,7 @@ var tel, fieldc : integer;
 begin
   try
     ReadFromFile:=IsReadFromPacket;
-    FOpenDidPrepare:=Not Prepared;
-    If FOpenDidPrepare then
-      Prepare;
+    Prepare;
     if FCursor.FStatementType in [stSelect] then
       begin
       if not ReadFromFile then
@@ -1243,21 +1236,14 @@ end;
 // public part
 
 procedure TCustomSQLQuery.ExecSQL;
-
-Var
-  ExecDidPrepare : Boolean;
-
 begin
   try
-    ExecDidPrepare:=Not IsPrepared;
-    If ExecDidPrepare then
-      Prepare;
+    Prepare;
     Execute;
   finally
     // FCursor has to be assigned, or else the prepare went wrong before PrepareStatment was
     // called, so UnPrepareStatement shoudn't be called either
-    if (ExecDidPrepare) and (assigned(database)) and (assigned(FCursor)) then
-      TSQLConnection(database).UnPrepareStatement(Fcursor);
+    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(Fcursor);
   end;
 end;
 
@@ -1279,10 +1265,10 @@ begin
 
   FReadOnly := false;
   FParseSQL := True;
-  
+
   FServerFiltered := False;
   FServerFilterText := '';
-  
+
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
   FUpdateMode := upWhereKeyOnly;
@@ -1437,7 +1423,7 @@ var FieldNamesQuoteChar : char;
 var qry : TCustomSQLQuery;
     x   : integer;
     Fld : TField;
-    
+
 begin
   if sqQuoteFieldnames in TSQLConnection(DataBase).ConnOptions then
     FieldNamesQuoteChar := '"'
@@ -1540,13 +1526,13 @@ begin
       DS.RemoveFreeNotification(Self);
     If Assigned(AValue) then
       begin
-      AValue.FreeNotification(Self);  
+      AValue.FreeNotification(Self);
       If (FMasterLink=Nil) then
         FMasterLink:=TMasterParamsDataLink.Create(Self);
       FMasterLink.Datasource:=AValue;
       end
     else
-      FreeAndNil(FMasterLink);  
+      FreeAndNil(FMasterLink);
     end;
 end;
 
@@ -1559,7 +1545,7 @@ begin
     Result:=Nil;
 end;
 
-procedure TCustomSQLQuery.Notification(AComponent: TComponent; Operation: TOperation); 
+procedure TCustomSQLQuery.Notification(AComponent: TComponent; Operation: TOperation);
 
 begin
   Inherited;
@@ -1613,7 +1599,7 @@ end;
 constructor TSQLScript.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FQuery := TCustomSQLQuery.Create(nil); 
+  FQuery := TCustomSQLQuery.Create(nil);
 end;
 
 destructor TSQLScript.Destroy;
