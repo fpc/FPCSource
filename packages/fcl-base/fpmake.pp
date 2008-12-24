@@ -36,6 +36,7 @@ begin
     P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/dummy',AllOSes);
 
+    T:=P.Targets.AddUnit('ascii85.pp');
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
     T:=P.Targets.AddUnit('blowfish.pp');
