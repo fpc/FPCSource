@@ -714,8 +714,8 @@ type
     procedure SetSize64(const NewSize: Int64); virtual;
     procedure SetSize(NewSize: Longint); virtual;overload;
     procedure SetSize(const NewSize: Int64); virtual;overload;
-	procedure ReadNotImplemented;
-	procedure WriteNotImplemented;
+	  procedure ReadNotImplemented;
+	  procedure WriteNotImplemented;
   public
     function Read(var Buffer; Count: Longint): Longint; virtual;
     function Write(const Buffer; Count: Longint): Longint; virtual;
