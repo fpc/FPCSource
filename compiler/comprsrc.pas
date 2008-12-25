@@ -397,7 +397,7 @@ begin
   if (target_info.res<>res_none) and (target_res.resourcefileclass=nil) then
     exit;
 
-  p:=ExtractFilePath(current_module.mainsource^);
+  p:=ExtractFilePath(ExpandFileName(current_module.mainsource^));
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
   while res<>nil do
     begin
@@ -416,7 +416,7 @@ begin
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
-          if AnsiCompareText(current_module.outputpath^, p) <> 0 then
+          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath^)), p) <> 0 then
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }
