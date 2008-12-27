@@ -243,6 +243,7 @@ interface
         procedure set_def_dwarf_labs(def:tdef);
 
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
+        procedure append_block1(attr: tdwarf_attribute; size: aint);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -311,6 +312,7 @@ interface
       private
       protected
         procedure appenddef_array(list:TAsmList;def:tarraydef); override;
+        procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
@@ -951,6 +953,14 @@ implementation
             end;
             inc(i);
           end;
+      end;
+
+
+    procedure TDebugInfoDwarf.append_block1(attr: tdwarf_attribute; size: aint);
+      begin
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(size));
       end;
 
 
@@ -2842,8 +2852,6 @@ implementation
 ****************************************************************************}
 
     procedure tdebuginfodwarf3.appenddef_array(list: tasmlist; def: tarraydef);
-      var
-        elesize : aint;
       begin
         if not is_dynamic_array(def) then
           begin
@@ -2851,21 +2859,21 @@ implementation
             exit;
           end;
 
-        elesize := def.elesize*8;
-
         if assigned(def.typesym) then
           append_entry(DW_TAG_array_type,true,[
             DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_stride_size,DW_FORM_udata,elesize,
             DW_AT_data_location,DW_FORM_block1,2
             ])
         else
           append_entry(DW_TAG_array_type,true,[
-            DW_AT_stride_size,DW_FORM_udata,elesize,
             DW_AT_data_location,DW_FORM_block1,2
             ]);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        append_block1(DW_AT_allocated,2);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         finish_entry;
         { to simplify things, we don't write a multidimensional array here }
@@ -2882,6 +2890,131 @@ implementation
         finish_entry;
 
         finish_children;
+      end;
+
+
+    procedure tdebuginfodwarf3.appenddef_string(list: tasmlist; def: tstringdef);
+
+      procedure addstringdef(const name: shortstring; chardef: tdef; deref: boolean; lensize: aint);
+        var
+          upperopcodes: longint;
+        begin
+          { deref=true -> ansi/unicde/widestring; deref = false -> short/longstring }
+          if assigned(def.typesym) then
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_name,DW_FORM_string,name+#0,
+              DW_AT_data_location,DW_FORM_block1,2+ord(not(deref))
+              ])
+          else
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_data_location,DW_FORM_block1,2+ord(not(deref))
+              ]);
+
+          { in all cases we start with the address of the string }
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          if deref then
+            begin
+              { ansi/unicode/widestring -> dereference the address of the string, and then
+                we point to address of the string
+              }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+
+              { also add how to detect whether or not the string is allocated: if the pointer is 0
+                then it isn't, otherwise it is
+              }
+              append_block1(DW_AT_allocated,2);
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+            end
+          else
+            begin
+              { shortstring characters begin at string[1], so add one to the string's address }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+lensize));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus)))
+            end;
+
+          { reference to the element type of the string }
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(chardef));
+          finish_entry;
+
+          { now the information about the length of the string }
+          if deref then
+            begin
+              if (chardef.size=1) then
+                upperopcodes:=5
+              else
+                upperopcodes:=7;
+              { lower bound is always 1, upper bound (length) needs to be calculated }
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,1,
+                DW_AT_upper_bound,DW_FORM_block1,upperopcodes
+                ]);
+
+              { high(string) is stored sizeof(ptrint) bytes before the string data }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+              { for widestrings, the length is specified in bytes, so divide by two }
+              if (upperopcodes=7) then
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shra)));
+                end;
+            end
+          else
+            begin
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,1,
+                DW_AT_upper_bound,DW_FORM_block1,3
+                ]);
+              { for shortstrings, the length is the first byte of the string }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+              { load 1 byte }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref_size)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(lensize));
+            end;
+          finish_entry;
+
+          finish_children;
+        end;
+
+      begin
+        case def.stringtype of
+          st_shortstring:
+            begin
+              addstringdef('ShortString',cchartype,false,1);
+            end;
+          st_longstring:
+            begin
+{$ifdef cpu64bitaddr}
+              addstringdef('LongString',cchartype,false,8);
+{$else cpu64bitaddr}
+              addstringdef('LongString',cchartype,false,4);
+{$endif cpu64bitaddr}
+           end;
+         st_ansistring:
+           begin
+             addstringdef('AnsiString',u8inttype,true,-1);
+           end;
+         st_unicodestring:
+           begin
+             addstringdef('UnicodeString',cwidechartype,true,-1);
+           end;
+         st_widestring:
+           begin
+             if not(tf_winlikewidestring in target_info.flags) then
+               addstringdef('WideString',cwidechartype,true,-1)
+             else
+               begin
+                 { looks like a pwidechar (no idea about length location) }
+                 append_entry(DW_TAG_pointer_type,false,[]);
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype));
+                 finish_entry;
+              end;
+           end;
+        end;
       end;
 
     procedure TDebugInfoDwarf3.appenddef_file(list:TAsmList;def: tfiledef);
