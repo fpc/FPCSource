@@ -387,7 +387,7 @@ begin
     same with MacOS}
   if target_info.system in [system_i386_os2,system_i386_emx,system_powerpc_macos] then exit;
 
-  p:=ExtractFilePath(current_module.mainsource^);
+  p:=ExtractFilePath(ExpandFileName(current_module.mainsource^));
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
   while res<>nil do
     begin
@@ -400,7 +400,7 @@ begin
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
-          if CompareText(current_module.outputpath^, p) <> 0 then
+          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath^)), p) <> 0 then
             begin
               { Copy .res file to units output dir }
               res.FPStr:=ExtractFileName(res.FPStr);

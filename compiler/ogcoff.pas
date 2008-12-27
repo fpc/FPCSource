@@ -2164,9 +2164,11 @@ const pemagic : array[0..3] of byte = (
         fillchar(header,sizeof(header),0);
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
-        header.sympos:=sympos;
         if hassymbols then
-          header.syms:=nsyms;
+          begin
+            header.sympos:=sympos;
+            header.syms:=nsyms;
+          end;
         if win32 then
           header.opthdr:=sizeof(tcoffpeoptheader)
         else
@@ -2274,15 +2276,17 @@ const pemagic : array[0..3] of byte = (
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
-        { Optional Symbols }
-        if SymPos<>FWriter.Size then
-          internalerror(200602252);
         if hassymbols then
-          ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
-        { Strings }
-        i:=FCoffStrs.size+4;
-        FWriter.write(i,4);
-        FWriter.writearray(FCoffStrs);
+          begin
+            { Optional Symbols }
+            if SymPos<>FWriter.Size then
+              internalerror(200602252);
+            ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
+            { Strings }
+            i:=FCoffStrs.size+4;
+            FWriter.write(i,4);
+            FWriter.writearray(FCoffStrs);
+          end;
         { Release }
         FCoffStrs.Free;
         FCoffSyms.Free;
