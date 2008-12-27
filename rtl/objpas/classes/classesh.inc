@@ -301,9 +301,9 @@ type
 const
    BITSHIFT = 5;
    MASK = 31; {for longs that are 32-bit in size}
-   MaxBitRec = $FFFF Div (SizeOf(longint));
+   // to further increase, signed integer limits have to be researched.
+   MaxBitRec = $7FFFFFFF Div (SizeOf(longint));  
    MaxBitFlags = MaxBitRec * 32;
-
 type
    TBitArray = array[0..MaxBitRec - 1] of cardinal;
 
