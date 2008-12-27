@@ -2996,7 +2996,7 @@ implementation
            end;
          st_ansistring:
            begin
-             addstringdef('AnsiString',u8inttype,true,-1);
+             addstringdef('AnsiString',cchartype,true,-1);
            end;
          st_unicodestring:
            begin
