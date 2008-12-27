@@ -56,6 +56,7 @@ Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASub
 Function RandomFrom(const AValues: array of string): string; overload;
 Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
 Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
+Function IfThen(AValue: Boolean; const ATrue: shortString ; const Afalse: shortString ='') :shortString;  inline;
 
 { ---------------------------------------------------------------------
     VB emulations.
@@ -395,8 +396,6 @@ begin
   result:=Avalues[random(High(AValues)+1)];
 end;
 
-
-
 Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
 
 begin
@@ -405,8 +404,6 @@ begin
   else
     result:=afalse;
 end;
-
-
 
 Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
 
@@ -417,7 +414,10 @@ begin
     result:='';
 end;
 
-
+Function IfThen(AValue:boolean;const ATrue:shortString ; const AFalse:shortString ='') :shortString;  inline;
+begin
+  if AValue then result:=ATrue else result:=AFalse;
+end;
 
 { ---------------------------------------------------------------------
     VB emulations.
