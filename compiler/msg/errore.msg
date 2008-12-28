@@ -2520,6 +2520,7 @@ option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} direct
 % \section{Whole program optimisation messages}
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
+% \begin{description}
 wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file $1
 % The compiler cannot open the specified feedback file with whole program optimization information.
 wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
