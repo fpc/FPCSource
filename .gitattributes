@@ -1337,6 +1337,7 @@ packages/fcl-db/tests/memdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sdfdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sqldbtoolsunit.pas -text
 packages/fcl-db/tests/testbasics.pas svneol=native#text/plain
+packages/fcl-db/tests/testbufdatasetstreams.pas svneol=native#text/plain
 packages/fcl-db/tests/testdatasources.pas svneol=native#text/plain
 packages/fcl-db/tests/testdbbasics.pas -text
 packages/fcl-db/tests/testdddiff.pp svneol=native#text/plain
