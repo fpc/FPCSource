@@ -2513,11 +2513,11 @@ option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} direct
 #
 #  Whole program optimization
 #
-# 12004 is the last used one
+# 12019 is the last used one
 #
 # BeginOfTeX
 %
-% \section{Whole program optimisation messages}
+% \section{Whole program optimization messages}
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
 % \begin{description}
@@ -2546,44 +2546,43 @@ wpo_not_enough_info=12007_E_No collected information necessary to perform "$1" w
 % have to recompile the program using the appropate -OWxxx switch.
 wpo_no_output_specified=12008_F_Specify a whole program optimization feedback file to store the generated info in (using -FW)
 % You have to specify the feedback file in which the compiler has to store the whole program optimization
-% information that is generated during the compilation run. This can be done using the -FW switch.
+% feedback that is generated during the compilation run. This can be done using the -FW switch.
 wpo_output_without_info_gen=12009_E_Not generating any whole program optimization information, yet a feedback file was specified (using -FW)
 % The compiler was instructed to store whole program optimization feedback into a file specified using -FW,
 % but not to actually generated any whole program optimization feedback. The classes of to be
-% generated information can be speciied using -OWxxx
+% generated information can be speciied using -OWxxx.
 wpo_input_without_info_use=12010_E_Not performing any whole program optimizations, yet an input feedback file was specified (using -Fw)
 % The compiler was not instructed to perform any whole program optimizations (no -Owxxx parameters),
 % but nevertheless an input file with such feedback was specified (using -Fwyyy). Since this can
 % indicate that you forgot to specify an -Owxxx parameter, the compiler generates an error in this case.
 wpo_skipping_unnecessary_section=12011_D_Skipping whole program optimization section "$1", because not needed by the requested optimizations
 % The whole program optimization feedback file contains a section with information that is not
-% required by the selected whole program optimizations
+% required by the selected whole program optimizations.
 wpo_duplicate_wpotype=12012_W_Overriding previously read information for "$1" from feedback input file using information in section "$2"
 % The feedback file contains multiple sections that provide the same class of information (e.g.,
 % information about which virtual methods can be devirtualized). In this case, the information in last encountered
-% seciont is used. Turn on debugging output (-vd) to see for each section what class of information
-% it provides.
+% section is used. Turn on debugging output (-vd) to see which class of information is provided by each section.
 wpo_cannot_extract_live_symbol_info_strip=12013_E_Cannot extract symbol liveness information from program when stripping symbols, use -Xs-
 % Certain symbol liveness collectors extract the symbol information from the linked program. If the symbol information
 % is stripped (option -Xs), this is not possible.
-wpo_cannot_extract_live_symbol_info_no_link=12014_E_Cannot extract symbol liveness information from program when when not linking on host
-% Certain symbol liveness collectors extract the symbol information from the linked program. If the program does not
-% get linked by the compiler, this is not possible.
+wpo_cannot_extract_live_symbol_info_no_link=12014_E_Cannot extract symbol liveness information from program when when not linking
+% Certain symbol liveness collectors extract the symbol information from the linked program. If the program is not
+% linked by the compiler, this is not possible.
 wpo_cannot_find_symbol_progs=12015_F_Cannot find "$1" or "$2" to extract symbol liveness information from linked program
 % Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
-% This helper program is normally 'nm', which is part of the GNU binutils
+% This helper program is normally 'nm', which is part of the GNU binutils.
 wpo_error_reading_symbol_file=12016_E_Error during reading symbol liveness information produced by "$1"
 % An error occurred during the reading of the symbol liveness file that was generated using the 'nm' or 'objdump' program. The reason
 % can be that it was shorter than expected, or that its format was not understood.
 wpo_error_executing_symbol_prog=12017_F_Error executing "$1" (exitcode: $2) to extract symbol information from linked program
 % Certain symbol liveness collectors need a helper program to extract the symbol information from the linked program.
-% The helper program produced the reported error code when it was ran on the linked program.
+% The helper program produced the reported error code when it was run on the linked program.
 wpo_symbol_live_info_needs_smart_linking=12018_E_Collection of symbol liveness information can only help when using smart linking, use -CX -XX
 % Whether or not a symbol is live is determined by looking whether it exists in the final linked program.
 % Without smart linking/dead code stripping, all symbols are always included, regardless of whether they are
-% actually used or not. So in that case all symbols will be seen as live, even if they are not.
+% actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Cannot create specified whole program optimisation feedback file "$1"
-% The compile is unable to create the file specified using the -FW parameter to store the whole program optimisation information in.
+% The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
 %\end{description}
 # EndOfTeX
 
