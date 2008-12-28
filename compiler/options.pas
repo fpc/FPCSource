@@ -50,6 +50,7 @@ Type
     procedure WriteHelpPages;
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
+    procedure UnsupportedPara(const opt:string);
     function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
@@ -92,6 +93,32 @@ var
   ppccfg,
   ppcaltcfg,
   param_file    : string;   { file to compile specified on the commandline }
+
+
+{****************************************************************************
+                     Options not supported on all platforms
+****************************************************************************}
+
+const
+  { pointer checking (requires special code in FPC_CHECKPOINTER,
+    and can never work for libc-based targets or any other program
+    linking to an external library)
+  }
+  supported_targets_gc = [system_i386_linux,system_powerpc_linux]
+                        + [system_i386_win32]
+                        + [system_i386_GO32V2]
+                        + [system_i386_os2]
+                        + [system_i386_beos,system_i386_haiku]
+                        + [system_powerpc_morphos];
+
+  { gprof (requires implementation of g_profilecode in the code generator) }
+  supported_targets_pg = [system_i386_linux,system_x86_64_linux]
+                        + [system_i386_win32]
+                        + [system_powerpc_darwin,system_x86_64_darwin]
+                        + [system_i386_GO32V2]
+                        + [system_i386_freebsd]
+                        + [system_i386_netbsd]
+                        + [system_i386_wdosx];
 
 {****************************************************************************
                                  Defines
@@ -384,6 +411,13 @@ procedure Toption.IllegalPara(const opt:string);
 begin
   Message1(option_illegal_para,opt);
   Message(option_help_pages_para);
+  StopOptions(1);
+end;
+
+
+procedure toption.UnsupportedPara(const opt: string);
+begin
+  Message1(option_unsupported_target,opt);
   StopOptions(1);
 end;
 
@@ -894,8 +928,10 @@ begin
                        begin
                          if UnsetBool(More, j) then
                            exclude(init_settings.localswitches,cs_checkpointer)
+                         else if (target_info.system in supported_targets_gc) then
+                           include(init_settings.localswitches,cs_checkpointer)
                          else
-                           include(init_settings.localswitches,cs_checkpointer);
+                           UnsupportedPara('-gc');
                        end;
                      'h' :
                        begin
@@ -1117,11 +1153,13 @@ begin
                            exclude(init_settings.moduleswitches,cs_profile);
                            undef_system_macro('FPC_PROFILE');
                          end
-                        else
+                        else if (target_info.system in supported_targets_pg) then
                          begin
                            include(init_settings.moduleswitches,cs_profile);
                            def_system_macro('FPC_PROFILE');
-                        end;
+                         end
+                        else
+                          UnsupportedPara('-pg');
                  else
                    IllegalPara(opt);
                  end;

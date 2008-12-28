@@ -2396,7 +2396,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 #
 #  Options
 #
-# 11041 is the last used one
+# 11044 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2507,6 +2507,10 @@ option_ppc386_deprecated=11042_W_Use of ppc386.cfg is deprecated, please use fpc
 % system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
 option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} directive without \var{\#IF(N)DEF} found
 % An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
+option_unsupported_target=11044_F_Option "$1" is not, or not yet, supported on the current target platform
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is incompatible with the currently selected target platform.
+
 %\end{description}
 # EndOfTeX
 

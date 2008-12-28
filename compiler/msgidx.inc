@@ -755,6 +755,7 @@ const
   option_confict_asm_debug=11041;
   option_ppc386_deprecated=11042;
   option_else_without_if=11043;
+  option_unsupported_target=11044;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -779,9 +780,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 50389;
+  MsgTxtSize = 50470;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,251,84,65,50,108,22,201,62,
-    44,20,1,1,1,1,1,1,1,1
+    45,20,1,1,1,1,1,1,1,1
   );
