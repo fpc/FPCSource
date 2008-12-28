@@ -3023,6 +3023,7 @@ begin
     DatabaseError(SStreamNotRecognised);
 
   FldCount:=Stream.ReadWord;
+  AFieldDefs.Clear;
   for i := 0 to FldCount -1 do with TFieldDef.create(AFieldDefs) do
     begin
     Name := Stream.ReadAnsiString;
