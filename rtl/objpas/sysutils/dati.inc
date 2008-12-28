@@ -327,6 +327,7 @@ end ;
     an EConvertError will be raised   }
 
 function StrToDate(const S: string): TDateTime;
+const SInvalidDateFormat = '"%s" is not a valid date format';
 var
    df:string;
    d,m,y,ly:word;
@@ -338,6 +339,9 @@ var
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
 begin
+  if s = '' then
+    Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
+
   YearMoreThenTwoDigits := False;
   df := UpperCase(ShortDateFormat);
   { Determine order of D,M,Y }
@@ -392,16 +396,16 @@ begin
       begin
         inc(n);
         if n>3 then
-         Raise EConvertError.Create('Invalid date format');
+         Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
          // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
         if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
         if c<>0 then
-         Raise EConvertError.Create('Invalid date format');
+         Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
         s1 := '';
       end
      else if not (s[i] in ['0'..'9']) then
-      Raise EConvertError.Create('Invalid date format');
+      Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
    end ;
   // Fill in values.
   getLocalTime(LocalTime);
