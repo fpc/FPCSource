@@ -519,6 +519,10 @@ procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 var dh    : pointer;
     tr    : pointer;
     x     : shortint;
+    info_request   : string;
+    resbuf         : array[0..7] of byte;
+    blockSize      : integer;
+    IBStatementType: integer;
 
 begin
   with cursor as TIBcursor do
@@ -553,7 +557,22 @@ begin
       end
     else
       AllocSQLDA(in_SQLDA,0);
-    if FStatementType = stselect then
+
+    // Get the statement type from firebird/interbase
+    info_request := chr(isc_info_sql_stmt_type);
+    if isc_dsql_sql_info(@Status[0],@Statement,Length(info_request), @info_request[1],sizeof(resbuf),@resbuf) <> 0 then
+      CheckError('PrepareStatement', Status);
+    assert(resbuf[0]=isc_info_sql_stmt_type);
+    BlockSize:=isc_vax_integer(@resbuf[1],2);
+    IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
+    assert(resbuf[3+blockSize]=isc_info_end);
+    // If the statementtype is isc_info_sql_stmt_exec_procedure then
+    // override the statement type derrived by parsing the query.
+    // This to recognize statements like 'insert into .. returning' correctly
+    if IBStatementType = isc_info_sql_stmt_exec_procedure then
+      FStatementType := stExecProcedure;
+
+    if FStatementType in [stSelect,stExecProcedure] then
       begin
       if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);

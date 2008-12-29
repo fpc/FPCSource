@@ -930,7 +930,7 @@ begin
     else
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
 
-    if (FCursor.FStatementType = stSelect) then
+    if (FCursor.FStatementType in [stSelect,stExecProcedure]) then
       FCursor.FInitFieldDef := True;
     end;
 end;
@@ -955,11 +955,13 @@ end;
 
 function TCustomSQLQuery.Fetch : boolean;
 begin
-  if not (Fcursor.FStatementType in [stSelect]) then
+  if not (Fcursor.FStatementType in [stSelect,stExecProcedure]) then
     Exit;
 
   if not FIsEof then FIsEOF := not TSQLConnection(Database).Fetch(Fcursor);
   Result := not FIsEOF;
+  // A stored procedure is always at EOF after its first fetch
+  if FCursor.FStatementType = stExecProcedure then FIsEOF := True;
 end;
 
 procedure TCustomSQLQuery.Execute;
@@ -990,7 +992,7 @@ end;
 
 procedure TCustomSQLQuery.InternalClose;
 begin
-  if StatementType = stSelect then FreeFldBuffers;
+  if StatementType in [stSelect,stExecProcedure] then FreeFldBuffers;
 // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
   if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
   if DefaultFields then
@@ -1178,7 +1180,7 @@ begin
   try
     ReadFromFile:=IsReadFromPacket;
     Prepare;
-    if FCursor.FStatementType in [stSelect] then
+    if FCursor.FStatementType in [stSelect,stExecProcedure] then
       begin
       if not ReadFromFile then
         begin

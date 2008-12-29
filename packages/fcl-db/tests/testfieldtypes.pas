@@ -23,7 +23,7 @@ type
     procedure TestXXParamQuery(ADatatype : TFieldType; ASQLTypeDecl : string; testValuescount : integer; Cross : boolean = false);
     procedure TestSetBlobAsParam(asWhat : integer);
   protected
-    procedure SetUp; override; 
+    procedure SetUp; override;
     procedure TearDown; override;
     procedure RunTest; override;
   published
@@ -52,6 +52,7 @@ type
     procedure TestpfInUpdateFlag; // bug 7565
     procedure TestInt;
     procedure TestScript;
+    procedure TestInsertReturningQuery;
 
     procedure TestTemporaryTable;
 
@@ -430,7 +431,7 @@ begin
       free;
       end;
     AssertEquals('Deze blob is gewijzigd!',fields[1].AsString);
-    
+
     ApplyUpdates(0);
 
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining; // For debug-purposes
@@ -540,7 +541,7 @@ var
 begin
   CreateTableWithFieldType(ftDateTime,FieldtypeDefinitions[ftDateTime]);
   TestFieldDeclaration(ftDateTime,8);
-  
+
   if SQLDbType=mysql40 then corrTestValueCount := testValuesCount-21
     else corrTestValueCount := testValuesCount;
 
@@ -652,7 +653,7 @@ begin
     Params.ParamByName('field1').AsInteger := 5;
     Params.ParamByName('field2').AsInteger := 2;
     ExecSQL;
-    
+
     sql.clear;
     sql.append('select * from FPDEV2 order by FIELD1');
     open;
@@ -884,12 +885,12 @@ begin
     end;
 end;
 
-procedure TTestFieldTypes.SetUp; 
+procedure TTestFieldTypes.SetUp;
 begin
   InitialiseDBConnector;
 end;
 
-procedure TTestFieldTypes.TearDown; 
+procedure TTestFieldTypes.TearDown;
 begin
   if assigned(DBConnector) then
     TSQLDBConnector(DBConnector).Transaction.Rollback;
@@ -900,6 +901,22 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestInsertReturningQuery;
+begin
+  if (SQLDbType <> interbase) then Ignore('This test does only apply to Firebird.');
+  with TSQLDBConnector(DBConnector) do
+    begin
+    // This only works with databases that supports 'insert into .. returning'
+    // for example, Firebird version 2.0 and up
+    CreateTableWithFieldType(ftInteger,'int');
+    Query.SQL.Text:='insert into FPDEV2 values(154) returning FT';
+    Query.Open;
+    AssertEquals('FT',Query.fields[0].FieldName);
+    AssertEquals(154,Query.fields[0].AsInteger);
+    Query.Close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestClearUpdateableStatus;
@@ -960,7 +977,7 @@ begin
       post;
       Applyupdates;
       close;
-      
+
       // If ParseSQL is true, but the supplied query isn't updateable, then
       // the query shouldn't be updateable after open.
       ReadOnly := False;
@@ -1045,7 +1062,7 @@ begin
       AssertTrue (assigned(FindField('ID_1')));
       AssertTrue(assigned(FindField('NAME')));
       AssertTrue(assigned(FindField('NAME_1')));
-      
+
       AssertEquals(1,fieldbyname('ID').AsInteger);
       AssertEquals(1,fieldbyname('ID_1').AsInteger);
       AssertEquals('TestName1',fieldbyname('NAME').AsString);
@@ -1468,7 +1485,7 @@ begin
 
     Open;
     close;
-    
+
     SQL.Clear;
     SQL.Add('select blaise from FPDEV');
     passed := false;
