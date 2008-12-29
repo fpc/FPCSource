@@ -2034,8 +2034,13 @@ procedure TDateTimeField.SetAsString(const AValue: string);
 Var R : TDateTime;
 
 begin
-  R:=StrToDateTime(AVAlue);
-  SetData(@R,False);
+  if AValue<>'' then
+    begin
+    R:=StrToDateTime(AVAlue);
+    SetData(@R,False);
+    end
+  else
+    SetData(Nil);
 end;
 
 
