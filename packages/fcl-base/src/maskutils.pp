@@ -48,6 +48,7 @@ Classes
 
 function FormatMaskText(const EditMask: string; const Value: string): string;
 function FormatMaskInput(const EditMask: string): string;
+function MaskDoFormatText(const EditMask: string; const Value: string; Blank: Char): string;
 
 
 
@@ -69,13 +70,13 @@ type
 
 type
   TMaskUtils = class(TObject)
-    private
+  private
     FValue: string;
     SourcePosition,Position : Integer;
     FEditMask,FMask : string;
     SourceVal,ExitVal : string;
-    Matched : Boolean;
-    MissChar : Char;
+    FMatched : Boolean;
+    FMissChar : Char;
     State : TParseState;
     procedure EvaluateExit;
     procedure EvaluateMissing;
@@ -96,12 +97,14 @@ type
     function GetInputMask: string;
     procedure SetMask(const AValue: string);
     procedure SetValue(const AValue: string);
-    protected
+  protected
     procedure RaiseError;
     procedure ExtractMask;
     function MaskPtr : Char;
     function SourcePtr : Char;
-    public
+    property Matched: Boolean read FMatched write FMatched;
+    property MissChar: Char read FMissChar write FMissChar;
+  public
     function ValidateInput : string;
     property Mask : string read FEditMask write SetMask;
     property Value : string read FValue write SetValue;
@@ -571,6 +574,26 @@ begin
   end;
 end;
 
+{
+  Format Value string using EditMask, dont use 2d and 3d fields of EditMask,
+  set own Blank char and Matched = False
+}
+function MaskDoFormatText(const EditMask: string; const Value: string; Blank: Char): string;
+var
+  msk : TMaskUtils;
+begin
+  Result := '';
+  msk := TMaskUtils.Create;
+  try
+    msk.Mask := EditMask;
+    msk.Value := Value;
+    msk.Matched := False;
+    msk.MissChar := Blank;
+    Result := msk.ValidateInput;
+  finally
+    msk.Free;
+  end;
+end;
 
 end.
 
