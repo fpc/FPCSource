@@ -46,22 +46,71 @@ else
   sysdir=/etc
 fi
 FPCBIN=`dirname "$1"`/../../bin/fpc
+FPBIN=`dirname "$1"`/../../bin/fp
+sysfpdirbase=/usr/lib/fpc/`$FPCBIN -iW`
+sysfpdirbase2=$sysfpdirbase/ide
+sysfpdir=$sysfpdirbase2/text
+fpctargetos=`$FPCBIN -iTO`
 
-# Detect if we have write permission in root.
+# Detect if we have write permission in sysdir.
 if [ -w "$sysdir" ] ; then
   echo Write permission in $sysdir.
-  thefile="$sysdir"/fpc.cfg
+  fpccfgfile="$sysdir"/fpc.cfg
 else
   echo No write premission in $sysdir.
-  thefile="$HOME"/.fpc.cfg
+  fpccfgfile="$HOME"/.fpc.cfg
 fi
 #
-if [ -f $thefile ] ; then
-  mv "$thefile" "$thefile.orig"  >/dev/null 2>&1
+
+# Assume local FP IDE configuration unless writing system-wide version possible
+fpinifile="$HOME"/.fp/fp.ini
+fpcfgfile="$HOME"/.fp/fp.cfg
+
+# Detect if we have write permission in sysfpdirbase (and fp binary exists).
+if [ -f "$FPBIN" -a -w "$sysfpdirbase" ] ; then
+  echo Write permission in $sysfpdirbase.
+  if ! [ -d "$sysfpdirbase2" ] ; then
+    echo Directory $sysfpdirbase2 did not exist, attempting to create it now
+    mkdir $sysfpdirbase2  >/dev/null 2>&1
+    echo Attempting to create directory $sysfpdir
+    mkdir $sysfpdir  >/dev/null 2>&1
+  elif ! [ -d "$sysfpdir" ] ; then
+    echo Directory $sysfpdir did not exist, attempting to create it now
+    mkdir $sysfpdir  >/dev/null 2>&1
+  fi
+  if [ -w "$sysfpdir" ] ; then
+    fpinifile="$sysfpdir"/fp.ini
+    fpcfgfile="$sysfpdir"/fp.cfg
+  fi
+fi
+#
+
+if [ -f $fpccfgfile ] ; then
+  mv "$fpccfgfile" "$fpccfgfile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
-    echo Saved old config to $thefile.orig
+    echo Saved old compiler config to $fpccfgfile.orig
   else
-    echo Could not save old config. Bailing out...
+    echo Could not save old compiler config. Bailing out...
+    exit
+  fi
+fi
+
+if [ -f $fpinifile -a -f "$FPBIN" ] ; then
+  mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
+  if [ $? = 0 ]; then
+    echo Saved old fp.ini to $fpinifile.orig
+  else
+    echo Could not save old fp.ini. Bailing out...
+    exit
+  fi
+fi
+
+if [ -f $fpcfgfile -a -f "$FPBIN" ] ; then
+  mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
+  if [ $? = 0 ]; then
+    echo Saved old fp.cfg to $fpcfgfile.orig
+  else
+    echo Could not save old fp.cfg. Bailing out...
     exit
   fi
 fi
@@ -163,9 +212,9 @@ esac
 # set right path to FPC with $fpcversion
 FPCPATH=`dirname "$1"`/\$fpcversion
 
-# Write the file
-echo Writing sample configuration file to $thefile
-cat <<EOFCFG > $thefile
+# Write (.)fpc.cfg
+echo Writing sample configuration file to $fpccfgfile
+cat <<EOFCFG > $fpccfgfile
 #
 # Example fpc.cfg for Free Pascal Compiler
 #
@@ -380,3 +429,145 @@ $GCCDIR4
 # That's all folks
 #
 EOFCFG
+
+if ! [ -f "$FPBIN" ] ; then
+  exit
+fi
+
+# Write fp.cfg
+echo Writing sample configuration file to $fpcfgfile
+cat <<EOFFPCFG > $fpcfgfile
+#IFDEF NORMAL
+ -Ci
+ -XS
+ -T$fpctargetos
+ -Sg
+ -O1
+ -Oppentium3
+ -Ratt
+ -Fu$FPCPATH/units/\$fpctarget
+ -Fu$FPCPATH/units/\$fpctarget\*
+ -Fu$FPCPATH/units/\$fpctarget\rtl
+ $GCCDIR
+ $GCCDIR2
+ $GCCDIR3
+ $GCCDIR4
+ -g-
+ -p-
+ -b-
+#ENDIF
+
+#IFDEF DEBUG
+ -Ci
+ -XS
+ -T$fpctargetos
+ -Sg
+ -Cr
+ -Co
+ -Oppentium3
+ -Ratt
+ -Fu$FPCPATH/units/\$fpctarget
+ -Fu$FPCPATH/units/\$fpctarget\*
+ -Fu$FPCPATH/units/\$fpctarget\rtl
+ $GCCDIR
+ $GCCDIR2
+ $GCCDIR3
+ $GCCDIR4
+ -g
+ -p-
+ -b-
+#ENDIF
+
+#IFDEF RELEASE
+ -XS
+ -T$fpctargetos
+ -Sg
+ -O2
+ -Oppentium3
+ -Ratt
+ -Fu$FPCPATH/units/\$fpctarget
+ -Fu$FPCPATH/units/\$fpctarget\*
+ -Fu$FPCPATH/units/\$fpctarget\rtl
+ $GCCDIR
+ $GCCDIR2
+ $GCCDIR3
+ $GCCDIR4
+ -g-
+ -p-
+ -b-
+#ENDIF
+EOFFPCFG
+
+# Write fp.ini
+echo Writing sample configuration file to $fpinifile
+cat <<EOFFPINI > $fpinifile
+[Compile]
+CompileMode=DEBUG
+
+[Editor]
+DefaultTabSize=8
+DefaultFlags=20599
+DefaultSaveExt=.pas
+DefaultIndentSize=1
+
+[Highlight]
+Exts="*.pas;*.pp;*.inc"
+NeedsTabs="make*;make*.*"
+
+[SourcePath]
+SourceList=""
+
+[Mouse]
+DoubleDelay=8
+ReverseButtons=0
+AltClickAction=6
+CtrlClickAction=1
+
+[Search]
+FindFlags=4
+
+[Breakpoints]
+Count=0
+
+[Watches]
+Count=0
+
+[Preferences]
+DesktopFileFlags=209
+CenterCurrentLineWhileDebugging=1
+AutoSaveFlags=7
+MiscOptions=6
+DesktopLocation=1
+
+[Misc]
+ShowReadme=1
+
+[Files]
+OpenExts="*.pas;*.pp;*.inc"
+
+[Tools]
+Title1="svn ~u~p (curr. dir)"
+Program1="svn"
+Params1="up \$CAP_MSG()"
+HotKey1=23296
+Title2="svn c~i~ (curr. dir)"
+Program2="svn"
+Params2="ci \$CAP_MSG()"
+HotKey2=23552
+Title3="svn ~d~iff"
+Program3="svn"
+Params3="diff \$CAP_MSG() \$EDNAME"
+HotKey3=23808
+Title4="svn ~l~og"
+Program4="svn"
+Params4="log \$CAP_MSG() \$EDNAME"
+HotKey4=34560
+Title5="svn ~b~lame"
+Program5="svn"
+Params5="blame \$CAP_MSG() \$EDNAME"
+HotKey5=34816
+Title6="svn ~a~dd"
+Program6="svn"
+Params6="add \$CAP_MSG() \$EDNAME"
+HotKey6=0'
+EOFFPINI
