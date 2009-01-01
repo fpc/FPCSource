@@ -296,6 +296,7 @@ begin
 
     MaybeCreateLocalDirs;
     LoadCompilerDefaults;
+    LoadLocalAvailableMirrors;
 
     // Load local repository, update first if this is a new installation
     // errors will only be reported as warning. The user can be bootstrapping
@@ -309,7 +310,6 @@ begin
             Log(vlWarning,E.Message);
         end;
       end;
-    LoadLocalAvailableMirrors;
     LoadLocalAvailableRepository;
     FindInstalledPackages(FPMakeCompilerOptions,true);
     CheckFPMakeDependencies;

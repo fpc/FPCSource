@@ -457,7 +457,7 @@ function PackageAvailableVersionStr(const AName:String):string;
 var
   P : TFPPackage;
 begin
-  P:=InstalledRepository.FindPackage(AName);
+  P:=AvailableRepository.FindPackage(AName);
   if P<>nil then
     result:=P.Version.AsString
   else
