@@ -8083,6 +8083,7 @@ tests/test/units/system/tjmp.pp svneol=native#text/plain
 tests/test/units/system/tmem.pp svneol=native#text/plain
 tests/test/units/system/todd.pp svneol=native#text/plain
 tests/test/units/system/tparam.pp svneol=native#text/plain
+tests/test/units/system/tpchlen.pp svneol=native#text/plain
 tests/test/units/system/tpi.pp svneol=native#text/plain
 tests/test/units/system/trandom.pp svneol=native#text/plain
 tests/test/units/system/trdtxt01.pp svneol=native#text/plain

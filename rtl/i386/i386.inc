@@ -1037,12 +1037,15 @@ asm
 {$endif}
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
+	test    %edi,%edi
+	jz      .LStrLenDone
         cld
         repne
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
         movl    saveedi,%edi
+.LStrLenDone:
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 

@@ -439,7 +439,9 @@ end;
 function fpc_Pchar_length(p:Pchar):longint;assembler;nostackframe;[public,alias:'FPC_PCHAR_LENGTH'];compilerproc;
 
 asm
+    cmp r0,#0
     mov r1,r0
+    beq .Ldone
 .Lnextchar:
     (*Are we aligned?*)
     tst r1,#3
@@ -462,6 +464,7 @@ asm
     (*Dirty trick: we need to subtract 1 extra because we have counted the
       terminating 0, due to the known carry flag sbc can do this.*)
     sbc r0,r1,r0
+.Ldone:
     mov pc,lr
 .L01010101:
     .long 0x01010101

@@ -1187,7 +1187,9 @@ function fpc_pchar_length(p:pchar):longint;[public,alias:'FPC_PCHAR_LENGTH']; co
 var i : longint;
 begin
   i:=0;
-  while p[i]<>#0 do inc(i);
+  if assigned(p) then
+    while p[i]<>#0 do
+      inc(i);
   exit(i);
 end;
 
