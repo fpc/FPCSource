@@ -833,6 +833,9 @@ var
   VarcharLen : word;
   CurrBuff     : pchar;
   c            : currency;
+  smalli       : smallint;
+  longi        : longint;
+  largei       : largeint;
 
 begin
   CreateBlob := False;
@@ -871,9 +874,22 @@ begin
       case FieldDef.DataType of
         ftBCD :
           begin
-            c := 0;
-            Move(CurrBuff^, c, SQLDA^.SQLVar[x].SQLLen);
-            c := c*intpower(10,4+SQLDA^.SQLVar[x].SQLScale);
+            case SQLDA^.SQLVar[x].SQLLen of
+              2 : begin
+                  Move(CurrBuff^, smalli, 2);
+                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              4 : begin
+                  Move(CurrBuff^, longi, 4);
+                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              8 : begin
+                  Move(CurrBuff^, largei, 8);
+                  c := largei*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              else
+                Result := False; // Just to be sure, in principle this will never happen
+            end; {case}
             Move(c, buffer^ , sizeof(c));
           end;
         ftInteger :
