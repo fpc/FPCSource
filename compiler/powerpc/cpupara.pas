@@ -130,7 +130,12 @@ unit cpupara;
               result:=LOC_REGISTER;
             classrefdef:
               result:=LOC_REGISTER;
-            procvardef,
+            procvardef:
+              if (target_info.abi = abi_powerpc_aix) or
+                 (p.size = sizeof(pint)) then
+                result:=LOC_REGISTER
+              else
+                result:=LOC_REFERENCE;
             recorddef:
               if (target_info.abi<>abi_powerpc_aix) or
                  ((p.size >= 3) and
@@ -181,8 +186,24 @@ unit cpupara;
           variantdef,
           formaldef :
             result:=true;
-          recorddef,
+          { regular procvars must be passed by value, because you cannot pass
+            the address of a local stack location when calling e.g.
+            pthread_create with the address of a function (first of all it
+            expects the address of the function to execute and not the address
+            of a memory location containing that address, and secondly if you
+            first store the address on the stack and then pass the address of
+            this stack location, then this stack location may no longer be
+            valid when the newly started thread accesses it.
+
+            However, for "procedure of object" we must use the same calling
+            convention as for "8 byte record" due to the need for
+            interchangeability with the TMethod record type.
+          }
           procvardef :
+            result:=
+              (target_info.abi <> abi_powerpc_aix) and
+              (def.size <> sizeof(pint));
+          recorddef :
             result :=
               (target_info.abi<>abi_powerpc_aix) or
               ((varspez = vs_const) and
