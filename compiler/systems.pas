@@ -176,6 +176,7 @@ interface
              ,as_sparc_elf32
              ,as_ggas                  { gnu assembler called "gas" instead of "as" }
              ,as_i386_nasmhaiku
+             ,as_powerpc_vasm
        );
 
        tar = (ar_none

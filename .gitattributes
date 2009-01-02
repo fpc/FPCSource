@@ -334,6 +334,7 @@ compiler/pexpr.pas svneol=native#text/plain
 compiler/pinline.pas svneol=native#text/plain
 compiler/pmodules.pas svneol=native#text/plain
 compiler/powerpc/agppcmpw.pas svneol=native#text/plain
+compiler/powerpc/agppcvasm.pas svneol=native#text/plain
 compiler/powerpc/aoptcpu.pas svneol=native#text/plain
 compiler/powerpc/aoptcpub.pas svneol=native#text/plain
 compiler/powerpc/aoptcpuc.pas svneol=native#text/plain
