@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-xml
-version=2.2.3
+version=2.2.4rc1
 
 [target]
 units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath htmlelements htmlwriter xmlconf sax_xml

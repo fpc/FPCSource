@@ -4,7 +4,7 @@
 
 [package]
 name=a52
-version=2.2.3
+version=2.2.4rc1
 
 [target]
 units=a52

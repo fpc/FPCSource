@@ -3,7 +3,7 @@
 #
 [package]
 name=odbc
-version=2.2.3
+version=2.2.4rc1
 
 [target]
 units=odbcsql odbcsqldyn

@@ -4,7 +4,7 @@
 
 [package]
 name=paszlib
-version=2.2.3
+version=2.2.4rc1
 
 [require]
 packages=hash
