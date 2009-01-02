@@ -47,7 +47,7 @@ else
 fi
 FPCBIN=`dirname "$1"`/../../bin/fpc
 FPBIN=`dirname "$1"`/../../bin/fp
-sysfpdirbase=`dirname "$1"`/`$FPCBIN -iW`
+sysfpdirbase=`dirname "$1"`/`$FPCBIN -iV`
 sysfpdirbase2=$sysfpdirbase/ide
 sysfpdir=$sysfpdirbase2/text
 fpctargetos=`$FPCBIN -iTO`
