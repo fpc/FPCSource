@@ -449,7 +449,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -T$fpctargetos
  -Sg
  -O1
- -Oppentium3
  -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
@@ -470,7 +469,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -Sg
  -Cr
  -Co
- -Oppentium3
  -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
@@ -489,7 +487,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -T$fpctargetos
  -Sg
  -O2
- -Oppentium3
  -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
