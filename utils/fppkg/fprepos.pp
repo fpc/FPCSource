@@ -386,32 +386,62 @@ end;
 
 procedure TFPVersion.SetAsString(const AValue: String);
 
-  Function NextDigit(sep : Char; var V : string) : integer;
+  Function NextDigit(sep : Char; NonNumerisIsSep : boolean; var V : string; aDefault : integer = 0) : integer;
   Var
     P : Integer;
+    i : Integer;
   begin
     P:=Pos(Sep,V);
     If (P=0) then
       P:=Length(V)+1;
+    If NonNumerisIsSep then
+      for i := 1 to P-1 do
+        if not (V[i] in ['0','1','2','3','4','5','6','7','8','9']) then
+          begin
+            P := i;
+            Break;
+          end;
     Result:=StrToIntDef(Copy(V,1,P-1),-1);
     If Result<>-1 then
       Delete(V,1,P)
     else
-      Result:=0;
+      Result:=aDefault;
   end;
 
 Var
   V : String;
+  b : integer;
 begin
   Clear;
   // Special support for empty version string
   if (AValue='') or (AValue='<none>') then
     exit;
   V:=AValue;
-  Major:=NextDigit('.',V);
-  Minor:=NextDigit('.',V);
-  Micro:=NextDigit('-',V);
-  Build:=NextDigit(#0,V);
+  // Supported version-format is x.y.z-b
+  // x,y,z and b are all optional and are set to 0 if they are not provided
+  // except for b which has a default of 1.
+  // x and y must be numeric. z or b may contain a non-numeric suffix which
+  // will be stripped. If there is any non-numeric character in z or b and
+  // there is no value supplied for b, build will be set to 0
+  // examples:
+  // 2          -> 2.0.0-1
+  // 2.2        -> 2.2.0-1
+  // 2.2.4      -> 2.2.4-1
+  // 2.2.4-0    -> 2.2.4-0
+  // 2.2.4rc1   -> 2.2.4-0
+  // 2.2.4-0rc1 -> 2.2.4-0
+  // 2.2.4-2rc1 -> 2.2.4-2
+  Major:=NextDigit('.',False,V);
+  Minor:=NextDigit('.',False,V);
+  Micro:=NextDigit('-',True,V);
+  b := NextDigit(#0,True,V,-1);
+  if b<0 then
+    if V <> '' then
+      Build := 0
+    else
+      Build := 1
+  else
+    Build := b;
 end;
 
 
