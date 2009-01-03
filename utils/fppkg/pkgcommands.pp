@@ -128,7 +128,7 @@ begin
   // Download and load mirrors.xml
   // This can be skipped when a custom RemoteRepository is configured
   if (GlobalOptions.RemoteMirrorsURL<>'') and
-     (GlobalOptions.RemoteRepository<>'auto') then
+     (GlobalOptions.RemoteRepository='auto') then
     begin
       Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
       DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
