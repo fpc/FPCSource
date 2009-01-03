@@ -86,7 +86,7 @@ fi
 #
 
 # When the local FP IDE configuration is used, check if the directory exists
-if [ $fpcfgfile == "$HOME"/.fp/fp.cfg -a ! -d "$HOME"/.fp ] ; then
+if [ $fpcfgfile = "$HOME"/.fp/fp.cfg -a ! -d "$HOME"/.fp ] ; then
   echo Directory $HOME/.fp did not exist, attempting to create it now
   mkdir "$HOME"/.fp >/dev/null 2>&1     
 fi
