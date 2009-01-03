@@ -24,10 +24,12 @@ dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres 
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 httpd13 httpd20 httpd22 pxlib numlib \
                users iconvenc
 dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2  bfd aspell svgalib \
-               imlib utmp  fpgtk xforms fftw pcap ggi openssl gnome1 httpd13 httpd20 httpd22 numlib iconvenc
-dirs_i386_darwin=graph univint sdl
-dirs_powerpc_darwin=graph univint sdl
+                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc
+dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib
+dirs_powerpc_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
+dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
+dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
+dirs_arm_darwin= httpd13 httpd20 httpd22 opengles
 dirs_solaris=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd13 httpd20 httpd22 numlib

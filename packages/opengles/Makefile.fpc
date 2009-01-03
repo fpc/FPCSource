@@ -1,0 +1,28 @@
+#
+#   Makefile.fpc for OpenGL ES for FPC
+#
+
+[package]
+name=opengles
+version=2.2.2
+
+# [require]
+# packages_linux=x11
+#
+
+[target]
+units_arm_darwin=gles11
+exampledirs=examples
+
+[install]
+fpcpackage=y
+
+[compiler]
+includedir=src
+sourcedir=src examples
+
+[default]
+fpcdir=../..
+
+[rules]
+.NOTPARALLEL:
