@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gnome1';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4-0';
     P.OSes:=AllUnixOSes;
 
     P.Dependencies.Add('gtk1');

@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-base';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4-0';
     P.OSes:=[win32,win64];
 
     P.SourcePath.Add('src');

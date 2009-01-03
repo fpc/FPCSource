@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gbaunits';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.4-0';
     P.SourcePath.Add('src');
 //    P.Dependencies.Add('x11');
 

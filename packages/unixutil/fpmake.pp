@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='unixutil';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.4-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('unixutils.pp');

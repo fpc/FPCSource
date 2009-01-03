@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='mysql';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.4-0';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('my4_sys.pp');

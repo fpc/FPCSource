@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='cairo';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4-0';
     P.SourcePath.Add('src');
 
     P.Dependencies.Add('x11',AllUnixOSes);
