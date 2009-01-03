@@ -131,6 +131,19 @@ interface
     procedure DoneFileUtils;
 
 
+{ * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
+    and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
+
+{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{ * PATHCONV is implemented in the Amiga/MorphOS system unit * }
+{$WARNING TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
+function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
+{$ELSE}
+function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+{$ENDIF}
+
+
+
 implementation
 
     uses
@@ -162,6 +175,17 @@ implementation
 {$endif not AllFilesMaskIsInRTL}
     var
       DirCache : TDirectoryCache;
+
+
+{$IF NOT (DEFINED(MORPHOS) OR DEFINED(AMIGA))}
+{ Stub function for Unix2Amiga Path conversion functionality, only available in
+  Amiga/MorphOS RTL. I'm open for better solutions. (KB) }
+function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+begin
+  Unix2AmigaPath:=path;
+end;
+{$ENDIF}
+
 
 
 {****************************************************************************

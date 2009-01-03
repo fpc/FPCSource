@@ -278,18 +278,6 @@ end;
                                   Amiga Asm Response
 ****************************************************************************}
 
-{ * PathConv is required, since Amiga commands can't handle Unix-style
-    relative paths used by the compiler (KB) * }
-
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
-{ * PathConv is implemented in the system unit! * }
-function PathConv(path: TCmdStr): TCmdStr; external name 'PATHCONV';
-{$ELSE}
-function PathConv(path: TCmdStr): TCmdStr;
-begin
-  PathConv:=path;
-end;
-{$ENDIF}
 
 Constructor TAsmScriptAmiga.Create (Const ScriptName : TCmdStr);
 begin
@@ -330,13 +318,13 @@ end;
 
 Procedure TAsmScriptAmiga.AddDeleteCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' Quiet');
+ Add('Delete ' + Unix2AmigaPath(MaybeQuoted(ScriptFixFileName(FileName))) + ' Quiet');
 end;
 
 
 Procedure TAsmScriptAmiga.AddDeleteDirCommand (Const FileName : TCmdStr);
 begin
- Add('Delete ' + PathConv(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
+ Add('Delete ' + Unix2AmigaPath(MaybeQuoted(ScriptFixFileName(FileName))) + ' All Quiet');
 end;
 
 

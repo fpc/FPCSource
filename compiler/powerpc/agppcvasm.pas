@@ -58,7 +58,7 @@ unit agppcvasm;
   implementation
 
     uses
-       cutils,globals,verbose,
+       cutils,cfileutl,globals,verbose,
        cgbase,systems,
        assemble,script,
        itcpugas,cpuinfo,
@@ -358,15 +358,6 @@ unit agppcvasm;
 {                         GNU PPC Assembler writer                           }
 {****************************************************************************}
 
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
-{ * PathConv is implemented in the system unit! * }
-function PathConv(path: string): string; external name 'PATHCONV';
-{$ELSE}
-function PathConv(path: string): string;
-begin
-  PathConv:=path;
-end;
-{$ENDIF}
 
     constructor TPPCVASM.create(smart: boolean);
       begin
@@ -385,8 +376,8 @@ end;
          end
         else
          begin
-           Replace(result,'$ASM',maybequoted(PathConv(AsmFileName)));
-           Replace(result,'$OBJ',maybequoted(PathConv(ObjFileName)));
+           Replace(result,'$ASM',maybequoted(Unix2AmigaPath(AsmFileName)));
+           Replace(result,'$OBJ',maybequoted(Unix2AmigaPath(ObjFileName)));
          end;
       end;
 
