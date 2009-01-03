@@ -3646,6 +3646,7 @@ packages/opengl/examples/Makefile svneol=native#text/plain
 packages/opengl/examples/Makefile.fpc svneol=native#text/plain
 packages/opengl/examples/bounce.pp svneol=native#text/plain
 packages/opengl/examples/glutdemo.pp svneol=native#text/plain
+packages/opengl/examples/glutdemova.pp svneol=native#text/plain
 packages/opengl/examples/glxtest.pp svneol=native#text/plain
 packages/opengl/examples/morph3d.pp svneol=native#text/plain
 packages/opengl/examples/radblur.pp svneol=native#text/plain
