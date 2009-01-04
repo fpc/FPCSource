@@ -31,6 +31,7 @@ type
     procedure MoreInsertsChange(ADataset: TBufDataset);
     procedure SeveralEditsChange(ADataset: TBufDataset);
     procedure DeleteAllChange(ADataset: TBufDataset);
+    procedure DeleteAllInsertChange(ADataset: TBufDataset);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
@@ -42,6 +43,7 @@ type
     procedure MoreInsertsCancelUpd;
     procedure SeveralEditsCancelUpd;
     procedure DeleteAllCancelUpd;
+    procedure DeleteAllInsertCancelUpd;
 
     procedure TestSimpleEditApplUpd;
     procedure TestSimpleDeleteApplUpd;
@@ -50,6 +52,7 @@ type
     procedure MoreInsertsApplUpd;
     procedure SeveralEditsApplUpd;
     procedure DeleteAllApplUpd;
+    procedure DeleteAllInsertApplUpd;
 
     procedure TestBasicsXML;
     procedure TestSimpleEditXML;
@@ -59,6 +62,7 @@ type
     procedure TestMoreInsertsXML;
     procedure TestSeveralEditsXML;
     procedure TestDeleteAllXML;
+    procedure TestDeleteAllInsertXML;
 
     procedure TestFileNameProperty;
   end;
@@ -266,6 +270,17 @@ begin
     while not eof do delete;
 end;
 
+procedure TTestBufDatasetStreams.DeleteAllInsertChange(ADataset: TBufDataset);
+begin
+  DeleteAllChange(ADataset);
+  with ADataset do
+    begin
+    insert;
+    fieldbyname('ID').AsInteger:=5;
+    post;
+    end;
+end;
+
 procedure TTestBufDatasetStreams.SetUp;
 begin
   DBConnector.StartTest;
@@ -309,6 +324,11 @@ end;
 procedure TTestBufDatasetStreams.DeleteAllCancelUpd;
 begin
   TestChangesCancelUpdates(@DeleteAllChange);
+end;
+
+procedure TTestBufDatasetStreams.DeleteAllInsertCancelUpd;
+begin
+  TestChangesCancelUpdates(@DeleteAllInsertChange);
 end;
 
 procedure TTestBufDatasetStreams.TestBasicsXML;
@@ -358,6 +378,11 @@ end;
 procedure TTestBufDatasetStreams.TestDeleteAllXML;
 begin
   TestChangesXML(@DeleteAllChange);
+end;
+
+procedure TTestBufDatasetStreams.TestDeleteAllInsertXML;
+begin
+  TestChangesXML(@DeleteAllInsertChange);
 end;
 
 procedure TTestBufDatasetStreams.TestFileNameProperty;
@@ -414,6 +439,11 @@ end;
 procedure TTestBufDatasetStreams.DeleteAllApplUpd;
 begin
   TestChangesApplyUpdates(@DeleteAllChange, False);
+end;
+
+procedure TTestBufDatasetStreams.DeleteAllInsertApplUpd;
+begin
+  TestChangesApplyUpdates(@DeleteAllInsertChange, False);
 end;
 
 { TSQLTestSetup }
