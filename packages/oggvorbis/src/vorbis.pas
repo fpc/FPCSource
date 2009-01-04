@@ -440,7 +440,7 @@ begin
 
   while num > 0 do
   begin
-    res := ov_read(vf, pointer(ptrint(buffer) + ofs), num, bigendianp, word, sgned, nil);
+    res := ov_read(vf, pointer(ptruint(buffer) + ofs), num, bigendianp, word, sgned, nil);
     if res < 0 then
       Exit(res);
 
