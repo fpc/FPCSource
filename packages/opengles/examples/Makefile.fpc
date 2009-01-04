@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for GL demos
+#
+
+[target]
+programs=glutdemoes
+
+[require]
+packages=opengles
+
+[install]
+fpcpackage=y
+
+[compiler]
+options=-S2h
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:
