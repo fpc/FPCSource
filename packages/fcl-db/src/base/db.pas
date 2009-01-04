@@ -790,7 +790,6 @@ type
 
   TBlobField = class(TField)
   private
-    FBlobSize : Longint;
     FBlobType : TBlobType;
     FModified : Boolean;
     FTransliterate : Boolean;
@@ -816,7 +815,7 @@ type
     procedure SaveToFile(const FileName: string);
     procedure SaveToStream(Stream: TStream);
     procedure SetFieldType(AValue: TFieldType); override;
-    property BlobSize: Longint read FBlobSize;
+    property BlobSize: Longint read GetBlobSize;
     property Modified: Boolean read FModified write FModified;
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;

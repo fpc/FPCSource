@@ -62,6 +62,7 @@ type
     procedure TestBlob;
     procedure TestChangeBlob;
     procedure TestBlobGetText;
+    procedure TestBlobSize;
 
     procedure TestLargeRecordSize;
     procedure TestNumeric;
@@ -468,6 +469,20 @@ begin
     end;
 end;
 
+procedure TTestFieldTypes.TestBlobSize;
+begin
+  CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
+
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''Test deze blob'')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    AssertEquals(14,TBlobField(fields[0]).BlobSize);
+    close;
+    end;
+end;
+
 procedure TTestFieldTypes.TestSetBlobAsStringParam;
 
 begin
@@ -476,9 +491,6 @@ end;
 
 
 procedure TTestFieldTypes.TestBlob;
-
-var
-  i             : byte;
 
 begin
   CreateTableWithFieldType(ftBlob,FieldtypeDefinitions[ftBlob]);
