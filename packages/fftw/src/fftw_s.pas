@@ -94,6 +94,10 @@ procedure fftw_destroy_plan(plan:fftw_plan_single);
 procedure fftw_execute(plan:fftw_plan_single);
           external 'fftw3f' name 'fftwf_execute';
 
+{$calling register} {Back to normal!}
+procedure fftw_getmem(var p:pointer;size:sizeint);
+procedure fftw_freemem(p:pointer);inline;
+
 {*****************************************************************************}
                                   implementation
 {*****************************************************************************}
@@ -101,11 +105,9 @@ procedure fftw_execute(plan:fftw_plan_single);
 {$LINKLIB fftw3f}
 
 {Required libraries by libfftw3}
-{$LINKLIB gcc}
-{$LINKLIB c}
-{$LINKLIB m}
-
-{$calling register} {Back to normal!}
+{ $LINKLIB gcc}
+{ $LINKLIB c}
+{ $LINKLIB m}
 
 {Better don't use fftw_malloc and fftw_free, but provide Pascal replacements.}
 

@@ -1,6 +1,6 @@
 program example;
 
-uses fftw;
+uses fftw_s;
 
 const s=128;
 
