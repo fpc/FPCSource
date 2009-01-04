@@ -1,3 +1,8 @@
+{
+  Translation of the libxml2 headers for FreePascal
+  Copyright (C) 2008 by Ivo Steinmann
+}
+
 unit libxml2;
 
 {$mode objfpc}

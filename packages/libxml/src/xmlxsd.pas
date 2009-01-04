@@ -1,3 +1,8 @@
+{
+  A set of helper functions for libxml2 for FreePascal
+  Copyright (C) 2008 by Ivo Steinmann
+}
+
 unit xmlxsd;
 
 {$mode objfpc}
