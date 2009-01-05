@@ -754,11 +754,11 @@ const
 (* newfangled special effects *)
 //#include "gdfx.h"
 
-function gdGetFontLarge(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdGetFontLarge@0'{$ENDIF};
-function gdGetFontSmall(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdGetFontSmall@0'{$ENDIF};
-function gdGetFontGiant(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdGetFontGiant@0'{$ENDIF};
-function gdGetFontMediumBold(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdGetFontMediumBold@0'{$ENDIF};
-function gdGetFontTiny(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdGetFontTiny@0'{$ENDIF};
+function gdFontGetLarge(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdFontGetLarge@0'{$ENDIF};
+function gdFontGetSmall(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdFontGetSmall@0'{$ENDIF};
+function gdFontGetGiant(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdFontGetGiant@0'{$ENDIF};
+function gdFontGetMediumBold(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdFontGetMediumBold@0'{$ENDIF};
+function gdFontGetTiny(): gdFontPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdFontGetTiny@0'{$ENDIF};
 
 {$ifdef windows}
 function gdFontLarge(): gdFontPtr; inline;
