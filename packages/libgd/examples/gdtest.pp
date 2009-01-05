@@ -3,7 +3,7 @@
 
 program gdtest;
 
-uses gd;
+uses libgd;
 
 var
   f:pFile;

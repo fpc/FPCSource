@@ -3,7 +3,7 @@
 
 program gdtestcgi;
 
-uses gd;
+uses libgd;
 
 var
   f:pFile;

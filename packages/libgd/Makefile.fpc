@@ -10,7 +10,7 @@ version=2.2.2
 libc=y
 
 [target]
-units=gd
+units=libgd
 exampledirs=examples
 
 [install]
