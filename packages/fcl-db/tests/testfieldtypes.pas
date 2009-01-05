@@ -58,6 +58,7 @@ type
 
     procedure TestParametersAndDates;
     procedure TestExceptOnsecClose;
+    procedure TestErrorOnEmptyStatement;
 
     procedure TestBlob;
     procedure TestChangeBlob;
@@ -85,7 +86,7 @@ type
 
 implementation
 
-uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils;
+uses sqldbtoolsunit,toolsunit, variants, sqldb, bufdataset, strutils, dbconst;
 
 Type HackedDataset = class(TDataset);
 
@@ -1511,6 +1512,23 @@ begin
     AssertTrue(passed);
 
     Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestErrorOnEmptyStatement;
+var PassException : boolean;
+begin
+  PassException:=False;
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    sql.Text := '';
+    try
+      Open;
+    except
+      on E:EDatabaseError do
+        if pos(SErrNoStatement,E.Message) > -1 then PassException := True;
+    end;
+    AssertTrue(PassException);
     end;
 end;
 
