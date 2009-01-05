@@ -222,7 +222,7 @@ type
     procedure OnChangeSQL(Sender : TObject);
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
-    Procedure SQLParser(var ASQL : string);
+    Function SQLParser(var ASQL : string) : TStatementType;
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
@@ -898,8 +898,9 @@ end;
 
 procedure TCustomSQLQuery.Prepare;
 var
-  db    : tsqlconnection;
-  sqltr : tsqltransaction;
+  db     : tsqlconnection;
+  sqltr  : tsqltransaction;
+  StmType: TStatementType;
 
 begin
   if not IsPrepared then
@@ -919,7 +920,7 @@ begin
     if FSQLBuf = '' then
       DatabaseError(SErrNoStatement);
 
-    SQLParser(FSQLBuf);
+    StmType:=SQLParser(FSQLBuf);
 
     // There may no error occur between the allocation of the cursor and
     // the preparation of the cursor. Because internalclose (which is called in
@@ -929,7 +930,7 @@ begin
     // unpredictable results.
     if not assigned(fcursor) then
       FCursor := Db.AllocateCursorHandle;
-
+    FCursor.FStatementType:=StmType;
     if ServerFiltered then
       Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
     else
@@ -1027,7 +1028,7 @@ begin
   end;
 end;
 
-procedure TCustomSQLQuery.SQLParser(var ASQL : string);
+function TCustomSQLQuery.SQLParser(var ASQL : string) : TStatementType;
 
 type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
 
@@ -1089,8 +1090,8 @@ begin
 
         case ParsePart of
           ppStart  : begin
-                     FCursor.FStatementType := TSQLConnection(Database).StrToStatementType(s);
-                     if FCursor.FStatementType = stSelect then ParsePart := ppSelect
+                     Result := TSQLConnection(Database).StrToStatementType(s);
+                     if Result = stSelect then ParsePart := ppSelect
                        else break;
                      if not FParseSQL then break;
                      PStatementPart := CurrentP;
@@ -1126,7 +1127,7 @@ begin
                          ParsePart := ppBogus;
                          StrLength := CurrentP-PStatementPart;
                          end;
-                       if FCursor.FStatementType = stSelect then
+                       if Result = stSelect then
                          begin
                          Setlength(FFromPart,StrLength);
                          Move(PStatementPart^,FFromPart[1],(StrLength));
