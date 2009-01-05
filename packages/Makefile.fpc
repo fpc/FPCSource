@@ -25,7 +25,7 @@ dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres 
                users iconvenc
 dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc
-dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib
+dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles
 dirs_powerpc_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib

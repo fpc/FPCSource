@@ -12,6 +12,7 @@ version=2.2.2
 
 [target]
 units_arm_darwin=gles11
+units_i386_darwin=gles11
 exampledirs=examples
 
 [install]

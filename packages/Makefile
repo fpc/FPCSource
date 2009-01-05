@@ -302,7 +302,7 @@ ifeq ($(FULL_TARGET),i386-wdosx)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc graph univint sdl opengl x11 cairo gtk1 gtk2 fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -2236,6 +2236,7 @@ TARGET_DIRS_HTTPD13=1
 TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_IMLIB=1
+TARGET_DIRS_OPENGLES=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 TARGET_DIRS_HASH=1
@@ -8005,6 +8006,51 @@ univint:
 	$(MAKE) -C univint all
 .PHONY: univint_all univint_debug univint_smart univint_release univint_units univint_examples univint_shared univint_install univint_sourceinstall univint_exampleinstall univint_distinstall univint_zipinstall univint_zipsourceinstall univint_zipexampleinstall univint_zipdistinstall univint_clean univint_distclean univint_cleanall univint_info univint_makefiles univint
 endif
+ifdef TARGET_DIRS_OPENGLES
+opengles_all:
+	$(MAKE) -C opengles all
+opengles_debug:
+	$(MAKE) -C opengles debug
+opengles_smart:
+	$(MAKE) -C opengles smart
+opengles_release:
+	$(MAKE) -C opengles release
+opengles_units:
+	$(MAKE) -C opengles units
+opengles_examples:
+	$(MAKE) -C opengles examples
+opengles_shared:
+	$(MAKE) -C opengles shared
+opengles_install:
+	$(MAKE) -C opengles install
+opengles_sourceinstall:
+	$(MAKE) -C opengles sourceinstall
+opengles_exampleinstall:
+	$(MAKE) -C opengles exampleinstall
+opengles_distinstall:
+	$(MAKE) -C opengles distinstall
+opengles_zipinstall:
+	$(MAKE) -C opengles zipinstall
+opengles_zipsourceinstall:
+	$(MAKE) -C opengles zipsourceinstall
+opengles_zipexampleinstall:
+	$(MAKE) -C opengles zipexampleinstall
+opengles_zipdistinstall:
+	$(MAKE) -C opengles zipdistinstall
+opengles_clean:
+	$(MAKE) -C opengles clean
+opengles_distclean:
+	$(MAKE) -C opengles distclean
+opengles_cleanall:
+	$(MAKE) -C opengles cleanall
+opengles_info:
+	$(MAKE) -C opengles info
+opengles_makefiles:
+	$(MAKE) -C opengles makefiles
+opengles:
+	$(MAKE) -C opengles all
+.PHONY: opengles_all opengles_debug opengles_smart opengles_release opengles_units opengles_examples opengles_shared opengles_install opengles_sourceinstall opengles_exampleinstall opengles_distinstall opengles_zipinstall opengles_zipsourceinstall opengles_zipexampleinstall opengles_zipdistinstall opengles_clean opengles_distclean opengles_cleanall opengles_info opengles_makefiles opengles
+endif
 ifdef TARGET_DIRS_AMUNITS
 amunits_all:
 	$(MAKE) -C amunits all
@@ -8094,51 +8140,6 @@ palmunits_makefiles:
 palmunits:
 	$(MAKE) -C palmunits all
 .PHONY: palmunits_all palmunits_debug palmunits_smart palmunits_release palmunits_units palmunits_examples palmunits_shared palmunits_install palmunits_sourceinstall palmunits_exampleinstall palmunits_distinstall palmunits_zipinstall palmunits_zipsourceinstall palmunits_zipexampleinstall palmunits_zipdistinstall palmunits_clean palmunits_distclean palmunits_cleanall palmunits_info palmunits_makefiles palmunits
-endif
-ifdef TARGET_DIRS_OPENGLES
-opengles_all:
-	$(MAKE) -C opengles all
-opengles_debug:
-	$(MAKE) -C opengles debug
-opengles_smart:
-	$(MAKE) -C opengles smart
-opengles_release:
-	$(MAKE) -C opengles release
-opengles_units:
-	$(MAKE) -C opengles units
-opengles_examples:
-	$(MAKE) -C opengles examples
-opengles_shared:
-	$(MAKE) -C opengles shared
-opengles_install:
-	$(MAKE) -C opengles install
-opengles_sourceinstall:
-	$(MAKE) -C opengles sourceinstall
-opengles_exampleinstall:
-	$(MAKE) -C opengles exampleinstall
-opengles_distinstall:
-	$(MAKE) -C opengles distinstall
-opengles_zipinstall:
-	$(MAKE) -C opengles zipinstall
-opengles_zipsourceinstall:
-	$(MAKE) -C opengles zipsourceinstall
-opengles_zipexampleinstall:
-	$(MAKE) -C opengles zipexampleinstall
-opengles_zipdistinstall:
-	$(MAKE) -C opengles zipdistinstall
-opengles_clean:
-	$(MAKE) -C opengles clean
-opengles_distclean:
-	$(MAKE) -C opengles distclean
-opengles_cleanall:
-	$(MAKE) -C opengles cleanall
-opengles_info:
-	$(MAKE) -C opengles info
-opengles_makefiles:
-	$(MAKE) -C opengles makefiles
-opengles:
-	$(MAKE) -C opengles all
-.PHONY: opengles_all opengles_debug opengles_smart opengles_release opengles_units opengles_examples opengles_shared opengles_install opengles_sourceinstall opengles_exampleinstall opengles_distinstall opengles_zipinstall opengles_zipsourceinstall opengles_zipexampleinstall opengles_zipdistinstall opengles_clean opengles_distclean opengles_cleanall opengles_info opengles_makefiles opengles
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
