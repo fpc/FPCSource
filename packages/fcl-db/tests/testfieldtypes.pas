@@ -477,6 +477,7 @@ begin
 
   with TSQLDBConnector(DBConnector).Query do
     begin
+    sql.text := 'select * from FPDEV2';
     Open;
     AssertEquals(14,TBlobField(fields[0]).BlobSize);
     close;
