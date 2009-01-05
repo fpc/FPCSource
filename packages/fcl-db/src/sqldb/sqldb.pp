@@ -919,10 +919,16 @@ begin
     if FSQLBuf = '' then
       DatabaseError(SErrNoStatement);
 
+    SQLParser(FSQLBuf);
+
+    // There may no error occur between the allocation of the cursor and
+    // the preparation of the cursor. Because internalclose (which is called in
+    // case of an exception) assumes that allocated cursors are also prepared,
+    // and thus calls unprepare.
+    // A call to unprepare while the cursor is not prepared at all can lead to
+    // unpredictable results.
     if not assigned(fcursor) then
       FCursor := Db.AllocateCursorHandle;
-
-    SQLParser(FSQLBuf);
 
     if ServerFiltered then
       Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
