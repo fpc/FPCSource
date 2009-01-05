@@ -1526,7 +1526,8 @@ begin
       Open;
     except
       on E:EDatabaseError do
-        if pos(SErrNoStatement,E.Message) > -1 then PassException := True;
+        if Pos(SErrNoStatement,E.Message) > 0 then
+          PassException := True;
     end;
     AssertTrue(PassException);
     end;

@@ -914,14 +914,13 @@ begin
     if not Db.Connected then db.Open;
     if not sqltr.Active then sqltr.StartTransaction;
 
-//    if assigned(fcursor) then FreeAndNil(fcursor);
-    if not assigned(fcursor) then
-      FCursor := Db.AllocateCursorHandle;
-
     FSQLBuf := TrimRight(FSQL.Text);
 
     if FSQLBuf = '' then
       DatabaseError(SErrNoStatement);
+
+    if not assigned(fcursor) then
+      FCursor := Db.AllocateCursorHandle;
 
     SQLParser(FSQLBuf);
 
