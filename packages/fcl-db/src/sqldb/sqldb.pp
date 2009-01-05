@@ -1183,61 +1183,56 @@ var tel, fieldc : integer;
     IndexFields : TStrings;
     ReadFromFile: Boolean;
 begin
-  try
-    ReadFromFile:=IsReadFromPacket;
-    Prepare;
-    if FCursor.FStatementType in [stSelect,stExecProcedure] then
+  ReadFromFile:=IsReadFromPacket;
+  Prepare;
+  if FCursor.FStatementType in [stSelect,stExecProcedure] then
+    begin
+    if not ReadFromFile then
       begin
-      if not ReadFromFile then
+      Execute;
+      // InternalInitFieldDef is only called after a prepare. i.e. not twice if
+      // a dataset is opened - closed - opened.
+      if FCursor.FInitFieldDef then InternalInitFieldDefs;
+      if DefaultFields then
         begin
-        Execute;
-        // InternalInitFieldDef is only called after a prepare. i.e. not twice if
-        // a dataset is opened - closed - opened.
-        if FCursor.FInitFieldDef then InternalInitFieldDefs;
-        if DefaultFields then
-          begin
-          CreateFields;
+        CreateFields;
 
-          if FUpdateable then
+        if FUpdateable then
+          begin
+          if FusePrimaryKeyAsKey then
             begin
-            if FusePrimaryKeyAsKey then
+            UpdateServerIndexDefs;
+            for tel := 0 to ServerIndexDefs.count-1 do
               begin
-              UpdateServerIndexDefs;
-              for tel := 0 to ServerIndexDefs.count-1 do
+              if ixPrimary in ServerIndexDefs[tel].options then
                 begin
-                if ixPrimary in ServerIndexDefs[tel].options then
-                  begin
-                    IndexFields := TStringList.Create;
-                    ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
-                    for fieldc := 0 to IndexFields.Count-1 do
-                      begin
-                      F := Findfield(IndexFields[fieldc]);
-                      if F <> nil then
-                        F.ProviderFlags := F.ProviderFlags + [pfInKey];
-                      end;
-                    IndexFields.Free;
-                  end;
+                  IndexFields := TStringList.Create;
+                  ExtractStrings([';'],[' '],pchar(ServerIndexDefs[tel].fields),IndexFields);
+                  for fieldc := 0 to IndexFields.Count-1 do
+                    begin
+                    F := Findfield(IndexFields[fieldc]);
+                    if F <> nil then
+                      F.ProviderFlags := F.ProviderFlags + [pfInKey];
+                    end;
+                  IndexFields.Free;
                 end;
               end;
             end;
-          end
-        else
-          BindFields(True);
+          end;
         end
       else
         BindFields(True);
-      if not ReadOnly and not FUpdateable then
-        begin
-        if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
-           (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
-        end
       end
     else
-      DatabaseError(SErrNoSelectStatement,Self);
-  except
-    on E:Exception do
-      raise;
-  end;
+      BindFields(True);
+    if not ReadOnly and not FUpdateable then
+      begin
+      if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
+         (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
+      end
+    end
+  else
+    DatabaseError(SErrNoSelectStatement,Self);
   inherited InternalOpen;
 end;
 
