@@ -18,11 +18,11 @@ uses
 { Format functions }
 function xsdFormatBoolean(Value: Boolean): String;
 function xsdFormatDate(Year, Month, Day: Longword): String;
-function xsdFormatDate(Date: TDateTime): String;
+function xsdFormatDate(Value: TDateTime): String;
 function xsdFormatTime(Hour, Minute, Second: Longword): String;
-function xsdFormatTime(Time: TDateTime): String;
+function xsdFormatTime(Value: TDateTime): String;
 function xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second: Longword): String;
-function xsdFormatDateTime(DateTime: TDateTime): String;
+function xsdFormatDateTime(Value: TDateTime): String;
 function xsdFormatDecimal(Value: Extended; Precision: Integer = 4; Digits: Integer = 1): String;
 function xsdFormatDouble(Value: Double): String;
 function xsdFormatFloat(Value: Single): String;
@@ -34,6 +34,26 @@ function xsdFormatUnsignedByte(Value: Byte): String;
 function xsdFormatUnsignedShort(Value: Word): String;
 function xsdFormatUnsignedInt(Value: Longword): String;
 function xsdFormatUnsignedLong(Value: QWord): String;
+
+{ Parse functions }
+function xsdParseBoolean(Value: String): Boolean;
+function xsdParseDate(Value: String; var Year, Month, Day: Longword): Boolean;
+function xsdParseDate(Value: String): TDateTime;
+function xsdParseTime(Value: String; var Hour, Minute, Second: Longword): Boolean;
+function xsdParseTime(Value: String): TDateTime;
+function xsdParseDateTime(Value: String; var Year, Month, Day, Hour, Minute, Second: Longword): Boolean;
+function xsdParseDateTime(Value: String): TDateTime;
+function xsdParseDecimal(Value: String): Extended;
+function xsdParseDouble(Value: String): Double;
+function xsdParseFloat(Value: String): Single;
+function xsdParseByte(Value: String): Shortint;
+function xsdParseShort(Value: String): Smallint;
+function xsdParseInt(Value: String): Longint;
+function xsdParseLong(Value: String): Int64;
+function xsdParseUnsignedByte(Value: String): Byte;
+function xsdParseUnsignedShort(Value: String): Word;
+function xsdParseUnsignedInt(Value: String): Longword;
+function xsdParseUnsignedLong(Value: String): QWord;
 
 { Node creation functions }
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlNodePtr;
@@ -139,11 +159,11 @@ begin
   Result := Format('%4.4d-%2.2d-%2.2dZ', [Year, Month, Day]);
 end;
 
-function xsdFormatDate(Date: TDateTime): String;
+function xsdFormatDate(Value: TDateTime): String;
 var
   Year, Month, Day: Word;
 begin
-  DecodeDate(Date, Year, Month, Day);
+  DecodeDate(Value, Year, Month, Day);
   Result := xsdFormatDate(Year, Month, Day);
 end;
 
@@ -152,11 +172,11 @@ begin
   Result := Format('%2.2d:%2.2d:%2.2dZ', [Hour, Minute, Second]);
 end;
 
-function xsdFormatTime(Time: TDateTime): String;
+function xsdFormatTime(Value: TDateTime): String;
 var
   Hour, Minute, Second, Millisecond: Word;
 begin
-  DecodeTime(Time, Hour, Minute, Second, Millisecond);
+  DecodeTime(Value, Hour, Minute, Second, Millisecond);
   Result := xsdFormatTime(Hour, Minute, Second);
 end;
 
@@ -165,11 +185,11 @@ begin
   Result := Format('%4.4d-%2.2d-%2.2dT%2.2d:%2.2d:%2.2dZ', [Year, Month, Day, Hour, Minute, Second]);
 end;
 
-function xsdFormatDateTime(DateTime: TDateTime): String;
+function xsdFormatDateTime(Value: TDateTime): String;
 var
   Year, Month, Day, Hour, Minute, Second, Millisecond: Word;
 begin
-  DecodeDateTime(DateTime, Year, Month, Day, Hour, Minute, Second, Millisecond);
+  DecodeDateTime(Value, Year, Month, Day, Hour, Minute, Second, Millisecond);
   Result := xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second);
 end;
 
@@ -226,6 +246,169 @@ end;
 function xsdFormatUnsignedLong(Value: QWord): String;
 begin
   Result := IntToStr(Value);
+end;
+
+function xsdParseBoolean(Value: String): Boolean;
+begin
+  Result := StrToBool(Value);
+end;
+
+function xsdParseDate(Value: String; var Year, Month, Day: Longword): Boolean;
+// xsd:date = [-]CCYY-MM-DD[Z|(+|-)hh:mm]
+var
+  S: String;
+  I: Integer;
+begin
+{ ignore leading - }
+  if (Length(Value) > 0) and (Value[1]='-') then
+    S := Copy(Value, 2, MaxInt)
+  else
+    S := Value;
+
+{ parse year }
+  I := Pos('-', S);
+  if (I = 0) or not TryStrToInt(Copy(S, 1, I-1), Integer(Year)) then
+    Exit(False);
+
+{ parse month }
+  S := Copy(S, I+1, MaxInt);
+  I := Pos('-', S);
+  if (I = 0) or not TryStrToInt(Copy(S, 1, I-1), Integer(Month)) then
+    Exit(False);
+
+{ parse day }
+  S := Copy(S, I+1, MaxInt);
+  Result := TryStrToInt(S, Integer(Day));
+end;
+
+function xsdParseDate(Value: String): TDateTime;
+var
+  Year, Month, Day: Longword;
+begin
+  if xsdParseDate(Value, Year, Month, Day) then
+    Result := EncodeDate(Year, Month, Day)
+  else
+    Result := 0;
+end;
+
+function xsdParseTime(Value: String; var Hour, Minute, Second: Longword): Boolean;
+// xsd:time = hh:mm:ss[Z|(+|-)hh:mm]
+var
+  S: String;
+  I: Integer;
+begin
+  S := Value;
+
+{ parse hour }
+  I := Pos(':', S);
+  if (I = 0) or not TryStrToInt(Copy(S, 1, I-1), Integer(Hour)) or (Hour > 23) then
+    Exit(False);
+
+{ parse minute }
+  S := Copy(S, I+1, MaxInt);
+  I := Pos(':', S);
+  if (I = 0) or not TryStrToInt(Copy(S, 1, I-1), Integer(Minute)) or (Minute > 59) then
+    Exit(False);
+
+{ parse second }
+  S := Copy(S, I+1, MaxInt);
+  Result := TryStrToInt(S, Integer(Second)) and (Second < 60);
+end;
+
+function xsdParseTime(Value: String): TDateTime;
+var
+  Hour, Minute, Second: Longword;
+begin
+  if xsdParseDate(Value, Hour, Minute, Second) then
+    Result := EncodeTime(Hour, Minute, Second, 0)
+  else
+    Result := 0;
+end;
+
+function xsdParseDateTime(Value: String; var Year, Month, Day, Hour, Minute, Second: Longword): Boolean;
+// xsd:dateTime = [-]CCYY-MM-DDThh:mm:ss[Z|(+|-)hh:mm]
+var
+  S: String;
+  I: Integer;
+begin
+  S := Value;
+
+{ ignore Z }
+  I := Pos('Z', S);
+  if I > 0 then
+    S := Copy(S, 1, I-1);
+
+{ parse date and time }
+  I := Pos('T', S);
+  Result := (I > 0) and
+    xsdParseDate(Copy(S, 1, I-1), Year, Month, Day) and
+    xsdParseTime(Copy(S, I+1, MaxInt), Hour, Minute, Second);
+end;
+
+function xsdParseDateTime(Value: String): TDateTime;
+var
+  Year, Month, Day: Longword;
+  Hour, Minute, Second: Longword;
+begin
+  if xsdParseDateTime(Value, Year, Month, Day, Hour, Minute, Second) then
+    Result := EncodeDateTime(Year, Month, Day, Hour, Minute, Second, 0)
+  else
+    Result := 0;
+end;
+
+function xsdParseDecimal(Value: String): Extended;
+begin
+  Result := StrToFloat(Value);
+end;
+
+function xsdParseDouble(Value: String): Double;
+begin
+  Result := StrToFloat(Value);
+end;
+
+function xsdParseFloat(Value: String): Single;
+begin
+  Result := StrToFloat(Value);
+end;
+
+function xsdParseByte(Value: String): Shortint;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseShort(Value: String): Smallint;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseInt(Value: String): Longint;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseLong(Value: String): Int64;
+begin
+  Result := StrToInt64(Value);
+end;
+
+function xsdParseUnsignedByte(Value: String): Byte;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseUnsignedShort(Value: String): Word;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseUnsignedInt(Value: String): Longword;
+begin
+  Result := StrToInt(Value);
+end;
+
+function xsdParseUnsignedLong(Value: String): QWord;
+begin
+  Result := StrToInt64(Value);
 end;
 
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlNodePtr;
@@ -541,7 +724,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToBoolDef(pchar(value), defaultValue)
+    result := xsdParseBoolean(pchar(value))
   else
     result := defaultValue;
 end;
@@ -551,9 +734,9 @@ var
   value: xmlCharPtr;
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
-  {if assigned(value) then
-    result := StrToBoolDef(pchar(value), defaultValue)
-  else}
+  if assigned(value) then
+    result := xsdParseDate(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -562,9 +745,9 @@ var
   value: xmlCharPtr;
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
-  {if assigned(value) then
-    result := StrToBoolDef(pchar(value), defaultValue)
-  else}
+  if assigned(value) then
+    result := xsdParseTime(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -573,9 +756,9 @@ var
   value: xmlCharPtr;
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
-  {if assigned(value) then
-    result := StrToBoolDef(pchar(value), defaultValue)
-  else}
+  if assigned(value) then
+    result := xsdParseDateTime(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -585,7 +768,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseDecimal(pchar(value))
   else
     result := defaultValue;
 end;
@@ -596,7 +779,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseDouble(pchar(value))
   else
     result := defaultValue;
 end;
@@ -607,7 +790,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseFloat(pchar(value))
   else
     result := defaultValue;
 end;
@@ -618,7 +801,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseByte(pchar(value))
   else
     result := defaultValue;
 end;
@@ -629,7 +812,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseShort(pchar(value))
   else
     result := defaultValue;
 end;
@@ -640,7 +823,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseInt(pchar(value))
   else
     result := defaultValue;
 end;
@@ -651,7 +834,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseLong(pchar(value))
   else
     result := defaultValue;
 end;
@@ -662,7 +845,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedByte(pchar(value))
   else
     result := defaultValue;
 end;
@@ -673,7 +856,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedShort(pchar(value))
   else
     result := defaultValue;
 end;
@@ -684,7 +867,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedInt(pchar(value))
   else
     result := defaultValue;
 end;
@@ -695,7 +878,7 @@ var
 begin
   value := xsdGetNsChild(node, name, nameSpace, index);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedLong(pchar(value))
   else
     result := defaultValue;
 end;
@@ -761,7 +944,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToBoolDef(pchar(value), defaultValue)
+    result := xsdParseBoolean(pchar(value))
   else
     result := defaultValue;
 end;
@@ -770,10 +953,10 @@ function xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; defaultVa
 var
   value: xmlCharPtr;
 begin
-  {value := xsdGetNsProp(node, name, nameSpace);
+  value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
-  else}
+    result := xsdParseDate(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -781,10 +964,10 @@ function xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; defaultVa
 var
   value: xmlCharPtr;
 begin
-  {value := xsdGetNsProp(node, name, nameSpace);
+  value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
-  else}
+    result := xsdParseTime(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -792,10 +975,10 @@ function xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; defau
 var
   value: xmlCharPtr;
 begin
-  {value := xsdGetNsProp(node, name, nameSpace);
+  value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
-  else}
+    result := xsdParseDateTime(pchar(value))
+  else
     result := defaultValue;
 end;
 
@@ -805,7 +988,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseDecimal(pchar(value))
   else
     result := defaultValue;
 end;
@@ -816,7 +999,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseDouble(pchar(value))
   else
     result := defaultValue;
 end;
@@ -827,7 +1010,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToFloatDef(pchar(value), defaultValue)
+    result := xsdParseFloat(pchar(value))
   else
     result := defaultValue;
 end;
@@ -838,7 +1021,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseByte(pchar(value))
   else
     result := defaultValue;
 end;
@@ -849,7 +1032,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseShort(pchar(value))
   else
     result := defaultValue;
 end;
@@ -860,7 +1043,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseInt(pchar(value))
   else
     result := defaultValue;
 end;
@@ -871,7 +1054,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseLong(pchar(value))
   else
     result := defaultValue;
 end;
@@ -882,7 +1065,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedByte(pchar(value))
   else
     result := defaultValue;
 end;
@@ -893,7 +1076,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedShort(pchar(value))
   else
     result := defaultValue;
 end;
@@ -904,7 +1087,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedInt(pchar(value))
   else
     result := defaultValue;
 end;
@@ -915,7 +1098,7 @@ var
 begin
   value := xsdGetNsProp(node, name, nameSpace);
   if assigned(value) then
-    result := StrToIntDef(pchar(value), defaultValue)
+    result := xsdParseUnsignedLong(pchar(value))
   else
     result := defaultValue;
 end;
