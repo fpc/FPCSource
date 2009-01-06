@@ -457,7 +457,7 @@ function xmlXPathEvalPredicate(ctxt: xmlXPathContextPtr; res: xmlXPathObjectPtr)
  *)
 function xmlXPathCompile(str: xmlCharPtr): xmlXPathCompExprPtr; XMLCALL; XMLPUBFUN;
 function xmlXPathCtxtCompile(ctxt: xmlXPathContextPtr; str: xmlCharPtr): xmlXPathCompExprPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCompiledEval(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): xmlXPathCompExprPtr; XMLCALL; XMLPUBFUN;
+function xmlXPathCompiledEval(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
 function xmlXPathCompiledEvalToBoolean(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): cint; XMLCALL; XMLPUBFUN;
 procedure xmlXPathFreeCompExpr(comp: xmlXPathCompExprPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF}
