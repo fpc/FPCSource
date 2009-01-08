@@ -89,7 +89,7 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             abi : abi_default
           );
 
@@ -150,7 +150,7 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             abi : abi_default
           );
 
@@ -454,7 +454,7 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 16;
-            stacksize    : 256*1024;
+            stacksize    : 8*1024*1024;
             abi : abi_default
           );
 
@@ -516,7 +516,7 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 92;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             abi : abi_default
           );
 
@@ -578,7 +578,7 @@ unit i_linux;
                 maxCrecordalign : 8
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             abi : abi_eabi
           );
 {$else FPC_ARMEL}
@@ -639,7 +639,7 @@ unit i_linux;
                 maxCrecordalign : 4
               );
             first_parm_offset : 8;
-            stacksize    : 262144;
+            stacksize    : 8*1024*1024;
             abi : abi_default
           );
 {$endif FPC_ARMEL}
