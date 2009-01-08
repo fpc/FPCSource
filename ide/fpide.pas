@@ -1008,6 +1008,7 @@ begin
       NewItem(menu_help_about,'',kbNoKey, cmAbout, hcAbout,
       nil))))))))),
     nil)))))))))))));
+   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
 end;
 
 procedure TIDEApp.InitMenuBar;
