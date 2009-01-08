@@ -37,7 +37,8 @@ end;
 
 
 const
- RESULT_S64BIT            =   101234;
+ RESULT_U64BIT            =  qword($8fe0000000000000);
+ RESULT_S64BIT            =  -101234;
  RESULT_S32BIT            = -1000000;
  RESULT_U32BIT            =  2000000;
  RESULT_S16BIT            =   -12123;
@@ -50,6 +51,11 @@ const
    function gets64bit : int64;
     begin
       gets64bit := RESULT_S64BIT;
+    end;
+
+   function getu64bit : qword;
+    begin
+      getu64bit := RESULT_U64BIT;
     end;
 {$endif}
 
@@ -152,6 +158,14 @@ begin
   result_val := gets64bit;
   if trunc(result_val) <> RESULT_S64BIT then
      failed:=true;
+
+  result_val := getu64bit;
+  if result_val <> 10367286342206881792.0 then
+    begin
+      writeln('got ',result_val:0);
+      writeln('expected ',10367286342206881792.0);
+     failed:=true;
+    end;
 
   result_val := gets32bit;
   if trunc(result_val) <> RESULT_S32BIT then
