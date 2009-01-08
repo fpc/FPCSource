@@ -15,8 +15,8 @@
  **********************************************************************}
 
 const
-  { including 16384 margin for stackchecking }
-  DefaultStackSize = 32768;
+  { includes 16384 bytes margin for stackchecking }
+  DefaultStackSize = 4*1024*1024;
 
 type
   PEventState = pointer;
