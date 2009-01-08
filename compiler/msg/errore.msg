@@ -2706,8 +2706,8 @@ S*2Aas_Assemble using GNU AS
 **3CPPACKSET=<y>_ <y> set allocation: 0, 1 or DEFAULT or NORMAL, 2, 4 and 8
 **2Cr_Range checking
 **2CR_Verify object method call validity
-**2Cs<n>_Set stack size to <n>
-**2Ct_Stack checking
+**2Cs<n>_Set stack checking size to <n>
+**2Ct_Stack checking (for testing only, see manual)
 **2CX_Create also smartlinked library
 **1d<x>_Defines the symbol <x>
 **1D_Generate a DEF file
