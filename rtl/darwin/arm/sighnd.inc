@@ -33,7 +33,7 @@ begin
           Else
             Res:=207; {coprocessor error}
         end;
-        SigContext^.uc_mcontext^.fs.__fpscr := SigContext^.uc_mcontext^.fs.__fpscr and not($1fff);
+        SigContext^.uc_mcontext^.__fs.__fpscr := SigContext^.uc_mcontext^.__fs.__fpscr and not($1fff);
       end;
     SIGBUS:
         res:=214;
@@ -48,10 +48,10 @@ begin
   { return to trampoline }
   if res <> 0 then
     begin
-      SigContext^.uc_mcontext^.ss.__r[0] := res;
-      SigContext^.uc_mcontext^.ss.__r[1] := SigContext^.uc_mcontext^.ss.__pc;
-      SigContext^.uc_mcontext^.ss.__r[2] := SigContext^.uc_mcontext^.ss.__sp;
-      pointer(SigContext^.uc_mcontext^.ss.__pc) := @HandleErrorAddrFrame;
+      SigContext^.uc_mcontext^.__ss.__r[0] := res;
+      SigContext^.uc_mcontext^.__ss.__r[1] := SigContext^.uc_mcontext^.__ss.__pc;
+      SigContext^.uc_mcontext^.__ss.__r[2] := SigContext^.uc_mcontext^.__ss.__sp;
+      pointer(SigContext^.uc_mcontext^.__ss.__pc) := @HandleErrorAddrFrame;
     end;
 end;
 
