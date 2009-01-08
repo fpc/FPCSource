@@ -708,7 +708,10 @@ begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  c := Sptr - (stack_size + STACK_MARGIN);
+  { don't use sack_size, since the stack pointer has already been
+    decreased when this routine is called
+  }
+  c := Sptr - STACK_MARGIN;
   if (c <= StackBottom) then
    begin
      StackError:=true;
