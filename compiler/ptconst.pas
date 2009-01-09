@@ -288,8 +288,10 @@ implementation
             value:=trealconstnode(n).value_real
           else if is_constintnode(n) then
             value:=tordconstnode(n).value
+          else if is_constnode(n) then
+            IncompatibleTypes(n.resultdef, def)
           else
-            IncompatibleTypes(n.resultdef, def);
+            Message(parser_e_illegal_expression);
 
           case def.floattype of
              s32real :
@@ -330,8 +332,10 @@ implementation
               end;
              niln:
                list.concat(Tai_const.Create_sym(nil));
+             else if is_constnode(n) then
+               IncompatibleTypes(n.resultdef, def)
              else
-               IncompatibleTypes(n.resultdef, def);
+               Message(parser_e_illegal_expression);
           end;
           n.free;
         end;
