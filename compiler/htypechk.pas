@@ -1495,8 +1495,13 @@ implementation
               { if they are objects              }
               if (def_from.typ=objectdef) and
                  (
-                  not(m_delphi in current_settings.modeswitches) or
                   (
+                   not(m_delphi in current_settings.modeswitches) and
+                   (tobjectdef(def_from).objecttype in [odt_object,odt_class]) and
+                   (tobjectdef(def_to).objecttype in [odt_object,odt_class])
+                  ) or
+                  (
+                   (m_delphi in current_settings.modeswitches) and
                    (tobjectdef(def_from).objecttype=odt_object) and
                    (tobjectdef(def_to).objecttype=odt_object)
                   )
