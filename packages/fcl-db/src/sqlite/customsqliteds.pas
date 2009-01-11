@@ -1130,7 +1130,7 @@ begin
   if TempItem <> nil then
     Result := TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
   else
-    Result := False;
+    Result := Null;
 end;  
 
 procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
