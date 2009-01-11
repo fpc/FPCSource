@@ -2294,7 +2294,7 @@ Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; cons
 
 begin
   CheckBiDirectional;
-  Result := False;
+  Result := Null;
 end;
 
 
