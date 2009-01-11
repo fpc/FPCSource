@@ -254,6 +254,8 @@ const
   {$i xpointer.inc}
 {$UNDEF FUNCTION}
 
+operator := (const S: String): xmlCharPtr; inline;
+
 implementation
 
 procedure fpcxmlFree(mem: pointer); XMLCALL;
@@ -305,6 +307,11 @@ end;
 function BAD_CAST(str: string): xmlCharPtr;
 begin
   result := xmlCharPtr(PChar(str));
+end;
+
+operator := (const S: String): xmlCharPtr; inline;
+begin
+  Result := xmlCharPtr(PChar(S));
 end;
 
 
