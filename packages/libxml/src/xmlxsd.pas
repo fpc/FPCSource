@@ -59,8 +59,11 @@ function xsdParseUnsignedLong(Value: String; var P: QWord): Boolean;
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlNodePtr;
 function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlNodePtr;
 function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlNodePtr;
+function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Date: TDateTime): xmlNodePtr;
 function xsdNewChildTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Hour, Minute, Second: Longword): xmlNodePtr;
+function xsdNewChildTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Time: TDateTime): xmlNodePtr;
 function xsdNewChildDateTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlNodePtr;
+function xsdNewChildDateTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; DateTime: TDateTime): xmlNodePtr;
 function xsdNewChildDecimal(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Extended; Precision: Integer = 4; Digits: Integer = 1): xmlNodePtr;
 function xsdNewChildDouble(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Double): xmlNodePtr;
 function xsdNewChildFloat(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Single): xmlNodePtr;
@@ -77,8 +80,11 @@ function xsdNewChildUnsignedLong(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlChar
 function xsdNewPropString(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlAttrPtr;
 function xsdNewPropBoolean(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlAttrPtr;
 function xsdNewPropDate(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlAttrPtr;
+function xsdNewPropDate(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Date: TDateTime): xmlAttrPtr;
 function xsdNewPropTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Hour, Minute, Second: Longword): xmlAttrPtr;
+function xsdNewPropTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Time: TDateTime): xmlAttrPtr;
 function xsdNewPropDateTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlAttrPtr;
+function xsdNewPropDateTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; DateTime: TDateTime): xmlAttrPtr;
 function xsdNewPropDecimal(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Extended; Precision: Integer = 4; Digits: Integer = 1): xmlAttrPtr;
 function xsdNewPropDouble(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Double): xmlAttrPtr;
 function xsdNewPropFloat(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Single): xmlAttrPtr;
@@ -460,6 +466,14 @@ begin
   Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdNewChildTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Time: TDateTime): xmlNodePtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatTime(Time);
+  Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
+end;
+
 function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlNodePtr;
 var
   Tmp: String;
@@ -468,11 +482,27 @@ begin
   Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Date: TDateTime): xmlNodePtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatDate(Date);
+  Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
+end;
+
 function xsdNewChildDateTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlNodePtr;
 var
   Tmp: String;
 begin
   Tmp := xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second);
+  Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
+end;
+
+function xsdNewChildDateTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; DateTime: TDateTime): xmlNodePtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatDateTime(DateTime);
   Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
 end;
 
@@ -585,6 +615,14 @@ begin
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdNewPropTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Time: TDateTime): xmlAttrPtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatTime(Time);
+  Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
+end;
+
 function xsdNewPropDate(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlAttrPtr;
 var
   Tmp: String;
@@ -593,11 +631,27 @@ begin
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdNewPropDate(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Date: TDateTime): xmlAttrPtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatDate(Date);
+  Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
+end;
+
 function xsdNewPropDateTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlAttrPtr;
 var
   Tmp: String;
 begin
   Tmp := xsdFormatDateTime(Year, Month, Day, Hour, Minute, Second);
+  Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
+end;
+
+function xsdNewPropDateTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; DateTime: TDateTime): xmlAttrPtr;
+var
+  Tmp: String;
+begin
+  Tmp := xsdFormatDateTime(DateTime);
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 

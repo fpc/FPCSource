@@ -255,6 +255,7 @@ const
 {$UNDEF FUNCTION}
 
 operator := (const S: String): xmlCharPtr; inline;
+//operator := (const C: AnsiChar): xmlCharPtr; inline;
 
 implementation
 
@@ -313,6 +314,11 @@ operator := (const S: String): xmlCharPtr; inline;
 begin
   Result := xmlCharPtr(PChar(S));
 end;
+
+{operator := (const C: AnsiChar): xmlCharPtr; inline;
+begin
+  Result := xmlCharPtr(PChar(String(C)));
+end;}
 
 
 (*
