@@ -376,7 +376,7 @@ begin
   BindFields(TRUE);
   if FRecordSize = 0 then
     FRecordSize := FDefaultRecordLength;
-  BookmarkSize := SizeOf(Integer);
+  BookmarkSize := SizeOf(PtrInt);
   FRecInfoOfs := FRecordSize + CalcFieldsSize; // Initialize the offset for TRecInfo in the buffer
   FBookmarkOfs := FRecInfoOfs + SizeOf(TRecInfo);
   FRecBufSize := FBookmarkOfs + BookmarkSize;
@@ -778,12 +778,12 @@ end;
 
 procedure TFixedFormatDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  Move(Buffer[FBookmarkOfs], Data^, BookmarkSize);
+  Move(Buffer[FRecInfoOfs], Data^, BookmarkSize);
 end;
 
 procedure TFixedFormatDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  Move(Data^, Buffer[FBookmarkOfs], BookmarkSize);
+  Move(Data^, Buffer[FRecInfoOfs], BookmarkSize);
 end;
 
 procedure TFixedFormatDataSet.RemoveWhiteLines(List : TStrings; IsFileRecord : Boolean);
