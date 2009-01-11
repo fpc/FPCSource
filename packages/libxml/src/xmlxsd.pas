@@ -16,7 +16,7 @@ uses
   SysUtils;
 
 { Format functions }
-function xsdFormatBoolean(Value: Boolean): String;
+function xsdFormatBoolean(Value: Boolean; UseWords: Boolean = False): String;
 function xsdFormatDate(Year: Longint; Month, Day: Longword): String;
 function xsdFormatDate(Value: TDateTime): String;
 function xsdFormatTime(Hour, Minute, Second: Longword): String;
@@ -57,7 +57,7 @@ function xsdParseUnsignedLong(Value: String; var P: QWord): Boolean;
 
 { Node creation functions }
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlNodePtr;
-function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean): xmlNodePtr;
+function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlNodePtr;
 function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlNodePtr;
 function xsdNewChildTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Hour, Minute, Second: Longword): xmlNodePtr;
 function xsdNewChildDateTime(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlNodePtr;
@@ -75,7 +75,7 @@ function xsdNewChildUnsignedLong(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlChar
 
 { Property creation functions }
 function xsdNewPropString(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlAttrPtr;
-function xsdNewPropBoolean(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean): xmlAttrPtr;
+function xsdNewPropBoolean(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlAttrPtr;
 function xsdNewPropDate(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword): xmlAttrPtr;
 function xsdNewPropTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Hour, Minute, Second: Longword): xmlAttrPtr;
 function xsdNewPropDateTime(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day, Hour, Minute, Second: Longword): xmlAttrPtr;
@@ -150,12 +150,18 @@ function xsdRemoveBlanks(content: xmlCharPtr; out cleaned: string): boolean;
 
 implementation
 
-function xsdFormatBoolean(Value: Boolean): String;
+function xsdFormatBoolean(Value: Boolean; UseWords: Boolean): String;
 begin
-  if Value then
-    Result := 'true'
+  if UseWords then
+    if Value then
+      Result := 'true'
+    else
+      Result := 'false'
   else
-    Result := 'false';
+    if Value then
+      Result := '1'
+    else
+      Result := '0';
 end;
 
 function xsdFormatDate(Year: Longint; Month, Day: Longword): String;
@@ -438,11 +444,11 @@ begin
   Result := xmlNewChild(parent, ns, name, BAD_CAST(Value));
 end;
 
-function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean): xmlNodePtr;
+function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean): xmlNodePtr;
 var
   Tmp: String;
 begin
-  Tmp := xsdFormatBoolean(Value);
+  Tmp := xsdFormatBoolean(Value, UseWords);
   Result := xmlNewChild(parent, ns, name, BAD_CAST(Tmp));
 end;
 
@@ -563,11 +569,11 @@ begin
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Value));
 end;
 
-function xsdNewPropBoolean(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean): xmlAttrPtr;
+function xsdNewPropBoolean(node: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean): xmlAttrPtr;
 var
   Tmp: String;
 begin
-  Tmp := xsdFormatBoolean(Value);
+  Tmp := xsdFormatBoolean(Value, UseWords);
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 
