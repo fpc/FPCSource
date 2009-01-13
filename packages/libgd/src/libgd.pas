@@ -15,6 +15,10 @@ interface
 uses
   ctypes;
 
+//{$if defined(FPC_HAS_FEATURE_DYNLIBS) and (not defined(go32v2))}
+//  {$define DYNLINK}
+//{$endif}
+
 {$IFDEF WINDOWS}
   {$DEFINE DYNLINK}
 {$ENDIF}
@@ -42,6 +46,8 @@ const
   {$DEFINE GDCALL := stdcall}
 {$ELSEIF Defined(UNIX)}
   {$DEFINE GDCALL := cdecl}
+{$ELSEIF Defined(GO32V2)}
+  {$DEFINE GDCALL := oldfpccall}
 {$IFEND}
 
 type
