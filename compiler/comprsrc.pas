@@ -238,13 +238,34 @@ var
   preprocessorbin,
   s : TCmdStr;
   arch : ansistring;
+
+  function WindresFileName(filename: TCmdStr): TCmdStr;
+  // to be on the safe side, only give short file names with forward slashes to
+  // windres
+  var
+    i: longint;
+  begin
+    Result := GetShortName(filename);
+    for I:=1 to Length(Result) do
+    if Result[I] in AllowDirectorySeparators then
+      Result[i]:='/';
+  end;
+
 begin
   srcfilepath:=ExtractFilePath(current_module.mainsource^);
   if output=roRES then
     begin
       s:=target_res.rccmd;
-      Replace(s,'$RES',maybequoted(OutName));
-      Replace(s,'$RC',maybequoted(fname));
+      if target_res.rcbin = 'windres' then
+        begin
+          Replace(s,'$RES',WindresFileName(OutName));
+          Replace(s,'$RC',WindresFileName(fname));
+        end
+      else
+        begin
+          Replace(s,'$RES',maybequoted(OutName));
+          Replace(s,'$RC',maybequoted(fname));
+        end;
       ObjUsed:=False;
     end
   else
@@ -272,7 +293,7 @@ begin
       if fCollectCount=0 then
         s:=s+' '+maybequoted(fname)
       else
-        s:=s+' @'+fScriptName;
+        s:=s+' @'+maybequoted(fScriptName);
     end;
   { windres doesn't like empty include paths }
   if respath='' then
@@ -280,12 +301,12 @@ begin
   Replace(s,'$INC',maybequoted(respath));
   if (output=roRes) and (target_res.rcbin='windres') then
   begin
-    if (srcfilepath<>'') then
-      s:=s+' --include '+maybequoted(srcfilepath);
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
     if FileExists(preprocessorbin,true) then
-      s:=s+' --preprocessor='+preprocessorbin;
+      s:='--preprocessor='+preprocessorbin+' '+s;
+    if (srcfilepath<>'') then
+      s:='--include '+WindresFileName(srcfilepath)+' '+s;
   end;
   Result:=s;
 end;
