@@ -565,7 +565,7 @@
  *
  * Display and format a warning messages, callback.
  *)
-  warningSAXFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  warningSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (**
  * errorSAXFunc:
@@ -575,7 +575,7 @@
  *
  * Display and format an error messages, callback.
  *)
-  errorSAXFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  errorSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (**
  * fatalErrorSAXFunc:
@@ -587,7 +587,7 @@
  * Note: so far fatalError() SAX callbacks are not used, error()
  *       get all the callbacks for errors.
  *)
-  fatalErrorSAXFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  fatalErrorSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (**
  * isStandaloneSAXFunc:

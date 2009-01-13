@@ -34,7 +34,7 @@
  * Callback called when a validity error is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (**
  * xmlValidityWarningFunc:
@@ -47,7 +47,7 @@
  * Callback called when a validity warning is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (*
  * xmlValidCtxt:

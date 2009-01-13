@@ -275,11 +275,6 @@ begin
   ReallocMem(Result, size);
 end;
 
-procedure fpcxmlGenericErrorHandler(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
-begin
-  writeln(msg);
-end;
-
 procedure fpcxmlStructuredErrorHandler(userData: pointer; error: xmlErrorPtr); XMLCALL;
 begin
   writeln('struct error');

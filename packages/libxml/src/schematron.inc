@@ -36,8 +36,8 @@
 (**
  * A schemas validation context
  *)
-  xmlSchematronValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
-  xmlSchematronValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlSchematronValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlSchematronValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
   xmlSchematronParserCtxt = record end;
 

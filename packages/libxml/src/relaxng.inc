@@ -22,8 +22,8 @@
 (**
  * A schemas validation context
  *)
-  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
-  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
   xmlRelaxNGParserCtxt = record end;
 

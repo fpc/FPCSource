@@ -829,7 +829,7 @@
  * Signature of the function to use when there is an error and
  * no parsing or validity context available .
  *)
-  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar; args: array of const); XMLCDECL;
+  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
 
 (**
  * xmlStructuredErrorFunc:
