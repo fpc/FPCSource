@@ -44,10 +44,8 @@ const
 
 {$IF Defined(WINDOWS)}
   {$DEFINE GDCALL := stdcall}
-{$ELSEIF Defined(UNIX)}
+{$ELSE}
   {$DEFINE GDCALL := cdecl}
-{$ELSEIF Defined(GO32V2)}
-  {$DEFINE GDCALL := oldfpccall}
 {$IFEND}
 
 type
