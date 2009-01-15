@@ -240,8 +240,8 @@ var
   arch : ansistring;
 
   function WindresFileName(filename: TCmdStr): TCmdStr;
-  // to be on the safe side, only give short file names with forward slashes to
-  // windres
+  // to be on the safe side, for files that are passed to the preprocessor,
+  // only give short file names with forward slashes to windres
   var
     i: longint;
   begin
@@ -257,15 +257,10 @@ begin
     begin
       s:=target_res.rccmd;
       if target_res.rcbin = 'windres' then
-        begin
-          Replace(s,'$RES',WindresFileName(OutName));
-          Replace(s,'$RC',WindresFileName(fname));
-        end
+        Replace(s,'$RC',WindresFileName(fname))
       else
-        begin
-          Replace(s,'$RES',maybequoted(OutName));
-          Replace(s,'$RC',maybequoted(fname));
-        end;
+        Replace(s,'$RC',maybequoted(fname));
+      Replace(s,'$RES',maybequoted(OutName));
       ObjUsed:=False;
     end
   else
