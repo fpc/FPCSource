@@ -106,7 +106,7 @@ if [ -f $fpccfgfile ] ; then
   fi
 fi
 
-if [ -f $fpinifile -a -f "$FPBIN" ] ; then
+if [ -f $fpinifile -a "$FPBIN" ] ; then
   mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo Saved old fp.ini to $fpinifile.orig
@@ -116,7 +116,7 @@ if [ -f $fpinifile -a -f "$FPBIN" ] ; then
   fi
 fi
 
-if [ -f $fpcfgfile -a -f "$FPBIN" ] ; then
+if [ -f $fpcfgfile -a "$FPBIN" ] ; then
   mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo Saved old fp.cfg to $fpcfgfile.orig
