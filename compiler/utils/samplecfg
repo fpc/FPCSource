@@ -96,7 +96,7 @@ if [ -f "$FPBIN" ] ; then
 fi
 #
 
-if [ -f $fpccfgfile ] ; then
+if [ -f "$fpccfgfile" ] ; then
   mv "$fpccfgfile" "$fpccfgfile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo Saved old compiler config to $fpccfgfile.orig
@@ -106,23 +106,25 @@ if [ -f $fpccfgfile ] ; then
   fi
 fi
 
-if [ -f $fpinifile -a "$FPBIN" ] ; then
-  mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo Saved old fp.ini to $fpinifile.orig
-  else
-    echo Could not save old fp.ini. Bailing out...
-    exit
+if [ -f "$FPBIN" ] ; then
+  if [ -f "$fpinifile" ] ; then
+    mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
+    if [ $? = 0 ]; then
+      echo Saved old fp.ini to $fpinifile.orig
+    else
+      echo Could not save old fp.ini. Bailing out...
+      exit
+    fi
   fi
-fi
 
-if [ -f $fpcfgfile -a "$FPBIN" ] ; then
-  mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo Saved old fp.cfg to $fpcfgfile.orig
-  else
-    echo Could not save old fp.cfg. Bailing out...
-    exit
+  if [ -f "$fpcfgfile" ] ; then
+    mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
+    if [ $? = 0 ]; then
+      echo Saved old fp.cfg to $fpcfgfile.orig
+    else
+      echo Could not save old fp.cfg. Bailing out...
+      exit
+    fi
   fi
 fi
 
@@ -139,7 +141,7 @@ singlearch() {
 }
 
 # include ports tree dir for FreeBSDers.
-case $HOSTOS in
+case "$HOSTOS" in
  freebsd)
     GCCDIR=-Fl/usr/local/lib
      ;;
@@ -209,7 +211,7 @@ case `"$FPCBIN" -PP` in
 esac
 
 # darwin->darwin does not need cross binutils
-case $HOSTOS in
+case "$HOSTOS" in
   darwin)
     CPUCROSSIFDEF2="
 #ifdef darwin
