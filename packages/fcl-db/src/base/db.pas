@@ -618,6 +618,7 @@ type
     FMinValue : Double;
     FPrecision : Longint;
     procedure SetCurrency(const AValue: Boolean);
+    procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
@@ -638,7 +639,7 @@ type
     property Currency: Boolean read FCurrency write SetCurrency default False;
     property MaxValue: Double read FMaxValue write FMaxValue;
     property MinValue: Double read FMinValue write FMinValue;
-    property Precision: Longint read FPrecision write FPrecision default 15;
+    property Precision: Longint read FPrecision write SetPrecision default 15; // min 2 instellen, delphi compat
   end;
 
 { TCurrencyField }
