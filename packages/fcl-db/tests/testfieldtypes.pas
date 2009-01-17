@@ -82,6 +82,10 @@ type
     procedure TestFloatParamQuery;
     procedure TestBCDParamQuery;
     procedure TestAggregates;
+
+    // SchemaType tests
+    procedure TestTableNames;
+    procedure TestFieldNames;
   end;
 
 implementation
@@ -915,6 +919,32 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestTableNames;
+var TableList : TStringList;
+    i         : integer;
+begin
+  TableList := TStringList.Create;
+  try
+    TSQLDBConnector(DBConnector).Connection.GetTableNames(TableList);
+    AssertTrue(TableList.Find('fpdev',i));
+  finally
+    TableList.Free;
+  end;
+end;
+
+procedure TTestFieldTypes.TestFieldNames;
+var FieldList : TStringList;
+    i         : integer;
+begin
+  FieldList := TStringList.Create;
+  try
+    TSQLDBConnector(DBConnector).Connection.GetFieldNames('fpdev',FieldList);
+    AssertTrue(FieldList.Find('id',i));
+  finally
+    FieldList.Free;
+  end;
 end;
 
 procedure TTestFieldTypes.TestInsertReturningQuery;

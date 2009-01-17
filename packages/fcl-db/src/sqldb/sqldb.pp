@@ -90,7 +90,7 @@ type
     procedure Setport(const AValue: cardinal);
   protected
     FConnOptions         : TConnOptions;
-    procedure GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
+    procedure GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
     procedure SetTransaction(Value : TSQLTransaction);virtual;
     function StrToStatementType(s : string) : TStatementType; virtual;
     procedure DoInternalConnect; override;
@@ -209,6 +209,11 @@ type
 
     FServerIndexDefs     : TServerIndexDefs;
 
+    // Used by SetSchemaType
+    FSchemaType          : TSchemaType;
+    FSchemaObjectName    : string;
+    FSchemaPattern       : string;
+
     FUpdateQry,
     FDeleteQry,
     FInsertQry           : TCustomSQLQuery;
@@ -252,7 +257,7 @@ type
     procedure ExecSQL; virtual;
     constructor Create(AOwner : TComponent); override;
     destructor Destroy; override;
-    procedure SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string); virtual;
+    procedure SetSchemaInfo( ASchemaType : TSchemaType; ASchemaObjectName, ASchemaPattern : string); virtual;
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function RowsAffected: TRowsCount; virtual;
@@ -288,7 +293,7 @@ type
     property AutoCalcFields;
     property Database;
   // protected
-//    property SchemaInfo : TSchemaInfo read FSchemaInfo default stNoSchema;
+    property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStringlist read FSQL write FSQL;
@@ -308,6 +313,8 @@ type
 
 { TSQLQuery }
   TSQLQuery = Class(TCustomSQLQuery)
+  public
+    property SchemaType;
   Published
    // TDataset stuff
     Property Active;
@@ -571,7 +578,7 @@ begin
     Delete(IndexOfName('Port'));
 end;
 
-procedure TSQLConnection.GetDBInfo(const SchemaType : TSchemaType; const SchemaObjectName, ReturnField : string; List: TStrings);
+procedure TSQLConnection.GetDBInfo(const ASchemaType : TSchemaType; const ASchemaObjectName, AReturnField : string; AList: TStrings);
 
 var qry : TCustomSQLQuery;
 
@@ -585,12 +592,12 @@ begin
   with qry do
     begin
     ParseSQL := False;
-    SetSchemaInfo(SchemaType,SchemaObjectName,'');
+    SetSchemaInfo(ASchemaType,ASchemaObjectName,'');
     open;
-    List.Clear;
+    AList.Clear;
     while not eof do
       begin
-      List.Append(trim(fieldbyname(ReturnField).asstring));
+      AList.Append(trim(fieldbyname(AReturnField).asstring));
       Next;
       end;
     end;
@@ -781,6 +788,7 @@ var ConnOptions : TConnOptions;
 
 begin
   UnPrepare;
+  FSchemaType:=stNoSchema;
   if (FSQL <> nil) then
     begin
     if assigned(DataBase) then
@@ -915,7 +923,10 @@ begin
     if not Db.Connected then db.Open;
     if not sqltr.Active then sqltr.StartTransaction;
 
-    FSQLBuf := TrimRight(FSQL.Text);
+    if FSchemaType=stNoSchema then
+      FSQLBuf := TrimRight(FSQL.Text)
+    else
+      FSQLBuf := db.GetSchemaInfoSQL(FSchemaType, FSchemaObjectName, FSchemaPattern);
 
     if FSQLBuf = '' then
       DatabaseError(SErrNoStatement);
@@ -1133,8 +1144,10 @@ begin
                          Move(PStatementPart^,FFromPart[1],(StrLength));
                          FFrompart := trim(FFrompart);
 
-                         // select-statements from more then one table are not updateable
-                         if ExtractStrings([',',' '],[],pchar(FFromPart),nil) = 1 then
+                         // Meta-data requests and are never updateable select-statements
+                         // from more then one table are not updateable
+                         if (FSchemaType=stNoSchema) and
+                            (ExtractStrings([',',' '],[],pchar(FFromPart),nil) = 1) then
                            begin
                            FUpdateable := True;
                            FTableName := FFromPart;
@@ -1225,7 +1238,7 @@ begin
       end
     else
       BindFields(True);
-    if not ReadOnly and not FUpdateable then
+    if not ReadOnly and not FUpdateable and (FSchemaType=stNoSchema) then
       begin
       if (trim(FDeleteSQL.Text) <> '') or (trim(FUpdateSQL.Text) <> '') or
          (trim(FInsertSQL.Text) <> '') then FUpdateable := True;
@@ -1271,6 +1284,10 @@ begin
 
   FServerFiltered := False;
   FServerFilterText := '';
+
+  FSchemaType:=stNoSchema;
+  FSchemaObjectName:='';
+  FSchemaPattern:='';
 
 // Delphi has upWhereAll as default, but since strings and oldvalue's don't work yet
 // (variants) set it to upWhereKeyOnly
@@ -1493,12 +1510,12 @@ begin
   FUpdateMode := AValue;
 end;
 
-procedure TCustomSQLQuery.SetSchemaInfo( SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string);
+procedure TCustomSQLQuery.SetSchemaInfo( ASchemaType : TSchemaType; ASchemaObjectName, ASchemaPattern : string);
 
 begin
-  ReadOnly := True;
-  SQL.Clear;
-  SQL.Add(TSQLConnection(DataBase).GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaPattern));
+  FSchemaType:=ASchemaType;
+  FSchemaObjectName:=ASchemaObjectName;
+  FSchemaPattern:=ASchemaPattern;
 end;
 
 procedure TCustomSQLQuery.LoadBlobIntoBuffer(FieldDef: TFieldDef;
