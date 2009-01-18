@@ -1517,7 +1517,7 @@ begin
   Result:=TryEncodeDate(AYear,AMonth,ADay,AValue);
   Result:=Result and TryEncodeTime(AHour,AMinute,ASecond,Amillisecond,Tmp);
   If Result then
-    Avalue:=AValue+Tmp;
+    Avalue:=ComposeDateTime(AValue,Tmp);
 end;
 
 { ---------------------------------------------------------------------
