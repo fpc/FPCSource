@@ -13,6 +13,7 @@ unit libgd;
 interface
 
 uses
+  Classes,
   ctypes;
 
 //{$if defined(FPC_HAS_FEATURE_DYNLIBS) and (not defined(go32v2))}
@@ -727,6 +728,9 @@ function gdNewDynamicCtxEx(size: cint; data: pointer; freeFlag: cint): gdIOCtxPt
 function gdNewSSCtx(_in: gdSourcePtr; _out: gdSinkPtr): gdIOCtxPtr; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdNewSSCtx@8'{$ENDIF};
 function gdDPExtractData(ctx: gdIOCtxPtr; size: pcint): pointer; GDCALL; BGD_DECLARE {$IFDEF WINDOWS}name '_gdDPExtractData@8'{$ENDIF};
 
+function gdNewStreamCtx(Stream: TStream; free: boolean): gdIOCtxPtr;
+// NOTE: don't forget to call ctx^.gd_free(ctx)
+
 const
   GD2_CHUNKSIZE           = 128;
   GD2_CHUNKSIZE_MIN       = 64;
@@ -966,6 +970,83 @@ end;
 procedure gdImageStringUp16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: WideString; color: cint);
 begin
   gdImageStringUp16(im,f,x,y,PWideChar(s),color);
+end;
+
+type
+  stream_gdIOCtxPtr = ^stream_gdIOCtx;
+  stream_gdIOCtx = record
+    ctx: gdIOCtx;
+    strm: TStream;
+    free: Boolean;
+  end;
+
+function stream_getC(ctx: gdIOCtxPtr): cint; GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  result := 255;
+  s^.strm.read(result, 1);
+end;
+
+function stream_getBuf(ctx: gdIOCtxPtr; buf: pointer; len: cint): cint; GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  result := s^.strm.read(buf^, len);
+end;
+
+procedure stream_putC(ctx: gdIOCtxPtr; len: cint); GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  s^.strm.write(len, 1);
+end;
+
+procedure stream_putBuf(ctx: gdIOCtxPtr; buf: pointer; len: cint); GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  s^.strm.write(buf^, len);
+end;
+
+function stream_seek(ctx: gdIOCtxPtr; pos: cint): cint; GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  result := s^.strm.seek(soFromBeginning, pos);
+end;
+
+function stream_tell(ctx: gdIOCtxPtr): clong; GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  result := s^.strm.position;
+end;
+
+procedure stream_gd_free(ctx: gdIOCtxPtr); GDCALL;
+var
+  s: stream_gdIOCtxPtr absolute ctx;
+begin
+  if s^.free then
+    s^.strm.Free;
+  FreeMem(s);
+end;
+
+function gdNewStreamCtx(Stream: TStream; free: boolean): gdIOCtxPtr;
+var
+  res: stream_gdIOCtxPtr;
+begin
+  GetMem(res, Sizeof(stream_gdIOCtx));
+  res^.ctx.getC := @stream_getC;
+  res^.ctx.getBuf := @stream_getBuf;
+  res^.ctx.putC := @stream_putC;
+  res^.ctx.putBuf := @stream_putBuf;
+  res^.ctx.seek := @stream_seek;
+  res^.ctx.tell := @stream_tell;
+  res^.ctx.gd_free := @stream_gd_free;
+  res^.strm := Stream;
+  res^.free := free;
+  Result := @res^.ctx;
 end;
 
 end.
