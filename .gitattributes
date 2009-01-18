@@ -5707,8 +5707,10 @@ rtl/nds/classes.pp -text
 rtl/nds/cprt07.as svneol=native#text/plain
 rtl/nds/cprt09.as svneol=native#text/plain
 rtl/nds/dos.pp -text
+rtl/nds/nds.inc svneol=native#text/plain
 rtl/nds/ndsbios.inc -text
 rtl/nds/ndsbiosh.inc -text
+rtl/nds/ndsh.inc svneol=native#text/plain
 rtl/nds/prt07.as svneol=native#text/plain
 rtl/nds/prt09.as svneol=native#text/plain
 rtl/nds/sysdir.inc -text

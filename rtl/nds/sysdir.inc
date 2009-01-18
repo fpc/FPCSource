@@ -19,20 +19,28 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
+procedure mkdir(const s: string);[IOCheck];
 begin
+  if FileIODevice.DirIO.DoMkdir <> nil then
+    FileIODevice.DirIO.DoMkdir(s);
 end;
 
-procedure rmdir(const s : string);[IOCheck];
+procedure rmdir(const s: string);[IOCheck];
 begin
+  if FileIODevice.DirIO.DoRmdir <> nil then
+    FileIODevice.DirIO.DoRmdir(s);
 end;
 
-procedure chdir(const s : string);[IOCheck];
+procedure chdir(const s: string);[IOCheck];
 begin
+  if FileIODevice.DirIO.DoChdir <> nil then
+    FileIODevice.DirIO.DoChdir(s);
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure GetDir(DriveNr: byte; var Dir: ShortString);
 begin
+  if FileIODevice.DirIO.DoGetdir <> nil then
+    FileIODevice.DirIO.DoGetdir(DriveNr, Dir);
 end;
 
 

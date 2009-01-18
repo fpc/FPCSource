@@ -64,9 +64,9 @@ _start:
 	mcr	p15, 0, r0, c6, c1, 0
 
 	@-------------------------------------------------------------------------
-	@ Region 2 - iwram
+	@ Region 2 - alternate vector base
 	@-------------------------------------------------------------------------
-	ldr	r0,=( (0b01110 << 1) | 0x037F8000 | 1)	
+	ldr r0,=( (0b01011 << 1) | 0x00000000 | 1)
 	mcr	p15, 0, r0, c6, c2, 0
 
 	@-------------------------------------------------------------------------
@@ -86,6 +86,9 @@ _start:
 	@ Region 5 - ITCM
 	@-------------------------------------------------------------------------
 	ldr	r0,=__itcm_start
+	@ align to 32k boundary
+	mov     r0,r0,lsr #15
+	mov     r0,r0,lsl #15
 	orr	r0,r0,#((0b01110 << 1) | 1)
 	mcr	p15, 0, r0, c6, c5, 0
 
@@ -110,21 +113,20 @@ _start:
 	@-------------------------------------------------------------------------
 	@ DCache & ICache enable
 	@-------------------------------------------------------------------------
-	ldr	r0,=0b01000110
-	ldr	r0,=0x42
+	ldr	r0,=0b01000010
 	mcr	p15, 0, r0, c2, c0, 0
 	mcr	p15, 0, r0, c2, c0, 1
 
 	@-------------------------------------------------------------------------
 	@ IAccess
 	@-------------------------------------------------------------------------
-	ldr	r0,=0x36636333
+	ldr	r0,=0x36636633
 	mcr	p15, 0, r0, c5, c0, 3
 
 	@-------------------------------------------------------------------------
 	@ DAccess
 	@-------------------------------------------------------------------------
-	ldr	r0,=0x36333333
+	ldr	r0,=0x36333633
 	mcr     p15, 0, r0, c5, c0, 2
 
 	@-------------------------------------------------------------------------
@@ -147,12 +149,20 @@ _start:
 	msr	cpsr, r0
 	ldr	sp, =__sp_usr		@ Set user stack
 
-	ldr	r1, =__itcm_lma		@ Copy instruction tightly coupled memory (itcm section) from LMA to VMA (ROM to RAM)
+	ldr	r1, =__itcm_lma		@ Copy instruction tightly coupled memory (itcm section) from LMA to VMA
 	ldr	r2, =__itcm_start
 	ldr	r4, =__itcm_end
 	bl	CopyMemCheck
 
-	ldr	r1, =__dtcm_lma		@ Copy data tightly coupled memory (dtcm section) from LMA to VMA (ROM to RAM)
+	ldr     r1, =__vectors_lma              @ Copy reserved vectors area (itcm section) from LMA to VMA
+	ldr     r2, =__itcm_start               @ alternate vectors based accessed via itcm mirror
+	mov     r2,r2,lsr #15                   @ rounded to 32k boundary
+	mov     r2,r2,lsl #15
+	ldr     r4, =__vectors_end
+	add r4,r4,r2
+	bl      CopyMemCheck
+
+	ldr	r1, =__dtcm_lma		@ Copy data tightly coupled memory (dtcm section) from LMA to VMA
 	ldr	r2, =__dtcm_start
 	ldr	r4, =__dtcm_end
 	bl	CopyMemCheck
@@ -173,12 +183,6 @@ _start:
 	ldr	r0, =__eheap_end
 	str	r0, [r1]
 	
-	ldr	r3, =__libc_init_array	@ global constructors
-	blx	r3
-
-	ldr	r3,	=initSystem
-	blx	r3	@	jump to user code
-
 	ldr	r0,	=_libnds_argv
 
 	@ reset heap base
@@ -186,8 +190,16 @@ _start:
 	ldr	r1,=fake_heap_start
 	str	r2,[r1]
 
+	push    {r0}
+	ldr     r3, =initSystem
+	blx     r3                      @ system initialisation
+	ldr     r3, =__libc_init_array  @ global constructors
+	blx     r3	
+	pop     {r0}
+
 	ldr	r1, [r0,#16]            @ argv
 	ldr	r0, [r0,#12]            @ argc
+
 
 	ldr	r3, =main
 	blx	r3		@ jump to user code

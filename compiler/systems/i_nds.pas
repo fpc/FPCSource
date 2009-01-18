@@ -34,12 +34,13 @@ unit i_nds;
             system       : system_arm_nds;
             name         : 'Nintendo DS';
             shortname    : 'nds';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
-	                          ,tf_smartlink_sections,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,
+	                          tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
-            extradefines : '';
-            exeext       : '.bin';
+            extradefines : 'CPUARMEL';
+            exeext       : '.nef';//'.bin';
             defext       : '.def';
             scriptext    : '.sh';
             smartext     : '.sl';
@@ -65,7 +66,7 @@ unit i_nds;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -75,18 +76,18 @@ unit i_nds;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;//4;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 8;//4;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 8;//4;
+                maxCrecordalign : 8//4
               );
             first_parm_offset : 8;
-            stacksize    : 16384;
-            abi : abi_default
+            stacksize    : $3CFF; //15615? or 16384?;
+            abi : abi_eabi
           );
 
   implementation
