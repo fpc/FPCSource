@@ -4,14 +4,14 @@
 }
 
 (******************************************************************************
- * $Id: projects.h 1504 2009-01-06 02:11:57Z warmerdam $
+ * $Id: proj_api.h,v 1.17 2008/07/21 20:47:09 fwarmerdam Exp $
  *
  * Project:  PROJ.4
- * Purpose:  Primary (private) include file for PROJ.4 library.
- * Author:   Gerald Evenden
+ * Purpose:  Public (application) include file for PROJ.4 API, and constants.
+ * Author:   Frank Warmerdam, <warmerdam@pobox.com>
  *
  ******************************************************************************
- * Copyright (c) 2000, Frank Warmerdam
+ * Copyright (c) 2001, Frank Warmerdam <warmerdam@pobox.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -30,12 +30,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
- *****************************************************************************)
+ ******************************************************************************)
 
 unit proj;
 
 {$mode objfpc}
 {$MINENUMSIZE 4}
+{$h+}
 
 interface
 
@@ -59,343 +60,523 @@ const
   {$LINKLIB proj}
 {$ENDIF}
 
+{ List of projections (proj=)
+        aea : Albers Equal Area
+        	Conic Sph&Ell
+        	lat_1= lat_2=
+        aeqd : Azimuthal Equidistant
+        	Azi, Sph&Ell
+        	lat_0 guam
+        airy : Airy
+        	Misc Sph, no inv.
+        	no_cut lat_b=
+        aitoff : Aitoff
+        	Misc Sph
+        alsk : Mod. Stererographics of Alaska
+        	Azi(mod)
+        apian : Apian Globular I
+        	Misc Sph, no inv.
+        august : August Epicycloidal
+        	Misc Sph, no inv.
+        bacon : Bacon Globular
+        	Misc Sph, no inv.
+        bipc : Bipolar conic of western hemisphere
+        	Conic Sph.
+        boggs : Boggs Eumorphic
+        	PCyl., no inv., Sph.
+        bonne : Bonne (Werner lat_1=90)
+        	Conic Sph&Ell
+        	lat_1=
+        cass : Cassini
+        	Cyl, Sph&Ell
+        cc : Central Cylindrical
+        	Cyl, Sph
+        cea : Equal Area Cylindrical
+        	Cyl, Sph&Ell
+        	lat_ts=
+        chamb : Chamberlin Trimetric
+        	Misc Sph, no inv.
+        	lat_1= lon_1= lat_2= lon_2= lat_3= lon_3=
+        collg : Collignon
+        	PCyl, Sph.
+        crast : Craster Parabolic (Putnins P4)
+        	PCyl., Sph.
+        denoy : Denoyer Semi-Elliptical
+        	PCyl., no inv., Sph.
+        eck1 : Eckert I
+        	PCyl., Sph.
+        eck2 : Eckert II
+        	PCyl. Sph.
+        eck3 : Eckert III
+        	PCyl, Sph.
+        eck4 : Eckert IV
+        	PCyl, Sph.
+        eck5 : Eckert V
+        	PCyl, Sph.
+        eck6 : Eckert VI
+        	PCyl, Sph.
+        eqc : Equidistant Cylindrical (Plate Caree)
+        	Cyl, Sph
+        	lat_ts=
+        eqdc : Equidistant Conic
+        	Conic, Sph&Ell
+        	lat_1= lat_2=
+        euler : Euler
+        	Conic, Sph
+        	lat_1= and lat_2=
+        fahey : Fahey
+        	Pcyl, Sph.
+        fouc : Foucaut
+        	PCyl., Sph.
+        fouc_s : Foucaut Sinusoidal
+        	PCyl., Sph.
+        gall : Gall (Gall Stereographic)
+        	Cyl, Sph
+        geos : Geostationary Satellite View
+        	Azi, Sph&Ell
+        	h=
+        gins8 : Ginsburg VIII (TsNIIGAiK)
+        	PCyl, Sph., no inv.
+        gn_sinu : General Sinusoidal Series
+        	PCyl, Sph.
+        	m= n=
+        gnom : Gnomonic
+        	Azi, Sph.
+        goode : Goode Homolosine
+        	PCyl, Sph.
+        gs48 : Mod. Stererographics of 48 U.S.
+        	Azi(mod)
+        gs50 : Mod. Stererographics of 50 U.S.
+        	Azi(mod)
+        hammer : Hammer & Eckert-Greifendorff
+        	Misc Sph, no inv.
+        	W= M=
+        hatano : Hatano Asymmetrical Equal Area
+        	PCyl, Sph.
+        imw_p : International Map of the World Polyconic
+        	Mod. Polyconic, Ell
+        	lat_1= and lat_2= [lon_1=]
+        kav5 : Kavraisky V
+        	PCyl., Sph.
+        kav7 : Kavraisky VII
+        	PCyl, Sph.
+        krovak : Krovak
+        	PCyl., Ellps.
+        labrd : Laborde
+        	Cyl, Sph
+        	Special for Madagascar
+        laea : Lambert Azimuthal Equal Area
+        	Azi, Sph&Ell
+        lagrng : Lagrange
+        	Misc Sph, no inv.
+        	W=
+        larr : Larrivee
+        	Misc Sph, no inv.
+        lask : Laskowski
+        	Misc Sph, no inv.
+        lonlat : Lat/long (Geodetic)
 
-(***********************************************************************)
-(* Header : projects.h                                                 *)
-(***********************************************************************)
+        latlon : Lat/long (Geodetic alias)
 
-(* prototype hypot for systems where absent *)
-#ifndef _WIN32
-extern double hypot(double, double);
-#endif
+        lcc : Lambert Conformal Conic
+        	Conic, Sph&Ell
+        	lat_1= and lat_2= or lat_0
+        lcca : Lambert Conformal Conic Alternative
+        	Conic, Sph&Ell
+        	lat_0=
+        leac : Lambert Equal Area Conic
+        	Conic, Sph&Ell
+        	lat_1= south
+        lee_os : Lee Oblated Stereographic
+        	Azi(mod)
+        loxim : Loximuthal
+        	PCyl Sph
+        lsat : Space oblique for LANDSAT
+        	Cyl, Sph&Ell
+        	lsat= path=
+        mbt_s : McBryde-Thomas Flat-Polar Sine (No. 1)
+        	PCyl., Sph.
+        mbt_fps : McBryde-Thomas Flat-Pole Sine (No. 2)
+        	Cyl., Sph.
+        mbtfpp : McBride-Thomas Flat-Polar Parabolic
+        	Cyl., Sph.
+        mbtfpq : McBryde-Thomas Flat-Polar Quartic
+        	Cyl., Sph.
+        mbtfps : McBryde-Thomas Flat-Polar Sinusoidal
+        	PCyl, Sph.
+        merc : Mercator
+        	Cyl, Sph&Ell
+        	lat_ts=
+        mil_os : Miller Oblated Stereographic
+        	Azi(mod)
+        mill : Miller Cylindrical
+        	Cyl, Sph
+        moll : Mollweide
+        	PCyl., Sph.
+        murd1 : Murdoch I
+        	Conic, Sph
+        	lat_1= and lat_2=
+        murd2 : Murdoch II
+        	Conic, Sph
+        	lat_1= and lat_2=
+        murd3 : Murdoch III
+        	Conic, Sph
+        	lat_1= and lat_2=
+        nell : Nell
+        	PCyl., Sph.
+        nell_h : Nell-Hammer
+        	PCyl., Sph.
+        nicol : Nicolosi Globular
+        	Misc Sph, no inv.
+        nsper : Near-sided perspective
+        	Azi, Sph
+        	h=
+        nzmg : New Zealand Map Grid
+        	fixed Earth
+        ob_tran : General Oblique Transformation
+        	Misc Sph
+        	o_proj= plus parameters for projection
+        	o_lat_p= o_lon_p= (new pole) or
+        	o_alpha= o_lon_c= o_lat_c= or
+        	o_lon_1= o_lat_1= o_lon_2= o_lat_2=
+        ocea : Oblique Cylindrical Equal Area
+        	Cyl, Sphlonc= alpha= or
+        	lat_1= lat_2= lon_1= lon_2=
+        oea : Oblated Equal Area
+        	Misc Sph
+        	n= m= theta=
+        omerc : Oblique Mercator
+        	Cyl, Sph&Ell
+        	 no_rot rot_conv no_uoff and
+        	alpha= lonc= or
+        	 lon_1= lat_1= lon_2= lat_2=
+        ortel : Ortelius Oval
+        	Misc Sph, no inv.
+        ortho : Orthographic
+        	Azi, Sph.
+        pconic : Perspective Conic
+        	Conic, Sph
+        	lat_1= and lat_2=
+        poly : Polyconic (American)
+        	Conic, Sph&Ell
+        putp1 : Putnins P1
+        	PCyl, Sph.
+        putp2 : Putnins P2
+        	PCyl., Sph.
+        putp3 : Putnins P3
+        	PCyl., Sph.
+        putp3p : Putnins P3'
+        	PCyl., no inv., Sph.
+        putp4p : Putnins P4'
+        	PCyl., Sph.
+        putp5 : Putnins P5
+        	PCyl., Sph.
+        putp5p : Putnins P5'
+        	PCyl., Sph.
+        putp6 : Putnins P6
+        	PCyl., Sph.
+        putp6p : Putnins P6'
+        	PCyl., Sph.
+        qua_aut : Quartic Authalic
+        	PCyl., Sph.
+        robin : Robinson
+        	PCyl., Sph.
+        rouss : Roussilhe Stereographic
+        	Azi., Ellps.
+        rpoly : Rectangular Polyconic
+        	Conic, Sph., no inv.
+        	lat_ts=
+        sinu : Sinusoidal (Sanson-Flamsteed)
+        	PCyl, Sph&Ell
+        somerc : Swiss. Obl. Mercator
+        	Cyl, Ell
+        	For CH1903
+        stere : Stereographic
+        	Azi, Sph&Ell
+        	lat_ts=
+        sterea : Oblique Stereographic Alternative
+        	Azimuthal, Sph&Ell
+        tcc : Transverse Central Cylindrical
+        	Cyl, Sph, no inv.
+        tcea : Transverse Cylindrical Equal Area
+        	Cyl, Sph
+        tissot : Tissot
+        	Conic, Sph
+        	lat_1= and lat_2=
+        tmerc : Transverse Mercator
+        	Cyl, Sph&Ell
+        tpeqd : Two Point Equidistant
+        	Misc Sph
+        	lat_1= lon_1= lat_2= lon_2=
+        tpers : Tilted perspective
+        	Azi, Sph
+        	tilt= azi= h=
+        ups : Universal Polar Stereographic
+        	Azi, Sph&Ell
+        	south
+        urm5 : Urmaev V
+        	PCyl., Sph.
+        	n= q= alphi=
+        urmfps : Urmaev Flat-Polar Sinusoidal
+        	PCyl, Sph.
+        	n=
+        utm : Universal Transverse Mercator (UTM)
+        	Cyl, Sph
+        	zone= south
+        vandg : van der Grinten (I)
+        	Misc Sph
+        vandg2 : van der Grinten II
+        	Misc Sph, no inv.
+        vandg3 : van der Grinten III
+        	Misc Sph, no inv.
+        vandg4 : van der Grinten IV
+        	Misc Sph, no inv.
+        vitk1 : Vitkovsky I
+        	Conic, Sph
+        	lat_1= and lat_2=
+        wag1 : Wagner I (Kavraisky VI)
+        	PCyl, Sph.
+        wag2 : Wagner II
+        	PCyl., Sph.
+        wag3 : Wagner III
+        	PCyl., Sph.
+        	lat_ts=
+        wag4 : Wagner IV
+        	PCyl., Sph.
+        wag5 : Wagner V
+        	PCyl., Sph.
+        wag6 : Wagner VI
+        	PCyl, Sph.
+        wag7 : Wagner VII
+        	Misc Sph, no inv.
+        weren : Werenskiold I
+        	PCyl., Sph.
+        wink1 : Winkel I
+        	PCyl., Sph.
+        	lat_ts=
+        wink2 : Winkel II
+        	PCyl., Sph., no inv.
+        	lat_1=
+        wintri : Winkel Tripel
+        	Misc Sph
+        	lat_1
+}
 
-#ifdef _WIN32_WCE
-#  include <wce_stdlib.h>
-#  include <wce_stdio.h>
-#  define rewind wceex_rewind
-#  define getenv wceex_getenv
-#  define strdup _strdup
-#  define hypot _hypot
-#endif
+type
+  size_t = ptrint;
 
-(* some useful constants *)
+
+(* Try to update this every version! *)
 const
-  HALFPI    = 1.5707963267948966;
-  FORTPI    = 0.78539816339744833;
-  PI        = 3.14159265358979323846;
-  TWOPI     = 6.2831853071795864769;
+  PJ_VERSION = 461;
 
-(* maximum tag id length for +init and default files *)
-  ID_TAG_MAX = 50;
+//extern char const pj_release[]; /* global release id string */
 
-(* directory delimiter for DOS support *)
-{$IFDEF WINDOWS}
-  DIR_CHAR = '\\';
-{$ELSE}
-  DIR_CHAR = '/';
-{$ENDIF}
+const
+  RAD_TO_DEG = 57.29577951308232;
+  DEG_TO_RAD = 0.0174532925199432958;
 
-(* datum_type values *)
-  PJD_UNKNOWN   = 0;
-  PJD_3PARAM    = 1;   
-  PJD_7PARAM    = 2;  
-  PJD_GRIDSHIFT = 3;
-  PJD_WGS84     = 4;   (* WGS84 (or anything considered equivelent) *)
 
-(* datum system errors *)
-  PJD_ERR_GEOCENTRIC = -45;
+//extern int pj_errno;	/* global error return code */
 
 type
   projUV = record
-    u,v: double;
+    u, v: cdouble;
   end;
 
-  COMPLEX = record
-    r,i: double;
-  end;
+  projPJ = pointer;
+  projXY = projUV;
+  projLP = projUV;
 
-(*#ifndef PJ_LIB__
-#define XY projUV
-#define LP projUV
-#else
-typedef struct { double x, y; }     XY;
-typedef struct { double lam, phi; } LP;
-#endif*)
-
-typedef union { double  f; int  i; char *s; } PVALUE;
-struct PJconsts;
-    
-struct PJ_LIST {
-  char  *id;    (* projection keyword *)
-  struct PJconsts *(*proj)(struct PJconsts*);(* projection entry point *)
-  char  * const *descr; (* description text *)
-};
-struct PJ_ELLPS {
-  char  *id;  (* ellipse keyword name *)
-  char  *major; (* a= value *)
-  char  *ell; (* elliptical parameter *)
-  char  *name;  (* comments *)
-};
-struct PJ_UNITS {
-  char  *id;  (* units keyword *)
-  char  *to_meter;  (* multiply by value to get meters *)
-  char  *name;  (* comments *)
-};
-
-struct PJ_DATUMS {
-    char    *id;     (* datum keyword *)
-    char    *defn;   (* ie. "to_wgs84=..." *)
-    char    *ellipse_id; (* ie from ellipse table *)
-    char    *comments; (* EPSG code, etc *)
-};
-
-struct PJ_PRIME_MERIDIANS {
-    char    *id;     (* prime meridian keyword *)
-    char    *defn;   (* offset from greenwich in DMS format. *)
-};
-
-struct DERIVS {
-    double x_l, x_p; (* derivatives of x for lambda-phi *)
-    double y_l, y_p; (* derivatives of y for lambda-phi *)
-};
-    
-struct FACTORS {
-  struct DERIVS der;
-  double h, k;  (* meridinal, parallel scales *)
-  double omega, thetap; (* angular distortion, theta prime *)
-  double conv;  (* convergence *)
-  double s;   (* areal scale factor *)
-  double a, b;  (* max-min scale error *)
-  int code;   (* info as to analytics, see following *)
-};
-#define IS_ANAL_XL_YL 01  (* derivatives of lon analytic *)
-#define IS_ANAL_XP_YP 02  (* derivatives of lat analytic *)
-#define IS_ANAL_HK  04    (* h and k analytic *)
-#define IS_ANAL_CONV 010  (* convergence analytic *)
-    (* parameter list struct *)
-typedef struct ARG_list {
-  struct ARG_list *next;
-  char used;
-  char param[1]; } paralist;
-  (* base projection data structure *)
-
-
-typedef struct PJconsts {
-  XY  (*fwd)(LP, struct PJconsts *);
-  LP  (*inv)(XY, struct PJconsts *);
-  void (*spc)(LP, struct PJconsts *, struct FACTORS *);
-  void (*pfree)(struct PJconsts *);
-  const char *descr;
-  paralist *params;   (* parameter list *)
-  int over;   (* over-range flag *)
-  int geoc;   (* geocentric latitude flag *)
-        int is_latlong; (* proj=latlong ... not really a projection at all *)
-        int is_geocent; (* proj=geocent ... not really a projection at all *)
-  double
-    a,  (* major axis or radius if es==0 *)
-                a_orig, (* major axis before any +proj related adjustment *)
-    es, (* e ^ 2 *)
-                es_orig, (* es before any +proj related adjustment *)
-    e,  (* eccentricity *)
-    ra, (* 1/A *)
-    one_es, (* 1 - e^2 *)
-    rone_es, (* 1/one_es *)
-    lam0, phi0, (* central longitude, latitude *)
-    x0, y0, (* easting and northing *)
-    k0, (* general scaling factor *)
-    to_meter, fr_meter; (* cartesian scaling *)
-    
-        int     datum_type; (* PJD_UNKNOWN/3PARAM/7PARAM/GRIDSHIFT/WGS84 *)
-        double  datum_params[7];
-        double  from_greenwich; (* prime meridian offset (in radians) *)
-        double  long_wrap_center; (* 0.0 for -180 to 180, actually in radians*)
-        
-#ifdef PROJ_PARMS__
-PROJ_PARMS__
-#endif (* end of optional extensions *)
-} PJ;
-
-(* public API *)
-#include "proj_api.h"
-
-(* Generate pj_list external or make list from include file *)
-#ifndef PJ_LIST_H
-extern struct PJ_LIST pj_list[];
-#else
-#define PROJ_HEAD(id, name) \
-    struct PJconsts *pj_##id(struct PJconsts*); extern char * const pj_s_##id;
-    
-#ifndef lint
-#define DO_PJ_LIST_ID
-#endif
-#include PJ_LIST_H
-#ifndef lint
-#undef DO_PJ_LIST_ID
-#endif
-#undef PROJ_HEAD
-#define PROJ_HEAD(id, name) {#id, pj_##id, &pj_s_##id},
-  struct PJ_LIST
-pj_list[] = {
-#include PJ_LIST_H
-    {0,     0,  0},
-  };
-#undef PROJ_HEAD
-#endif
-
-#ifndef PJ_ELLPS__
-extern struct PJ_ELLPS pj_ellps[];
-#endif
-
-#ifndef PJ_UNITS__
-extern struct PJ_UNITS pj_units[];
-#endif
-
-#ifndef PJ_DATUMS__
-extern struct PJ_DATUMS pj_datums[];
-extern struct PJ_PRIME_MERIDIANS pj_prime_meridians[];
-#endif
-
-#ifdef PJ_LIB__
-    (* repeatative projection code *)
-#define PROJ_HEAD(id, name) static const char des_##id [] = name
-#define ENTRYA(name) \
-        C_NAMESPACE_VAR const char * const pj_s_##name = des_##name; \
-  C_NAMESPACE PJ *pj_##name(PJ *P) { if (!P) { \
-  if( (P = (PJ*) pj_malloc(sizeof(PJ))) != NULL) { \
-  P->pfree = freeup; P->fwd = 0; P->inv = 0; \
-  P->spc = 0; P->descr = des_##name;
-#define ENTRYX } return P; } else {
-#define ENTRY0(name) ENTRYA(name) ENTRYX
-#define ENTRY1(name, a) ENTRYA(name) P->a = 0; ENTRYX
-#define ENTRY2(name, a, b) ENTRYA(name) P->a = 0; P->b = 0; ENTRYX
-#define ENDENTRY(p) } return (p); }
-#define E_ERROR(err) { pj_errno = err; freeup(P); return(0); }
-#define E_ERROR_0 { freeup(P); return(0); }
-#define F_ERROR { pj_errno = -20; return(xy); }
-#define I_ERROR { pj_errno = -20; return(lp); }
-#define FORWARD(name) static XY name(LP lp, PJ *P) { XY xy = {0.0,0.0}
-#define INVERSE(name) static LP name(XY xy, PJ *P) { LP lp = {0.0,0.0}
-#define FREEUP static void freeup(PJ *P) {
-#define SPECIAL(name) static void name(LP lp, PJ *P, struct FACTORS *fac)
-#endif
-#define MAX_TAB_ID 80
-typedef struct { float lam, phi; } FLP;
-typedef struct { int lam, phi; } ILP;
-
-struct CTABLE {
-  char id[MAX_TAB_ID]; (* ascii info *)
-  LP ll;      (* lower left corner coordinates *)
-  LP del;     (* size of cells *)
-  ILP lim;    (* limits of conversion matrix *)
-  FLP *cvs;   (* conversion matrix *)
-};
-
-typedef struct _pj_gi {
-    char *gridname;   (* identifying name of grid, eg "conus" or ntv2_0.gsb *)
-    char *filename;   (* full path to filename *)
-    
-    const char *format; (* format of this grid, ie "ctable", "ntv1", 
-                           "ntv2" or "missing". *)
-
-    int   grid_offset; (* offset in file, for delayed loading *)
-
-    struct CTABLE *ct;
-
-    struct _pj_gi *next;
-    struct _pj_gi *child;
-} PJ_GRIDINFO;
 
 (* procedure prototypes *)
-double dmstor(const char *, char **);
-void set_rtodms(int, int);
-char *rtodms(char *, double, int, int);
-double adjlon(double);
-double aacos(double), aasin(double), asqrt(double), aatan2(double, double);
-PVALUE pj_param(paralist *, char *);
-paralist *pj_mkparam(char *);
-int pj_ell_set(paralist *, double *, double *);
-int pj_datum_set(paralist *, PJ *);
-int pj_prime_meridian_set(paralist *, PJ *);
-int pj_angular_units_set(paralist *, PJ *);
-double *pj_enfn(double);
-double pj_mlfn(double, double, double, double *);
-double pj_inv_mlfn(double, double, double *);
-double pj_qsfn(double, double, double);
-double pj_tsfn(double, double, double);
-double pj_msfn(double, double, double);
-double pj_phi2(double, double);
-double pj_qsfn_(double, PJ *);
-double *pj_authset(double);
-double pj_authlat(double, double *);
-COMPLEX pj_zpoly1(COMPLEX, COMPLEX *, int);
-COMPLEX pj_zpolyd1(COMPLEX, COMPLEX *, int, COMPLEX *);
-FILE *pj_open_lib(char *, char *);
+function pj_fwd(val: projLP; proj: projPJ): projXY; cdecl; external;
+function pj_inv(val: projXY; proj: projPJ): projLP; cdecl; external;
+function pj_transform(src, dst: projPJ; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
+function pj_datum_transform(src, dst: projPJ; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
+function pj_geocentric_to_geodetic(a, es: cdouble; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
+function pj_geodetic_to_geocentric(a, es: cdouble; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
+function pj_compare_datums(srcdefn: projPJ; dstdefn: projPJ): cint; cdecl; external;
+function pj_apply_gridshift(c: pchar; i: cint; point_count: clong; point_offset: cint; x,y,z: pcdouble): cint; cdecl; external;
 
-int pj_deriv(LP, double, PJ *, struct DERIVS *);
-int pj_factors(LP, PJ *, double, struct FACTORS *);
+type
+  projFinder = function(s: pchar): pchar; cdecl;
 
-struct PW_COEF {(* row coefficient structure *)
-    int m;    (* number of c coefficients (=0 for none) *)
-    double *c;  (* power coefficients *)
-};
- 
-(* Approximation structures and procedures *)
-typedef struct {  (* Chebyshev or Power series structure *)
-  projUV a, b;    (* power series range for evaluation *)
-          (* or Chebyshev argument shift/scaling *)
-  struct PW_COEF *cu, *cv;
-  int mu, mv;   (* maximum cu and cv index (+1 for count) *)
-  int power;    (* != 0 if power series, else Chebyshev *)
-} Tseries;
-Tseries *mk_cheby(projUV, projUV, double, projUV *, projUV (*)(projUV), int, int, int);
-projUV bpseval(projUV, Tseries *);
-projUV bcheval(projUV, Tseries *);
-projUV biveval(projUV, Tseries *);
-void *vector1(int, int);
-void **vector2(int, int, int);
-void freev2(void **v, int nrows);
-int bchgen(projUV, projUV, int, int, projUV **, projUV(*)(projUV));
-int bch2bps(projUV, projUV, projUV **, int, int);
-(* nadcon related protos *)
-LP nad_intr(LP, struct CTABLE *);
-LP nad_cvt(LP, int, struct CTABLE *);
-struct CTABLE *nad_init(char *);
-struct CTABLE *nad_ctable_init( FILE * fid );
-int nad_ctable_load( struct CTABLE *, FILE * fid );
-void nad_free(struct CTABLE *);
+procedure pj_deallocate_grids; cdecl; external;
+function pj_is_latlong(proj: projPJ): cint; cdecl; external;
+function pj_is_geocent(proj: projPJ): cint; cdecl; external;
+procedure pj_pr_list(proj: projPJ); cdecl; external;
+procedure pj_free(proj: projPJ); cdecl; external;
+procedure pj_set_finder(finder: projFinder); cdecl; external;
+procedure pj_set_searchpath(count: cint; path: ppchar); cdecl; external;
+function pj_init(argc: cint; argv: ppchar): projPJ; cdecl; external;
+function pj_init_plus(args: pchar): projPJ; cdecl; external;
+function pj_get_def(proj: projPJ; i: cint): pchar; cdecl; external;
+function pj_latlong_from_proj(proj: projPJ): projPJ; cdecl; external;
+function pj_malloc(size: size_t): pointer; cdecl; external;
+procedure pj_dalloc(ptr: pointer); cdecl; external;
+function pj_strerrno(err: cint): pchar; cdecl; external;
+function pj_get_errno_ref: pcint; cdecl; external;
+function pj_get_release: pchar; cdecl; external;
 
-(* higher level handling of datum grid shift files *)
 
-PJ_GRIDINFO **pj_gridlist_from_nadgrids( const char *, int * );
-void pj_deallocate_grids();
 
-PJ_GRIDINFO *pj_gridinfo_init( const char * );
-int pj_gridinfo_load( PJ_GRIDINFO * );
-void pj_gridinfo_free( PJ_GRIDINFO * );
+(***************************************************************************)
+(* RSC IDENTIFIER:  GEOCENTRIC
+ *
+ * ABSTRACT
+ *
+ *    This component provides conversions between Geodetic coordinates (latitude,
+ *    longitude in radians and height in meters) and Geocentric coordinates
+ *    (X, Y, Z) in meters.
+ *
+ * ERROR HANDLING
+ *
+ *    This component checks parameters for valid values.  If an invalid value
+ *    is found, the error code is combined with the current error code using
+ *    the bitwise or.  This combining allows multiple error codes to be
+ *    returned. The possible error codes are:
+ *
+ *      GEOCENT_NO_ERROR        : No errors occurred in function
+ *      GEOCENT_LAT_ERROR       : Latitude out of valid range
+ *                                 (-90 to 90 degrees)
+ *      GEOCENT_LON_ERROR       : Longitude out of valid range
+ *                                 (-180 to 360 degrees)
+ *      GEOCENT_A_ERROR         : Semi-major axis less than or equal to zero
+ *      GEOCENT_B_ERROR         : Semi-minor axis less than or equal to zero
+ *      GEOCENT_A_LESS_B_ERROR  : Semi-major axis less than semi-minor axis
+ *
+ *
+ * REUSE NOTES
+ *
+ *    GEOCENTRIC is intended for reuse by any application that performs
+ *    coordinate conversions between geodetic coordinates and geocentric
+ *    coordinates.
+ *
+ *
+ * REFERENCES
+ *
+ *    An Improved Algorithm for Geocentric to Geodetic Coordinate Conversion,
+ *    Ralph Toms, February 1996  UCRL-JC-123138.
+ *
+ *    Further information on GEOCENTRIC can be found in the Reuse Manual.
+ *
+ *    GEOCENTRIC originated from : U.S. Army Topographic Engineering Center
+ *                                 Geospatial Information Division
+ *                                 7701 Telegraph Road
+ *                                 Alexandria, VA  22310-3864
+ *
+ * LICENSES
+ *
+ *    None apply to this component.
+ *
+ * RESTRICTIONS
+ *
+ *    GEOCENTRIC has no restrictions.
+ *
+ * ENVIRONMENT
+ *
+ *    GEOCENTRIC was tested and certified in the following environments:
+ *
+ *    1. Solaris 2.5 with GCC version 2.8.1
+ *    2. Windows 95 with MS Visual C++ version 6
+ *
+ * MODIFICATIONS
+ *
+ *    Date              Description
+ *    ----              -----------
+ *
+ *
+ *)
 
-void *proj_mdist_ini(double);
-double proj_mdist(double, double, double, const void *);
-double proj_inv_mdist(double, const void *);
-void *pj_gauss_ini(double, double, double *,double *);
-LP pj_gauss(LP, const void *);
-LP pj_inv_gauss(LP, const void *);
 
-extern char const pj_release[];
+(***************************************************************************)
+(*
+ *                              DEFINES
+ *)
+const
+  GEOCENT_NO_ERROR        = $0000;
+  GEOCENT_LAT_ERROR       = $0001;
+  GEOCENT_LON_ERROR       = $0002;
+  GEOCENT_A_ERROR         = $0004;
+  GEOCENT_B_ERROR         = $0008;
+  GEOCENT_A_LESS_B_ERROR  = $0010;
 
-struct PJ_ELLPS *pj_get_ellps_ref( void );
-struct PJ_DATUMS *pj_get_datums_ref( void );
-struct PJ_UNITS *pj_get_units_ref( void );
-struct PJ_LIST  *pj_get_list_ref( void );
-struct PJ_PRIME_MERIDIANS  *pj_get_prime_meridians_ref( void );
- 
-#ifndef DISABLE_CVSID
-#  define PJ_CVSID(string)     static char pj_cvsid[] = string; \
-static char *cvsid_aw() { return( cvsid_aw() ? ((char *) NULL) : pj_cvsid ); }
-#else
-#  define PJ_CVSID(string)
-#endif
 
-#ifdef __cplusplus
-}
+(***************************************************************************)
+(*
+ *                              FUNCTION PROTOTYPES
+ *)
+
+type
+  PGeocentricInfo = ^GeocentricInfo;
+  GeocentricInfo = record
+    Geocent_a   : cdouble;       (* Semi-major axis of ellipsoid in meters *)
+    Geocent_b   : cdouble;       (* Semi-minor axis of ellipsoid *)
+    Geocent_a2  : cdouble;       (* Square of semi-major axis *)
+    Geocent_b2  : cdouble;       (* Square of semi-minor axis *)
+    Geocent_e2  : cdouble;       (* Eccentricity squared  *)
+    Geocent_ep2 : cdouble;       (* 2nd eccentricity squared *)
+  end;
+
+
+procedure pj_Init_Geocentric(var gi: GeocentricInfo); cdecl; external;
+function pj_Set_Geocentric_Parameters(var gi: GeocentricInfo; a, b: cdouble): clong; cdecl; external;
+
+(*
+ * The function Set_Geocentric_Parameters receives the ellipsoid parameters
+ * as inputs and sets the corresponding state variables.
+ *
+ *    a  : Semi-major axis, in meters.          (input)
+ *    b  : Semi-minor axis, in meters.          (input)
+ *)
+
+
+procedure pj_Get_Geocentric_Parameters(var gi: GeocentricInfo; var a, b: cdouble); cdecl; external;
+
+(*
+ * The function Get_Geocentric_Parameters returns the ellipsoid parameters
+ * to be used in geocentric coordinate conversions.
+ *
+ *    a  : Semi-major axis, in meters.          (output)
+ *    b  : Semi-minor axis, in meters.          (output)
+ *)
+
+
+function pj_Convert_Geodetic_To_Geocentric(var gi: GeocentricInfo; Latitude, Longitude, Height: cdouble;
+  var X, Y, Z: cdouble): clong; cdecl; external;
+
+(*
+ * The function Convert_Geodetic_To_Geocentric converts geodetic coordinates
+ * (latitude, longitude, and height) to geocentric coordinates (X, Y, Z),
+ * according to the current ellipsoid parameters.
+ *
+ *    Latitude  : Geodetic latitude in radians                     (input)
+ *    Longitude : Geodetic longitude in radians                    (input)
+ *    Height    : Geodetic height, in meters                       (input)
+ *    X         : Calculated Geocentric X coordinate, in meters.   (output)
+ *    Y         : Calculated Geocentric Y coordinate, in meters.   (output)
+ *    Z         : Calculated Geocentric Z coordinate, in meters.   (output)
+ *
+ *)
+
+
+procedure pj_Convert_Geocentric_To_Geodetic(var gi: GeocentricInfo; X, Y, Z: cdouble;
+  var Latitude, Longitude, Height: cdouble); cdecl; external;
+
+(*
+ * The function Convert_Geocentric_To_Geodetic converts geocentric
+ * coordinates (X, Y, Z) to geodetic coordinates (latitude, longitude,
+ * and height), according to the current ellipsoid parameters.
+ *
+ *    X         : Geocentric X coordinate, in meters.         (input)
+ *    Y         : Geocentric Y coordinate, in meters.         (input)
+ *    Z         : Geocentric Z coordinate, in meters.         (input)
+ *    Latitude  : Calculated latitude value in radians.       (output)
+ *    Longitude : Calculated longitude value in radians.      (output)
+ *    Height    : Calculated height value, in meters.         (output)
+ *)
+
+implementation
 
 end.
