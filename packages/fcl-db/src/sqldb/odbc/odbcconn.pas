@@ -500,12 +500,16 @@ begin
 {$ENDIF}
 
   // prepare statement
-  ODBCCheckResult(
-    SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
-  );
-
   ODBCCursor.FQuery:=Buf;
+  if ODBCCursor.FSchemaType=stNoSchema then
+    begin
+      ODBCCheckResult(
+        SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
+      );
+    end
+  else
+    ODBCCursor.FStatementType:=stSelect;
 end;
 
 procedure TODBCConnection.UnPrepareStatement(cursor: TSQLCursor);
@@ -553,10 +557,12 @@ begin
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
 
   // execute the statement
-  ODBCCheckResult(
-    SQLExecute(ODBCCursor.FSTMTHandle),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.'
-  );
+  case ODBCCursor.FSchemaType of
+    stNoSchema  : ODBCCheckResult( SQLExecute(ODBCCursor.FSTMTHandle), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+    stTables    : ODBCCheckResult( SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+    stColumns   : ODBCCheckResult( SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+    stProcedures: ODBCCheckResult( SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+  end; {case}
 
   // free parameter buffers
   FreeParamBuffers(ODBCCursor);
@@ -1149,8 +1155,12 @@ end;
 
 function TODBCConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
 begin
-  Result:=inherited GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaObjectPattern);
-  // TODO: implement this
+  if SchemaObjectName<>'' then
+    Result := SchemaObjectName
+  else
+    Result := ' ';
+  if not (SchemaType in [stNoSchema, stTables, stColumns, stProcedures]) then
+    DatabaseError(SMetadataUnavailable);
 end;
 
 { TODBCEnvironment }

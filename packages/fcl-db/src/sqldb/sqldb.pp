@@ -50,6 +50,7 @@ type
     FPrepared      : Boolean;
     FInitFieldDef  : Boolean;
     FStatementType : TStatementType;
+    FSchemaType    : TSchemaType;
   end;
 
 
@@ -942,6 +943,7 @@ begin
     if not assigned(fcursor) then
       FCursor := Db.AllocateCursorHandle;
     FCursor.FStatementType:=StmType;
+    FCursor.FSchemaType := FSchemaType;
     if ServerFiltered then
       Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
     else
