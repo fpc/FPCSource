@@ -3268,6 +3268,7 @@ packages/libpng/fpmake.pp svneol=native#text/plain
 packages/libpng/src/png.pp svneol=native#text/plain
 packages/librsvg/Makefile svneol=native#text/plain
 packages/librsvg/Makefile.fpc svneol=native#text/plain
+packages/librsvg/fpmake.pp svneol=native#text/plain
 packages/librsvg/src/rsvg.pas svneol=native#text/plain
 packages/libxml/Makefile svneol=native#text/plain
 packages/libxml/Makefile.fpc svneol=native#text/plain
