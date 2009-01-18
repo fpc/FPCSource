@@ -62,36 +62,41 @@ else
 fi
 #
 
-# Assume local FP IDE configuration unless writing system-wide version possible
-fpinifile="$HOME"/.fp/fp.ini
-fpcfgfile="$HOME"/.fp/fp.cfg
+# Don't mess with IDE configuration if fp binary does not exist
+if [ -f "$FPBIN" ] ; then
 
-# Detect if we have write permission in sysfpdirbase (and fp binary exists).
-if [ -f "$FPBIN" -a -w "$sysfpdirbase" ] ; then
-  echo Write permission in $sysfpdirbase.
-  if ! [ -d "$sysfpdirbase2" ] ; then
-    echo Directory $sysfpdirbase2 did not exist, attempting to create it now
-    mkdir $sysfpdirbase2  >/dev/null 2>&1
-    echo Attempting to create directory $sysfpdir
-    mkdir $sysfpdir  >/dev/null 2>&1
-  elif ! [ -d "$sysfpdir" ] ; then
-    echo Directory $sysfpdir did not exist, attempting to create it now
-    mkdir $sysfpdir  >/dev/null 2>&1
+# Assume local FP IDE configuration unless writing system-wide version possible
+  fpinifile="$HOME"/.fp/fp.ini
+  fpcfgfile="$HOME"/.fp/fp.cfg
+
+# Detect if we have write permission in sysfpdirbase.
+  if [ -w "$sysfpdirbase" ] ; then
+    echo Write permission in $sysfpdirbase.
+    if ! [ -d "$sysfpdirbase2" ] ; then
+      echo Directory $sysfpdirbase2 did not exist, attempting to create it now
+      mkdir $sysfpdirbase2  >/dev/null 2>&1
+      echo Attempting to create directory $sysfpdir
+      mkdir $sysfpdir  >/dev/null 2>&1
+    elif ! [ -d "$sysfpdir" ] ; then
+      echo Directory $sysfpdir did not exist, attempting to create it now
+      mkdir $sysfpdir  >/dev/null 2>&1
+    fi
+    if [ -w "$sysfpdir" ] ; then
+      fpinifile="$sysfpdir"/fp.ini
+      fpcfgfile="$sysfpdir"/fp.cfg
+    fi
   fi
-  if [ -w "$sysfpdir" ] ; then
-    fpinifile="$sysfpdir"/fp.ini
-    fpcfgfile="$sysfpdir"/fp.cfg
+#
+
+# When the local FP IDE configuration is used, check if the directory exists
+  if [ $fpcfgfile = "$HOME"/.fp/fp.cfg -a ! -d "$HOME"/.fp ] ; then
+    echo Directory $HOME/.fp did not exist, attempting to create it now
+    mkdir "$HOME"/.fp >/dev/null 2>&1     
   fi
 fi
 #
 
-# When the local FP IDE configuration is used, check if the directory exists
-if [ $fpcfgfile = "$HOME"/.fp/fp.cfg -a ! -d "$HOME"/.fp ] ; then
-  echo Directory $HOME/.fp did not exist, attempting to create it now
-  mkdir "$HOME"/.fp >/dev/null 2>&1     
-fi
-
-if [ -f $fpccfgfile ] ; then
+if [ -f "$fpccfgfile" ] ; then
   mv "$fpccfgfile" "$fpccfgfile.orig"  >/dev/null 2>&1
   if [ $? = 0 ]; then
     echo Saved old compiler config to $fpccfgfile.orig
@@ -101,23 +106,25 @@ if [ -f $fpccfgfile ] ; then
   fi
 fi
 
-if [ -f $fpinifile -a -f "$FPBIN" ] ; then
-  mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo Saved old fp.ini to $fpinifile.orig
-  else
-    echo Could not save old fp.ini. Bailing out...
-    exit
+if [ -f "$FPBIN" ] ; then
+  if [ -f "$fpinifile" ] ; then
+    mv "$fpinifile" "$fpinifile.orig"  >/dev/null 2>&1
+    if [ $? = 0 ]; then
+      echo Saved old fp.ini to $fpinifile.orig
+    else
+      echo Could not save old fp.ini. Bailing out...
+      exit
+    fi
   fi
-fi
 
-if [ -f $fpcfgfile -a -f "$FPBIN" ] ; then
-  mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
-  if [ $? = 0 ]; then
-    echo Saved old fp.cfg to $fpcfgfile.orig
-  else
-    echo Could not save old fp.cfg. Bailing out...
-    exit
+  if [ -f "$fpcfgfile" ] ; then
+    mv "$fpcfgfile" "$fpcfgfile.orig"  >/dev/null 2>&1
+    if [ $? = 0 ]; then
+      echo Saved old fp.cfg to $fpcfgfile.orig
+    else
+      echo Could not save old fp.cfg. Bailing out...
+      exit
+    fi
   fi
 fi
 
@@ -134,7 +141,7 @@ singlearch() {
 }
 
 # include ports tree dir for FreeBSDers.
-case $HOSTOS in
+case "$HOSTOS" in
  freebsd)
     GCCDIR=-Fl/usr/local/lib
      ;;
@@ -204,7 +211,7 @@ case `"$FPCBIN" -PP` in
 esac
 
 # darwin->darwin does not need cross binutils
-case $HOSTOS in
+case "$HOSTOS" in
   darwin)
     CPUCROSSIFDEF2="
 #ifdef darwin
