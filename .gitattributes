@@ -3978,6 +3978,7 @@ packages/postgres/src/postgres3dyn.pp svneol=native#text/plain
 packages/postgres/src/postgres3types.inc svneol=native#text/plain
 packages/proj4/Makefile svneol=native#text/plain
 packages/proj4/Makefile.fpc svneol=native#text/plain
+packages/proj4/fpmake.pp svneol=native#text/plain
 packages/proj4/src/proj.pas svneol=native#text/plain
 packages/ptc/Makefile svneol=native#text/plain
 packages/ptc/Makefile.fpc svneol=native#text/plain
