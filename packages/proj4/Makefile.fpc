@@ -1,0 +1,25 @@
+#
+#   Makefile.fpc for proj.4 bindings
+#
+
+[package]
+name=proj4
+version=2.2.2
+
+[target]
+units=proj
+
+[require]
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:
