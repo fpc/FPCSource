@@ -235,9 +235,12 @@ begin
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
-    DecimalSeparator:=',';
-    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    // The decimalseparator was set to a comma for currencies and to a dot for ftBCD values.
+    // But why is not clear to me. For Postgres it works now, with a dot for both types.
+    // DecimalSeparator:=',';
     DecimalSeparator:='.';
+    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    // DecimalSeparator:='.';
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
     end;
 

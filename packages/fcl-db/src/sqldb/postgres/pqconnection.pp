@@ -768,7 +768,7 @@ begin
         ftCurrency  :
           begin
           dbl := pointer(buffer);
-          dbl^ := BEtoN(PInteger(CurrBuff)^) / 100;
+          dbl^ := BEtoN(PInt64(CurrBuff)^) / 100;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]
