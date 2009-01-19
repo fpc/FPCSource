@@ -2042,7 +2042,12 @@ procedure TDefCollection.SetItemName(AItem: TCollectionItem);
 begin
   with AItem as TNamedItem do
     if Name = '' then
-      Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+      begin
+      if assigned(Dataset) then
+        Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+      else
+        Name := Copy(ClassName, 2, 5) + IntToStr(ID+1);
+      end
   else inherited SetItemName(AItem);
 end;
 
