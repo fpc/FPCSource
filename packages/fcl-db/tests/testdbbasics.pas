@@ -950,8 +950,8 @@ var i : integer;
 begin
   AssertEquals(2,ADataset.FieldDefs.Count);
   AssertEquals(2,ADataset.Fields.Count);
-  AssertEquals('ID',ADataset.Fields[0].FieldName);
-  AssertEquals('NAME',ADataset.Fields[1].FieldName);
+  AssertTrue(SameText('ID',ADataset.Fields[0].FieldName));
+  AssertTrue(SameText('NAME',ADataset.Fields[1].FieldName));
   AssertTrue('Incorrect fieldtype',ADataset.fields[1].DataType=ftString);
   i := 1;
   while not ADataset.EOF do
