@@ -105,7 +105,7 @@ function GetAutoIncValue(NextValue: Pointer; Columns: Integer; ColumnValues: PPC
 var
   CodeError, TempInt: Integer;
 begin
-  TempInt := -1;
+  TempInt := 0;
   if ColumnValues[0] <> nil then
   begin
     Val(String(ColumnValues[0]), TempInt, CodeError);
