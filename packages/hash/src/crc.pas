@@ -67,6 +67,11 @@ implementation
  * CRC32
  ******************************************************************************)
 
+const
+  CRC32_XINIT = $FFFFFFFF;
+  CRC32_XOROT = $FFFFFFFF;
+
+
 {$IFDEF DYNAMIC_CRC_TABLE}
 
 {local}
@@ -213,14 +218,13 @@ end;
 function crc32 (crc : cardinal; buf : Pbyte; len : cardinal): cardinal;
 begin
   if buf = nil then
-    exit(0);
+    exit(0{CRC32_XINIT});
 
 {$IFDEF DYNAMIC_CRC_TABLE}
   if crc32_table_empty then
     make_crc32_table;
 {$ENDIF}
 
-  crc := crc xor cardinal($ffffffff);
   while (len >= 8) do
   begin
     crc := crc32_table[(crc xor buf^) and $ff] xor (crc shr 8);
@@ -249,7 +253,7 @@ begin
     dec(len);
   until (len = 0);
 
-  result := crc xor cardinal($ffffffff);
+  result := crc; //xor CRC32_XOROT;
 end;
 
 

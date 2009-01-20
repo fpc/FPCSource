@@ -11,10 +11,10 @@ const
   testseq1: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGTVIRGATTSYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
   testseq2: string = 'MNIIQGNLVGTGLKIGIVVGRFNDFITSKLLSGAEDALLRHGVDTNDIDVAWVPGAFEIPFAAKKMAETKKYDAIITLGDVIRGATTHYDYVCNEAAKGIAQAANTTGVPVIFGIVTTENIEQAIERAGTKAGNKGVDCAVSAIEMANLNRSFE';
 
-  test1_crc64: qword = 1;
-  test2_crc64: qword = 1;
-  test1_crc32: longword = 1;
-  test2_crc32: longword = 1;
+  test1_crc64: qword = 14444300186948028230;
+  test2_crc64: qword = 3310614217963326015;
+  test1_crc32: longword = 3319070459;
+  test2_crc32: longword = 1148765760;
 
 
 procedure perform_crc32(const name, testcase: string; result: longword);
@@ -24,11 +24,11 @@ begin
   crc := crc32(0,nil,0);
   crc := crc32(crc,@testcase[1],length(testcase));
 
-  write(name,': ');
+  write(name,'(size=',length(testcase),'): ');
   if crc=result then
     writeln('passed')
   else
-    writeln('failed');
+    writeln('failed (got=',crc,',expected=',result,')');
 end;
 
 procedure perform_crc64(const name, testcase: string; result: qword);
@@ -38,11 +38,11 @@ begin
   crc := crc64(0,nil,0);
   crc := crc64(crc,@testcase[1],length(testcase));
 
-  write(name,': ');
+  write(name,'(size=',length(testcase),'): ');
   if crc=result then
     writeln('passed')
   else
-    writeln('failed');
+    writeln('failed (got=',crc,',expected=',result,')');
 end;
 
 
