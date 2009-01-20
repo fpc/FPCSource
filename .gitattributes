@@ -2534,6 +2534,7 @@ packages/hash/Makefile svneol=native#text/plain
 packages/hash/Makefile.fpc svneol=native#text/plain
 packages/hash/examples/Makefile svneol=native#text/plain
 packages/hash/examples/Makefile.fpc svneol=native#text/plain
+packages/hash/examples/crctest.pas svneol=native#text/plain
 packages/hash/examples/md5.ref svneol=native#text/plain
 packages/hash/examples/mdtest.pas svneol=native#text/plain
 packages/hash/fpmake.pp svneol=native#text/plain

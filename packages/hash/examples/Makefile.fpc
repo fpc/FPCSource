@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=mdtest
+programs=mdtest crctest
 
 [require]
 packages=hash
