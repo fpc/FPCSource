@@ -332,7 +332,7 @@ end;
 
 function get_crc_table:pointer;inline;
 begin
-  get_crc_table:=crc.get_crc32_table;
+  get_crc_table:=crc.get_crc_table;
 end;
 
 end.
