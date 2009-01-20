@@ -49,6 +49,7 @@ function crc32(crc: cardinal; buf: Pbyte; len: cardinal): cardinal;
 }
 
 function get_crc32_table: Pcardinal;  { can be used by asm versions of crc32() }
+function get_crc_table: Pcardinal; external name 'get_crc32_table';
 
 
 
@@ -199,7 +200,7 @@ const
 { =========================================================================
   This function can be used by asm versions of crc32() }
 
-function get_crc32_table : {const} Pcardinal;
+function get_crc32_table : {const} Pcardinal; [public,alias:'get_crc32_table'];
 begin
 {$ifdef DYNAMIC_CRC_TABLE}
   if (crc32_table_empty) then

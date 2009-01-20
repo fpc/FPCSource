@@ -51,9 +51,10 @@ type
   TMD5Digest = TMDDigest;
 
   PMDContext = ^TMDContext;
+  TMDHashFunc = procedure(Context: PMDContext; Buffer: Pointer);
   TMDContext = record
     Version : TMDVersion;
-    Hash    : procedure(Context: PMDContext; Buffer: Pointer);
+    Hash    : TMDHashFunc;
     Align   : PtrUInt;
     State   : array[0..3] of Cardinal;
     BufCnt  : QWord;
@@ -363,10 +364,10 @@ begin
 
     MD_VERSION_4, MD_VERSION_5:
       begin
-        {if Version = MD_VERSION_4 then
-          Context.Hash := @MD4Transform
+        if Version = MD_VERSION_4 then
+          Context.Hash := TMDHashFunc(@MD4Transform)
         else
-          Context.Hash := @MD5Transform;}
+          Context.Hash := TMDHashFunc(@MD5Transform);
         Context.Align := 64;
         Context.State[0] := $67452301;
         Context.State[1] := $efcdab89;
@@ -379,7 +380,7 @@ begin
     MD_VERSION_2:
       begin
         Context.Align := 16;
-        //Context.Hash := @@MD2Transform
+        Context.Hash := TMDHashFunc(@MD2Transform)
       end;
 
   end;
@@ -414,11 +415,7 @@ begin
     // 1.2 If buffer contains "Align" bytes, transform it
     if Context.BufCnt = Align then
     begin
-      case Context.Version of
-        MD_VERSION_2: MD2Transform(Context, @Context.Buffer);
-        MD_VERSION_4: MD4Transform(Context, @Context.Buffer);
-        MD_VERSION_5: MD5Transform(Context, @Context.Buffer);
-      end;
+      Context.Hash(@Context, @Context.Buffer);
       Context.BufCnt := 0;
     end;
   end;
@@ -427,11 +424,7 @@ begin
   Num := BufLen - Num;
   while Num >= Align do
   begin
-    case Context.Version of
-      MD_VERSION_2: MD2Transform(Context, Src);
-      MD_VERSION_4: MD4Transform(Context, Src);
-      MD_VERSION_5: MD5Transform(Context, Src);
-    end;
+    Context.Hash(@Context, Src);
     Src := Pointer(PtrUInt(Src) + Align);
     Num := Num - Align;
   end;
@@ -570,45 +563,15 @@ begin
   MDInit(Context, MD_VERSION_2);
 end;
 
-{procedure MD2Update(var Context: TMD2Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD2Final(var Context: TMD2Context; var Digest: TMD2Digest);
-begin
-  MDFinal(Context, Digest);
-end;}
-
 procedure MD4Init(var Context: TMD4Context);
 begin
   MDInit(Context, MD_VERSION_4);
 end;
 
-{procedure MD4Update(var Context: TMD4Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD4Final(var Context: TMD4Context; var Digest: TMD4Digest);
-begin
-  MDFinal(Context, Digest);
-end;}
-
 procedure MD5Init(var Context: TMD5Context);
 begin
   MDInit(Context, MD_VERSION_5);
 end;
-
-{procedure MD5Update(var Context: TMD5Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest);
-begin
-  MDFinal(Context, Digest);
-end;}
 
 function MD2String(const S: String): TMD2Digest;
 begin
