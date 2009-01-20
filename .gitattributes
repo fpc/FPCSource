@@ -1427,6 +1427,7 @@ packages/fcl-image/src/fpreadjpeg.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadpcx.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadpng.pp svneol=native#text/plain
 packages/fcl-image/src/fpreadpnm.pp svneol=native#text/plain
+packages/fcl-image/src/fpreadpsd.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadtga.pp svneol=native#text/plain
 packages/fcl-image/src/fpreadtiff.pas svneol=native#text/plain
 packages/fcl-image/src/fpreadxpm.pp svneol=native#text/plain
