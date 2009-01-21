@@ -916,26 +916,38 @@ implementation
          result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
+         
+         { one thing we have to do in advance: "constant ansichar" -> ansistring }
+         { conversions with ord(ansichar) >= 128, have to be done by converting  }
+         { the ansichar to a widechar at compile time (using the source's code   }
+         { page), and then by converting the widechar to an ansistring at run    }
+         { time (using the run time code page)                        }
+         if (left.nodetype=ordconstn) and
+            not(tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) and
+            (torddef(left.resultdef).ordtype=uchar) and
+            not(tordconstnode(left).value.uvalue<128) then
+           inserttypeconv(left,cwidechartype);
+         
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
-             { >=128 is destroyed }
+             { widechar >=128 is destroyed }
              (tordconstnode(left).value.uvalue<128)) then
            begin
-              if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+              if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
                    concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
-                   concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value.uvalue)));
+                   concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
                  hp:=cstringconstnode.createwstr(ws);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
               else
                 begin
-                  if torddef(left.resultdef).ordtype=uwidechar then
+                  if (torddef(left.resultdef).ordtype=uwidechar) then
                     hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
                   else
                     hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
