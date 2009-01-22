@@ -120,6 +120,15 @@ type
     property OnError: TXMLErrorEvent read FOnError write FOnError;
   end;
 
+  TDecoder = record
+    Context: Pointer;
+    Decode: function(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+    Cleanup: procedure(Context: Pointer); stdcall;
+  end;
+
+  TGetDecoderProc = function(const AEncoding: string; out Decoder: TDecoder): Boolean; stdcall;
+
+procedure RegisterDecoder(Proc: TGetDecoderProc);
 
 // =======================================================
 
@@ -196,17 +205,15 @@ type
     property PublicID: WideString read GetPublicID write FPublicID;
   end;
 
-  TXMLDecodingSource = class;
-  TDecoder = function(Src: TXMLDecodingSource): WideChar;
   TXMLDecodingSource = class(TXMLCharSource)
   private
     FCharBuf: PChar;
     FCharBufEnd: PChar;
     FBufStart: PWideChar;
     FDecoder: TDecoder;
+    FHasBOM: Boolean;
     FFixedUCS2: string;
     FBufSize: Integer;
-    FSurrogate: WideChar;
     procedure DecodingError(const Msg: string);
   protected
     function Reload: Boolean; override;
@@ -338,8 +345,7 @@ type
     procedure Initialize(ASource: TXMLCharSource);
     function DoParseAttValue(Delim: WideChar): Boolean;
     procedure DoParseFragment;
-    function ContextPush(AEntity: TDOMEntityEx): Boolean; overload;
-    procedure ContextPush(ASrc: TXMLCharSource); overload;
+    function ContextPush(AEntity: TDOMEntityEx): Boolean;
     function ContextPop: Boolean;
     procedure XML11_BuildTables;
     procedure ParseQuantity(CP: TContentParticle);
@@ -391,7 +397,7 @@ type
     function  ResolvePredefined: Boolean;
     procedure IncludeEntity(InAttr: Boolean);
     procedure StartPE;
-    function  ParseCharRef(var ToFill: TWideCharBuf): Boolean;        // [66]
+    function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
     function  ParseExternalID(out SysID, PubID: WideString;             // [75]
       SysIdOptional: Boolean): Boolean;
 
@@ -411,7 +417,7 @@ type
     procedure ValidateDTD;
     procedure ValidateRoot;
     procedure ValidationError(const Msg: string; const args: array of const; LineOffs: Integer = -1);
-    procedure DoAttrText(ch: PWideChar; Count: Integer);    
+    procedure DoAttrText(ch: PWideChar; Count: Integer);
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     // Some SAX-alike stuff (at a very early stage)
@@ -459,87 +465,163 @@ type
 const
   NullLocation: TLocation = (Line: 0; LinePos: 0);
 
-function Decode_UCS2(Src: TXMLDecodingSource): WideChar;
-begin
-  Result := PWideChar(Src.FCharBuf)^;
-  Inc(Src.FCharBuf, sizeof(WideChar));
-end;
+{ Decoders }
 
-function Decode_UCS2_Swapped(Src: TXMLDecodingSource): WideChar;
-begin
-  Result := WideChar((ord(Src.FCharBuf^) shl 8) or ord(Src.FCharBuf[1]));
-  Inc(Src.FCharBuf, sizeof(WideChar));
-end;
-
-
-function Decode_UTF8_mb(Src: TXMLDecodingSource; First: WideChar): WideChar;
-const
-  MaxCode: array[0..3] of Cardinal = ($7F, $7FF, $FFFF, $1FFFFF);
 var
-  Value: Cardinal;
-  I, bc: Integer;
+  Decoders: array of TGetDecoderProc;
+
+procedure RegisterDecoder(Proc: TGetDecoderProc);
+var
+  L: Integer;
 begin
-  if ord(First) and $40 = 0 then
-    Src.DecodingError('Invalid UTF-8 sequence start byte');
-  bc := 1;
-  if ord(First) and $20 <> 0 then
-  begin
-    Inc(bc);
-    if ord(First) and $10 <> 0 then
+  L := Length(Decoders);
+  SetLength(Decoders, L+1);
+  Decoders[L] := Proc;
+end;
+
+function FindDecoder(const AEncoding: string; out Decoder: TDecoder): Boolean;
+var
+  I: Integer;
+begin
+  Result := False;
+  for I := 0 to High(Decoders) do
+    if Decoders[I](AEncoding, Decoder) then
     begin
-      Inc(bc);
-      if ord(First) and $8 <> 0 then
-        Src.DecodingError('UCS4 character out of supported range');
+      Result := True;
+      Exit;
     end;
-  end;
-  // DONE: (?) check that bc bytes available
-  if Src.FCharBufEnd-Src.FCharBuf < bc then
-    Src.FetchData;
+end;
 
-  Value := ord(First);
-  I := bc;  // note: I is never zero
-  while bc > 0 do
+function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  cnt: Cardinal;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt div sizeof(WideChar) then
+    cnt := InCnt div sizeof(WideChar);
+  Move(InBuf^, OutBuf^, cnt * sizeof(WideChar));
+  Dec(InCnt, cnt*sizeof(WideChar));
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  I: Integer;
+  cnt: Cardinal;
+  InPtr: PChar;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt div sizeof(WideChar) then
+    cnt := InCnt div sizeof(WideChar);
+  InPtr := InBuf;
+  for I := 0 to cnt-1 do
   begin
-    if Src.FCharBuf^ in [#$80..#$BF] then
-      Value := (Value shl 6) or (Cardinal(Src.FCharBuf^) and $3F)
+    OutBuf[I] := WideChar((ord(InPtr^) shl 8) or ord(InPtr[1]));
+    Inc(InPtr, 2);
+  end;
+  Dec(InCnt, cnt*sizeof(WideChar));
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_88591(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  I: Integer;
+  cnt: Cardinal;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt then
+    cnt := InCnt;
+  for I := 0 to cnt-1 do
+    OutBuf[I] := WideChar(ord(InBuf[I]));
+  Dec(InCnt, cnt);
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+const
+  MaxCode: array[1..4] of Cardinal = ($7F, $7FF, $FFFF, $1FFFFF);
+var
+  i, j, bc: Cardinal;
+  Value: Cardinal;
+begin
+  result := 0;
+  i := OutCnt;
+  while (i > 0) and (InCnt > 0) do
+  begin
+    bc := 1;
+    Value := ord(InBuf^);
+    if Value < $80 then
+      OutBuf^ := WideChar(Value)
     else
-      Src.DecodingError('Invalid byte in UTF-8 sequence');
-    Inc(Src.FCharBuf);
-    Dec(bc);
-  end;
-  Value := Value and MaxCode[I];
-  // RFC2279 check
-  if Value <= MaxCode[I-1] then
-    Src.DecodingError('Invalid UTF-8 sequence');
-  case Value of
-    0..$D7FF, $E000..$FFFF:
+    begin
+      if Value < $C2 then
       begin
-        Result := WideChar(Value);
-        Exit;
+        Result := -1;
+        Break;
       end;
-    $10000..$10FFFF:
+      Inc(bc);
+      if Value > $DF then
       begin
-        Result := WideChar($D7C0 + (Value shr 10));
-        Src.FSurrogate := WideChar($DC00 xor (Value and $3FF));
-        Exit;
+        Inc(bc);
+        if Value > $EF then
+        begin
+          Inc(bc);
+          if Value > $F7 then  // never encountered in the tests.
+          begin
+            Result := -1;
+            Break;
+          end;
+        end;
       end;
+      if InCnt < bc then
+        Break;
+      j := 1;
+      while j < bc do
+      begin
+        if InBuf[j] in [#$80..#$BF] then
+          Value := (Value shl 6) or (Cardinal(InBuf[j]) and $3F)
+        else
+        begin
+          Result := -1;
+          Break;
+        end;
+        Inc(j);
+      end;
+      Value := Value and MaxCode[bc];
+      // RFC2279 check
+      if Value <= MaxCode[bc-1] then
+      begin
+        Result := -1;
+        Break;
+      end;
+      case Value of
+        0..$D7FF, $E000..$FFFF: OutBuf^ := WideChar(Value);
+        $10000..$10FFFF:
+        begin
+          if i < 2 then Break;
+          OutBuf^ := WideChar($D7C0 + (Value shr 10));
+          OutBuf[1] := WideChar($DC00 xor (Value and $3FF));
+          Inc(OutBuf); // once here
+          Dec(i);
+        end
+        else
+        begin
+          Result := -1;
+          Break;
+        end;
+      end;
+    end;
+    Inc(OutBuf);
+    Inc(InBuf, bc);
+    Dec(InCnt, bc);
+    Dec(i);
   end;
-  Src.DecodingError('UCS4 character out of supported range');
-  Result := #0; // supress warning
-end;
-
-function Decode_UTF8(Src: TXMLDecodingSource): WideChar;
-begin
-  Result := WideChar(byte(Src.FCharBuf^));
-  Inc(Src.FCharBuf);
-  if Result >= #$80 then
-    Result := Decode_UTF8_mb(Src, Result);
-end;
-
-function Decode_8859_1(Src: TXMLDecodingSource): WideChar;
-begin
-  Result := WideChar(ord(Src.FCharBuf^));
-  Inc(Src.FCharBuf);
+  if Result >= 0 then
+    Result := OutCnt-i;
+  OutCnt := i;
 end;
 
 function Is_8859_1(const AEncoding: string): Boolean;
@@ -555,16 +637,6 @@ begin
 // This one is not in character-sets.txt, but used in most FPC documentation...
             SameText(AEncoding, 'ISO8859-1');
 end;
-
-// TODO: List of registered/supported decoders
-function FindDecoder(const Encoding: string): TDecoder;
-begin
-  if Is_8859_1(Encoding) then
-    Result := @Decode_8859_1
-  else
-    Result := nil;
-end;
-
 
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 begin
@@ -678,7 +750,7 @@ begin
     node := Context.ParentNode
   else
     node := Context;
-  // TODO: replacing document isn't yet supported  
+  // TODO: replacing document isn't yet supported
   if (Action = xaReplaceChildren) and (node.NodeType = DOCUMENT_NODE) then
     raise EDOMNotSupported.Create('DOMParser.ParseWithContext');
 
@@ -711,9 +783,7 @@ begin
   end;
 end;
 
-// TODO: These classes still cannot be considered as the final solution...
-
-{ TXMLInputSource }
+{ TXMLCharSource }
 
 constructor TXMLCharSource.Create(const AData: WideString);
 begin
@@ -810,6 +880,8 @@ end;
 destructor TXMLDecodingSource.Destroy;
 begin
   FreeMem(FBufStart);
+  if Assigned(FDecoder.Cleanup) then
+    FDecoder.Cleanup(FDecoder.Context);
   inherited Destroy;
 end;
 
@@ -834,8 +906,8 @@ end;
 
 function TXMLDecodingSource.Reload: Boolean;
 var
-  c: WideChar;
-  r: Integer;
+  r, inLeft: Cardinal;
+  rslt: Integer;
 begin
   if DTDSubsetType = dsInternal then
     FReader.DTDReloadHook;
@@ -846,25 +918,35 @@ begin
   FBuf := FBufStart;
   FBufEnd := FBufStart + r;
 
-  while FBufEnd < FBufStart + FBufSize do
-  begin
-    if FCharBufEnd <= FCharBuf then
+  repeat
+    inLeft := FCharBufEnd - FCharBuf;
+    if inLeft < 4 then                      // may contain an incomplete char
     begin
       FetchData;
-      if FCharBufEnd <= FCharBuf then
+      inLeft := FCharBufEnd - FCharBuf;
+      if inLeft <= 0 then
         Break;
     end;
-    if FSurrogate <> #0 then
-    begin
-      c := FSurrogate;
-      FSurrogate := #0;
-    end
+    r := FBufStart + FBufSize - FBufEnd;
+    if r = 0 then
+      Break;
+    rslt := FDecoder.Decode(FDecoder.Context, FCharBuf, inLeft, FBufEnd, r);
+    { Sanity checks: r and inLeft must not increase. }
+    if inLeft + FCharBuf <= FCharBufEnd then
+      FCharBuf := FCharBufEnd - inLeft
     else
-      c := FDecoder(Self);
+      DecodingError('Decoder error: input byte count out of bounds');
+    if r + FBufEnd <= FBufStart + FBufSize then
+      FBufEnd := FBufStart + FBufSize - r
+    else
+      DecodingError('Decoder error: output char count out of bounds');
 
-    FBufEnd^ := c;
-    Inc(FBufEnd);
-  end;
+    if rslt = 0 then
+      Break
+    else if rslt < 0 then
+      DecodingError('Invalid character in input stream');
+  until False;
+
   FBufEnd^ := #0;
   Result := FBuf < FBufEnd;
 end;
@@ -877,25 +959,30 @@ begin
   inherited;
   FLineNo := 1;
   FXml11Rules := FReader.FXML11;
-  FDecoder := @Decode_UTF8;
+
+  FDecoder.Decode := @Decode_UTF8;
+
   FFixedUCS2 := '';
   if FCharBufEnd-FCharBuf > 1 then
   begin
     if (FCharBuf[0] = #$FE) and (FCharBuf[1] = #$FF) then
     begin
       FFixedUCS2 := 'UTF-16BE';
-      FDecoder := {$IFNDEF ENDIAN_BIG} @Decode_UCS2_Swapped {$ELSE} @Decode_UCS2 {$ENDIF};
+      FDecoder.Decode := {$IFNDEF ENDIAN_BIG} @Decode_UCS2_Swapped {$ELSE} @Decode_UCS2 {$ENDIF};
     end
     else if (FCharBuf[0] = #$FF) and (FCharBuf[1] = #$FE) then
     begin
       FFixedUCS2 := 'UTF-16LE';
-      FDecoder := {$IFDEF ENDIAN_BIG} @Decode_UCS2_Swapped {$ELSE} @Decode_UCS2 {$ENDIF};
+      FDecoder.Decode := {$IFDEF ENDIAN_BIG} @Decode_UCS2_Swapped {$ELSE} @Decode_UCS2 {$ENDIF};
     end;
   end;
   FBufSize := 6;             //  possible BOM and '<?xml'
   Reload;
   if FBuf^ = #$FEFF then
+  begin
+    FHasBOM := True;
     Inc(FBuf);
+  end;
   LFPos := FBuf-1;
   if CompareMem(FBuf, @XmlSign[0], sizeof(XmlSign)) then
   begin
@@ -920,8 +1007,12 @@ begin
        SameText(AEncoding, 'unicode');
     Exit;
   end;
-  NewDecoder := FindDecoder(AEncoding);
-  if Assigned(NewDecoder) then
+// TODO: must fail when a byte-based stream is labeled as word-based.
+// see rmt-e2e-61, it now fails but for a completely different reason.
+  FillChar(NewDecoder, sizeof(TDecoder), 0);
+  if Is_8859_1(AEncoding) then
+    FDecoder.Decode := @Decode_88591
+  else if FindDecoder(AEncoding, NewDecoder) then
     FDecoder := NewDecoder
   else
     Result := False;
@@ -1094,6 +1185,7 @@ end;
 
 procedure TXMLReader.Initialize(ASource: TXMLCharSource);
 begin
+  ASource.FParent := FSource;
   FSource := ASource;
   FSource.FReader := Self;
   FSource.Initialize;
@@ -1446,23 +1538,36 @@ var
   wc: WideChar;
 begin
   Result := False;
-  if BufEquals(FName, 'amp') then
-    wc := '&'
-  else if BufEquals(FName, 'apos') then
-    wc := ''''
-  else if BufEquals(FName, 'gt') then
-    wc := '>'
-  else if BufEquals(FName, 'lt') then
-    wc := '<'
-  else if BufEquals(FName, 'quot') then
-    wc := '"'
-  else
-    Exit;
+  with FName do
+  begin
+    if (Length = 2) and (Buffer[1] = 't') then
+    begin
+      if Buffer[0] = 'l' then
+        wc := '<'
+      else if Buffer[0] = 'g' then
+        wc := '>'
+      else Exit;
+    end
+    else if Buffer[0] = 'a' then
+    begin
+      if (Length = 3) and (Buffer[1] = 'm') and (Buffer[2] = 'p') then
+        wc := '&'
+      else if (Length = 4) and (Buffer[1] = 'p') and (Buffer[2] = 'o') and
+       (Buffer[3] = 's') then
+        wc := ''''
+      else Exit;  
+    end
+    else if (Length = 4) and (Buffer[0] = 'q') and (Buffer[1] = 'u') and
+      (Buffer[2] = 'o') and (Buffer[3] ='t') then
+      wc := '"'
+    else
+      Exit;
+  end; // with
   BufAppend(FValue, wc);
   Result := True;
 end;
 
-function TXMLReader.ParseCharRef(var ToFill: TWideCharBuf): Boolean;           // [66]
+function TXMLReader.ParseRef(var ToFill: TWideCharBuf): Boolean;  // [67]
 var
   Value: Integer;
 begin
@@ -1481,7 +1586,7 @@ begin
         Break;
       end;
       GetChar;
-    until False
+    until Value > $10FFFF
     else
     repeat
       case FSource.FBuf^ of
@@ -1490,7 +1595,7 @@ begin
         Break;
       end;
       GetChar;
-    until False;
+    until Value > $10FFFF;
 
     case Value of
       $01..$08, $0B..$0C, $0E..$1F:
@@ -1531,7 +1636,7 @@ begin
       FatalError('Character ''<'' is not allowed in attribute value')
     else if wc = '&' then
     begin
-      if ParseCharRef(FValue) or ResolvePredefined then
+      if ParseRef(FValue) or ResolvePredefined then
         Continue;
       // have to insert entity or reference
       if FValue.Length > 0 then
@@ -1591,14 +1696,8 @@ begin
   AEntity.FOnStack := True;
   Src.FEntity := AEntity;
 
-  ContextPush(Src);
+  Initialize(Src);
   Result := True;
-end;
-
-procedure TXMLReader.ContextPush(ASrc: TXMLCharSource);
-begin
-  ASrc.FParent := FSource;
-  Initialize(ASrc);
 end;
 
 function TXMLReader.ContextPop: Boolean;
@@ -1996,7 +2095,7 @@ begin
   begin
     if ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
     begin
-      ContextPush(Src);
+      Initialize(Src);
       try
         Src.DTDSubsetType := dsExternal;
         ParseMarkupDecl;
@@ -2086,7 +2185,6 @@ begin
       CurrentCP.Def := FindOrCreateElDef;
 
     ParseQuantity(CurrentCP);
-
     SkipWhitespace;
     if FSource.FBuf^ = ')' then
       Break;
@@ -2367,7 +2465,7 @@ begin
     else if wc = '&' then
     begin
 // expand CharRefs, bypass (but check for well-formedness) EntityRefs
-      if not ParseCharRef(FEntityValue) then
+      if not ParseRef(FEntityValue) then
       begin
         BufAppend(FEntityValue, '&');
         BufAppendChunk(FEntityValue, FName.Buffer, FName.Buffer + FName.Length);
@@ -2695,7 +2793,7 @@ begin
           if FCurrContentType = ctEmpty then
             ValidationError('References are illegal in EMPTY elements', []);
 
-          if ParseCharRef(FValue) or ResolvePredefined then
+          if ParseRef(FValue) or ResolvePredefined then
             nonWs := True // CharRef to whitespace is not considered whitespace
           else
           begin
@@ -2791,8 +2889,8 @@ begin
   ExpectChar('>');
 
   ProcessDefaultAttributes(NewElem, ElDef);
+  PushVC(ElDef);  // this increases FNesting
 
-  PushVC(ElDef);
   // SAX: ContentHandler.StartElement(...)
   // SAX: ContentHandler.StartPrefixMapping(...)
 
