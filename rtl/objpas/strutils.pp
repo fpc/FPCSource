@@ -976,7 +976,7 @@ begin
       begin
       Result[I]:=' ';
       If (Numb>1) then
-        Insert(StringOfChar('0',Numb-1),Result,I);
+        Insert(StringOfChar(' ',Numb-1),Result,I);
       Inc(I,Numb);
       end;
 end;
