@@ -221,8 +221,11 @@ type
     procedure FreeFldBuffers;
     function GetServerIndexDefs: TServerIndexDefs;
     function GetStatementType : TStatementType;
+    procedure SetDeleteSQL(const AValue: TStringlist);
+    procedure SetInsertSQL(const AValue: TStringlist);
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
+    procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
     procedure OnChangeSQL(Sender : TObject);
@@ -298,9 +301,9 @@ type
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
     property SQL : TStringlist read FSQL write FSQL;
-    property UpdateSQL : TStringlist read FUpdateSQL;
-    property InsertSQL : TStringlist read FInsertSQL;
-    property DeleteSQL : TStringlist read FDeleteSQL;
+    property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
+    property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
+    property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
     property Params : TParams read FParams write FParams;
     property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
@@ -1332,6 +1335,11 @@ begin
     FParseSQL := True;
 end;
 
+procedure TCustomSQLQuery.SetUpdateSQL(const AValue: TStringlist);
+begin
+  FUpdateSQL.Assign(AValue);
+end;
+
 procedure TCustomSQLQuery.SetUsePrimaryKeyAsKey(AValue : Boolean);
 
 begin
@@ -1531,6 +1539,16 @@ function TCustomSQLQuery.GetStatementType : TStatementType;
 begin
   if assigned(FCursor) then Result := FCursor.FStatementType
     else Result := stNone;
+end;
+
+procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
+begin
+  FDeleteQry.Assign(AValue);
+end;
+
+procedure TCustomSQLQuery.SetInsertSQL(const AValue: TStringlist);
+begin
+  FInsertQry.Assign(AValue);
 end;
 
 Procedure TCustomSQLQuery.SetDataSource(AVAlue : TDatasource);
