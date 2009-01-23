@@ -242,9 +242,12 @@ type
     procedure getdata(var b;len:integer);
     function  getbyte:byte;
     function  getword:word;
+    function  getdword:dword;
     function  getlongint:longint;
     function getint64:int64;
+    function  getqword:qword;
     function getaint:aint;
+    function getaword:aword;
     function  getreal:ppureal;
     function  getstring:string;
     procedure getnormalset(var b);
@@ -259,9 +262,12 @@ type
     procedure putdata(const b;len:integer);
     procedure putbyte(b:byte);
     procedure putword(w:word);
+    procedure putdword(w:dword);
     procedure putlongint(l:longint);
     procedure putint64(i:int64);
+    procedure putqword(q:qword);
     procedure putaint(i:aint);
+    procedure putaword(i:aword);
     procedure putreal(d:ppureal);
     procedure putstring(const s:string);
     procedure putnormalset(const b);
@@ -614,7 +620,7 @@ begin
   if entryidx+4>entry.size then
    begin
      error:=true;
-     getlongint:=0;
+     result:=0;
      exit;
    end;
 {$ifdef FPC_UNALIGNED_FIXED}
@@ -626,6 +632,29 @@ begin
   else
 {$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(longint));
+  if change_endian then
+   result:=swapendian(result);
+  inc(entryidx,4);
+end;
+
+
+function tppufile.getdword:dword;
+begin
+  if entryidx+4>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+{$ifdef FPC_UNALIGNED_FIXED}
+  if bufsize-bufidx>=sizeof(dword) then
+    begin
+      result:=Unaligned(plongint(@buf[bufidx])^);
+      inc(bufidx,sizeof(longint));
+    end
+  else
+{$endif FPC_UNALIGNED_FIXED}
+    readdata(result,sizeof(dword));
   if change_endian then
    result:=swapendian(result);
   inc(entryidx,4);
@@ -655,12 +684,45 @@ begin
 end;
 
 
+function tppufile.getqword:qword;
+begin
+  if entryidx+8>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+{$ifdef FPC_UNALIGNED_FIXED}
+  if bufsize-bufidx>=sizeof(qword) then
+    begin
+      result:=Unaligned(pqword(@buf[bufidx])^);
+      inc(bufidx,sizeof(qword));
+    end
+  else
+{$endif FPC_UNALIGNED_FIXED}
+    readdata(result,sizeof(qword));
+  if change_endian then
+   result:=swapendian(result);
+  inc(entryidx,8);
+end;
+
+
 function tppufile.getaint:aint;
 begin
 {$ifdef cpu64bitalu}
   result:=getint64;
 {$else cpu64bitalu}
   result:=getlongint;
+{$endif cpu64bitalu}
+end;
+
+
+function tppufile.getaword:aword;
+begin
+{$ifdef cpu64bitalu}
+  result:=getqword;
+{$else cpu64bitalu}
+  result:=getdword;
 {$endif cpu64bitalu}
 end;
 
@@ -997,6 +1059,12 @@ begin
 end;
 
 
+procedure tppufile.putdword(w:dword);
+begin
+  putdata(w,4);
+end;
+
+
 procedure tppufile.putlongint(l:longint);
 begin
   putdata(l,4);
@@ -1009,10 +1077,23 @@ begin
 end;
 
 
+procedure tppufile.putqword(q:qword);
+begin
+  putdata(q,sizeof(qword));
+end;
+
+
 procedure tppufile.putaint(i:aint);
 begin
   putdata(i,sizeof(aint));
 end;
+
+
+procedure tppufile.putaword(i:aword);
+begin
+  putdata(i,sizeof(aword));
+end;
+
 
 procedure tppufile.putreal(d:ppureal);
 var

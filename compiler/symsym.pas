@@ -203,7 +203,7 @@ interface
          absseg  : boolean;
 {$endif i386}
          asmname : pshortstring;
-         addroffset : aint;
+         addroffset : aword;
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
@@ -1375,7 +1375,7 @@ implementation
              asmname:=stringdup(ppufile.getstring);
            toaddr :
              begin
-               addroffset:=ppufile.getaint;
+               addroffset:=ppufile.getaword;
 {$ifdef i386}
                absseg:=boolean(ppufile.getbyte);
 {$endif i386}
@@ -1395,7 +1395,7 @@ implementation
              ppufile.putstring(asmname^);
            toaddr :
              begin
-               ppufile.putaint(addroffset);
+               ppufile.putaword(addroffset);
 {$ifdef i386}
                ppufile.putbyte(byte(absseg));
 {$endif i386}
