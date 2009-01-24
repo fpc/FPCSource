@@ -702,7 +702,9 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            if equal_defs(todef,pd.returndef) and
+            if (equal_defs(todef,pd.returndef) or
+                { shortstrings of different lengths are ok as result }
+                (is_shortstring(todef) and is_shortstring(pd.returndef))) and
                { the result type must be always really equal and not an alias,
                  if you mess with this code, check tw4093 }
                ((todef=pd.returndef) or

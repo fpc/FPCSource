@@ -409,7 +409,16 @@ implementation
                 if optoken=_ASSIGNMENT then
                   begin
                     eq:=compare_defs_ext(ld,pf.returndef,nothingn,conv,pd,[cdo_explicit]);
-                    result:=(eq=te_incompatible);
+                    result:=
+                      (eq=te_incompatible) and
+                      { don't allow overloading assigning to custom shortstring
+                        types, because we also don't want to differentiate based
+                        on different shortstring types (e.g.,
+                        "operator :=(const v: variant) res: shorstring" also
+                        has to work for assigning a variant to a string[80])
+                      }
+                      (not is_shortstring(pf.returndef) or
+                       (tstringdef(pf.returndef).len=255));
                   end
                 else
                   begin
