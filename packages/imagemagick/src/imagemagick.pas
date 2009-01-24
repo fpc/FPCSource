@@ -30,9 +30,9 @@ unit ImageMagick;
 
 interface
 
-uses SysUtils;
+uses SysUtils, ctypes;
 
-{$MINENUMSIZE 1}
+{$PACKENUM 4}
 
 const
 {$ifdef Win32}

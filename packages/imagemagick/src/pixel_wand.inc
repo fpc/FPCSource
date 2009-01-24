@@ -22,7 +22,7 @@
 }
 type
   PixelWand = record
-    id: Cardinal;
+    id: culong;
 
     name: array[1..MaxTextExtent] of char;
 
@@ -30,11 +30,11 @@ type
 
     pixel: MagickPixelPacket;
 
-    count: Cardinal;
+    count: culong;
 
     debug: MagickBooleanType;
 
-    signature: Cardinal;
+    signature: culong;
   end;
   
   PPixelWand = ^PixelWand;
@@ -65,9 +65,9 @@ function PixelSetColor(wand: PPixelWand; const color: PChar): MagickBooleanType;
 
 function DestroyPixelWand(wand: PPixelWand): PPixelWand; cdecl; external WandExport;
 function DestroyPixelWands(wand: PPPixelWand;
- const number_wands: Cardinal): PPPixelWand; cdecl; external WandExport;
+ const number_wands: culong): PPPixelWand; cdecl; external WandExport;
 function NewPixelWand: PPixelWand; cdecl; external WandExport;
-function NewPixelWands(const number_wands: Cardinal): PPPixelWand; cdecl; external WandExport;
+function NewPixelWands(const number_wands: culong): PPPixelWand; cdecl; external WandExport;
 
 function PixelGetAlphaQuantum(const wand: PPixelWand): Quantum; cdecl; external  WandExport;
 function PixelGetBlackQuantum(const wand: PPixelWand): Quantum; cdecl; external WandExport;
@@ -79,7 +79,7 @@ function PixelGetOpacityQuantum(const wand: PPixelWand): Quantum; cdecl; externa
 function PixelGetRedQuantum(const wand: PPixelWand): Quantum; cdecl; external WandExport;
 function PixelGetYellowQuantum(const wand: PPixelWand): Quantum; cdecl; external WandExport;
 
-function PixelGetColorCount(const wand: PPixelWand): Cardinal; cdecl; external WandExport;
+function PixelGetColorCount(const wand: PPixelWand): culong; cdecl; external WandExport;
 
 procedure ClearPixelWand(wand: PPixelWand); cdecl; external WandExport;
 procedure PixelGetMagickColor(const wand: PPixelWand; packet: PMagickPixelPacket); cdecl; external WandExport;
@@ -90,7 +90,7 @@ procedure PixelSetBlack(wand: PPixelWand; const opacity: Double); cdecl; externa
 procedure PixelSetBlackQuantum(wand: PPixelWand; const opacity: Quantum); cdecl; external WandExport;
 procedure PixelSetBlue(wand: PPixelWand; const opacity: Double); cdecl; external WandExport;
 procedure PixelSetBlueQuantum(wand: PPixelWand; const opacity: Quantum); cdecl; external WandExport;
-procedure PixelSetColorCount(wand: PPixelWand; const count: Cardinal); cdecl; external WandExport;
+procedure PixelSetColorCount(wand: PPixelWand; const count: culong); cdecl; external WandExport;
 procedure PixelSetCyan(wand: PPixelWand; const opacity: Double); cdecl; external WandExport;
 procedure PixelSetCyanQuantum(wand: PPixelWand; const opacity: Quantum); cdecl; external WandExport;
 procedure PixelSetGreen(wand: PPixelWand; const opacity: Double); cdecl; external WandExport;

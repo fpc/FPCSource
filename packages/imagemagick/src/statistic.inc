@@ -18,13 +18,13 @@
 
 type
   ChannelStatistics = record
-    depth: Cardinal;
+    depth: culong;
 
     minima, maxima: Quantum;
 
     mean, standard_deviation: double;
 
-    scale: Cardinal;
+    scale: culong;
   end;
   
   PChannelStatistics = ^ChannelStatistics;

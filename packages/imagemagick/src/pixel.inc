@@ -49,7 +49,7 @@ type
     green,
     blue,
     opacity,
-    index: Cardinal;
+    index: culong;
   end;
 
 type
@@ -60,7 +60,7 @@ type
 
     fuzz: double;
 
-    depth: Cardinal;
+    depth: culong;
 
     red,
     green,
