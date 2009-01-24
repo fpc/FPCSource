@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('libxml2');
+    P:=AddPackage('xml2');
 {$ifdef ALLPACKAGES}
     P.Directory:='libxml';
 {$endif ALLPACKAGES}
@@ -20,7 +20,7 @@ begin
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
-  T:=P.Targets.AddUnit('libxml2.pas');
+  T:=P.Targets.AddUnit('xml2.pas');
   with T.Dependencies do
     begin
       AddInclude('xinclude.inc');

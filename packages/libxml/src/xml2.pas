@@ -3,7 +3,7 @@
   Copyright (C) 2008 by Ivo Steinmann
 }
 
-unit libxml2;
+unit xml2;
 
 {$mode objfpc}
 {$H+}

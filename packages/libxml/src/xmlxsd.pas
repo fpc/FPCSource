@@ -11,7 +11,7 @@ unit xmlxsd;
 interface
 
 uses
-  libxml2,
+  xml2,
   DateUtils,
   SysUtils;
 
