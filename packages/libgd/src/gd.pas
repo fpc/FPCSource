@@ -3,7 +3,7 @@
   Copyright(C) 2009 by Ivo Steinmann
 }
 
-unit libgd;
+unit gd;
 
 {$mode objfpc}
 {$macro on}
