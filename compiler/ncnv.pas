@@ -917,17 +917,6 @@ implementation
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
          
-         { one thing we have to do in advance: "constant ansichar" -> ansistring }
-         { conversions with ord(ansichar) >= 128, have to be done by converting  }
-         { the ansichar to a widechar at compile time (using the source's code   }
-         { page), and then by converting the widechar to an ansistring at run    }
-         { time (using the run time code page)                        }
-         if (left.nodetype=ordconstn) and
-            not(tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) and
-            (torddef(left.resultdef).ordtype=uchar) and
-            not(tordconstnode(left).value.uvalue<128) then
-           inserttypeconv(left,cwidechartype);
-         
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or

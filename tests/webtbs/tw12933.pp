@@ -11,28 +11,29 @@ uses
   cwstring;
 {$endif}
 var
-  s, s2: ansistring;
-  ws, ws2, ws3: widestring;
+  s: ansistring;
+  ws, ws3: widestring;
 begin
+    // must not be converted
     s := '£';
-    writeln(s);
+    if (length(s)<>1) or
+       (s[1]<> #163) then
+      halt(1);
 
-    ws := s;
+    ws := '££';
     writeln(ws);
-
-    ws2 := '££';
-    writeln(ws2);
-    s2:=ws2;
-    ws2:=s2;
+    s:=ws;
+    ws:=s;
 
     ws3 := '£';
+    if ws3[1]<>ws[1] then
+      halt(2);
     writeln(ws3);
-    s2:=ws3;
-    ws3:=s2;
+    s:=ws3;
+    ws3:=s;
 
-    delete(ws2,1,1);
+    delete(ws,1,1);
 
-    if (ws<>ws2) or
-       (ws<>ws3) then
-      halt(1);
+    if (ws<>ws3) then
+      halt(3);
 end.
