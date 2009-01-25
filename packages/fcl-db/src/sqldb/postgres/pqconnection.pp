@@ -544,6 +544,7 @@ begin
     begin
     if not tr.ErrorOccured then
       begin
+      PQclear(res);
       res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
@@ -568,6 +569,7 @@ begin
     begin
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
+      pqclear(res);
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         setlength(ar,Aparams.count);
@@ -615,6 +617,8 @@ begin
       else
         s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
+      if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+        pqclear(res);
       end;
     if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
