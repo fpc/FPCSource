@@ -311,7 +311,7 @@ librsvg_smart: gtk2_smart
 librsvg_debug: gtk2_debug
 librsvg_release: gtk2_release
 
-ifneq ($(findstring $(OS_TARGET),win32 win64),)
+ifeq ($(findstring $(OS_TARGET),win32 win64),)
 fcl-xml_all: iconvenc_all
 fcl-xml_shared: iconvenc_shared
 fcl-xml_smart: iconvenc_smart
