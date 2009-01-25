@@ -310,3 +310,9 @@ librsvg_shared: gtk2_shared
 librsvg_smart: gtk2_smart
 librsvg_debug: gtk2_debug
 librsvg_release: gtk2_release
+
+fcl-xml_all: iconvenc_all
+fcl-xml_shared: iconvenc_shared
+fcl-xml_smart: iconvenc_smart
+fcl-xml_debug: iconvenc_debug
+fcl-xml_release: iconvenc_release
