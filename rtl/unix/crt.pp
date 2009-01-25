@@ -1547,27 +1547,31 @@ begin
   fpWrite(0,s[1],length(s));
   fpFD_ZERO(fds);
   fpFD_SET(1,fds);
-  if (fpSelect(2,@fds,nil,nil,1000)>0) then
-   begin
-     readed:=fpRead(1,buf,sizeof(buf));
-     i:=0;
-     while (i+5<readed) and (buf[i]<>#27) and (buf[i+1]<>'[') do
-      inc(i);
-     if i+5<readed then
-      begin
-        s:=space(16);
-        move(buf[i+2],s[1],16);
-        i:=Pos(';',s);
-        if i>0 then
-         begin
-           Val(Copy(s,1,i-1),y);
-           j:=Pos('R',s);
-           if j=0 then
-            j:=length(s);
-           Val(Copy(s,i+1,j-(i+1)),x);
-         end;
-      end;
-   end;
+  readed:=0;
+  repeat
+    if (fpSelect(2,@fds,nil,nil,1000)>0) then
+     begin
+       readed:=readed+fpRead(1,buf[readed],sizeof(buf)-readed);
+       i:=0;
+       while (i+5<readed) and (buf[i]<>#27) and (buf[i+1]<>'[') do
+        inc(i);
+       if i+5<readed then
+        begin
+          s:=space(16);
+          move(buf[i+2],s[1],16);
+          j:=Pos('R',s);
+          if j>0 then
+           begin
+             i:=Pos(';',s);
+             Val(Copy(s,1,i-1),y);
+             Val(Copy(s,i+1,j-(i+1)),x);
+             break;
+           end;
+        end;
+     end
+    else
+      break;
+  until false;
 end;
 
 
