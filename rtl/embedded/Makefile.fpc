@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) # objpas macpas strings \
+units=$(SYSTEMUNIT) $(CPU_UNITS) # objpas macpas strings \
 #      dos \
 #       sysutils \
 #       classes math typinfo varutils fmtbcd \
@@ -29,8 +29,7 @@ target=embedded
 
 [compiler]
 includedir=$(INC) $(PROCINC)
-sourcedir=$(INC) $(PROCINC) $(COMMON)
-
+sourcedir=$(INC) $(PROCINC) $(COMMON) $(ARCH)
 
 [prerules]
 RTL=..
@@ -43,6 +42,13 @@ override FPCOPT+=@rtl.cfg
 
 ifdef RELEASE
 override FPCOPT+=-Ur
+endif
+
+CPU_UNITS=
+SYSINIT_UNITS=
+
+ifeq ($(ARCH),arm)
+CPU_UNITS=lpc21x4
 endif
 
 # Paths
