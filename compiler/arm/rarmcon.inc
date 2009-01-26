@@ -72,3 +72,4 @@ NR_D14 = tregister($03000000);
 NR_S30 = tregister($03000000);
 NR_S31 = tregister($03000000);
 NR_D15 = tregister($03000000);
+NR_CPSR_C = tregister($04000000);

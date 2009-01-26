@@ -87,6 +87,7 @@ uses
       OT_REG32     = $00201004;
       OT_REG64     = $00201008;
       OT_VREG      = $00201010;  { vector register }
+      OT_REGF      = $00201020;  { coproc register }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
