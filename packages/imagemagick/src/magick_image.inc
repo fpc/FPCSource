@@ -380,10 +380,10 @@ function MagickGetImageRenderingIntent(wand: PMagickWand): RenderingIntent; cdec
 
 function MagickGetImageUnits(wand: PMagickWand): ResolutionType; cdecl; external WandExport;
 
-function MagickGetImageBlob(wand: PMagickWand; length: Psize_t): PByte; cdecl; external WandExport;
-function MagickGetImagesBlob(wand: PMagickWand; length: Psize_t): PByte; cdecl; external WandExport;
-function MagickGetImageProfile(wand: PMagickWand; name: PChar; length: Psize_t): PByte; cdecl; external WandExport;
-function MagickRemoveImageProfile(wand: PMagickWand; name: PChar; length: Psize_t): PByte; cdecl; external WandExport;
+function MagickGetImageBlob(wand: PMagickWand; length: Pcsize_t): PByte; cdecl; external WandExport;
+function MagickGetImagesBlob(wand: PMagickWand; length: Pcsize_t): PByte; cdecl; external WandExport;
+function MagickGetImageProfile(wand: PMagickWand; name: PChar; length: Pcsize_t): PByte; cdecl; external WandExport;
+function MagickRemoveImageProfile(wand: PMagickWand; name: PChar; length: Pcsize_t): PByte; cdecl; external WandExport;
 
 function MagickGetImageColors(wand: PMagickWand): culong; cdecl; external WandExport;
 function MagickGetImageCompressionQuality(wand: PMagickWand): culong; cdecl; external WandExport;
