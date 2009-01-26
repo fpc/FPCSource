@@ -1284,6 +1284,8 @@ end;
                             File Handling
 *****************************************************************************}
 
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
 procedure DoDirSeparators(p:Pchar);
 var
@@ -1302,6 +1304,7 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}

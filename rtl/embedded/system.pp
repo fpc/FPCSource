@@ -29,18 +29,21 @@ Unit System;
 {$I systemh.inc}
 
 const
-{
-  fix me
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
  LineEnding = #10;
+{$endif FPC_HAS_FEATURE_TEXTIO}
+{$ifdef FPC_HAS_FEATURE_FILEIO}
  LFNSupport = true;
  DirectorySeparator = '/';
  DriveSeparator = ':';
  ExtensionSeparator = '.';
  PathSeparator = ':';
-  AllowDirectorySeparators : set of char = ['\','/'];
-  AllowDriveSeparators : set of char = [':'];
+ AllowDirectorySeparators : set of char = ['\','/'];
+ AllowDriveSeparators : set of char = [':'];
+{$endif FPC_HAS_FEATURE_FILEIO}
+
 { FileNameCaseSensitive is defined below! }
-}
+
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
  maxExitCode = 255;
 {$endif FPC_HAS_FEATURE_EXITCODE}
