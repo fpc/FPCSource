@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg
+programs=fpc ppufiles ppudump ppumove fpcsubst fpcmkcfg mkarmins mkx86ins
 rst=fpcmkcfg fpcsubst
 
 [clean]
