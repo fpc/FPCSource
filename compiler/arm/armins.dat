@@ -246,13 +246,13 @@ reg32,reg32,reg32,reg32  \x15\x00\x20\x90               ARM7
 ; [MRC]
 ; reg32,reg32         \321\301\1\x13\110                  ARM7
 
-; [MRScc]
-; reg32,reg32         \x10\x01\x0F                        ARM7
+[MRScc]
+reg32,reg32         \x10\x01\x0F                        ARM7
 
-; [MSRcc]
-; reg32,reg32         \x11\x01\x29\xF0                    ARM7
-; regf,reg32          \x12\x01\x28\xF0                    ARM7
-; regf,imm            \x13\x03\x28\xF0                    ARM7
+[MSRcc]
+reg32,reg32         \x11\x01\x29\xF0                    ARM7
+regf,reg32          \x12\x01\x28\xF0                    ARM7
+regf,imm            \x13\x03\x28\xF0                    ARM7
 
 [MNFcc]
 
@@ -270,6 +270,8 @@ fpureg,immfpu              \xF2                      FPA
 ; reg32,reg32,reg32   \x9\x1\xE0                     ARM7
 ; reg32,reg32,imm     \xA\x1\xE0                     ARM7
 ; reg32,imm           \xB\x3\xE0                     ARM7
+
+[NOP]
 
 [ORRcc]
 reg32,reg32,reg32        \4\x1\x80                     ARM7
