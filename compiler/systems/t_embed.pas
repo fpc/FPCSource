@@ -208,32 +208,35 @@ begin
    end;
 
 {$ifdef ARM}
-  Add('SECTIONS');
-  Add('{');
-  Add('	/* interrupt vectors */');
-  Add('	. = 0x0;  /* start of flash */');
-  Add('	.init :');
-  Add('    {');
-  Add('    *(.init)');
-  Add('    }');
-  Add('    /* code and constants */');
-  Add('    .text :');
-  Add('    {');
-  Add('    *(.text)');
-  Add('    *(.strings)');
-  Add('    *(.rodata.*)');
-  Add('    *(.comment)');
-  Add('    }');
-  Add('    /* uninitialized data */');
-  Add('    . = 0x40000000;  /* start of ram */');
-  Add('    .bss :');
-  Add('    {');
-  Add('    *(.bss)');
-  Add('    *(COMMON)');
-  Add('    *(.data)');
-  Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-  Add('    }');
-  Add('}');
+  with linkres do
+    begin
+      Add('SECTIONS');
+      Add('{');
+      Add('	/* interrupt vectors */');
+      Add('	. = 0x0;  /* start of flash */');
+      Add('	.init :');
+      Add('    {');
+      Add('    *(.init)');
+      Add('    }');
+      Add('    /* code and constants */');
+      Add('    .text :');
+      Add('    {');
+      Add('    *(.text)');
+      Add('    *(.strings)');
+      Add('    *(.rodata.*)');
+      Add('    *(.comment)');
+      Add('    }');
+      Add('    /* uninitialized data */');
+      Add('    . = 0x40000000;  /* start of ram */');
+      Add('    .bss :');
+      Add('    {');
+      Add('    *(.bss)');
+      Add('    *(COMMON)');
+      Add('    *(.data)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    }');
+      Add('}');
+    end;
 {$endif ARM}
 
   { Write and Close response }
