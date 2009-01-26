@@ -72,13 +72,12 @@ type
   culong                 = cardinal;           pculong                = ^culong;
 {$endif}
 
+  csize_t                = ptruint;            pcsize_t               = pptruint;
+
 // Kylix compat types
   u_long  = culong;
   u_short = cushort;
-
-
   coff_t = clong;
-
 
 {$ifndef FPUNONE}
   cfloat                 = single;             pcfloat                = ^cfloat;
