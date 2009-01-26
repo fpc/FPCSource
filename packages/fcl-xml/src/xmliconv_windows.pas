@@ -38,9 +38,12 @@ function errno_location: PInteger; cdecl; external 'msvcrt.dll' name '_errno';
 function Iconv_Decode(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 var
   OutChars: size_t;
+  InChars : size_t;
 begin
   OutChars := OutCnt * sizeof(WideChar);
-  Result := iconv(Context, @InBuf, InCnt, @OutBuf, OutChars);
+  InChars:=InCnt;
+  Result := iconv(Context, @InBuf, InChars, @OutBuf, OutChars);
+  InCnt:=InChars;
   OutCnt := OutChars div sizeof(WideChar);
   if Result = -1 then
   begin
