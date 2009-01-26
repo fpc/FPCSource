@@ -54,7 +54,7 @@
  *
  * Returns a pointer to the newly allocated block or NULL in case of error.
  *)
-  xmlMallocFunc = function(size: size_t): pointer; XMLCALL;
+  xmlMallocFunc = function(size: csize_t): pointer; XMLCALL;
 
 (**
  * xmlReallocFunc:
@@ -65,7 +65,7 @@
  *
  * Returns a pointer to the newly reallocated block or NULL in case of error.
  *)
-  xmlReallocFunc = function(mem: pointer; size: size_t): pointer; XMLCALL;
+  xmlReallocFunc = function(mem: pointer; size: csize_t): pointer; XMLCALL;
 
 (**
  * xmlStrdupFunc:
@@ -116,14 +116,14 @@ function xmlMemBlocks(): cint; XMLCALL; XMLPUBFUN;
 procedure xmlMemDisplay(fp: PFILE); XMLCALL; XMLPUBFUN;
 procedure xmlMemShow(fp: PFILE; nr: cint); XMLCALL; XMLPUBFUN;
 procedure xmlMemoryDump(); XMLCALL; XMLPUBFUN;
-function xmlMemMalloc(size: size_t): pointer; XMLCALL; XMLPUBFUN;
-function xmlMemRealloc(ptr: pointer; size: size_t): pointer; XMLCALL; XMLPUBFUN;
+function xmlMemMalloc(size: csize_t): pointer; XMLCALL; XMLPUBFUN;
+function xmlMemRealloc(ptr: pointer; size: csize_t): pointer; XMLCALL; XMLPUBFUN;
 procedure xmlMemFree(ptr: pointer); XMLCALL; XMLPUBFUN;
 function xmlMemoryStrdup(str: pchar): pchar; XMLCALL; XMLPUBFUN;
 
-function xmlMallocLoc(size: size_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
-function xmlReallocLoc(ptr: pointer; size: size_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
-function xmlMallocAtomicLoc(size: size_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlMallocLoc(size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlReallocLoc(ptr: pointer; size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlMallocAtomicLoc(size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
 function xmlMemStrdupLoc(str: pchar; _file: pchar; line: cint): pchar; XMLCALL; XMLPUBFUN;
 
 {$IFDEF DEBUG_MEMORY_LOCATION}

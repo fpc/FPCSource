@@ -562,8 +562,8 @@ procedure xmlSetBufferAllocationScheme(scheme: xmlBufferAllocationScheme); XMLCA
 function xmlGetBufferAllocationScheme: xmlBufferAllocationScheme; XMLCALL; XMLPUBFUN;
 
 function xmlBufferCreate: xmlBufferPtr; XMLCALL; XMLPUBFUN;
-function xmlBufferCreateSize(size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
-function xmlBufferCreateStatic(mem: pointer; size: size_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlBufferCreateSize(size: csize_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
+function xmlBufferCreateStatic(mem: pointer; size: csize_t): xmlBufferPtr; XMLCALL; XMLPUBFUN;
 function xmlBufferResize(buf: xmlBufferPtr; size: cuint): cint; XMLCALL; XMLPUBFUN;
 procedure xmlBufferFree(buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
 procedure xmlBufferDump(fp: PFILE; buf: xmlBufferPtr); XMLCALL; XMLPUBFUN;
