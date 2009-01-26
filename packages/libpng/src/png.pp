@@ -13,6 +13,7 @@ interface
 {$PACKRECORDS C}
 
 uses
+ ctypes,
  zlib;
 
 Const
@@ -27,7 +28,6 @@ Const
 {$endif windows}
 
 type
-   size_t = longint;
    time_t = longint;
    int = longint;
    z_stream = TZStream;
@@ -48,7 +48,7 @@ type
    pppng_uint_16 = ^ppng_uint_16;
    pppng_int_16 = ^ppng_int_16;
    pppng_byte = ^ppng_byte;
-   png_size_t = size_t;
+   png_size_t = csize_t;
    png_fixed_point = png_int_32;
    ppng_fixed_point = ^png_fixed_point;
    pppng_fixed_point = ^ppng_fixed_point;
