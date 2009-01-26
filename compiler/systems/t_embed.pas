@@ -81,7 +81,11 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
+{$ifdef ARM}
+  prtobj:='';
+{$else ARM}
   prtobj:='prt0';
+{$endif ARM}
   cprtobj:='cprt0';
   if linklibc then
     prtobj:=cprtobj;
@@ -112,8 +116,10 @@ begin
   { add objectfiles, start with prt0 always }
   //s:=FindObjectFile('prt0','',false);
   if prtobj<>'' then
-   s:=FindObjectFile(prtobj,'',false);
-  LinkRes.AddFileName(s);
+    begin
+      s:=FindObjectFile(prtobj,'',false);
+      LinkRes.AddFileName(s);
+    end;
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -210,18 +216,15 @@ begin
 {$ifdef ARM}
   with linkres do
     begin
+      add('ENTRY(_START)');
       Add('SECTIONS');
       Add('{');
-      Add('	/* interrupt vectors */');
-      Add('	. = 0x0;  /* start of flash */');
-      Add('	.init :');
-      Add('    {');
-      Add('    *(.init)');
-      Add('    }');
+      Add('     . = 0x0;  /* start of flash */');
       Add('    /* code and constants */');
       Add('    .text :');
       Add('    {');
-      Add('    *(.text)');
+      Add('    *(.init, .init.*)');
+      Add('    *(.text, .text.*)');
       Add('    *(.strings)');
       Add('    *(.rodata.*)');
       Add('    *(.comment)');
@@ -230,9 +233,9 @@ begin
       Add('    . = 0x40000000;  /* start of ram */');
       Add('    .bss :');
       Add('    {');
-      Add('    *(.bss)');
+      Add('    *(.bss, .bss.*)');
       Add('    *(COMMON)');
-      Add('    *(.data)');
+      Add('    *(.data, .data.*)');
       Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
       Add('    }');
       Add('}');
