@@ -31,7 +31,7 @@ unit lpc21x4;
       // VECTDATA_FIQ  {   __TODO }
 
     type
-      BITS32 = bitpacked array[0..31] of 0..1;
+      TBitvector32 = bitpacked array[0..31] of 0..1;
 
 
     {##############################################################################
@@ -350,36 +350,39 @@ unit lpc21x4;
       MAM_MAMMAP        : DWord absolute $E01FC040;
 
     var
-      Undefined_Handler
+      Undefined_Handler,
       SWI_Handler,
       Prefetch_Handler,
       Abort_Handler,
       FIQ_Handler : pointer;
 
-    procedure InitPLL(m : 1..32;p : 1..8);
-    procedure PLLFeed;
-    function GetProcessorClock : DWord;
+    type
+      tm = 1..32;
+      tp = 1..8;
 
+    procedure InitPLL(m : tm;p : tp);
+    procedure PLLFeed;
+    function GetProcessorClock(CrystalFrequency : DWord) : DWord;
 
   implementation
 
     procedure PLLFeed;
       begin
-        SCB_PLLFEED:=$aa
-        SCB_PLLFEED:=$55
+        SCB_PLLFEED:=$aa;
+        SCB_PLLFEED:=$55;
       end;
 
 
     function GetProcessorClock(CrystalFrequency : DWord) : DWord;
       begin
         if (TBitvector32(SCB_PLLSTAT)[8] and 1)<>0 then
-          Result:=((SCB_PLLSTAT and $f)+1)*CrystalFrequency;
+          GetProcessorClock:=((SCB_PLLSTAT and $f)+1)*CrystalFrequency
         else
-          Result:=CrystalFrequency;
+          GetProcessorClock:=CrystalFrequency;
       end;
 
 
-    procedure InitPLL(m : 1..32;p : 1..8);
+    procedure InitPLL(m : tm;p : tp);
       begin
         case p of
           1: p:=0;
@@ -410,35 +413,51 @@ unit lpc21x4;
         PLLFeed;
       end;
 
+
+procedure PASCALMAIN; external name 'PASCALMAIN';
+
 begin
   asm
     // code derived from phillips appnote 10254
     .init
-Entry:
-    ldr pc, _start
-    ldr pc, Undefined_Addr
-    ldr pc, SWI_Addr
-    ldr pc, Prefetch_Addr
-    ldr pc, Abort_Addr
+    ldr pc, .Lstart
+    ldr pc, .LUndefined_Addr
+    ldr pc, .LSWI_Addr
+    ldr pc, .LPrefetch_Addr
+    ldr pc, .LAbort_Addr
 
     // signature
     nop
     ldr pc, [PC, #-0xFF0] // load irq vector from vic
-    ldr pc, FIQ_Addr
-Undefined_Addr:
-    ldr
+    ldr pc, .LFIQ_Addr
+.LUndefined_Addr:
+    ldr r0,.L1
+    ldr pc,[r0]
+.LSWI_Addr:
+    ldr r0,.L2
+    ldr pc,[r0]
+.LPrefetch_Addr:
+    ldr r0,.L3
+    ldr pc,[r0]
+.LAbort_Addr:
+    ldr r0,.L4
+    ldr pc,[r0]
+.LFIQ_Addr:
+    ldr r0,.L5
+    ldr pc,[r0]
 .L1:
-    .word     Un
-SWI_Handler:
-    B         SWI_Handler
-Prefetch_Handler:
-    B         Prefetch_Handler
-Abort_Handler:
-    B         Abort_Handler
-FIQ_Handler:
-    B         FIQ_Handler
-_start:
-    {
+    .word     Undefined_Handler
+.L2:
+    .word     SWI_Handler
+.L3:
+    .word     Prefetch_Handler
+.L4:
+    .word     Abort_Handler
+.L5:
+    .word     FIQ_Handler
+
+.Lstart:
+    (*
       Set SP for Supervisor mode. Depending upon
       the stack the application needs this value
       needs to be set.
@@ -446,10 +465,10 @@ _start:
       but if this point is entered by any
       other means than reset, the stack pointer
       needs to be set explicity
-    }
+    *)
     // LDR SP,=0x40001000
 
-    {
+    (*
       Setting up SP for IRQ and FIQ mode.
       Change mode before setting each one
       move back again to Supervisor mode
@@ -458,12 +477,12 @@ _start:
       counter The stack pointers must be
       initialized for interrupts to be
       used later.
-    }
+    *)
 
-    {
+    (*
       setup for fiq and irq interrupt stacks to run
       below current stack by 1000.
-    }
+    *)
     mov r0, sp         // copy current stack pointer
     sub r0, r0, #1000  // make irq stack pointer
     sub r1, r0, #1000  // make fiq stack pointer
@@ -474,5 +493,7 @@ _start:
     msr cpsr_c, #0x13  // supervisor mode F,I enabled
 
     bl PASCALMAIN
+    .text
   end;
+
 end.
