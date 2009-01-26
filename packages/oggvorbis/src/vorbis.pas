@@ -54,8 +54,6 @@ const
 (***********************************************************************)
 
 type
-  csize_t = culong;
-
   ppcfloat = ^pcfloat;
 
   pvorbis_info = ^vorbis_info;
