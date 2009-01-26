@@ -1,3 +1,4 @@
+{$goto on}
 {******************************************************************************
 lpc2114.h - Register defs for Philips LPC2114, LPC2124
 
@@ -17,6 +18,7 @@ Created by Sten Larsson (sten_larsson at yahoo com)
 
 Free Pascal conversion by the Free Pascal development team
 ******************************************************************************}
+
 unit lpc21x4;
 
   interface
@@ -414,86 +416,100 @@ unit lpc21x4;
       end;
 
 
-procedure PASCALMAIN; external name 'PASCALMAIN';
+    procedure PASCALMAIN; external name 'PASCALMAIN';
 
-begin
-  asm
-    // code derived from phillips appnote 10254
-    .init
-    ldr pc, .Lstart
-    ldr pc, .LUndefined_Addr
-    ldr pc, .LSWI_Addr
-    ldr pc, .LPrefetch_Addr
-    ldr pc, .LAbort_Addr
+    procedure _FPC_haltproc; assembler; nostackframe; public name '_haltproc';
+      asm
+      .Lhalt:
+        b .Lhalt
+      end;
 
-    // signature
-    nop
-    ldr pc, [PC, #-0xFF0] // load irq vector from vic
-    ldr pc, .LFIQ_Addr
-.LUndefined_Addr:
-    ldr r0,.L1
-    ldr pc,[r0]
-.LSWI_Addr:
-    ldr r0,.L2
-    ldr pc,[r0]
-.LPrefetch_Addr:
-    ldr r0,.L3
-    ldr pc,[r0]
-.LAbort_Addr:
-    ldr r0,.L4
-    ldr pc,[r0]
-.LFIQ_Addr:
-    ldr r0,.L5
-    ldr pc,[r0]
-.L1:
-    .word     Undefined_Handler
-.L2:
-    .word     SWI_Handler
-.L3:
-    .word     Prefetch_Handler
-.L4:
-    .word     Abort_Handler
-.L5:
-    .word     FIQ_Handler
 
-.Lstart:
-    (*
-      Set SP for Supervisor mode. Depending upon
-      the stack the application needs this value
-      needs to be set.
-      stack is already set by bootloader
-      but if this point is entered by any
-      other means than reset, the stack pointer
-      needs to be set explicity
-    *)
-    // LDR SP,=0x40001000
+    procedure _FPC_start; assembler; nostackframe;
+      label
+        _start;
+      asm
+        // code derived from phillips appnote 10254
+        .init
+        .align 16
+        .globl _start
+        b   _start
+        ldr pc, .LUndefined_Addr
+        ldr pc, .LSWI_Addr
+        ldr pc, .LPrefetch_Addr
+        ldr pc, .LAbort_Addr
 
-    (*
-      Setting up SP for IRQ and FIQ mode.
-      Change mode before setting each one
-      move back again to Supervisor mode
-      Each interrupt has its own link
-      register, stack pointer and program
-      counter The stack pointers must be
-      initialized for interrupts to be
-      used later.
-    *)
+        // signature
+        nop
+        ldr pc, [pc, #-0xFF0] // load irq vector from vic
+        ldr pc, .LFIQ_Addr
+    .LUndefined_Addr:
+        ldr r0,.L1
+        ldr pc,[r0]
+    .LSWI_Addr:
+        ldr r0,.L2
+        ldr pc,[r0]
+    .LPrefetch_Addr:
+        ldr r0,.L3
+        ldr pc,[r0]
+    .LAbort_Addr:
+        ldr r0,.L4
+        ldr pc,[r0]
+    .LFIQ_Addr:
+        ldr r0,.L5
+        ldr pc,[r0]
+    .L1:
+        .long     Undefined_Handler
+    .L2:
+        .long     SWI_Handler
+    .L3:
+        .long     Prefetch_Handler
+    .L4:
+        .long     Abort_Handler
+    .L5:
+        .long     FIQ_Handler
 
-    (*
-      setup for fiq and irq interrupt stacks to run
-      below current stack by 1000.
-    *)
-    mov r0, sp         // copy current stack pointer
-    sub r0, r0, #1000  // make irq stack pointer
-    sub r1, r0, #1000  // make fiq stack pointer
-    msr cpsr_c, #0x12  // switch to irq mode
-    mov sp, r0         // set irq stack pointer
-    msr cpsr_c, #0x11  // fiq mode
-    mov sp, r1         // set fiq stack pointer
-    msr cpsr_c, #0x13  // supervisor mode F,I enabled
+    _start:
+        (*
+          Set SP for Supervisor mode. Depending upon
+          the stack the application needs this value
+          needs to be set.
+          stack is already set by bootloader
+          but if this point is entered by any
+          other means than reset, the stack pointer
+          needs to be set explicity
+        *)
+        // LDR SP,=0x40001000
 
-    bl PASCALMAIN
-    .text
-  end;
+        (*
+          Setting up SP for IRQ and FIQ mode.
+          Change mode before setting each one
+          move back again to Supervisor mode
+          Each interrupt has its own link
+          register, stack pointer and program
+          counter The stack pointers must be
+          initialized for interrupts to be
+          used later.
+        *)
+
+        (*
+          setup for fiq and irq interrupt stacks to run
+          below current stack by 1000.
+        *)
+        mov r0, sp         // copy current stack pointer
+        sub r0, r0, #1000  // make irq stack pointer
+        sub r1, r0, #1000  // make fiq stack pointer
+        msr cpsr_c, #0x12  // switch to irq mode
+        mov sp, r0         // set irq stack pointer
+        msr cpsr_c, #0x11  // fiq mode
+        mov sp, r1         // set fiq stack pointer
+        msr cpsr_c, #0x13  // supervisor mode F,I enabled
+
+        bl PASCALMAIN
+        bl _FPC_haltproc
+.LVBPDIV:
+        .long 0xE01FC100
+        .text
+      end;
 
 end.
