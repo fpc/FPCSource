@@ -362,9 +362,6 @@ const
         	lat_1
 }
 
-type
-  size_t = ptrint;
-
 
 (* Try to update this every version! *)
 const
@@ -413,7 +410,7 @@ function pj_init(argc: cint; argv: ppchar): projPJ; cdecl; external;
 function pj_init_plus(args: pchar): projPJ; cdecl; external;
 function pj_get_def(proj: projPJ; i: cint): pchar; cdecl; external;
 function pj_latlong_from_proj(proj: projPJ): projPJ; cdecl; external;
-function pj_malloc(size: size_t): pointer; cdecl; external;
+function pj_malloc(size: csize_t): pointer; cdecl; external;
 procedure pj_dalloc(ptr: pointer); cdecl; external;
 function pj_strerrno(err: cint): pchar; cdecl; external;
 function pj_get_errno_ref: pcint; cdecl; external;
