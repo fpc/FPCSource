@@ -1058,6 +1058,9 @@ end;
               OPR_SHIFTEROP:
                 ai.loadshifterop(i-1,shifterop);
 {$endif ARM}
+              { ignore wrong operand }
+              OPR_NONE:
+                ;
               else
                 internalerror(200501051);
             end;
