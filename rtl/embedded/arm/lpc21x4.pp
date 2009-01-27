@@ -434,15 +434,16 @@ unit lpc21x4;
         .align 16
         .globl _start
         b   _start
-        ldr pc, .LUndefined_Addr
-        ldr pc, .LSWI_Addr
-        ldr pc, .LPrefetch_Addr
-        ldr pc, .LAbort_Addr
+        ldr pc, .L1
+        ldr pc, .L2
+        ldr pc, .L3
+        ldr pc, .L4
 
         // signature
         nop
         ldr pc, [pc, #-0xFF0] // load irq vector from vic
-        ldr pc, .LFIQ_Addr
+        ldr pc, .L5
+(*
     .LUndefined_Addr:
         ldr r0,.L1
         ldr pc,[r0]
@@ -458,6 +459,7 @@ unit lpc21x4;
     .LFIQ_Addr:
         ldr r0,.L5
         ldr pc,[r0]
+*)
     .L1:
         .long     Undefined_Handler
     .L2:
@@ -505,10 +507,37 @@ unit lpc21x4;
         mov sp, r1         // set fiq stack pointer
         msr cpsr_c, #0x13  // supervisor mode F,I enabled
 
+        ldr r1,.LDefaultHandlerAddr
+        ldr r0,.L1
+        str r1,[r0]
+        ldr r0,.L2
+        str r1,[r0]
+        ldr r0,.L3
+        str r1,[r0]
+        ldr r0,.L4
+        str r1,[r0]
+        ldr r0,.L5
+        str r1,[r0]
+
+        // clear onboard ram
+        mov r1,#0x1000
+        ldr r2,.LRAMStart
+        mov r0,#0
+.Lzeroloop:
+        str r0,[r2]
+        subs r1,r1,#1
+        add r2,r2,#4
+        bne .Lzeroloop
+
         bl PASCALMAIN
         bl _FPC_haltproc
-.LVBPDIV:
-        .long 0xE01FC100
+.LRAMStart:
+        .long 0x40000000
+.LDefaultHandlerAddr:
+        .long .LDefaultHandler
+        // default irq handler just returns
+.LDefaultHandler:
+        mov pc,r14
         .text
       end;
 
