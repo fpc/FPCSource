@@ -2809,7 +2809,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'COFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_go32v2;
+            supported_targets : [system_i386_go32v2];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
@@ -2821,7 +2821,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_win32;
+            supported_targets : [system_i386_win32];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2833,7 +2833,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PEWDOSX';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_wdosx;
+            supported_targets : [system_i386_wdosx];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
@@ -2845,7 +2845,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFFWINCE';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_wince;
+            supported_targets : [system_i386_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2859,7 +2859,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_x86_64_win64;
+            supported_targets : [system_x86_64_win64];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2873,7 +2873,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFFWINCE';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_arm_wince;
+            supported_targets : [system_arm_wince];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';

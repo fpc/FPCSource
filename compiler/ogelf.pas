@@ -1127,7 +1127,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [system_i386_linux,system_i386_beos,system_i386_freebsd,system_i386_haiku,system_i386_Netware,system_i386_netwlibc];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
@@ -1141,7 +1141,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [system_x86_64_linux];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
@@ -1155,7 +1155,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [];
 //            flags : [af_outputbinary,af_smartlink_sections];
             flags : [af_outputbinary,af_supports_dwarf];
             labelprefix : '.L';

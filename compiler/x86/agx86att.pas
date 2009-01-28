@@ -291,7 +291,7 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '--64 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,system_x86_64_win64,system_x86_64_embedded];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -304,7 +304,7 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch x86_64';
-            supported_target : system_any;
+            supported_targets : [system_x86_64_darwin];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
@@ -317,7 +317,9 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '--32 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
+                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -330,7 +332,7 @@ interface
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
             flags : [af_allowdirect,af_needar];
             labelprefix : 'L';
             comment : '# ';
@@ -343,7 +345,7 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
-            supported_target : system_any;
+            supported_targets : [system_i386_darwin];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
@@ -355,7 +357,9 @@ interface
             idtxt  : 'GAS';
             asmbin : 'gas';
             asmcmd : '--32 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
+                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';

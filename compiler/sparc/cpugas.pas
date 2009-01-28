@@ -213,7 +213,7 @@ implementation
 {$else}
            asmcmd : '-Av9 -o $OBJ $ASM';
 {$endif}
-           supported_target : system_any;
+           supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';
@@ -225,7 +225,7 @@ implementation
            idtxt  : 'GAS';
            asmbin : 'gas';
            asmcmd : '-Av9 -o $OBJ $ASM';
-           supported_target : system_any;
+           supported_targets : [system_sparc_solaris,system_sparc_linux,system_sparc_embedded];
            flags : [af_allowdirect,af_needar,af_smartlink_sections];
            labelprefix : '.L';
            comment : '# ';

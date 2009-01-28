@@ -429,7 +429,7 @@ unit agppcgas;
 {$else cpu64bitaddr}
          asmcmd: '-o $OBJ $ASM';
 {$endif cpu64bitaddr}
-         supported_target : system_any;
+         supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_allowdirect,af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
@@ -443,7 +443,7 @@ unit agppcgas;
          idtxt  : 'AS-Darwin';
          asmbin : 'as';
          asmcmd : '-o $OBJ $ASM -arch $ARCH';
-         supported_target : system_any;
+         supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
          flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
          labelprefix : 'L';
          comment : '# ';

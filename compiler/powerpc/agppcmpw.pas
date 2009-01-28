@@ -1259,7 +1259,7 @@ interface
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM -o $OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_powerpc_macos];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';

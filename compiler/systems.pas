@@ -265,7 +265,7 @@ interface
           idtxt       : string[12];
           asmbin      : string[8];
           asmcmd      : string[50];
-          supported_target : tsystem;
+          supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
           comment     : string[3];
@@ -552,8 +552,8 @@ function set_target_asm(t:tasm):boolean;
 begin
   set_target_asm:=false;
   if assigned(asminfos[t]) and
-    ((asminfos[t]^.supported_target=target_info.system) or
-     (asminfos[t]^.supported_target=system_any)) then
+    ((target_info.system in asminfos[t]^.supported_targets) or
+     (system_any in asminfos[t]^.supported_targets)) then
    begin
      target_asm:=asminfos[t]^;
      set_target_asm:=true;
