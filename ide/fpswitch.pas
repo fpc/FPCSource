@@ -1106,8 +1106,8 @@ begin
      AddDefaultSelect(opt_usedefaultas);
      for ta:=low(tasm) to high(tasm) do
        if assigned(asminfos[ta]) and
-         ((asminfos[ta]^.supported_target=target_info.system) or
-         (asminfos[ta]^.supported_target=system_any)) then
+         ((target_info.system in asminfos[ta]^.supported_targets) or
+         (system_any in asminfos[ta]^.supported_targets)) then
          begin
            st:='Asm '+asminfos[ta]^.idtxt;
            if asminfos[ta]^.idtxt='AS' then
