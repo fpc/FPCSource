@@ -640,62 +640,62 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX}
 
 {$ifdef FPC_HAS_INTERNAL_ROX_BYTE}
-function Ror(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
+function RorByte(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
+function RorByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
+function RolByte(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
+function RolByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_BYTE}
-function Ror(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorByte(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorByte(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolByte(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolByte(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_BYTE}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_WORD}
-function Ror(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
+function RorWord(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
+function RorWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
+function RolWord(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
+function RolWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_WORD}
-function Ror(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorWord(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorWord(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolWord(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolWord(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_WORD}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_DWORD}
-function Ror(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
+function RorDWord(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
+function RorDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
+function RolDWord(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
+function RolDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_DWORD}
-function Ror(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorDWord(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorDWord(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolDWord(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolDWord(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_DWORD}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_QWORD}
-function Ror(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
+function RorQWord(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
+function RorQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
+function RolQWord(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
+function RolQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_QWORD}
-function Ror(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorQWord(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolQWord(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_QWORD}
 
 {$ifndef FPUNONE}
