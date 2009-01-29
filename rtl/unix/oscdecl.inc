@@ -16,12 +16,39 @@
                                               
  ***********************************************************************}
 
-{$if defined(bsd) or defined(solaris)}
+
+{ ********************************************************************* }
+{ fpioctl                                                               }
+{ ********************************************************************* }
+
 function  real_FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest):cint; cdecl; varargs; external clib name 'ioctl';
 
 function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint;
 begin
   FpIOCtl:=real_FpIOCtl(Handle, Ndx, Data);
 end;
-{$endif bsd or solaris}
+
+
+{ ********************************************************************* }
+{ fpfcntl                                                               }
+{ ********************************************************************* }
+
+function real_FpFcntl (fildes : cInt; cmd : cInt): cInt; cdecl; varargs; external clib name 'fcntl';
+
+Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt;
+begin
+  FpFcntl:=real_FpFcntl(fildes, cmd);
+end;
+
+
+Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt;
+begin
+  FpFcntl:=real_FpFcntl(fildes, cmd, arg);
+end;
+
+
+Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt;
+begin
+  FpFcntl:=real_FpFcntl(fildes, cmd, @arg);
+end;
 

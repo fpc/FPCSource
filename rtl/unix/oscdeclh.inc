@@ -75,14 +75,9 @@ const
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
-{$if defined(bsd) or defined(solaris)}
-    { The BSD/Solaris version has "..." as third parameter -> wrap for }
-    { interface compatibility with Linux                               }
-    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint;
-                                         {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-{$else bsd or solaris}
-    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; cdecl; external clib name 'ioctl';
-{$endif bsd or solaris}
+    { The libc version has "..." as third parameter -> wrap for }
+    { interface compatibility with syscalls                     }
+    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
 {$ifdef beos}
   {$ifdef haiku}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
@@ -109,9 +104,11 @@ const
     Function  FpGetpgrp : TPid;  cdecl;external clib name 'getpgrp';
     Function  FpSetsid  : TPid; cdecl;external clib name 'setsid';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl; external clib name 'fcntl';
+    { The libc version has "..." as third parameter -> wrap for }
+    { interface compatibility with syscalls                     }
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
     Function  FpPause   : cInt; cdecl; external clib name 'pause';
     Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
 {$ifdef solaris}   
