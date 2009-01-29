@@ -36,7 +36,7 @@ Const
   Open_Creat    = $200;       {Linux convention}
   Open_Trunc    = $400;
   Open_Excl     = $800;
-  Open_NoCTTY   = $8000;
+  Open_NoCTTY   = $20000;
 
   { The waitpid uses the following options:}
   Wait_NoHang   = 1;
