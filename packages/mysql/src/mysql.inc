@@ -1065,7 +1065,7 @@ uses
     }
        Pst_mysql_bind = ^st_mysql_bind;
        st_mysql_bind = record
-            length : culong;                // output length pointer
+            length : pculong;               // output length pointer
             is_null : Pmy_bool;             // Pointer to null indicator
             buffer : pointer;               // buffer to get/put data
 {$IFDEF mysql50}
