@@ -23,15 +23,9 @@ Uses
 
 Const
   { Signatures }
-{$ifdef FPC_BIG_ENDIAN}
-  END_OF_CENTRAL_DIR_SIGNATURE  = $504B0506;
-  LOCAL_FILE_HEADER_SIGNATURE   = $504B0304;
-  CENTRAL_FILE_HEADER_SIGNATURE = $504B0102;
-{$else FPC_BIG_ENDIAN}
   END_OF_CENTRAL_DIR_SIGNATURE  = $06054B50;
   LOCAL_FILE_HEADER_SIGNATURE   = $04034B50;
   CENTRAL_FILE_HEADER_SIGNATURE = $02014B50;
-{$endif FPC_BIG_ENDIAN}
 
 Type
    Local_File_Header_Type = Packed Record
@@ -414,6 +408,65 @@ ResourceString
 { ---------------------------------------------------------------------
     Auxiliary
   ---------------------------------------------------------------------}
+
+{$IFDEF FPC_BIG_ENDIAN}
+function SwapLFH(const Values: Local_File_Header_Type): Local_File_Header_Type;
+begin
+  with Values do
+  begin
+    Result.Signature := SwapEndian(Signature);
+    Result.Extract_Version_Reqd := SwapEndian(Extract_Version_Reqd);
+    Result.Bit_Flag := SwapEndian(Bit_Flag);
+    Result.Compress_Method := SwapEndian(Compress_Method);
+    Result.Last_Mod_Time := SwapEndian(Last_Mod_Time);
+    Result.Last_Mod_Date := SwapEndian(Last_Mod_Date);
+    Result.Crc32 := SwapEndian(Crc32);
+    Result.Compressed_Size := SwapEndian(Compressed_Size);
+    Result.Uncompressed_Size := SwapEndian(Uncompressed_Size);
+    Result.Filename_Length := SwapEndian(Filename_Length);
+    Result.Extra_Field_Length := SwapEndian(Extra_Field_Length);
+  end;
+end;
+
+function SwapCFH(const Values: Central_File_Header_Type): Central_File_Header_Type;
+begin
+  with Values do
+  begin
+    Result.Signature := SwapEndian(Signature);
+    Result.MadeBy_Version := SwapEndian(MadeBy_Version);
+    Result.Extract_Version_Reqd := SwapEndian(Extract_Version_Reqd);
+    Result.Bit_Flag := SwapEndian(Bit_Flag);
+    Result.Compress_Method := SwapEndian(Compress_Method);
+    Result.Last_Mod_Time := SwapEndian(Last_Mod_Time);
+    Result.Last_Mod_Date := SwapEndian(Last_Mod_Date);
+    Result.Crc32 := SwapEndian(Crc32);
+    Result.Compressed_Size := SwapEndian(Compressed_Size);
+    Result.Uncompressed_Size := SwapEndian(Uncompressed_Size);
+    Result.Filename_Length := SwapEndian(Filename_Length);
+    Result.Extra_Field_Length := SwapEndian(Extra_Field_Length);
+    Result.File_Comment_Length := SwapEndian(File_Comment_Length);
+    Result.Starting_Disk_Num := SwapEndian(Starting_Disk_Num);
+    Result.Internal_Attributes := SwapEndian(Internal_Attributes);
+    Result.External_Attributes := SwapEndian(External_Attributes);
+    Result.Local_Header_Offset := SwapEndian(Local_Header_Offset);
+  end;
+end;
+
+function SwapECD(const Values: End_of_Central_Dir_Type): End_of_Central_Dir_Type;
+begin
+  with Values do
+  begin
+    Result.Signature := SwapEndian(Signature);
+    Result.Disk_Number := SwapEndian(Disk_Number);
+    Result.Central_Dir_Start_Disk := SwapEndian(Central_Dir_Start_Disk);
+    Result.Entries_This_Disk := SwapEndian(Entries_This_Disk);
+    Result.Total_Entries := SwapEndian(Total_Entries);
+    Result.Central_Dir_Size := SwapEndian(Central_Dir_Size);
+    Result.Start_Disk_Offset := SwapEndian(Start_Disk_Offset);
+    Result.ZipFile_Comment_Length := SwapEndian(ZipFile_Comment_Length);
+  end;
+end;
+{$ENDIF FPC_BIG_ENDIAN}
 
 Procedure DateTimeToZipDateTime(DT : TDateTime; out ZD,ZT : Word);
 
@@ -1058,7 +1111,7 @@ Begin
       Compressed_Size := Uncompressed_Size;  { ...update compressed size   }
       end;
     end;
-  FOutFile.WriteBuffer(LocalHdr,SizeOf(LocalHdr));
+  FOutFile.WriteBuffer({$IFDEF ENDIAN_BIG}SwapLFH{$ENDIF}(LocalHdr),SizeOf(LocalHdr));
   FOutFile.WriteBuffer(ZFileName[1],Length(ZFileName));
 End;
 
@@ -1078,6 +1131,9 @@ Begin
    FOutFile.Seek(0,soFrombeginning);             { Rewind output file }
    HdrPos := FOutFile.Position;
    FOutFile.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
+{$IFDEF FPC_BIG_ENDIAN}
+   LocalHdr := SwapLFH(LocalHdr);
+{$ENDIF}
    Repeat
      SetLength(ZFileName,LocalHdr.FileName_Length);
      FOutFile.ReadBuffer(ZFileName[1], LocalHdr.FileName_Length);
@@ -1097,12 +1153,15 @@ Begin
        Local_Header_Offset := HdrPos;
        end;
      FOutFile.Seek(0,soFromEnd);
-     FOutFile.WriteBuffer(CentralHdr,SizeOf(CentralHdr));
+     FOutFile.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapCFH{$ENDIF}(CentralHdr),SizeOf(CentralHdr));
      FOutFile.WriteBuffer(ZFileName[1],Length(ZFileName));
      Inc(ACount);
      FOutFile.Seek(SavePos + LocalHdr.Compressed_Size,soFromBeginning);
      HdrPos:=FOutFile.Position;
      FOutFile.ReadBuffer(LocalHdr, SizeOf(LocalHdr));
+{$IFDEF FPC_BIG_ENDIAN}
+     LocalHdr := SwapLFH(LocalHdr);
+{$ENDIF}
    Until LocalHdr.Signature = CENTRAL_FILE_HEADER_SIGNATURE;
    FOutFile.Seek(0,soFromEnd);
    FillChar(EndHdr,SizeOf(EndHdr),0);
@@ -1116,7 +1175,7 @@ Begin
      Central_Dir_Size := FOutFile.Size-CenDirPos;
      Start_Disk_Offset := CenDirPos;
      ZipFile_Comment_Length := 0;
-     FOutFile.WriteBuffer(EndHdr, SizeOf(EndHdr));
+     FOutFile.WriteBuffer({$IFDEF FPC_BIG_ENDIAN}SwapECD{$ENDIF}(EndHdr), SizeOf(EndHdr));
      end;
 end;
 
@@ -1341,6 +1400,9 @@ Var
 Begin
   FZipFile.Seek(Item.HdrPos,soFromBeginning);
   FZipFile.ReadBuffer(LocalHdr,SizeOf(LocalHdr));
+{$IFDEF FPC_BIG_ENDIAN}
+  LocalHdr := SwapLFH(LocalHdr);
+{$ENDIF}
   With LocalHdr do
     begin
     SetLength(S,Filename_Length);
@@ -1372,6 +1434,9 @@ Begin
     raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
   FZipFile.Seek(EndHdrPos,soFromBeginning);
   FZipFile.ReadBuffer(EndHdr, SizeOf(EndHdr));
+{$IFDEF FPC_BIG_ENDIAN}
+  EndHdr := SwapECD(EndHdr);
+{$ENDIF}
   With EndHdr do
     begin
     if Signature <> END_OF_CENTRAL_DIR_SIGNATURE then
@@ -1382,6 +1447,9 @@ Begin
   for i:=0 to EndHdr.Entries_This_Disk-1 do
     begin
     FZipFile.ReadBuffer(CentralHdr, SizeOf(CentralHdr));
+{$IFDEF FPC_BIG_ENDIAN}
+    CentralHdr := SwapCFH(CentralHdr);
+{$ENDIF}
     With CentralHdr do
       begin
       if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
