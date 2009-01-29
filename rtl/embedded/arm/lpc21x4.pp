@@ -356,6 +356,7 @@ unit lpc21x4;
       SWI_Handler,
       Prefetch_Handler,
       Abort_Handler,
+      IRQ_Handler,
       FIQ_Handler : pointer;
 
     type
@@ -441,8 +442,10 @@ unit lpc21x4;
 
         // signature
         nop
-        ldr pc, [pc, #-0xFF0] // load irq vector from vic
-        ldr pc, .L5
+        ldr r0, .L5
+        // FIQ
+        ldr r0, .L6
+        ldr pc, [r0]
 (*
     .LUndefined_Addr:
         ldr r0,.L1
@@ -469,6 +472,8 @@ unit lpc21x4;
     .L4:
         .long     Abort_Handler
     .L5:
+        .long     IRQ_Handler
+    .L6:
         .long     FIQ_Handler
 
     _start:
@@ -517,6 +522,8 @@ unit lpc21x4;
         ldr r0,.L4
         str r1,[r0]
         ldr r0,.L5
+        str r1,[r0]
+        ldr r0,.L6
         str r1,[r0]
 
         // clear onboard ram
