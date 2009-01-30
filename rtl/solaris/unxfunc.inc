@@ -74,29 +74,32 @@ begin
  AssignPipe:=ret;
 end;
 
+{ should probably be defined in ostypes.inc for all OSes }
+const
+  F_RDLCK =        01;      (* Read lock *)
+  F_WRLCK =        02;      (* Write lock *)
+  F_UNLCK =        03;      (* Remove lock(s) *)
+
 
 Function fpFlock (fd,mode : longint) : cint;
-{
   var
     fl : flock;
     cmd : cint;
-}
   begin
-{
 	  { initialize the flock struct to set lock on entire file }
     fillchar(fl,sizeof(fl),0);
 
 		{ In non-blocking lock, use F_SETLK for cmd, F_SETLKW otherwise }
-		if (operation and LOCK_NB)<>0 then
+		if (mode and LOCK_NB)<>0 then
 		  begin
 			  cmd:=F_SETLK;
 			  { turn off this bit }
-			  operation:=operation and not(LOCK_NB);	
+			  mode:=mode and not(LOCK_NB);	
 			end
 		else
 			cmd:=F_SETLKW;
 	
-		case operation of
+		case mode of
 		  LOCK_UN:
 			  fl.l_type:=fl.l_type or F_UNLCK;
   		LOCK_SH:
@@ -105,15 +108,14 @@ Function fpFlock (fd,mode : longint) : cint;
 			  fl.l_type:=fl.l_type or F_WRLCK;
 		  else
 		    begin
-			    errno:=EINVAL;
-			    result:=-1
+			    errno:=ESysEINVAL;
+			    fpFlock:=-1;
 			    exit;
 			  end;
 		end;
 	
-		result:=fpFcntl(fd,cmd,@fl);
+		fpFlock:=fpFcntl(fd,cmd,fl);
 	
-		if (result=-1) and (errno=EACCES)
-			errno:=EWOULDBLOCK;
-}
+		if (fpFlock=-1) and (errno=ESysEACCES) then
+			errno:=ESysEWOULDBLOCK;
   end;

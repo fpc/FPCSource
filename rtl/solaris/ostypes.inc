@@ -66,6 +66,8 @@ TYPE
    PStat             = ^Stat;
 
    flock    = record
+                l_type  : cshort;       { lock type: read/write, etc. }
+                l_whence: cshort;       { type of l_start }
                 {$ifdef 64bitfs}
                 l_start : off64_t;      { starting offset }
                 l_len   : off64_t;      { len = 0 means until end of file }
@@ -73,9 +75,9 @@ TYPE
                 l_start : off_t;        { starting offset }
                 l_len   : off_t;        { len = 0 means until end of file }
                 {$endif}
+                l_sysid : cint;
                 l_pid   : pid_t;        { lock owner }
-                l_type  : cshort;       { lock type: read/write, etc. }
-                l_whence: cshort;       { type of l_start }
+                l_pas   : array[0..3] of clong;
                 end;
    TFlock   = flock;
    pFlock   = ^flock;
