@@ -182,6 +182,7 @@ var
   lockres: cint;
 begin
   DoFileLocking:=Handle;
+{$ifndef beos}
   if (Handle>=0) then
     begin
       case (mode and (fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) of
@@ -213,6 +214,7 @@ begin
           exit;
         end;
     end;
+{$endif not beos}
 end;
 
 
