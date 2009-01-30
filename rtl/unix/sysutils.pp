@@ -176,11 +176,51 @@ Begin
 End;
 
 
+Function DoFileLocking(Handle: Longint; Mode: Integer) : Longint;
+var
+  lockop: cint;
+  lockres: cint;
+begin
+  DoFileLocking:=Handle;
+  if (Handle>=0) then
+    begin
+      case (mode and (fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) of
+        fmShareCompat,
+        fmShareExclusive:
+          lockop:=LOCK_EX or LOCK_NB;
+        fmShareDenyWrite:
+          lockop:=LOCK_SH or LOCK_NB;
+        fmShareDenyNone:
+          exit;
+        else
+          begin
+            { fmShareDenyRead does not exit under *nix, only shared access
+              (similar to fmShareDenyWrite) and exclusive access (same as
+              fmShareExclusive)
+            }
+            FpClose(Handle);
+            DoFileLocking:=-1;
+            exit;
+          end;
+      end;
+      repeat
+        lockres:=fpflock(Handle,lockop);
+      until lockres<>ESysEIntr;
+      if (lockres<>0) then
+        begin
+          FpClose(Handle);
+          DoFileLocking:=-1;
+          exit;
+        end;
+    end;
+end;
+
+
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
-Var LinuxFlags : longint;
-
-BEGIN
+Var
+  LinuxFlags : longint;
+begin
   LinuxFlags:=0;
   Case (Mode and 3) of
     0 : LinuxFlags:=LinuxFlags or O_RdOnly;
@@ -188,7 +228,8 @@ BEGIN
     2 : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
   FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
-  //!! We need to set locking based on Mode !!
+
+  FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
 
@@ -201,7 +242,7 @@ end;
 
 Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
 
-BEGIN
+begin
   FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
 end;
 
