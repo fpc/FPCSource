@@ -185,7 +185,21 @@ begin
 {$ifndef beos}
   if (Handle>=0) then
     begin
-      case (mode and (fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) of
+{$ifdef solaris}
+      { Solaris' flock is based on top of fcntl, which does not allow
+        exclusive locks for files only opened for reading nor shared
+        locks for files opened only for writing
+      }
+      if ((mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) = fmShareCompat) then
+        begin
+          mode := mode and not(fmShareCompat);
+          if ((mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) = fmOpenRead) then
+            mode := mode or fmShareDenyWrite
+          else
+            mode := mode or fmShareExclusive;
+        end;
+{$endif solaris}
+      case (mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) of
         fmShareCompat,
         fmShareExclusive:
           lockop:=LOCK_EX or LOCK_NB;
@@ -224,10 +238,10 @@ Var
   LinuxFlags : longint;
 begin
   LinuxFlags:=0;
-  Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or O_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or O_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or O_RdWr;
+  case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
+    fmOpenRead : LinuxFlags:=LinuxFlags or O_RdOnly;
+    fmOpenWrite : LinuxFlags:=LinuxFlags or O_WrOnly;
+    fmOpenReadWrite : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
   FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
 
