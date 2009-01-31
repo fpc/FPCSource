@@ -206,7 +206,8 @@ begin
       end;
       repeat
         lockres:=fpflock(Handle,lockop);
-      until lockres<>ESysEIntr;
+      until (lockres=0) or
+            (fpgeterrno<>ESysEIntr);
       if (lockres<>0) then
         begin
           FpClose(Handle);
