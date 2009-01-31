@@ -97,36 +97,32 @@ begin
       if (l<0) then
         raise exception.create('unable to open file in read-only mode (2)');
       l2:=fileopen('tfile2.dat',fmopenread);
-      if (l2 >= 0) then
+      if (l2 < 0) then
         begin
-          fileclose(l2);
-          raise exception.create('opening two files as read-only without sharing specified succeeded (should both be exclusive)');
+          raise exception.create('opening two files as read-only without sharing specified failed (should not cause any locking)');
         end;
+      fileclose(l2);
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyWrite);
-      if (l2 >= 0) then
+      if (l2 < 0) then
         begin
-          fileclose(l2);
-          raise exception.create('opening file first as read-only without sharing mode (should be exclusive), and then again as fmopenread with fmShareDenyWrite succeeded');
+          raise exception.create('opening file first as read-only without sharing mode (should not have any effect), and then again as fmopenread with fmShareDenyWrite failed');
         end;
       fileclose(l);
+      fileclose(l2);
 
 
-      { should be same as fmShareExclusive }
+      { should be same as no locking specified }
       l:=fileopen('tfile2.dat',fmopenread or fmShareCompat);
       if (l<0) then
-        raise exception.create('unable to open file in read-only and fmShareCompat mode');
+        raise exception.create('unable to open file in read-only mode (3)');
       l2:=fileopen('tfile2.dat',fmopenread or fmShareCompat);
-      if (l2 >= 0) then
-        begin
-          fileclose(l2);
-          raise exception.create('opening two files as read-only with fmShareCompat succeeded');
-        end;
+      if (l2 < 0) then
+        raise exception.create('opening two files as read-only with fmShareCompat failed (should not cause any locking)');
+      fileclose(l2);
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyWrite);
-      if (l2 >= 0) then
-        begin
-          fileclose(l2);
-          raise exception.create('opening file first as read-only with fmShareCompat, and then again as fmopenread with fmShareDenyWrite succeeded');
-        end;
+      if (l2 < 0) then
+        raise exception.create('opening file first as read-only fmShareCompat (should not have any effect), and then again as fmopenread with fmShareDenyWrite failed');
+      fileclose(l2);
       fileclose(l);
 
 
@@ -134,18 +130,18 @@ begin
       if (l<0) then
         raise exception.create('unable to open file in read-only mode and fmShareDenyNone mode');
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyNone);
-      if (l2 >= 0) then
+      if (l2 < 0) then
         raise exception.create('opening two files as read-only with fmShareDenyNone failed');
       fileclose(l2);
       { unix-specific that this fails? }
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyWrite);
-      if (l2 >= 0) then
-        raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareDenyWrite succeeded');
+      if (l2 < 0) then
+        raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareDenyWrite failed');
       fileclose(l2);
       { unix-specific that this fails? }
       l2:=fileopen('tfile2.dat',fmopenread or fmShareExclusive);
-      if (l2 >= 0) then
-        raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareExclusive succeeded');
+      if (l2 < 0) then
+        raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareExclusive failed');
       fileclose(l2);
       fileclose(l);
 
@@ -154,8 +150,8 @@ begin
         raise exception.create('unable to open file in read-only mode and fmShareDenyWrite mode (2)');
       { unix-specific that this fails? }
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyNone);
-      if (l2 >= 0) then
-        raise exception.create('opening files as read-only with fmShareDenyWrite and then fmShareDenyNone succeeded');
+      if (l2 < 0) then
+        raise exception.create('opening files as read-only with fmShareDenyWrite and then fmShareDenyNone failed');
       fileclose(l2);
       fileclose(l);
 
@@ -164,11 +160,8 @@ begin
       if (l<0) then
         raise exception.create('unable to open file in write-only mode and fmShareDenyNone mode');
       l2:=fileopen('tfile2.dat',fmopenread or fmShareDenyNone);
-      if (l2 >= 0) then
-        begin
-          fileclose(l2);
-          raise exception.create('opening two files as read/write-only with fmShareDenyNone succeeded');
-        end;
+      if (l2 < 0) then
+        raise exception.create('opening two files as read/write-only with fmShareDenyNone failed');
       fileclose(l2);
 
     except
