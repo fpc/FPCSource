@@ -147,7 +147,7 @@ type
 implementation
 
 uses
-  Math, DBConst;
+  Math, DBConst, ctypes;
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;
@@ -303,9 +303,11 @@ var
   ParamIndex:integer;
   Buf:pointer;
   I:integer;
-  IntVal:longint;
+  IntVal:clong;
   StrVal:string;
   StrLen:SQLINTEGER;
+  CType:SQLSMALLINT;
+  SqlType:SQLSMALLINT;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -323,9 +325,9 @@ begin
     case AParams[ParamIndex].DataType of
       ftInteger:
         begin
-          Buf:=GetMem(4);
+          Buf:=GetMem(Sizeof(clong));
           IntVal:=AParams[ParamIndex].AsInteger;
-          Move(IntVal,Buf^,4);
+          Move(IntVal,Buf^,Sizeof(clong));
           ODBCCursor.FParamBuf[i]:=Buf;
           ODBCCheckResult(
             SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
@@ -341,7 +343,7 @@ begin
             SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind (integer) parameter %d.', [i]
           );
         end;
-      ftString:
+      ftString, ftBlob:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLen:=Length(StrVal);
@@ -349,12 +351,22 @@ begin
           Move(StrLen,    buf^,                    SizeOf(SQLINTEGER));
           Move(StrVal[1],(buf+SizeOf(SQLINTEGER))^,StrLen);
           ODBCCursor.FParamBuf[i]:=Buf;
+          if AParams[ParamIndex].DataType = ftString then
+            begin
+            CType:=SQL_C_CHAR;
+            SqlType:=SQL_CHAR;
+            end
+          else // ftBlob
+            begin
+            CType:=SQL_C_BINARY;
+            SqlType:=SQL_BINARY;
+            end;
           ODBCCheckResult(
             SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
                              i+1,                    // ParameterNumber
                              SQL_PARAM_INPUT,        // InputOutputType
-                             SQL_C_CHAR,             // ValueType
-                             SQL_CHAR,               // ParameterType
+                             CType,                  // ValueType
+                             SqlType,                // ParameterType
                              StrLen,                 // ColumnSize
                              0,                      // DecimalDigits
                              buf+SizeOf(SQLINTEGER), // ParameterValuePtr
