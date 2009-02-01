@@ -47,7 +47,9 @@ interface
 {$ifndef dynpthreads}   // If you have problems compiling this on FreeBSD 5.x
  {$linklib c}           // try adding -Xf
  {$ifndef Darwin}
-   {$linklib pthread}
+   {$ifndef haiku}
+     {$linklib pthread}
+   {$endif haiku}
  {$endif darwin}
 {$endif}
 
@@ -278,7 +280,9 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       writeln('Starting new thread');
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
+      {$ifndef HAIKU}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
+      {$endif}
 
       // will fail under linux -- apparently unimplemented
       pthread_attr_setscope(@thread_attr, PTHREAD_SCOPE_PROCESS);

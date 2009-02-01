@@ -26,8 +26,12 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris) and not defined(haiku)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
- {$linklib iconv}
+{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+ {$if defined(haiku)}
+   {$linklib textencoding}
+ {$else}
+   {$linklib iconv}
+ {$endif}
  {$define useiconv}
 {$endif linux}
 
@@ -42,7 +46,11 @@ Const
 {$ifndef useiconv}
     libiconvname='c';  // is in libc under Linux.
 {$else}
+  {$ifdef haiku}
+    libiconvname='textencoding';  // is in libtextencoding under Haiku
+  {$else}
     libiconvname='iconv';
+  {$endif}
 {$endif}
 
 { helper functions from libc }
@@ -89,7 +97,11 @@ const
 {$ifdef beos}
   {$warning check correct value for BeOS}
   CODESET=49;
-  LC_ALL = 6; // Checked for BeOS, but 0 under Haiku...
+  {$ifdef haiku}
+  LC_ALL = 0; // Checked for Haiku
+  {$else}
+  LC_ALL = 6; // Checked for BeOS
+  {$endif}
   ESysEILSEQ = EILSEQ;
 {$else}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
@@ -124,7 +136,7 @@ type
 function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or defined(darwin) or defined(haiku)}
+{$if (not defined(bsd) and not defined(beos)) or defined(darwin)}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
@@ -759,4 +771,3 @@ finalization
   { fini conversion tables for main program }
   FiniThread;
 end.
-

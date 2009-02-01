@@ -15,31 +15,39 @@
 
 Const   { For sending a signal }
 
-  SA_NOCLDSTOP = 1;
-  
-  // does not exist under BeOS i think !
-  SA_ONSTACK   = $001; { take signal on signal stack }
-  SA_RESTART   = $002; { restart system call on signal return }
-  SA_RESETHAND = $004; { reset to SIG_DFL when taking signal }
-  SA_NODEFER   = $010; { don't mask the signal we're delivering }
-  SA_NOCLDWAIT = $020; { don't keep zombies around }
-  SA_SIGINFO   = $040; { signal handler with SA_SIGINFO args }
-  SA_USERTRAMP = $100; { SUNOS compat: Do not bounce off kernel's sigtramp }
+  SA_NOCLDSTOP = $01;
+  SA_NOCLDWAIT = $02;
+  SA_RESETHAND = $03;
+  SA_NODEFER   = $08;
+  SA_RESTART   = $10;
+  SA_ONSTACK   = $20;
+  SA_SIGINFO   = $40;
+  SA_NOMASK    = SA_NODEFER;
+  SA_STACK     = SA_ONSTACK;
+  SA_ONESHOT   = SA_RESETHAND;
 
   SIG_BLOCK   = 1;
   SIG_UNBLOCK = 2;
   SIG_SETMASK = 3;
-
-{BeOS Checked}
+  
+{ values for ss_flags }
+  SS_ONSTACK	= $1;
+  SS_DISABLE	= $2;
+  
+  MINSIGSTKSZ	= 4096;
+  SIGSTKSZ		= 16384;
+	
+{Haiku Checked}
 {
    The numbering of signals for BeOS attempts to maintain 
    some consistency with UN*X conventions so that things 
    like "kill -9" do what you expect.
 }   
 
-  SIG_DFL = 0 ;
-  SIG_IGN = 1 ;
-  SIG_ERR = -1 ;
+  SIG_DFL  =  0;
+  SIG_IGN  =  1;
+  SIG_ERR  = -1;
+  SIG_HOLD =  3;
 
   SIGHUP     = 1;
   SIGINT     = 2;
@@ -63,6 +71,14 @@ Const   { For sending a signal }
   SIGWINCH   = 20;
   SIGKILLTHR = 21;
   SIGTRAP    = 22;
+  SIGPOLL    = 23;
+  SIGPROF    = 24;
+  SIGSYS     = 25;
+  SIGURG     = 26;
+  SIGVTALRM  = 27;
+  SIGXCPU    = 28;
+  SIGXFSZ    = 29;
+  
   SIGBUS     = SIGSEGV;
   
 {
@@ -283,17 +299,25 @@ type
 //      end;
     sa_Mask     : SigSet;
     sa_Flags    : Longint;
-    sa_userdaa  : pointer
+    sa_userdata : pointer
   end;
 
   PSigActionRec = ^SigActionRec;
 
+  pstack_t = ^stack_t;
+  stack_t = record
+    ss_sp: pChar;                       {* signal stack base *}
+    ss_size: size_t;                    {* signal stack length *}
+    ss_flags: cInt;                     {* SS_DISABLE and/or SS_ONSTACK *}
+  end;
+  TStack = stack_t;
+  PStack = pstack_t;
+  
 {
   Change action of process upon receipt of a signal.
   Signum specifies the signal (all except SigKill and SigStop).
   If Act is non-nil, it is used to specify the new action.
   If OldAct is non-nil the previous action is saved there.
 }
-
 
 

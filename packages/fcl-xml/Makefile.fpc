@@ -17,6 +17,8 @@ rsts=sax xpath htmlwriter xmlconf
 
 [require]
 packages=fcl-base
+packages_beos=iconvenc
+packages_haiku=iconvenc
 packages_linux=iconvenc
 packages_darwin=iconvenc
 packages_freebsd=iconvenc

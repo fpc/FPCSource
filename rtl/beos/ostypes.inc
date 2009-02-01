@@ -364,3 +364,27 @@ const B_SYMBOL_TYPE_ANY  = $5;
 { Constansts for MMAP }
 const
   MAP_ANONYMOUS =$1000;
+
+const
+  POLLIN      = $0001;
+  POLLOUT     = $0002;
+  POLLERR     = $0004;
+  POLLPRI     = $0020;
+  POLLHUP     = $0080;
+  POLLNVAL    = $1000;
+
+  { XOpen, XPG 4.2 }
+  POLLRDNORM  = POLLIN;
+  POLLRDBAND  = $0008;
+  POLLWRNORM  = POLLOUT;
+  POLLWRBAND  = $0010;
+
+type
+  pollfd = record
+    fd: cint;
+    events: cshort;
+    revents: cshort;
+  end;
+  tpollfd = pollfd;
+  ppollfd = ^pollfd;
+

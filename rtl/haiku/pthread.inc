@@ -45,12 +45,10 @@ function  pthread_getspecific      (t : pthread_key_t):pointer; cdecl; external;
 function  pthread_setspecific      (t : pthread_key_t;p:pointer):cint; cdecl; external;
 function  pthread_key_create       (p : ppthread_key_t;f: __destr_func_t):cint; cdecl;external;
 function  pthread_attr_init           (p : ppthread_attr_t):cint; cdecl; external;
-{$ifndef haiku}
-function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external;
+//function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external;
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external;
 function  pthread_attr_setstacksize(p: ppthread_attr_t; stacksize: size_t):cint;cdecl;external;
-{$endif}
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external;
 procedure pthread_exit  ( p: pointer); cdecl;external;
 function  pthread_self:pthread_t; cdecl;external;
@@ -68,7 +66,6 @@ function pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint;
 function pthread_kill(__thread:pthread_t; __signo:cint):cint;cdecl;external;
 function pthread_sigmask(how: cint; nset: psigset; oset: psigset): cint; cdecl; external;
 
-{$ifndef haiku}
 function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
 function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
 function sem_close(__sem:Psem_t):cint;cdecl;external ;
@@ -77,12 +74,11 @@ function sem_wait(__sem:Psem_t):cint;cdecl;external ;
 function sem_trywait(__sem:Psem_t):cint;cdecl;external ;
 function sem_post(__sem:Psem_t):cint;cdecl;external ;
 function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
-{$endif}
+
 function pthread_mutexattr_init(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
 function pthread_mutexattr_destroy(_para1:Ppthread_mutexattr_t):cint;cdecl;external;
 function pthread_mutexattr_gettype(_para1:Ppthread_mutexattr_t; _para2:Pcint):cint;cdecl;external;
 function pthread_mutexattr_settype(_para1:Ppthread_mutexattr_t; _para2:cint):cint;cdecl;external;
 function pthread_cond_timedwait(__cond:ppthread_cond_t; __mutex:ppthread_mutex_t; __abstime:ptimespec):longint;cdecl;external;
-
 
 

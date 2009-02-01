@@ -314,21 +314,52 @@ end;
 
 {$i sighnd.inc}
 
+//void	set_signal_stack(void *ptr, size_t size);
+//int		sigaltstack(const stack_t *ss, stack_t *oss);
+
+procedure set_signal_stack(ptr : pointer; size : size_t); external 'root' name 'set_signal_stack';
+function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; external 'root' name 'sigaltstack'; 
+
+type
+  TAlternateSignalStack = record
+  	case Integer of
+  	  0 : (buffer : array[0..SIGSTKSZ] of Char);
+  	  1 : (ld : int64);
+  	  2 : (l : integer);
+  	  3 : (p : pointer);
+  end;
+
 var
   act: SigActionRec;
+  alternate_signal_stack : TAlternateSignalStack;
 
 Procedure InstallSignals;
+var
+  oldact: SigActionRec;
+  r : integer;
+  st : stack_t;  
 begin
+  FillChar(st, sizeof(st), 0);
+
+  st.ss_flags := 0;
+  st.ss_sp := alternate_signal_stack.buffer;
+  st.ss_size := SizeOf(alternate_signal_stack);
+  
+  r := sigaltstack(@st, nil);
+  
+  if (r <> 0) then
+  	WriteLn('error sigalstack');
   { Initialize the sigaction structure }
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
   act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,@act,nil);
-  FpSigAction(SIGSEGV,@act,nil);
-  FpSigAction(SIGBUS,@act,nil);
-  FpSigAction(SIGILL,@act,nil);
+  act.sa_flags := SA_ONSTACK;
+
+  FpSigAction(SIGFPE,@act,@oldact);
+  FpSigAction(SIGSEGV,@act,@oldact);
+  FpSigAction(SIGBUS,@act,@oldact);
+  FpSigAction(SIGILL,@act,@oldact);
 end;
 
 procedure SysInitStdIO;
@@ -352,7 +383,8 @@ begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
-
+  ReturnNilIfGrowHeapFails := False;
+  
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
@@ -362,11 +394,12 @@ begin
 
   SysInitStdIO;
 { Setup heap }
-  myheapsize:=4096*1;// $ 20000;
-  myheaprealsize:=4096*1;// $ 20000;
+  myheapsize:=4096*100;// $ 20000;
+  myheaprealsize:=4096*100;// $ 20000;
   heapstart:=nil;
   heapstartpointer := nil;
-  heapstartpointer := Sbrk2(4096*1);
+//  heapstartpointer := Sbrk2(4096*1);
+  heapstartpointer := SysOSAlloc(4096*100);
 {$IFDEF FPC_USE_LIBC}  
 //  heap_handle := create_area('fpcheap',heapstart,0,myheaprealsize,0,3);//!!
 {$ELSE}

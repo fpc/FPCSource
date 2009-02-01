@@ -363,7 +363,10 @@ const B_SYMBOL_TYPE_ANY  = $5;
 
 { Constansts for MMAP }
 const
-  MAP_ANONYMOUS =$1000;
+{$ifdef FPC_IS_SYSTEM}
+  MAP_PRIVATE   =2;
+{$endif}
+  MAP_ANONYMOUS =$08;
 
 const
   POLLIN      = $0001;
@@ -387,5 +390,4 @@ type
   end;
   tpollfd = pollfd;
   ppollfd = ^pollfd;
-
 

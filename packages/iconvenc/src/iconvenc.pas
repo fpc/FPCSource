@@ -31,6 +31,10 @@ uses
 const
   n = 1;
 
+{$ifdef beos}
+  ESysEILSEQ = EILSEQ;
+{$endif}
+
 type
    piconv_t = ^iconv_t;
    iconv_t = pointer;
@@ -171,4 +175,3 @@ begin
 end;
 
 end.
-

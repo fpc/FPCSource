@@ -15,32 +15,28 @@
 Unit BaseUnix;
 
 Interface
+{$inline on}
+Uses UnixType;
 
-uses UnixType;
+{$i osdefs.inc}       { Compile time defines }
 
 {$i aliasptp.inc}
 
 {$packrecords C}
-{$define oldreaddir}		// Keep using readdir system call instead
-				// of userland getdents stuff.
-{$define usedomain}		// Allow uname with "domain" entry.
-				// (which is a GNU extension)
-{$define posixworkaround}	// Temporary ugly workaround for signal handler.
-				// (mainly until baseunix migration is complete)
 
 {$ifndef FPC_USE_LIBC}
-{$define FPC_USE_SYSCALL}
+  {$define FPC_USE_SYSCALL}
 {$endif}
 
-{$i errno.inc}		{ Error numbers }
+{$i errno.inc}          { Error numbers }
 {$i ostypes.inc}
 
 {$ifdef FPC_USE_LIBC}
-const clib = 'root';
-const netlib = 'network';
-{$i oscdeclh.inc}
+  const clib = 'root';
+  const netlib = 'network';
+  {$i oscdeclh.inc}
 {$ELSE}
-{$i bunxh.inc}		{ Functions}
+  {$i bunxh.inc}		{ Functions}
 {$ENDIF}
 
 function fpgeterrno:longint; 
@@ -61,6 +57,8 @@ Function fpFlock (fd, mode : longint) : cint;
 Function  FpNanoSleep  (req : ptimespec;rem : ptimespec):cint;
 {$endif}
 {$endif}
+
+{$i genfunch.inc}
 
 { Fairly portable constants. I'm not going to waste time to duplicate and alias
 them anywhere}
@@ -83,14 +81,20 @@ Const
 
 implementation
 
+{$ifdef hassysctl}
+Uses Sysctl;
+{$endif}
+
 {$i genfuncs.inc}       // generic calls. (like getenv)
 {$I gensigset.inc}     // general sigset funcs implementation.
 {$I genfdset.inc}      // general fdset funcs.
 
-{$ifndef FPC_USE_LIBC}
+{$ifdef FPC_USE_LIBC}
+  {$i oscdecl.inc}        // implementation of wrappers in oscdeclh.inc
+{$else}
   {$i syscallh.inc}       // do_syscall declarations themselves
   {$i sysnr.inc}          // syscall numbers.
-  {$i bsyscall.inc}  			// cpu specific syscalls
+  {$i bsyscall.inc}       // cpu specific syscalls
   {$i bunxsysc.inc}       // syscalls in system unit.
 //  {$i settimeo.inc}
 {$endif}

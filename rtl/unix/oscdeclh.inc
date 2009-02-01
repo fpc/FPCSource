@@ -81,10 +81,10 @@ const
 {$ifdef beos}
   {$ifdef haiku}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
-    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'network' name 'poll';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
   {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
-    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'net' name 'poll';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
   {$endif}  
 {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
