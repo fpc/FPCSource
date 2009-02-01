@@ -204,7 +204,7 @@ compiler_cycle:
 
 BUILDSTAMP=build-stamp.$(FULL_TARGET)
 
-.PHONY: all clean distclean build install installbase installother zipinstallbase zipinstallotherzipinstall singlezipinstall
+.PHONY: all clean distclean build buildbase install installbase installother zipinstallbase zipinstallotherzipinstall singlezipinstall
 
 all: build
 
@@ -234,6 +234,16 @@ ifdef IDE
         $(MAKE) installer_all $(BUILDOPTS)
 endif
         $(ECHOREDIR) Build > $(BUILDSTAMP)
+
+buildbase: base.$(BUILDSTAMP)
+base.$(BUILDSTAMP):
+# create new compiler
+        $(MAKE) compiler_cycle RELEASE=1
+# clean
+        $(MAKE) rtl_clean $(CLEANOPTS)
+# build everything
+        $(MAKE) rtl_$(ALLTARGET) $(BUILDOPTS)
+        $(ECHOREDIR) Build > base.$(BUILDSTAMP)
 
 installbase:
 # create dirs
