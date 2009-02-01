@@ -2557,6 +2557,7 @@ BUILDSTAMP=build-stamp.$(FULL_TARGET)
 all: build
 clean: $(addsuffix _distclean,$(TARGET_DIRS))
 	-$(DEL) build-stamp.*
+	-$(DEL) base.build-stamp.*
 distclean: clean
 build: $(BUILDSTAMP)
 $(BUILDSTAMP):
