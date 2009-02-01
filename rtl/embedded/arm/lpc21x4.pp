@@ -1,4 +1,3 @@
-{$goto on}
 {******************************************************************************
 lpc2114.h - Register defs for Philips LPC2114, LPC2124
 
@@ -18,8 +17,9 @@ Created by Sten Larsson (sten_larsson at yahoo com)
 
 Free Pascal conversion by the Free Pascal development team
 ******************************************************************************}
-
 unit lpc21x4;
+
+{$goto on}
 
   interface
 
@@ -41,7 +41,7 @@ unit lpc21x4;
      ##############################################################################}
 
     var
-      VICIRQStatus      : DWord absolute dword($FFFFF000);
+      VICIRQStatus      : DWord absolute $FFFFF000;
       VICFIQStatus      : DWord absolute $FFFFF004;
       VICRawIntr        : DWord absolute $FFFFF008;
       VICIntSelect      : DWord absolute $FFFFF00C;
