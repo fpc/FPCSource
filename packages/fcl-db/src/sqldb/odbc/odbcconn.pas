@@ -1001,7 +1001,7 @@ var
   StmtHandle:SQLHSTMT;
   Res:SQLRETURN;
   IndexDef: TIndexDef;
-  KeyFields, KeyName: String;
+  KeyName: String;
   // variables for binding
   NonUnique :SQLSMALLINT; NonUniqueIndOrLen :SQLINTEGER;
   IndexName :string;      IndexNameIndOrLen :SQLINTEGER;
@@ -1047,7 +1047,6 @@ begin
 
     // init key name & fields; we will set the IndexDefs.Option ixPrimary below when there is a match by IndexName=KeyName
     KeyName:='';
-    KeyFields:='';
     try
       // bind result columns; the column numbers are documented in the reference for SQLStatistics
       ODBCCheckResult(SQLBindCol(StmtHandle,  4, SQL_C_CHAR  , @ColName[1], Length(ColName)+1, @ColNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
@@ -1064,10 +1063,15 @@ begin
         // handle data
         if ODBCSucces(Res) then begin
           if OrdinalPos=1 then begin
-            KeyName:=PChar(@PKName[1]);
-            KeyFields:=    PChar(@ColName[1]);
+            // create new IndexDef if OrdinalPos=1
+            IndexDef:=IndexDefs.AddIndexDef;
+            IndexDef.Name:=PChar(@PKName[1]);
+            IndexDef.Fields:=PChar(@ColName[1]);
+            IndexDef.Options:=IndexDef.Options+[ixUnique]+[ixPrimary]; // Primary key is always unique
+            KeyName:=IndexDef.Name;
           end else begin
-            KeyFields:=KeyFields+';'+PChar(@ColName[1]);
+            assert(Assigned(IndexDef));
+            IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
           ODBCCheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
@@ -1117,7 +1121,14 @@ begin
         if ODBCSucces(Res) then begin
           // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
           if _Type<>SQL_TABLE_STAT then begin
-            if (OrdinalPos=1) or not Assigned(IndexDef) then begin
+            if PChar(@IndexName[1])=KeyName then begin
+              // The indexdef is already made as the primary key
+              // Only if the index is descending is not known yet.
+              if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then begin
+                IndexDef:=IndexDefs.Find(KeyName);
+                IndexDef.Options:=IndexDef.Options+[ixDescending];
+              end;
+            end else if (OrdinalPos=1) or not Assigned(IndexDef) then begin
               // create new IndexDef iff OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
               IndexDef:=IndexDefs.AddIndexDef;
               IndexDef.Name:=PChar(@IndexName[1]); // treat ansistring as zero terminated string
@@ -1126,8 +1137,6 @@ begin
                 IndexDef.Options:=IndexDef.Options+[ixUnique];
               if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then
                 IndexDef.Options:=IndexDef.Options+[ixDescending];
-              if IndexDef.Name=KeyName then
-                IndexDef.Options:=IndexDef.Options+[ixPrimary];
               // TODO: figure out how we can tell whether COLUMN_NAME is an expression or not
               //       if it is an expression, we should include ixExpression in Options and set Expression to ColName
             end else // NB we re-use the last IndexDef
