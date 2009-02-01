@@ -30,6 +30,7 @@ dirs_solaris=solaris
 dirs_gba=gba
 dirs_nds=nds
 dirs_symbian=symbian
+dirs_embedded=embedded
 
 [install]
 fpcpackage=y
