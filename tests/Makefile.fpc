@@ -244,7 +244,7 @@ Q=@
 QECHO=@echo $(1)
 endif
 ifdef TEST_REMOTEOPT
-override DOTESTOPT+="-U$(TEST_REMOTEOPT)"
+override DOTESTOPT+=-U$(TEST_REMOTEOPT)
 endif
 ifdef TEST_PUTTY
 override DOTESTOPT+=-R$(TEST_PUTTY) -W
