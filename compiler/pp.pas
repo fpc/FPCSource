@@ -143,6 +143,21 @@ program pp;
   {$endif i386}
 {$endif support_mmx}
 
+{$ifdef win32}
+  { 256 MB stack }
+  { under windows the stack can't grow }
+  {$MAXSTACKSIZE 256000000}
+{$else win32}
+  {$ifdef win64}
+    { 512 MB stack }
+    { under windows the stack can't grow }
+    {$MAXSTACKSIZE 512000000}
+  {$else win64}
+    { 1 MB stack }
+    {$STACKSIZE 1000000}
+  {$endif win64}
+{$endif win32}
+
 uses
 {$ifdef cmem}
   cmem,
