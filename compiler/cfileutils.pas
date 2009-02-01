@@ -471,6 +471,7 @@ implementation
 {$elseif defined(macos)}
         if IsMacFullPath(s) then
           result:=true;
+{$elseif defined(win32) or defined(win64) or defined(go32v2)}
         if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or
            ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
           result:=true;

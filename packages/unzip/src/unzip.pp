@@ -2225,7 +2225,7 @@ FUNCTION unzipfile ( in_name : pchar;out_name : pchar;offset : longint;
   hFileAction : word;cm_index : integer ) : integer;
 VAR err : integer;
     header : plocalheader;
-    buf : ARRAY [ 0..80 ] of char;
+    buf : ARRAY [ 0..tfSize+1 ] of char;
 {$ifndef unix}
     buf0 : ARRAY [ 0..3 ] of char;
 {$endif}
