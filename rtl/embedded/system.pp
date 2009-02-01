@@ -30,39 +30,43 @@ Unit System;
 
 const
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
- LineEnding = #10;
+  LineEnding = #10;
 {$endif FPC_HAS_FEATURE_TEXTIO}
 {$ifdef FPC_HAS_FEATURE_FILEIO}
- LFNSupport = true;
- DirectorySeparator = '/';
- DriveSeparator = ':';
- ExtensionSeparator = '.';
- PathSeparator = ':';
- AllowDirectorySeparators : set of char = ['\','/'];
- AllowDriveSeparators : set of char = [':'];
+  LFNSupport = true;
+  DirectorySeparator = '/';
+  DriveSeparator = ':';
+  ExtensionSeparator = '.';
+  PathSeparator = ':';
+  AllowDirectorySeparators : set of char = ['\','/'];
+  AllowDriveSeparators : set of char = [':'];
 {$endif FPC_HAS_FEATURE_FILEIO}
 
 { FileNameCaseSensitive is defined below! }
 
 {$ifdef FPC_HAS_FEATURE_EXITCODE}
- maxExitCode = 255;
+  maxExitCode = 255;
 {$endif FPC_HAS_FEATURE_EXITCODE}
-{
- MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
- AllFilesMask = '*';
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 
-const
+  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
+  AllFilesMask = '*';
+
   UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = 2;
 
   FileNameCaseSensitive : boolean = true;
+{$endif FPC_HAS_FEATURE_FILEIO}
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
   CtrlZMarksEOF: boolean = false; (* #26 not considered as end of file *)
 
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{
 var
   argc:longint;external name 'operatingsystem_parameter_argc';
   argv:PPchar;external name 'operatingsystem_parameter_argv';
@@ -265,6 +269,18 @@ var
   initialstkptr : Pointer;external name '__stkptr';
 
 {$endif FPC_HAS_FEATURE_STACKCHECK}
+
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+procedure SysInitStdIO;
+begin
+  OpenStdIO(Input,fmInput,0);
+  OpenStdIO(Output,fmOutput,0);
+  OpenStdIO(ErrOutput,fmOutput,0);
+  OpenStdIO(StdOut,fmOutput,0);
+  OpenStdIO(StdErr,fmOutput,0);
+end;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+
 
 begin
 {$ifdef FPC_HAS_FEATURE_FPU}

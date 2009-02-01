@@ -617,6 +617,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : WideString); iocheck; compilerproc;
 {
  Writes a UnicodeString to the Text file T
@@ -641,6 +642,8 @@ begin
     else InOutRes:=103;
   end;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 Procedure fpc_Write_Text_WideStr (Len : Longint; Var f : Text; const S : WideString); iocheck; compilerproc;
@@ -866,6 +869,7 @@ Begin
 End;
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); iocheck; compilerproc;
 var
   a : ansistring;
@@ -888,6 +892,7 @@ Begin
   a:=c;
   fpc_WriteBuffer(t,pchar(a)^,length(a));
 End;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 {*****************************************************************************
@@ -1111,6 +1116,7 @@ Begin
 End;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); iocheck; compilerproc;
 var
   slen,len : SizeInt;
@@ -1125,6 +1131,8 @@ Begin
   // Set actual length
   SetLength(S,Slen);
 End;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+
 
 procedure fpc_Read_Text_Char(var f : Text; out c: char); iocheck;compilerproc;
 Begin
@@ -1364,6 +1372,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 procedure WriteStrAnsi(var t: textrec);
 var
   str: pansistring;
@@ -1377,8 +1386,10 @@ begin
   move(t.bufptr^,str^[oldlen+1],t.bufpos);
   t.bufpos:=0;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 procedure WriteStrWide(var t: textrec);
 var
   temp: ansistring;
@@ -1392,6 +1403,7 @@ begin
   str^:=str^+temp;
   t.bufpos:=0;
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 procedure SetupWriteStrCommon(out t: textrec);
@@ -1416,6 +1428,7 @@ begin
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 function fpc_SetupWriteStr_Ansistr(out s: ansistring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
@@ -1426,8 +1439,10 @@ begin
   ReadWriteStrText.FlushFunc:=@WriteStrAnsi;
   result:=@ReadWriteStrText;
 end;
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 function fpc_SetupWriteStr_Widestr(out s: widestring): PText; compilerproc;
 begin
   setupwritestrcommon(ReadWriteStrText);
@@ -1438,7 +1453,7 @@ begin
   ReadWriteStrText.FlushFunc:=@WriteStrWide;
   result:=@ReadWriteStrText;
 end;
-
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 procedure ReadAnsiStrFinal(var t: textrec);
@@ -1525,16 +1540,22 @@ begin
     An ansistring is the easiest way to get a threadsafe copy, and allows us
     to use the other ansistring readstr helpers too.
   }
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
   result:=fpc_SetupReadStr_Ansistr_Intern(s);
+{$else FPC_HAS_FEATURE_ANSISTRINGS}
+  runerror(217);
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 end;
 
 
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 function fpc_SetupReadStr_Widestr(const s: widestring): PText; compilerproc;
 begin
   { we use an ansistring to avoid code duplication, and let the    }
   { assignment convert the widestring to an equivalent ansistring  }
   result:=fpc_SetupReadStr_Ansistr_Intern(s);
 end;
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
 {*****************************************************************************
