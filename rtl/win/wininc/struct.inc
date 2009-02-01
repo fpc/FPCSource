@@ -4181,7 +4181,7 @@ Const
           BaseAddress : PVOID;
           AllocationBase : PVOID;
           AllocationProtect : DWORD;
-          RegionSize : DWORD;
+          RegionSize : PTRUINT; // MvdV: size_t in win SDK 6.0.
           State : DWORD;
           Protect : DWORD;
           _Type : DWORD;
