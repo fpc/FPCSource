@@ -1361,7 +1361,7 @@ end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
-var FieldNamesQuoteChar : char;
+var FieldNamesQuoteChar : string;
 
   procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: String);
 
@@ -1458,7 +1458,7 @@ begin
   if sqQuoteFieldnames in TSQLConnection(DataBase).ConnOptions then
     FieldNamesQuoteChar := '"'
   else
-    FieldNamesQuoteChar := ' ';
+    FieldNamesQuoteChar := '';
 
   case UpdateKind of
     ukModify : begin
