@@ -481,10 +481,6 @@ end;
 
 procedure TODBCConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
-  // make sure we don't deallocate the cursor if the connection was lost already
-  if not Connected then
-    (cursor as TODBCCursor).FSTMTHandle:=SQL_NULL_HSTMT;
-
   FreeAndNil(cursor); // the destructor of TODBCCursor frees the ODBC Statement handle
 end;
 
@@ -498,6 +494,13 @@ var
   ODBCCursor:TODBCCursor;
 begin
   ODBCCursor:=cursor as TODBCCursor;
+
+  // allocate statement handle
+  ODBCCheckResult(
+    SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, ODBCCursor.FSTMTHandle),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not allocate ODBC Statement handle.'
+  );
+  ODBCCursor.FPrepared:=True;
 
   // Parameter handling
   // Note: We can only pass ? parameters to ODBC, so we should convert named parameters like :MyID
@@ -525,8 +528,20 @@ begin
 end;
 
 procedure TODBCConnection.UnPrepareStatement(cursor: TSQLCursor);
+var Res:SQLRETURN;
 begin
-  // not necessary in ODBC
+  with TODBCCursor(cursor) do
+  begin
+    if FSTMTHandle<>SQL_NULL_HSTMT then
+    begin
+      // deallocate statement handle
+      Res:=SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle);
+      if Res=SQL_ERROR then
+        ODBCCheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
+      FSTMTHandle:=SQL_NULL_HSTMT;
+      FPrepared := False;
+    end;
+  end;
 end;
 
 function TODBCConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
@@ -1221,12 +1236,6 @@ end;
 
 constructor TODBCCursor.Create(Connection:TODBCConnection);
 begin
-  // allocate statement handle
-  ODBCCheckResult(
-    SQLAllocHandle(SQL_HANDLE_STMT, Connection.FDBCHandle, FSTMTHandle),
-    SQL_HANDLE_DBC, Connection.FDBCHandle, 'Could not allocate ODBC Statement handle.'
-  );
-
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   // allocate FBlobStreams
   FBlobStreams:=TList.Create;
@@ -1237,19 +1246,10 @@ destructor TODBCCursor.Destroy;
 var
   Res:SQLRETURN;
 begin
-  inherited Destroy;
-
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   FBlobStreams.Free;
 {$ENDIF}
-
-  if FSTMTHandle<>SQL_NULL_HSTMT then
-  begin
-    // deallocate statement handle
-    Res:=SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle);
-    if Res=SQL_ERROR then
-      ODBCCheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
-  end;
+  inherited Destroy;
 end;
 
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
