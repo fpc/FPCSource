@@ -182,7 +182,7 @@ type
     procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
-    constructor create(ACollection : TCollection); overload;
+    constructor create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;
       ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
