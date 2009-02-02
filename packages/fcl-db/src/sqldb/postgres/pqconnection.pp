@@ -379,7 +379,7 @@ begin
 end;
 
 function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
-
+var li : longint;
 begin
   Size := 0;
   case PQftype(res,Tuple) of
@@ -389,8 +389,11 @@ begin
                              size := PQfsize(Res, Tuple);
                              if (size = -1) then
                                begin
-                               size := (PQfmod(res,Tuple)-4) and $FFFF;
-                               if size = -5 then size := dsMaxStringSize;
+                               li := PQfmod(res,Tuple);
+                               if li = -1 then
+                                 size := dsMaxStringSize
+                               else
+                                 size := (li-4) and $FFFF;
                                end;
                              if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
@@ -409,10 +412,14 @@ begin
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
+                             li := PQfmod(res,Tuple);
+                             if li = -1 then
+                               size := 4 // No information about the size available, use the maximum value
+                             else
                              // The precision is the high 16 bits, the scale the
                              // low 16 bits. Both with an offset of 4.
                              // In this case we need the scale:
-                             size := (PQfmod(res,Tuple)-4) and $FFFF;
+                               size := (li-4) and $FFFF;
                              end;
     Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
