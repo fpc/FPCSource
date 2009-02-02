@@ -4,21 +4,6 @@
 {$goto on}
 {$inline on}
 
-{$ifdef win32}
-  { 256 MB stack }
-  { under windows the stack can't grow }
-  {$MEMORY 256000000}
-{$else win32}
-  {$ifdef win64}
-    { 512 MB stack }
-    { under windows the stack can't grow }
-    {$MEMORY 512000000}
-  {$else win64}
-    { 1 MB stack }
-    {$MEMORY 1000000}
-  {$endif win64}
-{$endif win32}
-
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
 {$ifdef FPC_HAS_VARSETS}

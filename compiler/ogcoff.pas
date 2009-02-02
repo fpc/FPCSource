@@ -2238,6 +2238,12 @@ const pemagic : array[0..3] of byte = (
             peoptheader.DllCharacteristics:=0;
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
+            if MinStackSizeSetExplicity then
+              peoptheader.SizeOfStackCommit:=minstacksize;
+            if MaxStackSizeSetExplicity then
+              peoptheader.SizeOfStackReserve:=maxstacksize;
+            if SetPEFlagsSetExplicity then
+              peoptheader.LoaderFlags:=peflags;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
@@ -2261,7 +2267,7 @@ const pemagic : array[0..3] of byte = (
             djoptheader.entry:=EntrySym.offset;
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
-          
+
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }

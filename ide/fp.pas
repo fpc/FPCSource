@@ -14,12 +14,15 @@
  **********************************************************************}
 program FP;
 
-{$ifdef IncRes}
 {$ifdef Windows}
+{ some windows versions, namely at least XP x64 don't like if the IDE stack
+  is too big }
+{$maxstacksize 3000000}
+{$ifdef IncRes}
 {$R fpw32t.rc}
 {$R fpw32ico.rc}
-{$endif Windows}
 {$endif IncRes}
+{$endif Windows}
 
 {$I globdir.inc}
 (**********************************************************************)
