@@ -21,6 +21,7 @@ type
     procedure TestParseSQL;
     procedure TestInitFielddefsFromFields;
     procedure TestDoubleFieldDef;
+    procedure TestFieldDefWithoutDS;
   end;
 
 implementation
@@ -159,6 +160,14 @@ begin
     on E: EDatabaseError do PassException := True;
   end;
   AssertTrue(PassException);
+end;
+
+procedure TTestBasics.TestFieldDefWithoutDS;
+var FieldDefs : TFieldDefs;
+begin
+  FieldDefs := TFieldDefs.Create(nil);
+  FieldDefs.Add('test',ftString);
+  FieldDefs.Free;
 end;
 
 initialization
