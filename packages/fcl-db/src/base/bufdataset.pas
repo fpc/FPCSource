@@ -1829,7 +1829,6 @@ begin
       begin
       // If the record is first inserted and afterwards deleted, do nothing
       if not ((FUpdateBuffer[r].UpdateKind=ukDelete) and not (assigned(FUpdateBuffer[r].OldValuesBuffer))) then
-      if not (FUpdateBuffer[r].UpdateKind=ukDelete) then
         begin
         FCurrentIndex.GotoBookmark(@FUpdateBuffer[r].BookmarkData);
         // Synchronise the Currentbuffer to the ActiveBuffer
