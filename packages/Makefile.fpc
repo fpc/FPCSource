@@ -313,7 +313,7 @@ librsvg_smart: gtk2_smart
 librsvg_debug: gtk2_debug
 librsvg_release: gtk2_release
 
-ifneq ($(findstring $(OS_TARGET),linux freebsd darwin),)
+ifneq ($(findstring $(OS_TARGET),linux freebsd darwin beos haiku),)
 fcl-xml_all: iconvenc_all
 fcl-xml_shared: iconvenc_shared
 fcl-xml_smart: iconvenc_smart
