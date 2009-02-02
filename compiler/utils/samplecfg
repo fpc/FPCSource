@@ -366,12 +366,12 @@ $CPUCROSSIFDEF2
 #-Fi/pp/inc;/pp/rtl/inc
 
 #IFDEF FPCAPACHE_1_3
--Fu$FPCPATH/units/\$fpctarget/httpd-1.3/
+-Fu$FPCPATH/units/\$fpctarget/httpd13/
 #ELSE
 #IFDEF FPCAPACHE_2_0
--Fu$FPCPATH/units/\$fpctarget/httpd-2.0
+-Fu$FPCPATH/units/\$fpctarget/httpd20
 #ELSE
--Fu$FPCPATH/units/\$fpctarget/httpd-2.2
+-Fu$FPCPATH/units/\$fpctarget/httpd22
 #ENDIF
 #ENDIF
 
