@@ -1245,6 +1245,11 @@
      SETXON = 2;
      SETBREAK = 8;
      CLRBREAK = 9;
+
+     ENDSESSION_LOGOFF   = dword($80000000);  // all winver >= 0x400
+     ENDSESSION_CRITICAL = dword($40000000);
+     ENDSESSION_CLOSEAPP = dword($00000001);
+
   { ExitWindowsEx  }
      EWX_FORCE = 4;
      EWX_LOGOFF = 0;
@@ -1252,6 +1257,8 @@
      EWX_REBOOT = 2;
      EWX_SHUTDOWN = 1;
      EWX_FORCEIFHUNG = 16;
+     EWX_QUICKRESOLVE= 32; // win32_winnt>=0x500
+     EWX_RESTARTAPPS = 64; // win32_winnt>=0x600
   { ExtFloodFill  }
      FLOODFILLBORDER = 0;
      FLOODFILLSURFACE = 1;
