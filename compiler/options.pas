@@ -173,6 +173,9 @@ var
   opt : toptimizerswitch;
   wpopt: twpoptimizerswitch;
   abi : tabi;
+{$if defined(arm) or defined(avr)}
+  controllertype : tcontrollertype;
+{$endif defined(arm) or defined(avr)}
 begin
   p:=MessagePchar(option_info);
   while assigned(p) do
@@ -263,8 +266,28 @@ begin
                     Comment(V_Normal,hs);
                   end;
               end;
-          end;
+          end
       end
+{$if defined(arm) or defined(avr)}
+     else if pos('$CONTROLLERTYPES',s)>0 then
+      begin
+        for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
+          begin
+{           currently all whole program optimizations are platform-independent
+            if opt in supported_wpoptimizerswitches then
+}
+              begin
+                hs:=s;
+                hs1:=ControllerTypeStr[controllertype];
+                if hs1<>'' then
+                  begin
+                    Replace(hs,'$CONTROLLERTYPES',hs1);
+                    Comment(V_Normal,hs);
+                  end;
+              end;
+          end
+      end
+{$endif defined(arm) or defined(avr)}
      else
       Comment(V_Normal,s);
    end;
@@ -1486,6 +1509,20 @@ begin
                       begin
                         RelocSection:=UnsetBool(More,j);
                         RelocSectionSetExplicitly:=true;
+                      end;
+                    'p':
+                      begin
+{$if defined(arm) or defined(avr)}
+                        if (target_info.system in systems_embedded) then
+                          begin
+                            s:=upper(copy(more,j+1,length(more)-j));
+                            if not(SetControllerType(s,init_settings.controllertype)) then
+                              IllegalPara(opt);
+                            break;
+                          end
+                        else
+{$endif defined(arm) or defined(avr)}
+                          IllegalPara(opt);
                       end;
                     'R':
                       begin

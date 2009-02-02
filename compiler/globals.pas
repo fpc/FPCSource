@@ -132,6 +132,11 @@ interface
          maxfpuregisters : shortint;
 
          minfpconstprec  : tfloattype;
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+{$if defined(ARM)}
+        controllertype   : tcontrollertype;
+{$endif defined(ARM)}
        end;
 
     const
@@ -424,6 +429,9 @@ interface
     function Setabitype(const s:string;var a:tabi):boolean;
     function Setcputype(const s:string;var a:tcputype):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
+{$if defined(arm) or defined(avr)}
+    function SetControllerType(const s:string;var a:tcontrollertype):boolean;
+{$endif defined(arm) or defined(avr)}
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
     function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
@@ -997,6 +1005,25 @@ implementation
               break;
             end;
       end;
+
+
+{$if defined(arm) or defined(avr)}
+    function SetControllerType(const s:string;var a:tcontrollertype):boolean;
+      var
+        t  : tcontrollertype;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(tcontrollertype) to high(tcontrollertype) do
+          if controllertypestr[t]=hs then
+            begin
+              a:=t;
+              result:=true;
+              break;
+            end;
+      end;
+{$endif defined(arm) or defined(avr)}
 
 
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;

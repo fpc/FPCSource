@@ -2627,6 +2627,9 @@ Supported Whole Program Optimizations:
   All
   $WPOPTIMIZATIONS
 
+Supported Microcontroller types:
+  $CONTROLLERTYPES
+
 This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 

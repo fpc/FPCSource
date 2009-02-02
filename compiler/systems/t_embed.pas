@@ -32,7 +32,8 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_embed,link;
+       globtype,globals,systems,verbose,script,fmodule,i_embed,link,
+       cpuinfo;
 
     type
        TlinkerEmbedded=class(texternallinker)
@@ -214,32 +215,41 @@ begin
    end;
 
 {$ifdef ARM}
-  with linkres do
-    begin
-      add('ENTRY(_START)');
-      Add('SECTIONS');
-      Add('{');
-      Add('     . = 0x0;  /* start of flash */');
-      Add('    /* code and constants */');
-      Add('    .text :');
-      Add('    {');
-      Add('    *(.init, .init.*)');
-      Add('    *(.text, .text.*)');
-      Add('    *(.strings)');
-      Add('    *(.rodata.*)');
-      Add('    *(.comment)');
-      Add('    }');
-      Add('    /* uninitialized data */');
-      Add('    . = 0x40000000;  /* start of ram */');
-      Add('    .bss :');
-      Add('    {');
-      Add('    *(.bss, .bss.*)');
-      Add('    *(COMMON)');
-      Add('    *(.data, .data.*)');
-      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-      Add('    }');
-      Add('}');
-    end;
+  case current_settings.controllertype of
+    ct_none:
+      ;
+    ct_lpc2114,
+    ct_lpc2124,
+    ct_lpc2194:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('SECTIONS');
+          Add('{');
+          Add('     . = 0x0;  /* start of flash */');
+          Add('    /* code and constants */');
+          Add('    .text :');
+          Add('    {');
+          Add('    *(.init, .init.*)');
+          Add('    *(.text, .text.*)');
+          Add('    *(.strings)');
+          Add('    *(.rodata.*)');
+          Add('    *(.comment)');
+          Add('    }');
+          Add('    /* uninitialized data */');
+          Add('    . = 0x40000000;  /* start of ram */');
+          Add('    .bss :');
+          Add('    {');
+          Add('    *(.bss, .bss.*)');
+          Add('    *(COMMON)');
+          Add('    *(.data, .data.*)');
+          Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+          Add('    }');
+          Add('}');
+        end;
+    else
+      internalerror(200902011);
+  end;
 {$endif ARM}
 
   { Write and Close response }

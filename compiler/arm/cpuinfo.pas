@@ -47,6 +47,13 @@ Type
       fpu_vfp
      );
 
+   tcontrollertype =
+     (ct_none,
+      ct_lpc2114,
+      ct_lpc2124,
+      ct_lpc2194
+     );
+
 Const
    {# Size of native extended floating point type }
    extended_size = 12;
@@ -82,6 +89,21 @@ Const
      'FPA11',
      'VFP'
    );
+
+   controllertypestr : array[tcontrollertype] of string[20] =
+     ('',
+      'LPC2114',
+      'LPC2124',
+      'LPC2194'
+     );
+
+   controllerunitstr : array[tcontrollertype] of string[20] =
+     ('',
+      'LPC21x4',
+      'LPC21x4',
+      'LPC21x4'
+     );
+
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+

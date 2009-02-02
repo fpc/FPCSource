@@ -47,6 +47,7 @@ implementation
        pexports,
        wpobase,
        scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
+       ,cpuinfo
 {$ifdef i386}
        { fix me! }
        ,cpubase
@@ -587,6 +588,12 @@ implementation
             AddUnit('fpcylix');
             AddUnit('dynlibs');
           end;
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+{$if defined(ARM)}
+        if (target_info.system in system_embedded) and (current_settings.controllertype<>ct_none) then
+          AddUnit(controllerunitstr[current_settings.controllertype]);
+{$endif ARM}
       end;
 
 

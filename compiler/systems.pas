@@ -144,7 +144,7 @@ interface
              system_arm_symbian,        { 60 }
              system_x86_64_darwin,      { 61 }
              system_avr_embedded,       { 62 }
-             system_i386_haiku,         { 63 }    
+             system_i386_haiku,         { 63 }
              system_arm_darwin          { 64 }
        );
 
@@ -192,7 +192,7 @@ interface
             ,res_powerpc_mpw,res_elf
             ,res_win64_gorc, res_macho, res_ext
        );
-       
+
        tresinfoflags = (res_external_file,res_arch_in_file_name
             ,res_single_file);
 
@@ -399,6 +399,14 @@ interface
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_arm_darwin];
+
+       { all embedded systems }
+       systems_embedded = [system_i386_embedded,system_m68k_embedded,
+                           system_alpha_embedded,system_powerpc_embedded,
+                           system_sparc_embedded,system_vm_embedded,
+                           system_iA64_embedded,system_x86_64_embedded,
+                           system_mips_embedded,system_arm_embedded,
+                           system_powerpc64_embedded];
 
        { all systems supporting exports from programs or units }
        system_unit_program_exports = [system_i386_win32,
