@@ -65,7 +65,7 @@ type
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
-    procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
+    procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
   protected
@@ -655,7 +655,7 @@ procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;
 var tr : pointer;
 begin
   tr := aTransaction.Handle;
-  if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, AParams);
+  if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
   with cursor as TIBCursor do
     if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
       CheckError('Execute', Status);
@@ -713,7 +713,7 @@ begin
   Result := (retcode <> 100);
 end;
 
-procedure TIBConnection.SetParameters(cursor : TSQLCursor;AParams : TParams);
+procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
 var ParNr,SQLVarNr : integer;
     s               : string;
@@ -735,7 +735,7 @@ var ParNr,SQLVarNr : integer;
 {$R-}
     with cursor as TIBCursor do
       begin
-      TransactionHandle := transaction.Handle;
+      TransactionHandle := aTransation.Handle;
       blobhandle := nil;
       if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
        CheckError('TIBConnection.CreateBlobStream', FStatus);
