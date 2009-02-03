@@ -779,7 +779,7 @@ begin
       with TSQLConnection(DataBase) do
         if Transaction = self then Transaction := nil;
     inherited SetDatabase(Value);
-    If Assigned(Database) then
+    If Assigned(Database) and not (csLoading in ComponentState) then
       If (TSQLConnection(DataBase).Transaction=Nil) then
         TSQLConnection(DataBase).Transaction:=Self;
     end;
