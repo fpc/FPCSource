@@ -16,10 +16,10 @@ interface
 
 uses
 {$IFDEF WINDOWS}
-  windows,
+  //windows,
 {$ENDIF}
 {$IFDEF UNIX}
-  unixtype,
+  //unixtype,
 {$ENDIF}
   ctypes;
 
@@ -27,250 +27,41 @@ uses
 // {$ERROR 'cbool size mismatch!'}
 //{$ENDIF}
 
-{$IFDEF WINDOWS}
-  {$DEFINE DYNLINK}
-{$ENDIF}
-
-{$IFDEF DYNLINK}
 const
 {$IF Defined(WINDOWS)}
-  libxml2lib = 'libxml2.dll';
+  xml2lib = 'libxml2.dll';
+  {$DEFINE EXTDECL := cdecl}
 {$ELSEIF Defined(UNIX)}
-  libxml2lib = 'libxml2.so';
+  xml2lib = 'libxml2.so';
+  {$DEFINE EXTDECL := cdecl}
 {$ELSE}
   {$MESSAGE ERROR 'DYNLINK not supported'}
 {$IFEND}
-{$ELSE}
-  {$LINKLIB xml2}
-{$ENDIF}
 
-{$i xmlexports.inc}
-{$i xmlversion.inc}
-
-type
-  PFILE = pointer;
-  va_list = pointer;
-  iconv_t = pointer;
-
-(*
-  include pointers (forwarding)
-*)
-{$DEFINE POINTER}
-  {$i catalog.inc}
-  {$i chvalid.inc}
-  {$i dict.inc}
-  {$i encoding.inc}
-  {$i tree.inc}
-  {$i list.inc}
-  {$i entities.inc}
-  {$i xmlerror.inc}
-  {$i xmlmemory.inc}
-  {$i hash.inc}
-  {$i pattern.inc}
-  {$i schemasInternals.inc}
-  {$i valid.inc}
-  {$i parser.inc}
-  {$i parserInternals.inc}
-  {$i schematron.inc}
-  {$i threads.inc}
-  {$i uri.inc}
-  {$i relaxng.inc}
-  {$i globals.inc}
-  {$i nanoftp.inc}
-  {$i nanohttp.inc}
-  {$i SAX.inc}
-  {$i SAX2.inc}
-  {$i HTMLtree.inc}
-  {$i HTMLparser.inc}
-  {$i xmlautomata.inc}
-  {$i xmlIO.inc}
-  {$i xmlmodule.inc}
-  {$i xmlreader.inc}
-  {$i xmlregexp.inc}
-  {$i xmlsave.inc}
-  {$i xmlschemas.inc}
-  {$i xmlschemastypes.inc}
-  {$i xmlstring.inc}
-  {$i xmlunicode.inc}
-  {$i xmlwriter.inc}
-  {$i c14n.inc}
-  {$i xpath.inc}
-  {$i xpathInternals.inc}
-  {$i xlink.inc}
-  {$i xinclude.inc}
-  {$i xpointer.inc}
-{$UNDEF POINTER}
-
-(*
-  include types
-*)
-{$DEFINE TYPE}
-  {$i catalog.inc}
-  {$i chvalid.inc}
-  {$i dict.inc}
-  {$i encoding.inc}
-  {$i tree.inc}
-  {$i list.inc}
-  {$i entities.inc}
-  {$i xmlerror.inc}
-  {$i xmlmemory.inc}
-  {$i hash.inc}
-  {$i pattern.inc}
-  {$i schemasInternals.inc}
-  {$i valid.inc}
-  {$i parser.inc}
-  {$i parserInternals.inc}
-  {$i schematron.inc}
-  {$i threads.inc}
-  {$i uri.inc}
-  {$i relaxng.inc}
-  {$i globals.inc}
-  {$i nanoftp.inc}
-  {$i nanohttp.inc}
-  {$i SAX.inc}
-  {$i SAX2.inc}
-  {$i HTMLtree.inc}
-  {$i HTMLparser.inc}
-  {$i xmlautomata.inc}
-  {$i xmlIO.inc}
-  {$i xmlmodule.inc}
-  {$i xmlreader.inc}
-  {$i xmlregexp.inc}
-  {$i xmlsave.inc}
-  {$i xmlschemas.inc}
-  {$i xmlschemastypes.inc}
-  {$i xmlstring.inc}
-  {$i xmlunicode.inc}
-  {$i xmlwriter.inc}
-  {$i c14n.inc}
-  {$i xpath.inc}
-  {$i xpathInternals.inc}
-  {$i xlink.inc}
-  {$i xinclude.inc}
-  {$i xpointer.inc}
-{$UNDEF TYPE}
-
-(*
-  include constants
-*)
-{$DEFINE CONST}
-const
-  {$i catalog.inc}
-  {$i chvalid.inc}
-  {$i dict.inc}
-  {$i encoding.inc}
-  {$i tree.inc}
-  {$i list.inc}
-  {$i entities.inc}
-  {$i xmlerror.inc}
-  {$i xmlmemory.inc}
-  {$i pattern.inc}
-  {$i schemasInternals.inc}
-  {$i hash.inc}
-  {$i valid.inc}
-  {$i parser.inc}
-  {$i parserInternals.inc}
-  {$i schematron.inc}
-  {$i threads.inc}
-  {$i uri.inc}
-  {$i relaxng.inc}
-  {$i globals.inc}
-  {$i nanoftp.inc}
-  {$i nanohttp.inc}
-  {$i SAX.inc}
-  {$i SAX2.inc}
-  {$i HTMLtree.inc}
-  {$i HTMLparser.inc}
-  {$i xmlautomata.inc}
-  {$i xmlIO.inc}
-  {$i xmlmodule.inc}
-  {$i xmlreader.inc}
-  {$i xmlregexp.inc}
-  {$i xmlsave.inc}
-  {$i xmlschemas.inc}
-  {$i xmlschemastypes.inc}
-  {$i xmlstring.inc}
-  {$i xmlunicode.inc}
-  {$i xmlwriter.inc}
-  {$i c14n.inc}
-  {$i xpath.inc}
-  {$i xpathInternals.inc}
-  {$i xlink.inc}
-  {$i xinclude.inc}
-  {$i xpointer.inc}
-{$UNDEF CONST}
-
-(*
-  include functions
-*)
-{$DEFINE FUNCTION}
-  {$i catalog.inc}
-  {$i chvalid.inc}
-  {$i dict.inc}
-  {$i encoding.inc}
-  {$i tree.inc}
-  {$i list.inc}
-  {$i entities.inc}
-  {$i xmlerror.inc}
-  {$i xmlmemory.inc}
-  {$i pattern.inc}
-  {$i schemasInternals.inc}
-  {$i hash.inc}
-  {$i valid.inc}
-  {$i parser.inc}
-  {$i parserInternals.inc}
-  {$i schematron.inc}
-  {$i threads.inc}
-  {$i uri.inc}
-  {$i relaxng.inc}
-  {$i globals.inc}
-  {$i nanoftp.inc}
-  {$i nanohttp.inc}
-  {$i SAX.inc}
-  {$i SAX2.inc}
-  {$i HTMLtree.inc}
-  {$i HTMLparser.inc}
-  {$i xmlautomata.inc}
-  {$i xmlIO.inc}
-  {$i xmlmodule.inc}
-  {$i xmlreader.inc}
-  {$i xmlregexp.inc}
-  {$i xmlsave.inc}
-  {$i xmlschemas.inc}
-  {$i xmlschemastypes.inc}
-  {$i xmlstring.inc}
-  {$i xmlunicode.inc}
-  {$i xmlwriter.inc}
-  {$i c14n.inc}
-  {$i xpath.inc}
-  {$i xpathInternals.inc}
-  {$i xlink.inc}
-  {$i xinclude.inc}
-  {$i xpointer.inc}
-{$UNDEF FUNCTION}
+{$i xml2.inc}
 
 operator := (const S: String): xmlCharPtr; inline;
 //operator := (const C: AnsiChar): xmlCharPtr; inline;
 
 implementation
 
-procedure fpcxmlFree(mem: pointer); XMLCALL;
+procedure fpcxmlFree(mem: pointer); EXTDECL;
 begin
   FreeMem(mem);
 end;
 
-function fpcxmlMalloc(size: size_t): pointer; XMLCALL;
+function fpcxmlMalloc(size: csize_t): pointer; EXTDECL;
 begin
   GetMem(Result, size);
 end;
 
-function fpcxmlRealloc(mem: pointer; size: size_t): pointer; XMLCALL;
+function fpcxmlRealloc(mem: pointer; size: csize_t): pointer; EXTDECL;
 begin
   Result := mem;
   ReallocMem(Result, size);
 end;
 
-procedure fpcxmlStructuredErrorHandler(userData: pointer; error: xmlErrorPtr); XMLCALL;
+procedure fpcxmlStructuredErrorHandler(userData: pointer; error: xmlErrorPtr); EXTDECL;
 begin
   writeln('struct error');
 end;

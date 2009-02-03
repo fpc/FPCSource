@@ -43,23 +43,23 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlFreePattern(comp: xmlPatternPtr); XMLCALL; XMLPUBFUN;
-procedure xmlFreePatternList(comp: xmlPatternPtr); XMLCALL; XMLPUBFUN;
-function xmlPatterncompile(pattern: xmlCharPtr; dict: xmlDictPtr; flags: cint; namespaces: xmlCharPtrPtr): xmlPatternPtr; XMLCALL; XMLPUBFUN;
-function xmlPatternMatch(comp: xmlPatternPtr; node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlFreePattern(comp: xmlPatternPtr); EXTDECL; external xml2lib;
+procedure xmlFreePatternList(comp: xmlPatternPtr); EXTDECL; external xml2lib;
+function xmlPatterncompile(pattern: xmlCharPtr; dict: xmlDictPtr; flags: cint; namespaces: xmlCharPtrPtr): xmlPatternPtr; EXTDECL; external xml2lib;
+function xmlPatternMatch(comp: xmlPatternPtr; node: xmlNodePtr): cint; EXTDECL; external xml2lib;
 
 (* streaming interfaces *)
-function xmlPatternStreamable(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlPatternMaxDepth(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlPatternMinDepth(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlPatternFromRoot(comp: xmlPatternPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlPatternGetStreamCtxt(comp: xmlPatternPtr): xmlStreamCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeStreamCtxt(stream: xmlStreamCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlStreamPushNode(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr; nodeType: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlStreamPush(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlStreamPushAttr(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlStreamPop(stream: xmlStreamCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlStreamWantsAnyNode(stream: xmlStreamCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlPatternStreamable(comp: xmlPatternPtr): cint; EXTDECL; external xml2lib;
+function xmlPatternMaxDepth(comp: xmlPatternPtr): cint; EXTDECL; external xml2lib;
+function xmlPatternMinDepth(comp: xmlPatternPtr): cint; EXTDECL; external xml2lib;
+function xmlPatternFromRoot(comp: xmlPatternPtr): cint; EXTDECL; external xml2lib;
+function xmlPatternGetStreamCtxt(comp: xmlPatternPtr): xmlStreamCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlFreeStreamCtxt(stream: xmlStreamCtxtPtr); EXTDECL; external xml2lib;
+function xmlStreamPushNode(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr; nodeType: cint): cint; EXTDECL; external xml2lib;
+function xmlStreamPush(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlStreamPushAttr(stream: xmlStreamCtxtPtr; name, ns: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlStreamPop(stream: xmlStreamCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlStreamWantsAnyNode(stream: xmlStreamCtxtPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_PATTERN_ENABLED *)

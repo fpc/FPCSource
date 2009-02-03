@@ -913,8 +913,8 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlSchemaFreeType(_type: xmlSchemaTypePtr); XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFreeWildcard(wildcard: xmlSchemaWildcardPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSchemaFreeType(_type: xmlSchemaTypePtr); EXTDECL; external xml2lib;
+procedure xmlSchemaFreeWildcard(wildcard: xmlSchemaWildcardPtr); EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

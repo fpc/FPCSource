@@ -22,8 +22,8 @@
 (**
  * A schemas validation context
  *)
-  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
-  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlRelaxNGValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlRelaxNGValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
   xmlRelaxNGParserCtxt = record end;
 
@@ -91,44 +91,44 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlRelaxNGInitTypes: cint; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGCleanupTypes: cint; XMLCALL; XMLPUBFUN;
+function xmlRelaxNGInitTypes: cint; EXTDECL; external xml2lib;
+function xmlRelaxNGCleanupTypes: cint; EXTDECL; external xml2lib;
 
 (*
  * Interfaces for parsing.
  *)
-function xmlRelaxNGNewParserCtxt(URL: pchar): xmlRelaxNGParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGNewMemParserCtxt(buffer: pchar; size: cint): xmlRelaxNGParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGNewDocParserCtxt(doc: xmlDocPtr): xmlRelaxNGParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlRelaxParserSetFlag(ctxt: xmlRelaxNGParserCtxtPtr; flag: cint; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGFreeParserCtxt(ctxt: xmlRelaxNGParserCtxtPtr); XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGSetParserErrors(ctxt: xmlRelaxNGParserCtxtPtr; err: xmlRelaxNGValidityErrorFunc; warn: xmlRelaxNGValidityWarningFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlRelaxNGGetParserErrors(ctxt: xmlRelaxNGParserCtxtPtr; var err: xmlRelaxNGValidityErrorFunc; var warn: xmlRelaxNGValidityWarningFunc; var ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGSetParserStructuredErrors(ctxt: xmlRelaxNGParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlRelaxNGParse(ctxt: xmlRelaxNGParserCtxtPtr): xmlRelaxNGPtr; XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGFree(schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
+function xmlRelaxNGNewParserCtxt(URL: pchar): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlRelaxNGNewMemParserCtxt(buffer: pchar; size: cint): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlRelaxNGNewDocParserCtxt(doc: xmlDocPtr): xmlRelaxNGParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlRelaxParserSetFlag(ctxt: xmlRelaxNGParserCtxtPtr; flag: cint; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+procedure xmlRelaxNGFreeParserCtxt(ctxt: xmlRelaxNGParserCtxtPtr); EXTDECL; external xml2lib;
+procedure xmlRelaxNGSetParserErrors(ctxt: xmlRelaxNGParserCtxtPtr; err: xmlRelaxNGValidityErrorFunc; warn: xmlRelaxNGValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlRelaxNGGetParserErrors(ctxt: xmlRelaxNGParserCtxtPtr; var err: xmlRelaxNGValidityErrorFunc; var warn: xmlRelaxNGValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
+procedure xmlRelaxNGSetParserStructuredErrors(ctxt: xmlRelaxNGParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlRelaxNGParse(ctxt: xmlRelaxNGParserCtxtPtr): xmlRelaxNGPtr; EXTDECL; external xml2lib;
+procedure xmlRelaxNGFree(schema: xmlRelaxNGPtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlRelaxNGDump(output: PFILE; schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGDumpTree(output: PFILE; schema: xmlRelaxNGPtr); XMLCALL; XMLPUBFUN;
+procedure xmlRelaxNGDump(output: PFILE; schema: xmlRelaxNGPtr); EXTDECL; external xml2lib;
+procedure xmlRelaxNGDumpTree(output: PFILE; schema: xmlRelaxNGPtr); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (*
  * Interfaces for validating
  *)
-procedure xmlRelaxNGSetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; err: xmlRelaxNGValidityErrorFunc; warn: xmlRelaxNGValidityWarningFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlRelaxNGGetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; var err: xmlRelaxNGValidityErrorFunc; var warn: xmlRelaxNGValidityWarningFunc; var ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGSetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlRelaxNGNewValidCtxt(schema: xmlRelaxNGPtr): xmlRelaxNGValidCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlRelaxNGFreeValidCtxt(ctxt: xmlRelaxNGValidCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlRelaxNGValidateDoc(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlRelaxNGSetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; err: xmlRelaxNGValidityErrorFunc; warn: xmlRelaxNGValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlRelaxNGGetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; var err: xmlRelaxNGValidityErrorFunc; var warn: xmlRelaxNGValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
+procedure xmlRelaxNGSetValidErrors(ctxt: xmlRelaxNGValidCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlRelaxNGNewValidCtxt(schema: xmlRelaxNGPtr): xmlRelaxNGValidCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlRelaxNGFreeValidCtxt(ctxt: xmlRelaxNGValidCtxtPtr); EXTDECL; external xml2lib;
+function xmlRelaxNGValidateDoc(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Interfaces for progressive validation when possible
  *)
-function xmlRelaxNGValidatePushElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGValidatePushCData(ctxt: xmlRelaxNGValidCtxtPtr; data: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGValidatePopElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlRelaxNGValidateFullElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlRelaxNGValidatePushElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlRelaxNGValidatePushCData(ctxt: xmlRelaxNGValidCtxtPtr; data: xmlCharPtr; len: cint): cint; EXTDECL; external xml2lib;
+function xmlRelaxNGValidatePopElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlRelaxNGValidateFullElement(ctxt: xmlRelaxNGValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)
 

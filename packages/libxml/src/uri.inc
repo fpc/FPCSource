@@ -44,19 +44,19 @@
  * xmlChar *	xmlNodeGetBase	(xmlDocPtr doc,
  *                               xmlNodePtr cur);
  *)
-function xmlCreateURI(): xmlURIPtr; XMLCALL; XMLPUBFUN;
-function xmlBuildURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlBuildRelativeURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlParseURI(str: pchar): xmlURIPtr; XMLCALL; XMLPUBFUN;
-function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; XMLCALL; XMLPUBFUN;
-function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveUri(uri: xmlURIPtr): pchar; XMLCALL; XMLPUBFUN;
-procedure xmlPrintURI(stream: PFILE; uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
-function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlNormalizeURIPath(path: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlURIEscape(str: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-procedure xmlPrintURI(uri: xmlURIPtr); XMLCALL; XMLPUBFUN;
-function xmlCanonicPath(path: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlPathToURI(path: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlCreateURI(): xmlURIPtr; EXTDECL; external xml2lib;
+function xmlBuildURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlBuildRelativeURI(URI: xmlCharPtr; base: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlParseURI(str: pchar): xmlURIPtr; EXTDECL; external xml2lib;
+function xmlParseURI(str: pchar; raw: cint): xmlURIPtr; EXTDECL; external xml2lib;
+function xmlParseURIReference(uri: xmlURIPtr; str: pchar): cint; EXTDECL; external xml2lib;
+function xmlSaveUri(uri: xmlURIPtr): pchar; EXTDECL; external xml2lib;
+procedure xmlPrintURI(stream: PFILE; uri: xmlURIPtr); EXTDECL; external xml2lib;
+function xmlURIEscapeStr(str: xmlCharPtr; list: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlURIUnescapeString(str: pchar; len: cint; target: pchar): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlNormalizeURIPath(path: pchar): cint; EXTDECL; external xml2lib;
+function xmlURIEscape(str: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+procedure xmlPrintURI(uri: xmlURIPtr); EXTDECL; external xml2lib;
+function xmlCanonicPath(path: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlPathToURI(path: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 {$ENDIF}

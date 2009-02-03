@@ -44,7 +44,7 @@
  *
  * Signature for a free() implementation.
  *)
-  xmlFreeFunc = procedure(mem: pointer); XMLCALL;
+  xmlFreeFunc = procedure(mem: pointer); EXTDECL;
 
 (**
  * xmlMallocFunc:
@@ -54,7 +54,7 @@
  *
  * Returns a pointer to the newly allocated block or NULL in case of error.
  *)
-  xmlMallocFunc = function(size: csize_t): pointer; XMLCALL;
+  xmlMallocFunc = function(size: csize_t): pointer; EXTDECL;
 
 (**
  * xmlReallocFunc:
@@ -65,7 +65,7 @@
  *
  * Returns a pointer to the newly reallocated block or NULL in case of error.
  *)
-  xmlReallocFunc = function(mem: pointer; size: csize_t): pointer; XMLCALL;
+  xmlReallocFunc = function(mem: pointer; size: csize_t): pointer; EXTDECL;
 
 (**
  * xmlStrdupFunc:
@@ -75,7 +75,7 @@
  *
  * Returns the copy of the string or NULL in case of error.
  *)
-  xmlStrdupFunc = function(str: pchar): pchar; XMLCALL;
+  xmlStrdupFunc = function(str: pchar): pchar; EXTDECL;
 
 (*
  * The 4 interfaces used for all memory handling within libxml.
@@ -93,38 +93,38 @@ LIBXML_DLL_IMPORT extern xmlStrdupFunc xmlMemStrdup;
  * The xmlGc function have an extra entry for atomic block
  * allocations useful for garbage collected memory allocators
  *)
-function xmlMemSetup(freeFunc: xmlFreeFunc; mallocFunc: xmlMallocFunc; reallocFunc: xmlReallocFunc; strdupFunc: xmlStrdupFunc): cint; XMLCALL; XMLPUBFUN;
-function xmlMemGet(var freeFunc: xmlFreeFunc; var mallocFunc: xmlMallocFunc; var reallocFunc: xmlReallocFunc; var strdupFunc: xmlStrdupFunc): cint; XMLCALL; XMLPUBFUN;
-function xmlGcMemSetup(freeFunc: xmlFreeFunc; mallocFunc: xmlMallocFunc; mallocAtomicFunc: xmlMallocFunc; reallocFunc: xmlReallocFunc; strdupFunc: xmlStrdupFunc): cint; XMLCALL; XMLPUBFUN;
-function xmlGcMemGet(var freeFunc: xmlFreeFunc; var mallocFunc: xmlMallocFunc; var mallocAtomicFunc: xmlMallocFunc; var reallocFunc: xmlReallocFunc; var strdupFunc: xmlStrdupFunc): cint; XMLCALL; XMLPUBFUN;
+function xmlMemSetup(freeFunc: xmlFreeFunc; mallocFunc: xmlMallocFunc; reallocFunc: xmlReallocFunc; strdupFunc: xmlStrdupFunc): cint; EXTDECL; external xml2lib;
+function xmlMemGet(var freeFunc: xmlFreeFunc; var mallocFunc: xmlMallocFunc; var reallocFunc: xmlReallocFunc; var strdupFunc: xmlStrdupFunc): cint; EXTDECL; external xml2lib;
+function xmlGcMemSetup(freeFunc: xmlFreeFunc; mallocFunc: xmlMallocFunc; mallocAtomicFunc: xmlMallocFunc; reallocFunc: xmlReallocFunc; strdupFunc: xmlStrdupFunc): cint; EXTDECL; external xml2lib;
+function xmlGcMemGet(var freeFunc: xmlFreeFunc; var mallocFunc: xmlMallocFunc; var mallocAtomicFunc: xmlMallocFunc; var reallocFunc: xmlReallocFunc; var strdupFunc: xmlStrdupFunc): cint; EXTDECL; external xml2lib;
 
 (*
  * Initialization of the memory layer.
  *)
-function xmlInitMemory(): cint; XMLCALL; XMLPUBFUN;
+function xmlInitMemory(): cint; EXTDECL; external xml2lib;
 
 (*
  * Cleanup of the memory layer.
  *)
-procedure xmlCleanupMemory(); XMLCALL; XMLPUBFUN;
+procedure xmlCleanupMemory(); EXTDECL; external xml2lib;
 
 (*
  * These are specific to the XML debug memory wrapper.
  *)
-function xmlMemUsed(): cint; XMLCALL; XMLPUBFUN;
-function xmlMemBlocks(): cint; XMLCALL; XMLPUBFUN;
-procedure xmlMemDisplay(fp: PFILE); XMLCALL; XMLPUBFUN;
-procedure xmlMemShow(fp: PFILE; nr: cint); XMLCALL; XMLPUBFUN;
-procedure xmlMemoryDump(); XMLCALL; XMLPUBFUN;
-function xmlMemMalloc(size: csize_t): pointer; XMLCALL; XMLPUBFUN;
-function xmlMemRealloc(ptr: pointer; size: csize_t): pointer; XMLCALL; XMLPUBFUN;
-procedure xmlMemFree(ptr: pointer); XMLCALL; XMLPUBFUN;
-function xmlMemoryStrdup(str: pchar): pchar; XMLCALL; XMLPUBFUN;
+function xmlMemUsed(): cint; EXTDECL; external xml2lib;
+function xmlMemBlocks(): cint; EXTDECL; external xml2lib;
+procedure xmlMemDisplay(fp: PFILE); EXTDECL; external xml2lib;
+procedure xmlMemShow(fp: PFILE; nr: cint); EXTDECL; external xml2lib;
+procedure xmlMemoryDump(); EXTDECL; external xml2lib;
+function xmlMemMalloc(size: csize_t): pointer; EXTDECL; external xml2lib;
+function xmlMemRealloc(ptr: pointer; size: csize_t): pointer; EXTDECL; external xml2lib;
+procedure xmlMemFree(ptr: pointer); EXTDECL; external xml2lib;
+function xmlMemoryStrdup(str: pchar): pchar; EXTDECL; external xml2lib;
 
-function xmlMallocLoc(size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
-function xmlReallocLoc(ptr: pointer; size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
-function xmlMallocAtomicLoc(size: csize_t; _file: pchar; line: cint): pointer; XMLCALL; XMLPUBFUN;
-function xmlMemStrdupLoc(str: pchar; _file: pchar; line: cint): pchar; XMLCALL; XMLPUBFUN;
+function xmlMallocLoc(size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlReallocLoc(ptr: pointer; size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlMallocAtomicLoc(size: csize_t; _file: pchar; line: cint): pointer; EXTDECL; external xml2lib;
+function xmlMemStrdupLoc(str: pchar; _file: pchar; line: cint): pchar; EXTDECL; external xml2lib;
 
 {$IFDEF DEBUG_MEMORY_LOCATION}
 (**

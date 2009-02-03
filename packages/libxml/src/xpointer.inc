@@ -35,31 +35,31 @@
 (*
  * Handling of location sets.
  *)
-function xmlXPtrLocationSetCreate(val: xmlXPathObjectPtr): xmlLocationSetPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPtrLocationSetCreate(obj: xmlLocationSetPtr); XMLCALL; XMLPUBFUN;
-function xmlXPtrLocationSetMerge(val1, val2: xmlLocationSetPtr): xmlLocationSetPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRange(start: xmlNodePtr; startindex: cint; _end: xmlNodePtr; endindex: cint): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRangePoints(start, _end: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRangeNodePoint(start: xmlNodePtr; _end: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRangePointNode(start: xmlXPathObjectPtr; _end: xmlNodePtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRangeNodes(start: xmlNodePtr; _end: xmlNodePtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewLocationSetNodes(start: xmlNodePtr; _end: xmlNodePtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewLocationSetNodeSet(_set: xmlNodeSetPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewRangeNodeObject(start: xmlNodePtr; _end: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrNewCollapsedRange(start: xmlNodePtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPtrLocationSetAdd(cur: xmlLocationSetPtr; val: xmlXPathObjectPtr); XMLCALL; XMLPUBFUN;
-function xmlXPtrWrapLocationSet(val: xmlLocationSetPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPtrLocationSetDel(cur: xmlLocationSetPtr; val: xmlXPathObjectPtr); XMLCALL; XMLPUBFUN;
-procedure xmlXPtrLocationSetRemove(cur: xmlLocationSetPtr; val: cint); XMLCALL; XMLPUBFUN;
+function xmlXPtrLocationSetCreate(val: xmlXPathObjectPtr): xmlLocationSetPtr; EXTDECL; external xml2lib;
+procedure xmlXPtrLocationSetCreate(obj: xmlLocationSetPtr); EXTDECL; external xml2lib;
+function xmlXPtrLocationSetMerge(val1, val2: xmlLocationSetPtr): xmlLocationSetPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRange(start: xmlNodePtr; startindex: cint; _end: xmlNodePtr; endindex: cint): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRangePoints(start, _end: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRangeNodePoint(start: xmlNodePtr; _end: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRangePointNode(start: xmlXPathObjectPtr; _end: xmlNodePtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRangeNodes(start: xmlNodePtr; _end: xmlNodePtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewLocationSetNodes(start: xmlNodePtr; _end: xmlNodePtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewLocationSetNodeSet(_set: xmlNodeSetPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewRangeNodeObject(start: xmlNodePtr; _end: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPtrNewCollapsedRange(start: xmlNodePtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+procedure xmlXPtrLocationSetAdd(cur: xmlLocationSetPtr; val: xmlXPathObjectPtr); EXTDECL; external xml2lib;
+function xmlXPtrWrapLocationSet(val: xmlLocationSetPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+procedure xmlXPtrLocationSetDel(cur: xmlLocationSetPtr; val: xmlXPathObjectPtr); EXTDECL; external xml2lib;
+procedure xmlXPtrLocationSetRemove(cur: xmlLocationSetPtr; val: cint); EXTDECL; external xml2lib;
 
 (*
  * Functions.
  *)
-function xmlXPtrNewContext(doc: xmlDocPtr; here, origin: xmlNodePtr): xmlXPathContextPtr; XMLCALL; XMLPUBFUN;
-function xmlXPtrEval(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPtrRangeToFunction(ctxt: xmlXPathParserContextPtr; nargs: cint); XMLCALL; XMLPUBFUN;
-function xmlXPtrBuildNodeList(obj: xmlXPathObjectPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPtrEvalRangePredicate(ctxt: xmlXPathParserContextPtr); XMLCALL; XMLPUBFUN;
+function xmlXPtrNewContext(doc: xmlDocPtr; here, origin: xmlNodePtr): xmlXPathContextPtr; EXTDECL; external xml2lib;
+function xmlXPtrEval(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+procedure xmlXPtrRangeToFunction(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL; external xml2lib;
+function xmlXPtrBuildNodeList(obj: xmlXPathObjectPtr): xmlNodePtr; EXTDECL; external xml2lib;
+procedure xmlXPtrEvalRangePredicate(ctxt: xmlXPathParserContextPtr); EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_XPTR_ENABLED *)

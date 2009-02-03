@@ -45,7 +45,7 @@
  *
  * Callback for freeing some parser input allocations.
  *)
-  xmlParserInputDeallocate = procedure(str: xmlCharPtr); XMLCALL;
+  xmlParserInputDeallocate = procedure(str: xmlCharPtr); EXTDECL;
 
   xmlParserInput = record
     (* Input buffer *)
@@ -299,10 +299,10 @@
  *
  * A SAX Locator.
  *)
-  getPublicIdFunc = function(ctx: pointer): xmlCharPtr; XMLCALL;
-  getSystemIdFunc = function(ctx: pointer): xmlCharPtr; XMLCALL;
-  getLineNumberFunc = function(ctx: pointer): cint; XMLCALL;
-  getColumnNumberFunc = function(ctx: pointer): cint; XMLCALL;
+  getPublicIdFunc = function(ctx: pointer): xmlCharPtr; EXTDECL;
+  getSystemIdFunc = function(ctx: pointer): xmlCharPtr; EXTDECL;
+  getLineNumberFunc = function(ctx: pointer): cint; EXTDECL;
+  getColumnNumberFunc = function(ctx: pointer): cint; EXTDECL;
 
   xmlSAXLocator = record
     getPublicId     : getPublicIdFunc;
@@ -333,7 +333,7 @@
  *
  * Returns the xmlParserInputPtr if inlined or NULL for DOM behaviour.
  *)
-  resolveEntitySAXFunc = function(ctx: pointer; publicID, systemID: xmlCharPtr): xmlParserInputPtr; XMLCALL;
+  resolveEntitySAXFunc = function(ctx: pointer; publicID, systemID: xmlCharPtr): xmlParserInputPtr; EXTDECL;
 
 (**
  * internalSubsetSAXFunc:
@@ -344,7 +344,7 @@
  *
  * Callback on internal subset declaration.
  *)
-  internalSubsetSAXFunc = procedure(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL;
+  internalSubsetSAXFunc = procedure(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); EXTDECL;
 
 (**
  * externalSubsetSAXFunc:
@@ -355,7 +355,7 @@
  *
  * Callback on external subset declaration.
  *)
-  externalSubsetSAXFunc = procedure(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL;
+  externalSubsetSAXFunc = procedure(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); EXTDECL;
 
 (**
  * getEntitySAXFunc:
@@ -366,7 +366,7 @@
  *
  * Returns the xmlEntityPtr if found.
  *)
-  getEntitySAXFunc = function(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL;
+  getEntitySAXFunc = function(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; EXTDECL;
 
 (**
  * getParameterEntitySAXFunc:
@@ -377,7 +377,7 @@
  *
  * Returns the xmlEntityPtr if found.
  *)
-  getParameterEntitySAXFunc = function(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL;
+  getParameterEntitySAXFunc = function(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; EXTDECL;
 
 (**
  * entityDeclSAXFunc:
@@ -390,7 +390,7 @@
  *
  * An entity definition has been parsed.
  *)
-  entityDeclSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; _type: cint; publicId, systemId, content: xmlCharPtr); XMLCALL;
+  entityDeclSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; _type: cint; publicId, systemId, content: xmlCharPtr); EXTDECL;
 
 (**
  * notationDeclSAXFunc:
@@ -401,7 +401,7 @@
  *
  * What to do when a notation declaration has been parsed.
  *)
-  notationDeclSAXFunc = procedure(ctx: pointer; name, publicId, systemId: xmlCharPtr); XMLCALL;
+  notationDeclSAXFunc = procedure(ctx: pointer; name, publicId, systemId: xmlCharPtr); EXTDECL;
 
 (**
  * attributeDeclSAXFunc:
@@ -415,7 +415,7 @@
  *
  * An attribute definition has been parsed.
  *)
-  attributeDeclSAXFunc = procedure(ctx: pointer; elem, fullname: xmlCharPtr; _type, def: cint; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr); XMLCALL;
+  attributeDeclSAXFunc = procedure(ctx: pointer; elem, fullname: xmlCharPtr; _type, def: cint; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr); EXTDECL;
 
 (**
  * elementDeclSAXFunc:
@@ -426,7 +426,7 @@
  *
  * An element definition has been parsed.
  *)
-  elementDeclSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; _type: cint; content: xmlElementContentPtr); XMLCALL;
+  elementDeclSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; _type: cint; content: xmlElementContentPtr); EXTDECL;
 
 (**
  * unparsedEntityDeclSAXFunc:
@@ -438,7 +438,7 @@
  *
  * What to do when an unparsed entity declaration is parsed.
  *)
-  unparsedEntityDeclSAXFunc = procedure(ctx: pointer; name, publicId, systemId, notationName: xmlCharPtr); XMLCALL;
+  unparsedEntityDeclSAXFunc = procedure(ctx: pointer; name, publicId, systemId, notationName: xmlCharPtr); EXTDECL;
 
 (**
  * setDocumentLocatorSAXFunc:
@@ -448,7 +448,7 @@
  * Receive the document locator at startup, actually xmlDefaultSAXLocator.
  * Everything is available on the context, so this is useless in our case.
  *)
-  setDocumentLocatorSAXFunc = procedure(ctx: pointer; loc: xmlSAXLocatorPtr); XMLCALL;
+  setDocumentLocatorSAXFunc = procedure(ctx: pointer; loc: xmlSAXLocatorPtr); EXTDECL;
 
 (**
  * startDocumentSAXFunc:
@@ -456,7 +456,7 @@
  *
  * Called when the document start being processed.
  *)
-  startDocumentSAXFunc = procedure(ctx: pointer); XMLCALL;
+  startDocumentSAXFunc = procedure(ctx: pointer); EXTDECL;
 
 (**
  * endDocumentSAXFunc:
@@ -464,7 +464,7 @@
  *
  * Called when the document end has been detected.
  *)
-  endDocumentSAXFunc = procedure(ctx: pointer); XMLCALL;
+  endDocumentSAXFunc = procedure(ctx: pointer); EXTDECL;
 
 (**
  * startElementSAXFunc:
@@ -474,7 +474,7 @@
  *
  * Called when an opening tag has been processed.
  *)
-  startElementSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; atts: xmlCharPtrPtr); XMLCALL;
+  startElementSAXFunc = procedure(ctx: pointer; name: xmlCharPtr; atts: xmlCharPtrPtr); EXTDECL;
 
 (**
  * endElementSAXFunc:
@@ -483,7 +483,7 @@
  *
  * Called when the end of an element has been detected.
  *)
-  endElementSAXFunc = procedure(ctx: pointer; name: xmlCharPtr); XMLCALL;
+  endElementSAXFunc = procedure(ctx: pointer; name: xmlCharPtr); EXTDECL;
 
 (**
  * attributeSAXFunc:
@@ -496,7 +496,7 @@
  * DOM subtree and past it in a new xmlAttr element added to
  * the element.
  *)
-  attributeSAXFunc = procedure(ctx: pointer; name, value: xmlCharPtr); XMLCALL;
+  attributeSAXFunc = procedure(ctx: pointer; name, value: xmlCharPtr); EXTDECL;
 
 (**
  * referenceSAXFunc:
@@ -505,7 +505,7 @@
  *
  * Called when an entity reference is detected.
  *)
-  referenceSAXFunc = procedure(ctx: pointer; name: xmlCharPtr); XMLCALL;
+  referenceSAXFunc = procedure(ctx: pointer; name: xmlCharPtr); EXTDECL;
 
 (**
  * charactersSAXFunc:
@@ -515,7 +515,7 @@
  *
  * Receiving some chars from the parser.
  *)
-  charactersSAXFunc = procedure(ctx: pointer; ch: xmlCharPtr; len: cint); XMLCALL;
+  charactersSAXFunc = procedure(ctx: pointer; ch: xmlCharPtr; len: cint); EXTDECL;
 
 (**
  * ignorableWhitespaceSAXFunc:
@@ -526,7 +526,7 @@
  * Receiving some ignorable whitespaces from the parser.
  * UNUSED: by default the DOM building will use characters.
  *)
-  ignorableWhitespaceSAXFunc = procedure(ctx: pointer; ch: xmlCharPtr; len: cint); XMLCALL;
+  ignorableWhitespaceSAXFunc = procedure(ctx: pointer; ch: xmlCharPtr; len: cint); EXTDECL;
 
 (**
  * processingInstructionSAXFunc:
@@ -536,7 +536,7 @@
  *
  * A processing instruction has been parsed.
  *)
-  processingInstructionSAXFunc = procedure(ctx: pointer; target, data: xmlCharPtr); XMLCALL;
+  processingInstructionSAXFunc = procedure(ctx: pointer; target, data: xmlCharPtr); EXTDECL;
 
 (**
  * commentSAXFunc:
@@ -545,7 +545,7 @@
  *
  * A comment has been parsed.
  *)
-  commentSAXFunc = procedure(ctx: pointer; value: xmlCharPtr); XMLCALL;
+  commentSAXFunc = procedure(ctx: pointer; value: xmlCharPtr); EXTDECL;
 
 (**
  * cdataBlockSAXFunc:
@@ -555,7 +555,7 @@
  *
  * Called when a pcdata block has been parsed.
  *)
-  cdataBlockSAXFunc = procedure(ctx: pointer; value: xmlCharPtr; len: cint); XMLCALL;
+  cdataBlockSAXFunc = procedure(ctx: pointer; value: xmlCharPtr; len: cint); EXTDECL;
 
 (**
  * warningSAXFunc:
@@ -565,7 +565,7 @@
  *
  * Display and format a warning messages, callback.
  *)
-  warningSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  warningSAXFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (**
  * errorSAXFunc:
@@ -575,7 +575,7 @@
  *
  * Display and format an error messages, callback.
  *)
-  errorSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  errorSAXFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (**
  * fatalErrorSAXFunc:
@@ -587,7 +587,7 @@
  * Note: so far fatalError() SAX callbacks are not used, error()
  *       get all the callbacks for errors.
  *)
-  fatalErrorSAXFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  fatalErrorSAXFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (**
  * isStandaloneSAXFunc:
@@ -597,7 +597,7 @@
  *
  * Returns 1 if true
  *)
-  isStandaloneSAXFunc = function(ctx: pointer): cint; XMLCALL;
+  isStandaloneSAXFunc = function(ctx: pointer): cint; EXTDECL;
 
 (**
  * hasInternalSubsetSAXFunc:
@@ -607,7 +607,7 @@
  *
  * Returns 1 if true
  *)
-  hasInternalSubsetSAXFunc = function(ctx: pointer): cint; XMLCALL;
+  hasInternalSubsetSAXFunc = function(ctx: pointer): cint; EXTDECL;
 
 (**
  * hasExternalSubsetSAXFunc:
@@ -617,7 +617,7 @@
  *
  * Returns 1 if true
  *)
-  hasExternalSubsetSAXFunc = function(ctx: pointer): cint; XMLCALL;
+  hasExternalSubsetSAXFunc = function(ctx: pointer): cint; EXTDECL;
 
 
 (************************************************************************
@@ -651,7 +651,7 @@
  * the new namespace declarations on the element.
  *)
   startElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr; nb_namespaces: cint;
-    namespaces: xmlCharPtrPtr; nb_attributes, nb_defaulted: cint; attributes: xmlCharPtrPtr); XMLCALL;
+    namespaces: xmlCharPtrPtr; nb_attributes, nb_defaulted: cint; attributes: xmlCharPtrPtr); EXTDECL;
 
 (**
  * endElementNsSAX2Func:
@@ -663,7 +663,7 @@
  * SAX2 callback when an element end has been detected by the parser.
  * It provides the namespace informations for the element.
  *)
-  endElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr); XMLCALL;
+  endElementNsSAX2Func = procedure(ctx: pointer; localname, prefix, URI: xmlCharPtr); EXTDECL;
 
   xmlSAXHandler = record
     internalSubset: internalSubsetSAXFunc;
@@ -746,7 +746,7 @@
  *
  * Returns the entity input parser.
  *)
-  xmlExternalEntityLoader = function(URL, ID: pchar; context: xmlParserCtxtPtr): xmlParserInputPtr; XMLCALL;
+  xmlExternalEntityLoader = function(URL, ID: pchar; context: xmlParserCtxtPtr): xmlParserInputPtr; EXTDECL;
 
 (**
  * xmlParserOption:
@@ -820,146 +820,146 @@
 (*
  * Init/Cleanup
  *)
-procedure xmlInitParser; XMLCALL; XMLPUBFUN;
-procedure xmlCleanupParser; XMLCALL; XMLPUBFUN;
+procedure xmlInitParser; EXTDECL; external xml2lib;
+procedure xmlCleanupParser; EXTDECL; external xml2lib;
 
 (*
  * Input functions
  *)
-function xmlParserInputRead(_in: xmlParserInputPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlParserInputGrow(_in: xmlParserInputPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlParserInputRead(_in: xmlParserInputPtr; len: cint): cint; EXTDECL; external xml2lib;
+function xmlParserInputGrow(_in: xmlParserInputPtr; len: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Basic parsing Interfaces
  *)
 {$IFDEF LIBXML_SAX1_ENABLED}
-function xmlParseDoc(cur: xmlCharPtr): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlParseFile(filename: pchar): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlParseMemory(buffer: pchar; size: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
+function xmlParseDoc(cur: xmlCharPtr): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlParseFile(filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlParseMemory(buffer: pchar; size: cint): xmlDocPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-function xmlSubstituteEntitiesDefault(val: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlKeepBlanksDefault(val: cint): cint; XMLCALL; XMLPUBFUN;
-procedure xmlStopParser(ctxt: xmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlPedanticParserDefault(val: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlLineNumbersDefault(val: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlSubstituteEntitiesDefault(val: cint): cint; EXTDECL; external xml2lib;
+function xmlKeepBlanksDefault(val: cint): cint; EXTDECL; external xml2lib;
+procedure xmlStopParser(ctxt: xmlParserCtxtPtr); EXTDECL; external xml2lib;
+function xmlPedanticParserDefault(val: cint): cint; EXTDECL; external xml2lib;
+function xmlLineNumbersDefault(val: cint): cint; EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_SAX1_ENABLED}
 (*
  * Recovery mode
  *)
-function xmlRecoverDoc(cur: xmlCharPtr): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlRecoverMemory(buffer: pchar; size: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlRecoverFile(filename: pchar): xmlDocPtr; XMLCALL; XMLPUBFUN;
+function xmlRecoverDoc(cur: xmlCharPtr): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlRecoverMemory(buffer: pchar; size: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlRecoverFile(filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
 
 (*
  * Less common routines and SAX interfaces
  *)
-function xmlParseDocument(ctxt: xmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlParseExtParsedEnt(ctxt: xmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlParseDocument(ctxt: xmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlParseExtParsedEnt(ctxt: xmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_SAX1_ENABLED}
-function xmlSAXUserParseFile(sax: xmlSAXHandlerPtr; user_data: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlSAXUserParseMemory(sax: xmlSAXHandlerPtr; user_data: pointer; buffer: pchar; size: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlSAXParseDoc(sax: xmlSAXHandlerPtr; cur: xmlCharPtr; recovery: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlSAXParseMemory(sax: xmlSAXHandlerPtr; buffer: pchar; size: cint; recovery: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlSAXParseMemoryWithData(sax: xmlSAXHandlerPtr; buffer: pchar; size: cint; recovery: cint; data: pointer): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlSAXParseFile(sax: xmlSAXHandlerPtr; filename: pchar; recovery: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlSAXParseFileWithData(sax: xmlSAXHandlerPtr; filename: pchar; recovery: cint; data: pointer): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlSAXParseEntity(sax: xmlSAXHandlerPtr; filename: pchar): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlParseEntity(filename: pchar): xmlDocPtr; XMLCALL; XMLPUBFUN;
+function xmlSAXUserParseFile(sax: xmlSAXHandlerPtr; user_data: pointer; filename: pchar): cint; EXTDECL; external xml2lib;
+function xmlSAXUserParseMemory(sax: xmlSAXHandlerPtr; user_data: pointer; buffer: pchar; size: cint): cint; EXTDECL; external xml2lib;
+function xmlSAXParseDoc(sax: xmlSAXHandlerPtr; cur: xmlCharPtr; recovery: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlSAXParseMemory(sax: xmlSAXHandlerPtr; buffer: pchar; size: cint; recovery: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlSAXParseMemoryWithData(sax: xmlSAXHandlerPtr; buffer: pchar; size: cint; recovery: cint; data: pointer): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlSAXParseFile(sax: xmlSAXHandlerPtr; filename: pchar; recovery: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlSAXParseFileWithData(sax: xmlSAXHandlerPtr; filename: pchar; recovery: cint; data: pointer): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlSAXParseEntity(sax: xmlSAXHandlerPtr; filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlParseEntity(filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
 
 {$IFDEF LIBXML_VALID_ENABLED}
-function xmlSAXParseDTD(sax: xmlSAXHandlerPtr; ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
-function xmlParseDTD(ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; XMLCALL; XMLPUBFUN;
-function xmlIOParseDTD(sax: xmlSAXHandlerPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlDtdPtr; XMLCALL; XMLPUBFUN;
+function xmlSAXParseDTD(sax: xmlSAXHandlerPtr; ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL; external xml2lib;
+function xmlParseDTD(ExternalID, SystemID: xmlCharPtr): xmlDtdPtr; EXTDECL; external xml2lib;
+function xmlIOParseDTD(sax: xmlSAXHandlerPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlDtdPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_VALID_ENABLE *)
 {$IFDEF LIBXML_SAX1_ENABLED}
-function xmlParseBalancedChunkMemory(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer; depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlParseBalancedChunkMemory(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer; depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-function xmlParseInNodeContext(node: xmlNodePtr; data: pchar; datalen, options: cint; lst: xmlNodePtrPtr): xmlParserErrors; XMLCALL; XMLPUBFUN;
+function xmlParseInNodeContext(node: xmlNodePtr; data: pchar; datalen, options: cint; lst: xmlNodePtrPtr): xmlParserErrors; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_SAX1_ENABLED}
 function xmlParseBalancedChunkMemoryRecover(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer;
-  depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr; recover: cint): cint; XMLCALL; XMLPUBFUN;
+  depth: cint; _string: xmlCharPtr; lst: xmlNodePtrPtr; recover: cint): cint; EXTDECL; external xml2lib;
 function xmlParseExternalEntity(doc: xmlDocPtr; sax: xmlSAXHandlerPtr; user_data: pointer;
-  depth: cint; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; XMLCALL; XMLPUBFUN;
+  depth: cint; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL; external xml2lib;
 
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-function xmlParseCtxtExternalEntity(ctx: xmlParserCtxtPtr; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlParseCtxtExternalEntity(ctx: xmlParserCtxtPtr; URL, ID: xmlCharPtr; lst: xmlNodePtrPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Parser contexts handling.
  *)
-function xmlNewParserCtxt: xmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlInitParserCtxt(ctxt: xmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlClearParserCtxt(ctxt: xmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
-procedure xmlFreeParserCtxt(ctxt: xmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
+function xmlNewParserCtxt: xmlParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlInitParserCtxt(ctxt: xmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
+procedure xmlClearParserCtxt(ctxt: xmlParserCtxtPtr); EXTDECL; external xml2lib;
+procedure xmlFreeParserCtxt(ctxt: xmlParserCtxtPtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_SAX1_ENABLED}
-procedure xmlSetupParserForBuffer(ctxt: xmlParserCtxtPtr; buffer: xmlCharPtr; filename: pchar); XMLCALL; XMLPUBFUN;
+procedure xmlSetupParserForBuffer(ctxt: xmlParserCtxtPtr; buffer: xmlCharPtr; filename: pchar); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-function xmlCreateDocParserCtxt(cur: xmlCharPtr): xmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function xmlCreateDocParserCtxt(cur: xmlCharPtr): xmlParserCtxtPtr; EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_LEGACY_ENABLED}
 (*
  * Reading/setting optional parsing features.
  *)
-function xmlGetFeaturesList(var len: cint; var result: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlGetFeature(ctxt: xmlParserCtxtPtr; name: pchar; result: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlSetFeature(ctxt: xmlParserCtxtPtr; name: pchar; value: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlGetFeaturesList(var len: cint; var result: pchar): cint; EXTDECL; external xml2lib;
+function xmlGetFeature(ctxt: xmlParserCtxtPtr; name: pchar; result: pointer): cint; EXTDECL; external xml2lib;
+function xmlSetFeature(ctxt: xmlParserCtxtPtr; name: pchar; value: pointer): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_LEGACY_ENABLED *)
 
 {$IFDEF LIBXML_PUSH_ENABLED}
 (*
  * Interfaces for the Push mode.
  *)
-function xmlCreatePushParserCtxt(sax: xmlSAXHandlerPtr; user_data: pointer; chunk: pchar; size: cint; filename: pchar): xmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlParseChunk(ctxt: xmlParserCtxtPtr; chunk: pchar; size, terminate: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlCreatePushParserCtxt(sax: xmlSAXHandlerPtr; user_data: pointer; chunk: pchar; size: cint; filename: pchar): xmlParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlParseChunk(ctxt: xmlParserCtxtPtr; chunk: pchar; size, terminate: cint): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_PUSH_ENABLED *)
 
 (*
  * Special I/O mode.
  *)
 function xmlCreateIOParserCtxt(sax: xmlSAXHandlerPtr; user_data: pointer; ioread: xmlInputReadCallback;
-  ioclose: xmlInputCloseCallback; ioctx: pointer; enc: xmlCharEncoding): xmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlNewIOInputStream(ctxt: xmlParserCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlParserInputPtr; XMLCALL; XMLPUBFUN;
+  ioclose: xmlInputCloseCallback; ioctx: pointer; enc: xmlCharEncoding): xmlParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlNewIOInputStream(ctxt: xmlParserCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding): xmlParserInputPtr; EXTDECL; external xml2lib;
 
 (*
  * Node infos.
  *)
-function xmlParserFindNodeInfo(ctxt: xmlParserCtxtPtr; node: xmlNodePtr): xmlParserNodeInfoPtr; XMLCALL; XMLPUBFUN;
-procedure xmlInitNodeInfoSeq(seq: xmlParserNodeInfoSeqPtr); XMLCALL; XMLPUBFUN;
-procedure xmlClearNodeInfoSeq(seq: xmlParserNodeInfoSeqPtr); XMLCALL; XMLPUBFUN;
-function xmlParserFindNodeInfoIndex(seq: xmlParserNodeInfoSeqPtr; node: xmlNodePtr): culong; XMLCALL; XMLPUBFUN;
-procedure xmlParserAddNodeInfo(ctxt: xmlParserCtxtPtr; info: xmlParserNodeInfoPtr); XMLCALL; XMLPUBFUN;
+function xmlParserFindNodeInfo(ctxt: xmlParserCtxtPtr; node: xmlNodePtr): xmlParserNodeInfoPtr; EXTDECL; external xml2lib;
+procedure xmlInitNodeInfoSeq(seq: xmlParserNodeInfoSeqPtr); EXTDECL; external xml2lib;
+procedure xmlClearNodeInfoSeq(seq: xmlParserNodeInfoSeqPtr); EXTDECL; external xml2lib;
+function xmlParserFindNodeInfoIndex(seq: xmlParserNodeInfoSeqPtr; node: xmlNodePtr): culong; EXTDECL; external xml2lib;
+procedure xmlParserAddNodeInfo(ctxt: xmlParserCtxtPtr; info: xmlParserNodeInfoPtr); EXTDECL; external xml2lib;
 
 (*
  * External entities handling actually implemented in xmlIO.
  *)
-procedure xmlSetExternalEntityLoader(f: xmlExternalEntityLoader); XMLCALL; XMLPUBFUN;
-function xmlGetExternalEntityLoader(): xmlExternalEntityLoader; XMLCALL; XMLPUBFUN;
-function xmlLoadExternalEntity(URL, ID: pchar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; XMLCALL; XMLPUBFUN;
+procedure xmlSetExternalEntityLoader(f: xmlExternalEntityLoader); EXTDECL; external xml2lib;
+function xmlGetExternalEntityLoader(): xmlExternalEntityLoader; EXTDECL; external xml2lib;
+function xmlLoadExternalEntity(URL, ID: pchar; ctxt: xmlParserCtxtPtr): xmlParserInputPtr; EXTDECL; external xml2lib;
 
 (*
  * Index lookup, actually implemented in the encoding module
  *)
-function xmlByteConsumed(ctxt: xmlParserCtxtPtr): culong; XMLCALL; XMLPUBFUN;
+function xmlByteConsumed(ctxt: xmlParserCtxtPtr): culong; EXTDECL; external xml2lib;
 
 (*
  * New set of simpler/more flexible APIs
  *)
-procedure xmlCtxtReset(ctxt: xmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlCtxtResetPush(ctxt: xmlParserCtxtPtr; chunk: pchar; size: cint; filename, encoding: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlCtxtUseOptions(ctxt: xmlParserCtxtPtr; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlReadFile(filename, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlReadFd(fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; XMLCALL; XMLPUBFUN;
+procedure xmlCtxtReset(ctxt: xmlParserCtxtPtr); EXTDECL; external xml2lib;
+function xmlCtxtResetPush(ctxt: xmlParserCtxtPtr; chunk: pchar; size: cint; filename, encoding: pchar): cint; EXTDECL; external xml2lib;
+function xmlCtxtUseOptions(ctxt: xmlParserCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadFile(filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadFd(fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 
 (*
  * Library wide options
@@ -971,6 +971,6 @@ function xmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioc
  * or disabled at compile-time.
  * They used to be called XML_FEATURE_xxx but this clashed with Expat
  *)
-function xmlHasFeature(feature: xmlFeature): cint; XMLCALL; XMLPUBFUN;
+function xmlHasFeature(feature: xmlFeature): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 

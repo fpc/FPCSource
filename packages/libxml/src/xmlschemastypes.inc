@@ -20,41 +20,41 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlSchemaInitTypes; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaCleanupTypes; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetPredefinedType(name, ns: xmlCharPtr): xmlSchemaTypePtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidatePredefinedType(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValPredefTypeNode(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr; node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateFacet(base: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlSchemaInitTypes; EXTDECL; external xml2lib;
+procedure xmlSchemaCleanupTypes; EXTDECL; external xml2lib;
+function xmlSchemaGetPredefinedType(name, ns: xmlCharPtr): xmlSchemaTypePtr; EXTDECL; external xml2lib;
+function xmlSchemaValidatePredefinedType(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValPredefTypeNode(_type: xmlSchemaTypePtr; value: xmlCharPtr; var val: xmlSchemaValPtr; node: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateFacet(base: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr): cint; EXTDECL; external xml2lib;
 function xmlSchemaValidateFacetWhtsp(facet: xmlSchemaFacetPtr; fws: xmlSchemaWhitespaceValueType; valType: xmlSchemaValType;
-  value: xmlCharPtr; val: xmlSchemaValPtr; ws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFreeValue(val: xmlSchemaValPtr); XMLCALL; XMLPUBFUN;
-function xmlSchemaNewFacet: xmlSchemaFacetPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaCheckFacet(facet: xmlSchemaFacetPtr; typeDecl: xmlSchemaTypePtr; ctxt: xmlSchemaParserCtxtPtr; name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFreeFacet(facet: xmlSchemaFacetPtr); XMLCALL; XMLPUBFUN;
-function xmlSchemaCompareValues(x, y: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetBuiltInListSimpleTypeItemType(_type: xmlSchemaTypePtr): xmlSchemaTypePtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateListSimpleTypeFacet(facet: xmlSchemaFacetPtr; value: xmlCharPtr; actualLen: culong; expectedLen: pculong): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetBuiltInType(_type: xmlSchemaValType): xmlSchemaTypePtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaIsBuiltInTypeFacet(_type: xmlSchemaTypePtr; faceType: cint): xmlSchemaTypePtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaCollapseString(value: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaWhiteSpaceReplace(value: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetFacetValueAsULong(facet: xmlSchemaFacetPtr): culong; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateLengthFacet(_type: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateLengthFacetWhtsp(facet: xmlSchemaFacetPtr; valType: xmlSchemaValType; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong; ws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValPredefTypeNodeNoNorm(_type: xmlSchemaTypePtr; value: xmlCharPtr; val: xmlSchemaValPtrPtr; node: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetCanonValue(val: xmlSchemaValPtr; var retValue: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetCanonValueWhtsp(val: xmlSchemaValPtr; var retValue: xmlCharPtr; ws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValueAppend(prev, cur: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValueGetNext(cur: xmlSchemaValPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaValueGetAsString(val: xmlSchemaValPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaValueGetAsBoolean(val: xmlSchemaValPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewStringValue(_type: xmlSchemaValType; value: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewNOTATIONValue(name, ns: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewQNameValue(namespaceName, localName: xmlCharPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaCompareValuesWhtsp(x: xmlSchemaValPtr; xws: xmlSchemaWhitespaceValueType; y: xmlSchemaValPtr; yws: xmlSchemaWhitespaceValueType): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaCopyValue(val: xmlSchemaValPtr): xmlSchemaValPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaGetValType(val: xmlSchemaValPtr): xmlSchemaValType; XMLCALL; XMLPUBFUN;
+  value: xmlCharPtr; val: xmlSchemaValPtr; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL; external xml2lib;
+procedure xmlSchemaFreeValue(val: xmlSchemaValPtr); EXTDECL; external xml2lib;
+function xmlSchemaNewFacet: xmlSchemaFacetPtr; EXTDECL; external xml2lib;
+function xmlSchemaCheckFacet(facet: xmlSchemaFacetPtr; typeDecl: xmlSchemaTypePtr; ctxt: xmlSchemaParserCtxtPtr; name: xmlCharPtr): cint; EXTDECL; external xml2lib;
+procedure xmlSchemaFreeFacet(facet: xmlSchemaFacetPtr); EXTDECL; external xml2lib;
+function xmlSchemaCompareValues(x, y: xmlSchemaValPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaGetBuiltInListSimpleTypeItemType(_type: xmlSchemaTypePtr): xmlSchemaTypePtr; EXTDECL; external xml2lib;
+function xmlSchemaValidateListSimpleTypeFacet(facet: xmlSchemaFacetPtr; value: xmlCharPtr; actualLen: culong; expectedLen: pculong): cint; EXTDECL; external xml2lib;
+function xmlSchemaGetBuiltInType(_type: xmlSchemaValType): xmlSchemaTypePtr; EXTDECL; external xml2lib;
+function xmlSchemaIsBuiltInTypeFacet(_type: xmlSchemaTypePtr; faceType: cint): xmlSchemaTypePtr; EXTDECL; external xml2lib;
+function xmlSchemaCollapseString(value: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlSchemaWhiteSpaceReplace(value: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlSchemaGetFacetValueAsULong(facet: xmlSchemaFacetPtr): culong; EXTDECL; external xml2lib;
+function xmlSchemaValidateLengthFacet(_type: xmlSchemaTypePtr; facet: xmlSchemaFacetPtr; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateLengthFacetWhtsp(facet: xmlSchemaFacetPtr; valType: xmlSchemaValType; value: xmlCharPtr; val: xmlSchemaValPtr; length: pculong; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL; external xml2lib;
+function xmlSchemaValPredefTypeNodeNoNorm(_type: xmlSchemaTypePtr; value: xmlCharPtr; val: xmlSchemaValPtrPtr; node: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaGetCanonValue(val: xmlSchemaValPtr; var retValue: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaGetCanonValueWhtsp(val: xmlSchemaValPtr; var retValue: xmlCharPtr; ws: xmlSchemaWhitespaceValueType): cint; EXTDECL; external xml2lib;
+function xmlSchemaValueAppend(prev, cur: xmlSchemaValPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValueGetNext(cur: xmlSchemaValPtr): xmlSchemaValPtr; EXTDECL; external xml2lib;
+function xmlSchemaValueGetAsString(val: xmlSchemaValPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlSchemaValueGetAsBoolean(val: xmlSchemaValPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaNewStringValue(_type: xmlSchemaValType; value: xmlCharPtr): xmlSchemaValPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewNOTATIONValue(name, ns: xmlCharPtr): xmlSchemaValPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewQNameValue(namespaceName, localName: xmlCharPtr): xmlSchemaValPtr; EXTDECL; external xml2lib;
+function xmlSchemaCompareValuesWhtsp(x: xmlSchemaValPtr; xws: xmlSchemaWhitespaceValueType; y: xmlSchemaValPtr; yws: xmlSchemaWhitespaceValueType): cint; EXTDECL; external xml2lib;
+function xmlSchemaCopyValue(val: xmlSchemaValPtr): xmlSchemaValPtr; EXTDECL; external xml2lib;
+function xmlSchemaGetValType(val: xmlSchemaValPtr): xmlSchemaValType; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

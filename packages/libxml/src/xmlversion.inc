@@ -12,7 +12,7 @@
  * use those to be sure nothing nasty will happen if
  * your library and includes mismatch
  *)
-procedure xmlCheckVersion(version: cint); XMLCALL; XMLPUBFUN;
+procedure xmlCheckVersion(version: cint); EXTDECL; external xml2lib;
 
 (**
  * LIBXML_DOTTED_VERSION:

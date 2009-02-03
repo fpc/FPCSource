@@ -86,8 +86,8 @@
 (**
  * A schemas validation context
  *)
-  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
-  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlSchemaValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
+  xmlSchemaValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
   xmlSchemaParserCtxt = record end;
 
@@ -100,40 +100,40 @@
 (*
  * Interfaces for parsing.
  *)
-function xmlSchemaNewParserCtxt(URL: pchar): xmlSchemaParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewMemParserCtxt(buffer: pchar; size: cint): xmlSchemaParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewDocParserCtxt(doc: xmlDocPtr): xmlSchemaParserCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFreeParserCtxt(ctxt: xmlSchemaParserCtxtPtr); XMLCALL; XMLPUBFUN;
-procedure xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-procedure xmlSchemaSetParserStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaIsValid(ctxt: xmlSchemaValidCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaParse(ctxt: xmlSchemaParserCtxtPtr): xmlSchemaPtr; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFree(schema: xmlSchemaPtr); XMLCALL; XMLPUBFUN;
+function xmlSchemaNewParserCtxt(URL: pchar): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewMemParserCtxt(buffer: pchar; size: cint): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
+function xmlSchemaNewDocParserCtxt(doc: xmlDocPtr): xmlSchemaParserCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlSchemaFreeParserCtxt(ctxt: xmlSchemaParserCtxtPtr); EXTDECL; external xml2lib;
+procedure xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
+procedure xmlSchemaSetParserStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlSchemaSetParserErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlSchemaIsValid(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaParse(ctxt: xmlSchemaParserCtxtPtr): xmlSchemaPtr; EXTDECL; external xml2lib;
+procedure xmlSchemaFree(schema: xmlSchemaPtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlSchemaDump(output: PFILE; schema: xmlSchemaPtr); XMLCALL; XMLPUBFUN;
+procedure xmlSchemaDump(output: PFILE; schema: xmlSchemaPtr); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (*
  * Interfaces for validating
  *)
-procedure xmlSchemaSetValidErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-procedure xmlSchemaSetValidStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlSchemaGetValidErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaSetValidOptions(ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidCtxtGetOptions(ctxt: xmlSchemaValidCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaNewValidCtxt(schema: xmlSchemaPtr): xmlSchemaValidCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlSchemaFreeValidCtxt(ctxt: xmlSchemaValidCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlSchemaNewValidCtxt(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateOneElement(ctxt: xmlSchemaValidCtxtPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateStream(ctxt: xmlSchemaValidCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding; sax: xmlSAXHandlerPtr; user_data: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlSchemaValidateFile(ctxt: xmlSchemaValidCtxtPtr; filename: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
+procedure xmlSchemaSetValidErrors(ctxt: xmlSchemaParserCtxtPtr; err: xmlSchemaValidityErrorFunc; warn: xmlSchemaValidityWarningFunc; ctx: pointer); EXTDECL; external xml2lib;
+procedure xmlSchemaSetValidStructuredErrors(ctxt: xmlSchemaParserCtxtPtr; serror: xmlStructuredErrorFunc; ctx: pointer); EXTDECL; external xml2lib;
+function xmlSchemaGetValidErrors(ctxt: xmlSchemaParserCtxtPtr; var err: xmlSchemaValidityErrorFunc; var warn: xmlSchemaValidityWarningFunc; var ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlSchemaSetValidOptions(ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidCtxtGetOptions(ctxt: xmlSchemaValidCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaNewValidCtxt(schema: xmlSchemaPtr): xmlSchemaValidCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlSchemaFreeValidCtxt(ctxt: xmlSchemaValidCtxtPtr); EXTDECL; external xml2lib;
+function xmlSchemaNewValidCtxt(ctxt: xmlSchemaValidCtxtPtr; instance: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateOneElement(ctxt: xmlSchemaValidCtxtPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateStream(ctxt: xmlSchemaValidCtxtPtr; input: xmlParserInputBufferPtr; enc: xmlCharEncoding; sax: xmlSAXHandlerPtr; user_data: pointer): cint; EXTDECL; external xml2lib;
+function xmlSchemaValidateFile(ctxt: xmlSchemaValidCtxtPtr; filename: pchar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Interface to insert Schemas SAX velidation in a SAX stream
  *)
-function xmlSchemaSAXPlug(ctxt: xmlSchemaValidCtxtPtr; var sax: xmlSchemaSAXPlugPtr; var user_data: pointer): xmlSchemaSAXPlugPtr; XMLCALL; XMLPUBFUN;
-function xmlSchemaSAXUnplug(plug: xmlSchemaSAXPlugPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlSchemaSAXPlug(ctxt: xmlSchemaValidCtxtPtr; var sax: xmlSchemaSAXPlugPtr; var user_data: pointer): xmlSchemaSAXPlugPtr; EXTDECL; external xml2lib;
+function xmlSchemaSAXUnplug(plug: xmlSchemaSAXPlugPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_SCHEMAS_ENABLED *)

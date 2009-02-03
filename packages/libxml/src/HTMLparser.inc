@@ -78,37 +78,37 @@
 (*
  * There is only few public functions.
  *)
-function htmlTagLookup(tag: xmlCharPtr): htmlElemDescPtr; XMLCALL; XMLPUBFUN;
-function htmlEntityLookup(tag: xmlCharPtr): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
-function htmlEntityValueLookup(value: cuint): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
+function htmlTagLookup(tag: xmlCharPtr): htmlElemDescPtr; EXTDECL; external xml2lib;
+function htmlEntityLookup(tag: xmlCharPtr): htmlEntityDescPtr; EXTDECL; external xml2lib;
+function htmlEntityValueLookup(value: cuint): htmlEntityDescPtr; EXTDECL; external xml2lib;
 
-function htmlIsAutoClosed(doc: htmlDocPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function htmlAutoCloseTag(doc: htmlDocPtr; name: xmlCharPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function htmlParseEntityRef(ctxt: htmlParserCtxtPtr; str: xmlCharPtrPtr): htmlEntityDescPtr; XMLCALL; XMLPUBFUN;
+function htmlIsAutoClosed(doc: htmlDocPtr; elem: htmlNodePtr): cint; EXTDECL; external xml2lib;
+function htmlAutoCloseTag(doc: htmlDocPtr; name: xmlCharPtr; elem: htmlNodePtr): cint; EXTDECL; external xml2lib;
+function htmlParseEntityRef(ctxt: htmlParserCtxtPtr; str: xmlCharPtrPtr): htmlEntityDescPtr; EXTDECL; external xml2lib;
 
-function htmlParseCharRef(ctxt: htmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function htmlParseElement(ctxt: htmlParserCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function htmlNewParserCtxt: htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function htmlCreateMemoryParserCtxt(buffer: pchar; size: cint): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function htmlParseCharRef(ctxt: htmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
+function htmlParseElement(ctxt: htmlParserCtxtPtr): cint; EXTDECL; external xml2lib;
+function htmlNewParserCtxt: htmlParserCtxtPtr; EXTDECL; external xml2lib;
+function htmlCreateMemoryParserCtxt(buffer: pchar; size: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
 
-function htmlParseDocument(doc: htmlDocPtr; elem: htmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function htmlSAXParseDoc(cur: xmlCharPtr; encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlParseDoc(cur: xmlCharPtr; encoding: pchar): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlSAXParseFile(filename, encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlParseFile(filename, encoding: pchar): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function UTF8ToHtml(_out: pointer; outlen: cint; _in: pointer; inlen: cint): cint; XMLCALL; XMLPUBFUN;
-function htmlEncodeEntities(_out: pointer; outlen: cint; _in: pointer; inlen, quoteChar: cint): cint; XMLCALL; XMLPUBFUN;
-function htmlIsScriptAttribute(name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function htmlHandleOmittedElem(val: cint): cint; XMLCALL; XMLPUBFUN;
+function htmlParseDocument(doc: htmlDocPtr; elem: htmlNodePtr): cint; EXTDECL; external xml2lib;
+function htmlSAXParseDoc(cur: xmlCharPtr; encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlParseDoc(cur: xmlCharPtr; encoding: pchar): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlSAXParseFile(filename, encoding: pchar; sax: htmlSAXHandlerPtr; userdata: pointer): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlParseFile(filename, encoding: pchar): htmlDocPtr; EXTDECL; external xml2lib;
+function UTF8ToHtml(_out: pointer; outlen: cint; _in: pointer; inlen: cint): cint; EXTDECL; external xml2lib;
+function htmlEncodeEntities(_out: pointer; outlen: cint; _in: pointer; inlen, quoteChar: cint): cint; EXTDECL; external xml2lib;
+function htmlIsScriptAttribute(name: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function htmlHandleOmittedElem(val: cint): cint; EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_PUSH_ENABLED}
 (**
  * Interfaces for the Push mode.
  *)
-function htmlCreatePushParserCtxt(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: pchar; size: cint; filename: pchar; enc: xmlCharEncoding): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
-function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: pchar; size, terminate: cint): htmlParserCtxtPtr; XMLCALL; XMLPUBFUN;
+function htmlCreatePushParserCtxt(sax: htmlSAXHandlerPtr; userdata: pointer; chunk: pchar; size: cint; filename: pchar; enc: xmlCharEncoding): htmlParserCtxtPtr; EXTDECL; external xml2lib;
+function htmlParseChunk(ctxt: htmlParserCtxtPtr; chunk: pchar; size, terminate: cint): htmlParserCtxtPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_PUSH_ENABLED *)
-procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
+procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -134,18 +134,18 @@ procedure htmlFreeParserCtxt(ctxt: htmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure htmlCtxtReset(ctxt: htmlParserCtxtPtr); XMLCALL; XMLPUBFUN;
-function htmlParseChunk(ctxt: htmlParserCtxtPtr; options: cint): cint; XMLCALL; XMLPUBFUN;
-function htmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlReadFile(URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlReadFd(fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
-function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; XMLCALL; XMLPUBFUN;
+procedure htmlCtxtReset(ctxt: htmlParserCtxtPtr); EXTDECL; external xml2lib;
+function htmlParseChunk(ctxt: htmlParserCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
+function htmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadFile(URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadFd(fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadFd(ctxt: xmlParserCtxtPtr; fd: cint; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
+function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): htmlDocPtr; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -165,10 +165,10 @@ function htmlCtxtReadIO(ctxt: xmlParserCtxtPtr; ioread: xmlInputReadCallback; io
 (* Using htmlElemDesc rather than name here, to emphasise the fact
    that otherwise there's a lookup overhead
 *)
-function htmlAttrAllowed(desc: htmlElemDescPtr; str: xmlCharPtr; val: cint): htmlStatus; XMLCALL; XMLPUBFUN;
-function htmlElementAllowedHere(desc: htmlElemDescPtr; str: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function htmlAttrAllowed(desc1, desc2: htmlElemDescPtr): htmlStatus; XMLCALL; XMLPUBFUN;
-function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; XMLCALL; XMLPUBFUN;
+function htmlAttrAllowed(desc: htmlElemDescPtr; str: xmlCharPtr; val: cint): htmlStatus; EXTDECL; external xml2lib;
+function htmlElementAllowedHere(desc: htmlElemDescPtr; str: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function htmlAttrAllowed(desc1, desc2: htmlElemDescPtr): htmlStatus; EXTDECL; external xml2lib;
+function htmlNodeStatus(node: htmlNodePtr; val: cint): htmlStatus; EXTDECL; external xml2lib;
 
 (**
  * htmlDefaultSubelement:

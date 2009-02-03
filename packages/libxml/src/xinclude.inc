@@ -97,19 +97,19 @@
 (*
  * standalone processing
  *)
-function xmlXIncludeProcess(doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessFlags(doc: xmlDocPtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessFlagsData(doc: xmlDocPtr; flags: cint; data: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessTree(tree: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessTreeFlags(tree: xmlNodePtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeProcess(doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlXIncludeProcessFlags(doc: xmlDocPtr; flags: cint): cint; EXTDECL; external xml2lib;
+function xmlXIncludeProcessFlagsData(doc: xmlDocPtr; flags: cint; data: pointer): cint; EXTDECL; external xml2lib;
+function xmlXIncludeProcessTree(tree: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlXIncludeProcessTreeFlags(tree: xmlNodePtr; flags: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * contextual processing
  *)
-function xmlXIncludeNewContext(doc: xmlDocPtr): xmlXIncludeCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessFlags(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; XMLCALL; XMLPUBFUN;
-procedure xmlXIncludeProcess(ctxt: xmlXIncludeCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlXIncludeProcessNode(ctxt: xmlXIncludeCtxtPtr; tree: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXIncludeNewContext(doc: xmlDocPtr): xmlXIncludeCtxtPtr; EXTDECL; external xml2lib;
+function xmlXIncludeProcessFlags(ctxt: xmlXIncludeCtxtPtr; flags: cint): cint; EXTDECL; external xml2lib;
+procedure xmlXIncludeProcess(ctxt: xmlXIncludeCtxtPtr); EXTDECL; external xml2lib;
+function xmlXIncludeProcessNode(ctxt: xmlXIncludeCtxtPtr; tree: xmlNodePtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_XINCLUDE_ENABLED *)

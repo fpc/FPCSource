@@ -11,53 +11,53 @@
 {$IFDEF LIBXML_LEGACY_ENABLED}
 
 {$IFDEF FUNCTION}
-function getPublicId(ctx: pointer): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function getSystemId(ctx: pointer): xmlCharPtr; XMLCALL; XMLPUBFUN;
-procedure setDocumentLocator(ctx: pointer; loc: xmlSAXLocatorPtr); XMLCALL; XMLPUBFUN;
+function getPublicId(ctx: pointer): xmlCharPtr; EXTDECL; external xml2lib;
+function getSystemId(ctx: pointer): xmlCharPtr; EXTDECL; external xml2lib;
+procedure setDocumentLocator(ctx: pointer; loc: xmlSAXLocatorPtr); EXTDECL; external xml2lib;
 
-function getLineNumber(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function getColumnNumber(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function getLineNumber(ctx: pointer): cint; EXTDECL; external xml2lib;
+function getColumnNumber(ctx: pointer): cint; EXTDECL; external xml2lib;
 
-function isStandalone(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function hasInternalSubset(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function hasExternalSubset(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function isStandalone(ctx: pointer): cint; EXTDECL; external xml2lib;
+function hasInternalSubset(ctx: pointer): cint; EXTDECL; external xml2lib;
+function hasExternalSubset(ctx: pointer): cint; EXTDECL; external xml2lib;
 
-procedure internalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure externalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
-function getEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
-function getParameterEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; XMLCALL; XMLPUBFUN;
-function resolveEntity(ctx: pointer; publicId, systemId: xmlCharPtr): xmlParserInputPtr; XMLCALL; XMLPUBFUN;
+procedure internalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); EXTDECL; external xml2lib;
+procedure externalSubset(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); EXTDECL; external xml2lib;
+function getEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; EXTDECL; external xml2lib;
+function getParameterEntity(ctx: pointer; name: xmlCharPtr): xmlEntityPtr; EXTDECL; external xml2lib;
+function resolveEntity(ctx: pointer; publicId, systemId: xmlCharPtr): xmlParserInputPtr; EXTDECL; external xml2lib;
 
-procedure entityDecl(ctx: pointer; name: xmlCharPtr; _type: cint; content, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure attributeDecl(ctx: pointer; elem, fullname: xmlCharPtr; _type, def: cint; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr); XMLCALL; XMLPUBFUN;
-procedure elementDecl(ctx: pointer; name: xmlCharPtr; _type: cint; content: xmlElementContentPtr); XMLCALL; XMLPUBFUN;
-procedure notationDecl(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure unparsedEntityDecl(ctx: pointer; name, publicId, systemId, notationName: xmlCharPtr); XMLCALL; XMLPUBFUN;
+procedure entityDecl(ctx: pointer; name: xmlCharPtr; _type: cint; content, ExternalID, SystemID: xmlCharPtr); EXTDECL; external xml2lib;
+procedure attributeDecl(ctx: pointer; elem, fullname: xmlCharPtr; _type, def: cint; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr); EXTDECL; external xml2lib;
+procedure elementDecl(ctx: pointer; name: xmlCharPtr; _type: cint; content: xmlElementContentPtr); EXTDECL; external xml2lib;
+procedure notationDecl(ctx: pointer; name, ExternalID, SystemID: xmlCharPtr); EXTDECL; external xml2lib;
+procedure unparsedEntityDecl(ctx: pointer; name, publicId, systemId, notationName: xmlCharPtr); EXTDECL; external xml2lib;
 
-procedure startDocument(ctx: pointer); XMLCALL; XMLPUBFUN;
-procedure endDocument(ctx: pointer); XMLCALL; XMLPUBFUN;
-procedure attribute(ctx: pointer; fullname, value: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure startElement(ctx: pointer; fullname: xmlCharPtr; atts: xmlCharPtrPtr); XMLCALL; XMLPUBFUN;
-procedure endElement(ctx: pointer; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure reference(ctx: pointer; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure characters(ctx: pointer; ch: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
-procedure ignorableWhitespace(ctx: pointer; ch: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
-procedure processingInstruction(ctx: pointer; target, data: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure globalNamespace(ctx: pointer; href, prefix: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure setNamespace(ctx: pointer; name: xmlCharPtr); XMLCALL; XMLPUBFUN;
-function getNamespace(ctx: pointer): xmlNsPtr; XMLCALL; XMLPUBFUN;
-function checkNamespace(ctx: pointer; nameSpace: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-procedure namespaceDecl(ctx: pointer; href, prefix: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure comment(ctx: pointer; value: xmlCharPtr); XMLCALL; XMLPUBFUN;
-procedure cdataBlock(ctx: pointer; value: xmlCharPtr; len: cint); XMLCALL; XMLPUBFUN;
+procedure startDocument(ctx: pointer); EXTDECL; external xml2lib;
+procedure endDocument(ctx: pointer); EXTDECL; external xml2lib;
+procedure attribute(ctx: pointer; fullname, value: xmlCharPtr); EXTDECL; external xml2lib;
+procedure startElement(ctx: pointer; fullname: xmlCharPtr; atts: xmlCharPtrPtr); EXTDECL; external xml2lib;
+procedure endElement(ctx: pointer; name: xmlCharPtr); EXTDECL; external xml2lib;
+procedure reference(ctx: pointer; name: xmlCharPtr); EXTDECL; external xml2lib;
+procedure characters(ctx: pointer; ch: xmlCharPtr; len: cint); EXTDECL; external xml2lib;
+procedure ignorableWhitespace(ctx: pointer; ch: xmlCharPtr; len: cint); EXTDECL; external xml2lib;
+procedure processingInstruction(ctx: pointer; target, data: xmlCharPtr); EXTDECL; external xml2lib;
+procedure globalNamespace(ctx: pointer; href, prefix: xmlCharPtr); EXTDECL; external xml2lib;
+procedure setNamespace(ctx: pointer; name: xmlCharPtr); EXTDECL; external xml2lib;
+function getNamespace(ctx: pointer): xmlNsPtr; EXTDECL; external xml2lib;
+function checkNamespace(ctx: pointer; nameSpace: xmlCharPtr): cint; EXTDECL; external xml2lib;
+procedure namespaceDecl(ctx: pointer; href, prefix: xmlCharPtr); EXTDECL; external xml2lib;
+procedure comment(ctx: pointer; value: xmlCharPtr); EXTDECL; external xml2lib;
+procedure cdataBlock(ctx: pointer; value: xmlCharPtr; len: cint); EXTDECL; external xml2lib;
 
 {$IFDEF LIBXML_SAX1_ENABLED}
-procedure initxmlDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr; warning: cint); XMLCALL; XMLPUBFUN;
+procedure initxmlDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr; warning: cint); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_HTML_ENABLED}
-procedure inithtmlDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr); XMLCALL; XMLPUBFUN;
+procedure inithtmlDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr); EXTDECL; external xml2lib;
 {$ENDIF}
 {$IFDEF LIBXML_DOCB_ENABLED}
-procedure initdocbDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr); XMLCALL; XMLPUBFUN;
+procedure initdocbDefaultSAXHandler(hdlr: xmlSAXHandlerV1Ptr); EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
 {$ENDIF}

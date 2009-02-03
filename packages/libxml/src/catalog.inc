@@ -62,56 +62,56 @@
 (*
  * Operations on a given catalog.
  *)
-function xmlNewCatalog(sgml: cint): xmlCatalogPtr; XMLCALL; XMLPUBFUN;
-function xmlLoadACatalog(filename: pchar): xmlCatalogPtr; XMLCALL; XMLPUBFUN;
-function xmlLoadSGMLSuperCatalog(filename: pchar): xmlCatalogPtr; XMLCALL; XMLPUBFUN;
-function xmlLoadACatalog(catal: xmlCatalogPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlACatalogAdd(catal: xmlCatalogPtr; _type, orig, replace: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlACatalogRemove(catal: xmlCatalogPtr; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlACatalogResolve(catal: xmlCatalogPtr; pubID, sysID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlACatalogResolveSystem(catal: xmlCatalogPtr; sysID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlACatalogResolvePublic(catal: xmlCatalogPtr; pubID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlACatalogResolveURI(catal: xmlCatalogPtr; URI: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlNewCatalog(sgml: cint): xmlCatalogPtr; EXTDECL; external xml2lib;
+function xmlLoadACatalog(filename: pchar): xmlCatalogPtr; EXTDECL; external xml2lib;
+function xmlLoadSGMLSuperCatalog(filename: pchar): xmlCatalogPtr; EXTDECL; external xml2lib;
+function xmlLoadACatalog(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
+function xmlACatalogAdd(catal: xmlCatalogPtr; _type, orig, replace: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlACatalogRemove(catal: xmlCatalogPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlACatalogResolve(catal: xmlCatalogPtr; pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlACatalogResolveSystem(catal: xmlCatalogPtr; sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlACatalogResolvePublic(catal: xmlCatalogPtr; pubID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlACatalogResolveURI(catal: xmlCatalogPtr; URI: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlACatalogDump(catal: xmlCatalogPtr; _out: PFILE); XMLCALL; XMLPUBFUN;
+procedure xmlACatalogDump(catal: xmlCatalogPtr; _out: PFILE); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-procedure xmlFreeCatalog(catal: xmlCatalogPtr); XMLCALL; XMLPUBFUN;
-function xmlCatalogIsEmpty(catal: xmlCatalogPtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlFreeCatalog(catal: xmlCatalogPtr); EXTDECL; external xml2lib;
+function xmlCatalogIsEmpty(catal: xmlCatalogPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Global operations.
  *)
-procedure xmlInitializeCatalog; XMLCALL; XMLPUBFUN;
-function xmlLoadCatalog(filename: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlLoadCatalogs(paths: pchar): cint; XMLCALL; XMLPUBFUN;
-procedure xmlCatalogCleanup; XMLCALL; XMLPUBFUN;
+procedure xmlInitializeCatalog; EXTDECL; external xml2lib;
+function xmlLoadCatalog(filename: pchar): cint; EXTDECL; external xml2lib;
+function xmlLoadCatalogs(paths: pchar): cint; EXTDECL; external xml2lib;
+procedure xmlCatalogCleanup; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlCatalogDump(_out: PFILE); XMLCALL; XMLPUBFUN;
+procedure xmlCatalogDump(_out: PFILE); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
-function xmlCatalogResolve(pubID, sysID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogResolveSystem(sysID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogResolvePublic(pubID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogResolveURI(URI: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogAdd(_type, orig, replace: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlCatalogRemove(value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlParseCatalogFile(filename: pchar): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogConvert: cint; XMLCALL; XMLPUBFUN;
+function xmlCatalogResolve(pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCatalogResolveSystem(sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCatalogResolvePublic(pubID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCatalogResolveURI(URI: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCatalogAdd(_type, orig, replace: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlCatalogRemove(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlParseCatalogFile(filename: pchar): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlCatalogConvert: cint; EXTDECL; external xml2lib;
 
 (*
  * Strictly minimal interfaces for per-document catalogs used
  * by the parser.
  *)
-procedure xmlCatalogFreeLocal(catalogs: pointer); XMLCALL; XMLPUBFUN;
-function xmlCatalogAddLocal(catalogs: pointer; URL: xmlCharPtr): pointer; XMLCALL; XMLPUBFUN;
-function xmlCatalogLocalResolve(catalogs: pointer; pubID, sysID: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlCatalogLocalResolveURI(catalogs: pointer; URI: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+procedure xmlCatalogFreeLocal(catalogs: pointer); EXTDECL; external xml2lib;
+function xmlCatalogAddLocal(catalogs: pointer; URL: xmlCharPtr): pointer; EXTDECL; external xml2lib;
+function xmlCatalogLocalResolve(catalogs: pointer; pubID, sysID: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlCatalogLocalResolveURI(catalogs: pointer; URI: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
 
 (*
  * Preference settings.
  *)
-function xmlCatalogSetDebug(level: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlCatalogSetDefaultPrefer(prefer: xmlCatalogPrefer): cint; XMLCALL; XMLPUBFUN;
-procedure xmlCatalogSetDefaults(allow: xmlCatalogAllow); XMLCALL; XMLPUBFUN;
-function xmlCatalogGetDefaults: xmlCatalogAllow; XMLCALL; XMLPUBFUN;
+function xmlCatalogSetDebug(level: cint): cint; EXTDECL; external xml2lib;
+function xmlCatalogSetDefaultPrefer(prefer: xmlCatalogPrefer): cint; EXTDECL; external xml2lib;
+procedure xmlCatalogSetDefaults(allow: xmlCatalogAllow); EXTDECL; external xml2lib;
+function xmlCatalogGetDefaults: xmlCatalogAllow; EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_CATALOG_ENABLED *)

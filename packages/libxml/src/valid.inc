@@ -34,7 +34,7 @@
  * Callback called when a validity error is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlValidityErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (**
  * xmlValidityWarningFunc:
@@ -47,7 +47,7 @@
  * Callback called when a validity warning is found. This is a message
  * oriented function similar to an *printf function.
  *)
-  xmlValidityWarningFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlValidityWarningFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (*
  * xmlValidCtxt:
@@ -117,118 +117,118 @@
 
 {$IFDEF FUNCTION}
 (* Notation *)
-function xmlAddNotationDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name, PublicID, SystemID: xmlCharPtr): xmlNotationPtr; XMLCALL; XMLPUBFUN;
+function xmlAddNotationDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name, PublicID, SystemID: xmlCharPtr): xmlNotationPtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_TREE_ENABLED}
-function xmlCopyNotationTable(table: xmlNotationTablePtr): xmlNotationTablePtr; XMLCALL; XMLPUBFUN;
+function xmlCopyNotationTable(table: xmlNotationTablePtr): xmlNotationTablePtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
-procedure xmlFreeNotationTable(table: xmlNotationTablePtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeNotationTable(table: xmlNotationTablePtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlDumpNotationDecl(buf: xmlBufferPtr; nota: xmlNotationPtr); XMLCALL; XMLPUBFUN;
-procedure xmlDumpNotationTable(buf: xmlBufferPtr; table: xmlNotationTablePtr); XMLCALL; XMLPUBFUN;
+procedure xmlDumpNotationDecl(buf: xmlBufferPtr; nota: xmlNotationPtr); EXTDECL; external xml2lib;
+procedure xmlDumpNotationTable(buf: xmlBufferPtr; table: xmlNotationTablePtr); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (* Element Content *)
-function xmlNewDocElementContent(doc: xmlDocPtr; name: xmlCharPtr; _type: xmlElementContentType): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
-function xmlCopyDocElementContent(doc: xmlDocPtr; content: xmlElementContentPtr): xmlElementContentPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeDocElementContent(doc: xmlDocPtr; cur: xmlElementContentPtr); XMLCALL; XMLPUBFUN;
-procedure xmlSnprintfElementContent(buf: pchar; size: cint; content: xmlElementContentPtr; englob: cint); XMLCALL; XMLPUBFUN;
+function xmlNewDocElementContent(doc: xmlDocPtr; name: xmlCharPtr; _type: xmlElementContentType): xmlElementContentPtr; EXTDECL; external xml2lib;
+function xmlCopyDocElementContent(doc: xmlDocPtr; content: xmlElementContentPtr): xmlElementContentPtr; EXTDECL; external xml2lib;
+procedure xmlFreeDocElementContent(doc: xmlDocPtr; cur: xmlElementContentPtr); EXTDECL; external xml2lib;
+procedure xmlSnprintfElementContent(buf: pchar; size: cint; content: xmlElementContentPtr; englob: cint); EXTDECL; external xml2lib;
 
 (* Element *)
-function xmlAddElementDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name: xmlCharPtr; _type: xmlElementTypeVal; content: xmlElementContentPtr): xmlElementPtr; XMLCALL; XMLPUBFUN;
+function xmlAddElementDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; name: xmlCharPtr; _type: xmlElementTypeVal; content: xmlElementContentPtr): xmlElementPtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_TREE_ENABLED}
-function xmlCopyElementTable(table: xmlElementTablePtr): xmlElementTablePtr; XMLCALL; XMLPUBFUN;
+function xmlCopyElementTable(table: xmlElementTablePtr): xmlElementTablePtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
-procedure xmlFreeElementTable(table: xmlElementTablePtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeElementTable(table: xmlElementTablePtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlDumpElementTable(buf: xmlBufferPtr; table: xmlElementTablePtr); XMLCALL; XMLPUBFUN;
-procedure xmlDumpElementDecl(buf: xmlBufferPtr; elem: xmlElementPtr); XMLCALL; XMLPUBFUN;
+procedure xmlDumpElementTable(buf: xmlBufferPtr; table: xmlElementTablePtr); EXTDECL; external xml2lib;
+procedure xmlDumpElementDecl(buf: xmlBufferPtr; elem: xmlElementPtr); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (* Enumeration *)
-function xmlCreateEnumeration(name: xmlCharPtr): xmlEnumerationPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeEnumeration(cur: xmlEnumerationPtr); XMLCALL; XMLPUBFUN;
+function xmlCreateEnumeration(name: xmlCharPtr): xmlEnumerationPtr; EXTDECL; external xml2lib;
+procedure xmlFreeEnumeration(cur: xmlEnumerationPtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_TREE_ENABLED}
-function xmlCopyEnumeration(cur: xmlEnumerationPtr): xmlEnumerationPtr; XMLCALL; XMLPUBFUN;
+function xmlCopyEnumeration(cur: xmlEnumerationPtr): xmlEnumerationPtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
 
 (* Attribute *)
 function xmlAddAttributeDecl(ctxt: xmlValidCtxtPtr; dtd: xmlDtdPtr; elem, name, ns: xmlCharPtr; _type: xmlAttributeType;
-  def: xmlAttributeDefault; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr): xmlAttributePtr; XMLCALL; XMLPUBFUN;
+  def: xmlAttributeDefault; defaultValue: xmlCharPtr; tree: xmlEnumerationPtr): xmlAttributePtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_TREE_ENABLED}
-function xmlCopyAttributeTable(table: xmlAttributeTablePtr): xmlAttributeTablePtr; XMLCALL; XMLPUBFUN;
+function xmlCopyAttributeTable(table: xmlAttributeTablePtr): xmlAttributeTablePtr; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_TREE_ENABLED *)
-procedure xmlFreeAttributeTable(table: xmlAttributeTablePtr); XMLCALL; XMLPUBFUN;
+procedure xmlFreeAttributeTable(table: xmlAttributeTablePtr); EXTDECL; external xml2lib;
 {$IFDEF LIBXML_OUTPUT_ENABLED}
-procedure xmlDumpAttributeTable(buf: xmlBufferPtr; table: xmlAttributeTablePtr); XMLCALL; XMLPUBFUN;
-procedure xmlDumpAttributeDecl(buf: xmlBufferPtr; attr: xmlAttributePtr); XMLCALL; XMLPUBFUN;
+procedure xmlDumpAttributeTable(buf: xmlBufferPtr; table: xmlAttributeTablePtr); EXTDECL; external xml2lib;
+procedure xmlDumpAttributeDecl(buf: xmlBufferPtr; attr: xmlAttributePtr); EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 
 (* IDs *)
-function xmlAddID(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; value: xmlCharPtr; attr: xmlAttrPtr): xmlIDPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeIDTable(table: xmlIDTablePtr); XMLCALL; XMLPUBFUN;
-function xmlGetID(doc: xmlDocPtr; ID: xmlCharPtr): xmlAttrPtr; XMLCALL; XMLPUBFUN;
-function xmlIsID(doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlRemoveID(doc: xmlDocPtr; attr: xmlAttrPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlAddID(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; value: xmlCharPtr; attr: xmlAttrPtr): xmlIDPtr; EXTDECL; external xml2lib;
+procedure xmlFreeIDTable(table: xmlIDTablePtr); EXTDECL; external xml2lib;
+function xmlGetID(doc: xmlDocPtr; ID: xmlCharPtr): xmlAttrPtr; EXTDECL; external xml2lib;
+function xmlIsID(doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr): cint; EXTDECL; external xml2lib;
+function xmlRemoveID(doc: xmlDocPtr; attr: xmlAttrPtr): cint; EXTDECL; external xml2lib;
 
 (* IDREFs *)
-function xmlAddRef(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; value: xmlCharPtr; attr: xmlAttrPtr): xmlRefPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeRefTable(table: xmlRefTablePtr); XMLCALL; XMLPUBFUN;
-function xmlIsRef(doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlRemoveRef(doc: xmlDocPtr; attr: xmlAttrPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlGetRefs(doc: xmlDocPtr; ID: xmlCharPtr): xmlListPtr; XMLCALL; XMLPUBFUN;
+function xmlAddRef(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; value: xmlCharPtr; attr: xmlAttrPtr): xmlRefPtr; EXTDECL; external xml2lib;
+procedure xmlFreeRefTable(table: xmlRefTablePtr); EXTDECL; external xml2lib;
+function xmlIsRef(doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr): cint; EXTDECL; external xml2lib;
+function xmlRemoveRef(doc: xmlDocPtr; attr: xmlAttrPtr): cint; EXTDECL; external xml2lib;
+function xmlGetRefs(doc: xmlDocPtr; ID: xmlCharPtr): xmlListPtr; EXTDECL; external xml2lib;
 
 (**
  * The public function calls related to validity checking.
  *)
 {$IFDEF LIBXML_VALID_ENABLED}
 (* Allocate/Release Validation Contexts *)
-function xmlNewValidCtxt: xmlValidCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeValidCtxt(table: xmlValidCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlValidateRoot(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateElementDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlElementPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidNormalizeAttributeValue(doc: xmlDocPtr; elem: xmlNodePtr; name, value: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlValidCtxtNormalizeAttributeValue(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; name, value: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlValidateAttributeDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; attr: xmlAttributePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateAttributeValue(_type: xmlAttributeType; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateNotationDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; nota: xmlNotationPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateDtd(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; dtd: xmlDtdPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateDtdFinal(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateDocument(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateOneElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateOneAttribute(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateOneNamespace(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; prefix: xmlCharPtr; ns: xmlNsPtr; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateDocumentFinal(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlNewValidCtxt: xmlValidCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlFreeValidCtxt(table: xmlValidCtxtPtr); EXTDECL; external xml2lib;
+function xmlValidateRoot(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateElementDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlElementPtr): cint; EXTDECL; external xml2lib;
+function xmlValidNormalizeAttributeValue(doc: xmlDocPtr; elem: xmlNodePtr; name, value: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlValidCtxtNormalizeAttributeValue(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; name, value: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlValidateAttributeDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; attr: xmlAttributePtr): cint; EXTDECL; external xml2lib;
+function xmlValidateAttributeValue(_type: xmlAttributeType; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateNotationDecl(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; nota: xmlNotationPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateDtd(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; dtd: xmlDtdPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateDtdFinal(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateDocument(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlValidateOneElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr): cint; EXTDECL; external xml2lib;
+function xmlValidateOneAttribute(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; attr: xmlAttrPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateOneNamespace(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; prefix: xmlCharPtr; ns: xmlNsPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateDocumentFinal(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_VALID_ENABLED *)
 
 {$IF defined(LIBXML_VALID_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
-function xmlValidateNotationUse(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; notationName: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlValidateNotationUse(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; notationName: xmlCharPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_VALID_ENABLED or LIBXML_SCHEMAS_ENABLED *)
 
-function xmlIsMixedElement(doc: xmlDocPtr; name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlGetDtdAttrDesc(dtd: xmlDtdPtr; elem, name: xmlCharPtr): xmlAttributePtr; XMLCALL; XMLPUBFUN;
-function xmlGetDtdQAttrDesc(dtd: xmlDtdPtr; elem, name, prefix: xmlCharPtr): xmlAttributePtr; XMLCALL; XMLPUBFUN;
-function xmlGetDtdNotationDesc(dtd: xmlDtdPtr; name: xmlCharPtr): xmlNotationPtr; XMLCALL; XMLPUBFUN;
-function xmlGetDtdQElementDesc(dtd: xmlDtdPtr; name, prefix: xmlCharPtr): xmlElementPtr; XMLCALL; XMLPUBFUN;
-function xmlGetDtdElementDesc(dtd: xmlDtdPtr; name: xmlCharPtr): xmlElementPtr; XMLCALL; XMLPUBFUN;
+function xmlIsMixedElement(doc: xmlDocPtr; name: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlGetDtdAttrDesc(dtd: xmlDtdPtr; elem, name: xmlCharPtr): xmlAttributePtr; EXTDECL; external xml2lib;
+function xmlGetDtdQAttrDesc(dtd: xmlDtdPtr; elem, name, prefix: xmlCharPtr): xmlAttributePtr; EXTDECL; external xml2lib;
+function xmlGetDtdNotationDesc(dtd: xmlDtdPtr; name: xmlCharPtr): xmlNotationPtr; EXTDECL; external xml2lib;
+function xmlGetDtdQElementDesc(dtd: xmlDtdPtr; name, prefix: xmlCharPtr): xmlElementPtr; EXTDECL; external xml2lib;
+function xmlGetDtdElementDesc(dtd: xmlDtdPtr; name: xmlCharPtr): xmlElementPtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_VALID_ENABLED}
 
-function xmlGetDtdElementDesc(ctree: xmlElementContentPtr; var names: xmlCharPtr; var len: cint; max: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlValidGetValidElements(prev, next: xmlNodePtr; var names: xmlCharPtr; max: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateNameValue(value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateNamesValue(value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateNmtokenValue(value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidateNmtokensValue(value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlGetDtdElementDesc(ctree: xmlElementContentPtr; var names: xmlCharPtr; var len: cint; max: cint): cint; EXTDECL; external xml2lib;
+function xmlValidGetValidElements(prev, next: xmlNodePtr; var names: xmlCharPtr; max: cint): cint; EXTDECL; external xml2lib;
+function xmlValidateNameValue(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateNamesValue(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateNmtokenValue(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidateNmtokensValue(value: xmlCharPtr): cint; EXTDECL; external xml2lib;
 
 
 {$IFDEF LIBXML_REGEXP_ENABLED}
 (*
  * Validation based on the regexp support
  *)
-function xmlValidBuildContentModel(ctxt: xmlValidCtxtPtr; elem: xmlElementPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidatePushElement(ctxt: xmlValidCtxtPtr; doc: xmlNodePtr; elem: xmlElementPtr; qname: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlValidatePushCData(ctxt: xmlValidCtxtPtr; data: xmlCharPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlValidatePopElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; qname: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlValidBuildContentModel(ctxt: xmlValidCtxtPtr; elem: xmlElementPtr): cint; EXTDECL; external xml2lib;
+function xmlValidatePushElement(ctxt: xmlValidCtxtPtr; doc: xmlNodePtr; elem: xmlElementPtr; qname: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlValidatePushCData(ctxt: xmlValidCtxtPtr; data: xmlCharPtr; len: cint): cint; EXTDECL; external xml2lib;
+function xmlValidatePopElement(ctxt: xmlValidCtxtPtr; doc: xmlDocPtr; elem: xmlNodePtr; qname: xmlCharPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_REGEXP_ENABLED *)
 {$ENDIF} (* LIBXML_VALID_ENABLED *)
 {$ENDIF}

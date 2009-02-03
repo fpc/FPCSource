@@ -91,140 +91,140 @@
 
   xmlTextReaderLocatorPtr = pointer;
 
-  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: pchar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); XMLCALL;
+  xmlTextReaderErrorFunc = procedure(arg: pointer; msg: pchar; severity: xmlParserSeverities; locator: xmlTextReaderLocatorPtr); EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 (*
  * Constructors & Destructor
  *)
-function xmlNewTextReader(input: xmlParserInputBufferPtr; URI: pchar): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlNewTextReaderFilename(URI: pchar): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeTextReader(reader: xmlTextReaderPtr); XMLCALL; XMLPUBFUN;
-function xmlTextReaderSetup(reader: xmlTextReaderPtr; input: xmlParserInputBufferPtr; URL, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlNewTextReader(input: xmlParserInputBufferPtr; URI: pchar): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlNewTextReaderFilename(URI: pchar): xmlTextReaderPtr; EXTDECL; external xml2lib;
+procedure xmlFreeTextReader(reader: xmlTextReaderPtr); EXTDECL; external xml2lib;
+function xmlTextReaderSetup(reader: xmlTextReaderPtr; input: xmlParserInputBufferPtr; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Iterators
  *)
-function xmlTextReaderRead(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderRead(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_WRITER_ENABLED}
-function xmlTextReaderReadInnerXml(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderReadOuterXml(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlTextReaderReadInnerXml(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderReadOuterXml(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
 {$ENDIF}
-function xmlTextReaderReadString(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderReadAttributeValue(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderReadString(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderReadAttributeValue(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Attributes of the node
  *)
-function xmlTextReaderAttributeCount(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderDepth(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderHasAttributes(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderHasValue(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderIsDefault(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderIsEmptyElement(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderNodeType(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderQuoteChar(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderReadState(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderIsNamespaceDecl(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderAttributeCount(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderDepth(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderHasAttributes(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderHasValue(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderIsDefault(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderIsEmptyElement(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderNodeType(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderQuoteChar(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderReadState(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderIsNamespaceDecl(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 
-function xmlTextReaderConstBaseUri(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstLocalName(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstName(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstNamespaceUri(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstPrefix(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstXmlLang(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstString(reader: xmlTextReaderPtr; str: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstValue(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlTextReaderConstBaseUri(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstLocalName(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstName(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstNamespaceUri(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstPrefix(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstXmlLang(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstString(reader: xmlTextReaderPtr; str: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderConstValue(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
 
 (*
  * use the Const version of the routine for
  * better performance and simpler code
  *)
-function xmlTextReaderBaseUri(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderLocalName(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderName(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderNamespaceUri(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderPrefix(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderXmlLang(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderValue(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlTextReaderBaseUri(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderLocalName(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderName(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderNamespaceUri(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderPrefix(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderXmlLang(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderValue(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
 
 (*
  * Methods of the XmlTextReader
  *)
-function xmlTextReaderClose(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetAttributeNo(reader: xmlTextReaderPtr; no: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetAttribute(reader: xmlTextReaderPtr; name: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetAttributeNs(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetRemainder(reader: xmlTextReaderPtr): xmlParserInputBufferPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderLookupNamespace(reader: xmlTextReaderPtr; prefix: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToAttributeNo(reader: xmlTextReaderPtr; no: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToAttribute(reader: xmlTextReaderPtr; name: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToAttributeNs(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToFirstAttribute(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToNextAttribute(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderMoveToElement(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderNormalization(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderConstEncoding(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlTextReaderClose(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderGetAttributeNo(reader: xmlTextReaderPtr; no: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderGetAttribute(reader: xmlTextReaderPtr; name: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderGetAttributeNs(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderGetRemainder(reader: xmlTextReaderPtr): xmlParserInputBufferPtr; EXTDECL; external xml2lib;
+function xmlTextReaderLookupNamespace(reader: xmlTextReaderPtr; prefix: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToAttributeNo(reader: xmlTextReaderPtr; no: cint): cint; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToAttribute(reader: xmlTextReaderPtr; name: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToAttributeNs(reader: xmlTextReaderPtr; localName, namespaceURI: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToFirstAttribute(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToNextAttribute(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderMoveToElement(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderNormalization(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderConstEncoding(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
 
 (*
  * Extensions
  *)
-function xmlTextReaderSetParserProp(reader: xmlTextReaderPtr; prop, value: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetParserProp(reader: xmlTextReaderPtr; prop: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderCurrentNode(reader: xmlTextReaderPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetParserLineNumber(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderGetParserColumnNumber(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderPreserve(reader: xmlTextReaderPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
+function xmlTextReaderSetParserProp(reader: xmlTextReaderPtr; prop, value: cint): cint; EXTDECL; external xml2lib;
+function xmlTextReaderGetParserProp(reader: xmlTextReaderPtr; prop: cint): cint; EXTDECL; external xml2lib;
+function xmlTextReaderCurrentNode(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL; external xml2lib;
+function xmlTextReaderGetParserLineNumber(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderGetParserColumnNumber(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderPreserve(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_PATTERN_ENABLED}
-function xmlTextReaderPreservePattern(reader: xmlTextReaderPtr; pattern: xmlCharPtr; namespaces: xmlCharPtrPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderPreservePattern(reader: xmlTextReaderPtr; pattern: xmlCharPtr; namespaces: xmlCharPtrPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF} (* LIBXML_PATTERN_ENABLED *)
-function xmlTextReaderCurrentDoc(reader: xmlTextReaderPtr): xmlDocPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderExpand(reader: xmlTextReaderPtr): xmlNodePtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderNext(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderNextSibling(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderIsValid(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderCurrentDoc(reader: xmlTextReaderPtr): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlTextReaderExpand(reader: xmlTextReaderPtr): xmlNodePtr; EXTDECL; external xml2lib;
+function xmlTextReaderNext(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderNextSibling(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderIsValid(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 {$IFDEF LIBXML_SCHEMAS_ENABLED}
 
-function xmlTextReaderRelaxNGValidate(reader: xmlTextReaderPtr; rng: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderRelaxNGSetSchema(reader: xmlTextReaderPtr; schema: xmlRelaxNGPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderSchemaValidate(reader: xmlTextReaderPtr; xsd: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderSchemaValidateCtxt(reader: xmlTextReaderPtr; ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderSetSchema(reader: xmlTextReaderPtr; schema: xmlSchemaPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderRelaxNGValidate(reader: xmlTextReaderPtr; rng: pchar): cint; EXTDECL; external xml2lib;
+function xmlTextReaderRelaxNGSetSchema(reader: xmlTextReaderPtr; schema: xmlRelaxNGPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderSchemaValidate(reader: xmlTextReaderPtr; xsd: pchar): cint; EXTDECL; external xml2lib;
+function xmlTextReaderSchemaValidateCtxt(reader: xmlTextReaderPtr; ctxt: xmlSchemaValidCtxtPtr; options: cint): cint; EXTDECL; external xml2lib;
+function xmlTextReaderSetSchema(reader: xmlTextReaderPtr; schema: xmlSchemaPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
-function xmlTextReaderConstXmlVersion(reader: xmlTextReaderPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlTextReaderStandalone(reader: xmlTextReaderPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlTextReaderConstXmlVersion(reader: xmlTextReaderPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlTextReaderStandalone(reader: xmlTextReaderPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Index lookup
  *)
-function xmlTextReaderByteConsumed(reader: xmlTextReaderPtr): clong; XMLCALL; XMLPUBFUN;
+function xmlTextReaderByteConsumed(reader: xmlTextReaderPtr): clong; EXTDECL; external xml2lib;
 
 (*
  * New more complete APIs for simpler creation and reuse of readers
  *)
-function xmlReaderWalker(doc: xmlDocPtr): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlReaderForDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlReaderForFile(filename, encoding: pchar; options: cint): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlReaderForMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlReaderForFd(fd: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
-function xmlReaderForIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): xmlTextReaderPtr; XMLCALL; XMLPUBFUN;
+function xmlReaderWalker(doc: xmlDocPtr): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForFile(filename, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForFd(fd: cint; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
+function xmlReaderForIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): xmlTextReaderPtr; EXTDECL; external xml2lib;
 
-function xmlReaderNewWalker(reader: xmlTextReaderPtr; doc: xmlDocPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlReaderNewDoc(reader: xmlTextReaderPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlReaderNewFile(reader: xmlTextReaderPtr; filename, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlReaderNewMemory(reader: xmlTextReaderPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlReaderNewFd(reader: xmlTextReaderPtr; fd: cint; URL, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlReaderNewIO(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlReaderNewWalker(reader: xmlTextReaderPtr; doc: xmlDocPtr): cint; EXTDECL; external xml2lib;
+function xmlReaderNewDoc(reader: xmlTextReaderPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewFile(reader: xmlTextReaderPtr; filename, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewMemory(reader: xmlTextReaderPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewFd(reader: xmlTextReaderPtr; fd: cint; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
+function xmlReaderNewIO(reader: xmlTextReaderPtr; ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): cint; EXTDECL; external xml2lib;
 
 (*
  * Error handling extensions
  *)
-function xmlTextReaderLocatorLineNumber(locator: xmlTextReaderLocatorPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlTextReaderLocatorBaseURI(locator: xmlTextReaderLocatorPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-procedure xmlTextReaderSetErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); XMLCALL; XMLPUBFUN;
-procedure xmlTextReaderSetStructuredErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); XMLCALL; XMLPUBFUN;
-procedure xmlTextReaderGetErrorHandler(reader: xmlTextReaderPtr; var f: xmlTextReaderErrorFunc; var arg: pointer); XMLCALL; XMLPUBFUN;
+function xmlTextReaderLocatorLineNumber(locator: xmlTextReaderLocatorPtr): cint; EXTDECL; external xml2lib;
+function xmlTextReaderLocatorBaseURI(locator: xmlTextReaderLocatorPtr): xmlCharPtr; EXTDECL; external xml2lib;
+procedure xmlTextReaderSetErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); EXTDECL; external xml2lib;
+procedure xmlTextReaderSetStructuredErrorHandler(reader: xmlTextReaderPtr; f: xmlTextReaderErrorFunc; arg: pointer); EXTDECL; external xml2lib;
+procedure xmlTextReaderGetErrorHandler(reader: xmlTextReaderPtr; var f: xmlTextReaderErrorFunc; var arg: pointer); EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_READER_ENABLED *)

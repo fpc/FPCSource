@@ -829,7 +829,7 @@
  * Signature of the function to use when there is an error and
  * no parsing or validity context available .
  *)
-  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar); XMLCDECL; varargs;
+  xmlGenericErrorFunc = procedure(ctx: pointer; msg: pchar); cdecl; varargs;
 
 (**
  * xmlStructuredErrorFunc:
@@ -839,7 +839,7 @@
  * Signature of the function to use when there is an error and
  * the module handles the new error reporting mechanism.
  *)
-  xmlStructuredErrorFunc = procedure(userData: pointer; error: xmlErrorPtr); XMLCALL;
+  xmlStructuredErrorFunc = procedure(userData: pointer; error: xmlErrorPtr); EXTDECL;
 
 (*
  * Use the following function to reset the two global variables
@@ -848,30 +848,30 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); XMLCALL; XMLPUBFUN;
-procedure initGenericErrorDefaultFunc(var handler: xmlGenericErrorFunc); XMLCALL; XMLPUBFUN;
-procedure xmlSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); XMLCALL; XMLPUBFUN;
+procedure xmlSetGenericErrorFunc(ctx: pointer; handler: xmlGenericErrorFunc); EXTDECL; external xml2lib;
+procedure initGenericErrorDefaultFunc(var handler: xmlGenericErrorFunc); EXTDECL; external xml2lib;
+procedure xmlSetStructuredErrorFunc(ctx: pointer; handler: xmlStructuredErrorFunc); EXTDECL; external xml2lib;
 
 (*
  * Default message routines used by SAX and Valid context for error
  * and warning reporting.
  *)
-procedure xmlParserError(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
-procedure xmlParserWarning(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
-procedure xmlParserValidityError(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
-procedure xmlParserValidityWarning(ctx: pointer; msg: pchar; args: array of const); XMLCALL; XMLPUBFUN;
-procedure xmlParserPrintFileInfo(input: xmlParserInputPtr); XMLCALL; XMLPUBFUN;
-procedure xmlParserPrintFileContext(input: xmlParserInputPtr); XMLCALL; XMLPUBFUN;
+procedure xmlParserError(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserWarning(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserValidityError(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserValidityWarning(ctx: pointer; msg: pchar; args: array of const); EXTDECL; external xml2lib;
+procedure xmlParserPrintFileInfo(input: xmlParserInputPtr); EXTDECL; external xml2lib;
+procedure xmlParserPrintFileContext(input: xmlParserInputPtr); EXTDECL; external xml2lib;
 
 (*
  * Extended error information routines
  *)
-function xmlGetLastError: xmlErrorPtr; XMLCALL; XMLPUBFUN;
-procedure xmlResetLastError; XMLCALL; XMLPUBFUN;
-function xmlCtxtGetLastError(ctx: pointer): xmlErrorPtr; XMLCALL; XMLPUBFUN;
-procedure xmlCtxtResetLastError(ctx: pointer); XMLCALL; XMLPUBFUN;
-procedure xmlResetError(err: xmlErrorPtr); XMLCALL; XMLPUBFUN;
-function xmlResetError(from, _to: xmlErrorPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlGetLastError: xmlErrorPtr; EXTDECL; external xml2lib;
+procedure xmlResetLastError; EXTDECL; external xml2lib;
+function xmlCtxtGetLastError(ctx: pointer): xmlErrorPtr; EXTDECL; external xml2lib;
+procedure xmlCtxtResetLastError(ctx: pointer); EXTDECL; external xml2lib;
+procedure xmlResetError(err: xmlErrorPtr); EXTDECL; external xml2lib;
+function xmlResetError(from, _to: xmlErrorPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Internal callback reporting routine
@@ -894,7 +894,7 @@ procedure __xmlRaiseError(
   col: cint;
   msg: pchar;
   args: array of const
-); XMLCALL; XMLPUBFUN;
+); EXTDECL; external xml2lib;
 
 procedure __xmlSimpleError(
   domain: cint;
@@ -902,5 +902,5 @@ procedure __xmlSimpleError(
   node: xmlNodePtr;
   msg: pchar;
   extra: pchar
-); XMLCALL; XMLPUBFUN;
+); EXTDECL; external xml2lib;
 {$ENDIF}

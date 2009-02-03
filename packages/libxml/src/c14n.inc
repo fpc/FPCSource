@@ -48,21 +48,21 @@
  * This is the core C14N function
  *)
 
-  xmlC14NIsVisibleCallback = function(user_data: pointer; node, parent: xmlNodePtr): cint; XMLCALL;
+  xmlC14NIsVisibleCallback = function(user_data: pointer; node, parent: xmlNodePtr): cint; EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 function xmlC14NDocSaveTo(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
-  with_comments: cint; buf: xmlOutputBufferPtr): cint; XMLCALL; XMLPUBFUN;
+  with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
 
 function xmlC14NDocDumpMemory(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
-  with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; XMLCALL; XMLPUBFUN;
+  with_comments: cint; doc_txt_ptr: xmlCharPtrPtr): cint; EXTDECL; external xml2lib;
 
 function xmlC14NDocSave(doc: xmlDocPtr; nodes: xmlNodeSetPtr; exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr;
-  with_comments: cint; filename: pchar; compression: cint): cint; XMLCALL; XMLPUBFUN;
+  with_comments: cint; filename: pchar; compression: cint): cint; EXTDECL; external xml2lib;
 
 function xmlC14NExecute(doc: xmlDocPtr; is_visible_callback: xmlC14NIsVisibleCallback; user_data: pointer;
-  exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; XMLCALL; XMLPUBFUN;
+  exclusive: cint; inclusive_ns_prefixes: xmlCharPtrPtr; with_comments: cint; buf: xmlOutputBufferPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)

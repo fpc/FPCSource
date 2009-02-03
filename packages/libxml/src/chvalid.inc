@@ -44,7 +44,7 @@
 (**
  * Range checking routine
  *)
-function xmlCharInRange(val: cint; group: xmlChRangeGroupPtr): cbool; XMLCALL; XMLPUBFUN;
+function xmlCharInRange(val: cint; group: xmlChRangeGroupPtr): cbool; EXTDECL; external xml2lib;
 
 (**
  * xmlIsBaseChar_ch:
@@ -64,7 +64,7 @@ function xmlIsBaseCharQ(c: cint): cbool;
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsBaseCharGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsBaseCharGroup: xmlChRangeGroup; cvar; external;
   __xmlIsBaseCharGroup: xmlChRangeGroupPtr = @xmlIsBaseCharGroup;
 {$ELSE}
 var
@@ -105,7 +105,7 @@ function xmlIsCharQ(c: cint): cbool;
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsCharGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsCharGroup: xmlChRangeGroup; cvar; external;
   __xmlIsCharGroup: xmlChRangeGroupPtr = @xmlIsCharGroup;
 {$ELSE}
 var
@@ -122,7 +122,7 @@ function xmlIsCombiningQ(c: cint): cbool;
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsCombiningGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsCombiningGroup: xmlChRangeGroup; cvar; external;
   __xmlIsCombiningGroup: xmlChRangeGroupPtr = @xmlIsCombiningGroup;
 {$ELSE}
 var
@@ -147,7 +147,7 @@ function xmlIsDigitQ(c: cint): cbool;
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsDigitGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsDigitGroup: xmlChRangeGroup; cvar; external;
   __xmlIsDigitGroup: xmlChRangeGroupPtr = @xmlIsDigitGroup;
 {$ELSE}
 var
@@ -172,7 +172,7 @@ function xmlIsExtenderQ(c: cint): cbool;
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsExtenderGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsExtenderGroup: xmlChRangeGroup; cvar; external;
   __xmlIsExtenderGroup: xmlChRangeGroupPtr = @xmlIsExtenderGroup;
 {$ELSE}
 var
@@ -193,10 +193,10 @@ type
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlIsIdeographicGroup: xmlChRangeGroup; XMLPUBVAR;
+  xmlIsIdeographicGroup: xmlChRangeGroup; cvar; external;
   __xmlIsIdeographicGroup: xmlChRangeGroupPtr = @xmlIsIdeographicGroup;
   
-  xmlIsPubidChar_tab: char_tab; XMLPUBVAR;
+  xmlIsPubidChar_tab: char_tab; cvar; external;
   __xmlIsPubidChar_tab: pchar_tab = @xmlIsPubidChar_tab;
 {$ELSE}
 var
@@ -220,12 +220,12 @@ function xmlIsPubidChar_ch(c: cint): cbool;
  *)
 function xmlIsPubidCharQ(c: cint): cbool;
 
-function xmlIsBaseChar(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsBlank(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsChar(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsCombining(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsDigit(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsExtender(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsIdeographic(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
-function xmlIsPubidChar(ch: cuint): cbool; XMLCALL; XMLPUBFUN;
+function xmlIsBaseChar(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsBlank(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsChar(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsCombining(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsDigit(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsExtender(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsIdeographic(ch: cuint): cbool; EXTDECL; external xml2lib;
+function xmlIsPubidChar(ch: cuint): cbool; EXTDECL; external xml2lib;
 {$ENDIF}

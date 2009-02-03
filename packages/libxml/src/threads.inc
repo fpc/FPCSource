@@ -26,30 +26,30 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlNewMutex: xmlMutexPtr; XMLCALL; XMLPUBFUN;
-procedure xmlMutexLock(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
-procedure xmlMutexUnlock(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
-procedure xmlFreeMutex(tok: xmlMutexPtr); XMLCALL; XMLPUBFUN;
+function xmlNewMutex: xmlMutexPtr; EXTDECL; external xml2lib;
+procedure xmlMutexLock(tok: xmlMutexPtr); EXTDECL; external xml2lib;
+procedure xmlMutexUnlock(tok: xmlMutexPtr); EXTDECL; external xml2lib;
+procedure xmlFreeMutex(tok: xmlMutexPtr); EXTDECL; external xml2lib;
 
-function xmlNewRMutex: xmlRMutexPtr; XMLCALL; XMLPUBFUN;
-procedure xmlRMutexLock(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
-procedure xmlRMutexUnlock(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
-procedure xmlFreeRMutex(tok: xmlRMutexPtr); XMLCALL; XMLPUBFUN;
+function xmlNewRMutex: xmlRMutexPtr; EXTDECL; external xml2lib;
+procedure xmlRMutexLock(tok: xmlRMutexPtr); EXTDECL; external xml2lib;
+procedure xmlRMutexUnlock(tok: xmlRMutexPtr); EXTDECL; external xml2lib;
+procedure xmlFreeRMutex(tok: xmlRMutexPtr); EXTDECL; external xml2lib;
 
 (*
  * Library wide APIs.
  *)
-procedure xmlInitThreads; XMLCALL; XMLPUBFUN;
-procedure xmlLockLibrary; XMLCALL; XMLPUBFUN;
-procedure xmlUnlockLibrary; XMLCALL; XMLPUBFUN;
+procedure xmlInitThreads; EXTDECL; external xml2lib;
+procedure xmlLockLibrary; EXTDECL; external xml2lib;
+procedure xmlUnlockLibrary; EXTDECL; external xml2lib;
 
-function xmlGetThreadId: cint; XMLCALL; XMLPUBFUN;
-function xmlIsMainThread: cint; XMLCALL; XMLPUBFUN;
-procedure xmlCleanupThreads; XMLCALL; XMLPUBFUN;
-function xmlGetGlobalState: xmlGlobalStatePtr; XMLCALL; XMLPUBFUN;
+function xmlGetThreadId: cint; EXTDECL; external xml2lib;
+function xmlIsMainThread: cint; EXTDECL; external xml2lib;
+procedure xmlCleanupThreads; EXTDECL; external xml2lib;
+function xmlGetGlobalState: xmlGlobalStatePtr; EXTDECL; external xml2lib;
 
 {$IF defined(HAVE_WIN32_THREADS) and not defined(HAVE_COMPILER_TLS) and defined(LIBXML_STATIC_FOR_DLL)}
-//int XMLCALL xmlDllMain(void *hinstDLL, unsigned long fdwReason, void *lpvReserved);
+//int EXTDECL xmlDllMain(void *hinstDLL, unsigned long fdwReason, void *lpvReserved);
 {$ENDIF}
 
 {$ENDIF}

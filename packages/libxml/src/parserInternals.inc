@@ -19,7 +19,7 @@
  *)
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlParserMaxDepth: cuint; XMLPUBVAR;
+  xmlParserMaxDepth: cuint; cvar; external;
 {$ENDIF}
 {$ENDIF}
 
@@ -263,44 +263,44 @@ var
 (**
  * Global variables used for predefined strings.
  *)
-XMLPUBVAR xmlChar xmlStringText[];
-XMLPUBVAR xmlChar xmlStringTextNoenc[];
-XMLPUBVAR xmlChar xmlStringComment[];
+cvar; external xmlChar xmlStringText[];
+cvar; external xmlChar xmlStringTextNoenc[];
+cvar; external xmlChar xmlStringComment[];
 
 (*
  * Function to finish the work of the macros where needed.
  *)
-XMLPUBFUN int XMLCALL                   xmlIsLetter     (int c);
+external xml2lib int EXTDECL                   xmlIsLetter     (int c);
 
 (**
  * Parser context.
  *)
-XMLPUBFUN xmlParserCtxtPtr XMLCALL	
+external xml2lib xmlParserCtxtPtr EXTDECL	
 			xmlCreateFileParserCtxt	(char *filename);
-XMLPUBFUN xmlParserCtxtPtr XMLCALL	
+external xml2lib xmlParserCtxtPtr EXTDECL	
 			xmlCreateURLParserCtxt	(char *filename,
 						 int options);
-XMLPUBFUN xmlParserCtxtPtr XMLCALL	
+external xml2lib xmlParserCtxtPtr EXTDECL	
 			xmlCreateMemoryParserCtxt(char *buffer,
 						 int size);
-XMLPUBFUN xmlParserCtxtPtr XMLCALL	
+external xml2lib xmlParserCtxtPtr EXTDECL	
 			xmlCreateEntityParserCtxt(xmlChar *URL,
 						 xmlChar *ID,
 						 xmlChar *base);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlSwitchEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlCharEncoding enc);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlSwitchToEncoding	(xmlParserCtxtPtr ctxt,
 					 xmlCharEncodingHandlerPtr handler);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlSwitchInputEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlParserInputPtr input,
 					 xmlCharEncodingHandlerPtr handler);
 
 {$IFDEF IN_LIBXML}
 (* internal error reporting *)
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 			__xmlErrEncoding	(xmlParserCtxtPtr ctxt,
 						 xmlParserErrors xmlerr,
 						 char *msg,
@@ -311,29 +311,29 @@ XMLPUBFUN void XMLCALL
 (**
  * Input Streams.
  *)
-XMLPUBFUN xmlParserInputPtr XMLCALL	
+external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewStringInputStream	(xmlParserCtxtPtr ctxt,
 						 xmlChar *buffer);
-XMLPUBFUN xmlParserInputPtr XMLCALL	
+external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewEntityInputStream	(xmlParserCtxtPtr ctxt,
 						 xmlEntityPtr entity);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlPushInput		(xmlParserCtxtPtr ctxt,
 						 xmlParserInputPtr input);
-XMLPUBFUN xmlChar XMLCALL			
+external xml2lib xmlChar EXTDECL			
 			xmlPopInput		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlFreeInputStream	(xmlParserInputPtr input);
-XMLPUBFUN xmlParserInputPtr XMLCALL	
+external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewInputFromFile	(xmlParserCtxtPtr ctxt,
 						 char *filename);
-XMLPUBFUN xmlParserInputPtr XMLCALL	
+external xml2lib xmlParserInputPtr EXTDECL	
 			xmlNewInputStream	(xmlParserCtxtPtr ctxt);
 
 (**
  * Namespaces.
  *)
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlSplitQName		(xmlParserCtxtPtr ctxt,
 						 xmlChar *name,
 						 xmlChar **prefix);
@@ -341,109 +341,109 @@ XMLPUBFUN xmlChar * XMLCALL
 (**
  * Generic production rules.
  *)
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseName		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseNmtoken		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseEntityValue	(xmlParserCtxtPtr ctxt,
 						 xmlChar **orig);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseAttValue	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseSystemLiteral	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParsePubidLiteral	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseCharData	(xmlParserCtxtPtr ctxt,
 						 int cdata);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseExternalID	(xmlParserCtxtPtr ctxt,
 						 xmlChar **publicID,
 						 int strict);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseComment		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParsePITarget	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParsePI		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseNotationDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseEntityDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseDefaultDecl	(xmlParserCtxtPtr ctxt,
 						 xmlChar **value);
-XMLPUBFUN xmlEnumerationPtr XMLCALL	
+external xml2lib xmlEnumerationPtr EXTDECL	
 			xmlParseNotationType	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlEnumerationPtr XMLCALL	
+external xml2lib xmlEnumerationPtr EXTDECL	
 			xmlParseEnumerationType	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseEnumeratedType	(xmlParserCtxtPtr ctxt,
 						 xmlEnumerationPtr *tree);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseAttributeType	(xmlParserCtxtPtr ctxt,
 						 xmlEnumerationPtr *tree);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseAttributeListDecl(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlElementContentPtr XMLCALL	
+external xml2lib xmlElementContentPtr EXTDECL	
 			xmlParseElementMixedContentDecl
 						(xmlParserCtxtPtr ctxt,
 						 int inputchk);
-XMLPUBFUN xmlElementContentPtr XMLCALL	
+external xml2lib xmlElementContentPtr EXTDECL	
 			xmlParseElementChildrenContentDecl
 						(xmlParserCtxtPtr ctxt,
 						 int inputchk);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseElementContentDecl(xmlParserCtxtPtr ctxt,
 						 xmlChar *name,
 						 xmlElementContentPtr *result);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseElementDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseMarkupDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseCharRef		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlEntityPtr XMLCALL		
+external xml2lib xmlEntityPtr EXTDECL		
 			xmlParseEntityRef	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseReference	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParsePEReference	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseDocTypeDecl	(xmlParserCtxtPtr ctxt);
 {$IFDEF LIBXML_SAX1_ENABLED}
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseAttribute	(xmlParserCtxtPtr ctxt,
 						 xmlChar **value);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseStartTag	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseEndTag		(xmlParserCtxtPtr ctxt);
 {$ENDIF} (* LIBXML_SAX1_ENABLED *)
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseCDSect		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseContent		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseElement		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseVersionNum	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseVersionInfo	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseEncName		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseEncodingDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			
+external xml2lib int EXTDECL			
 			xmlParseSDDecl		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseXMLDecl		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseTextDecl	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseMisc		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlParseExternalSubset	(xmlParserCtxtPtr ctxt,
 						 xmlChar *ExternalID,
 						 xmlChar *SystemID);
@@ -480,14 +480,14 @@ XMLPUBFUN void XMLCALL
 {$ENDIF}
 
 {$IFDEF FUNCTION_}
-XMLPUBFUN xmlChar * XMLCALL
+external xml2lib xmlChar * EXTDECL
 		xmlStringDecodeEntities		(xmlParserCtxtPtr ctxt,
 						 xmlChar *str,
 						 int what,
 						 xmlChar end,
 						 xmlChar  end2,
 						 xmlChar end3);
-XMLPUBFUN xmlChar * XMLCALL
+external xml2lib xmlChar * EXTDECL
 		xmlStringLenDecodeEntities	(xmlParserCtxtPtr ctxt,
 						 xmlChar *str,
 						 int len,
@@ -499,45 +499,45 @@ XMLPUBFUN xmlChar * XMLCALL
 (*
  * Generated by MACROS on top of parser.c c.f. PUSH_AND_POP.
  *)
-XMLPUBFUN int XMLCALL			nodePush		(xmlParserCtxtPtr ctxt,
+external xml2lib int EXTDECL			nodePush		(xmlParserCtxtPtr ctxt,
 						 xmlNodePtr value);
-XMLPUBFUN xmlNodePtr XMLCALL		nodePop			(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			inputPush		(xmlParserCtxtPtr ctxt,
+external xml2lib xmlNodePtr EXTDECL		nodePop			(xmlParserCtxtPtr ctxt);
+external xml2lib int EXTDECL			inputPush		(xmlParserCtxtPtr ctxt,
 						 xmlParserInputPtr value);
-XMLPUBFUN xmlParserInputPtr XMLCALL	inputPop		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL	namePop			(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			namePush		(xmlParserCtxtPtr ctxt,
+external xml2lib xmlParserInputPtr EXTDECL	inputPop		(xmlParserCtxtPtr ctxt);
+external xml2lib xmlChar * EXTDECL	namePop			(xmlParserCtxtPtr ctxt);
+external xml2lib int EXTDECL			namePush		(xmlParserCtxtPtr ctxt,
 						 xmlChar *value);
 
 (*
  * other commodities shared between parser.c and parserInternals.
  *)
-XMLPUBFUN int XMLCALL			xmlSkipBlankChars	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			xmlStringCurrentChar	(xmlParserCtxtPtr ctxt,
+external xml2lib int EXTDECL			xmlSkipBlankChars	(xmlParserCtxtPtr ctxt);
+external xml2lib int EXTDECL			xmlStringCurrentChar	(xmlParserCtxtPtr ctxt,
 						 xmlChar *cur,
 						 int *len);
-XMLPUBFUN void XMLCALL			xmlParserHandlePEReference(xmlParserCtxtPtr ctxt);
-XMLPUBFUN int XMLCALL			xmlCheckLanguageID	(xmlChar *lang);
+external xml2lib void EXTDECL			xmlParserHandlePEReference(xmlParserCtxtPtr ctxt);
+external xml2lib int EXTDECL			xmlCheckLanguageID	(xmlChar *lang);
 
 (*
  * Really core function shared with HTML parser.
  *)
-XMLPUBFUN int XMLCALL			xmlCurrentChar		(xmlParserCtxtPtr ctxt,
+external xml2lib int EXTDECL			xmlCurrentChar		(xmlParserCtxtPtr ctxt,
 						 int *len);
-XMLPUBFUN int XMLCALL		xmlCopyCharMultiByte	(xmlChar *out,
+external xml2lib int EXTDECL		xmlCopyCharMultiByte	(xmlChar *out,
 						 int val);
-XMLPUBFUN int XMLCALL			xmlCopyChar		(int len,
+external xml2lib int EXTDECL			xmlCopyChar		(int len,
 						 xmlChar *out,
 						 int val);
-XMLPUBFUN void XMLCALL			xmlNextChar		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL			xmlParserInputShrink	(xmlParserInputPtr in);
+external xml2lib void EXTDECL			xmlNextChar		(xmlParserCtxtPtr ctxt);
+external xml2lib void EXTDECL			xmlParserInputShrink	(xmlParserInputPtr in);
 
 {$IFDEF LIBXML_HTML_ENABLED}
 (*
  * Actually comes from the HTML parser but launched from the init stuff.
  *)
-XMLPUBFUN void XMLCALL			htmlInitAutoClose	(void);
-XMLPUBFUN htmlParserCtxtPtr XMLCALL	htmlCreateFileParserCtxt(char *filename,
+external xml2lib void EXTDECL			htmlInitAutoClose	(void);
+external xml2lib htmlParserCtxtPtr EXTDECL	htmlCreateFileParserCtxt(char *filename,
 	                                         char *encoding);
 {$ENDIF}
 
@@ -559,34 +559,34 @@ typedef	void	(xmlEntityReferenceFunc)	(xmlEntityPtr ent,
 						 xmlNodePtr firstNode,
 						 xmlNodePtr lastNode);
   
-XMLPUBFUN void XMLCALL		xmlSetEntityReferenceFunc	(xmlEntityReferenceFunc func);
+external xml2lib void EXTDECL		xmlSetEntityReferenceFunc	(xmlEntityReferenceFunc func);
 
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlParseQuotedString	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
                         xmlParseNamespace       (xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlNamespaceParseNSDef	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlScanName		(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib xmlChar * EXTDECL		
 			xmlNamespaceParseNCName	(xmlParserCtxtPtr ctxt);
-XMLPUBFUN void XMLCALL	xmlParserHandleReference(xmlParserCtxtPtr ctxt);
-XMLPUBFUN xmlChar * XMLCALL		
+external xml2lib void EXTDECL	xmlParserHandleReference(xmlParserCtxtPtr ctxt);
+external xml2lib xmlChar * EXTDECL		
 			xmlNamespaceParseQName	(xmlParserCtxtPtr ctxt,
 						 xmlChar **prefix);
 
 (**
  * Entities
  *)
-XMLPUBFUN xmlChar * XMLCALL
+external xml2lib xmlChar * EXTDECL
 		xmlDecodeEntities		(xmlParserCtxtPtr ctxt,
 						 int len,
 						 int what,
 						 xmlChar end,
 						 xmlChar  end2,
 						 xmlChar end3);
-XMLPUBFUN void XMLCALL			
+external xml2lib void EXTDECL			
 			xmlHandleEntity		(xmlParserCtxtPtr ctxt,
 						 xmlEntityPtr entity);
 
@@ -596,7 +596,7 @@ XMLPUBFUN void XMLCALL
 (*
  * internal only
  *)
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 	xmlErrMemory		(xmlParserCtxtPtr ctxt,
 				 char *extra);
 {$ENDIF}

@@ -118,7 +118,7 @@
  *
  * Returns -1 in case of error, 0 otherwise
  *)
-  xmlXPathConvertFunc = function(obj: xmlXPathObjectPtr; _type: cint): cint; XMLCALL;
+  xmlXPathConvertFunc = function(obj: xmlXPathObjectPtr; _type: cint): cint; EXTDECL;
 
 (*
  * Extra type: a name and a conversion function.
@@ -144,7 +144,7 @@
  * An XPath evaluation function, the parameters are on the XPath context stack.
  *)
 
-  xmlXPathEvalFunc = procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); XMLCALL;
+  xmlXPathEvalFunc = procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
 
 (*
  * Extra function: a name and a evaluation function.
@@ -167,7 +167,7 @@
  * Returns the next node in that axis or NULL if at the end of the axis.
  *)
 
-  xmlXPathAxisFunc = function(ctxt: xmlXPathParserContextPtr; cur: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL;
+  xmlXPathAxisFunc = function(ctxt: xmlXPathParserContextPtr; cur: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL;
 
 (*
  * Extra axis: a name and an axis function.
@@ -186,7 +186,7 @@
  * The arguments (if any) are popped out from the context stack
  * and the result is pushed on the stack.
  *)
-  xmlXPathFunction = procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); XMLCALL;
+  xmlXPathFunction = procedure(ctxt: xmlXPathParserContextPtr; nargs: cint); EXTDECL;
 
 (*
  * Function and Variable Lookup.
@@ -203,7 +203,7 @@
  *
  * Returns the XPath object value or NULL if not found.
  *)
-  xmlXPathVariableLookupFunc = function(ctxt: pointer; name, ns_uri: xmlCharPtr): xmlXPathObjectPtr; XMLCALL;
+  xmlXPathVariableLookupFunc = function(ctxt: pointer; name, ns_uri: xmlCharPtr): xmlXPathObjectPtr; EXTDECL;
 
 (**
  * xmlXPathFuncLookupFunc:
@@ -216,7 +216,7 @@
  *
  * Returns the XPath function or NULL if not found.
  *)
-  xmlXPathFuncLookupFunc = function(ctxt: pointer; name, ns_uri: xmlCharPtr): xmlXPathFunction; XMLCALL;
+  xmlXPathFuncLookupFunc = function(ctxt: pointer; name, ns_uri: xmlCharPtr): xmlXPathFunction; EXTDECL;
 {$ENDIF}
 
 {$IFDEF CONST}
@@ -367,9 +367,9 @@
 
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  xmlXPathNAN: cdouble; XMLPUBVAR;
-  xmlXPathPINF: cdouble; XMLPUBVAR;
-  xmlXPathNINF: cdouble; XMLPUBVAR;
+  xmlXPathNAN: cdouble; cvar; external;
+  xmlXPathPINF: cdouble; cvar; external;
+  xmlXPathNINF: cdouble; cvar; external;
 {$ENDIF}
 
 (* These macros may later turn into functions *)
@@ -406,67 +406,67 @@ function xmlXPathNodeSetItem(ns: xmlNodeSetPtr; index: cint): xmlNodePtr;
 function xmlXPathNodeSetIsEmpty(ns: xmlNodeSetPtr): boolean;
 
 
-procedure xmlXPathFreeObject(obj: xmlXPathObjectPtr); XMLCALL; XMLPUBFUN;
-function xmlXPathNodeSetCreate(val: xmlNodePtr): xmlNodeSetPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPathFreeNodeSetList(obj: xmlXPathObjectPtr); XMLCALL; XMLPUBFUN;
-procedure xmlXPathFreeNodeSet(obj: xmlNodeSetPtr); XMLCALL; XMLPUBFUN;
-function xmlXPathObjectCopy(val: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCmpNodes(node1, node2: xmlNodePtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlXPathFreeObject(obj: xmlXPathObjectPtr); EXTDECL; external xml2lib;
+function xmlXPathNodeSetCreate(val: xmlNodePtr): xmlNodeSetPtr; EXTDECL; external xml2lib;
+procedure xmlXPathFreeNodeSetList(obj: xmlXPathObjectPtr); EXTDECL; external xml2lib;
+procedure xmlXPathFreeNodeSet(obj: xmlNodeSetPtr); EXTDECL; external xml2lib;
+function xmlXPathObjectCopy(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathCmpNodes(node1, node2: xmlNodePtr): cint; EXTDECL; external xml2lib;
 
 (**
  * Conversion functions to basic types.
  *)
-function xmlXPathCastNumberToBoolean(val: cdouble): cint; XMLCALL; XMLPUBFUN;
-function xmlXPathCastStringToBoolean(val: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNodeSetToBoolean(ns: xmlNodeSetPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlXPathCastToBoolean(ns: xmlXPathObjectPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXPathCastNumberToBoolean(val: cdouble): cint; EXTDECL; external xml2lib;
+function xmlXPathCastStringToBoolean(val: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlXPathCastNodeSetToBoolean(ns: xmlNodeSetPtr): cint; EXTDECL; external xml2lib;
+function xmlXPathCastToBoolean(ns: xmlXPathObjectPtr): cint; EXTDECL; external xml2lib;
 
-function xmlXPathCastBooleanToNumber(val: cint): cdouble; XMLCALL; XMLPUBFUN;
-function xmlXPathCastStringToNumber(val: xmlCharPtr): cdouble; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNodeToNumber(val: xmlNodePtr): cdouble; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNodeSetToNumber(val: xmlNodeSetPtr): cdouble; XMLCALL; XMLPUBFUN;
-function xmlXPathCastToNumber(val: xmlXPathObjectPtr): cdouble; XMLCALL; XMLPUBFUN;
+function xmlXPathCastBooleanToNumber(val: cint): cdouble; EXTDECL; external xml2lib;
+function xmlXPathCastStringToNumber(val: xmlCharPtr): cdouble; EXTDECL; external xml2lib;
+function xmlXPathCastNodeToNumber(val: xmlNodePtr): cdouble; EXTDECL; external xml2lib;
+function xmlXPathCastNodeSetToNumber(val: xmlNodeSetPtr): cdouble; EXTDECL; external xml2lib;
+function xmlXPathCastToNumber(val: xmlXPathObjectPtr): cdouble; EXTDECL; external xml2lib;
 
-function xmlXPathCastBooleanToString(val: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNumberToString(val: cdouble): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNodeToString(val: xmlNodePtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCastNodeSetToString(val: xmlNodeSetPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCastToString(val: xmlXPathObjectPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
+function xmlXPathCastBooleanToString(val: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlXPathCastNumberToString(val: cdouble): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlXPathCastNodeToString(val: xmlNodePtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlXPathCastNodeSetToString(val: xmlNodeSetPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlXPathCastToString(val: xmlXPathObjectPtr): xmlCharPtr; EXTDECL; external xml2lib;
 
-function xmlXPathConvertBoolean(val: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathConvertNumber(val: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathConvertString(val: xmlXPathObjectPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
+function xmlXPathConvertBoolean(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathConvertNumber(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathConvertString(val: xmlXPathObjectPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
 
 (**
  * Context handling.
  *)
-function xmlXPathNewContext(doc: xmlDocPtr): xmlXPathContextPtr; XMLCALL; XMLPUBFUN;
-procedure xmlXPathFreeContext(ctxt: xmlXPathContextPtr); XMLCALL; XMLPUBFUN;
-function xmlXPathContextSetCache(ctxt: xmlXPathContextPtr; active, value, options: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlXPathNewContext(doc: xmlDocPtr): xmlXPathContextPtr; EXTDECL; external xml2lib;
+procedure xmlXPathFreeContext(ctxt: xmlXPathContextPtr); EXTDECL; external xml2lib;
+function xmlXPathContextSetCache(ctxt: xmlXPathContextPtr; active, value, options: cint): cint; EXTDECL; external xml2lib;
 
 (**
  * Evaluation functions.
  *)
-function xmlXPathOrderDocElems(doc: xmlDocPtr): clong; XMLCALL; XMLPUBFUN;
-function xmlXPathEval(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathEvalExpression(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathEvalPredicate(ctxt: xmlXPathContextPtr; res: xmlXPathObjectPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlXPathOrderDocElems(doc: xmlDocPtr): clong; EXTDECL; external xml2lib;
+function xmlXPathEval(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathEvalExpression(str: xmlCharPtr; ctx: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathEvalPredicate(ctxt: xmlXPathContextPtr; res: xmlXPathObjectPtr): cint; EXTDECL; external xml2lib;
 
 (**
  * Separate compilation/evaluation entry points.
  *)
-function xmlXPathCompile(str: xmlCharPtr): xmlXPathCompExprPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCtxtCompile(ctxt: xmlXPathContextPtr; str: xmlCharPtr): xmlXPathCompExprPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCompiledEval(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): xmlXPathObjectPtr; XMLCALL; XMLPUBFUN;
-function xmlXPathCompiledEvalToBoolean(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlXPathFreeCompExpr(comp: xmlXPathCompExprPtr); XMLCALL; XMLPUBFUN;
+function xmlXPathCompile(str: xmlCharPtr): xmlXPathCompExprPtr; EXTDECL; external xml2lib;
+function xmlXPathCtxtCompile(ctxt: xmlXPathContextPtr; str: xmlCharPtr): xmlXPathCompExprPtr; EXTDECL; external xml2lib;
+function xmlXPathCompiledEval(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): xmlXPathObjectPtr; EXTDECL; external xml2lib;
+function xmlXPathCompiledEvalToBoolean(comp: xmlXPathCompExprPtr; ctxt: xmlXPathContextPtr): cint; EXTDECL; external xml2lib;
+procedure xmlXPathFreeCompExpr(comp: xmlXPathCompExprPtr); EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_XPATH_ENABLED *)
 
 {$if defined(LIBXML_XPATH_ENABLED) or defined(LIBXML_SCHEMAS_ENABLED)}
 {$IFDEF FUNCTION}
-procedure xmlXPathInit; XMLCALL; XMLPUBFUN;
-function xmlXPathIsNaN(val: cdouble): cint; XMLCALL; XMLPUBFUN;
-function xmlXPathIsInf(val: cdouble): cint; XMLCALL; XMLPUBFUN;
+procedure xmlXPathInit; EXTDECL; external xml2lib;
+function xmlXPathIsNaN(val: cdouble): cint; EXTDECL; external xml2lib;
+function xmlXPathIsInf(val: cdouble): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_XPATH_ENABLED or LIBXML_SCHEMAS_ENABLED*)

@@ -25,39 +25,39 @@ extern "C" {
 (*
  * The standard Dump routines.
  *)
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpString	(FILE *output,
 				 xmlChar *str);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpAttr	(FILE *output,
 				 xmlAttrPtr attr,
 				 int depth);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpAttrList	(FILE *output,
 				 xmlAttrPtr attr,
 				 int depth);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpOneNode	(FILE *output,
 				 xmlNodePtr node,
 				 int depth);
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 	xmlDebugDumpNode	(FILE *output,
 				 xmlNodePtr node,
 				 int depth);
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 	xmlDebugDumpNodeList	(FILE *output,
 				 xmlNodePtr node,
 				 int depth);
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 	xmlDebugDumpDocumentHead(FILE *output,
 				 xmlDocPtr doc);
-XMLPUBFUN void XMLCALL
+external xml2lib void EXTDECL
 	xmlDebugDumpDocument	(FILE *output,
 				 xmlDocPtr doc);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpDTD		(FILE *output,
 				 xmlDtdPtr dtd);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlDebugDumpEntities	(FILE *output,
 				 xmlDocPtr doc);
 
@@ -67,7 +67,7 @@ XMLPUBFUN void XMLCALL
  *								*
  ****************************************************************)
 
-XMLPUBFUN int XMLCALL
+external xml2lib int EXTDECL
 	xmlDebugCheckDocument	(FILE * output,
 				 xmlDocPtr doc);
 
@@ -77,12 +77,12 @@ XMLPUBFUN int XMLCALL
  *								*
  ****************************************************************)
 
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlLsOneNode		(FILE *output, xmlNodePtr node);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlLsCountNode		(xmlNodePtr node);
 
-XMLPUBFUN char * XMLCALL 
+external xml2lib char * EXTDECL 
 	xmlBoolToText		(int boolval);
 
 (****************************************************************
@@ -136,63 +136,63 @@ typedef int (* xmlShellCmd) (xmlShellCtxtPtr ctxt,
 			     xmlNodePtr node,
 			     xmlNodePtr node2);
 
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlShellPrintXPathError	(int errorType,
 				 char *arg);
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlShellPrintXPathResult(xmlXPathObjectPtr list);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellList		(xmlShellCtxtPtr ctxt,
 				 char *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellBase		(xmlShellCtxtPtr ctxt,
 				 char *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellDir		(xmlShellCtxtPtr ctxt,
 				 char *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellLoad		(xmlShellCtxtPtr ctxt,
 				 char *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 { LIBXML_OUTPUT_ENABLED
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlShellPrintNode	(xmlNodePtr node);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellCat		(xmlShellCtxtPtr ctxt,
 				 char *arg,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellWrite		(xmlShellCtxtPtr ctxt,
 				 char *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellSave		(xmlShellCtxtPtr ctxt,
 				 char *filename,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 #endif (* LIBXML_OUTPUT_ENABLED *)
 { LIBXML_VALID_ENABLED
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellValidate	(xmlShellCtxtPtr ctxt,
 				 char *dtd,
 				 xmlNodePtr node,
 				 xmlNodePtr node2);
 #endif (* LIBXML_VALID_ENABLED *)
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellDu		(xmlShellCtxtPtr ctxt,
 				 char *arg,
 				 xmlNodePtr tree,
 				 xmlNodePtr node2);
-XMLPUBFUN int XMLCALL	
+external xml2lib int EXTDECL	
 	xmlShellPwd		(xmlShellCtxtPtr ctxt,
 				 char *buffer,
 				 xmlNodePtr node,
@@ -201,7 +201,7 @@ XMLPUBFUN int XMLCALL
 (*
  * The Shell interface.
  *)
-XMLPUBFUN void XMLCALL	
+external xml2lib void EXTDECL	
 	xmlShell		(xmlDocPtr doc,
 				 char *filename,
 				 xmlShellReadlineFunc input,
