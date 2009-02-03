@@ -22,8 +22,8 @@
 {$mode objfpc}
 
 { At least 2.0.0 is required }
-{$ifdef VER1}
-  {$fatal You need at least FPC 2.0.0}
+{$if defined(VER1) or defined(VER2_0) or defined(VER2_2_0) }
+  {$fatal You need at least FPC 2.2.2 to build this version of FPC}
 {$endif}
 
 { Using inlining for small system functions/wrappers }
