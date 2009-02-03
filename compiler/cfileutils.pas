@@ -463,17 +463,33 @@ implementation
      begin
         result:=false;
 {$if defined(unix)}
-        if (length(s)>0) and (s[1]='/') then
+        if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
 {$elseif defined(amiga) or defined(morphos)}
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
+        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or (Pos(':',s) = length(s)) then
           result:=true;
 {$elseif defined(macos)}
         if IsMacFullPath(s) then
           result:=true;
-{$elseif defined(win32) or defined(win64) or defined(go32v2)}
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or
-           ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
+{$elseif defined(netware)}
+        if (Pos (DriveSeparator, S) <> 0) or
+                ((Length (S) > 0) and (S [1] in AllowDirectorySeparators)) then
+          result:=true;
+{$elseif defined(win32) or defined(win64) or defined(go32v2) or defined(os2) or defined(watcom)}
+        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or
+(* The following check for non-empty AllowDriveSeparators assumes that all
+   other platforms supporting drives and not handled as exceptions above
+   should work with DOS-like paths, i.e. use absolute paths with one letter
+   for drive followed by path separator *)
+           ((length(s)>2) and (s[2] in AllowDriveSeparators) and (s[3] in AllowDirectorySeparators)) then
+          result:=true;
+{$else}
+        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or
+(* The following check for non-empty AllowDriveSeparators assumes that all
+   other platforms supporting drives and not handled as exceptions above
+   should work with DOS-like paths, i.e. use absolute paths with one letter
+   for drive followed by path separator *)
+           ((AllowDriveSeparators <> []) and (length(s)>2) and (s[2] in AllowDriveSeparators) and (s[3] in AllowDirectorySeparators)) then
           result:=true;
 {$endif unix}
      end;
