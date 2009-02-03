@@ -141,12 +141,18 @@ begin
       if (l2 < 0) then
         raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareDenyWrite failed');
       fileclose(l2);
+{ on Windows, fmShareExclusive checks whether the file is already open in any way by the current
+  or another process. On Unix, that is not the case, and we also cannot check against a
+  fmShareDenyNone mode
+}
+{$ifndef unix}
       l2:=fileopen('tfile2.dat',fmopenread or fmShareExclusive);
       if (l2 >= 0) then
         begin
           fileclose(l2);
           raise exception.create('opening two files as read-only with fmShareDenyNone and then fmShareExclusive succeeded');
         end;
+{$endif}
       fileclose(l);
 
       l:=fileopen('tfile2.dat',fmopenread or fmShareDenyWrite);
