@@ -190,7 +190,7 @@ begin
         exclusive locks for files only opened for reading nor shared
         locks for files opened only for writing
       }
-      if ((mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead)) = 0) then
+      if ((mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead or fmShareDenyNone)) = 0) then
         begin
           mode := mode and not(fmShareCompat);
           if ((mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) = fmOpenWrite) then
