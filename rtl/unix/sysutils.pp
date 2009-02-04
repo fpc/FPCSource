@@ -188,15 +188,19 @@ begin
 {$ifdef solaris}
       { Solaris' flock is based on top of fcntl, which does not allow
         exclusive locks for files only opened for reading nor shared
-        locks for files opened only for writing
+        locks for files opened only for writing.
+        
+        If no locking is specified, we normally need an exclusive lock.
+        So create an exclusive lock for fmOpenWrite and fmOpenReadWrite,
+        but only a shared lock for fmOpenRead (since an exclusive lock
+        is not possible in that case)
       }
       if ((mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead or fmShareDenyNone)) = 0) then
         begin
-          mode := mode and not(fmShareCompat);
-          if ((mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) = fmOpenWrite) then
-            mode := mode or fmShareExclusive
+          if ((mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) = fmOpenRead) then
+            mode := mode or fmShareDenyWrite
           else
-            mode := mode or fmShareDenyWrite;
+            mode := mode or fmShareExclusive;
         end;
 {$endif solaris}
       case (mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead or fmShareDenyNone)) of
