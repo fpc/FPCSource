@@ -2128,7 +2128,8 @@ const pemagic : array[0..3] of byte = (
         dataExeSec,
         bssExeSec,
         idataExeSec : TExeSection;
-        hassymbols  : boolean;
+        hassymbols,
+        writeDbgStrings : boolean;
 
         procedure UpdateDataDir(const secname:string;idx:longint);
         var
@@ -2158,6 +2159,7 @@ const pemagic : array[0..3] of byte = (
                      (ExeWriteMode=ewm_exefull) and
                      not(cs_link_strip in current_settings.globalswitches)
                     );
+        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in current_settings.globalswitches));
         { Stub }
         if win32 then
           begin
@@ -2170,11 +2172,10 @@ const pemagic : array[0..3] of byte = (
         fillchar(header,sizeof(header),0);
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
+        if writeDbgStrings then
+          header.sympos:=sympos;
         if hassymbols then
-          begin
-            header.sympos:=sympos;
-            header.syms:=nsyms;
-          end;
+          header.syms:=nsyms;
         if win32 then
           header.opthdr:=sizeof(tcoffpeoptheader)
         else
@@ -2288,12 +2289,13 @@ const pemagic : array[0..3] of byte = (
         ExeSectionList.ForEachCall(@ExeSectionList_write_header,nil);
         { Section data }
         ExeSectionList.ForEachCall(@ExeSectionList_write_data,nil);
+        { Optional Symbols }
+        if SymPos<>FWriter.Size then
+          internalerror(200602252);
         if hassymbols then
+          ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
+        if writeDbgStrings then
           begin
-            { Optional Symbols }
-            if SymPos<>FWriter.Size then
-              internalerror(200602252);
-            ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
             { Strings }
             i:=FCoffStrs.size+4;
             FWriter.write(i,4);
