@@ -21,6 +21,7 @@ uses
 {$IFDEF UNIX}
   //unixtype,
 {$ENDIF}
+  dynlibs,
   ctypes;
 
 //{$IF Sizeof(cbool) <> Sizeof(cint)}
@@ -32,7 +33,7 @@ const
   xml2lib = 'libxml2.dll';
   {$DEFINE EXTDECL := cdecl}
 {$ELSEIF Defined(UNIX)}
-  xml2lib = 'libxml2.so';
+  xml2lib = 'libxml2'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
 {$ELSE}
   {$MESSAGE ERROR 'DYNLINK not supported'}
@@ -278,7 +279,7 @@ procedure LoadExternalVariables;
 var
   libHandle: THandle;
 begin
-  libHandle := LoadLibrary(libxml2lib);
+  libHandle := LoadLibrary(xml2lib);
   if libHandle <> 0 then
   begin
   { xmlregexp.inc }
