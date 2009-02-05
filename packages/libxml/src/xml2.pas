@@ -16,7 +16,7 @@ interface
 
 uses
 {$IFDEF WINDOWS}
-  //windows,
+  windows,
 {$ENDIF}
 {$IFDEF UNIX}
   //unixtype,
