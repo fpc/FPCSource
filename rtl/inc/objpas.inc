@@ -676,10 +676,10 @@
           Result := getcorbainterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
         end;
 
-      function TObject.getinterface(const iidstr : string;out obj) : boolean;
+      {function TObject.getinterface(const iidstr : string;out obj) : boolean;
         begin
           Result := getinterfacebystr(iidstr,obj);
-        end;
+        end;}
 
       class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
         var
