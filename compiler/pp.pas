@@ -154,7 +154,7 @@ program pp;
     {$MAXSTACKSIZE 512000000}
   {$else win64}
     { 1 MB stack }
-    {$STACKSIZE 1000000}
+    {$MINSTACKSIZE 1000000}
   {$endif win64}
 {$endif win32}
 
