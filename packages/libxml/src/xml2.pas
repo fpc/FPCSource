@@ -26,7 +26,7 @@ const
   xml2lib = 'libxml2.'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
 {$ELSE}
-  {$MESSAGE ERROR 'DYNLINK not supported'}
+  {$MESSAGE ERROR 'Platform not supported right now'}
 {$IFEND}
 
 {$i xml2.inc}
