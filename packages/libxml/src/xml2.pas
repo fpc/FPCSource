@@ -15,25 +15,15 @@ unit xml2;
 interface
 
 uses
-{$IFDEF WINDOWS}
-  windows,
-{$ENDIF}
-{$IFDEF UNIX}
-  //unixtype,
-{$ENDIF}
   dynlibs,
   ctypes;
 
-//{$IF Sizeof(cbool) <> Sizeof(cint)}
-// {$ERROR 'cbool size mismatch!'}
-//{$ENDIF}
-
 const
 {$IF Defined(WINDOWS)}
-  xml2lib = 'libxml2.dll';
+  xml2lib = 'libxml2.'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
 {$ELSEIF Defined(UNIX)}
-  xml2lib = 'libxml2'+sharedsuffix;
+  xml2lib = 'libxml2.'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
 {$ELSE}
   {$MESSAGE ERROR 'DYNLINK not supported'}
