@@ -500,7 +500,7 @@ implementation
                  objectdef :
                    begin
                      { corba interface -> id string }
-                     if is_interfacecorba(def_from) then
+                     if is_interfacecorba(def_from) or is_interfacecom(def_from) then
                       begin
                         doconv:=tc_intf_2_string;
                         eq:=te_convert_l1;
