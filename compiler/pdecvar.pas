@@ -240,6 +240,7 @@ implementation
 
       var
          sym : tsym;
+         srsymtable: tsymtable;
          p : tpropertysym;
          overriden : tsym;
          varspez : tvarspez;
@@ -550,7 +551,37 @@ implementation
                       { as stored true                    }
                       if idtoken<>_DEFAULT then
                        begin
-                         if parse_symlist(p.propaccesslist[palt_stored],def) then
+                         { parse_symlist cannot deal with constsyms, and
+                           we also don't want to put constsyms in symlists
+                           since they have to be evaluated immediately rather
+                           than each time the property is accessed
+
+                           The proper fix would be to always create a parse tree
+                           and then convert that one, if appropriate, to a symlist.
+                           Currently, we e.g. don't support any constant expressions
+                           yet either here, while Delphi does.
+
+                         }
+                         { make sure we don't let constants mask class fields/
+                           methods
+                         }
+                         if (not assigned(aclass) or
+                             (search_class_member(aclass,pattern)=nil)) and
+                            searchsym(pattern,sym,srsymtable) and
+                            (sym.typ = constsym) then
+                           begin
+                              addsymref(sym);
+                              if not is_boolean(tconstsym(sym).constdef) then
+                                Message(parser_e_stored_property_must_be_boolean)
+                              else if (tconstsym(sym).value.valueord=0) then
+                                { same as for _FALSE }
+                                exclude(p.propoptions,ppo_stored)
+                              else
+                                { same as for _TRUE }
+                                p.default:=longint($80000000);
+                              consume(_ID);
+                            end
+                         else if parse_symlist(p.propaccesslist[palt_stored],def) then
                           begin
                             sym:=p.propaccesslist[palt_stored].firstsym^.sym;
                             case sym.typ of

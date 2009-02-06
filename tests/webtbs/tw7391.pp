@@ -5,11 +5,12 @@ uses
 
 const
   ShowTheException = true; //set this to false for halt(128) instead of exception
+  StoredTrue = True;
 
 type
   TGLNode = class (TCollectionItem)
   private
-    FCoords : array[0..5] of double;
+    FCoords : array[0..6] of double;
     procedure SetCoordinate(aIndx: Integer; AValue: double);
   protected
     function StoreCoordinate(aIndx: Integer) : Boolean;
@@ -19,7 +20,7 @@ type
     property Z: double index 2 read FCoords[2] write SetCoordinate stored StoreCoordinate;
     property X2: double index 3 read FCoords[3] write SetCoordinate stored true;
     property Y2: double index 4 read FCoords[4] write SetCoordinate stored true;
-    property Z2: double index 5 read FCoords[5] write SetCoordinate stored true;
+    property Z2: double index 5 read FCoords[5] write SetCoordinate stored StoredTrue;
   end;
 
   { TNodeContainer }
