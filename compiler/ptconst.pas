@@ -996,8 +996,26 @@ implementation
           is_packed: boolean;
         begin
           { GUID }
-          if (def=rec_tguid) and
-             ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
+          if (def=rec_tguid) and (token=_ID) then
+            begin
+              n:=comp_expr(true);
+              inserttypeconv(n,rec_tguid);
+              if n.nodetype=guidconstn then
+                begin
+                  tmpguid:=tguidconstnode(n).value;
+                  list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                  list.concat(Tai_const.Create_16bit(tmpguid.D2));
+                  list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                  for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                    list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                end
+              else
+                Message(parser_e_illegal_expression);
+              n.free;
+              exit;
+            end;
+          if (def=rec_tguid) and { maybe keep token=_ID here to assign corba interfaces to TGuid }
+             ((token=_CSTRING) or (token=_CCHAR) {or (token=_ID)}) then
             begin
               n:=comp_expr(true);
               inserttypeconv(n,cshortstringtype);

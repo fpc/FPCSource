@@ -209,7 +209,7 @@
 
           { interface functions }
           function GetInterface(const iid : tguid; out obj) : boolean;
-          //function GetInterface(const iidstr : string;out obj) : boolean;
+          function GetInterface(const iidstr : string;out obj) : boolean;
           function GetInterfaceByStr(const iidstr : string; out obj) : boolean;
           class function GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
           class function GetInterfaceEntryByStr(const iidstr : string) : pinterfaceentry;
