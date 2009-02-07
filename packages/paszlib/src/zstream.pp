@@ -70,6 +70,7 @@ type
           raw_read,compressed_read:longint;
           skipheader:boolean;
           procedure reset;
+          function GetPosition() : Int64; override;
         public
           constructor create(Asource:Tstream;Askipheader:boolean=false);
           destructor destroy;override;
@@ -321,6 +322,11 @@ begin
     raise Edecompressionerror.create(zerror(err));
 end;
 
+function Tdecompressionstream.GetPosition() : Int64; 
+begin
+  GetPosition := raw_read;
+end;
+
 function Tdecompressionstream.seek(offset:longint;origin:word):longint;
 
 var c:longint;
@@ -330,7 +336,7 @@ begin
      ((origin=sofromcurrent) and (offset+raw_read>=0)) then
     begin
       if origin = sofromcurrent then 
-        seek := compressed_read - offset
+        seek := raw_read + offset
       else
         seek := offset;
         

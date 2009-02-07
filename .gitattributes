@@ -7694,6 +7694,7 @@ tests/test/packages/hash/tmdtest.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw10045.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw11142.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw11570.pp svneol=native#text/plain
+tests/test/packages/webtbs/tw12830.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw1808.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw3820.pp svneol=native#text/plain
 tests/test/packages/win-base/tdispvar1.pp svneol=native#text/plain
