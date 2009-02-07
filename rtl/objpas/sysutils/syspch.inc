@@ -22,9 +22,6 @@
 
 {  PChar functions  }
 
-type
-   CharArray = array[0..0] of char;
-
 { Processor dependent part, shared withs strings unit }
 {$ifdef FPC_USE_LIBC}
 {$i cgenstr.inc}
@@ -88,13 +85,14 @@ function StrPLCopy(Dest: PChar; Source: string; MaxLen: SizeUInt): PChar;
 var Count: SizeUInt;
 begin
 result := Dest;
-if (Result <> Nil) and (MaxLen <> 0) then begin
-   Count := Length(Source);
-   if Count > MaxLen then
+if (Result <> Nil) and (MaxLen <> 0) then
+  begin
+    Count := Length(Source);
+    if Count > MaxLen then
       Count := MaxLen;
-   StrMove(Dest, PChar(Source), Count);
-   CharArray(result^)[Count] := #0;  { terminate ! }
-   end ;
+    StrMove(Dest, PChar(Source), Count);
+    result[Count] := #0;  { terminate ! }
+  end ;
 end ;
 
 

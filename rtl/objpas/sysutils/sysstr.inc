@@ -210,24 +210,27 @@ begin
     Count := Count2
   else
     Count := Count1;
-  P1 := @S1[1];
-  P2 := @S2[1];
   i := 0;
-  while i < Count do
-  begin
-    Chr1 := byte(p1^);
-    Chr2 := byte(p2^);
-    if Chr1 <> Chr2 then
+  if count>0 then
     begin
-      if Chr1 in [97..122] then
-        dec(Chr1,32);
-      if Chr2 in [97..122] then
-        dec(Chr2,32);
-      if Chr1 <> Chr2 then
-        Break;
+      P1 := @S1[1];
+      P2 := @S2[1];
+      while i < Count do
+        begin
+          Chr1 := byte(p1^);
+          Chr2 := byte(p2^);
+          if Chr1 <> Chr2 then
+            begin
+              if Chr1 in [97..122] then
+                dec(Chr1,32);
+              if Chr2 in [97..122] then
+                dec(Chr2,32);
+              if Chr1 <> Chr2 then
+                Break;
+            end;
+          Inc(P1); Inc(P2); Inc(I);
+        end;
     end;
-    Inc(P1); Inc(P2); Inc(I);
-  end;
   if i < Count then
     result := Chr1-Chr2
   else
