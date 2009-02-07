@@ -298,6 +298,9 @@ end;
 { ========================================================================
   Table of CRC-64's of all single-byte values (made by make_crc64_table) }
 
+{$push}
+{$r-}
+
 {local}
 const
   crc64_table : array[Byte] of QWord = (
@@ -345,6 +348,8 @@ const
     $F8474C3BB7CDF024,$829F3CF387F8795D,$66E7A46C27F3AA2C,$1C3FD4A417C62355,$935745FC4798B8DE,$E98F353477AD31A7,
     $A6DF411FBFB21CA3,$DC0731D78F8795DA,$536FA08FDFD90E51,$29B7D047EFEC8728
   );
+
+{$pop}
 
 {$ENDIF}
 
