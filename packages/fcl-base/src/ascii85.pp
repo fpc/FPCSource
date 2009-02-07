@@ -182,11 +182,11 @@ begin
   if aDecodedCount >= 1 then begin
     BufferByte(aValue shr (24 - (0 * 8)));
     if aDecodedCount >= 2 then begin
-      BufferByte(aValue shr (24 - (1 * 8)));
+      BufferByte((aValue shr (24 - (1 * 8))) and $ff);
       if aDecodedCount >= 3 then begin
-        BufferByte(aValue shr (24 - (2 * 8)));
+        BufferByte((aValue shr (24 - (2 * 8))) and $ff);
         if aDecodedCount >= 4 then begin
-          BufferByte(aValue shr (24 - (3 * 8)));
+          BufferByte((aValue shr (24 - (3 * 8))) and $ff);
           if aDecodedCount >= 5 then begin
             raise EConvertError.Create('not enough decoded data (internal error).');
           end;
