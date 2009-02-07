@@ -233,6 +233,9 @@ end;
 
 procedure MD4Transform(var Context: TMDContext; Buffer: Pointer);
 
+{$push}
+{$r-,q-}
+
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // F(x,y,z) = (x and y) or ((not x) and z)
   begin
@@ -250,6 +253,8 @@ procedure MD4Transform(var Context: TMDContext; Buffer: Pointer);
   begin
     a := roldword(dword(a + {H(b,c,d)}(b xor c xor d) + x + $6ED9EBA1), s);
   end;
+
+{$pop}
 
 var
   a, b, c, d: Cardinal;
@@ -279,15 +284,21 @@ begin
   R3(a,b,c,d,Block[1],  3); R3(d,a,b,c,Block[9],  9); R3(c,d,a,b,Block[5], 11); R3(b,c,d,a,Block[13],15);
   R3(a,b,c,d,Block[3],  3); R3(d,a,b,c,Block[11], 9); R3(c,d,a,b,Block[7], 11); R3(b,c,d,a,Block[15],15);
 
+{$push}
+{$r-,q-}
   inc(Context.State[0], a);
   inc(Context.State[1], b);
   inc(Context.State[2], c);
   inc(Context.State[3], d);
+{$pop}
   inc(Context.Length,64);
 end;
 
 
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
+
+{$push}
+{$r-,q-}
 
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // F(x,y,z) = (x and y) or ((not x) and z)
@@ -312,6 +323,8 @@ procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
   begin
     a := b + roldword(dword(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac), s);
   end;
+
+{$pop}
 
 var
   a, b, c, d: Cardinal;
@@ -347,10 +360,13 @@ begin
   R4(a,b,c,d,Block[8] , 6,$6fa87e4f); R4(d,a,b,c,Block[15],10,$fe2ce6e0); R4(c,d,a,b,Block[6] ,15,$a3014314); R4(b,c,d,a,Block[13],21,$4e0811a1);
   R4(a,b,c,d,Block[4] , 6,$f7537e82); R4(d,a,b,c,Block[11],10,$bd3af235); R4(c,d,a,b,Block[2] ,15,$2ad7d2bb); R4(b,c,d,a,Block[9] ,21,$eb86d391);
 
+{$push}
+{$r-,q-}
   inc(Context.State[0],a);
   inc(Context.State[1],b);
   inc(Context.State[2],c);
   inc(Context.State[3],d);
+{$pop}
   inc(Context.Length,64);
 end;
 
