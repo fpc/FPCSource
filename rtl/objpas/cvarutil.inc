@@ -177,7 +177,7 @@ begin
         varDate     : Result := shortint(Round(vDate));
 {$endif}
         varCurrency : Result := shortint(Round(vCurrency));
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := shortint(vBoolean);
         varVariant  : Result := VariantToShortInt(PVarData(vPointer)^);
         varByte     : Result := shortint(vByte);
         varWord     : Result := shortint(vWord);
@@ -343,7 +343,7 @@ begin
         varDate     : Result := cardinal(Round(vDate));
 {$endif}
         varCurrency : Result := cardinal(Round(vCurrency));
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := cardinal(SmallInt(vBoolean));
         varVariant  : Result := VariantToCardinal(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := vWord;
@@ -365,7 +365,7 @@ begin
         varDate     : Result := cardinal(Round(PDate(vPointer)^));
 {$endif}
         varCurrency : Result := cardinal(Round(PCurrency(vPointer)^));
-        varBoolean  : Result := SmallInt(PWordBool(vPointer)^);
+        varBoolean  : Result := cardinal(SmallInt(PWordBool(vPointer)^));
         varVariant  : Result := VariantToCardinal(PVarData(vPointer)^);
         varByte     : Result := PByte(vPointer)^;
         varWord     : Result := PWord(vPointer)^;
@@ -935,7 +935,7 @@ begin
         varCurrency : Result := byte(Round(vCurrency));
         varDate     : Result := byte(Round(vDate));
 {$endif}
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := byte(SmallInt(vBoolean));
         varVariant  : Result := VariantToByte(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := byte(vWord);
@@ -1101,7 +1101,7 @@ begin
         varCurrency : Result := qword(Round(vCurrency));
         varDate     : Result := qword(Round(vDate));
 {$endif}
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := qword(SmallInt(vBoolean));
         varVariant  : Result := VariantToQWord(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := vWord;
@@ -1123,7 +1123,7 @@ begin
         varCurrency : Result := qword(Round(PCurrency(vPointer)^));
         varDate     : Result := qword(Round(PDate(vPointer)^));
 {$endif}
-        varBoolean  : Result := SmallInt(PWordBool(vPointer)^);
+        varBoolean  : Result := qword(SmallInt(PWordBool(vPointer)^));
         varVariant  : Result := VariantToQWord(PVarData(vPointer)^);
         varByte     : Result := PByte(vPointer)^;
         varWord     : Result := PWord(vPointer)^;
