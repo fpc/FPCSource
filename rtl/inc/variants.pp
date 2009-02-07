@@ -2055,8 +2055,18 @@ begin
     try
       { Calculation total number of elements in the array }
       cnt:=1;
+{$ifopt r+}
+{ arr^.bounds[] is an array[0..0] }
+{$define rangeon}
+{$r-}
+{$endif}
       for i:=0 to arr^.dimcount - 1 do
         cnt:=cnt*cardinal(arr^.Bounds[i].ElementCount);
+{$ifdef rangeon}
+{$undef rangeon}
+{$r+}
+{$endif}
+
       { Clearing each element }
       for i:=1 to cnt do begin
         DoVarClear(data^);
@@ -2500,10 +2510,18 @@ begin
       else
         p:=src.vArray;
 
+{$ifopt r+}
+{$define rangeon}
+{$r-}
+{$endif}
       if highbound<p^.Bounds[p^.dimcount-1].LowBound-1 then
         VarInvalidArgError;
 
       newbounds.LowBound:=p^.Bounds[p^.dimcount-1].LowBound;
+{$ifdef rangon}
+{$undef rangeon}
+{$r+}
+{$endif}
       newbounds.ElementCount:=highbound-newbounds.LowBound+1;
 
       VarResultCheck(SafeArrayRedim(p,newbounds));
