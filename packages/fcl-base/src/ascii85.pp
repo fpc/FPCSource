@@ -62,7 +62,7 @@ type
     procedure Decode(aInput : Byte); inline;
     procedure Close();
     function ClosedP() : Boolean; inline;
-    property BExpectPrefix : Boolean read fBExpectBoundary write fBExpectBoundary;
+    property BExpectBoundary : Boolean read fBExpectBoundary write fBExpectBoundary;
   protected
     function GetPosition() : Int64; override;
   public
