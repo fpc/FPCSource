@@ -1004,18 +1004,18 @@ function SetKeyboardState(var KeyState:TKeyboardState):WINBOOL; external 'user32
 function GetWindowThreadProcessId(hWnd:HWND;var lpdwProcessId:DWORD):DWORD; external 'user32' name 'GetWindowThreadProcessId';
 function HwndMSWheel(var puiMsh_MsgMouseWheel, puiMsh_Msg3DSupport,puiMsh_MsgScrollLines: UINT;
   var pf3DSupport: BOOL; var piScrollLines: Integer): HWND;
-function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
+function CreateWaitableTimer(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA';
 function OpenWaitableTimer(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA';
 //function PropertySheetA(p:TPROPSHEETHEADER):longint; external 'comctl32' name 'PropertySheetA';
 
 // windows because of Delphi compat.
 
 {$calling default}
-function InterLockedIncrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDINCREMENT';
-function InterLockedDecrement (var Target: longint) : longint; external name 'FPC_INTERLOCKEDDECREMENT';
-function InterLockedExchange (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGE';
-function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; external name 'FPC_INTERLOCKEDEXCHANGEADD';
-function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
+function InterLockedIncrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDINCREMENT';
+function InterLockedDecrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDDECREMENT';
+function InterLockedExchange (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGE';
+function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; register; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$calling stdcall}
 
 {$endif read_interface}
