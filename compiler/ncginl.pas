@@ -728,7 +728,8 @@ implementation
         op1,op2 : tnode;
       begin
         { one or two parameters? }
-        if assigned(tcallparanode(left).right) then
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
           begin
             op1:=tcallparanode(tcallparanode(left).right).left;
             op2:=tcallparanode(left).left;
@@ -749,7 +750,8 @@ implementation
         end;
         location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
 
-        if assigned(tcallparanode(left).right) then
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
           begin
              secondpass(op2);
              { rotating by a constant directly coded: }
