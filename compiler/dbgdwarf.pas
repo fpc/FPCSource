@@ -1454,7 +1454,7 @@ implementation
           finish_entry;
           append_entry(DW_TAG_subrange_type,false,[
             DW_AT_lower_bound,DW_FORM_udata,0,
-            DW_AT_upper_bound,DW_FORM_udata,int64(slen)
+            DW_AT_upper_bound,DW_FORM_udata,qword(slen)
             ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(lendef));
           finish_entry;
