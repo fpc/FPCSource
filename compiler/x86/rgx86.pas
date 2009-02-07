@@ -234,6 +234,15 @@ implementation
                           A_ANDPD,
                           A_ANDPS:
                             replaceoper:=-1;
+{$ifdef x86_64}
+                          A_MOV:
+                             { 64 bit constants can only be moved into registers }
+                             if (oper[0]^.typ=top_const) and
+                                (oper[1]^.typ=top_reg) and
+                                ((oper[0]^.val<low(longint)) or
+                                 (oper[0]^.val>high(longint))) then
+                               replaceoper:=-1;
+{$endif x86_64}
                         end;
                       end;
                     end;
