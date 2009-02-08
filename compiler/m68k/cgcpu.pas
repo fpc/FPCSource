@@ -48,7 +48,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
         procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
 
         procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);override;
@@ -451,9 +451,15 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_call_name(list : TAsmList;const s : string);
-
+    procedure tcg68k.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        sym: tasmsymbol;
       begin
+        if not(weak) then
+          sym:=current_asmdata.RefAsmSymbol(s)
+        else
+          sym:=current_asmdata.WeakRefAsmSymbol(s);
+
         list.concat(taicpu.op_sym(A_JSR,S_NO,current_asmdata.RefAsmSymbol(s)));
       end;
 
@@ -709,7 +715,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGINT');
+                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -738,7 +744,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -921,7 +927,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGINT');
+                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -964,7 +970,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -1217,10 +1223,10 @@ unit cgcpu;
               iregister:=getaddressregister(list);
               jregister:=getaddressregister(list);
               { reference for move (An)+,(An)+ }
-              reference_reset(hp1);
+              reference_reset(hp1,source.alignment);
               hp1.base := iregister;   { source register }
               hp1.direction := dir_inc;
-              reference_reset(hp2);
+              reference_reset(hp2,dest.alignment);
               hp2.base := jregister;
               hp2.direction := dir_inc;
               { iregister = source }
@@ -1300,7 +1306,7 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
 //        writeln('proc entry, localsize:',localsize);
 {$endif DEBUG_CHARLIE}
-	
+
         if not nostackframe then
           begin
 	    if localsize<>0 then
@@ -1308,7 +1314,7 @@ unit cgcpu;
 	        { size can't be negative }
 		if (localsize < 0) then
 		  internalerror(2006122601);
-	
+
                 { Not to complicate the code generator too much, and since some }
                 { of the systems only support this format, the localsize cannot }
                 { exceed 32K in size.                                           }
@@ -1320,17 +1326,17 @@ unit cgcpu;
 	    else
 	      begin
 	        list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
-(*		
+(*
 		{ FIXME! - Carl's original code uses this method. However,
 		  according to the 68060 users manual, a LINK is faster than
 		  two moves. So, use a link in #0 case too, for now. I'm not
 		  really sure tho', that LINK supports #0 disposition, but i
 		  see no reason why it shouldn't support it. (KB) }
-		
+
 	        { when localsize = 0, use two moves, instead of link }
 		r:=NR_FRAME_POINTER_REG;
 		rsp:=NR_STACK_POINTER_REG;
-		
+
 	        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
 		ref.direction:=dir_dec;
                 list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));

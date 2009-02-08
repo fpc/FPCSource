@@ -154,7 +154,7 @@ implementation
 //       paraloc1.init;
 //         cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
 
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR');
+         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
          cg.a_label(current_asmdata.CurrAsmList, continuelabel);
          if signed then
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_DIVS,S_L,denum,num))
@@ -175,9 +175,9 @@ implementation
          { put denum in D1 }
          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,denum,reg_d1);
          if signed then
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_LONGINT')
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_LONGINT',false)
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_CARDINAL');
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DIV_CARDINAL',false);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,reg_d0,denum);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d0);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,reg_d1);
@@ -200,7 +200,7 @@ implementation
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_NE,0,denum,continuelabel);
 //         cg.a_param_const(current_asmdata.CurrAsmList, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
-         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR');
+         cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
          cg.a_label(current_asmdata.CurrAsmList, continuelabel);
 
          tmpreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
@@ -238,9 +238,9 @@ implementation
          { put denum in D1 }
          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,denum,Reg_D1);
          if signed then
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_LONGINT')
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_LONGINT',false)
          else
-             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_CARDINAL');
+             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_MOD_CARDINAL',false);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,Reg_D0,denum);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D0);
         cg.ungetcpuregister(current_asmdata.CurrAsmList,Reg_D1);
