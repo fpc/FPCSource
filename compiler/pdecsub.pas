@@ -2756,7 +2756,10 @@ const
                begin
                  if not(fwpd.forwarddef) then
                   begin
-                    MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off);
+                    if (m_tp7 in current_settings.modeswitches) then
+                      MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
+                    else
+                      MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
                   end;
                end;
