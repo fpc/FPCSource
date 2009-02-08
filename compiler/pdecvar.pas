@@ -1017,10 +1017,16 @@ implementation
               abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               abssym.abstyp:=toaddr;
+{$ifndef cpu64bitaddr}
+              { on 64 bit systems, abssym.addroffset is a qword and hence this
+                test is useless (value is a 64 bit entity) and will always fail
+                for positive values (since int64(high(abssym.addroffset))=-1
+              }
               if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
                  (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
                 message(parser_e_range_check_error)
               else
+{$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$ifdef i386}
               abssym.absseg:=false;
