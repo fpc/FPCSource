@@ -229,9 +229,9 @@ implementation
              location:=left.location;
              case tfloatdef(resultdef).floattype of
                s32real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0);
+                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_SINGLE'),0,4);
                s64real:
-                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0);
+                 reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_ABSMASK_DOUBLE'),0,4);
                else
                  internalerror(200506081);
              end;
@@ -267,7 +267,7 @@ implementation
 {$endif x86_64}
           begin
             load_fpu_location;
-            location_reset(location,LOC_REFERENCE,OS_S64);
+            location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
             tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
             emit_ref(A_FISTP,S_IQ,location.reference);
             emit_none(A_FWAIT,S_NO);
@@ -302,7 +302,7 @@ implementation
             if (current_settings.fputype>=fpu_sse3) then
               begin
                 load_fpu_location;
-                location_reset(location,LOC_REFERENCE,OS_S64);
+                location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTTP,S_IQ,location.reference);
               end
@@ -315,7 +315,7 @@ implementation
                 emit_const_ref(A_OR,S_W,$0f00,newcw);
                 load_fpu_location;
                 emit_ref(A_FLDCW,S_NO,newcw);
-                location_reset(location,LOC_REFERENCE,OS_S64);
+                location_reset_ref(location,LOC_REFERENCE,OS_S64,0);
                 tg.GetTemp(current_asmdata.CurrAsmList,resultdef.size,resultdef.alignment,tt_normal,location.reference);
                 emit_ref(A_FISTP,S_IQ,location.reference);
                 emit_ref(A_FLDCW,S_NO,oldcw);
@@ -404,7 +404,7 @@ implementation
                  begin
                    r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                    cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-                   reference_reset_base(ref,r,0);
+                   reference_reset_base(ref,r,0,left.location.reference.alignment);
                    current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PREFETCHNTA,S_NO,ref));
                  end;
                else

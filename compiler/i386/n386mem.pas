@@ -120,7 +120,7 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0);
+            reference_reset_base(location.reference,hreg,0,location.reference.alignment);
           end;
          { insert the new index register and scalefactor or
            do the multiplication manual }

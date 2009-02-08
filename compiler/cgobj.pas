@@ -854,7 +854,7 @@ implementation
               a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                  a_load_reg_ref(list,size,cgpara.location^.size,r,ref);
               end
             else
@@ -873,7 +873,7 @@ implementation
               a_load_const_reg(list,cgpara.location^.size,a,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                  a_load_const_ref(list,cgpara.location^.size,a,ref);
               end
             else
@@ -892,9 +892,7 @@ implementation
               a_load_ref_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
-                 reference_reset(ref);
-                 ref.base:=cgpara.location^.reference.index;
-                 ref.offset:=cgpara.location^.reference.offset;
+                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                  if (size <> OS_NO) and
                     (tcgsize2size[size] < sizeof(aint)) then
                    begin
@@ -2146,7 +2144,7 @@ implementation
         tmpreg : tregister;
         i : longint;
       begin
-        if ref.alignment<>0 then
+        if ref.alignment<tcgsize2size[fromsize] then
           begin
             tmpref:=ref;
             { we take care of the alignment now }
@@ -2171,6 +2169,7 @@ implementation
                 end;
               OS_32,OS_S32:
                 begin
+                  { could add an optimised case for ref.alignment=2 }
                   tmpreg:=getintregister(list,OS_32);
                   a_load_reg_reg(list,fromsize,OS_32,register,tmpreg);
                   if target_info.endian=endian_big then
@@ -2528,7 +2527,7 @@ implementation
             LOC_REFERENCE,LOC_CREFERENCE:
               begin
                 cgpara.check_simple_location;
-                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+                reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
               end;
             LOC_REGISTER,LOC_CREGISTER:
@@ -2555,7 +2554,7 @@ implementation
             a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               { concatcopy should choose the best way to copy the data }
               g_concatcopy(list,ref,href,tcgsize2size[size]);
             end;
@@ -2952,7 +2951,7 @@ implementation
             a_loadmm_reg_reg(list,size,cgpara.location^.size,reg,cgpara.location^.register,shuffle);
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
-              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset);
+              reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               a_loadmm_reg_ref(list,size,cgpara.location^.size,reg,href,shuffle);
             end
           else
@@ -3141,7 +3140,7 @@ implementation
           end
          else
           begin
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             paramanager.allocparaloc(list,cgpara2);
             a_paramaddr_ref(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
@@ -3190,7 +3189,7 @@ implementation
           begin
             if needrtti then
              begin
-               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
+               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
                tempreg2:=getaddressregister(list);
                a_loadaddr_ref_reg(list,href,tempreg2);
              end;
@@ -3211,7 +3210,7 @@ implementation
           end
          else
           begin
-            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
+            reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             paramanager.allocparaloc(list,cgpara2);
             a_paramaddr_ref(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
@@ -3244,7 +3243,7 @@ implementation
            a_load_const_ref(list,OS_ADDR,0,ref)
          else
            begin
-              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
+              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               paramanager.allocparaloc(list,cgpara2);
               a_paramaddr_ref(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);
@@ -3279,7 +3278,7 @@ implementation
             end
          else
            begin
-              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0);
+              reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               paramanager.allocparaloc(list,cgpara2);
               a_paramaddr_ref(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);
@@ -3527,7 +3526,7 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         if (cs_check_object in current_settings.localswitches) then
          begin
-           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0);
+           reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
            paramanager.allocparaloc(list,cgpara2);
            a_paramaddr_ref(list,hrefvmt,cgpara2);
            paramanager.allocparaloc(list,cgpara1);
@@ -3795,7 +3794,7 @@ implementation
                   begin
                     { offset in the wrapper needs to be adjusted for the stored
                       return address }
-                    reference_reset_base(href,reference.index,reference.offset+sizeof(aint));
+                    reference_reset_base(href,reference.index,reference.offset+sizeof(pint),sizeof(pint));
                     a_op_const_ref(list,OP_SUB,size,ioffset,href);
                   end
                 else
@@ -3845,7 +3844,7 @@ implementation
 {$endif cpu64bitaddr}
                 end;
               result := getaddressregister(list);
-              reference_reset_symbol(ref,l,0);
+              reference_reset_symbol(ref,l,0,sizeof(pint));
               { a_load_ref_reg will turn this into a pic-load if needed }
               a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,result);
             end;

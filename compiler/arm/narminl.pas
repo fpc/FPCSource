@@ -213,7 +213,7 @@ implementation
                 begin
                   r:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,r);
-                  reference_reset_base(ref,r,0);
+                  reference_reset_base(ref,r,0,left.location.reference.alignment);
                   { since the address might be nil we can't use ldr for older cpus }
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_PLD,ref));
                 end;

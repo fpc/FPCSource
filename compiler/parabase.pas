@@ -234,6 +234,7 @@ implementation
             begin
               newloc.reference.base:=location^.reference.index;
               newloc.reference.offset:=location^.reference.offset;
+              newloc.reference.alignment:=alignment;
             end;
         end;
       end;

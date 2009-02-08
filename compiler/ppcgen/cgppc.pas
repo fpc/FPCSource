@@ -168,7 +168,7 @@ unit cgppc;
           a_load_const_reg(list, size, a, paraloc.location^.register);
         LOC_REFERENCE:
           begin
-            reference_reset(ref);
+            reference_reset(ref,paraloc.alignment);
             ref.base := paraloc.location^.reference.index;
             ref.offset := paraloc.location^.reference.offset;
             a_load_const_ref(list, size, a, ref);
@@ -191,7 +191,7 @@ unit cgppc;
              a_loadaddr_ref_reg(list,r,paraloc.location^.register);
            LOC_REFERENCE:
              begin
-               reference_reset(ref);
+               reference_reset(ref,paraloc.alignment);
                ref.base := paraloc.location^.reference.index;
                ref.offset := paraloc.location^.reference.offset;
                tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
@@ -278,7 +278,7 @@ unit cgppc;
           current_asmdata.weakrefasmsymbol(s);
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         l1 := current_asmdata.RefAsmSymbol('L'+s+'$lazy_ptr');
-        reference_reset_symbol(href,l1,0);
+        reference_reset_symbol(href,l1,0,sizeof(pint));
         href.refaddr := addr_higha;
         if (cs_create_pic in current_settings.moduleswitches) then
           begin
@@ -330,7 +330,7 @@ unit cgppc;
                begin
                  if macos_direct_globals then
                    begin
-                     reference_reset(tmpref);
+                     reference_reset(tmpref,ref2.alignment);
                      tmpref.offset := ref2.offset;
                      tmpref.symbol := ref2.symbol;
                      tmpref.base := NR_NO;
@@ -338,7 +338,7 @@ unit cgppc;
                    end
                  else
                    begin
-                     reference_reset(tmpref);
+                     reference_reset(tmpref,ref2.alignment);
                      tmpref.symbol := ref2.symbol;
                      tmpref.offset := 0;
                      tmpref.base := NR_RTOC;
@@ -346,7 +346,7 @@ unit cgppc;
 
                      if ref2.offset <> 0 then
                        begin
-                         reference_reset(tmpref);
+                         reference_reset(tmpref,ref2.alignment);
                          tmpref.offset := ref2.offset;
                          tmpref.base:= r;
                          list.concat(taicpu.op_reg_ref(A_LA,r,tmpref));
@@ -363,7 +363,7 @@ unit cgppc;
 
                  { add the symbol's value to the base of the reference, and if the }
                  { reference doesn't have a base, create one                       }
-                 reference_reset(tmpref);
+                 reference_reset(tmpref,ref2.alignment);
                  tmpref.offset := ref2.offset;
                  tmpref.symbol := ref2.symbol;
                  tmpref.relsymbol := ref2.relsymbol;
@@ -653,7 +653,7 @@ unit cgppc;
         var
           href : treference;
         begin
-          reference_reset_base(href,NR_R3,0);
+          reference_reset_base(href,NR_R3,0,sizeof(pint));
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
         end;
 
@@ -665,7 +665,7 @@ unit cgppc;
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href,NR_R11,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
           if hasLargeOffset(href) then
             begin
 {$ifdef cpu64}
@@ -680,7 +680,7 @@ unit cgppc;
           a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_R11);
           if (target_info.system = system_powerpc64_linux) then
             begin
-              reference_reset_base(href, NR_R11, 0);
+              reference_reset_base(href, NR_R11, 0, sizeof(pint));
               a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R11);
             end;
           list.concat(taicpu.op_reg(A_MTCTR,NR_R11));
@@ -746,7 +746,7 @@ unit cgppc;
       if (target_info.system <> system_powerpc64_linux) then
         internalerror(2007102010);
       l:=current_asmdata.getasmsymbol(symbol);
-      reference_reset_symbol(ref,l,0);
+      reference_reset_symbol(ref,l,0,sizeof(pint));
       ref.base := NR_R2;
       ref.refaddr := addr_pic;
     
@@ -876,7 +876,7 @@ unit cgppc;
               begin {Load symbol's value}
                 tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
 
-                reference_reset(tmpref);
+                reference_reset(tmpref,sizeof(pint));
                 tmpref.symbol := ref.symbol;
                 tmpref.base := NR_RTOC;
 
@@ -888,7 +888,7 @@ unit cgppc;
 
             if largeOffset then
               begin {Add hi part of offset}
-                reference_reset(tmpref);
+                reference_reset(tmpref,ref.alignment);
 
                 if Smallint(Lo(ref.offset)) < 0 then
                   tmpref.offset := Hi(ref.offset) + 1 {Compensate when lo part is negative}
@@ -929,7 +929,7 @@ unit cgppc;
                largeOffset then
               begin
                 tmpreg := rg[R_INTREGISTER].getregister(list,R_SUBWHOLE);
-                reference_reset(tmpref);
+                reference_reset(tmpref,ref.alignment);
                 tmpref.symbol := ref.symbol;
                 tmpref.relsymbol := ref.relsymbol;
                 tmpref.offset := ref.offset;

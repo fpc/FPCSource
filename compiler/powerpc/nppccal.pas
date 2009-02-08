@@ -73,7 +73,7 @@ implementation
               // one syscall convention for Amiga/PowerPC
               // which is very similar to basesysv on MorphOS
               cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
-              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber);
+              reference_reset_base(tmpref,NR_R3,tprocdef(procdefinition).extnumber,sizeof(pint));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
               current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
               current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
@@ -87,7 +87,7 @@ implementation
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R12);
 
-                  reference_reset(tmpref);
+                  reference_reset(tmpref,sizeof(pint));
                   tmpref.symbol:=current_asmdata.RefAsmSymbol(tstaticvarsym(tprocdef(procdefinition).libsym).mangledname);
                   tmpref.refaddr:=addr_higha;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LIS,NR_R12,tmpref));
@@ -95,7 +95,7 @@ implementation
                   tmpref.refaddr:=addr_low;
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R12,tmpref));
 
-                  reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);
+                  reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
@@ -108,9 +108,9 @@ implementation
                 begin
                   cg.getcpuregister(current_asmdata.CurrAsmList,NR_R0);
                   if (po_syscall_basesysv in tprocdef(procdefinition).procoptions) then
-                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber)
+                    reference_reset_base(tmpref,NR_R3,-tprocdef(procdefinition).extnumber,sizeof(pint))
                   else
-                    reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber);
+                    reference_reset_base(tmpref,NR_R12,-tprocdef(procdefinition).extnumber,sizeof(pint));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTCTR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BCTRL));
@@ -125,7 +125,7 @@ implementation
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI,NR_R3,-tprocdef(procdefinition).extnumber));
 
                   { prepare LR, and call function }
-                  reference_reset_base(tmpref,NR_R2,100); { 100 ($64) is EmulDirectCallOS offset }
+                  reference_reset_base(tmpref,NR_R2,100,4); { 100 ($64) is EmulDirectCallOS offset }
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_LWZ,NR_R0,tmpref));
                   current_asmdata.CurrAsmList.concat(taicpu.op_reg(A_MTLR,NR_R0));
                   current_asmdata.CurrAsmList.concat(taicpu.op_none(A_BLRL));

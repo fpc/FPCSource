@@ -177,7 +177,7 @@ interface
                 internalerror(2004110215);
             end;
 
-            reference_reset_symbol(href,l1,0);
+            reference_reset_symbol(href,l1,0,resultdef.alignment);
             cg.a_loadmm_ref_reg(current_asmdata.CurrAsmList,def_cgsize(resultdef),def_cgsize(resultdef),href,reg,mms_movescalar);
 
             cg.a_opmm_reg_reg(current_asmdata.CurrAsmList,OP_XOR,left.location.size,reg,location.register,nil);

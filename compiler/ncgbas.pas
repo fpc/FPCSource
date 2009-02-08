@@ -167,14 +167,16 @@ interface
                           begin
                             op.typ:=top_ref;
                             new(op.ref);
-                            reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs);
+                            reference_reset_base(op.ref^,indexreg,sym.localloc.reference.offset+sofs,
+                              newalignment(sym.localloc.reference.alignment,sofs));
                           end;
                       end
                     else
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
-                        reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs);
+                        reference_reset_base(op.ref^,sym.localloc.reference.base,sym.localloc.reference.offset+sofs,
+                          newalignment(sym.localloc.reference.alignment,sofs));
                         op.ref^.index:=indexreg;
 {$ifdef x86}
                         op.ref^.scalefactor:=scale;
@@ -191,7 +193,8 @@ interface
                       begin
                         op.typ:=top_ref;
                         new(op.ref);
-                        reference_reset_base(op.ref^,sym.localloc.register,sofs);
+                        { no idea about the actual alignment }
+                        reference_reset_base(op.ref^,sym.localloc.register,sofs,1);
                         op.ref^.index:=indexreg;
 {$ifdef x86}
                         op.ref^.scalefactor:=scale;
@@ -380,7 +383,7 @@ interface
         { get a (persistent) temp }
         if tempinfo^.typedef.needs_inittable then
           begin
-            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
+            location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
             tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
             { the temp could have been used previously either because the memory location was reused or
               because we're in a loop }
@@ -428,7 +431,7 @@ interface
           end
         else
           begin
-            location_reset(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef));
+            location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
             tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.typedef.alignment,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         include(tempinfo^.flags,ti_valid);
@@ -449,6 +452,7 @@ interface
           LOC_REFERENCE:
             begin
               inc(location.reference.offset,offset);
+              location.reference.alignment:=newalignment(location.reference.alignment,offset);
               { ti_valid should be excluded if it's a normal temp }
             end;
           LOC_REGISTER,
@@ -474,6 +478,7 @@ interface
         { adapt location }
         location.reference := ref;
         inc(location.reference.offset,offset);
+        location.reference.alignment:=newalignment(location.reference.alignment,offset);
       end;
 
 

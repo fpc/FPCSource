@@ -135,7 +135,7 @@ implementation
 
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                   reference_reset_symbol(href,l1,0);
+                   reference_reset_symbol(href,l1,0,4);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resultdef) then

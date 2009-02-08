@@ -441,10 +441,12 @@ interface
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
-    function var_align(siz: longint): shortint;
+    function var_align(want_align: longint): shortint;
+    function var_align_size(siz: longint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
-    function const_align(siz: longint): shortint;
+    function const_align(want_align: longint): shortint;
+    function const_align_size(siz: longint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -1250,18 +1252,31 @@ implementation
       end;
 
 
-    function var_align(siz: longint): shortint;
+    function var_align(want_align: longint): shortint;
       begin
-        siz := size_2_align(siz);
-        var_align := used_align(siz,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
+        var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function const_align(siz: longint): shortint;
+    function var_align_size(siz: longint): shortint;
       begin
         siz := size_2_align(siz);
-        const_align := used_align(siz,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
+        var_align_size := var_align(siz);
       end;
+
+
+    function const_align(want_align: longint): shortint;
+      begin
+        const_align := used_align(want_align,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
+      end;
+
+
+    function const_align_size(siz: longint): shortint;
+      begin
+        siz := size_2_align(siz);
+        const_align_size := const_align(siz);
+      end;
+
 
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}

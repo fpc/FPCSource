@@ -347,7 +347,7 @@ implementation
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
-                   reference_reset_symbol(href,l1,0);
+                   reference_reset_symbol(href,l1,0,4);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                    current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
                    current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));

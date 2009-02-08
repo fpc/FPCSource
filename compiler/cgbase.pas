@@ -38,8 +38,6 @@ interface
          LOC_CONSTANT,     { constant value }
          LOC_JUMP,         { boolean results only, jump to false or true label }
          LOC_FLAGS,        { boolean results only, flags are set }
-         LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
-         LOC_REFERENCE,    { in memory value }
          LOC_REGISTER,     { in a processor register }
          LOC_CREGISTER,    { Constant register which shouldn't be modified }
          LOC_FPUREGISTER,  { FPU stack }
@@ -56,8 +54,14 @@ interface
          LOC_CSUBSETREG,
          { contiguous subset of bits in memory }
          LOC_SUBSETREF,
-         LOC_CSUBSETREF
+         LOC_CSUBSETREF,
+         { keep these last for range checking purposes }
+         LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
+         LOC_REFERENCE     { in memory value }
        );
+
+       TCGNonRefLoc=low(TCGLoc)..pred(LOC_CREFERENCE);
+       TCGRefLoc=LOC_CREFERENCE..LOC_REFERENCE;
 
        { since we have only 16bit offsets, we need to be able to specify the high
          and lower 16 bits of the address of a symbol of up to 64 bit }

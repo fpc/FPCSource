@@ -56,7 +56,7 @@ implementation
       systems,
       verbose,globtype,globals,constexp,
       nutils,
-      symconst,symtype,symdef,symsym,defutil,paramgr,
+      symtable,symconst,symtype,symdef,symsym,defutil,paramgr,
       ncnv,ncon,nmem,nbas,ncgrtti,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       cgbase,pass_2,
@@ -225,7 +225,8 @@ implementation
       begin
         { we don't know the size of all arrays }
         newsize:=def_cgsize(resultdef);
-        location_reset(location,LOC_REFERENCE,newsize);
+        { alignment is overridden per case below }
+        location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment);
         case symtableentry.typ of
            absolutevarsym :
               begin
@@ -249,7 +250,7 @@ implementation
              begin
                 if tconstsym(symtableentry).consttyp=constresourcestring then
                   begin
-                     location_reset(location,LOC_CREFERENCE,OS_ADDR);
+                     location_reset_ref(location,LOC_CREFERENCE,OS_ADDR,sizeof(pint));
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(make_mangledname('RESSTR',symtableentry.owner,symtableentry.name));
                      { Resourcestring layout:
                          TResourceStringRecord = Packed Record
@@ -269,11 +270,18 @@ implementation
                gvs:=tstaticvarsym(symtableentry);
                if ([vo_is_dll_var,vo_is_external] * gvs.varoptions <> []) then
                  begin
+                  { assume external variables use the default alignment }
+                  location.reference.alignment:=gvs.vardef.alignment;
                    location.reference.base := cg.g_indirect_sym_load(current_asmdata.CurrAsmList,tstaticvarsym(symtableentry).mangledname,
                      vo_is_weak_external in gvs.varoptions);
                    if (location.reference.base <> NR_NO) then
                      exit;
+                 end
+               else
+                 begin
+                   location.reference.alignment:=var_align(gvs.vardef.alignment);
                  end;
+
 
                if (vo_is_dll_var in gvs.varoptions) then
                { DLL variable }
@@ -284,7 +292,7 @@ implementation
                    else
                      location.reference.symbol:=current_asmdata.WeakRefAsmSymbol(tstaticvarsym(symtableentry).mangledname);
                    cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,location.reference,hregister);
-                   reference_reset_base(location.reference,hregister,0);
+                   reference_reset_base(location.reference,hregister,0,location.reference.alignment);
                  end
                { Thread variable }
                else if (vo_is_thread_var in gvs.varoptions) and
@@ -294,9 +302,9 @@ implementation
                       begin
                         if gvs.localloc.loc=LOC_INVALID then
                           if not(vo_is_weak_external in gvs.varoptions) then
-                            reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                            reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                           else
-                            reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0)
+                            reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                         else
                           location:=gvs.localloc;
 {$ifdef i386}
@@ -326,14 +334,14 @@ implementation
                         paraloc1.init;
                         paramanager.getintparaloc(pocall_default,1,paraloc1);
                         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0);
+                        reference_reset_symbol(href,current_asmdata.RefAsmSymbol('FPC_THREADVAR_RELOCATE'),0,sizeof(pint));
                         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                         cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,hregister,norelocatelab);
                         { don't save the allocated register else the result will be destroyed later }
                         if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),0,sizeof(pint))
                         else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0);
+                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
                         paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                         cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                         paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -352,9 +360,9 @@ implementation
                             0 - Threadvar index
                             4 - Threadvar value in single threading }
                         if not(vo_is_weak_external in gvs.varoptions) then
-                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint))
+                          reference_reset_symbol(href,current_asmdata.RefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint))
                         else
-                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint));
+                          reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),sizeof(pint),sizeof(pint));
                         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                         cg.a_label(current_asmdata.CurrAsmList,endrelocatelab);
                         location.reference.base:=hregister;
@@ -365,9 +373,9 @@ implementation
                   begin
                     if gvs.localloc.loc=LOC_INVALID then
                       if not(vo_is_weak_external in gvs.varoptions) then
-                        reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0)
+                        reference_reset_symbol(location.reference,current_asmdata.RefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                       else
-                        reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0)
+                        reference_reset_symbol(location.reference,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,location.reference.alignment)
                     else
                       location:=gvs.localloc;
                   end;
@@ -376,7 +384,6 @@ implementation
                 if (gvs.varspez=vs_const) and
                    (location.loc=LOC_REFERENCE) then
                   location.loc:=LOC_CREFERENCE;
-                location.reference.alignment:=gvs.vardef.alignment;
               end;
             paravarsym,
             localvarsym :
@@ -390,13 +397,13 @@ implementation
                       internalerror(200309286);
                     if vs.localloc.loc<>LOC_REFERENCE then
                       internalerror(200409241);
-                    reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset);
+                    reference_reset_base(location.reference,left.location.register,vs.localloc.reference.offset,vs.localloc.reference.alignment);
                   end
                 else
                   location:=vs.localloc;
 
                 { handle call by reference variables when they are not
-                  alreayd copied to local copies. Also ignore the reference
+                  already copied to local copies. Also ignore the reference
                   when we need to load the self pointer for objects }
                 if is_addr_param_load then
                   begin
@@ -409,7 +416,12 @@ implementation
                         location.size:=OS_ADDR;
                         cg.a_load_loc_reg(current_asmdata.CurrAsmList,location.size,location,hregister);
                       end;
-                    location_reset(location,LOC_REFERENCE,newsize);
+                    { assume packed records may always be unaligned }
+                    if not(resultdef.typ in [recorddef,objectdef]) or
+                       (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
+                      location_reset_ref(location,LOC_REFERENCE,newsize,resultdef.alignment)
+                    else
+                      location_reset_ref(location,LOC_REFERENCE,newsize,1);
                     location.reference.base:=hregister;
                   end;
 
@@ -425,9 +437,9 @@ implementation
                  if assigned(left) then
                    begin
                      {$if sizeof(pint) = 4}
-                        location_reset(location,LOC_CREFERENCE,OS_64);
+                        location_reset_ref(location,LOC_CREFERENCE,OS_64,sizeof(pint));
                      {$else} {$if sizeof(pint) = 8}
-                        location_reset(location,LOC_CREFERENCE,OS_128);
+                        location_reset_ref(location,LOC_CREFERENCE,OS_128,sizeof(pint));
                      {$else}
                         internalerror(20020520);
                      {$endif} {$endif}
@@ -473,12 +485,12 @@ implementation
                          if (left.resultdef.typ<>classrefdef) then
                            begin
                              { load vmt pointer }
-                             reference_reset_base(href,hregister,0);
+                             reference_reset_base(href,hregister,0,sizeof(pint));
                              hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                            end;
                          { load method address }
-                         reference_reset_base(href,hregister,procdef._class.vmtmethodoffset(procdef.extnumber));
+                         reference_reset_base(href,hregister,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                          { ... and store it }
@@ -487,7 +499,7 @@ implementation
                      else
                        begin
                          { load address of the function }
-                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0);
+                         reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
                          hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hregister,location.reference);
@@ -562,7 +574,7 @@ implementation
               not is_constnode(right) then
             begin
               location_force_mem(current_asmdata.CurrAsmList,right.location);
-              location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false);
+              location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
               cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
             end;
            if codegenerror then
@@ -574,7 +586,7 @@ implementation
            { decrement destination reference counter }
            if (left.resultdef.needs_inittable) then
              begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
+               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
@@ -587,7 +599,7 @@ implementation
            { decrement destination reference counter }
            if (left.resultdef.needs_inittable) then
              begin
-               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
+               location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
              end;
            if codegenerror then
@@ -609,7 +621,7 @@ implementation
               (right.nodetype<>stringconstn) then
              begin
                location_force_mem(current_asmdata.CurrAsmList,right.location);
-               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false);
+               location_get_data_ref(current_asmdata.CurrAsmList,right.location,href,false,sizeof(pint));
                cg.g_incrrefcount(current_asmdata.CurrAsmList,right.resultdef,href);
              end;
 
@@ -765,7 +777,7 @@ implementation
                             if releaseright then
                               location_freetemp(current_asmdata.CurrAsmList,right.location);
                             releaseright:=true;
-                            location_reset(right.location,LOC_REFERENCE,left.location.size);
+                            location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                             right.location.reference:=href;
                           end;
 {$endif}
@@ -838,7 +850,7 @@ implementation
                           { extended into a double/single, since sse doesn't support extended) }
                           tg.gettemp(current_asmdata.CurrAsmList,left.resultdef.size,left.resultdef.alignment,tt_normal,href);
                           cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,href);
-                          location_reset(right.location,LOC_REFERENCE,left.location.size);
+                          location_reset_ref(right.location,LOC_REFERENCE,left.location.size,0);
                           right.location.reference:=href;
                         end;
 {$endif}
@@ -977,7 +989,8 @@ implementation
             elesize:=tarraydef(resultdef).elesize;
             elealign:=tarraydef(resultdef).elementdef.alignment;
           end;
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        { alignment is filled in by tg.gettemp below }
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,0);
         fillchar(paraloc,sizeof(paraloc),0);
         { Allocate always a temp, also if no elements are required, to
           be sure that location is valid (PFV) }
@@ -1178,7 +1191,7 @@ implementation
 
     procedure tcgrttinode.pass_generate_code;
       begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,sizeof(pint));
         case rttidatatype of
           rdt_normal:
             location.reference.symbol:=RTTIWriter.get_rtti_label(rttidef,rttitype);

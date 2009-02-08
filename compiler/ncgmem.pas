@@ -102,7 +102,8 @@ implementation
          if (left.nodetype=typen) then
            begin
              reference_reset_symbol(href,
-               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0);
+               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0,
+               sizeof(pint));
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
@@ -153,7 +154,7 @@ implementation
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
-                reference_reset_base(href,location.register,hsym.localloc.reference.offset);
+                reference_reset_base(href,location.register,hsym.localloc.reference.offset,sizeof(pint));
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
               end;
           end;
@@ -185,7 +186,12 @@ implementation
         paraloc1 : tcgpara;
       begin
          secondpass(left);
-         location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+         { assume natural alignment, except for packed records }
+         if not(resultdef.typ in [recorddef,objectdef]) or
+            (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
+           location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
+         else
+           location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -250,7 +256,8 @@ implementation
          { classes and interfaces must be dereferenced implicit }
          if is_class_or_interface(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+             { the contents of a class are aligned to a sizeof(pointer) }
+             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
              case left.location.loc of
                 LOC_CREGISTER,
                 LOC_REGISTER:
@@ -289,7 +296,7 @@ implementation
            end
          else if is_interfacecom(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
              tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
              cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
@@ -378,13 +385,7 @@ implementation
              if not is_packed_record_or_object(left.resultdef) then
                begin
                  inc(location.reference.offset,vs.fieldoffset);
-{$ifdef SUPPORT_UNALIGNED}
-                 { packed? }
-                 if (vs.owner.defowner.typ in [recorddef,objectdef]) and
-                   (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
-                   location.reference.alignment:=1;
-{$endif SUPPORT_UNALIGNED}
-
+                 location.reference.alignment:=newalignment(location.reference.alignment,vs.fieldoffset);
                end
              else if (vs.fieldoffset mod 8 = 0) and
                      (resultdef.packedbitsize mod 8 = 0) and
@@ -393,10 +394,7 @@ implementation
                      (resultdef.size*8 = resultdef.packedbitsize) then
                begin
                  inc(location.reference.offset,vs.fieldoffset div 8);
-                 if (resultdef.size*8 <> resultdef.packedbitsize) then
-                   internalerror(2006082013);
-                 { packed records always have an alignment of 1 }
-                 location.reference.alignment:=1;
+                 location.reference.alignment:=newalignment(location.reference.alignment,vs.fieldoffset div 8);
                end
              else
                begin
@@ -479,10 +477,14 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0);
+            reference_reset_base(location.reference,hreg,0,location.reference.alignment);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
           end;
+          { update alignment }
+          if (location.reference.alignment=0) then
+            internalerror(2009020704);
+          location.reference.alignment:=newalignment(location.reference.alignment,l);
        end;
 
 
@@ -642,9 +644,9 @@ implementation
          newsize:=def_cgsize(resultdef);
          secondpass(left);
          if left.location.loc=LOC_CREFERENCE then
-           location_reset(location,LOC_CREFERENCE,newsize)
+           location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment)
          else
-           location_reset(location,LOC_REFERENCE,newsize);
+           location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment);
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resultdef) or
@@ -694,6 +696,7 @@ implementation
                 offsetdec:=1
               else
                 offsetdec:=2;
+              location.reference.alignment:=offsetdec;
               dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
@@ -712,6 +715,11 @@ implementation
                 else
                   internalerror(2002032219);
               end;
+              { a dynarray points to the start of a memory block, which
+                we assume to be always aligned to a multiple of the
+                pointer size
+              }
+              location.reference.alignment:=sizeof(pint);
            end
          else
            location_copy(location,left.location);
@@ -819,8 +827,10 @@ implementation
                    { only orddefs are bitpacked }
                    not is_ordinal(resultdef))) then
                 begin
-                  inc(location.reference.offset,
-                    bytemulsize*tordconstnode(right).value.svalue);
+                  extraoffset:=bytemulsize*tordconstnode(right).value.svalue;
+                  inc(location.reference.offset,extraoffset);
+                  { adjust alignment after to this change }
+                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }

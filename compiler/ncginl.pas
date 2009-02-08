@@ -265,7 +265,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0,sizeof(pint));
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
           end
         else
@@ -284,7 +284,7 @@ implementation
                   else
                    begin
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resultdef).vmt_offset);
+                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                 end;
@@ -297,14 +297,17 @@ implementation
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                      cg.g_maybe_testself(current_asmdata.CurrAsmList,hregister);
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset);
+                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                   else
                    begin
                      { load VMT pointer, but not for classrefdefs }
                      if (left.resultdef.typ=objectdef) then
-                       inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
+                       begin
+                         inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
+                         left.location.reference.alignment:=newalignment(left.location.reference.alignment,tobjectdef(left.resultdef).vmt_offset);
+                       end;
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                    end;
                 end;
@@ -315,7 +318,7 @@ implementation
         { in sizeof load size }
         if inlinenumber=in_sizeof_x then
            begin
-             reference_reset_base(href,hregister,0);
+             reference_reset_base(href,hregister,0,sizeof(pint));
              hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
            end;
@@ -348,13 +351,13 @@ implementation
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
              begin
-               reference_reset_base(href,left.location.register,-sizeof(dword));
+               reference_reset_base(href,left.location.register,-sizeof(dword),sizeof(dword));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
              end
            else
              begin
-               reference_reset_base(href,left.location.register,-sizeof(pint));
+               reference_reset_base(href,left.location.register,-sizeof(pint),sizeof(pint));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
@@ -508,7 +511,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0);
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0,sizeof(pint));
           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
         end;
 
@@ -691,7 +694,7 @@ implementation
         end
       else
         begin
-          location_reset(location,LOC_REFERENCE,OS_ADDR);
+          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,sizeof(pint));
           location.reference.base:=frame_reg;
         end;
     end;
@@ -704,18 +707,14 @@ implementation
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp);
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp,sizeof(pint));
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          {$ifdef cpu64bitaddr}
-            reference_reset_base(frame_ref,current_procinfo.framepointer,8);
-          {$else}
-            reference_reset_base(frame_ref,current_procinfo.framepointer,4);
-          {$endif}
+            reference_reset_base(frame_ref,current_procinfo.framepointer,sizeof(pint),sizeof(pint));
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end;
       end;

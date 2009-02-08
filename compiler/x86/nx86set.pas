@@ -125,7 +125,7 @@ implementation
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
         { create reference }
-        reference_reset_symbol(href,table,0);
+        reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);
         href.index:=indexreg;
         href.scalefactor:=sizeof(aint);

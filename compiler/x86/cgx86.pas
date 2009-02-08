@@ -384,7 +384,7 @@ unit cgx86;
         if (cs_create_pic in current_settings.moduleswitches) and
          assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
-            reference_reset_symbol(href,ref.symbol,0);
+            reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             hreg:=getaddressregister(list);
             href.refaddr:=addr_pic;
             href.base:=NR_RIP;
@@ -435,7 +435,7 @@ unit cgx86;
            not((ref.symbol.bind=AB_LOCAL) and
                (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
-            reference_reset_symbol(href,ref.symbol,0);
+            reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
             href.base:=current_procinfo.got;
             href.refaddr:=addr_pic;
             include(current_procinfo.flags,pi_needs_got);
@@ -576,7 +576,7 @@ unit cgx86;
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s,false),0);
+            reference_reset_symbol(r,get_darwin_call_stub(s,false),0,sizeof(pint));
             r.refaddr:=addr_full;
             list.concat(taicpu.op_ref(A_JMP,S_NO,r));
           end;
@@ -628,7 +628,7 @@ unit cgx86;
               sym:=current_asmdata.RefAsmSymbol(s)
             else
               sym:=current_asmdata.WeakRefAsmSymbol(s);
-            reference_reset_symbol(r,sym,0);
+            reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }
                (target_info.system<>system_x86_64_darwin) then
@@ -643,7 +643,7 @@ unit cgx86;
           end
         else
           begin
-            reference_reset_symbol(r,get_darwin_call_stub(s,weak),0);
+            reference_reset_symbol(r,get_darwin_call_stub(s,weak),0,sizeof(pint));
             r.refaddr:=addr_full;
           end;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
@@ -656,7 +656,7 @@ unit cgx86;
         r : treference;
       begin
         sym:=current_asmdata.RefAsmSymbol(s);
-        reference_reset_symbol(r,sym,0);
+        reference_reset_symbol(r,sym,0,sizeof(pint));
         r.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_CALL,S_NO,r));
       end;
@@ -829,13 +829,13 @@ unit cgx86;
                           begin
                              reference_reset_base(tmpref,
                                g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL),
-                               offset);
+                               offset,sizeof(pint));
                              a_loadaddr_ref_reg(list,tmpref,r);
                           end
                        else
                          begin
                            include(current_procinfo.flags,pi_needs_got);
-                           reference_reset_base(tmpref,current_procinfo.got,offset);
+                           reference_reset_base(tmpref,current_procinfo.got,offset,ref.alignment);
                            tmpref.symbol:=symbol;
                            tmpref.relsymbol:=current_procinfo.CurrGOTLabel;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
@@ -844,12 +844,12 @@ unit cgx86;
                     else if (cs_create_pic in current_settings.moduleswitches) then
                       begin
 {$ifdef x86_64}
-                        reference_reset_symbol(tmpref,ref.symbol,0);
+                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=NR_RIP;
                         list.concat(taicpu.op_ref_reg(A_MOV,S_Q,tmpref,r));
 {$else x86_64}
-                        reference_reset_symbol(tmpref,ref.symbol,0);
+                        reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
                         tmpref.refaddr:=addr_pic;
                         tmpref.base:=current_procinfo.got;
                         include(current_procinfo.flags,pi_needs_got);
@@ -890,7 +890,7 @@ unit cgx86;
                       system_i386_linux:
                         if segment=NR_GS then
                           begin
-                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0);
+                            reference_reset_symbol(tmpref,current_asmdata.RefAsmSymbol('___fpc_threadvar_offset'),0,ref.alignment);
                             tmpref.segment:=NR_GS;
                             list.concat(Taicpu.op_ref_reg(A_ADD,tcgsize2opsize[OS_ADDR],tmpref,r));
                           end
@@ -1916,7 +1916,7 @@ unit cgx86;
                     list.concat(Taicpu.Op_const_reg(A_SUB,S_L,localsize-4,NR_ESP));
                     for i:=1 to localsize div winstackpagesize do
                       begin
-                         reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize);
+                         reference_reset_base(href,NR_ESP,localsize-i*winstackpagesize,4);
                          list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                       end;
                     list.concat(Taicpu.op_reg(A_PUSH,S_L,NR_EAX));
@@ -1933,7 +1933,7 @@ unit cgx86;
                     list.concat(Taicpu.op_reg(A_DEC,S_L,NR_EDI));
                     a_jmp_cond(list,OC_NE,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_L,localsize mod winstackpagesize - 4,NR_ESP));
-                    reference_reset_base(href,NR_ESP,localsize-4);
+                    reference_reset_base(href,NR_ESP,localsize-4,4);
                     list.concat(Taicpu.op_ref_reg(A_MOV,S_L,href,NR_EDI));
                     ungetcpuregister(list,NR_EDI);
                  end
@@ -1953,10 +1953,10 @@ unit cgx86;
                     list.concat(Taicpu.Op_const_reg(A_SUB,S_Q,localsize,NR_RSP));
                     for i:=1 to localsize div winstackpagesize do
                       begin
-                         reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4);
+                         reference_reset_base(href,NR_RSP,localsize-i*winstackpagesize+4,4);
                          list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                       end;
-                    reference_reset_base(href,NR_RSP,0);
+                    reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                  end
                else
@@ -1966,7 +1966,7 @@ unit cgx86;
                     list.concat(Taicpu.op_const_reg(A_MOV,S_Q,localsize div winstackpagesize,NR_R10));
                     a_label(list,again);
                     list.concat(Taicpu.op_const_reg(A_SUB,S_Q,winstackpagesize,NR_RSP));
-                    reference_reset_base(href,NR_RSP,0);
+                    reference_reset_base(href,NR_RSP,0,4);
                     list.concat(Taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                     list.concat(Taicpu.op_reg(A_DEC,S_Q,NR_R10));
                     a_jmp_cond(list,OC_NE,again);
@@ -2085,7 +2085,7 @@ unit cgx86;
          end;
 
         sym:=current_asmdata.RefAsmSymbol(externalname);
-        reference_reset_symbol(ref,sym,0);
+        reference_reset_symbol(ref,sym,0,sizeof(pint));
 
         { create pic'ed? }
         if (cs_create_pic in current_settings.moduleswitches) and

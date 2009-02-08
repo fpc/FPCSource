@@ -144,7 +144,7 @@ implementation
 
                   current_asmdata.getdatalabel(l1);
                   current_asmdata.getjumplabel(l2);
-                  reference_reset_symbol(href,l1,0);
+                  reference_reset_symbol(href,l1,0,const_align(8));
 
                   current_asmdata.CurrAsmList.concat(Taicpu.op_reg_const(A_CMP,left.location.register,0));
                   cg.a_jmp_flags(current_asmdata.CurrAsmList,F_GE,l2);

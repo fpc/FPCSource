@@ -62,7 +62,7 @@ interface
          hiloswapped : boolean;
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),4);
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
         hiloswapped:=is_double_hilo_swapped;

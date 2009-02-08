@@ -157,7 +157,7 @@ implementation
           assigned(ref.symbol) then
           begin
             tmpreg:=GetIntRegister(list,OS_INT);
-            reference_reset(tmpref);
+            reference_reset(tmpref,ref.alignment);
             tmpref.symbol:=ref.symbol;
             tmpref.refaddr:=addr_pic;
             if not(pi_needs_got in current_procinfo.flags) then
@@ -184,7 +184,7 @@ implementation
            (ref.offset>simm13hi) then
           begin
             tmpreg:=GetIntRegister(list,OS_INT);
-            reference_reset(tmpref);
+            reference_reset(tmpref,ref.alignment);
             tmpref.symbol:=ref.symbol;
             tmpref.offset:=ref.offset;
             tmpref.refaddr:=addr_high;
@@ -325,7 +325,7 @@ implementation
                 begin
                   if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
                     InternalError(2002081104);
-                  reference_reset_base(ref,index,offset);
+                  reference_reset_base(ref,index,offset,paraloc.alignment);
                 end;
               a_load_const_ref(list,size,a,ref);
             end;
@@ -353,7 +353,7 @@ implementation
                     begin
                       if (Index=NR_SP) and (Offset<Target_info.first_parm_offset) then
                         InternalError(2002081104);
-                      reference_reset_base(ref,index,offset);
+                      reference_reset_base(ref,index,offset,paraloc.alignment);
                     end;
                   tmpreg:=GetIntRegister(list,OS_INT);
                   a_load_ref_reg(list,sz,sz,r,tmpreg);
@@ -379,7 +379,7 @@ implementation
                 a_loadaddr_ref_reg(list,r,register);
               LOC_REFERENCE:
                 begin
-                  reference_reset(ref);
+                  reference_reset(ref,paraloc.alignment);
                   ref.base := reference.index;
                   ref.offset := reference.offset;
                   tmpreg:=GetAddressRegister(list);
@@ -407,7 +407,7 @@ implementation
                 a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset);
+                  reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment);
                   a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
                 end;
               else
@@ -611,7 +611,7 @@ implementation
           assigned(href.symbol) then
           begin
             tmpreg:=GetIntRegister(list,OS_ADDR);
-            reference_reset(tmpref);
+            reference_reset(tmpref,href.alignment);
             tmpref.symbol:=href.symbol;
             tmpref.refaddr:=addr_pic;
             if not(pi_needs_got in current_procinfo.flags) then
@@ -639,7 +639,7 @@ implementation
            (href.offset>simm13hi) then
           begin
             hreg:=GetAddressRegister(list);
-            reference_reset(tmpref);
+            reference_reset(tmpref,href.alignment);
             tmpref.symbol := href.symbol;
             tmpref.offset := href.offset;
             tmpref.refaddr := addr_high;
@@ -1083,7 +1083,7 @@ implementation
       begin
         if paramanager.ret_in_param(current_procinfo.procdef.returndef,current_procinfo.procdef.proccalloption) then
           begin
-            reference_reset(hr);
+            reference_reset(hr,sizeof(pint));
             hr.offset:=12;
             hr.refaddr:=addr_full;
             if nostackframe then
@@ -1174,8 +1174,8 @@ implementation
           g_concatcopy_move(list,source,dest,len)
         else
           begin
-            reference_reset(src);
-            reference_reset(dst);
+            reference_reset(src,source.alignment);
+            reference_reset(dst,dest.alignment);
             { load the address of source into src.base }
             src.base:=GetAddressRegister(list);
             a_loadaddr_ref_reg(list,source,src.base);
@@ -1263,8 +1263,8 @@ implementation
           g_concatcopy_move(list,source,dest,len)
         else
           begin
-            reference_reset(src);
-            reference_reset(dst);
+            reference_reset(src,source.alignment);
+            reference_reset(dst,dst.alignment);
             { load the address of source into src.base }
             src.base:=GetAddressRegister(list);
             a_loadaddr_ref_reg(list,source,src.base);
@@ -1345,16 +1345,16 @@ implementation
             if (procdef.extnumber=$ffff) then
               Internalerror(200006139);
             { mov  0(%rdi),%rax ; load vmt}
-            reference_reset_base(href,NR_O0,0);
+            reference_reset_base(href,NR_O0,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_G1,procdef._class.vmtmethodoffset(procdef.extnumber));
+            reference_reset_base(href,NR_G1,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
           end
         else
           begin
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
             href.refaddr := addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
             href.refaddr := addr_low;

@@ -135,7 +135,7 @@ begin
       end;
     A_INC,A_DEC:
       begin
-        reference_reset(tmpref);
+        reference_reset(tmpref,1);
         tmpref.base := newreg(R_INTREGISTER,reg1,R_SUBWHOLE);
         case p.opcode of
           A_INC:
@@ -150,7 +150,7 @@ begin
       end;
     A_SUB,A_ADD:
       begin
-        reference_reset(tmpref);
+        reference_reset(tmpref,1);
         tmpref.base := newreg(R_INTREGISTER,reg1,R_SUBWHOLE);
         case p.oper[0]^.typ of
           top_const:
@@ -182,7 +182,7 @@ begin
       end;
     A_SHL:
       begin
-        reference_reset(tmpref);
+        reference_reset(tmpref,2);
         tmpref.index := newreg(R_INTREGISTER,reg1,R_SUBWHOLE);
         tmpref.scalefactor := 1 shl p.oper[0]^.val;
         p.opcode := A_LEA;

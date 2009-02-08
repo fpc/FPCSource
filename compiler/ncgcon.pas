@@ -85,7 +85,7 @@ implementation
         i : longint;
         b : byte;
       begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(maxalign));
         current_asmdata.getdatalabel(l);
         maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,l.name,const_align(maxalign));
@@ -118,7 +118,7 @@ implementation
 {$endif ARM}
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),const_align(resultdef.alignment));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
@@ -167,7 +167,7 @@ implementation
                   current_asmdata.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.size));
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.alignment));
                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -405,13 +405,13 @@ implementation
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, OS_ADDR);
-             reference_reset_symbol(href, lab_str, 0);
+             reference_reset_symbol(href, lab_str, 0, const_align(sizeof(pint)));
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
          else
            begin
-             location_reset(location, LOC_CREFERENCE, def_cgsize(resultdef));
+             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(sizeof(pint)));
              location.reference.symbol:=lab_str;
            end;
       end;
@@ -464,7 +464,7 @@ implementation
            i           : longint;
            neededtyp   : taiconst_type;
         begin
-          location_reset(location,LOC_CREFERENCE,OS_NO);
+          location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
           neededtyp:=aitconst_8bit;
           lastlabel:=nil;
           { const already used ? }
@@ -534,7 +534,7 @@ implementation
                    current_asmdata.getdatalabel(lastlabel);
                    lab_set:=lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    if (source_info.endian=target_info.endian) then
 {$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
@@ -583,7 +583,7 @@ implementation
         tmplabel : TAsmLabel;
         i : integer;
       begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
         { label for GUID }
         current_asmdata.getdatalabel(tmplabel);
         current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(16)));

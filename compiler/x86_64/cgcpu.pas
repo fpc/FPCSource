@@ -137,7 +137,7 @@ unit cgcpu;
                 end;
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
                   g_concatcopy(list,tmpref,ref,sizeleft);
                 end;
               else
@@ -219,19 +219,19 @@ unit cgcpu;
             { load vmt from first paramter }
             { win64 uses a different abi }
             if target_info.system=system_x86_64_win64 then
-              reference_reset_base(href,NR_RCX,0)
+              reference_reset_base(href,NR_RCX,0,sizeof(pint))
             else
-              reference_reset_base(href,NR_RDI,0);
+              reference_reset_base(href,NR_RDI,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+            reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,NR_RAX));
             list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
           end
         else
           begin
             sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            reference_reset_symbol(r,sym,0);
+            reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }
                (target_info.system<>system_x86_64_darwin) then

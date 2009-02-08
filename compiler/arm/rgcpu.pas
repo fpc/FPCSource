@@ -46,7 +46,7 @@ unit rgcpu;
   implementation
 
     uses
-      verbose, cutils,
+      verbose, cutils,globtype,
       cgobj,
       procinfo;
 
@@ -75,7 +75,7 @@ unit rgcpu;
         if abs(spilltemp.offset)>4095 then
           begin
             helplist:=TAsmList.create;
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(aint));
             { create consts entry }
             current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
@@ -93,7 +93,7 @@ unit rgcpu;
             tmpref.base:=NR_R15;
             helplist.concat(taicpu.op_reg_ref(A_LDR,hreg,tmpref));
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0);
+            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(aint));
             tmpref.index:=hreg;
 
             if spilltemp.index<>NR_NO then
@@ -121,7 +121,7 @@ unit rgcpu;
         if abs(spilltemp.offset)>4095 then
           begin
             helplist:=TAsmList.create;
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(aint));
             { create consts entry }
             current_asmdata.getjumplabel(l);
             cg.a_label(current_procinfo.aktlocaldata,l);
@@ -141,7 +141,7 @@ unit rgcpu;
             if spilltemp.index<>NR_NO then
               internalerror(200401263);
 
-            reference_reset_base(tmpref,current_procinfo.framepointer,0);
+            reference_reset_base(tmpref,current_procinfo.framepointer,0,sizeof(pint));
             tmpref.index:=hreg;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));

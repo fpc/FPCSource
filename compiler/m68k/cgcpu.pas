@@ -255,7 +255,7 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize),ref));
           end
@@ -280,7 +280,7 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
             list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
           end
@@ -320,7 +320,7 @@ unit cgcpu;
           else
             pushsize:=int_cgsize(cgpara.alignment);
 
-          reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[paraloc^.size]);
           ref.direction := dir_dec;
 
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
@@ -350,7 +350,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,cgpara.alignment);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -475,13 +475,13 @@ unit cgcpu;
 	if isaddressregister(reg) then
 	  begin
 	    { if we have an address register, we can jump to the address directly }
-            reference_reset_base(tmpref,reg,0);
+            reference_reset_base(tmpref,reg,0,4);
 	  end
 	else
 	  begin
 	    { if we have a data register, we need to move it to an address register first }
 	    tmpreg:=getaddressregister(list);
-            reference_reset_base(tmpref,tmpreg,0);
+            reference_reset_base(tmpref,tmpreg,0,4);
 	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg));
 	  end;
 	list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));

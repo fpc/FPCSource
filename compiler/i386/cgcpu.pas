@@ -193,7 +193,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -576,7 +576,7 @@ unit cgcpu;
                 selfoffsetfromsp:=2*sizeof(aint)
               else
                 selfoffsetfromsp:=sizeof(aint);
-              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs);
+              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
             end;
         end;
@@ -586,7 +586,7 @@ unit cgcpu;
           href : treference;
         begin
           { mov  0(%eax),%eax ; load vmt}
-          reference_reset_base(href,NR_EAX,0);
+          reference_reset_base(href,NR_EAX,0,4);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
@@ -597,7 +597,7 @@ unit cgcpu;
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber),4);
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
@@ -608,7 +608,7 @@ unit cgcpu;
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { mov vmtoffs(%eax),%eax ; method offs }
-          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber),4);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
@@ -669,7 +669,7 @@ unit cgcpu;
                 loadvmttoeax;
                 loadmethodoffstoeax;
                 { mov %eax,4(%esp) }
-                reference_reset_base(href,NR_ESP,4);
+                reference_reset_base(href,NR_ESP,4,4);
                 list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                 { pop  %eax }
                 list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));

@@ -1781,6 +1781,7 @@ implementation
     function tcallnode.funcret_can_be_reused:boolean;
       var
         realassignmenttarget: tnode;
+        alignment: longint;
       begin
         result:=false;
 
@@ -1857,6 +1858,11 @@ implementation
               and the parameter will point to the same address. That means that a change of the result variable
               will result also in a change of the parameter value }
             result:=not foreachnodestatic(left,@check_funcret_used_as_para,tloadnode(realassignmenttarget).symtableentry);
+            { ensure that it is aligned using the default alignment }
+            alignment:=tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).vardef.alignment;
+            if (used_align(alignment,target_info.alignment.localalignmin,target_info.alignment.localalignmax)<>
+                used_align(alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax)) then
+              result:=false;
             exit;
           end;
       end;

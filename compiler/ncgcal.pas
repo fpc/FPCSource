@@ -149,10 +149,10 @@ implementation
                  if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(current_asmdata.CurrAsmList,size);
-                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                     reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
                    end
                  else
-                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
+                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset,tempcgpara.alignment);
                  cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,left.location.size,left.location.register,href);
                end;
              LOC_MMREGISTER,
@@ -162,10 +162,10 @@ implementation
                  if tempcgpara.location^.reference.index=NR_STACK_POINTER_REG then
                    begin
                      cg.g_stackpointer_alloc(current_asmdata.CurrAsmList,size);
-                     reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                     reference_reset_base(href,NR_STACK_POINTER_REG,0,sizeof(pint));
                    end
                  else
-                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
+                   reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset,tempcgpara.alignment);
                  cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,left.location.size,left.location.size,left.location.register,href,mms_movescalar);
                end;
              LOC_REFERENCE,
@@ -177,7 +177,7 @@ implementation
                    cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
                  else
                    begin
-                     reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset);
+                     reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset,tempcgpara.alignment);
                      cg.g_concatcopy(current_asmdata.CurrAsmList,left.location.reference,href,size);
                    end;
                end;
@@ -388,7 +388,7 @@ implementation
              if (parasym.varspez=vs_out) and
                 (left.resultdef.needs_inittable) then
                begin
-                 location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false);
+                 location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                  cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
 
@@ -557,7 +557,7 @@ implementation
                   if cgsize in [OS_128,OS_S128] then
                     begin
                       tg.GetTemp(current_asmdata.CurrAsmList,16,8,tt_normal,ref);
-                      location_reset(location,LOC_REFERENCE,OS_NO);
+                      location_reset_ref(location,LOC_REFERENCE,OS_NO,0);
                       location.reference:=ref;
                       cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,procdefinition.funcretloc[callerside].register,ref);
                       inc(ref.offset,8);
@@ -749,6 +749,8 @@ implementation
          sizeleft: aint;
          htempref,
          href : treference;
+         calleralignment,
+         tmpalignment: longint;
        begin
          { copy all resources to the allocated registers }
          ppn:=tcgcallparanode(left);
@@ -762,6 +764,11 @@ implementation
                  paramanager.freeparaloc(current_asmdata.CurrAsmList,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
                  sizeleft:=ppn.tempcgpara.intsize;
+                 calleralignment:=ppn.parasym.paraloc[callerside].alignment;
+                 tmpalignment:=ppn.tempcgpara.alignment;
+                 if (tmpalignment=0) or
+                    (calleralignment=0) then
+                   internalerror(2009020701);
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
                  while assigned(callerparaloc) do
                    begin
@@ -808,12 +815,12 @@ implementation
                                  ((tmpparaloc^.loc<>LOC_REFERENCE) or
                                   assigned(tmpparaloc^.next)) then
                                 internalerror(200501281);
-                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset);
+                                reference_reset_base(href,callerparaloc^.reference.index,callerparaloc^.reference.offset,calleralignment);
                               { copy parameters in case they were moved to a temp. location because we've a fixed stack }
                               case tmpparaloc^.loc of
                               LOC_REFERENCE:
                                   begin
-                                    reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset);
+                                    reference_reset_base(htempref,tmpparaloc^.reference.index,tmpparaloc^.reference.offset,tmpalignment);
                                     { use concatcopy, because it can also be a float which fails when
                                       load_ref_ref is used }
                                     if (ppn.tempcgpara.size <> OS_NO) then
@@ -967,7 +974,7 @@ implementation
 {$ifndef x86}
                  pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
 {$endif not x86}
-                 reference_reset_base(href,vmtreg,vmtoffset);
+                 reference_reset_base(href,vmtreg,vmtoffset,sizeof(pint));
 {$ifndef x86}
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,pvreg);
 {$endif not x86}

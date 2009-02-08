@@ -154,7 +154,7 @@ unit cgcpu;
             a_load_const_reg(list,size,a,paraloc.location^.register);
           LOC_REFERENCE:
             begin
-               reference_reset(ref);
+               reference_reset(ref,paraloc.alignment);
                ref.base:=paraloc.location^.reference.index;
                ref.offset:=paraloc.location^.reference.offset;
                a_load_const_ref(list,size,a,ref);
@@ -181,7 +181,7 @@ unit cgcpu;
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,araloc.alignment);
                   { doubles in softemu mode have a strange order of registers and references }
                   if location^.size=OS_32 then
                     g_concatcopy(list,tmpref,ref,4)
@@ -217,7 +217,7 @@ unit cgcpu;
             a_loadaddr_ref_reg(list,r,paraloc.location^.register);
           LOC_REFERENCE:
             begin
-              reference_reset(ref);
+              reference_reset(ref,paraloc.alignment);
               ref.base := paraloc.location^.reference.index;
               ref.offset := paraloc.location^.reference.offset;
               tmpreg := getintregister(list,OS_ADDR);

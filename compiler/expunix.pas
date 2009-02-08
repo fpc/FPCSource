@@ -156,7 +156,7 @@ begin
              begin
 {$ifdef x86}
                sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
-               reference_reset_symbol(r,sym,0);
+               reference_reset_symbol(r,sym,0,sizeof(pint));
                if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
                else

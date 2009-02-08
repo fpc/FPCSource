@@ -960,7 +960,7 @@ implementation
                    { get current address }
                    current_asmdata.getaddrlabel(a);
                    cg.a_label(current_asmdata.CurrAsmList,a);
-                   reference_reset_symbol(href2,a,0);
+                   reference_reset_symbol(href2,a,0,1);
                    { push current frame }
                    paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
                    cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
@@ -1296,7 +1296,7 @@ implementation
          current_asmdata.getjumplabel(nextonlabel);
 
          { send the vmt parameter }
-         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0);
+         reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.a_paramaddr_ref(current_asmdata.CurrAsmList,href2,paraloc1);

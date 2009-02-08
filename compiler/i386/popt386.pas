@@ -177,7 +177,7 @@ begin
                            ((taicpu(hp1).opcode=A_Jcc) and
                             (taicpu(hp1).condition in [C_O,C_NO])))) then
                       begin
-                        reference_reset(tmpref);
+                        reference_reset(tmpref,1);
                         case taicpu(p).oper[0]^.val Of
                           3: begin
                              {imul 3, reg1, reg2 to
@@ -233,7 +233,7 @@ begin
                                         taicpu(p).oper[1]^.reg,taicpu(p).oper[1]^.reg);
                                     end;
                                   InsertLLItem(asml,p, p.next, hp1);
-                                  reference_reset(tmpref);
+                                  reference_reset(tmpref,2);
                                   TmpRef.index := taicpu(p).oper[1]^.reg;
                                   TmpRef.ScaleFactor := 2;
                                   if (taicpu(p).ops = 3) then
@@ -320,7 +320,7 @@ begin
                                          hp1 :=  taicpu.op_ref_reg(A_LEA, S_L, TmpRef, taicpu(p).oper[1]^.reg);
                                        end;
                                      InsertLLItem(asml,p, p.next, hp1);
-                                     reference_reset(tmpref);
+                                     reference_reset(tmpref,2);
                                      TmpRef.index := taicpu(p).oper[1]^.reg;
                                      if (taicpu(p).ops = 3) then
                                        begin
@@ -1563,7 +1563,7 @@ begin
                           TmpBool1 := True; {should we check the next instruction?}
                           TmpBool2 := False; {have we found an add/sub which could be
                                               integrated in the lea?}
-                          reference_reset(tmpref);
+                          reference_reset(tmpref,2);
                           TmpRef.index := taicpu(p).oper[1]^.reg;
                           TmpRef.scalefactor := 1 shl taicpu(p).oper[0]^.val;
                           while TmpBool1 and
@@ -1654,7 +1654,7 @@ begin
                     {changes "shl $2, %reg" to "lea (,%reg,4), %reg"
                             "shl $3, %reg" to "lea (,%reg,8), %reg}
                               begin
-                                reference_reset(tmpref);
+                                reference_reset(tmpref,2);
                                 TmpRef.index := taicpu(p).oper[1]^.reg;
                                 TmpRef.scalefactor := 1 shl taicpu(p).oper[0]^.val;
                                 hp1 := taicpu.Op_ref_reg(A_LEA,S_L,TmpRef, taicpu(p).oper[1]^.reg);

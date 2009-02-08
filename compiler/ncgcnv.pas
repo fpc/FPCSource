@@ -99,7 +99,10 @@ interface
               begin
                 location.size:=newsize;
                 if (target_info.endian = ENDIAN_BIG) then
-                  inc(location.reference.offset,leftsize-ressize);
+                  begin
+                    inc(location.reference.offset,leftsize-ressize);
+                    location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
+                  end;
               end
             else
               location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
@@ -145,6 +148,7 @@ interface
            cst_shortstring :
              begin
                inc(left.location.reference.offset);
+               location.reference.alignment:=1;
                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
              end;
@@ -154,7 +158,8 @@ interface
              begin
                if tstringconstnode(left).len=0 then
                 begin
-                  reference_reset(hr);
+                  { FPC_EMPTYCHAR is a widechar -> 2 bytes }
+                  reference_reset(hr,2);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
@@ -207,7 +212,8 @@ interface
     procedure tcgtypeconvnode.second_pointer_to_array;
 
       begin
-        location_reset(location,LOC_REFERENCE,OS_NO);
+        { assume natural alignment }
+        location_reset_ref(location,LOC_REFERENCE,OS_NO,resultdef.alignment);
         case left.location.loc of
           LOC_CREGISTER,
           LOC_REGISTER :
@@ -239,11 +245,11 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_string;
       begin
-         location_reset(location,LOC_REFERENCE,OS_NO);
+         location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,1,tt_normal,location.reference);
+               tg.GetTemp(current_asmdata.CurrAsmList,256,2,tt_normal,location.reference);
                cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -274,7 +280,7 @@ interface
              { round them down to the proper precision }
              tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
-             location_reset(left.location,LOC_REFERENCE,location.size);
+             location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
            end;
 {$endif x86}
@@ -369,7 +375,7 @@ interface
 
     begin
       tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
-      location_reset(location,LOC_REFERENCE,OS_NO);
+      location_reset_ref(location,LOC_REFERENCE,OS_NO,0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
       inc(r.offset,sizeof(puint));
@@ -472,7 +478,8 @@ interface
               internalerror(2002032214);
          end;
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
-         reference_reset(hr);
+         { FPC_EMPTYCHAR is a widechar -> 2 bytes }
+         reference_reset(hr,2);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
          cg.a_label(current_asmdata.CurrAsmList,l1);

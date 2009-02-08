@@ -69,7 +69,7 @@ interface
 
     { Retrieve the location of the data pointed to in location l, when the location is
       a register it is expected to contain the address of the data }
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean);
+    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
 
     function  has_alias_name(pd:tprocdef;const s:string):boolean;
     procedure alloc_proc_symbol(pd: tprocdef);
@@ -581,7 +581,10 @@ implementation
                     { return  the second byte in this case (JM)           }
                     if (target_info.endian = ENDIAN_BIG) and
                        (l.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_SUBSETREF,LOC_CSUBSETREF]) then
-                      inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                      begin
+                        inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                        l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                      end;
 {$ifdef x86}
                   if not (l.loc in [LOC_SUBSETREG,LOC_CSUBSETREG]) then
                      l.size:=dst_size;
@@ -647,7 +650,10 @@ implementation
                  { return  the second byte in this case (JM)           }
                  if (target_info.endian = ENDIAN_BIG) and
                     (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-                   inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                   begin
+                     inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                     l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
+                   end;
 {$ifdef x86}
                 l.size:=dst_size;
 {$endif x86}
@@ -685,7 +691,7 @@ implementation
               begin
                 tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
-                location_reset(l,LOC_REFERENCE,l.size);
+                location_reset_ref(l,LOC_REFERENCE,l.size,0);
                 l.reference:=href;
               end;
             reg:=cg.getfpuregister(list,l.size);
@@ -710,7 +716,7 @@ implementation
               begin
                 tg.GetTemp(list,tcgsize2size[l.size],tcgsize2size[l.size],tt_normal,href);
                 cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
-                location_reset(l,LOC_REFERENCE,l.size);
+                location_reset_ref(l,LOC_REFERENCE,l.size,0);
                 l.reference:=href;
               end;
             reg:=cg.getmmregister(list,l.size);
@@ -774,7 +780,7 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,r);
-              location_reset(l,LOC_REFERENCE,l.size);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
               l.reference:=r;
             end;
           LOC_MMREGISTER,
@@ -782,7 +788,7 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,r,mms_movescalar);
-              location_reset(l,LOC_REFERENCE,l.size);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
               l.reference:=r;
             end;
           LOC_CONSTANT,
@@ -796,7 +802,7 @@ implementation
               else
 {$endif not cpu64bitalu}
                 cg.a_load_loc_ref(list,l.size,l,r);
-              location_reset(l,LOC_REFERENCE,l.size);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
               l.reference:=r;
             end;
           LOC_SUBSETREG,
@@ -806,7 +812,7 @@ implementation
             begin
               tg.GetTemp(list,TCGSize2Size[l.size],TCGSize2Size[l.size],tt_normal,r);
               cg.a_load_loc_ref(list,l.size,l,r);
-              location_reset(l,LOC_REFERENCE,l.size);
+              location_reset_ref(l,LOC_REFERENCE,l.size,0);
               l.reference:=r;
             end;
           LOC_CREFERENCE,
@@ -817,7 +823,7 @@ implementation
       end;
 
 
-    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean);
+    procedure location_get_data_ref(list:TAsmList;const l:tlocation;var ref:treference;loadref:boolean; alignment: longint);
       begin
         case l.loc of
           LOC_REGISTER,
@@ -825,14 +831,14 @@ implementation
             begin
               if not loadref then
                 internalerror(200410231);
-              reference_reset_base(ref,l.register,0);
+              reference_reset_base(ref,l.register,0,alignment);
             end;
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
               if loadref then
                 begin
-                  reference_reset_base(ref,cg.getaddressregister(list),0);
+                  reference_reset_base(ref,cg.getaddressregister(list),0,alignment);
                   cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,l.reference,ref.base);
                 end
               else
@@ -862,7 +868,8 @@ implementation
            (tparavarsym(p).varspez=vs_value) and
           (paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
           begin
-            location_get_data_ref(list,tparavarsym(p).initialloc,href,true);
+            { we have no idea about the alignment at the caller side }
+            location_get_data_ref(list,tparavarsym(p).initialloc,href,true,1);
             if is_open_array(tparavarsym(p).vardef) or
                is_array_of_const(tparavarsym(p).vardef) then
               begin
@@ -1048,7 +1055,8 @@ implementation
                begin
                  { initialize fpu regvar by loading from memory }
                  reference_reset_symbol(href,
-                   current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0);
+                   current_asmdata.RefAsmSymbol(tstaticvarsym(p).mangledname), 0,
+                   var_align(tstaticvarsym(p).vardef.alignment));
                  cg.a_loadfpu_ref_reg(TAsmList(arg), tstaticvarsym(p).initialloc.size,
                    tstaticvarsym(p).initialloc.size, href, tstaticvarsym(p).initialloc.register);
                end;
@@ -1179,7 +1187,7 @@ implementation
                    if not((tparavarsym(p).vardef.typ=variantdef) and
                      paramanager.push_addr_param(tparavarsym(p).varspez,tparavarsym(p).vardef,current_procinfo.procdef.proccalloption)) then
                      begin
-                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef));
+                       location_get_data_ref(list,tparavarsym(p).initialloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
                        cg.g_incrrefcount(list,tparavarsym(p).vardef,href);
                      end;
                  end;
@@ -1190,7 +1198,10 @@ implementation
                    begin
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
-                     reference_reset_base(href,tmpreg,0);
+                     { we have no idea about the alignment at the callee side,
+                       and the user also cannot specify "unaligned" here, so
+                       assume worst case }
+                     reference_reset_base(href,tmpreg,0,1);
                      if do_trashing and
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
@@ -1205,7 +1216,13 @@ implementation
                    begin
                      tmpreg:=cg.getaddressregister(list);
                      cg.a_load_loc_reg(list,OS_ADDR,tparavarsym(p).initialloc,tmpreg);
-                     reference_reset_base(href,tmpreg,0);
+                     { should always have standard alignment. If a function is assigned
+                       to a non-aligned variable, the optimisation to pass this variable
+                       directly as hidden function result must/cannot be performed
+                       (see tcallnode.funcret_can_be_reused)
+                     }
+                     reference_reset_base(href,tmpreg,0,
+                       used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
                      { may be an open string, even if is_open_string() returns }
                      { false for some helpers in the system unit               }
                      if not is_shortstring(tparavarsym(p).vardef) then
@@ -1234,7 +1251,7 @@ implementation
            if (tparavarsym(p).varspez=vs_value) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef));
+              location_get_data_ref(list,tparavarsym(p).localloc,href,is_open_array(tparavarsym(p).vardef),sizeof(pint));
               cg.g_decrrefcount(list,tparavarsym(p).vardef,href);
             end;
          end;
@@ -1263,7 +1280,7 @@ implementation
            if assigned(hp^.def) and
               hp^.def.needs_inittable then
             begin
-              reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
+              reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
               cg.g_initialize(list,hp^.def,href);
             end;
            hp:=hp^.next;
@@ -1283,7 +1300,7 @@ implementation
               hp^.def.needs_inittable then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
-              reference_reset_base(href,current_procinfo.framepointer,hp^.pos);
+              reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
               cg.g_finalize(list,hp^.def,href);
             end;
            hp:=hp^.next;
@@ -1342,7 +1359,7 @@ implementation
 
               LOC_REFERENCE:
                 begin
-                  location_reset(restmploc,LOC_REFERENCE,funcretloc^.size);
+                  location_reset_ref(restmploc,LOC_REFERENCE,funcretloc^.size,0);
                   restmploc.reference:=ressym.localloc.reference;
                 end;
               else
@@ -1640,7 +1657,7 @@ implementation
          end;
 
 
-       procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference;sizeleft:aint);
+       procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference;sizeleft:aint; alignment: longint);
          var
            href : treference;
          begin
@@ -1659,7 +1676,7 @@ implementation
                 cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
+                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,alignment);
                   { use concatcopy, because it can also be a float which fails when
                     load_ref_ref is used. Don't copy data when the references are equal }
                   if not((href.base=ref.base) and (href.offset=ref.offset)) then
@@ -1671,7 +1688,7 @@ implementation
          end;
 
 
-       procedure gen_load_reg(const paraloc:TCGParaLocation;reg:tregister);
+       procedure gen_load_reg(const paraloc:TCGParaLocation;reg:tregister; alignment: longint);
          var
            href : treference;
          begin
@@ -1684,7 +1701,7 @@ implementation
                 cg.a_loadfpu_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg);
               LOC_REFERENCE :
                 begin
-                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset);
+                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,alignment);
                   case getregtype(reg) of
                     R_INTREGISTER :
                       cg.a_load_ref_reg(list,paraloc.size,paraloc.size,href,reg);
@@ -1755,13 +1772,13 @@ implementation
                               if (paraloc^.loc<>LOC_REFERENCE) or
                                  assigned(paraloc^.next) then
                                 internalerror(2005013010);
-                              gen_load_ref(paraloc^,href,sizeleft);
+                              gen_load_ref(paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
                               inc(href.offset,sizeleft);
                               sizeleft:=0;
                             end
                           else
                             begin
-                              gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size]);
+                              gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size],currpara.initialloc.reference.alignment);
                               inc(href.offset,TCGSize2Size[paraloc^.size]);
                               dec(sizeleft,TCGSize2Size[paraloc^.size]);
                             end;
@@ -1787,9 +1804,10 @@ implementation
                                   paraloc^.next -> low }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,currpara.initialloc.register64.reghi);
+                                { reg->reg, alignment is irrelevant }
+                                gen_load_reg(paraloc^,currpara.initialloc.register64.reghi,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reglo);
+                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reglo,4);
                               end
                             else
                               begin
@@ -1797,15 +1815,15 @@ implementation
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,currpara.initialloc.register64.reglo);
+                                gen_load_reg(paraloc^,currpara.initialloc.register64.reglo,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reghi);
+                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reghi,4);
                               end;
                           end;
                         LOC_REFERENCE:
                           begin
                             gen_alloc_regvar(list,currpara);
-                            reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset);
+                            reference_reset_base(href,paraloc^.reference.index,paraloc^.reference.offset,currpara.paraloc[calleeside].alignment);
                             cg64.a_load64_ref_reg(list,href,currpara.initialloc.register64);
                             unget_para(paraloc^);
                           end;
@@ -1820,7 +1838,7 @@ implementation
                         internalerror(200410105);
                       unget_para(paraloc^);
                       gen_alloc_regvar(list,currpara);
-                      gen_load_reg(paraloc^,currpara.initialloc.register);
+                      gen_load_reg(paraloc^,currpara.initialloc.register,sizeof(aint));
                     end;
                 end;
               LOC_CFPUREGISTER :
@@ -1834,7 +1852,7 @@ implementation
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
-                      gen_load_ref(paraloc^,href,sizeleft);
+                      gen_load_ref(paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
                       dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
@@ -1845,7 +1863,8 @@ implementation
 {$else sparc}
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
-                  gen_load_reg(paraloc^,currpara.initialloc.register);
+                  { from register to register -> alignment is irrelevant }
+                  gen_load_reg(paraloc^,currpara.initialloc.register,0);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
@@ -1854,7 +1873,8 @@ implementation
                 begin
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
-                  gen_load_reg(paraloc^,currpara.initialloc.register);
+                  { from register to register -> alignment is irrelevant }
+                  gen_load_reg(paraloc^,currpara.initialloc.register,0);
                   { data could come in two memory locations, for now
                     we simply ignore the sanity check (FK)
                   if assigned(paraloc^.next) then
@@ -2246,7 +2266,9 @@ implementation
         l:=sym.getsize;
         varalign:=sym.vardef.alignment;
         if (varalign=0) then
-          varalign:=l;
+          varalign:=var_align_size(l)
+        else
+          varalign:=var_align(varalign);
         if tf_section_threadvars in target_info.flags then
           begin
             if (vo_is_thread_var in sym.varoptions) then
@@ -2273,7 +2295,6 @@ implementation
             list:=current_asmdata.asmlists[al_globals];
             sectype:=sec_bss;
           end;
-        varalign:=var_align(varalign);
         maybe_new_object_file(list);
         new_section(list,sectype,lower(sym.mangledname),varalign);
         if (sym.owner.symtabletype=globalsymtable) or
@@ -2357,7 +2378,7 @@ implementation
                           if paramanager.param_use_paraloc(tparavarsym(sym).paraloc[calleeside]) then
                             begin
                               reference_reset_base(vs.initialloc.reference,tparavarsym(sym).paraloc[calleeside].location^.reference.index,
-                                  tparavarsym(sym).paraloc[calleeside].location^.reference.offset);
+                                  tparavarsym(sym).paraloc[calleeside].location^.reference.offset,tparavarsym(sym).paraloc[calleeside].alignment);
                             end
                           else
                             begin
@@ -2775,7 +2796,7 @@ implementation
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                   cg.a_loadaddr_ref_reg(list,selfloc.reference,href.base);
                 end;
               else
@@ -2790,18 +2811,18 @@ implementation
 {$ifdef cpu_uses_separate_address_registers}
                   if getregtype(left.location.register)<>R_ADDRESSREGISTER then
                     begin
-                      reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                      reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                       cg.a_load_reg_reg(list,OS_ADDR,OS_ADDR,selfloc.register,href.base);
                     end
                   else
 {$endif cpu_uses_separate_address_registers}
-                    reference_reset_base(href,selfloc.register,objdef.vmt_offset);
+                    reference_reset_base(href,selfloc.register,objdef.vmt_offset,sizeof(pint));
                 end;
               LOC_CREGISTER,
               LOC_CREFERENCE,
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset);
+                  reference_reset_base(href,cg.getaddressregister(list),objdef.vmt_offset,sizeof(pint));
                   cg.a_load_loc_reg(list,OS_ADDR,selfloc,href.base);
                 end;
               else
@@ -2841,7 +2862,7 @@ implementation
           begin
             new_section(list,sec_code,'fpc_geteipasebx',0);
             list.concat(tai_symbol.Createname('fpc_geteipasebx',AT_FUNCTION,getprocalign));
-            reference_reset(href);
+            reference_reset(href,sizeof(pint));
             href.base:=NR_ESP;
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_EBX));
             list.concat(taicpu.op_none(A_RET,S_NO));
@@ -2850,7 +2871,7 @@ implementation
           begin
             new_section(list,sec_code,'fpc_geteipasecx',0);
             list.concat(tai_symbol.Createname('fpc_geteipasecx',AT_FUNCTION,getprocalign));
-            reference_reset(href);
+            reference_reset(href,sizeof(pint));
             href.base:=NR_ESP;
             list.concat(taicpu.op_ref_reg(A_MOV,S_L,href,NR_ECX));
             list.concat(taicpu.op_none(A_RET,S_NO));

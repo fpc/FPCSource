@@ -44,6 +44,11 @@ interface
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    { if you have an address aligned using "oldalignment" and add an
+      offset of (a multiple of) offset to it, this function calculates
+      the new minimally guaranteed alignment
+    }
+    function newalignment(oldalignment: longint; offset: int64): longint;
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
 
@@ -199,6 +204,19 @@ implementation
          else
            max:=b;
       end;
+
+
+    function newalignment(oldalignment: longint; offset: int64): longint;
+      var
+        i,
+        localoffset: longint;
+      begin
+        localoffset:=longint(offset);
+        while (localoffset mod oldalignment)<>0 do
+          oldalignment:=oldalignment div 2;
+        newalignment:=oldalignment;
+      end;
+
 
     function reverse_byte(b: byte): byte;
       const

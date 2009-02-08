@@ -44,6 +44,7 @@ implementation
 
     uses
       verbose,cutils,
+      globtype,
       cgobj;
 
     procedure trgcpu.add_constraints(reg:tregister);
@@ -102,7 +103,7 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(pint));
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_high;
             helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
@@ -110,7 +111,7 @@ implementation
             tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
-            reference_reset_base(tmpref,hreg,0);
+            reference_reset_base(tmpref,hreg,0,sizeof(aint));
             tmpref.index:=spilltemp.base;
 
             helpins:=spilling_create_load(tmpref,tempreg);
@@ -138,7 +139,7 @@ implementation
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(aint));
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr:=addr_high;
             helplist.concat(taicpu.op_ref_reg(A_SETHI,tmpref,hreg));
@@ -146,7 +147,7 @@ implementation
             tmpref.refaddr:=addr_low;
             helplist.concat(taicpu.op_reg_ref_reg(A_OR,hreg,tmpref,hreg));
 
-            reference_reset_base(tmpref,hreg,0);
+            reference_reset_base(tmpref,hreg,0,sizeof(aint));
             tmpref.index:=spilltemp.base;
 
             helplist.concat(spilling_create_store(tempreg,tmpref));

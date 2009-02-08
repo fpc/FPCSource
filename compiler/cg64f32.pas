@@ -98,7 +98,7 @@ unit cg64f32;
 
     uses
        globtype,systems,constexp,
-       verbose,
+       verbose,cutils,
        symbase,symconst,symdef,symtable,defutil,paramgr;
 
 {****************************************************************************
@@ -171,9 +171,15 @@ unit cg64f32;
             move(cgpara.location^,paralochi^,sizeof(paralochi^));
             { for big endian low is at +4, for little endian high }
             if target_info.endian = endian_big then
-              inc(cgparalo.location^.reference.offset,4)
+              begin
+                inc(cgparalo.location^.reference.offset,4);
+                cgparalo.alignment:=newalignment(cgparalo.alignment,4);
+              end
             else
-              inc(cgparahi.location^.reference.offset,4);
+              begin
+                inc(cgparahi.location^.reference.offset,4);
+                cgparahi.alignment:=newalignment(cgparahi.alignment,4);
+              end;
           end;
         { fix size }
         paraloclo^.size:=cgparalo.size;
@@ -754,7 +760,10 @@ unit cg64f32;
 
              if (temploc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
                 (target_info.endian = endian_big) then
-               inc(temploc.reference.offset,4);
+               begin
+                 inc(temploc.reference.offset,4);
+                 temploc.reference.alignment:=newalignment(temploc.reference.alignment,4);
+               end;
 
              cg.g_rangecheck(list,temploc,hdef,todef);
              hdef.owner.deletedef(hdef);

@@ -1905,7 +1905,7 @@ implementation
       var
         r : treference;
       begin
-        reference_reset_symbol(r,s,sofs);
+        reference_reset_symbol(r,s,sofs,1);
         r.refaddr:=addr_full;
         loadref(opidx,r);
       end;
