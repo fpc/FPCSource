@@ -456,7 +456,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -T$fpctargetos
  -Sg
  -O1
- -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
  -Fu$FPCPATH/units/\$fpctarget\rtl
@@ -476,7 +475,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -Sg
  -Cr
  -Co
- -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
  -Fu$FPCPATH/units/\$fpctarget\rtl
@@ -494,7 +492,6 @@ cat <<EOFFPCFG > $fpcfgfile
  -T$fpctargetos
  -Sg
  -O2
- -Ratt
  -Fu$FPCPATH/units/\$fpctarget
  -Fu$FPCPATH/units/\$fpctarget\*
  -Fu$FPCPATH/units/\$fpctarget\rtl
