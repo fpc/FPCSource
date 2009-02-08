@@ -716,7 +716,7 @@ implementation
 
             { special case for case jump tables }
             if assigned(curtai.next) and
-              (taicpu(curtai.next).typ=ait_instruction) and
+              (tai(curtai.next).typ=ait_instruction) and
               (taicpu(curtai.next).opcode=A_LDR) and
               (taicpu(curtai.next).oper[0]^.typ=top_reg) and
               (taicpu(curtai.next).oper[0]^.reg=NR_PC) then
