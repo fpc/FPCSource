@@ -9,8 +9,11 @@ type
     ['{0374223C-E460-4CC2-ABFD-7723AAB80CFE}']
   end;
 
-const
-  Test_IID: Shortstring = ITest;
+procedure foo(iid: shortstring);
+begin
+end;
 
 begin
+  foo(ITest);
 end.
+
