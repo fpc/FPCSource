@@ -2542,7 +2542,7 @@ begin
 end;
 
 
-function sysvararrayget(const a : Variant;indexcount : SizeInt;indices : psizeint) : Variant;cdecl;
+function sysvararrayget(const a : Variant;indexcount : SizeInt;indices : plongint) : Variant;cdecl;
 var
   src : TVarData;
   p : pvararray;
@@ -2583,7 +2583,7 @@ begin
 end;
 
 
-procedure sysvararrayput(var a : Variant; const value : Variant;indexcount : SizeInt;indices : psizeint);cdecl;
+procedure sysvararrayput(var a : Variant; const value : Variant;indexcount : SizeInt;indices : plongint);cdecl;
 var
   Dest : TVarData;
   p : pvararray;
@@ -3390,7 +3390,7 @@ procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: P
               VarClear(temp);
           end;
           dynarriter.next;
-          variantmanager.VarArrayPut(V,temp,Dims,PSizeInt(iter.Coords));
+          variantmanager.VarArrayPut(V,temp,Dims,PLongint(iter.Coords));
         until not(iter.next);
       finally
         iter.done;
@@ -3444,7 +3444,7 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
         dynarriter.init(DynArray,TypeInfo,VarArrayDims,dynarraybounds);
         if not iter.AtEnd then
         repeat
-          temp:=variantmanager.VarArrayGet(V,VarArrayDims,PSizeInt(iter.Coords));
+          temp:=variantmanager.VarArrayGet(V,VarArrayDims,PLongint(iter.Coords));
           case dynarrvartype of
             varSmallInt:
               PSmallInt(dynarriter.data)^:=temp;

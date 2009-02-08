@@ -75,13 +75,13 @@ Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); 
   end;
 
 
-procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_vararray_get(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
   begin
     d:=variantmanager.vararrayget(s,len,indices);
   end;
 
 
-procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
   begin
     variantmanager.vararrayput(d,s,len,indices);
   end;
@@ -637,7 +637,7 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
     variantmanager.vararrayredim(a,highbound);
   end;
 
-procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
+procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of Longint);
   begin
     if Length(Indices)>0 then
       variantmanager.vararrayput(A, Value, Length(Indices), @Indices[0])
@@ -646,7 +646,7 @@ procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array
   end;
 
 
-function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
+function VarArrayGet(const A: Variant; const Indices: array of Longint): Variant;
   begin
     if Length(Indices)>0 then
       Result:=variantmanager.vararrayget(A, Length(Indices), @Indices[0])

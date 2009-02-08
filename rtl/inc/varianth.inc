@@ -193,9 +193,9 @@ type
         calldesc : pcalldesc;params : pointer);cdecl;
 
       vararrayredim : procedure(var a : variant;highbound : SizeInt);
-      vararrayget : function(const a : variant;indexcount : SizeInt;indices : PSizeInt) : variant;cdecl;
+      vararrayget : function(const a : variant;indexcount : SizeInt;indices : plongint) : variant;cdecl;
       vararrayput: procedure(var a : variant; const value : variant;
-        indexcount : SizeInt;indices : PSizeInt);cdecl;
+        indexcount : SizeInt;indices : plongint);cdecl;
       writevariant : function(var t : text;const v : variant;width : longint) : Pointer;
       write0Variant : function(var t : text;const v : Variant) : Pointer;
    end;
@@ -363,8 +363,8 @@ operator <=(const op1,op2 : variant) dest : boolean;{$ifdef SYSTEMINLINE}inline;
 
 { variant helpers }
 procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
-procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
-function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
+procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of Longint);
+function VarArrayGet(const A: Variant; const Indices: array of Longint): Variant;
 procedure VarCast(var dest : variant;const source : variant;vartype : longint);
 
 {**********************************************************************
