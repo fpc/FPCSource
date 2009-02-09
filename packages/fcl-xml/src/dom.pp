@@ -2080,7 +2080,13 @@ end;
 
 function TDOMNode_NS.GetNodeName: DOMString;
 begin
-  Result := FNSI.QName^.Key;
+  // Because FNSI.QName is not set by the TDOMNode itself, but is set by
+  // other classes/functions, it is necessary to check if FNSQ.QName is
+  // assigned.
+  if assigned(FNSI.QName) then
+    Result := FNSI.QName^.Key
+  else
+    Result := '';
 end;
 
 function TDOMNode_NS.GetLocalName: DOMString;
@@ -2126,7 +2132,7 @@ end;
 
 function TDOMNode_NS.CompareName(const AName: DOMString): Integer;
 begin
-  Result := CompareDOMStrings(DOMPChar(AName), DOMPChar(FNSI.QName^.Key), Length(AName), Length(FNSI.QName^.Key));
+  Result := CompareDOMStrings(DOMPChar(AName), DOMPChar(NodeName), Length(AName), Length(NodeName));
 end;
 
 // -------------------------------------------------------
@@ -2141,7 +2147,7 @@ end;
 function TDOMAttr.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   // Cloned attribute is always specified and carries its children
-  Result := ACloneOwner.CreateAttribute(FNSI.QName^.Key);
+  Result := ACloneOwner.CreateAttribute(NodeName);
   TDOMAttr(Result).FDataType := FDataType;
   CloneChildren(Result, ACloneOwner);
 end;
@@ -2186,7 +2192,7 @@ function TDOMElement.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNo
 var
   i: Integer;
 begin
-  Result := ACloneOwner.CreateElement(FNSI.QName^.Key);
+  Result := ACloneOwner.CreateElement(NodeName);
   if Assigned(FAttributes) then
   begin
     for i := 0 to FAttributes.Length - 1 do

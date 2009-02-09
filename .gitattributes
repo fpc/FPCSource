@@ -7696,6 +7696,7 @@ tests/test/packages/fcl-db/tdb4.pp svneol=native#text/plain
 tests/test/packages/fcl-db/tdb5.pp svneol=native#text/plain
 tests/test/packages/fcl-db/toolsunit.pas svneol=native#text/plain
 tests/test/packages/fcl-registry/tregistry1.pp svneol=native#text/plain
+tests/test/packages/fcl-xml/thtmlwriter.pp svneol=native#text/plain
 tests/test/packages/hash/tmdtest.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw10045.pp svneol=native#text/plain
 tests/test/packages/webtbs/tw11142.pp svneol=native#text/plain
