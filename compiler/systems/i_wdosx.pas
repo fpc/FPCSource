@@ -56,6 +56,8 @@ unit i_wdosx;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';

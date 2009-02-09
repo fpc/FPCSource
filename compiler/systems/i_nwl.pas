@@ -56,6 +56,8 @@ unit i_nwl;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            importlibprefix : 'imp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '/';

@@ -56,6 +56,8 @@ unit i_morph;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';

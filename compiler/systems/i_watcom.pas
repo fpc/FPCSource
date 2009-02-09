@@ -56,6 +56,8 @@ unit i_watcom;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            importlibprefix : 'imp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';

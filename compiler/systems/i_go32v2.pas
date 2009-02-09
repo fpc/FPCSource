@@ -56,6 +56,8 @@ unit i_go32v2;
             staticClibext : '.a';
             staticClibprefix : '';
             sharedClibprefix : '';
+            importlibprefix : '';
+            importlibext : '.al';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';

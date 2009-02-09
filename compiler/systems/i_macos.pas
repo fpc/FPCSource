@@ -55,6 +55,8 @@ unit i_macos;
             staticClibext : 'Lib';
             staticClibprefix : '';
             sharedClibprefix : '';
+            importlibprefix : 'imp';
+            importlibext : 'Lib';
             Cprefix      : '';
             newline      : #13;
             dirsep       : ':';

@@ -357,6 +357,8 @@ interface
           staticClibext,
           staticClibprefix : string[4];
           sharedClibprefix : string[4];
+          importlibprefix : string[10];
+          importlibext : string[4];
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;
