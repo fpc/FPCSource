@@ -3336,16 +3336,31 @@ implementation
             { load the GUID of the interface }
             if (right.nodetype=typen) then
              begin
-               if assigned(tobjectdef(right.resultdef).iidguid) then
+               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
                  begin
-                   if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                     CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                   hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
-                   right.free;
-                   right:=hp;
+                   if assigned(tobjectdef(right.resultdef).iidstr) then
+                     begin
+                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                       tstringconstnode(hp).changestringtype(cshortstringtype);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(200902081);
                  end
                else
-                 internalerror(200206282);
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidguid) then
+                     begin
+                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(200206282);
+                 end;
                typecheckpass(right);
              end;
           end
@@ -3387,7 +3402,10 @@ implementation
             else
               begin
                 if is_class(left.resultdef) then
-                  procname := 'fpc_class_as_intf'
+                  if is_shortstring(right.resultdef) then
+                    procname := 'fpc_class_as_corbaintf'
+                  else
+                    procname := 'fpc_class_as_intf'
                 else
                   procname := 'fpc_intf_as';
                 call := ccallnode.createintern(procname,

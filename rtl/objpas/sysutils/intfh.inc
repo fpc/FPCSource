@@ -22,9 +22,12 @@
 
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean; overload;
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean; overload;
+function Supports(const Instance: TObject; const IID: Shortstring; out Intf): Boolean; overload;
 function Supports(const Instance: IInterface; const IID: TGUID): Boolean; overload;
 function Supports(const Instance: TObject; const IID: TGUID): Boolean; overload;
+function Supports(const Instance: TObject; const IID: Shortstring): Boolean; overload;
 function Supports(const AClass: TClass; const IID: TGUID): Boolean; overload;
+function Supports(const AClass: TClass; const IID: Shortstring): Boolean; overload;
 
 //function CreateGUID(out Guid: TGUID): HResult;
 function StringToGUID(const S: string): TGUID;

@@ -633,6 +633,7 @@ implementation
           p.free;
         end;
 
+
         procedure parse_stringdef(list:tasmlist;def:tstringdef);
         var
           n : tnode;
@@ -645,7 +646,8 @@ implementation
         begin
           n:=comp_expr(true);
           { load strval and strlength of the constant tree }
-          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) then
+          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) or
+            ((n.nodetype=typen) and is_interfacecorba(ttypenode(n).typedef)) then
             begin
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }
@@ -1014,8 +1016,7 @@ implementation
               n.free;
               exit;
             end;
-          if (def=rec_tguid) and { maybe keep token=_ID here to assign corba interfaces to TGuid }
-             ((token=_CSTRING) or (token=_CCHAR) {or (token=_ID)}) then
+          if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
             begin
               n:=comp_expr(true);
               inserttypeconv(n,cshortstringtype);

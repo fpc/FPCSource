@@ -116,7 +116,6 @@
 
 
     function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
-
       var
         tmpi: pointer; // _AddRef before _Release
       begin
@@ -128,6 +127,21 @@
           end
         else
           fpc_class_as_intf:=nil;
+      end;
+
+
+    function fpc_class_as_corbaintf(const S: pointer; const iid: Shortstring): Pointer;[public,alias: 'FPC_CLASS_AS_CORBAINTF']; compilerproc;
+      var
+        tmpi: pointer; // _AddRef before _Release
+      begin
+        if assigned(S) then
+          begin
+             if not TObject(S).GetInterface(iid,tmpi) then
+               handleerror(219);
+             fpc_class_as_corbaintf:=tmpi;
+          end
+        else
+          fpc_class_as_corbaintf:=nil;
       end;
 
 {****************************************************************************
@@ -590,7 +604,7 @@
             (PDWORD(@guid1.D4[4])^=PDWORD(@guid2.D4[4])^);
         end;
 
-      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
+      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; Corba: Boolean; out obj): boolean;
         var
           Getter: function: IInterface of object;
         begin
@@ -625,58 +639,21 @@
             end;
           end;
           result := assigned(pointer(obj));
-          if result then
+          if result and not Corba then
             IInterface(obj)._AddRef;
-        end;
-
-      function getcorbainterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
-        var
-          Getter: function: IInterface of object;
-        begin
-          Pointer(Obj) := nil;
-          if Assigned(IEntry) and Assigned(Instance) then
-          begin
-            case IEntry^.IType of
-              etStandard:
-                begin
-                  //writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
-                  Pbyte(Obj):=Pbyte(instance)+IEntry^.IOffset;
-                end;
-              etFieldValue:
-                begin
-                  //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
-                  Pointer(obj) := ppointer(Pbyte(Instance)+IEntry^.IOffset)^;
-                end;
-              etVirtualMethodResult:
-                begin
-                  //writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
-                  TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := ppointer(Pbyte(Instance) + IEntry^.IOffset)^;
-                  Pointer(obj) := Pointer(Getter());
-                end;
-              etStaticMethodResult:
-                begin
-                  //writeln('Doing etStaticMethodResult cast of ', TObject(Instance).classname());
-                  TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := pointer(IEntry^.IOffset);
-                  Pointer(obj) := Pointer(Getter());
-                end;
-            end;
-          end;
-          result := assigned(pointer(obj));
         end;
 
       function TObject.getinterface(const iid : tguid;out obj) : boolean;
         begin
-          Result := getinterfacebyentry(self, getinterfaceentry(iid), obj);
+          Result := getinterfacebyentry(self, getinterfaceentry(iid), false, obj);
         end;
 
-      function TObject.getinterfacebystr(const iidstr : string;out obj) : boolean;
+      function TObject.getinterfacebystr(const iidstr : shortstring;out obj) : boolean;
         begin
-          Result := getcorbainterfacebyentry(self, getinterfaceentrybystr(iidstr), obj);
+          Result := getinterfacebyentry(self, getinterfaceentrybystr(iidstr), true, obj);
         end;
 
-      function TObject.getinterface(const iidstr : string;out obj) : boolean;
+      function TObject.getinterface(const iidstr : shortstring;out obj) : boolean;
         begin
           Result := getinterfacebystr(iidstr,obj);
         end;
@@ -705,7 +682,7 @@
           result := nil;
         end;
 
-      class function TObject.getinterfaceentrybystr(const iidstr : string) : pinterfaceentry;
+      class function TObject.getinterfaceentrybystr(const iidstr : shortstring) : pinterfaceentry;
         var
           i: longint;
           intftable: pinterfacetable;
@@ -720,7 +697,7 @@
               for i:=0 to intftable^.EntryCount-1 do
               begin
                 result:=@intftable^.Entries[i];
-                if result^.iidstr^ = iidstr then
+                if assigned(result^.iidstr) and (result^.iidstr^ = iidstr) then
                   Exit;
               end;
             end;

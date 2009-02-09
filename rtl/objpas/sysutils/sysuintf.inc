@@ -22,18 +22,17 @@
 
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
 begin
-  Result:=(Instance<>nil) and
-          (Instance.QueryInterface(IID,Intf)=0);
+  Result:=(Instance<>nil) and (Instance.QueryInterface(IID,Intf)=0);
 end;
 
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean;
-var
-  LUnknown: IUnknown;
 begin
-  Result:=(Instance<>nil) and
-          ((Instance.GetInterface(IUnknown,LUnknown) and
-            Supports(LUnknown,IID,Intf)) or
-           Instance.GetInterface(IID,Intf));
+  Result:=(Instance<>nil) and Instance.GetInterface(IID,Intf);
+end;
+
+function Supports(const Instance: TObject; const IID: Shortstring; out Intf): Boolean;
+begin
+  Result:=(Instance<>nil) and Instance.GetInterface(IID,Intf);
 end;
 
 function Supports(const Instance: IInterface; const IID: TGUID): Boolean;
@@ -44,15 +43,23 @@ begin
 end;
 
 function Supports(const Instance: TObject; const IID: TGUID): Boolean;
-var
-  Temp: IInterface;
 begin
-  Result:=Supports(Instance,IID,Temp);
+  Result:=(Instance<>nil) and (Instance.GetInterfaceEntry(IID)<>nil);
+end;
+
+function Supports(const Instance: TObject; const IID: Shortstring): Boolean;
+begin
+  Result:=(Instance<>nil) and (Instance.GetInterfaceEntryByStr(IID)<>nil);
 end;
 
 function Supports(const AClass: TClass; const IID: TGUID): Boolean;
 begin
-  Result:=AClass.GetInterfaceEntry(IID)<>nil;
+  Result:=(AClass<>nil) and (AClass.GetInterfaceEntry(IID)<>nil);
+end;
+
+function Supports(const AClass: TClass; const IID: Shortstring): Boolean;
+begin
+  Result:=(AClass<>nil) and (AClass.GetInterfaceEntryByStr(IID)<>nil);
 end;
 
 
