@@ -221,7 +221,7 @@ const
                 end;
               LOC_REFERENCE:
                 begin
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,cgpara.alignment);
+                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
                    g_concatcopy(list,tmpref,ref,sizeleft);
                    if assigned(location^.next) then
                      internalerror(2005010710);

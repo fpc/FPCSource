@@ -122,11 +122,11 @@ implementation
         { create reference, indexreg := indexreg * sizeof(jtentry) (= 4) }
         mulfactor:=4;
         cg.a_op_const_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, mulfactor, indexreg);
-        reference_reset_symbol(href, table, (-aint(min_)) * mulfactor);
+        reference_reset_symbol(href, table, (-aint(min_)) * mulfactor, 4);
 
         hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
-        reference_reset_base(href,hregister,0);
+        reference_reset_base(href,hregister,0,4);
         href.index:=indexreg;
         indexreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
         cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_S32,OS_ADDR,href,indexreg);

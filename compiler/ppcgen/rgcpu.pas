@@ -48,7 +48,7 @@ unit rgcpu;
   implementation
 
     uses
-      verbose, cutils,
+      verbose, cutils,globtype,
       cgobj,
       procinfo;
 
@@ -77,7 +77,7 @@ unit rgcpu;
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(aint));
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
@@ -127,7 +127,7 @@ unit rgcpu;
               end
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
-            reference_reset(tmpref);
+            reference_reset(tmpref,sizeof(aint));
             tmpref.offset:=spilltemp.offset;
             tmpref.refaddr := addr_higha;
             ins:=taicpu.op_reg_reg_ref(A_ADDIS,hreg,spilltemp.base,tmpref);
