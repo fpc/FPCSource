@@ -3826,9 +3826,9 @@ type
 	  ACTIVEOBJECT_STRONG = 0;
 	  ACTIVEOBJECT_WEAK = 1;
 	
-	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; external oleaut32dll name 'RegisterActiveObject';
-	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; external oleaut32dll name 'RevokeActiveObject';
-	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; external oleaut32dll name 'GetActiveObject';
+	function RegisterActiveObject(unk: IUnknown; const clsid: TCLSID; dwFlags: DWORD; out dwRegister: culong): HResult; stdcall; external oleaut32dll name 'RegisterActiveObject';
+	function RevokeActiveObject(dwRegister: culong; pvReserved: Pointer) : HResult; stdcall; external oleaut32dll name 'RevokeActiveObject';
+	function GetActiveObject(const clsid: TCLSID; pvReserved: Pointer; out unk: IUnknown) : HResult; stdcall; external oleaut32dll name 'GetActiveObject';
 {$endif wince}
 
 function Succeeded(Res: HResult) : Boolean;inline;
