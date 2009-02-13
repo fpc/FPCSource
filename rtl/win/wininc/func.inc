@@ -840,7 +840,7 @@ function FillPath(_para1:HDC):WINBOOL; external 'gdi32' name 'FillPath';
 function FlattenPath(_para1:HDC):WINBOOL; external 'gdi32' name 'FlattenPath';
 function GetPath(_para1:HDC; _para2:LPPOINT; _para3:LPBYTE; _para4:longint):longint; external 'gdi32' name 'GetPath';
 function PathToRegion(_para1:HDC):HRGN; external 'gdi32' name 'PathToRegion';
-function PolyDraw(_para1:HDC; var _para2:POINT; var _para3:BYTE; _para4:longint):WINBOOL; external 'gdi32' name 'PolyDraw';
+function PolyDraw(_para1:HDC;  _para2:LPPOINT;_para3:LPBYTE; _para4:longint):WINBOOL; external 'gdi32' name 'PolyDraw';
 function SelectClipPath(_para1:HDC; _para2:longint):WINBOOL; external 'gdi32' name 'SelectClipPath';
 function SetArcDirection(_para1:HDC; _para2:longint):longint; external 'gdi32' name 'SetArcDirection';
 function SetMiterLimit(_para1:HDC; _para2:Single; _para3:PSingle):WINBOOL; external 'gdi32' name 'SetMiterLimit';
@@ -857,7 +857,7 @@ function LPtoDP(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'g
 function Polygon(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polygon';
 function Polyline(_para1:HDC; _para2:LPPOINT; _para3:longint):WINBOOL; external 'gdi32' name 'Polyline';
 function PolyBezier(_para1:HDC; _para2:LPPOINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezier';
-function PolyBezierTo(_para1:HDC; _para2:POINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezierTo';
+function PolyBezierTo(_para1:HDC; _para2:LPPOINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolyBezierTo';
 function PolylineTo(_para1:HDC; _para2:LPPOINT; _para3:DWORD):WINBOOL; external 'gdi32' name 'PolylineTo';
 function SetViewportExtEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPSIZE):WINBOOL; external 'gdi32' name 'SetViewportExtEx';
 function SetViewportOrgEx(_para1:HDC; _para2:longint; _para3:longint; _para4:LPPOINT):WINBOOL; external 'gdi32' name 'SetViewportOrgEx';
