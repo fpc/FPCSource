@@ -3451,7 +3451,7 @@ packages/newt/fpmake.pp svneol=native#text/plain
 packages/newt/src/newt.pp svneol=native#text/plain
 packages/numlib/Makefile svneol=native#text/plain
 packages/numlib/Makefile.fpc svneol=native#text/plain
-packages/numlib/doc/inv.tex -text
+packages/numlib/doc/inv.tex svneol=native#text/plain
 packages/numlib/doc/iom.tex svneol=native#text/plain
 packages/numlib/examples/Makefile svneol=native#text/plain
 packages/numlib/examples/Makefile.fpc svneol=native#text/plain
