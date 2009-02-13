@@ -114,6 +114,7 @@ type
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
     procedure TestRequired;
+    procedure TestCanModifySpecialFields;
   end;
 
   { TSQLTestSetup }
@@ -503,6 +504,42 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestCanModifySpecialFields;
+var ds    : TDataset;
+    lds   : TDataset;
+    fld   : TField;
+begin
+  lds := DBConnector.GetNDataset(10);
+  ds := DBConnector.GetNDataset(5);
+  with ds do
+    begin
+    Fld := TIntegerField.Create(ds);
+    Fld.FieldName:='ID';
+    Fld.DataSet:=ds;
+
+    Fld := TStringField.Create(ds);
+    Fld.FieldName:='LookupFld';
+    Fld.FieldKind:=fkLookup;
+    Fld.DataSet:=ds;
+    Fld.LookupDataSet:=lds;
+    Fld.LookupResultField:='NAME';
+    Fld.LookupKeyFields:='ID';
+    Fld.KeyFields:='ID';
+
+    lds.Open;
+    Open;
+    AssertTrue(FieldByName('ID').CanModify);
+    AssertFalse(FieldByName('LookupFld').CanModify);
+    AssertFalse(FieldByName('ID').ReadOnly);
+    AssertFalse(FieldByName('LookupFld').ReadOnly);
+
+    AssertEquals(1,FieldByName('ID').AsInteger);
+    AssertEquals('name1',FieldByName('LookupFld').AsString);
+    close;
+    lds.Close;
+    end;
 end;
 
 procedure TTestDBBasics.TestSafeAsXML;

@@ -527,9 +527,13 @@ begin
   Result:=Not ReadOnly;
   If Result then
     begin
-    Result:=Assigned(DataSet);
-    If Result then
-      Result:= DataSet.CanModify;
+    Result := FieldKind in [fkData, fkInternalCalc];
+    if Result then
+      begin
+      Result:=Assigned(DataSet);
+      If Result then
+        Result:= DataSet.CanModify;
+      end;
     end;
 end;
 
