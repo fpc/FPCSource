@@ -182,7 +182,8 @@ var
   lockres: cint;
 begin
   DoFileLocking:=Handle;
-{$ifndef beos}
+{$ifdef beos}
+{$else}
   if (Handle>=0) then
     begin
 {$ifdef solaris}

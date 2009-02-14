@@ -8,6 +8,7 @@ version=2.2.2
 
 [target]
 units_beos=pxlib
+units_haiku=pxlib
 units_linux=pxlib
 units_win32=pxlib
 units_darwin=pxlib
@@ -15,6 +16,7 @@ units_freebsd=pxlib
 units_openbsd=pxlib
 units_netbsd=pxlib
 exampledirs_beos=examples
+exampledirs_haiku=examples
 exampledirs_linux=examples
 exampledirs_win32=examples
 exampledirs_darwin=examples

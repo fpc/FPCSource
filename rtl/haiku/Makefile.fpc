@@ -15,7 +15,8 @@ units=system baseunix unixtype ctypes objpas macpas strings \
       cpu mmx getopts heaptrc lineinfo lnfodwrf variants \
       rtlconsts syscall unix unixutil strutils termio initc \
       cmem crt video mouse keyboard \
-      dateutils fmtbcd sockets dynlibs cwstring cthreads
+      dateutils fmtbcd sockets dynlibs cwstring cthreads \
+      fpintres clocale
 rsts=math varutils typinfo variants sysconst rtlconsts dateutils
 implicitunits=exeinfo
 
