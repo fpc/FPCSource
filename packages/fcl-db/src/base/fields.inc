@@ -530,7 +530,7 @@ begin
     Result := FieldKind in [fkData, fkInternalCalc];
     if Result then
       begin
-      Result:=Assigned(DataSet);
+      Result:=Assigned(DataSet) and Dataset.Active;
       If Result then
         Result:= DataSet.CanModify;
       end;
