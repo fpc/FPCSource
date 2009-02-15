@@ -91,7 +91,7 @@ function fftw_plan_dft(rank:cardinal;n:Pcardinal;i:Pcomplex_single;o:Psingle;
 
 procedure fftw_destroy_plan(plan:fftw_plan_single);
           external 'fftw3f' name 'fftwf_destroy_plan';
-procedure fftw_execute(plan:fftw_plan_single);
+procedure fftw_execute(plan:fftw_plan_single); cdecl; // Added 'cdecl' as a temporary workaround for bug 12985
           external 'fftw3f' name 'fftwf_execute';
 
 {$calling register} {Back to normal!}
