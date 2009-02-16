@@ -1301,8 +1301,10 @@ implementation
             alignment:=size_2_align(savesize);
           st_longstring,
           st_shortstring:
-            if (tf_requires_proper_alignment in target_info.flags) then
               { char to string accesses byte 0 and 1 with one word access }
+            if (tf_requires_proper_alignment in target_info.flags) or
+              { macpas needs an alignment of 2 (MetroWerks compatible) }
+               (m_mac in current_settings.modeswitches) then
               alignment:=size_2_align(2)
             else
               alignment:=size_2_align(1);
