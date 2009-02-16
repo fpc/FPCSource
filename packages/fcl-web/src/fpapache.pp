@@ -102,6 +102,7 @@ Type
     Procedure SetModuleRecord(Var ModuleRecord : Module);
     Procedure Initialize; override;
     Procedure ShowException(E : Exception); override;
+    Procedure LogErrorMessage(Msg : String; LogLevel : integer = APLOG_INFO); virtual;
     Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
     Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
@@ -245,8 +246,16 @@ begin
 end;
 
 function TCustomApacheApplication.GetModuleName(Arequest: TRequest): string;
+var s : string;
 begin
-  if (Pos('/', pchar(@ARequest.PathInfo[2])) <= 0) and AllowDefaultModule then Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
+  If (Result='') then
+    begin
+    S:=ARequest.PathInfo;
+    Delete(S,1,1);
+    if (Pos('/',S) <= 0) and AllowDefaultModule then
+      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
+    Result:=ARequest.GetNextPathInfo;
+    end;
   Result:=ARequest.GetNextPathInfo;
 end;
 
@@ -378,6 +387,12 @@ begin
   ap_log_error(pchar(FModuleName),0,APLOG_ERR,0,Nil,'module: %s',[Pchar(E.Message)]);
 end;
 
+procedure TCustomApacheApplication.LogErrorMessage(Msg: String;
+  LogLevel: integer);
+begin
+  ap_log_error(pchar(FModuleName),0,LogLevel,0,Nil,'module: %s',[pchar(Msg)]);
+end;
+
 procedure TCustomApacheApplication.CreateForm(AClass: TComponentClass;
   var Reference: TComponent);
 begin
@@ -472,7 +487,10 @@ begin
     end;
   except
     On E : Exception do
+      begin
+      ShowException(E);
       ShowRequestException(AResponse,E);
+      end;
   end;
 end;
 
@@ -627,7 +645,7 @@ begin
   S:=ContentType;
   If (S<>'') then
     FRequest^.content_type:=apr_pstrdup(FRequest^.pool,Pchar(S));
-  If (ContentStream<>Nil) then
+  If assigned(ContentStream) then
     SendStream(Contentstream)
   else
     for I:=0 to Contents.Count-1 do
@@ -645,6 +663,7 @@ Var
   Count : Integer;
 
 begin
+  S.Seek(0,soBeginning);
   Repeat
     Count:=S.Read(Buf,SizeOf(Buf));
     If Count>0 then
