@@ -1,13 +1,13 @@
-(* The Computer Language Shootout
+(* The Computer Language Benchmarks Game
    http://shootout.alioth.debian.org/
 
    contributed by Josh Goldfoot
    modified by Vincent Snijders
 *)
 
-program knucleotide;
+{$mode objfpc}
 
-{$mode objfpc}{$I-}{$INLINE ON}
+program knucleotide;
 
 (* simple_hash available from CVS *)
 
@@ -21,7 +21,7 @@ const
     1572869,    3145739,    6291469,   12582917,  25165843,
     50331653,   100663319,  201326611, 402653189, 805306457,
     1610612741, 3221225473, 4294967291 );
-    
+
 type
   { TNonFreePooledMemManager - a memory manager for records without freeing }
 
@@ -243,7 +243,7 @@ begin
   end;
   result := nil;
 end;
-   
+
 {==============================================================================}
 
 type
@@ -393,3 +393,4 @@ begin
    //SetPrecisionMode(pmDouble);
    main;
 end.
+
