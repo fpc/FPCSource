@@ -715,6 +715,11 @@ var
 
 begin
   Result:=0;
+  if ParamCount=0 then
+    begin
+      Usage;
+      Halt(0);
+    end;
   DocLang:='';
   for i := 1 to ParamCount do
     ParseOption(ParamStr(i));
@@ -744,6 +749,7 @@ begin
   WriteLn(STitle);
   WriteLn(Format(SVersion, [FPCVersion, FPCDate]));
   WriteLn(SCopyright);
+ 
   InitOptions;
   Try
     E:=ParseCommandLine;
