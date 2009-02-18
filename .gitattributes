@@ -6426,6 +6426,7 @@ tests/bench/shootout/src/chameneos.pp svneol=native#text/plain
 tests/bench/shootout/src/fannkuch.pp svneol=native#text/plain
 tests/bench/shootout/src/fasta.pp svneol=native#text/plain
 tests/bench/shootout/src/hello.pp svneol=native#text/plain
+tests/bench/shootout/src/knucleotide.lpi svneol=native#text/plain
 tests/bench/shootout/src/knucleotide.pp svneol=native#text/plain
 tests/bench/shootout/src/mandelbrot.pp svneol=native#text/plain
 tests/bench/shootout/src/message.pp svneol=native#text/plain

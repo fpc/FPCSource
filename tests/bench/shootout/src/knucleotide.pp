@@ -326,7 +326,7 @@ begin
 
   sortArray(s, size);
   for i := 0 to size - 1 do
-    writeln(s[i].sequence,' ', (100 * s[i].num / total):3:3);
+    writeln(s[i].sequence,' ', (100 * (s[i].num / total)):3:3);
   writeln;
 
   ht.Free;
