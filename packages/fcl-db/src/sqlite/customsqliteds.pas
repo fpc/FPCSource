@@ -149,6 +149,7 @@ type
     function GetMasterSource: TDataSource;
     procedure SetFileName(const Value: String);
     function GetRowsAffected: Integer; virtual; abstract;
+    procedure RetrieveFieldDefs; virtual; abstract;
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
@@ -169,6 +170,7 @@ type
     procedure InternalEdit; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
+    procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
@@ -817,6 +819,25 @@ begin
   FCurrentItem := PDataRecord(ABookmark^);
 end;
 
+procedure TCustomSqliteDataset.InternalInitFieldDefs;
+begin
+  //todo: retrieve only necessary fields
+  if FMasterLink.DataSource <> nil then
+    FSQL := 'Select * from ' + FTableName + ';'; //forced to obtain all fields
+
+  if FSQL = '' then
+  begin
+    if FTablename = '' then
+      DatabaseError('Tablename not set', Self);
+    FSQL := 'Select * from ' + FTableName + ';';
+  end;
+
+  if FSqliteHandle = nil then
+    GetSqliteHandle;
+
+  RetrieveFieldDefs;
+end;
+
 procedure TCustomSqliteDataset.InternalInitRecord(Buffer: PChar);
 var
   TempStr: String;
@@ -840,20 +861,6 @@ procedure TCustomSqliteDataset.InternalOpen;
 var
   i: Integer;
 begin
-  //todo: retrieve only necessary fields
-  if FMasterLink.DataSource <> nil then
-    FSQL := 'Select * from ' + FTableName + ';'; //forced to obtain all fields
-
-  if FSQL = '' then
-  begin
-    if FTablename = '' then
-      DatabaseError('Tablename not set',Self);
-    FSQL := 'Select * from '+FTableName+';';
-  end;
-
-  if FSqliteHandle = nil then
-    GetSqliteHandle;
-    
   InternalInitFieldDefs;
   //todo: move this to InitFieldDefs
   FSelectSqlStr := 'SELECT ';

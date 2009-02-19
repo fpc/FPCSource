@@ -51,8 +51,8 @@ type
     procedure InternalCloseHandle; override;
     procedure BuildLinkedList; override;
   protected
-    procedure InternalInitFieldDefs; override;
     function GetRowsAffected:Integer; override;
+    procedure RetrieveFieldDefs; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
     function ReturnString: String; override;
@@ -151,7 +151,7 @@ begin
   sqlite3_finalize(vm);
 end;
 
-procedure TSqlite3Dataset.InternalInitFieldDefs;
+procedure TSqlite3Dataset.RetrieveFieldDefs;
 const
   FieldSizeMap: array[Boolean] of Integer = (0, dsMaxStringSize);
 var

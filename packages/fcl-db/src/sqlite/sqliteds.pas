@@ -52,7 +52,7 @@ type
     procedure InternalCloseHandle; override;
     procedure BuildLinkedList; override;
   protected
-    procedure InternalInitFieldDefs; override;
+    procedure RetrieveFieldDefs; override;
     function GetRowsAffected:Integer; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
@@ -108,7 +108,7 @@ begin
   end;
 end;
 
-procedure TSqliteDataset.InternalInitFieldDefs;
+procedure TSqliteDataset.RetrieveFieldDefs;
 var
   ColumnCount, i:Integer;
   AType: TFieldType;
