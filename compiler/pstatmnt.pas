@@ -506,7 +506,14 @@ implementation
                 (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
                 (tloadnode(hp).symtable=current_procinfo.procdef.parast) or
                 (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
-               ) then
+               ) and
+               { MacPas objects are mapped to classes, and the MacPas compilers
+                 interpret with-statements with MacPas objects the same way
+                 as records (the object referenced by the with-statement
+                 must remain constant)
+               }
+               not(is_class(hp.resultdef) and
+                   (m_mac in current_settings.modeswitches)) then
               begin
                 { simple load, we can reference direct }
                 refnode:=p;
