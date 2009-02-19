@@ -854,10 +854,10 @@ implementation
           case InvokeKind of
             DISPATCH_PROPERTYPUT:
               begin
-                if (Arguments[0].VType and varDispatch)<>0 then
+                if (Arguments[0].VType and varTypeMask) = varDispatch then
                   InvokeKind:=DISPATCH_PROPERTYPUTREF;
                 { first name is actually the name of the property to set }
-                DispIDs^[0]:=DISPATCH_PROPERTYPUT;
+                DispIDs^[0]:=DISPID_PROPERTYPUT;
                 DispParams.rgdispidNamedArgs:=@DispIDs^[0];
                 inc(DispParams.cNamedArgs);
               end;
