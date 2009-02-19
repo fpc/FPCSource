@@ -107,13 +107,14 @@ type
     procedure SetOptions(const AValue: TSqliteOptions);
     procedure UpdateIndexFields;
     function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync: Boolean): PDataRecord;
+    procedure UpdateMasterDetailProperties;
   protected
     FPrimaryKey: String;
     FPrimaryKeyNo: Integer;
     FFileName: String;
     FSQL: String;
     FTableName: String;
-    FSelectSqlStr: String;
+    FSqlFilterTemplate: String;
     FAutoIncFieldNo: Integer;
     FNextAutoInc: Integer;
     FUpdatedItems: TFPList;
@@ -142,7 +143,6 @@ type
     procedure DisposeLinkedList;
     procedure SetDetailFilter;
     procedure MasterChanged(Sender: TObject);
-    procedure MasterDisabled(Sender: TObject);
     procedure SetMasterFields(const Value: String);
     function GetMasterFields: String;
     procedure SetMasterSource(Value: TDataSource);
@@ -412,7 +412,7 @@ begin
   
   FMasterLink := TMasterDataLink.Create(Self);
   FMasterLink.OnMasterChange := @MasterChanged;
-  FMasterLink.OnMasterDisable := @MasterDisabled;
+  FMasterLink.OnMasterDisable := @MasterChanged;
   FIndexFieldList := TList.Create;
   BookmarkSize := SizeOf(Pointer);
   FUpdatedItems := TFPList.Create;
@@ -821,10 +821,6 @@ end;
 
 procedure TCustomSqliteDataset.InternalInitFieldDefs;
 begin
-  //todo: retrieve only necessary fields
-  if FMasterLink.DataSource <> nil then
-    FSQL := 'Select * from ' + FTableName + ';'; //forced to obtain all fields
-
   if FSQL = '' then
   begin
     if FTablename = '' then
@@ -858,29 +854,17 @@ begin
 end;
 
 procedure TCustomSqliteDataset.InternalOpen;
-var
-  i: Integer;
 begin
   InternalInitFieldDefs;
-  //todo: move this to InitFieldDefs
-  FSelectSqlStr := 'SELECT ';
-  for i := 0 to FieldDefs.Count - 2 do
-    FSelectSqlStr := FSelectSqlStr + FieldDefs[i].Name + ',';
-  FSelectSqlStr := FSelectSqlStr + FieldDefs[FieldDefs.Count - 1].Name +
-    ' FROM ' + FTableName;
 
   if DefaultFields then 
     CreateFields;
   BindFields(True);
 
   UpdateIndexFields;
-  if FMasterLink.Active then
-  begin
-    if FIndexFieldList.Count <> FMasterLink.Fields.Count then
-      DatabaseError('MasterFields count doesn''t match IndexFields count', Self);
-    //Set FSQL considering MasterSource active record
-    SetDetailFilter;
-  end;
+
+  if FMasterLink.DataSource <> nil then
+    UpdateMasterDetailProperties;
 
   // Get PrimaryKeyNo if available
   if Fields.FindField(FPrimaryKey) <> nil then
@@ -1097,6 +1081,25 @@ begin
   end;      
 end;
 
+procedure TCustomSqliteDataset.UpdateMasterDetailProperties;
+var
+  i: Integer;
+begin
+  if FMasterLink.Active and (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
+    DatabaseError('MasterFields count doesn''t match IndexFields count', Self);
+  if FieldDefs.Count > 0 then
+  begin
+    //build the sql template used to filter the dataset
+    FSqlFilterTemplate := 'SELECT ';
+    for i := 0 to FieldDefs.Count - 2 do
+      FSqlFilterTemplate := FSqlFilterTemplate + FieldDefs[i].Name + ',';
+    FSqlFilterTemplate := FSqlFilterTemplate + FieldDefs[FieldDefs.Count - 1].Name +
+      ' FROM ' + FTableName;
+  end;
+  //set FSQL considering MasterSource active record
+  SetDetailFilter;
+end;
+
 procedure TCustomSqliteDataset.GetSqliteHandle;
 begin
   if FFileName = '' then
@@ -1278,8 +1281,8 @@ var
   AFilter: String;
   i: Integer;
 begin
-  if FMasterLink.Dataset.RecordCount = 0 then //Retrieve all data
-    FSQL := 'Select * from ' + FTableName
+  if (FMasterLink.Dataset.RecordCount = 0) or not FMasterLink.Active then //Retrieve all data
+    FSQL := FSqlFilterTemplate
   else
   begin
     AFilter := ' where ';
@@ -1289,7 +1292,7 @@ begin
       if i <> FMasterLink.Fields.Count - 1 then
         AFilter := AFilter + ' and ';
     end;
-    FSQL := 'Select * from ' + FTableName + AFilter;
+    FSQL := FSqlFilterTemplate + AFilter;
   end;
 end;
 
@@ -1301,12 +1304,6 @@ begin
   WriteLn('  SQL used to filter detail dataset:');
   WriteLn('  ', FSQL);
   {$endif}
-  RefetchData;
-end;
-
-procedure TCustomSqliteDataset.MasterDisabled(Sender: TObject);
-begin
-  FSQL := 'Select * from ' + FTableName + ';';
   RefetchData;
 end;
 
@@ -1334,8 +1331,11 @@ begin
     try
       GetFieldList(FIndexFieldList, FIndexFieldNames);
     except
-      FIndexFieldList.Clear;
-      raise;
+      on E: Exception do
+      begin
+        FIndexFieldList.Clear;
+        DatabaseError('Error retrieving index fields: ' + E.Message);
+      end;
     end;
   end;
 end;
