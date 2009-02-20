@@ -106,7 +106,7 @@ type
     procedure SetMasterIndexValue;
     procedure SetOptions(const AValue: TSqliteOptions);
     procedure UpdateCalcFieldList;
-    procedure UpdateIndexFields;
+    procedure UpdateIndexFieldList;
     function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync: Boolean): PDataRecord;
     procedure UpdateMasterDetailProperties;
   protected
@@ -415,7 +415,6 @@ begin
   FMasterLink := TMasterDataLink.Create(Self);
   FMasterLink.OnMasterChange := @MasterChanged;
   FMasterLink.OnMasterDisable := @MasterChanged;
-  FIndexFieldList := TList.Create;
   BookmarkSize := SizeOf(Pointer);
   FUpdatedItems := TFPList.Create;
   FAddedItems := TFPList.Create;
@@ -471,8 +470,9 @@ begin
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FMasterLink.Destroy;
-  FIndexFieldList.Destroy;
   FSQLList.Destroy;
+  //lists created on demand
+  FIndexFieldList.Free;
   FCalcFieldList.Free;
   // dispose special items
   Dispose(FBeginItem);
@@ -883,7 +883,9 @@ begin
 
   if CalcFieldsSize > 0 then
     UpdateCalcFieldList;
-  UpdateIndexFields;
+
+  if FIndexFieldNames <> '' then
+    UpdateIndexFieldList;
 
   if FMasterLink.DataSource <> nil then
     UpdateMasterDetailProperties;
@@ -1334,7 +1336,7 @@ begin
   FMasterLink.FieldNames := Value;
   if Active and FMasterLink.Active then
   begin
-    UpdateIndexFields;
+    UpdateIndexFieldList;
     if (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
       DatabaseError('MasterFields count doesn''t match IndexFields count', Self);
   end;
@@ -1345,19 +1347,20 @@ begin
   Result := FMasterLink.FieldNames;
 end;
 
-procedure TCustomSqliteDataset.UpdateIndexFields;
+procedure TCustomSqliteDataset.UpdateIndexFieldList;
 begin
-  FIndexFieldList.Clear;
-  if FIndexFieldNames <> '' then
-  begin
-    try
-      GetFieldList(FIndexFieldList, FIndexFieldNames);
-    except
-      on E: Exception do
-      begin
-        FIndexFieldList.Clear;
-        DatabaseError('Error retrieving index fields: ' + E.Message);
-      end;
+  if FIndexFieldList = nil then
+    FIndexFieldList := TList.Create
+  else
+    FIndexFieldList.Clear;
+
+  try
+    GetFieldList(FIndexFieldList, FIndexFieldNames);
+  except
+    on E: Exception do
+    begin
+      FIndexFieldList.Clear;
+      DatabaseError('Error retrieving index fields: ' + E.Message);
     end;
   end;
 end;
