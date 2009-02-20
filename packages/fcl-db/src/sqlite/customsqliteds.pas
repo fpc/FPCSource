@@ -105,6 +105,7 @@ type
     function GetIndexFields(Value: Integer): TField;
     procedure SetMasterIndexValue;
     procedure SetOptions(const AValue: TSqliteOptions);
+    procedure UpdateCalcFieldList;
     procedure UpdateIndexFields;
     function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync: Boolean): PDataRecord;
     procedure UpdateMasterDetailProperties;
@@ -120,6 +121,7 @@ type
     FUpdatedItems: TFPList;
     FAddedItems: TFPList;
     FDeletedItems: TFPList;
+    FCalcFieldList: TFPList;
     FReturnCode: Integer;
     FSqliteHandle: Pointer;
     FRowBufferSize: Integer;
@@ -471,6 +473,7 @@ begin
   FMasterLink.Destroy;
   FIndexFieldList.Destroy;
   FSQLList.Destroy;
+  FCalcFieldList.Free;
   // dispose special items
   Dispose(FBeginItem);
   Dispose(FCacheItem);
@@ -548,6 +551,23 @@ end;
 procedure TCustomSqliteDataset.SetOptions(const AValue: TSqliteOptions);
 begin
   FOptions := AValue;
+end;
+
+procedure TCustomSqliteDataset.UpdateCalcFieldList;
+var
+  i: Integer;
+  AField: TField;
+begin
+  if FCalcFieldList = nil then
+    FCalcFieldList := TFPList.Create
+  else
+    FCalcFieldList.Clear;
+  for i := 0 to Fields.Count - 1 do
+  begin
+    AField := Fields[i];
+    if AField.FieldKind in [fkCalculated, fkLookup] then
+      FCalcFieldList.Add(AField);
+  end;
 end;
 
 procedure TCustomSqliteDataset.DisposeLinkedList;
@@ -861,6 +881,8 @@ begin
     CreateFields;
   BindFields(True);
 
+  if CalcFieldsSize > 0 then
+    UpdateCalcFieldList;
   UpdateIndexFields;
 
   if FMasterLink.DataSource <> nil then
