@@ -154,6 +154,7 @@ type
     procedure RetrieveFieldDefs; virtual; abstract;
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
+    procedure ClearCalcFields(Buffer: PChar); override;
     function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure DoBeforeClose; override;
     procedure DoAfterInsert; override;
@@ -399,6 +400,11 @@ begin
   PDataRecord(Pointer(Result)^) := FBeginItem;
 end;
 
+procedure TCustomSqliteDataset.ClearCalcFields(Buffer: PChar);
+begin
+  //todo
+end;
+
 constructor TCustomSqliteDataset.Create(AOwner: TComponent);
 begin
   // setup special items
@@ -619,8 +625,18 @@ function TCustomSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer;
 var
   ValError: Word;
   FieldRow: PChar;
+  FieldOffset: Integer;
 begin
-  FieldRow := PPDataRecord(ActiveBuffer)^^.Row[Field.FieldNo - 1];
+  if Field.FieldNo >= 0 then
+    FieldOffset := Field.FieldNo - 1
+  else
+    FieldOffset := Fields.Count + FCalcFieldList.IndexOf(Field) - 1;
+
+  if State <> dsCalcFields then
+    FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
+  else
+    FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
+
   Result := FieldRow <> nil;  
   if Result and (Buffer <> nil) then //supports GetIsNull
   begin
@@ -683,6 +699,7 @@ begin
   begin
     PDataRecord(Pointer(Buffer)^) := FCurrentItem;
     FCurrentItem^.BookmarkFlag := bfCurrent;
+    GetCalcFields(Buffer);
   end
     else if (Result = grError) and DoCheck then
       DatabaseError('No records found', Self);
@@ -1046,9 +1063,9 @@ begin
             LocateFields[i].CompFunction := @CompSensitive;
             
           if VarIsArray(KeyValues) then
-            LocateFields[i].Key := KeyValues[i]
+            LocateFields[i].Key := VarToStr(KeyValues[i])
           else
-            LocateFields[i].Key := KeyValues;
+            LocateFields[i].Key := VarToStr(KeyValues);
         end
         else
         begin
@@ -1197,30 +1214,44 @@ procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer;
 var
   TempStr: String;
   FloatStr: PChar;
-  FloatLen: Integer;
+  FloatLen, FieldOffset: Integer;
+  EditItem: PDataRecord;
 begin
-  if not (State in [dsEdit, dsInsert]) then
-    DatabaseErrorFmt(SNotEditing,[Name],Self);
+  if not (State in [dsEdit, dsInsert, dsCalcFields]) then
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
 
-  StrDispose(FCacheItem^.Row[Pred(Field.FieldNo)]);
+  if Field.FieldNo >= 0 then
+  begin
+    FieldOffset := Field.FieldNo - 1;
+    EditItem := FCacheItem;
+  end
+  else
+  begin
+    FieldOffset := Fields.Count + FCalcFieldList.IndexOf(Field) - 1;
+    EditItem := PPDataRecord(CalcBuffer)^;
+  end;
+
+  StrDispose(EditItem^.Row[FieldOffset]);
   if Buffer <> nil then
   begin
     case Field.Datatype of
     ftString:
       begin            
-        FCacheItem^.Row[Pred(Field.FieldNo)] := StrNew(PChar(Buffer));
+        EditItem^.Row[FieldOffset] := StrNew(PChar(Buffer));
+        TempStr := PChar(Buffer);
+        TempStr := EditItem^.Row[1];
       end;
     ftInteger:
       begin          
         Str(LongInt(Buffer^), TempStr);
-        FCacheItem^.Row[Pred(Field.FieldNo)] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (FCacheItem^.Row[Pred(Field.FieldNo)])^, Length(TempStr) + 1);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
     ftBoolean, ftWord:
       begin
         Str(Word(Buffer^), TempStr);
-        FCacheItem^.Row[Pred(Field.FieldNo)] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (FCacheItem^.Row[Pred(Field.FieldNo)])^, Length(TempStr) + 1);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;  
     ftFloat, ftDateTime, ftDate, ftTime, ftCurrency:
       begin
@@ -1238,19 +1269,20 @@ begin
           FloatStr := PChar(TempStr);
           FloatLen := Length(TempStr) + 1;
         end;
-        FCacheItem^.Row[Pred(Field.FieldNo)] := StrAlloc(FloatLen);
-        Move(FloatStr^, (FCacheItem^.Row[Pred(Field.FieldNo)])^, FloatLen);
+        EditItem^.Row[FieldOffset] := StrAlloc(FloatLen);
+        Move(FloatStr^, (EditItem^.Row[FieldOffset])^, FloatLen);
       end;
     ftLargeInt:
       begin
         Str(Int64(Buffer^), TempStr);
-        FCacheItem^.Row[Pred(Field.FieldNo)] := StrAlloc(Length(TempStr) + 1);
-        Move(PChar(TempStr)^, (FCacheItem^.Row[Pred(Field.FieldNo)])^, Length(TempStr) + 1);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;        
     end;// case
   end//if
   else
-    FCacheItem^.Row[Pred(Field.FieldNo)] := nil;
+    EditItem^.Row[FieldOffset] := nil;
+
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, Ptrint(Field));  
 end;
