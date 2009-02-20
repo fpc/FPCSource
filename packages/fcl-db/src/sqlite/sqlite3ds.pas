@@ -170,8 +170,6 @@ begin
     DatabaseError(ReturnString, Self);
   sqlite3_step(vm);
   ColumnCount := sqlite3_column_count(vm);
-  //Set BufferSize
-  FRowBufferSize := (SizeOf(PPChar) * ColumnCount);
   //Prepare the array of pchar2sql functions
   SetLength(FGetSqlStr, ColumnCount);
   for i := 0 to ColumnCount - 1 do
@@ -272,7 +270,7 @@ procedure TSqlite3Dataset.BuildLinkedList;
 var
   TempItem: PDataRecord;
   vm: Pointer;
-  Counter: Integer;
+  Counter, ColumnCount: Integer;
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
@@ -287,7 +285,12 @@ begin
 
   TempItem := FBeginItem;
   FRecordCount := 0;
-  FRowCount := sqlite3_column_count(vm);
+  ColumnCount := sqlite3_column_count(vm);
+  FRowCount := ColumnCount;
+  //add extra rows for calculated fields
+  if FCalcFieldList <> nil then
+    Inc(FRowCount, FCalcFieldList.Count);
+  FRowBufferSize := (SizeOf(PPChar) * FRowCount);
   FReturnCode := sqlite3_step(vm);
   while FReturnCode = SQLITE_ROW do
   begin
@@ -296,8 +299,11 @@ begin
     TempItem^.Next^.Previous := TempItem;
     TempItem := TempItem^.Next;
     GetMem(TempItem^.Row, FRowBufferSize);
-    for Counter := 0 to FRowCount - 1 do
+    for Counter := 0 to ColumnCount - 1 do
       TempItem^.Row[Counter] := StrNew(sqlite3_column_text(vm, Counter));
+    //initialize calculated fields with nil
+    for Counter := ColumnCount to FRowCount - 1 do
+      TempItem^.Row[Counter] := nil;
     FReturnCode := sqlite3_step(vm);
   end;
   sqlite3_finalize(vm);

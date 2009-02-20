@@ -124,8 +124,6 @@ begin
   sqlite_step(vm, @ColumnCount, @ColumnValues, @ColumnNames);
   //Prepare the array of pchar2sql functions
   SetLength(FGetSqlStr, ColumnCount);
-  //Set BufferSize
-  FRowBufferSize := (SizeOf(PPChar) * ColumnCount);
   // Sqlite is typeless (allows any type in any field)
   // regardless of what is in Create Table, but returns
   // exactly what is in Create Table statement
@@ -226,7 +224,7 @@ var
   TempItem: PDataRecord;
   vm: Pointer;
   ColumnNames, ColumnValues: PPChar;
-  Counter: Integer;
+  Counter, ColumnCount: Integer;
 begin
   //Get AutoInc Field initial value
   if FAutoIncFieldNo <> -1 then
@@ -241,7 +239,13 @@ begin
 
   TempItem := FBeginItem;
   FRecordCount := 0;
-  FReturnCode := sqlite_step(vm, @FRowCount, @ColumnValues, @ColumnNames);
+  FReturnCode := sqlite_step(vm, @ColumnCount, @ColumnValues, @ColumnNames);
+  FRowCount := ColumnCount;
+  //add extra rows for calculated fields
+  if FCalcFieldList <> nil then
+    Inc(FRowCount, FCalcFieldList.Count);
+  FRowBufferSize := (SizeOf(PPChar) * FRowCount);
+
   while FReturnCode = SQLITE_ROW do
   begin
     Inc(FRecordCount);
@@ -249,8 +253,11 @@ begin
     TempItem^.Next^.Previous := TempItem;
     TempItem := TempItem^.Next;
     GetMem(TempItem^.Row, FRowBufferSize);
-    for Counter := 0 to FRowCount - 1 do
+    for Counter := 0 to ColumnCount - 1 do
       TempItem^.Row[Counter] := StrNew(ColumnValues[Counter]);
+    //initialize calculated fields with nil
+    for Counter := ColumnCount to FRowCount - 1 do
+      TempItem^.Row[Counter] := nil;
     FReturnCode := sqlite_step(vm, @FRowCount, @ColumnValues, @ColumnNames);
   end;
   sqlite_finalize(vm, nil);
