@@ -265,6 +265,7 @@ type
     property AfterScroll;
     property BeforeRefresh;
     property AfterRefresh;
+    property OnCalcFields;
     property OnDeleteError;
     property OnEditError;
     property OnNewRecord;
