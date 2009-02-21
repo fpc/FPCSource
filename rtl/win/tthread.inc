@@ -38,11 +38,6 @@ begin
           end; }
         end;
       end;
-    CM_DESTROYWINDOW:
-      begin
-        DestroyWindow(Window);
-        Result := 0;
-      end;
   else
     Result := DefWindowProc(Window, AMessage, wParam, lParam);
   end;
@@ -51,7 +46,7 @@ end;
 const
   ThreadWindowClass: TWndClass = (
     style: 0;
-    lpfnWndProc: nil;
+    lpfnWndProc: @ThreadWndProc;
     cbClsExtra: 0;
     cbWndExtra: 0;
     hInstance: 0;
@@ -69,7 +64,6 @@ procedure AddThread;
     ClassRegistered: Boolean;
   begin
     ThreadWindowClass.hInstance := HInstance;
-    ThreadWindowClass.lpfnWndProc:=WndProc(@ThreadWndProc);
     ClassRegistered := GetClassInfo(HInstance, ThreadWindowClass.lpszClassName,
       @TempClass);
     if not ClassRegistered or (TempClass.lpfnWndProc <> WndProc(@ThreadWndProc)) then
@@ -90,8 +84,11 @@ end;
 
 procedure RemoveThread;
 begin
+  { note that when thread count reaches 0 we must be in main thread context }
+  { windows may only be destroyed in same thread as created in }
+  { posting a message to window thread does not work when we have no message loop }
   if InterlockedDecrement(ThreadCount)=0 then
-    PostMessage(ThreadWindow, CM_DESTROYWINDOW, 0, 0);
+    DestroyWindow(ThreadWindow);
 end;
 
 
