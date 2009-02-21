@@ -402,8 +402,18 @@ begin
 end;
 
 procedure TCustomSqliteDataset.ClearCalcFields(Buffer: PChar);
+var
+  i: Integer;
+  RecordItem: PDataRecord;
 begin
-  //todo
+  if FCalcFieldList = nil then
+    Exit;
+  RecordItem := PPDataRecord(Buffer)^;
+  for i := FieldDefs.Count to FieldDefs.Count + FCalcFieldList.Count - 1 do
+  begin
+    StrDispose(RecordItem^.Row[i]);
+    RecordItem^.Row[i] := nil;
+  end;
 end;
 
 constructor TCustomSqliteDataset.Create(AOwner: TComponent);
