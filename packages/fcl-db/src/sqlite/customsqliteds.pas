@@ -909,8 +909,8 @@ begin
     UpdateMasterDetailProperties;
 
   // Get PrimaryKeyNo if available
-  if Fields.FindField(FPrimaryKey) <> nil then
-    FPrimaryKeyNo := Fields.FindField(FPrimaryKey).FieldNo - 1
+  if TDefCollection(FieldDefs).Find(FPrimaryKey) <> nil then
+    FPrimaryKeyNo := FieldDefs.Find(FPrimaryKey).FieldNo - 1
   else
     FPrimaryKeyNo := FAutoIncFieldNo; // -1 if there's no AutoIncField
 
@@ -1456,7 +1456,7 @@ begin
   begin
     FReturnCode := SQLITE_OK;
     StatementsCounter := 0;
-    WhereKeyNameEqual := ' WHERE ' + Fields[FPrimaryKeyNo].FieldName + ' = ';
+    WhereKeyNameEqual := ' WHERE ' + FieldDefs[FPrimaryKeyNo].Name + ' = ';
     {$ifdef DEBUG_SQLITEDS}
     WriteLn('##TCustomSqliteDataset.ApplyUpdates##');
     if FPrimaryKeyNo = FAutoIncFieldNo then
@@ -1492,13 +1492,13 @@ begin
     for iItems := 0 to FUpdatedItems.Count - 1 do
     begin
       SQLLine := TemplateStr;
-      for iFields := 0 to Fields.Count - 2 do
+      for iFields := 0 to FieldDefs.Count - 2 do
       begin
-        SQLLine := SQLLine + (Fields[iFields].FieldName + ' = ' +
+        SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
           FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) + ',');
       end;
-      iFields := Fields.Count - 1;
-      SQLLine := SQLLine + (Fields[iFields].FieldName + ' = ' +
+      iFields := FieldDefs.Count - 1;
+      SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
         FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) +
         WhereKeyNameEqual +
         String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
@@ -1520,16 +1520,16 @@ begin
     if FAddedItems.Count > 0 then
     begin
       TemplateStr := 'INSERT INTO ' + FTableName + ' (';
-      for iFields := 0 to Fields.Count - 2 do
-        TemplateStr := TemplateStr + Fields[iFields].FieldName + ',';
-      TemplateStr := TemplateStr + Fields[Fields.Count - 1].FieldName + ') VALUES (';
+      for iFields := 0 to FieldDefs.Count - 2 do
+        TemplateStr := TemplateStr + FieldDefs[iFields].Name + ',';
+      TemplateStr := TemplateStr + FieldDefs[FieldDefs.Count - 1].Name + ') VALUES (';
     end;  
     for iItems := 0 to FAddedItems.Count - 1 do
     begin
       SQLLine := TemplateStr;
-      for iFields := 0 to Fields.Count - 2 do
+      for iFields := 0 to FieldDefs.Count - 2 do
         SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ',');
-      iFields := Fields.Count - 1;
+      iFields := FieldDefs.Count - 1;
       SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ');' );
       SQLTemp := SQLTemp + SQLLine;
       Inc(StatementsCounter);
