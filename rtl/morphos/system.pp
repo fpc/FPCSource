@@ -266,11 +266,13 @@ begin
       FillDWord(tmpbuf,256 div 4,0);
       if NameFromLock(dlock,@tmpbuf[1],255) then begin
         counter:=1;
-        while tmpbuf[counter]<>#0 do counter+=1;
+        while tmpbuf[counter]<>#0 do
+          inc(counter);
         tmpbuf[0]:=Char(counter-1);
         GetArgv0Ambient:=tmpbuf;
         { Append slash,if we're not in root directory of a volume }
-        if tmpbuf[counter-1]<>':' then GetArgv0Ambient+='/';
+        if tmpbuf[counter-1]<>':' then
+          GetArgv0Ambient:=GetArgv0Ambient+'/';
       end;
     end;
 
@@ -281,10 +283,10 @@ begin
       counter:=0;
       while (progname[counter]<>#0) do begin
         tmpbuf[counter+1]:=progname[counter];
-        counter+=1;
+        inc(counter);
       end;
       tmpbuf[0]:=Char(counter);
-      GetArgv0Ambient+=tmpbuf;
+      GetArgv0Ambient:=GetArgv0Ambient+tmpbuf;
     end;
   end;
 end;

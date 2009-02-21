@@ -31,7 +31,7 @@ procedure GotResizeWindow;
 function HasResizeWindow(var winw:longint; var winh: longint): boolean;
 
 var
-   videoWindow   : pWindow; 
+   videoWindow   : pWindow;
 
 
 implementation
@@ -80,7 +80,7 @@ begin
       WA_IDCMP,IDCMP_VANILLAKEY Or IDCMP_RAWKEY Or
                IDCMP_CLOSEWINDOW Or IDCMP_CHANGEWINDOW,
       WA_Title,DWord(PChar('Free Pascal Video Output')),
-      WA_Flags,(WFLG_GIMMEZEROZERO Or WFLG_SMART_REFRESH Or WFLG_NOCAREREFRESH Or 
+      WA_Flags,(WFLG_GIMMEZEROZERO Or WFLG_SMART_REFRESH Or WFLG_NOCAREREFRESH Or
                 WFLG_ACTIVATE Or WFLG_DRAGBAR Or WFLG_DEPTHGADGET Or
                 WFLG_SIZEGADGET Or WFLG_SIZEBBOTTOM Or
                 WFLG_CLOSEGADGET)
@@ -130,7 +130,7 @@ begin
   dx := (Mode.col * 8) - videoWindow^.GZZWidth;
   dy := (Mode.row * 16) - videoWindow^.GZZHeight;
   SizeWindow(videoWindow,dx,dy);
-  
+
   ScreenWidth:=Mode.col;
   ScreenHeight:=Mode.row;
   ScreenColor:=Mode.color;
@@ -164,7 +164,7 @@ begin
   if crType <> crBlock then begin
     SetABPenDrMd(videoWindow^.RPort,videoPens[tmpFGColor],videoPens[tmpBGColor],JAM2);
   end else begin
-    { in case of block cursor, swap fg/bg colors 
+    { in case of block cursor, swap fg/bg colors
       and BltTemplate() below will take care of everything }
     SetABPenDrMd(videoWindow^.RPort,videoPens[tmpBGColor],videoPens[tmpFGColor],JAM2);
   end;
@@ -195,7 +195,7 @@ begin
     counter:=0;
     while not smallforce and (counter<(VideoBufSize div 4)-1) do begin
       if PDWord(VideoBuf)[counter]<>PDWord(OldVideoBuf)[counter] then smallforce:=true;
-      counter+=1;
+      inc(counter);
     end;
   end;
 
@@ -211,7 +211,7 @@ begin
     move(VideoBuf^,OldVideoBuf^,VideoBufSize);
   end;
 
-  if (cursorType<>oldcursorType) or 
+  if (cursorType<>oldcursorType) or
      (CursorX<>oldCursorX) or (CursorY<>oldCursorY) or
      smallforce then begin
     DrawChar(oldCursorY,oldCursorX,crHidden);
@@ -245,7 +245,7 @@ end;
 procedure SysSetCursorType(NewType: Word);
 begin
   cursorType:=newType;
-  { FIXME: halfBlock cursors are not supported for now 
+  { FIXME: halfBlock cursors are not supported for now
            by the rendering code }
   if cursorType = crHalfBlock then cursorType:=crBlock;
 
