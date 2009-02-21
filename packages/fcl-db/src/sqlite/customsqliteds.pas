@@ -641,7 +641,7 @@ begin
   if Field.FieldNo >= 0 then
     FieldOffset := Field.FieldNo - 1
   else
-    FieldOffset := Fields.Count + FCalcFieldList.IndexOf(Field) - 1;
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field) - 1;
 
   if State <> dsCalcFields then
     FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
@@ -1238,7 +1238,7 @@ begin
   end
   else
   begin
-    FieldOffset := Fields.Count + FCalcFieldList.IndexOf(Field) - 1;
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field) - 1;
     EditItem := PPDataRecord(CalcBuffer)^;
   end;
 
