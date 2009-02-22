@@ -1252,8 +1252,6 @@ begin
     ftString:
       begin            
         EditItem^.Row[FieldOffset] := StrNew(PChar(Buffer));
-        TempStr := PChar(Buffer);
-        TempStr := EditItem^.Row[1];
       end;
     ftInteger:
       begin          
