@@ -305,7 +305,7 @@ type
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
     property Params : TParams read FParams write FParams;
-    property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode;
+    property UpdateMode : TUpdateMode read FUpdateMode write SetUpdateMode default upWhereKeyOnly;
     property UsePrimaryKeyAsKey : boolean read FUsePrimaryKeyAsKey write SetUsePrimaryKeyAsKey default true;
     property StatementType : TStatementType read GetStatementType;
     property ParseSQL : Boolean read FParseSQL write SetParseSQL default true;
