@@ -64,7 +64,7 @@ type
 implementation
 
 uses
-  sqlite, db;
+  sqlite, db, strutils;
 
 //function sqlite_last_statement_changes(dbhandle:Pointer):longint;cdecl;external 'sqlite' name 'sqlite_last_statement_changes';
 
@@ -110,7 +110,7 @@ end;
 
 procedure TSqliteDataset.RetrieveFieldDefs;
 var
-  ColumnCount, i:Integer;
+  ColumnCount, i, DataSize:Integer;
   AType: TFieldType;
   vm: Pointer;
   ColumnNames, ColumnValues:PPChar;
@@ -131,6 +131,7 @@ begin
   // If the field contains another type, may have problems
   for i := 0 to ColumnCount - 1 do
   begin
+    DataSize := 0;
     ColumnStr := UpperCase(String(ColumnNames[i + ColumnCount]));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
@@ -145,6 +146,7 @@ begin
     end else if Pos('VARCHAR', ColumnStr) = 1 then
     begin
       AType := ftString;
+      DataSize := StrToIntDef(Trim(ExtractDelimited(2, ColumnStr, ['(', ')'])), DefaultStringSize);
     end else if Pos('BOOL', ColumnStr) = 1 then
     begin
       AType := ftBoolean;
@@ -180,11 +182,8 @@ begin
     end else
     begin
       AType := ftString;
-    end;    
-    if AType = ftString then
-      FieldDefs.Add(String(ColumnNames[i]), AType, dsMaxStringSize)
-    else
-      FieldDefs.Add(String(ColumnNames[i]), AType);  
+    end;
+    FieldDefs.Add(String(ColumnNames[i]), AType, DataSize);
     //Set the pchar2sql function
     if AType in [ftString, ftMemo] then
       FGetSqlStr[i] := @Char2SQLStr

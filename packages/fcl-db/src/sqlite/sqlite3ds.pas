@@ -62,7 +62,7 @@ type
 implementation
 
 uses
-  sqlite3, db;
+  sqlite3, db, strutils;
   
 function SqliteCode2Str(Code: Integer): String;
 begin
@@ -152,12 +152,10 @@ begin
 end;
 
 procedure TSqlite3Dataset.RetrieveFieldDefs;
-const
-  FieldSizeMap: array[Boolean] of Integer = (0, dsMaxStringSize);
 var
   vm: Pointer;
   ColumnStr: String;
-  i, ColumnCount: Integer;
+  i, ColumnCount, DataSize: Integer;
   AType: TFieldType;
 begin
   {$ifdef DEBUG_SQLITEDS}
@@ -174,6 +172,7 @@ begin
   SetLength(FGetSqlStr, ColumnCount);
   for i := 0 to ColumnCount - 1 do
   begin
+    DataSize := 0;
     ColumnStr := UpperCase(String(sqlite3_column_decltype(vm, i)));
     if (ColumnStr = 'INTEGER') or (ColumnStr = 'INT') then
     begin
@@ -187,6 +186,7 @@ begin
     end else if Pos('VARCHAR', ColumnStr) = 1 then
     begin
       AType := ftString;
+      DataSize := StrToIntDef(Trim(ExtractDelimited(2, ColumnStr, ['(', ')'])), DefaultStringSize);
     end else if Pos('BOOL', ColumnStr) = 1 then
     begin
       AType := ftBoolean;
@@ -233,7 +233,7 @@ begin
     begin
       AType := ftString;
     end;
-    FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, FieldSizeMap[AType = ftString]);
+    FieldDefs.Add(String(sqlite3_column_name(vm, i)), AType, DataSize);
     //Set the pchar2sql function
     if AType in [ftString, ftMemo] then
       FGetSqlStr[i] := @Char2SQLStr

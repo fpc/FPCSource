@@ -41,6 +41,9 @@ interface
 uses
   Classes, SysUtils, db;
 
+const
+  DefaultStringSize = 255;
+
 type
   PDataRecord = ^DataRecord;
   PPDataRecord = ^PDataRecord;
@@ -1579,7 +1582,7 @@ end;
 function TCustomSqliteDataset.CreateTable(const ATableName: String): Boolean;
 var
   SQLTemp: String;
-  i: Integer;
+  i, StrSize: Integer;
 begin
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('##TCustomSqliteDataset.CreateTable##');
@@ -1599,7 +1602,12 @@ begin
         ftInteger:
           SQLTemp := SQLTemp + ' INTEGER';
         ftString:
-          SQLTemp := SQLTemp + ' VARCHAR';
+        begin
+          StrSize := FieldDefs[i].Size;
+          if StrSize = 0 then
+            StrSize := DefaultStringSize;
+          SQLTemp := SQLTemp + ' VARCHAR(' + IntToStr(StrSize) + ')';
+        end;
         ftBoolean:
           SQLTemp := SQLTemp + ' BOOL_INT';
         ftFloat:
