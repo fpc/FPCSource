@@ -142,7 +142,6 @@ type
     procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
     procedure GetSqliteHandle;
-    function GetSqliteVersion: String; virtual; abstract;
     procedure BuildLinkedList; virtual; abstract;
     procedure FreeItem(AItem: PDataRecord);
     procedure DisposeLinkedList;
@@ -216,6 +215,7 @@ type
     function QuickQuery(const ASql: String; const AStrList: TStrings; FillObjects: Boolean):String; virtual; abstract; overload;
     procedure RefetchData;
     function ReturnString: String; virtual; abstract;
+    class function SqliteVersion: String; virtual; abstract;
     function TableExists: Boolean;
     function TableExists(const ATableName: String): Boolean;
     function UpdatesPending: Boolean;
@@ -230,7 +230,6 @@ type
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
-    property SqliteVersion: String read GetSqliteVersion;
     property SQLList:TStrings read FSQLList;
    published
     property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey;

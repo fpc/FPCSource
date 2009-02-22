@@ -47,7 +47,6 @@ type
   private
     function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
     function InternalGetHandle: Pointer; override;
-    function GetSqliteVersion: String; override;
     procedure InternalCloseHandle; override;
     procedure BuildLinkedList; override;
   protected
@@ -55,8 +54,9 @@ type
     procedure RetrieveFieldDefs; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
-    function ReturnString: String; override;
     function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;
+    function ReturnString: String; override;
+    class function SqliteVersion: String; override;
   end;
 
 implementation
@@ -328,7 +328,7 @@ begin
   Result := SqliteCode2Str(FReturnCode) + ' - ' + sqlite3_errmsg(FSqliteHandle);
 end;
 
-function TSqlite3Dataset.GetSqliteVersion: String;
+class function TSqlite3Dataset.SqliteVersion: String;
 begin
   Result := String(sqlite3_version());
 end;

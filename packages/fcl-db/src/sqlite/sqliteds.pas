@@ -48,7 +48,6 @@ type
     function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
     function InternalGetHandle: Pointer; override;
     function GetSqliteEncoding: String;
-    function GetSqliteVersion: String; override;
     procedure InternalCloseHandle; override;
     procedure BuildLinkedList; override;
   protected
@@ -56,8 +55,9 @@ type
     function GetRowsAffected:Integer; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
-    function ReturnString: String; override;
     function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;
+    function ReturnString: String; override;
+    class function SqliteVersion: String; override;
     property SqliteEncoding: String read GetSqliteEncoding;
   end;
 
@@ -325,7 +325,7 @@ begin
   Result := String(sqlite_encoding);
 end;
   
-function TSqliteDataset.GetSqliteVersion: String;
+class function TSqliteDataset.SqliteVersion: String;
 begin
   Result := String(sqlite_version);
 end;
