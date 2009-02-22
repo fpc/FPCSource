@@ -2363,9 +2363,9 @@ begin
   if VarIsNull(AKey) then Exit;
   i := FList.Count - 1;
   if VarIsArray(AKey) then
-    while (i > 0) And not VarArraySameValues(PLookupListRec(FList.Items[I])^.Key,AKey) do Dec(i)
+    while (i >= 0) And not VarArraySameValues(PLookupListRec(FList.Items[I])^.Key,AKey) do Dec(i)
   else
-    while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
+    while (i >= 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
 end;
 
