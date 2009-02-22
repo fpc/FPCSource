@@ -124,7 +124,7 @@ begin
             end;
           end else FFieldNo := FieldIndex;
         end;
-      end else FFieldNo := 0;;
+      end else FFieldNo := 0;
     end;
 end;
 
@@ -1077,7 +1077,6 @@ begin
     SetState(dsInactive);
     CloseCursor;
     DoAfterClose;
-    FModified:=False;
     FModified:=False;
     end
 end;
@@ -2245,7 +2244,7 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataset.GetFieldValues(Fieldname: string): Variant;
+function TDataset.GetFieldValues(const Fieldname: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2264,7 +2263,7 @@ begin
   end;
 end;
 
-procedure TDataset.SetFieldValues(Fieldname: string; Value: Variant);
+procedure TDataset.SetFieldValues(const Fieldname: string; Value: Variant);
 
 var
   i : Integer;

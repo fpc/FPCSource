@@ -658,7 +658,7 @@ type
     FDisplayValues : String;
     // First byte indicates uppercase or not.
     FDisplays : Array[Boolean,Boolean] of string;
-    Procedure SetDisplayValues(AValue : String);
+    Procedure SetDisplayValues(const AValue : String);
   protected
     function GetAsBoolean: Boolean; override;
     function GetAsString: string; override;
@@ -1186,7 +1186,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
-    function  GetFieldValues(fieldname : string) : Variant; virtual;
+    function  GetFieldValues(const fieldname : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetIndexDefs(IndexDefs : TIndexDefs; IndexTypes : TIndexOptions) : TIndexDefs;
     function  GetNextRecords: Longint; virtual;
@@ -1216,7 +1216,7 @@ type
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
     procedure SetFound(const Value: Boolean);
-    procedure SetFieldValues(fieldname: string; Value: Variant); virtual;
+    procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
     procedure SetOnFilterRecord(const Value: TFilterRecordEvent); virtual;

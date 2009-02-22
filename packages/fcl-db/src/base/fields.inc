@@ -1929,7 +1929,7 @@ begin
   DisplayValues:='True;False';
 end;
 
-Procedure TBooleanField.SetDisplayValues(AValue : String);
+Procedure TBooleanField.SetDisplayValues(const AValue : String);
 
 Var I : longint;
 
