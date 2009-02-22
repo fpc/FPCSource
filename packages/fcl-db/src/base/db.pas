@@ -245,7 +245,7 @@ type
 
   TLookupList = class(TObject)
   private
-    FList: TList;
+    FList: TFPList;
   public
     constructor Create;
     destructor Destroy; override;
@@ -2295,14 +2295,14 @@ end;
 constructor TLookupList.Create;
 
 begin
-  FList := TList.Create;
+  FList := TFPList.Create;
 end;
 
 destructor TLookupList.Destroy;
 
 begin
-  if FList <> nil then Clear;
-  FList.Free;
+  Clear;
+  FList.Destroy;
   inherited Destroy;
 end;
 
