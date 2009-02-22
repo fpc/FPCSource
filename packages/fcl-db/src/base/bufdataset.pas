@@ -1387,7 +1387,7 @@ end;
 
 procedure TBufDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  PBufBookmark(Buffer + FRecordSize)^.BookmarkData := pointer(Data^);
+  PBufBookmark(Buffer + FRecordSize)^ := PBufBookmark(Data)^;
 end;
 
 procedure TBufDataset.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
@@ -1397,7 +1397,7 @@ end;
 
 procedure TBufDataset.GetBookmarkData(Buffer: PChar; Data: Pointer);
 begin
-  pointer(Data^) := PBufBookmark(Buffer + FRecordSize)^.BookmarkData;
+  PBufBookmark(Data)^ := PBufBookmark(Buffer + FRecordSize)^;
 end;
 
 function TBufDataset.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
