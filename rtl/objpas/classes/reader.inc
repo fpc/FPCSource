@@ -307,18 +307,20 @@ var
   i: Integer;
 begin
   case StringType of
-    vaString:
+   vaLString,vaUTF8String:
+     i:=ReadDWord;
+  else
+  //vaString:
       begin
         Read(b, 1);
         i := b;
       end;
-    vaLString:
-      i:=ReadDWord;
   end;
   SetLength(Result, i);
   if i > 0 then
     Read(Pointer(@Result[1])^, i);
 end;
+
 
 function TBinaryObjectReader.ReadWideString: WideString;
 var
@@ -1415,12 +1417,16 @@ function TReader.ReadWideString: WideString;
 var
  s: String;
  i: Integer;
+ vt:TValueType;
 begin
   if NextValue in [vaWString,vaUString,vaUTF8String] then
-    //vaUTF8String needs conversion? 2008-09-06 mse
+    //vaUTF8String needs conversion? 2008-09-06 mse, YES!! AntonK
     begin
-      ReadValue;
-      Result := FDriver.ReadWideString
+      vt:=ReadValue;
+      if vt=vaUTF8String then
+        Result := utf8decode(fDriver.ReadString(vaLString))
+      else
+        Result := FDriver.ReadWideString
     end
   else
     begin
@@ -1438,12 +1444,16 @@ function TReader.ReadUnicodeString: UnicodeString;
 var
  s: String;
  i: Integer;
+ vt:TValueType;
 begin
-  if NextValue in [vaWString,vaUString,vaUTF8String] then 
-    //vaUTF8String needs conversion? 2008-09-06 mse
+  if NextValue in [vaWString,vaUString,vaUTF8String] then
+    //vaUTF8String needs conversion? 2008-09-06 mse, YES!! AntonK
     begin
-      ReadValue;
-      Result := FDriver.ReadUnicodeString
+      vt:=ReadValue;
+      if vt=vaUTF8String then
+        Result := utf8decode(fDriver.ReadString(vaLString))
+      else
+        Result := FDriver.ReadWideString
     end
   else
     begin
