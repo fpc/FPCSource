@@ -19,7 +19,7 @@ var
   { event that happens when gui thread is done executing the method
 }
 
-function ThreadWndProc(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): Longint; {$ifdef wince}cdecl{$else}stdcall{$endif};
+function ThreadWndProc(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): LResult; {$ifdef wince}cdecl{$else}stdcall{$endif};
 
 begin
   case AMessage of
