@@ -65,8 +65,8 @@ asm
   movl    %edx,gmon_monstarted
   testl   %eax,%eax
   jnz     .Lnomonstart
-  pushl   $gmon_etext                  { Initialize gmon }
   pushl   $gmon_start
+  pushl   $gmon_etext                  { Initialize gmon }
   call    gmon_monstartup
   addl    $8,%esp
   pushl   $gmon_mcleanup
