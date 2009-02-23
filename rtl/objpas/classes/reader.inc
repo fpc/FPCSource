@@ -307,10 +307,10 @@ var
   i: Integer;
 begin
   case StringType of
-   vaLString,vaUTF8String:
-     i:=ReadDWord;
-  else
-  //vaString:
+    vaLString, vaUTF8String:
+      i:=ReadDWord;
+    else
+    //vaString:
       begin
         Read(b, 1);
         i := b;
@@ -1075,6 +1075,76 @@ begin
   CheckValue(vaNull);
 end;
 
+function TReader.ReadVariant: tvardata;
+type
+  tcurrec = record
+    i: int64;
+  end;
+begin
+  if not Assigned(VarClearProc) then
+    raise EReadError.Create(SErrNoVariantSupport);
+
+  VarClearProc(Result);
+  Read(Result.vtype,sizeof(Result.vtype));
+
+  case Result.vtype of
+    varEmpty,
+    varNull:
+      ;
+    { all integer sizes must be split for big endian systems }
+    varShortInt:
+      begin
+        Result.vShortInt:=ReadInteger;
+      end;
+    varSmallInt:
+      begin
+        Result.vSmallInt:=ReadInteger;
+      end;
+    varInteger:
+      begin
+        Result.vInteger:=ReadInteger;
+      end;
+    varInt64,varQWord:
+      begin
+        Result.vInt64:=ReadInt64;
+      end;
+    varBoolean:
+      begin
+        Result.vBoolean:=ReadBoolean;
+      end;
+    varCurrency:
+      begin
+        { avoid implicit value conversion by the compiler }
+        Result.vCurrency:=Currency(tcurrec(ReadInt64));
+      end;
+{$ifndef fpunone}
+    varSingle:
+      begin
+        Result.vSingle:=ReadSingle;
+      end;
+    varDouble:
+      begin
+        Result.vDouble:=ReadFloat;
+      end;
+    varDate:
+      begin
+        Result.vDate:=ReadFloat;
+      end;
+{$endif fpunone}
+    varOlestr:
+      begin
+        WideString(Pointer(Result.volestr)):=ReadWideString;
+      end;
+    varString:
+      begin
+        Ansistring(Result.vstring):=ReadWideString;
+      end;
+    else
+      raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(Result.vtype)]);
+  end;
+end;
+
+
 procedure TReader.ReadProperty(AInstance: TPersistent);
 var
   Path: String;
@@ -1191,6 +1261,7 @@ var
   Method: TMethod;
   Handled: Boolean;
   TmpStr: String;
+  VarTemp: tvardata;
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1260,7 +1331,12 @@ begin
       SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
     tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
-    {!!!: tkVariant}
+    tkVariant:
+      begin
+        { can't use variant() typecast, pulls in variant unit }
+        VarTemp:=ReadVariant;
+        SetVariantProp(Instance,PropInfo,PVariant(@VarTemp)^);
+      end;
     tkClass:
       case FDriver.NextValue of
         vaNil:
@@ -1400,9 +1476,9 @@ begin
   StringType := FDriver.ReadValue;
   if StringType in [vaString, vaLString,vaUTF8String] then
     begin
-    Result := FDriver.ReadString(StringType);
-    if (StringType=vaUTF8String) then
-      Result:=utf8Decode(Result);
+      Result := FDriver.ReadString(StringType);
+      if (StringType=vaUTF8String) then
+        Result:=utf8Decode(Result);
     end
   else if StringType in [vaWString] then
     Result:= FDriver.ReadWidestring

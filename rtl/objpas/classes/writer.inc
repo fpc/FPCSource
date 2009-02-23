@@ -720,6 +720,75 @@ begin
   Driver.WriteInteger(Value);
 end;
 
+procedure TWriter.WriteVariant(const VarValue: tvardata);
+type
+  tcurrec = record
+    i: int64;
+  end;
+var
+  vtype: tvartype;
+begin
+  vtype:=VarValue.vtype;
+  Write(ord(vtype),sizeof(vtype));
+  case vtype of
+    varEmpty,
+    varNull:
+      ;
+    { all integer sizes must be split for big endian systems }
+    varShortInt:
+      begin
+        WriteInteger(VarValue.vshortint);
+      end;
+    varSmallInt:
+      begin
+        WriteInteger(VarValue.vsmallint);
+      end;
+    varInteger:
+      begin
+        WriteInteger(VarValue.vinteger);
+      end;
+    varInt64,varQWord:
+      begin
+        WriteInteger(int64(VarValue.vint64));
+      end;
+    varBoolean:
+      begin
+        WriteBoolean(VarValue.vboolean);
+      end;
+    varCurrency:
+      begin
+        { write as int64, because on non-x86 a floating point register does
+          not have enough precision to hold the entire range of currency
+        }
+        WriteInteger(tcurrec(VarValue.vcurrency).i);
+      end;
+{$ifndef fpunone}
+    varSingle:
+      begin
+        WriteSingle(VarValue.vsingle);
+      end;
+    varDouble:
+      begin
+        WriteFloat(VarValue.vdouble);
+      end;
+    varDate:
+      begin
+        WriteFloat(VarValue.vdate);
+      end;
+{$endif fpunone}
+    varOleStr:
+      begin
+        WriteWideString(widestring(pointer(VarValue.volestr)));
+      end;
+    varString:
+      begin
+        WriteWideString(AnsiString(VarValue.vstring));
+      end;
+    else
+      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(VarValue.vtype)]);
+  end;
+end;
+
 procedure TWriter.WriteListBegin;
 begin
   Driver.BeginList;
@@ -746,6 +815,7 @@ begin
   Instance.DefineProperties(Self);
 end;
 
+
 procedure TWriter.WriteProperty(Instance: TPersistent; PropInfo: Pointer);
 var
   HasAncestor: Boolean;
@@ -767,6 +837,7 @@ var
   SavedAncestor: TPersistent;
   SavedPropPath, Name: String;
   Int64Value, DefInt64Value: Int64;
+  VarValue, DefVarValue : tvardata;
   BoolValue, DefBoolValue: boolean;
   Handled: Boolean;
 
@@ -918,7 +989,24 @@ begin
           Driver.EndProperty;
         end;
       end;
-  {!!!: tkVariant:}
+    tkVariant:
+      begin
+        if not assigned(VarClearProc) then
+          raise EWriteError.Create(SErrNoVariantSupport);
+
+        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
+        if HasAncestor then
+          DefVarValue := tvardata(GetVariantProp(Ancestor, PropInfo))
+        else
+          VarClearProc(DefVarValue);
+
+        if (CompareByte(VarValue,DefVarValue,sizeof(VarValue)) <> 0) then
+          begin
+            Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+            WriteVariant(VarValue);
+            Driver.EndProperty;
+          end;
+      end;
     tkClass:
       begin
         ObjValue := TObject(GetObjectProp(Instance, PropInfo));
