@@ -232,15 +232,15 @@ type
     property SqliteHandle: Pointer read FSqliteHandle;
     property SQLList:TStrings read FSQLList;
    published
-    property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey;
+    property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey default False;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write SetFileName;
     property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
     property OnGetHandle: TDataSetNotifyEvent read FOnGetHandle write FOnGetHandle;
-    property Options: TSqliteOptions read FOptions write SetOptions;
+    property Options: TSqliteOptions read FOptions write SetOptions default [];
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
-    property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
-    property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
+    property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose default False;
+    property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch default False;
     property SQL: String read FSQL write FSQL;
     property TableName: String read FTableName write FTableName;   
     property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
