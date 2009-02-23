@@ -57,23 +57,67 @@ type
 
   THTMLCustomEntityProducer = class (THTMLContentProducer)
   private
-    FOnWritePage: TWriterEvent;
+    FOnWriteEntity: TWriterEvent;
     FEntity: THtmlEntities;
   protected
-    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
-    procedure DoWritePage (aWriter : THTMLWriter); virtual;
+    procedure DoWriteEntity (aWriter : THTMLWriter); virtual;
+    Property OnWriteEntity : TWriterEvent read FOnWriteEntity write FOnWriteEntity;
+    Property Entity : THtmlEntities read FEntity write FEntity default heHtml;
   public
     constructor Create(AOwner: TComponent); override;
-    Property OnWritePage : TWriterEvent read FOnWritePage write FOnWritePage;
-    Property Entity : THtmlEntities read FEntity write FEntity default heHtml;
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
   end;
 
-  { THTMLCustomPagContentProducer }
+  { THTMLEntityContentProducer }
 
   THTMLEntityProducer = class (THTMLCustomEntityProducer)
   published
-    Property OnWritePage;
+    Property OnWriteEntity;
     Property Entity;
+  end;
+
+  { THTMLCustomPageProducer }
+
+  THTMLCustomPageProducer = class (THTMLCustomEntityProducer)
+  private
+    FHeaderProducer : THTMLContentProducer;
+    FOnWriteHeader: TWriterEvent;
+    FOnWriteVisualBody: TWriterEvent;
+    FOnWriteVisualFooter: TWriterEvent;
+    FOnWriteVisualHeader: TWriterEvent;
+    FVisualHeaderProducer : THTMLContentProducer;
+    FVisualBodyProducer : THTMLContentProducer;
+    FVisualFooterProducer : THTMLContentProducer;
+  protected
+    procedure DoWriteEntity (aWriter : THTMLWriter); override;
+    procedure DoWriteHeader (aWriter : THTMLWriter); virtual;
+    procedure DoWriteVisualHeader (aWriter : THTMLWriter); virtual;
+    procedure DoWriteVisualBody (aWriter : THTMLWriter); virtual;
+    procedure DoWriteVisualFooter (aWriter : THTMLWriter); virtual;
+    Property HeaderProducer : THTMLContentProducer read FHeaderProducer write FHeaderProducer;
+    Property VisualHeaderProducer : THTMLContentProducer read FVisualHeaderProducer write FVisualHeaderProducer;
+    Property VisualBodyProducer : THTMLContentProducer read FVisualBodyProducer write FVisualBodyProducer;
+    Property VisualFooterProducer : THTMLContentProducer read FVisualFooterProducer write FVisualFooterProducer;
+    Property OnWriteHeader : TWriterEvent read FOnWriteHeader write FOnWriteHeader;
+    Property OnWriteVisualHeader : TWriterEvent read FOnWriteVisualHeader write FOnWriteVisualHeader;
+    Property OnWriteVisualBody : TWriterEvent read FOnWriteVisualBody write FOnWriteVisualBody;
+    Property OnWriteVisualFooter : TWriterEvent read FOnWriteVisualFooter write FOnWriteVisualFooter;
+  public
+    constructor Create(AOwner: TComponent); override;
+  end;
+
+  { THTMLPageProducer }
+
+  THTMLPageProducer = class (THTMLCustomPageProducer)
+  published
+    property OnWriteHeader;
+    property OnWriteVisualHeader;
+    property OnWriteVisualBody;
+    property OnWriteVisualFooter;
+    Property HeaderProducer;
+    Property VisualHeaderProducer;
+    Property VisualBodyProducer;
+    Property VisualFooterProducer;
   end;
 
   { THTMLCustomDatasetContentProducer }
@@ -88,11 +132,11 @@ type
     procedure WriteFooter (aWriter : THTMLWriter);
     procedure WriteRecord (aWriter : THTMLWriter);
   protected
-    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
     procedure DoWriteHeader (aWriter : THTMLWriter; var el : THTMLCustomElement); virtual;
     procedure DoWriteFooter (aWriter : THTMLWriter); virtual;
     procedure DoWriteRecord (aWriter : THTMLWriter); virtual;
   public
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
     Property OnWriteHeader : TWriterElementEvent read FOnWriteHeader write FOnWriteHeader;
     Property OnWriteFooter : TWriterEvent read FOnWriteFooter write FOnWriteFooter;
     Property OnWriteRecord : TWriterEvent read FOnWriteRecord write FOnWriteRecord;
@@ -119,11 +163,10 @@ type
     FSize: integer;
     FUseValues: boolean;
     procedure SetItems(const AValue: TStrings);
-  protected
-    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
   public
     constructor create (aOwner : TComponent); override;
     destructor destroy; override;
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
   published
     property Items : TStrings read FItems write SetItems;
     property UseValues : boolean read FUseValues write FUseValues default false;
@@ -318,7 +361,7 @@ begin
               next;
               end;
           finally
-            if opened then
+            if not opened then
               close;
           end;
     finally
@@ -401,8 +444,11 @@ begin
     with aWriter.Option(FItem.asstring) do
       begin
       if FUseValues then
-        sel := (FValue.AsString = FPreSelected)
-      else
+        begin
+        if assigned(FValue) then
+          sel := (FValue.AsString = FPreSelected)
+        end
+      else if assigned(FItem) then
         sel := (FItem.AsString = FPreSelected);
       if assigned (FIsPreSelected) then
         FIsPreSelected (self, sel);
@@ -514,20 +560,71 @@ function THTMLCustomEntityProducer.WriteContent(aWriter: THTMLWriter
   ): THTMLCustomElement;
 begin
   result := aWriter.StartElement(THtmlEntitiesClasses[FEntity]);
-  DoWritePage(aWriter);
+  DoWriteEntity(aWriter);
   aWriter.EndElement(THtmlEntitiesClasses[FEntity]);
 end;
 
-procedure THTMLCustomEntityProducer.DoWritePage(aWriter: THTMLWriter);
+procedure THTMLCustomEntityProducer.DoWriteEntity(aWriter: THTMLWriter);
 begin
-  if assigned (FOnWritePage) then
-    FOnWritePage (self, aWriter);
+  if assigned (FOnWriteEntity) then
+    FOnWriteEntity (self, aWriter);
 end;
 
 constructor THTMLCustomEntityProducer.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FEntity := heHtml;
+end;
+
+{ THTMLCustomPageProducer }
+
+procedure THTMLCustomPageProducer.DoWriteEntity(aWriter: THTMLWriter);
+begin
+  inherited DoWriteEntity(aWriter);
+  DoWriteHeader(aWriter);
+  aWriter.Startbody;
+  DoWriteVisualHeader(aWriter);
+  DoWriteVisualBody(aWriter);
+  DoWriteVisualFooter(aWriter);
+  awriter.Endbody;
+end;
+
+procedure THTMLCustomPageProducer.DoWriteHeader(aWriter: THTMLWriter);
+begin
+  if assigned(FOnWriteHeader) then
+    FOnWriteHeader(self,aWriter);
+  if assigned(FHeaderProducer) then
+    aWriter.AddElement(FHeaderProducer.WriteContent(aWriter));
+end;
+
+procedure THTMLCustomPageProducer.DoWriteVisualHeader(aWriter: THTMLWriter);
+begin
+  if assigned(FOnWriteVisualHeader) then
+    FOnWriteVisualHeader(self,aWriter);
+  if assigned(FVisualHeaderProducer) then
+    aWriter.AddElement(FVisualHeaderProducer.WriteContent(aWriter));
+end;
+
+procedure THTMLCustomPageProducer.DoWriteVisualBody(aWriter: THTMLWriter);
+begin
+  if assigned(FOnWriteVisualBody) then
+    FOnWriteVisualBody(self,aWriter);
+  if assigned(FVisualBodyProducer) then
+    aWriter.AddElement(FVisualBodyProducer.WriteContent(aWriter));
+end;
+
+procedure THTMLCustomPageProducer.DoWriteVisualFooter(aWriter: THTMLWriter);
+begin
+  if assigned(FOnWriteVisualFooter) then
+    FOnWriteVisualFooter(self,aWriter);
+  if assigned(FVisualFooterProducer) then
+    aWriter.AddElement(FVisualFooterProducer.WriteContent(aWriter));
+end;
+
+constructor THTMLCustomPageProducer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  Entity := heHtml;
 end;
 
 end.
