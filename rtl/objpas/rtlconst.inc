@@ -93,7 +93,7 @@ ResourceString
   SDefaultFilter                = 'All files (*.*)|*.*';
   SDelimiterQuoteCharError      = 'Delimiter and QuoteChar properties cannot have the same value';
   SDeviceOnPort                 = '%s on %s';
-  SDimsDoNotMatch               = 'Image size mismatch';
+  SDimsDoNotMatch  = 'Image size mismatch';
   SDirNameCap                   = 'Directory &name:';
   SDirsCap                      = '&Directories:';
   SDrivesCap                    = '&Drives:';
@@ -272,6 +272,7 @@ ResourceString
   SUnknownGroup                 = '%s not in a class registration group';
   SUnknownProperty              = 'Unknown property: "%s"';
   SUnknownPropertyType          = 'Unknown property type %d';
+  SUnsupportedPropertyVariantType = 'Unsupported property variant type %d';
   SUntitled                     = '(Untitled)';
   SVBitmaps                     = 'Bitmaps';
   SVEnhMetafiles                = 'Enhanced MetaFiles';
