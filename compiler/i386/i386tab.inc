@@ -9601,63 +9601,63 @@
     opcode  : A_MOVNTSS;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #65#219#192#62#2#15#43#63;
+    code    : #219#192#211#2#15#43#65;
     flags   : if_sse4 or if_sd
   ),
   (
     opcode  : A_MOVNTSD;
     ops     : 2;
     optypes : (ot_memory,ot_xmmreg,ot_none);
-    code    : #65#192#220#213#62#2#15#43#63;
+    code    : #192#220#213#211#2#15#43#0#65;
     flags   : if_sse4
   ),
   (
     opcode  : A_INSERTQ;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmreg,ot_none);
-    code    : #72#220#62#2#15#121#63;
+    code    : #220#211#2#15#121#72;
     flags   : if_sse4
   ),
   (
     opcode  : A_EXTRQ;
     ops     : 3;
     optypes : (ot_xmmreg,ot_immediate,ot_immediate);
-    code    : #128#222#62#2#15#120#63#253#17#253#18;
+    code    : #222#211#2#15#120#128#253#17#253#18;
     flags   : if_sse4 or if_sb
   ),
   (
     opcode  : A_EXTRQ;
     ops     : 2;
     optypes : (ot_xmmreg,ot_xmmreg,ot_none);
-    code    : #72#222#62#2#15#121#63;
+    code    : #222#211#2#15#121#72;
     flags   : if_sse4
   ),
   (
     opcode  : A_LZCNT;
     ops     : 2;
     optypes : (ot_reg16,ot_regmem,ot_none);
-    code    : #72#208#219#193#62#2#15#189#63;
+    code    : #208#219#193#211#2#15#189#72;
     flags   : if_386 or if_sm or if_sse4
   ),
   (
     opcode  : A_LZCNT;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_regmem,ot_none);
-    code    : #72#209#219#193#62#2#15#189#63;
+    code    : #209#219#193#211#2#15#189#72;
     flags   : if_386 or if_sm or if_sse4
   ),
   (
     opcode  : A_POPCNT;
     ops     : 2;
     optypes : (ot_reg16,ot_regmem,ot_none);
-    code    : #72#208#219#193#62#2#15#184#63;
+    code    : #208#219#193#211#2#15#184#72;
     flags   : if_386 or if_sm or if_sse4
   ),
   (
     opcode  : A_POPCNT;
     ops     : 2;
     optypes : (ot_reg32 or ot_bits64,ot_regmem,ot_none);
-    code    : #72#209#219#193#62#2#15#184#63;
+    code    : #209#219#193#211#2#15#184#72;
     flags   : if_386 or if_sm or if_sse4
   )
 );

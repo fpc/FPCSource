@@ -3251,33 +3251,33 @@ mem                   \320\323\2\x0F\xC7\201          X86_64
 ;
 
 
-; note: \333=F3h, \334=F2h, \336=66h, \76=REX, \77=EA, \325=no REX.W=1 for qword, \375=unsigned
+; note: \333=F3h, \334=F2h, \336=66h, \325=no REX.W=1 for qword, \375=unsigned
 
 [MOVNTSS]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \101\333\300\76\2\x0F\x2B\77                    SSE4,SD
+mem,xmmreg              \333\300\323\2\x0F\x2B\101                   SSE4,SD
 
 [MOVNTSD]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \101\300\334\325\76\2\x0F\x2B\77                SSE4 ;,SQ
+mem,xmmreg              \300\334\325\323\2\x0F\x2B\\101                SSE4 ;,SQ
 
 [INSERTQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,xmmreg           \110\334\76\2\x0F\x79\77                        SSE4
+xmmreg,xmmreg           \334\323\2\x0F\x79\110                        SSE4
 ; four operands are not possible yet
 ; xmmreg,xmmreg,imm,imm   \110\334\76\2\x0F\x78\77\375\22\375\23          SSE4,SB
 
 [EXTRQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,imm,imm          \200\336\76\2\x0F\x78\77\375\21\375\22          SSE4,SB
-xmmreg,xmmreg           \110\336\76\2\x0F\x79\77                        SSE4
+xmmreg,imm,imm          \336\323\2\x0F\x78\200\375\21\375\22          SSE4,SB
+xmmreg,xmmreg           \336\323\2\x0F\x79\110                        SSE4
 
 [LZCNT,lzcntX]
 (Ch_All, Ch_None, Ch_None)
-reg16,regmem            \110\320\333\301\76\2\x0F\xBD\77                386,SM,SSE4
-reg32|64,regmem         \110\321\333\301\76\2\x0F\xBD\77                386,SM,SSE4
+reg16,regmem            \320\333\301\323\2\x0F\xBD\110                386,SM,SSE4
+reg32|64,regmem         \321\333\301\323\2\x0F\xBD\110                386,SM,SSE4
 
 [POPCNT,popcntX]
 (Ch_All, Ch_None, Ch_None)
-reg16,regmem            \110\320\333\301\76\2\x0F\xB8\77                386,SM,SSE4
-reg32|64,regmem         \110\321\333\301\76\2\x0F\xB8\77                386,SM,SSE4
+reg16,regmem            \320\333\301\323\2\x0F\xB8\110                386,SM,SSE4
+reg32|64,regmem         \321\333\301\323\2\x0F\xB8\110                386,SM,SSE4
