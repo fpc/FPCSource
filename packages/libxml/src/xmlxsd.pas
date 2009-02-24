@@ -15,6 +15,16 @@ uses
   DateUtils,
   SysUtils;
 
+resourcestring
+  ChildNotFound = 'child %s not found';
+  PropNotFound  = 'attribute %s not found';
+
+type
+  XSDException = class(Exception)
+  public
+    constructor CreateNode(const Msg: String; name, nameSpace: xmlCharPtr);
+  end;
+
 { Format functions }
 function xsdFormatBoolean(Value: Boolean; UseWords: Boolean = False): String;
 function xsdFormatDate(Year: Longint; Month, Day: Longword): String;
@@ -107,54 +117,104 @@ function xsdHasChild(node: xmlNodePtr; name: xmlCharPtr; index: Integer = 0): xm
 function xsdHasNsChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; index: Integer = 0): xmlNodePtr;
 function xsdGetChild(node: xmlNodePtr; name: xmlCharPtr; index: Integer = 0): xmlCharPtr;
 function xsdGetNsChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; index: Integer = 0): xmlCharPtr;
-function xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer = 0): Boolean;
-function xsdGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer = 0): Boolean;
-function xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer = 0): Boolean;
-function xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
-function xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer = 0): Boolean;
-function xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
-function xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer = 0): Boolean;
-function xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
-function xsdGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer = 0): Boolean;
-function xsdGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer = 0): Boolean;
-function xsdGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer = 0): Boolean;
-function xsdGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer = 0): Boolean;
-function xsdGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer = 0): Boolean;
-function xsdGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer = 0): Boolean;
-function xsdGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer = 0): Boolean;
-function xsdGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer = 0): Boolean;
-function xsdGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer = 0): Boolean;
-function xsdGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer = 0): Boolean;
-function xsdGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer = 0): Boolean;
+function xsdTryGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer = 0): Boolean;
+function xsdTryGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer = 0): Boolean;
+function xsdTryGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer = 0): Boolean;
+function xsdTryGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
+function xsdTryGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer = 0): Boolean;
+function xsdTryGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
+function xsdTryGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer = 0): Boolean;
+function xsdTryGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0): Boolean;
+function xsdTryGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer = 0): Boolean;
+function xsdTryGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer = 0): Boolean;
+function xsdTryGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer = 0): Boolean;
+function xsdTryGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer = 0): Boolean;
+function xsdTryGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer = 0): Boolean;
+function xsdTryGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer = 0): Boolean;
+function xsdTryGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer = 0): Boolean;
+function xsdTryGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer = 0): Boolean;
+function xsdTryGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer = 0): Boolean;
+function xsdTryGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer = 0): Boolean;
+function xsdTryGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer = 0): Boolean;
+
+procedure xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer = 0);
+procedure xsdGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer = 0);
+procedure xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer = 0);
+procedure xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+procedure xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer = 0);
+procedure xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+procedure xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer = 0);
+procedure xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+procedure xsdGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer = 0);
+procedure xsdGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer = 0);
+procedure xsdGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer = 0);
+procedure xsdGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer = 0);
+procedure xsdGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer = 0);
+procedure xsdGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer = 0);
+procedure xsdGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer = 0);
+procedure xsdGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer = 0);
+procedure xsdGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer = 0);
+procedure xsdGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer = 0);
+procedure xsdGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer = 0);
 
 { Property query functions }
 function xsdHasProp(node: xmlNodePtr; name: xmlCharPtr): xmlAttrPtr;
 function xsdHasNsProp(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlAttrPtr;
 function xsdGetProp(node: xmlNodePtr; name: xmlCharPtr): xmlCharPtr;
 function xsdGetNsProp(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr;
-function xsdGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String): Boolean;
-function xsdGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean): Boolean;
-function xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword): Boolean;
-function xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
-function xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword): Boolean;
-function xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
-function xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword): Boolean;
-function xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
-function xsdGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended): Boolean;
-function xsdGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double): Boolean;
-function xsdGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single): Boolean;
-function xsdGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint): Boolean;
-function xsdGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint): Boolean;
-function xsdGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint): Boolean;
-function xsdGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64): Boolean;
-function xsdGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte): Boolean;
-function xsdGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word): Boolean;
-function xsdGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword): Boolean;
-function xsdGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord): Boolean;
+function xsdTryGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String): Boolean;
+function xsdTryGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean): Boolean;
+function xsdTryGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword): Boolean;
+function xsdTryGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword): Boolean;
+function xsdTryGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword): Boolean;
+function xsdTryGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended): Boolean;
+function xsdTryGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double): Boolean;
+function xsdTryGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single): Boolean;
+function xsdTryGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint): Boolean;
+function xsdTryGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint): Boolean;
+function xsdTryGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint): Boolean;
+function xsdTryGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64): Boolean;
+function xsdTryGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte): Boolean;
+function xsdTryGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word): Boolean;
+function xsdTryGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword): Boolean;
+function xsdTryGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord): Boolean;
 
-function xsdRemoveBlanks(content: xmlCharPtr; out cleaned: string): boolean;
+procedure xsdGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String);
+procedure xsdGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean);
+procedure xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword);
+procedure xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+procedure xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword);
+procedure xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+procedure xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword);
+procedure xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+procedure xsdGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended);
+procedure xsdGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double);
+procedure xsdGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single);
+procedure xsdGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint);
+procedure xsdGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint);
+procedure xsdGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint);
+procedure xsdGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64);
+procedure xsdGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte);
+procedure xsdGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word);
+procedure xsdGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword);
+procedure xsdGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord);
+
+function xsdRemoveBlanks(content: xmlCharPtr; var cleaned: string): boolean;
 
 implementation
+
+constructor XSDException.CreateNode(const Msg: String; name, nameSpace: xmlCharPtr);
+var
+  S: String;
+begin
+  S := PChar(name);
+  if Assigned(nameSpace) then
+    S := PChar(nameSpace)+':'+S;
+  inherited CreateFmt(Msg, [S]);
+end;
 
 function xsdFormatBoolean(Value: Boolean; UseWords: Boolean): String;
 begin
@@ -789,7 +849,7 @@ begin
     result := nil;
 end;
 
-function xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer): Boolean;
+function xsdTryGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -802,7 +862,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer): Boolean;
+function xsdTryGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -813,7 +873,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer): Boolean;
+function xsdTryGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -824,7 +884,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
+function xsdTryGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -835,7 +895,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer): Boolean;
+function xsdTryGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -846,7 +906,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
+function xsdTryGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -857,7 +917,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer): Boolean;
+function xsdTryGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -868,7 +928,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
+function xsdTryGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -879,7 +939,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer): Boolean;
+function xsdTryGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -890,7 +950,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer): Boolean;
+function xsdTryGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -901,7 +961,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer): Boolean;
+function xsdTryGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -912,7 +972,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer): Boolean;
+function xsdTryGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -923,7 +983,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer): Boolean;
+function xsdTryGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -934,7 +994,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer): Boolean;
+function xsdTryGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -945,7 +1005,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer): Boolean;
+function xsdTryGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -956,7 +1016,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer): Boolean;
+function xsdTryGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -967,7 +1027,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer): Boolean;
+function xsdTryGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -978,7 +1038,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer): Boolean;
+function xsdTryGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -989,7 +1049,7 @@ begin
     result := false;
 end;
 
-function xsdGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer): Boolean;
+function xsdTryGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -998,6 +1058,120 @@ begin
     result := xsdParseUnsignedLong(pchar(value), P)
   else
     result := false;
+end;
+
+procedure xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String; index: Integer = 0);
+begin
+  if not xsdTryGetChildString(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean; index: Integer = 0);
+begin
+  if not xsdTryGetChildBoolean(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword; index: Integer = 0);
+begin
+  if not xsdTryGetChildDate(node, name, nameSpace, Year, Month, Day, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+begin
+  if not xsdTryGetChildDate(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword; index: Integer = 0);
+begin
+  if not xsdTryGetChildTime(node, name, nameSpace, Hour, Minute, Second, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+begin
+  if not xsdTryGetChildTime(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword; index: Integer = 0);
+begin
+  if not xsdTryGetChildDateTime(node, name, nameSpace, Year, Month, Day, Hour, Minute, Second, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime; index: Integer = 0);
+begin
+  if not xsdTryGetChildDateTime(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended; index: Integer = 0);
+begin
+  if not xsdTryGetChildDecimal(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double; index: Integer = 0);
+begin
+  if not xsdTryGetChildDouble(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single; index: Integer = 0);
+begin
+  if not xsdTryGetChildFloat(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint; index: Integer = 0);
+begin
+  if not xsdTryGetChildByte(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint; index: Integer = 0);
+begin
+  if not xsdTryGetChildShort(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint; index: Integer = 0);
+begin
+  if not xsdTryGetChildInt(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64; index: Integer = 0);
+begin
+  if not xsdTryGetChildLong(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte; index: Integer = 0);
+begin
+  if not xsdTryGetChildUnsignedByte(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word; index: Integer = 0);
+begin
+  if not xsdTryGetChildUnsignedShort(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword; index: Integer = 0);
+begin
+  if not xsdTryGetChildUnsignedInt(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
+end;
+
+procedure xsdGetChildUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord; index: Integer = 0);
+begin
+  if not xsdTryGetChildUnsignedLong(node, name, nameSpace, P, index) then
+    raise XSDException.CreateNode(ChildNotFound, name, nameSpace);
 end;
 
 function xsdHasProp(node: xmlNodePtr; name: xmlCharPtr): xmlAttrPtr;
@@ -1029,7 +1203,7 @@ begin
     result := xmlGetNsProp(node, name, nameSpace);
 end;
 
-function xsdGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String): Boolean;
+function xsdTryGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1042,7 +1216,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean): Boolean;
+function xsdTryGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1053,7 +1227,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword): Boolean;
+function xsdTryGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1064,7 +1238,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1075,7 +1249,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword): Boolean;
+function xsdTryGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1086,7 +1260,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1097,7 +1271,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword): Boolean;
+function xsdTryGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1108,7 +1282,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
+function xsdTryGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1119,7 +1293,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended): Boolean;
+function xsdTryGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1130,7 +1304,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double): Boolean;
+function xsdTryGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1141,7 +1315,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single): Boolean;
+function xsdTryGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1152,7 +1326,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint): Boolean;
+function xsdTryGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1163,7 +1337,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint): Boolean;
+function xsdTryGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1174,7 +1348,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint): Boolean;
+function xsdTryGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1185,7 +1359,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64): Boolean;
+function xsdTryGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1196,7 +1370,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte): Boolean;
+function xsdTryGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1207,7 +1381,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word): Boolean;
+function xsdTryGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1218,7 +1392,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword): Boolean;
+function xsdTryGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1229,7 +1403,7 @@ begin
     result := false;
 end;
 
-function xsdGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord): Boolean;
+function xsdTryGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord): Boolean;
 var
   value: xmlCharPtr;
 begin
@@ -1240,8 +1414,121 @@ begin
     result := false;
 end;
 
+procedure xsdGetPropString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: String);
+begin
+  if not xsdTryGetPropString(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
 
-function xsdRemoveBlanks(content: xmlCharPtr; out cleaned: string): boolean;
+procedure xsdGetPropBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Boolean);
+begin
+  if not xsdTryGetPropBoolean(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day: Longword);
+begin
+  if not xsdTryGetPropDate(node, name, nameSpace, Year, Month, Day) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+begin
+  if not xsdTryGetPropDate(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Hour, Minute, Second: Longword);
+begin
+  if not xsdTryGetPropTime(node, name, nameSpace, Hour, Minute, Second) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+begin
+  if not xsdTryGetPropTime(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Year: Longint; var Month, Day, Hour, Minute, Second: Longword);
+begin
+  if not xsdTryGetPropDateTime(node, name, nameSpace, Year, Month, Day, Hour, Minute, Second) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDateTime(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: TDateTime);
+begin
+  if not xsdTryGetPropDateTime(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDecimal(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Extended);
+begin
+  if not xsdTryGetPropDecimal(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropDouble(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Double);
+begin
+  if not xsdTryGetPropDouble(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropFloat(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Single);
+begin
+  if not xsdTryGetPropFloat(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Shortint);
+begin
+  if not xsdTryGetPropByte(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Smallint);
+begin
+  if not xsdTryGetPropShort(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longint);
+begin
+  if not xsdTryGetPropInt(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Int64);
+begin
+  if not xsdTryGetPropLong(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropUnsignedByte(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Byte);
+begin
+  if not xsdTryGetPropUnsignedByte(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropUnsignedShort(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Word);
+begin
+  if not xsdTryGetPropUnsignedShort(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropUnsignedInt(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: Longword);
+begin
+  if not xsdTryGetPropUnsignedInt(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+procedure xsdGetPropUnsignedLong(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var P: QWord);
+begin
+  if not xsdTryGetPropUnsignedLong(node, name, nameSpace, P) then
+    raise XSDException.CreateNode(PropNotFound, name, nameSpace);
+end;
+
+function xsdRemoveBlanks(content: xmlCharPtr; var cleaned: string): boolean;
 var
   Space: Boolean;
   len: Integer;
