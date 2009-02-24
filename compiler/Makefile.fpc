@@ -361,18 +361,18 @@ msg: msgtxt.inc
 
 insdatx86 : $(COMPILER_UNITTARGETDIR) x86/x86ins.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86ins.pp
-        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT)&& mv -f *.inc ../i386
-        cd x86 && ..$(PATHSEP)utils$(PATHSEP)mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
+        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) && mv -f *.inc ../i386
+        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
 
 insdatarm : arm/armins.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
-        cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmins$(SRCEXEEXT)
+        cd arm && ../utils/mkarmins$(SRCEXEEXT)
 
 insdat: insdatx86 insdatarm
 
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
-        cd arm && ..$(PATHSEP)utils$(PATHSEP)mkarmreg$(SRCEXEEXT)
+        cd arm && ../utils/mkarmreg$(SRCEXEEXT)
 
 # Make only the compiler
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
