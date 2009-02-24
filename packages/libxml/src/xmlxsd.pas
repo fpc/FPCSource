@@ -113,6 +113,7 @@ const
   NS_EXCLUDE : xmlCharPtr = pointer(-1);
 
 { Node query functions }
+function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
 function xsdHasChild(node: xmlNodePtr; name: xmlCharPtr; index: Integer = 0): xmlNodePtr;
 function xsdHasNsChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; index: Integer = 0): xmlNodePtr;
 function xsdGetChild(node: xmlNodePtr; name: xmlCharPtr; index: Integer = 0): xmlCharPtr;
@@ -803,6 +804,13 @@ begin
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
+begin
+  Result := (xmlStrEqual(name, node^.name) <> 0) and ((nameSpace = NS_IGNORE) or
+    ((nameSpace = NS_EXCLUDE) and (node^.ns = nil)) or
+    ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (node^.ns <> nil) and (xmlStrEqual(nameSpace, node^.ns^.prefix) <> 0)));
+end;
+
 function xsdHasChild(node: xmlNodePtr; name: xmlCharPtr; index: integer): xmlNodePtr;
 begin
   Result := xsdHasNsChild(node, name, nil, index);
@@ -815,9 +823,7 @@ begin
     node := node^.children;
     while Assigned(node) do
     begin
-      if (xmlStrEqual(name, node^.name) <> 0) and ((nameSpace = NS_IGNORE) or
-        ((nameSpace = NS_EXCLUDE) and (node^.ns = nil)) or
-        ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (node^.ns <> nil) and (xmlStrEqual(nameSpace, node^.ns^.prefix) <> 0))) then
+      if xsdTestNode(node, name, nameSpace) then
       begin
         if index = 0 then
         begin
