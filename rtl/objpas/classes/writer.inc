@@ -991,6 +991,7 @@ begin
       end;
     tkVariant:
       begin
+        { Ensure that a Variant manager is installed }
         if not assigned(VarClearProc) then
           raise EWriteError.Create(SErrNoVariantSupport);
 
@@ -998,7 +999,7 @@ begin
         if HasAncestor then
           DefVarValue := tvardata(GetVariantProp(Ancestor, PropInfo))
         else
-          VarClearProc(DefVarValue);
+          FillChar(DefVarValue,sizeof(DefVarValue),0);
 
         if (CompareByte(VarValue,DefVarValue,sizeof(VarValue)) <> 0) then
           begin

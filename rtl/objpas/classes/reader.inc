@@ -1081,10 +1081,11 @@ type
     i: int64;
   end;
 begin
+  { Ensure that a Variant manager is installed }
   if not Assigned(VarClearProc) then
     raise EReadError.Create(SErrNoVariantSupport);
 
-  VarClearProc(Result);
+  FillChar(Result,sizeof(Result),0);
   Read(Result.vtype,sizeof(Result.vtype));
 
   case Result.vtype of
