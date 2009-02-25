@@ -58,6 +58,7 @@ BSDINC=$(RTL)/bsd
 BSDPROCINC=$(BSDINC)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
+CPU_UNITS=
 
 ifeq ($(findstring 1.0.,$(FPC_VERSION)),)
 SYSTEMUNIT=system
@@ -68,16 +69,12 @@ SYSTEMUNIT=sysbsd
 override FPCOPT+=-dUNIX -dNOMOUSE
 endif
 
-ifeq ($(CPU_TARGET),i386)
+ifeq ($(ARCH),i386)
 CPU_UNITS=x86 ports cpu mmx
-else
-CPU_UNITS=
 endif
 
-ifeq ($(CPU_TARGET),x86_64)
+ifeq ($(ARCH),x86_64)
 CPU_UNITS=x86 ports 
-else
-CPU_UNITS=
 endif
 
 
@@ -223,6 +220,8 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 #
 # Other system-independent RTL Units
 #
+
+x86$(PPUEXT) : $(UNIXINC)/x86.pp $(SYSTEMUNIT)$(PPUEXT)
 
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
 
