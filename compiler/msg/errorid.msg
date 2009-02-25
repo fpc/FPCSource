@@ -2421,7 +2421,7 @@ option_confict_asm_debug=11041_W_Output assembler yang dipilih "$1" tidak bisa m
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2008 oleh Florian Klaempfl
+Hak Cipta (c) 1993-2009 oleh Florian Klaempfl
 ]
 
 #

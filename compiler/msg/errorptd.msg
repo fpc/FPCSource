@@ -2187,7 +2187,7 @@ option_config_is_dir=11040_F_Arquivo de configuracao $1 e um diretorio
 #
 option_logo=11023_[
 Free Pascal Compiler versao $FPCFULLVERSION [$FPCDATE] para $FPCCPU
-Copyright (c) 1993-2008 por Florian Klaempfl
+Copyright (c) 1993-2009 por Florian Klaempfl
 ]
 
 #

@@ -2183,7 +2183,7 @@ option_config_is_dir=11040_F_Config bestand $1 is een directorie
 %\end{description}
 option_logo=11023_[
 Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1998-2008 door Florian Klaempfl en anderen
+Copyright (c) 1998-2009 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)
