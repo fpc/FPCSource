@@ -10053,5 +10053,5 @@ utils/tply/yaccmsgs.pas svneol=native#text/plain
 utils/tply/yaccpars.pas svneol=native#text/plain
 utils/tply/yaccsem.pas svneol=native#text/plain
 utils/tply/yacctabl.pas svneol=native#text/plain
-utils/tply/yylex.cod -text
-utils/tply/yyparse.cod -text
+utils/tply/yylex.cod svneol=native#text/plain
+utils/tply/yyparse.cod svneol=native#text/plain
