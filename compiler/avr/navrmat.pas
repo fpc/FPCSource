@@ -81,9 +81,9 @@ implementation
         resultreg  : tregister;
         size       : Tcgsize;
         so : tshifterop;
-{
        procedure genOrdConstNodeDiv;
          begin
+{
            if tordconstnode(right).value=0 then
              internalerror(2005061701)
            else if tordconstnode(right).value=1 then
@@ -116,12 +116,14 @@ implementation
                else
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SHR,OS_INT,power,numerator,resultreg)
              end;
-         end;
 }
-{
+         end;
+
+
        procedure genOrdConstNodeMod;
          var
              modreg, maskreg, tempreg : tregister;
+{
          begin
              if (tordconstnode(right).value = 0) then begin
                  internalerror(2005061702);
@@ -156,15 +158,15 @@ implementation
                  cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_MUL, OS_INT, tordconstnode(right).value.svalue, resultreg, resultreg);
                  cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_SUB, OS_INT, resultreg, numerator, resultreg);
              end;
-         end;
 }
+         end;
 
       begin
-{
         secondpass(left);
         secondpass(right);
         location_copy(location,left.location);
 
+{
         { put numerator in register }
         size:=def_cgsize(left.resultdef);
         location_force_reg(current_asmdata.CurrAsmList,left.location,
@@ -190,7 +192,7 @@ implementation
             if nodetype=divn then
               genOrdConstNodeDiv
             else
-//              genOrdConstNodeMod;
+              genOrdConstNodeMod;
           end;
 
         location.register:=resultreg;
