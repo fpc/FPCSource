@@ -458,6 +458,31 @@ type
   
   SIPSTATE= (SIP_UP= 0,SIP_DOWN,SIP_FORCEDOWN,SIP_UNCHANGED,SIP_INPUTDIALOG);
 
+  CAMERACAPTURE_STILLQUALITY= (CAMERACAPTURE_STILLQUALITY_DEFAULT=0, CAMERACAPTURE_STILLQUALITY_LOW, CAMERACAPTURE_STILLQUALITY_NORMAL,
+    CAMERACAPTURE_STILLQUALITY_HIGH);
+
+  CAMERACAPTURE_VIDEOTYPE= (CAMERACAPTURE_VIDEOTYPE_ALL = $FFFF, CAMERACAPTURE_VIDEOTYPE_STANDARD = 1,
+    CAMERACAPTURE_VIDEOTYPE_MESSAGING = 2);
+
+  CAMERACAPTURE_MODE= (CAMERACAPTURE_MODE_STILL = 0, CAMERACAPTURE_MODE_VIDEOONLY, CAMERACAPTURE_MODE_VIDEOWITHAUDIO);
+
+  TSHCAMERACAPTURE = record
+    cbSize             : DWORD;
+    hwndOwner          : HWND;
+    szFile             : array[0..(MAX_PATH)-1] of WCHAR;
+    pszInitialDir      : LPCTSTR;
+    pszDefaultFileName : LPCTSTR;
+    pszTitle           : LPCTSTR;
+    StillQuality       : CAMERACAPTURE_STILLQUALITY;
+    VideoTypes         : CAMERACAPTURE_VIDEOTYPE;
+    nResolutionWidth   : DWORD;
+    nResolutionHeight  : DWORD;
+    nVideoTimeLimit    : DWORD;
+    Mode               : CAMERACAPTURE_MODE;
+  end;
+  PSHCAMERACAPTURE=^TSHCAMERACAPTURE;
+
+
 //*****************************************************************************
 // functions
 //*****************************************************************************
@@ -483,6 +508,7 @@ procedure SHNavigateBack; external UserDLLAyg index 183;
 function SHSipInfo(uiAction: UINT; uiParam: UINT; pvParam: PVOID; fWinIni: UINT  ): WINBOOL; external UserDLLAyg name 'SHSipInfo';
 function SHSipPreference(hwnd: HWND ; st : SIPSTATE ) : WINBOOL; external UserDLLAyg name 'SHSipPreference';
 function SHRecognizeGesture(var shrg : SHRGINFO): DWORD; external UserDLLAyg name 'SHRecognizeGesture';
+function SHCameraCapture(var shcc: TSHCAMERACAPTURE): HRESULT; external UserDLLAyg name 'SHCameraCapture';
 
 implementation
 
