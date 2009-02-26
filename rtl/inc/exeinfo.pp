@@ -1044,6 +1044,8 @@ begin
   fillchar(e,sizeof(e),0);
   e.bufsize:=sizeof(e.buf);
   e.filename:=fn;
+  if fn='' then   // we don't want to read stdin
+    exit;
   assign(e.f,fn);
   {$I-}
    ofm:=filemode;
