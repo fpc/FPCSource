@@ -172,6 +172,7 @@ const
 function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
 
 function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlNodePtr;
+function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var child: xmlNodePtr; Index: Integer = 0): Boolean;
 function xsdTryGetChildChars(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlCharPtr;
 function xsdTryGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Value: String; Index: Integer = 0): Boolean;
 function xsdTryGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var Value: Boolean; Index: Integer = 0): Boolean;
@@ -1373,6 +1374,12 @@ begin
     Result := nil;
 end;
 
+function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; var child: xmlNodePtr; Index: Integer): Boolean;
+begin
+  child := xsdTryGetChild(node, name, nameSpace, Index);
+  Result := Assigned(child);
+end;
+
 function xsdTryGetChildChars(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer): xmlCharPtr;
 begin
   Result := xmlNodeGetContent(xsdTryGetChild(node, name, nameSpace, Index));
@@ -1595,16 +1602,8 @@ end;
 
 function xsdTryNext(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; var last: xmlNodePtr): Boolean;
 begin
-  while Assigned(node) and (node^._type = XML_TEXT_NODE) do
-    node := node^.next;
-
-  if xsdTestNode(node, name, nameSpace) then
-  begin
-    last := node;
-    node := node^.next;
-    Result := True;
-  end else
-    Result := False;
+  last := xsdTryNext(node, name, nameSpace);
+  Result := Assigned(last);
 end;
 
 function xsdTryNextChars(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr;
