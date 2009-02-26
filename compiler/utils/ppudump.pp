@@ -24,6 +24,7 @@ program ppudump;
 {$H+}
 
 uses
+  { do NOT add symconst or globtype to make merging easier }
   SysUtils,
   constexp,
   ppu,
@@ -47,20 +48,40 @@ const
 
 type
   tprocinfoflag=(
-    {# procedure uses asm }
-    pi_uses_asm,
-    {# procedure does a call }
+    { procedure has at least one assembler block }
+    pi_has_assembler_block,
+    { procedure does a call }
     pi_do_call,
-    {# procedure has a try statement = no register optimization }
+    { procedure has a try statement = no register optimization }
     pi_uses_exceptions,
-    {# procedure is declared as @var(assembler), don't optimize}
+    { procedure is declared as @var(assembler), don't optimize}
     pi_is_assembler,
-    {# procedure contains data which needs to be finalized }
-    pi_needs_implicit_finally
+    { procedure contains data which needs to be finalized }
+    pi_needs_implicit_finally,
+    { procedure has the implicit try..finally generated }
+    pi_has_implicit_finally,
+    { procedure uses fpu}
+    pi_uses_fpu,
+    { procedure uses GOT for PIC code }
+    pi_needs_got,
+    { references var/proc/type/const in static symtable,
+      i.e. not allowed for inlining from other units }
+    pi_uses_static_symtable,
+    { set if the procedure has to push parameters onto the stack }
+    pi_has_stackparameter,
+    { set if the procedure has at least one got }
+    pi_has_goto,
+    { calls itself recursive }
+    pi_is_recursive,
+    { stack frame optimization not possible (only on x86 probably) }
+    pi_needs_stackframe,
+    { set if the procedure has at least one register saved on the stack }
+    pi_has_saved_regs,
+    { dfa was generated for this proc }
+    pi_dfaavailable
   );
   tprocinfoflags=set of tprocinfoflag;
 
-  { copied from scanner.pas }
   tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
   { Copied from systems.pas }
@@ -171,7 +192,8 @@ type
         target_arm_symbian,        { 60 }
         target_x86_64_darwin,      { 61 }
         target_avr_embedded,       { 62 }
-        target_i386_haiku          { 63 }
+        target_i386_haiku,         { 63 }
+        target_arm_darwin          { 64 }
   );
 const
   Targets : array[ttarget] of string[18]=(
@@ -238,7 +260,8 @@ const
   { 60 }  'Symbian-arm',
   { 61 }  'MacOSX-x64',
   { 62 }  'Embedded-avr',
-  { 63 }  'Haiku-i386'
+  { 63 }  'Haiku-i386',
+  { 64 }  'Darwin-ARM'
   );
 begin
   if w<=ord(high(ttarget)) then
@@ -283,13 +306,13 @@ end;
 
 Function Visibility2Str(w:longint):string;
 const
-  visibilitystr : array[0..6] of string[16]=(
+  visibilityName : array[0..6] of string[16] = (
     'hidden','strict private','private','strict protected','protected',
     'public','published'
   );
 begin
-  if w<=ord(high(visibilitystr)) then
-    result:=visibilitystr[w]
+  if w<=ord(high(visibilityName)) then
+    result:=visibilityName[w]
   else
     result:='<!! Unknown visibility value '+tostr(w)+'>';
 end;
@@ -503,6 +526,12 @@ begin
   Writeln('Derefdata length: ',derefdatalen);
   derefdata:=allocmem(derefdatalen);
   ppufile.getdata(derefdata^,derefdatalen);
+end;
+
+
+Procedure ReadWpoFileInfo;
+begin
+  Writeln('Compiled with input whole-program optimisation from ',ppufile.getstring,' ',filetimestring(ppufile.getlongint));
 end;
 
 
@@ -784,7 +813,7 @@ begin
 end;
 
 
-procedure readcommondef(const s:string);
+
 type
   { flags for a definition }
   tdefoption=(df_none,
@@ -793,10 +822,19 @@ type
     { type is a generic }
     df_generic,
     { type is a specialization of a generic type }
-    df_specialization
+    df_specialization,
+    { def has been copied from another def so symtable is not owned }
+    df_copied_def
   );
   tdefoptions=set of tdefoption;
 
+
+var
+  { needed during tobjectdef parsing... }
+  current_defoptions : tdefoptions;
+
+procedure readcommondef(const s:string);
+type
   tdefstate=(ds_none,
     ds_vmt_written,
     ds_rtti_table_used,
@@ -816,21 +854,20 @@ type
     str  : string[30];
   end;
 const
-  defopts=3;
-  defopt : array[1..defopts] of tdefopt=(
+  defopt : array[1..ord(high(tdefoption))] of tdefopt=(
      (mask:df_unique;         str:'Unique Type'),
      (mask:df_generic;        str:'Generic'),
-     (mask:df_specialization; str:'Specialization')
+     (mask:df_specialization; str:'Specialization'),
+     (mask:df_copied_def;     str:'Copied Typedef')
   );
-  defstateinfos=7;
-  defstate : array[1..defstateinfos] of tdefstateinfo=(
-     (mask:ds_init_table_used;       str:'InitTable Used'),
+  defstate : array[1..ord(high(tdefstate))] of tdefstateinfo=(
+     (mask:ds_vmt_written;           str:'VMT Written'),
      (mask:ds_rtti_table_used;       str:'RTTITable Used'),
-     (mask:ds_init_table_written;    str:'InitTable Written'),
+     (mask:ds_init_table_used;       str:'InitTable Used'),
      (mask:ds_rtti_table_written;    str:'RTTITable Written'),
+     (mask:ds_init_table_written;    str:'InitTable Written'),
      (mask:ds_dwarf_dbg_info_used;   str:'Dwarf DbgInfo Used'),
-     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written'),
-     (mask:ds_vmt_written;           str:'VMT Written')
+     (mask:ds_dwarf_dbg_info_written;str:'Dwarf DbgInfo Written')
   );
 var
   defoptions : tdefoptions;
@@ -849,7 +886,7 @@ begin
   if defoptions<>[] then
     begin
       first:=true;
-      for i:=1to defopts do
+      for i:=1to high(defopt) do
        if (defopt[i].mask in defoptions) then
         begin
           if first then
@@ -866,7 +903,7 @@ begin
   if defstates<>[] then
     begin
       first:=true;
-      for i:=1to defstateinfos do
+      for i:=1to high(defstate) do
        if (defstate[i].mask in defstates) then
         begin
           if first then
@@ -983,6 +1020,7 @@ begin
       write  (space,' Orig. GenericDef : ');
       readderef;
     end;
+  current_defoptions:=defoptions;
 end;
 
 
@@ -1020,7 +1058,7 @@ type
     { constant records by reference.                            }
     pocall_mwpascal
   );
-  tproccalloptions=set of tproccalloption;
+  tproccalloptions = set of tproccalloption;
   tproctypeoption=(potype_none,
     potype_proginit,     { Program initialization }
     potype_unitinit,     { unit initialization }
@@ -1081,9 +1119,13 @@ type
     { importing }
     po_has_importdll,
     po_has_importname,
-    po_kylixlocal
+    po_kylixlocal,
+    po_dispid,
+    { weakly linked (i.e., may or may not exist at run time) }
+    po_weakexternal
   );
   tprocoptions=set of tprocoption;
+
 procedure read_abstract_proc_def(var proccalloption:tproccalloption;var procoptions:tprocoptions);
 type
   tproccallopt=record
@@ -1113,19 +1155,17 @@ const
      'SoftFloat',
      'MWPascal'
    );
-  proctypeopts=8;
-  proctypeopt : array[1..proctypeopts] of tproctypeopt=(
+  proctypeopt : array[1..ord(high(tproctypeoption))] of tproctypeopt=(
      (mask:potype_proginit;    str:'ProgInit'),
      (mask:potype_unitinit;    str:'UnitInit'),
      (mask:potype_unitfinalize;str:'UnitFinalize'),
      (mask:potype_constructor; str:'Constructor'),
      (mask:potype_destructor;  str:'Destructor'),
      (mask:potype_operator;    str:'Operator'),
-     (mask:potype_function;    str:'Function'),
-     (mask:potype_procedure;   str:'Procedure')
+     (mask:potype_procedure;   str:'Procedure'),
+     (mask:potype_function;    str:'Function')
   );
-  procopts=38;
-  procopt : array[1..procopts] of tprocopt=(
+  procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
      (mask:po_abstractmethod;  str:'AbstractMethod'),
@@ -1163,7 +1203,9 @@ const
      (mask:po_compilerproc;    str:'CompilerProc'),
      (mask:po_has_importdll;   str:'HasImportDLL'),
      (mask:po_has_importname;  str:'HasImportName'),
-     (mask:po_kylixlocal;      str:'KylixLocal')
+     (mask:po_kylixlocal;      str:'KylixLocal'),
+     (mask:po_dispid;          str:'DispId'),
+     (mask:po_weakexternal;    str:'WeakExternal')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1177,7 +1219,7 @@ begin
   proctypeoption:=tproctypeoption(ppufile.getbyte);
   write(space,'       TypeOption : ');
   first:=true;
-  for i:=1 to proctypeopts do
+  for i:=1 to high(proctypeopt) do
    if (proctypeopt[i].mask=proctypeoption) then
     begin
       if first then
@@ -1194,7 +1236,7 @@ begin
    begin
      write(space,'          Options : ');
      first:=true;
-     for i:=1 to procopts do
+     for i:=1 to high(procopt) do
       if (procopt[i].mask in procoptions) then
        begin
          if first then
@@ -1214,7 +1256,6 @@ end;
 
 
 type
-  { options for variables }
   tvaroption=(vo_none,
     vo_is_external,
     vo_is_dll_var,
@@ -1233,7 +1274,11 @@ type
     vo_has_explicit_paraloc,
     vo_is_syscall_lib,
     vo_has_mangledname,
-    vo_is_typed_const
+    vo_is_typed_const,
+    vo_is_range_check,
+    vo_is_overflow_check,
+    vo_is_typinfo_para,
+    vo_is_weak_external
   );
   tvaroptions=set of tvaroption;
   { register variable }
@@ -1241,6 +1286,8 @@ type
     vr_intreg,
     vr_fpureg,
     vr_mmreg,
+    { does not mean "needs address register", but "if it's a parameter which is }
+    { passed by reference, then its address can be put in a register            }
     vr_addr
   );
 procedure readabstractvarsym(const s:string;var varoptions:tvaroptions);
@@ -1250,8 +1297,7 @@ type
     str  : string[30];
   end;
 const
-  varopts=18;
-  varopt : array[1..varopts] of tvaropt=(
+  varopt : array[1..ord(high(tvaroption))] of tvaropt=(
      (mask:vo_is_external;     str:'External'),
      (mask:vo_is_dll_var;      str:'DLLVar'),
      (mask:vo_is_thread_var;   str:'ThreadVar'),
@@ -1269,7 +1315,11 @@ const
      (mask:vo_has_explicit_paraloc;str:'ExplicitParaloc'),
      (mask:vo_is_syscall_lib;  str:'SysCallLib'),
      (mask:vo_has_mangledname; str:'HasMangledName'),
-     (mask:vo_is_typed_const;  str:'TypedConst')
+     (mask:vo_is_typed_const;  str:'TypedConst'),
+     (mask:vo_is_range_check;  str:'RangeCheckSwitch'),
+     (mask:vo_is_overflow_check; str:'OverflowCheckSwitch'),
+     (mask:vo_is_typinfo_para; str:'TypeInfo'),
+     (mask:vo_is_weak_external;str:'WeakExternal')
   );
 var
   i : longint;
@@ -1286,7 +1336,7 @@ begin
    begin
      write(space,'      Options : ');
      first:=true;
-     for i:=1to varopts do
+     for i:=1 to high(varopt) do
       if (varopt[i].mask in varoptions) then
        begin
          if first then
@@ -1316,7 +1366,7 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_vmt_written
+    oo_has_valid_guid
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1324,8 +1374,7 @@ type
     str  : string[30];
   end;
 const
-  symopts=14;
-  symopt : array[1..symopts] of tsymopt=(
+  symopt : array[1..ord(high(tobjectoption))] of tsymopt=(
      (mask:oo_is_forward;         str:'IsForward'),
      (mask:oo_has_virtual;        str:'HasVirtual'),
      (mask:oo_has_private;        str:'HasPrivate'),
@@ -1339,7 +1388,7 @@ const
      (mask:oo_has_msgint;         str:'HasMsgInt'),
      (mask:oo_can_have_published; str:'CanHavePublished'),
      (mask:oo_has_default_property;str:'HasDefaultProperty'),
-     (mask:oo_vmt_written;        str:'VMTWritten')
+     (mask:oo_has_valid_guid;     str:'HasValidGUID')
   );
 var
   symoptions : tobjectoptions;
@@ -1350,7 +1399,7 @@ begin
   if symoptions<>[] then
    begin
      first:=true;
-     for i:=1to symopts do
+     for i:=1 to high(symopt) do
       if (symopt[i].mask in symoptions) then
        begin
          if first then
@@ -1372,22 +1421,24 @@ type
     ado_IsVariant,
     ado_IsConstructor,
     ado_IsArrayOfConst,
-    ado_IsConstString
+    ado_IsConstString,
+    ado_IsBitPacked
   );
   tarraydefoptions=set of tarraydefoption;
+
   tsymopt=record
     mask : tarraydefoption;
     str  : string[30];
   end;
 const
-  symopts=6;
-  symopt : array[1..symopts] of tsymopt=(
+  symopt : array[1..ord(high(tarraydefoption))] of tsymopt=(
      (mask:ado_IsConvertedPointer;str:'ConvertedPointer'),
      (mask:ado_IsDynamicArray;    str:'IsDynamicArray'),
      (mask:ado_IsVariant;         str:'IsVariant'),
      (mask:ado_IsConstructor;     str:'IsConstructor'),
      (mask:ado_IsArrayOfConst;    str:'ArrayOfConst'),
-     (mask:ado_IsConstString;     str:'ConstString')
+     (mask:ado_IsConstString;     str:'ConstString'),
+     (mask:ado_IsBitPacked;      str:'BitPacked')
   );
 var
   symoptions : tarraydefoptions;
@@ -1398,7 +1449,7 @@ begin
   if symoptions<>[] then
    begin
      first:=true;
-     for i:=1to symopts do
+     for i:=1 to high(symopt) do
       if (symopt[i].mask in symoptions) then
        begin
          if first then
@@ -1817,7 +1868,7 @@ begin
                  readderef;
                end;
              if (po_has_importdll in procoptions) then
-               writeln(space,'       Import DLL : ',getstring);
+               writeln(space,'      Import DLL : ',getstring);
              if (po_has_importname in procoptions) then
                writeln(space,'      Import Name : ',getstring);
              writeln(space,'        Import Nr : ',getword);
@@ -1825,6 +1876,8 @@ begin
                writeln(space,'           MsgInt : ',getlongint);
              if (po_msgstr in procoptions) then
                writeln(space,'           MsgStr : ',getstring);
+             if (po_dispid in procoptions) then
+               writeln(space,'      DispID: ',ppufile.getlongint);
              if (po_has_inlininginfo in procoptions) then
               begin
                 write  (space,'       FuncretSym : ');
@@ -1947,6 +2000,15 @@ begin
                   writeln(space,'  Last VTable idx : ',getlongint);
                end;
 
+             l:=getlongint;
+             writeln(space,'  VMT entries: ',l);
+             for j:=1 to l do
+               begin
+                 write(space,'    ');
+                 readderef;
+                 writeln(space,'      Visibility: ',Visibility2Str(getbyte));
+               end;
+
              if tobjecttyp(b) in [odt_class,odt_interfacecorba] then
               begin
                 l:=getlongint;
@@ -1959,13 +2021,22 @@ begin
                  end;
               end;
 
+             if df_copied_def in current_defoptions then
+               begin
+                 writeln('  Copy of def: ');
+                 readderef;
+               end;
+
              if not EndOfEntry then
               Writeln('!! Entry has more information stored');
-             {read the record definitions and symbols}
-             space:='    '+space;
-             readdefinitions('fields');
-             readsymbols('fields');
-             Delete(space,1,4);
+             if not(df_copied_def in current_defoptions) then
+               begin
+                 {read the record definitions and symbols}
+                 space:='    '+space;
+                 readdefinitions('fields');
+                 readsymbols('fields');
+                 Delete(space,1,4);
+              end;
            end;
 
          ibfiledef :
@@ -2121,6 +2192,12 @@ begin
          iblinkothersharedlibs :
            ReadLinkContainer('Link other shared lib: ');
 
+         iblinkotherframeworks:
+           ReadLinkContainer('Link framework: ');
+
+         ibmainname:
+           Writeln('Specified main program symbol name: ',getstring);
+
          ibImportSymbols :
            ReadImportSymbols;
 
@@ -2129,6 +2206,12 @@ begin
 
          ibderefmap :
            ReadDerefMap;
+
+         ibwpofile :
+           ReadWpoFileInfo;
+
+         ibresources :
+           ReadLinkContainer('Resource file: ');
 
          iberror :
            begin
