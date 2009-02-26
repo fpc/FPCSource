@@ -76,12 +76,12 @@ begin
       WA_InnerHeight,25*16,
       WA_MaxWidth,32768,
       WA_MaxHeight,32768,
-//      WA_IDCMP,IDCMP_MOUSEBUTTONS Or IDCMP_RAWKEYS,
       WA_IDCMP,IDCMP_VANILLAKEY Or IDCMP_RAWKEY Or
+               IDCMP_MOUSEMOVE Or IDCMP_MOUSEBUTTONS Or
                IDCMP_CLOSEWINDOW Or IDCMP_CHANGEWINDOW,
       WA_Title,DWord(PChar('Free Pascal Video Output')),
       WA_Flags,(WFLG_GIMMEZEROZERO Or WFLG_SMART_REFRESH Or WFLG_NOCAREREFRESH Or
-                WFLG_ACTIVATE Or WFLG_DRAGBAR Or WFLG_DEPTHGADGET Or
+                WFLG_ACTIVATE Or WFLG_DRAGBAR Or WFLG_DEPTHGADGET Or WFLG_REPORTMOUSE Or
                 WFLG_SIZEGADGET Or WFLG_SIZEBBOTTOM Or
                 WFLG_CLOSEGADGET)
    ]);
@@ -137,9 +137,13 @@ begin
   SysSetVideoMode:=true;
 end;
 
+var
+  oldSH, oldSW : longint;
 
 procedure SysClearScreen;
 begin
+  oldSH := -1;
+  oldSW := -1;
   UpdateScreen(true);
 end;
 
@@ -189,12 +193,23 @@ begin
   smallforce:=false;
   cursormoved:=false;
 
-  if force then
-    smallforce:=true
-  else begin
+  // override forced update when screen dimensions haven't changed
+  if force then begin
+    if (oldSH = ScreenHeight) and
+       (oldSW = ScreenWidth) then
+      force:=false
+    else begin
+      oldSH := ScreenHeight;
+      oldSW := ScreenWidth;
+    end;
+  end;
+
+  if force then begin
+    smallforce:=true;
+  end else begin
     counter:=0;
     while not smallforce and (counter<(VideoBufSize div 4)-1) do begin
-      if PDWord(VideoBuf)[counter]<>PDWord(OldVideoBuf)[counter] then smallforce:=true;
+      smallforce:=(PDWord(VideoBuf)[counter] <> PDWord(OldVideoBuf)[counter]);
       inc(counter);
     end;
   end;
