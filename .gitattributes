@@ -1014,6 +1014,7 @@ packages/fcl-base/examples/Makefile svneol=native#text/plain
 packages/fcl-base/examples/Makefile.fpc svneol=native#text/plain
 packages/fcl-base/examples/README -text
 packages/fcl-base/examples/asiotest.pp svneol=native#text/plain
+packages/fcl-base/examples/avltreetest.pp svneol=native#text/plain
 packages/fcl-base/examples/b64.pp svneol=native#text/plain
 packages/fcl-base/examples/b64dec.pp svneol=native#text/plain
 packages/fcl-base/examples/b64enc.pp svneol=native#text/plain

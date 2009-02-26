@@ -8,7 +8,7 @@ programs=stringl dparser fstream mstream list threads testrtf \
          b64test b64test2 b64enc b64dec restest testz testz2 \
          istream doecho testol testcont txmlreg testreg tstelcmd \
          testapp testcgi testbs testbf cachetest poolmm1 poolmm2 tarmakercons \
-         tarmakerconsgzip 
+         tarmakerconsgzip avltreetest
 programs_win32=showver testproc testhres testnres testsres testrhre \
                testrnre testrsre testur ipcserver ipcclient debugtest \
                dbugsrv testtimer
