@@ -81,7 +81,11 @@ const calculated_cmdline:Pchar=nil;
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+{$if defined(CPUARM) and defined(FPC_ABI_EABI)}
+procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
+{$else}
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
+{$endif}
 
 procedure System_exit;
 begin

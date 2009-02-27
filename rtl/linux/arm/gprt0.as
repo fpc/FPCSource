@@ -53,13 +53,21 @@ _start:
 	bl PASCALMAIN
 
 	.globl  _haltproc
-    .type   _haltproc,#function
+        .type   _haltproc,#function
 _haltproc:
         /* r0 contains exitcode */
 	swi 0x900001
 	b _haltproc
 
-	/* Define a symbol for the first piece of initialized data.  */
+	.globl  _haltproc_eabi
+        .type   _haltproc_eabi,#function
+_haltproc_eabi:
+        /* r0 contains exitcode */
+        mov r7,#248
+	swi 0x0
+	b _haltproc_eabi
+
+        /* Define a symbol for the first piece of initialized data.  */
 	.data
 	.globl __data_start
 __data_start:
