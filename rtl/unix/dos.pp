@@ -388,13 +388,13 @@ var
 Function AddDisk(const path:string) : byte;
 begin
   if not (DriveStr[Drives]=nil) then
-   FreeMem(DriveStr[Drives],StrLen(DriveStr[Drives])+1);
+   FreeMem(DriveStr[Drives]);
   GetMem(DriveStr[Drives],length(Path)+1);
   StrPCopy(DriveStr[Drives],path);
+  AddDisk:=Drives;
   inc(Drives);
   if Drives>26 then
     Drives:=4;
-  AddDisk:=Drives; 
 end;
 
 
@@ -423,6 +423,19 @@ Begin
    DiskSize:=-1;
 End;
 
+
+
+Procedure FreeDriveStr;
+var
+  i: longint;
+begin
+  for i:=low(drivestr) to high(drivestr) do
+    if assigned(drivestr[i]) then
+      begin
+        freemem(drivestr[i]);
+        drivestr[i]:=nil;
+      end;
+end;
 
 {******************************************************************************
                        --- Findfirst FindNext ---
@@ -895,4 +908,6 @@ End;
                             --- Initialization ---
 ******************************************************************************}
 
+Finalization
+  FreeDriveStr;
 End.
