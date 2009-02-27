@@ -42,10 +42,17 @@ type
     function TreeDepth: integer; // longest WAY down. e.g. only one node => 0 !
   end;
 
+  TBaseAVLTreeNodeManager = class
+  public
+    procedure DisposeNode(ANode: TAVLTreeNode); virtual; abstract;
+    function NewNode: TAVLTreeNode; virtual; abstract;
+  end;
+
   TAVLTree = class
   private
     FOnCompare: TListSortCompare;
     FCount: integer;
+    nodemgr :  TBaseAVLTreeNodeManager;
     procedure BalanceAfterInsert(ANode: TAVLTreeNode);
     procedure BalanceAfterDelete(ANode: TAVLTreeNode);
     function FindInsertPos(Data: Pointer): TAVLTreeNode;
@@ -84,12 +91,13 @@ type
     function ConsistencyCheck: integer;
     procedure WriteReportToStream(s: TStream; var StreamSize: int64);
     function ReportAsString: string;
+    procedure SetNodeManager(newmgr:TBaseAVLTreeNodeManager);
     constructor Create(OnCompareMethod: TListSortCompare);
     constructor Create;
     destructor Destroy; override;
   end;
 
-  TAVLTreeNodeMemManager = class
+  TAVLTreeNodeMemManager = class(TBaseAVLTreeNodeManager)
   private
     FFirstFree: TAVLTreeNode;
     FFreeCount: integer;
@@ -100,8 +108,8 @@ type
     procedure SetMinFree(NewValue: integer);
     procedure DisposeFirstFreeNode;
   public
-    procedure DisposeNode(ANode: TAVLTreeNode);
-    function NewNode: TAVLTreeNode;
+    procedure DisposeNode(ANode: TAVLTreeNode); override;
+    function NewNode: TAVLTreeNode; override;
     property MinimumFreeNode: integer read FMinFree write SetMinFree;
     property MaximumFreeNodeRatio: integer
         read FMaxFreeRatio write SetMaxFreeRatio; // in one eighth steps
@@ -129,7 +137,7 @@ end;
 
 function TAVLTree.Add(Data: Pointer): TAVLTreeNode;
 begin
-  Result:=NodeMemManager.NewNode;
+  Result:=NodeMgr.NewNode;
   Result.Data:=Data;
   Add(Result);
 end;
@@ -468,7 +476,7 @@ procedure TAVLTree.Clear;
       if ANode.Left<>nil then DeleteNode(ANode.Left);
       if ANode.Right<>nil then DeleteNode(ANode.Right);
     end;
-    NodeMemManager.DisposeNode(ANode);
+    NodeMgr.DisposeNode(ANode);
   end;
 
 // Clear
@@ -481,6 +489,7 @@ end;
 constructor TAVLTree.Create(OnCompareMethod: TListSortCompare);
 begin
   inherited Create;
+  nodemgr:=NodeMemManager;
   FOnCompare:=OnCompareMethod;
   FCount:=0;
 end;
@@ -518,7 +527,7 @@ begin
       Root:=nil;
     end;
     dec(FCount);
-    NodeMemManager.DisposeNode(ANode);
+    NodeMgr.DisposeNode(ANode);
     exit;
   end;
   if (ANode.Right=nil) then begin
@@ -541,7 +550,7 @@ begin
       Root:=OldLeft;
     end;
     dec(FCount);
-    NodeMemManager.DisposeNode(ANode);
+    NodeMgr.DisposeNode(ANode);
     exit;
   end;
   if (ANode.Left=nil) then begin
@@ -564,7 +573,7 @@ begin
       Root:=OldRight;
     end;
     dec(FCount);
-    NodeMemManager.DisposeNode(ANode);
+    NodeMgr.DisposeNode(ANode);
     exit;
   end;
   // DelNode has both: Left and Right
@@ -1028,6 +1037,11 @@ begin
   end;
 end;
 
+procedure TAVLTree.SetNodeManager(newmgr:TBaseAVLTreeNodeManager);
+// only allowed just after create.
+begin
+ nodemgr:=newmgr;
+end;
 
 { TAVLTreeNode }
 
@@ -1057,6 +1071,8 @@ begin
   Balance:=0;
   Data:=nil;
 end;
+
+
 
 { TAVLTreeNodeMemManager }
 
@@ -1150,12 +1166,9 @@ end;
 
 
 initialization
-
-NodeMemManager:=TAVLTreeNodeMemManager.Create;
+  NodeMemManager:=TAVLTreeNodeMemManager.Create;
 
 finalization
-
-NodeMemManager.Free;
-NodeMemManager:=nil;
-
+  NodeMemManager.Free;
+  NodeMemManager:=nil;
 end.
