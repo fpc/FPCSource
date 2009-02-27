@@ -1469,7 +1469,15 @@ implementation
 
         { inherited }
         if (cnf_inherited in callnodeflags) then
-          selftree:=load_self_node
+          begin
+            selftree:=load_self_node;
+           { we can call an inherited class static/method from a regular method
+             -> self node must change from instance pointer to vmt pointer)
+           }
+           if (procdefinition.procoptions*[po_classmethod,po_staticmethod] <> []) and
+              (selftree.resultdef.typ<>classrefdef) then
+             selftree:=cloadvmtaddrnode.create(selftree);
+          end
         else
           { constructors }
           if (procdefinition.proctypeoption=potype_constructor) then
