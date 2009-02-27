@@ -634,6 +634,22 @@ implementation
       end;
 
 
+    Function SimpleGetNextInstruction(Current: tai; Var Next: tai): Boolean;
+      Begin
+        Current:=tai(Current.Next);
+        While Assigned(Current) And (Current.typ In SkipInstr) Do
+          Current:=tai(Current.Next);
+        Next:=Current;
+        If Assigned(Next) And Not(Next.typ In SkipInstr) Then
+           Result:=True
+          Else
+            Begin
+              Next:=Nil;
+              Result:=False;
+            End;
+      End;
+
+
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
       var
         curpos,
@@ -715,14 +731,14 @@ implementation
                 inc(curpos);
 
             { special case for case jump tables }
-            if assigned(curtai.next) and
-              (tai(curtai.next).typ=ait_instruction) and
-              (taicpu(curtai.next).opcode=A_LDR) and
-              (taicpu(curtai.next).oper[0]^.typ=top_reg) and
-              (taicpu(curtai.next).oper[0]^.reg=NR_PC) then
+            if SimpleGetNextInstruction(curtai,hp) and
+              (tai(hp).typ=ait_instruction) and
+              (taicpu(hp).opcode=A_LDR) and
+              (taicpu(hp).oper[0]^.typ=top_reg) and
+              (taicpu(hp).oper[0]^.reg=NR_PC) then
               begin
                 penalty:=1;
-                hp:=tai(curtai.next.next);
+                hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
                     inc(penalty);
