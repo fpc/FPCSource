@@ -1512,10 +1512,9 @@ implementation
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
-                        if (infile.path^<>'') then
-                          list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_includefile)+
-                                            ',0,0,'+hlabel.name),hp);
-                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
+                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+tostr(n_includefile)+
+                                          ',0,0,'+hlabel.name),hp);
+                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
                                           ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
                         { force new line info }
@@ -1556,10 +1555,9 @@ implementation
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
         if not(target_info.system in systems_darwin) then
           current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
-        if (infile.path^<>'') then
-          current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+'",'+tostr(n_sourcefile)+
+        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+tostr(n_sourcefile)+
                       ',0,0,'+hlabel.name));
-        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
+        current_asmdata.asmlists[al_start].concat(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(n_sourcefile)+
                     ',0,0,'+hlabel.name));
         current_asmdata.asmlists[al_start].concat(tai_label.create(hlabel));
         { for darwin, you need a "module marker" too to work around      }
