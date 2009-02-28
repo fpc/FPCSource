@@ -1,11 +1,11 @@
 * text=auto !eol
 /Makefile svneol=native#text/plain
 /Makefile.fpc svneol=native#text/plain
-compiler/COPYING -text
+compiler/COPYING.txt svneol=native#text/plain
 compiler/MPWMake -text
 compiler/Makefile svneol=native#text/plain
 compiler/Makefile.fpc svneol=native#text/plain
-compiler/README -text
+compiler/README.txt svneol=native#text/plain
 compiler/aasmbase.pas svneol=native#text/plain
 compiler/aasmdata.pas svneol=native#text/plain
 compiler/aasmsym.pas svneol=native#text/plain
@@ -535,7 +535,7 @@ compiler/tgobj.pas svneol=native#text/plain
 compiler/tokens.pas svneol=native#text/plain
 compiler/utils/Makefile svneol=native#text/plain
 compiler/utils/Makefile.fpc svneol=native#text/plain
-compiler/utils/README svneol=native#text/plain
+compiler/utils/README.txt svneol=native#text/plain
 compiler/utils/dummyas.pp svneol=native#text/plain
 compiler/utils/fixlog.pp svneol=native#text/plain
 compiler/utils/fixmsg.pp svneol=native#text/plain
@@ -643,8 +643,8 @@ compiler/x86_64/x8664pro.inc svneol=native#text/plain
 compiler/x86_64/x8664tab.inc svneol=native#text/plain
 ide/Makefile svneol=native#text/plain
 ide/Makefile.fpc svneol=native#text/plain
-ide/README -text
-ide/TODO -text
+ide/README.txt svneol=native#text/plain
+ide/TODO.txt svneol=native#text/plain
 ide/compiler/Makefile svneol=native#text/plain
 ide/compiler/Makefile.fpc svneol=native#text/plain
 ide/compiler/compunit.pas svneol=native#text/plain
@@ -755,7 +755,7 @@ packages/a52/fpmake.pp svneol=native#text/plain
 packages/a52/src/a52.pas svneol=native#text/plain
 packages/amunits/Makefile svneol=native#text/plain
 packages/amunits/Makefile.fpc svneol=native#text/plain
-packages/amunits/README svneol=native#text/plain
+packages/amunits/README.txt svneol=native#text/plain
 packages/amunits/examples/asltest.pas svneol=native#text/plain
 packages/amunits/examples/bezier.pas svneol=native#text/plain
 packages/amunits/examples/bezier2.pas svneol=native#text/plain
@@ -935,7 +935,7 @@ packages/cairo/src/cairowin32.pp svneol=native#text/plain
 packages/cairo/src/cairoxlib.pp svneol=native#text/plain
 packages/cdrom/Makefile svneol=native#text/plain
 packages/cdrom/Makefile.fpc svneol=native#text/plain
-packages/cdrom/README svneol=native#text/plain
+packages/cdrom/README.txt svneol=native#text/plain
 packages/cdrom/examples/Makefile svneol=native#text/plain
 packages/cdrom/examples/Makefile.fpc svneol=native#text/plain
 packages/cdrom/examples/getdiscid.pp svneol=native#text/plain
@@ -1012,7 +1012,7 @@ packages/fcl-base/Makefile svneol=native#text/plain
 packages/fcl-base/Makefile.fpc svneol=native#text/plain
 packages/fcl-base/examples/Makefile svneol=native#text/plain
 packages/fcl-base/examples/Makefile.fpc svneol=native#text/plain
-packages/fcl-base/examples/README -text
+packages/fcl-base/examples/README.txt svneol=native#text/plain
 packages/fcl-base/examples/asiotest.pp svneol=native#text/plain
 packages/fcl-base/examples/avltreetest.pp svneol=native#text/plain
 packages/fcl-base/examples/b64.pp svneol=native#text/plain
@@ -1036,7 +1036,7 @@ packages/fcl-base/examples/fpexprpars.txt svneol=native#text/plain
 packages/fcl-base/examples/fstream.pp svneol=native#text/plain
 packages/fcl-base/examples/htdump.pp svneol=native#text/plain
 packages/fcl-base/examples/intl/Makefile svneol=native#text/plain
-packages/fcl-base/examples/intl/README svneol=native#text/plain
+packages/fcl-base/examples/intl/README.txt svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.de.mo -text
 packages/fcl-base/examples/intl/restest.de.po svneol=native#text/plain
 packages/fcl-base/examples/intl/restest.fr.mo -text
@@ -1155,7 +1155,7 @@ packages/fcl-db/Makefile svneol=native#text/plain
 packages/fcl-db/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/Dataset.txt svneol=native#text/plain
-packages/fcl-db/src/README -text
+packages/fcl-db/src/README.txt svneol=native#text/plain
 packages/fcl-db/src/base/Makefile svneol=native#text/plain
 packages/fcl-db/src/base/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/base/bufdataset.pas svneol=native#text/plain
@@ -1254,7 +1254,7 @@ packages/fcl-db/src/export/fpstdexports.pp svneol=native#text/plain
 packages/fcl-db/src/export/fptexexport.pp svneol=native#text/plain
 packages/fcl-db/src/memds/Makefile svneol=native#text/plain
 packages/fcl-db/src/memds/Makefile.fpc svneol=native#text/plain
-packages/fcl-db/src/memds/README -text
+packages/fcl-db/src/memds/README.txt svneol=native#text/plain
 packages/fcl-db/src/memds/fpmake.inc svneol=native#text/plain
 packages/fcl-db/src/memds/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/memds/memds.pp svneol=native#text/plain
@@ -1471,7 +1471,7 @@ packages/fcl-json/tests/testjsondata.pp svneol=native#text/plain
 packages/fcl-json/tests/testjsonparser.pp svneol=native#text/plain
 packages/fcl-net/Makefile svneol=native#text/plain
 packages/fcl-net/Makefile.fpc svneol=native#text/plain
-packages/fcl-net/README svneol=native#text/plain
+packages/fcl-net/README.txt svneol=native#text/plain
 packages/fcl-net/examples/Makefile svneol=native#text/plain
 packages/fcl-net/examples/Makefile.fpc svneol=native#text/plain
 packages/fcl-net/examples/ip6test.pp svneol=native#text/plain
@@ -1627,7 +1627,7 @@ packages/fcl-web/Makefile svneol=native#text/plain
 packages/fcl-web/Makefile.fpc svneol=native#text/plain
 packages/fcl-web/fpmake.pp svneol=native#text/plain
 packages/fcl-web/fptemplate.txt svneol=native#text/plain
-packages/fcl-web/src/README svneol=native#text/plain
+packages/fcl-web/src/README.txt svneol=native#text/plain
 packages/fcl-web/src/cgiapp.pp svneol=native#text/plain
 packages/fcl-web/src/custcgi.pp svneol=native#text/plain
 packages/fcl-web/src/ezcgi.pp svneol=native#text/plain
@@ -1644,7 +1644,7 @@ packages/fcl-web/src/webutil.pp svneol=native#text/plain
 packages/fcl-xml/Makefile svneol=native#text/plain
 packages/fcl-xml/Makefile.fpc svneol=native#text/plain
 packages/fcl-xml/fpmake.pp svneol=native#text/plain
-packages/fcl-xml/src/README -text
+packages/fcl-xml/src/README.txt svneol=native#text/plain
 packages/fcl-xml/src/dom.pp svneol=native#text/plain
 packages/fcl-xml/src/dom_html.pp svneol=native#text/plain
 packages/fcl-xml/src/htmldefs.pp svneol=native#text/plain
@@ -1669,7 +1669,7 @@ packages/fcl-xml/src/xmlstreaming.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlutils.pp svneol=native#text/plain
 packages/fcl-xml/src/xmlwrite.pp svneol=native#text/plain
 packages/fcl-xml/src/xpath.pp svneol=native#text/plain
-packages/fcl-xml/tests/README svneol=native#text/plain
+packages/fcl-xml/tests/README.txt svneol=native#text/plain
 packages/fcl-xml/tests/README_DOM svneol=native#text/plain
 packages/fcl-xml/tests/api.xml svneol=native#text/plain
 packages/fcl-xml/tests/domunit.pp svneol=native#text/plain
@@ -1767,7 +1767,7 @@ packages/gdbint/src/gdbver.pp svneol=native#text/plain
 packages/gdbint/src/gdbver_nogdb.inc svneol=native#text/x-pascal
 packages/gdbm/Makefile svneol=native#text/plain
 packages/gdbm/Makefile.fpc svneol=native#text/plain
-packages/gdbm/README svneol=native#text/plain
+packages/gdbm/README.txt svneol=native#text/plain
 packages/gdbm/examples/Makefile svneol=native#text/plain
 packages/gdbm/examples/Makefile.fpc svneol=native#text/plain
 packages/gdbm/examples/testgdbm.pp svneol=native#text/plain
@@ -1911,7 +1911,7 @@ packages/graph/src/win32/wincrt.pp svneol=native#text/plain
 packages/graph/src/win32/winmouse.pp svneol=native#text/plain
 packages/gtk1/Makefile svneol=native#text/plain
 packages/gtk1/Makefile.fpc svneol=native#text/plain
-packages/gtk1/README svneol=native#text/plain
+packages/gtk1/README.txt svneol=native#text/plain
 packages/gtk1/examples/Makefile svneol=native#text/plain
 packages/gtk1/examples/Makefile.fpc svneol=native#text/plain
 packages/gtk1/examples/clist.pp svneol=native#text/plain
@@ -2739,7 +2739,7 @@ packages/httpd22/src/util_script.inc svneol=native#text/plain
 packages/httpd22/src/util_time.inc svneol=native#text/plain
 packages/ibase/Makefile svneol=native#text/plain
 packages/ibase/Makefile.fpc svneol=native#text/plain
-packages/ibase/README svneol=native#text/plain
+packages/ibase/README.txt svneol=native#text/plain
 packages/ibase/examples/Makefile svneol=native#text/plain
 packages/ibase/examples/Makefile.fpc svneol=native#text/plain
 packages/ibase/examples/testib40.pp svneol=native#text/plain
@@ -2803,7 +2803,7 @@ packages/ldap/src/ldap_schemah.inc svneol=native#text/plain
 packages/ldap/src/ldaph.inc svneol=native#text/plain
 packages/libc/Makefile svneol=native#text/plain
 packages/libc/Makefile.fpc svneol=native#text/plain
-packages/libc/README svneol=native#text/plain
+packages/libc/README.txt svneol=native#text/plain
 packages/libc/fpmake.pp svneol=native#text/plain
 packages/libc/scripts/h2p svneol=native#text/plain
 packages/libc/scripts/h2p1.sed svneol=native#text/plain
@@ -3110,7 +3110,7 @@ packages/libgbafpc/src/gba/mbv2.inc svneol=native#text/plain
 packages/libgbafpc/src/gba/pcx.inc svneol=native#text/plain
 packages/libgd/Makefile svneol=native#text/plain
 packages/libgd/Makefile.fpc svneol=native#text/plain
-packages/libgd/README svneol=native#text/plain
+packages/libgd/README.txt svneol=native#text/plain
 packages/libgd/examples/Makefile svneol=native#text/plain
 packages/libgd/examples/Makefile.fpc svneol=native#text/plain
 packages/libgd/examples/gdtest.pp svneol=native#text/plain
@@ -3357,7 +3357,7 @@ packages/modplug/fpmake.pp svneol=native#text/plain
 packages/modplug/src/modplug.pas svneol=native#text/plain
 packages/mysql/Makefile svneol=native#text/plain
 packages/mysql/Makefile.fpc svneol=native#text/plain
-packages/mysql/README svneol=native#text/plain
+packages/mysql/README.txt svneol=native#text/plain
 packages/mysql/examples/Makefile svneol=native#text/plain
 packages/mysql/examples/Makefile.fpc svneol=native#text/plain
 packages/mysql/examples/mysqls.c svneol=native#text/plain
@@ -3442,7 +3442,7 @@ packages/ncurses/tests/tmouse.pp svneol=native#text/plain
 packages/ncurses/tests/tnlshello.pp svneol=native#text/plain
 packages/newt/Makefile svneol=native#text/plain
 packages/newt/Makefile.fpc svneol=native#text/plain
-packages/newt/README svneol=native#text/plain
+packages/newt/README.txt svneol=native#text/plain
 packages/newt/examples/Makefile svneol=native#text/plain
 packages/newt/examples/Makefile.fpc svneol=native#text/plain
 packages/newt/examples/newt1.pas svneol=native#text/plain
@@ -3626,7 +3626,7 @@ packages/numlib/tests/timer.pas svneol=native#text/plain
 packages/numlib/tests/turte.pas svneol=native#text/plain
 packages/odbc/Makefile svneol=native#text/plain
 packages/odbc/Makefile.fpc svneol=native#text/plain
-packages/odbc/README svneol=native#text/plain
+packages/odbc/README.txt svneol=native#text/plain
 packages/odbc/examples/Makefile svneol=native#text/plain
 packages/odbc/examples/Makefile.fpc svneol=native#text/plain
 packages/odbc/examples/testodbc.mdb -text
@@ -3684,7 +3684,7 @@ packages/openssl/fpmake.pp svneol=native#text/plain
 packages/openssl/src/openssl.pas svneol=native#text/plain
 packages/oracle/Makefile svneol=native#text/plain
 packages/oracle/Makefile.fpc svneol=native#text/plain
-packages/oracle/README svneol=native#text/plain
+packages/oracle/README.txt svneol=native#text/plain
 packages/oracle/examples/Makefile svneol=native#text/plain
 packages/oracle/examples/Makefile.fpc svneol=native#text/plain
 packages/oracle/examples/oraclew.pp svneol=native#text/plain
@@ -3967,7 +3967,7 @@ packages/pcap/fpmake.pp svneol=native#text/plain
 packages/pcap/src/pcap.pp svneol=native#text/plain
 packages/postgres/Makefile svneol=native#text/plain
 packages/postgres/Makefile.fpc svneol=native#text/plain
-packages/postgres/README svneol=native#text/plain
+packages/postgres/README.txt svneol=native#text/plain
 packages/postgres/examples/Makefile svneol=native#text/plain
 packages/postgres/examples/Makefile.fpc svneol=native#text/plain
 packages/postgres/examples/testpg1.pp svneol=native#text/plain
@@ -3992,8 +3992,8 @@ packages/ptc/docs/AUTHORS -text
 packages/ptc/docs/CHANGES -text
 packages/ptc/docs/INSTALL -text
 packages/ptc/docs/INTRO -text
-packages/ptc/docs/README -text
-packages/ptc/docs/TODO -text
+packages/ptc/docs/README.txt svneol=native#text/plain
+packages/ptc/docs/TODO.txt svneol=native#text/plain
 packages/ptc/docs/lgpl.txt -text
 packages/ptc/examples/Makefile svneol=native#text/plain
 packages/ptc/examples/Makefile.fpc svneol=native#text/plain
@@ -4221,7 +4221,7 @@ packages/sdl/LGPL.addon svneol=native#text/plain
 packages/sdl/MPL-1.1 svneol=native#text/plain
 packages/sdl/Makefile svneol=native#text/plain
 packages/sdl/Makefile.fpc svneol=native#text/plain
-packages/sdl/README svneol=native#text/plain
+packages/sdl/README.txt svneol=native#text/plain
 packages/sdl/fpmake.pp svneol=native#text/plain
 packages/sdl/src/jedi-sdl.inc svneol=native#text/plain
 packages/sdl/src/libxmlparser.pas svneol=native#text/plain
@@ -4238,7 +4238,7 @@ packages/sdl/src/sdlutils.pas svneol=native#text/plain
 packages/sdl/src/smpeg.pas svneol=native#text/plain
 packages/sndfile/Makefile svneol=native#text/plain
 packages/sndfile/Makefile.fpc svneol=native#text/plain
-packages/sndfile/README svneol=native#text/plain
+packages/sndfile/README.txt svneol=native#text/plain
 packages/sndfile/examples/sfplay.pp svneol=native#text/plain
 packages/sndfile/fpmake.pp svneol=native#text/plain
 packages/sndfile/scripts/testc.c svneol=native#text/plain
@@ -4257,7 +4257,7 @@ packages/sqlite/tests/testapiv3x.README svneol=native#text/plain
 packages/sqlite/tests/testapiv3x.pp svneol=native#text/plain
 packages/svgalib/Makefile svneol=native#text/plain
 packages/svgalib/Makefile.fpc svneol=native#text/plain
-packages/svgalib/README svneol=native#text/plain
+packages/svgalib/README.txt svneol=native#text/plain
 packages/svgalib/examples/Makefile svneol=native#text/plain
 packages/svgalib/examples/Makefile.fpc svneol=native#text/plain
 packages/svgalib/examples/testvga.pp svneol=native#text/plain
@@ -4661,7 +4661,7 @@ packages/utmp/fpmake.pp svneol=native#text/plain
 packages/utmp/src/utmp.pp svneol=native#text/plain
 packages/uuid/Makefile svneol=native#text/plain
 packages/uuid/Makefile.fpc svneol=native#text/plain
-packages/uuid/README svneol=native#text/plain
+packages/uuid/README.txt svneol=native#text/plain
 packages/uuid/examples/Makefile svneol=native#text/plain
 packages/uuid/examples/Makefile.fpc svneol=native#text/plain
 packages/uuid/examples/testlibuid.pp svneol=native#text/plain
@@ -5001,7 +5001,7 @@ packages/x11/src/xv.pp svneol=native#text/plain
 packages/x11/src/xvlib.pp svneol=native#text/plain
 packages/xforms/Makefile svneol=native#text/plain
 packages/xforms/Makefile.fpc svneol=native#text/plain
-packages/xforms/README svneol=native#text/plain
+packages/xforms/README.txt svneol=native#text/plain
 packages/xforms/USAGE svneol=native#text/plain
 packages/xforms/examples/Makefile svneol=native#text/plain
 packages/xforms/examples/Makefile.fpc svneol=native#text/plain
@@ -5069,11 +5069,11 @@ packages/zlib/Makefile svneol=native#text/plain
 packages/zlib/Makefile.fpc svneol=native#text/plain
 packages/zlib/fpmake.pp svneol=native#text/plain
 packages/zlib/src/zlib.pp svneol=native#text/plain
-rtl/COPYING -text
 rtl/COPYING.FPC -text
+rtl/COPYING.txt svneol=native#text/plain
 rtl/Makefile svneol=native#text/plain
 rtl/Makefile.fpc svneol=native#text/plain
-rtl/README -text
+rtl/README.txt svneol=native#text/plain
 rtl/amiga/Makefile svneol=native#text/plain
 rtl/amiga/Makefile.fpc svneol=native#text/plain
 rtl/amiga/classes.pp svneol=native#text/plain
@@ -5647,7 +5647,7 @@ rtl/m68k/stringss.inc svneol=native#text/plain
 rtl/macos/MPWmake -text
 rtl/macos/Makefile svneol=native#text/plain
 rtl/macos/Makefile.fpc svneol=native#text/plain
-rtl/macos/README -text
+rtl/macos/README.txt svneol=native#text/plain
 rtl/macos/dos.pp svneol=native#text/plain
 rtl/macos/macos.pp svneol=native#text/plain
 rtl/macos/macostp.inc svneol=native#text/plain
@@ -5762,7 +5762,7 @@ rtl/netbsd/unxsockh.inc svneol=native#text/plain
 rtl/netbsd/unxsysc.inc svneol=native#text/plain
 rtl/netware/Makefile svneol=native#text/plain
 rtl/netware/Makefile.fpc svneol=native#text/plain
-rtl/netware/README -text
+rtl/netware/README.txt svneol=native#text/plain
 rtl/netware/aio.imp -text
 rtl/netware/aio.pp svneol=native#text/plain
 rtl/netware/audnlm32.imp -text
@@ -5870,7 +5870,7 @@ rtl/netwlibc/video.pp svneol=native#text/plain
 rtl/netwlibc/winsock.pp svneol=native#text/plain
 rtl/netwlibc/ws2_32.imp -text
 rtl/netwlibc/ws2nlm.imp -text
-rtl/objpas/README -text
+rtl/objpas/README.txt svneol=native#text/plain
 rtl/objpas/classes/action.inc svneol=native#text/plain
 rtl/objpas/classes/bits.inc svneol=native#text/plain
 rtl/objpas/classes/classes.inc svneol=native#text/plain
@@ -7261,7 +7261,7 @@ tests/tbs/ub0461.pp svneol=native#text/plain
 tests/tbs/ub0489.pp svneol=native#text/plain
 tests/tbs/ub0489b.pp svneol=native#text/plain
 tests/tbs/ub0506.pp svneol=native#text/plain
-tests/test/README -text
+tests/test/README.txt svneol=native#text/plain
 tests/test/cg/cdecl/taoc1.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc2.pp svneol=native#text/plain
 tests/test/cg/cdecl/taoc3.pp svneol=native#text/plain
@@ -7668,7 +7668,7 @@ tests/test/cg/variants/tvarol94.pp svneol=native#text/plain
 tests/test/cg/variants/tvarol96.pp svneol=native#text/plain
 tests/test/dumpclass.pp svneol=native#text/plain
 tests/test/dumpmethods.pp svneol=native#text/plain
-tests/test/opt/README -text
+tests/test/opt/README.txt svneol=native#text/plain
 tests/test/opt/tarmshift.pp svneol=native#text/plain
 tests/test/opt/tcaseopt1.pp svneol=native#text/plain
 tests/test/opt/tcmov.pp svneol=native#text/plain
@@ -9710,7 +9710,7 @@ tests/webtbs/uw9113a.pp svneol=native#text/plain
 tests/webtbs/uw9113b.pp svneol=native#text/plain
 utils/Makefile svneol=native#text/plain
 utils/Makefile.fpc svneol=native#text/plain
-utils/README -text
+utils/README.txt svneol=native#text/plain
 utils/bin2obj.pp svneol=native#text/plain
 utils/checkcvs.pp svneol=native#text/plain
 utils/creumap.pp svneol=native#text/plain
@@ -9718,7 +9718,7 @@ utils/data2inc.exm -text
 utils/data2inc.pp svneol=native#text/plain
 utils/debugsvr/Makefile svneol=native#text/plain
 utils/debugsvr/Makefile.fpc svneol=native#text/plain
-utils/debugsvr/README -text
+utils/debugsvr/README.txt svneol=native#text/plain
 utils/debugsvr/console/Makefile svneol=native#text/plain
 utils/debugsvr/console/Makefile.fpc svneol=native#text/plain
 utils/debugsvr/console/debugserver.pp svneol=native#text/plain
@@ -9774,10 +9774,10 @@ utils/fpcreslipo/fpcreslipo.pp svneol=native#text/plain
 utils/fpcreslipo/msghandler.pp svneol=native#text/plain
 utils/fpcreslipo/paramparser.pp svneol=native#text/plain
 utils/fpcreslipo/sourcehandler.pp svneol=native#text/plain
-utils/fpdoc/COPYING -text
+utils/fpdoc/COPYING.txt svneol=native#text/plain
 utils/fpdoc/Makefile svneol=native#text/plain
 utils/fpdoc/Makefile.fpc svneol=native#text/plain
-utils/fpdoc/README -text
+utils/fpdoc/README.txt svneol=native#text/plain
 utils/fpdoc/dglobals.pp svneol=native#text/plain
 utils/fpdoc/dw_html.pp svneol=native#text/plain
 utils/fpdoc/dw_htmlchm.inc svneol=native#text/plain
@@ -9840,7 +9840,7 @@ utils/fpdoc/sh_pas.pp svneol=native#text/plain
 utils/fpdoc/unitdiff.pp svneol=native#text/plain
 utils/fpmc/Makefile svneol=native#text/plain
 utils/fpmc/Makefile.fpc svneol=native#text/plain
-utils/fpmc/README -text
+utils/fpmc/README.txt svneol=native#text/plain
 utils/fpmc/dumpfile.pp svneol=native#text/plain
 utils/fpmc/fpmc.pp svneol=native#text/plain
 utils/fpmc/fpmcgtk.pp svneol=native#text/plain
@@ -9852,7 +9852,7 @@ utils/fpmc/readmsg.pp svneol=native#text/plain
 utils/fpmc/test.mc -text
 utils/fppkg/Makefile svneol=native#text/plain
 utils/fppkg/Makefile.fpc svneol=native#text/plain
-utils/fppkg/README svneol=native#text/plain
+utils/fppkg/README.txt svneol=native#text/plain
 utils/fppkg/examples/pkglibcurl.pp svneol=native#text/plain
 utils/fppkg/examples/pkgocurl.pp svneol=native#text/plain
 utils/fppkg/examples/pkgsynapse.pp svneol=native#text/plain
@@ -9920,7 +9920,7 @@ utils/fprcp/use_demo.bat -text
 utils/grab_vcsa.pp -text
 utils/h2pas/Makefile svneol=native#text/plain
 utils/h2pas/Makefile.fpc svneol=native#text/plain
-utils/h2pas/README -text
+utils/h2pas/README.txt svneol=native#text/plain
 utils/h2pas/converu.pas svneol=native#text/plain
 utils/h2pas/h2pas.pas svneol=native#text/plain
 utils/h2pas/h2pas.y -text
@@ -10031,10 +10031,10 @@ utils/svn2cvs/svn2cvs.lpi svneol=native#text/plain
 utils/svn2cvs/svn2cvs.pp svneol=native#text/plain
 utils/svn2cvs/test.xml svneol=native#text/plain
 utils/svn2cvs/vers.pp svneol=native#text/plain
-utils/tply/COPYING -text
+utils/tply/COPYING.txt svneol=native#text/plain
 utils/tply/Makefile svneol=native#text/plain
 utils/tply/Makefile.fpc svneol=native#text/plain
-utils/tply/README -text
+utils/tply/README.txt svneol=native#text/plain
 utils/tply/lexbase.pas svneol=native#text/plain
 utils/tply/lexdfa.pas svneol=native#text/plain
 utils/tply/lexlib.pas svneol=native#text/plain
