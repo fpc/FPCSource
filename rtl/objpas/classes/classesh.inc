@@ -1123,7 +1123,7 @@ type
     procedure ReadListBegin;
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
-    function ReadVariant: tvardata;
+    function ReadVariant: Variant;
     function ReadString: string;
     function ReadWideString: WideString;
     function ReadUnicodeString: UnicodeString;
@@ -1175,7 +1175,7 @@ type
     procedure WriteIdent(const Ident: string); virtual; abstract;
     procedure WriteInteger(Value: Int64); virtual; abstract;
     procedure WriteUInt64(Value: QWord); virtual; abstract;
-    procedure WriteVariant(const Value: tvardata); virtual; abstract;
+    procedure WriteVariant(const Value: Variant); virtual; abstract;
     procedure WriteMethodName(const Name: String); virtual; abstract;
     procedure WriteSet(Value: LongInt; SetType: Pointer); virtual; abstract;
     procedure WriteString(const Value: String); virtual; abstract;
@@ -1233,7 +1233,7 @@ type
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
-    procedure WriteVariant(const VarValue: tvardata);override;
+    procedure WriteVariant(const VarValue: Variant);override;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)
@@ -1304,7 +1304,7 @@ type
     procedure WriteString(const Value: string);
     procedure WriteWideString(const Value: WideString);
     procedure WriteUnicodeString(const Value: UnicodeString);
-    procedure WriteVariant(const VarValue: tvardata);
+    procedure WriteVariant(const VarValue: Variant);
     property RootAncestor: TComponent read FRootAncestor write FRootAncestor;
     property OnFindAncestor: TFindAncestorEvent read FOnFindAncestor write FOnFindAncestor;
     property OnWriteMethodProperty: TWriteMethodPropertyEvent read FOnWriteMethodProperty write FOnWriteMethodProperty;

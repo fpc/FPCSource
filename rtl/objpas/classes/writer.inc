@@ -373,9 +373,9 @@ begin
   end;
 end;
 
-procedure TBinaryObjectWriter.WriteVariant(const VarValue: tvardata);
+procedure TBinaryObjectWriter.WriteVariant(const VarValue: variant);
 begin
-  case VarValue.vtype of
+  case tvardata(VarValue).vtype of
     varEmpty:
       begin
         WriteValue(vaNil);
@@ -385,58 +385,42 @@ begin
         WriteValue(vaNull);
       end;
     { all integer sizes must be split for big endian systems }
-    varShortInt:
+    varShortInt,varSmallInt,varInteger,varInt64:
       begin
-        WriteInteger(VarValue.vshortint);
-      end;
-    varSmallInt:
-      begin
-        WriteInteger(VarValue.vsmallint);
-      end;
-    varInteger:
-      begin
-        WriteInteger(VarValue.vinteger);
-      end;
-    varInt64:
-      begin
-        WriteInteger(VarValue.vint64);
+        WriteInteger(VarValue);
       end;
     varQWord:
       begin
-        WriteUInt64(qword(VarValue.vint64));
+        WriteUInt64(VarValue);
       end;
     varBoolean:
       begin
-        WriteBoolean(VarValue.vboolean);
+        WriteBoolean(VarValue);
       end;
     varCurrency:
       begin
-        WriteCurrency(VarValue.vcurrency);
+        WriteCurrency(VarValue);
       end;
 {$ifndef fpunone}
     varSingle:
       begin
-        WriteSingle(VarValue.vsingle);
+        WriteSingle(VarValue);
       end;
     varDouble:
       begin
-        WriteFloat(VarValue.vdouble);
+        WriteFloat(VarValue);
       end;
     varDate:
       begin
-        WriteDate(VarValue.vdate);
+        WriteDate(VarValue);
       end;
 {$endif fpunone}
-    varOleStr:
+    varOleStr,varString:
       begin
-        WriteWideString(widestring(pointer(VarValue.volestr)));
-      end;
-    varString:
-      begin
-        WriteWideString(AnsiString(VarValue.vstring));
+        WriteWideString(VarValue);
       end;
     else
-      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(VarValue.vtype)]);
+      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(tvardata(VarValue).vtype)]);
   end;
 end;
 
@@ -818,7 +802,7 @@ begin
   Driver.WriteInteger(Value);
 end;
 
-procedure TWriter.WriteVariant(const VarValue: tvardata);
+procedure TWriter.WriteVariant(const VarValue: Variant);
 begin
   Driver.WriteVariant(VarValue);
 end;
@@ -1038,7 +1022,8 @@ begin
         if (CompareByte(VarValue,DefVarValue,sizeof(VarValue)) <> 0) then
           begin
             Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
-            WriteVariant(VarValue);
+            { can't use variant() typecast, pulls in variants unit }
+            WriteVariant(pvariant(@VarValue)^);
             Driver.EndProperty;
           end;
       end;

@@ -1075,7 +1075,7 @@ begin
   CheckValue(vaNull);
 end;
 
-function TReader.ReadVariant: tvardata;
+function TReader.ReadVariant: variant;
 var
   nv: TValueType;
 begin
@@ -1089,72 +1089,53 @@ begin
   case nv of
     vaNil:
       begin
-        Result.vtype:=varEmpty;
+        Result:=system.unassigned;
       end;
     vaNull:
       begin
-        Result.vtype:=varNull;
+        Result:=system.null;
       end;
     { all integer sizes must be split for big endian systems }
-    vaInt8:
+    vaInt8,vaInt16,vaInt32:
       begin
-        Result.vtype:=varShortInt;
-        Result.vShortInt:=ReadInteger;
-      end;
-    vaInt16:
-      begin
-        Result.vtype:=varSmallInt;
-        Result.vSmallInt:=ReadInteger;
-      end;
-    vaInt32:
-      begin
-        Result.vtype:=varInteger;
-        Result.vInteger:=ReadInteger;
+        Result:=ReadInteger;
       end;
     vaInt64:
       begin
-        Result.vtype:=varInt64;
-        Result.vInt64:=ReadInt64;
+        Result:=ReadInt64;
       end;
     vaQWord:
       begin
-        Result.vtype:=varQWord;
-        Result.vInt64:=ReadInt64;
+        Result:=QWord(ReadInt64);
       end;
     vaFalse,vaTrue:
       begin
-        Result.vtype:=varBoolean;
-        Result.vBoolean:=(nv<>vaFalse);
+        Result:=(nv<>vaFalse);
       end;
     vaCurrency:
       begin
-        Result.vtype:=varCurrency;
-        Result.vCurrency:=ReadCurrency;
+        Result:=ReadCurrency;
       end;
 {$ifndef fpunone}
     vaSingle:
       begin
-        Result.vtype:=varSingle;
-        Result.vSingle:=ReadSingle;
+        Result:=ReadSingle;
       end;
     vaExtended:
       begin
-        Result.vtype:=varDouble;
-        Result.vDouble:=ReadFloat;
+        Result:=ReadFloat;
       end;
     vaDate:
       begin
-        Result.vtype:=varDate;
-        Result.vDate:=ReadDate;
+        Result:=ReadDate;
       end;
 {$endif fpunone}
     vaWString,vaUString,vaUTF8String:
       begin
-        Result.vtype:=varOlestr;
-        WideString(Pointer(Result.volestr)):=ReadWideString;
+        Result:=ReadWideString;
       end;
     else
-      raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(Result.vtype)]);
+      raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(nv)]);
   end;
 end;
 
@@ -1274,7 +1255,6 @@ var
   Method: TMethod;
   Handled: Boolean;
   TmpStr: String;
-  VarTemp: tvardata;
 begin
   if not Assigned(PPropInfo(PropInfo)^.SetProc) then
     raise EReadError.Create(SReadOnlyProperty);
@@ -1346,9 +1326,7 @@ begin
       SetWideStrProp(Instance,PropInfo,ReadWideString);
     tkVariant:
       begin
-        { can't use variant() typecast, pulls in variant unit }
-        VarTemp:=ReadVariant;
-        SetVariantProp(Instance,PropInfo,PVariant(@VarTemp)^);
+        SetVariantProp(Instance,PropInfo,ReadVariant);
       end;
     tkClass:
       case FDriver.NextValue of
