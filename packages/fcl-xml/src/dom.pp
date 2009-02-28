@@ -85,11 +85,6 @@ const
   DOCUMENT_FRAGMENT_NODE = 11;
   NOTATION_NODE = 12;
 
-// URIs of predefined namespaces
-  stduri_xml = 'http://www.w3.org/XML/1998/namespace';
-  stduri_xmlns = 'http://www.w3.org/2000/xmlns/';
-
-
 type
   TDOMImplementation = class;
   TDOMDocumentFragment = class;
@@ -724,6 +719,10 @@ type
     property Data: DOMString read FNodeValue write SetNodeValue;
   end;
 
+// URIs of predefined namespaces
+const
+  stduri_xml: DOMString = 'http://www.w3.org/XML/1998/namespace';
+  stduri_xmlns: DOMString = 'http://www.w3.org/2000/xmlns/';
 
 
 
@@ -1785,9 +1784,10 @@ end;
 
 destructor TDOMDocument.Destroy;
 begin
-  FreeAndNil(FIDList);   // set to nil before starting destroying chidlren
+  FreeAndNil(FIDList);   // set to nil before starting destroying children
   inherited Destroy;
-  FNames.Free;
+  FNames.Free;           // free the nametable after inherited has destroyed the children
+                         // (because children reference the nametable)
 end;
 
 function TDOMDocument.AddID(Attr: TDOMAttr): Boolean;

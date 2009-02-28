@@ -139,8 +139,6 @@ end;
   ---------------------------------------------------------------------}
 
 constructor THTMLWriter.Create;
-var
-  I: Integer;
 begin
   inherited Create;
   // some overhead - always be able to write at least one extra UCS4
