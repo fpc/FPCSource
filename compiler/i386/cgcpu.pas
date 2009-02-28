@@ -563,7 +563,7 @@ unit cgcpu;
 
       }
 
-        procedure getselftoeax(offs: longint);
+      procedure getselftoeax(offs: longint);
         var
           href : treference;
           selfoffsetfromsp : longint;
@@ -581,7 +581,7 @@ unit cgcpu;
             end;
         end;
 
-        procedure loadvmttoeax;
+      procedure loadvmttoeax;
         var
           href : treference;
         begin
@@ -590,7 +590,7 @@ unit cgcpu;
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
-        procedure op_oneaxmethodaddr(op: TAsmOp);
+      procedure op_oneaxmethodaddr(op: TAsmOp);
         var
           href : treference;
         begin
@@ -601,7 +601,7 @@ unit cgcpu;
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
-        procedure loadmethodoffstoeax;
+      procedure loadmethodoffstoeax;
         var
           href : treference;
         begin
@@ -633,9 +633,9 @@ unit cgcpu;
           make_global:=true;
 
         if make_global then
-         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
         else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
         g_adjust_self_value(list,procdef,ioffset);
@@ -657,6 +657,7 @@ unit cgcpu;
               end;
             { restore param1 value self to interface }
             g_adjust_self_value(list,procdef,-ioffset);
+            list.concat(taicpu.op_none(A_RET,S_L));
           end
         else if po_virtualmethod in procdef.procoptions then
           begin
