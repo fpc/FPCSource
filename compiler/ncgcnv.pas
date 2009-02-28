@@ -375,7 +375,7 @@ interface
 
     begin
       tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
-      location_reset_ref(location,LOC_REFERENCE,OS_NO,0);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
       inc(r.offset,sizeof(puint));
