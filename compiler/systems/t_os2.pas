@@ -358,10 +358,13 @@ end;
           ImportLibrary : TImportLibrary;
           ImportSymbol  : TImportSymbol;
       begin
-        LibName:=FixFileName(Current_Module.RealModuleName^ + Target_Info.StaticCLibExt);
+{        LibName:=FixFileName(Current_Module.ModuleName^ + Target_Info.StaticCLibExt);}
+(* Hack to fix the problem without merging larger changes from trunk. *)
+        LibName := FixFileName(Current_Module.ObjFileName^);
+        LibName := Copy (LibName, 1, Length (LibName) - Length (Target_Info.ObjExt)) + Target_Info.StaticLibExt;
         seq_no:=1;
         current_module.linkotherstaticlibs.add(libname,link_always);
-        assign(out_file,current_module.outputpath^+libname);
+        assign(out_file,libname);
         rewrite(out_file,1);
         blockwrite(out_file,ar_magic,sizeof(ar_magic));
 
