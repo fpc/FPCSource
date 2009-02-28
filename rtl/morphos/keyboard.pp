@@ -270,6 +270,7 @@ begin
   lastShiftState:=0;
   oldmousex:=-1;
   oldmousey:=-1;
+  oldbutton:=0;
 {*
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
@@ -805,9 +806,10 @@ type
   end;
 
 const
-  RCTABLE_MAXIDX = 16;
+  RCTABLE_MAXIDX = 17;
   rawCodeTable : array[0..RCTABLE_MAXIDX] of rawCodeEntry = 
-    ((rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
+    ((rc: 68; n: $1C0D; s: $1C0D; c: $1C0A; a: $1C0D; ), // Enter  // shift, alt?
+     (rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
      (rc: 72; n: $4900; s: $4900; c: $8400; a: $9900; ), // PgUP   // shift?
      (rc: 73; n: $5100; s: $5100; c: $7600; a: $A100; ), // PgDOWN // shift?
 
@@ -931,17 +933,31 @@ begin
             me.y:=(iMsg^.MouseY - videoWindow^.BorderTop) div 16;
             case iMsg^.code of
               SELECTDOWN: begin
-                  writeln('left button down!');
+                  //writeln('left down!');
                   me.Action:=MouseActionDown;
-                  me.Buttons:=MouseLeftButton;
-                  oldbuttons:=MouseLeftButton;
+                  oldbuttons:=oldbuttons or MouseLeftButton;
+                  me.Buttons:=oldbuttons;
                   PutMouseEvent(me);
                 end;
               SELECTUP: begin
-                  writeln('left button up!');
+                  //writeln('left up!');
                   me.Action:=MouseActionUp;
-                  me.Buttons:=0;
-                  oldbuttons:=0;
+                  oldbuttons:=oldbuttons and (not MouseLeftButton);
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+              MENUDOWN: begin
+                  //writeln('right down!');
+                  me.Action:=MouseActionDown;
+                  oldbuttons:=oldbuttons or MouseRightButton;
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+              MENUUP: begin
+                  //writeln('right up!');
+                  me.Action:=MouseActionUp;
+                  oldbuttons:=oldbuttons and (not MouseRightButton);
+                  me.Buttons:=oldbuttons;
                   PutMouseEvent(me);
                 end;
             end;
@@ -954,7 +970,7 @@ begin
                (mousex < video.ScreenWidth) and (mousey < video.ScreenHeight) and
                ((mousex <> oldmousex) or (mousey <> oldmousey))
               then begin
-//              writeln('mousemove:',mousex,'/',mousey,' oldbutt:',oldbuttons);
+//              //writeln('mousemove:',mousex,'/',mousey,' oldbutt:',oldbuttons);
               me.Action:=MouseActionMove;
               me.Buttons:=oldbuttons;
               me.X:=mousex;
@@ -965,7 +981,7 @@ begin
             end;
           end;
         IDCMP_VANILLAKEY: begin
-            writeln('vanilla keycode: ',iMsg^.code);
+            //writeln('vanilla keycode: ',iMsg^.code);
             KeyCode:=iMsg^.code;
             case (iMsg^.code) of
                09: KeyCode:=$0F09; // Tab
@@ -984,11 +1000,11 @@ begin
             end;
           end;
         IDCMP_RAWKEY: begin
-            writeln('raw keycode: ',iMsg^.code);
+            //writeln('raw keycode: ',iMsg^.code);
             
             case (iMsg^.code) of
                35: KeyCode:=$2100; // Alt-F
-
+                
               112: KeyCode:=$4700; // HOME
               113: KeyCode:=$4F00; // END
 
