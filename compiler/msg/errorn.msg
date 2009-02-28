@@ -2195,6 +2195,8 @@ Compiler doelsysteem: $FPCTARGET
 Dit programma wordt verspreid onder de GNU General Public Licence
 Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
+                http://bugs.freepascal.org
+of
                 bugs@freepascal.org
 ]
 #

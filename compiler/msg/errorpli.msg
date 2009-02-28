@@ -2141,6 +2141,8 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.FPC aby dowiedzieæ siê wiêcej
 
 Zg³aszanie b³êdów, sugestii itp.
+                 http://bugs.freepascal.org
+lub
                  bugs@freepascal.org
 ]
 

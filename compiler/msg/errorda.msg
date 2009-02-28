@@ -206,7 +206,7 @@ scan_i_user_defined=02027_I_Brugerdefineret: $1
 scan_e_keyword_cant_be_a_macro=02028_E_Makroer kan ikke omdefinere nøgleord
 % You cannot redefine keywords with macros.
 scan_f_macro_buffer_overflow=02029_F_Overløb under læsning eller udvidelse af makro
-% Your macro or it's result  was too long for the compiler.
+% Your macro or it's result was too long for the compiler.
 scan_w_macro_too_deep=02030_W_Makroudfoldning har oversteget 16 niveauer
 % When expanding a macro, macros have been nested to a level of 16.
 % The compiler will expand no further, since this may be a sign that
@@ -2226,6 +2226,8 @@ Dette program dækkes af reglerne for GNU General Public License
 Læs COPYING.FPC for mere information
 
 Indsend fejlbeskrivelser, forslag, etc til
+                 http://bugs.freepascal.org
+og
                  bugs@freepascal.org
 
 For kommentarer vedrørende den danske oversættelse, skriv til

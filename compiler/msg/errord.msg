@@ -2635,6 +2635,8 @@ Dieses Programm unterliegt der GNU General Public Licence
 Weitere Informationen sind in COPYING.FPC zu finden
 
 Fehlerberichte, Vorschl„ge usw. bitte senden an:
+             http://bugs.freepascal.org
+oder
              bugs@freepascal.org
 ]
 

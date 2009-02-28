@@ -1729,6 +1729,8 @@ This program comes under the GNU General Public Licence
 For more information read COPYING.FPC
 
 Report bugs,suggestions etc to:
+                 http://bugs.freepascal.org
+ou
                  bugs@freepascal.org
 ]
 

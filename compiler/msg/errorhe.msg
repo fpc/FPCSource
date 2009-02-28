@@ -2432,6 +2432,8 @@ Free Pascal Compiler version $FPCVERSION
 למידע נוסף יש לקרוא את COPYING.FPC
 
 דיווח על תקלות (באגים), הצעות וכו':
+                 http://bugs.freepascal.org
+
                  bugs@freepascal.org
 ]
 
