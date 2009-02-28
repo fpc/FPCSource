@@ -21,32 +21,29 @@
 unit HTMLIndexer;
 {$MODE OBJFPC}{$H+}
 interface
-uses Classes, SysUtils, FastHTMLParser;
+uses Classes, SysUtils, FastHTMLParser,avl_tree;
 
 Type
-
-  { TIndexedWord }
-
   { TIndexDocument }
-
   TIndexDocument = class(TObject)
   private
     FDocumentIndex: Integer;
-  public
+    FLastEntry : Integer;
     WordIndex: array of Integer;
+    function getindexentries:integer;
+  public
+    function GetWordIndex(i:integer):integer; inline;
     procedure AddWordIndex(AIndex: Integer);
     constructor Create(ADocumentIndex: Integer);
     property DocumentIndex: Integer read FDocumentIndex;
+    property IndexEntry[i:integer] : Integer read GetWordIndex;
+    property NumberofIndexEntries : integer read getindexentries;
   end;
 
-
-
-
+  { TIndexedWord }
   TIndexedWord = class(TObject)
   private
     FIsTitle: Boolean;
-    FNextWord: TIndexedWord;
-    FPrevWord: TIndexedWord;
     FTheWord: string;
     FCachedTopic: TIndexDocument;
     FDocuments: Array of TIndexDocument;
@@ -56,16 +53,16 @@ Type
     constructor Create(AWord: String; AIsTitle: Boolean);
     destructor Destroy; override;
     function GetLogicalDocument(AIndex: Integer): TIndexDocument;
-    property TheWord: string read FTheWord; // Always lowercase
-    property PrevWord: TIndexedWord read FPrevWord write FPrevWord;
-    property NextWord: TIndexedWord read FNextWord write FNextWord;
+    property TheWord: string read FTheWord write ftheword; // Always lowercase
     property DocumentTopic[TopicIndexNum: Integer]: TIndexDocument read GetDocument;
     property DocumentCount: Integer read GetDocumentCount;
-    property IsTitle: Boolean read FIsTitle;
+    property IsTitle: Boolean read FIsTitle write fistitle;
   end;
 
   { TIndexedWordList }
 
+  TForEachMethod = procedure (AWord:TIndexedWord) of object;
+  TForEachProcedure = Procedure (AWord:TIndexedWord;state:pointer);
   TIndexedWordList = class(TObject)
   private
     FIndexTitlesOnly: Boolean;
@@ -82,13 +79,10 @@ Type
     FTotalWordCount: DWord;
     FTotalWordLength: DWord;
     FLongestWord: DWord;
-    FFirstWord: TIndexedWord;
-    FCachedWord: TIndexedWord;
     FParser: THTMLParser;
+    FAVLTree : TAVLTree;
+    Spare :TIndexedWord;
     function AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
-    function GetWordForward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
-    function GetWordBackward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
-    function CompareWord(AWord: String; AIndexWord: TIndexedWord; AIsTitle: Boolean): Integer;
     // callbacks
     procedure CBFoundTag(NoCaseTag, ActualTag: string);
     procedure CBFountText(Text: string);
@@ -99,8 +93,9 @@ Type
     destructor  Destroy; override;
     function  IndexFile(AStream: TStream; ATOPICIndex: Integer; AIndexOnlyTitles: Boolean): String; // returns the documents <Title>
     procedure Clear;
-    procedure AddWord(const AWord: TIndexedWord; StartingWord: TIndexedWord; AIsTitle: Boolean);
-    property FirstWord: TIndexedWord read FFirstWord;
+    procedure AddWord(const AWord: TIndexedWord);
+    procedure ForEach(Proc:TForEachMethod);
+    procedure ForEach(Proc:TForEachProcedure;state:pointer);
     property IndexedFileCount: DWord read FIndexedFileCount;
     property LongestWord: DWord read FLongestWord;
     property TotalWordCount: DWord read FTotalWordCount;
@@ -112,6 +107,8 @@ Type
 
 implementation
 
+Const GrowSpeed = 10;
+
 function Max(ANumber, BNumber: DWord): DWord;
 begin
   if ANumber > BNumber then
@@ -120,105 +117,51 @@ begin
     Result := BNumber;
 end;
 
-{ TIndexedWordList }
+Function CompareProcObj(Node1, Node2: Pointer): integer;
+var n1,n2 : TIndexedWord; 
+begin
+  n1:=TIndexedWord(Node1); n2:=TIndexedWord(Node2);
+  Result := CompareText(n1.theword, n2.theword);
+  if Result = 0 then
+  begin
+    Result := ord(n2.IsTitle)-ord(n1.IsTitle);
+  end;
+  if Result < 0 then Result := -1
+  else if Result > 0 then Result := 1;
+end;
 
+{ TIndexedWordList }
 function TIndexedWordList.AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
-var
-  //StartWord,
-  WrongWord: TIndexedWord;
+var 
+   n : TAVLTreeNode;
 begin
   Result := nil;
   AWord := LowerCase(AWord);
-
-  {if FCachedWord <> nil then
-    StartWord := FCachedWord
+  if not assigned(spare) then
+    spare:=TIndexedWord.Create(AWord,IsTitle)
   else
-    StartWord := FFirstWord;
-
-  if StartWord <> nil then
-  begin
-    case CompareWord(AWord, StartWord, IsTitle) of
-      0: Exit(WrongWord);
-      1: Result := GetWordBackward(AWord, StartWord, WrongWord, IsTitle);
-     -1: Result := GetWordForward(AWord, StartWord, WrongWord, IsTitle);
+    begin
+      spare.TheWord:=aword;
+      spare.IsTitle:=IsTitle;
     end;
-  end
-  else}
-    Result := GetWordForward(AWord, FFirstWord, WrongWord, IsTitle);
+  
+  n:=favltree.FindKey(Spare,@CompareProcObj);
+  if assigned(n) then
+   result:=TIndexedWord(n.Data);
 
   if Result = nil then
   begin
     Inc(FTotalDifferentWordLength, Length(AWord));
     Inc(FTotalDIfferentWords);
-    Result := TIndexedWord.Create(AWord,IsTitle);
-    AddWord(Result, WrongWord,IsTitle);
-    if IsTitle then
-    ;//WriteLn('Creating word: ', AWord);
+    Result := spare; // TIndexedWord.Create(AWord,IsTitle);
+    spare:=nil;
+    AddWord(Result);
+    //  if IsTitle then
+    //WriteLn('Creating word: ', AWord);
     FLongestWord := Max(FLongestWord, Length(AWord));
   end;
   Inc(FTotalWordLength, Length(AWord));
   Inc(FTotalWordCount);
-end;
-
-function TIndexedWordList.GetWordForward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
-var
-  FCurrentWord: TIndexedWord;
-begin
-  Result := nil;
-  WrongWord := nil;
-  FCurrentWord := StartWord;
-  while (FCurrentWord <> nil) and (CompareWord(AWord, FCurrentWord, AIsTitle) <> 0) do
-  begin
-    WrongWord := FCurrentWord;
-    case CompareWord(AWord, FCurrentWord, AIsTitle) of
-      -1: FCurrentWord := nil;
-       0: Exit(FCurrentWord);
-       1: FCurrentWord := FCurrentWord.NextWord;
-    end;
-  end;
-
-  if FCurrentWord <> nil then
-    Result := FCurrentWord;
-end;
-
-function TIndexedWordList.GetWordBackward(AWord: String; StartWord: TIndexedWord; out WrongWord: TIndexedWord; AIsTitle: Boolean): TIndexedWord;
-var
-  FCurrentWord: TIndexedWord;
-begin
-  Result := nil;
-  WrongWord := nil;
-  FCurrentWord := StartWord;
-  while (FCurrentWord <> nil) and (CompareWord(AWord, FCurrentWord, AIsTitle) <> 0) do
-  begin
-    WrongWord := FCurrentWord;
-    case CompareWord(AWord, FCurrentWord, AIsTitle) of
-      -1:
-          begin
-            WrongWord := FCurrentWord;
-            FCurrentWord := nil
-          end;
-       0: Exit(FCurrentWord);
-       1: FCurrentWord := FCurrentWord.PrevWord;
-    end;
-  end;
-  if FCurrentWord <> nil then
-    Result := FCurrentWord;
-end;
-
-function TIndexedWordList.CompareWord ( AWord: String;
-  AIndexWord: TIndexedWord; AIsTitle: Boolean ) : Integer;
-begin
-  Result := CompareText(AWord, AIndexWord.TheWord);
-  if Result = 0 then
-  begin
-    Result := Result + ord(AIndexWord.IsTitle);
-    Result := Result - ord(AIsTitle);
-  end;
-  if Result < 0 then Result := -1
-  else if Result > 0 then Result := 1;
-  //if AIsTitle then
-    //WriteLn('Looking for title word :', AWord);
-  //WriteLn(Result);
 end;
 
 procedure TIndexedWordList.CBFoundTag(NoCaseTag, ActualTag: string);
@@ -280,12 +223,10 @@ begin
         Delete(WordName, FPos, 1);
         FPos := Pos('''', WordName);
       end;
-      WordIndex := Self.Words[WordName, IsTitle];
+      WordIndex := addgetword(wordname,istitle);
       InWord := False;
-      //if IsNumberWord then WriteLn('Following is NUMBER WORD: "', (WordStart[0]),'"'); ;
       IsNumberWord := False;
       WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
-      //WriteLn(FWordCount, ' "', WordName,'"');
       //if not IsTitle then
         Inc(FWordCount);
 
@@ -295,7 +236,6 @@ begin
       InWord := True;
       WordStart := WordPtr;
       IsNumberWord := WordPtr^ in ['0'..'9'];
-      //if IsNumberWord then WriteLn('Following is NUMBER WORD: "', WordPtr[0],'"'); ;
     end;
     Inc(WordPtr);
   until WordPtr^ = #0;
@@ -303,7 +243,9 @@ begin
   if InWord then
   begin
     WordName := Copy(WordStart, 0, (WordPtr-WordStart));
-    WordIndex := Self.Words[WordName, IsTitle];
+    try
+    WordIndex := addgetword(wordname,istitle); // Self.Words[WordName, IsTitle];
+    except on e:exception do writeln(wordname); end;
     WordIndex.DocumentTopic[FTopicIndex].AddWordIndex(FWordCount);
     InWord := False;
     //if IsNumberWord then WriteLn('Following is NUMBER WORD: "', (WordStart[0]),'"'); ;
@@ -311,19 +253,21 @@ begin
     //WriteLn(FWordCount, ' "', WordName,'"');
     if not IsTitle then
       Inc(FWordCount);
-
   end;
-
 end;
 
 constructor TIndexedWordList.Create;
 begin
   inherited;
+  favltree:=TAVLTree.Create(@CompareProcObj);
+  spare:=nil;
 end;
 
 destructor TIndexedWordList.Destroy;
 begin
-  Clear;
+  clear;
+  if assigned(spare) then spare.free;
+  favltree.free;
   inherited Destroy;
 end;
 
@@ -360,60 +304,40 @@ begin
 end;
 
 procedure TIndexedWordList.Clear;
-var
-  FCurrentWord: TIndexedWord;
 begin
-  FCurrentWord := FFirstWord;
-  while FCurrentWord <> nil do
-  begin
-    FFirstWord := FCurrentWord.NextWord;
-    FCurrentWord.Free;
-    FCurrentWord := FFirstWord;
-  end;
+  fAvlTree.FreeAndClear;
 end;
 
-procedure TIndexedWordList.AddWord(const AWord: TIndexedWord; StartingWord: TIndexedWord; AIsTitle: Boolean);
-var
-  WrongWord: TIndexedWord;
+procedure TIndexedWordList.AddWord(const AWord: TIndexedWord);
 begin
-  if FFirstWord = nil then
-    FFirstWord := AWord
-  else begin
-    if StartingWord <> nil then
-      WrongWord := StartingWord;
-    case CompareWord(AWord.TheWord, StartingWord, AIsTitle) of
-       1: GetWordForward(AWord.TheWord, StartingWord, WrongWord, AIsTitle);
-       0: ; // uh oh
-      -1: GetWordBackward(AWord.TheWord, StartingWord, WrongWord, AIsTitle);
-    end;
-    if WrongWord = nil then
-       WrongWord := FirstWord;
-    case CompareWord(AWord.TheWord, WrongWord, AIsTitle) of
-       -1:
-          begin
-            AWord.PrevWord := WrongWord.PrevWord;
-            if AWord.PrevWord <> nil then
-              AWord.PrevWord.NextWord := AWord;
-            WrongWord.PrevWord := AWord;
-            AWord.NextWord := WrongWord;
-          end;
-        0: ;//WriteLn('Found word which shouldn''t happen'); // uh oh
-        1:
-          begin
-            AWord.PrevWord := WrongWord;
-            AWord.NextWord := WrongWord.NextWord;
-            WrongWord.NextWord := AWord;
-          end;
-    end;
-  end;
-  if AWord.PrevWord = nil then
-     FFirstWord := AWord;
-  FCachedWord := AWord;
+  favltree.add(AWord);
 end;
 
+procedure TIndexedWordList.ForEach(Proc:TForEachMethod);
+var   
+    AVLNode   : TAVLTreeNode;
+begin
+   AVLNode:=fAVLTree.FindLowest;
+   while (AVLNode<>nil) do
+      begin
+        Proc(TIndexedWord(AVLNode.Data));
+        AVLNode:=FAVLTree.FindSuccessor(AVLNode)
+      end;
+end; 
+
+procedure TIndexedWordList.ForEach(Proc:TForEachProcedure;state:pointer); 
+var   
+    AVLNode   : TAVLTreeNode;
+begin
+   AVLNode:=fAVLTree.FindLowest;
+   while (AVLNode<>nil) do
+      begin
+        Proc(TIndexedWord(AVLNode.Data),State);
+        AVLNode:=FAVLTree.FindSuccessor(AVLNode)
+      end;
+end; 
 
 { TIndexedWord }
-
 function TIndexedWord.GetDocument ( TopicIndexNum: Integer ) : TIndexDocument;
 var
   i: Integer;
@@ -449,10 +373,8 @@ destructor TIndexedWord.Destroy;
 var
   i: Integer;
 begin
-  if FPrevWord <> nil then
-    FPrevWord.NextWord := FNextWord;
-  if FNextWord <> nil then
-    FNextWord.PrevWord := FPrevWord;
+  // here the word removed itself from the linked list. But it can't
+  // touch the AVL tree here.
   for i := 0 to High(FDocuments) do
     FreeAndNil(FDocuments[i]);
   inherited Destroy;
@@ -464,16 +386,28 @@ begin
 end;
 
 { TIndexDocument }
-
 procedure TIndexDocument.AddWordIndex ( AIndex: Integer ) ;
 begin
-  SetLength(WordIndex, Length(WordIndex)+1);
-  WordIndex[High(WordIndex)] := AIndex;
+  if FLastEntry>=Length(WordIndex) Then
+  SetLength(WordIndex, Length(WordIndex)+GrowSpeed);
+  WordIndex[FLastEntry] := AIndex;
+  Inc(FLastEntry); 
 end;
 
 constructor TIndexDocument.Create ( ADocumentIndex: Integer ) ;
 begin
   FDocumentIndex := ADocumentIndex;
+  flastentry:=0;
+end;
+
+function TIndexDocument.GetWordIndex(i:integer):integer;
+begin
+  result:=WordIndex[i];  
+end;
+
+function TIndexDocument.getindexentries:integer;
+begin
+ result:=flastentry-1; 
 end;
 
 end.

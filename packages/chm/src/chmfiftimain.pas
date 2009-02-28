@@ -250,20 +250,11 @@ begin
   Bits := (Bits shl (32-Result)) shr (32 - Result);
 end;
 
-
-
 { TChmSearchWriter }
 
 procedure TChmSearchWriter.ProcessWords;
-var
-  AWord: TIndexedWord;
 begin
-  AWord := FWordList.FirstWord;
-  while AWord <> nil do
-  begin
-    WriteAWord(AWord);
-    AWord := AWord.NextWord;
-  end;
+  FWordList.ForEach(@WriteAword);
   if FActiveLeafNode <> nil then
     FActiveLeafNode.Flush(False); // causes the unwritten parts of the tree to be written
 end;
@@ -633,12 +624,12 @@ begin
     DocDelta := NewDocDelta(Doc.DocumentIndex);
     BitCount := WriteScaleRootInt(DocDelta, Bits, ADocRootSize);
     AddValue(Bits, BitCount);
-    BitCount := WriteScaleRootInt(Length(Doc.WordIndex), Bits, ACodeRootSize);
+    BitCount := WriteScaleRootInt(Doc.NumberOfIndexEntries, Bits, ACodeRootSize);
     AddValue(Bits, BitCount);
 
-    for j := 0 to High(Doc.WordIndex) do
+    for j := 0 to Doc.NumberOfIndexEntries-1 do
     begin
-      LocDelta := NewLocCode(Doc.WordIndex[j]);
+      LocDelta := NewLocCode(Doc.IndexEntry[j]);
       BitCount := WriteScaleRootInt(LocDelta, Bits, ALocRootSize);
       AddValue(Bits, BitCount);
     end;

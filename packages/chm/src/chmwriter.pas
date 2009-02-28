@@ -538,6 +538,17 @@ begin
   PostAddStreamToArchive('#STRINGS', '/', FStringsStream);
 end;
 
+procedure IterateWord(aword:TIndexedWord;State:pointer);
+var i,cnt : integer;
+begin
+  cnt:=pinteger(state)^;
+  for i := 0 to AWord.DocumentCount-1 do
+    Inc(cnt, AWord.GetLogicalDocument(i).NumberOfIndexEntries);
+          // was commented in original procedure, seems to list index entries per doc. 
+            //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' h
+  pinteger(state)^:=cnt;
+end;  
+
 procedure TChmWriter.WriteTOPICS;
 var
   AWord: TIndexedWord;
@@ -548,22 +559,9 @@ begin
     Exit;
   FTopicsStream.Position := 0;
   PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
-
-  AWord := FIndexedFiles.FirstWord;
-  while AWord <> nil do
-  begin
-    FHits := 0;
-    for i := 0 to AWord.DocumentCount-1 do
-    begin
-      Inc(FHits, Length(AWord.GetLogicalDocument(i).WordIndex));
-    //if AWord.IsTitle then
-
-    end;
-    //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' hits = ', FHits, ' is title = ', AWord.IsTitle);
-    AWord := AWord.NextWord;
-  end;
-
-
+ // I commented the code below since the result seemed unused 
+ // FHits:=0;
+ //   FIndexedFiles.ForEach(@IterateWord,FHits);
 end;
 
 procedure TChmWriter.WriteIVB;
