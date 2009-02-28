@@ -902,7 +902,7 @@ type
   TValueType = (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
     vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
     vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString, vaInt64,
-    vaUTF8String, vaUString, vaVariant);
+    vaUTF8String, vaUString, vaQWord);
 
   TFilerFlag = (ffInherited, ffChildPos, ffInline);
   TFilerFlags = set of TFilerFlag;
@@ -1174,6 +1174,8 @@ type
     procedure WriteCurrency(const Value: Currency); virtual; abstract;
     procedure WriteIdent(const Ident: string); virtual; abstract;
     procedure WriteInteger(Value: Int64); virtual; abstract;
+    procedure WriteUInt64(Value: QWord); virtual; abstract;
+    procedure WriteVariant(const Value: tvardata); virtual; abstract;
     procedure WriteMethodName(const Name: String); virtual; abstract;
     procedure WriteSet(Value: LongInt; SetType: Pointer); virtual; abstract;
     procedure WriteString(const Value: String); virtual; abstract;
@@ -1225,11 +1227,13 @@ type
     procedure WriteCurrency(const Value: Currency); override;
     procedure WriteIdent(const Ident: string); override;
     procedure WriteInteger(Value: Int64); override;
+    procedure WriteUInt64(Value: QWord); override;
     procedure WriteMethodName(const Name: String); override;
     procedure WriteSet(Value: LongInt; SetType: Pointer); override;
     procedure WriteString(const Value: String); override;
     procedure WriteWideString(const Value: WideString); override;
     procedure WriteUnicodeString(const Value: UnicodeString); override;
+    procedure WriteVariant(const VarValue: tvardata);override;
   end;
 
   TTextObjectWriter = class(TAbstractObjectWriter)

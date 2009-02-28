@@ -1076,75 +1076,87 @@ begin
 end;
 
 function TReader.ReadVariant: tvardata;
-type
-  tcurrec = record
-    i: int64;
-  end;
+var
+  nv: TValueType;
 begin
   { Ensure that a Variant manager is installed }
   if not Assigned(VarClearProc) then
     raise EReadError.Create(SErrNoVariantSupport);
 
   FillChar(Result,sizeof(Result),0);
-  Read(Result.vtype,sizeof(Result.vtype));
 
-  case Result.vtype of
-    varEmpty,
-    varNull:
-      ;
-    { all integer sizes must be split for big endian systems }
-    varShortInt:
+  nv:=NextValue;
+  case nv of
+    vaNil:
       begin
+        Result.vtype:=varEmpty;
+      end;
+    vaNull:
+      begin
+        Result.vtype:=varNull;
+      end;
+    { all integer sizes must be split for big endian systems }
+    vaInt8:
+      begin
+        Result.vtype:=varShortInt;
         Result.vShortInt:=ReadInteger;
       end;
-    varSmallInt:
+    vaInt16:
       begin
+        Result.vtype:=varSmallInt;
         Result.vSmallInt:=ReadInteger;
       end;
-    varInteger:
+    vaInt32:
       begin
+        Result.vtype:=varInteger;
         Result.vInteger:=ReadInteger;
       end;
-    varInt64,varQWord:
+    vaInt64:
       begin
+        Result.vtype:=varInt64;
         Result.vInt64:=ReadInt64;
       end;
-    varBoolean:
+    vaQWord:
       begin
-        Result.vBoolean:=ReadBoolean;
+        Result.vtype:=varQWord;
+        Result.vInt64:=ReadInt64;
       end;
-    varCurrency:
+    vaFalse,vaTrue:
       begin
-        { avoid implicit value conversion by the compiler }
-        Result.vCurrency:=Currency(tcurrec(ReadInt64));
+        Result.vtype:=varBoolean;
+        Result.vBoolean:=(nv<>vaFalse);
+      end;
+    vaCurrency:
+      begin
+        Result.vtype:=varCurrency;
+        Result.vCurrency:=ReadCurrency;
       end;
 {$ifndef fpunone}
-    varSingle:
+    vaSingle:
       begin
+        Result.vtype:=varSingle;
         Result.vSingle:=ReadSingle;
       end;
-    varDouble:
+    vaExtended:
       begin
+        Result.vtype:=varDouble;
         Result.vDouble:=ReadFloat;
       end;
-    varDate:
+    vaDate:
       begin
-        Result.vDate:=ReadFloat;
+        Result.vtype:=varDate;
+        Result.vDate:=ReadDate;
       end;
 {$endif fpunone}
-    varOlestr:
+    vaWString,vaUString,vaUTF8String:
       begin
+        Result.vtype:=varOlestr;
         WideString(Pointer(Result.volestr)):=ReadWideString;
-      end;
-    varString:
-      begin
-        Ansistring(Result.vstring):=ReadWideString;
       end;
     else
       raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(Result.vtype)]);
   end;
 end;
-
 
 procedure TReader.ReadProperty(AInstance: TPersistent);
 var

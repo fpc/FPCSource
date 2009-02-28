@@ -252,6 +252,36 @@ begin
   end;
 end;
 
+procedure TBinaryObjectWriter.WriteUInt64(Value: QWord);
+var
+  s: ShortInt;
+  i: SmallInt;
+  l: Longint;
+begin
+  { Use the smallest possible integer type for the given value: }
+  if (Value <= 127) then
+  begin
+    WriteValue(vaInt8);
+    s := Value;
+    Write(s, 1);
+  end else if (Value <= 32767) then
+  begin
+    WriteValue(vaInt16);
+    i := Value;
+    WriteWord(word(i));
+  end else if (Value <= $7fffffff) then
+  begin
+    WriteValue(vaInt32);
+    l := Value;
+    WriteDWord(longword(l));
+  end else
+  begin
+    WriteValue(vaQWord);
+    WriteQWord(Value);
+  end;
+end;
+
+
 procedure TBinaryObjectWriter.WriteMethodName(const Name: String);
 begin
   if Length(Name) > 0 then
@@ -342,6 +372,74 @@ begin
     {$ENDIF}
   end;
 end;
+
+procedure TBinaryObjectWriter.WriteVariant(const VarValue: tvardata);
+begin
+  case VarValue.vtype of
+    varEmpty:
+      begin
+        WriteValue(vaNil);
+      end;
+    varNull:
+      begin
+        WriteValue(vaNull);
+      end;
+    { all integer sizes must be split for big endian systems }
+    varShortInt:
+      begin
+        WriteInteger(VarValue.vshortint);
+      end;
+    varSmallInt:
+      begin
+        WriteInteger(VarValue.vsmallint);
+      end;
+    varInteger:
+      begin
+        WriteInteger(VarValue.vinteger);
+      end;
+    varInt64:
+      begin
+        WriteInteger(VarValue.vint64);
+      end;
+    varQWord:
+      begin
+        WriteUInt64(qword(VarValue.vint64));
+      end;
+    varBoolean:
+      begin
+        WriteBoolean(VarValue.vboolean);
+      end;
+    varCurrency:
+      begin
+        WriteCurrency(VarValue.vcurrency);
+      end;
+{$ifndef fpunone}
+    varSingle:
+      begin
+        WriteSingle(VarValue.vsingle);
+      end;
+    varDouble:
+      begin
+        WriteFloat(VarValue.vdouble);
+      end;
+    varDate:
+      begin
+        WriteDate(VarValue.vdate);
+      end;
+{$endif fpunone}
+    varOleStr:
+      begin
+        WriteWideString(widestring(pointer(VarValue.volestr)));
+      end;
+    varString:
+      begin
+        WriteWideString(AnsiString(VarValue.vstring));
+      end;
+    else
+      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(VarValue.vtype)]);
+  end;
+end;
+
 
 procedure TBinaryObjectWriter.FlushBuffer;
 begin
@@ -721,72 +819,8 @@ begin
 end;
 
 procedure TWriter.WriteVariant(const VarValue: tvardata);
-type
-  tcurrec = record
-    i: int64;
-  end;
-var
-  vtype: tvartype;
 begin
-  vtype:=VarValue.vtype;
-  Write(ord(vtype),sizeof(vtype));
-  case vtype of
-    varEmpty,
-    varNull:
-      ;
-    { all integer sizes must be split for big endian systems }
-    varShortInt:
-      begin
-        WriteInteger(VarValue.vshortint);
-      end;
-    varSmallInt:
-      begin
-        WriteInteger(VarValue.vsmallint);
-      end;
-    varInteger:
-      begin
-        WriteInteger(VarValue.vinteger);
-      end;
-    varInt64,varQWord:
-      begin
-        WriteInteger(int64(VarValue.vint64));
-      end;
-    varBoolean:
-      begin
-        WriteBoolean(VarValue.vboolean);
-      end;
-    varCurrency:
-      begin
-        { write as int64, because on non-x86 a floating point register does
-          not have enough precision to hold the entire range of currency
-        }
-        WriteInteger(tcurrec(VarValue.vcurrency).i);
-      end;
-{$ifndef fpunone}
-    varSingle:
-      begin
-        WriteSingle(VarValue.vsingle);
-      end;
-    varDouble:
-      begin
-        WriteFloat(VarValue.vdouble);
-      end;
-    varDate:
-      begin
-        WriteFloat(VarValue.vdate);
-      end;
-{$endif fpunone}
-    varOleStr:
-      begin
-        WriteWideString(widestring(pointer(VarValue.volestr)));
-      end;
-    varString:
-      begin
-        WriteWideString(AnsiString(VarValue.vstring));
-      end;
-    else
-      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(VarValue.vtype)]);
-  end;
+  Driver.WriteVariant(VarValue);
 end;
 
 procedure TWriter.WriteListBegin;
