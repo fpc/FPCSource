@@ -270,7 +270,7 @@ begin
   lastShiftState:=0;
   oldmousex:=-1;
   oldmousey:=-1;
-  oldbutton:=0;
+  oldbuttons:=0;
 {*
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
