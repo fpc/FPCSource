@@ -534,6 +534,11 @@ unit cgcpu;
            set self parameter to correct value
            call mangledname
            set self parameter to interface value
+           ret
+
+           This is different to case (0) because in theory, the caller
+           could reuse the data pushed on the stack so we've to return
+           it unmodified because self is const.
 
       (2): The wrapper code use %eax to reach the virtual method address
            set self to correct value
