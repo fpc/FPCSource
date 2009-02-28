@@ -42,6 +42,8 @@ includedir_win64=src/win src/dummy
 includedir_wince=src/wince src/dummy
 includedir_go32v2=src/dummy
 includedir_os2=src/os2 src/dummy
+includedir_morphos=src/dummy
+includedir_amiga=src/dummy
 sourcedir=src/$(OS_TARGET) src
 
 [install]
