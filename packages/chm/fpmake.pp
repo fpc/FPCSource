@@ -17,10 +17,10 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='chm';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4';
 
     D:=P.Dependencies.Add('fcl-xml');
-      D.Version:='2.2.1';
+      D.Version:='2.2.4';
     
     P.SourcePath.Add('src');
 

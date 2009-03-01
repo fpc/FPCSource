@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gtk1';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4';
     P.OSes:=AllUnixOSes+[Win32,Win64];
     P.Dependencies.Add('opengl');
 

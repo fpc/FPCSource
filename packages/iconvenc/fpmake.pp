@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='iconvenc';
 {$endif ALLPACKAGES}
-    P.Version:='2.0.0';
+    P.Version:='2.2.4';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

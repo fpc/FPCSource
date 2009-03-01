@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='aspell';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.1';
+    P.Version:='2.2.4';
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('aspell.pp');
