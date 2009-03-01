@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at physik.uni-halle.de>
 #
-#   Based on errore.msg of SVN revision 10552
+#   Based on errore.msg of SVN revision 12320 + one
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2008 by the Free Pascal Development team
+#   Copyright (c) 1998-2009 by the Free Pascal Development team
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -117,7 +117,9 @@ general_e_path_does_not_exist=01017_E_Der Pfad "$1" existiert nicht
 general_f_compilation_aborted=01018_F_öbersetzen abgebrochen
 % Compilation was aborted.
 general_text_bytes_code=01019_bytes Code
+% The size of the generated executable code, in bytes.
 general_text_bytes_data=01020_bytes Daten
+% The size of the generated program data, in bytes.
 general_i_number_of_warnings=01021_I_$1 Warnung(en) ausgegeben
 % Total number of warnings issued during compilation.
 general_i_number_of_hints=01022_I_$1 Hinweis(e) ausgegeben
@@ -349,15 +351,19 @@ scanner_e_illegal_warn_state=02079_E_UngÅltiger Wert fÅr die $WARN Direktive
 scan_e_only_packset=02080_E_UngÅltiger Wert fÅr das set packing
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameter
 scan_w_pic_ignored=02081_W_PIC Direktive oder Schalter wird ignoriert
-% Several targets like windows do not support neither need PIC so the PIC directive and switch are
-% ignored.
+% Several targets, such as \windows, do not support nor need PIC,
+% so the PIC directive and switch are ignored.
 scan_w_unsupported_switch_by_target=02082_W_Der Schalter "$1" wird vom derzeit ausgewÑhlten Zielbetriebssystem nicht unterstÅtzt
 % Some compiler switches like \$E are not supported by all targets.
 scan_w_frameworks_darwin_only=02084_W_Framework-bezogene Optionen werden nur fÅr Darwin/Mac OS X unterstÅtzt
-% Frameworks are not a known concept, or at least not supported by FPC, on operating systems other than Darwin/Mac OS X.
+% Frameworks are not a known concept, or at least not supported by FPC,
+% on operating systems other than Darwin/Mac OS X.
 scan_e_illegal_minfpconstprec=02085_E_"$1" ist eine ungÅltige minimale PrÑzision von Fliesskommakonstanten
-% Valid minimal precisions for floating point constants are default, 32 and 64, which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
+% Valid minimal precisions for floating point constants are default, 32 and 64,
+% which mean respectively minimal (usually 32 bit), 32 bit and 64 bit precision.
 scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird mehrfach Åberschrieben. Es war bisher auf "$1" gesetzt
+% The name for the main entry procedure is specified more than once. Only the last
+% name will be used.
 % \end{description}
 #
 # Parser
@@ -386,6 +392,7 @@ parser_e_export_ordinal_double=03009_E_Doppelter Index fÅr exportierte Funktion 
 parser_e_export_invalid_index=03010_E_UngÅltiger Index for exportierte Funktion
 % DLL function index must be in the range \var{1..\$FFFF}
 parser_w_parser_reloc_no_debug=03011_W_FÅr relozierbare DLL oder ausfÅhrbare Datei $1 funktionieren keine Debug-Information, deaktiviert.
+% It is currently not possible to include debug information in a relocatable DLL.
 parser_w_parser_win32_debug_needs_WN=03012_W_Um Win32-Code debuggen zu kînnen mÅssen die Relozierungen mit -WN option abgeschaltet werden.
 % Stabs info is wrong for relocatable DLL or EXES use -WN
 % if you want to debug win32 executables.
@@ -721,7 +728,7 @@ parser_d_compiling_second_time=03107_DL_öbersetze $1 zum zweiten Mal
 parser_e_no_property_found_to_override=03109_E_Es gibt keine Property diesen Namens, die Åberschrieben werden kînnte
 % You want to overrride a property of a parent class, when there is, in fact,
 % no such property in the parent class.
-parser_e_only_one_default_property=03110_E_Es ist nur eine einzelne Default-Property erlaubt, vererbte Default-Property in Klasse $1 gefunden
+parser_e_only_one_default_property=03110_E_Es ist nur eine einzelne Default-Property erlaubt
 % You specified a property as \var{Default}, but a parent class already has a
 % default property, and a class can have only one default property.
 parser_e_property_need_paras=03111_E_Die Default-Property muss eine Array-Property sein
@@ -1088,6 +1095,7 @@ parser_w_overridden_methods_not_same_ret=03218_W_öberschriebene Methoden mÅssen 
 % functions, but the resulting code may crash depending on the types used
 % and the way the methods are called.
 parser_e_dispid_must_be_ord_const=03219_E_Dispatch IDs mÅssen ganzzahlige Konstanten sein
+% The \var{dispid} keyword must be followed by an ordinal constant (the dispid index).
 parser_e_array_range_out_of_bounds=03220_E_Der Bereich des Array ist zu gross
 % Regardless of the size taken up by its elements, an array cannot have more
 % than high(ptrint) elements. Additionally, the range type must be a subrange
@@ -1139,20 +1147,13 @@ parser_e_no_generics_as_types=03236_E_Generische Typen kînnen nicht ohne Spezial
 % Generics must be always specialized before being used as variable type
 parser_w_register_list_ignored=03237_W_Registerliste wird in reinen Assemblerroutinen ignoriert
 % When using pure assembler routines, the list with modified registers is ignored.
-parser_e_implements_must_be_class_or_interface=03238_E_Die Implements-Eigenschaft muss einen Klassen- oder Interface-Typ haben
-parser_e_implements_must_have_correct_type=03239_E_Die Implements-Eigenschaft muss ein Interface mit dem richtigen Typ implementieren; es wurde Typ "$1" gefunden, aber Typ "$2" erwartet.
-parser_e_implements_must_read_specifier=03240_E_Die Implements-Eigenschaft muss einen Lesen-Bezeichner haben
-parser_e_implements_must_not_have_write_specifier=03241_E_Die Implements-Eigenschaft darf keinen Schreib-Bezeichner haben
-parser_e_implements_must_not_have_stored_specifier=03242_E_Die Implements-Eigenschaft darf keinen Gespeichert-Bezeichner haben
-parser_e_implements_uses_non_implemented_interface=03243_E_Die Implements-Eigenschaft benutzt das nicht implementierte Interface "$1"
-parser_e_unsupported_real=03244_E_Fliesskommavariablen werden fÅr dieses Ziel nicht unterstÅtzt
-% The compiler parsed a floating point expression, but it is not supported.
-parser_e_class_doesnt_implement_interface=03245_E_Klasse "$1" implementiert das Interface "$2" nicht
-% The delegated interface is not implemented by the class given in the implements clause
-parser_e_class_implements_must_be_interface=03246_E_Der von Implements benutzte Typ muss ein Interface sein
 parser_e_cant_export_var_different_name=03247_E_Variablen kînnen fÅr dieses Target nicht mit einem anderen Namen exportiert werden; fÅge der Deklaration den Namen mit einer "export" Direktive hinzu (Variablenname: $1, deklarierter Name fÅr den Export: $2)
 % On most targets it is not possible to change the name under which a variable is exported inside the \var{exports} statement of a library.
 % In that case, you have to specify the export name at the point where the variable is declared, using the \var{export} and \var{alias} directives.
+parser_e_forward_mismatch=03249_E_Forward Typdefinition passt nicht
+% Classes and interfaces being defined forward must have the same type
+% when being implemented. A forward interface can not be changed into a class.
+%
 % \end{description}
 #
 # Type Checking
@@ -1602,11 +1603,6 @@ sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr ab
 sym_h_abstract_method_list=05062_H_Abstrakte Method "$1" gefunden 
 % When getting a warning about constructing a class/object with abstract methods
 % you get this hint to find the affected method.
-sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
-% This means that a symbol (a variable, routine, etc...) which is
-% declared as \var{experimental} is used. Experimental symbols
-% might disappear or change semantics in future versions. Usage of this symbol
-% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator
@@ -2022,7 +2018,7 @@ asmw_e_64bit_not_supported=08021_E_Asm: 64 Bit Operanden werden nicht unterstÅtz
 #
 # Executing linker/assembler
 #
-# 09032 is the last used one
+# 09028 is the last used one
 #
 # BeginOfTeX
 %
@@ -2085,7 +2081,7 @@ exec_e_dll_not_supported=09019_E_Dynamische Bibliotheken nicht unterstÅtzt
 % not yet implemented in the compiler.
 exec_i_closing_script=09020_I_Schliesse Skript $1
 % Informational message showing when the external assembling an linking script is finished.
-exec_e_res_not_found=09021_E_Resource-Compiler "$1" nicht gefunden, schalte um auf externen Modus
+exec_e_res_not_found=09021_E_Resource-Compiler nicht gefunden, schalte um auf externen Modus
 % An external resource compiler was not found, the compiler will produce a script that
 % can be used to assemble, compile resources and link or postprocess the program.
 exec_i_compilingresource=09022_I_öbersetze Resource $1
@@ -2102,16 +2098,6 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_Unit $1 kann weder shared noch
 % Shared or static linking was requested, but a unit which cannot be used for either  was used.
 exec_d_resbin_params=09028_D_Resource Compiler "$1" wird mit "$2" als Kommandozeile aufgerufen
 % An informational message showing which command-line is used for the resource compiler.
-exec_e_error_while_compiling_resources=09029_E_Fehler beim öbersetzen von Resourcen
-% The resource compiler or converter returned an error
-exec_e_cant_call_resource_compiler=09030_E_Der Resource-Compiler "$1" kann nicht aufgerufen werden, schalte um auf externen Modus
-% An error occurred when calling a resource compiler, the compiler will produce
-% a script that can be used to assemble, compile resources and link or
-% postprocess the program.
-exec_e_cant_open_resource_file=09031_E_Kann die Resourcedatei "$1" nicht îffnen
-% An error occurred resource file can not be opened
-exec_e_cant_write_resource_file=09032_E_Kann die Resourcedatei "$1" nicht schreiben
-% An error occurred resource file can not be written
 %\end{description}
 # EndOfTeX
 
@@ -2381,10 +2367,10 @@ option_target_is_already_set=11011_W_Zielsystem ist bereits gesetzt: $1
 option_no_shared_lib_under_dos=11012_W_Gemeinsame Bibliotheken sind auf der DOS Platform nicht verfÅgbar, verwende stattdessen statische Bibliotheken
 % If you specify \var{-CD} for the \dos platform, this message is displayed.
 % The compiler supports only static libraries under \dos
-option_too_many_ifdef=11013_F_Zu viele IF(N)DEFs
+option_too_many_ifdef=11013_F_Zu viele \var{\#IF(N)DEFs} in Zeile $2 der Optionen-Datei $1
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
-option_too_many_endif=11014_F_Zu viele ENDIFs
+option_too_many_endif=11014_F_Unerwartetes \var{\#ENDIFs} in Zeile $2 der Optionen-Datei $1
 % the \var{\#IF(N)DEF} statements in the options file are not balanced with
 % the \var{\#ENDIF} statements.
 option_too_less_endif=11015_F_Offene Bedingung am Dateiende
@@ -2422,24 +2408,40 @@ option_using_env=11027_T_Optionen werden aus dem environment $1 gelesen
 option_handling_option=11028_D_Handling der Option "$1"
 % Debug info that an option is found and will be handled
 option_help_press_enter=11029__*** DrÅcken Sie die ENTER-Taste ***
+% Message shown when help is shown page per page. When pressing the ENTER
+% Key, the next page of help is shown. If you press q and then ENTER, the
+% compiler exits.
 option_start_reading_configfile=11030_H_Beginn des Lesens der Konfigurationsdatei $1
 % Starting of config file parsing.
 option_end_reading_configfile=11031_H_Ende des Lesens der Konfigurationsdatei $1
 % End of config file parsing.
 option_interpreting_option=11032_D_Option "$1" interpretieren
+% The compiler is interpreting an option
 option_interpreting_firstpass_option=11036_D_firstpass Option "$1" interpretieren
+% The compiler is interpreting an option for the first time.
 option_interpreting_file_option=11033_D_Datei Option "$1" interpretieren
+% The compiler is interpreting an option which it read from the configuration file.
 option_read_config_file=11034_D_Konfigurationsdatei "$1" lesen
+% The compiler is starting to read the configuration file.
 option_found_file=11035_D_Name der Quelldatei "$1" gefunden
 % Additional infos about options, displayed
 % when you have debug option turned on.
 option_code_page_not_available=11039_E_Unbekannte code page
+% An unknown code page for the source files was requested.
+% The compiler is compiled with support for several code pages built-in.
+% The requested code page is not in that list. You will need to recompile
+% the compiler with support for the codepage you need.
 option_config_is_dir=11040_F_Konfigurationsdatei $1 ist ein Verzeichnis
 % Directories can not be used as configuration files.
 option_confict_asm_debug=11041_W_Die gewÑhlte Assembler-Ausgabe "$1" kann kein Debug-Info erzeugen, Debugging ist ausgeschaltet
 % The assembler output selected can not generate
 % debugging information, debugging option is therefore disabled.
 %\end{description}
+option_ppc386_deprecated=11042_W_Die Verwendung von ppc386.cfg wird beendet. Bitte statt dessen fpc.cfg benutzen
+% Using ppc386.cfg is still supported for historical reasons, however, for a multiplatform
+% system the naming makes no sense anymore. Please continue to use fpc.cfg instead.
+option_else_without_if=11043_F_Zur \var{\#ELSE} Direktive in Zeile $2 der Optionen-Datei $1 gibt es kein entsprechendes \var{\#IF(N)DEF}
+% An \var{\#ELSE} statement was found in the options file without a matching \var{\#IF(N)DEF} statement.
 # EndOfTeX
 
 #
@@ -2535,8 +2537,6 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2bl_Erzeuge Info zu lokalen Symbolen
 **1B_Erzeuge alle Module (Build)
 **1C<x>_Optionen fÅr Code-Erzeugung:
-**2Ca<x>_WÑhle ABI aus; fpc -i gibt die mîglichen Werte aus
-**2Cb_Erzeuge "big-endian" Code
 **2Cc<x>_Setze "default calling convention" zu <x>
 **2CD_Erzeuge auch eine dynamische Bibliothek (nicht unterstÅtzt)
 **2Ce_öbersetze mit emulierten Fliesskomma opcodes
@@ -2588,9 +2588,12 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 *g2go<x>_Setze Optionen fÅr die Debug Informationen
 *g3godwarfsets_Schalte Dwarf Debug Informationen fÅr Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
 *g2gp_Erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
+*g2gs_Erzeuge stabs Debug-Informationen
 *g2gt_Lîsche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden)
 *g2gv_Erzeuge ein mit valgrind verfolgbares (traceable) Programm
 *g2gw_Erzeuge dwarf Informationen
+*g2gw2_Erzeuge dwarf-2 Debug-Informationen
+*g2gw3_Erzeuge dwarf-3 Debug-Informationen
 **1i_Zeige alle Information Åber den Compiler
 **2iD_Zeige Compilerdatum
 **2iV_Zeige Compilerversion
@@ -2646,7 +2649,6 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **3SIcorba_CORBA kompatibles Interface
 **2Sm_UnterstÅtze Makros wie in C (global)
 **2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
-**2Sp_Sei gpc-kompatibel (wie -Mgpc)
 **2Ss_Konstruktor- und Destruktorname mÅssen "Init" und "Done" sein
 **2St_Erlaube SchlÅsselwort static in Objekten
 **2Sx_Exception SchlÅsselwîrter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
@@ -2713,16 +2715,10 @@ A*2WC_Spezifiziere "console type application" (Windows)
 P*2WC_Spezifiziere "console type application" (Classic Mac OS)
 3*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren (Windows)
 A*2WD_Benutze DEFFILE um Funktionen der DLL oder EXE zu exportieren (Windows)
-3*2We_Benutze externe Resourcen (Darwin)
-P*2We_Benutze externe Resourcen (Darwin)
-p*2We_Benutze externe resoResourcenurces (Darwin)
 3*2WF_Spezifiziere "full-screen type application" (EMX, OS/2)
 3*2WG_Spezifiziere "graphic type application" (EMX, OS/2, Windows)
 A*2WG_Spezifiziere "graphic type application" (Windows)
 P*2WG_Spezifiziere "graphic type application" (Classic Mac OS)
-3*2Wi_Benutze interne Resourcen (Darwin)
-P*2Wi_Benutze interne Resourcen (Darwin)
-p*2Wi_Benutze interne Resourcen (Darwin)
 3*2WN_Erzeuge keinen "relocation code" (notwendig fÅr debugging) (Windows)
 A*2WN_Erzeuge keinen "relocation code" (notwendig fÅr debugging) (Windows)
 3*2WR_Erzeuge "relocation code" (Windows)
@@ -2751,4 +2747,3 @@ P*2WF_Spezifiziere "MPW tool type application" (Classic Mac OS)
 
 #
 # The End...
-#

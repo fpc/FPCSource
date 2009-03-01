@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2006 by the Free Pascal Development team
+#   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #
@@ -2133,7 +2133,7 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 #
 # Unit loading
 #
-# 10059 is the last used one
+# 10060 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
