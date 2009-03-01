@@ -62,8 +62,6 @@
            302    LoadHTML
            241    LoadStringEtcOver
            180    NotifyAppsOnEvent
-            24    PathAddBackslash
-            26    PathCombine
             23    PathFindExtension
             27    PathFindFileName
            160    PathFindNextComponent
@@ -486,6 +484,9 @@ type
 //*****************************************************************************
 // functions
 //*****************************************************************************
+
+function PathAddBackslash(lpszPath:LPTSTR):LPTSTR; external UserDLLAyg name 'PathAddBackslash'; // index 24
+function PathCombine(lpszDest:LPTSTR; lpszDir:LPCTSTR; lpszFile:LPCTSTR):LPTSTR; external UserDLLAyg name 'PathCombine'; // index 26
 
 function ExitWindowsEx(uFlags:UINT; dwReserved:DWORD):WINBOOL; external UserDLLAyg name 'ExitWindowsEx';
 function SHCloseApps( dwMemSought : DWORD ): WINBOOL; external UserDLLAyg name 'SHCloseApps';
