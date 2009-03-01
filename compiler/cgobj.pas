@@ -488,7 +488,7 @@ unit cgobj;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
-          procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
+          procedure a_load_subsetref_regs_index(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister); virtual;
 
           procedure a_load_regconst_subsetref_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sref: tsubsetreference; slopt: tsubsetloadopt); virtual;
           procedure a_load_regconst_subsetreg_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sreg: tsubsetregister; slopt: tsubsetloadopt); virtual;
@@ -1248,11 +1248,18 @@ implementation
       end;
 
 
-    procedure tcg.a_load_subsetref_regs_index(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister);
+    procedure tcg.a_load_subsetref_regs_index(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg: tregister);
       var
+        hl: tasmlabel;
+        tmpref: treference;
+        extra_value_reg,
         tmpreg: tregister;
       begin
         tmpreg := getintregister(list,OS_INT);
+        tmpref := sref.ref;
+        inc(tmpref.offset,loadbitsize div 8);
+        extra_value_reg := getintregister(list,OS_INT);
+
         if (target_info.endian = endian_big) then
           begin
             { since this is a dynamic index, it's possible that the value   }
@@ -1273,56 +1280,49 @@ implementation
                   a_op_const_reg(list,OP_AND,OS_INT,aint((aword(1) shl sref.bitlen)-1),valuereg);
               end;
             tmpreg := getintregister(list,OS_INT);
+
+            { ensure we don't load anything past the end of the array }
+            current_asmdata.getjumplabel(hl);
+            a_cmp_const_reg_label(list,OS_INT,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
+
             { the bits in extra_value_reg (if any) start at the most significant bit =>         }
             { extra_value_reg must be shr by (loadbitsize-sref.bitlen)+(loadsize-sref.bitindex) }
             { => = -(sref.bitindex+(sref.bitlen-2*loadbitsize))                                 }
             a_op_const_reg_reg(list,OP_ADD,OS_INT,sref.bitlen-2*loadbitsize,sref.bitindexreg,tmpreg);
             a_op_reg_reg(list,OP_NEG,OS_INT,tmpreg,tmpreg);
+
+            { load next "loadbitsize" bits of the array }
+            a_load_ref_reg(list,int_cgsize(loadbitsize div 8),OS_INT,tmpref,extra_value_reg);
+
             a_op_reg_reg(list,OP_SHR,OS_INT,tmpreg,extra_value_reg);
             { if there are no bits in extra_value_reg, then sref.bitindex was      }
             { < loadsize-sref.bitlen, and therefore tmpreg will now be >= loadsize }
             { => extra_value_reg is now 0                                          }
-
-{$ifdef sparc}
-            { except on sparc, where "shr X" = "shr (X and (bitsize-1))" }
-            if (loadbitsize = AIntBits) then
-              begin
-                { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpreg);
-                { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
-                a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
-                { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
-                a_op_reg_reg(list,OP_AND,OS_INT,tmpreg,extra_value_reg);
-              end;
-{$endif sparc}
-
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
             { no need to mask, necessary masking happened earlier on }
+            a_label(list,hl);
           end
         else
           begin
             a_op_reg_reg(list,OP_SHR,OS_INT,sref.bitindexreg,valuereg);
+
+            { ensure we don't load anything past the end of the array }
+            current_asmdata.getjumplabel(hl);
+            a_cmp_const_reg_label(list,OS_INT,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
+
             { Y-x = -(Y-x) }
             a_op_const_reg_reg(list,OP_SUB,OS_INT,loadbitsize,sref.bitindexreg,tmpreg);
             a_op_reg_reg(list,OP_NEG,OS_INT,tmpreg,tmpreg);
-            { tmpreg is in the range 1..<cpu_bitsize> -> will zero extra_value_reg }
-            { if all bits are in valuereg                                          }
+
+            { load next "loadbitsize" bits of the array }
+            a_load_ref_reg(list,int_cgsize(loadbitsize div 8),OS_INT,tmpref,extra_value_reg);
+
+            { tmpreg is in the range 1..<cpu_bitsize>-1 -> always ok }
             a_op_reg_reg(list,OP_SHL,OS_INT,tmpreg,extra_value_reg);
-{$ifdef x86}
-            { on i386 "x shl 32 = x shl 0", on x86/64 "x shl 64 = x shl 0". Fix so it's 0. }
-            if (loadbitsize = AIntBits) then
-              begin
-                { if (tmpreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                a_op_const_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpreg);
-                { if (tmpreg = cpu_bit_size) then tmpreg := 0 else tmpreg := -1 }
-                a_op_const_reg(list,OP_SUB,OS_INT,1,tmpreg);
-                { if (tmpreg = cpu_bit_size) then extra_value_reg := 0 }
-                a_op_reg_reg(list,OP_AND,OS_INT,tmpreg,extra_value_reg);
-              end;
-{$endif x86}
             { merge }
             a_op_reg_reg(list,OP_OR,OS_INT,extra_value_reg,valuereg);
+            a_label(list,hl);
             { sign extend or mask other bits }
             if (subsetsize in [OS_S8..OS_S128]) then
               begin
@@ -1403,18 +1403,20 @@ implementation
           begin
             { load next value as well }
             extra_value_reg := getintregister(list,OS_INT);
-            tmpref := sref.ref;
-            inc(tmpref.offset,loadbitsize div 8);
-            a_load_ref_reg(list,loadsize,OS_INT,tmpref,extra_value_reg);
 
             if (sref.bitindexreg = NR_NO) then
-              { can be overridden to optimize }
-              a_load_subsetref_regs_noindex(list,subsetsize,loadbitsize,sref,valuereg,extra_value_reg)
+              begin
+                tmpref := sref.ref;
+                inc(tmpref.offset,loadbitsize div 8);
+                a_load_ref_reg(list,loadsize,OS_INT,tmpref,extra_value_reg);
+                { can be overridden to optimize }
+                a_load_subsetref_regs_noindex(list,subsetsize,loadbitsize,sref,valuereg,extra_value_reg)
+              end
             else
               begin
                 if (sref.startbit <> 0) then
                   internalerror(2006080610);
-                a_load_subsetref_regs_index(list,subsetsize,loadbitsize,sref,valuereg,extra_value_reg);
+                a_load_subsetref_regs_index(list,subsetsize,loadbitsize,sref,valuereg);
               end;
           end;
 
