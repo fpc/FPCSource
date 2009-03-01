@@ -29,7 +29,7 @@ interface
        { version string }
        version_nr = '2';
        release_nr = '2';
-       patch_nr   = '4';
+       patch_nr   = '5';
        minorpatch = '';
 
        { word version for ppu file }

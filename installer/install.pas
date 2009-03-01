@@ -93,7 +93,7 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='2.2.4';
+     installerversion='2.2.5';
      installercopyright='Copyright (c) 1993-2009 Florian Klaempfl';
 
 
