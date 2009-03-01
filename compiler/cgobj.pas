@@ -1437,6 +1437,7 @@ implementation
 
     procedure tcg.a_load_regconst_subsetref_intern(list : TAsmList; fromsize, subsetsize: tcgsize; fromreg: tregister; const sref: tsubsetreference; slopt: tsubsetloadopt);
       var
+        hl: tasmlabel;
         tmpreg, tmpindexreg, valuereg, extra_value_reg, maskreg: tregister;
         tosreg, fromsreg: tsubsetregister;
         tmpref: treference;
@@ -1676,21 +1677,24 @@ implementation
                 valuereg := makeregsize(list,valuereg,loadsize);
                 a_load_reg_ref(list,loadsize,loadsize,valuereg,sref.ref);
 
+                { make sure we do not read/write past the end of the array }
+                current_asmdata.getjumplabel(hl);
+                a_cmp_const_reg_label(list,OS_INT,OC_BE,loadbitsize-sref.bitlen,sref.bitindexreg,hl);
 
                 a_load_ref_reg(list,loadsize,OS_INT,tmpref,extra_value_reg);
                 tmpindexreg := getintregister(list,OS_INT);
 
-               { load current array value }
-               if (slopt <> SL_SETZERO) then
-                 begin
-                   tmpreg := getintregister(list,OS_INT);
-                   if (slopt <> SL_SETMAX) then
-                     a_load_reg_reg(list,fromsize,OS_INT,fromreg,tmpreg)
-                   else if (sref.bitlen <> AIntBits) then
-                     a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen) - 1), tmpreg)
-                   else
-                     a_load_const_reg(list,OS_INT,-1,tmpreg);
-                 end;
+                { load current array value }
+                if (slopt <> SL_SETZERO) then
+                  begin
+                    tmpreg := getintregister(list,OS_INT);
+                    if (slopt <> SL_SETMAX) then
+                       a_load_reg_reg(list,fromsize,OS_INT,fromreg,tmpreg)
+                    else if (sref.bitlen <> AIntBits) then
+                      a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen) - 1), tmpreg)
+                    else
+                      a_load_const_reg(list,OS_INT,-1,tmpreg);
+                  end;
 
                 { generate mask to zero the bits we have to insert }
                 if (slopt <> SL_SETMAX) then
@@ -1702,20 +1706,6 @@ implementation
                         a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
                         a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
                         a_op_reg_reg(list,OP_SHL,OS_INT,tmpindexreg,maskreg);
-{$ifdef sparc}
-                        {  on sparc, "shr X" = "shr (X and (bitsize-1))" -> fix so shr (x>32) = 0 }
-                        if (loadbitsize = AIntBits) then
-                          begin
-                            { if (tmpindexreg >= cpu_bit_size) then tmpreg := 1 else tmpreg := 0 }
-                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpindexreg,valuereg);
-                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 else maskreg := -1 }
-                            a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
-                            { if (tmpindexreg = cpu_bit_size) then maskreg := 0 }
-                            if (slopt <> SL_SETZERO) then
-                              a_op_reg_reg(list,OP_AND,OS_INT,valuereg,tmpreg);
-                            a_op_reg_reg(list,OP_AND,OS_INT,valuereg,maskreg);
-                          end;
-{$endif sparc}
                       end
                     else
                       begin
@@ -1724,21 +1714,6 @@ implementation
                         a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
                         a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
                         a_op_reg_reg(list,OP_SHR,OS_INT,tmpindexreg,maskreg);
-{$ifdef x86}
-                        { on i386 "x shl 32 = x shl 0", on x86/64 "x shl 64 = x shl 0". Fix so it's 0. }
-                        if (loadbitsize = AIntBits) then
-                          begin
-                            valuereg := getintregister(list,OS_INT);
-                            { if (tmpindexreg >= cpu_bit_size) then valuereg := 1 else valuereg := 0 }
-                            a_op_const_reg_reg(list,OP_SHR,OS_INT,{$ifdef cpu64bitalu}6{$else}5{$endif},tmpindexreg,valuereg);
-                            { if (tmpindexreg = cpu_bit_size) then valuereg := 0 else valuereg := -1 }
-                            a_op_const_reg(list,OP_SUB,OS_INT,1,valuereg);
-                            { if (tmpindexreg = cpu_bit_size) then tmpreg := maskreg := 0 }
-                            if (slopt <> SL_SETZERO) then
-                              a_op_reg_reg(list,OP_AND,OS_INT,valuereg,tmpreg);
-                            a_op_reg_reg(list,OP_AND,OS_INT,valuereg,maskreg);
-                          end;
-{$endif x86}
                       end;
 
                     a_op_reg_reg(list,OP_NOT,OS_INT,maskreg,maskreg);
@@ -1759,6 +1734,8 @@ implementation
                   end;
                 extra_value_reg := makeregsize(list,extra_value_reg,loadsize);
                 a_load_reg_ref(list,loadsize,loadsize,extra_value_reg,tmpref);
+
+                a_label(list,hl);
               end;
           end;
       end;
