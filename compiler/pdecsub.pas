@@ -2266,13 +2266,16 @@ const
                     s:=proc_get_importname(pd);
                     if s<>'' then
                       begin
-                        { Replace ? and @ in import name }
-                        { these replaces broke existing code on i386-win32 at least, while fixed
-                          bug 8391 on arm-wince so limit this to arm-wince (KB) }
-                        if target_info.system in [system_arm_wince] then
+                        { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+                        { This allows to import VC++ mangled names from DLLs. }
+                        { Do not perform replacement, if external symbol is not imported from DLL. }
+                        if (target_info.system in system_all_windows) and (pd.import_dll<>nil) then
                           begin
                             Replace(s,'?','__q$$');
+{$ifdef arm}
+                            { @ symbol is not allowed in ARM assembler only }
                             Replace(s,'@','__a$$');
+{$endif arm}
                           end;
                         pd.setmangledname(s);
                       end;
