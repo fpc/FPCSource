@@ -854,7 +854,8 @@ implementation
             end
           { packed array constant }
           else if is_packed_array(def) and
-                  (def.elepackedbitsize mod 8 <> 0)  then
+                  ((def.elepackedbitsize mod 8 <> 0) or
+                   not ispowerof2(def.elepackedbitsize div 8,i)) then
             begin
               parse_packed_array_def(list,def);
             end
