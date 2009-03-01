@@ -696,7 +696,7 @@ implementation
         headertai : tai;
         i : integer;
         varsym : tabstractnormalvarsym;
-        RedoDFA : boolean;
+        {RedoDFA : boolean;}
       begin
         { the initialization procedure can be empty, then we
           don't need to generate anything. When it was an empty
@@ -807,7 +807,7 @@ implementation
             for loops with more than one entry }
           and not(pi_has_goto in current_procinfo.flags) then
           begin
-            RedoDFA:=OptimizeInductionVariables(code);
+            {RedoDFA:=}OptimizeInductionVariables(code);
           end;
 
         if cs_opt_nodecse in current_settings.optimizerswitches then

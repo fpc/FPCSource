@@ -208,7 +208,6 @@ implementation
 
     function newalignment(oldalignment: longint; offset: int64): longint;
       var
-        i,
         localoffset: longint;
       begin
         localoffset:=longint(offset);
