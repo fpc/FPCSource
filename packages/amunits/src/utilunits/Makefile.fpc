@@ -4,7 +4,7 @@
 
 [package]
 name=amunits
-version=2.2.4
+version=2.2.5
 
 [target]
 units=amigautils consoleio deadkeys doublebuffer easyasl hisoft \

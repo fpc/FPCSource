@@ -263,7 +263,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=ide
-override PACKAGE_VERSION=2.2.4
+override PACKAGE_VERSION=2.2.5
 ifndef PPC_TARGET
 PPC_TARGET=$(CPU_TARGET)
 endif

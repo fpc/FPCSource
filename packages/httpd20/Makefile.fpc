@@ -4,7 +4,7 @@
 
 [package]
 name=httpd20
-version=2.2.4
+version=2.2.5
 
 [target]
 units=apr apriconv aprutil httpd

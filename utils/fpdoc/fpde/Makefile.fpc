@@ -4,7 +4,7 @@
 
 [package]
 name=fpde
-version=2.2.4
+version=2.2.5
 
 [require]
 packages=fcl-base fcl-xml fcl-passrc fpgtk

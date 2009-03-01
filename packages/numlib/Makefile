@@ -263,7 +263,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=numlib
-override PACKAGE_VERSION=2.2.4
+override PACKAGE_VERSION=2.2.5
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=typ omv dsl mdt det eig eigh1 eigh2 int inv iom ipf ode roo sle spe spl numlib
 endif

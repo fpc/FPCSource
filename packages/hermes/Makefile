@@ -263,7 +263,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=hermes
-override PACKAGE_VERSION=2.2.4
+override PACKAGE_VERSION=2.2.5
 I386_LOADERSSRC=src/i386/x86_main.as src/i386/x86p_cpy.as \
 	src/i386/x86pscpy.as src/i386/x86p_16.as \
 	src/i386/x86p_i8.as src/i386/x86_clr.as \

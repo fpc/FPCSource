@@ -4,7 +4,7 @@
 
 [package]
 name=winceunits
-version=2.2.4
+version=2.2.5
 
 [target]
 units_wince=buildwinceunits
