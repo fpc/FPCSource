@@ -399,6 +399,9 @@ interface
         packrecords     : 0;
         maxfpuregisters : 0;
         minfpconstprec : s32real;
+{$if defined(ARM)}
+        controllertype : ct_none;
+{$endif defined(ARM)}
       );
 
     var
