@@ -83,6 +83,8 @@ package=uchmdos.zip,Support for .chm files handling
 package=ulibgddos.zip[ulgddos.zip],GD library interface unit
 # Dos 28
 package=usymbolicdos.zip[usymbdos.zip],Symbolic (unit for parsing and evaluating expressions)
+# Dos 29
+package=ufcl-resdos.zip[ufcledos.zip],Free Component Library (FCL)-resources
 
 #
 # Win32 packages
@@ -200,6 +202,8 @@ package=units-chm.i386-win32.zip,Support for .chm files handling
 package=units-libgd.i386-win32.zip,GD library interface unit
 # Win32-2 27
 package=units-symbolic.i386-win32.zip,Symbolic (unit for parsing and evaluating expressions)
+# Win32-2 28
+package=units-fcl-res.i386-win32.zip,Free Component Library (FCL)-resources
 
 
 #
@@ -304,6 +308,8 @@ package=uchmos2.zip,Support for .chm files handling
 package=ulibgdos2.zip[ulgdos2.zip],GD library interface unit
 # OS/2-2 22
 package=usymbolicos2.zip[usymbos2.zip],Symbolic (unit for parsing and evaluating expressions)
+# OS/2-2 23
+package=ufcl-resos2.zip[ufcleos2.zip],Free Component Library (FCL)-resources
 
 
 
@@ -409,6 +415,8 @@ package=uchmemx.zip,Support for .chm files handling
 package=ulibgdemx.zip[ulgdemx.zip],GD library interface unit
 # EMX-2 22
 package=usymbolicemx.zip[usymbemx.zip],Symbolic (unit for parsing and evaluating expressions)
+# EMX-2 23
+package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
 
 
 #
@@ -513,6 +521,8 @@ package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
 package=units-libgd.source.zip[ulgdsrc.zip],GD library interface unit
 # Source-2 23
 package=units-symbolic.source.zip[usymbsrc.zip],Symbolic (unit for parsing and evaluating expressions)
+# Source-2 24
+package=units-fcl-res.source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
 
 
 #
