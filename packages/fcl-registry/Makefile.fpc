@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-registry
-version=2.2.3
+version=2.2.4
 
 [target]
 units=xmlreg registry

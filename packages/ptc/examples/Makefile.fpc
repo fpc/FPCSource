@@ -4,7 +4,7 @@
 
 [package]
 name=ptc-examples
-version=2.2.3
+version=2.2.4
 
 [target]
 programs=area buffer clear clip con_info console fire  \

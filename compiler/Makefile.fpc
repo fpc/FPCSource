@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=2.2.3
+version=2.2.4
 
 [target]
 programs=pp
