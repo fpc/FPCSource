@@ -114,6 +114,36 @@ type
     property List: PTypeList read GetList;
   end;
 
+  generic TFPGObjectList<T> = class(TFPSList)
+  type public
+    TCompareFunc = function(const Item1, Item2: T): Integer;
+    TTypeList = array[0..MaxGListSize] of T;
+    PTypeList = ^TTypeList;
+    PT = ^T;
+  var protected
+    FOnCompare: TCompareFunc;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
+    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+  public
+    constructor Create;
+    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: T): Integer;
+    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
+    {procedure Assign(Source: TFPGList);}
+    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Sort(Compare: TCompareFunc);
+    property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
+  end;
+
 {$endif}
 
   TFPSMap = class(TFPSList)
@@ -547,11 +577,11 @@ begin
     Add(Obj[i]);
 end;
 
+{$ifndef VER2_0}
+
 {****************************************************************************}
 {*                TFPGList                                                  *}
 {****************************************************************************}
-
-{$ifndef VER2_0}
 
 constructor TFPGList.Create;
 begin
@@ -637,6 +667,100 @@ begin
 end;
 
 procedure TFPGList.Sort(Compare: TCompareFunc);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare);
+end;
+
+
+{****************************************************************************}
+{*                TFPGObjectList                                            *}
+{****************************************************************************}
+
+constructor TFPGObjectList.Create;
+begin
+  inherited Create;
+end;
+
+procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
+begin
+  T(Dest^) := T(Src^);
+end;
+
+procedure TFPGObjectList.Deref(Item: Pointer);
+begin
+  T(Item^).Free;
+end;
+
+function TFPGObjectList.Get(Index: Integer): T;
+begin
+  Result := T(inherited Get(Index)^);
+end;
+
+function TFPGObjectList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
+end;
+
+function TFPGObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+begin
+  Result := FOnCompare(T(Item1^), T(Item2^));
+end;
+
+procedure TFPGObjectList.Put(Index: Integer; const Item: T);
+begin
+  inherited Put(Index, @Item);
+end;
+
+function TFPGObjectList.Add(const Item: T): Integer;
+begin
+  Result := inherited Add(@Item);
+end;
+
+function TFPGObjectList.Extract(const Item: T): T;
+var
+  ResPtr: Pointer;
+begin
+  ResPtr := inherited Extract(@Item);
+  if ResPtr <> nil then
+    Result := T(ResPtr^)
+  else
+    FillByte(Result, 0, sizeof(T));
+end;
+
+function TFPGObjectList.First: T;
+begin
+  Result := T(inherited First^);
+end;
+
+function TFPGObjectList.IndexOf(const Item: T): Integer;
+begin
+  Result := 0;
+  {$info TODO: fix inlining to work! InternalItems[Result]^}
+  while (Result < FCount) and (PT(FList)[Result] <> Item) do
+    Inc(Result);
+  if Result = FCount then
+    Result := -1;
+end;
+
+procedure TFPGObjectList.Insert(Index: Integer; const Item: T);
+begin
+  T(inherited Insert(Index)^) := Item;
+end;
+
+function TFPGObjectList.Last: T;
+begin
+  Result := T(inherited Last^);
+end;
+
+function TFPGObjectList.Remove(const Item: T): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result >= 0 then
+    Delete(Result);
+end;
+
+procedure TFPGObjectList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
