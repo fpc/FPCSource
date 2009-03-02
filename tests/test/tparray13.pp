@@ -133,28 +133,44 @@ $518787,$219852,$48BD56,$827F40,$3CC0A6,$E79AF6
 var
   i: longint;
 {$ifdef unix}
-  p,p2: pbyte;
+  p,p2,p3: pbyte;
   bp: paa;
+  mapsize: ptruint;
+  first: boolean;
 {$endif}
 begin
   if (sizeof(b)<>3*length(results)) then
     error(48);
 {$ifdef unix}
   { check for reading past end of array }
-  repeat
-    p := fpmmap(nil,4096,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
-    p2 := fpmmap(nil,4096,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
-  until (ptruint(p2) = ptruint(p) + 4096);
-  fpmunmap(p2,4096);
-  move(b,pbyte(ptruint(p)+4096-sizeof(b))^,sizeof(b));
-  bp := paa(ptruint(p)+4096-sizeof(b));
+  mapsize:=4096;
+  { look for a place where we can map one page and are certain that there's
+    no valid page right behind it
+  }
+  for i:=1 to 18 do
+    begin
+      p:=fpmmap(nil,mapsize*3,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
+      if (p<>pointer(-1)) then
+        begin
+          fpmunmap(p,mapsize*3);
+          p2:=fpmmap(p,mapsize,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
+          if (p2=p) then
+            break;
+          p2:=pointer(-1);
+        end;
+    end;
+  if (p2 = pointer(-1)) then
+    { didn't find a suitable mapping }
+    exit;
+  move(b,pbyte(ptruint(p)+mapsize-sizeof(b))^,sizeof(b));
+  bp := paa(ptruint(p)+mapsize-sizeof(b));
   for i := low(results) to high(results) do
     if bp^[i] <> results[i] then
       begin
         writeln(i);
         error(49);
       end;
-  fpmunmap(p,4096);
+  fpmunmap(p,mapsize);
 {$else}
   for i := low(results) to high(results) do
     if b[i] <> results[i] then

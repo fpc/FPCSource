@@ -229,18 +229,33 @@ var
 {$ifdef unix}
   p,p2: pbyte;
   bp: paa;
+  mapsize: ptruint;
 {$else}
   b: tb;
 {$endif}
 begin
 {$ifdef unix}
-  { check for reading/writing past end of array }
-  repeat
-    p := fpmmap(nil,4096,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
-    p2 := fpmmap(nil,4096,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
-  until (ptruint(p2) = ptruint(p) + 4096);
-  fpmunmap(p2,4096);
-  fillchar(p^,4096,$ff);
+  { check for reading past end of array }
+  mapsize:=4096;
+  { look for a place where we can map one page and are certain that there's
+    no valid page right behind it
+  }
+  for i:=1 to 18 do
+    begin
+      p:=fpmmap(nil,mapsize*3,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
+      if (p<>pointer(-1)) then
+        begin
+          fpmunmap(p,mapsize*3);
+          p2:=fpmmap(p,mapsize,PROT_READ or PROT_WRITE,MAP_PRIVATE or MAP_ANONYMOUS,-1,0);
+          if (p2=p) then
+            break;
+          p2:=pointer(-1);
+        end;
+    end;
+  if (p2 = pointer(-1)) then
+    { didn't find a suitable mapping }
+    exit;
+  fillchar(p^,mapsize,$ff);
   bp := paa(ptruint(p)+4096-sizeof(tb));
   for i := low(results) to high(results) do
     begin
