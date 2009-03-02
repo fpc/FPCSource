@@ -1130,9 +1130,17 @@ begin
         Result:=ReadDate;
       end;
 {$endif fpunone}
-    vaWString,vaUString,vaUTF8String:
+    vaWString,vaUTF8String:
       begin
         Result:=ReadWideString;
+      end;
+    vaString:
+      begin
+        Result:=ReadString;
+      end;
+    vaUString:
+      begin
+        Result:=ReadUnicodeString;
       end;
     else
       raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(nv)]);
