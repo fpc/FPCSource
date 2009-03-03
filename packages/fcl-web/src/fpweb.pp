@@ -18,7 +18,7 @@ unit fpWeb;
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp, inifiles, fptemplate, websession;
+  Classes, SysUtils, httpdefs, fphttp, fptemplate, websession;
 
 Type
 

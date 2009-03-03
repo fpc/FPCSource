@@ -56,16 +56,16 @@ Const
     { 23 } 'HTTP_USER_AGENT',
     { 24 } 'HTTP_COOKIE',
      // Additional Apache vars
-    { 24 } 'HTTP_CONNECTION',
-    { 25 } 'HTTP_ACCEPT_LANGUAGE',
-    { 26 } 'HTTP_HOST',
-    { 27 } 'SERVER_SIGNATURE',
-    { 28 } 'SERVER_ADDR',
-    { 29 } 'DOCUMENT_ROOT',
-    { 30 } 'SERVER_ADMIN',
-    { 31 } 'SCRIPT_FILENAME',
-    { 32 } 'REMOTE_PORT',
-    { 33 } 'REQUEST_URI'
+    { 25 } 'HTTP_CONNECTION',
+    { 26 } 'HTTP_ACCEPT_LANGUAGE',
+    { 27 } 'HTTP_HOST',
+    { 28 } 'SERVER_SIGNATURE',
+    { 29 } 'SERVER_ADDR',
+    { 30 } 'DOCUMENT_ROOT',
+    { 31 } 'SERVER_ADMIN',
+    { 32 } 'SCRIPT_FILENAME',
+    { 33 } 'REMOTE_PORT',
+    { 34 } 'REQUEST_URI'
     );
     
 
@@ -194,18 +194,18 @@ Const
     { 21: 'HTTP_IF_MODIFIED_SINCE' } FieldIfModifiedSince,
     { 22: 'HTTP_REFERER'           } FieldReferer,
     { 23: 'HTTP_USER_AGENT'        } FieldUserAgent,
-    { 23: 'HTTP_USER_AGENT'        } FieldCookie,
+    { 24: 'HTTP_COOKIE'            } FieldCookie,
      // Additional Apache vars
-    { 24: 'HTTP_CONNECTION'        } FieldConnection,
-    { 25: 'HTTP_ACCEPT_LANGUAGE'   } FieldAcceptLanguage,
-    { 26: 'HTTP_HOST'              } '',
-    { 27: 'SERVER_SIGNATURE'       } '',
-    { 28: 'SERVER_ADDR'            } '',
-    { 29: 'DOCUMENT_ROOT'          } '',
-    { 30: 'SERVER_ADMIN'           } '',
-    { 31: 'SCRIPT_FILENAME'        } '',
-    { 32: 'REMOTE_PORT'            } '',
-    { 33: 'REQUEST_URI'            } ''
+    { 25: 'HTTP_CONNECTION'        } FieldConnection,
+    { 26: 'HTTP_ACCEPT_LANGUAGE'   } FieldAcceptLanguage,
+    { 27: 'HTTP_HOST'              } '',
+    { 28: 'SERVER_SIGNATURE'       } '',
+    { 29: 'SERVER_ADDR'            } '',
+    { 30: 'DOCUMENT_ROOT'          } '',
+    { 31: 'SERVER_ADMIN'           } '',
+    { 32: 'SCRIPT_FILENAME'        } '',
+    { 33: 'REMOTE_PORT'            } '',
+    { 34: 'REQUEST_URI'            } ''
   );
 
 
