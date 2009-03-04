@@ -62,6 +62,7 @@ function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c
 function  pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_destroy';
 function  pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external  'c' name 'pthread_cond_init';
 function  pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_signal';
+function  pthread_cond_broadcast(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_broadcast';
 function  pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint;cdecl;external 'c' name 'pthread_cond_wait';
 function pthread_kill(__thread:pthread_t; __signo:cint):cint;cdecl;external 'c';
 function pthread_sigmask(how: cint; nset: psigset; oset: psigset): cint; cdecl; external 'c';
