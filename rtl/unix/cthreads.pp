@@ -53,6 +53,8 @@ interface
  {$endif darwin}
 {$endif}
 
+{$define basicevents_with_pthread_cond}
+
 Procedure SetCThreadManager;
 
 implementation
@@ -561,7 +563,6 @@ function cIntSemaphoreInit(initvalue: boolean): Pointer;
 var
   tid: string[31];
   semname: string[63];
-  err: cint;
 {$endif}
 begin
 {$ifdef has_sem_init}
@@ -616,13 +617,15 @@ end;
 
 
 type
+     TPthreadCondition = pthread_cond_t;
      TPthreadMutex = pthread_mutex_t;
      Tbasiceventstate=record
-         FSem: Pointer;
+         FCondVar: TPthreadCondition;
          FEventSection: TPthreadMutex;
          FWaiters: longint;
+         FIsSet,
          FManualReset,
-         FDestroying: Boolean;
+         FDestroying : Boolean;
         end;
      plocaleventstate = ^tbasiceventstate;
 //     peventstate=pointer;
@@ -634,7 +637,6 @@ Const
         wrError    = 3;
 
 function IntBasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
-
 var
   MAttr : pthread_mutexattr_t;
   res   : cint;
@@ -643,33 +645,14 @@ begin
   plocaleventstate(result)^.FManualReset:=AManualReset;
   plocaleventstate(result)^.FWaiters:=0;
   plocaleventstate(result)^.FDestroying:=False;
-{$ifdef has_sem_init}
-  plocaleventstate(result)^.FSem:=cIntSemaphoreInit(initialstate);
-  if plocaleventstate(result)^.FSem=nil then
-    begin
-      FreeMem(result);
-      fpc_threaderror;
-    end;
-{$else}
-{$ifdef has_sem_open}
-  plocaleventstate(result)^.FSem:=cIntSemaphoreOpen(PChar(Name),InitialState);
-  if (plocaleventstate(result)^.FSem = NIL) then
-    begin
-      FreeMem(result);
-      fpc_threaderror;
-    end;
-{$else}
-  plocaleventstate(result)^.FSem:=cSemaphoreInit;
-  if (plocaleventstate(result)^.FSem = NIL) then
-    begin
-      FreeMem(result);
-      fpc_threaderror;
-    end;
-  if InitialState then
-    cSemaphorePost(plocaleventstate(result)^.FSem);
-{$endif}
-{$endif}
-//  plocaleventstate(result)^.feventsection:=nil;
+  plocaleventstate(result)^.FIsSet:=InitialState;
+  res := pthread_cond_init(@plocaleventstate(result)^.FCondVar, nil);
+  if (res <> 0) then
+  begin
+    FreeMem(result);
+    fpc_threaderror;
+  end;
+
   res:=pthread_mutexattr_init(@MAttr);
   if res=0 then
     begin
@@ -681,112 +664,64 @@ begin
     end
   else
     res:=pthread_mutex_init(@plocaleventstate(result)^.feventsection,nil);
+
   pthread_mutexattr_destroy(@MAttr);
   if res <> 0 then
     begin
-      cSemaphoreDestroy(plocaleventstate(result)^.FSem);
+      pthread_cond_destroy(@plocaleventstate(result)^.FCondVar);
       FreeMem(result);
       fpc_threaderror;
     end;
 end;
 
 procedure Intbasiceventdestroy(state:peventstate);
-var
-  i: longint;
 begin
   { safely mark that we are destroying this event }
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
   plocaleventstate(state)^.FDestroying:=true;
-  { wake up everyone who is waiting }
-  for i := 1 to plocaleventstate(state)^.FWaiters do
-    cSemaphorePost(plocaleventstate(state)^.FSem);
+
+  { send a signal to all threads that are waiting }
+  pthread_cond_broadcast(@plocaleventstate(state)^.FCondVar);
   pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+
   { now wait until they've finished their business }
   while (plocaleventstate(state)^.FWaiters <> 0) do
     cThreadSwitch;
 
   { and clean up }
-  cSemaphoreDestroy(plocaleventstate(state)^.FSem);
+  pthread_cond_destroy(@plocaleventstate(state)^.Fcondvar);
+  pthread_mutex_destroy(@plocaleventstate(state)^.FEventSection);
   dispose(plocaleventstate(state));
 end;
 
 
 procedure IntbasiceventResetEvent(state:peventstate);
-
 begin
-{$if not defined(has_sem_init) and not defined(has_sem_open)}
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-  try
-{$endif}
-    while (cSemaphoreTryWait(plocaleventstate(state)^.FSem) = tw_semwasunlocked) do
-      ;
-{$if not defined(has_sem_init) and not defined(has_sem_open)}
-  finally
-    pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
-  end;
-{$endif}
+  plocaleventstate(state)^.fisset:=false;
+  pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
 end;
 
 procedure IntbasiceventSetEvent(state:peventstate);
-
-Var
-  res : cint;
-  err : cint;
-{$if defined(has_sem_init) or defined(has_sem_open)}
-  Value : Longint;
-{$else}
-  fds: TFDSet;
-  tv : timeval;
-{$endif}
 begin
   pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
   Try
-{$if defined(has_sem_init) or defined(has_sem_open)}
-    if (sem_getvalue(plocaleventstate(state)^.FSem,@value) <> -1) then
-      begin
-        if Value=0 then
-          cSemaphorePost(plocaleventstate(state)^.FSem);
-      end
-    else if (fpgetCerrno = ESysENOSYS) then
-      { not yet implemented on Mac OS X 10.4.8 }
-      begin
-        repeat
-          res:=sem_trywait(psem_t(plocaleventstate(state)^.FSem));
-          err:=fpgetCerrno;
-        until ((res<>-1) or (err<>ESysEINTR));
-        { now we've either decreased the semaphore by 1 (if it was  }
-        { not zero), or we've done nothing (if it was already zero) }
-        { -> increase by 1 and we have the same result as           }
-        { increasing by 1 only if it was 0                          }
-        cSemaphorePost(plocaleventstate(state)^.FSem);
-      end
+    plocaleventstate(state)^.Fisset:=true;
+    if not(plocaleventstate(state)^.FManualReset) then
+      pthread_cond_signal(@plocaleventstate(state)^.Fcondvar)
     else
-      fpc_threaderror;
-{$else has_sem_init or has_sem_open}
-    tv.tv_sec:=0;
-    tv.tv_usec:=0;
-    fpFD_ZERO(fds);
-    fpFD_SET(PFilDes(plocaleventstate(state)^.FSem)^[0],fds);
-    repeat
-      res:=fpselect(PFilDes(plocaleventstate(state)^.FSem)^[0]+1,@fds,nil,nil,@tv);
-      err:=fpgeterrno;
-    until (res>=0) or ((res=-1) and (err<>ESysEIntr));
-    if (res=0) then
-      cSemaphorePost(plocaleventstate(state)^.FSem);
-{$endif has_sem_init or has_sem_open}
+      pthread_cond_broadcast(@plocaleventstate(state)^.Fcondvar);
   finally
     pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
   end;
 end;
 
-
 function IntbasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 var
-  i, loopcnt: cardinal;
-  timespec, timetemp, timeleft: ttimespec;
-  nanores, nanoerr: cint;
-  twres: TTryWaitResult;
-  lastloop: boolean;
+  timespec: ttimespec;
+  errres: cint;
+  isset: boolean;
+  tnow : timeval;
 begin
   { safely check whether we are being destroyed, if so immediately return. }
   { otherwise (under the same mutex) increase the number of waiters        }
@@ -797,127 +732,58 @@ begin
       result := wrAbandoned;
       exit;
     end;
-  inc(plocaleventstate(state)^.FWaiters);
-  pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+  { not a regular inc() because it may happen simulatneously with the }
+  { interlockeddecrement() at the end                                 }
+  interlockedincrement(plocaleventstate(state)^.FWaiters);
 
-  if TimeOut=Cardinal($FFFFFFFF) then
+  //Wait without timeout using pthread_cond_wait
+  if Timeout = $FFFFFFFF then
     begin
-      { if no timeout, just wait until we are woken up }
-      cSemaphoreWait(plocaleventstate(state)^.FSem);
-      if not(plocaleventstate(state)^.FDestroying) then
-        result:=wrSignaled
-      else
-        result:=wrAbandoned;
+      while (not plocaleventstate(state)^.FIsSet) and (not plocaleventstate(state)^.FDestroying) do
+        pthread_cond_wait(@plocaleventstate(state)^.Fcondvar, @plocaleventstate(state)^.feventsection);
     end
   else
     begin
-{$ifdef has_sem_timedwait}
-      fpgettimeofday(@timespec,nil);
-      inc(timespec.tv_nsec, (timeout mod 1000) * 1000000);
-      inc(timespec.tv_sec, timeout div 1000);
-      if timespec.tv_nsec > 1000000000 then
-      begin
-        dec(timespec.tv_nsec, 1000000000);
-        inc(timespec.tv_sec);
-      end;
-      nanores := cSemaphoreTimedWait(plocaleventstate(state)^.FSem, timespec);
-      if nanores = 0 then
-        result := wrSignaled
-      else if nanores = ESysETIMEDOUT then
-        result := wrTimeout
-      else
-        result := wrError;
-{$else}
-      timespec.tv_sec:=0;
-      { 20 miliseconds or less -> wait once for this duration }
-      if (timeout <= 20) then
-        loopcnt:=1
-      { otherwise wake up every 20 msecs to check    }
-      { (we'll wait a little longer in total because }
-      {  we don't take into account the overhead)    }
-      else
+      //Wait with timeout using pthread_cont_timedwait
+      fpgettimeofday(@tnow,nil);
+      timespec.tv_sec  := tnow.tv_sec + (clong(timeout) div 1000);
+      timespec.tv_nsec := (clong(timeout) mod 1000)*1000000 + tnow.tv_usec*1000;
+      if timespec.tv_nsec >= 1000000000 then
         begin
-          loopcnt := timeout div 20;
-          timespec.tv_nsec:=20*1000000;
+          inc(timespec.tv_sec);
+          dec(timespec.tv_nsec, 1000000000);
         end;
-      result := wrTimeOut;
-      nanores := 0;
+      errres:=0;
+      while (not plocaleventstate(state)^.FDestroying) and (not plocaleventstate(state)^.FIsSet) and (errres<>ESysETIMEDOUT) do
+        errres:=pthread_cond_timedwait(@plocaleventstate(state)^.Fcondvar, @plocaleventstate(state)^.feventsection, @timespec);
+    end;
 
-      for i := 1 to loopcnt do
-        begin
-          { in the last iteration, wait for the amount of time left }
-          if (i = loopcnt) then
-            timespec.tv_nsec:=(timeout mod 20) * 1000000;
-          timetemp:=timespec;
-          lastloop:=false;
-          { every time our sleep is interrupted for whatever reason, }
-          { also check whether the semaphore has been posted in the  }
-          { mean time                                                }
-          repeat
-          {$if not defined(has_sem_init) and not defined(has_sem_open)}
-            pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-            try
-          {$endif}
-              twres := cSemaphoreTryWait(plocaleventstate(state)^.FSem);
-          {$if not defined(has_sem_init) and not defined(has_sem_open)}
-            finally
-              pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
-            end;
-          {$endif}
-            case twres of
-              tw_error:
-                begin
-                  result := wrError;
-                  break;
-                end;
-              tw_semwasunlocked:
-                begin
-                  result := wrSignaled;
-                  break;
-                end;
-            end;
-            if (lastloop) then
-              break;
-            nanores:=fpnanosleep(@timetemp,@timeleft);
-            nanoerr:=fpgeterrno;
-            timetemp:=timeleft;
-            lastloop:=(i=loopcnt);
-          { loop until 1) we slept complete interval (except if last for-loop }
-          { in which case we try to lock once more); 2) an error occurred;    }
-          { 3) we're being destroyed                                          }
-          until ((nanores=0) and not lastloop) or ((nanores<>0) and (nanoerr<>ESysEINTR)) or plocaleventstate(state)^.FDestroying;
-          { adjust result being destroyed or error (in this order, since   }
-          { if we're being destroyed the "error" could be ESysEINTR, which }
-          { is not a real error                                            }
-          if plocaleventstate(state)^.FDestroying then
-            result := wrAbandoned
-          else if (nanores <> 0) then
-            result := wrError;
-          { break out of greater loop when we got the lock, when an error }
-          { occurred, or when we are being destroyed                      }
-          if (result<>wrTimeOut) then
-            break;
-        end;
-{$endif}
-    end;
-  
-  if (result=wrSignaled) then
-    begin
-      if plocaleventstate(state)^.FManualReset then
-        begin
-          pthread_mutex_lock(@plocaleventstate(state)^.feventsection);
-          Try
-            intbasiceventresetevent(State);
-            cSemaphorePost(plocaleventstate(state)^.FSem);
-          Finally
-            pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
-          end;
-        end;
-    end;
-  { don't put this above the previous if-block, because otherwise   }
-  { we can get errors in case an object is destroyed between the    }
-  { end of the wait/sleep loop and the signalling above.            }
-  { The pthread_mutex_unlock above takes care of the memory barrier }
+  isset := plocaleventstate(state)^.FIsSet;
+
+  { if ManualReset=false, reset the event immediately. }
+  if (plocaleventstate(state)^.FManualReset=false) then
+    plocaleventstate(state)^.FIsSet := false;
+
+  //check the results...
+  if plocaleventstate(state)^.FDestroying then
+    Result := wrAbandoned
+  else
+    if IsSet then
+      Result := wrSignaled
+    else
+      begin
+        if errres=ESysETIMEDOUT then
+          Result := wrTimeout
+        else
+          Result := wrError;
+      end;
+
+  pthread_mutex_unlock(@plocaleventstate(state)^.feventsection);
+
+  { don't put this above the previous pthread_mutex_unlock, because    }
+  { otherwise we can get errors in case an object is destroyed between }
+  { end of the wait/sleep loop and the signalling above.               }
+  { The pthread_mutex_unlock above takes care of the memory barrier    }
   interlockeddecrement(plocaleventstate(state)^.FWaiters);
 end;
 
