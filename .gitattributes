@@ -1449,6 +1449,7 @@ packages/fcl-image/src/pixtools.pp svneol=native#text/plain
 packages/fcl-image/src/pngcomn.pp svneol=native#text/plain
 packages/fcl-image/src/pscanvas.pp svneol=native#text/plain
 packages/fcl-image/src/targacmn.pp svneol=native#text/plain
+packages/fcl-image/src/xwdfile.pp svneol=native#text/plain
 packages/fcl-json/Makefile svneol=native#text/plain
 packages/fcl-json/Makefile.fpc svneol=native#text/plain
 packages/fcl-json/examples/confdemo.lpi svneol=native#text/plain
