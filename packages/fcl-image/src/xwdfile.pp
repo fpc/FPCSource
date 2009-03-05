@@ -3,6 +3,8 @@
   
   The original headers are part of the X11 headers located at:
   /usr/X11R6/include/X11/XWDFile.h
+  or
+  Mandriva 2006: /usr/include/X11/XWDFile.h
   
   But the file was added to fcl-image so that xwd files can be read in any system.
   

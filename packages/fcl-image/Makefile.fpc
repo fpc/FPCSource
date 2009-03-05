@@ -12,7 +12,7 @@ units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg \
       pcxcomn fpreadpcx fpwritepcx fptiffcmn fpreadtiff fpwritetiff \
       targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer \ 
-      extinterpolation fpreadgif fpreadpsd
+      extinterpolation fpreadgif fpreadpsd xwdfile fpreadxwd
 units_win32=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
