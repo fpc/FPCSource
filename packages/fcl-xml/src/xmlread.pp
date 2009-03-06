@@ -2047,7 +2047,7 @@ begin
       Inc(p);
     FDTDStartPos := p;
   end;
-  FDTDStartPos := TXMLDecodingSource(FSource).FBufStart + (FSource.FBufEnd-FSource.FBuf);
+  FDTDStartPos := TXMLDecodingSource(FSource).FBufStart;
 end;
 
 procedure TXMLReader.ParseDoctypeDecl;    // [28]
