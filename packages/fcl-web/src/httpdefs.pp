@@ -880,7 +880,18 @@ begin
 end;
 
 destructor TRequest.destroy;
+var
+  i: Integer;
+  s: String;
 begin
+  //delete all temporary uploaded files created for this request if there is any
+  i := FFiles.Count;
+  if i > 0 then for i := i - 1 downto 0 do
+    begin
+    s := FFiles[i].LocalFileName;
+    if FileExists(s) then DeleteFile(s);
+    end;
+  //
   FreeAndNil(FFiles);
   inherited destroy;
 end;
@@ -1072,7 +1083,7 @@ Procedure TRequest.ProcessMultiPart(Stream : TStream; Const Boundary : String; S
 Var
   L : TList;
   B : String;
-  I : Integer;
+  I,J : Integer;
   S,FF,key, Value : String;
   FI : TFormItem;
   F : TStream;
@@ -1122,8 +1133,10 @@ begin
       else
         begin
         Value:=FI.FileName;
-        if Length(FI.Data)=0 then
-          FF:=''
+        J := Length(FI.Data);
+        if (J=0){zero lenght file} or
+           ((J=2)and(FI.Data=#13#10)){empty files come as a simple empty line} then
+          FF:='' //No tmp file will be created for empty files
         else
           begin
           FF:=GetTempUploadFileName;
