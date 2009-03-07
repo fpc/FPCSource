@@ -175,18 +175,18 @@ Function StrToFloat(Const S : String) : Extended;
 Function StrToFloat(Const S : String; Const FormatSettings: TFormatSettings) : Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended): Extended;
 Function StrToFloatDef(Const S: String; Const Default: Extended; Const FormatSettings: TFormatSettings): Extended;
-Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
-Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
-Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
-Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Single; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
-Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 {$endif FPC_HAS_TYPE_EXTENDED}
-Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
-Function TextToFloat(Buffer: PChar; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer): Longint;
 Function FloatToText(Buffer: PChar; Value: Extended; format: TFloatFormat; Precision, Digits: Integer; Const FormatSettings: TFormatSettings): Longint;
 Function FloatToDateTime (Const Value : Extended) : TDateTime;
@@ -195,7 +195,7 @@ function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
 Function CurrToStr(Value: Currency): string;
 function StrToCurr(const S: string): Currency;
-function TryStrToCurr(const S: string;Var Value : Currency): Boolean;
+function TryStrToCurr(const S: string;Out Value : Currency): Boolean;
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;

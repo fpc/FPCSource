@@ -1038,7 +1038,7 @@ begin
      Result:=Default;
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1063,19 +1063,19 @@ Begin
   Result:=(E=0);
 End;
 
-Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1120,36 +1120,36 @@ Begin
   Result:=(E=0);
 End;
 
-Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvSingle,FormatSettings);
 End;
 
-Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value,FormatSettings);
 End;
@@ -1680,7 +1680,7 @@ begin
 end;
 
 
-Function TryStrToCurr(Const S : String; Var Value: Currency): Boolean;
+Function TryStrToCurr(Const S : String; Out Value: Currency): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency);
 End;
