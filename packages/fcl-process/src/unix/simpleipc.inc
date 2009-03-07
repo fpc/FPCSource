@@ -59,7 +59,10 @@ procedure TPipeClientComm.Connect;
 begin
   If Not ServerRunning then
     Owner.DoError(SErrServerNotActive,[Owner.ServerID]);
-  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite);
+  // Use this line to allow more then one client communicating with one server
+  // at the same time
+  // FStream:=TFileStream.Create(FFileName,fmOpenWrite+fmShareDenyNone);
+  FStream:=TFileStream.Create(FFileName,fmOpenWrite);
 end;
 
 procedure TPipeClientComm.Disconnect;
@@ -127,7 +130,7 @@ begin
   If not FileExists(FFileName) then
     If (fpmkFifo(FFileName,438)<>0) then
       Owner.DoError(SErrFailedToCreatePipe,[FFileName]);
-  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite);
+  FStream:=TFileStream.Create(FFileName,fmOpenReadWrite+fmShareDenyNone);
 end;
 
 procedure TPipeServerComm.StopServer;
