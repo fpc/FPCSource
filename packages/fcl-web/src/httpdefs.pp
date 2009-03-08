@@ -234,6 +234,7 @@ type
     Property PathInfo : String index 25 read GetFieldValue Write SetFieldValue;
     Property PathTranslated : String Index 26 read GetFieldValue Write SetFieldValue;
     Property RemoteAddress : String Index 27 read GetFieldValue Write SetFieldValue;
+    Property RemoteAddr : String Index 27 read GetFieldValue Write SetFieldValue; // Alias, Delphi-compat
     Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
     Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
     Property ServerPort : Word Read GetServerPort; // Index 30
@@ -261,7 +262,6 @@ type
   private
     FCommand: String;
     FCommandLine: String;
-    FQuery: String;
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
@@ -280,8 +280,7 @@ type
     Property  CommandLine : String Read FCommandLine;
     Property  Command : String read FCommand;
     Property  URI : String read FURI;                // Uniform Resource Identifier
-    Property  Query : String Read FQuery;
-    Property  QueryString : String Read FQuery; // Alias
+    Property  QueryString : String Index 33 read GetFieldValue Write SetFieldValue; // Alias
     Property  HeaderLine : String read GetFirstHeaderLine;
     Property  Files : TUploadedFiles Read FFiles;
   end;
@@ -938,7 +937,7 @@ begin
   i := Pos('?', URI);
   if i > 0 then
   begin
-    FQuery:= Copy(URI, i + 1, Length(URI));
+    Query:= Copy(URI, i + 1, Length(URI));
     FURI := Copy(URI, 1, i - 1);
   end;
 end;
