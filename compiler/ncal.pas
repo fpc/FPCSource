@@ -2608,7 +2608,8 @@ implementation
           begin
             { When this is method the methodpointer must be available }
             if (right=nil) and
-               (procdefinition.owner.symtabletype=ObjectSymtable) then
+               (procdefinition.owner.symtabletype=ObjectSymtable) and
+               not([po_staticmethod,po_classmethod] <= procdefinition.procoptions) then
               internalerror(200305061);
           end;
 

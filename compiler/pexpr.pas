@@ -840,8 +840,13 @@ implementation
          aprocdef:=nil;
 
          { when it is a call to a member we need to load the
-           methodpointer first }
-         membercall:=maybe_load_methodpointer(st,p1);
+           methodpointer first
+           (except if we are in a static class method)
+         }
+         membercall:=
+           not(assigned(current_procinfo) and
+               ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) and
+           maybe_load_methodpointer(st,p1);
 
          { When we are expecting a procvar we also need
            to get the address in some cases }
