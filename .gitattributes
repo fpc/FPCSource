@@ -4192,6 +4192,7 @@ packages/pthreads/fpmake.pp svneol=native#text/plain
 packages/pthreads/src/pthrbeos.inc svneol=native#text/plain
 packages/pthreads/src/pthrbsd.inc svneol=native#text/plain
 packages/pthreads/src/pthreads.pp svneol=native#text/plain
+packages/pthreads/src/pthrhaiku.inc svneol=native#text/plain
 packages/pthreads/src/pthrlinux.inc svneol=native#text/plain
 packages/pthreads/src/pthrsnos.inc svneol=native#text/plain
 packages/pxlib/Makefile svneol=native#text/plain
