@@ -587,20 +587,8 @@ begin
 end;
 
 procedure TApacheRequest.InitFromRequest;
-
-Var
-  I : Integer;
-  S : String;
-  
 begin
-  // This fills the internal table. We should try
-  // to get rid of it.
-  For I:=0 to NoHTTPFields do
-    begin
-    S:=GetFieldValue(i);
-    If (S<>'') then
-      SetFieldValue(I,S);
-    end;
+  ParseCookies;
 end;
 
 Constructor TApacheRequest.CreateReq(App : TCustomApacheApplication; ARequest : PRequest_rec);
@@ -609,8 +597,8 @@ begin
   FApache:=App;
   FRequest:=Arequest;
   ReturnedPathInfo:=App.BaseLocation;
-  InitFromRequest;
   Inherited Create;
+  InitFromRequest;
 end;
 
 { TApacheResponse }

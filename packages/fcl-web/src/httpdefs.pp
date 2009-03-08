@@ -498,18 +498,18 @@ Var
 begin
   Result:=0;
   For I:=1 to NoHTTPFields do
-    If (FFields[i]<>'') then
+    If (GetFieldValue(i)<>'') then
       Inc(Result);
 end;
 
 function THTTPHeader.GetContentLength: Integer;
 begin
-  Result:=StrToIntDef(FFields[9],0);
+  Result:=StrToIntDef(GetFieldValue(9),0);
 end;
 
 procedure THTTPHeader.SetContentLength(Value: Integer);
 begin
-  FFields[9]:=IntToStr(Value);
+  SetFieldValue(9,IntToStr(Value));
 end;
 
 
@@ -522,7 +522,7 @@ begin
   I:=1;
   While (I<=NoHTTPFields) and (AIndex>=0) do
     begin
-    If (FFields[i]<>'') then
+    If (GetFieldValue(i)<>'') then
       Dec(AIndex);
     Inc(I);
     end;
@@ -545,7 +545,7 @@ Var
 begin
   I:=GetFieldIndex(Index);
   If (I<>-1) then
-    Result:=FFields[I];
+    Result:=GetFieldValue(I);
 end;
 
 function THTTPHeader.GetSetField(AIndex: Integer): String;
@@ -555,7 +555,7 @@ var
 begin
   I:=GetFieldIndex(AIndex);
   If (I<>-1) then
-    Result := HTTPFieldNames[I] + ': ' + FFields[I];
+    Result := HTTPFieldNames[I] + ': ' + GetFieldValue(I);
 end;
 
 function THTTPHeader.GetSetFieldName(AIndex: Integer): String;
@@ -588,12 +588,8 @@ begin
   else
     case Index of
       0  : Result:=FHTTPVersion;
-      25 : Result:=''; // Property PathInfo
-      26 : Result:=''; // Property PathTranslated
-      27 : Result:=''; // Property RemoteAddress
-      28 : Result:=''; // Property RemoteHost
-      29 : Result:=''; // Property ScriptName
-      30 : Result:=''; // Property ServerPort
+    else
+      Result := '';
     end;
 end;
 
