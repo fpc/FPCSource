@@ -24,10 +24,10 @@ uses
   CustApp,Classes,SysUtils;
 
 Const
-  CGIVarCount = 23;
+  CGIVarCount = 23 deprecated;
 
 Type
-  TCGIVarArray = Array[1..CGIVarCount] of String;
+  TCGIVarArray = Array [1..CGIVarCount] of String;
 
 Const
   CgiVarNames : TCGIVarArray =
@@ -52,7 +52,7 @@ Const
     'HTTP_ACCEPT_ENCODING',
     'HTTP_IF_MODIFIED_SINCE',
     'HTTP_REFERER',
-    'HTTP_USER_AGENT');
+    'HTTP_USER_AGENT')  deprecated;
 
 Type
 
@@ -82,62 +82,62 @@ Type
     Procedure ProcessURLEncoded(M : TMemoryStream);
     Procedure ProcessMultiPart(M : TMemoryStream; Const Boundary : String);
   Public
-    Constructor Create(AOwner : TComponent); override;
-    Destructor Destroy; override;
-    Procedure AddResponse(Const S : String);
-    Procedure AddResponse(Const Fmt : String; Args : Array of const);
-    Procedure AddResponseLn(Const S : String);
-    Procedure AddResponseLn(Const Fmt : String; Args : Array of const);
-    Procedure Initialize; override;
-    Procedure GetCGIVarList(List : TStrings);
-    Procedure GetRequestVarList(List : TStrings);
-    Procedure GetRequestVarList(List : TStrings; NamesOnly : Boolean);
-    Procedure ShowException(E: Exception);override;
-    Procedure DeleteFormFiles;
-    Function EmitContentType : Boolean;
-    Function GetTempCGIFileName : String;
-    Function VariableIsUploadedFile(Const VarName : String) : boolean;
-    Function UploadedFileName(Const VarName : String) : String;
-    Property AuthType : String Index 1 Read GetCGIVar;
-    Property ContentLength : Integer Read GetContentLength Write SetContentLength; // Index 2
-    Property ContentType : String Index 3 Read GetCGIVar Write SetCGIVar;
-    Property GatewayInterface : String Index 4 Read GetCGIVar;
-    Property PathInfo : String index 5 read GetCGIvar;
-    Property PathTranslated : String Index 6 read getCGIVar;
-    Property QueryString : String Index 7 read getcgivar;
-    Property RemoteAddress : String Index 8 read GetCGIVar;
-    Property RemoteHost : String Index 9 read GetCGIVar;
-    Property RemoteIdent : String Index 10 read GetCGIVar;
-    Property RemoteUser : String Index 11 read GetCGIVar;
-    Property RequestMethod : String Index 12 read GetCGIVar;
-    Property ScriptName : String Index 13 read GetCGIVar;
-    Property ServerName : String Index 14 read GetCGIVar;
-    Property ServerPort : Word Read GetServerPort; // Index 15
-    Property ServerProtocol : String Index 16 read GetCGIVar;
-    Property ServerSoftware : String Index 17 read GetCGIVar;
-    Property HTTPAccept : String Index 18 read GetCGIVar;
-    Property HTTPAcceptCharset : String Index 19 read GetCGIVar;
-    Property HTTPAcceptEncoding : String Index 20 read GetCGIVar;
-    Property HTTPIfModifiedSince : String Index 21 read GetCGIVar; // Maybe change to TDateTime ??
-    Property HTTPReferer : String Index 22 read GetCGIVar;
-    Property HTTPUserAgent : String Index 23 read GetCGIVar;
-    Property Email : String Read GetEmail Write FEmail;
-    Property Administrator : String Read GetAdministrator Write FAdministrator;
-    Property RequestVariables[VarName : String] : String Read GetRequestVariable;
-    Property RequestVariableCount : Integer Read GetRequestVariableCount;
-    Property Response : TStream Read FResponse;
+    Constructor Create(AOwner : TComponent); override; deprecated;
+    Destructor Destroy; override; deprecated;
+    Procedure AddResponse(Const S : String); deprecated;
+    Procedure AddResponse(Const Fmt : String; Args : Array of const); deprecated;
+    Procedure AddResponseLn(Const S : String); deprecated;
+    Procedure AddResponseLn(Const Fmt : String; Args : Array of const); deprecated;
+    Procedure Initialize; override; deprecated;
+    Procedure GetCGIVarList(List : TStrings); deprecated;
+    Procedure GetRequestVarList(List : TStrings); deprecated;
+    Procedure GetRequestVarList(List : TStrings; NamesOnly : Boolean); deprecated;
+    Procedure ShowException(E: Exception);override; deprecated;
+    Procedure DeleteFormFiles; deprecated;
+    Function EmitContentType : Boolean; deprecated;
+    Function GetTempCGIFileName : String; deprecated;
+    Function VariableIsUploadedFile(Const VarName : String) : boolean; deprecated;
+    Function UploadedFileName(Const VarName : String) : String; deprecated;
+    Property AuthType : String Index 1 Read GetCGIVar; deprecated;
+    Property ContentLength : Integer Read GetContentLength Write SetContentLength; deprecated; // Index 2
+    Property ContentType : String Index 3 Read GetCGIVar Write SetCGIVar; deprecated;
+    Property GatewayInterface : String Index 4 Read GetCGIVar; deprecated;
+    Property PathInfo : String index 5 read GetCGIvar; deprecated;
+    Property PathTranslated : String Index 6 read getCGIVar; deprecated;
+    Property QueryString : String Index 7 read getcgivar; deprecated;
+    Property RemoteAddress : String Index 8 read GetCGIVar; deprecated;
+    Property RemoteHost : String Index 9 read GetCGIVar; deprecated;
+    Property RemoteIdent : String Index 10 read GetCGIVar; deprecated;
+    Property RemoteUser : String Index 11 read GetCGIVar; deprecated;
+    Property RequestMethod : String Index 12 read GetCGIVar; deprecated;
+    Property ScriptName : String Index 13 read GetCGIVar; deprecated;
+    Property ServerName : String Index 14 read GetCGIVar; deprecated;
+    Property ServerPort : Word Read GetServerPort; deprecated; // Index 15
+    Property ServerProtocol : String Index 16 read GetCGIVar; deprecated;
+    Property ServerSoftware : String Index 17 read GetCGIVar; deprecated;
+    Property HTTPAccept : String Index 18 read GetCGIVar; deprecated;
+    Property HTTPAcceptCharset : String Index 19 read GetCGIVar; deprecated;
+    Property HTTPAcceptEncoding : String Index 20 read GetCGIVar; deprecated;
+    Property HTTPIfModifiedSince : String Index 21 read GetCGIVar; deprecated; // Maybe change to TDateTime ??
+    Property HTTPReferer : String Index 22 read GetCGIVar; deprecated;
+    Property HTTPUserAgent : String Index 23 read GetCGIVar; deprecated;
+    Property Email : String Read GetEmail Write FEmail; deprecated;
+    Property Administrator : String Read GetAdministrator Write FAdministrator; deprecated;
+    Property RequestVariables[VarName : String] : String Read GetRequestVariable; deprecated;
+    Property RequestVariableCount : Integer Read GetRequestVariableCount; deprecated;
+    Property Response : TStream Read FResponse; deprecated;
   end;
 
 ResourceString
-  SWebMaster = 'webmaster';
-  SCGIError  = 'CGI Error';
-  SAppEncounteredError = 'The application encountered the following error:';
-  SError     = 'Error: ';
-  SNotify    = 'Notify: ';
-  SErrNoContentLength = 'No content length passed from server!';
-  SErrUnsupportedContentType = 'Unsupported content type: "%s"';
-  SErrNoRequestMethod = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod = 'Invalid REQUEST_METHOD passed from server.';
+  SWebMaster = 'webmaster' deprecated;
+  SCGIError  = 'CGI Error' deprecated;
+  SAppEncounteredError = 'The application encountered the following error:' deprecated;
+  SError     = 'Error: ' deprecated;
+  SNotify    = 'Notify: ' deprecated;
+  SErrNoContentLength = 'No content length passed from server!' deprecated;
+  SErrUnsupportedContentType = 'Unsupported content type: "%s"' deprecated;
+  SErrNoRequestMethod = 'No REQUEST_METHOD passed from server.' deprecated;
+  SErrInvalidRequestMethod = 'Invalid REQUEST_METHOD passed from server.' deprecated;
 
 Implementation
 
