@@ -248,7 +248,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[17] = ('',
+        secnames : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
@@ -280,9 +280,34 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup'
         );
-        secnames_pic : array[TAsmSectiontype] of string[17] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -299,7 +324,32 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup'
         );
       var
         sep     : string[3];
@@ -1212,6 +1262,36 @@ implementation
                     exit;
                   end;
               end;
+            sec_objc_protocol_ext:
+              begin
+                result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_class_ext:
+              begin
+                result:='.section __OBJC, __class_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_property:
+              begin
+                result:='.section __OBJC, __property, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_image_info:
+              begin
+                result:='.section __OBJC, __image_info, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_cstring_object:
+              begin
+                result:='.section __OBJC, __cstring_object, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_sel_fixup:
+              begin
+                result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
+                exit;
+              end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
@@ -1263,7 +1343,32 @@ implementation
          { Table of contents section }
          sec_code (* sec_toc *),
          sec_code (* sec_init *),
-         sec_code (* sec_fini *)
+         sec_code (* sec_fini *),
+         sec_none (* sec_objc_class *),
+         sec_none (* sec_objc_meta_class *),
+         sec_none (* sec_objc_cat_cls_meth *),
+         sec_none (* sec_objc_cat_inst_meth *),
+         sec_none (* sec_objc_protocol *),
+         sec_none (* sec_objc_string_object *),
+         sec_none (* sec_objc_cls_meth *),
+         sec_none (* sec_objc_inst_meth *),
+         sec_none (* sec_objc_cls_refs *),
+         sec_none (* sec_objc_message_refs *),
+         sec_none (* sec_objc_symbols *),
+         sec_none (* sec_objc_category *),
+         sec_none (* sec_objc_class_vars *),
+         sec_none (* sec_objc_instance_vars *),
+         sec_none (* sec_objc_module_info *),
+         sec_none (* sec_objc_class_names *),
+         sec_none (* sec_objc_meth_var_types *),
+         sec_none (* sec_objc_meth_var_names *),
+         sec_none (* sec_objc_selector_strs *),
+         sec_none (* sec_objc_protocol_ext *),
+         sec_none (* sec_objc_class_ext *),
+         sec_none (* sec_objc_property *),
+         sec_none (* sec_objc_image_info *),
+         sec_none (* sec_objc_cstring_object *),
+         sec_none (* sec_objc_sel_fixup *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

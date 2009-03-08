@@ -1180,7 +1180,7 @@ parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibil
 #
 # Type Checking
 #
-# 04083 is the last used one
+# 04086 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1464,6 +1464,16 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid GUID.
+type_e_invalid_objc_selector_name=04084_E_Invalid selector name
+% An Objective-C selector cannot be empty, must be a valid identifier or a single colon,
+% and if it contains at least one colon it must also end in one.
+type_e_expected_objc_method_but_got=04085_E_Expected Objective-C method, but got $1
+% A selector can only be created for Objective-C methods, not for any other kind
+% of procedure/function/method.
+type_e_expected_objc_method=04086_E_Expected Objective-C method or constant method name
+% A selector can only be created for Objective-C methods, either by specifying
+% the name using a string constant, or by using an Objective-C method identifier
+% that is visible in the current scope.
 % \end{description}
 #
 # Symtable
@@ -2396,7 +2406,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 #
 #  Options
 #
-# 11044 is the last used one
+# 11045 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2510,6 +2520,9 @@ option_else_without_if=11043_F_In options file $1 at line $2 \var{\#ELSE} direct
 option_unsupported_target=11044_F_Option "$1" is not, or not yet, supported on the current target platform
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
 % option is incompatible with the currently selected target platform.
+option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not yet, supported on the selected target platform
+% Not all features are supported or implemented for all target platforms. This message informs you that a chosen
+% feature is incompatible with the currently selected target platform.
 
 %\end{description}
 # EndOfTeX

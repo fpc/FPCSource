@@ -77,6 +77,7 @@
 {$define FPC_HAS_FEATURE_PROCESSES}
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
+{$define FPC_HAS_FEATURE_OBJECTIVEC1}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
 {$ifndef VER2_2}
@@ -1046,6 +1047,15 @@ const
 {$ifdef FPC_HAS_FEATURE_CLASSES}
 {$i objpash.inc}
 {$endif FPC_HAS_FEATURE_CLASSES}
+
+{*****************************************************************************
+                       Objective-C support
+*****************************************************************************}
+
+{$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
+{$i objc1h.inc}
+{$endif FPC_HAS_FEATURE_OBJECTIVEC1}
+
 
 {*****************************************************************************
                            Variant support

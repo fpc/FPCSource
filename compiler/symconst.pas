@@ -274,7 +274,9 @@ type
     po_kylixlocal,
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal
+    po_weakexternal,
+    { Objective-C method }
+    po_objc
   );
   tprocoptions=set of tprocoption;
 

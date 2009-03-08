@@ -230,6 +230,21 @@ implementation
       end;
 
 
+    procedure MaybeGenerateObjectiveCImageInfo;
+      begin
+        if (m_objectivec1 in current_settings.modeswitches) then
+          begin
+            { first 4 bytes contain version information about this section (currently version 0),
+              next 4 bytes contain flags (currently only regarding whether the code in the object
+              file supports or requires garbage collection)
+            }
+            new_section(current_asmdata.asmlists[al_objc_data],sec_objc_image_info,'_OBJC_IMAGE_INFO',4);
+            current_asmdata.asmlists[al_objc_data].concat(Tai_symbol.Createname(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AT_LABEL,8));
+            current_asmdata.asmlists[al_objc_data].concat(Tai_const.Create_64bit(0));
+          end;
+      end;
+
+
     Function CheckResourcesUsed : boolean;
     var
       hp           : tused_unit;
@@ -579,6 +594,9 @@ implementation
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
           AddUnit('macpas');
+        { Objective-C 1.0 support unit? }
+        if (m_objectivec1 in current_settings.modeswitches) then
+          AddUnit('objc1');
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then
@@ -1183,6 +1201,9 @@ implementation
             status.skip_error:=true;
             exit;
           end;
+
+         { if an Objective-C module, generate objc_image_info section }
+         MaybeGenerateObjectiveCImageInfo;
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
@@ -2116,6 +2137,9 @@ implementation
                   unloaded_units.concat(hp2);
                 end;
           end;
+
+         { if an Objective-C module, generate objc_image_info section }
+         MaybeGenerateObjectiveCImageInfo;
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;

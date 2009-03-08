@@ -86,7 +86,7 @@ implementation
       globtype, cutils,
       symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,nobjc,
       cgbase,procinfo
       ;
 
@@ -2446,6 +2446,12 @@ implementation
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                end;
+              in_objc_selector_x:
+                begin
+                  result:=cobjcselectornode.create(left);
+                  { reused }
+                  left:=nil;
                 end;
               else
                 internalerror(8);

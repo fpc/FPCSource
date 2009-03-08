@@ -811,7 +811,7 @@ implementation
 
     function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[16] = ('',
+        secnames : array[TAsmSectiontype] of string[length('objc_meth_var_names')] = ('',
           'code',
           'Data',
           'Data',
@@ -827,7 +827,32 @@ implementation
           'fpc',
           'toc',
           'init',
-          'fini'
+          'fini',
+          'objc_class',
+          'objc_meta_class',
+          'objc_cat_cls_meth',
+          'objc_cat_inst_meth',
+          'objc_protocol',
+          'objc_string_object',
+          'objc_cls_meth',
+          'objc_inst_meth',
+          'objc_cls_refs',
+          'objc_message_refs',
+          'objc_symbols',
+          'objc_category',
+          'objc_class_vars',
+          'objc_instance_vars',
+          'objc_module_info',
+          'objc_class_names',
+          'objc_meth_var_types',
+          'objc_meth_var_names',
+          'objc_selector_strs',
+          'objc_protocol_ext',
+          'objc_class_ext',
+          'objc_property',
+          'objc_image_info',
+          'objc_cstring_object',
+          'objc_sel_fixup'
         );
       var
         sep : string[3];
@@ -878,7 +903,32 @@ implementation
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
           {toc} [oso_Data,oso_load,oso_readonly],
           {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
-          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep]
+          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {objc_class} [oso_data,oso_load],
+          {objc_meta_class} [oso_data,oso_load],
+          {objc_cat_cls_meth} [oso_data,oso_load],
+          {objc_cat_inst_meth} [oso_data,oso_load],
+          {objc_protocol} [oso_data,oso_load],
+          {objc_string_object} [oso_data,oso_load],
+          {objc_cls_meth} [oso_data,oso_load],
+          {objc_inst_meth} [oso_data,oso_load],
+          {objc_cls_refs} [oso_data,oso_load],
+          {objc_message_refs} [oso_data,oso_load],
+          {objc_symbols} [oso_data,oso_load],
+          {objc_category} [oso_data,oso_load],
+          {objc_class_vars} [oso_data,oso_load],
+          {objc_instance_vars} [oso_data,oso_load],
+          {objc_module_info} [oso_data,oso_load],
+          {objc_class_names} [oso_data,oso_load],
+          {objc_meth_var_types} [oso_data,oso_load],
+          {objc_meth_var_names} [oso_data,oso_load],
+          {objc_selector_strs} [oso_data,oso_load],
+          {objc_protocol_ext} [oso_data,oso_load],
+          {objc_class_ext} [oso_data,oso_load],
+          {objc_property} [oso_data,oso_load],
+          {objc_image_info} [oso_data,oso_load],
+          {objc_cstring_object} [oso_data,oso_load],
+          {objc_sel_fixup} [oso_data,oso_load]
         );
       begin
         result:=secoptions[atype];

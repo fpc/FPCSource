@@ -412,6 +412,9 @@ const
   type_h_convert_mul_operands_to_prevent_overflow=04081;
   type_w_pointer_to_signed=04082;
   type_interface_has_no_guid=04083;
+  type_e_invalid_objc_selector_name=04084;
+  type_e_expected_objc_method_but_got=04085;
+  type_e_expected_objc_method=04086;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -756,6 +759,7 @@ const
   option_ppc386_deprecated=11042;
   option_else_without_if=11043;
   option_unsupported_target=11044;
+  option_unsupported_target_for_feature=11045;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -780,9 +784,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 50613;
+  MsgTxtSize = 50838;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,251,84,65,50,108,22,201,62,
-    45,20,1,1,1,1,1,1,1,1
+    24,87,251,87,65,50,108,22,201,62,
+    46,20,1,1,1,1,1,1,1,1
   );
