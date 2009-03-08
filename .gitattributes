@@ -7306,6 +7306,10 @@ tests/test/cg/obj/go32v2/i386/ctest.o -text
 tests/test/cg/obj/go32v2/i386/tcext3.o -text
 tests/test/cg/obj/go32v2/i386/tcext4.o -text
 tests/test/cg/obj/go32v2/i386/tcext5.o -text
+tests/test/cg/obj/haiku/i386/ctest.o -text
+tests/test/cg/obj/haiku/i386/tcext3.o -text
+tests/test/cg/obj/haiku/i386/tcext4.o -text
+tests/test/cg/obj/haiku/i386/tcext5.o -text
 tests/test/cg/obj/linux/arm-eabi/ctest.o -text
 tests/test/cg/obj/linux/arm-eabi/tcext3.o -text
 tests/test/cg/obj/linux/arm-eabi/tcext4.o -text
