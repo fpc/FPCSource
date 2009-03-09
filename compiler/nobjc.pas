@@ -121,7 +121,7 @@ function tobjcselectornode.pass_typecheck: tnode;
       loadn:
         begin
           if (left.resultdef.typ=procdef) and
-             (po_objc in tprocdef(procdef).procoptions) then
+             (po_objc in tprocdef(left.resultdef).procoptions) then
             begin
               { ok }
             end
