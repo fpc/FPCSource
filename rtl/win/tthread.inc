@@ -1,9 +1,5 @@
 { Thread management routines }
 
-const
-  CM_EXECPROC = $8FFF;
-  CM_DESTROYWINDOW = $8FFE;
-
 type
   PRaiseFrame = ^TRaiseFrame;
   TRaiseFrame = record
@@ -13,92 +9,12 @@ type
     ExceptionRecord: pointer; {PExceptionRecord}
   end;
 
-var
-  ThreadWindow: HWND;
-  ThreadCount: Integer;
-  { event that happens when gui thread is done executing the method
-}
-
-function ThreadWndProc(Window: HWnd; AMessage:UInt; WParam : WParam; LParam: LParam): LResult; {$ifdef wince}cdecl{$else}stdcall{$endif};
-
-begin
-  case AMessage of
-    CM_EXECPROC:
-      with TThread(lParam) do
-      begin
-        Result := 0;
-        try
-          FSynchronizeException := nil;
-          FMethod;
-        except
-{          if RaiseList <> nil then
-          begin
-            FSynchronizeException := PRaiseFrame(RaiseList)^.ExceptObject;
-            PRaiseFrame(RaiseList)^.ExceptObject := nil;
-          end; }
-        end;
-      end;
-  else
-    Result := DefWindowProc(Window, AMessage, wParam, lParam);
-  end;
-end;
-
-const
-  ThreadWindowClass: TWndClass = (
-    style: 0;
-    lpfnWndProc: @ThreadWndProc;
-    cbClsExtra: 0;
-    cbWndExtra: 0;
-    hInstance: 0;
-    hIcon: 0;
-    hCursor: 0;
-    hbrBackground: 0;
-    lpszMenuName: nil;
-    lpszClassName: 'TThreadWindow');
-
-procedure AddThread;
-
-  function AllocateWindow: HWND;
-  var
-    TempClass: TWndClass;
-    ClassRegistered: Boolean;
-  begin
-    ThreadWindowClass.hInstance := HInstance;
-    ClassRegistered := GetClassInfo(HInstance, ThreadWindowClass.lpszClassName,
-      @TempClass);
-    if not ClassRegistered or (TempClass.lpfnWndProc <> WndProc(@ThreadWndProc)) then
-    begin
-      if ClassRegistered then
-        Windows.UnregisterClass(ThreadWindowClass.lpszClassName, HInstance);
-      Windows.RegisterClass(ThreadWindowClass);
-    end;
-    Result := CreateWindow(ThreadWindowClass.lpszClassName, '', 0,
-      0, 0, 0, 0, 0, 0, HInstance, nil);
-  end;
-
-begin
-  if ThreadCount = 0 then
-    ThreadWindow := AllocateWindow;
-  InterlockedIncrement(ThreadCount);
-end;
-
-procedure RemoveThread;
-begin
-  { note that when thread count reaches 0 we must be in main thread context }
-  { windows may only be destroyed in same thread as created in }
-  { posting a message to window thread does not work when we have no message loop }
-  if InterlockedDecrement(ThreadCount)=0 then
-    DestroyWindow(ThreadWindow);
-end;
-
-
 constructor TThread.Create(CreateSuspended: Boolean;
                            const StackSize: SizeUInt = DefaultStackSize);
 var
   Flags: Integer;
 begin
   inherited Create;
-  AddThread;
   FSuspended := CreateSuspended;
   Flags := 0;
   if CreateSuspended then Flags := CREATE_SUSPENDED;
@@ -119,7 +35,6 @@ begin
   FFatalException.Free;
   FFatalException := nil;
   inherited Destroy;
-  RemoveThread;
 end;
 
 procedure TThread.CallOnTerminate;
