@@ -75,7 +75,7 @@ resourcestring
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
-  SMissingWStringManager = 'Widestring manager not available. Recompile program with appropiate manager.';
+  SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';
