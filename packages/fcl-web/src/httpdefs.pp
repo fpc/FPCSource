@@ -262,16 +262,24 @@ type
   private
     FCommand: String;
     FCommandLine: String;
+    FHandleGetOnPost: Boolean;
     FURI: String;
     FFiles : TUploadedFiles;
     FReturnedPathInfo : String;
     procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
+    FContentRead : Boolean;
+    FContent : String;
+    procedure ReadContent; virtual;
+    Function GetFieldValue(AIndex : Integer) : String; override;
     Procedure ProcessMultiPart(Stream : TStream; Const Boundary : String;SL:TStrings); virtual;
     Procedure ProcessQueryString(Const FQueryString : String; SL:TStrings); virtual;
     procedure ProcessURLEncoded(Stream : TStream;SL:TStrings); virtual;
     Function  GetTempUploadFileName : String; virtual;
+    Procedure InitRequestVars; virtual;
+    Procedure InitPostVars; virtual;
+    Procedure InitGetVars; virtual;
     Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
   public
     constructor Create; override;
@@ -283,6 +291,7 @@ type
     Property  QueryString : String Index 33 read GetFieldValue Write SetFieldValue; // Alias
     Property  HeaderLine : String read GetFirstHeaderLine;
     Property  Files : TUploadedFiles Read FFiles;
+    Property  HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
   end;
 
 
@@ -374,7 +383,10 @@ Resourcestring
   SErrInternalUploadedFileError = 'Internal uploaded file configuration error';
   SErrNoSuchUploadedFile        = 'No such uploaded file : "%s"';
   SErrUnknownCookie             = 'Unknown cookie: "%s"';
-  
+  SErrUnsupportedContentType    = 'Unsupported content type: "%s"';
+  SErrNoRequestMethod           = 'No REQUEST_METHOD passed from server.';
+  SErrInvalidRequestMethod      = 'Invalid REQUEST_METHOD passed from server.';
+
 const
    hexTable = '0123456789ABCDEF';
 
@@ -871,6 +883,7 @@ end;
 constructor TRequest.create;
 begin
   inherited create;
+  FHandleGetOnPost:=True;
   FFiles:=TUploadedFiles.Create(TUPloadedFile);
 end;
 
@@ -942,11 +955,28 @@ begin
   end;
 end;
 
+function TRequest.GetFieldValue(AIndex: integer): String;
+begin
+  if AIndex = 35 then // Content
+    begin
+    If Not FContentRead then
+      ReadContent;
+    Result:=FContent;
+    end
+  else
+    Result:=inherited GetFieldValue(AIndex);
+end;
+
 function TRequest.GetFirstHeaderLine: String;
 begin
   Result := Command + ' ' + URI;
   if Length(HttpVersion) > 0 then
     Result := Result + ' HTTP/' + HttpVersion;
+end;
+
+procedure TRequest.ReadContent;
+begin
+  // Implement in descendents
 end;
 
 Procedure TRequest.ProcessQueryString(Const FQueryString : String; SL:TStrings);
@@ -1070,6 +1100,90 @@ environment variable TEMP . For CGI programs you need to pass global environment
  global environment variable to the CGI programs' local environment variables.
 }
   Result := GetTempFileName(GetTempDir, 'CGI');
+end;
+
+procedure TRequest.InitRequestVars;
+
+var
+  R : String;
+
+begin
+  R:=Method;
+  if (R='') then
+    Raise Exception.Create(SErrNoRequestMethod);
+  if CompareText(R,'POST')=0 then
+    begin
+    InitPostVars;
+    if FHandleGetOnPost then
+      InitGetVars;
+    end
+  else if CompareText(R,'GET')=0 then
+    InitGetVars
+  else
+    Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
+end;
+
+Type
+  TCapacityStream = Class(TMemoryStream)
+  Public
+    Property Capacity;
+  end;
+
+procedure TRequest.InitPostVars;
+
+Var
+  M  : TCapacityStream;
+  Cl : Integer;
+  B  : Byte;
+  CT : String;
+
+begin
+{$ifdef CGIDEBUG}
+  SendMethodEnter('InitPostVars');
+{$endif}
+  CL:=ContentLength;
+  M:=TCapacityStream.Create;
+  Try
+    if CL<>0 then
+      begin
+      M.Capacity:=Cl;
+      M.WriteBuffer(Content[1], Cl);
+      end;
+    M.Position:=0;
+    CT:=ContentType;
+    if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
+      ProcessMultiPart(M,CT, ContentFields)
+    else if CompareText('APPLICATION/X-WWW-FORM-URLENCODED',CT)=0 then
+      ProcessUrlEncoded(M, ContentFields)
+    else
+      begin
+{$ifdef CGIDEBUG}
+      SendDebug('InitPostVars: unsupported content type:'+CT);
+{$endif}
+      Raise Exception.CreateFmt(SErrUnsupportedContentType,[CT]);
+      end;
+  finally
+    M.Free;
+  end;
+{$ifdef CGIDEBUG}
+  SendMethodExit('InitPostVars');
+{$endif}
+end;
+
+procedure TRequest.InitGetVars;
+Var
+  FQueryString : String;
+
+begin
+{$ifdef CGIDEBUG}
+  SendMethodEnter('InitGetVars');
+{$endif}
+  FQueryString:=QueryString;
+  If (FQueryString<>'') then
+    ProcessQueryString(FQueryString, QueryFields);
+{$ifdef CGIDEBUG}
+  SendMethodExit('InitGetVars');
+{$endif}
 end;
 
 

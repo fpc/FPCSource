@@ -80,8 +80,7 @@ Type
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromEnvironment;
-    Procedure InitPostVars;
-    Procedure InitGetVars;
+    procedure ReadContent; override;
   Public
     Constructor CreateCGI(ACGI : TCustomCGIApplication);
     Property GatewayInterface : String Index 1 Read GetCGIVar;
@@ -118,7 +117,6 @@ Type
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
-    Procedure InitRequestVars;
     Function GetEmail : String;
     Function GetAdministrator : String;
     Function GetRequestVariable(Const VarName : String) : String;
@@ -157,9 +155,6 @@ ResourceString
   SError     = 'Error: ';
   SNotify    = 'Notify: ';
   SErrNoContentLength = 'No content length passed from server!';
-  SErrUnsupportedContentType = 'Unsupported content type: "%s"';
-  SErrNoRequestMethod = 'No REQUEST_METHOD passed from server.';
-  SErrInvalidRequestMethod = 'Invalid REQUEST_METHOD passed from server.';
 
 Implementation
 
@@ -270,7 +265,8 @@ begin
   StopOnException:=True;
   Inherited;
   FRequest:=TCGIRequest.CreateCGI(Self);
-  InitRequestVars;
+  FRequest.InitFromEnvironment;
+  FRequest.InitRequestVars;
   FOutput:=TIOStream.Create(iosOutput);
   FResponse:=TCGIResponse.CreateCGI(Self,Self.FOutput);
 end;
@@ -365,120 +361,11 @@ begin
     Result:=SWebMaster;
 end;
 
-Procedure TCustomCGIApplication.InitRequestVars;
-
-var
-  R : String;
-
-begin
-  R:=GetEnvironmentVariable('REQUEST_METHOD');
-  if (R='') then
-    Raise Exception.Create(SErrNoRequestMethod);
-  FRequest.InitFromEnvironment;
-  if CompareText(R,'POST')=0 then
-    begin
-    Request.InitPostVars;
-    if FHandleGetOnPost then
-      Request.InitGetVars;
-    end
-  else if CompareText(R,'GET')=0 then
-    Request.InitGetVars
-  else
-    Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
-end;
-
-
 constructor TCGIRequest.CreateCGI(ACGI: TCustomCGIApplication);
 begin
   Inherited Create;
   FCGI:=ACGI;
 end;
-
-
-Type
-  TCapacityStream = Class(TMemoryStream)
-  Public
-    Property Capacity;
-  end;
-
-Procedure TCGIRequest.InitPostVars;
-
-Var
-  M  : TCapacityStream;
-  I  : TIOStream;
-  Cl : Integer;
-  B  : Byte;
-  CT : String;
-
-begin
-{$ifdef CGIDEBUG}
-  SendMethodEnter('InitPostVars');
-{$endif}
-  CL:=ContentLength;
-  M:=TCapacityStream.Create;
-  Try
-    I:=TIOStream.Create(iosInput);
-    Try
-      if (CL<>0) then
-        begin
-        M.Capacity:=Cl;
-        M.CopyFrom(I,Cl);
-        end
-      else
-        begin
-        While (I.Read(B,1)>0) do
-          M.Write(B,1)
-        end;
-    Finally
-      I.Free;
-    end;
-    M.Position:=0;
-// joost, aug 20th: I've removed this. It doesn't work with windows and I think
-// it's a debug-only thing...
-{    With TFileStream.Create('/tmp/query',fmCreate) do
-      try
-        CopyFrom(M,0);
-        M.Position:=0;
-      Finally
-        Free;
-      end;}
-    CT:=ContentType;
-    if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
-      ProcessMultiPart(M,CT, ContentFields)
-    else if CompareText('APPLICATION/X-WWW-FORM-URLENCODED',CT)=0 then
-      ProcessUrlEncoded(M, ContentFields)
-    else
-      begin
-{$ifdef CGIDEBUG}
-      SendDebug('InitPostVars: unsupported content type:'+CT);
-{$endif}
-      Raise Exception.CreateFmt(SErrUnsupportedContentType,[CT]);
-      end;
-  finally
-    M.Free;
-  end;
-{$ifdef CGIDEBUG}
-  SendMethodExit('InitPostVars');
-{$endif}
-end;
-
-Procedure TCGIRequest.InitGetVars;
-
-Var
-  FQueryString : String;
-
-begin
-{$ifdef CGIDEBUG}
-  SendMethodEnter('InitGetVars');
-{$endif}
-  FQueryString:=GetEnvironmentVariable('QUERY_STRING');
-  If (FQueryString<>'') then
-    ProcessQueryString(FQueryString, QueryFields);
-{$ifdef CGIDEBUG}
-  SendMethodExit('InitGetVars');
-{$endif}
-end;
-
 
 Function TCustomCGIApplication.GetRequestVariable(Const VarName : String) : String;
 
@@ -593,6 +480,31 @@ begin
     end;
 end;
 
+procedure TCGIRequest.ReadContent;
+var
+  I : TIOStream;
+  Cl : Integer;
+  B : Byte;
+begin
+  Cl := ContentLength;
+  I:=TIOStream.Create(iosInput);
+  Try
+    if (CL<>0) then
+      begin
+      SetLength(FContent,Cl);
+      I.Read(FContent[1],Cl);
+      end
+    else
+      begin
+      FContent:='';
+      While (I.Read(B,1)>0) do
+        FContent:=FContent + chr(B);
+      end;
+  Finally
+    I.Free;
+  end;
+  FContentRead:=True;
+end;
 
 Function TCGIRequest.GetFieldValue(Index : Integer) : String;
 
@@ -610,6 +522,8 @@ begin
     28 : Result:=DecodeVar(9); // Property RemoteHost
     29 : Result:=DecodeVar(13); // Property ScriptName
     30 : Result:=DecodeVar(15); // Property ServerPort
+    31 : Result:=DecodeVar(12); // Property RequestMethod
+    33 : Result:=DecodeVar(7); // Property QueryString
   else
     Result:=Inherited GetFieldValue(Index);
   end;

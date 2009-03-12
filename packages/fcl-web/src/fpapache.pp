@@ -30,12 +30,10 @@ Type
   Private
     FApache : TCustomApacheApplication;
     FRequest : PRequest_rec;
-    FContent : String;
-    FContentRead : Boolean;
-    procedure ReadContent;
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromRequest;
+    procedure ReadContent; override;
   Public
     Constructor CreateReq(App : TCustomApacheApplication; ARequest : PRequest_rec);
     Property ApacheRequest : Prequest_rec Read FRequest;
@@ -231,6 +229,7 @@ Var
 begin
   Req:=TApacheRequest.CreateReq(Self,P);
   Try
+    Req.InitRequestVars;
     Resp:=TApacheResponse.CreateApache(Req);
     Try
       HandleRequest(Req,Resp);
@@ -504,7 +503,6 @@ var
   I : Integer;
   
 begin
-
   Result:='';
   If (Index in [1..NoHTTPFields]) then
     begin
@@ -538,11 +536,6 @@ begin
       32 : Result:=StrPas(FRequest^.unparsed_uri); // URL
       33 : Result:=StrPas(FRequest^.args); // Query
       34 : Result:=StrPas(FRequest^.HostName); // Host
-      35 : begin // Content
-           If Not FContentRead then
-             ReadContent;
-           Result:=FContent;
-           end;
     else
       Result:=inherited GetFieldValue(Index);
     end;
