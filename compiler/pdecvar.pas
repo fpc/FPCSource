@@ -1052,6 +1052,10 @@ implementation
           { variable }
           else
             begin
+              { we have to be able to take the address of the absolute
+                expression
+              }
+              valid_for_addr(pt,true);
               { remove subscriptn before checking for loadn }
               hp:=pt;
               while (hp.nodetype in [subscriptn,typeconvn,vecn]) do

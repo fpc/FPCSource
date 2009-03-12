@@ -7939,6 +7939,7 @@ tests/test/tprec20.pp svneol=native#text/plain
 tests/test/tprec21.pp svneol=native#text/plain
 tests/test/tprec22.pp svneol=native#text/plain
 tests/test/tprec23.pp svneol=native#text/plain
+tests/test/tprec24.pp svneol=native#text/plain
 tests/test/tprec3.pp svneol=native#text/plain
 tests/test/tprec4.pp svneol=native#text/plain
 tests/test/tprec5.pp svneol=native#text/plain
