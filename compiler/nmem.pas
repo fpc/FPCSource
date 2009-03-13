@@ -30,7 +30,7 @@ interface
        symdef,symsym,symtable,symtype;
 
     type
-tloadvmtaddrnode = class(tunarynode)
+       tloadvmtaddrnode = class(tunarynode)
           constructor create(l : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
