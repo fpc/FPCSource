@@ -263,6 +263,9 @@ interface
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
 
         procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
+        procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint);
+        procedure append_nonobject_symlist_for_name_type(list:TAsmList; symlist: ppropaccesslistitem; const name: string; def: tdef);
+
         procedure beforeappendsym(list:TAsmList;sym:tsym);override;
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
         procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
@@ -316,7 +319,7 @@ interface
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
-        procedure appenddef_set(list:TAsmList;def:tsetdef); override;
+        procedure appenddef_set(list:TAsmList;def: tsetdef); override;
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
 
@@ -1735,7 +1738,87 @@ implementation
       end;
 
 
+    procedure TDebugInfoDwarf.append_nonobject_symlist_for_name_type(list:TAsmList; symlist: ppropaccesslistitem; const name: string; def: tdef);
+      var
+        sym     : tabstractnormalvarsym;
+        offset,
+        elesize : pint;
+        currdef : tdef;
+      begin
+        if not assigned(symlist) then
+          exit;
+        offset:=0;
+        currdef:=nil;
+        sym:=nil;
+        repeat
+          case symlist^.sltype of
+            sl_load:
+              begin
+                if assigned(sym) then
+                  internalerror(2009031203);
+                if not(symlist^.sym.typ in [paravarsym,localvarsym,staticvarsym]) then
+                  { can't handle... }
+                  exit;
+                sym:=tabstractnormalvarsym(symlist^.sym);
+                currdef:=tabstractvarsym(sym).vardef;
+              end;
+            sl_subscript:
+              begin
+                if not assigned(currdef) then
+                  internalerror(2009031301);
+                if (symlist^.sym.typ<>fieldvarsym) then
+                  internalerror(2009031202);
+                if is_packed_record_or_object(currdef) then
+                  begin
+                    { can't calculate the address of a non-byte aligned field }
+                    if (tfieldvarsym(symlist^.sym).fieldoffset mod 8) <> 0 then
+                      exit;
+                    inc(offset,tfieldvarsym(symlist^.sym).fieldoffset div 8)
+                  end
+                else
+                  inc(offset,tfieldvarsym(symlist^.sym).fieldoffset);
+                currdef:=tfieldvarsym(symlist^.sym).vardef;
+              end;
+            sl_absolutetype,
+            sl_typeconv:
+              begin
+                currdef:=tfieldvarsym(symlist^.sym).vardef;
+                { ignore, these don't change the address }
+              end;
+            sl_vec:
+              begin
+                if not assigned(currdef) or
+                   (currdef.typ<>arraydef) then
+                  internalerror(2009031201);
+                if not is_packed_array(currdef) then
+                  elesize:=tarraydef(currdef).elesize
+                else
+                  begin
+                    elesize:=tarraydef(currdef).elepackedbitsize;
+                    { can't calculate the address of a non-byte aligned element }
+                    if (elesize mod 8)<>0 then
+                      exit;
+                    elesize:=elesize div 8;
+                  end;
+                inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
+                currdef:=tarraydef(currdef).elementdef;
+              end;
+          end;
+          symlist:=symlist^.next;
+        until not assigned(symlist);
+        if not assigned(sym) then
+          internalerror(2009031205);
+        appendsym_var_with_name_type_offset(list,sym,name,def,offset);
+      end;
+
+
     procedure TDebugInfoDwarf.appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
+      begin
+        appendsym_var_with_name_type_offset(list,sym,symname(sym),sym.vardef,0);
+      end;
+
+
+    procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint);
       var
         templist : TAsmList;
         blocksize : longint;
@@ -1781,9 +1864,15 @@ implementation
                       end
                     else
                       begin
-                        templist.concat(tai_const.create_8bit(3));
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
                         templist.concat(tai_const.createname(sym.mangledname,0));
                         blocksize:=1+sizeof(puint);
+                        if (offset<>0) then
+                          begin
+                            templist.concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
+                            templist.concat(tai_const.create_uleb128bit(offset));
+                            inc(blocksize,1+Lengthuleb128(offset));
+                          end;
                       end;
                   end;
                 paravarsym,
@@ -1791,7 +1880,7 @@ implementation
                   begin
                     dreg:=dwarf_reg(sym.localloc.reference.base);
                     templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                    templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
+                    templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
                     blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
                   end
                 else
@@ -1811,7 +1900,7 @@ implementation
             (sp_static in sym.symoptions) or
             (vo_is_public in sym.varoptions)) then
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1826,7 +1915,7 @@ implementation
             not(vo_has_local_copy in sym.varoptions) and
             not is_open_string(sym.vardef) then
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             DW_AT_variable_parameter,DW_FORM_flag,true,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
@@ -1838,7 +1927,7 @@ implementation
 {$endif gdb_supports_DW_AT_variable_parameter}
         else
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1853,10 +1942,10 @@ implementation
             paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
             not(vo_has_local_copy in sym.varoptions) and
             not is_open_string(sym.vardef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(sym.vardef))
+          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(def))
         else
 {$endif not gdb_supports_DW_AT_variable_parameter}
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 
         templist.free;
 
@@ -2089,10 +2178,7 @@ implementation
           tovar:
             begin
               symlist:=tabsolutevarsym(sym).ref.firstsym;
-              { can we insert the symbol? }
-              if assigned(symlist) and
-                 (symlist^.sltype=sl_load) then
-                appendsym(list,symlist^.sym);
+              append_nonobject_symlist_for_name_type(list,symlist,symname(sym),tabstractvarsym(sym).vardef);
 
               templist.free;
               exit;
