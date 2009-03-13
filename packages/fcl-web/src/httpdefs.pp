@@ -1248,6 +1248,7 @@ begin
           FF:='' //No tmp file will be created for empty files
         else
           begin
+          FI.DLen:=J;
           FF:=GetTempUploadFileName;
           F:=TFileStream.Create(FF,fmCreate);
           Try
@@ -1256,7 +1257,8 @@ begin
             F.Free;
           end;
           end;
-        With Files.Add as TUploadedFile do
+        if (Value <> '') or (FI.DLen > 0)then{only non zero length files or files with non empty names will be considered}
+         With Files.Add as TUploadedFile do
           begin
           FieldName:=FI.Name;
           FileName:=FI.FileName;
