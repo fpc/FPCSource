@@ -521,9 +521,10 @@ begin
            If (FRequest^.Connection<>Nil) then
              Result:=StrPas(FRequest^.Connection^.remote_ip);
       28 : // RemoteHost
-           ap_get_remote_host(FRequest^.Connection,
-                              FRequest^.Per_Dir_Config,
-                              REMOTE_HOST,Nil);
+           If (FRequest^.Connection<>Nil) then
+             Result:=StrPas(ap_get_remote_host(FRequest^.Connection,
+                                FRequest^.Per_Dir_Config,
+                                REMOTE_HOST,Nil));
       29 : begin // ScriptName
            Result:=StrPas(FRequest^.unparsed_uri);
            I:=Pos('?',Result)-1;
