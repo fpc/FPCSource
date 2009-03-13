@@ -1059,7 +1059,37 @@ implementation
               { remove subscriptn before checking for loadn }
               hp:=pt;
               while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
-                hp:=tunarynode(hp).left;
+                begin
+                  { check for implicit dereferencing and reject it }
+                  if (hp.nodetype in [subscriptn,vecn]) then
+                    begin
+                      if (tunarynode(hp).left.resultdef.typ in [pointerdef,classrefdef]) then
+                        break;
+                      { catch, e.g., 'var b: char absolute pchar_var[5];"
+                        (pchar_var[5] is a pchar_2_string typeconv ->
+                         the vecn only sees an array of char)
+                        I don't know if all of these type conversions are
+                        possible, but they're definitely all bad.
+                      }
+                      if (tunarynode(hp).left.nodetype=typeconvn) and
+                         (ttypeconvnode(tunarynode(hp).left).convtype in
+                           [tc_pchar_2_string,tc_pointer_2_array,
+                            tc_intf_2_string,tc_intf_2_guid,
+                            tc_dynarray_2_variant,tc_interface_2_variant,
+                            tc_array_2_dynarray]) then
+                        break;
+
+                      if (tunarynode(hp).left.resultdef.typ=stringdef) and
+                         not(tstringdef(tunarynode(hp).left.resultdef).stringtype in [st_shortstring,st_longstring]) then
+                        break;
+                      if (tunarynode(hp).left.resultdef.typ=objectdef) and
+                         (tobjectdef(tunarynode(hp).left.resultdef).objecttype<>odt_object) then
+                        break;
+                      if is_dynamic_array(tunarynode(hp).left.resultdef) then
+                        break;
+                    end;
+                  hp:=tunarynode(hp).left;
+                end;
               if (hp.nodetype=loadn) then
                 begin
                   { we should check the result type of loadn }
