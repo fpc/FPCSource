@@ -1076,7 +1076,7 @@ Implementation
             { create executable with link to just created debuginfo file }
             exeoutput.ExeWriteMode:=ewm_exeonly;
             exeoutput.RemoveDebugInfo;
-            exeoutput.GenerateDebugLink(dbgname,GetFileCRC(dbgname));
+            exeoutput.GenerateDebugLink(ExtractFileName(dbgname),GetFileCRC(dbgname));
             ParseScript_MemPos;
             ParseScript_DataPos;
             exeoutput.WriteExeFile(outputname);
