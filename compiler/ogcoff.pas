@@ -478,7 +478,7 @@ implementation
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
 
-       coffsecnames : array[TAsmSectiontype] of string[17] = ('',
+       coffsecnames : array[TAsmSectiontype] of string[20] = ('',
           '.text','.data','.data','.data','.bss','.tls',
           '.text',
           '.pdata',
