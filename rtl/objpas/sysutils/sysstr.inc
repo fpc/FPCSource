@@ -1046,22 +1046,26 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  if (FormatSettings.DecimalSeparator<>'.') then
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
     begin
-      { only decimalseparator may appear in the string }
-      P:=Pos('.',S);
-      if (P<>0) then
-        begin
-          result:=false;
-          exit;
-        end;
-      P:=Pos(FormatSettings.DecimalSeparator,S);
-      If (P<>0) Then
-        S[P] := '.';
+      Result := False;
+      Exit;
     end;
+  if (FormatSettings.DecimalSeparator <> '.') and
+     (Pos('.', S) <>0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  P:=Pos(FormatSettings.DecimalSeparator,S);
+  If (P<>0) Then
+    S[P] := '.';
   Val(trim(S),Value,E);
   Result:=(E=0);
 End;
+
 
 Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
 
@@ -1086,12 +1090,20 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  P:=Pos(FormatSettings.ThousandSeparator,S);
-  While (P<>0) do
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
     begin
-    Delete(S,P,1);
-    P:=Pos(FormatSettings.ThousandSeparator,S);
+      Result := False;
+      Exit;
     end;
+  if (FormatSettings.DecimalSeparator <> '.') and
+     (Pos('.', S) <>0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
@@ -1119,6 +1131,7 @@ Begin
   end;
   Result:=(E=0);
 End;
+
 
 Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
 
