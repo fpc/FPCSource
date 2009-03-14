@@ -66,7 +66,8 @@ implementation
        globals,globtype,verbose,systems,
        fmodule,
        symsym,
-       aasmtai,aasmdata
+       aasmtai,aasmdata,
+       defutil
        ;
 
 
@@ -88,6 +89,13 @@ implementation
       var
          hs : string;
       begin
+         if is_open_array(def) then
+           { open arrays never have a typesym with a name, since you cannot
+             define an "open array type". Kylix prints the type of the
+             elements in the array in this case (so together with the pfArray
+             flag, you can reconstruct the full typename, I assume (JM))
+           }
+           def:=tarraydef(def).elementdef;
          { name }
          if assigned(def.typesym) then
            begin
@@ -617,6 +625,11 @@ implementation
                    vs_var  : paraspec := pfVar;
                    vs_out  : paraspec := pfOut;
                  end;
+                 { Kylix also seems to always add both pfArray and pfReference
+                   in this case
+                 }
+                 if is_open_array(parasym.vardef) then
+                   paraspec:=paraspec or pfArray or pfReference;
                  { write flags for current parameter }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
                  { write name of current parameter }
