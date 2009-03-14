@@ -262,9 +262,14 @@ interface
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
 
+        function  get_symlist_sym_offset(symlist: ppropaccesslistitem; out sym: tabstractvarsym; out offset: pint): boolean;
         procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
+        { used for global/static variables, local variables, parameters and
+          absolute variables
+        }
         procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint);
-        procedure append_nonobject_symlist_for_name_type(list:TAsmList; symlist: ppropaccesslistitem; const name: string; def: tdef);
+        { used for fields and properties mapped to fields }
+        procedure appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
 
         procedure beforeappendsym(list:TAsmList;sym:tsym);override;
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
@@ -1738,28 +1743,27 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.append_nonobject_symlist_for_name_type(list:TAsmList; symlist: ppropaccesslistitem; const name: string; def: tdef);
+    function TDebugInfoDwarf.get_symlist_sym_offset(symlist: ppropaccesslistitem; out sym: tabstractvarsym; out offset: pint): boolean;
       var
-        sym     : tabstractnormalvarsym;
-        offset,
         elesize : pint;
         currdef : tdef;
       begin
+        result:=false;
         if not assigned(symlist) then
           exit;
+        sym:=nil;
         offset:=0;
         currdef:=nil;
-        sym:=nil;
         repeat
           case symlist^.sltype of
             sl_load:
               begin
                 if assigned(sym) then
                   internalerror(2009031203);
-                if not(symlist^.sym.typ in [paravarsym,localvarsym,staticvarsym]) then
+                if not(symlist^.sym.typ in [paravarsym,localvarsym,staticvarsym,fieldvarsym]) then
                   { can't handle... }
                   exit;
-                sym:=tabstractnormalvarsym(symlist^.sym);
+                sym:=tabstractvarsym(symlist^.sym);
                 currdef:=tabstractvarsym(sym).vardef;
               end;
             sl_subscript:
@@ -1803,12 +1807,14 @@ implementation
                 inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
                 currdef:=tarraydef(currdef).elementdef;
               end;
+            else
+              internalerror(2009031401);
           end;
           symlist:=symlist^.next;
         until not assigned(symlist);
         if not assigned(sym) then
           internalerror(2009031205);
-        appendsym_var_with_name_type_offset(list,sym,name,def,offset);
+        result:=true;
       end;
 
 
@@ -1972,6 +1978,12 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendsym_fieldvar(list:TAsmList;sym: tfieldvarsym);
+      begin
+        appendsym_fieldvar_with_name_offset(list,sym,symname(sym),sym.vardef,0);
+      end;
+
+
+    procedure TDebugInfoDwarf.appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
       var
         bitoffset,
         fieldoffset,
@@ -1992,8 +2004,9 @@ implementation
               fieldoffset:=sym.fieldoffset
             else
               fieldoffset:=sym.fieldoffset div 8;
+            inc(fieldoffset,offset);
             append_entry(DW_TAG_member,false,[
-              DW_AT_name,DW_FORM_string,symname(sym)+#0,
+              DW_AT_name,DW_FORM_string,name+#0,
               DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(fieldoffset)
               ]);
           end
@@ -2008,6 +2021,7 @@ implementation
             { does.                                                  }
             fieldnatsize:=max(sizeof(pint),sym.vardef.size);
             fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
+            inc(fieldoffset,offset);
             bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
             if (target_info.endian=endian_little) then
               bitoffset:=(fieldnatsize*8)-bitoffset-sym.vardef.packedbitsize;
@@ -2026,7 +2040,7 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(fieldoffset));
 
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
         finish_entry;
       end;
 
@@ -2123,8 +2137,29 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendsym_property(list:TAsmList;sym: tpropertysym);
+      var
+        symlist: ppropaccesslistitem;
+        tosym: tabstractvarsym;
+        offset: pint;
       begin
-        { ignored for now }
+        if assigned(sym.propaccesslist[palt_read]) and
+           not assigned(sym.propaccesslist[palt_read].procdef) then
+          symlist:=sym.propaccesslist[palt_read].firstsym
+        else
+          { can't handle }
+          exit;
+
+        if not get_symlist_sym_offset(symlist,tosym,offset) then
+          exit;
+
+        if (tosym.owner.symtabletype<>objectsymtable) then
+          begin
+            if (tosym.typ=fieldvarsym) then
+              internalerror(2009031404);
+            appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),sym.propdef,offset)
+          end
+        else
+          appendsym_fieldvar_with_name_offset(list,tfieldvarsym(tosym),symname(sym),sym.propdef,offset)
       end;
 
 
@@ -2152,6 +2187,8 @@ implementation
         templist : TAsmList;
         blocksize : longint;
         symlist : ppropaccesslistitem;
+        tosym: tabstractvarsym;
+        offset: pint;
       begin
         templist:=TAsmList.create;
         case tabsolutevarsym(sym).abstyp of
@@ -2178,8 +2215,10 @@ implementation
           tovar:
             begin
               symlist:=tabsolutevarsym(sym).ref.firstsym;
-              append_nonobject_symlist_for_name_type(list,symlist,symname(sym),tabstractvarsym(sym).vardef);
-
+              get_symlist_sym_offset(symlist,tosym,offset);
+              if (tosym.typ=fieldvarsym) then
+                internalerror(2009031402);
+              appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset);
               templist.free;
               exit;
             end;
