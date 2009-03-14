@@ -59,6 +59,7 @@ Type
     procedure parsecmd(cmd:string);
     procedure TargetOptions(def:boolean);
     procedure CheckOptionsCompatibility;
+    procedure ForceStaticLinking;
   end;
 
   TOptionClass=class of toption;
@@ -443,6 +444,18 @@ procedure toption.UnsupportedPara(const opt: string);
 begin
   Message1(option_unsupported_target,opt);
   StopOptions(1);
+end;
+
+
+procedure toption.ForceStaticLinking;
+begin
+  def_system_macro('FPC_LINK_STATIC');
+  undef_system_macro('FPC_LINK_SMART');
+  undef_system_macro('FPC_LINK_DYNAMIC');
+  include(init_settings.globalswitches,cs_link_static);
+  exclude(init_settings.globalswitches,cs_link_smart);
+  exclude(init_settings.globalswitches,cs_link_shared);
+  LinkTypeSetExplicitly:=true;
 end;
 
 
@@ -1670,13 +1683,7 @@ begin
                           end;
                     'S' :
                       begin
-                        def_system_macro('FPC_LINK_STATIC');
-                        undef_system_macro('FPC_LINK_SMART');
-                        undef_system_macro('FPC_LINK_DYNAMIC');
-                        include(init_settings.globalswitches,cs_link_static);
-                        exclude(init_settings.globalswitches,cs_link_smart);
-                        exclude(init_settings.globalswitches,cs_link_shared);
-                        LinkTypeSetExplicitly:=true;
+                        ForceStaticLinking;
                       end;
                     'X' :
                       begin
@@ -2201,6 +2208,11 @@ begin
       Message(option_switch_bin_to_src_assembler);
       set_target_asm(target_info.assemextern);
     end;
+
+  { smart linking does not yet work with DWARF debug info }
+  if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
+     (cs_link_smart in init_settings.globalswitches) then
+    ForceStaticLinking;
 end;
 
 
