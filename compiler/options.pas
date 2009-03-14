@@ -2195,10 +2195,11 @@ begin
     which is required for dwarf on win32 (mantis 12872)
   }
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     (target_info.system = system_i386_win32) then
+     (target_info.system = system_i386_win32) and
+     (target_asm.id = target_info.assem) then
     begin
-     Message(option_switch_bin_to_src_assembler);
-     set_target_asm(target_info.assemextern);
+      Message(option_switch_bin_to_src_assembler);
+      set_target_asm(target_info.assemextern);
     end;
 end;
 
