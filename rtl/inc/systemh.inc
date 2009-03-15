@@ -792,9 +792,9 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure Assign(out f:File;const Name:string);
+Procedure Assign(out f:File;p:pchar);
+Procedure Assign(out f:File;c:char);
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -829,9 +829,9 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;const Name:string);
+Procedure Assign(out f:TypedFile;p:pchar);
+Procedure Assign(out f:TypedFile;c:char);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -841,9 +841,9 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure Assign(out t:Text;const s:string);
+Procedure Assign(out t:Text;p:pchar);
+Procedure Assign(out t:Text;c:char);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);

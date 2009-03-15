@@ -75,7 +75,7 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:String);
+Procedure Assign(out t:Text;const s:String);
 Begin
   FillChar(t,SizeOf(TextRec),0);
 { only set things that are not zero }
@@ -93,13 +93,13 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
+Procedure Assign(out t:Text;p:pchar);
 begin
   Assign(t,StrPas(p));
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure Assign(out t:Text;c:char);
 begin
   Assign(t,string(c));
 end;

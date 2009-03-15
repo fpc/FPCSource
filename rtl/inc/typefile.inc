@@ -15,7 +15,7 @@
                     subroutines for typed file handling
 ****************************************************************************}
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure Assign(out f:TypedFile;const Name:string);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -27,7 +27,7 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure Assign(out f:TypedFile;p:pchar);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -36,7 +36,7 @@ begin
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;c:char);
 {
   Assign Name to file f so it can be used with the file routines
 }

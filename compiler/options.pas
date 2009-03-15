@@ -2358,7 +2358,6 @@ begin
 
 { Temporary defines, until things settle down }
   { "main" symbol is generated in the main program, and left out of the system unit }
-  def_system_macro('PARAOUTFILE');
   def_system_macro('RESSTRSECTIONS');
   def_system_macro('FPC_HASFIXED64BITVARIANT');
   def_system_macro('FPC_HASINTERNALOLEVARIANT2VARIANTCAST');
