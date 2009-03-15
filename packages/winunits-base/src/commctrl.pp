@@ -438,7 +438,7 @@ CONST
 {$ENDIF}
          CDRF_NOTIFYPOSTERASE           = $00000040;
          CDRF_NOTIFYITEMERASE           = $00000080;  // according to lazarus headers. Can't find in sdk 6.0 (Vista sdk)
- 
+
 
 // drawstage flags
 // values under 0x00010000 are reserved for global custom draw values.
@@ -3015,14 +3015,10 @@ Procedure DrawStatusTextW(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); stdc
 function CreateStatusWindowA(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowA';
 function CreateStatusWindowW(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowW';
 
-
-{$IFDEF UNICODE}
 function CreateStatusWindow(style:LONG;lpszText:LPCSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowA';
 procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextA';
-{$ELSE}
 function CreateStatusWindow(style:LONG;lpszText:LPCWSTR;hwndParent:HWND;wID:UINT):HWND; stdcall; external commctrldll name 'CreateStatusWindowW';
 Procedure DrawStatusText(hDC:HDC;lprc:LPRECT;pszText:LPCWSTR;uFlags:UINT); stdcall; external commctrldll name 'DrawStatusTextW';
-{$ENDIF}
 
 CONST
 {$IFDEF _WIN32}
