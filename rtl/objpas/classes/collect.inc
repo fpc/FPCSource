@@ -329,6 +329,17 @@ procedure TCollection.Notify(Item: TCollectionItem;Action: TCollectionNotificati
 begin
 end;
 
+procedure TCollection.Sort(Const Compare : TCollectionSortCompare);
+
+begin
+  BeginUpdate;
+  try
+    FItems.Sort(TListSortCompare(Compare));
+  Finally
+    EndUpdate;
+  end;
+end;
+
 
 {****************************************************************************}
 {*                             TOwnedCollection                             *}

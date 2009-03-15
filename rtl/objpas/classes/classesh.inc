@@ -428,6 +428,7 @@ type
 
   TCollectionItemClass = class of TCollectionItem;
   TCollectionNotification = (cnAdded, cnExtracting, cnDeleting);
+  TCollectionSortCompare = function (Item1, Item2: TCollectionItem): Integer;
 
   TCollection = class(TPersistent)
   private
@@ -467,6 +468,7 @@ type
     function GetNamePath: string; override;
     function Insert(Index: Integer): TCollectionItem;
     function FindItemID(ID: Integer): TCollectionItem;
+    procedure Sort(Const Compare : TCollectionSortCompare);
     property Count: Integer read GetCount;
     property ItemClass: TCollectionItemClass read FItemClass;
     property Items[Index: Integer]: TCollectionItem read GetItem write SetItem;
