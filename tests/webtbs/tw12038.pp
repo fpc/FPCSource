@@ -167,11 +167,7 @@ var
    ProcessThisProperty : boolean;
    Fu_ResultType: String;
    Flags: TParamFlags;
-{$ifdef fpc}
-   Flag:integer;
-{$else}
    Flag:byte;
-{$endif}
    Definition: String;
 begin
   // Finding property type 
@@ -236,7 +232,7 @@ begin
           for i:= 1 to DTypeData^.ParamCount do
           begin
            { First Handle the ParamFlag }
-           Flag:=integer(DTypeData^.ParamList[CurrentParamPosition]);
+           Flag:=byte(DTypeData^.ParamList[CurrentParamPosition]);
 					 Flags:=TParamFlags(Flag);
 					 writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
 //				 For i:= 1 to NumI do

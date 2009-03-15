@@ -32,6 +32,10 @@ unit typinfo;
     type
 
 {$MINENUMSIZE 1   this saves a lot of memory }
+{$ifdef FPC_RTTI_PACKSET1}
+{ for Delphi compatibility }
+{$packset 1}
+{$endif}
        // if you change one of the following enumeration types
        // you have also to change the compiler in an appropriate way !
        TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,

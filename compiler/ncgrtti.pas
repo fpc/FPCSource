@@ -630,6 +630,11 @@ implementation
                  }
                  if is_open_array(parasym.vardef) then
                    paraspec:=paraspec or pfArray or pfReference;
+                 { set bits run from the highest to the lowest bit on
+                   big endian systems
+                 }
+                 if (target_info.endian = endian_big) then
+                   paraspec:=reverse_byte(paraspec);
                  { write flags for current parameter }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
                  { write name of current parameter }
@@ -742,6 +747,10 @@ implementation
           var
             i : longint;
             propnamelist : TFPHashObjectList;
+            { if changed to a set, make sure it's still a byte large, and
+              swap appropriately when cross-compiling
+            }
+            IntfFlags: byte;
           begin
             { Collect unique property names with nameindex }
             propnamelist:=TFPHashObjectList.Create;
@@ -754,20 +763,18 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
 
             { interface: write flags, iid and iidstr }
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(
-              { ugly, but working }
-{$ifdef USE_PACKSET1}
-              byte([
-{$else USE_PACKSET1}
-              longint([
-{$endif USE_PACKSET1}
-                TCompilerIntfFlag(ord(ifHasGuid)*ord(assigned(def.iidguid))),
-                TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(def.iidstr))),
-                TCompilerIntfFlag(ord(ifDispInterface)*ord(def.objecttype=odt_dispinterface))
-              ])
+            IntfFlags:=0;
+            if assigned(def.iidguid) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifHasGuid));
+            if assigned(def.iidstr) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifHasStrGUID));
+            if (def.objecttype=odt_dispinterface) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifDispInterface));
+            if (target_info.endian=endian_big) then
+              IntfFlags:=reverse_byte(IntfFlags);
               {
               ifDispatch, }
-              ));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(IntfFlags));
             if (tf_requires_proper_alignment in target_info.flags) then
               current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.iidguid^.D1)));
