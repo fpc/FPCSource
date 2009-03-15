@@ -15,9 +15,9 @@ uses
 
 type
 
-  TBatch = Procedure (Var S:String) of Object;
-  TProcess = function (Var S:String; const A:integer):int64 of Object;
-  TArray = function (Var Array1:Array of String; const P:Pointer; Out Out1:int64):int64 of Object;
+  TBatch = Procedure (Var S:String) of Object; stdcall;
+  TProcess = function (Var S:String; const A:integer):int64 of Object; stdcall;
+  TArray = function (Var Array1:Array of String; const P:Pointer; Out Out1:int64):int64 of Object; stdcall;
   
   TMyObject=Class(TObject)
    private
@@ -27,8 +27,8 @@ type
 	FOnProcess : TProcess;
 	FOnArray: TArray;
 	
-    Procedure ProcNo1(Var S:String);
-    Procedure ProcNo2(Var S:String);
+    Procedure ProcNo1(Var S:String); stdcall;
+    Procedure ProcNo2(Var S:String); stdcall;
    public
     Function IF_Exist:Boolean;
     Property FP1:Integer read FFieldOne Write FFieldOne;
@@ -67,12 +67,12 @@ Begin
  result:=True;
 end;
 
-Procedure TMyObject.ProcNo1(Var S:String);
+Procedure TMyObject.ProcNo1(Var S:String); stdcall;
 Begin
  S:='The Batch execute the procedure TMyObject.ProcNo1';
 end;
 
-Procedure TMyObject.ProcNo2(Var S:String);
+Procedure TMyObject.ProcNo2(Var S:String); stdcall;
 Begin
  S:='The Batch execute the procedure TMyObject.ProcNo2';
 end;
@@ -233,10 +233,10 @@ begin
 			      Definition:='(';
 //  	  			  Definition := Definition+'(';
 				  CurrentParamPosition := 0;
-	              for i:= 1 to DTypeData^.ParamCount do
-	              begin
-	                 { First Handle the ParamFlag }
-	                 Flag:=integer(DTypeData^.ParamList[CurrentParamPosition]);
+          for i:= 1 to DTypeData^.ParamCount do
+          begin
+           { First Handle the ParamFlag }
+           Flag:=integer(DTypeData^.ParamList[CurrentParamPosition]);
 					 Flags:=TParamFlags(Flag);
 					 writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
 //				 For i:= 1 to NumI do
@@ -254,33 +254,28 @@ begin
 					  if pfout in Flags
 					   then Definition := Definition+('out ');
 					 
-	                 { Next char is the length of the ParamName}
+           { Next char is the length of the ParamName}
 					 inc(CurrentParamPosition);
-	                 ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
-	                 { Next extract the Name of the Parameter }
-	                 ParamName := '';
-	                 for j := CurrentParamPosition + 1 to
-	                          CurrentParamPosition + ParamNameLength do
-	                    ParamName := ParamName +
-	                                 DTypeData^.ParamList[j];
-	                 CurrentParamPosition := CurrentParamPosition +
-	                                         ParamNameLength;
-	                 { Next extract the Type of the Parameter }
-	                 inc(CurrentParamPosition);
-	                 ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
-	                 writeln('Length type:',ParamNameLength);
-                         TypeName := '';
-	                 for j := CurrentParamPosition + 1 to
-	                          CurrentParamPosition + ParamNameLength do
-	                    TypeName  := TypeName +
-	                                 DTypeData^.ParamList[j];
-	                 CurrentParamPosition := CurrentParamPosition +
-	                                         ParamNameLength + 1;
-	                 writeln('ParamName:',i,':', ParamName);
+           ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
+           { Next extract the Name of the Parameter }
+           ParamName := '';
+           for j := CurrentParamPosition + 1 to CurrentParamPosition + ParamNameLength do
+             ParamName := ParamName + DTypeData^.ParamList[j];
+           CurrentParamPosition := CurrentParamPosition + ParamNameLength;
+           { Next extract the Type of the Parameter }
+           inc(CurrentParamPosition);
+           ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
+           writeln('Length type:',ParamNameLength);
+                 TypeName := '';
+           for j := CurrentParamPosition + 1 to CurrentParamPosition + ParamNameLength do
+             TypeName  := TypeName + DTypeData^.ParamList[j];
+           CurrentParamPosition := CurrentParamPosition +
+                                   ParamNameLength + 1;
+           writeln('ParamName:',i,':', ParamName);
 					 writeln('TypeName:',i,':', TypeName);
 					 Definition := Format('%s%s: %s', [Definition, ParamName, TypeName]);
-						If I<DTypeData^.ParamCount  then Definition := Definition + '; '
-                  end;
+ 					If I<DTypeData^.ParamCount  then Definition := Definition + '; '
+        end;
 	 			  if DTypeData^.MethodKind = mkFunction then
 	                    begin
 	  	  			      ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
@@ -321,8 +316,8 @@ end;
 const
   expectedresults: array[0..3] of ansistring = (
     '',
-    'function (var array of reference ?Array1: AnsiString; const P: Pointer; out Out1: Int64): Int64 of object;',
-    'function (var S: AnsiString; const A: LongInt): Int64 of object;',
+    'function (out Out1: Int64; const P: Pointer; var array of reference ?Array1: AnsiString): Int64 of object;',
+    'function (const A: LongInt; var S: AnsiString): Int64 of object;',
     'procedure (var S: AnsiString) of object;'
     );
 begin
