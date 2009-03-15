@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Pascal run time librar~y.
+    This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
 
@@ -266,18 +266,9 @@ end;
 
 {$ifdef Darwin}
 
-{$ifndef FPC_DARWIN_PASCALMAIN}
-procedure pascalmain;external name 'PASCALMAIN';
-{ Main entry point in C style, needed to capture program parameters. }
-
-procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
-{$else FPC_DARWIN_PASCALMAIN}
-
-{$ifdef FPC_DARWIN_JMP_MAIN}
 procedure pascalmain;cdecl;external name 'PASCALMAIN';
-{$endif}
+
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
-{$endif FPC_DARWIN_PASCALMAIN}
 
 begin
   argc:= argcparam;
@@ -286,9 +277,7 @@ begin
 {$ifdef cpui386}
   Set8087CW(Default8087CW);  
 {$endif cpui386}
-{$if not defined(FPC_DARWIN_PASCALMAIN) or defined(FPC_DARWIN_JMP_MAIN)}
   pascalmain;  {run the pascal main program}
-{$endif}
 end;
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
