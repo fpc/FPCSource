@@ -1857,6 +1857,40 @@ end;
 
 {$endif CPU64}
 
+{ converts an utf-16 code point or surrogate pair to utf-32 }
+function utf16toutf32(const S: UnicodeString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_UTF16TOUTF32'];
+var
+  w: unicodechar;
+begin
+  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
+  { are the same in UTF-32                                  }
+  w:=s[index];
+  if (w<=#$d7ff) or
+     (w>=#$e000) then
+    begin
+      result:=UCS4Char(w);
+      len:=1;
+    end
+  { valid surrogate pair? }
+  else if (w<=#$dbff) and
+          { w>=#$d7ff check not needed, checked above }
+          (index<length(s)) and
+          (s[index+1]>=#$dc00) and
+          (s[index+1]<=#$dfff) then
+      { convert the surrogate pair to UTF-32 }
+    begin
+      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
+      len:=2;
+    end
+  else
+    { invalid surrogate -> do nothing }
+    begin
+      result:=UCS4Char(w);
+      len:=1;
+    end;
+end;
+
+
 function UnicodeToUtf8(Dest: PChar; Source: PUnicodeChar; MaxBytes: SizeInt): SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     if assigned(Source) then
@@ -1870,6 +1904,8 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
   var
     i,j : SizeUInt;
     w : word;
+    lw : longword;
+    len : longint;
   begin
     result:=0;
     if source=nil then
@@ -1895,16 +1931,34 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                   Dest[j+1]:=char($80 or (w and $3f));
                   inc(j,2);
                 end;
-              else
+              $800..$d7ff,$e000..$ffff:
                 begin
-                    if j+2>=MaxDestBytes then
-                      break;
-                    Dest[j]:=char($e0 or (w shr 12));
-                    Dest[j+1]:=char($80 or ((w shr 6)and $3f));
-                    Dest[j+2]:=char($80 or (w and $3f));
-                    inc(j,3);
+                  if j+2>=MaxDestBytes then
+                    break;
+                  Dest[j]:=char($e0 or (w shr 12));
+                  Dest[j+1]:=char($80 or ((w shr 6) and $3f));
+                  Dest[j+2]:=char($80 or (w and $3f));
+                  inc(j,3);
                 end;
-            end;
+              $d800..$dbff:
+                {High Surrogates}
+                begin
+                  if j+3>=MaxDestBytes then
+                    break;
+                  if (i<sourcechars-1) and
+                     (word(Source[i+1]) >= $dc00) and
+                     (word(Source[i+1]) <= $dfff) then
+                    begin
+                      lw:=longword(utf16toutf32(Source[i] + Source[i+1], 1, len));
+                      Dest[j]:=char($f0 or (lw shr 18));
+                      Dest[j+1]:=char($80 or ((lw shr 12) and $3f));
+                      Dest[j+2]:=char($80 or ((lw shr 6) and $3f));
+                      Dest[j+3]:=char($80 or (lw and $3f));
+                      inc(j,4);
+                      inc(i);
+                    end;
+                end;
+              end;
             inc(i);
           end;
 
@@ -1922,8 +1976,18 @@ function UnicodeToUtf8(Dest: PChar; MaxDestBytes: SizeUInt; Source: PUnicodeChar
                 inc(j);
               $80..$7ff:
                 inc(j,2);
-              else
+              $800..$d7ff,$e000..$ffff:
                 inc(j,3);
+              $d800..$dbff:
+                begin
+                  if (i<sourcechars-1) and
+                     (word(Source[i+1]) >= $dc00) and
+                     (word(Source[i+1]) <= $dfff) then
+                    begin
+                      inc(j,4);
+                      inc(i);
+                    end;
+                end;
             end;
             inc(i);
           end;
@@ -1941,88 +2005,285 @@ function Utf8ToUnicode(Dest: PUnicodeChar; Source: PChar; MaxChars: SizeInt): Si
   end;
 
 
-function Utf8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
-
-var
-  i,j : SizeUInt;
-  w: SizeUInt;
-  b : byte;
-begin
-  if not assigned(Source) then
+function UTF8ToUnicode(Dest: PUnicodeChar; MaxDestChars: SizeUInt; Source: PChar; SourceBytes: SizeUInt): SizeUInt;
+  const
+    UNICODE_INVALID=63;
+  var
+    InputUTF8: SizeUInt;
+    IBYTE: BYTE;
+    OutputUnicode: SizeUInt;
+    PRECHAR: SizeUInt;
+    TempBYTE: BYTE;
+    CharLen: SizeUint;
+    LookAhead: SizeUInt;
+    UC: SizeUInt;
   begin
-    result:=0;
-    exit;
+    if not assigned(Source) then
+      begin
+        result:=0;
+        exit;
+      end;
+    result:=SizeUInt(-1);
+    InputUTF8:=0;
+    OutputUnicode:=0;
+    PreChar:=0;
+    if Assigned(Dest) Then
+      begin
+        while (OutputUnicode<MaxDestChars) and (InputUTF8<SourceBytes) do
+          begin
+            IBYTE:=byte(Source[InputUTF8]);
+            if (IBYTE and $80) = 0 then
+              begin
+                //One character US-ASCII, convert it to unicode
+                if IBYTE = 10 then
+                  begin
+                    If (PreChar<>13) and FALSE then
+                      begin
+                        //Expand to crlf, conform UTF-8.
+                        //This procedure will break the memory alocation by
+                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
+                        if OutputUnicode+1<MaxDestChars then
+                          begin
+                            Dest[OutputUnicode]:=WideChar(13);
+                            inc(OutputUnicode);
+                            Dest[OutputUnicode]:=WideChar(10);
+                            inc(OutputUnicode);
+                            PreChar:=10;
+                          end
+                        else
+                          begin
+                            Dest[OutputUnicode]:=WideChar(13);
+                            inc(OutputUnicode);
+                          end;
+                      end
+                    else
+                      begin
+                        Dest[OutputUnicode]:=WideChar(IBYTE);
+                        inc(OutputUnicode);
+                        PreChar:=IBYTE;
+                      end;
+                  end
+                else
+                  begin
+                    Dest[OutputUnicode]:=WideChar(IBYTE);
+                    inc(OutputUnicode);
+                    PreChar:=IBYTE;
+                  end;
+                inc(InputUTF8);
+              end
+            else
+              begin
+                TempByte:=IBYTE;
+                CharLen:=0;
+                while (TempBYTE and $80)<>0 do
+                  begin
+                    TempBYTE:=(TempBYTE shl 1) and $FE;
+                    inc(CharLen);
+                  end;
+                //Test for the "CharLen" conforms UTF-8 string
+                //This means the 10xxxxxx pattern.
+                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
+                  begin
+                    //Insuficient chars in string to decode
+                    //UTF-8 array. Fallback to single char.
+                    CharLen:= 1;
+                  end;
+                for LookAhead := 1 to CharLen-1 do
+                  begin
+                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
+                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
+                      begin
+                        //Invalid UTF-8 sequence, fallback.
+                        CharLen:= LookAhead;
+                        break;
+                      end;
+                  end;
+                UC:=$FFFF;
+                case CharLen of
+                  1:  begin
+                        //Not valid UTF-8 sequence
+                        UC:=UNICODE_INVALID;
+                      end;
+                  2:  begin
+                        //Two bytes UTF, convert it
+                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
+                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
+                        if UC <= $7F then
+                          begin
+                            //Invalid UTF sequence.
+                            UC:=UNICODE_INVALID;
+                          end;
+                      end;
+                  3:  begin
+                        //Three bytes, convert it to unicode
+                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
+                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
+                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
+                        if (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
+                          begin
+                            //Invalid UTF-8 sequence
+                            UC:= UNICODE_INVALID;
+                          End;
+                      end;
+                  4:  begin
+                        //Four bytes, convert it to two unicode characters
+                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
+                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
+                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
+                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
+                        if (UC < $10000) or (UC > $10FFFF) then
+                          begin
+                            UC:= UNICODE_INVALID;
+                          end
+                        else
+                          begin
+                            { only store pair if room }
+                            dec(UC,$10000);
+                            if (OutputUnicode<MaxDestChars-1) then
+                              begin
+                                Dest[OutputUnicode]:=WideChar(UC shr 10 + $D800);
+                                inc(OutputUnicode);
+                                UC:=(UC and $3ff) + $DC00;
+                              end
+                            else
+                              begin
+                                InputUTF8:= InputUTF8 + CharLen;
+                                { don't store anything }
+                                CharLen:=0;
+                              end;
+                          end;
+                      end;
+                  5,6,7:  begin
+                            //Invalid UTF8 to unicode conversion,
+                            //mask it as invalid UNICODE too.
+                            UC:=UNICODE_INVALID;
+                          end;
+                end;
+                if CharLen > 0 then
+                  begin
+                    PreChar:=UC;
+                    Dest[OutputUnicode]:=WideChar(UC);
+                    inc(OutputUnicode);
+                  end;
+                InputUTF8:= InputUTF8 + CharLen;
+              end;
+          end;
+        Result:=OutputUnicode+1;
+      end
+    else
+      begin
+        while (InputUTF8<SourceBytes) do
+          begin
+            IBYTE:=byte(Source[InputUTF8]);
+            if (IBYTE and $80) = 0 then
+              begin
+                //One character US-ASCII, convert it to unicode
+                if IBYTE = 10 then
+                  begin
+                    if (PreChar<>13) and FALSE then
+                      begin
+                        //Expand to crlf, conform UTF-8.
+                        //This procedure will break the memory alocation by
+                        //FPC for the widestring, so never use it. Condition never true due the "and FALSE".
+                        inc(OutputUnicode,2);
+                        PreChar:=10;
+                      end
+                    else
+                      begin
+                        inc(OutputUnicode);
+                        PreChar:=IBYTE;
+                      end;
+                  end
+                else
+                  begin
+                    inc(OutputUnicode);
+                    PreChar:=IBYTE;
+                  end;
+                inc(InputUTF8);
+              end
+            else
+              begin
+                TempByte:=IBYTE;
+                CharLen:=0;
+                while (TempBYTE and $80)<>0 do
+                  begin
+                    TempBYTE:=(TempBYTE shl 1) and $FE;
+                    inc(CharLen);
+                  end;
+                //Test for the "CharLen" conforms UTF-8 string
+                //This means the 10xxxxxx pattern.
+                if SizeUInt(InputUTF8+CharLen-1)>SourceBytes then
+                  begin
+                    //Insuficient chars in string to decode
+                    //UTF-8 array. Fallback to single char.
+                    CharLen:= 1;
+                  end;
+                for LookAhead := 1 to CharLen-1 do
+                  begin
+                    if ((byte(Source[InputUTF8+LookAhead]) and $80)<>$80) or
+                       ((byte(Source[InputUTF8+LookAhead]) and $40)<>$00) then
+                      begin
+                        //Invalid UTF-8 sequence, fallback.
+                        CharLen:= LookAhead;
+                        break;
+                      end;
+                  end;
+                UC:=$FFFF;
+                case CharLen of
+                  1:  begin
+                        //Not valid UTF-8 sequence
+                        UC:=UNICODE_INVALID;
+                      end;
+                  2:  begin
+                        //Two bytes UTF, convert it
+                        UC:=(byte(Source[InputUTF8]) and $1F) shl 6;
+                        UC:=UC or (byte(Source[InputUTF8+1]) and $3F);
+                        if UC <= $7F then
+                          begin
+                            //Invalid UTF sequence.
+                            UC:=UNICODE_INVALID;
+                          end;
+                      end;
+                  3:  begin
+                        //Three bytes, convert it to unicode
+                        UC:= (byte(Source[InputUTF8]) and $0F) shl 12;
+                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 6);
+                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F));
+                        If (UC <= $7FF) or (UC >= $FFFE) or ((UC >= $D800) and (UC <= $DFFF)) then
+                          begin
+                            //Invalid UTF-8 sequence
+                            UC:= UNICODE_INVALID;
+                          end;
+                      end;
+                  4:  begin
+                        //Four bytes, convert it to two unicode characters
+                        UC:= (byte(Source[InputUTF8]) and $07) shl 18;
+                        UC:= UC or ((byte(Source[InputUTF8+1]) and $3F) shl 12);
+                        UC:= UC or ((byte(Source[InputUTF8+2]) and $3F) shl 6);
+                        UC:= UC or ((byte(Source[InputUTF8+3]) and $3F));
+                        if (UC < $10000) or (UC > $10FFFF) then
+                          UC:= UNICODE_INVALID
+                        else
+                          { extra character character }
+                          inc(OutputUnicode);
+                      end;
+                  5,6,7:  begin
+                            //Invalid UTF8 to unicode conversion,
+                            //mask it as invalid UNICODE too.
+                            UC:=UNICODE_INVALID;
+                          end;
+                end;
+                if CharLen > 0 then
+                  begin
+                    PreChar:=UC;
+                    inc(OutputUnicode);
+                  end;
+                InputUTF8:= InputUTF8 + CharLen;
+              end;
+          end;
+        Result:=OutputUnicode+1;
+      end;
   end;
-  result:=SizeUInt(-1);
-  i:=0;
-  j:=0;
-  if assigned(Dest) then
-    begin
-      while (j<MaxDestChars) and (i<SourceBytes) do
-        begin
-          b:=byte(Source[i]);
-          w:=b;
-          inc(i);
-          // 2 or 3 bytes?
-          if b>=$80 then
-            begin
-              w:=b and $3f;
-              if i>=SourceBytes then
-                exit;
-              // 3 bytes?
-              if (b and $20)<>0 then
-                begin
-                  b:=byte(Source[i]);
-                  inc(i);
-                  if i>=SourceBytes then
-                    exit;
-                  if (b and $c0)<>$80 then
-                    exit;
-                  w:=(w shl 6) or (b and $3f);
-                end;
-              b:=byte(Source[i]);
-              w:=(w shl 6) or (b and $3f);
-              if (b and $c0)<>$80 then
-                exit;
-              inc(i);
-            end;
-          Dest[j]:=UnicodeChar(w);
-          inc(j);
-        end;
-      if j>=MaxDestChars then j:=MaxDestChars-1;
-      Dest[j]:=#0;
-    end
-  else
-    begin
-      while i<SourceBytes do
-        begin
-          b:=byte(Source[i]);
-          inc(i);
-          // 2 or 3 bytes?
-          if b>=$80 then
-            begin
-              if i>=SourceBytes then
-                exit;
-              // 3 bytes?
-              b := b and $3f;
-              if (b and $20)<>0 then
-                begin
-                  b:=byte(Source[i]);
-                  inc(i);
-                  if i>=SourceBytes then
-                    exit;
-                  if (b and $c0)<>$80 then
-                    exit;
-                end;
-              if (byte(Source[i]) and $c0)<>$80 then
-                exit;
-              inc(i);
-            end;
-          inc(j);
-        end;
-    end;
-  result:=j+1;
-end;
 
 
 function UTF8Encode(const s : Ansistring) : UTF8String; inline;
@@ -2077,40 +2338,6 @@ function Utf8ToAnsi(const s : UTF8String) : ansistring;{$ifdef SYSTEMINLINE}inli
   begin
     Result:=Utf8Decode(s);
   end;
-
-
-{ converts an utf-16 code point or surrogate pair to utf-32 }
-function utf16toutf32(const S: UnicodeString; const index: SizeInt; out len: longint): UCS4Char; [public, alias: 'FPC_UTF16TOUTF32'];
-var
-  w: unicodechar;
-begin
-  { UTF-16 points in the range #$0-#$D7FF and #$E000-#$FFFF }
-  { are the same in UTF-32                                  }
-  w:=s[index];
-  if (w<=#$d7ff) or
-     (w>=#$e000) then
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end
-  { valid surrogate pair? }
-  else if (w<=#$dbff) and
-          { w>=#$d7ff check not needed, checked above }
-          (index<length(s)) and
-          (s[index+1]>=#$dc00) and
-          (s[index+1]<=#$dfff) then
-      { convert the surrogate pair to UTF-32 }
-    begin
-      result:=(UCS4Char(w)-$d800) shl 10 + (UCS4Char(s[index+1])-$dc00) + $10000;
-      len:=2;
-    end
-  else
-    { invalid surrogate -> do nothing }
-    begin
-      result:=UCS4Char(w);
-      len:=1;
-    end;
-end;
 
 
 function UnicodeStringToUCS4String(const s : UnicodeString) : UCS4String;
