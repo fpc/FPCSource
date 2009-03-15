@@ -105,7 +105,6 @@ end;
 procedure JPEGError(CurInfo: j_common_ptr);
 begin
   if CurInfo=nil then exit;
-  writeln('JPEGError ',CurInfo^.err^.msg_code,' ');
   raise Exception.CreateFmt('JPEG error',[CurInfo^.err^.msg_code]);
 end;
 
