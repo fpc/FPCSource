@@ -101,10 +101,19 @@ implementation
            if pd.typ=procdef then
             current_tokenpos:=tprocdef(pd).fileinfo;
 
+{$if defined(i386)}
            { For left to right add it at the end to be delphi compatible }
            if pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])  then
              paranr:=paranr_result_leftright
            else
+{$elseif defined(x86) or defined(arm)}
+           { other platforms don't have a "safecall" convention,
+             and never reverse the parameter pushing order
+           }
+           if pd.proccalloption = pocall_safecall)  then
+             paranr:=paranr_result_leftright
+           else
+{$endif}
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);

@@ -493,7 +493,12 @@ const
      pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
    ];
 
+{$ifdef i386}
+   { we only take this into account on i386, on other platforms we always
+     push in the same order
+   }
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
+{$endif}
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',
