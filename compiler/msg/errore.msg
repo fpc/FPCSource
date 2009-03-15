@@ -2406,7 +2406,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 #
 #  Options
 #
-# 11045 is the last used one
+# 11046 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2523,6 +2523,9 @@ option_unsupported_target=11044_F_Option "$1" is not, or not yet, supported on t
 option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not yet, supported on the selected target platform
 % Not all features are supported or implemented for all target platforms. This message informs you that a chosen
 % feature is incompatible with the currently selected target platform.
+option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with smart linking on this target, switching to static linking
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
 
 %\end{description}
 # EndOfTeX

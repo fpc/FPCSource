@@ -2209,10 +2209,14 @@ begin
       set_target_asm(target_info.assemextern);
     end;
 
-  { smart linking does not yet work with DWARF debug info }
+  { smart linking does not yet work with DWARF debug info on most targets }
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     (cs_link_smart in init_settings.globalswitches) then
-    ForceStaticLinking;
+     (cs_link_smart in init_settings.globalswitches) and
+     not(target_info.system in systems_darwin) then
+    begin
+      Message(option_dwarf_smart_linking);
+      ForceStaticLinking;
+    end;
 end;
 
 
