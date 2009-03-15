@@ -1,7 +1,9 @@
 { %target=darwin,linux,freebsd,solaris }
 { %wpoparas=devirtcalls,optvmts,symbolliveness }
 { %wpopasses=2 }
-{ %opt=-CX -XX -Xs- }
+{ %opt=-CX -XX -Xs- -g- }
+
+{ -g- because DWARF debug info does not work with smart linking }
 
 { not enabled for windows yet because symbolliveness doesn't work there without
   installing "nm" (until implemented by way of internal linker there)
