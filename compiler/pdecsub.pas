@@ -110,7 +110,7 @@ implementation
            { other platforms don't have a "safecall" convention,
              and never reverse the parameter pushing order
            }
-           if pd.proccalloption = pocall_safecall)  then
+           if (pd.proccalloption = pocall_safecall)  then
              paranr:=paranr_result_leftright
            else
 {$endif}
