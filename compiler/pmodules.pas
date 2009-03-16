@@ -133,18 +133,20 @@ implementation
       end;
 
 
-    procedure create_dwarf;
+    procedure create_dwarf_frame;
       begin
         { Dwarf conflicts with smartlinking in separate .a files }
         if create_smartlink_library then
           exit;
         { Call frame information }
-        if (tf_needs_dwarf_cfi in target_info.flags) and
-           (af_supports_dwarf in target_asm.flags) then
+        { MWE: we write our own info, so dwarf asm support is not really needed }
+        { if (af_supports_dwarf in target_asm.flags) and }
+        if (tf_needs_dwarf_cfi in target_info.flags) or
+           (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
           begin
-            current_asmdata.asmlists[al_dwarf].Free;
-            current_asmdata.asmlists[al_dwarf] := TAsmList.create;
-            current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf]);
+            current_asmdata.asmlists[al_dwarf_frame].Free;
+            current_asmdata.asmlists[al_dwarf_frame] := TAsmList.create;
+            current_asmdata.asmcfi.generate_code(current_asmdata.asmlists[al_dwarf_frame]);
           end;
       end;
 
@@ -1246,8 +1248,8 @@ implementation
 
          if ag then
           begin
-            { create dwarf debuginfo }
-            create_dwarf;
+            { create callframe info }
+            create_dwarf_frame;
             { assemble }
             create_objectfile;
           end;
@@ -2200,8 +2202,8 @@ implementation
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);
 
-         { create dwarf debuginfo }
-         create_dwarf;
+         { create callframe info }
+         create_dwarf_frame;
 
          { insert own objectfile }
          insertobjectfile;
