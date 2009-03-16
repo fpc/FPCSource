@@ -1871,14 +1871,8 @@ implementation
                     else
                       begin
                         templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
-                        templist.concat(tai_const.createname(sym.mangledname,0));
+                        templist.concat(tai_const.createname(sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
-                        if (offset<>0) then
-                          begin
-                            templist.concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
-                            templist.concat(tai_const.create_uleb128bit(offset));
-                            inc(blocksize,1+Lengthuleb128(offset));
-                          end;
                       end;
                   end;
                 paravarsym,
