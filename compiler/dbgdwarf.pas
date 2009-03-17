@@ -2549,7 +2549,6 @@ implementation
         finish_children;
 
         { end of debug info table }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'edebug_info0',AT_DATA,0));
 
         { end of abbrev table }
