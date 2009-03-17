@@ -40,8 +40,9 @@ program pp;
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles, default for TP
   FPC_ARMEL           create an arm eabi compiler
+  FPC_ARMEB           create an arm big endian compiler
   FPC_OARM            create an arm oabi compiler, only needed when the host
-                      compiler is ARMEL
+                      compiler is ARMEL or ARMEB
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software

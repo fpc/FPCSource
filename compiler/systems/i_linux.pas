@@ -600,6 +600,70 @@ unit i_linux;
             abi : abi_eabi
           );
 {$else FPC_ARMEL}
+{$ifdef FPC_ARMEB}
+       system_arm_linux_info : tsysteminfo =
+          (
+            system       : system_arm_Linux;
+            name         : 'Linux for ARMEB';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+            cpu          : cpu_arm;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX;CPUARMEB';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_elf;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 4;
+                varalignmin     : 0;
+                varalignmax     : 4;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 4;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 8*1024*1024;
+            abi : abi_default
+          );
+{$else FPC_ARMEB}
        system_arm_linux_info : tsysteminfo =
           (
             system       : system_arm_Linux;
@@ -662,6 +726,7 @@ unit i_linux;
             stacksize    : 8*1024*1024;
             abi : abi_default
           );
+{$endif FPC_ARMEB}
 {$endif FPC_ARMEL}
 
   implementation
