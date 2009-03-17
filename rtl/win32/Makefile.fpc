@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=$(LOADERS)
-units=system objpas macpas buildrtl lineinfo
+units=system objpas macpas buildrtl lineinfo lnfodwrf
 implicitunits=sysinitpas sysinitcyg sysinitgprof \
       ctypes strings \
       heaptrc matrix \
