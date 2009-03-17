@@ -630,6 +630,11 @@ implementation
                  }
                  if is_open_array(parasym.vardef) then
                    paraspec:=paraspec or pfArray or pfReference;
+                 { and these for classes and interfaces (maybe because they
+                   are themselves addresses?)
+                 }
+                 if is_class_or_interface(parasym.vardef) then
+                   paraspec:=paraspec or pfAddress;
                  { set bits run from the highest to the lowest bit on
                    big endian systems
                  }

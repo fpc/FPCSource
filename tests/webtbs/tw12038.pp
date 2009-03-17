@@ -14,19 +14,31 @@ uses
   Classes;
 
 type
-
+  TMyObject = class;
   TBatch = Procedure (Var S:String) of Object; stdcall;
   TProcess = function (Var S:String; const A:integer):int64 of Object; stdcall;
   TArray = function (Var Array1:Array of String; const P:Pointer; Out Out1:int64):int64 of Object; stdcall;
+  TOnFour = function (A: array of byte; const B: array of byte;
+    var C: array of byte; out D: array of byte): TComponent  of object;
+  TOnFive = procedure (Component1: TComponent;
+    var Component2: TComponent;
+    out Component3: TComponent;
+    const Component4: TComponent) of object;
+  TOnSix = function (const A: string; var Two: integer;
+    out Three: TMyObject; Four: PInteger; Five: array of Byte;
+    Six: integer): string of object;
   
   TMyObject=Class(TObject)
    private
     FFieldOne : Integer;
     FFieldTwo  : String;
     FOnBatch :TBatch;
-	FOnProcess : TProcess;
-	FOnArray: TArray;
-	
+    FOnFour: TOnFour;
+    FOnFive: TOnFive;
+    FOnSix: TOnSix;
+  FOnProcess : TProcess;
+  FOnArray: TArray;
+  
     Procedure ProcNo1(Var S:String); stdcall;
     Procedure ProcNo2(Var S:String); stdcall;
    public
@@ -35,9 +47,20 @@ type
    published
     Property FP2:String read FFieldTwo  Write FFieldTwo ;
     Property OnTraitement:TBatch read FOnBatch Write FOnBatch;
-	Property OnProcess:TProcess read FOnProcess Write FOnProcess;
-	Property OnArray:TArray read FOnArray Write FOnArray;
-	
+    Property OnProcess:TProcess read FOnProcess Write FOnProcess;
+    Property OnArray:TArray read FOnArray Write FOnArray;
+    function FourthPublished(A: array of byte; const B: array of byte;
+      var C: array of byte; out D: array of byte): TComponent;
+    procedure FifthPublished(Component1: TComponent;
+      var Component2: TComponent;
+      out Component3: TComponent;
+      const Component4: TComponent);
+    function SixthPublished(const A: string; var Two: integer;
+      out Three: TMyObject; Four: PInteger;
+      Five: array of Byte; Six: integer): string;
+    property OnFour: TOnFour read FOnFour write FOnFour;
+    property OnFive: TOnFive read FOnFive write FOnFive;
+    property OnSix: TOnSix read FOnSix write FOnSix;
   end;
 
   PShortString=^ShortString;
@@ -75,6 +98,25 @@ end;
 Procedure TMyObject.ProcNo2(Var S:String); stdcall;
 Begin
  S:='The Batch execute the procedure TMyObject.ProcNo2';
+end;
+
+function TMyObject.FourthPublished(A: array of byte; const B: array of byte;
+      var C: array of byte; out D: array of byte): TComponent;
+begin
+  Result := nil;
+end;
+
+procedure TMyObject.FifthPublished(Component1: TComponent;
+      var Component2: TComponent;
+      out Component3: TComponent;
+      const Component4: TComponent);
+begin
+end;
+
+function TMyObject.SixthPublished(const A: string; var Two: integer;
+      out Three: TMyObject; Four: PInteger;
+      Five: array of Byte; Six: integer): string;
+begin
 end;
 
 Function BuildMethodDefinition(Liste: ParametersMethod1;NumI :Integer):String;
@@ -197,61 +239,62 @@ begin
     tkInteger : writeln('<tkinteger>');
     tkLString : writeln('<tklstring>');
     //tkString  : writeln('Longueur max ='); string pascal max 255?
-    tkMethod  : Begin
-                  writeln('>>> Methode Type >>>');
-                  //Information for the method type : tkmethod
-                  //  TPropInfo.PropType= PPTypeInfo;
-                  //  GetTypeData(TypeInfo: PTypeInfo) send PTypeData
-                  //  PTypeData is for finding MethodKind 
+    tkMethod  :
+      Begin
+        writeln('>>> Methode Type >>>');
+        //Information for the method type : tkmethod
+        //  TPropInfo.PropType= PPTypeInfo;
+        //  GetTypeData(TypeInfo: PTypeInfo) send PTypeData
+        //  PTypeData is for finding MethodKind 
 {$IFDEF FPC}
-                  DTypeData:= GetTypeData(PTypeInfo(PropType));
+        DTypeData:= GetTypeData(PTypeInfo(PropType));
 {$ELSE}
-                  DTypeData:= GetTypeData(PTypeInfo(PropType^));
+        DTypeData:= GetTypeData(PTypeInfo(PropType^));
 {$ENDIF}                  
-                   // Détermine le type de la méthode
-                  Case DTypeData^.MethodKind of
-                   mkProcedure: PropTypeZ := 'procedure';
-                   mkFunction: PropTypeZ := 'function';
-                   mkConstructor: PropTypeZ := 'constructor';
-                   mkDestructor: PropTypeZ := 'destructor';
-                   mkClassProcedure: PropTypeZ := 'class procedure';
-                   mkClassFunction: PropTypeZ := 'class function';
-                  end;
-                  Writeln('Number of Parameters : ',DTypeData^.ParamCount);
+         // Détermine le type de la méthode
+        Case DTypeData^.MethodKind of
+         mkProcedure: PropTypeZ := 'procedure';
+         mkFunction: PropTypeZ := 'function';
+         mkConstructor: PropTypeZ := 'constructor';
+         mkDestructor: PropTypeZ := 'destructor';
+         mkClassProcedure: PropTypeZ := 'class procedure';
+         mkClassFunction: PropTypeZ := 'class function';
+        end;
+        Writeln('Number of Parameters : ',DTypeData^.ParamCount);
 
-                  Writeln('Parameter List : ');//,DTypeData^.ParamList);
+        Writeln('Parameter List : ');//,DTypeData^.ParamList);
 
 {$IFDEF delphibuiltin}
-				   With DTypeData^ do
-                  SetArrayParameter(@DTypeData^.ParamList,ParamCount,MethodKind);
+        With DTypeData^ do
+          SetArrayParameter(@DTypeData^.ParamList,ParamCount,MethodKind);
 {$ELSE}
-			 //================================
-			      Definition:='(';
-//  	  			  Definition := Definition+'(';
-				  CurrentParamPosition := 0;
-          for i:= 1 to DTypeData^.ParamCount do
+       //================================
+        Definition:='(';
+//              Definition := Definition+'(';
+        CurrentParamPosition := 0;
+        for i:= 1 to DTypeData^.ParamCount do
           begin
-           { First Handle the ParamFlag }
+            { First Handle the ParamFlag }
            Flag:=byte(DTypeData^.ParamList[CurrentParamPosition]);
-					 Flags:=TParamFlags(Flag);
-					 writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
-//				 For i:= 1 to NumI do
-//				 begin
-					  if pfVar in Flags
-					   then Definition := Definition+('var ');
-					  if pfconst in Flags
-					   then Definition := Definition+('const ');
-					  if pfArray in Flags
-					   then Definition := Definition+('array of ');
-					  if pfAddress in Flags
-					   then Definition := Definition+('adresse ?'); // si Self ?
-					  if pfReference in Flags
-					   then Definition := Definition+('reference ?'); // ??
-					  if pfout in Flags
-					   then Definition := Definition+('out ');
-					 
+           Flags:=TParamFlags(Flag);
+           writeln('ord(Flags):',ord(DTypeData^.ParamList[CurrentParamPosition]));
+//         For i:= 1 to NumI do
+//         begin
+            if pfVar in Flags
+             then Definition := Definition+('var ');
+            if pfconst in Flags
+             then Definition := Definition+('const ');
+            if pfArray in Flags
+             then Definition := Definition+('array of ');
+            if pfAddress in Flags
+             then Definition := Definition+('adresse ?'); // si Self ?
+            if pfReference in Flags
+             then Definition := Definition+('reference ?'); // ??
+            if pfout in Flags
+             then Definition := Definition+('out ');
+           
            { Next char is the length of the ParamName}
-					 inc(CurrentParamPosition);
+           inc(CurrentParamPosition);
            ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
            { Next extract the Name of the Parameter }
            ParamName := '';
@@ -268,52 +311,57 @@ begin
            CurrentParamPosition := CurrentParamPosition +
                                    ParamNameLength + 1;
            writeln('ParamName:',i,':', ParamName);
-					 writeln('TypeName:',i,':', TypeName);
-					 Definition := Format('%s%s: %s', [Definition, ParamName, TypeName]);
- 					If I<DTypeData^.ParamCount  then Definition := Definition + '; '
-        end;
-	 			  if DTypeData^.MethodKind = mkFunction then
-	                    begin
-	  	  			      ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
-	                      Fu_ResultType := '';
-	                      for j := CurrentParamPosition + 1 to
-	                            CurrentParamPosition + ParamNameLength do
-	                                  Fu_ResultType  := Fu_ResultType +
-	                                               DTypeData^.ParamList[j];
-	                    end 
-		           else Fu_ResultType:='';
-// 			  end;
-				  Definition := Definition + ')';
-   	  			  if Fu_ResultType<>''  then 
-				    Definition := Format('%s: %s', [Definition, Fu_ResultType]);
-				 Definition := Definition+' of object;';
+           writeln('TypeName:',i,':', TypeName);
+           Definition := Format('%s%s: %s', [Definition, ParamName, TypeName]);
+           If I<DTypeData^.ParamCount  then Definition := Definition + '; '
+         end;
+        if DTypeData^.MethodKind = mkFunction then
+          begin
+            ParamNameLength := ord( DTypeData^.ParamList[CurrentParamPosition]);
+            Fu_ResultType := '';
+            for j := CurrentParamPosition + 1 to CurrentParamPosition + ParamNameLength do
+              Fu_ResultType  := Fu_ResultType + DTypeData^.ParamList[j];
+          end 
+        else
+          Fu_ResultType:='';
+  //         end;
+        Definition := Definition + ')';
+        if Fu_ResultType<>''  then 
+          Definition := Format('%s: %s', [Definition, Fu_ResultType]);
+        Definition := Definition+' of object;';
 
-		 //=================================
+     //=================================
                    // Build  the definion of  method 
-				  Writeln(PropTypeZ+' '+Definition);
-                                  if ((PropTypeZ+' '+Definition) <> expectedresult) then
-                                    halt(1);
+        Writeln(PropTypeZ+' '+Definition);
+        if ((PropTypeZ+' '+Definition) <> expectedresult) then
+          begin
+            writeln(expectedresult);
+            halt(1);
+          end;
 {$ENDIF}
 {$IFDEF delphibuiltin}
-				  Writeln(PropTypeZ+' '+BuildMethodDefinition(List_of_Param,DTypeData^.ParamCount));
-{$ENDIF}				  
-                  Method := GetMethodProp(OneObject, Informations.Name);
-                  if Method.Code <> NIL then
-                   begin
-                    Resultat:='';
-                    TBatch(Method)(Resultat);
-                    Writeln(Resultat);
-                   end;
-            end;
+        Writeln(PropTypeZ+' '+BuildMethodDefinition(List_of_Param,DTypeData^.ParamCount));
+{$ENDIF}          
+        Method := GetMethodProp(OneObject, Informations.Name);
+        if Method.Code <> NIL then
+         begin
+          Resultat:='';
+          TBatch(Method)(Resultat);
+          Writeln(Resultat);
+         end;
+      end;
    end;
   end;
 end;
 
 const
-  expectedresults: array[0..3] of ansistring = (
+  expectedresults: array[0..6] of ansistring = (
     '',
     'function (out Out1: Int64; const P: Pointer; var array of reference ?Array1: AnsiString): Int64 of object;',
+    'procedure (adresse ?Component1: TComponent; var adresse ?Component2: TComponent; adresse ?out Component3: TComponent; const adresse ?Component4: TComponent) of object;',
+    'function (array of reference ?A: Byte; const array of reference ?B: Byte; var array of reference ?C: Byte; array of reference ?out D: Byte): TComponent of object;',
     'function (const A: LongInt; var S: AnsiString): Int64 of object;',
+    'function (const A: AnsiString; var Two: LongInt; adresse ?out Three: TMyObject; Four: PInteger; array of reference ?Five: Byte; Six: LongInt): AnsiString of object;',
     'procedure (var S: AnsiString) of object;'
     );
 begin
@@ -327,6 +375,9 @@ begin
 {$ENDIF}
  // Get list properties
  NumI := GetPropList(TMyObject.ClassInfo, tkAny, @List_of_Prop);
+ writeln('numi: ',numi);
+ if (numi<>length(expectedresults)) then
+   halt(44);
  for I := 0 to NumI-1 do
   begin
    Writeln('Propriete ',I+1,' = ',List_of_Prop[I]^.Name);
