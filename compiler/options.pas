@@ -269,9 +269,9 @@ begin
               end;
           end
       end
-{$if defined(arm) or defined(avr)}
      else if pos('$CONTROLLERTYPES',s)>0 then
       begin
+{$if defined(arm) or defined(avr)}
         for controllertype:=low(tcontrollertype) to high(tcontrollertype) do
           begin
 {           currently all whole program optimizations are platform-independent
@@ -287,8 +287,9 @@ begin
                   end;
               end;
           end
-      end
+{$else defined(arm) or defined(avr)}
 {$endif defined(arm) or defined(avr)}
+      end
      else
       Comment(V_Normal,s);
    end;
