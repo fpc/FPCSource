@@ -141,8 +141,12 @@ implementation
         { Call frame information }
         { MWE: we write our own info, so dwarf asm support is not really needed }
         { if (af_supports_dwarf in target_asm.flags) and }
-        if (tf_needs_dwarf_cfi in target_info.flags) or
-           (paratargetdbg in [dbg_dwarf2, dbg_dwarf3]) then
+        { CFI is currently broken for Darwin }
+        if not(target_info.system in systems_darwin) and
+           (
+            (tf_needs_dwarf_cfi in target_info.flags) or
+            (paratargetdbg in [dbg_dwarf2, dbg_dwarf3])
+           ) then
           begin
             current_asmdata.asmlists[al_dwarf_frame].Free;
             current_asmdata.asmlists[al_dwarf_frame] := TAsmList.create;
