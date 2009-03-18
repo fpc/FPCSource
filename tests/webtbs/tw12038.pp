@@ -19,14 +19,14 @@ type
   TProcess = function (Var S:String; const A:integer):int64 of Object; stdcall;
   TArray = function (Var Array1:Array of String; const P:Pointer; Out Out1:int64):int64 of Object; stdcall;
   TOnFour = function (A: array of byte; const B: array of byte;
-    var C: array of byte; out D: array of byte): TComponent  of object;
+    var C: array of byte; out D: array of byte): TComponent  of object; stdcall;
   TOnFive = procedure (Component1: TComponent;
     var Component2: TComponent;
     out Component3: TComponent;
-    const Component4: TComponent) of object;
+    const Component4: TComponent) of object; stdcall;
   TOnSix = function (const A: string; var Two: integer;
     out Three: TMyObject; Four: PInteger; Five: array of Byte;
-    Six: integer): string of object;
+    Six: integer): string of object; stdcall;
   
   TMyObject=Class(TObject)
    private
@@ -50,14 +50,14 @@ type
     Property OnProcess:TProcess read FOnProcess Write FOnProcess;
     Property OnArray:TArray read FOnArray Write FOnArray;
     function FourthPublished(A: array of byte; const B: array of byte;
-      var C: array of byte; out D: array of byte): TComponent;
+      var C: array of byte; out D: array of byte): TComponent; stdcall;
     procedure FifthPublished(Component1: TComponent;
       var Component2: TComponent;
       out Component3: TComponent;
-      const Component4: TComponent);
+      const Component4: TComponent); stdcall;
     function SixthPublished(const A: string; var Two: integer;
       out Three: TMyObject; Four: PInteger;
-      Five: array of Byte; Six: integer): string;
+      Five: array of Byte; Six: integer): string; stdcall;
     property OnFour: TOnFour read FOnFour write FOnFour;
     property OnFive: TOnFive read FOnFive write FOnFive;
     property OnSix: TOnSix read FOnSix write FOnSix;
@@ -101,7 +101,7 @@ Begin
 end;
 
 function TMyObject.FourthPublished(A: array of byte; const B: array of byte;
-      var C: array of byte; out D: array of byte): TComponent;
+      var C: array of byte; out D: array of byte): TComponent; stdcall;
 begin
   Result := nil;
 end;
@@ -109,13 +109,13 @@ end;
 procedure TMyObject.FifthPublished(Component1: TComponent;
       var Component2: TComponent;
       out Component3: TComponent;
-      const Component4: TComponent);
+      const Component4: TComponent); stdcall;
 begin
 end;
 
 function TMyObject.SixthPublished(const A: string; var Two: integer;
       out Three: TMyObject; Four: PInteger;
-      Five: array of Byte; Six: integer): string;
+      Five: array of Byte; Six: integer): string; stdcall;
 begin
 end;
 
@@ -358,10 +358,10 @@ const
   expectedresults: array[0..6] of ansistring = (
     '',
     'function (out Out1: Int64; const P: Pointer; var array of reference ?Array1: AnsiString): Int64 of object;',
-    'procedure (adresse ?Component1: TComponent; var adresse ?Component2: TComponent; adresse ?out Component3: TComponent; const adresse ?Component4: TComponent) of object;',
-    'function (array of reference ?A: Byte; const array of reference ?B: Byte; var array of reference ?C: Byte; array of reference ?out D: Byte): TComponent of object;',
+    'procedure (const adresse ?Component4: TComponent; adresse ?out Component3: TComponent; var adresse ?Component2: TComponent; adresse ?Component1: TComponent) of object;',
+    'function (array of reference ?out D: Byte; var array of reference ?C: Byte; const array of reference ?B: Byte; array of reference ?A: Byte): TComponent of object;',
     'function (const A: LongInt; var S: AnsiString): Int64 of object;',
-    'function (const A: AnsiString; var Two: LongInt; adresse ?out Three: TMyObject; Four: PInteger; array of reference ?Five: Byte; Six: LongInt): AnsiString of object;',
+    'function (Six: LongInt; array of reference ?Five: Byte; Four: PInteger; adresse ?out Three: TMyObject; var Two: LongInt; const A: AnsiString): AnsiString of object;',
     'procedure (var S: AnsiString) of object;'
     );
 begin
