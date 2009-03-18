@@ -3079,6 +3079,8 @@ implementation
         para: tcallparanode;
         tempnode: ttempcreatenode;
         n: tnode;
+        paraaddr: taddrnode;
+        ptrtype: tpointerdef;
         paracomplexity: longint;
       begin
         { parameters }
@@ -3197,15 +3199,18 @@ implementation
                 { temp                                                        }
                 else if (paracomplexity > 1) then
                   begin
-                    tempnode := ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
+                    ptrtype:=tpointerdef.create(para.left.resultdef);
+                    tempnode := ctempcreatenode.create(ptrtype,ptrtype.size,tt_persistent,tparavarsym(para.parasym).is_regvar(true));
                     addstatement(inlineinitstatement,tempnode);
                     addstatement(inlinecleanupstatement,ctempdeletenode.create(tempnode));
                     { inherit addr_taken flag }
                     if (tabstractvarsym(para.parasym).addr_taken) then
                       include(tempnode.tempinfo^.flags,ti_addr_taken);
+                    paraaddr:=caddrnode.create_internal(para.left);
+                    include(paraaddr.flags,nf_typedaddr);
                     addstatement(inlineinitstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                      caddrnode.create_internal(para.left)));
-                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);
+                      paraaddr));
+                    para.left:=cderefnode.create(ctemprefnode.create(tempnode));
                   end;
               end;
             para := tcallparanode(para.right);
