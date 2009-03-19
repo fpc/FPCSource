@@ -85,8 +85,7 @@ interface
        protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure WriteWeakSymbolDef(s: tasmsymbol); override;
-       private
-        debugframecount: aint;
+
        end;
 
 
@@ -1218,8 +1217,7 @@ implementation
             sec_debug_frame,
             sec_eh_frame:
               begin
-                result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
-                inc(debugframecount);
+                result := '.section __DWARF,__debug_info,regular,debug';
                 exit;
               end;
             sec_debug_line:
