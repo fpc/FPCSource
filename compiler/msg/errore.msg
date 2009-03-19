@@ -2406,7 +2406,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 #
 #  Options
 #
-# 11046 is the last used one
+# 11047 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2526,6 +2526,9 @@ option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not ye
 option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with smart linking on this target, switching to static linking
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
+option_dwarf_external_linker=11047_N_The internal linker does not yet support DWARF debug information, switching to the external linker
+% The internal linker does not yet support DWARF debug information, so if that
+% debugging format is used, then the external linker must be used.
 
 %\end{description}
 # EndOfTeX

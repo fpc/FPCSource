@@ -1642,7 +1642,8 @@ implementation
            begin
               include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
-              if cs_debuginfo in current_settings.moduleswitches then
+              if (cs_debuginfo in current_settings.moduleswitches) and
+                 (target_dbg.id=dbg_stabs) then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
                   Message(parser_w_parser_win32_debug_needs_WN);
@@ -1936,7 +1937,8 @@ implementation
            begin
               include(current_settings.globalswitches,cs_link_strip);
               { Warning stabs info does not work with reloc section !! }
-              if cs_debuginfo in current_settings.moduleswitches then
+              if (cs_debuginfo in current_settings.moduleswitches) and
+                 (target_dbg.id=dbg_stabs) then
                 begin
                   Message1(parser_w_parser_reloc_no_debug,current_module.mainsource^);
                   Message(parser_w_parser_win32_debug_needs_WN);

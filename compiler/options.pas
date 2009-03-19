@@ -2210,13 +2210,22 @@ begin
       set_target_asm(target_info.assemextern);
     end;
 
-  { smart linking does not yet work with DWARF debug info on most targets }
   if (paratargetdbg in [dbg_dwarf2,dbg_dwarf3]) and
-     (cs_link_smart in init_settings.globalswitches) and
      not(target_info.system in systems_darwin) then
     begin
-      Message(option_dwarf_smart_linking);
-      ForceStaticLinking;
+      { smart linking does not yet work with DWARF debug info on most targets }
+      if (cs_link_smart in init_settings.globalswitches) then
+        begin
+          Message(option_dwarf_smart_linking);
+          ForceStaticLinking;
+        end;
+      { the internal linker does not work yet with DWARF either }
+      if assigned(target_info.link) and
+         not(cs_link_extern in init_settings.globalswitches) then
+        begin
+          Message(option_dwarf_external_linker);
+          include(init_settings.globalswitches,cs_link_extern);
+        end;
     end;
 end;
 
@@ -2358,7 +2367,6 @@ begin
   def_system_macro('VER'+version_nr+'_'+release_nr+'_'+patch_nr);
 
 { Temporary defines, until things settle down }
-  { "main" symbol is generated in the main program, and left out of the system unit }
   def_system_macro('RESSTRSECTIONS');
   def_system_macro('FPC_HASFIXED64BITVARIANT');
   def_system_macro('FPC_HASINTERNALOLEVARIANT2VARIANTCAST');
