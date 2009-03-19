@@ -2254,19 +2254,23 @@ implementation
         fitem : TFileIndexItem;
         flist : TFPList;
       begin
-        { insert .Ltext0 label }
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname(target_asm.labelprefix+'text0',AT_DATA,0));
-        current_asmdata.asmlists[al_start].insertlist(templist);
-        templist.free;
-
-        { insert .Letext0 label }
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname(target_asm.labelprefix+'etext0',AT_DATA,0));
-        current_asmdata.asmlists[al_end].insertlist(templist);
-        templist.free;
+        { doesn't work for windows, because it puts no code per module in the .text section }
+        if not(target_info.system in system_all_windows) then
+          begin
+            { insert .Ltext0 label }
+            templist:=TAsmList.create;
+            new_section(templist,sec_code,'',0);
+            templist.concat(tai_symbol.createname(target_asm.labelprefix+'text0',AT_DATA,0));
+            current_asmdata.asmlists[al_start].insertlist(templist);
+            templist.free;
+    
+            { insert .Letext0 label }
+            templist:=TAsmList.create;
+            new_section(templist,sec_code,'',0);
+            templist.concat(tai_symbol.createname(target_asm.labelprefix+'etext0',AT_DATA,0));
+            current_asmdata.asmlists[al_end].insertlist(templist);
+            templist.free;
+          end;
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
@@ -2513,8 +2517,13 @@ implementation
           append_labelentry_dataptr_rel(DW_AT_stmt_list,
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
-        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
+
+        { see comments above where these labels are created and inserted }
+        if not(target_info.system in system_all_windows) then
+          begin
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
+            append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
+          end;
 
         finish_entry;
 
