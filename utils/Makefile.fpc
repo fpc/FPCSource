@@ -23,6 +23,7 @@ rsts=rstconv
 
 [require]
 packages=fcl-base paszlib hash
+packages_darwin=univint
 
 [clean]
 units=ptopu

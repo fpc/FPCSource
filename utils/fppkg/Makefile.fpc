@@ -38,6 +38,7 @@ fpcdir=../..
 [require]
 packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl
 tools=data2inc
+packages_darwin=univint
 
 [rules]
 .NOTPARALLEL:
