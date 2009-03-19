@@ -5190,7 +5190,6 @@ rtl/bsd/powerpc/syscall.inc svneol=native#text/plain
 rtl/bsd/powerpc/syscallh.inc svneol=native#text/plain
 rtl/bsd/readme.txt svneol=native#text/plain
 rtl/bsd/suuid.inc svneol=native#text/plain
-rtl/bsd/sysbsd.pp svneol=native#text/plain
 rtl/bsd/sysctl.pp svneol=native#text/plain
 rtl/bsd/sysos.inc svneol=native#text/plain
 rtl/bsd/sysosh.inc svneol=native#text/plain
