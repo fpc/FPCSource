@@ -25,9 +25,13 @@ begin
 end;
 
 Function TProcess.PeekExitStatus : Boolean;
-
+var
+  res: cint;
 begin
-  Result:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG)=Handle;
+  repeat
+    res:=fpWaitPid(Handle,pcint(@FExitCode),WNOHANG);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
+  result:=res=Handle;
   If Result then
     FExitCode:=wexitstatus(FExitCode)
   else
@@ -236,6 +240,13 @@ begin
   end;
 end;
 
+Function safefpdup2(fildes, fildes2 : cInt): cInt;
+begin
+  repeat
+    safefpdup2:=fpdup2(fildes,fildes2);
+  until (safefpdup2<>-1) or (fpgeterrno<>ESysEINTR);
+end;
+
 Procedure TProcess.Execute;
 
 Var
@@ -244,6 +255,7 @@ Var
   FEnv     : PPChar;
   Argv     : PPChar;
   fd       : Integer;
+  res      : cint;
   FoundName,
   PName    : String;
 
@@ -276,50 +288,54 @@ begin
             raise EProcess.CreateFmt(SErrNoSuchProgram,[PName]);
         end;
 
+{$if (defined(DARWIN) or defined(SUNOS))}
+        Pid:=fpvfork;
+{$else}
         Pid:=fpfork;
+{$endif}
         if Pid<0 then
           Raise EProcess.Create('Failed to Fork process');
         if (PID>0) then
           begin
-          // Parent process. Copy process information.
-          FProcessHandle:=PID;
-          FThreadHandle:=PID;
-          FProcessId:=PID;
-          //FThreadId:=PID;
+            // Parent process. Copy process information.
+            FProcessHandle:=PID;
+            FThreadHandle:=PID;
+            FProcessId:=PID;
+            //FThreadId:=PID;
           end
         else
           begin
-          { We're in the child }
-          if (FCurrentDirectory<>'') then
-             ChDir(FCurrentDirectory);
-          if PoUsePipes in Options then
-            begin
-            fpclose(HI[peWrite]);
-            fpdup2(HI[peRead],0);
-            fpclose(HO[peRead]);
-            fpdup2(HO[peWrite],1);
-            if (poStdErrToOutPut in Options) then
-              fpdup2(HO[peWrite],2)
-            else
+            { We're in the child }
+            if (FCurrentDirectory<>'') then
+               ChDir(FCurrentDirectory);
+            if PoUsePipes in Options then
               begin
-              fpclose(HE[peRead]);
-              fpdup2(HE[peWrite],2);
+                FileClose(HI[peWrite]);
+                safefpdup2(HI[peRead],0);
+                FileClose(HO[peRead]);
+                safefpdup2(HO[peWrite],1);
+                if (poStdErrToOutPut in Options) then
+                  safefpdup2(HO[peWrite],2)
+                else
+                  begin
+                    FileClose(HE[peRead]);
+                    safefpdup2(HE[peWrite],2);
+                  end
               end
-            end
-          else if poNoConsole in Options then
-            begin
-            fd:=FileOpen('/dev/null',fmOpenReadWrite);
-            fpdup2(fd,0);
-            fpdup2(fd,1);
-            fpdup2(fd,2);
-            end;
-          if (poRunSuspended in Options) then
-            sigraise(SIGSTOP);
-          if FEnv<>Nil then
-            fpexecve(PName,Argv,Fenv)
-          else
-            fpexecv(PName,argv);
-          Halt(127);
+            else if poNoConsole in Options then
+              begin
+                fd:=FileOpen('/dev/null',fmOpenReadWrite or fmShareDenyNone);
+                safefpdup2(fd,0);
+                safefpdup2(fd,1);
+                safefpdup2(fd,2);
+              end;
+            if (poRunSuspended in Options) then
+              sigraise(SIGSTOP);
+            if FEnv<>Nil then
+              fpexecve(PName,Argv,Fenv)
+            else
+              fpexecv(PName,argv);
+            fpExit(127);
           end
       Finally
         FreePcharList(Argv);
@@ -331,11 +347,11 @@ begin
   Finally
     if POUsePipes in FProcessOptions then
       begin
-      FileClose(HO[peWrite]);
-      FileClose(HI[peRead]);
-      if Not (poStdErrToOutPut in FProcessOptions) then
-        FileClose(HE[peWrite]);
-      CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
+        FileClose(HO[peWrite]);
+        FileClose(HI[peRead]);
+        if Not (poStdErrToOutPut in FProcessOptions) then
+          FileClose(HE[peWrite]);
+        CreateStreams(HI[peWrite],HO[peRead],HE[peRead]);
       end;
   end;
   FRunning:=True;
