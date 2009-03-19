@@ -351,10 +351,8 @@ Var
   R : Dword;
 
 begin
-  R:=fpWaitPid(Handle,pcint(@FExitCode),0);
-  Result:=(R=Handle);
-  If Result then
-    FExitCode:=WExitStatus(FExitCode);
+  fexitcode:=waitprocess(handle);
+  Result:=(fexitcode>=0);
   FRunning:=False;
 end;
 
