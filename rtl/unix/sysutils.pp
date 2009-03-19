@@ -180,6 +180,7 @@ Function DoFileLocking(Handle: Longint; Mode: Integer) : Longint;
 var
   lockop: cint;
   lockres: cint;
+  closeres: cint;
 begin
   DoFileLocking:=Handle;
 {$ifdef beos}
@@ -218,7 +219,9 @@ begin
               (similar to fmShareDenyWrite) and exclusive access (same as
               fmShareExclusive)
             }
-            FpClose(Handle);
+            repeat
+              closeres:=FpClose(Handle);
+            until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
             DoFileLocking:=-1;
             exit;
           end;
@@ -229,7 +232,9 @@ begin
             (fpgeterrno<>ESysEIntr);
       if (lockres<>0) then
         begin
-          FpClose(Handle);
+          repeat
+            closeres:=FpClose(Handle);
+          until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
           DoFileLocking:=-1;
           exit;
         end;
@@ -249,7 +254,10 @@ begin
     fmOpenWrite : LinuxFlags:=LinuxFlags or O_WrOnly;
     fmOpenReadWrite : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
-  FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
+
+  repeat
+    FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
+  until (FileOpen<>-1) or (fpgeterrno<>ESysEINTR);
 
   FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
@@ -258,28 +266,36 @@ end;
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
+  repeat
+    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
+  until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
 Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
 
 begin
-  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
+  repeat
+    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
+  until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
 Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
 
 begin
-  FileRead:=fpRead (Handle,Buffer,Count);
+  repeat
+    FileRead:=fpRead (Handle,Buffer,Count);
+  until (FileRead<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 begin
-  FileWrite:=fpWrite (Handle,Buffer,Count);
+  repeat
+    FileWrite:=fpWrite (Handle,Buffer,Count);
+  until (FileWrite<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
@@ -297,19 +313,28 @@ end;
 
 
 Procedure FileClose (Handle : Longint);
-
+var
+  res: cint;
 begin
-  fpclose(Handle);
+  repeat
+    res:=fpclose(Handle);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
-
+var
+  res: cint;
 begin
   if (SizeOf (TOff) < 8)   (* fpFTruncate only supporting signed 32-bit size *)
-                         and (Size > high (longint)) then
+     and (Size > high (longint)) then
     FileTruncate := false
   else
-    FileTruncate:=fpftruncate(Handle,Size)>=0;
+    begin
+      repeat
+        res:=fpftruncate(Handle,Size);
+      until (res<>-1) or (fpgeterrno<>ESysEINTR);
+      FileTruncate:=res>=0;
+    end;
 end;
 
 {$ifndef FPUNONE}
@@ -1047,11 +1072,14 @@ procedure Sleep(milliseconds: Cardinal);
 
 Var
   timeout,timeoutresult : TTimespec;
-
+  res: cint;
 begin
   timeout.tv_sec:=milliseconds div 1000;
   timeout.tv_nsec:=1000*1000*(milliseconds mod 1000);
-  fpnanosleep(@timeout,@timeoutresult);
+  repeat
+    res:=fpnanosleep(@timeout,@timeoutresult);
+    timeout:=timeoutresult;
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 Function GetLastOSError : Integer;
