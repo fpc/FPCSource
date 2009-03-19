@@ -13,6 +13,7 @@ rsts=fpcgi fphtml fpweb websession cgiapp
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-process httpd22
+packages_darwin=univint
 
 [compiler]
 options=-S2h

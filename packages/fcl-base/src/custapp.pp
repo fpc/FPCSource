@@ -82,13 +82,68 @@ Type
 
 Implementation
 
+{$if defined(darwin) and (defined(cpu386) or defined(cpupowerpc32))}
+uses
+  MacOSAll;
+{$endif}
 
 { TCustomApplication }
 
 function TCustomApplication.GetExeName: string;
+{ we don't have 64 bit clean interfaces to CoreFoundation yet }
+{$if defined(darwin) and (defined(cpu386) or defined(cpupowerpc32))}
+var
+  mainBundle: CFBundleRef;
+  executableUrl: CFURLRef;
+  executableFSPath: CFStringRef;
+  utf16len: ptrint;
+  error: boolean;
+begin
+  error:=false;
+  { Get main bundle. This even works most of the time for command line
+    applications
+  }
+  mainbundle:=CFBundleGetMainBundle;
+  if assigned(mainbundle) then
+    begin
+      { get the URL pointing to the executable of the bundle }
+      executableUrl:=CFBundleCopyExecutableURL(mainBundle);
+      if assigned(executableUrl) then
+        begin
+          { convert the url to a POSIX path }
+          executableFSPath:=CFURLCopyFileSystemPath(executableUrl,kCFURLPOSIXPathStyle);
+          CFRelease(executableUrl);
+          { convert to UTF-8 -- this is not really clean since in theory the
+            ansi-encoding could be different, but
+              a) all file i/o routines on Darwin expect utf-8-encoded strings
+              b) there is no easy way to convert the Unix LANG encoding
+                 setting to an equivalent CoreFoundation encoding
+          }
+          utf16len:=CFStringGetLength(executableFSPath);
+          // +1 for extra terminating #0 in the worst case, so the pos below
+          // will always find the #0
+          setlength(result,utf16len*3+1);
+          if CFStringGetCString(executableFSPath,@result[1],length(result),kCFStringEncodingUTF8) then
+            { truncate to actual length, #0 cannot appear in a file path }
+            setlength(result,pos(#0,result)-1)
+          else
+            error:=true;
+          CFRelease(executableFSPath);
+        end
+      else
+        error:=true;
+    end
+  else
+    error:=true;
+  if error then
+    { can't do better than this }
+    Result:=Paramstr(0);
+end;
+{$else darwin}
 begin
   Result:=Paramstr(0);
 end;
+{$endif darwin}
 
 Procedure SysGetEnvironmentList(List : TStrings;NamesOnly : Boolean);
 

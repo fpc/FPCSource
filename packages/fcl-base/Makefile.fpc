@@ -9,6 +9,7 @@ version=2.2.2
 [require]
 packages_win32=winunits-base winunits-jedi
 packages_win64=winunits-base winunits-jedi
+packages_darwin=univint
 
 [target]
 units=contnrs inifiles rtfpars idea base64 gettext \
