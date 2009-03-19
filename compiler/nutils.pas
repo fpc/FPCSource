@@ -630,6 +630,8 @@ implementation
         while assigned(p) do
           begin
             case p.nodetype of
+              { floating point constants usually need loading from memory }
+              realconstn,
               temprefn,
               loadvmtaddrn,
               { main reason for the next one: we can't take the address of }
