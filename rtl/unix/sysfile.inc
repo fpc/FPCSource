@@ -14,8 +14,12 @@
  **********************************************************************}
 
 Procedure Do_Close(Handle:thandle);
+var
+  res: cint;
 Begin
-  Fpclose(cint(Handle));
+  repeat
+    res:=Fpclose(cint(Handle));
+  until (res<>-1) or (geterrno<>ESysEINTR);
 End;
 
 Procedure Do_Erase(p:pchar);
@@ -210,12 +214,16 @@ Begin
      exit;
    end;
 { real open call }
-  FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
+  repeat
+    FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
+  until (FileRec(f).Handle<>-1) or (geterrno<>ESysEINTR);
   if (FileRec(f).Handle<0) and
     (getErrNo=ESysEROFS) and ((OFlags and O_RDWR)<>0) then
    begin
      Oflags:=Oflags and not(O_RDWR);
-     FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
+     repeat
+       FileRec(f).Handle:=Fpopen(p,oflags,MODE_OPEN);
+     until (FileRec(f).Handle<>-1) or (geterrno<>ESysEINTR);
    end;
   If Filerec(f).Handle<0 Then
    Errno2Inoutres
