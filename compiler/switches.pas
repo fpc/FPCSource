@@ -35,6 +35,7 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
+procedure recordpendingcallingswitch(const str: shortstring);
 procedure flushpendingswitchesstate;
 
 implementation
@@ -296,6 +297,11 @@ procedure recordpendingverbosityfullswitch(verbosity: longint);
     pendingstate.verbosityfullswitched:=true;
   end;
 
+procedure recordpendingcallingswitch(const str: shortstring);
+  begin
+    pendingstate.nextcallingstr:=str;
+  end;
+
 
 procedure flushpendingswitchesstate;
   begin
@@ -313,6 +319,12 @@ procedure flushpendingswitchesstate;
       begin
         setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
+      end;
+    if pendingstate.nextcallingstr<>'' then
+      begin
+        if not SetAktProcCall(pendingstate.nextcallingstr,current_settings.defproccall) then
+          Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr);
+        pendingstate.nextcallingstr:='';
       end;
   end;
 

@@ -271,13 +271,10 @@ implementation
       begin
         current_scanner.skipspace;
         hs:=current_scanner.readid;
-        if not SetAktProcCall(hs,current_settings.defproccall) then
-          begin
-            if (hs <> '') then
-              Message1(parser_w_unknown_proc_directive_ignored,hs)
-            else
-              Message(parser_e_proc_directive_expected);
-          end;
+        if (hs='') then
+          Message(parser_e_proc_directive_expected)
+        else
+          recordpendingcallingswitch(hs);
       end;
 
 

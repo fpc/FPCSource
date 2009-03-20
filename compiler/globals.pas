@@ -171,9 +171,10 @@ interface
       end;
 
       tpendingstate = record
-        nextverbositystr : string;
+        nextverbositystr : shortstring;
         nextlocalswitches : tlocalswitches;
         nextverbosityfullswitch: longint;
+        nextcallingstr : shortstring;
         verbosityfullswitched,
         localswitcheschanged : boolean;
       end;
