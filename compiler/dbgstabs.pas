@@ -1512,10 +1512,13 @@ implementation
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgfile);
                         { emit stabs }
-                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(getcurrentdir,false))+'",'+tostr(n_includefile)+
-                                          ',0,0,'+hlabel.name),hp);
-                        list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
-                                          ',0,0,'+hlabel.name),hp);
+                        if not(ds_stabs_abs_include_files in current_settings.debugswitches) or
+                           path_absolute(infile.path^) then
+                          list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
+                                            ',0,0,'+hlabel.name),hp)
+                        else
+                          list.insertbefore(Tai_stab.Create_str(stab_stabs,'"'+BsToSlash(FixPath(getcurrentdir,false)+FixPath(infile.path^,false))+FixFileName(infile.name^)+'",'+tostr(n_includefile)+
+                                            ',0,0,'+hlabel.name),hp);
                         list.insertbefore(tai_label.create(hlabel),hp);
                         { force new line info }
                         lastfileinfo.line:=-1;

@@ -164,7 +164,13 @@ interface
           { enable set support in dwarf debug info, breaks gdb versions }
           { without support for that tag (they refuse to parse the rest }
           { of the debug information)                                   }
-          ds_dwarf_sets
+          ds_dwarf_sets,
+          { use absolute paths for include files in stabs. Pro: gdb     }
+          { always knows full path to file. Con: doesn't work anymore   }
+          { if the include file is moved (otherwise, things still work  }
+          { if your source hierarchy is the same, but has a different   }
+          { base path)                                                  }
+          ds_stabs_abs_include_files
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -208,8 +214,8 @@ interface
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
        );
 
-       DebugSwitchStr : array[tdebugswitch] of string[9] = ('',
-         'DWARFSETS');
+       DebugSwitchStr : array[tdebugswitch] of string[16] = ('',
+         'DWARFSETS','STABSABSINCLUDES');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
