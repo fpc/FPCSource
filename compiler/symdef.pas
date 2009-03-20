@@ -1069,6 +1069,11 @@ implementation
       begin
          { natural alignment by default }
          alignment:=size_2_align(savesize);
+         { can happen if savesize = 0, e.g. for voiddef or
+           an empty record
+         }
+         if (alignment=0) then
+           alignment:=1;
       end;
 
 
