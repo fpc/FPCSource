@@ -842,30 +842,25 @@ begin
     try
       NodeSet := Op1Result.AsNodeSet;
       NodeSet2 := Op2Result.AsNodeSet;
-      try
-        for i := 0 to NodeSet2.Count - 1 do
-        begin
-          DoAdd := True;
-          CurNode := NodeSet2[i];
-          for j := 0 to NodeSet.Count - 1 do
-            if NodeSet[j] = CurNode then
-            begin
-              DoAdd := False;
-          break;
-            end;
-          if DoAdd then
-            NodeSet.Add(CurNode);
-        end;
-      finally
-        NodeSet2.Free;
+      for i := 0 to NodeSet2.Count - 1 do
+      begin
+        DoAdd := True;
+        CurNode := NodeSet2[i];
+        for j := 0 to NodeSet.Count - 1 do
+          if NodeSet[j] = CurNode then
+          begin
+            DoAdd := False;
+            break;
+          end;
+        if DoAdd then
+          NodeSet.Add(CurNode);
       end;
     finally
       Op2Result.Release;
     end;
   finally
-    Op1Result.Release;
+    Result := Op1Result;
   end;
-  Result := TXPathNodeSetVariable.Create(NodeSet);
 end;
 
 
@@ -979,9 +974,6 @@ var
     StepNodes: TList;
 
     procedure DoNodeTest(Node: TDOMNode);
-    var
-      i: Integer;
-      DoAdd: Boolean;
     begin
       case AStep.NodeTestType of
         ntAnyPrincipal:
@@ -1002,14 +994,7 @@ var
           if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
             exit;
       end;
-      DoAdd := True;
-      for i := 0 to StepNodes.Count - 1 do
-        if TDOMNode(StepNodes[i]) = Node then
-        begin
-          DoAdd := False;
-          break;
-        end;
-      if DoAdd then
+      if StepNodes.IndexOf(Node) < 0 then
         StepNodes.Add(Node);
     end;
 
@@ -1030,12 +1015,12 @@ var
     Node, Node2: TDOMNode;
     Attr: TDOMNamedNodeMap;
     i, j: Integer;
-    DoAdd: Boolean;
 
     NewContext: TXPathContext;
     NewStepNodes: TNodeSet;
     Predicate: TXPathExprNode;
     PredicateResult: TXPathVariable;
+    TempList: TList;
 
   begin
     StepNodes := TList.Create;
@@ -1090,7 +1075,7 @@ var
             begin
               DoNodeTest(Node2);
               AddDescendants(Node2);
-              Node := Node.NextSibling;
+              Node2 := Node2.NextSibling;
             end;
             Node := Node.ParentNode;
           until not Assigned(Node);
@@ -1110,17 +1095,30 @@ var
           DoNodeTest(AContext.ContextNode);
       axisPreceding:
         begin
-          Node := AContext.ContextNode;
-          repeat
-            Node2 := Node.PreviousSibling;
-            while Assigned(Node2) do
+          TempList := TList.Create;
+          try
+            Node := AContext.ContextNode;
+            // build list of ancestors
+            while Assigned(Node) do
             begin
-              DoNodeTest(Node2);
-              AddDescendants(Node2);
-              Node := Node.PreviousSibling;
+              TempList.Add(Node);
+              Node := Node.ParentNode;
             end;
-            Node := Node.ParentNode;
-          until not Assigned(Node);
+            // then process it in reverse order
+            for i := TempList.Count-1 downto 1 do
+            begin
+              Node := TDOMNode(TempList[i]);
+              Node2 := Node.FirstChild;
+              while Assigned(Node2) and (Node2 <> TDOMNode(TempList[i-1])) do
+              begin
+                DoNodeTest(Node2);
+                AddDescendants(Node2);
+                Node2 := Node2.NextSibling;
+              end;
+            end;
+          finally
+            TempList.Free;
+          end;
         end;
       axisPrecedingSibling:
         begin
@@ -1158,7 +1156,8 @@ var
           try
             if (PredicateResult.InheritsFrom(TXPathNumberVariable) and
               (PredicateResult.AsNumber = j + 1)) or
-              PredicateResult.AsBoolean then
+              (not PredicateResult.InheritsFrom(TXPathNumberVariable) and
+               PredicateResult.AsBoolean) then
                 NewStepNodes.Add(Node);
           finally
             PredicateResult.Release;
@@ -1190,14 +1189,7 @@ var
       for i := 0 to StepNodes.Count - 1 do
       begin
         Node := TDOMNode(StepNodes[i]);
-        DoAdd := True;
-        for j := 0 to ResultNodeSet.Count - 1 do
-          if TDOMNode(ResultNodeSet[j]) = Node then
-          begin
-            DoAdd := False;
-            break;
-          end;
-        if DoAdd then
+        if ResultNodeSet.IndexOf(Node) < 0 then
           ResultNodeSet.Add(Node);
       end;
     end;
@@ -1628,7 +1620,7 @@ end;
 function TXPathScanner.ParseLocationPath: TXPathLocationPathNode;  // [1]
 var
   IsAbsolute, NeedColonColon: Boolean;
-  FirstStep, CurStep, NextStep: TStep;
+  CurStep, NextStep: TStep;
 
   procedure NeedBrackets;
   begin
@@ -1640,17 +1632,13 @@ var
 
 begin
   CurStep := nil;
-  Result := nil;
+  IsAbsolute := False;
 
   case CurToken of
     tkSlash:          // [2] AbsoluteLocationPath, first case
       begin
-        if NextToken = tkEndOfStream then
-          CurStep := TStep.Create(axisSelf, ntAnyNode)
-        else
-        if not (CurToken in
-          [tkDot, tkDotDot, tkAsterisk, tkAt, tkIdentifier, tkEndOfStream]) then
-          exit;
+        NextToken;
+        CurStep := TStep.Create(axisSelf, ntAnyNode);
         IsAbsolute := True;
       end;
     tkSlashSlash:     // [10] AbbreviatedAbsoluteLocationPath
@@ -1659,12 +1647,12 @@ begin
         IsAbsolute := True;
         CurStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
       end;
-    else
-      IsAbsolute := False;
   end;
 
+  Result := TXPathLocationPathNode.Create(IsAbsolute);
+  Result.FFirstStep := CurStep;
+
   // Parse [3] RelativeLocationPath
-  FirstStep := CurStep;
   repeat
     if CurToken <> tkEndOfStream then
     begin
@@ -1672,7 +1660,7 @@ begin
       if Assigned(CurStep) then
         CurStep.NextStep := NextStep
       else
-        FirstStep := NextStep;
+        Result.FFirstStep := NextStep;
       CurStep := NextStep;
     end;
 
@@ -1804,7 +1792,7 @@ begin
             end;
           tkEndOfStream:	// Enable support of "/" and "//" as path
         else
-          Error(SParserInvalidNodeTest);
+          Exit;
         end;
 
         // Parse predicates
@@ -1833,9 +1821,6 @@ begin
     else
       NextToken;   // skip the slash
   until False;
-
-  Result := TXPathLocationPathNode.Create(IsAbsolute);
-  Result.FFirstStep := FirstStep;
 end;
 
 function TXPathScanner.ParsePrimaryExpr: TXPathExprNode;  // [15]
