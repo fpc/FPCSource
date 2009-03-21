@@ -28,7 +28,7 @@ program controldemo;
 {$mode delphi}
 
 uses
- SysUtils, FPCMacOSAll, MacPas;
+ SysUtils, MacOSAll, MacPas;
 
 var
   mainWindow: WindowRef;
@@ -45,7 +45,7 @@ const
 
 { Functions to easely generate carbon structures }
 
-function GetQDRect(Left, Top, Width, Height: Integer): FPCMacOSAll.Rect;
+function GetQDRect(Left, Top, Width, Height: Integer): MacOSAll.Rect;
 begin
   result.Left := Left;
   result.Top := Top;
