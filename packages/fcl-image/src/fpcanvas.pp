@@ -297,6 +297,7 @@ type
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage);
     procedure Erase;virtual;
     // properties
+    property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
     property Pen : TFPCustomPen read GetPen write SetPen;
     property Brush : TFPCustomBrush read GetBrush write SetBrush;
