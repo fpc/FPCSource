@@ -174,6 +174,7 @@ const
   NS_EXCLUDE : xmlCharPtr = pointer(-1);
 
 { Node query functions }
+function xsdTestNodeNs(node: xmlNodePtr; nameSpace: xmlCharPtr): Boolean;
 function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
 
 function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlNodePtr;
@@ -272,6 +273,7 @@ procedure xsdNextUnsignedLong(var node: xmlNodePtr; name, nameSpace: xmlCharPtr;
 procedure xsdNextEnum(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; enum: array of String; out Value: Integer);
 
 { Property query functions }
+function xsdTestPropNs(attr: xmlAttrPtr; nameSpace: xmlCharPtr): Boolean;
 function xsdTestProp(attr: xmlAttrPtr; name, nameSpace: xmlCharPtr): Boolean;
 
 function xsdTryGetProp(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlAttrPtr;
@@ -1405,11 +1407,17 @@ begin
   Result := xmlNewNsProp(node, ns, name, BAD_CAST(Tmp));
 end;
 
+function xsdTestNodeNs(node: xmlNodePtr; nameSpace: xmlCharPtr): Boolean;
+begin
+  Result :=
+     (nameSpace = NS_IGNORE) or
+    ((nameSpace = NS_EXCLUDE) and (node^.ns = nil)) or
+    ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (node^.ns <> nil) and (xmlStrEqual(nameSpace, node^.ns^.href) <> 0));
+end;
+
 function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
 begin
-  Result := (node <> nil) and (xmlStrEqual(name, node^.name) <> 0) and ((nameSpace = NS_IGNORE) or
-    ((nameSpace = NS_EXCLUDE) and (node^.ns = nil)) or
-    ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (node^.ns <> nil) and (xmlStrEqual(nameSpace, node^.ns^.href) <> 0)));
+  Result := (node <> nil) and (xmlStrEqual(name, node^.name) <> 0) and xsdTestNodeNs(node, nameSpace);
 end;
 
 function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: integer): xmlNodePtr;
@@ -1890,11 +1898,17 @@ begin
   xsdParseEnum(xsdNextChars(node, name, nameSpace), enum, Value);
 end;
 
+function xsdTestPropNs(attr: xmlAttrPtr; nameSpace: xmlCharPtr): Boolean;
+begin
+  Result :=
+     (nameSpace = NS_IGNORE) or
+    ((nameSpace = NS_EXCLUDE) and (attr^.ns = nil)) or
+    ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (attr^.ns <> nil) and (xmlStrEqual(nameSpace, attr^.ns^.href) <> 0))
+end;
+
 function xsdTestProp(attr: xmlAttrPtr; name, nameSpace: xmlCharPtr): Boolean;
 begin
-  Result := (attr <> nil) and (xmlStrEqual(name, attr^.name) <> 0) and ((nameSpace = NS_IGNORE) or
-    ((nameSpace = NS_EXCLUDE) and (attr^.ns = nil)) or
-    ((nameSpace <> NS_EXCLUDE) and (nameSpace <> NS_IGNORE) and (attr^.ns <> nil) and (xmlStrEqual(nameSpace, attr^.ns^.href) <> 0)));
+  Result := (attr <> nil) and (xmlStrEqual(name, attr^.name) <> 0) and xsdTestPropNs(attr, nameSpace);
 end;
 
 function xsdTryGetProp(node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlAttrPtr;
