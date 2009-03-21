@@ -1579,7 +1579,7 @@ sym_w_uninitialized_local_variable=05036_W_Local variable "$1" does not seem to 
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
