@@ -495,7 +495,7 @@ end;
 function xsdTryParseString(Chars: xmlCharPtr; out Value: String): Boolean;
 begin
   Value := PChar(Chars);
-  Result := True;
+  Result := Assigned(Chars);
 end;
 
 function xsdTryParseBoolean(Chars: xmlCharPtr; out Value: Boolean): Boolean;
