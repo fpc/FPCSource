@@ -304,12 +304,16 @@ procedure recordpendingcallingswitch(const str: shortstring);
 
 
 procedure flushpendingswitchesstate;
+  var
+    tmpproccal: tproccalloption;
   begin
+    { process pending localswitches (range checking, etc) }
     if pendingstate.localswitcheschanged then
       begin
         current_settings.localswitches:=pendingstate.nextlocalswitches;
         pendingstate.localswitcheschanged:=false;
       end;
+    { process pending verbosity changes (warnings on, etc) }
     if pendingstate.verbosityfullswitched then
       begin
         status.verbosity:=pendingstate.nextverbosityfullswitch;
@@ -320,10 +324,15 @@ procedure flushpendingswitchesstate;
         setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
       end;
+    { process pending calling convention changes (calling x) }
     if pendingstate.nextcallingstr<>'' then
       begin
-        if not SetAktProcCall(pendingstate.nextcallingstr,current_settings.defproccall) then
-          Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr);
+        if not SetAktProcCall(pendingstate.nextcallingstr,tmpproccal) then
+          Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr)
+        else if not(tmpproccal in supported_calling_conventions) then
+          Message1(parser_e_illegal_calling_convention,pendingstate.nextcallingstr)
+        else
+          current_settings.defproccall:=tmpproccal;
         pendingstate.nextcallingstr:='';
       end;
   end;
