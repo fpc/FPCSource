@@ -388,6 +388,7 @@ end;
 Procedure TComponent.ValidateContainer(AComponent: TComponent);
 
 begin
+  AComponent.ValidateInsert(Self);
 end;
 
 
