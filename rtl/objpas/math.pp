@@ -2353,8 +2353,11 @@ var
   RV : Single;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2365,8 +2368,11 @@ var
   RV : Double;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2377,8 +2383,11 @@ var
   RV : Extended;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
