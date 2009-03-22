@@ -281,7 +281,7 @@ begin
           end;
 
         if not FileExists(PName) then begin
-          FoundName := FileSearch(Pname,fpgetenv('PATH'));
+          FoundName := ExeSearch(Pname,fpgetenv('PATH'));
           if FoundName<>'' then
             PName:=FoundName
           else
