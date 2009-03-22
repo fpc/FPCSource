@@ -249,8 +249,8 @@ Type
   { TDaemonDefs }
 
   TDaemonDefs = Class(TCollection)
-    FOwner : TPersistent;
   private
+    FOwner : TPersistent;
     function GetDaemonDef(Index : Integer): TDaemonDef;
     procedure SetDaemonDef(Index : Integer; const AValue: TDaemonDef);
   Protected
