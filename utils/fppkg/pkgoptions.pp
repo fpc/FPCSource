@@ -433,45 +433,11 @@ end;
 
 procedure TCompilerOptions.InitCompilerDefaults;
 
-  // Same as SysUtils.FileSearch but without searching in the current directory
-  Function FileSearchPath (Const Name, DirList : String) : String;
-  Var
-    I : longint;
-    Temp : String;
-
-  begin
-    Result:=Name;
-    temp:=SetDirSeparators(DirList);
-    while True do begin
-      If Temp = '' then
-        Break; // No more directories to search - fail
-      I:=pos(PathSeparator,Temp);
-      If I<>0 then
-        begin
-          Result:=Copy (Temp,1,i-1);
-          system.Delete(Temp,1,I);
-        end
-      else
-        begin
-          Result:=Temp;
-          Temp:='';
-        end;
-      If Result<>'' then
-        Result:=IncludeTrailingPathDelimiter(Result)+name;
-      If (Result <> '') and FileExists(Result) Then
-        exit;
-    end;
-    result:='';
-  end;
-
 var
   infoSL : TStringList;
 begin
   FConfigVersion:=CurrentConfigVersion;
-  // Sysutils.FileSearch cannot be used since it also searches in the current
-  // directory. Which could lead to a security-problem when some unknown
-  // 'fpc' executable is lying around.
-  FCompiler:=FileSearchPath('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
+  FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
