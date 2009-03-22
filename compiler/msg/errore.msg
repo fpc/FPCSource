@@ -1180,7 +1180,7 @@ parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibil
 #
 # Type Checking
 #
-# 04086 is the last used one
+# 04087 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1474,6 +1474,10 @@ type_e_expected_objc_method=04086_E_Expected Objective-C method or constant meth
 % A selector can only be created for Objective-C methods, either by specifying
 % the name using a string constant, or by using an Objective-C method identifier
 % that is visible in the current scope.
+type_e_no_type_info=04087_E_No type info available for this type
+% Type information is not generated for some types, such as enumerations with gaps
+% in their value range (this includes enumerations whose lower bound is different
+% from zero).
 % \end{description}
 #
 # Symtable

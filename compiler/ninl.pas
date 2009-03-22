@@ -2118,6 +2118,9 @@ implementation
 
               in_typeinfo_x:
                 begin
+                   if (left.resultdef.typ=enumdef) and
+                      (tenumdef(left.resultdef).has_jumps) then
+                     CGMessage(type_e_no_type_info);
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resultdef:=voidpointertype;
                 end;
