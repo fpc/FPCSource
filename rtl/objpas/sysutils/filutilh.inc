@@ -95,7 +95,7 @@ Function FileGetAttr (Const FileName : String) : Longint;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-Function FileSearch (Const Name, DirList : String) : String;
+Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
 Function FileIsReadOnly(const FileName: String): Boolean;
 
 Function GetFileHandle(var f : File):Longint;
