@@ -275,7 +275,7 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if GlobalOptions.InstallGlobal then
+      if IsSuperUser or GlobalOptions.InstallGlobal then
         UFN:=CompilerOptions.GlobalUnitDir
       else
         UFN:=CompilerOptions.LocalUnitDir;
