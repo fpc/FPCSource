@@ -1288,54 +1288,66 @@ end;
 {
   These functions are declared as approximate by Borland.
   A bit strange, since it can be calculated exactly ?
+
+  -- No, because you need rounding or truncating (JM)
 }
+
+
+Function DateTimeDiff(const ANow, AThen: TDateTime): TDateTime;
+begin
+  Result:= ANow - AThen;
+  if (ANow>0) and (AThen<0) then
+    Result:=Result-0.5
+  else if (ANow<-1.0) and (AThen>-1.0) then
+    Result:=Result+0.5;
+end;
 
 
 Function YearsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen)/ApproxDaysPerYear);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerYear);
 end;
 
 
 Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-Athen)/ApproxDaysPerMonth);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerMonth);
 end;
 
 
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen)) div 7;
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))) div 7;
 end;
 
 
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen));
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen)));
 end;
 
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*HoursPerDay);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*HoursPerDay);
 end;
 
 
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*MinsPerDay);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*MinsPerDay);
 end;
 
 
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*SecsPerDay);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*SecsPerDay);
 end;
 
 
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*MSecsPerDay);
+  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*MSecsPerDay);
 end;
 
 
@@ -1345,49 +1357,49 @@ end;
 
 Function YearSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(Anow-Athen)/ApproxDaysPerYear;
+  Result:=Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerYear;
 end;
 
 
 Function MonthSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)/ApproxDaysPerMonth;
+  Result:=Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerMonth;
 end;
 
 
 Function WeekSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen) / 7
+  Result:=Abs(DateTimeDiff(ANow,AThen)) / 7
 end;
 
 
 Function DaySpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen);
+  Result:=Abs(DateTimeDiff(ANow,AThen));
 end;
 
 
 Function HourSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*HoursPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*HoursPerDay;
 end;
 
 
 Function MinuteSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*MinsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*MinsPerDay;
 end;
 
 
 Function SecondSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*SecsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*SecsPerDay;
 end;
 
 
 Function MilliSecondSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*MSecsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*MSecsPerDay;
 end;
 
 
@@ -1395,13 +1407,19 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
+Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
+begin
+  if (OldDate>0) and (NewDate<0) then
+    NewDate:=NewDate-0.5
+  else if (OldDate<-1.0) and (NewDate>-1.0) then
+    NewDate:=NewDate+0.5;
+end;
+
 
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
 Var
   Y,M,D,H,N,S,MS : Word;
-
-
 begin
   DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
   Y:=Y+ANumberOfYears;
@@ -1420,6 +1438,7 @@ end;
 Function IncWeek(const AValue: TDateTime; const ANumberOfWeeks: Integer): TDateTime;
 begin
   Result:=AValue+ANumberOfWeeks*7;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1432,6 +1451,7 @@ end;
 Function IncDay(const AValue: TDateTime; const ANumberOfDays: Integer): TDateTime;
 begin
   Result:=AValue+ANumberOfDays;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1444,6 +1464,7 @@ end;
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfHours/HoursPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1456,6 +1477,7 @@ end;
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfMinutes / MinsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1468,6 +1490,7 @@ end;
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfSeconds / SecsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1480,6 +1503,7 @@ end;
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1799,7 +1823,7 @@ Var
   Y,M,D,H,N,S,MS : Word;
 
 begin
- DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
+  DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
   FV(Y,AYear);
   FV(M,AMonth);
   FV(D,ADay);
@@ -2050,7 +2074,7 @@ end;
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
 begin
-  Result:=SecondsBetween(UnixEpoch, AValue);
+  Result:=Round(DateTimeDiff(AValue,UnixEpoch)*SecsPerDay);
 end;
 
 
