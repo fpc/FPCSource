@@ -1076,7 +1076,13 @@ implementation
         hp : tnode;
       begin
         if (tsym(p).typ in [staticvarsym,localvarsym]) and
-           ((tabstractvarsym(p).refs>0) or
+            { local (procedure or unit) variables only need initialization if
+              they are used }
+            ((tabstractvarsym(p).refs>0) or
+            { global (unit) variables always need initialization, since
+              they may also be used in another unit
+            }
+            (tabstractvarsym(p).owner.symtabletype=globalsymtable) or
             { managed return symbols must be inited }
             ((tsym(p).typ=localvarsym) and (vo_is_funcret in tlocalvarsym(p).varoptions))
            ) and
@@ -1135,7 +1141,14 @@ implementation
         case tsym(p).typ of
           staticvarsym :
             begin
-              if (tstaticvarsym(p).refs>0) and
+                  { local (procedure or unit) variables only need finalization
+                    if they are used
+                  }
+              if ((tstaticvarsym(p).refs>0) or
+                  { global (unit) variables always need finalization, since
+                    they may also be used in another unit
+                  }
+                  (tstaticvarsym(p).owner.symtabletype=globalsymtable)) and
                  (tstaticvarsym(p).varspez<>vs_const) and
                  not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                  not(vo_is_external in tstaticvarsym(p).varoptions) and
