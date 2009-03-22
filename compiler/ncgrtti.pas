@@ -271,7 +271,9 @@ implementation
                          end;
                        sl_subscript :
                          begin
-                           if not(assigned(def) and (def.typ=recorddef)) then
+                           if not(assigned(def) and
+                                  ((def.typ=recorddef) or
+                                   is_object(def))) then
                              internalerror(200402171);
                            inc(address,tfieldvarsym(hp^.sym).fieldoffset);
                            def:=tfieldvarsym(hp^.sym).vardef;
