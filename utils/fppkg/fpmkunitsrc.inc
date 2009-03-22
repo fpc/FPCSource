@@ -3616,7 +3616,7 @@ const fpmkunitsrc : array[0..599,1..240] of char=(
   'DEST'#039',C.DestFile',']);'#010+
   '            Cmd:=C.Command;'#010+
   '            If (ExtractFilePath(Cmd)='#039#039') then'#010+
-  '              Cmd:=FileSearch(Cmd,GetEnvironmentvariable('#039'PATH'#039+
+  '              Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('#039'PATH'#039+
   '));'#010+
   '            ExecuteCommand(Cmd,O,C.IgnoreResult);'#010+
   '            If Assigned(C.AfterCommand) then'#010,
@@ -4000,7 +4000,7 @@ const fpmkunitsrc : array[0..599,1..240] of char=(
   '    FCompiler:=Defaults.Compiler;'#010+
   '    If (ExtractFilePath(FCompiler)='#039#039') then'#010+
   '      begin'#010+
-  '      S:=FileSearch(FCompiler,GetEnvironmen','tVariable('#039'PATH'#039')'+
+  '      S:=ExeSearch(FCompiler,GetEnvironmen','tVariable('#039'PATH'#039')'+
   ');'#010+
   '      If (S<>'#039#039') then'#010+
   '         FCompiler:=S;'#010+
