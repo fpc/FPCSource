@@ -4,7 +4,7 @@
 {$mode delphi}
 
 uses
-  tw13345y;
+  uw13345y;
 
 type
   tc = class(tinterfacedobject,ta)
