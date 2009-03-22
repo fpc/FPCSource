@@ -51,6 +51,16 @@
       result:='';
     end;
 
+    Function ExeSearch (Const Name, DirList : String) : String;
+
+    begin
+    {$ifdef unix}
+      Result := FileSearch(Name, DirList, False);
+    {$else unix}
+      Result := FileSearch(Name, DirList, True);
+    {$endif unix}
+    end;
+
   {$ifndef OS_FILEISREADONLY}
   Function FileIsReadOnly(const FileName: String): Boolean;
 
