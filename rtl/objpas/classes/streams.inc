@@ -505,7 +505,7 @@ function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
 
 begin
   Result:=0;
-  If (FSize>0) and (FPosition<Fsize) then
+  If (FSize>0) and (FPosition<Fsize) and (FPosition>=0) then
     begin
     Result:=FSize-FPosition;
     If Result>Count then Result:=Count;
@@ -521,9 +521,13 @@ begin
   Case Origin of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=FSize+Offset;
-    soFromCurrent   : FpoSition:=FPosition+Offset;
+    soFromCurrent   : FPosition:=FPosition+Offset;
   end;
   Result:=FPosition;
+  {$IFDEF DEBUG}
+  if Result < 0 then
+    raise Exception.Create('TCustomMemoryStream');
+  {$ENDIF}
 end;
 
 
@@ -643,7 +647,7 @@ function TMemoryStream.Write(const Buffer; Count: Longint): Longint;
 Var NewPos : Longint;
 
 begin
-  If Count=0 then
+  If (Count=0) or (FPosition<0) then
     exit(0);
   NewPos:=FPosition+Count;
   If NewPos>Fsize then
