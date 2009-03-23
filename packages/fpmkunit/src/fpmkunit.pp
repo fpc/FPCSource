@@ -3231,7 +3231,7 @@ begin
             O:=Substitute(C.Options,['SOURCE',C.SourceFile,'DEST',C.DestFile]);
             Cmd:=C.Command;
             If (ExtractFilePath(Cmd)='') then
-              Cmd:=FileSearch(Cmd,GetEnvironmentvariable('PATH'));
+              Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
             ExecuteCommand(Cmd,O,C.IgnoreResult);
             If Assigned(C.AfterCommand) then
               C.AfterCommand(C);
@@ -3583,7 +3583,7 @@ begin
     FCompiler:=Defaults.Compiler;
     If (ExtractFilePath(FCompiler)='') then
       begin
-      S:=FileSearch(FCompiler,GetEnvironmentVariable('PATH'));
+      S:=ExeSearch(FCompiler,GetEnvironmentVariable('PATH'));
       If (S<>'') then
          FCompiler:=S;
       end;
