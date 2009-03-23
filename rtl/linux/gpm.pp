@@ -304,10 +304,14 @@ end;
 const checked_con:boolean=false;
 
 function putdata(where:longint;const what:Tgpmconnect):boolean;
-
+var
+  res: cint;
 begin
   putdata:=true;
-  if fpwrite(where,what,sizeof(Tgpmconnect))<>sizeof(Tgpmconnect) then
+  repeat
+    res:=fpwrite(where,what,sizeof(Tgpmconnect));
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
+  if res<>sizeof(Tgpmconnect) then
     begin
 {      gpm_report(GPM_PR_ERR,GPM_MESS_WRITE_ERR,strerror(errno));}
       putdata:=false;
@@ -403,6 +407,7 @@ var tty:string;
     p:byte; {there max 256 console ttys}
     buf:stat;
     sa:sigactionrec;
+    res: cint;
 
 label err;
 
@@ -497,7 +502,9 @@ begin
 
       if (gpm_consolefd=-1) then
         begin
-          gpm_consolefd:=fpopen(tty,O_WRONLY);
+          repeat
+            gpm_consolefd:=fpopen(tty,O_WRONLY);
+          until (gpm_consolefd<>-1) or (fpgeterrno<>ESysEINTR);
           if gpm_consolefd<0 then
             begin
 {              gpm_report(GPM_PR_ERR,GPM_MESS_DOUBLE_S,tty,strerror(errno));}
@@ -537,13 +544,20 @@ begin
   strcopy(addr.path, GPM_NODE_CTL);
   i:=sizeof(addr.family)+length(GPM_NODE_CTL);
 
-  if fpconnect(gpm_fd,psockaddr(@addr),i)<0 then
+  repeat
+    res:=fpconnect(gpm_fd,psockaddr(@addr),i);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
+  if res<0 then
     begin
 {         gpm_report(GPM_PR_INFO,GPM_MESS_DOUBLE_S,GPM_NODE_CTL,strerror(errno));}
       {Well, try to open a chr device called /dev/gpmctl. This should
        be forward-compatible with a kernel server.}
-      fpclose(gpm_fd); {the socket}
-      gpm_fd:=fpopen(GPM_NODE_DEV,O_RDWR);
+      repeat
+        res:=fpclose(gpm_fd); {the socket}
+      until (res<>-1) or (fpgeterrno<>ESysEINTR);
+      repeat
+        gpm_fd:=fpopen(GPM_NODE_DEV,O_RDWR);
+      until (gpm_fd<>-1) or (fpgeterrno<>ESysEINTR);
       if gpm_fd=-1 then
         begin
 {              gpm_report(GPM_PR_ERR,GPM_MESS_DOUBLE_S,GPM_NODE_DEV
@@ -591,14 +605,21 @@ err:
       gpm_stack:=n;
    until gpm_stack=nil;
    if gpm_fd>=0 then
-     fpclose(gpm_fd);
+     begin
+       repeat
+         res:=fpclose(gpm_fd);
+       until (res<>-1) or (fpgeterrno<>ESysEINTR);
+     end;
    gpm_flag:=false;
    gpm_open:=-1;
 end;
 
 function gpm_close:longint;
 
-var next:Pgpm_stst;
+var
+  next:Pgpm_stst;
+  res: cint;
+
 
 begin
   gpm_tried:=false; { reset the error flag for next time }
@@ -626,7 +647,11 @@ begin
     end;
 
   if gpm_fd>=0 then
-   fpclose(gpm_fd);
+    begin
+      repeat
+        res:=fpclose(gpm_fd);
+      until (res<>-1) or (fpgeterrno<>ESysEINTR);
+    end;
   gpm_fd:=-1;
   fpsigaction(SIGTSTP,@gpm_saved_suspend_hook,nil);
   fpsigaction(SIGWINCH,@gpm_saved_winch_hook,nil);
@@ -637,14 +662,16 @@ end;
 
 function gpm_getevent(var event:Tgpm_event):longint;
 
-var count:longint;
+var count:cint;
 
 begin
   gpm_getevent:=0;
   if gpm_fd=-1 then
     exit;
 
-  count:=fpread(gpm_fd,event,sizeof(Tgpm_event));
+  repeat
+    count:=fpread(gpm_fd,event,sizeof(Tgpm_event));
+  until (count<>-1) or (fpgeterrno<>ESysEINTR);
   if count<>sizeof(Tgpm_event) then
     begin
        {avoid to send the message if there is no data; sometimes it makes
