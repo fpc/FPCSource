@@ -149,37 +149,55 @@ type
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
 
+  // common ancestor for binary operations
+
+  TXPathBinaryNode = class(TXPathExprNode)
+  protected
+    FOperand1, FOperand2: TXPathExprNode;
+  public
+    destructor Destroy; override;   
+  end;
 
   // Node for (binary) mathematical operation
 
   TXPathMathOp = (opAdd, opSubtract, opMultiply, opDivide, opMod);
 
-  TXPathMathOpNode = class(TXPathExprNode)
+  TXPathMathOpNode = class(TXPathBinaryNode)
   private
-    FOperand1, FOperand2: TXPathExprNode;
     FOperator: TXPathMathOp;
   public
     constructor Create(AOperator: TXPathMathOp;
       AOperand1, AOperand2: TXPathExprNode);
-    destructor Destroy; override;
+    function Evaluate(AContext: TXPathContext;
+      AEnvironment: TXPathEnvironment): TXPathVariable; override;
+  end;
+
+  // Node for comparison operations
+
+  TXPathCompareOp = (opEqual, opNotEqual, opLess, opLessEqual, opGreater,
+    opGreaterEqual);
+
+  TXPathCompareNode = class(TXPathBinaryNode)
+  private
+    FOperator: TXPathCompareOp;
+  public
+    constructor Create(AOperator: TXPathCompareOp;
+      AOperand1, AOperand2: TXPathExprNode);
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
 
 
-  // Node for boolean operations
+  // Node for boolean operations (and, or)
 
-  TXPathBooleanOp = (opEqual, opNotEqual, opLess, opLessEqual, opGreater,
-    opGreaterEqual, opOr, opAnd);
+  TXPathBooleanOp = (opOr, opAnd);
 
-  TXPathBooleanOpNode = class(TXPathExprNode)
+  TXPathBooleanOpNode = class(TXPathBinaryNode)
   private
-    FOperand1, FOperand2: TXPathExprNode;
     FOperator: TXPathBooleanOp;
   public
     constructor Create(AOperator: TXPathBooleanOp;
       AOperand1, AOperand2: TXPathExprNode);
-    destructor Destroy; override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
@@ -187,12 +205,9 @@ type
 
   // Node for unions (see [18])
 
-  TXPathUnionNode = class(TXPathExprNode)
-  private
-    FOperand1, FOperand2: TXPathExprNode;
+  TXPathUnionNode = class(TXPathBinaryNode)
   public
     constructor Create(AOperand1, AOperand2: TXPathExprNode);
-    destructor Destroy; override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
@@ -509,29 +524,33 @@ end;
 
 procedure TranslateWideString(var S: DOMString; const SrcPat, DstPat: DOMString);
 var
-  I, J, K, L: Integer;
-  P: DOMPChar;
+  I, J, L: Integer;
+  P, Start: DOMPChar;
 begin
   UniqueString(S);
   L := Length(DstPat);
   P := DOMPChar(S);
   if Length(SrcPat) > L then  // may remove some chars
   begin
-    K := 0;
+    Start := P;
     for I := 1 to Length(S) do
     begin
       J := Pos(S[I], SrcPat);
       if J > 0 then
       begin
         if J <= L then
+        begin
           P^ := DstPat[J];
+          Inc(P);
+        end;
       end
       else
+      begin
         P^ := S[I];
-      Inc(P);
-      Inc(K);
+        Inc(P);
+      end;
     end;
-    SetLength(S, K);
+    SetLength(S, P-Start);
   end
   else  // no char removal possible
     for I := 1 to Length(S) do
@@ -647,6 +666,12 @@ begin
   end;
 end;
 
+destructor TXPathBinaryNode.Destroy;
+begin
+  FOperand1.Free;
+  FOperand2.Free;
+  inherited Destroy;
+end;
 
 constructor TXPathMathOpNode.Create(AOperator: TXPathMathOp;
   AOperand1, AOperand2: TXPathExprNode);
@@ -655,13 +680,6 @@ begin
   FOperator := AOperator;
   FOperand1 := AOperand1;
   FOperand2 := AOperand2;
-end;
-
-destructor TXPathMathOpNode.Destroy;
-begin
-  FOperand1.Free;
-  FOperand2.Free;
-  inherited Destroy;
 end;
 
 function TXPathMathOpNode.Evaluate(AContext: TXPathContext;
@@ -684,10 +702,7 @@ begin
         opMultiply:
           NumberResult := Op1 * Op2;
         opDivide:
-          if IsZero(Op2) then
-            NumberResult := NaN
-          else
-            NumberResult := Op1 / Op2;
+          NumberResult := Op1 / Op2;
         opMod:
           NumberResult := Trunc(Op1) mod Trunc(Op2);
       end;
@@ -701,7 +716,7 @@ begin
 end;
 
 
-constructor TXPathBooleanOpNode.Create(AOperator: TXPathBooleanOp;
+constructor TXPathCompareNode.Create(AOperator: TXPathCompareOp;
   AOperand1, AOperand2: TXPathExprNode);
 begin
   inherited Create;
@@ -710,23 +725,20 @@ begin
   FOperand2 := AOperand2;
 end;
 
-destructor TXPathBooleanOpNode.Destroy;
-begin
-  FOperand1.Free;
-  FOperand2.Free;
-  inherited Destroy;
-end;
-
-function TXPathBooleanOpNode.Evaluate(AContext: TXPathContext;
+function TXPathCompareNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   Op1, Op2: TXPathVariable;
+  e1, e2: Extended;
+  BoolResult: Boolean;
+
 
   function EvalEqual: Boolean;
   var
     i, j: Integer;
     NodeSet1, NodeSet2: TNodeSet;
     s: DOMString;
+    e1, e2: Extended;
   begin
     // !!!: Doesn't handle nodesets yet!
     if Op1.InheritsFrom(TXPathNodeSetVariable) then
@@ -773,13 +785,20 @@ var
       Result := Op1.AsBoolean = Op2.AsBoolean
     else if Op1.InheritsFrom(TXPathNumberVariable) or
       Op2.InheritsFrom(TXPathNumberVariable) then
-      Result := Op1.AsNumber = Op2.AsNumber
+    begin
+      e1 := Op1.AsNumber;
+      e2 := Op2.AsNumber;
+      if IsNan(e1) or IsNan(e2) then
+        Result := False
+      else if IsInfinite(e1) or IsInfinite(e2) then
+        Result := e1 = e2
+      else
+        Result := SameValue(e1, e2);
+    end
     else
       Result := Op1.AsText = Op2.AsText; // !!!: Attention with Unicode!
   end;
 
-var
-  BoolResult: Boolean;
 begin
   Op1 := FOperand1.Evaluate(AContext, AEnvironment);
   try
@@ -790,18 +809,22 @@ begin
           BoolResult := EvalEqual;
         opNotEqual:
           BoolResult := not EvalEqual;
-        opLess:
-          BoolResult := Op1.AsNumber < Op2.AsNumber;
-        opLessEqual:
-          BoolResult := Op1.AsNumber <= Op2.AsNumber;
-        opGreater:
-          BoolResult := Op1.AsNumber > Op2.AsNumber;
-        opGreaterEqual:
-          BoolResult := Op1.AsNumber >= Op2.AsNumber;
-        opOr:
-          BoolResult := Op1.AsBoolean or Op2.AsBoolean;
-        opAnd:
-          BoolResult := Op1.AsBoolean and Op2.AsBoolean;
+      else
+        e1 := Op1.AsNumber;
+        e2 := Op2.AsNumber;
+        if IsNan(e1) or IsNan(e2) then
+          BoolResult := False
+        else
+        case FOperator of
+          opLess:
+            BoolResult := e1 < e2;
+          opLessEqual:
+            BoolResult := e1 <= e2;
+          opGreater:
+            BoolResult := e1 > e2;
+          opGreaterEqual:
+            BoolResult := e1 >= e2;
+        end;
       end;
     finally
       Op2.Release;
@@ -812,6 +835,42 @@ begin
   Result := TXPathBooleanVariable.Create(BoolResult);
 end;
 
+constructor TXPathBooleanOpNode.Create(AOperator: TXPathBooleanOp;
+  AOperand1, AOperand2: TXPathExprNode);
+begin
+  inherited Create;
+  FOperator := AOperator;
+  FOperand1 := AOperand1;
+  FOperand2 := AOperand2;
+end;
+
+function TXPathBooleanOpNode.Evaluate(AContext: TXPathContext;
+  AEnvironment: TXPathEnvironment): TXPathVariable;
+var
+  res: Boolean;
+  Op1, Op2: TXPathVariable;
+begin
+  { don't evaluate second arg if result is determined by first one }
+  Op1 := FOperand1.Evaluate(AContext, AEnvironment);
+  try
+    res := Op1.AsBoolean;
+  finally
+    Op1.Release;
+  end;
+  if not (((FOperator = opAnd) and (not res)) or ((FOperator = opOr) and res)) then
+  begin
+    Op2 := FOperand2.Evaluate(AContext, AEnvironment);
+    try
+      case FOperator of
+        opAnd: res := res and Op2.AsBoolean;
+        opOr:  res := res or Op2.AsBoolean;
+      end;
+    finally
+      Op2.Release;
+    end;
+  end;
+  Result := TXPathBooleanVariable.Create(res);
+end;
 
 constructor TXPathUnionNode.Create(AOperand1, AOperand2: TXPathExprNode);
 begin
@@ -820,22 +879,16 @@ begin
   FOperand2 := AOperand2;
 end;
 
-destructor TXPathUnionNode.Destroy;
-begin
-  FOperand1.Free;
-  FOperand2.Free;
-  inherited Destroy;
-end;
-
 function TXPathUnionNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   Op1Result, Op2Result: TXPathVariable;
   NodeSet, NodeSet2: TNodeSet;
   CurNode: Pointer;
-  i, j: Integer;
-  DoAdd: Boolean;
+  i: Integer;
 begin
+{ TODO: result must be sorted by document order, i.e. 'a|b' yields the
+  same nodeset as 'b|a' }
   Op1Result := FOperand1.Evaluate(AContext, AEnvironment);
   try
     Op2Result := FOperand2.Evaluate(AContext, AEnvironment);
@@ -844,15 +897,8 @@ begin
       NodeSet2 := Op2Result.AsNodeSet;
       for i := 0 to NodeSet2.Count - 1 do
       begin
-        DoAdd := True;
         CurNode := NodeSet2[i];
-        for j := 0 to NodeSet.Count - 1 do
-          if NodeSet[j] = CurNode then
-          begin
-            DoAdd := False;
-            break;
-          end;
-        if DoAdd then
+        if NodeSet.IndexOf(CurNode) < 0 then
           NodeSet.Add(CurNode);
       end;
     finally
@@ -1384,11 +1430,7 @@ end;
 
 function TXPathNumberVariable.AsBoolean: Boolean;
 begin
-  // !!!: What about NaNs and so on?
-  if FValue = 0 then
-    Result := False
-  else
-    Result := True;
+  Result := not (IsNan(FValue) or IsZero(FValue));
 end;
 
 function TXPathNumberVariable.AsNumber: Extended;
@@ -1398,6 +1440,7 @@ end;
 
 function TXPathNumberVariable.AsText: DOMString;
 begin
+// TODO: Decimal separator!!!
   Result := FloatToStr(FValue);
 end;
 
@@ -1868,6 +1911,7 @@ begin
       end;
   else
     Error(SParserInvalidPrimExpr);
+    Result := nil; // satisfy compiler
   end;
   NextToken;
 end;
@@ -1956,7 +2000,7 @@ end;
 
 function TXPathScanner.ParseEqualityExpr: TXPathExprNode;  // [23]
 var
-  op: TXPathBooleanOp;
+  op: TXPathCompareOp;
 begin
   Result := ParseRelationalExpr;
   repeat
@@ -1967,13 +2011,13 @@ begin
       Break;
     end;
     NextToken;
-    Result := TXPathBooleanOpNode.Create(op, Result, ParseRelationalExpr);
+    Result := TXPathCompareNode.Create(op, Result, ParseRelationalExpr);
   until False;
 end;
 
 function TXPathScanner.ParseRelationalExpr: TXPathExprNode;  // [24]
 var
-  op: TXPathBooleanOp;
+  op: TXPathCompareOp;
 begin
   Result := ParseAdditiveExpr;
   repeat
@@ -1986,7 +2030,7 @@ begin
       Break;
     end;
     NextToken;
-    Result := TXPathBooleanOpNode.Create(op, Result, ParseAdditiveExpr);
+    Result := TXPathCompareNode.Create(op, Result, ParseAdditiveExpr);
   until False;
 end;
 
@@ -2423,28 +2467,48 @@ end;
 function TXPathEnvironment.xpSubstringAfter(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
   s, substr: DOMString;
+  i: Integer;
 begin
   if Args.Count <> 2 then
     EvaluationError(SEvalInvalidArgCount);
   s := TXPathVariable(Args[0]).AsText;
   substr := TXPathVariable(Args[1]).AsText;
-  Result := TXPathStringVariable.Create(Copy(s, Pos(substr, s) + Length(substr), MaxInt));
+  i := Pos(substr, s);
+  if i <> 0 then
+    Result := TXPathStringVariable.Create(Copy(s, i + Length(substr), MaxInt))
+  else
+    Result := TXPathStringVariable.Create('');
 end;
 
 function TXPathEnvironment.xpSubstring(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
   s: DOMString;
-  n1, n2: Integer;
+  i, n1, n2: Integer;
+  e1, e2: Extended;
+  empty: Boolean;
 begin
   if (Args.Count < 2) or (Args.Count > 3) then
     EvaluationError(SEvalInvalidArgCount);
   s := TXPathVariable(Args[0]).AsText;
-  n1 := round(TXPathVariable(Args[1]).AsNumber);
+  e1 := TXPathVariable(Args[1]).AsNumber;
+  n1 := 1;  // satisfy compiler
+  n2 := MaxInt;
+  empty := IsNaN(e1) or IsInfinite(e1);
+  if not empty then
+    n1 := floor(0.5 + e1);
   if Args.Count = 3 then
-    n2 := round(TXPathVariable(Args[2]).AsNumber)
-  else
-    n2 := MaxInt;
-  Result := TXPathStringVariable.Create(Copy(s, n1, n2));
+  begin
+    e2 := TXPathVariable(Args[2]).AsNumber;
+    if IsNaN(e2) or (IsInfinite(e2) and (e2 < 0)) then
+      empty := True
+    else if not IsInfinite(e2) then
+      n2 := floor(0.5 + e2);
+  end;
+  i := Max(n1, 1);
+  n2 := n2 + n1 - i;
+  if empty then
+    n2 := -1;
+  Result := TXPathStringVariable.Create(Copy(s, i, n2));
 end;
 
 function TXPathEnvironment.xpStringLength(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
@@ -2546,10 +2610,15 @@ begin
 end;
 
 function TXPathEnvironment.xpRound(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  num: Extended;
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  Result := TXPathNumberVariable.Create(round(TXPathVariable(Args[0]).AsNumber));
+  num := TXPathVariable(Args[0]).AsNumber;
+  if not (IsNan(num) or IsInfinite(num)) then
+    num := floor(0.5 + num);
+  Result := TXPathNumberVariable.Create(num);
 end;
 
 
@@ -2587,14 +2656,18 @@ function TXPathExpression.Evaluate(AContextNode: TDOMNode;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   Context: TXPathContext;
+  mask: TFPUExceptionMask;
 begin
   if Assigned(FRootNode) then
   begin
+    mask := GetExceptionMask;
+    SetExceptionMask(mask + [exInvalidOp, exZeroDivide]);
     Context := TXPathContext.Create(AContextNode, 1, 1);
     try
       Result := FRootNode.Evaluate(Context, AEnvironment);
     finally
       Context.Free;
+      SetExceptionMask(mask);
     end;
   end else
     Result := nil;

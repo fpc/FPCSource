@@ -1681,6 +1681,7 @@ packages/fcl-xml/tests/domunit.pp svneol=native#text/plain
 packages/fcl-xml/tests/template.xml svneol=native#text/plain
 packages/fcl-xml/tests/testgen.pp svneol=native#text/plain
 packages/fcl-xml/tests/xmlts.pp svneol=native#text/plain
+packages/fcl-xml/tests/xpathts.pp svneol=native#text/plain
 packages/fftw/Makefile svneol=native#text/plain
 packages/fftw/Makefile.fpc svneol=native#text/plain
 packages/fftw/examples/example.pas svneol=native#text/plain
