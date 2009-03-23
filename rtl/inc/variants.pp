@@ -1132,6 +1132,18 @@ begin
   else
     Result := 1;
 end;
+
+
+function DoVarCmpDate(const Left, Right: TDateTime; const OpCode: TVarOp): ShortInt;
+begin
+  { dates have to match exactly, all bits encode time information }
+  if(Left = Right) then
+    Result := 0
+  else if (OpCode in [opCmpEq, opCmpNe]) or (Left < Right) then
+    Result := -1
+  else
+    Result := 1;
+end;
 {$endif}
 
 function DoVarCmpInt64(const Left, Right: Int64): ShortInt;
@@ -1261,7 +1273,7 @@ begin
       else
         Result := DoVarCmpWStr(vl, vr, OpCode);
 {$ifndef FPUNONE}
-    ctDate:     Result := DoVarCmpFloat(VariantToDate(vl), VariantToDate(vr), OpCode);
+    ctDate:     Result := DoVarCmpDate(VariantToDate(vl), VariantToDate(vr), OpCode);
     ctCurrency: Result := DoVarCmpCurr(VariantToCurrency(vl), VariantToCurrency(vr));
 {$endif}
     ctString:
