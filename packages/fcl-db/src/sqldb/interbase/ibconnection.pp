@@ -518,7 +518,7 @@ procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 
 var dh    : pointer;
     tr    : pointer;
-    x     : shortint;
+    x     : Smallint;
     info_request   : string;
     resbuf         : array[0..7] of byte;
     blockSize      : integer;
@@ -611,7 +611,7 @@ end;
 
 procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
 
-var x : shortint;
+var x : Smallint;
 
 begin
 {$R-}
