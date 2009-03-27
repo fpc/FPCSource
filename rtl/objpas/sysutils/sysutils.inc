@@ -18,18 +18,18 @@
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String) : String;
+    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
     Var
       I : longint;
       Temp : String;
 
     begin
-      // Start with checking the file in the current directory
       Result:=Name;
       temp:=SetDirSeparators(DirList);
+      // Start with checking the file in the current directory
+      If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
+        exit;
       while True do begin
-        If (Result <> '') and FileExists(Result) Then
-          exit;
         If Temp = '' then
           Break; // No more directories to search - fail
         I:=pos(PathSeparator,Temp);
@@ -45,8 +45,20 @@
           end;
         If Result<>'' then
           Result:=IncludeTrailingPathDelimiter(Result)+name;
+        If (Result <> '') and FileExists(Result) Then
+          exit;
       end;
       result:='';
+    end;
+
+    Function ExeSearch (Const Name, DirList : String) : String;
+
+    begin
+    {$ifdef unix}
+      Result := FileSearch(Name, DirList, False);
+    {$else unix}
+      Result := FileSearch(Name, DirList, True);
+    {$endif unix}
     end;
 
   {$ifndef OS_FILEISREADONLY}

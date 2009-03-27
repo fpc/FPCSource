@@ -98,7 +98,7 @@ program fpc;
        end
       else
        begin
-         path:=FileSearch(ppcbin,getenvironmentvariable('PATH'));
+         path:=ExeSearch(ppcbin,getenvironmentvariable('PATH'));
          if path<>'' then
           begin
             ppcbin:=path;

@@ -432,11 +432,12 @@ end;
 
 
 procedure TCompilerOptions.InitCompilerDefaults;
+
 var
   infoSL : TStringList;
 begin
   FConfigVersion:=CurrentConfigVersion;
-  FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
+  FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
