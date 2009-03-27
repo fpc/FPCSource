@@ -199,6 +199,80 @@ const
   HDN_TRACK = HDN_TRACKW;
   HDN_GETDISPINFO = HDN_GETDISPINFOW;
      
+  // MONTHCAL CONTROL
+  MONTHCAL_CLASS        = 'SysMonthCal32';
+  MCM_FIRST             = $1000;
+  MCM_GETCURSEL         = MCM_FIRST + 1;
+  MCM_SETCURSEL         = MCM_FIRST + 2;
+  MCM_GETMAXSELCOUNT    = MCM_FIRST + 3;
+  MCM_SETMAXSELCOUNT    = MCM_FIRST + 4;
+  MCM_GETSELRANGE       = MCM_FIRST + 5;
+  MCM_SETSELRANGE       = MCM_FIRST + 6;
+  MCM_GETMONTHRANGE     = MCM_FIRST + 7;
+  MCM_SETDAYSTATE       = MCM_FIRST + 8;
+  MCM_GETMINREQRECT     = MCM_FIRST + 9;
+  MCM_SETCOLOR          = MCM_FIRST + 10;
+  MCM_GETCOLOR          = MCM_FIRST + 11;
+
+  // color consts
+  MCSC_BACKGROUND   = 0;   // the background color (between months)
+  MCSC_TEXT         = 1;   // the dates
+  MCSC_TITLEBK      = 2;   // background of the title
+  MCSC_TITLETEXT    = 3;
+  MCSC_MONTHBK      = 4;   // background within the month cal
+  MCSC_TRAILINGTEXT = 5;   // the text color of header & trailing days
+
+  MCM_SETTODAY          = MCM_FIRST + 12;
+  MCM_GETTODAY          = MCM_FIRST + 13;
+  MCM_HITTEST           = MCM_FIRST + 14;
+
+  // hittest contst
+  MCHT_TITLE     = $00010000;
+  MCHT_CALENDAR  = $00020000;
+  MCHT_TODAYLINK = $00030000;
+  MCHT_NONELINK  = $00040000;
+  MCHT_NEXT      = $01000000;   // these indicate that hitting
+  MCHT_PREV      = $02000000;  // here will go to the next/prev month
+  MCHT_NOWHERE   = $00000000;
+  MCHT_TITLEBK          = MCHT_TITLE;
+  MCHT_TITLEMONTH       = MCHT_TITLE or $0001;
+  MCHT_TITLEYEAR        = MCHT_TITLE or $0002;
+  MCHT_TITLEBTNNEXT     = MCHT_TITLE or MCHT_NEXT or $0003;
+  MCHT_TITLEBTNPREV     = MCHT_TITLE or MCHT_PREV or $0003;
+  MCHT_CALENDARBK       = MCHT_CALENDAR;
+  MCHT_CALENDARDATE     = MCHT_CALENDAR or $0001;
+  MCHT_CALENDARDATENEXT = MCHT_CALENDARDATE or MCHT_NEXT;
+  MCHT_CALENDARDATEPREV = MCHT_CALENDARDATE or MCHT_PREV;
+  MCHT_CALENDARDAY      = MCHT_CALENDAR or $0002;
+  MCHT_CALENDARWEEKNUM  = MCHT_CALENDAR or $0003;
+
+  MCM_SETFIRSTDAYOFWEEK = MCM_FIRST + 15;
+  MCM_GETFIRSTDAYOFWEEK = MCM_FIRST + 16;
+  MCM_GETRANGE          = MCM_FIRST + 17;
+  MCM_SETRANGE          = MCM_FIRST + 18;
+  MCM_GETMONTHDELTA     = MCM_FIRST + 19;
+  MCM_SETMONTHDELTA     = MCM_FIRST + 20;
+  MCM_GETMAXTODAYWIDTH  = MCM_FIRST + 21;
+  MCM_GETMAXNONEWIDTH   = MCM_FIRST + 22;
+
+  // notifications
+  MCN_SELCHANGE   = MCN_FIRST + 1;
+  MCN_GETDAYSTATE = MCN_FIRST + 3;
+  MCN_SELECT      = MCN_FIRST + 4;
+  MCN_SELECTNONE  = MCN_FIRST + 5;
+
+  // control styles
+  MCS_DAYSTATE      = $0001;
+  MCS_MULTISELECT   = $0002;
+  MCS_WEEKNUMBERS   = $0004;
+  MCS_SHOWNONE      = $0080;
+  MCS_NOTODAYCIRCLE = $0008;
+  MCS_NOTODAY       = $0010;
+
+  GMR_VISIBLE  = 0; // visible portion of display
+  GMR_DAYSTATE = 1; // above plus the grayed out parts of
+                    // partially displayed months
+
   // DATETIMEPICK CONTROL
   DATETIMEPICK_CLASS  ='SysDateTimePick32';
   DTM_FIRST           = $1000;
@@ -398,6 +472,40 @@ const
 //*****************************************************************************
 
 type
+  // MONTHCAL CONTROL
+  MONTHDAYSTATE   = DWORD;
+  LPMONTHDAYSTATE = ^MONTHDAYSTATE;
+  TMonthDayState  = MONTHDAYSTATE;
+  PMonthDayState  = LPMONTHDAYSTATE;
+
+  MCHITTESTINFO = record
+    cbSize: UINT;
+    pt    : POINT;
+    uHit  : UINT;          // out param
+    st    : SYSTEMTIME;
+  end;
+  TMCMHITTESTINFO = MCHITTESTINFO;
+  PMCMHitTestInfo = ^MCHITTESTINFO;
+
+  tagNMSELCHANGE = record
+    nmhdr     : NMHDR;      // this must be first, so we don't break WM_NOTIFY
+    stSelStart: SYSTEMTIME;
+    stSelEnd  : SYSTEMTIME;
+  end;
+  NMSELCHANGE = tagNMSELCHANGE;
+  TNMSELCHANGE = tagNMSELCHANGE;
+  LPNMSELCHANGE = ^tagNMSELCHANGE;
+
+  tagNMDAYSTATE = record
+    nmhdr      : NMHDR;           // this must be first, so we don't break WM_NOTIFY
+    stStart    : SYSTEMTIME;
+    cDayState  : longint;
+    prgDayState: LPMONTHDAYSTATE; // points to cDayState MONTHDAYSTATEs
+  end;
+  NMDAYSTATE = tagNMDAYSTATE;
+  TNMDAYSTATE = tagNMDAYSTATE;
+  LPNMDAYSTATE = ^tagNMDAYSTATE;
+
   // DATETIMEPICK CONTROL
   tagNMDATETIMECHANGE = record
     nmhdr   : NMHDR;
