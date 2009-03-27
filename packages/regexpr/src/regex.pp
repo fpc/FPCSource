@@ -169,8 +169,8 @@ type
       constructor Create(const aRegexStr : string);
       destructor Destroy; override;
 
-      function Parse(var aErrorPos : integer;
-                     var aErrorCode: TRegexError) : boolean; virtual;
+      function Parse(out aErrorPos : integer;
+                     out aErrorCode: TRegexError) : boolean; virtual;
       function MatchString(const S : string; out MatchPos : integer; var Offset : integer) : boolean; virtual;
       function ReplaceAllString(const src, newstr: ansistring; out DestStr : string): Integer;
 
@@ -374,8 +374,8 @@ begin
 end;
 
 {--------}
-function TRegexEngine.Parse(var aErrorPos : integer;
-                              var aErrorCode: TRegexError)
+function TRegexEngine.Parse(out aErrorPos : integer;
+                              out aErrorCode: TRegexError)
                                                             : boolean;
 begin
   {clear the current transition table}
