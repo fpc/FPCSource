@@ -1486,8 +1486,8 @@ uses
 {$endif}
 
 {$IFDEF LinkDynamically}
-Function InitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
-Function InitialiseMysql(argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(Const LibraryName : String; argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(argc:cint = -1; argv:PPchar = nil; groups:PPchar = nil) : Integer;
 Procedure ReleaseMysql;
 
 var MysqlLibraryHandle : TLibHandle;
@@ -1506,13 +1506,12 @@ var
   RefCount : integer;
   LoadedLibrary : String;
 
-Function TryInitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
-
+Function TryInitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups: PPchar) : Integer;
 
 begin
   Result := 0;
   if (RefCount=0) then
-    begin
+  begin
     MysqlLibraryHandle := loadlibrary(LibraryName);
     if (MysqlLibraryHandle=nilhandle) then
       Exit;
@@ -1620,14 +1619,21 @@ begin
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
 
-    mysql_library_init(0,nil,nil);
-    end
-  else
+    if @mysql_library_init <> nil then
+    begin
+      if mysql_library_init(argc, argv, groups) <> 0 then
+        Exit;
+    end else
+      if mysql_server_init(argc, argv, groups) <> 0 then
+        Exit;
+
+  end else
     inc(RefCount);
+
   Result:=RefCount;
 end;
 
-Function InitialiseMysql(argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(argc: cint; argv: PPchar; groups: PPchar) : Integer;
 
 begin
   Result := 0;
@@ -1637,7 +1643,7 @@ begin
   Result := RefCount;
 end;
 
-Function InitialiseMysql(Const LibraryName : String; argc:cint = 0; argv:PPchar = nil; groups:PPchar = nil) : Integer;
+Function InitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar; groups:PPchar) : Integer;
 
 begin
   Result := TryInitialiseMysql(LibraryName,argc,argv,groups);
