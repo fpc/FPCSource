@@ -1167,8 +1167,8 @@ uses
     { Set up and bring down the server; to ensure that applications will
       work when linked against either the standard client library or the
       embedded server library, these functions should be called.     }
-    function mysql_server_init(argc:cint; argv:PPchar; groups:PPchar):cint;cdecl;external mysqllib name 'mysql_server_init';
-    procedure mysql_server_end;cdecl;external mysqllib name 'mysql_server_end';
+    function mysql_server_init(argc:cint; argv:PPchar; groups:PPchar):cint;extdecl;external mysqllib name 'mysql_server_init';
+    procedure mysql_server_end;extdecl;external mysqllib name 'mysql_server_end';
 
     { mysql_server_init/end need to be called when using libmysqld or
       libmysqlclient (exactly, mysql_server_init() is called by mysql_init() so
@@ -1178,8 +1178,8 @@ uses
       names which suit well whether you're using libmysqld or libmysqlclient. We
       intend to promote these aliases over the mysql_server* ones.     }
 
-    function mysql_library_init(argc:cint; argv:PPchar; groups:PPchar):cint;cdecl;external mysqllib name 'mysql_server_init';
-    procedure mysql_library_end;cdecl;external mysqllib name 'mysql_server_end';
+    function mysql_library_init(argc:cint; argv:PPchar; groups:PPchar):cint;extdecl;external mysqllib name 'mysql_server_init';
+    procedure mysql_library_end;extdecl;external mysqllib name 'mysql_server_end';
 
     function mysql_get_parameters:PMYSQL_PARAMETERS;extdecl;external mysqllib name 'mysql_get_parameters';
 
@@ -1225,10 +1225,10 @@ uses
 {$ELSE}
 
     var
-      mysql_server_init: function (argc:cint; argv:PPchar; groups:PPchar):cint;cdecl;
-      mysql_server_end: procedure ;cdecl;
-      mysql_library_init: function (argc:cint; argv:PPchar; groups:PPchar):cint;cdecl;
-      mysql_library_end: procedure ;cdecl;
+      mysql_server_init: function (argc:cint; argv:PPchar; groups:PPchar):cint;extdecl;
+      mysql_server_end: procedure ();extdecl;
+      mysql_library_init: function (argc:cint; argv:PPchar; groups:PPchar):cint;extdecl;
+      mysql_library_end: procedure ();extdecl;
       mysql_num_rows: function (res:PMYSQL_RES):my_ulonglong;extdecl;
       mysql_num_fields: function (res:PMYSQL_RES):cuint;extdecl;
       mysql_eof: function (res:PMYSQL_RES):my_bool;extdecl;
@@ -1619,14 +1619,8 @@ begin
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
 
-    if @mysql_library_init <> nil then
-    begin
-      if mysql_library_init(argc, argv, groups) <> 0 then
-        Exit;
-    end else
-      if mysql_server_init(argc, argv, groups) <> 0 then
-        Exit;
-
+    if mysql_server_init(argc, argv, groups) <> 0 then
+      Exit;
   end else
     inc(RefCount);
 
