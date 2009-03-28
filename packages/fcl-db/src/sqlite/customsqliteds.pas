@@ -1441,7 +1441,7 @@ procedure TCustomSqliteDataset.ExecSQLList;
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  SqliteExec(PChar(FSQLList.Text), nil, nil);
+  FReturnCode := SqliteExec(PChar(FSQLList.Text), nil, nil);
 end;
 
 procedure TCustomSqliteDataset.ExecSQL;
