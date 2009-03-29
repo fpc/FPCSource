@@ -1619,7 +1619,7 @@ begin
     pointer(mysql_stmt_insert_id) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_insert_id');
     pointer(mysql_stmt_field_count) := GetProcedureAddress(MysqlLibraryHandle,'mysql_stmt_field_count');
 
-    if mysql_server_init(argc, argv, groups) <> 0 then
+    if mysql_library_init(argc, argv, groups) <> 0 then
       Exit;
   end else
     inc(RefCount);
