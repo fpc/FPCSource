@@ -75,7 +75,9 @@ Type
 
   TCustomWebApplication = Class(TCustomApplication)
   Private
+    FAdministrator: String;
     FAllowDefaultModule: Boolean;
+    FEmail: String;
     FModuleVar: String;
     FOnGetModule: TGetModuleEvent;
     FRequest : TRequest;
@@ -87,10 +89,12 @@ Type
     function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
     function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
+    Procedure DoRun; override;
+    procedure ShowRequestException(R: TResponse; E: Exception); virtual;
   Public
     constructor Create(AOwner: TComponent); override;
+    Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
     Procedure Initialize; override;
-    Procedure DoRun; override;
     Procedure ShowException(E: Exception);override;
     Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
@@ -100,6 +104,8 @@ Type
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
+    Property Email : String Read FEmail Write FEmail;
+    Property Administrator : String Read FAdministrator Write FAdministrator;
   end;
 
   EFPWebError = Class(Exception);
@@ -114,6 +120,10 @@ uses
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
+  SModuleError = 'Module Error';
+  SAppEncounteredError = 'The application encountered the following error:';
+  SError = 'Error: ';
+  SNotify = 'Notify: ';
 
 procedure TCustomWebApplication.DoRun;
 var ARequest : TRequest;
@@ -128,6 +138,52 @@ begin
         AResponse.SendContent;
       EndRequest(ARequest,AResponse);
       end;
+    end;
+end;
+
+procedure TCustomWebApplication.ShowRequestException(R: TResponse; E: Exception);
+Var
+ TheEmail : String;
+ FrameCount: integer;
+ Frames: PPointer;
+ FrameNumber:Integer;
+ S : TStrings;
+
+begin
+  If not R.HeadersSent then
+    begin
+    R.ContentType:='text/html';
+    R.SendHeaders;
+    end;
+  If (R.ContentType='text/html') then
+    begin
+    S:=TStringList.Create;
+    Try
+      With S do
+        begin
+        Add('<html><head><title>'+Title+': '+SModuleError+'</title></head>'+LineEnding);
+        Add('<body>');
+        Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
+        Add(SAppEncounteredError+'<br>');
+        Add('<ul>');
+        Add('<li>'+SError+' <b>'+E.Message+'</b>');
+        Add('<li> Stack trace:<br>');
+        Add(BackTraceStrFunc(ExceptAddr)+'<br>');
+        FrameCount:=ExceptFrameCount;
+        Frames:=ExceptFrames;
+        for FrameNumber := 0 to FrameCount-1 do
+          Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+        Add('</ul><hr>');
+        TheEmail:=Email;
+        If (TheEmail<>'') then
+          Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
+        Add('</body></html>');
+        end;
+      R.Content:=S.Text;
+      R.SendContent;
+    Finally
+      FreeAndNil(S);
+    end;
     end;
 end;
 
@@ -223,6 +279,11 @@ begin
   FHandleGetOnPost := True;
   FRedirectOnError := False;
   FRedirectOnErrorURL := '';
+end;
+
+procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; var Reference: TComponent);
+begin
+  Reference:=AClass.Create(Self);
 end;
 
 end.

@@ -18,7 +18,7 @@ unit fpapache;
 interface
 
 uses
-  SysUtils,Classes,CustApp,httpDefs,fpHTTP,httpd, apr, SyncObjs;
+  SysUtils,Classes,CustWeb,httpDefs,fpHTTP,httpd, apr, SyncObjs;
 
 Type
 
@@ -40,8 +40,6 @@ Type
     Property ApacheApp : TCustomApacheApplication Read FApache;
   end;
 
-  { TCGIResponse }
-
   { TApacheResponse }
 
   TApacheResponse = Class(TResponse)
@@ -58,41 +56,32 @@ Type
     Property ApacheApp : TCustomApacheApplication Read FApache;
   end;
 
-
   { TCustomApacheApplication }
   THandlerPriority = (hpFirst,hpMiddle,hpLast);
-  TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
-                               Var ModuleClass : TCustomHTTPModuleClass) of object;
   TBeforeRequestEvent = Procedure(Sender : TObject; Const AHandler : String;
                                   Var AllowRequest : Boolean) of object;
 
-  TCustomApacheApplication = Class(TCustomApplication)
+  TCustomApacheApplication = Class(TCustomWebApplication)
   private
     FMaxRequests: Integer;             //Maximum number of simultaneous web module requests (default=64, if set to zero no limit)
     FWorkingWebModules: TList;         //List of currently running web modules handling requests
     FIdleWebModules: TList;            //List of idle web modules available
     FCriticalSection: TCriticalSection;
-    FAdministrator: String;
     FBaseLocation: String;
     FBeforeRequest: TBeforeRequestEvent;
-    FEmail: String;
     FHandlerName: String;
     FModuleName: String;
-    FOnGetModule: TGetModuleEvent;
-    FAllowDefaultModule: Boolean;
     FModules : Array[0..1] of TStrings;
     FPriority: THandlerPriority;
     FModuleRecord : PModule;
     function GetModules(Index: integer): TStrings;
     procedure SetModules(Index: integer; const AValue: TStrings);
-    procedure ShowRequestException(R: TResponse; E: Exception);
     function GetIdleModuleCount : Integer;
     function GetWorkingModuleCount : Integer;
   Protected
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
-    Function GetModuleName(ARequest : TRequest) : string;
-    function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
     Procedure DoRun; override;
+    function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; override;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -101,10 +90,7 @@ Type
     Procedure Initialize; override;
     Procedure ShowException(E : Exception); override;
     Procedure LogErrorMessage(Msg : String; LogLevel : integer = APLOG_INFO); virtual;
-    Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
-    Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
-    Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
-    Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
+    Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property HandlerPriority : THandlerPriority Read FPriority Write FPriority default hpMiddle;
     Property BeforeModules : TStrings Index 0 Read GetModules Write SetModules;
     Property AfterModules : TStrings Index 1 Read GetModules Write SetModules;
@@ -112,8 +98,6 @@ Type
     Property ModuleName : String Read FModuleName Write FModuleName;
     Property HandlerName : String Read FHandlerName Write FHandlerName;
     Property BeforeRequest : TBeforeRequestEvent Read FBeforeRequest Write FBeforeRequest;
-    Property Email : String Read FEmail Write FEmail;
-    Property Administrator : String Read FAdministrator Write FAdministrator;
     Property MaxRequests: Integer read FMaxRequests write FMaxRequests;
     Property IdleWebModuleCount: Integer read GetIdleModuleCount;
     Property WorkingWebModuleCount: Integer read GetWorkingModuleCount;
@@ -149,10 +133,6 @@ resourcestring
   SErrNoModuleRecord = 'No module record location set.';
   SErrNoModuleName = 'No module name set';
   SErrTooManyRequests = 'Too many simultaneous requests.';
-  SModuleError  = 'Module Error';
-  SAppEncounteredError = 'The application encountered the following error:';
-  SError     = 'Error: ';
-  SNotify    = 'Notify: ';
 
 const
   HPRIO : Array[THandlerPriority] of Integer
@@ -244,38 +224,15 @@ begin
   end;
 end;
 
-function TCustomApacheApplication.GetModuleName(Arequest: TRequest): string;
-var s : string;
-begin
-  If (Result='') then
-    begin
-    S:=ARequest.PathInfo;
-    Delete(S,1,1);
-    if (Pos('/',S) <= 0) and AllowDefaultModule then
-      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
-    Result:=ARequest.GetNextPathInfo;
-    end;
-  Result:=ARequest.GetNextPathInfo;
-end;
-
-function TCustomApacheApplication.FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
-
-Var
-  I : Integer;
-
-begin
-  I:=ComponentCount-1;
-  While (I>=0) and (Not (Components[i] is ModuleClass)) do
-    Dec(i);
-  if (I>=0) then
-    Result:=Components[i] as TCustomHTTPModule
-  else
-    Result:=Nil;
-end;
-
 procedure TCustomApacheApplication.DoRun;
 begin
-  inherited DoRun;
+  // Do nothing. This is a library
+end;
+
+function TCustomApacheApplication.WaitForRequest(var ARequest: TRequest;
+  var AResponse: TResponse): boolean;
+begin
+  // Do nothing. Requests are triggered by Apache
 end;
 
 function TCustomApacheApplication.AllowRequest(P: PRequest_Rec): Boolean;
@@ -293,7 +250,6 @@ end;
 constructor TCustomApacheApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FAllowDefaultModule:=True;
   FPriority:=hpMiddle;
   FMaxRequests:=64;
   FWorkingWebModules:=TList.Create;
@@ -334,53 +290,6 @@ begin
   FModuleRecord^.register_hooks:=@RegisterApacheHooks;
 end;
 
-procedure TCustomApacheApplication.ShowRequestException(R : TResponse; E: Exception);
-
-Var
- TheEmail : String;
- FrameCount: integer;
- Frames: PPointer;
- FrameNumber:Integer;
- S : TStrings;
-
-begin
-  If not R.HeadersSent then
-    begin
-    R.ContentType:='text/html';
-    R.SendHeaders;
-    end;
-  If (R.ContentType='text/html') then
-    begin
-    S:=TStringList.Create;
-    Try
-      With S do
-        begin
-        Add('<html><head><title>'+Title+': '+SModuleError+'</title></head>'+LineEnding);
-        Add('<body>');
-        Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
-        Add(SAppEncounteredError+'<br>');
-        Add('<ul>');
-        Add('<li>'+SError+' <b>'+E.Message+'</b>');
-        Add('<li> Stack trace:<br>');
-        Add(BackTraceStrFunc(ExceptAddr)+'<br>');
-        FrameCount:=ExceptFrameCount;
-        Frames:=ExceptFrames;
-        for FrameNumber := 0 to FrameCount-1 do
-          Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
-        Add('</ul><hr>');
-        TheEmail:=Email;
-        If (TheEmail<>'') then
-          Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
-        Add('</body></html>');
-        end;
-      R.Content:=S.Text;
-      R.SendContent;
-    Finally
-      FreeAndNil(S);
-    end;
-    end;
-end;
-
 procedure TCustomApacheApplication.ShowException(E: Exception);
 begin
   ap_log_error(pchar(FModuleName),0,APLOG_ERR,0,Nil,'module: %s',[Pchar(E.Message)]);
@@ -390,12 +299,6 @@ procedure TCustomApacheApplication.LogErrorMessage(Msg: String;
   LogLevel: integer);
 begin
   ap_log_error(pchar(FModuleName),0,LogLevel,0,Nil,'module: %s',[pchar(Msg)]);
-end;
-
-procedure TCustomApacheApplication.CreateForm(AClass: TComponentClass;
-  var Reference: TComponent);
-begin
-  Reference:=AClass.Create(Self);
 end;
 
 function TCustomApacheApplication.GetIdleModuleCount : Integer;
