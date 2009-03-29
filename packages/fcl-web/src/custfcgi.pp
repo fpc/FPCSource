@@ -315,6 +315,7 @@ end;
 
 constructor TCustomFCgiApplication.Create(AOwner: TComponent);
 begin
+  Inherited Create(AOwner);
   FRequestsAvail:=5;
   SetLength(FRequestsArray,FRequestsAvail);
   FHandle := -1;

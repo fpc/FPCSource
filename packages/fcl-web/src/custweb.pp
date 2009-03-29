@@ -21,7 +21,7 @@ unit custweb;
 Interface
 
 uses
-  CustApp,Classes,SysUtils, httpdefs;
+  CustApp,Classes,SysUtils, httpdefs, fphttp;
 
 Const
   CGIVarCount = 34;
@@ -70,26 +70,39 @@ Const
 
 Type
   { TCustomWebApplication }
+  TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
+                               Var ModuleClass : TCustomHTTPModuleClass) of object;
 
   TCustomWebApplication = Class(TCustomApplication)
   Private
+    FAllowDefaultModule: Boolean;
+    FModuleVar: String;
+    FOnGetModule: TGetModuleEvent;
     FRequest : TRequest;
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
   protected
+    Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
+    function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
   Public
     constructor Create(AOwner: TComponent); override;
     Procedure Initialize; override;
     Procedure DoRun; override;
+    Procedure ShowException(E: Exception);override;
     Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
     Property Request : TRequest read FRequest;
+    Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
+    Property ModuleVariable : String Read FModuleVar Write FModuleVar;
+    Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
   end;
+
+  EFPWebError = Class(Exception);
 
 Implementation
 
@@ -97,6 +110,10 @@ Implementation
 uses
   dbugintf;
 {$endif}
+
+resourcestring
+  SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
+  SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
 
 procedure TCustomWebApplication.DoRun;
 var ARequest : TRequest;
@@ -114,9 +131,46 @@ begin
     end;
 end;
 
-procedure TCustomWebApplication.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TCustomWebApplication.ShowException(E: Exception);
+var Buf:ShortString;
 begin
-  // Needs overriding;
+{$ifdef CGIDEBUG}
+  SetLength(Buf,ExceptionErrorMessage(ExceptObject,ExceptAddr,@Buf[1],255));
+  senddebug('Exception: ' + Buf);
+{$endif CGIDEBUG}
+  inherited ShowException(E);
+end;
+
+procedure TCustomWebApplication.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+Var
+  MC : TCustomHTTPModuleClass;
+  M  : TCustomHTTPModule;
+  MN : String;
+  MI : TModuleItem;
+
+begin
+  MC:=Nil;
+  M:=NIL;
+  If (OnGetModule<>Nil) then
+    OnGetModule(Self,ARequest,MC);
+  If (MC=Nil) then
+    begin
+    MN:=GetModuleName(ARequest);
+    If (MN='') and Not AllowDefaultModule then
+      Raise EFPWebError.Create(SErrNoModuleNameForRequest);
+    MI:=ModuleFactory.FindModule(MN);
+    If (MI=Nil) and (ModuleFactory.Count=1) then
+      MI:=ModuleFactory[0];
+    if (MI=Nil) then
+      begin
+      Raise EFPWebError.CreateFmt(SErrNoModuleForRequest,[MN]);
+      end;
+    MC:=MI.ModuleClass;
+    end;
+  M:=FindModule(MC); // Check if a module exists already
+  If (M=Nil) then
+    M:=MC.Create(Self);
+  M.HandleRequest(ARequest,AResponse);
 end;
 
 Procedure TCustomWebApplication.Initialize;
@@ -126,15 +180,46 @@ begin
   Inherited;
 end;
 
+function TCustomWebApplication.GetModuleName(Arequest: TRequest): string;
+var
+  S : String;
+begin
+  If (FModuleVar<>'') then
+    Result:=ARequest.QueryFields.Values[FModuleVar];//Module name from query parameter using the FModuleVar as parameter name (default is 'Module')
+  If (Result='') then
+    begin
+    S:=ARequest.PathInfo;
+    Delete(S,1,1);
+    if (Pos('/',S) <= 0) and AllowDefaultModule then
+      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
+    Result:=ARequest.GetNextPathInfo;
+    end;
+end;
+
 procedure TCustomWebApplication.EndRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   AResponse.Free;
   ARequest.Free;
 end;
 
+function TCustomWebApplication.FindModule(ModuleClass: TCustomHTTPModuleClass): TCustomHTTPModule;
+Var
+  I : Integer;
+begin
+  I:=ComponentCount-1;
+  While (I>=0) and (Not (Components[i] is ModuleClass)) do
+    Dec(i);
+  if (I>=0) then
+    Result:=Components[i] as TCustomHTTPModule
+  else
+    Result:=Nil;
+end;
+
 constructor TCustomWebApplication.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FModuleVar:='Module'; // Do not localize
+  FAllowDefaultModule:=True;
   FHandleGetOnPost := True;
   FRedirectOnError := False;
   FRedirectOnErrorURL := '';
