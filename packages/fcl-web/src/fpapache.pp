@@ -81,7 +81,7 @@ Type
   Protected
     Function ProcessRequest(P : PRequest_Rec) : Integer; virtual;
     Procedure DoRun; override;
-    function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; override;
+    function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
   Public
     Constructor Create(AOwner : TComponent); override;
@@ -229,8 +229,8 @@ begin
   // Do nothing. This is a library
 end;
 
-function TCustomApacheApplication.WaitForRequest(var ARequest: TRequest;
-  var AResponse: TResponse): boolean;
+function TCustomApacheApplication.WaitForRequest(out ARequest: TRequest;
+  out AResponse: TResponse): boolean;
 begin
   // Do nothing. Requests are triggered by Apache
 end;

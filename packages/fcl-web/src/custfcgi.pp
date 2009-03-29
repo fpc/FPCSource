@@ -69,7 +69,7 @@ Type
     FHandle : THandle;
     function Read_FCGIRecord : PFCGI_Header;
   protected
-    function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; override;
+    function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
     constructor Create(AOwner: TComponent); override;
@@ -387,7 +387,7 @@ begin
   Result := ResRecord;
 end;
 
-function TCustomFCgiApplication.WaitForRequest(var ARequest: TRequest; var AResponse: TResponse): boolean;
+function TCustomFCgiApplication.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 var
   Address       : TInetSockAddr;
   AddressLength : tsocklen;

@@ -86,11 +86,13 @@ Type
     FRedirectOnErrorURL : String;
   protected
     Function GetModuleName(Arequest : TRequest) : string;
-    function WaitForRequest(var ARequest : TRequest; var AResponse : TResponse) : boolean; virtual; abstract;
+    function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
     function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
     Procedure DoRun; override;
     procedure ShowRequestException(R: TResponse; E: Exception); virtual;
+    Function GetEmail : String; virtual;
+    Function GetAdministrator : String; virtual;
   Public
     constructor Create(AOwner: TComponent); override;
     Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
@@ -104,8 +106,8 @@ Type
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
-    Property Email : String Read FEmail Write FEmail;
-    Property Administrator : String Read FAdministrator Write FAdministrator;
+    Property Email : String Read GetEmail Write FEmail;
+    Property Administrator : String Read GetAdministrator Write FAdministrator;
   end;
 
   EFPWebError = Class(Exception);
@@ -150,6 +152,14 @@ Var
  S : TStrings;
 
 begin
+  if R.ContentSent then exit;
+  If RedirectOnError and not R.HeadersSent then
+    begin
+    R.Location := format(RedirectOnErrorURL,[HTTPEncode(E.Message)]);
+    R.Code := 301;
+    R.SendContent;
+    Exit;
+    end;
   If not R.HeadersSent then
     begin
     R.ContentType:='text/html';
@@ -185,6 +195,16 @@ begin
       FreeAndNil(S);
     end;
     end;
+end;
+
+function TCustomWebApplication.GetEmail: String;
+begin
+  Result := FEmail;
+end;
+
+function TCustomWebApplication.GetAdministrator: String;
+begin
+  Result := FAdministrator;
 end;
 
 procedure TCustomWebApplication.ShowException(E: Exception);
