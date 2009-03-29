@@ -32,6 +32,7 @@ type
                       Button : THTMLAttrsElement) of object;
   TProducerEvent = procedure (Sender:THTMLDatasetFormProducer;  FieldDef:TFormFieldItem;
                       Producer:THTMLContentProducer) of object;
+  TProducerSetRecordEvent = procedure (Sender:THTMLDatasetFormProducer) of object;
   THTMLElementEvent = procedure (Sender:THTMLDatasetFormProducer; element : THTMLCustomElement) of object;
   TFieldCheckEvent = procedure (aField:TField; var check:boolean) of object;
   
@@ -86,7 +87,7 @@ type
   protected
     procedure AssignTo(Dest: TPersistent); override;
     Function  GetDisplayName : String; override;
-    Procedure SetDisplayName(AValue : String);
+    Procedure SetDisplayName(const Value : String); override;
   public
     constructor Create(ACollection: TCollection); override;
     destructor Destroy; override;
@@ -271,6 +272,7 @@ type
 
   THTMLDatasetFormProducer = class (THTMLContentProducer)
   private
+    FAfterSetRecord: TProducerSetRecordEvent;
     FOnInitializeProducer : TProducerEvent;
     FOnFieldChecked : TFieldCheckEvent;
     FAfterTBodyCreate,
@@ -299,8 +301,8 @@ type
     procedure CorrectCellSpans;
     procedure SearchControlFields;
   protected
-    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
     procedure FillTableDef (IsHeader:boolean); virtual;
+    procedure PlaceFieldValue(aControldef : TFormFieldItem); virtual;
     procedure ControlToTableDef (aControldef : TFormFieldItem; IsHeader:boolean); virtual; abstract;
     function StartForm (aWriter : THTMLWriter) : THTMLCustomElement; virtual;
     procedure EndForm (aWriter : THTMLWriter); virtual;
@@ -316,6 +318,7 @@ type
   public
     constructor create (aOwner : TComponent); override;
     destructor destroy; override;
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
   published
     property FormAction : string read FFormAction write FFormAction;
       // action of the form (link), if not given; don't use a form element
@@ -347,6 +350,8 @@ type
       // Called after the creation of the table
     property AfterTBodyCreate : THTMLElementEvent read FAfterTBodyCreate write FAfterTBodyCreate;
       // Called after finishing the tbody of each record
+    property AfterSetRecord : TProducerSetRecordEvent read FAfterSetRecord write FAfterSetRecord;
+      // Called after the dataset is scrolled to the next record
     property OnFieldChecked : TFieldCheckEvent read FOnFieldChecked write FOnFieldChecked;
       // return if the field is true or false if the false string differs from '0','false','-'
   end;
@@ -376,6 +381,7 @@ type
     property RecordsPerPage;
     property Page;
     property IncludeHeader;
+    property AfterSetRecord;
   end;
   
 implementation
@@ -481,10 +487,10 @@ begin
   Result:=FName;
 end;
 
-procedure TFormFieldItem.SetDisplayName(AValue: String);
+procedure TFormFieldItem.SetDisplayName(const Value: String);
 begin
   Inherited;
-  FName:=AValue;
+  FName:=Value;
 end;
 
 constructor TFormFieldItem.Create(ACollection: TCollection);
@@ -791,7 +797,6 @@ end;
 procedure THTMLDatasetFormProducer.CorrectCellSpans;
 var r, s, t : integer;
     c : TTableCell;
-    ReachedEnd : boolean;
 begin
   for r := 0 to TableDef.count-1 do
     with TableDef.items[r] do
@@ -898,6 +903,8 @@ begin
           r := 0;
           while not eof and (r < RecordsPerPage) do
             begin
+            if assigned (FAfterSetRecord) then
+              FAfterSetRecord (self);
             FillTableDef (false);
             CorrectCellSpans;
             WriteTableDef (aWriter);
@@ -919,6 +926,55 @@ var r : integer;
 begin
   for r := 0 to Controls.Count-1 do
     ControlToTableDef (Controls.items[r], IsHeader);
+end;
+
+procedure THTMLDatasetFormProducer.PlaceFieldValue(aControldef : TFormFieldItem);
+var check : boolean;
+begin
+  with TableDef.CopyTablePosition(aControlDef.ValuePos) do
+    begin
+    FormField := aControldef;
+    case aControlDef.inputtype of
+      fitlabel,
+      fittext,
+      fitpassword,
+      fitcheckbox,
+      fitradio,
+      fitfile,
+      fithidden,
+      fittextarea :
+        begin
+        CellType := ctInput;
+        InputType := aControlDef.InputType;
+        Name := aControlDef.Field.FieldName;
+        Size := aControlDef.Field.DisplayWidth;
+        MaxLength := aControldef.Field.Size;
+        if aControlDef.inputType in [fitcheckbox,fitradio] then
+          begin
+          with aControlDef.Field do
+            Check := asBoolean;
+          if assigned (FOnFieldChecked) then
+            FOnFieldChecked (aControlDef.Field, check);
+          Checked := check;
+          end;
+        end;
+      fitproducer :
+        begin
+        CellType := ctProducer;
+        Producer := aControlDef.Producer;
+//        if Producer is THTMLSelectProducer then THTMLSelectProducer(Producer).PreSelected:=aControldef.getValue;
+        end;
+      fitrecordselection : ;
+    end;
+    IsLabel := false;
+    Value := aControlDef.getValue;
+    Link := aControldef.getAction;
+    if not FSeparateLabel and not FIncludeHeader then
+      begin
+      Caption := aControldef.getLabel;
+      IncludeBreak := aControldef.LabelAbove;
+      end;
+    end;
 end;
 
 function THTMLDatasetFormProducer.SingleRecord: boolean;
@@ -947,53 +1003,6 @@ end;
 
 procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFieldItem; IsHeader:boolean);
 
-  procedure PlaceFieldValue;
-  var check : boolean;
-  begin
-    with TableDef.CopyTablePosition(aControlDef.ValuePos) do
-      begin
-      FormField := aControldef;
-      case aControlDef.inputtype of
-        fitlabel,
-        fittext,
-        fitpassword,
-        fitcheckbox,
-        fitradio,
-        fitfile,
-        fithidden,
-        fittextarea :
-          begin
-          CellType := ctInput;
-          InputType := aControlDef.InputType;
-          Name := aControlDef.Field.FieldName;
-          Size := aControlDef.Field.DisplayWidth;
-          MaxLength := aControldef.Field.Size;
-          if aControlDef.inputType in [fitcheckbox,fitradio] then
-            begin
-            with aControlDef.Field do
-              Check := asBoolean;
-            if assigned (FOnFieldChecked) then
-              FOnFieldChecked (aControlDef.Field, check);
-            Checked := check;
-            end;
-          end;
-        fitproducer :
-          begin
-          CellType := ctProducer;
-          Producer := aControlDef.Producer;
-          end;
-        fitrecordselection : ;
-      end;
-      IsLabel := false;
-      Value := aControlDef.getValue;
-      if not FSeparateLabel and not FIncludeHeader then
-        begin
-        Caption := aControldef.getLabel;
-        IncludeBreak := aControldef.LabelAbove;
-        end;
-      end;
-  end;
-
   procedure PlaceLabel;
   begin
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do
@@ -1007,7 +1016,7 @@ procedure THTMLDatasetFormEditProducer.ControlToTableDef (aControldef : TFormFie
 
 begin
   if assigned (aControlDef.FField) then
-    PlaceFieldValue;
+    PlaceFieldValue(aControldef);
   if FSeparateLabel and (aControlDef.getLabel <> '') then
     PlaceLabel;
 end;
@@ -1102,35 +1111,6 @@ end;
 
 procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFieldItem; IsHeader:boolean);
 
-  procedure PlaceFieldValue;
-  var check : boolean;
-  begin
-    with TableDef.CopyTablePosition(aControlDef.ValuePos) do
-      begin
-      if aControldef.InputType = fitcheckbox then
-        begin
-        CellType := ctInput;
-        InputType := aControldef.InputType;
-        Disabled := True;
-        with aControlDef.Field do
-          Check := asBoolean;
-        if assigned (FOnFieldChecked) then
-          FOnFieldChecked (aControlDef.Field, check);
-        Checked := check;
-        end
-      else
-        CellType := ctLabel;
-      IsLabel := false;
-      Value := aControlDef.getValue;
-      Link := aControldef.getAction;
-      if not FSeparateLabel and not FIncludeHeader then
-        begin
-        Caption := aControldef.getLabel;
-        IncludeBreak := aControldef.LabelAbove;
-        end;
-      end;
-  end;
-
   procedure PlaceLabel;
   begin
     with TableDef.CopyTablePosition(aControlDef.LabelPos) do
@@ -1143,7 +1123,7 @@ procedure THTMLDatasetFormGridProducer.ControlToTableDef (aControldef : TFormFie
 
 begin
   if assigned (aControlDef.FField) and not IsHeader then
-    PlaceFieldValue;
+    PlaceFieldValue(aControldef);
   if (IsHeader or FSeparateLabel) and (aControlDef.getLabel <> '') then
     PlaceLabel;
 end;
@@ -1215,13 +1195,16 @@ function TTableCell.WriteContent(aWriter: THTMLWriter) : THTMLCustomElement;
       fithidden :
         aWriter.FormHidden (Name, Value);
       fitlabel :
-        aWriter.Text (Value);
+        if link <> '' then
+          aWriter.Anchor(Value).href := Link
+        else
+          aWriter.Text (Value);
     end;
   end;
 
   procedure WriteProducer;
   begin
-    with Producer do
+    if assigned(Producer) then with Producer do
       begin
       ParentElement := aWriter.CurrentElement;
       HTMLDocument := aWriter.Document;
@@ -1270,7 +1253,6 @@ end;
 
 function TTableCell.WriteHeader(aWriter: THTMLWriter) : THTMLCustomElement;
 var c : THTML_th;
-    s : string;
 begin
     with aWriter do
       begin
