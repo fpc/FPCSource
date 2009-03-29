@@ -205,28 +205,36 @@ Var
   MI : TModuleItem;
 
 begin
-  MC:=Nil;
-  M:=NIL;
-  If (OnGetModule<>Nil) then
-    OnGetModule(Self,ARequest,MC);
-  If (MC=Nil) then
-    begin
-    MN:=GetModuleName(ARequest);
-    If (MN='') and Not AllowDefaultModule then
-      Raise EFPWebError.Create(SErrNoModuleNameForRequest);
-    MI:=ModuleFactory.FindModule(MN);
-    If (MI=Nil) and (ModuleFactory.Count=1) then
-      MI:=ModuleFactory[0];
-    if (MI=Nil) then
+  try
+    MC:=Nil;
+    M:=NIL;
+    If (OnGetModule<>Nil) then
+      OnGetModule(Self,ARequest,MC);
+    If (MC=Nil) then
       begin
-      Raise EFPWebError.CreateFmt(SErrNoModuleForRequest,[MN]);
+      MN:=GetModuleName(ARequest);
+      If (MN='') and Not AllowDefaultModule then
+        Raise EFPWebError.Create(SErrNoModuleNameForRequest);
+      MI:=ModuleFactory.FindModule(MN);
+      If (MI=Nil) and (ModuleFactory.Count=1) then
+        MI:=ModuleFactory[0];
+      if (MI=Nil) then
+        begin
+        Raise EFPWebError.CreateFmt(SErrNoModuleForRequest,[MN]);
+        end;
+      MC:=MI.ModuleClass;
       end;
-    MC:=MI.ModuleClass;
-    end;
-  M:=FindModule(MC); // Check if a module exists already
-  If (M=Nil) then
-    M:=MC.Create(Self);
-  M.HandleRequest(ARequest,AResponse);
+    M:=FindModule(MC); // Check if a module exists already
+    If (M=Nil) then
+      M:=MC.Create(Self);
+    M.HandleRequest(ARequest,AResponse);
+  except
+    On E : Exception do
+      begin
+      ShowException(E);
+      ShowRequestException(AResponse,E);
+      end;
+  end;
 end;
 
 Procedure TCustomWebApplication.Initialize;
