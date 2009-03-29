@@ -1453,7 +1453,7 @@ end;
 
 function TCustomSqliteDataset.ApplyUpdates: Boolean;
 var
-  iFields, iItems, StatementsCounter, TempReturnCode: Integer;
+  iFields, iItems, StatementsCounter: Integer;
   SQLTemp, WhereKeyNameEqual, SQLLine, TemplateStr: String;
   TempItem: PDataRecord;
 begin
@@ -1479,93 +1479,106 @@ begin
     SQLTemp := 'BEGIN;';
     // Delete Records
     if FDeletedItems.Count > 0 then
-      TemplateStr := 'DELETE FROM ' + FTableName + WhereKeyNameEqual;
-    for iItems := 0 to FDeletedItems.Count - 1 do
     begin
-      TempItem := PDataRecord(FDeletedItems.List^[iItems]);
-      SQLTemp := SQLTemp + (TemplateStr +
-        String(TempItem^.Row[FPrimaryKeyNo]) + ';');
-      FreeItem(TempItem);
-      inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
+      TemplateStr := 'DELETE FROM ' + FTableName + WhereKeyNameEqual;
+      for iItems := 0 to FDeletedItems.Count - 1 do
       begin
-        SQLTemp := SQLTemp + 'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;  
-        StatementsCounter := 0;
-        SQLTemp := 'BEGIN;';
-      end;    
+        TempItem := PDataRecord(FDeletedItems.List^[iItems]);
+        SQLTemp := SQLTemp + (TemplateStr +
+          String(TempItem^.Row[FPrimaryKeyNo]) + ';');
+        FreeItem(TempItem);
+        Inc(StatementsCounter);
+        //ApplyUpdates each 400 statements
+        if StatementsCounter = 400 then
+        begin
+          SQLTemp := SQLTemp + 'COMMIT;';
+          FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+          StatementsCounter := 0;
+          SQLTemp := 'BEGIN;';
+          if FReturnCode <> SQLITE_OK then
+          begin
+            SqliteExec('ROLLBACK;', nil, nil);
+            Break;
+          end;
+        end;
+      end;
     end;
     // Update changed records
-    if FUpdatedItems.Count > 0 then
-      TemplateStr := 'UPDATE ' + FTableName + ' SET ';
-    for iItems := 0 to FUpdatedItems.Count - 1 do
+    if (FUpdatedItems.Count > 0) and (FReturnCode = SQLITE_OK) then
     begin
-      SQLLine := TemplateStr;
-      for iFields := 0 to FieldDefs.Count - 2 do
+      TemplateStr := 'UPDATE ' + FTableName + ' SET ';
+      for iItems := 0 to FUpdatedItems.Count - 1 do
       begin
+        SQLLine := TemplateStr;
+        for iFields := 0 to FieldDefs.Count - 2 do
+        begin
+          SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
+            FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) + ',');
+        end;
+        iFields := FieldDefs.Count - 1;
         SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
-          FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) + ',');
+          FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) +
+          WhereKeyNameEqual +
+          String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
+        SQLTemp := SQLTemp + SQLLine;
+        inc(StatementsCounter);
+        //ApplyUpdates each 400 statements
+        if StatementsCounter = 400 then
+        begin
+          SQLTemp := SQLTemp + 'COMMIT;';
+          FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+          StatementsCounter := 0;
+          SQLTemp := 'BEGIN;';
+          if FReturnCode <> SQLITE_OK then
+          begin
+            SqliteExec('ROLLBACK;', nil, nil);
+            Break;
+          end;
+        end;
       end;
-      iFields := FieldDefs.Count - 1;
-      SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
-        FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) +
-        WhereKeyNameEqual +
-        String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
-      SQLTemp := SQLTemp + SQLLine;
-      inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
-      begin
-        SQLTemp := SQLTemp + 'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;
-        StatementsCounter := 0;
-        SQLTemp := 'BEGIN;';
-      end;  
     end;
     // Add new records
-    // Build TemplateStr
-    if FAddedItems.Count > 0 then
+    if (FAddedItems.Count > 0) and (FReturnCode = SQLITE_OK) then
     begin
+      // Build TemplateStr
       TemplateStr := 'INSERT INTO ' + FTableName + ' (';
       for iFields := 0 to FieldDefs.Count - 2 do
         TemplateStr := TemplateStr + FieldDefs[iFields].Name + ',';
       TemplateStr := TemplateStr + FieldDefs[FieldDefs.Count - 1].Name + ') VALUES (';
-    end;  
-    for iItems := 0 to FAddedItems.Count - 1 do
-    begin
-      SQLLine := TemplateStr;
-      for iFields := 0 to FieldDefs.Count - 2 do
-        SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ',');
-      iFields := FieldDefs.Count - 1;
-      SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ');' );
-      SQLTemp := SQLTemp + SQLLine;
-      Inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
+      for iItems := 0 to FAddedItems.Count - 1 do
       begin
-        SQLTemp := SQLTemp + 'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;
-        StatementsCounter := 0;
-        SQLTemp := 'BEGIN;';
-      end;  
-    end;  
-    SQLTemp := SQLTemp + 'COMMIT;';
-    {$ifdef DEBUG_SQLITEDS}
-    WriteLn('  SQL: ',SqlTemp);
-    {$endif}  
+        SQLLine := TemplateStr;
+        for iFields := 0 to FieldDefs.Count - 2 do
+          SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ',');
+        iFields := FieldDefs.Count - 1;
+        SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ');' );
+        SQLTemp := SQLTemp + SQLLine;
+        Inc(StatementsCounter);
+        //ApplyUpdates each 400 statements
+        if StatementsCounter = 400 then
+        begin
+          SQLTemp := SQLTemp + 'COMMIT;';
+          FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+          StatementsCounter := 0;
+          SQLTemp := 'BEGIN;';
+          if FReturnCode <> SQLITE_OK then
+          begin
+            SqliteExec('ROLLBACK;', nil, nil);
+            Break;
+          end;
+        end;
+      end;
+    end;
     FAddedItems.Clear;
     FUpdatedItems.Clear;
     FDeletedItems.Clear;
-    TempReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
-    if TempReturnCode <> SQLITE_OK then
-      FReturnCode := TempReturnCode;
+    if FReturnCode = SQLITE_OK then
+    begin
+      SQLTemp := SQLTemp + 'COMMIT;';
+      FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+      if FReturnCode <> SQLITE_OK then
+        SqliteExec('ROLLBACK;', nil, nil);
+    end;
     Result := FReturnCode = SQLITE_OK;
   end;  
   {$ifdef DEBUG_SQLITEDS}
