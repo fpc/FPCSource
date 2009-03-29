@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
-{$define CGIDEBUG}
+{ $define CGIDEBUG}
 {$mode objfpc}
 {$H+}
 
