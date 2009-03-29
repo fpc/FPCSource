@@ -1642,6 +1642,7 @@ packages/fcl-web/src/fastcgi.pp svneol=native#text/plain
 packages/fcl-web/src/fpapache.pp svneol=native#text/plain
 packages/fcl-web/src/fpcgi.pp svneol=native#text/plain
 packages/fcl-web/src/fpdatasetform.pp svneol=native#text/plain
+packages/fcl-web/src/fpfcgi.pp svneol=native#text/plain
 packages/fcl-web/src/fphtml.pp svneol=native#text/plain
 packages/fcl-web/src/fphttp.pp svneol=native#text/plain
 packages/fcl-web/src/fptemplate.pp svneol=native#text/plain
