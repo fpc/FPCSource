@@ -1511,7 +1511,7 @@ Function TryInitialiseMysql(Const LibraryName: String; argc: cint; argv: PPchar;
 begin
   Result := 0;
   if (RefCount=0) then
-  begin
+    begin
     MysqlLibraryHandle := loadlibrary(LibraryName);
     if (MysqlLibraryHandle=nilhandle) then
       Exit;
@@ -1621,7 +1621,8 @@ begin
 
     if mysql_library_init(argc, argv, groups) <> 0 then
       Exit;
-  end else
+    end
+  else
     inc(RefCount);
 
   Result:=RefCount;
