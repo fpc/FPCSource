@@ -1308,7 +1308,7 @@ packages/fcl-db/src/sqldb/odbc/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/sqldb/odbc/odbcconn.pas svneol=native#text/plain
 packages/fcl-db/src/sqldb/oracle/Makefile -text
 packages/fcl-db/src/sqldb/oracle/Makefile.fpc -text
-packages/fcl-db/src/sqldb/oracle/oracleconnection.pp -text
+packages/fcl-db/src/sqldb/oracle/oracleconnection.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/sqldb/postgres/fpmake.inc svneol=native#text/plain
