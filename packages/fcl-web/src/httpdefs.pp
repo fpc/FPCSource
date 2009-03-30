@@ -253,6 +253,7 @@ type
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
     property QueryFields : TStrings read FQueryFields;
+    Procedure SendTemporaryRedirect(const TargetURL:String);
   end;
 
 
@@ -731,6 +732,21 @@ begin
         end;
       Inc(Result);
       end;
+    end;
+end;
+
+procedure THTTPHeader.SendTemporaryRedirect(const TargetURL: String);
+begin
+  Location := TargetURL;
+  if FHttpVersion = '1.1' then
+    begin
+    Code := 307;// HTTP/1.1 307 HTTP_TEMPORARY_REDIRECT -> 'Temporary Redirect'
+    CodeText := 'Temporary Redirect';
+    end
+  else
+    begin
+    Code := 302;// HTTP/1.0 302 HTTP_MOVED_TEMPORARILY -> 'Found'
+    CodeText := 'Moved Temporarily';
     end;
 end;
 

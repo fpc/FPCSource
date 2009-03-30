@@ -155,8 +155,7 @@ begin
   if R.ContentSent then exit;
   If RedirectOnError and not R.HeadersSent then
     begin
-    R.Location := format(RedirectOnErrorURL,[HTTPEncode(E.Message)]);
-    R.Code := 301;
+    R.SendTemporaryRedirect(format(RedirectOnErrorURL,[HTTPEncode(E.Message)]));
     R.SendContent;
     Exit;
     end;
