@@ -435,6 +435,8 @@ begin
     else
       begin
       Actions.HandleRequest(ARequest,AResponse,B);
+      FTemplate.Template := '';//if apache mod, then need to clear for next call because it is a webmodule global property,
+      FTemplate.FileName := '';//so following calls are OK and the above FTemplate.HasContent is not becoming True
       If Not B then
         Raise EFPWebError.Create(SErrRequestNotHandled);
       end;
