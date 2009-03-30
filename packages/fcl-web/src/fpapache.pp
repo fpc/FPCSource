@@ -461,8 +461,8 @@ Var
   P : Pchar;
   
 begin
-  ap_setup_client_block(Frequest,REQUEST_CHUNKED_DECHUNK);
-  If (ap_should_client_block(Frequest)=1) then
+  ap_setup_client_block(FRequest,REQUEST_CHUNKED_DECHUNK);
+  If (ap_should_client_block(FRequest)=1) then
     begin
     Len:=ContentLength;
     If (Len>0) then
@@ -515,6 +515,7 @@ begin
       begin
       N:=Copy(V,1,P-1);
       System.Delete(V,1,P);
+      V := Trim(V);//no need space before the value, apache puts it there
       apr_table_set(FRequest^.headers_out,Pchar(N),Pchar(V));
       end;
     end;
@@ -530,6 +531,11 @@ begin
   S:=ContentType;
   If (S<>'') then
     FRequest^.content_type:=apr_pstrdup(FRequest^.pool,Pchar(S));
+  S:=ContentEncoding;
+  If (S<>'') then
+    FRequest^.content_encoding:=apr_pstrdup(FRequest^.pool,Pchar(S));
+  If Code <> 200 then
+    FRequest^.status := Code;
   If assigned(ContentStream) then
     SendStream(Contentstream)
   else
