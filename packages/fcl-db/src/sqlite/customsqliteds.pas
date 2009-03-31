@@ -1492,7 +1492,7 @@ begin
     begin
       TempItem := PDataRecord(FDeletedItems.List^[iItems]);
       SQLTemp := SQLTemp + (TemplateStr +
-        String(TempItem^.Row[FPrimaryKeyNo]) + ';');
+        FGetSqlStr[FPrimaryKeyNo](TempItem^.Row[FPrimaryKeyNo]) + ';');
       FreeItem(TempItem);
       Inc(StatementsCounter);
       //ApplyUpdates each 400 statements
@@ -1526,9 +1526,9 @@ begin
       SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
         FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) +
         WhereKeyNameEqual +
-        String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
+        FGetSqlStr[FPrimaryKeyNo](PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
       SQLTemp := SQLTemp + SQLLine;
-      inc(StatementsCounter);
+      Inc(StatementsCounter);
       //ApplyUpdates each 400 statements
       if StatementsCounter = 400 then
       begin
