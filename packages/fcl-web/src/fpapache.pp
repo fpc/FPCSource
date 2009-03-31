@@ -126,7 +126,6 @@ Var
   AlternateHandler : ap_hook_handler_t = Nil;
 
 Implementation
-uses ctypes;
 
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
@@ -208,15 +207,12 @@ Var
   Resp : TApacheResponse;
 
 begin
-LogErrorMessage('Test 1',3);
   Req:=TApacheRequest.CreateReq(Self,P);
   Try
     Req.InitRequestVars;
     Resp:=TApacheResponse.CreateApache(Req);
     Try
-LogErrorMessage('Test 2',3);
       HandleRequest(Req,Resp);
-LogErrorMessage('Test 3',3);
       If Not Resp.ContentSent then
         Resp.SendContent;
     Finally
@@ -337,11 +333,9 @@ Var
   Var II:Integer;
   begin
     FCriticalSection.Enter;
-LogErrorMessage('Test I',3);
     try
       if (FMaxRequests>0) and (FWorkingWebModules.Count>=FMaxRequests) then
         Raise EFPApacheError.Create(SErrTooManyRequests);
-LogErrorMessage('Test II',3);
       if (FIdleWebModules.Count>0) then
       begin
         II := FIdleWebModules.Count - 1;
@@ -353,25 +347,18 @@ LogErrorMessage('Test II',3);
           FIdleWebModules.Delete(II);
         end;
       end;
-LogErrorMessage('Test III',3);
       if (M=nil) then
       begin
-LogErrorMessage('Test IV',3);
-if assigned(mc) then LogErrorMessage('Test ---',3);
         M:=MC.Create(Self);
-LogErrorMessage('Test V',3);
         M.Name := '';
       end;
-LogErrorMessage('Test VI',3);
       FWorkingWebModules.Add(M);
     finally
       FCriticalSection.Leave;
     end;
-LogErrorMessage('Test VII',3);
   end;
 
 begin
-LogErrorMessage('Test a',3);
   try
     MC:=Nil;
     M := Nil;
@@ -390,11 +377,8 @@ LogErrorMessage('Test a',3);
 
       MC:=MI.ModuleClass;
     end;
-LogErrorMessage('Test b',3);
     GetAWebModule;
-LogErrorMessage('Test c',3);
     M.HandleRequest(ARequest,AResponse);
-LogErrorMessage('Test d',3);
 
     FCriticalSection.Enter;
     try
@@ -410,7 +394,6 @@ LogErrorMessage('Test d',3);
       ShowRequestException(AResponse,E);
       end;
   end;
-LogErrorMessage('Test e',3);
 end;
 
 { TApacheRequest }
@@ -593,7 +576,7 @@ begin
 end;
 
 Initialization
-//  BeginThread(@__dummythread);//crash prevention for simultaneous requests
+  BeginThread(@__dummythread);//crash prevention for simultaneous requests
   sleep(300);
 
   InitApache;

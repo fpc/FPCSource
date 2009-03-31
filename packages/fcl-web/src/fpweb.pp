@@ -38,10 +38,10 @@ Type
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); override;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
+    Procedure Assign(Source : TPersistent); override;
   Public
     Constructor create(ACollection : TCollection); override;
     Destructor destroy; override;
-    Procedure Assign(Source : TPersistent); override;
   published
     Property Content : String Read GetStringContent Write SetContent;
     Property Contents : TStrings Read GetContents Write SetContents;
@@ -116,7 +116,7 @@ Type
     Procedure GetTemplateContent(ARequest : TRequest; AResponse : TResponse); virtual;
     function GetContent: String;virtual;
   Public
-    Constructor Create(AOwner: TComponent); override;
+    Constructor CreateNew(AOwner : TComponent; CreateMode : Integer); override;
     Destructor Destroy; override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
     Property Actions : TFPWebActions Read FActions Write SetActions;
@@ -314,13 +314,12 @@ end;
 function TCustomFPWebModule.GetOnGetAction: TGetActionEvent;
 begin
   Result:=FActions.OnGetAction;
-
 end;
 
 
 procedure TCustomFPWebModule.SetActions(const AValue: TFPWebActions);
 begin
-  if (FActions<>AValue) then
+  if (FActions<>AValue) then;
     FActions.Assign(AValue);
 end;
 
@@ -398,20 +397,20 @@ begin
   end;
 end;
 
-constructor TCustomFPWebModule.Create(AOwner: TComponent);
+constructor TCustomFPWebModule.CreateNew(AOwner: TComponent; CreateMode : Integer);
 begin
+  inherited;
   FActions:=TFPWebActions.Create(TFPWebAction);
   FTemplate:=TFPWebTemplate.Create(Self);
   FTemplateVars:=TTemplateVars.Create(TTemplateVar);
-  inherited;
 end;
 
 destructor TCustomFPWebModule.Destroy;
 begin
-  inherited Destroy;
   FreeAndNil(FTemplateVars);
   FreeAndNil(FTemplate);
   FreeAndNil(FActions);
+  inherited Destroy;
 end;
 
 
