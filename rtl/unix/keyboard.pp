@@ -1114,47 +1114,6 @@ var
   NPT,NNPT : PTreeElement;
 
 
-  procedure GenMouseEvent;
-
-  var MouseEvent: TMouseEvent;
-
-  begin
-    Fillchar(MouseEvent,SizeOf(TMouseEvent),#0);
-    case ch of
-      #32 : {left button pressed }
-        MouseEvent.buttons:=1;
-      #33 : {middle button pressed }
-        MouseEvent.buttons:=2;
-      #34 : { right button pressed }
-        MouseEvent.buttons:=4;
-      #35 : { no button pressed };
-      end;
-     if inhead=intail then
-       fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
-     ch:=ttyRecvChar;
-     MouseEvent.x:=Ord(ch)-ord(' ')-1;
-     if inhead=intail then
-      fpSelect(StdInputHandle+1,@fdsin,nil,nil,10);
-     ch:=ttyRecvChar;
-     MouseEvent.y:=Ord(ch)-ord(' ')-1;
-     if (MouseEvent.buttons<>0) then
-       MouseEvent.action:=MouseActionDown
-     else
-       begin
-         if (LastMouseEvent.Buttons<>0) and
-            ((LastMouseEvent.X<>MouseEvent.X) or (LastMouseEvent.Y<>MouseEvent.Y)) then
-           begin
-             MouseEvent.Action:=MouseActionMove;
-             MouseEvent.Buttons:=LastMouseEvent.Buttons;
-             PutMouseEvent(MouseEvent);
-             MouseEvent.Buttons:=0;
-           end;
-         MouseEvent.Action:=MouseActionUp;
-       end;
-     PutMouseEvent(MouseEvent);
-     LastMouseEvent:=MouseEvent;
-  end;
-
     procedure RestoreArray;
       var
         i : byte;
