@@ -28,12 +28,28 @@ const
   ShiftPrefix : byte = 0;
   CtrlPrefix : byte = 0;
 
+type
+  Tprocedure = procedure;
+
+  PTreeElement = ^TTreeElement;
+  TTreeElement = record
+    Next,Parent,Child :  PTreeElement;
+    CanBeTerminal : boolean;
+    char : byte;
+    ScanValue : byte;
+    CharValue : byte;
+    SpecialHandler : Tprocedure;
+  end;
+
 function RawReadKey:char;
 function RawReadString : String;
 function KeyPressed : Boolean;
 procedure AddSequence(const St : String; AChar,AScan :byte);inline;
 function FindSequence(const St : String;var AChar, Ascan : byte) : boolean;
 procedure RestoreStartMode;
+
+function AddSpecialSequence(const St : string;Proc : Tprocedure) : PTreeElement; platform;
+
 
 {*****************************************************************************}
                                implementation
@@ -544,19 +560,6 @@ const
      Writeln(system.stderr,'buttons = ',MouseEvent.Buttons,' (',MouseEvent.X,',',MouseEvent.Y,')');
 {$endif DebugMouse}
      LastMouseEvent:=MouseEvent;
-  end;
-
-type
-  Tprocedure = procedure;
-
-  PTreeElement = ^TTreeElement;
-  TTreeElement = record
-    Next,Parent,Child :  PTreeElement;
-    CanBeTerminal : boolean;
-    char : byte;
-    ScanValue : byte;
-    CharValue : byte;
-    SpecialHandler : Tprocedure;
   end;
 
 var roottree:array[char] of PTreeElement;
