@@ -5028,8 +5028,8 @@ Const
      POUTLINETEXTMETRIC = ^OUTLINETEXTMETRIC;
 
      OVERLAPPED = record
-          Internal : DWORD;
-          InternalHigh : DWORD;
+          Internal : ULONG_PTR;
+          InternalHigh : ULONG_PTR;
           Offset : DWORD;
           OffsetHigh : DWORD;
           hEvent : HANDLE;
