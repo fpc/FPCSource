@@ -438,7 +438,7 @@ implementation
 
       { Calling convention.   }
       Tdwarf_calling_convention = (DW_CC_normal := $1,DW_CC_program := $2,
-        DW_CC_nocall := $3,DW_CC_GNU_renesas_sh := $40
+        DW_CC_nocall := $3,DW_CC_GNU_renesas_sh := $40, DW_CC_GNU_borland_fastcall_i386 := $41
         );
 {$notes off}
       { Location atom names and codes.   }
@@ -1657,6 +1657,22 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendprocdef(list:TAsmList;def:tprocdef);
+
+      function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
+        begin
+          case def.proccalloption of
+            pocall_register:
+              result:=DW_CC_GNU_borland_fastcall_i386;
+            pocall_cdecl,
+            pocall_stdcall,
+            pocall_cppdecl,
+            pocall_mwpascal:
+              result:=DW_CC_normal;
+            else
+              result:=DW_CC_nocall;
+          end
+        end;
+
       var
         procendlabel   : tasmlabel;
         funcrettype    : tasmsymbol;
@@ -1669,6 +1685,7 @@ implementation
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
         append_entry(DW_TAG_subprogram,true,
           [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0,
+           DW_AT_calling_convention,DW_FORM_data1,dwarf_calling_convention(def),
            DW_AT_external,DW_FORM_flag,po_global in def.procoptions
           { data continues below }
           { problem: base reg isn't known here
@@ -1693,35 +1710,9 @@ implementation
         append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
         append_labelentry(DW_AT_high_pc,procendlabel);
 
-        if assigned(def.funcretsym) and
-           (tabstractnormalvarsym(def.funcretsym).refs>0) then
-          begin
-            if tabstractnormalvarsym(def.funcretsym).localloc.loc=LOC_REFERENCE then
-              begin
-                finish_entry;
-
-                if paramanager.ret_in_param(def.returndef,def.proccalloption) then
-                  funcrettype:=def_dwarf_ref_lab(def.returndef)
-                else
-                  funcrettype:=def_dwarf_lab(def.returndef);
-
-                append_entry(DW_TAG_formal_parameter,false,[
-                  DW_AT_name,DW_FORM_string,def.procsym.name+#0,
-                  {
-                  DW_AT_decl_file,DW_FORM_data1,0,
-                  DW_AT_decl_line,DW_FORM_data1,
-                  }
-                  { data continues below }
-                  DW_AT_location,DW_FORM_block1,1+Lengthsleb128(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset)
-                ]);
-
-                { append block data }
-                dreg:=dwarf_reg(tabstractnormalvarsym(def.funcretsym).localloc.reference.base);
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset));
-                append_labelentry_ref(DW_AT_type,funcrettype);
-              end;
-          end;
+        { Don't write the funcretsym explicitly, it's also in the
+          localsymtable and/or parasymtable.
+        }
         finish_entry;
 
         if assigned(def.parast) then
@@ -1889,7 +1880,13 @@ implementation
             end;
         end;
 
-        if sym.typ=paravarsym then
+        { function results must not be added to the parameter list,
+          as they are not part of the signature of the function
+          (gdb automatically adds them according to the ABI specifications
+           when calling the function)
+        }
+        if (sym.typ=paravarsym) and
+           not(vo_is_funcret in sym.varoptions) then
           tag:=DW_TAG_formal_parameter
         else
           tag:=DW_TAG_variable;
