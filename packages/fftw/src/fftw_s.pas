@@ -117,11 +117,19 @@ procedure fftw_freemem(p:pointer);inline;
 
 procedure fftw_getmem(var p:pointer;size:sizeint);
 
-begin
 {$IFDEF align}
-  getmem(p,size+16-1);
+var
+  originalptr:pointer;
+begin
+  { We allocate additional "align-1" bytes to be able to align.
+    And we allocate additional "SizeOf(Pointer)" to always have space to store
+    the value of the original pointer. }
+  getmem(originalptr,size + align-1 + SizeOf(Pointer));
+  ptruint(p):=(ptruint(originalptr) + SizeOf(Pointer));
   ptruint(p):=(ptruint(p)+align-1) and not (align-1);
+  PPointer(ptruint(p) - SizeOf(Pointer))^:=originalptr;
 {$ELSE}
+begin
   getmem(p,size);
 {$ENDIF}
 end;
@@ -129,7 +137,11 @@ end;
 procedure fftw_freemem(p:pointer);inline;
 
 begin
+{$IFDEF align}
+  freemem(PPointer(ptruint(p) - SizeOf(Pointer))^);
+{$ELSE}
   freemem(p);
+{$ENDIF}
 end;
 
 end.
