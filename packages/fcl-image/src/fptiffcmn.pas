@@ -149,10 +149,13 @@ procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
 var
   i: Integer;
 begin
+  {$ifdef FPC_Debug_Image}
   writeln('WriteTiffExtras ',Msg);
+
   for i:=Img.ExtraCount-1 downto 0 do
     //if SysUtils.CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
       writeln('  ',i,' ',Img.ExtraKey[i],'=',Img.ExtraValue[i]);
+  {$endif}      
 end;
 
 { TTiffIDF }

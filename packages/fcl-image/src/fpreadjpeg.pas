@@ -122,7 +122,9 @@ end;
 procedure FormatMessage(CurInfo: j_common_ptr; var buffer: string);
 begin
   if CurInfo=nil then exit;
-  writeln('FormatMessage ',buffer);
+  {$ifdef FPC_Debug_Image}
+     writeln('FormatMessage ',buffer);
+  {$endif}
 end;
 
 procedure ResetErrorMgr(CurInfo: j_common_ptr);

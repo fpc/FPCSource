@@ -55,7 +55,9 @@ type
     FOnCreateImage: TTiffCreateCompatibleImgEvent;
     FReverserEndian: boolean;
     IDF: TTiffIDF;
+    {$ifdef FPC_Debug_Image}
     FDebug: boolean;
+    {$endif}
     fIFDStarts: TFPList;
     FReverseEndian: Boolean;
     fStartPos: int64;
@@ -95,7 +97,9 @@ type
     destructor Destroy; override;
     procedure Clear;
     procedure LoadFromStream(aStream: TStream);
+    {$ifdef FPC_Debug_Image}
     property Debug: boolean read FDebug write FDebug;
+    {$endif}
     property StartPos: int64 read fStartPos;
     property ReverserEndian: boolean read FReverserEndian;
     property TheStream: TStream read s;
@@ -190,8 +194,10 @@ begin
   else
     TiffError('expected II or MM');
   FReverseEndian:={$IFDEF FPC_BIG_ENDIAN}not{$ENDIF} BigEndian;
+  {$ifdef FPC_Debug_Image}
   if Debug then
     writeln('TFPReaderTiff.ReadTiffHeader Endian Big=',BigEndian,' ReverseEndian=',FReverseEndian);
+  {$endif}
   // read magic number 42
   FortyTwo:=ReadWord;
   if FortyTwo<>42 then begin
@@ -259,8 +265,10 @@ begin
       IDF.ImageIsThumbNail:=UValue and 1<>0;
       IDF.ImageIsPage:=UValue and 2<>0;
       IDF.ImageIsMask:=UValue and 4<>0;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry NewSubFileType ThumbNail=',IDF.ImageIsThumbNail,' Page=',IDF.ImageIsPage,' Mask=',IDF.ImageIsMask);
+      {$endif}
     end;
   255:
     begin
@@ -276,34 +284,42 @@ begin
       else
         TiffError('SubFileType expected, but found '+IntToStr(UValue));
       end;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry SubFileType ThumbNail=',IDF.ImageIsThumbNail,' Page=',IDF.ImageIsPage,' Mask=',IDF.ImageIsMask);
+      {$endif}
     end;
   256:
     begin
       // fImageWidth
       IDF.ImageWidth:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry ImageWidth=',IDF.ImageWidth);
+      {$endif}
     end;
   257:
     begin
       // ImageLength
       IDF.ImageHeight:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry ImageHeight=',IDF.ImageHeight);
+      {$endif}
     end;
   258:
     begin
       // BitsPerSample
       IDF.BitsPerSample:=DWord(s.Position-fStartPos-2);
       ReadShortValues(IDF.BitsPerSample,WordBuffer,Count);
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry BitsPerSample: ');
         for i:=0 to Count-1 do
           write(IntToStr(WordBuffer[i]),' ');
         writeln;
       end;
+      {$endif}
       try
         SetLength(IDF.BitsPerSampleArray,Count);
         for i:=0 to Count-1 do
@@ -332,6 +348,7 @@ begin
         TiffError('expected Compression, but found '+IntToStr(UValue));
       end;
       IDF.Compression:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry Compression=',IntToStr(IDF.Compression),'=');
         case IDF.Compression of
@@ -344,6 +361,7 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   262:
     begin
@@ -360,6 +378,7 @@ begin
         TiffError('expected PhotometricInterpretation, but found '+IntToStr(UValue));
       end;
       IDF.PhotoMetricInterpretation:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry PhotometricInterpretation=');
         case IDF.PhotoMetricInterpretation of
@@ -372,6 +391,7 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   263:
     begin
@@ -385,22 +405,28 @@ begin
         TiffError('expected Treshholding, but found '+IntToStr(UValue));
       end;
       IDF.Treshholding:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Treshholding=',IDF.Treshholding);
+      {$endif}
     end;
   264:
     begin
       // CellWidth
       IDF.CellWidth:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry CellWidth=',IDF.CellWidth);
+      {$endif}
     end;
   265:
     begin
       // CellLength
       IDF.CellLength:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry CellLength=',IDF.CellLength);
+      {$endif}
     end;
   266:
     begin
@@ -412,6 +438,7 @@ begin
       else
         TiffError('expected FillOrder, but found '+IntToStr(UValue));
       end;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry FillOrder=',IntToStr(IDF.FillOrder),'=');
         case IDF.FillOrder of
@@ -420,41 +447,52 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   269:
     begin
       // DocumentName
       IDF.DocumentName:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry DocumentName=',IDF.DocumentName);
+      {$endif}
     end;
   270:
     begin
       // ImageDescription
       IDF.ImageDescription:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry ImageDescription=',IDF.ImageDescription);
+      {$endif}
     end;
   271:
     begin
       // Make - scanner manufacturer
       IDF.Make_ScannerManufacturer:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Make_ScannerManufacturer=',IDF.Make_ScannerManufacturer);
+      {$endif}
     end;
   272:
     begin
       // Model - scanner model
       IDF.Model_Scanner:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Model_Scanner=',IDF.Model_Scanner);
+      {$endif}
     end;
   273:
     begin
       // StripOffsets
       IDF.StripOffsets:=DWord(s.Position-fStartPos-2);
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry StripOffsets=',IDF.StripOffsets);
+      {$endif}
     end;
   274:
     begin
@@ -473,6 +511,7 @@ begin
         TiffError('expected Orientation, but found '+IntToStr(UValue));
       end;
       IDF.Orientation:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry Orientation=',IntToStr(IDF.Orientation),'=');
         case IDF.Orientation of
@@ -487,13 +526,16 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   277:
     begin
       // SamplesPerPixel
       IDF.SamplesPerPixel:=ReadEntryUnsigned;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry SamplesPerPixel=',IDF.SamplesPerPixel);
+      {$endif}
     end;
   278:
     begin
@@ -502,15 +544,19 @@ begin
       if UValue=0 then
         TiffError('expected RowsPerStrip, but found '+IntToStr(UValue));
       IDF.RowsPerStrip:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry RowsPerStrip=',IDF.RowsPerStrip);
+      {$endif}
     end;
   279:
     begin
       // StripByteCounts
       IDF.StripByteCounts:=DWord(s.Position-fStartPos-2);
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry StripByteCounts=',IDF.StripByteCounts);
+      {$endif}
     end;
   280:
     begin
@@ -524,15 +570,19 @@ begin
     begin
       // XResolution
       IDF.XResolution:=ReadEntryRational;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry XResolution=',IDF.XResolution.Numerator,',',IDF.XResolution.Denominator);
+      {$endif}
     end;
   283:
     begin
       // YResolution
       IDF.YResolution:=ReadEntryRational;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry YResolution=',IDF.YResolution.Numerator,',',IDF.YResolution.Denominator);
+      {$endif}
     end;
   284:
     begin
@@ -545,6 +595,7 @@ begin
         TiffError('expected PlanarConfiguration, but found '+IntToStr(SValue));
       end;
       IDF.PlanarConfiguration:=SValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry PlanarConfiguration=');
         case SValue of
@@ -553,6 +604,7 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   288:
     begin
@@ -585,6 +637,7 @@ begin
       else
         TiffError('expected ResolutionUnit, but found '+IntToStr(UValue));
       end;
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         write('TFPReaderTiff.ReadDirectoryEntry ResolutionUnit=');
         case IDF.ResolutionUnit of
@@ -594,34 +647,43 @@ begin
         end;
         writeln;
       end;
+      {$endif}
     end;
   305:
     begin
       // Software
       IDF.Software:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Software="',IDF.Software,'"');
+      {$endif}
     end;
   306:
     begin
       // DateAndTime
       IDF.DateAndTime:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry DateAndTime="',IDF.DateAndTime,'"');
+      {$endif}
     end;
   315:
     begin
       // Artist
       IDF.Artist:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Artist="',IDF.Artist,'"');
+      {$endif}
     end;
   316:
     begin
       // HostComputer
       IDF.HostComputer:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry HostComputer="',IDF.HostComputer,'"');
+      {$endif}
     end;
   317:
     begin
@@ -633,15 +695,19 @@ begin
       else TiffError('expected Predictor, but found '+IntToStr(UValue));
       end;
       IDF.Predictor:=UValue;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Predictor="',IDF.Predictor,'"');
+      {$endif}
     end;
   320:
     begin
       // ColorMap: N = 3*2^BitsPerSample
       IDF.ColorMap:=DWord(s.Position-fStartPos-2);
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry ColorMap');
+      {$endif}
     end;
   338:
     begin
@@ -651,6 +717,7 @@ begin
       // 1=alpha (premultiplied)
       // 2=alpha (unassociated)
       IDF.ExtraSamples:=DWord(s.Position-fStartPos-2);
+      {$ifdef FPC_Debug_Image}
       if Debug then begin
         ReadShortValues(IDF.ExtraSamples,WordBuffer,Count);
         write('TFPReaderTiff.ReadDirectoryEntry ExtraSamples: ');
@@ -659,21 +726,26 @@ begin
         writeln;
         ReAllocMem(WordBuffer,0);
       end;
+      {$endif}
     end;
   33432:
     begin
       // Copyright
       IDF.Copyright:=ReadEntryString;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Copyright="',IDF.Copyright,'"');
+      {$endif}
     end;
   else
     begin
       EntryType:=ReadWord;
       EntryCount:=ReadDWord;
       EntryStart:=ReadDWord;
+      {$ifdef FPC_Debug_Image}
       if Debug then
         writeln('TFPReaderTiff.ReadDirectoryEntry Tag=',EntryTag,' Type=',EntryType,' Count=',EntryCount,' ValuesStart=',EntryStart);
+      {$endif}
     end;
   end;
 end;
@@ -956,8 +1028,10 @@ var
   ExpectedStripLength: PtrInt;
 begin
   CurImg:=nil;
+  {$ifdef FPC_Debug_Image}
   if Debug then
     writeln('TFPReaderTiff.ReadImage Index=',Index);
+  {$endif}
   if IDF.PhotoMetricInterpretation=High(IDF.PhotoMetricInterpretation) then
     TiffError('missing PhotometricInterpretation');
   if IDF.RowsPerStrip=0 then
@@ -972,8 +1046,10 @@ begin
     // Image already read
     exit;
   end;
+  {$ifdef FPC_Debug_Image}
   if Debug then
     writeln('TFPReaderTiff.ReadImage reading ...');
+  {$endif}
 
   StripCount:=((IDF.ImageHeight-1) div IDF.RowsPerStrip)+1;
   StripOffsets:=nil;

@@ -258,9 +258,11 @@ begin
       result := MakeSample(From.blue, sb[3], cb[3]) or
                 MakeSample(From.red, sb[1], cb[1]) or
                 MakeSample(From.green, sb[2], cb[2]);
+     {$ifdef FPC_Debug_Image}
       with From do
         writeln (red,',',green,',',blue,',',result);
       end;
+     {$endif}
     cfRGBA8,cfRGBA16,cfRGBA32,cfRGBA64,
     cfABGR8,cfABGR16,cfABGR32,cfABGR64 :
       begin

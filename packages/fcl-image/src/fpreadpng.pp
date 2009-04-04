@@ -791,8 +791,10 @@ end;
 
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
+  {$ifdef FPC_Debug_Image}
   if Str<>TheStream then
-    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');
+    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');  
+  {$endif}
   with Header do
     Img.SetSize (Width, Height);
   ZData := TMemoryStream.Create;
