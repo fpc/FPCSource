@@ -298,6 +298,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   { set is 1 based PM }
@@ -305,8 +306,11 @@ begin
   i:=sig mod (sizeof(cuLong) * 8);
   j:=sig div (sizeof(cuLong) * 8);
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,nil);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 // signal handler is arch dependant due to processorexception to language

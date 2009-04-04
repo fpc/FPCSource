@@ -103,6 +103,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e,oe : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   fillchar(oe,sizeof(oe),#0);
@@ -111,8 +112,11 @@ begin
   i:=sig mod 32;
   j:=sig div 32;
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,@oe);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 {$i sighnd.inc}
