@@ -58,7 +58,7 @@ Type
   Protected
     procedure SetContentProducer(const AValue: THTTPContentProducer);virtual;
     Function  GetDisplayName : String; override;
-    Procedure SetDisplayName(AValue : String);
+    Procedure SetDisplayName(const AValue : String); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
   published
@@ -75,6 +75,7 @@ Type
   TCustomWebActions = Class(TCollection)
   private
     FActionVar : String;
+    FDefActionWhenUnknown: Boolean;
     FOnGetAction: TGetActionEvent;
     function GetActions(Index : Integer): TCustomWebAction;
     procedure SetActions(Index : Integer; const AValue: TCustomWebAction);
@@ -83,6 +84,7 @@ Type
     Function  GetActionName(ARequest : TRequest) : String;
     Property  ActionVar : String Read FactionVar Write FActionVar;
   public
+    constructor Create(AItemClass: TCollectionItemClass);
     Procedure Assign(Source : TPersistent); override;
     Function Add : TCustomWebAction;
     Function ActionByName(AName : String) : TCustomWebAction;
@@ -90,6 +92,7 @@ Type
     Function IndexOfAction(AName : String) : Integer;
     Property OnGetAction : TGetActionEvent Read FOnGetAction Write FOnGetAction;
     Property Actions[Index : Integer] : TCustomWebAction Read GetActions Write SetActions; Default;
+    Property DefActionWhenUnknown : Boolean read FDefActionWhenUnknown write FDefActionWhenUnknown;
   end;
   
   TCustomHTTPModule = Class(TDataModule)
@@ -136,6 +139,7 @@ Resourcestring
   SErrNoSuchAction = 'No action found for action: "%s"';
   SErrUnknownAction = 'Unknown action: "%s"';
   SErrNoDefaultAction = 'No action name and no default action';
+  SErrInvActNoDefaultAction = 'Invalid action name and no default action';
   SErrRequestNotHandled = 'Web request was not handled by actions.';
 
 Implementation
@@ -290,7 +294,7 @@ begin
   Result:=FName;
 end;
 
-procedure TCustomWebAction.SetDisplayName(AValue: String);
+procedure TCustomWebAction.SetDisplayName(const AValue: String);
 begin
   Inherited;
   FName:=AValue;
@@ -329,26 +333,42 @@ end;
 Function TCustomWebActions.GetRequestAction(ARequest: TRequest) : TCustomWebAction;
 
 Var
-  I : Integer;
   S : String;
+
+  Function GetDefaultAction:TCustomWebAction;
+  Var I : Integer;
+  begin
+    Result := nil;
+    I:=0;
+    While (Result=Nil) and (I<Count) do
+    begin
+      If Actions[I].Default then
+        Result:=Actions[I];
+      Inc(I);
+    end;
+  end;
 
 begin
   Result:=Nil;
   S:=GetActionName(ARequest);
   If (S<>'') then
-    Result:=FindAction(S)
-  else
-    begin
-    I:=0;
-    While (Result=Nil) and (I<Count) do
-      begin
-      If Actions[i].Default then
-        Result:=Actions[i];
-      Inc(i);
+  begin
+    Result:=FindAction(S);
+    if Result = nil then
+    begin//no action with that name found
+      if not DefActionWhenUnknown then
+        Raise EFPHTTPError.CreateFmt(SErrNoSuchAction,[s])
+      else begin
+        Result := GetDefaultAction;
+        if Result = nil then
+          Raise EFPHTTPError.Create(SErrInvActNoDefaultAction);
       end;
+    end;
+  end else begin //no action name was specified
+    Result := GetDefaultAction;
     If (Result=Nil) then
       Raise EFPHTTPError.Create(SErrNoDefaultAction);
-    end;
+  end;
 end;
 
 
@@ -364,6 +384,12 @@ begin
     If (Result='') then
       Result:=ARequest.GetNextPathInfo;
     end;
+end;
+
+constructor TCustomWebActions.Create(AItemClass: TCollectionItemClass);
+begin
+  inherited Create(AItemClass);
+  FDefActionWhenUnknown:=True;
 end;
 
 procedure TCustomWebActions.Assign(Source: TPersistent);

@@ -104,9 +104,11 @@ Type
     FTemplate: TFPTemplate;
     FTemplateVars : TTemplateVars;
     function GetActionVar: String;
+    function GetDefActionWhenUnknown: Boolean;
     function GetOnGetAction: TGetActionEvent;
     procedure SetActions(const AValue: TFPWebActions);
     procedure SetActionVar(const AValue: String);
+    procedure SetDefActionWhenUnknown(const AValue: Boolean);
     procedure SetOnGetAction(const AValue: TGetActionEvent);
     procedure SetTemplate(const AValue: TFPTemplate);
   Protected
@@ -125,6 +127,7 @@ Type
     Property OnRequest : TWebActionEvent Read FOnRequest Write FOnRequest;
     Property AfterResponse : TResponseEvent Read FAfterResponse Write FAfterResponse;
     Property OnGetAction : TGetActionEvent Read GetOnGetAction Write SetOnGetAction;
+    Property DefActionWhenUnknown : Boolean read GetDefActionWhenUnknown write SetDefActionWhenUnknown default true;
     Property Template : TFPTemplate Read FTemplate Write SetTemplate;
     Property OnGetParam : TGetParamEvent Read FOnGetParam Write FOnGetParam;
     Property OnTemplateContent : TGetParamEvent Read FOnGetParam Write FOnGetParam;
@@ -140,6 +143,7 @@ Type
     Property OnRequest;
     Property AfterResponse;
     Property OnGetAction;
+    Property DefActionWhenUnknown;
     Property CreateSession;
     Property Session;
     Property OnNewSession;
@@ -311,6 +315,11 @@ begin
   Result:=FActions.ActionVar;
 end;
 
+function TCustomFPWebModule.GetDefActionWhenUnknown: Boolean;
+begin
+  Result:=FActions.DefActionWhenUnknown;
+end;
+
 function TCustomFPWebModule.GetOnGetAction: TGetActionEvent;
 begin
   Result:=FActions.OnGetAction;
@@ -326,6 +335,11 @@ end;
 procedure TCustomFPWebModule.SetActionVar(const AValue: String);
 begin
   FActions.ActionVar:=AValue;
+end;
+
+procedure TCustomFPWebModule.SetDefActionWhenUnknown(const AValue: Boolean);
+begin
+  FActions.DefActionWhenUnknown:=AValue;
 end;
 
 procedure TCustomFPWebModule.SetOnGetAction(const AValue: TGetActionEvent);
