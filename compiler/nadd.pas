@@ -1442,8 +1442,8 @@ implementation
                      ((cs_ansistrings in current_settings.localswitches) and
                      //todo: Move some of this to longstring's then they are implemented?
                       (
-                       is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or
-                       is_pchar(ld) or (is_chararray(ld) and (ld.size > 255)) or is_open_chararray(ld)
+                       is_pchar(rd) or (is_chararray(rd) and (rd.size > 255)) or is_open_chararray(rd) or (lt = stringconstn) or
+                       is_pchar(ld) or (is_chararray(ld) and (ld.size > 255)) or is_open_chararray(ld) or (rt = stringconstn)
                       )
                      ) then
                     strtype:=st_ansistring
