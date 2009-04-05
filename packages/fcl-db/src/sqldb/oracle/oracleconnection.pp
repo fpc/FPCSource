@@ -15,6 +15,9 @@ uses
 {$ENDIF}
   oratypes;
 
+const
+  DefaultTimeOut = 60;
+
 type
   EOraDatabaseError = class(EDatabaseError)
     public
@@ -22,7 +25,12 @@ type
   end;
 
   TOracleTrans = Class(TSQLHandle)
-    protected
+  protected
+    FOciSvcCtx  : POCISvcCtx;
+    FOciTrans   : POCITrans;
+    FOciFlags   : ub4;
+  public
+    destructor Destroy(); override;
   end;
   
   TOraFieldBuf = record
@@ -43,7 +51,8 @@ type
   private
     FOciEnvironment : POciEnv;
     FOciError       : POCIError;
-    FOciSvcCtx      : POCISvcCtx;
+    FOciServer      : POCIServer;
+    FOciUserSession : POCISession;
     FUserMem        : pointer;
     procedure HandleError;
     procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
@@ -59,6 +68,7 @@ type
     procedure PrepareStatement(cursor:TSQLCursor; ATransaction:TSQLTransaction; buf:string; AParams:TParams); override;
     procedure UnPrepareStatement(cursor:TSQLCursor); override;
     // - Transaction handling
+    procedure InternalStartDBTransaction(trans:TOracleTrans);
     function GetTransactionHandle(trans:TSQLHandle):pointer; override;
     function StartDBTransaction(trans:TSQLHandle; AParams:string):boolean; override;
     function Commit(trans:TSQLHandle):boolean; override;
@@ -86,7 +96,8 @@ type
 
 implementation
 
-uses math;
+uses
+  math, StrUtils;
 
 ResourceString
   SErrEnvCreateFailed = 'The creation of an Oracle environment failed.';
@@ -103,9 +114,9 @@ begin
   OCIErrorGet(FOciError,1,nil,errcode,@buf[0],1024,OCI_HTYPE_ERROR);
 
   if (Self.Name <> '') then
-    E := EOraDatabaseError.CreateFmt('%s : %s',[Self.Name,buf])
+    E := EOraDatabaseError.CreateFmt('%s : %s',[Self.Name,pchar(buf)])
   else
-    E := EOraDatabaseError.Create(buf);
+    E := EOraDatabaseError.Create(pchar(buf));
 
   E.ORAErrorCode := errcode;
   Raise E;
@@ -113,7 +124,9 @@ end;
 
 procedure TOracleConnection.DoInternalConnect;
 
-var ConnectString : string;
+var
+  ConnectString : string;
+  TempServiceContext : POCISvcCtx;
 
 begin
 {$IfDef LinkDynamically}
@@ -121,30 +134,77 @@ begin
 {$EndIf}
 
   inherited DoInternalConnect;
+  //todo: get rid of FUserMem, as it isn't used
   FUserMem := nil;
+
+  // Create environment handle
   if OCIEnvCreate(FOciEnvironment,oci_default,nil,nil,nil,nil,0,FUserMem) <> OCI_SUCCESS then
     DatabaseError(SErrEnvCreateFailed,self);
-
+  // Create error handle
   if OciHandleAlloc(FOciEnvironment,FOciError,OCI_HTYPE_ERROR,0,FUserMem) <> OCI_SUCCESS then
     DatabaseError(SErrHandleAllocFailed,self);
-
+  // Create Server handle
+  if OciHandleAlloc(FOciEnvironment,FOciServer,OCI_HTYPE_SERVER,0,FUserMem) <> OCI_SUCCESS then
+    DatabaseError(SErrHandleAllocFailed,self);
+  // Initialize Server handle
   if hostname='' then connectstring := databasename
   else connectstring := '//'+hostname+'/'+databasename;
+  if OCIServerAttach(FOciServer,FOciError,@(ConnectString[1]),Length(ConnectString),OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
 
-  if OCILogon2(FOciEnvironment,FOciError,FOciSvcCtx,@username[1],length(username),@password[1],length(password),@connectstring[1],length(connectstring),OCI_DEFAULT) = OCI_ERROR then
-    HandleError;
+  // Create temporary service-context handle for user-authentication
+  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+    DatabaseError(SErrHandleAllocFailed,self);
+
+  // Create user-session handle
+  if OciHandleAlloc(FOciEnvironment,FOciUserSession,OCI_HTYPE_SESSION,0,FUserMem) <> OCI_SUCCESS then
+    DatabaseError(SErrHandleAllocFailed,self);
+  // Set the server-handle in the service-context handle
+  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+    HandleError();
+  // Set username and password in the user-session handle
+  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.UserName[1]),Length(Self.UserName),OCI_ATTR_USERNAME,FOciError) <> OCI_SUCCESS then
+    HandleError();
+  if OCIAttrSet(FOciUserSession,OCI_HTYPE_SESSION,@(Self.Password[1]),Length(Self.Password),OCI_ATTR_PASSWORD,FOciError) <> OCI_SUCCESS then
+    HandleError();
+  // Authenticate
+  if OCISessionBegin(TempServiceContext,FOciError,FOcIUserSession,OCI_CRED_RDBMS,OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
+  // Free temporary service-context handle
+  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
 end;
 
 procedure TOracleConnection.DoInternalDisconnect;
+var
+  TempServiceContext : POCISvcCtx;
 begin
   inherited DoInternalDisconnect;
 
-  if OCILogoff(FOciSvcCtx,FOciError)<> OCI_SUCCESS then
-    HandleError;
+  // Create temporary service-context handle for user-disconnect
+  if OciHandleAlloc(FOciEnvironment,TempServiceContext,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+    DatabaseError(SErrHandleAllocFailed,self);
 
-  OCIHandleFree(FOciSvcCtx,OCI_HTYPE_SVCCTX);
+  // Set the server handle in the service-context handle
+  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+    HandleError();
+  // Set the user session handle in the service-context handle
+  if OCIAttrSet(TempServiceContext,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
+    HandleError();
+  // Disconnect uses-session handle
+  if OCISessionEnd(TempServiceContext,FOciError,FOcIUserSession,OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
+  // Free user-session handle
+  OCIHandleFree(FOciUserSession,OCI_HTYPE_SESSION);
+  // Free temporary service-context handle
+  OCIHandleFree(TempServiceContext,OCI_HTYPE_SVCCTX);
+
+  // Disconnect server handle
+  if OCIServerDetach(FOciServer,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
+
+  // Free connection handles
+  OCIHandleFree(FOciServer,OCI_HTYPE_SERVER);
   OCIHandleFree(FOciError,OCI_HTYPE_ERROR);
-
   OCIHandleFree(FOciEnvironment,OCI_HTYPE_ENV);
 {$IfDef LinkDynamically}
   ReleaseOCI;
@@ -158,7 +218,6 @@ var Cursor : TOracleCursor;
 
 begin
   Cursor:=TOracleCursor.Create;
-  OciHandleAlloc(FOciEnvironment,Cursor.FOciStmt,OCI_HTYPE_STMT,0,FUserMem);
   Result := cursor;
 end;
 
@@ -169,7 +228,6 @@ var tel : word;
 begin
   with cursor as TOracleCursor do
     begin
-    OCIHandleFree(FOciStmt,OCI_HTYPE_STMT);
     if Length(FieldBuffers) > 0 then
       for tel := 0 to high(FieldBuffers) do freemem(FieldBuffers[tel].buffer);
     end;
@@ -177,8 +235,32 @@ begin
 end;
 
 function TOracleConnection.AllocateTransactionHandle: TSQLHandle;
+var
+  locRes : TOracleTrans;
 begin
-  Result:=nil;
+  locRes := TOracleTrans.Create();
+  try
+    // Allocate service-context handle
+    if OciHandleAlloc(FOciEnvironment,locRes.FOciSvcCtx,OCI_HTYPE_SVCCTX,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
+    // Set the server-handle in the service-context handle
+    if OCIAttrSet(locRes.FOciSvcCtx,OCI_HTYPE_SVCCTX,FOciServer,0,OCI_ATTR_SERVER,FOciError) <> OCI_SUCCESS then
+      HandleError();
+    // Set the user-session handle in the service-context handle
+    if OCIAttrSet(locRes.FOciSvcCtx,OCI_HTYPE_SVCCTX,FOciUserSession,0,OCI_ATTR_SESSION,FOciError) <> OCI_SUCCESS then
+      HandleError();
+
+    // Allocate transaction handle
+    if OciHandleAlloc(FOciEnvironment,locRes.FOciTrans,OCI_HTYPE_TRANS,0,FUserMem) <> OCI_SUCCESS then
+      DatabaseError(SErrHandleAllocFailed,self);
+    // Set the transaction handle in the service-context handle
+    if OCIAttrSet(locRes.FOciSvcCtx,OCI_HTYPE_SVCCTX,locRes.FOciTrans,0,OCI_ATTR_TRANS,FOciError) <> OCI_SUCCESS then
+      HandleError();
+  except
+    locRes.Free();
+    raise;
+  end;
+  Result := locRes;
 end;
 
 procedure TOracleConnection.PrepareStatement(cursor: TSQLCursor;
@@ -193,7 +275,8 @@ var tel      : integer;
 begin
   with cursor as TOracleCursor do
     begin
-    if OCIStmtPrepare(FOciStmt,FOciError,@buf[1],length(buf),OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
+    OciHandleAlloc(FOciEnvironment,FOciStmt,OCI_HTYPE_STMT,0,FUserMem);
+    if OCIStmtPrepare2(TOracleTrans(ATransaction.Handle).FOciSvcCtx,FOciStmt,FOciError,@buf[1],length(buf),nil,0,OCI_NTV_SYNTAX,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     if assigned(AParams) then
       begin
@@ -218,6 +301,7 @@ begin
 
         end;
       end;
+    FPrepared := True;
     end;
 end;
 
@@ -269,37 +353,75 @@ end;
 
 procedure TOracleConnection.UnPrepareStatement(cursor: TSQLCursor);
 begin
-//
+  OCIHandleFree(TOracleCursor(cursor).FOciStmt,OCI_HTYPE_STMT);
+  cursor.FPrepared:=False;
+end;
+
+procedure TOracleConnection.InternalStartDBTransaction(trans : TOracleTrans);
+begin
+  if OCITransStart(trans.FOciSvcCtx,FOciError,DefaultTimeOut,trans.FOciFlags) <> OCI_SUCCESS then
+    HandleError();
 end;
 
 function TOracleConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
 begin
-// Transactions not implemented yet
+  Result := trans;
 end;
 
 function TOracleConnection.StartDBTransaction(trans: TSQLHandle; AParams: string): boolean;
+var
+  x_flags : ub4;
+  i : Integer;
+  s : string;
+  locTrans : TOracleTrans;
 begin
-// Transactions not implemented yet
+  locTrans := TOracleTrans(trans);
+  if ( Length(AParams) = 0 ) then begin
+    x_flags := OCI_TRANS_NEW or OCI_TRANS_READWRITE;
+  end else begin
+    x_flags := OCI_DEFAULT;
+    i := 1;
+    s := ExtractSubStr(AParams,i,StdWordDelims);
+    while ( s <> '' ) do begin
+      if ( s = 'readonly' ) then
+        x_flags := x_flags and OCI_TRANS_READONLY
+      else if ( s = 'serializable' ) then
+        x_flags := x_flags and OCI_TRANS_SERIALIZABLE
+      else if ( s = 'readwrite' ) then
+        x_flags := x_flags and OCI_TRANS_READWRITE;
+      s := ExtractSubStr(AParams,i,StdWordDelims);
+    end;
+    x_flags := x_flags and OCI_TRANS_NEW;
+  end;
+  locTrans.FOciFlags := x_flags;
+  InternalStartDBTransaction(locTrans);
+  Result := True;
 end;
 
 function TOracleConnection.Commit(trans: TSQLHandle): boolean;
 begin
-// Transactions not implemented yet
+  if OCITransCommit(TOracleTrans(trans).FOciSvcCtx,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
+  Result := True;
 end;
 
 function TOracleConnection.Rollback(trans: TSQLHandle): boolean;
 begin
-// Transactions not implemented yet
+  if OCITransRollback(TOracleTrans(trans).FOciSvcCtx,FOciError,OCI_DEFAULT) <> OCI_SUCCESS then
+    HandleError();
+  Result := True;
 end;
 
 procedure TOracleConnection.CommitRetaining(trans: TSQLHandle);
 begin
-// Transactions not implemented yet
+  Commit(trans);
+  InternalStartDBTransaction(TOracleTrans(trans));
 end;
 
 procedure TOracleConnection.RollbackRetaining(trans: TSQLHandle);
 begin
-// Transactions not implemented yet
+  Rollback(trans);
+  InternalStartDBTransaction(TOracleTrans(trans));
 end;
 
 procedure TOracleConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
@@ -307,12 +429,12 @@ begin
   if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, AParams);
   if cursor.FStatementType = stSelect then
     begin
-    if OCIStmtExecute(FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
+    if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,0,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     end
   else
     begin
-    if OCIStmtExecute(FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
+    if OCIStmtExecute(TOracleTrans(ATransaction.Handle).FOciSvcCtx,(cursor as TOracleCursor).FOciStmt,FOciError,1,0,nil,nil,OCI_DEFAULT) = OCI_ERROR then
       HandleError;
     end;
 end;
@@ -412,7 +534,7 @@ begin
       setlength(Fieldname,OFNameLength);
       move(OFieldName^,Fieldname[1],OFNameLength);
 
-      TFieldDef.Create(FieldDefs, FieldName, FieldType, FieldSize, False, tel);
+      TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(FieldName), FieldType, FieldSize, False, tel);
       end;
   end;
 end;
@@ -502,6 +624,7 @@ end;
 constructor TOracleConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FConnOptions := FConnOptions + [sqEscapeRepeat];
   FUserMem := nil;
 end;
 
@@ -520,6 +643,15 @@ end;
 class function TOracleConnectionDef.Description: String;
 begin
   Result:='Connect to an Oracle database directly via the client library';
+end;
+
+{ TOracleTrans }
+
+destructor TOracleTrans.Destroy();
+begin
+  OCIHandleFree(FOciTrans,OCI_HTYPE_TRANS);
+  OCIHandleFree(FOciSvcCtx,OCI_HTYPE_SVCCTX);
+  inherited Destroy();
 end;
 
 initialization
