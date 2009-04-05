@@ -552,15 +552,12 @@ begin
   if not ATransaction.Active then ATransaction.StartTransaction;
 
   try
-    Cursor := AllocateCursorHandle;
-
     SQL := TrimRight(SQL);
-
     if SQL = '' then
       DatabaseError(SErrNoStatement);
 
+    Cursor := AllocateCursorHandle;
     Cursor.FStatementType := stNone;
-
     PrepareStatement(cursor,ATransaction,SQL,Nil);
     execute(cursor,ATransaction, Nil);
     UnPrepareStatement(Cursor);
