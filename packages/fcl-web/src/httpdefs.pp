@@ -334,7 +334,7 @@ type
     Property HeadersSent : Boolean Read FHeadersSent;
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
-    Procedure SendTemporaryRedirect(const TargetURL:String);
+    Procedure SendRedirect(const TargetURL:String);
   end;
   
   { TSessionVariable }
@@ -1420,7 +1420,7 @@ begin
   SendContent;
 end;
 
-procedure TResponse.SendTemporaryRedirect(const TargetURL: String);
+procedure TResponse.SendRedirect(const TargetURL: String);
 begin
   Location := TargetURL;
   if FHttpVersion = '1.1' then
