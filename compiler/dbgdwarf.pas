@@ -242,6 +242,10 @@ interface
 
         procedure set_def_dwarf_labs(def:tdef);
 
+        { Convenience version of the method below, so the compiler creates the
+          tvarrec for us (must only pass one element in the last parameter).  }
+        procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
+        procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
         procedure append_block1(attr: tdwarf_attribute; size: aint);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
@@ -267,7 +271,7 @@ interface
         { used for global/static variables, local variables, parameters and
           absolute variables
         }
-        procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint);
+        procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; do_self: boolean);
         { used for fields and properties mapped to fields }
         procedure appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
 
@@ -813,6 +817,129 @@ implementation
       end;
 
 
+    procedure TDebugInfoDwarf.append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
+      begin
+        if length(values)<>1 then
+          internalerror(2009040402);
+        append_attribute(attr,form,values[0]);
+      end;
+
+
+    procedure TDebugInfoDwarf.append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
+      begin
+        { attribute }
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(cardinal(attr)));
+
+        { form }
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(cardinal(form)));
+
+        { info itself }
+        case form of
+          DW_FORM_string:
+            case value.VType of
+              vtChar:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(value.VChar));
+              vtString:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(value.VString^));
+              vtAnsistring:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(Ansistring(value.VAnsiString)));
+              else
+                internalerror(200601264);
+            end;
+
+          DW_FORM_flag:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(value.VBoolean)));
+
+          DW_FORM_data1:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VQWord^));
+              else
+                internalerror(200602143);
+            end;
+
+          DW_FORM_data2:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VQWord^));
+              else
+                internalerror(200602144);
+            end;
+
+          DW_FORM_data4:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VQWord^));
+              else
+                internalerror(200602145);
+            end;
+
+          DW_FORM_data8:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VQWord^));
+              else
+                internalerror(200602146);
+            end;
+
+          DW_FORM_sdata:
+            case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VQWord^));
+              else
+                internalerror(200601285);
+            end;
+
+          DW_FORM_udata:
+            case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VQWord^));
+              else
+                internalerror(200601284);
+            end;
+
+          { block gets only the size, the rest is appended manually by the caller }
+          DW_FORM_block1:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VQWord^));
+              else
+                internalerror(200602141);
+            end;
+          else
+            internalerror(200601263);
+        end;
+      end;
+
+
     { writing the data through a few simply procedures allows to create easily extra information
       for debugging of debug info }
     procedure TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
@@ -836,130 +963,14 @@ implementation
         i:=0;
         while i<=high(data) do
           begin
-            { attribute }
-            if data[i].VType=vtInteger then
-              begin
-                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
-              end
-            else
+            if (i+2 > high(data)) then
+              internalerror(2009040401);
+            if data[i].VType<>vtInteger then
               internalerror(200601261);
-            inc(i);
-
-            { form }
-            if data[i].VType=vtInteger then
-              begin
-                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
-              end
-            else
-              internalerror(200601262);
-            inc(i);
-
-            { info itself }
-            case tdwarf_form(data[i-1].VInteger) of
-              DW_FORM_string:
-                case data[i].VType of
-                  vtChar:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VChar));
-                  vtString:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VString^));
-                  vtAnsistring:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString)));
-                  else
-                    internalerror(200601264);
-                end;
-
-
-              DW_FORM_flag:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
-
-              DW_FORM_data1:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
-                  else
-                    internalerror(200602143);
-                end;
-
-              DW_FORM_data2:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
-                  else
-                    internalerror(200602144);
-                end;
-
-              DW_FORM_data4:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
-                  else
-                    internalerror(200602145);
-                end;
-
-              DW_FORM_data8:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
-                  else
-                    internalerror(200602146);
-                end;
-
-              DW_FORM_sdata:
-                case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VQWord^));
-                  else
-                    internalerror(200601285);
-                end;
-
-              DW_FORM_udata:
-                case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VQWord^));
-                  else
-                    internalerror(200601284);
-                end;
-
-              { block gets only the size, the rest is appended manually by the caller }
-              DW_FORM_block1:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
-                  else
-                    internalerror(200602141);
-                end;
-              else
-                internalerror(200601263);
-            end;
-            inc(i);
+            if data[i+1].VType<>vtInteger then
+              internalerror(200601261);
+            append_attribute(tdwarf_attribute(data[i].VInteger),tdwarf_form(data[i+1].VInteger),data[i+2]);
+            inc(i,3);
           end;
       end;
 
@@ -1656,7 +1667,7 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.appendprocdef(list:TAsmList;def:tprocdef);
+    procedure TDebugInfoDwarf.appendprocdef(list:TAsmList; def:tprocdef);
 
       function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
         begin
@@ -1675,26 +1686,75 @@ implementation
 
       var
         procendlabel   : tasmlabel;
-        funcrettype    : tasmsymbol;
         procentry      : string;
-        dreg           : byte;
+        cc             : Tdwarf_calling_convention;
+        st             : tsymtable;
+        i              : longint;
+        vmtindexnr     : pint;
       begin
         if not assigned(def.procstarttai) then
           exit;
 
+        { Procdefs are not handled by the regular def writing code, so
+          dbg_state is not set/checked for them. Do it here.  }
+        if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
+          exit;
+
+        { Write methods and only in the scope of their parent objectdefs.  }
+        if (def.owner.symtabletype=objectsymtable) then
+          begin
+            { this code can also work for nested procdefs, but is not yet
+              activated for those because there is no clear advantage yet to
+              limiting the scope of nested procedures to that of their parent,
+              and it makes it impossible to set breakpoints in them by
+              referring to their name.  }
+            st:=def.owner;
+            while assigned(st.defowner) and
+                  (tdef(st.defowner).typ = procdef) do
+              st:=tprocdef(st.defowner).owner;
+            if assigned(st) and
+               (tdef(st.defowner).dbg_state<>dbg_state_writing) then
+              exit;
+         end;
+
+        def.dbg_state:=dbg_state_writing;
+
         current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
         append_entry(DW_TAG_subprogram,true,
-          [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0,
-           DW_AT_calling_convention,DW_FORM_data1,dwarf_calling_convention(def),
-           DW_AT_external,DW_FORM_flag,po_global in def.procoptions
+          [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0
           { data continues below }
           { problem: base reg isn't known here
             DW_AT_frame_base,DW_FORM_block1,1
           }
           ]);
-        { append block data }
-        { current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(def.))); }
 
+        { Append optional flags. }
+
+        { Calling convention.  }
+        cc:=dwarf_calling_convention(def);
+        if (cc<>DW_CC_normal) then
+          append_attribute(DW_AT_calling_convention,DW_FORM_data1,[ord(cc)]);
+        { Externally visible.  }
+        if (po_global in def.procoptions) and
+           (def.parast.symtablelevel<=normal_function_level) then
+          append_attribute(DW_AT_external,DW_FORM_flag,[true]);
+        { Abstract or virtual/overriding method.  }
+        if (([po_abstractmethod, po_virtualmethod, po_overridingmethod] * def.procoptions) <> []) then
+          begin
+            if not(po_abstractmethod in def.procoptions) then
+              append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_virtual)])
+            else
+              append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_pure_virtual)]);
+            { Element number in the vmt (needs to skip stuff coming before the
+              actual method addresses in the vmt, so we use vmtmethodoffset()
+              and then divide by sizeof(pint)).  }
+            vmtindexnr:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) div sizeof(pint);
+            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[1+LengthUleb128(vmtindexnr)]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_constu)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtindexnr));
+          end;
+
+        { Return type.  }
         if not(is_void(tprocdef(def).returndef)) then
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(def).returndef));
 
@@ -1716,7 +1776,23 @@ implementation
         finish_entry;
 
         if assigned(def.parast) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.parast);
+          begin
+            { First insert self, because gdb uses the fact whether or not the
+              first parameter of a method is artificial to distinguish static
+              from regular methods.  }
+
+            { Find the self parameter (it's usually last in the list).  }
+            for i:=def.parast.symlist.count-1 downto 0 do
+              if (tsym(def.parast.symlist[i]).typ = paravarsym) and
+                 (vo_is_self in tparavarsym(def.parast.symlist[i]).varoptions) then
+                { insert it as the first one }
+                appendsym_var_with_name_type_offset(list,
+                    tparavarsym(def.parast.symlist[i]),
+                    symname(tsym(def.parast.symlist[i])),
+                    tparavarsym(def.parast.symlist[i]).vardef,0,true);
+            { Now insert the rest (this will skip the self parameter).  }
+            write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.parast);
+          end;
         { local type defs and vars should not be written
           inside the main proc }
         if assigned(def.localst) and
@@ -1728,7 +1804,13 @@ implementation
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
         if assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+          begin
+            write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+            { Write nested procedures -- disabled, see scope check at the
+              beginning; currently, these are still written in the global
+              scope.  }
+            // write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+          end;
 
         finish_children;
       end;
@@ -1811,11 +1893,11 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
       begin
-        appendsym_var_with_name_type_offset(list,sym,symname(sym),sym.vardef,0);
+        appendsym_var_with_name_type_offset(list,sym,symname(sym),sym.vardef,0,false);
       end;
 
 
-    procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint);
+    procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; do_self: boolean);
       var
         templist : TAsmList;
         blocksize : longint;
@@ -1828,6 +1910,12 @@ implementation
           not sure if this applies to dwarf as well (FK)
         }
         if vo_is_external in sym.varoptions then
+          exit;
+
+        { Self must be the first inserted parameter, see
+          appendprocdef().  }
+        if not(do_self) and
+           (vo_is_self in sym.varoptions) then
           exit;
 
         { There is no space allocated for not referenced locals }
@@ -1934,6 +2022,13 @@ implementation
             ]);
         { append block data }
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
+        { Mark self as artificial for methods, because gdb uses the fact
+          whether or not the first parameter of a method is artificial to
+          distinguish regular from static methods (since there are no
+          no vo_is_self parameters for static methods, we don't have to check
+          that).  }
+        if (vo_is_self in sym.varoptions) then
+          append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
 {$ifndef gdb_supports_DW_AT_variable_parameter}
         if (sym.typ=paravarsym) and
             paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
@@ -2147,7 +2242,7 @@ implementation
           begin
             if (tosym.typ=fieldvarsym) then
               internalerror(2009031404);
-            appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),sym.propdef,offset)
+            appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),sym.propdef,offset,false)
           end
         else
           appendsym_fieldvar_with_name_offset(list,tfieldvarsym(tosym),symname(sym),sym.propdef,offset)
@@ -2209,7 +2304,7 @@ implementation
               get_symlist_sym_offset(symlist,tosym,offset);
               if (tosym.typ=fieldvarsym) then
                 internalerror(2009031402);
-              appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset);
+              appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,false);
               templist.free;
               exit;
             end;
@@ -2861,6 +2956,8 @@ implementation
             end;
 
           def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
+          { Write the methods in the scope of the class/object.  }
+           write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
           finish_children;
         end;
 
