@@ -1696,7 +1696,7 @@ end;
 
 procedure TFloatField.SetPrecision(const AValue: Longint);
 begin
-  if AValue > 1 then
+  if (AValue = -1) or (AValue > 1) then
     FPrecision := AValue
   else
     FPrecision := 2;
