@@ -87,6 +87,7 @@ type
     FCharSet             : string;
     FRole                : String;
 
+    FSQLServerFormatSettings : TFormatSettings;
     function GetPort: cardinal;
     procedure Setport(const AValue: cardinal);
   protected
@@ -125,6 +126,7 @@ type
     property port: cardinal read GetPort write Setport;
   public
     property Handle: Pointer read GetHandle;
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure StartTransaction; override;
     procedure EndTransaction; override;
@@ -610,6 +612,12 @@ begin
   Result := -1;
 end;
 
+constructor TSQLConnection.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FSQLServerFormatSettings.DecimalSeparator:='.';
+end;
+
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
 begin
   if not systemtables then GetDBInfo(stTables,'','table_name',List)
@@ -640,13 +648,13 @@ begin
 end;
 
 function TSQLConnection.GetAsSQLText(Param: TParam) : string;
-
 begin
   if (not assigned(param)) or param.IsNull then Result := 'Null'
   else case param.DataType of
     ftString   : Result := '''' + param.asstring + '''';
     ftDate     : Result := '''' + FormatDateTime('yyyy-mm-dd',Param.AsDateTime) + '''';
-    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + ''''
+    ftDateTime : Result := '''' + FormatDateTime('yyyy-mm-dd hh:mm:ss',Param.AsDateTime) + '''';
+    ftFloat    : Result := '''' + FloatToStr(Param.AsFloat, FSQLServerFormatSettings) + ''''
   else
     Result := Param.asstring;
   end; {case}
