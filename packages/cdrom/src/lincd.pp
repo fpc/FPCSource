@@ -1163,23 +1163,28 @@ begin
   If fpStat(Device,info)<>0 then
     exit;
   DeviceMajor:=info.st_rdev shr 8;
+  Writeln('Device major : ',DeviceMajor);
   If DeviceMajor in [IDE0_MAJOR,IDE1_MAJOR,IDE2_MAJOR,IDE3_MAJOR] then
-      Result:=TestCDRomIOCTL(Device)
-  else
+    Result:=TestCDRomIOCTL(Device)
+  else 
     begin
-    Result:=DeviceMajor in CDMajor;
-    If Not Result then
+    Result:= DeviceMajor=SCSI_CDROM_MAJOR;
+    If not Result then
       begin
-      // test SCSI
-      end
-    else
-      begin
-      F:=fpOpen(Device,OPEN_RDONLY or OPEN_NONBLOCK);
-      Result:=(F>=0);
-      If Result then
-        fpClose(F);
+      Result:=DeviceMajor in CDMajor;
+      If Not Result then
+        begin
+        // test SCSI
+        end
+      else
+        begin
+        F:=fpOpen(Device,OPEN_RDONLY or OPEN_NONBLOCK);
+        Result:=(F>=0);
+        If Result then
+          fpClose(F);
+        end;
       end;
-    end;
+    end;  
 end;
 
 Function TestCDRomIOCTL(Device : String) : Boolean;

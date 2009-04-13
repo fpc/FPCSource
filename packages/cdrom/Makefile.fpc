@@ -7,7 +7,7 @@ name=cdrom
 version=2.2.2
 
 [target]
-units=cdrom discid
+units=cdrom discid fpcddb
 implicitunits_win32=scsidefs wnaspi32 cdromioctl wincd
 implicitunits_linux=major lincd
 exampledirs=examples
