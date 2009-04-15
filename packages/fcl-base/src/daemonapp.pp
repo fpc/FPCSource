@@ -122,7 +122,6 @@ Type
     FSysData : TObject;
     FParams : TStrings;
     FCheckPoint : DWord;
-    procedure ThreadTerminated(Sender: TObject);
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;

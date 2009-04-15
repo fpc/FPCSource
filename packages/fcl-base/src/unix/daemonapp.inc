@@ -150,6 +150,7 @@ procedure TDaemonController.Controller(ControlCode, EventType: DWord;
 
 begin
   // Send control code to daemon thread.
+  TDaemonThread(Daemon.DaemonThread).HandleControlCode(ControlCode);
 end;
 
 function TDaemonController.ReportStatus: Boolean;
@@ -165,12 +166,6 @@ begin
                                CurrentStatusNames[Status]]);
   Application.Logger.Info(S);
 end;
-
-Procedure TDaemonController.ThreadTerminated(Sender : TObject);
-
-begin
-end;
-
 
 { ---------------------------------------------------------------------
   Global initialization/Finalization
