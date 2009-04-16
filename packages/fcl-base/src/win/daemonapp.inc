@@ -609,12 +609,6 @@ begin
   end;
 end;
 
-Procedure TDaemonController.ThreadTerminated(Sender : TObject);
-
-begin
-end;
-
-
 { ---------------------------------------------------------------------
   Global initialization/Finalization
   ---------------------------------------------------------------------}
