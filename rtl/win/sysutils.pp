@@ -380,7 +380,7 @@ begin
    end;
   { Convert some attributes back }
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
-  f.size:=F.FindData.NFileSizeLow;
+  f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
   f.Name:=StrPas(@F.FindData.cFileName[0]);
   Result:=0;
