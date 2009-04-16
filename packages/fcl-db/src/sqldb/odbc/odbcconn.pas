@@ -300,14 +300,17 @@ end;
 
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
 var
-  ParamIndex:integer;
-  Buf:pointer;
-  I:integer;
-  IntVal:clong;
-  StrVal:string;
-  StrLen:SQLINTEGER;
-  CType:SQLSMALLINT;
-  SqlType:SQLSMALLINT;
+  ParamIndex: integer;
+  PVal, Buf, PStrLenOrInd: pointer;
+  I, Size: integer;
+  IntVal: clong;
+  LargeVal: clonglong;
+  StrVal: string;
+  FloatVal: cdouble;
+  DateVal: SQL_DATE_STRUCT;
+  TimeStampVal: SQL_TIMESTAMP_STRUCT;
+  ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
+  CType, SqlType, DecimalDigits:SQLSMALLINT;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -322,62 +325,112 @@ begin
     ParamIndex:=ODBCCursor.FParamIndex[i];
     if (ParamIndex<0) or (ParamIndex>=AParams.Count) then
       raise EODBCException.CreateFmt('Parameter %d in query does not have a matching parameter set',[i]);
+
+    DecimalDigits:=0;
+    BufferLength:=0;
+    StrLenOrInd:=0;
+
     case AParams[ParamIndex].DataType of
-      ftInteger:
+      ftInteger, ftSmallInt:
         begin
-          Buf:=GetMem(Sizeof(clong));
           IntVal:=AParams[ParamIndex].AsInteger;
-          Move(IntVal,Buf^,Sizeof(clong));
-          ODBCCursor.FParamBuf[i]:=Buf;
-          ODBCCheckResult(
-            SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
-                             i+1,                    // ParameterNumber
-                             SQL_PARAM_INPUT,        // InputOutputType
-                             SQL_C_LONG,             // ValueType
-                             SQL_INTEGER,            // ParameterType
-                             10,                     // ColumnSize
-                             0,                      // DecimalDigits
-                             Buf,                    // ParameterValuePtr
-                             0,                      // BufferLength
-                             nil),                   // StrLen_or_IndPtr
-            SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind (integer) parameter %d.', [i]
-          );
+          PVal:=@IntVal;
+          Size:=SizeOf(IntVal);
+          CType:=SQL_C_LONG;
+          SqlType:=SQL_INTEGER;
+          ColumnSize:=10;
         end;
-      ftString, ftBlob:
+      ftLargeInt:
+        begin
+          LargeVal:=AParams[ParamIndex].AsLargeInt;
+          PVal:=@LargeVal;
+          Size:=SizeOf(LargeVal);
+          CType:=SQL_C_SBIGINT;
+          SqlType:=SQL_BIGINT;
+          ColumnSize:=19;
+        end;
+      ftString, ftBlob, ftMemo:
         begin
           StrVal:=AParams[ParamIndex].AsString;
-          StrLen:=Length(StrVal);
-          Buf:=GetMem(SizeOf(SQLINTEGER)+StrLen);
-          Move(StrLen,    buf^,                    SizeOf(SQLINTEGER));
-          Move(StrVal[1],(buf+SizeOf(SQLINTEGER))^,StrLen);
-          ODBCCursor.FParamBuf[i]:=Buf;
+          StrLenOrInd:=Length(StrVal);
+          if StrVal='' then //HY104
+             begin
+             StrVal:=#0;
+             StrLenOrInd:=SQL_NTS;
+             end;
+          PVal:=@StrVal[1];
+          Size:=Length(StrVal);
+          ColumnSize:=Size;
+          BufferLength:=Size;
           if AParams[ParamIndex].DataType = ftString then
             begin
             CType:=SQL_C_CHAR;
             SqlType:=SQL_CHAR;
             end
-          else // ftBlob
+          else // ftBlob, ftMemo
             begin
             CType:=SQL_C_BINARY;
             SqlType:=SQL_BINARY;
             end;
-          ODBCCheckResult(
-            SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
-                             i+1,                    // ParameterNumber
-                             SQL_PARAM_INPUT,        // InputOutputType
-                             CType,                  // ValueType
-                             SqlType,                // ParameterType
-                             StrLen,                 // ColumnSize
-                             0,                      // DecimalDigits
-                             buf+SizeOf(SQLINTEGER), // ParameterValuePtr
-                             StrLen,                 // BufferLength
-                             Buf),                   // StrLen_or_IndPtr
-            SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind (string) parameter %d.', [i]
-          );
         end;
-    else
-      raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
+      ftFloat:
+        begin
+          FloatVal:=AParams[ParamIndex].AsFloat;
+          PVal:=@FloatVal;
+          Size:=SizeOf(FloatVal);
+          CType:=SQL_C_DOUBLE;
+          SqlType:=SQL_DOUBLE;
+          ColumnSize:=15;
+        end;
+      ftDate:
+        begin
+          DateVal:=DateTimeToDateStruct(AParams[ParamIndex].AsDate);
+          PVal:=@DateVal;
+          Size:=SizeOf(DateVal);
+          CType:=SQL_C_TYPE_DATE;
+          SqlType:=SQL_TYPE_DATE;
+          ColumnSize:=Size;
+        end;
+      ftDateTime:
+        begin
+          DateTime2TimeStampStruct(TimeStampVal, AParams[ParamIndex].AsDateTime);
+          PVal:=@TimeStampVal;
+          Size:=SizeOf(TimeStampVal);
+          CType:=SQL_C_TYPE_TIMESTAMP;
+          SqlType:=SQL_TYPE_TIMESTAMP;
+          ColumnSize:=Size;
+        end;
+      else
+        raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
+
+    if AParams[ParamIndex].IsNull then
+       StrLenOrInd:=SQL_NULL_DATA;
+
+    Buf:=GetMem(Size+SizeOf(SQLINTEGER));
+    Move(PVal^, Buf^, Size);
+    if StrLenOrInd<>0 then
+       begin
+       PStrLenOrInd:=Buf + Size;
+       Move(StrLenOrInd, PStrLenOrInd^, SizeOf(SQLINTEGER));
+       end
+    else
+       PStrLenOrInd:=nil;
+    ODBCCursor.FParamBuf[i]:=Buf;
+
+    ODBCCheckResult(
+         SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
+                          i+1,                    // ParameterNumber
+                          SQL_PARAM_INPUT,        // InputOutputType
+                          CType,                  // ValueType
+                          SqlType,                // ParameterType
+                          ColumnSize,             // ColumnSize
+                          DecimalDigits,          // DecimalDigits
+                          Buf,                    // ParameterValuePtr
+                          BufferLength,           // BufferLength
+                          PStrLenOrInd),          // StrLen_or_IndPtr
+         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind parameter %d.', [i]
+       );
   end;
 end;
 
