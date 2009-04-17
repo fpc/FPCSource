@@ -2233,6 +2233,7 @@ packages/gtk2/src/glib/gwin32.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk-pixbuf/gdk-pixbuf-loader.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk-pixbuf/gdk2pixbuf.pas svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdk2.pas svneol=native#text/plain
+packages/gtk2/src/gtk+/gdk/gdkcairo.inc svneol=native#text/pascal
 packages/gtk2/src/gtk+/gdk/gdkcolor.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkcursor.inc svneol=native#text/plain
 packages/gtk2/src/gtk+/gdk/gdkdisplay.inc svneol=native#text/plain
