@@ -51,8 +51,11 @@ interface
     { The same as strcomp, but at most l characters are compared  }
     function strlcomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
 
-    { The same as strcomp but case insensitive       }
+    { The same as strcomp but case insensitive }
     function stricomp(str1,str2 : pchar) : SizeInt;
+
+    { The same as stricomp, but at most l characters are compared }
+    function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
 
     { Copies l characters from source to dest, returns dest. }
     function strmove(dest,source : pchar;l : SizeInt) : pchar;
@@ -64,22 +67,28 @@ interface
     { If c doesn't occur, nil is returned }
     function strscan(p : pchar;c : char) : pchar;
 
+    { The same as strscan but case insensitive }
+    function striscan(p : pchar;c : char) : pchar;
+
     { Returns a pointer to the last occurrence of c in p }
     { If c doesn't occur, nil is returned }
     function strrscan(p : pchar;c : char) : pchar;
 
-    { converts p to all-lowercase, returns p   }
+    { The same as strrscan but case insensitive }
+    function strriscan(p : pchar;c : char) : pchar;
+
+    { converts p to all-lowercase, returns p }
     function strlower(p : pchar) : pchar;
 
-    { converts p to all-uppercase, returns p  }
+    { converts p to all-uppercase, returns p }
     function strupper(p : pchar) : pchar;
 
-    { The same al stricomp, but at most l characters are compared }
-    function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
-
-    { Returns a pointer to the first occurrence of str2 in    }
-    { str1 Otherwise returns nil                          }
+    { Returns a pointer to the first occurrence of str2 in }
+    { str1 Otherwise returns nil }
     function strpos(str1,str2 : pchar) : pchar;
+
+    { The same as strpos but case insensitive       }
+    function stripos(str1,str2 : pchar) : pchar;
 
     { Makes a copy of p on the heap, and returns a pointer to this copy  }
     function strnew(p : pchar) : pchar;
@@ -87,7 +96,7 @@ interface
     { Allocates L bytes on the heap, returns a pchar pointer to it }
     function stralloc(L : SizeInt) : pchar;
 
-    { Releases a null-terminated string from the heap  }
+    { Releases a null-terminated string from the heap }
     procedure strdispose(p : pchar);
 
 implementation
