@@ -78,7 +78,7 @@ interface
     function strlicomp(str1,str2 : pchar;l : SizeInt) : SizeInt;
 
     { Returns a pointer to the first occurrence of str2 in    }
-    { str2 Otherwise returns nil                          }
+    { str1 Otherwise returns nil                          }
     function strpos(str1,str2 : pchar) : pchar;
 
     { Makes a copy of p on the heap, and returns a pointer to this copy  }
