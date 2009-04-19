@@ -57,6 +57,8 @@ Type
     FSessionDir: String;
     FTerminated :Boolean;
     SID : String;
+  private
+    procedure FreeIniFile;
   Protected
     Procedure CheckSession;
     Function GetSessionID : String; override;
@@ -145,6 +147,13 @@ begin
   Result:=SID;
 end;
 
+procedure TIniWebSession.FreeIniFile;
+begin
+  If Cached and Assigned(FIniFile) then
+    TMemIniFile(FIniFile).UpdateFile;
+  FreeAndNil(FIniFile);
+end;
+
 Procedure TIniWebSession.CheckSession;
 
 begin
@@ -173,9 +182,9 @@ end;
 
 destructor TIniWebSession.Destroy;
 begin
-  If Cached and Assigned(FIniFile) then
-    TMemIniFile(FIniFile).UpdateFile;
-  FreeAndNil(FIniFile);
+  // In case an exception occured and UpdateResponse is not called,
+  // write the updates to disk and free FIniFile
+  FreeIniFile;
   inherited Destroy;
 end;
 
@@ -192,8 +201,7 @@ end;
 procedure TIniWebSession.UpdateResponse(AResponse: TResponse);
 begin
   // Do nothing. Init has done the job.
-  If Cached and Assigned(FIniFile) then
-    TMemIniFile(FIniFile).UpdateFile;
+  FreeIniFile;
 end;
 
 procedure TIniWebSession.InitSession(ARequest: TRequest; OnNewSession,OnExpired: TNotifyEvent);
@@ -204,6 +212,14 @@ Var
   S : String;
 begin
 {$ifdef cgidebug}SendMethodEnter('TIniWebSession.InitSession');{$endif}
+  // First initialize all session-dependent properties to their default, because
+  // in Apache-modules or fcgi programs the session-instance is re-used
+  SID := '';
+  FSessionStarted := False;
+  FTerminated := False;
+  // If a exception occured during a prior request FIniFile is still not freed
+  if assigned(FIniFile) then FreeIniFile;
+
   If (SessionCookie='') then
     SessionCookie:=SFPWebSession;
   S:=ARequest.CookieFields.Values[SessionCookie];
@@ -324,16 +340,10 @@ end;
 
 procedure TSessionHTTPModule.CheckSession(ARequest : TRequest);
 
-Var
-  S : TCustomSession;
-
 begin
 {$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').CheckSession');{$endif}
   If CreateSession and Assigned(FSession) then
-    begin
-    S:=FSession;
     FSession.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
-    end;
 {$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').CheckSession');{$endif}
 end;
 
