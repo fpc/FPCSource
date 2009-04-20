@@ -185,8 +185,28 @@ implementation
           LOC_REGISTER,
           LOC_CREGISTER:
             begin
-              if getsupreg(location.register)<first_int_imreg then
-                cg.ungetcpuregister(list,location.register);
+{$ifdef cpu64bitaddr}
+                { x86-64 system v abi:
+                  structs with up to 16 bytes are returned in registers }
+                if location.size in [OS_128,OS_S128] then
+                  begin
+                    if getsupreg(location.register)<first_int_imreg then
+                      cg.ungetcpuregister(list,location.register);
+                    if getsupreg(location.registerhi)<first_int_imreg then
+                      cg.ungetcpuregister(list,location.registerhi);
+                  end
+{$else cpu64bitaddr}
+                if location.size in [OS_64,OS_S64] then
+                  begin
+                    if getsupreg(location.register64.reglo)<first_int_imreg then
+                      cg.ungetcpuregister(list,location.register64.reglo);
+                    if getsupreg(location.register64.reghi)<first_int_imreg then
+                      cg.ungetcpuregister(list,location.register64.reghi);
+                  end
+{$endif}
+                else
+                  if getsupreg(location.register)<first_int_imreg then
+                    cg.ungetcpuregister(list,location.register);
             end;
           LOC_FPUREGISTER,
           LOC_CFPUREGISTER:
