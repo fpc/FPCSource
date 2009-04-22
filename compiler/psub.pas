@@ -1481,6 +1481,22 @@ implementation
 
         tcgprocinfo(current_procinfo).parse_body;
 
+        { We can't support inlining for procedures that have nested
+          procedures because the nested procedures use a fixed offset
+          for accessing locals in the parent procedure (PFV) }
+        if (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
+          begin
+            if (df_generic in current_procinfo.procdef.defoptions) then
+              Comment(V_Error,'Generic methods cannot have nested procedures')
+            else
+             if (po_inline in current_procinfo.procdef.procoptions) then
+              begin
+                Message1(parser_w_not_supported_for_inline,'nested procedures');
+                Message(parser_w_inlining_disabled);
+                exclude(current_procinfo.procdef.procoptions,po_inline);
+              end;
+          end;
+
         { When it's a nested procedure then defer the code generation,
           when back at normal function level then generate the code
           for all defered nested procedures and the current procedure }
@@ -1488,21 +1504,6 @@ implementation
           tcgprocinfo(current_procinfo.parent).nestedprocs.insert(current_procinfo)
         else
           begin
-            { We can't support inlining for procedures that have nested
-              procedures because the nested procedures use a fixed offset
-              for accessing locals in the parent procedure (PFV) }
-            if (tcgprocinfo(current_procinfo).nestedprocs.count>0) then
-              begin
-                if (df_generic in current_procinfo.procdef.defoptions) then
-                  Comment(V_Error,'Generic methods cannot have nested procedures')
-                else
-                 if (po_inline in current_procinfo.procdef.procoptions) then
-                  begin
-                    Message1(parser_w_not_supported_for_inline,'nested procedures');
-                    Message(parser_w_inlining_disabled);
-                    exclude(current_procinfo.procdef.procoptions,po_inline);
-                  end;
-              end;
             if not(df_generic in current_procinfo.procdef.defoptions) then
               do_generate_code(tcgprocinfo(current_procinfo));
           end;
