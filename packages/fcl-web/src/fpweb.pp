@@ -101,6 +101,8 @@ Type
     FBeforeRequest: TRequestEvent;
     FOnGetParam: TGetParamEvent;
     FOnRequest: TWebActionEvent;
+    FRequest: TRequest;
+    FResponse: TResponse;
     FTemplate: TFPTemplate;
     FTemplateVars : TTemplateVars;
     function GetActionVar: String;
@@ -131,6 +133,8 @@ Type
     Property Template : TFPTemplate Read FTemplate Write SetTemplate;
     Property OnGetParam : TGetParamEvent Read FOnGetParam Write FOnGetParam;
     Property OnTemplateContent : TGetParamEvent Read FOnGetParam Write FOnGetParam;
+    Property Request: TRequest Read FRequest;
+    Property Response: TResponse Read FResponse;
   end;
   
   { TFPWebModule }
@@ -437,7 +441,8 @@ begin
 {$ifdef cgidebug}
   SendMethodEnter('WebModule('+Name+').handlerequest');
 {$endif cgidebug}
-  CheckSession(ARequest);
+  FRequest := ARequest; //So everything in the web module can access the current request variables
+  FResponse := AResponse;//So everything in the web module can access the current response variables  CheckSession(ARequest);
   DoBeforeRequest(ARequest);
   B:=False;
   InitSession(AResponse);
@@ -456,6 +461,8 @@ begin
       end;
   DoAfterResponse(AResponse);
   UpdateSession(AResponse);
+  FRequest := Nil;
+  FResponse := Nil;
 {$ifdef cgidebug}
   SendMethodExit('WebModule('+Name+').handlerequest');
 {$endif cgidebug}
