@@ -115,12 +115,9 @@ implementation
 
       ppufile.writeentry(ibcreatedobjtypes);
 
-      freemem(fcreatedobjtypesderefs);
-      fcreatedobjtypesderefs:=nil;
-      freemem(fcreatedclassrefobjtypesderefs);
-      fcreatedclassrefobjtypesderefs:=nil;
-      freemem(fmaybecreatedbyclassrefdeftypesderefs);
-      fmaybecreatedbyclassrefdeftypesderefs:=nil;
+      { don't free deref arrays immediately after use, as the types may need
+        re-resolving in case a unit needs to be reloaded
+      }
     end;
 
 
@@ -182,20 +179,17 @@ implementation
     var
       i: longint;
     begin
+      { don't free deref arrays immediately after use, as the types may need
+        re-resolving in case a unit needs to be reloaded
+      }
       for i:=0 to fcreatedobjtypes.count-1 do
         fcreatedobjtypes[i]:=fcreatedobjtypesderefs^[i].resolve;
-      freemem(fcreatedobjtypesderefs);
-      fcreatedobjtypesderefs:=nil;
 
       for i:=0 to fcreatedclassrefobjtypes.count-1 do
         fcreatedclassrefobjtypes[i]:=fcreatedclassrefobjtypesderefs^[i].resolve;
-      freemem(fcreatedclassrefobjtypesderefs);
-      fcreatedclassrefobjtypesderefs:=nil;
 
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         fmaybecreatedbyclassrefdeftypes[i]:=fmaybecreatedbyclassrefdeftypesderefs^[i].resolve;
-      freemem(fmaybecreatedbyclassrefdeftypesderefs);
-      fmaybecreatedbyclassrefdeftypesderefs:=nil;
     end;
 
 
