@@ -1369,7 +1369,8 @@ Begin
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          If Result[P - 1] <> '-' Then Insert(FormatSettings.ThousandSeparator, Result, P);
+          If (Result[P - 1] <> '-') And (FormatSettings.ThousandSeparator <> #0) Then
+            Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
       End;
@@ -1401,7 +1402,8 @@ Begin
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          Insert(FormatSettings.ThousandSeparator, Result, P);
+          If FormatSettings.ThousandSeparator<>#0 Then
+            Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
 
@@ -1954,7 +1956,7 @@ Var
               End;
             ',':
               Begin
-              thousand := True;
+              thousand := DefaultFormatSettings.ThousandSeparator<>#0;
               Inc(Fmt);
               End;
             'e', 'E':
