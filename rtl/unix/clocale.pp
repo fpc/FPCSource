@@ -306,6 +306,9 @@ begin
     NegCurrFormat := NegFormatsTable[signp, prec, sep];
   //Number stuff
   ThousandSeparator:=GetLocaleChar(__THOUSANDS_SEP);
+  Sep := ord(GetLocaleChar(__MON_THOUSANDS_SEP));
+  if ThousandSeparator=#0 then
+    ThousandSeparator := char(Sep);
   {$endif}
   DecimalSeparator:=GetLocaleChar(RADIXCHAR);
 end;
