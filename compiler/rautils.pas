@@ -789,7 +789,12 @@ Begin
   case sym.typ of
     fieldvarsym :
       begin
-        setconst(tfieldvarsym(sym).fieldoffset);
+        if not tabstractrecordsymtable(sym.owner).is_packed then
+          setconst(tfieldvarsym(sym).fieldoffset)
+        else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
+          setconst(tfieldvarsym(sym).fieldoffset div 8)
+        else
+          Message(asmr_e_packed_element);
         hasvar:=true;
         SetupVar:=true;
       end;
@@ -863,7 +868,7 @@ Begin
                else
                  begin
                    if (harrdef.elepackedbitsize mod 8) = 0 then
-                     SetSize(harrdef.elepackedbitsize div 8,false);
+                     SetSize(harrdef.elepackedbitsize div 8,false)
                  end;
             end;
         end;
@@ -1338,7 +1343,12 @@ Begin
        fieldvarsym :
          with Tfieldvarsym(sym) do
            begin
-             inc(Offset,fieldoffset);
+             if not tabstractrecordsymtable(sym.owner).is_packed then
+               inc(Offset,fieldoffset)
+             else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
+               inc(Offset,fieldoffset div 8)
+             else
+               Message(asmr_e_packed_element);
              size:=getsize;
              case vardef.typ of
                arraydef :
