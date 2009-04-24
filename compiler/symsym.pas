@@ -1501,6 +1501,7 @@ implementation
          ps : pnormalset;
          pc : pchar;
          pw : pcompilerwidestring;
+         i  : longint;
       begin
          inherited ppuload(constsym,ppufile);
          constdef:=nil;
@@ -1521,7 +1522,19 @@ implementation
              begin
                initwidestring(pw);
                setlengthwidestring(pw,ppufile.getlongint);
-               ppufile.getdata(pw^.data^,pw^.len*sizeof(tcompilerwidechar));
+               pw^.len:=pw^.maxlen;
+               { don't use getdata, because the compilerwidechars may have to
+                 be byteswapped
+               }
+{$if sizeof(tcompilerwidechar) = 2}
+               for i:=0 to pw^.len-1 do
+                 pw^.data[i]:=ppufile.getword;
+{$elseif sizeof(tcompilerwidechar) = 4}
+               for i:=0 to pw^.len-1 do
+                 pw^.data[i]:=cardinal(ppufile.getlongint);
+{$else}
+              {$error Unsupported tcompilerwidechar size}
+{$endif}
                pcompilerwidestring(value.valueptr):=pw;
              end;
            conststring,
@@ -1610,7 +1623,7 @@ implementation
            constwstring :
              begin
                ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
-               ppufile.putdata(pcompilerwidestring(value.valueptr)^.data,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
+               ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :
