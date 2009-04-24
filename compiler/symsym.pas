@@ -1521,7 +1521,7 @@ implementation
              begin
                initwidestring(pw);
                setlengthwidestring(pw,ppufile.getlongint);
-               ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+               ppufile.getdata(pw^.data^,pw^.len*sizeof(tcompilerwidechar));
                pcompilerwidestring(value.valueptr):=pw;
              end;
            conststring,
@@ -1530,6 +1530,7 @@ implementation
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
+               pc[value.len]:=#0;
                value.valueptr:=pc;
              end;
            constreal :
