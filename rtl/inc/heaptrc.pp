@@ -1283,7 +1283,15 @@ begin
 {$I-}
    append(ownfile);
    if IOResult<>0 then
-     Rewrite(ownfile);
+     begin
+       Rewrite(ownfile);
+       if IOResult<>0 then
+         begin
+           Writeln(stderr,'[heaptrc] Unable to open "',name,'", writing output to stderr instead.');
+           useownfile:=false;
+           exit;
+         end;
+     end;
 {$I+}
    useownfile:=true;
    for i:=0 to Paramcount do
@@ -1333,8 +1341,16 @@ begin
   if outputstr <> '' then
      SetHeapTraceOutput(outputstr);
 {$ifdef EXTRA}
+{$i-}
   Assign(error_file,'heap.err');
   Rewrite(error_file);
+{$i+}
+  if IOResult<>0 then
+    begin
+      writeln('[heaptrc] Unable to create heap.err extra log file, writing output to screen.');
+      Assign(error_file,'');
+      Rewrite(error_file);
+    end;
 {$endif EXTRA}
 end;
 
