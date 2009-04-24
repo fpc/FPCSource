@@ -225,7 +225,9 @@ implementation
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
             not(tpointerdef(left.resultdef).is_far) and
-            not(nf_no_checkpointer in flags) then
+            not(nf_no_checkpointer in flags) and
+            { can be NR_NO in case of LOC_CONSTANT }
+            (location.reference.base<>NR_NO) then
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
