@@ -1314,8 +1314,11 @@ unit cgcpu;
          firstfloatreg,lastfloatreg,
          r : byte;
          regs : tcpuregisterset;
+         stackmisalignment: pint;
       begin
         LocalSize:=align(LocalSize,4);
+        { call instruction does not put anything on the stack }
+        stackmisalignment:=0;
         if not(nostackframe) then
           begin
             firstfloatreg:=RS_NO;
@@ -1326,6 +1329,7 @@ unit cgcpu;
                   if firstfloatreg=RS_NO then
                     firstfloatreg:=r;
                   lastfloatreg:=r;
+                  inc(stackmisalignment,12);
                 end;
             a_reg_alloc(list,NR_STACK_POINTER_REG);
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
@@ -1346,88 +1350,37 @@ unit cgcpu;
               if (regs<>[]) or (pi_do_call in current_procinfo.flags) then
                 include(regs,RS_R14);
             if regs<>[] then
-              list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,regs),PF_FD));
+              begin
+                for r:=RS_R0 to RS_R15 do
+                  if (r in regs) then
+                    inc(stackmisalignment,4);
+                list.concat(setoppostfix(taicpu.op_ref_regset(A_STM,ref,regs),PF_FD));
+              end;
 
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
               list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
 
-           (* allocate necessary stack size
-              not necessary according to Yury Sidorov
-
-            { don't use a_op_const_reg_reg here because we don't allow register allocations
-              in the entry/exit code }
-           if (target_info.system in [system_arm_wince]) and
-              (localsize>=winstackpagesize) then
-             begin
-               if localsize div winstackpagesize<=5 then
-                 begin
-                    if is_shifter_const(localsize,shift) then
-                      list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize))
-                    else
-                      begin
-                        a_load_const_reg(list,OS_ADDR,localsize,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                      end;
-
-                    for i:=1 to localsize div winstackpagesize do
-                      begin
-                        if localsize-i*winstackpagesize<4096 then
-                          reference_reset_base(href,NR_STACK_POINTER_REG,-(localsize-i*winstackpagesize),4)
-                        else
-                          begin
-                            a_load_const_reg(list,OS_ADDR,-(localsize-i*winstackpagesize),NR_R12);
-                            reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
-                            href.index:=NR_R12;
-                          end;
-                        { the data stored doesn't matter }
-                        list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
-                      end;
+            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
+            if (LocalSize<>0) or
+               ((stackmisalignment<>0) and
+                ((pi_do_call in current_procinfo.flags) or
+                 (po_assembler in current_procinfo.procdef.procoptions))) then
+              begin
+                localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                if not(is_shifter_const(localsize,shift)) then
+                  begin
+                    if current_procinfo.framepointer=NR_STACK_POINTER_REG then
+                      a_reg_alloc(list,NR_R12);
+                    a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                    list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
                     a_reg_dealloc(list,NR_R12);
-                    reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
-                    { the data stored doesn't matter }
-                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
-                 end
-               else
-                 begin
-                    current_asmdata.getjumplabel(again);
-                    list.concat(Taicpu.op_reg_const(A_MOV,NR_R12,localsize div winstackpagesize));
-                    a_label(list,again);
-                    { always shifterop }
-                    list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,winstackpagesize));
-                    reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
-                    { the data stored doesn't matter }
-                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
-                    list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_R12,NR_R12,1));
-                    a_jmp_cond(list,OC_NE,again);
-                    if is_shifter_const(localsize mod winstackpagesize,shift) then
-                      list.concat(Taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,localsize mod winstackpagesize))
-                    else
-                      begin
-                        a_load_const_reg(list,OS_ADDR,localsize mod winstackpagesize,NR_R12);
-                        list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                      end;
+                  end
+                else
+                  begin
                     a_reg_dealloc(list,NR_R12);
-                    reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
-                    { the data stored doesn't matter }
-                    list.concat(Taicpu.op_reg_ref(A_STR,NR_R0,href));
-                 end
-             end
-            else
-            *)
-            if LocalSize<>0 then
-              if not(is_shifter_const(localsize,shift)) then
-                begin
-                  if current_procinfo.framepointer=NR_STACK_POINTER_REG then
-                    a_reg_alloc(list,NR_R12);
-                  a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                  list.concat(taicpu.op_reg_reg_reg(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                  a_reg_dealloc(list,NR_R12);
-                end
-              else
-                begin
-                  a_reg_dealloc(list,NR_R12);
-                  list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-                end;
+                    list.concat(taicpu.op_reg_reg_const(A_SUB,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                  end;
+              end;
 
             if firstfloatreg<>RS_NO then
               begin
@@ -1458,9 +1411,11 @@ unit cgcpu;
          shift : byte;
          regs : tcpuregisterset;
          LocalSize : longint;
+         stackmisalignment: pint;
       begin
         if not(nostackframe) then
           begin
+            stackmisalignment:=0;
             { restore floating point register }
             firstfloatreg:=RS_NO;
             { save floating point registers? }
@@ -1470,6 +1425,10 @@ unit cgcpu;
                   if firstfloatreg=RS_NO then
                     firstfloatreg:=r;
                   lastfloatreg:=r;
+                  { floating point register space is already included in
+                    localsize below by calc_stackframe_size
+                   inc(stackmisalignment,12);
+                  }
                 end;
 
             if firstfloatreg<>RS_NO then
@@ -1490,28 +1449,42 @@ unit cgcpu;
                   lastfloatreg-firstfloatreg+1,ref));
               end;
 
+            regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
+            if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
+              begin
+                exclude(regs,RS_R14);
+                include(regs,RS_R15);
+              end;
+            if (current_procinfo.framepointer<>NR_STACK_POINTER_REG) then
+              regs:=regs+[RS_R11,RS_R13,RS_R15];
+
+            for r:=RS_R0 to RS_R15 do
+              if (r in regs) then
+                inc(stackmisalignment,4);
+
+            stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 LocalSize:=current_procinfo.calc_stackframe_size;
-                if LocalSize<>0 then
-                  if not(is_shifter_const(LocalSize,shift)) then
-                    begin
-                      a_reg_alloc(list,NR_R12);
-                      a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
-                      list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
-                      a_reg_dealloc(list,NR_R12);
-                    end
-                  else
-                    begin
-                      list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
-                    end;
-
-                regs:=rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall);
-                if (pi_do_call in current_procinfo.flags) or (regs<>[]) then
+                if (LocalSize<>0) or
+                   ((stackmisalignment<>0) and
+                    ((pi_do_call in current_procinfo.flags) or
+                     (po_assembler in current_procinfo.procdef.procoptions))) then
                   begin
-                    exclude(regs,RS_R14);
-                    include(regs,RS_R15);
+                    localsize:=align(localsize+stackmisalignment,current_settings.alignment.localalignmax)-stackmisalignment;
+                    if not(is_shifter_const(LocalSize,shift)) then
+                      begin
+                        a_reg_alloc(list,NR_R12);
+                        a_load_const_reg(list,OS_ADDR,LocalSize,NR_R12);
+                        list.concat(taicpu.op_reg_reg_reg(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,NR_R12));
+                        a_reg_dealloc(list,NR_R12);
+                      end
+                    else
+                      begin
+                        list.concat(taicpu.op_reg_reg_const(A_ADD,NR_STACK_POINTER_REG,NR_STACK_POINTER_REG,LocalSize));
+                      end;
                   end;
+
                 if regs=[] then
                   list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
                 else
@@ -1527,7 +1500,7 @@ unit cgcpu;
                 { restore int registers and return }
                 reference_reset(ref,4);
                 ref.index:=NR_FRAME_POINTER_REG;
-                list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,rg[R_INTREGISTER].used_in_proc-paramanager.get_volatile_registers_int(pocall_stdcall)+[RS_R11,RS_R13,RS_R15]),PF_EA));
+                list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,regs),PF_EA));
               end;
           end
         else
