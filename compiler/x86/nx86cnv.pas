@@ -262,10 +262,13 @@ implementation
               else
                 internalerror(2007120902);
             end;
-            case left.location.size of
-              OS_S32:
+            { don't use left.location.size, because that one may be OS_32/OS_64
+              if the lower bound of the orddef >= 0
+            }
+            case torddef(left.resultdef).ordtype of
+              s32bit:
                 opsize:=S_L;
-              OS_S64:
+              s64bit:
                 opsize:=S_Q;
               else
                 internalerror(2007120903);
