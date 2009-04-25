@@ -1,5 +1,5 @@
-{% opt=-Cg- }
-{% cpu=i386 }
+{ %opt=-Cg- }
+{ %cpu=i386 }
 
 program fpcbug;
 
