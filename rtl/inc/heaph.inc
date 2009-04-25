@@ -77,8 +77,8 @@ function  SysGetHeapStatus:THeapStatus;
 function  SysGetFPCHeapStatus:TFPCHeapStatus;
 
 { Tp7 functions }
-Procedure Getmem(Var p:pointer;Size:ptruint);
-Procedure Getmemory(Var p:pointer;Size:ptruint);
+Procedure Getmem(Out p:pointer;Size:ptruint);
+Procedure Getmemory(Out p:pointer;Size:ptruint);
 Procedure Freemem(p:pointer;Size:ptruint);
 Procedure Freememory(p:pointer;Size:ptruint);
 

@@ -230,12 +230,12 @@ begin
     or (MemoryManager.FreeMem<>@SysFreeMem);
 end;
 
-procedure GetMem(Var p:pointer;Size:ptruint);
+procedure GetMem(Out p:pointer;Size:ptruint);
 begin
   p := MemoryManager.GetMem(Size);
 end;
 
-procedure GetMemory(Var p:pointer;Size:ptruint);
+procedure GetMemory(Out p:pointer;Size:ptruint);
 begin
   GetMem(p,size);
 end;
