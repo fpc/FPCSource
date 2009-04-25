@@ -146,7 +146,8 @@ implementation
              'guidconstn',
              'rttin',
              'loadparentfpn',
-             'dataconstn'
+             'dataconstn',
+             'objselectorn'
              );
       var
         p: pchar;
