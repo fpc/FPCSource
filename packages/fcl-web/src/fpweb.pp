@@ -442,7 +442,8 @@ begin
   SendMethodEnter('WebModule('+Name+').handlerequest');
 {$endif cgidebug}
   FRequest := ARequest; //So everything in the web module can access the current request variables
-  FResponse := AResponse;//So everything in the web module can access the current response variables  CheckSession(ARequest);
+  FResponse := AResponse;//So everything in the web module can access the current response variables
+  CheckSession(ARequest);
   DoBeforeRequest(ARequest);
   B:=False;
   InitSession(AResponse);
