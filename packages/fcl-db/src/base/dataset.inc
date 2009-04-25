@@ -34,7 +34,7 @@ begin
 //  pointer(FBuffers^) := nil;
   FBuffers[0] := nil;
   FActiveRecord := 0;
-  FBufferCount := 0;
+  FBufferCount := -1;
   FEOF := True;
   FBOF := True;
   FIsUniDirectional := False;
@@ -1172,7 +1172,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(PChar));
 {$endif}
-    if FBufferCount > 0 then inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
+    inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory :');
@@ -1222,10 +1222,10 @@ begin
         ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
     end;
+  FBufferCount:=Value;
   If Value=-1 then
     Value:=0;
   if FRecordcount > Value then FRecordcount := Value;
-  FBufferCount:=Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
 {$endif}
