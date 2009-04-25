@@ -1718,6 +1718,11 @@ Unit Rax86int;
                                 { Support Type([Reference]) }
                                 Consume(AS_LPAREN);
                                 BuildOperand(oper,true);
+                                { Delphi also supports Type(Register) and
+                                  interprets it the same as Type([Register]).  }
+                                if (oper.opr.typ = OPR_REGISTER) then
+                                  { This also sets base to the register.  }
+                                  oper.InitRef;
                                 Consume(AS_RPAREN);
                               end;
                             AS_LBRACKET :
