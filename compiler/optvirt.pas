@@ -1068,8 +1068,13 @@ unit optvirt;
            exit;
          { if it's for a vmtentry of an objdef and the objdef is
            not instantiated, then we can fill the vmt with pointers
-           to FPC_ABSTRACTERROR
+           to FPC_ABSTRACTERROR, except for published methods
+           (these can be called via rtti, so always have to point
+            to the original method)
          }
+         if forvmtentry and
+            (tprocdef(procdef).procsym.visibility=vis_published) then
+           exit;
          if forvmtentry and
             (objdef.typ=objectdef) and
             not classdevirtinfo.instantiated and
