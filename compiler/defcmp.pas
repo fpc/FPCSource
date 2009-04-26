@@ -614,8 +614,18 @@ implementation
                    begin
                      { ugly, but delphi allows it }
                      if (cdo_explicit in cdoptions) and
-                       (m_delphi in current_settings.modeswitches) and
-                       (eq=te_incompatible) then
+                       (m_delphi in current_settings.modeswitches) then
+                       begin
+                         doconv:=tc_int_2_int;
+                         eq:=te_convert_l1;
+                       end;
+                   end;
+                 objectdef:
+                   begin
+                     { ugly, but delphi allows it }
+                     if (m_delphi in current_settings.modeswitches) and
+                        is_class_or_interface_or_dispinterface(def_from) and
+                        (cdo_explicit in cdoptions) then
                        begin
                          doconv:=tc_int_2_int;
                          eq:=te_convert_l1;
@@ -962,8 +972,7 @@ implementation
                      { allow explicit typecasts from enums to pointer.
                        Support for delphi compatibility
                      }
-                     if (eq=te_incompatible) and
-                        (((cdo_explicit in cdoptions) and
+                     if (((cdo_explicit in cdoptions) and
                           (m_delphi in current_settings.modeswitches)
                           ) or
                          (cdo_internal in cdoptions)
@@ -1263,8 +1272,7 @@ implementation
                        eq:=te_convert_l2;
                      end
                    { ugly, but delphi allows it }
-                   else if (eq=te_incompatible) and
-                     (def_from.typ in [orddef,enumdef]) and
+                   else if (def_from.typ in [orddef,enumdef]) and
                      (m_delphi in current_settings.modeswitches) and
                      (cdo_explicit in cdoptions) then
                      begin
