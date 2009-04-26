@@ -483,7 +483,7 @@ function EvaluateXPathExpression(const AExpressionString: DOMString;
 
 implementation
 
-uses Math;
+uses Math, xmlutils;
 
 { Helper functions }
 
@@ -635,6 +635,8 @@ begin
     for i := 0 to FArgs.Count - 1 do
       Args.Add(TXPathExprNode(FArgs[i]).Evaluate(AContext, AEnvironment));
     Result := Fn(AContext, Args);
+    for i := 0 to FArgs.Count - 1 do
+      TXPathVariable(Args[i]).Release;
   finally
     Args.Free;
   end;
@@ -703,7 +705,9 @@ begin
           NumberResult := Op1 * Op2;
         opDivide:
           NumberResult := Op1 / Op2;
-        opMod:
+        opMod: if IsNan(Op1) or IsNan(Op2) then
+          NumberResult := NaN
+        else
           NumberResult := Trunc(Op1) mod Trunc(Op2);
       end;
     finally
@@ -715,6 +719,92 @@ begin
   Result := TXPathNumberVariable.Create(NumberResult);
 end;
 
+const
+  reverse: array[TXPathCompareOp] of TXPathCompareOp = (
+    opEqual, opNotEqual,
+    opGreaterEqual, //opLess
+    opGreater,      //opLessEqual
+    opLessEqual,    //opGreater
+    opLess          //opGreaterEqual
+  );
+  
+function CmpNumbers(const n1, n2: Extended; op: TXPathCompareOp): Boolean;
+begin
+  result := (op = opNotEqual);
+  if IsNan(n1) or IsNan(n2) then
+    Exit;    // NaNs are not equal
+  case op of
+    // TODO: should CompareValue() be used here?
+    opLess:         result := n1 < n2;
+    opLessEqual:    result := n1 <= n2;
+    opGreater:      result := n1 > n2;
+    opGreaterEqual: result := n1 >= n2;
+  else
+    if IsInfinite(n1) or IsInfinite(n2) then
+      result := n1 = n2
+    else
+      result := SameValue(n1, n2);
+    result := result xor (op = opNotEqual);
+  end;
+end;
+
+function CmpStrings(const s1, s2: DOMString; op: TXPathCompareOp): Boolean;
+begin
+  case op of
+    opEqual:    result := s1 = s2;
+    opNotEqual: result := s1 <> s2;
+  else
+    result := CmpNumbers(StrToNumber(s1), StrToNumber(s2), op);
+  end;
+end;
+
+function CmpNodesetWithString(ns: TNodeSet; const s: DOMString; op: TXPathCompareOp): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to ns.Count - 1 do
+  begin
+    if CmpStrings(NodeToText(TDOMNode(ns[i])), s, op) then
+      exit;
+  end;
+  Result := False;
+end;
+
+function CmpNodesetWithNumber(ns: TNodeSet; const n: Extended; op: TXPathCompareOp): Boolean;
+var
+  i: Integer;
+begin
+  Result := True;
+  for i := 0 to ns.Count - 1 do
+  begin
+    if CmpNumbers(StrToNumber(NodeToText(TDOMNode(ns[i]))), n, op) then
+      exit;
+  end;
+  Result := False;
+end;
+
+function CmpNodesetWithBoolean(ns: TNodeSet; b: Boolean; op: TXPathCompareOp): Boolean;
+begin
+// TODO: handles only equality
+  result := ((ns.Count <> 0) = b) xor (op = opNotEqual);
+end;
+
+function CmpNodesets(ns1, ns2: TNodeSet; op: TXPathCompareOp): Boolean;
+var
+  i, j: Integer;
+  s: DOMString;
+begin
+  Result := True;
+  for i := 0 to ns1.Count - 1 do
+  begin
+    s := NodeToText(TDOMNode(ns1[i]));
+    for j := 0 to ns2.Count - 1 do
+    if CmpStrings(s, NodeToText(TDOMNode(ns2[j])), op) then
+      exit;
+  end;
+  Result := False;
+end;
 
 constructor TXPathCompareNode.Create(AOperator: TXPathCompareOp;
   AOperand1, AOperand2: TXPathExprNode);
@@ -729,102 +819,55 @@ function TXPathCompareNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   Op1, Op2: TXPathVariable;
-  e1, e2: Extended;
   BoolResult: Boolean;
-
-
-  function EvalEqual: Boolean;
-  var
-    i, j: Integer;
-    NodeSet1, NodeSet2: TNodeSet;
-    s: DOMString;
-    e1, e2: Extended;
-  begin
-    // !!!: Doesn't handle nodesets yet!
-    if Op1.InheritsFrom(TXPathNodeSetVariable) then
-    begin
-      NodeSet1 := Op1.AsNodeSet;
-      if Op2.InheritsFrom(TXPathNodeSetVariable) then
-      begin
-        NodeSet2 := Op2.AsNodeSet;
-        for i := 0 to NodeSet1.Count - 1 do
-        begin
-          s := NodeToText(TDOMNode(NodeSet1[i]));
-          for j := 0 to NodeSet2.Count - 1 do
-            if s = NodeToText(TDOMNode(NodeSet2[j])) then
-            begin
-              Result := True;
-              exit;
-            end;
-        end;
-      end else
-      begin
-        s := Op2.AsText;
-        for i := 0 to NodeSet1.Count - 1 do
-        begin
-          if NodeToText(TDOMNode(NodeSet1[i])) = s then
-          begin
-            Result := True;
-            exit;
-          end;
-        end;
-      end;
-      Result := False;
-    end else if Op2.InheritsFrom(TXPathNodeSetVariable) then
-    begin
-      s := Op1.AsText;
-      for i := 0 to NodeSet2.Count - 1 do
-        if s = NodeToText(TDOMNode(NodeSet2[i])) then
-        begin
-          Result := True;
-          exit;
-        end;
-      Result := False;
-    end else if Op1.InheritsFrom(TXPathBooleanVariable) or
-      Op2.InheritsFrom(TXPathBooleanVariable) then
-      Result := Op1.AsBoolean = Op2.AsBoolean
-    else if Op1.InheritsFrom(TXPathNumberVariable) or
-      Op2.InheritsFrom(TXPathNumberVariable) then
-    begin
-      e1 := Op1.AsNumber;
-      e2 := Op2.AsNumber;
-      if IsNan(e1) or IsNan(e2) then
-        Result := False
-      else if IsInfinite(e1) or IsInfinite(e2) then
-        Result := e1 = e2
-      else
-        Result := SameValue(e1, e2);
-    end
-    else
-      Result := Op1.AsText = Op2.AsText; // !!!: Attention with Unicode!
-  end;
-
+  nsnum: Integer;
 begin
   Op1 := FOperand1.Evaluate(AContext, AEnvironment);
   try
     Op2 := FOperand2.Evaluate(AContext, AEnvironment);
     try
-      case FOperator of
-        opEqual:
-          BoolResult := EvalEqual;
-        opNotEqual:
-          BoolResult := not EvalEqual;
-      else
-        e1 := Op1.AsNumber;
-        e2 := Op2.AsNumber;
-        if IsNan(e1) or IsNan(e2) then
-          BoolResult := False
-        else
-        case FOperator of
-          opLess:
-            BoolResult := e1 < e2;
-          opLessEqual:
-            BoolResult := e1 <= e2;
-          opGreater:
-            BoolResult := e1 > e2;
-          opGreaterEqual:
-            BoolResult := e1 >= e2;
+      nsnum := 0;
+      if Op1 is TXPathNodeSetVariable then
+        Inc(nsnum);
+      if Op2 is TXPathNodeSetVariable then
+        Inc(nsnum);
+      case nsnum of
+        0: begin  // neither op is a nodeset
+          if (FOperator in [opEqual, opNotEqual]) then
+          begin
+            if ((Op1 is TXPathBooleanVariable) or (Op2 is TXPathBooleanVariable)) then
+              BoolResult := (Op1.AsBoolean = Op2.AsBoolean) xor (FOperator = opNotEqual)
+            else if (Op1 is TXPathNumberVariable) or (Op2 is TXPathNumberVariable) then
+              BoolResult := CmpNumbers(Op1.AsNumber, Op2.AsNumber, FOperator)
+            else
+              BoolResult := (Op1.AsText = Op2.AsText) xor (FOperator = opNotEqual);
+          end
+          else
+            BoolResult := CmpNumbers(Op1.AsNumber, Op2.AsNumber, FOperator);
         end;
+
+        1: begin
+          if Op1 is TXPathNodeSetVariable then
+          begin
+            if Op2 is TXPathNumberVariable then
+              BoolResult := CmpNodesetWithNumber(Op1.AsNodeSet, Op2.AsNumber, FOperator)
+            else if Op2 is TXPathStringVariable then
+              BoolResult := CmpNodesetWithString(Op1.AsNodeSet, Op2.AsText, FOperator)
+            else
+              BoolResult := CmpNodesetWithBoolean(Op1.AsNodeSet, Op2.AsBoolean, FOperator);
+          end
+          else  // Op2 is nodeset
+          begin
+            if Op1 is TXPathNumberVariable then
+              BoolResult := CmpNodesetWithNumber(Op2.AsNodeSet, Op1.AsNumber, reverse[FOperator])
+            else if Op1 is TXPathStringVariable then
+              BoolResult := CmpNodesetWithString(Op2.AsNodeSet, Op1.AsText, reverse[FOperator])
+            else
+              BoolResult := CmpNodesetWithBoolean(Op2.AsNodeSet, Op1.AsBoolean, reverse[FOperator]);
+          end;
+        end;
+      else  // both ops are nodesets
+        BoolResult := CmpNodesets(Op1.AsNodeSet, Op2.AsNodeSet, FOperator);
       end;
     finally
       Op2.Release;
@@ -1357,21 +1400,11 @@ begin
 end;
 
 function TXPathNodeSetVariable.AsText: DOMString;
-var
-  i: Integer;
 begin
   if FValue.Count = 0 then
-    SetLength(Result, 0)
+    Result := ''
   else
-  begin
-    Result := '';
-    for i := 0 to FValue.Count - 1 do
-    begin
-      if i > 0 then
-        Result := Result + LineEnding;
-      Result := Result + NodeToText(TDOMNode(FValue[i]));
-    end;
-  end;
+    Result := NodeToText(TDOMNode(FValue.First));
 end;
 
 function TXPathNodeSetVariable.AsBoolean: Boolean;
@@ -1803,6 +1836,7 @@ begin
                 if NextToken = tkString then
                 begin
                   // TODO: Handle processing-instruction('name') constructs
+                  CurStep.NodeTestString := CurTokenString;
                   NextToken;
                 end;
                 if CurToken <> tkRightBracket then
@@ -2434,23 +2468,33 @@ end;
 function TXPathEnvironment.xpStartsWith(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
   s1, s2: DOMString;
+  res: Boolean;
 begin
   if Args.Count <> 2 then
     EvaluationError(SEvalInvalidArgCount);
   s1 := TXPathVariable(Args[0]).AsText;
   s2 := TXPathVariable(Args[1]).AsText;
-  Result := TXPathBooleanVariable.Create(Pos(s2, s1) = 1);
+  if s2 = '' then
+    res := True
+  else
+    res := Pos(s2, s1) = 1;
+  Result := TXPathBooleanVariable.Create(res);
 end;
 
 function TXPathEnvironment.xpContains(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
   s1, s2: DOMString;
+  res: Boolean;
 begin
   if Args.Count <> 2 then
     EvaluationError(SEvalInvalidArgCount);
   s1 := TXPathVariable(Args[0]).AsText;
   s2 := TXPathVariable(Args[1]).AsText;
-  Result := TXPathBooleanVariable.Create(Pos(s2, s1) <> 0);
+  if s2 = '' then
+    res := True
+  else
+    res := Pos(s2, s1) <> 0;
+  Result := TXPathBooleanVariable.Create(res);
 end;
 
 function TXPathEnvironment.xpSubstringBefore(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
@@ -2525,11 +2569,27 @@ begin
 end;
 
 function TXPathEnvironment.xpNormalizeSpace(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  s: DOMString;
+  p: DOMPChar;
+  i: Integer;
 begin
   if Args.Count > 1 then
     EvaluationError(SEvalInvalidArgCount);
-// TODO: xmlutils.NormalizeSpace is not appropriate because it handles only #32 chars
-  EvaluationError(SEvalFunctionNotImplementedYet, ['normalize-space']); // !!!
+  if Args.Count = 0 then
+    s := NodeToText(Context.ContextNode)
+  else
+    s := TXPathVariable(Args[0]).AsText;
+  UniqueString(s);
+  p := DOMPChar(s);
+  for i := 1 to Length(s) do
+  begin
+    if (p^ = #10) or (p^ = #13) or (p^ = #9) then
+      p^ := #32;
+    Inc(p);  
+  end;
+  NormalizeSpaces(s);
+  Result := TXPathStringVariable.Create(s);
 end;
 
 function TXPathEnvironment.xpTranslate(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
@@ -2589,24 +2649,42 @@ begin
 end;
 
 function TXPathEnvironment.xpSum(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  i: Integer;
+  ns: TNodeSet;
+  sum: Extended;
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  EvaluationError(SEvalFunctionNotImplementedYet, ['sum']); // !!!
+  ns := TXPathVariable(Args[0]).AsNodeSet;
+  sum := 0.0;
+  for i := 0 to ns.Count-1 do
+    sum := sum + StrToNumber(NodeToText(TDOMNode(ns[i])));
+  Result := TXPathNumberVariable.Create(sum);
 end;
 
 function TXPathEnvironment.xpFloor(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  n: Extended;
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  Result := TXPathNumberVariable.Create(Floor(TXPathVariable(Args[0]).AsNumber));
+  n := TXPathVariable(Args[0]).AsNumber;
+  if not IsNan(n) then
+    n := floor(n);
+  Result := TXPathNumberVariable.Create(n);
 end;
 
 function TXPathEnvironment.xpCeiling(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  n: Extended;
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  Result := TXPathNumberVariable.Create(Ceil(TXPathVariable(Args[0]).AsNumber));
+  n := TXPathVariable(Args[0]).AsNumber;
+  if not IsNan(n) then
+    n := ceil(n);
+  Result := TXPathNumberVariable.Create(n);
 end;
 
 function TXPathEnvironment.xpRound(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
