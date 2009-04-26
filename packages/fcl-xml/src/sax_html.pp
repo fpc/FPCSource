@@ -380,11 +380,20 @@ begin
       if Length(TokenText) > 0 then
       begin
         Attr := nil;
-        if TokenText[1] = '/' then
+        if TokenText[Length(fTokenText)]='/' then  // handle xml/xhtml style empty tag
+        begin
+          setlength(fTokenText,length(fTokenText)-1);
+          // Do NOT combine to a single line, as Attr is an output value!
+          TagName := SplitTagString(TokenText, Attr);
+          DoStartElement('', TagName, '', Attr);
+          DoEndElement('', TagName, '');
+        end
+        else if TokenText[1] = '/' then
         begin
           DoEndElement('',
             SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
-        end else if TokenText[1] <> '!' then
+        end
+        else if TokenText[1] <> '!' then
         begin
           // Do NOT combine to a single line, as Attr is an output value!
           TagName := SplitTagString(TokenText, Attr);
