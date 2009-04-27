@@ -2476,13 +2476,27 @@ end;
 {    BCDToInt converts the BCD value Value to an integer   }
 
 function BCDToInt(Value: integer): integer;
-var i, j: integer;
+var i, j, digit: integer;
 begin
 result := 0;
 j := 1;
-for i := 0 to SizeOf(Value) shr 1 - 1 do begin
-   result := result + j * (Value and 15);
-   j := j * 10;
+
+for i := 0 to SizeOf(Value) shl 1 - 1 do begin
+   digit := Value and 15;
+
+   if digit > $9 then
+   begin
+       if i = 0 then
+       begin
+           if digit in [$B, $D] then j := -1
+       end
+       else raise EConvertError.createfmt(SInvalidBCD,[Value]);
+   end
+   else
+   begin
+      result := result + j * digit;
+      j := j * 10;
+      end ;
    Value := Value shr 4;
    end ;
 end ;

@@ -54,6 +54,7 @@ resourcestring
   SIntOverflow           = 'Arithmetic overflow';
   SIntfCastError         = 'Interface not supported';
   SInvalidArgIndex       = 'Invalid argument index in format "%s"';
+  SInvalidBCD            = '%x is an invalid BCD value';
   SInvalidBoolean        = '"%s" is not a valid boolean.';
   SInvalidCast           = 'Invalid type cast';
   SinvalidCurrency       = 'Invalid currency: "%s"';
