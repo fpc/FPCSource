@@ -33,15 +33,22 @@ interface
     type
        taddnode = class(tbinopnode)
        private
+          resultrealdefderef: tderef;
           function pass_typecheck_internal:tnode;
        public
           resultrealdef : tdef;
           constructor create(tt : tnodetype;l,r : tnode);override;
+          constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
+          procedure ppuwrite(ppufile:tcompilerppufile);override;
+          procedure buildderefimpl;override;
+          procedure derefimpl;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function simplify : tnode;override;
+          function dogetcopy : tnode;override;
+          function docompare(p: tnode): boolean; override;
     {$ifdef state_tracking}
-      function track_state_pass(exec_known:boolean):boolean;override;
+          function track_state_pass(exec_known:boolean):boolean;override;
     {$endif}
          protected
           { override the following if you want to implement }
@@ -135,6 +142,34 @@ implementation
     constructor taddnode.create(tt : tnodetype;l,r : tnode);
       begin
          inherited create(tt,l,r);
+      end;
+
+
+    constructor taddnode.ppuload(t: tnodetype; ppufile: tcompilerppufile);
+      begin
+        inherited ppuload(t, ppufile);
+        ppufile.getderef(resultrealdefderef);
+      end;
+
+
+    procedure taddnode.ppuwrite(ppufile: tcompilerppufile);
+      begin
+        inherited ppuwrite(ppufile);
+         ppufile.putderef(resultrealdefderef);
+      end;
+
+
+    procedure taddnode.buildderefimpl;
+      begin
+        inherited buildderefimpl;
+        resultrealdefderef.build(resultrealdef);
+      end;
+
+
+    procedure taddnode.derefimpl;
+      begin
+        inherited derefimpl;
+        resultrealdef:=tdef(resultrealdefderef.resolve);
       end;
 
 
@@ -705,6 +740,24 @@ implementation
              exit;
           end;
 
+      end;
+
+
+    function taddnode.dogetcopy: tnode;
+      var
+        n: taddnode;
+      begin
+        n:=taddnode(inherited dogetcopy);
+        n.resultrealdef:=resultrealdef;
+        result:=n;
+      end;
+
+
+    function taddnode.docompare(p: tnode): boolean;
+      begin
+        result:=
+          inherited docompare(p) and
+          equal_defs(taddnode(p).resultrealdef,resultrealdef);
       end;
 
 
