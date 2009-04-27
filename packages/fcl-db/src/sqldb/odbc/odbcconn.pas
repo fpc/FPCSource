@@ -498,7 +498,7 @@ begin
         SQLFreeHandle(SQL_HANDLE_DBC,FDBCHandle),
         SQL_HANDLE_DBC,FDBCHandle,'Could not free ODBC Connection handle.'
       );
-      raise; // re-raise exceptoin
+      raise; // re-raise exception
     end;
   end;
 
