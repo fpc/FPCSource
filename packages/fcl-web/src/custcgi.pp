@@ -153,7 +153,10 @@ end;
 
 Procedure TCustomCGIApplication.ShowException(E: Exception);
 begin
-  ShowRequestException(FResponse,E);
+  if assigned(FResponse) then
+    ShowRequestException(FResponse,E)
+  else
+    inherited ShowException(E);
 end;
 
 Function TCustomCGIApplication.GetEmail : String;
