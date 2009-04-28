@@ -409,7 +409,7 @@ type
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
     function ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
-    procedure ProcessDefaultAttributes(Element: TDOMElement; ElDef: TDOMElementDef);
+    procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
 
     procedure PushVC(aElDef: TDOMElementDef);
     procedure PopVC;
@@ -1097,6 +1097,7 @@ end;
 constructor TXMLFileInputSource.Create(var AFile: Text);
 begin
   FFile := @AFile;
+  SystemID := FilenameToURI(TTextRec(AFile).Name);
   FetchData;
 end;
 
@@ -2888,7 +2889,8 @@ begin
   end;
   ExpectChar('>');
 
-  ProcessDefaultAttributes(NewElem, ElDef);
+  if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
+    ProcessDefaultAttributes(NewElem, ElDef.FAttributes);
   PushVC(ElDef);  // this increases FNesting
 
   // SAX: ContentHandler.StartElement(...)
@@ -3035,18 +3037,12 @@ begin
   ClearRefs(FIDRefs);
 end;
 
-procedure TXMLReader.ProcessDefaultAttributes(Element: TDOMElement; ElDef: TDOMElementDef);
-var
-  Map: TDOMNamedNodeMap;
-  Attr: TDOMAttr;
-
-procedure DoDefaulting;
+procedure TXMLReader.ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
 var
   I: Integer;
   AttDef: TDOMAttrDef;
+  Attr: TDOMAttr;
 begin
-  Map := ElDef.FAttributes;
-
   for I := 0 to Map.Length-1 do
   begin
     AttDef := Map[I] as TDOMAttrDef;
@@ -3065,11 +3061,6 @@ begin
       end;
     end;
   end;
-end;
-
-begin
-  if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
-    DoDefaulting;
 end;
 
 function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
@@ -3511,7 +3502,6 @@ var
 begin
   ADoc := nil;
   Src := TXMLFileInputSource.Create(f);
-  Src.SystemID := FilenameToURI(TTextRec(f).Name);
   Reader := TXMLReader.Create;
   try
     Reader.ProcessXML(Src);

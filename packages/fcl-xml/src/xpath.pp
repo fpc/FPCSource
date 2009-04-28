@@ -100,6 +100,9 @@ type
 { XPath expression parse tree }
 
   TXPathExprNode = class
+  protected
+    function EvalPredicate(AContext: TXPathContext;
+      AEnvironment: TXPathEnvironment; APosition: Integer): Boolean;
   public
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; virtual; abstract;
@@ -567,6 +570,22 @@ end;
 
 { XPath parse tree classes }
 
+function TXPathExprNode.EvalPredicate(AContext: TXPathContext;
+  AEnvironment: TXPathEnvironment; APosition: Integer): Boolean;
+var
+  resvar: TXPathVariable;
+begin
+  resvar := Evaluate(AContext, AEnvironment);
+  try
+    if resvar.InheritsFrom(TXPathNumberVariable) then
+      Result := resvar.AsNumber = APosition + 1   // TODO: trunc/round?
+    else
+      Result := resvar.AsBoolean;
+  finally
+    resvar.Release;
+  end;
+end;
+
 constructor TXPathConstantNode.Create(AValue: TXPathVariable);
 begin
   inherited Create;
@@ -973,7 +992,7 @@ end;
 function TXPathFilterNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
-  ExprResult, PredicateResult: TXPathVariable;
+  ExprResult: TXPathVariable;
   NodeSet, NewNodeSet: TNodeSet;
   i, j: Integer;
   CurContextNode: TDOMNode;
@@ -995,24 +1014,10 @@ begin
         DoAdd := True;
         for j := 0 to FPredicates.Count - 1 do
         begin
-          PredicateResult := TXPathExprNode(FPredicates[j]).Evaluate(NewContext,
-            AEnvironment);
-          try
-            if PredicateResult.InheritsFrom(TXPathNumberVariable) then
-            begin
-              if PredicateResult.AsNumber <> i + 1 then
-              begin
-                DoAdd := False;
-                break;
-              end;
-            end else if not PredicateResult.AsBoolean then
-            begin
-              DoAdd := False;
-              break;
-            end;
-          finally
-            PredicateResult.Release;
-          end;
+          DoAdd := TXPathExprNode(FPredicates[j]).EvalPredicate(NewContext,
+            AEnvironment, i);
+          if not DoAdd then
+            Break;
         end;
         if DoAdd then
           NewNodeSet.Add(CurContextNode);
@@ -1108,7 +1113,6 @@ var
     NewContext: TXPathContext;
     NewStepNodes: TNodeSet;
     Predicate: TXPathExprNode;
-    PredicateResult: TXPathVariable;
     TempList: TList;
 
   begin
@@ -1241,16 +1245,8 @@ var
           Node := TDOMNode(StepNodes[j]);
           NewContext.ContextNode := Node;
           Inc(NewContext.ContextPosition);
-          PredicateResult := Predicate.Evaluate(NewContext, AEnvironment);
-          try
-            if (PredicateResult.InheritsFrom(TXPathNumberVariable) and
-              (PredicateResult.AsNumber = j + 1)) or
-              (not PredicateResult.InheritsFrom(TXPathNumberVariable) and
-               PredicateResult.AsBoolean) then
-                NewStepNodes.Add(Node);
-          finally
-            PredicateResult.Release;
-          end;
+          if Predicate.EvalPredicate(NewContext, AEnvironment, j) then
+            NewStepNodes.Add(Node);
         end;
       finally
         NewContext.Free;
