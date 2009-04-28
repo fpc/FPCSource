@@ -14,7 +14,10 @@
   type (func|prop|method) "func"
   result CDATA #IMPLIED
   objtype CDATA #IMPLIED
+  rename CDATA #IMPLIED
   gc (yes|no) #IMPLIED>
+<!ATTLIST arg
+  type CDATA #IMPLIED>
 ]>
 <api>
 <item id="createDocumentFragment"/>
@@ -74,6 +77,11 @@
 <item id="publicId" type="prop"/> <!-- settable for DOM lvl 3 LSInput -->
 <item id="systemId" type="prop"/>
 <item id="notationName"/>
+<!-- Handled separately because our DOM has it as a default property, not a function
+<item id="item" result="Node">
+  <arg>index</arg>
+</item>
+-->
 <item id="getNamedItem" result="Node">
   <arg>name</arg>
 </item>
@@ -230,7 +238,7 @@
 
 <!-- Level 3 -->
 <item id="textContent" type="prop"/>
-<!-- item id="isElementContentWhitespace"/ --><!-- not there yet -->
+<item id="isElementContentWhitespace"/>
 <!--
 <item id="domConfig"/>
 <item id="schemaTypeInfo"/>
@@ -249,7 +257,9 @@
 <item id="setUserData"/>
 <item id="isEqualNode"/>
 <item id="isSameNode"/>
-<item id="lookupNamespaceURI"/>
+<item id="lookupNamespaceURI">
+  <arg>prefix</arg>
+</item>
 <item id="lookupPrefix"/>
 <item id="isDefaultNamespace"/>
 <item id="adoptNode"/>
@@ -257,4 +267,429 @@
 <item id="replaceWholeText"/>
 <item id="wholeText"/>
 -->
+<!-- XPath -->
+
+<item id="createNSResolver">
+  <arg>nodeResolver</arg>
+</item>
+
+<item id="XPathEvaluator.evaluate">
+  <arg>expression</arg>
+  <arg>contextNode</arg>
+  <arg>resolver</arg>
+  <arg>type</arg>
+  <arg>result</arg>
+</item>
+<item id="XPathExpression.evaluate">
+  <arg>contextNode</arg>
+  <arg>type</arg>
+  <arg>result</arg>
+</item>
+<item id="createExpression">
+  <arg>expression</arg>
+  <arg>resolver</arg>
+</item>
+<item id="iterateNext"/>
+<item id="booleanValue"/>
+<item id="numberValue"/>
+<item id="singleNodeValue"/>
+<item id="stringValue"/>
+<item id="resultType"/>
+<item id="snapshotLength"/>
+<item id="snapshotItem">
+  <arg>index</arg>
+</item>
+<item id="invalidIteratorState"/>
+
+<!-- HTML level 2 -->
+
+<item id="id" objtype="HTMLElement" type="prop"/>          <!-- applies to all HTML*Element -->
+<item id="namedItem">                <!-- HTMLCollection -->
+  <arg>name</arg>
+</item>
+
+<item id="body" objtype="HTMLDocument" type="prop"/>
+
+<item id="HTMLAnchorElement.accessKey" type="prop"/>
+<item id="HTMLAnchorElement.charset" type="prop"/>
+<item id="HTMLAnchorElement.coords" type="prop"/>
+<item id="HTMLAnchorElement.href" type="prop"/>
+<item id="HTMLAnchorElement.hreflang" type="prop"/>
+<item id="HTMLAnchorElement.name" type="prop"/>
+<item id="HTMLAnchorElement.rev" type="prop"/>
+<item id="HTMLAnchorElement.rel" type="prop"/>
+<item id="HTMLAnchorElement.shape" type="prop"/>
+<item id="HTMLAnchorElement.tabIndex" type="prop"/>
+<item id="HTMLAnchorElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLAnchorElement.blur" type="method"/>
+<item id="HTMLAnchorElement.focus" type="method"/>
+
+<item id="HTMLAppletElement.align" type="prop"/>
+<item id="HTMLAppletElement.alt" type="prop"/>
+<item id="HTMLAppletElement.archive" type="prop"/>
+<item id="HTMLAppletElement.code" type="prop"/>
+<item id="HTMLAppletElement.codeBase" type="prop"/>
+<item id="HTMLAppletElement.height" type="prop"/>
+<item id="HTMLAppletElement.hspace" type="prop"/>
+<item id="HTMLAppletElement.name" type="prop"/>
+<item id="HTMLAppletElement.vspace" type="prop"/>
+<item id="HTMLAppletElement.width" type="prop"/>
+<item id="HTMLAppletElement.object" type="prop" rename="appletObject"/>
+
+<item id="HTMLAreaElement.accessKey" type="prop"/>
+<item id="HTMLAreaElement.alt" type="prop"/>
+<item id="HTMLAreaElement.coords" type="prop"/>
+<item id="HTMLAreaElement.href" type="prop"/>
+<item id="HTMLAreaElement.noHref" type="prop"/>
+<item id="HTMLAreaElement.shape" type="prop"/>
+<item id="HTMLAreaElement.tabIndex" type="prop"/>
+<item id="HTMLAreaElement.target" type="prop"/>
+
+<item id="HTMLBaseElement.href" type="prop"/>
+<item id="HTMLBaseElement.target" type="prop"/>
+
+<item id="HTMLBaseFontElement.color" type="prop"/>
+<item id="HTMLBaseFontElement.face" type="prop"/>
+<item id="HTMLBaseFontElement.size" type="prop"/>
+
+<item id="HTMLBodyElement.aLink" type="prop"/>
+<item id="HTMLBodyElement.background" type="prop"/>
+<item id="HTMLBodyElement.bgColor" type="prop"/>
+<item id="HTMLBodyElement.link" type="prop"/>
+<item id="HTMLBodyElement.text" type="prop"/>
+<item id="HTMLBodyElement.vLink" type="prop"/>
+
+
+<item id="HTMLBRElement.clear" type="prop"/>
+
+<item id="HTMLButtonElement.form" type="prop"/>
+<item id="HTMLButtonElement.accessKey" type="prop"/>
+<item id="HTMLButtonElement.disabled" type="prop"/>
+<item id="HTMLButtonElement.tabIndex" type="prop"/>
+<item id="HTMLButtonElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLDirectoryElement.compact" type="prop"/>
+
+<item id="HTMLDivElement.align" type="prop"/>
+
+<item id="HTMLDListElement.compact" type="prop"/>
+
+<item id="HTMLDocument.title" type="prop"/>
+<item id="HTMLDocument.referrer" type="prop"/>
+<item id="HTMLDocument.domain" type="prop"/>
+<item id="HTMLDocument.URL" type="prop"/>
+<item id="HTMLDocument.body" type="prop"/>
+<item id="HTMLDocument.images" type="prop"/>
+<item id="HTMLDocument.applets" type="prop"/>
+<item id="HTMLDocument.links" type="prop"/>
+<item id="HTMLDocument.forms" type="prop"/>
+<item id="HTMLDocument.anchors" type="prop"/>
+<item id="HTMLDocument.cookie" type="prop"/>
+<item id="HTMLDocument.getElementsByName">
+  <arg>elementName</arg>
+</item>
+<item id="HTMLDocument.open" type="method"/>  <!-- !! arg type not specified -->
+<item id="HTMLDocument.close" type="method"/>
+
+<item id="HTMLElement.id" type="prop"/>
+<item id="HTMLElement.title" type="prop"/>
+<item id="HTMLElement.lang" type="prop"/>
+<item id="HTMLElement.dir" type="prop"/>
+<item id="HTMLElement.className" type="prop"/>
+
+<item id="HTMLFieldSetElement.form" type="prop"/>
+
+<item id="HTMLFontElement.color" type="prop"/>
+<item id="HTMLFontElement.face" type="prop"/>
+<item id="HTMLFontElement.size" type="prop"/>
+
+<item id="HTMLFormElement.elements" type="prop"/>
+<item id="HTMLFormElement.acceptCharset" type="prop"/>
+<item id="HTMLFormElement.action" type="prop"/>
+<item id="HTMLFormElement.enctype" type="prop"/>
+<item id="HTMLFormElement.method" type="prop"/>
+<item id="HTMLFormElement.reset" type="method"/>
+<item id="HTMLFormElement.submit" type="method"/>
+
+<item id="HTMLFrameElement.frameBorder" type="prop"/>
+<item id="HTMLFrameElement.longDesc" type="prop"/>
+<item id="HTMLFrameElement.marginHeight" type="prop"/>
+<item id="HTMLFrameElement.marginWidth" type="prop"/>
+<item id="HTMLFrameElement.noResize" type="prop"/>
+<item id="HTMLFrameElement.scrolling" type="prop"/>
+<item id="HTMLFrameElement.src" type="prop"/>
+<item id="HTMLFrameElement.contentDocument" type="prop"/>   <!-- level 2 -->
+
+<item id="HTMLFrameSetElement.cols" type="prop"/>
+<item id="HTMLFrameSetElement.rows" type="prop"/>
+
+<item id="HTMLHeadElement.profile" type="prop"/>
+
+<item id="HTMLHeadingElement.align" type="prop"/>
+
+<item id="HTMLHRElement.align" type="prop"/>
+<item id="HTMLHRElement.noShade" type="prop"/>
+<item id="HTMLHRElement.size" type="prop"/>
+<item id="HTMLHRElement.width" type="prop"/>
+
+<item id="HTMLHtmlElement.version" type="prop"/>
+
+<item id="HTMLIFrameElement.align" type="prop"/>
+<item id="HTMLIFrameElement.frameBorder" type="prop"/>
+<item id="HTMLIFrameElement.height" type="prop"/>
+<item id="HTMLIFrameElement.longDesc" type="prop"/>
+<item id="HTMLIFrameElement.marginWidth" type="prop"/>
+<item id="HTMLIFrameElement.marginHeight" type="prop"/>
+<item id="HTMLIFrameElement.scrolling" type="prop"/>
+<item id="HTMLIFrameElement.src" type="prop"/>
+<item id="HTMLIFrameElement.width" type="prop"/>
+<item id="HTMLIFrameElement.contentDocument" type="prop"/>   <!-- level 2 -->
+
+<item id="HTMLImageElement.align" type="prop"/>
+<item id="HTMLImageElement.alt" type="prop"/>
+<item id="HTMLImageElement.border" type="prop"/>
+<item id="HTMLImageElement.height" type="prop"/>
+<item id="HTMLImageElement.hspace" type="prop"/>
+<item id="HTMLImageElement.isMap" type="prop"/>
+<item id="HTMLImageElement.longDesc" type="prop"/>
+<item id="HTMLImageElement.src" type="prop"/>
+<item id="HTMLImageElement.useMap" type="prop"/>
+<item id="HTMLImageElement.vspace" type="prop"/>
+<item id="HTMLImageElement.width" type="prop"/>
+<item id="HTMLImageElement.lowSrc" type="prop"/>
+
+<item id="HTMLInputElement.defaultValue" type="prop"/>
+<item id="HTMLInputElement.defaultChecked" type="prop"/>
+<item id="HTMLInputElement.form" type="prop"/>
+<item id="HTMLInputElement.accept" type="prop"/>
+<item id="HTMLInputElement.accessKey" type="prop"/>
+<item id="HTMLInputElement.align" type="prop"/>
+<item id="HTMLInputElement.alt" type="prop"/>
+<item id="HTMLInputElement.checked" type="prop"/>
+<item id="HTMLInputElement.disabled" type="prop"/>
+<item id="HTMLInputElement.maxLength" type="prop"/>
+<item id="HTMLInputElement.readOnly" type="prop"/>
+<item id="HTMLInputElement.size" type="prop"/>
+<item id="HTMLInputElement.src" type="prop"/>
+<item id="HTMLInputElement.tabIndex" type="prop"/>
+<item id="HTMLInputElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLInputElement.useMap" type="prop"/>
+<item id="HTMLInputElement.blur" type="method"/>
+<item id="HTMLInputElement.focus" type="method"/>
+<item id="HTMLInputElement.click" type="method"/>
+<item id="HTMLInputElement.select" type="method"/>
+
+<item id="HTMLIsIndexElement.prompt" type="prop"/>
+<item id="HTMLIsIndexElement.form" type="prop"/>
+
+<item id="HTMLLabelElement.form" type="prop"/>
+<item id="HTMLLabelElement.accessKey" type="prop"/>
+<item id="HTMLLabelElement.htmlFor" type="prop"/>
+
+<item id="HTMLLegendElement.form" type="prop"/>
+<item id="HTMLLegendElement.accessKey" type="prop"/>
+<item id="HTMLLegendElement.align" type="prop"/>
+
+<item id="HTMLLIElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLLinkElement.disabled" type="prop"/>
+<item id="HTMLLinkElement.charset" type="prop"/>
+<item id="HTMLLinkElement.href" type="prop"/>
+<item id="HTMLLinkElement.hreflang" type="prop"/>
+<item id="HTMLLinkElement.media" type="prop"/>
+<item id="HTMLLinkElement.rel" type="prop"/>
+<item id="HTMLLinkElement.rev" type="prop"/>
+<item id="HTMLLinkElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLMapElement.areas" type="prop"/>
+<item id="HTMLMapElement.name" type="prop"/>
+
+<item id="HTMLMenuElement.compact" type="prop"/>
+
+<item id="HTMLMetaElement.content" type="prop"/>
+<item id="HTMLMetaElement.httpEquiv" type="prop"/>
+<item id="HTMLMetaElement.name" type="prop"/>
+<item id="HTMLMetaElement.scheme" type="prop"/>
+
+<item id="HTMLModElement.cite" type="prop"/>
+<item id="HTMLModElement.dateTime" type="prop"/>
+
+<item id="HTMLObjectElement.form" type="prop"/>
+<item id="HTMLObjectElement.code" type="prop"/>
+<item id="HTMLObjectElement.align" type="prop"/>
+<item id="HTMLObjectElement.archive" type="prop"/>
+<item id="HTMLObjectElement.border" type="prop"/>
+<item id="HTMLObjectElement.codeBase" type="prop"/>
+<item id="HTMLObjectElement.codeType" type="prop"/>
+<item id="HTMLObjectElement.data" type="prop"/>
+<item id="HTMLObjectElement.declare" type="prop"/>
+<item id="HTMLObjectElement.height" type="prop"/>
+<item id="HTMLObjectElement.hspace" type="prop"/>
+<item id="HTMLObjectElement.standby" type="prop"/>
+<item id="HTMLObjectElement.tabIndex" type="prop"/>
+<item id="HTMLObjectElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLObjectElement.useMap" type="prop"/>
+<item id="HTMLObjectElement.vspace" type="prop"/>
+<item id="HTMLObjectElement.width" type="prop"/>
+<item id="HTMLObjectElement.name" type="prop"/>
+<item id="HTMLObjectElement.contentDocument" type="prop"/>   <!-- level 2 -->
+
+<item id="HTMLOListElement.compact" type="prop"/>
+<item id="HTMLOListElement.start" type="prop"/>
+<item id="HTMLOListElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLOptGroupElement.disabled" type="prop"/>
+<item id="HTMLOptGroupElement.label" type="prop" rename="groupLabel"/>
+
+<item id="HTMLOptionElement.form" type="prop"/>
+<item id="HTMLOptionElement.defaultSelected" type="prop"/>
+<item id="HTMLOptionElement.text" type="prop"/>
+<item id="HTMLOptionElement.index" type="prop"/>
+<item id="HTMLOptionElement.disabled" type="prop"/>
+<item id="HTMLOptionElement.label" type="prop" rename="optionLabel"/>
+<item id="HTMLOptionElement.value" type="prop"/>
+
+<item id="HTMLParagraphElement.align" type="prop"/>
+
+<item id="HTMLParamElement.name" type="prop"/>
+<item id="HTMLParamElement.value" type="prop"/>
+<item id="HTMLParamElement.valueType" type="prop"/>
+<item id="HTMLParamElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLPreElement.width" type="prop"/>
+
+<item id="HTMLQuoteElement.cite" type="prop"/>
+
+<item id="HTMLScriptElement.text" type="prop"/>
+<item id="HTMLScriptElement.charset" type="prop"/>
+<item id="HTMLScriptElement.defer" type="prop"/>
+<item id="HTMLScriptElement.src" type="prop"/>
+<item id="HTMLScriptElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLScriptElement.htmlFor" type="prop"/>
+<item id="HTMLScriptElement.event" type="prop"/>
+
+<item id="HTMLSelectElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLSelectElement.selectedIndex" type="prop"/>
+<item id="HTMLSelectElement.value" type="prop"/>
+<item id="HTMLSelectElement.length" type="prop"/>
+<item id="HTMLSelectElement.form" type="prop"/>
+<item id="HTMLSelectElement.options" type="prop"/>
+<item id="HTMLSelectElement.disabled" type="prop"/>
+<item id="HTMLSelectElement.multiple" type="prop"/>
+<item id="HTMLSelectElement.size" type="prop"/>
+<item id="HTMLSelectElement.tabIndex" type="prop"/>
+<item id="HTMLSelectElement.focus" type="method"/>
+<item id="HTMLSelectElement.blur" type="method"/>
+<item id="HTMLSelectElement.remove" type="method">
+  <arg>index</arg>
+</item>
+<item id="HTMLSelectElement.add" type="method">
+  <arg type="HTMLElement">element</arg>
+  <arg type="HTMLElement">before</arg>
+</item>
+
+<item id="HTMLStyleElement.disabled" type="prop"/>
+<item id="HTMLStyleElement.media" type="prop"/>
+<item id="HTMLStyleElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLTableCaptionElement.align" type="prop"/>
+
+<item id="HTMLTableSectionElement.align" type="prop"/>
+<item id="HTMLTableSectionElement.ch" type="prop"/>
+<item id="HTMLTableSectionElement.chOff" type="prop"/>
+<item id="HTMLTableSectionElement.rows" type="prop"/>
+<item id="HTMLTableSectionElement.vAlign" type="prop"/>
+<item id="HTMLTableSectionElement.insertRow">
+  <arg>index</arg>
+</item>
+<item id="HTMLTableSectionElement.deleteRow" type="method">
+  <arg>index</arg>
+</item>
+
+
+<item id="HTMLTableCellElement.abbr" type="prop"/>
+<item id="HTMLTableCellElement.align" type="prop"/>
+<item id="HTMLTableCellElement.axis" type="prop"/>
+<item id="HTMLTableCellElement.bgColor" type="prop"/>
+<item id="HTMLTableCellElement.cellIndex" type="prop"/>
+<item id="HTMLTableCellElement.ch" type="prop"/>
+<item id="HTMLTableCellElement.chOff" type="prop"/>
+<item id="HTMLTableCellElement.headers" type="prop"/>
+<item id="HTMLTableCellElement.height" type="prop"/>
+<item id="HTMLTableCellElement.noWrap" type="prop"/>
+<item id="HTMLTableCellElement.rowSpan" type="prop"/>
+<item id="HTMLTableCellElement.colSpan" type="prop"/>
+<item id="HTMLTableCellElement.scope" type="prop"/>
+<item id="HTMLTableCellElement.vAlign" type="prop"/>
+<item id="HTMLTableCellElement.width" type="prop"/>
+
+<item id="HTMLTableElement.align" type="prop"/>
+<item id="HTMLTableElement.border" type="prop"/>
+<item id="HTMLTableElement.bgColor" type="prop"/>
+<item id="HTMLTableElement.caption" type="prop"/>
+<item id="HTMLTableElement.frame" type="prop"/>
+<item id="HTMLTableElement.cellPadding" type="prop"/>
+<item id="HTMLTableElement.cellSpacing" type="prop"/>
+<item id="HTMLTableElement.summary" type="prop"/>
+<item id="HTMLTableElement.rules" type="prop"/>
+<item id="HTMLTableElement.width" type="prop"/>
+<item id="HTMLTableElement.rows" type="prop"/>
+<item id="HTMLTableElement.tHead" type="prop"/>
+<item id="HTMLTableElement.tFoot" type="prop"/>
+<item id="HTMLTableElement.tBodies" type="prop"/>
+<item id="HTMLTableElement.insertRow">
+  <arg>index</arg>
+</item>
+<item id="HTMLTableElement.deleteRow" type="method">
+  <arg>index</arg>
+</item>
+<item id="HTMLTableElement.createTHead"/>
+<item id="HTMLTableElement.createTFoot"/>
+<item id="HTMLTableElement.createCaption"/>
+<item id="HTMLTableElement.deleteTHead" type="method"/>
+<item id="HTMLTableElement.deleteTFoot" type="method"/>
+<item id="HTMLTableElement.deleteCaption" type="method"/>
+
+<item id="HTMLTableRowElement.align" type="prop"/>
+<item id="HTMLTableRowElement.bgColor" type="prop"/>
+<item id="HTMLTableRowElement.vAlign" type="prop"/>
+<item id="HTMLTableRowElement.ch" type="prop"/>
+<item id="HTMLTableRowElement.chOff" type="prop"/>
+<item id="HTMLTableRowElement.rowIndex" type="prop"/>
+<item id="HTMLTableRowElement.sectionRowIndex" type="prop"/>
+<item id="HTMLTableRowElement.cells" type="prop"/>
+<item id="HTMLTableRowElement.insertCell">
+  <arg>index</arg>
+</item>
+<item id="HTMLTableRowElement.deleteCell" type="method">
+  <arg>index</arg>
+</item>
+
+<item id="HTMLTableColElement.align" type="prop"/>
+<item id="HTMLTableColElement.ch" type="prop"/>
+<item id="HTMLTableColElement.chOff" type="prop"/>
+<item id="HTMLTableColElement.span" type="prop"/>
+<item id="HTMLTableColElement.vAlign" type="prop"/>
+<item id="HTMLTableColElement.width" type="prop"/>
+
+<item id="HTMLTextAreaElement.defaultValue" type="prop"/>
+<item id="HTMLTextAreaElement.form" type="prop"/>
+<item id="HTMLTextAreaElement.accessKey" type="prop"/>
+<item id="HTMLTextAreaElement.cols" type="prop"/>
+<item id="HTMLTextAreaElement.disabled" type="prop"/>
+<item id="HTMLTextAreaElement.readOnly" type="prop"/>
+<item id="HTMLTextAreaElement.rows" type="prop"/>
+<item id="HTMLTextAreaElement.tabIndex" type="prop"/>
+<item id="HTMLTextAreaElement.type" type="prop" rename="htmlType"/>
+<item id="HTMLTextAreaElement.value" type="prop"/>
+<item id="HTMLTextAreaElement.blur" type="method"/>
+<item id="HTMLTextAreaElement.focus" type="method"/>
+<item id="HTMLTextAreaElement.select" type="method"/>
+
+<item id="HTMLUListElement.compact" type="prop"/>
+<item id="HTMLUListElement.type" type="prop" rename="htmlType"/>
+
+<item id="HTMLTitleElement.text" type="prop"/>
+
+
 </api>

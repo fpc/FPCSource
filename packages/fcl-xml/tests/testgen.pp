@@ -39,7 +39,8 @@ begin
     result := '_collection'
   else if s = 'List' then
     result := '_list'
-  else if (Pos(WideString('DOM'), s) = 1) or (Pos(WideString('XPath'), s) = 1) then
+  else if (Pos(WideString('DOM'), s) = 1) or (Pos(WideString('XPath'), s) = 1) or
+          (Pos(WideString('HTML'), s) = 1) then
     result := 'T' + s
   else
     result := 'TDOM'+s;
@@ -69,7 +70,7 @@ begin
   if n.HasAttribute(attName) then
     s := s + ReplaceQuotes(n[attName])
   else
-    s := s + '''''';
+    s := s + 'nil';
   s := s + ', ';
 end;
 
@@ -232,23 +233,56 @@ begin
   end;
 end;
 
+function fixname(e: TDOMElement): string;
+begin
+  if e.HasAttribute('_fixup_') then
+    result := e['_fixup_']
+  else  
+    result := e.TagName;
+end;
+
+function argstring(e: TDOMElement; args: TDOMNodeList): string;
+var
+  I: Integer;
+  argnode: TDOMElement;
+begin
+  Result := '';
+  for I := 0 to args.Length-1 do
+  begin
+    argnode := args[I] as TDOMElement;
+    Result := Result + ReplaceQuotes(e[argnode.TextContent]);
+    if argnode.HasAttribute('type') then
+      Result := Result + ' as ' + PascalType(argnode['type']);
+    if I <> args.Length-1 then
+      Result := Result + ', ';
+  end;
+end;
+
 function prop_call(e: TDOMElement): string;
 begin
   if e.HasAttribute('var') then
-    Result := e['var'] + ' := ' + getobj(e) + '.' + e.TagName + ';'
+    Result := e['var'] + ' := ' + getobj(e) + '.' + fixname(e) + ';'
   else
-    Result := getobj(e) + '.' + e.TagName + ' := ' + ReplaceQuotes(e['value']) + ';';
+    Result := getobj(e) + '.' + fixname(e) + ' := ' + ReplaceQuotes(e['value']) + ';';
 end;
 
-function func_call(e: TDOMElement; const args: array of DOMString; const rsltType: string=''): string;
-var
-  I: Integer;
+function func_call(e: TDOMElement; args: TDOMNodeList; const rsltType: string=''): string;
 begin
   if (rsltType <> '') and (TypeOfVar(e['var']) <> rsltType) then
     Result := rsltType + '(' + e['var'] + ')'
   else
     Result := e['var'];
-  Result := Result + ' := ' + getobj(e) + '.' + e.TagName;
+  Result := Result + ' := ' + getobj(e) + '.' + fixname(e);
+  if args.Length > 0 then
+    Result := Result + '(' + argstring(e, args) + ')';
+  Result := Result + ';';
+end;
+
+function func_call(e: TDOMElement; const args: array of DOMString): string;
+var
+  I: Integer;
+begin
+  Result := e['var'] + ' := ' + getobj(e) + '.' + e.TagName;
   if Length(args) > 0 then
   begin
     Result := Result + '(';
@@ -264,21 +298,10 @@ begin
 end;
 
 function method_call(e: TDOMElement; args: TDOMNodeList): string;
-var
-  I: Integer;
 begin
-  Result := getobj(e) + '.' + e.TagName;
+  Result := getobj(e) + '.' + fixname(e);
   if args.Length > 0 then
-  begin
-    Result := Result + '(';
-    for I := 0 to args.Length-1 do
-    begin
-      Result := Result + ReplaceQuotes(e[args[I].TextContent]);
-      if I <> args.Length-1 then
-        Result := Result + ', ';
-    end;
-    Result := Result + ')';
-  end;
+    Result := Result + '(' + argstring(e, args) + ')';
   Result := Result + ';';
 end;
 
@@ -301,8 +324,6 @@ var
   cond: string;
   apinode: TDOMElement;
   arglist: TDOMNodeList;
-  args: array of DOMString;
-  I: Integer;
 begin
   FixKeywords(node, 'var');
   FixKeywords(node, 'obj');
@@ -316,16 +337,19 @@ begin
   if assigned(apinode) then
   begin
     // handle most of DOM API in consistent way
+    
+    if apinode.HasAttribute('rename') then   // handles reserved words, e.g 'type' -> 'htmlType'
+      node['_fixup_'] := apinode['rename'];  // use this trick because DOM node cannot be renamed (yet)
+    
     arglist := apinode.GetElementsByTagName('arg');
-    SetLength(args, arglist.Length);
-    for I := 0 to arglist.Length-1 do
-      args[I] := arglist[I].TextContent;
+
+    if apinode.HasAttribute('objtype') then
+      CastTo(node, apinode['objtype']);
+      
     if apinode['type'] = 'prop' then
       rslt.Add(indent + prop_call(node))
     else if apinode['type'] = 'method' then
     begin
-      if apinode.HasAttribute('objtype') then
-        CastTo(node, apinode['objtype']);
       rslt.Add(indent + method_call(node, arglist));
     end
     else
@@ -334,9 +358,7 @@ begin
         cond := PascalType(apinode['result'])
       else
         cond := '';
-      if apinode.HasAttribute('objtype') then
-        CastTo(node, apinode['objtype']);
-      rslt.Add(indent + func_call(node, args, cond));
+      rslt.Add(indent + func_call(node, arglist, cond));
       if apinode['gc'] = 'yes' then
         rslt.Add(indent + 'GC(' + node['var'] + ');');
     end;
@@ -403,6 +425,8 @@ begin
       rslt.Add(indent + 'AssertEqualsCollection(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else if cond = '_list' then
       rslt.Add(indent + 'AssertEqualsList(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
+    else if node['ignoreCase'] = 'true' then
+      rslt.Add(indent + 'AssertEqualsNoCase(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else
       rslt.Add(indent + s + '(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');');
   end
@@ -599,7 +623,7 @@ begin
       // having loop var name globally unique isn't a must.
       cond := 'loop'+IntToStr(cntr);
       Inc(cntr);
-      rslt.Insert(2, '  ' + cond + ': Integer;');
+      rslt.Insert(rslt.IndexOf('var')+1, '  ' + cond + ': Integer;');
       IsColl := IsCollection(element);
       if IsColl then
         rslt.Add(indent+'for '+cond+' := 0 to ' + 'High(' + element['collection'] + ') do')
@@ -837,7 +861,6 @@ begin
   for I := 0 to testcount-1 do
   begin
     href := TDOMElement(testlist[I])['href'];
-    // simple concatenation should suffice, but be paranoid
     ResolveRelativeURI(BaseURI, href, testuri);
     Pars.ParseURI(testuri, testdoc);
     try
@@ -848,7 +871,7 @@ begin
         root['name'] := 'attr_name';
       sl.Add('procedure ' + class_name + '.' + root['name'] + ';');
       try
-      ConvertTest(root, sl);
+        ConvertTest(root, sl);
       except
         Writeln('An exception occured while converting '+root['name']);
         raise;

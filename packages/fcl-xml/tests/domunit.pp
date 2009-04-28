@@ -40,7 +40,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
     procedure GC(obj: TObject);
-    procedure Load(out doc: TDOMDocument; const uri: string);
+    procedure Load(out doc; const uri: string);
     function getResourceURI(const res: WideString): WideString;
     function ContentTypeIs(const t: string): Boolean;
     function GetImplementation: TDOMImplementation;
@@ -49,12 +49,13 @@ type
     procedure assertEquals(const id: string; exp, act: TObject); overload;
     procedure assertEqualsList(const id: string; const exp: array of DOMString; const act: _list);
     procedure assertEqualsCollection(const id: string; const exp: array of DOMString; const act: _collection);
+    procedure assertEqualsNoCase(const id: string; const exp, act: DOMString);
     procedure assertSame(const id: string; exp, act: TDOMNode);
     procedure assertSize(const id: string; size: Integer; obj: TDOMNodeList);
     procedure assertSize(const id: string; size: Integer; obj: TDOMNamedNodeMap);
     procedure assertInstanceOf(const id: string; obj: TObject; const typename: string);
     procedure assertURIEquals(const id: string;
-      const scheme, path, host, file_, name, query, fragment: DOMString;
+      scheme, path, host, file_, name, query, fragment: PChar;
       IsAbsolute: Boolean; const Actual: DOMString);
     function bad_condition(const TagName: WideString): Boolean;
     property implementationAttribute[const name: string]: Boolean read getImplAttr write setImplAttr;
@@ -160,6 +161,12 @@ begin
   end;
 end;
 
+procedure TDOMTestBase.assertEqualsNoCase(const id: string; const exp, act: DOMString);
+begin
+// TODO: could write custom comparison because range is limited to ASCII
+  AssertTrue(id + ComparisonMsg(exp, act), WideSameText(exp, act));
+end;
+
 procedure TDOMTestBase.assertSize(const id: string; size: Integer; obj: TDOMNodeList);
 begin
   AssertNotNull(id, obj);
@@ -174,10 +181,28 @@ end;
 
 function TDOMTestBase.getResourceURI(const res: WideString): WideString;
 var
-  Base, Level: WideString;
+  Base, Base2: WideString;
+
+function CheckFile(const uri: WideString; out name: WideString): Boolean;
+var
+  filename: string;
 begin
-  Base := GetTestFilesURI + 'files/';
-  if not ResolveRelativeURI(Base, res+'.xml', Result) then
+  Result := ResolveRelativeURI(uri + 'files/', res + '.xml', name) and
+    URIToFilename(name, filename) and
+    FileExists(filename);
+end;
+
+begin
+  Base := GetTestFilesURI;
+  if Pos(WideString('level2/html'), Base) <> 0 then
+  begin
+    // This is needed to run HTML testsuite off the CVS snapshot.
+    // Web version simply uses all level1 files copied to level2.
+    if ResolveRelativeURI(Base, '../../level1/html/', Base2) and
+      CheckFile(Base2, Result) then
+        Exit;
+  end;
+  if not CheckFile(Base, Result) then
     Result := '';
 end;
 
@@ -218,13 +243,13 @@ begin
     Fail('Unknown implementation attribute: ''' + name + '''');
 end;
 
-procedure TDOMTestBase.Load(out doc: TDOMDocument; const uri: string);
+procedure TDOMTestBase.Load(out doc; const uri: string);
 var
   t: TXMLDocument;
 begin
-  doc := nil;
+  TObject(doc) := nil;
   FParser.ParseURI(getResourceURI(uri), t);
-  doc := t;
+  TObject(doc) := t;
   GC(t);
 end;
 
@@ -233,16 +258,32 @@ begin
   AssertTrue(id, obj.ClassNameIs(typename));
 end;
 
-// TODO: This is a very basic implementation, needs to be completed.
-procedure TDOMTestBase.assertURIEquals(const id: string; const scheme, path,
-  host, file_, name, query, fragment: DOMString; IsAbsolute: Boolean;
+{ expected args already UTF-8 encoded }
+procedure TDOMTestBase.assertURIEquals(const id: string; scheme, path,
+  host, file_, name, query, fragment: PChar; IsAbsolute: Boolean;
   const Actual: DOMString);
 var
   URI: TURI;
 begin
   AssertTrue(id, Actual <> '');
   URI := ParseURI(utf8Encode(Actual));
-  AssertEquals(id, URI.Document, utf8Encode(file_));
+  if fragment <> nil then
+    AssertEquals(id, string(fragment), URI.Bookmark);
+  if query <> nil then
+    AssertEquals(id, string(query), URI.Params);
+  if scheme <> nil then
+    AssertEquals(id, string(scheme), URI.Protocol);
+  if host <> nil then
+  begin
+    AssertTrue(id, URI.HasAuthority);
+    AssertEquals(id, string(host), URI.Host);
+  end;
+  if path <> nil then
+    AssertEquals(id, string(path), '//' + Uri.Host + URI.Path + URI.Document);
+  if file_ <> nil then
+    AssertEquals(id, string(file_), URI.Document);
+  if name <> nil then
+    AssertEquals(id, string(name), ChangeFileExt(URI.Document, ''));
 end;
 
 function TDOMTestBase.bad_condition(const TagName: WideString): Boolean;
