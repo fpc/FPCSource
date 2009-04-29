@@ -1220,7 +1220,7 @@ begin
   FDaemon.Status:=csStopPending;
   Try
     Result:=FDaemon.ShutDown;
-  except
+  finally
     FDaemon.Status:=csStopped;
     Terminate;
   end;
