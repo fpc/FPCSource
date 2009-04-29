@@ -120,6 +120,11 @@ begin
     end;
 end;
 
+function TFPCustomCanvas.GetClipping: boolean;
+begin
+  Result:=FClipping;
+end;
+
 function TFPCustomCanvas.GetClipRect: TRect;
 begin
   Result:=FClipRect;
@@ -241,6 +246,11 @@ begin
     result := FPen
   else
     result := FDefaultPen;
+end;
+
+procedure TFPCustomCanvas.SetClipping(const AValue: boolean);
+begin
+  FClipping:=AValue;
 end;
 
 procedure TFPCustomCanvas.SetClipRect(const AValue: TRect);

@@ -233,6 +233,8 @@ type
     function  GetWidth : integer; virtual; abstract;
     function  GetClipRect: TRect; virtual;
     procedure SetClipRect(const AValue: TRect); virtual;
+    function  GetClipping: boolean; virtual;
+    procedure SetClipping(const AValue: boolean); virtual;
     procedure SetPenPos(const AValue: TPoint); virtual;
     procedure DoLockCanvas; virtual;
     procedure DoUnlockCanvas; virtual;
@@ -304,7 +306,7 @@ type
     property Interpolation : TFPCustomInterpolation read FInterpolation write FInterpolation;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
     property ClipRect : TRect read GetClipRect write SetClipRect;
-    property Clipping : boolean read FClipping write FClipping;
+    property Clipping : boolean read GetClipping write SetClipping;
     property PenPos : TPoint read FPenPos write SetPenPos;
     property Height : integer read GetHeight write SetHeight;
     property Width : integer read GetWidth write SetWidth;
