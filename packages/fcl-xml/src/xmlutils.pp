@@ -31,6 +31,8 @@ function IsValidXmlEncoding(const Value: WideString): Boolean;
 function Xml11NamePages: PByteArray;
 procedure NormalizeSpaces(var Value: WideString);
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
+{ beware, works in ASCII range only }
+function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 
 { a simple hash table with WideString keys }
 
@@ -273,6 +275,33 @@ begin
     end;
     Inc(I);
   end;
+end;
+
+function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
+var
+  counter: Integer;
+  c1, c2: Word;
+begin
+  counter := 0;
+  result := 0;
+  if Len = 0 then
+    exit;
+  repeat
+    c1 := ord(S1[counter]);
+    c2 := ord(S2[counter]);
+    if (c1 = 0) or (c2 = 0) then break;
+    if c1 <> c2 then
+    begin
+      if c1 in [97..122] then
+        Dec(c1, 32);
+      if c2 in [97..122] then
+        Dec(c2, 32);
+      if c1 <> c2 then
+        Break;
+    end;
+    Inc(counter);
+  until counter >= Len;
+  result := c1 - c2;
 end;
 
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;

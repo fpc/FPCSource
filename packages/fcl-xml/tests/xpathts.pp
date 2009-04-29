@@ -394,7 +394,16 @@ const
   '<e>-37</e>'+
   '</doc>';
 
-  FunctionTests: array[0..45] of TTestRec = (
+  expr01='<doc>'+
+  '<para id="1" xml:lang="en">en</para>'+
+  '<div xml:lang="en">'+
+  '  <para>en</para>'+
+  '</div>'+
+  '<para id="3" xml:lang="EN">EN</para>'+
+  '<para id="4" xml:lang="en-us">en-us</para>'+
+  '</doc>';
+
+  FunctionTests: array[0..49] of TTestRec = (
   // last()
   // position()
   // count()
@@ -419,9 +428,13 @@ const
     (expr: 'not(true())';  rt: rtBool; b: False),
     (expr: 'not(false())'; rt: rtBool; b: True),
     (expr: 'not("")';      rt: rtBool; b: True),
-    {
-     lang() -- involves nodes
-    }
+
+    // lang() tests. These ones, however, test much more than lang().
+    // Moreover, I've added string(), otherwise result would be a nodeset
+    (data: expr01; expr: 'string(para[@id="1" and lang("en")])'; rt: rtString; s: 'en'),     // expression01
+    (data: expr01; expr: 'string(para[@id="4" and lang("en")])'; rt: rtString; s: 'en-us'),  // expression03
+    (data: expr01; expr: 'string(div/para[lang("en")])'; rt: rtString; s: 'en'),             // expression04
+    (data: expr01; expr: 'string(para[@id="3" and lang("en")])'; rt: rtString; s: 'EN'),     // expression05
 
     (expr: 'number("1.5")';   rt: rtNumber; n: 1.5),
     (expr: 'number("abc")';   rt: rtNumber; n: NaN),

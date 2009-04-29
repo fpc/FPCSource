@@ -567,6 +567,28 @@ begin
     end;
 end;
 
+function GetNodeLanguage(aNode: TDOMNode): DOMString;
+var
+  Attr: TDomAttr;
+begin
+  Result := '';
+  if aNode = nil then
+    Exit;
+  case aNode.NodeType of
+    ELEMENT_NODE: begin
+      Attr := TDomElement(aNode).GetAttributeNode('xml:lang');
+      if Assigned(Attr) then
+        Result := Attr.Value
+      else
+        Result := GetNodeLanguage(aNode.ParentNode);
+    end;
+    TEXT_NODE, CDATA_SECTION_NODE, ENTITY_REFERENCE_NODE,
+    PROCESSING_INSTRUCTION_NODE, COMMENT_NODE:
+      Result := GetNodeLanguage(aNode.ParentNode);
+    ATTRIBUTE_NODE:
+      Result := GetNodeLanguage(TDOMAttr(aNode).OwnerElement);
+  end;
+end;
 
 { XPath parse tree classes }
 
@@ -2628,10 +2650,22 @@ begin
 end;
 
 function TXPathEnvironment.xpLang(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  L: Integer;
+  TheArg, NodeLang: DOMString;
+  res: Boolean;
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  EvaluationError(SEvalFunctionNotImplementedYet, ['lang']); // !!!
+  TheArg := TXPathVariable(Args[0]).AsText;
+  NodeLang := GetNodeLanguage(Context.ContextNode);
+
+  L := Length(TheArg);
+  res := (L <= Length(NodeLang)) and
+    (WStrLIComp(DOMPChar(NodeLang), DOMPChar(TheArg), L) = 0) and
+    ((L = Length(NodeLang)) or (NodeLang[L+1] = '-'));
+
+  Result := TXPathBooleanVariable.Create(res);
 end;
 
 function TXPathEnvironment.xpNumber(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
