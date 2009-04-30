@@ -15,6 +15,36 @@
 
 uses baseunix;
 
+Resourcestring
+  SErrFailedToFork          = 'Failed to fork daemon process.';
+
+procedure DaemonizeProgram;
+var pid, sid : TPid;
+begin
+  pid := FpFork;
+  if (pid<0) then
+    raise Exception.Create(SErrFailedToFork);
+  if pid>0 then
+    begin
+    // We are now in the main program, which has to terminate
+    FpExit(0);
+    end
+  else
+    begin
+    // Here we are in the daemonized proces
+    sid := FpSetsid;
+    if sid < 0 then
+      raise Exception.Create(SErrFailedToFork);
+    // Reset the file-mask
+    FpUmask(0);
+    // Change the current directory, to avoid locking the current directory
+    chdir('/');
+    FpClose(StdInputHandle);
+    FpClose(StdOutputHandle);
+    FpClose(StdErrorHandle);
+    end;
+end;
+
 { ---------------------------------------------------------------------
   TCustomDaemonApplication
   ---------------------------------------------------------------------}
@@ -74,6 +104,8 @@ Var
   DC : TDaemonController;
   
 begin
+  if Application.HasOption('b','background') then
+    DaemonizeProgram;
   For I:=ComponentCount-1 downto 0 do
     If Components[i] is TDaemoncontroller then
       begin
