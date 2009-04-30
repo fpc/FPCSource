@@ -740,11 +740,13 @@ begin
     GetDirectoryChunk(NextIndex, ChunkStream);
     NextIndex := -1;
     ReadQuickRefSection;
-    //WriteLn('In Block ', ChunkIndex);
+    {$IFDEF CHM_DEBUG}
+    WriteLn('In Block ', NextIndex);
+    {$endif}
     case ChunkType(ChunkStream) of
       ctUnknown: // something is wrong
         begin
-          {$IFDEF CHM_DEBUG}WriteLn(ChunkIndex, ' << Unknown BlockType!');{$ENDIF}
+          {$IFDEF CHM_DEBUG}WriteLn(NextIndex, ' << Unknown BlockType!');{$ENDIF}
           Break;
         end;
       ctPMGI: // we must follow the PMGI tree until we reach a PMGL block

@@ -21,9 +21,10 @@
 unit HTMLIndexer;
 {$MODE OBJFPC}{$H+}
 interface
-uses Classes, SysUtils, FastHTMLParser,avl_tree;
+uses Classes, SysUtils, FastHTMLParser,{$ifdef userb}fos_redblacktree_gen{$else}avl_tree{$endif};
 
 Type
+
   { TIndexDocument }
   TIndexDocument = class(TObject)
   private
@@ -61,6 +62,10 @@ Type
 
   { TIndexedWordList }
 
+  {$ifdef userb}
+  TRBIndexTree = specialize TGFOS_RBTree<String,TIndexedWord>;
+  {$endif}
+
   TForEachMethod = procedure (AWord:TIndexedWord) of object;
   TForEachProcedure = Procedure (AWord:TIndexedWord;state:pointer);
   TIndexedWordList = class(TObject)
@@ -80,8 +85,13 @@ Type
     FTotalWordLength: DWord;
     FLongestWord: DWord;
     FParser: THTMLParser;
+    {$ifdef userb}
+    FAVLTree : TRBIndexTree;
+    {$else}
     FAVLTree : TAVLTree;
     Spare :TIndexedWord;
+    {$endif}
+
     function AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
     // callbacks
     procedure CBFoundTag(NoCaseTag, ActualTag: string);
@@ -117,6 +127,14 @@ begin
     Result := BNumber;
 end;
 
+const titlexlat : array [boolean] of char = ('0','1');
+
+function  makekey( n : string;istitle:boolean):string; inline;
+
+begin
+   result:=n+'___'+titlexlat[istitle];
+end;
+
 Function CompareProcObj(Node1, Node2: Pointer): integer;
 var n1,n2 : TIndexedWord; 
 begin
@@ -133,10 +151,18 @@ end;
 { TIndexedWordList }
 function TIndexedWordList.AddGetWord(AWord: String; IsTitle: Boolean): TIndexedWord;
 var 
+{$ifdef userb}
+   key : string;
+{$else}
    n : TAVLTreeNode;
+{$endif}   
 begin
   Result := nil;
   AWord := LowerCase(AWord);
+ {$ifdef userb}
+   key:=makekey(aword,istitle);
+   if not favltree.Find(key,result) then result:=nil;;
+  {$else}
   if not assigned(spare) then
     spare:=TIndexedWord.Create(AWord,IsTitle)
   else
@@ -144,18 +170,25 @@ begin
       spare.TheWord:=aword;
       spare.IsTitle:=IsTitle;
     end;
-  
+
   n:=favltree.FindKey(Spare,@CompareProcObj);
   if assigned(n) then
    result:=TIndexedWord(n.Data);
-
+  {$endif}
+  
   if Result = nil then
   begin
     Inc(FTotalDifferentWordLength, Length(AWord));
     Inc(FTotalDIfferentWords);
+    {$ifdef  userb}
+      result:=TIndexedWord.Create(AWord,IsTitle);
+      favltree.add(key,result);
+    {$else}
     Result := spare; // TIndexedWord.Create(AWord,IsTitle);
     spare:=nil;
     AddWord(Result);
+    {$endif}
+
     //  if IsTitle then
     //WriteLn('Creating word: ', AWord);
     FLongestWord := Max(FLongestWord, Length(AWord));
@@ -256,17 +289,37 @@ begin
   end;
 end;
 
+function defaultindexedword : TIndexedWord;
+
+begin
+  result:=Tindexedword.create('',false);
+end;
+
 constructor TIndexedWordList.Create;
 begin
   inherited;
+  {$ifdef userb}
+  FAVLTree :=TRBIndexTree.create(@default_rb_string_compare,
+                                 @defaultindexedword,
+                                 @default_rb_string_undef );
+  {$else}
   favltree:=TAVLTree.Create(@CompareProcObj);
   spare:=nil;
+  {$endif}
 end;
+
+procedure FreeObject(const Obj:TIndexedWord);
+begin
+ obj.free;
+end;
+ 
 
 destructor TIndexedWordList.Destroy;
 begin
   clear;
+  {$ifndef userb}
   if assigned(spare) then spare.free;
+  {$endif}
   favltree.free;
   inherited Destroy;
 end;
@@ -305,36 +358,73 @@ end;
 
 procedure TIndexedWordList.Clear;
 begin
+  {$ifdef userb}
+   fAvlTree.ClearN(@FreeObject);
+  {$else}
   fAvlTree.FreeAndClear;
+  {$endif}
 end;
 
 procedure TIndexedWordList.AddWord(const AWord: TIndexedWord);
 begin
-  favltree.add(AWord);
+ {$ifdef userb}
+  favltree.add(makekey(aword.theword,aword.istitle),AWord);
+ {$else}
+  favltree.add(aword);
+ {$endif}
 end;
 
 procedure TIndexedWordList.ForEach(Proc:TForEachMethod);
+{$ifdef userb}
+var key : string;
+    val:TIndexedWord;
+{$else}
 var   
     AVLNode   : TAVLTreeNode;
+{$endif}
 begin
+ {$ifdef userb}
+    if favltree.FirstNode(key,val) then 
+      begin  // Scan it forward
+        repeat
+          proc(val);
+        until not favltree.FindNext(key,val);
+      end;         
+ {$else}
    AVLNode:=fAVLTree.FindLowest;
    while (AVLNode<>nil) do
       begin
         Proc(TIndexedWord(AVLNode.Data));
         AVLNode:=FAVLTree.FindSuccessor(AVLNode)
       end;
+ {$endif}
 end; 
 
 procedure TIndexedWordList.ForEach(Proc:TForEachProcedure;state:pointer); 
+
+{$ifdef userb}
+var key : string;
+    val:TIndexedWord;
+{$else}
 var   
     AVLNode   : TAVLTreeNode;
+{$endif}
 begin
+ {$ifdef userb}
+    if favltree.FirstNode(key,val) then 
+      begin  // Scan it forward
+        repeat
+          proc(val,state);
+        until not favltree.FindNext(key,val);
+      end;         
+ {$else}
    AVLNode:=fAVLTree.FindLowest;
    while (AVLNode<>nil) do
       begin
         Proc(TIndexedWord(AVLNode.Data),State);
         AVLNode:=FAVLTree.FindSuccessor(AVLNode)
       end;
+  {$endif}
 end; 
 
 { TIndexedWord }
