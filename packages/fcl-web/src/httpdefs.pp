@@ -307,6 +307,7 @@ type
     FContentSent: Boolean;
     FRequest : TRequest;
     FCookies : TCookies;
+    FCustomHeaders : TStringList;
     function GetContent: String;
     procedure SetContent(const AValue: String);
     procedure SetContents(AValue: TStrings);
@@ -334,6 +335,9 @@ type
     Property HeadersSent : Boolean Read FHeadersSent;
     Property ContentSent : Boolean Read FContentSent;
     property Cookies: TCookies read FCookies;
+    Property CustomHeaders: TStringList read FCustomHeaders;
+    Function GetCustomHeader(const Name: String) : String;
+    Procedure SetCustomHeader(const Name, Value: String);
     Procedure SendRedirect(const TargetURL:String);
   end;
   
@@ -1374,12 +1378,14 @@ begin
   FContents:=TStringList.Create;
   TStringList(FContents).OnChange:=@ContentsChanged;
   FCookies:=TCookies.Create(TCookie);
+  FCustomHeaders:=TStringList.Create;
 end;
 
 destructor TResponse.destroy;
 begin
   FreeAndNil(FCookies);
   FreeAndNil(FContents);
+  FreeAndNil(FCustomHeaders);
   inherited destroy;
 end;
 
@@ -1418,6 +1424,19 @@ end;
 procedure TResponse.SendResponse;
 begin
   SendContent;
+end;
+
+function TResponse.GetCustomHeader(const Name: String): String;
+begin
+  Result := FCustomHeaders.Values[Name];
+end;
+
+procedure TResponse.SetCustomHeader(const Name, Value: String);
+begin
+  if GetCustomHeader(Name) = '' then
+    FCustomHeaders.Add(Name + '=' + Value)
+  else
+    FCustomHeaders.Values[Name] := Value;
 end;
 
 procedure TResponse.SendRedirect(const TargetURL: String);
@@ -1518,6 +1537,8 @@ begin
     Headers.Add('Set-Cookie: '+FCookies[i].AsString);
   For I:=0 to FieldCount-1 do
     Headers.Add(Fields[i]);
+  For I:=0 to FCustomHeaders.Count - 1 do if FCustomHeaders[I] <> '' then
+    Headers.Add(FCustomHeaders.Names[I] + ': ' + FCustomHeaders.ValueFromIndex[I]);
   Headers.Add('');
 {$ifdef cgidebug} SendMethodExit('Collectheaders');{$endif}
 end;
