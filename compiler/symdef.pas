@@ -2399,11 +2399,12 @@ implementation
          { alignment of dyn. arrays doesn't depend on the element size }
          if (ado_IsDynamicArray in arrayoptions) then
            alignment:=size_2_align(sizeof(pint))
-         { alignment is the size of the elements }
-         else if (elementdef.typ in [arraydef,recorddef]) or
+         { alignment is the alignment of the elements }
+         else if (elementdef.typ in [arraydef,recorddef,orddef,enumdef,floatdef]) or
            ((elementdef.typ=objectdef) and
              is_object(elementdef)) then
            alignment:=elementdef.alignment
+         { alignment is the size of the elements }
          else if not (ado_IsBitPacked in arrayoptions) then
            alignment:=size_2_align(elesize)
          else
