@@ -766,7 +766,13 @@ implementation
          begin
            { generic fallback that will give an error if a wrong
              type is passed }
-           copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
+           if (counter=3) then
+             copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
+           else
+             begin
+               CGMessagePos(ppn.left.fileinfo,type_e_mismatch);
+               copynode:=cerrornode.create;
+             end
          end;
 
         result.free;
