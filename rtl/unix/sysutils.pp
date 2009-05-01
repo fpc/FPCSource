@@ -506,8 +506,6 @@ var
   UnixFindData : PUnixFindData;
 Begin
   UnixFindData:=PUnixFindData(f.FindHandle);
-  if UnixFindData=nil then
-    exit;
   if UnixFindData^.SearchType=0 then
     begin
       if UnixFindData^.dirptr<>nil then
@@ -520,19 +518,21 @@ End;
 
 Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
 var
-  st      : baseunix.stat;
-  WinAttr : longint;
+  st           : baseunix.stat;
+  WinAttr      : longint;
+  ResolvedPath : string;
+  LinkLen      : ssize_t;
   
 begin
   FindGetFileInfo:=false;
   If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)    
+    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
   else
     FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  If not FindGetFileInfo then 
-    exit;  
+  If not FindGetFileInfo then
+    exit;
   WinAttr:=LinuxToWinAttr(PChar(pointer(s)),st);
-  If (f.FindHandle = nil) or ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
+  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
      f.Name:=ExtractFileName(s);
      f.Attr:=WinAttr;
@@ -541,8 +541,10 @@ begin
 {$ifndef FPUNONE}
      f.Time:=UnixToWinAge(st.st_mtime);
 {$endif}
-     result:=true;
-   End;
+     FindGetFileInfo:=true;
+   End
+  else
+    FindGetFileInfo:=false;
 end;
 
 
@@ -561,7 +563,10 @@ Var
 Begin
   Result:=-1;
   UnixFindData:=PUnixFindData(Rslt.FindHandle);
-  if UnixFindData=nil then
+  { SearchSpec='' means that there were no wild cards, so only one file to
+    find.
+  }
+  if UnixFindData^.SearchSpec='' then
     exit;
   if (UnixFindData^.SearchType=0) and
      (UnixFindData^.Dirptr=nil) then
@@ -611,6 +616,12 @@ Begin
   fillchar(Rslt,sizeof(Rslt),0);
   if Path='' then
     exit;
+  { Allocate UnixFindData (we always need it, for the search attributes) }
+  New(UnixFindData);
+  FillChar(UnixFindData^,sizeof(UnixFindData^),0);
+  Rslt.FindHandle:=UnixFindData;
+   {We always also search for readonly and archive, regardless of Attr:}
+  UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
    begin
@@ -619,14 +630,8 @@ Begin
    end
   else
    begin
-     { Allocate UnixFindData }
-     New(UnixFindData);
-     FillChar(UnixFindData^,sizeof(UnixFindData^),0);
-     Rslt.FindHandle:=UnixFindData;
      {Create Info}
      UnixFindData^.SearchSpec := Path;
-     {We always also search for readonly and archive, regardless of Attr:}
-     UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
      UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
      while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
        dec(UnixFindData^.NamePos);
