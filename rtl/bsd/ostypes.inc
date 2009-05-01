@@ -30,6 +30,10 @@
   {$endif}
 {$endif}
 
+{$if defined(darwin) and defined(cpuarm)}
+  {$define darwinarm}
+{$endif}
+
 //      CONST SYS_NMLN=65;
 
 // Can't find these two in Posix and in FreeBSD
@@ -60,9 +64,15 @@ TYPE
   { file characteristics services }
    stat    = record { the types are real}
         st_dev        : dev_t;             // inode's device
+{$ifdef darwinarm}
+        st_mode       : mode_t;            // inode protection mode
+        st_nlink      : nlink_t;           // number of hard links
+        st_ino        : ino_t;             // inode's number
+{$else}
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
+{$endif}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
@@ -72,6 +82,10 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef darwinarm}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+{$endif}
 {$ifdef netbsdPowerpc}
         st_padd1              : cint;
 {$endif}

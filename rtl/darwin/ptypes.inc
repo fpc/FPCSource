@@ -35,7 +35,11 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
+{$ifndef cpuarm}
     ino_t    = cuint32;         { used for file serial numbers }
+{$else}
+    ino_t    = cuint64;
+{$endif}
     TIno     = ino_t;
     pIno     = ^ino_t;
 
