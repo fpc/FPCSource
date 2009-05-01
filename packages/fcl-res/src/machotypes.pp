@@ -20,7 +20,7 @@ unit machotypes;
 interface
 
 type
-  TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64);
+  TMachOMachineType = (mmtpowerpc, mmtpowerpc64, mmti386, mmtx86_64, mmtarm);
   TSegSectName = array[0..15] of char;
 
 type

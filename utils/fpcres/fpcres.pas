@@ -263,6 +263,7 @@ begin
     mtx86_64 : Result.MachineType:=mmtx86_64;
     mtppc : Result.MachineType:=mmtpowerpc;
     mtppc64 : Result.MachineType:=mmtpowerpc64;
+    mtarm : Result.MachineType:=mmtarm;
   end;
 end;
 

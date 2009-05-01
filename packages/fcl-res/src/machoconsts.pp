@@ -47,7 +47,7 @@ const
   CPU_TYPE_ANY       = -1;
   CPU_TYPE_I386      = 7;
   CPU_TYPE_X86_64    = CPU_TYPE_I386 or CPU_ARCH_ABI64;
-//  CPU_TYPE_ARM       = 12;
+  CPU_TYPE_ARM       = 12;
   CPU_TYPE_POWERPC   = 18;
   CPU_TYPE_POWERPC64 = CPU_TYPE_POWERPC or CPU_ARCH_ABI64;
 
@@ -55,6 +55,7 @@ const
   CPU_SUBTYPE_I386_ALL    = 3;
   CPU_SUBTYPE_X86_64_ALL  = CPU_SUBTYPE_I386_ALL;
   CPU_SUBTYPE_POWERPC_ALL = 0;
+  CPU_SUBTYPE_ARM_ALL     = 0;
 
   //Mach-O object types
   MH_OBJECT      = $1;            // relocatable object file
@@ -197,6 +198,8 @@ const
   //relocation types - x86_64
   X86_64_RELOC_UNSIGNED = 0;  // for absolute addresses
 
+  // relocation types - ARM
+  ARM_RELOC_VANILLA = 0; // generic relocation
 
 implementation
 
