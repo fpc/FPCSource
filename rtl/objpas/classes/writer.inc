@@ -375,7 +375,9 @@ end;
 
 procedure TBinaryObjectWriter.WriteVariant(const VarValue: variant);
 begin
-  case tvardata(VarValue).vtype of
+  { The variant manager will handle varbyref and vararray transparently for us
+  }
+  case (tvardata(VarValue).vtype and varTypeMask) of
     varEmpty:
       begin
         WriteValue(vaNil);
