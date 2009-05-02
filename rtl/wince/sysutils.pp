@@ -604,19 +604,25 @@ var
   MsgBuffer: PWideChar;
   len: longint;
 begin
+  MsgBuffer:=nil;
   len:=FormatMessage(
          FORMAT_MESSAGE_ALLOCATE_BUFFER or FORMAT_MESSAGE_FROM_SYSTEM or FORMAT_MESSAGE_IGNORE_INSERTS,
          nil,
          ErrorCode,
          0,
-         PWideChar(@MsgBuffer),    { This function allocs the memory (in this case you pass a PPwidechar)}
+         @MsgBuffer,    { This function allocs the memory (in this case you pass a PPwidechar)}
          0,
          nil);
-  while (len > 0) and (MsgBuffer[len - 1] <= #32) do
-    Dec(len);
-  MsgBuffer[len]:=#0;
-  PWideCharToString(PWideChar(MsgBuffer), Result);
-  LocalFree(HLOCAL(MsgBuffer));
+         
+  if MsgBuffer <> nil then begin
+    while (len > 0) and (MsgBuffer[len - 1] <= #32) do
+      Dec(len);
+    MsgBuffer[len]:=#0;
+    PWideCharToString(MsgBuffer, Result);
+    LocalFree(HLOCAL(MsgBuffer));
+  end
+  else
+    Result:='';
 end;
 
 {****************************************************************************
