@@ -407,7 +407,7 @@ begin
 end;
 {$endif}
 
-procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
 
 type
   Ptypeinfo=^Ttypeinfo;
@@ -435,23 +435,21 @@ var
   sorted_array:^Tsorted_array;
   i,spaces:byte;
 
-label
-  error;
-
 begin
+  fpc_shortstr_enum_intern:=107;
   if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
       with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
         begin
           if (ordinal<minvalue) or (ordinal>maxvalue) then
-            goto error;  {Invalid ordinal value for this enum.}
+            exit;  {Invalid ordinal value for this enum.}
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
       p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
       if p=nil then
-        goto error;      {Invalid ordinal value for this enum.}
+        exit;      {Invalid ordinal value for this enum.}
       s:=p^;
     end
   else
@@ -470,7 +468,7 @@ begin
         else
           break;
         if l>h then
-          goto error; {Ordinal value not found? Kaboom.}
+          exit; {Ordinal value not found? Kaboom.}
       until false;
       s:=sorted_array[m].s^;
     end;
@@ -482,14 +480,22 @@ begin
         s[length(s)+i]:=' ';
       inc(byte(s[0]),spaces);
     end;
-  exit;
-error:
-  {Call runtime error in a central place, this saves space.}
-  runerror(107);
+  fpc_shortstr_enum_intern:=0;
+end;
+
+
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+var
+  res: longint;
+begin
+  res:=fpc_shortstr_enum_intern(ordinal,len,typinfo,ord2strindex,s);
+  if (res<>0) then
+    runerror(107);
 end;
 
 { also define alias for internal use in the system unit }
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
+
 
 procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
