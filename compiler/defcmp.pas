@@ -1013,7 +1013,8 @@ implementation
                      else
                        { dynamic array to pointer, delphi only }
                        if (m_delphi in current_settings.modeswitches) and
-                          is_dynamic_array(def_from) then
+                          is_dynamic_array(def_from) and
+                          is_voidpointer(def_to) then
                         begin
                           eq:=te_equal;
                         end;
