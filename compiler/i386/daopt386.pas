@@ -199,7 +199,7 @@ procedure RemoveLastDeallocForFuncRes(asmL: TAsmList; p: tai);
 function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
            hp: tai): boolean;
 procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
-procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; var initialusedregs: tregset);
 function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
 function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
@@ -1166,7 +1166,7 @@ begin
 end;
 
 
-procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; var initialusedregs: tregset);
 { allocates register reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
 { note that this routine is both called from the peephole optimizer     }
@@ -1208,6 +1208,7 @@ begin
     begin
       hp := tai_regalloc.alloc(reg,nil);
       insertllItem(asmL,p1.previous,p1,hp);
+      include(initialusedregs,supreg);
     end;
   while assigned(p1) and
         (p1 <> p2) do
