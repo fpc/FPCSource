@@ -54,9 +54,7 @@ Function ReverseString(const AText: string): string;
 Function AnsiReverseString(const AText: AnsiString): AnsiString;inline;
 Function StuffString(const AText: string; AStart, ALength: Cardinal;  const ASubText: string): string;
 Function RandomFrom(const AValues: array of string): string; overload;
-Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
-Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
-Function IfThen(AValue: Boolean; const ATrue: shortString ; const Afalse: shortString ='') :shortString;  inline;
+Function IfThen(AValue: Boolean; const ATrue: string; const AFalse: string = ''): string; overload;
 
 { ---------------------------------------------------------------------
     VB emulations.
@@ -396,27 +394,13 @@ begin
   result:=Avalues[random(High(AValues)+1)];
 end;
 
-Function IfThen(AValue: Boolean; const ATrue: string; AFalse: string): string;inline;
+Function IfThen(AValue: Boolean; const ATrue: string; const AFalse: string = ''): string; overload;
 
 begin
   if avalue then
     result:=atrue
   else
     result:=afalse;
-end;
-
-Function IfThen(AValue: Boolean; const ATrue: string): string;inline; // ; AFalse: string = ''
-
-begin
-  if avalue then
-    result:=atrue
-  else
-    result:='';
-end;
-
-Function IfThen(AValue:boolean;const ATrue:shortString ; const AFalse:shortString ='') :shortString;  inline;
-begin
-  if AValue then result:=ATrue else result:=AFalse;
 end;
 
 { ---------------------------------------------------------------------
