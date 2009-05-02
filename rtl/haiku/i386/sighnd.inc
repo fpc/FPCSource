@@ -16,7 +16,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(sig : longint; SigContext: PSigContextRec; uContext: Pvregs);cdecl;
+procedure SignalToRunerror(sig : longint; SigContext: PSigContextRec; uContext: Pvregs);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res,fpustate : word;
 begin
@@ -71,6 +71,14 @@ begin
     SIGSEGV :
       begin
         res:=216;
+      end;
+    SIGINT:
+      begin
+        res:=217;
+      end;
+    SIGQUIT:
+      begin
+        res:=233;
       end;
   end;
   reenable_signal(sig);

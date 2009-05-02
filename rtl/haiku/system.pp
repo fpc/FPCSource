@@ -334,23 +334,21 @@ type
   end;
 
 var
-  act: SigActionRec;
   alternate_signal_stack : TAlternateSignalStack;
 
-Procedure InstallSignals;
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
-  oldact: SigActionRec;
   r : integer;
-  st : stack_t;  
+  st : stack_t;
 begin
   FillChar(st, sizeof(st), 0);
 
   st.ss_flags := 0;
   st.ss_sp := alternate_signal_stack.buffer;
   st.ss_size := SizeOf(alternate_signal_stack);
-  
+
   r := sigaltstack(@st, nil);
-  
+
   if (r <> 0) then
   	WriteLn('error sigalstack');
   { Initialize the sigaction structure }
@@ -359,11 +357,29 @@ begin
   { initialize handler                    }
   act.sa_handler := SigActionHandler(@SignalToRunError);
   act.sa_flags := SA_ONSTACK;
+  FpSigAction(signum,@act,@oldact);
+end;
 
-  FpSigAction(SIGFPE,@act,@oldact);
-  FpSigAction(SIGSEGV,@act,@oldact);
-  FpSigAction(SIGBUS,@act,@oldact);
-  FpSigAction(SIGILL,@act,@oldact);
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 procedure SysInitStdIO;
@@ -458,4 +474,7 @@ begin
   initunicodestringmanager;
 {$endif VER2_2}
   setupexecname;
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 end.

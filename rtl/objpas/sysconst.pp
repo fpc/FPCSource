@@ -77,6 +77,7 @@ resourcestring
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
   SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
+  SSigQuit               = 'SIGQUIT signal received.';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';

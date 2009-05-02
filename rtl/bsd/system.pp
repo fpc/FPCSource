@@ -146,7 +146,7 @@ End;
 
 
 {*****************************************************************************
-                         SystemUnit Initialization
+                         System Unit Initialization
 *****************************************************************************}
 
 function  reenable_signal(sig : longint) : boolean;
@@ -171,28 +171,43 @@ end;
 
 {$i sighnd.inc}
 
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
-
-Procedure InstallSignals;
-var
-  oldact: SigActionRec;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
-  FillChar(act, sizeof(SigActionRec),0);
+  FillChar(act,sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler :=@SignalToRunError;
-  act.sa_flags:=SA_SIGINFO;
+  act.sa_handler:=@SignalToRunError;
 {$if defined(darwin) and defined(cpu64)}
   act.sa_flags:=SA_SIGINFO or SA_64REGSET;
 {$else}
   act.sa_flags:=SA_SIGINFO;
 {$endif}
-  FpSigAction(SIGFPE,act,oldact);
-  FpSigAction(SIGSEGV,act,oldact);
-  FpSigAction(SIGBUS,act,oldact);
-  FpSigAction(SIGILL,act,oldact);
+  FpSigAction(signum,@act,@oldact);
+end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 
@@ -300,7 +315,7 @@ Begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
-  { Set up signals handlers }
+  { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
   SysResetFPU;
@@ -327,4 +342,7 @@ Begin
 {$else VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 End.

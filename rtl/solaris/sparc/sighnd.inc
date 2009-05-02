@@ -32,7 +32,7 @@ const
   FPE_FLTSUB = 8;
 
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res : word;
   addr : pointer;
@@ -76,6 +76,10 @@ begin
       begin
         res:=214;
       end;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }

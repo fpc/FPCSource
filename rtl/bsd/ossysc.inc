@@ -296,7 +296,7 @@ end;
   If OldAct is non-nil the previous action is saved there.
 }
 
-function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
+function Fpsigaction(sig: cint; act, oact: psigactionrec): cint; [public, alias : 'FPC_SYSC_SIGACTION'];
 
 {
   Change action of process upon receipt of a signal.
@@ -306,7 +306,7 @@ function Fpsigaction(sig: cint; var act : sigactionrec; var oact : sigactionrec)
 }
 
 begin
-  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(@act),TSysParam(@oact));
+  do_syscall(syscall_nr_sigaction,TSysParam(sig),TSysParam(act),TSysParam(oact));
 end;
 
 (*=================== MOVED from sysunix.inc ========================*)

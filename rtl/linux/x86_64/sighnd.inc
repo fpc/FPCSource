@@ -32,7 +32,7 @@ function GetFPUState(const SigContext : TSigContext) : word;
   end;
 
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext); cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
   var
     res,fpustate : word;
   begin
@@ -68,6 +68,10 @@ procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigCon
       SIGBUS,
       SIGSEGV:
         res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
     end;
     reenable_signal(sig);
     if res<>0 then

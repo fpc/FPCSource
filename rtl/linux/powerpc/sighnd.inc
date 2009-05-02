@@ -15,7 +15,7 @@
 
  **********************************************************************}
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; context: PUContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; context: PUContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res : word;
 {  fpustate: longint; }
@@ -39,6 +39,10 @@ begin
     SIGILL,
     SIGSEGV :
       res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }

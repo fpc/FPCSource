@@ -331,7 +331,8 @@ begin
   229 : E:=ESafecallException.Create(SSafecallException);
   231 : E:=EConvertError.Create(SiconvError);
   232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
-  233 : E:=ENoWideStringSupport.Create(SMissingWStringManager);
+  233 : E:=ENoWideStringSupport.Create(SSigQuit);
+  234 : E:=ENoWideStringSupport.Create(SMissingWStringManager);
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;

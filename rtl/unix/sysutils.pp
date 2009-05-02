@@ -66,23 +66,185 @@ implementation
 Uses
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
 
-function InquireSignal(RtlSigNum: Integer): TSignalState;
+type
+  tsiginfo = record
+    oldsiginfo: sigactionrec;
+    hooked: boolean;
+  end;
+
+const
+  rtlsig2ossig: array[RTL_SIGINT..RTL_SIGLAST] of byte =
+    (SIGINT,SIGFPE,SIGSEGV,SIGILL,SIGBUS,SIGQUIT);
+  { to avoid linking in all this stuff in every program,
+    as it's unlikely to be used by anything but libraries
+  }
+  signalinfoinited: boolean = false;
+
+var
+  siginfo: array[RTL_SIGINT..RTL_SIGLAST] of tsiginfo;
+  oldsigfpe: SigActionRec; external name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; external name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; external name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; external name '_FPC_OLDSIGILL';
+
+
+procedure defaultsighandler; external name '_FPC_DEFAULTSIGHANDLER';
+procedure installdefaultsignalhandler(signum: Integer; out oldact: SigActionRec); external name '_FPC_INSTALLDEFAULTSIGHANDLER';
+
+
+function InternalInquireSignal(RtlSigNum: Integer; out act: SigActionRec; frominit: boolean): TSignalState;
   begin
+    result:=ssNotHooked;
+    if (RtlSigNum<>RTL_SIGDEFAULT) and
+       (RtlSigNum<RTL_SIGLAST) then
+      begin
+        if (frominit or
+            siginfo[RtlSigNum].hooked) and
+           (fpsigaction(rtlsig2ossig[RtlSigNum],nil,@act)=0) then
+          begin
+            if not frominit then
+              begin
+                { check whether the installed signal handler is still ours }
+                if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+                  result:=ssHooked
+                else
+                  result:=ssOverridden;
+              end
+            else if IsLibrary then
+              begin
+                { library -> signals have not been hooked by system init code }
+                exit
+              end
+            else
+              begin
+                { program -> signals have been hooked by system init code }
+                if (byte(RtlSigNum) in [RTL_SIGFPE,RTL_SIGSEGV,RTL_SIGILL,RTL_SIGBUS]) then
+                  begin
+                    if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+                      result:=ssHooked
+                    else
+                      result:=ssOverridden;
+                    { return the original handlers as saved by the system unit
+                      (the current call to sigaction simply returned our
+                       system unit's installed handlers)
+                    }
+                    case RtlSigNum of
+                      RTL_SIGFPE:
+                        act:=oldsigfpe;
+                      RTL_SIGSEGV:
+                        act:=oldsigsegv;
+                      RTL_SIGILL:
+                        act:=oldsigill;
+                      RTL_SIGBUS:
+                        act:=oldsigbus;
+                    end;
+                  end
+                else
+                  begin
+                    { these are not hooked in the startup code }
+                    result:=ssNotHooked;
+                  end
+              end
+          end
+      end;
+  end;
+
+
+procedure initsignalinfo;
+  var
+    i: Integer;
+  begin
+    for i:=RTL_SIGINT to RTL_SIGLAST do
+      siginfo[i].hooked:=(InternalInquireSignal(i,siginfo[i].oldsiginfo,true)=ssHooked);
+    signalinfoinited:=true;
+  end;
+
+
+function InquireSignal(RtlSigNum: Integer): TSignalState;
+  var
+    act: SigActionRec;
+  begin
+    if not signalinfoinited then
+      initsignalinfo;
+    result:=InternalInquireSignal(RtlSigNum,act,false);
   end;
 
 
 procedure AbandonSignalHandler(RtlSigNum: Integer);
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) and
+       (RtlSigNum<RTL_SIGLAST) then
+      siginfo[RtlSigNum].hooked:=false;
   end;
 
 
 procedure HookSignal(RtlSigNum: Integer);
+  var
+    lowsig, highsig, i: Integer;
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) then
+      begin
+        lowsig:=RtlSigNum;
+        highsig:=RtlSigNum;
+      end
+    else
+      begin
+        { we don't hook SIGINT and SIGQUIT by default }
+        lowsig:=RTL_SIGFPE;
+        highsig:=RTL_SIGBUS;
+      end;
+    { install the default rtl signal handler for the selected signal(s) }
+    for i:=lowsig to highsig do
+      begin
+        installdefaultsignalhandler(rtlsig2ossig[i],siginfo[i].oldsiginfo);
+        siginfo[i].hooked:=true;
+      end;
   end;
 
 
 procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
+  var
+    act: SigActionRec;
+    lowsig, highsig, i: Integer;
+    state: TSignalState;
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) then
+      begin
+        lowsig:=RtlSigNum;
+        highsig:=RtlSigNum;
+      end
+    else
+      begin
+        { we don't hook SIGINT and SIGQUIT by default }
+        lowsig:=RTL_SIGFPE;
+        highsig:=RTL_SIGBUS;
+      end;
+    for i:=lowsig to highsig do
+      begin
+        if not OnlyIfHooked or
+           (InquireSignal(i)=ssHooked) then
+          begin
+            { restore the handler that was present when we hooked the signal,
+              if we hooked it at one time or another. If the user doesn't
+              want this, they have to call AbandonSignalHandler() first
+            }
+            if siginfo[i].hooked then
+              act:=siginfo[i].oldsiginfo
+            else
+              begin
+                fillchar(act,sizeof(act),0);
+                pointer(act.sa_handler):=pointer(SIG_DFL);
+              end;
+            if (fpsigaction(rtlsig2ossig[RtlSigNum],@act,nil)=0) then
+              siginfo[i].hooked:=false;
+          end;
+      end;
   end;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.

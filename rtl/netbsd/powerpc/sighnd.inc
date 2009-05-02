@@ -20,7 +20,7 @@ begin
   getfpustate:=0;
 end;
 
-procedure SignalToRunerror(signo: cint); cdecl;
+procedure SignalToRunerror(signo: cint); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 var
   res : word;
 begin
@@ -33,6 +33,14 @@ begin
     if (signo = SIGILL) or (signo = SIGBUS) or (signo = SIGSEGV) then
       begin
         res := 216;
+      end
+    else if (signo = SIGINT) then
+      begin
+        res:=217;
+      end
+    else if (signo = SIGKILL) then
+      begin
+        res:=233
       end;
   { give runtime error at the position where the signal was raised }
   if res<>0 then

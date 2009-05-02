@@ -16,7 +16,7 @@
  **********************************************************************}
 
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res,fpustate : word;
 begin
@@ -50,6 +50,10 @@ begin
     SIGBUS,
     SIGSEGV :
         res:=216;
+    SIGINT:
+        res:=217;
+    SIGKILL :
+        res:=233;
   end;
 { give runtime error at the position where the signal was raised }
   if res<>0 then

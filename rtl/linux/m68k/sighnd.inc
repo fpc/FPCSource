@@ -64,7 +64,7 @@ end;
 
 
 
-procedure SignalToRunerror(Sig: longint; Info : pointer; var SigContext: TSigContext); cdecl;
+procedure SignalToRunerror(Sig: longint; Info : pointer; var SigContext: TSigContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 var
   res,fpustate : word;
 begin
@@ -101,6 +101,10 @@ begin
     SIGBUS,
     SIGSEGV :
         res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
   end;
 
   reenable_signal(sig);
