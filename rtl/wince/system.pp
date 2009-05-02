@@ -1577,6 +1577,28 @@ function WinCEWideLower(const s : WideString) : WideString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
+{ Currently widestrings are ref-counted on wince.
+  Unicode helpers are just wrappers over widestring helpers. }
+
+procedure WinCEUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+begin
+  WinCEWide2AnsiMove(source, dest, len);
+end;
+
+procedure WinCEAnsi2UnicodeMove(source:pchar;var dest:UnicodeString;len:SizeInt);
+begin
+  WinCEAnsi2WideMove(source, PWideString(@dest)^, len);
+end;
+
+function WinCEUnicodeUpper(const s : UnicodeString) : UnicodeString;
+begin
+  Result:=WinCEWideUpper(s);
+end;
+
+function WinCEUnicodeLower(const s : UnicodeString) : UnicodeString;
+begin
+  Result:=WinCEWideLower(s);
+end;
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -1586,6 +1608,13 @@ procedure InitWinCEWidestrings;
     widestringmanager.Ansi2WideMoveProc:=@WinCEAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@WinCEWideUpper;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
+{$ifndef VER2_2}
+    { Unicode }
+    widestringmanager.Unicode2AnsiMoveProc:=@WinCEUnicode2AnsiMove;
+    widestringmanager.Ansi2UnicodeMoveProc:=@WinCEAnsi2UnicodeMove;
+    widestringmanager.UpperUnicodeStringProc:=@WinCEUnicodeUpper;
+    widestringmanager.LowerUnicodeStringProc:=@WinCEUnicodeLower;
+{$endif VER2_2}
   end;
 
 
