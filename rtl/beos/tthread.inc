@@ -244,11 +244,6 @@ end;
 
 procedure TThread.Synchronize(Method: TThreadMethod);
 begin
-  FSynchronizeException := nil;
-  FMethod := Method;
-{  SendMessage(ThreadWindow, CM_EXECPROC, 0, Longint(Self)); }
-  if Assigned(FSynchronizeException) then
-    raise FSynchronizeException;
 end;
 
 

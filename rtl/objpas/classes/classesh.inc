@@ -1397,8 +1397,6 @@ type
     FSuspended: LongBool;
     FReturnValue: Integer;
     FOnTerminate: TNotifyEvent;
-    FMethod: TThreadMethod;
-    FSynchronizeException: TObject;
     FFatalException: TObject;
     procedure CallOnTerminate;
     function GetPriority: TThreadPriority;
