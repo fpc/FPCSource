@@ -1121,7 +1121,7 @@ begin
   else
     Writeln(ptext^);
   Writeln(ptext^,'True free heap : ',status.CurrHeapFree);
-  ExpectedHeapFree:=status.CurrHeapSize
+  ExpectedHeapFree:=status.CurrHeapFree
     -(loc_info^.getmem8_size-loc_info^.freemem8_size)
     -(loc_info^.getmem_cnt-loc_info^.freemem_cnt)*(sizeof(theap_mem_info)+extra_info_size)
     -EntryMemUsed;
