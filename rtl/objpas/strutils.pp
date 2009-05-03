@@ -46,7 +46,7 @@ Function AnsiMatchStr(const AText: string; const AValues: array of string): Bool
 Function AnsiIndexStr(const AText: string; const AValues: array of string): Integer;
 
 { ---------------------------------------------------------------------
-    Playthingies
+    Miscelaneous
   ---------------------------------------------------------------------}
 
 Function DupeString(const AText: string; ACount: Integer): string;
