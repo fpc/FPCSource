@@ -84,7 +84,7 @@ interface
          SizeOfStackCommit : aword;
          SizeOfHeapReserve : aword;
          SizeOfHeapCommit : aword;
-         LoaderFlags : longword;
+         LoaderFlags : longword;          { This field is obsolete }
          NumberOfRvaAndSizes : longword;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
        end;
@@ -2274,8 +2274,6 @@ const pemagic : array[0..3] of byte = (
               peoptheader.SizeOfStackCommit:=minstacksize;
             if MaxStackSizeSetExplicity then
               peoptheader.SizeOfStackReserve:=maxstacksize;
-            if SetPEFlagsSetExplicity then
-              peoptheader.LoaderFlags:=peflags;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
