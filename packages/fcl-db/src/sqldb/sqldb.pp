@@ -164,6 +164,7 @@ type
     FTrans               : TSQLHandle;
     FAction              : TCommitRollbackAction;
     FParams              : TStringList;
+    procedure SetParams(const AValue: TStringList);
   protected
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
@@ -180,7 +181,7 @@ type
   published
     property Action : TCommitRollbackAction read FAction write FAction;
     property Database;
-    property Params : TStringList read FParams write FParams;
+    property Params : TStringList read FParams write SetParams;
   end;
 
 { TCustomSQLQuery }
@@ -227,6 +228,7 @@ type
     procedure SetInsertSQL(const AValue: TStringlist);
     procedure SetReadOnly(AValue : Boolean);
     procedure SetParseSQL(AValue : Boolean);
+    procedure SetSQL(const AValue: TStringlist);
     procedure SetUpdateSQL(const AValue: TStringlist);
     procedure SetUsePrimaryKeyAsKey(AValue : Boolean);
     procedure SetUpdateMode(AValue : TUpdateMode);
@@ -302,7 +304,7 @@ type
     property SchemaType : TSchemaType read FSchemaType default stNoSchema;
     property Transaction;
     property ReadOnly : Boolean read FReadOnly write SetReadOnly;
-    property SQL : TStringlist read FSQL write FSQL;
+    property SQL : TStringlist read FSQL write SetSQL;
     property UpdateSQL : TStringlist read FUpdateSQL write SetUpdateSQL;
     property InsertSQL : TStringlist read FInsertSQL write SetInsertSQL;
     property DeleteSQL : TStringlist read FDeleteSQL write SetDeleteSQL;
@@ -694,6 +696,11 @@ procedure TSQLTransaction.EndTransaction;
 
 begin
   rollback;
+end;
+
+procedure TSQLTransaction.SetParams(const AValue: TStringList);
+begin
+  FParams.Assign(AValue);
 end;
 
 function TSQLTransaction.GetHandle: pointer;
@@ -1338,6 +1345,11 @@ begin
     end
   else
     FParseSQL := True;
+end;
+
+procedure TCustomSQLQuery.SetSQL(const AValue: TStringlist);
+begin
+  FSQL.Assign(AValue);
 end;
 
 procedure TCustomSQLQuery.SetUpdateSQL(const AValue: TStringlist);
