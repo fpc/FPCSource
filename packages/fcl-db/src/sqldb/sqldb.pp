@@ -1219,6 +1219,11 @@ begin
     begin
     if not ReadFromFile then
       begin
+      // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
+      // which do not allow processing multiple recordsets at a time. (Microsoft
+      // calls this MARS, see bug 13241)
+      if DefaultFields and FUpdateable and FusePrimaryKeyAsKey then
+        UpdateServerIndexDefs;
       Execute;
       // InternalInitFieldDef is only called after a prepare. i.e. not twice if
       // a dataset is opened - closed - opened.
@@ -1231,7 +1236,6 @@ begin
           begin
           if FusePrimaryKeyAsKey then
             begin
-            UpdateServerIndexDefs;
             for tel := 0 to ServerIndexDefs.count-1 do
               begin
               if ixPrimary in ServerIndexDefs[tel].options then
