@@ -835,96 +835,99 @@ const pemagic : array[0..3] of byte = (
                 end
             else
               internalerror(200205183);
-            { Only debug section are allowed to have }
-            if not relocsec.used and
-               not(oso_debug in secoptions) then
+            { Only debug sections are allowed to have relocs pointing to unused sections }
+            if not relocsec.used and not (oso_debug in secoptions) then
               internalerror(200603061);
-            case objreloc.typ of
-              RELOC_RELATIVE  :
-                begin
-                  address:=address-mempos+relocval;
-                  if TCoffObjData(objdata).win32 then
-                    dec(address,objreloc.dataoffset+4);
-                end;
-              RELOC_RVA :
-                begin
-                  { fixup address when the symbol was known in defined object }
-                  if (relocsec.objdata=objdata) then
-                    dec(address,TCoffObjSection(relocsec).orgmempos);
+
+            if relocsec.used then
+              case objreloc.typ of
+                RELOC_RELATIVE  :
+                  begin
+                    address:=address-mempos+relocval;
+                    if TCoffObjData(objdata).win32 then
+                      dec(address,objreloc.dataoffset+4);
+                  end;
+                RELOC_RVA :
+                  begin
+                    { fixup address when the symbol was known in defined object }
+                    if (relocsec.objdata=objdata) then
+                      dec(address,TCoffObjSection(relocsec).orgmempos);
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
-                    inc(address, relocsec.MemPos)
-                  else
+                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                      inc(address, relocsec.MemPos)
+                    else
 {$endif arm}
+                      inc(address,relocval);
+                  end;
+                RELOC_SECREL32 :
+                  begin
+                    { fixup address when the symbol was known in defined object }
+                    if (relocsec.objdata=objdata) then
+                      dec(address,relocsec.ExeSection.MemPos);
                     inc(address,relocval);
-                end;
-              RELOC_SECREL32 :
-                begin
-                  { fixup address when the symbol was known in defined object }
-                  if (relocsec.objdata=objdata) then
-                    dec(address,TCoffObjSection(relocsec).mempos);
-                  inc(address,relocval);
-                end;
+                  end;
 {$ifdef arm}
-              RELOC_RELATIVE_24:
-                begin
-                  relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
-                  address:=address or (relocval and $ffffff);
-                  relocval:=relocval shr 24;
-                  if (relocval<>$3f) and (relocval<>0) then
-                    internalerror(200606085);  { offset overflow }
-                end;
+                RELOC_RELATIVE_24:
+                  begin
+                    relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                    address:=address or (relocval and $ffffff);
+                    relocval:=relocval shr 24;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(200606085);  { offset overflow }
+                  end;
 {$endif arm}
 {$ifdef x86_64}
-              { 64 bit coff only }
-              RELOC_RELATIVE_1:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+1);
-                end;
-              RELOC_RELATIVE_2:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+2);
-                end;
-              RELOC_RELATIVE_3:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+3);
-                end;
-              RELOC_RELATIVE_4:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+4);
-                end;
-              RELOC_RELATIVE_5:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+5);
-                end;
-              RELOC_ABSOLUTE32,
+                { 64 bit coff only }
+                RELOC_RELATIVE_1:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+1);
+                  end;
+                RELOC_RELATIVE_2:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+2);
+                  end;
+                RELOC_RELATIVE_3:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+3);
+                  end;
+                RELOC_RELATIVE_4:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+4);
+                  end;
+                RELOC_RELATIVE_5:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+5);
+                  end;
+                RELOC_ABSOLUTE32,
 {$endif x86_64}
-              RELOC_ABSOLUTE :
-                begin
-                  if oso_common in relocsec.secoptions then
-                    dec(address,objreloc.orgsize)
-                  else
-                    begin
-                      { fixup address when the symbol was known in defined object }
-                      if (relocsec.objdata=objdata) then
-                        dec(address,TCoffObjSection(relocsec).orgmempos);
-                    end;
+                RELOC_ABSOLUTE :
+                  begin
+                    if oso_common in relocsec.secoptions then
+                      dec(address,objreloc.orgsize)
+                    else
+                      begin
+                        { fixup address when the symbol was known in defined object }
+                        if (relocsec.objdata=objdata) then
+                          dec(address,TCoffObjSection(relocsec).orgmempos);
+                      end;
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
-                    inc(address, relocsec.MemPos)
-                  else
+                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                      inc(address, relocsec.MemPos)
+                    else
 {$endif arm}
-                    inc(address,relocval);
-                  inc(address,relocsec.objdata.imagebase);
-                end;
-              else
-                internalerror(200604014);
-            end;
+                      inc(address,relocval);
+                    inc(address,relocsec.objdata.imagebase);
+                  end;
+                else
+                  internalerror(200604014);
+              end
+            else
+              address:=0;  { Relocation in debug section points to unused section, which is eliminated by linker }
             data.Seek(objreloc.dataoffset);
             data.Write(address,4);
           end;
