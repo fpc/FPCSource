@@ -365,7 +365,7 @@ begin
           if AParams[ParamIndex].DataType = ftString then
             begin
             CType:=SQL_C_CHAR;
-            SqlType:=SQL_CHAR;
+            SqlType:=SQL_LONGVARCHAR;
             end
           else // ftBlob, ftMemo
             begin
