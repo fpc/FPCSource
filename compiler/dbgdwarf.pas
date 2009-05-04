@@ -2347,8 +2347,6 @@ implementation
         flist : TFPList;
       begin
         { insert DEBUGSTART and DEBUGEND labels }
-        current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
-
         new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
         current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
 
@@ -2541,6 +2539,7 @@ implementation
         i : longint;
         def: tdef;
       begin
+        current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
@@ -2666,13 +2665,11 @@ implementation
       var
         hp : tmodule;
       begin
-        { Reference all DEBUGSTART and DEBUGEND labels from the main .fpc section }
+        { Reference all DEBUGINFO sections from the main .fpc section }
+        { to prevent eliminating them by smartlinking                 }
         if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
           exit;
         list.concat(Tai_section.create(sec_fpc,'links',0));
-
-        list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',main_module.localsymtable,''),0));
-        list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',main_module.localsymtable,''),0));
 
         { include reference to all debuginfo sections of used units }
         hp:=tmodule(loaded_units.first);
