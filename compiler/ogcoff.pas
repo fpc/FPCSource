@@ -742,7 +742,6 @@ const pemagic : array[0..3] of byte = (
         alignflag : longword;
       begin
         aoptions:=[];
-        aalign:=sizeof(pint);
         if flags and PE_SCN_CNT_CODE<>0 then
           include(aoptions,oso_executable);
         if flags and PE_SCN_MEM_DISCARDABLE<>0 then
@@ -774,7 +773,11 @@ const pemagic : array[0..3] of byte = (
         else if alignflag=PE_SCN_ALIGN_2BYTES then
           aalign:=2
         else if alignflag=PE_SCN_ALIGN_1BYTES then
-          aalign:=1;
+          aalign:=1
+        else if alignflag=0 then
+          aalign:=0
+        else
+          Internalerror(2009050401);
       end;
 
 
