@@ -344,7 +344,7 @@ implementation
       version,globals,verbose,systems,
       cpubase,cgbase,paramgr,
       fmodule,
-      defutil,symconst,symtable
+      defutil,symconst,symtable,ppu
       ;
 
     const
@@ -2346,23 +2346,14 @@ implementation
         fitem : TFileIndexItem;
         flist : TFPList;
       begin
-        { doesn't work for windows, because it puts no code per module in the .text section }
-        if not(target_info.system in system_all_windows) then
-          begin
-            { insert .Ltext0 label }
-            templist:=TAsmList.create;
-            new_section(templist,sec_code,'',0);
-            templist.concat(tai_symbol.createname(target_asm.labelprefix+'text0',AT_DATA,0));
-            current_asmdata.asmlists[al_start].insertlist(templist);
-            templist.free;
-    
-            { insert .Letext0 label }
-            templist:=TAsmList.create;
-            new_section(templist,sec_code,'',0);
-            templist.concat(tai_symbol.createname(target_asm.labelprefix+'etext0',AT_DATA,0));
-            current_asmdata.asmlists[al_end].insertlist(templist);
-            templist.free;
-          end;
+        { insert DEBUGSTART and DEBUGEND labels }
+        current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
+
+        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
+        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
+
+        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
+        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
@@ -2610,12 +2601,8 @@ implementation
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
 
-        { see comments above where these labels are created and inserted }
-        if not(target_info.system in system_all_windows) then
-          begin
-            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
-            append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
-          end;
+        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(make_mangledname('DEBUGSTART',current_module.localsymtable,'')));
+        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(make_mangledname('DEBUGEND',current_module.localsymtable,'')));
 
         finish_entry;
 
@@ -2676,7 +2663,28 @@ implementation
 
 
     procedure TDebugInfoDwarf.referencesections(list:TAsmList);
+      var
+        hp : tmodule;
       begin
+        { Reference all DEBUGSTART and DEBUGEND labels from the main .fpc section }
+        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
+          exit;
+        list.concat(Tai_section.create(sec_fpc,'links',0));
+
+        list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',main_module.localsymtable,''),0));
+        list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',main_module.localsymtable,''),0));
+
+        { include reference to all debuginfo sections of used units }
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+          begin
+            If (hp.flags and uf_has_dwarf_debuginfo)=uf_has_dwarf_debuginfo then
+              begin
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',hp.localsymtable,''),0));
+              end;
+            hp:=tmodule(hp.next);
+          end;
       end;
 
 

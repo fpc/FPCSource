@@ -1247,7 +1247,7 @@ implementation
          else
            begin
              current_module.flags:=current_module.flags or uf_no_link;
-             current_module.flags:=current_module.flags and not uf_has_debuginfo;
+             current_module.flags:=current_module.flags and not (uf_has_stabs_debuginfo or uf_has_dwarf_debuginfo);
            end;
 
          if ag then

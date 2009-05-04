@@ -150,11 +150,12 @@ const
   uf_release       = $2000;   { unit was compiled with -Ur option }
   uf_threadvars    = $4000;   { unit has threadvars }
   uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
-  uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
+  uf_has_stabs_debuginfo = $10000;  { this unit has stabs debuginfo generated }
   uf_local_symtable = $20000; { this unit has a local symtable stored }
   uf_uses_variants  = $40000; { this unit uses variants }
   uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
   uf_has_exports = $100000;   { this module or a used unit has exports }
+  uf_has_dwarf_debuginfo = $200000;  { this unit has dwarf debuginfo generated }
 
 
 type
