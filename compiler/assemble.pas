@@ -971,12 +971,17 @@ Implementation
                  if assigned(tai_const(hp).sym) then
                    begin
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
-                     if assigned(tai_const(hp).endsym) then
+                     { objsym already defined and there is endsym? }
+                     if assigned(objsym.objsection) and assigned(tai_const(hp).endsym) then
                        begin
                          objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
-                         if objsymend.objsection<>objsym.objsection then
-                           internalerror(200404124);
-                         Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                         { objsymend already defined? }
+                         if assigned(objsymend.objsection) then
+                           begin
+                             if objsymend.objsection<>objsym.objsection then
+                               internalerror(200404124);
+                             Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
+                           end;
                        end;
                    end;
                  ObjData.alloc(tai_const(hp).size);
@@ -1058,12 +1063,14 @@ Implementation
                ObjData.alloc(8);
              ait_const:
                begin
-                 { Recalculate relative symbols, all checks are done in treepass0 }
+                 { Recalculate relative symbols }
                  if assigned(tai_const(hp).sym) and
                     assigned(tai_const(hp).endsym) then
                    begin
                      objsym:=Objdata.SymbolRef(tai_const(hp).sym);
                      objsymend:=Objdata.SymbolRef(tai_const(hp).endsym);
+                     if objsymend.objsection<>objsym.objsection then
+                       internalerror(200905042);
                      Tai_const(hp).value:=objsymend.address-objsym.address+Tai_const(hp).symofs;
                    end;
                  ObjData.alloc(tai_const(hp).size);
