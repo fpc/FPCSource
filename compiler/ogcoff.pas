@@ -234,13 +234,13 @@ interface
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
-         procedure MemPos_Header;override;
-         procedure DataPos_Header;override;
-         procedure DataPos_Symbols;override;
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
        public
          constructor createcoff(awin32:boolean);
+         procedure MemPos_Header;override;
+         procedure DataPos_Header;override;
+         procedure DataPos_Symbols;override;
        end;
 
        TDJCoffexeoutput = class(TCoffexeoutput)

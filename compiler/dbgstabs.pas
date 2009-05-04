@@ -64,13 +64,6 @@ interface
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):ansistring;
         procedure write_sym_stabstr(list:TAsmList;sym:tsym;const ss:ansistring);
-        procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
-        procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
-        procedure appendsym_localvar(list:TAsmList;sym:tlocalvarsym);override;
-        procedure appendsym_fieldvar(list:TAsmList;sym:tfieldvarsym);override;
-        procedure appendsym_const(list:TAsmList;sym:tconstsym);override;
-        procedure appendsym_type(list:TAsmList;sym:ttypesym);override;
-        procedure appendsym_label(list:TAsmList;sym:tlabelsym);override;
         { tdef writing }
         function  def_stab_number(def:tdef):string;
         function  def_stab_classnumber(def:tobjectdef):string;
@@ -80,6 +73,14 @@ interface
         procedure field_add_stabstr(p:TObject;arg:pointer);
         procedure method_add_stabstr(p:TObject;arg:pointer);
         procedure field_write_defs(p:TObject;arg:pointer);
+      protected
+        procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
+        procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
+        procedure appendsym_localvar(list:TAsmList;sym:tlocalvarsym);override;
+        procedure appendsym_fieldvar(list:TAsmList;sym:tfieldvarsym);override;
+        procedure appendsym_const(list:TAsmList;sym:tconstsym);override;
+        procedure appendsym_type(list:TAsmList;sym:ttypesym);override;
+        procedure appendsym_label(list:TAsmList;sym:tlabelsym);override;
         procedure beforeappenddef(list:TAsmList;def:tdef);override;
         procedure appenddef_ord(list:TAsmList;def:torddef);override;
         procedure appenddef_float(list:TAsmList;def:tfloatdef);override;
