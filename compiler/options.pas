@@ -2219,13 +2219,6 @@ begin
           Message(option_dwarf_smart_linking);
           ForceStaticLinking;
         end;
-      { the internal linker does not work yet with DWARF either }
-      if assigned(target_info.link) and
-         not(cs_link_extern in init_settings.globalswitches) then
-        begin
-          Message(option_dwarf_external_linker);
-          include(init_settings.globalswitches,cs_link_extern);
-        end;
     end;
 end;
 
