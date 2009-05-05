@@ -37,7 +37,7 @@ end;
 
 
 const
- RESULT_U64BIT            =  qword($8fe0000000000000);
+ RESULT_U64BIT            =  qword($8fc0000000000000);
  RESULT_S64BIT            =  -101234;
  RESULT_S32BIT            = -1000000;
  RESULT_U32BIT            =  2000000;
@@ -160,10 +160,10 @@ begin
      failed:=true;
 
   result_val := getu64bit;
-  if result_val <> 10367286342206881792.0 then
+  if result_val <> 10358279142952140800.0 then
     begin
       writeln('got ',result_val:0);
-      writeln('expected ',10367286342206881792.0);
+      writeln('expected ',10358279142952140800.0);
      failed:=true;
     end;
 
