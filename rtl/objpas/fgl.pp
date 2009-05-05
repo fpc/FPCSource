@@ -136,7 +136,37 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
+    {$info FIXME: bug #10479: implement TFPGObjectList<T>.Assign(TFPGList) to work somehow}
+    {procedure Assign(Source: TFPGList);}
+    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Sort(Compare: TCompareFunc);
+    property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
+  end;
+
+  generic TFPGInterfacedObjectList<T> = class(TFPSList)
+  type public
+    TCompareFunc = function(const Item1, Item2: T): Integer;
+    TTypeList = array[0..MaxGListSize] of T;
+    PTypeList = ^TTypeList;
+    PT = ^T;
+  var protected
+    FOnCompare: TCompareFunc;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
+    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+  public
+    constructor Create;
+    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: T): Integer;
+    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$info FIXME: bug #10479: implement TFPGInterfacedObjectList<T>.Assign(TFPGList) to work somehow}
     {procedure Assign(Source: TFPGList);}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
@@ -685,11 +715,16 @@ end;
 procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
 begin
   T(Dest^) := T(Src^);
+  {if TObject(Dest^) is TInterfacedObject then
+    T(Dest^)._AddRef;}
 end;
 
 procedure TFPGObjectList.Deref(Item: Pointer);
 begin
-  T(Item^).Free;
+  {if TObject(Item^) is TInterfacedObject then
+    T(Item^)._Release
+  else}
+    T(Item^).Free;
 end;
 
 function TFPGObjectList.Get(Index: Integer): T;
@@ -761,6 +796,103 @@ begin
 end;
 
 procedure TFPGObjectList.Sort(Compare: TCompareFunc);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare);
+end;
+
+
+{****************************************************************************}
+{*                TFPGInterfacedObjectList                                  *}
+{****************************************************************************}
+
+constructor TFPGInterfacedObjectList.Create;
+begin
+  inherited Create;
+end;
+
+procedure TFPGInterfacedObjectList.CopyItem(Src, Dest: Pointer);
+begin
+  T(Dest^) := T(Src^);
+  if Assigned(Pointer(Dest^)) then
+    T(Dest^)._AddRef;
+end;
+
+procedure TFPGInterfacedObjectList.Deref(Item: Pointer);
+begin
+  if Assigned(Pointer(Item^)) then
+    T(Item^)._Release;
+end;
+
+function TFPGInterfacedObjectList.Get(Index: Integer): T;
+begin
+  Result := T(inherited Get(Index)^);
+end;
+
+function TFPGInterfacedObjectList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
+end;
+
+function TFPGInterfacedObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+begin
+  Result := FOnCompare(T(Item1^), T(Item2^));
+end;
+
+procedure TFPGInterfacedObjectList.Put(Index: Integer; const Item: T);
+begin
+  inherited Put(Index, @Item);
+end;
+
+function TFPGInterfacedObjectList.Add(const Item: T): Integer;
+begin
+  Result := inherited Add(@Item);
+end;
+
+function TFPGInterfacedObjectList.Extract(const Item: T): T;
+var
+  ResPtr: Pointer;
+begin
+  ResPtr := inherited Extract(@Item);
+  if ResPtr <> nil then
+    Result := T(ResPtr^)
+  else
+    FillByte(Result, 0, sizeof(T));
+end;
+
+function TFPGInterfacedObjectList.First: T;
+begin
+  Result := T(inherited First^);
+end;
+
+function TFPGInterfacedObjectList.IndexOf(const Item: T): Integer;
+begin
+  Result := 0;
+  {$info TODO: fix inlining to work! InternalItems[Result]^}
+  while (Result < FCount) and (PT(FList)[Result] <> Item) do
+    Inc(Result);
+  if Result = FCount then
+    Result := -1;
+end;
+
+procedure TFPGInterfacedObjectList.Insert(Index: Integer; const Item: T);
+begin
+  T(inherited Insert(Index)^) := Item;
+end;
+
+function TFPGInterfacedObjectList.Last: T;
+begin
+  Result := T(inherited Last^);
+end;
+
+function TFPGInterfacedObjectList.Remove(const Item: T): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result >= 0 then
+    Delete(Result);
+end;
+
+procedure TFPGInterfacedObjectList.Sort(Compare: TCompareFunc);
 begin
   FOnCompare := Compare;
   inherited Sort(@ItemPtrCompare);
