@@ -1010,9 +1010,11 @@ implementation
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPOBJECTSTACK',false);
          cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          paraloc1.init;
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
+         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -1154,9 +1156,11 @@ implementation
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
               paraloc1.init;
               paramanager.getintparaloc(pocall_default,1,paraloc1);
+              cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
               cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -1191,6 +1195,8 @@ implementation
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
 
          if fc_break in exceptflowcontrol then
@@ -1204,6 +1210,8 @@ implementation
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
 
          if fc_continue in exceptflowcontrol then
@@ -1217,6 +1225,8 @@ implementation
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cleanupobjectstack;
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
 
          if fc_exit in tryflowcontrol then
@@ -1228,6 +1238,8 @@ implementation
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldCurrExitLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
 
          if fc_break in tryflowcontrol then
@@ -1238,6 +1250,8 @@ implementation
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldBreakLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
 
          if fc_continue in tryflowcontrol then
@@ -1248,6 +1262,8 @@ implementation
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
               cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
               cg.a_jmp_always(current_asmdata.CurrAsmList,oldContinueLabel);
+              { from g_exception_reason_load  }
+              cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
            end;
          unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
@@ -1305,6 +1321,7 @@ implementation
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CATCHES',false);
          cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
 
+         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          { is it this catch? No. go to next onlabel }
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,NR_FUNCTION_RESULT_REG,nextonlabel);
 
@@ -1326,6 +1343,7 @@ implementation
              tg.GetTemp(current_asmdata.CurrAsmList,sizeof(pint),sizeof(pint),tt_normal,exceptref);
              cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,NR_FUNCTION_RESULT_REG,exceptref);
            end;
+         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
 
          { in the case that another exception is risen
            we've to destroy the old one                }
@@ -1362,7 +1380,9 @@ implementation
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPSECONDOBJECTSTACK',false);
          cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
+         cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          paramanager.getintparaloc(pocall_default,1,paraloc1);
+         cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
@@ -1513,6 +1533,8 @@ implementation
          if implicitframe then
            begin
              cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,endfinallylabel);
+             { from g_exception_reason_load  }
+             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
              { finally code only needed to be executed on exception }
              flowcontrol:=[fc_inflowcontrol];
              secondpass(t1);
@@ -1529,7 +1551,9 @@ implementation
                  cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
                  { Set return value of safecall procedure to indicate exception.       }
                  { Exception will be raised after procedure exit based on return value }
+                 cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                  cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,aint($8000FFFF),NR_FUNCTION_RETURN_REG);
+                 cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end
              else
 {$endif}
@@ -1561,6 +1585,7 @@ implementation
                   cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SUB,OS_INT,decconst,NR_FUNCTION_RESULT_REG);
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_EQ,0,NR_FUNCTION_RESULT_REG,oldContinueLabel);
                end;
+             cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
              cg.a_label(current_asmdata.CurrAsmList,reraiselabel);
              cg.a_call_name(current_asmdata.CurrAsmList,'FPC_RERAISE',false);
              { do some magic for exit,break,continue in the try block }
@@ -1570,6 +1595,8 @@ implementation
                   cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
                   cg.g_exception_reason_save_const(current_asmdata.CurrAsmList,excepttemps.reasonbuf,2);
                   cg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+                  { from g_exception_reason_load  }
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end;
              if fc_break in tryflowcontrol then
               begin
@@ -1577,6 +1604,8 @@ implementation
                  cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
                  cg.g_exception_reason_save_const(current_asmdata.CurrAsmList,excepttemps.reasonbuf,3);
                  cg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+                  { from g_exception_reason_load  }
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end;
              if fc_continue in tryflowcontrol then
                begin
@@ -1584,6 +1613,8 @@ implementation
                   cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
                   cg.g_exception_reason_save_const(current_asmdata.CurrAsmList,excepttemps.reasonbuf,4);
                   cg.a_jmp_always(current_asmdata.CurrAsmList,finallylabel);
+                  { from g_exception_reason_load  }
+                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end;
            end;
          unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);

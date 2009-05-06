@@ -7243,6 +7243,7 @@ tests/tbs/tb0556.pp svneol=native#text/plain
 tests/tbs/tb0557.pp svneol=native#text/plain
 tests/tbs/tb0558.pp svneol=native#text/plain
 tests/tbs/tb0559.pp svneol=native#text/plain
+tests/tbs/tb0560.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain

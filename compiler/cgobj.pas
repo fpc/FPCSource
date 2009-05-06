@@ -3742,6 +3742,7 @@ implementation
 
     procedure tcg.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
+        cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
         a_load_ref_reg(list, OS_INT, OS_INT, href, NR_FUNCTION_RESULT_REG);
       end;
 

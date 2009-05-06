@@ -447,10 +447,10 @@ implementation
 
          if not onlyfree then
           begin
-            cg.alloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
+            { g_exception_reason_load already allocates NR_FUNCTION_RESULT_REG }
             cg.g_exception_reason_load(list, t.reasonbuf);
             cg.a_cmp_const_reg_label(list,OS_INT,OC_EQ,a,NR_FUNCTION_RESULT_REG,endexceptlabel);
-            cg.dealloccpuregisters(list,R_INTREGISTER,[RS_FUNCTION_RESULT_REG]);
+            cg.a_reg_dealloc(list,NR_FUNCTION_RESULT_REG);
           end;
      end;
 

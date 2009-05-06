@@ -482,7 +482,10 @@ unit cgcpu;
     procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
         if not use_fixed_stack then
-          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+          begin
+            cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+            list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+          end
         else
           inherited g_exception_reason_load(list,href);
       end;
