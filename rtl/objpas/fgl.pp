@@ -122,6 +122,7 @@ type
     PT = ^T;
   var protected
     FOnCompare: TCompareFunc;
+    FFreeObjects: Boolean;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -129,7 +130,7 @@ type
     function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
     procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
   public
-    constructor Create;
+    constructor Create(FreeObjects: Boolean = True);
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -142,6 +143,7 @@ type
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
     property List: PTypeList read GetList;
+    property FreeObjects: Boolean read FFreeObjects write FFreeObjects;
   end;
 
   generic TFPGInterfacedObjectList<T> = class(TFPSList)
@@ -707,9 +709,10 @@ end;
 {*                TFPGObjectList                                            *}
 {****************************************************************************}
 
-constructor TFPGObjectList.Create;
+constructor TFPGObjectList.Create(FreeObjects: Boolean);
 begin
   inherited Create;
+  FFreeObjects := FreeObjects;
 end;
 
 procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
@@ -724,6 +727,7 @@ begin
   {if TObject(Item^) is TInterfacedObject then
     T(Item^)._Release
   else}
+  if FFreeObjects then
     T(Item^).Free;
 end;
 
