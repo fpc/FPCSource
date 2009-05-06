@@ -2388,10 +2388,59 @@ begin
 end;
 
 function TXPathEnvironment.xpId(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
+var
+  i: Integer;
+  ResultSet: TNodeSet;
+  TheArg: TXPathVariable;
+  doc: TDOMDocument;
+
+  procedure AddId(ns: TNodeSet; const s: DOMString);
+  var
+    Head, Tail, L: Integer;
+    Token: DOMString;
+    Element: TDOMNode;
+  begin
+    Head := 1;
+    L := Length(s);
+    while (Head <= L) and IsXmlWhiteSpace(s[Head]) do
+      Inc(Head);
+
+    while Head <= L do
+    begin
+      Tail := Head;
+      while (Tail <= L) and not IsXmlWhiteSpace(s[Tail]) do
+        Inc(Tail);
+      SetString(Token, @s[Head], Tail - Head);
+      Element := doc.GetElementById(Token);
+      if Assigned(Element) then
+        ns.Add(Element);
+
+      Head := Tail;
+      while IsXmlWhiteSpace(s[Head]) do
+        Inc(Head);
+    end;
+  end;
+
 begin
   if Args.Count <> 1 then
     EvaluationError(SEvalInvalidArgCount);
-  EvaluationError(SEvalFunctionNotImplementedYet, ['id']); // !!!
+  // TODO: probably have doc as member of Context
+  if Context.ContextNode.NodeType = DOCUMENT_NODE then
+    doc := TDOMDocument(Context.ContextNode)
+  else
+    doc := Context.ContextNode.OwnerDocument;
+
+  ResultSet := TNodeSet.Create;
+  TheArg := TXPathVariable(Args[0]);
+  if TheArg is TXPathNodeSetVariable then
+  begin
+    with TheArg.AsNodeSet do
+      for i := 0 to Count-1 do
+        AddId(ResultSet, NodeToText(TDOMNode(Items[i])));
+  end
+  else
+    AddId(ResultSet, TheArg.AsText);
+  Result := TXPathNodeSetVariable.Create(ResultSet);
 end;
 
 function TXPathEnvironment.xpLocalName(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;

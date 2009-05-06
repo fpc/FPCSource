@@ -403,7 +403,19 @@ const
   '<para id="4" xml:lang="en-us">en-us</para>'+
   '</doc>';
 
-  FunctionTests: array[0..49] of TTestRec = (
+  id04='<!DOCTYPE t04 ['+
+  '<!ELEMENT t04 (a*)>'+
+  '<!ELEMENT a EMPTY>'+
+  '<!ATTLIST a  id ID #REQUIRED>'+
+  ']>'+
+  '<t04>'+
+  '<a id="a"/>'+
+  '<a id="b"/>'+
+  '<a id="c"/>'+
+  '<a id="d"/>'+
+  '</t04>';
+
+  FunctionTests: array[0..50] of TTestRec = (
   // last()
   // position()
   // count()
@@ -435,6 +447,8 @@ const
     (data: expr01; expr: 'string(para[@id="4" and lang("en")])'; rt: rtString; s: 'en-us'),  // expression03
     (data: expr01; expr: 'string(div/para[lang("en")])'; rt: rtString; s: 'en'),             // expression04
     (data: expr01; expr: 'string(para[@id="3" and lang("en")])'; rt: rtString; s: 'EN'),     // expression05
+    
+    (data: id04; expr: 'id("c")/@id'; rt: rtString; s: 'c'),  // idkey04
 
     (expr: 'number("1.5")';   rt: rtNumber; n: 1.5),
     (expr: 'number("abc")';   rt: rtNumber; n: NaN),

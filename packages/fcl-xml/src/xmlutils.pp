@@ -30,6 +30,7 @@ function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean
 function IsValidXmlEncoding(const Value: WideString): Boolean;
 function Xml11NamePages: PByteArray;
 procedure NormalizeSpaces(var Value: WideString);
+function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
@@ -275,6 +276,11 @@ begin
     end;
     Inc(I);
   end;
+end;
+
+function IsXmlWhiteSpace(c: WideChar): Boolean;
+begin
+  Result := (c = #32) or (c = #9) or (c = #10) or (c = #13);
 end;
 
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
