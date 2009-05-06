@@ -799,7 +799,7 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjSection.fixuprelocs;
       var
-        i,zero   : longint;
+        i,zero,address_size : longint;
         objreloc : TObjRelocation;
         address,
         relocval : aint;
@@ -811,17 +811,26 @@ const pemagic : array[0..3] of byte = (
         for i:=0 to ObjRelocations.Count-1 do
           begin
             objreloc:=TObjRelocation(ObjRelocations[i]);
-            if objreloc.typ=RELOC_NONE then
-              continue;
-            if objreloc.typ=RELOC_ZERO then
-              begin
-                data.Seek(objreloc.dataoffset);
-                zero:=0;
-                data.Write(zero,4);
+            address_size:=4;
+            case objreloc.typ of
+              RELOC_NONE:
                 continue;
-              end;
+              RELOC_ZERO:
+                begin
+                  data.Seek(objreloc.dataoffset);
+                  zero:=0;
+                  data.Write(zero,4);
+                  continue;
+                end;
+{$ifdef x86_64}
+              RELOC_ABSOLUTE:
+                address_size:=8;
+{$endif x86_64}
+            end;
+
+            address:=0;
             data.Seek(objreloc.dataoffset);
-            data.Read(address,4);
+            data.Read(address,address_size);
             if assigned(objreloc.symbol) then
               begin
                 relocsec:=objreloc.symbol.objsection;
@@ -847,7 +856,7 @@ const pemagic : array[0..3] of byte = (
                     if TCoffObjData(objdata).win32 then
                       dec(address,objreloc.dataoffset+4);
                   end;
-                RELOC_RVA :
+                RELOC_RVA:
                   begin
                     { fixup address when the symbol was known in defined object }
                     if (relocsec.objdata=objdata) then
@@ -928,8 +937,9 @@ const pemagic : array[0..3] of byte = (
               end
             else
               address:=0;  { Relocation in debug section points to unused section, which is eliminated by linker }
+
             data.Seek(objreloc.dataoffset);
-            data.Write(address,4);
+            data.Write(address,address_size);
           end;
       end;
 
@@ -2445,8 +2455,8 @@ const pemagic : array[0..3] of byte = (
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
 {$ifdef x86_64}
-          jmpopcode : array[0..2] of byte = (
-            $ff,$24,$25
+          jmpopcode : array[0..1] of byte = (
+            $ff,$25             // jmp qword [rip + offset32]
           );
 {$else x86_64}
   {$ifdef arm}
@@ -2554,7 +2564,12 @@ const pemagic : array[0..3] of byte = (
               internalobjdata.SetSection(textobjsection);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
-              internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
+{$ifdef x86_64}
+              internalobjdata.writereloc(0,4,idata5label,RELOC_RELATIVE);
+{$else}
+              internalobjdata.writereloc(0,4,idata5label,RELOC_ABSOLUTE32);
+{$endif x86_64}
+
               internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
             end;
         end;

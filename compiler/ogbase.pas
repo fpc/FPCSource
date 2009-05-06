@@ -2638,14 +2638,8 @@ implementation
 
 
     procedure TExeOutput.SetCurrMemPos(const AValue: qword);
-      var
-        m: qword;
       begin
-        if not IsSharedLibrary then
-          m:=AValue+FImageBase
-        else
-          m:=AValue;
-        if m>MaxMemPos then
+        if AValue>MaxMemPos then
           Message1(link_f_executable_too_big, target_os_string);
         FCurrMemPos:=AValue;
       end;
