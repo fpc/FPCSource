@@ -65,14 +65,26 @@ begin
    halt(4);
  currentDt := EncodeDateTime(1898, 12, 30, 6, 0, 0, 0);
  convertedDt := EncodeDateTime(1899, 12, 30, 6, 0, 0, 0);
- if (YearsBetween(currentDt,convertedDt)<>1) or
-    (MonthsBetween(currentDt,convertedDt)<>12) or
+ { 0 and 11 rather than 1 and 12, because YearsBetween and MonthsBetween
+   are averaged over 4 years -> include a leap year }
+ if (YearsBetween(currentDt,convertedDt)<>0) or
+    (MonthsBetween(currentDt,convertedDt)<>11) or
     (DaysBetween(currentDt,convertedDt)<>365) or
     (HoursBetween(currentDt,convertedDt)<>365*24) or
     (MinutesBetween(currentDt,convertedDt)<>365*24*60) or
     (SecondsBetween(currentDt,convertedDt)<>365*24*60*60) or
     (MilliSecondsBetween(currentDt,convertedDt)<>365*24*60*60*1000) then
-   halt(5);
+   begin
+     writeln('between ',s1,' and ',s2);
+     writeln(YearsBetween(currentDt,convertedDt));
+     writeln(MonthsBetween(currentDt,convertedDt));
+     writeln(DaysBetween(currentDt,convertedDt));
+     writeln(HoursBetween(currentDt,convertedDt));
+     writeln(MinutesBetween(currentDt,convertedDt));
+     writeln(SecondsBetween(currentDt,convertedDt));
+     writeln(MilliSecondsBetween(currentDt,convertedDt));
+     halt(5);
+   end;
  currentDt := EncodeDateTime(1898, 12, 29, 6, 0, 0, 0);
  convertedDt := EncodeDateTime(1899, 12, 30, 6, 0, 0, 0);
  if (YearsBetween(currentDt,convertedDt)<>1) or
@@ -83,6 +95,10 @@ begin
     (SecondsBetween(currentDt,convertedDt)<>366*24*60*60) or
     (MilliSecondsBetween(currentDt,convertedDt)<>366*24*60*60*1000) then
    halt(6);
+  currentDt := 39939.796069305557;
+  convertedDt := 39939.0;
+  if YearsBetween(currentDt,convertedDt)<>0 then
+    halt(7);
 // convertedDt:=incseconds(currentDt,
 
 end.

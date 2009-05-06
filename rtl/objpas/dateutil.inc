@@ -423,6 +423,9 @@ implementation
 
 uses sysconst;
 
+const
+  TDateTimeEpsilon = 2.2204460493e-16;
+
 { ---------------------------------------------------------------------
     Auxiliary routines
   ---------------------------------------------------------------------}
@@ -1305,49 +1308,49 @@ end;
 
 Function YearsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerYear);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerYear);
 end;
 
 
 Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerMonth);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerMonth);
 end;
 
 
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))) div 7;
+  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon) div 7;
 end;
 
 
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen)));
+  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon);
 end;
 
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*HoursPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*HoursPerDay);
 end;
 
 
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*MinsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MinsPerDay);
 end;
 
 
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*SecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*SecsPerDay);
 end;
 
 
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Round(Abs(DateTimeDiff(ANow,AThen))*MSecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MSecsPerDay);
 end;
 
 
