@@ -1548,8 +1548,6 @@ function TXPathScanner.NextToken: TXPathToken;
     Result := tkNumber;
   end;
 
-const
-  IdentifierChars = ['A'..'Z', 'a'..'z', '0'..'9', '.', '-', '_'];
 begin
   if FCurToken = tkEndOfStream then
   begin
@@ -1561,7 +1559,7 @@ begin
     versions will use WideStrings  -sg }
 
   // Skip whitespace
-  while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #12, #13, ' ']) do
+  while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
     Inc(FCurData);
 
   FTokenStart := FCurData;
@@ -1575,7 +1573,9 @@ begin
       begin
         Inc(FCurData);
         Result := tkNotEqual;
-      end;
+      end
+      else
+        Error(SScannerInvalidChar);
     '"':
       begin
         FTokenLength := 0;
@@ -1661,16 +1661,6 @@ begin
         Result := tkGreater;
     '@':
       Result := tkAt;
-    'A'..'Z', 'a'..'z':
-      begin
-        FTokenLength := 1;
-        Result := tkIdentifier;
-        while (FCurData[1] < #255) and (char(ord(FCurData[1])) in IdentifierChars) do
-        begin
-          Inc(FCurData);
-          Inc(FTokenLength);
-        end;
-      end;
     '[':
       Result := tkLeftSquareBracket;
     ']':
@@ -1678,7 +1668,19 @@ begin
     '|':
       Result := tkPipe;
     else
-      Error(SScannerInvalidChar);
+      // TODO: no surrogate pairs/XML 1.1 support yet
+      if Byte(FCurData^) in NamingBitmap[NamePages[hi(Word(FCurData^))]] then
+      begin
+        FTokenLength := 1;
+        Result := tkIdentifier;
+        while Byte(FCurData[1]) in NamingBitmap[NamePages[$100+hi(Word(FCurData[1]))]] do
+        begin
+          Inc(FCurData);
+          Inc(FTokenLength);
+        end;
+      end
+      else
+        Error(SScannerInvalidChar);
   end;
 
   // We have processed at least one character now; eat it:
