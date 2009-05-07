@@ -2201,6 +2201,10 @@ execinfo_x_stackcommit=09134_X_Stack space committed: $1 bytes
 % \begin{description}
 link_f_executable_too_big=09200_F_Executable image size is too big for $1 target.
 % Fatal error when resulting executable is too big.
+link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute relocation to symbol "$2".
+% Warning when 64-bit object file contains 32-bit absolute relocations.
+% In such case an executable image can be loaded into lower 4Gb of 
+% address space only.
 %\end{description}
 # EndOfTeX
 

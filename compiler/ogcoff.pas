@@ -804,6 +804,9 @@ const pemagic : array[0..3] of byte = (
         address,
         relocval : aint;
         relocsec : TObjSection;
+{$ifdef x86_64}
+        s        : string;
+{$endif x86_64}
       begin
         if (ObjRelocations.Count>0) and
            not assigned(data) then
@@ -940,6 +943,15 @@ const pemagic : array[0..3] of byte = (
 
             data.Seek(objreloc.dataoffset);
             data.Write(address,address_size);
+{$ifdef x86_64}
+            if objreloc.typ = RELOC_ABSOLUTE32 then begin
+              if assigned(objreloc.symbol) then
+                s:=objreloc.symbol.Name
+              else
+                s:=objreloc.objsection.Name;
+              Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
+            end;
+{$endif x86_64}
           end;
       end;
 
@@ -1277,7 +1289,7 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_AMD64_SECREL;
 {$endif x86_64}
               else
-                internalerror(200603312);
+                internalerror(200905071);
             end;
             FWriter.write(rel,sizeof(rel));
           end;
@@ -2671,7 +2683,13 @@ const pemagic : array[0..3] of byte = (
                         { Reserving space for block size. The size will be written later in FinishBlock }
                         internalObjData.writebytes(k,4);
                       end;
-                    w:=(IMAGE_REL_BASED_HIGHLOW shl 12) or (offset-pgaddr);
+{$ifdef x86_64}
+                    if objreloc.typ = RELOC_ABSOLUTE then
+                      w:=IMAGE_REL_BASED_DIR64
+                    else
+{$endif x86_64}
+                      w:=IMAGE_REL_BASED_HIGHLOW;
+                    w:=(w shl 12) or (offset-pgaddr);
                     internalObjData.writebytes(w,2);
                   end;
               end;

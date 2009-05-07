@@ -660,6 +660,7 @@ const
   execinfo_x_stackreserve=09133;
   execinfo_x_stackcommit=09134;
   link_f_executable_too_big=09200;
+  link_w_32bit_absolute_reloc=09201;
   unit_t_unitsearch=10000;
   unit_t_ppu_loading=10001;
   unit_u_ppu_name=10002;
@@ -786,9 +787,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 50993;
+  MsgTxtSize = 51070;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,251,88,65,50,108,22,201,62,
+    24,87,251,88,65,50,108,22,202,62,
     47,20,1,1,1,1,1,1,1,1
   );
