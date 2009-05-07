@@ -2345,13 +2345,26 @@ implementation
         ditem : TDirIndexItem;
         fitem : TFileIndexItem;
         flist : TFPList;
+        dbgname : String;
       begin
         { insert DEBUGSTART and DEBUGEND labels }
-        new_section(current_asmdata.asmlists[al_start],sec_code,make_mangledname('DEBUGSTART',current_module.localsymtable,''),0,secorder_begin);
-        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(make_mangledname('DEBUGSTART',current_module.localsymtable,''),AT_DATA,0));
+        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+        { Darwin's linker does not like two global labels both pointing to the
+          end of a section, which can happen in case of units without code ->
+          make them local; we don't need the debugtable stuff there either,
+          so it doesn't matter that they are not global.
+        }
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
+        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0));
 
-        new_section(current_asmdata.asmlists[al_end],sec_code,make_mangledname('DEBUGEND',current_module.localsymtable,''),0,secorder_end);
-        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(make_mangledname('DEBUGEND',current_module.localsymtable,''),AT_DATA,0));
+        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+        { See above. }
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
+        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0));
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
