@@ -2357,14 +2357,20 @@ implementation
         if (target_info.system in systems_darwin) then
           dbgname:='L'+dbgname;
         new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
-        current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0));
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0))
+        else
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_DATA,0));
 
         dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
         { See above. }
         if (target_info.system in systems_darwin) then
           dbgname:='L'+dbgname;
         new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
-        current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0));
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0))
+        else
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_DATA,0));
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
@@ -2551,6 +2557,7 @@ implementation
         lenstartlabel : tasmlabel;
         i : longint;
         def: tdef;
+        dbgname: string;
       begin
         current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
@@ -2613,8 +2620,14 @@ implementation
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
 
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(make_mangledname('DEBUGSTART',current_module.localsymtable,'')));
-        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(make_mangledname('DEBUGEND',current_module.localsymtable,'')));
+        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(dbgname));
+        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(dbgname));
 
         finish_entry;
 
