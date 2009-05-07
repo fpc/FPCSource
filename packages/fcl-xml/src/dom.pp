@@ -86,21 +86,15 @@ const
   NOTATION_NODE = 12;
 
 type
-  TDOMImplementation = class;
-  TDOMDocumentFragment = class;
   TDOMDocument = class;
-  TDOMNode = class;
   TDOMNodeList = class;
   TDOMNamedNodeMap = class;
-  TDOMCharacterData = class;
   TDOMAttr = class;
   TDOMElement = class;
   TDOMText = class;
   TDOMComment = class;
   TDOMCDATASection = class;
   TDOMDocumentType = class;
-  TDOMNotation = class;
-  TDOMEntity = class;
   TDOMEntityReference = class;
   TDOMProcessingInstruction = class;
 
@@ -175,16 +169,6 @@ type
     constructor Create(const ASituation: String);
   end;
 
-
-  TRefClass = class
-  protected
-    RefCounter: LongInt;
-  public
-    constructor Create;
-    function AddRef: LongInt; virtual;
-    function Release: LongInt; virtual;
-  end;
-
 { NodeType, NodeName and NodeValue had been moved from fields to functions.
   This lowers memory usage and also obsoletes most constructors,
   at a slight performance penalty. However, NodeName and NodeValue are
@@ -228,7 +212,6 @@ type
     constructor Create(AOwner: TDOMDocument);
     destructor Destroy; override;
 
-    // Free NodeList with TDOMNodeList.Release!
     function GetChildNodes: TDOMNodeList;
 
     property NodeName: DOMString read GetNodeName;
@@ -298,7 +281,7 @@ type
 //   NodeList
 // -------------------------------------------------------
 
-  TDOMNodeList = class(TRefClass)
+  TDOMNodeList = class(TObject)
   protected
     FNode: TDOMNode;
     FRevision: Integer;
@@ -455,7 +438,6 @@ type
     function CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
-    // Free NodeList with TDOMNodeList.Release!
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 
     // DOM level 2 methods
@@ -563,7 +545,6 @@ type
     function  GetAttributeNode(const name: DOMString): TDOMAttr;
     function SetAttributeNode(NewAttr: TDOMAttr): TDOMAttr;
     function RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
-    // Free NodeList with TDOMNodeList.Release!
     function  GetElementsByTagName(const name: DOMString): TDOMNodeList;
 
     // Introduced in DOM Level 2:
@@ -730,26 +711,6 @@ const
 // =======================================================
 
 implementation
-
-constructor TRefClass.Create;
-begin
-  inherited Create;
-  RefCounter := 1;
-end;
-
-function TRefClass.AddRef: LongInt;
-begin
-  Inc(RefCounter);
-  Result := RefCounter;
-end;
-
-function TRefClass.Release: LongInt;
-begin
-  Dec(RefCounter);
-  Result := RefCounter;
-  if RefCounter <= 0 then Free;
-end;
-
 
 // -------------------------------------------------------
 //   DOM Exception
