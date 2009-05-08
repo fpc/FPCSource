@@ -54,7 +54,6 @@ resourcestring
   SEvalUnknownFunction = 'Unknown function: "%s"';
   SEvalUnknownVariable = 'Unknown variable: "%s"';
   SEvalInvalidArgCount = 'Invalid number of function arguments';
-  SEvalFunctionNotImplementedYet = 'Function "%s" has not been implemented yet'; // !!!
 
 type
 
@@ -359,6 +358,7 @@ type
     FTokenLength: Integer;
     procedure Error(const Msg: String);
     function ParseLocationPath: TXPathLocationPathNode;  // [1]
+    procedure ParseStep(var Dest: TStep);                // [4]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
     function ParseUnionExpr: TXPathExprNode;   // [18]
     function ParsePathExpr: TXPathExprNode;    // [19]
@@ -1715,16 +1715,8 @@ end;
 
 function TXPathScanner.ParseLocationPath: TXPathLocationPathNode;  // [1]
 var
-  IsAbsolute, NeedColonColon: Boolean;
+  IsAbsolute: Boolean;
   CurStep, NextStep: TStep;
-
-  procedure NeedBrackets;
-  begin
-    if (NextToken <> tkLeftBracket) or
-       (NextToken <> tkRightBracket) then
-       Error(SParserExpectedBrackets);
-    NextToken;
-  end;
 
 begin
   CurStep := nil;
@@ -1761,148 +1753,7 @@ begin
     end;
 
     // Parse [4] Step
-    case CurToken of
-      tkDot:          // [12] Abbreviated step, first case
-        begin
-          NextToken;
-          CurStep.Axis := axisSelf;
-          CurStep.NodeTestType := ntAnyNode;
-        end;
-      tkDotDot:       // [12] Abbreviated step, second case
-        begin
-          NextToken;
-          CurStep.Axis := axisParent;
-          CurStep.NodeTestType := ntAnyNode;
-        end;
-      else		// Parse [5] AxisSpecifier
-      begin
-        case CurToken of
-          tkAt:               // [13] AbbreviatedAxisSpecifier
-            begin
-              CurStep.Axis := axisAttribute;
-              NextToken;
-            end;
-          tkIdentifier:       // [5] AxisName '::'
-            begin
-              // Check for [6] AxisName
-              NeedColonColon := True;
-              if CurTokenString = 'ancestor' then
-                CurStep.Axis := axisAncestor
-              else if CurTokenString = 'ancestor-or-self' then
-                CurStep.Axis := axisAncestorOrSelf
-              else if CurTokenString = 'attribute' then
-                CurStep.Axis := axisAttribute
-              else if CurTokenString = 'child' then
-                CurStep.Axis := axisChild
-              else if CurTokenString = 'descendant' then
-                CurStep.Axis := axisDescendant
-              else if CurTokenString = 'descendant-or-self' then
-                CurStep.Axis := axisDescendantOrSelf
-              else if CurTokenString = 'following' then
-                CurStep.Axis := axisFollowing
-              else if CurTokenString = 'following-sibling' then
-                CurStep.Axis := axisFollowingSibling
-              else if CurTokenString = 'namespace' then
-                CurStep.Axis := axisNamespace
-              else if CurTokenString = 'parent' then
-                CurStep.Axis := axisParent
-              else if CurTokenString = 'preceding' then
-                CurStep.Axis := axisPreceding
-              else if CurTokenString = 'preceding-sibling' then
-                CurStep.Axis := axisPrecedingSibling
-              else if CurTokenString = 'self' then
-                CurStep.Axis := axisSelf
-              else
-              begin
-                NeedColonColon := False;
-                CurStep.Axis := axisChild;
-              end;
-              if NeedColonColon then
-              begin
-                if NextToken <> tkColonColon then
-                  Error(SParserExpectedColonColon);
-                NextToken;
-              end;
-            end;
-          else
-          if CurToken <> tkEndOfStream then
-            CurStep.Axis := axisChild;
-        end;
-
-        // Parse [7] NodeTest
-        case CurToken of
-          tkAsterisk: // [37] NameTest, first case
-            begin
-              CurStep.NodeTestType := ntAnyPrincipal;
-              NextToken;
-            end;
-          tkIdentifier:
-            begin
-              // Check for case [38] NodeType
-              if CurTokenString = 'comment' then
-              begin
-                NeedBrackets;
-                CurStep.NodeTestType := ntCommentNode;
-              end
-              else if CurTokenString = 'text' then
-              begin
-                NeedBrackets;
-                CurStep.NodeTestType := ntTextNode;
-              end
-              else if CurTokenString = 'processing-instruction' then
-              begin
-                if NextToken <> tkLeftBracket then
-                  Error(SParserExpectedLeftBracket);
-                if NextToken = tkString then
-                begin
-                  // TODO: Handle processing-instruction('name') constructs
-                  CurStep.NodeTestString := CurTokenString;
-                  NextToken;
-                end;
-                if CurToken <> tkRightBracket then
-                  Error(SParserExpectedRightBracket);
-                NextToken;
-                CurStep.NodeTestType := ntPINode;
-              end
-              else if CurTokenString = 'node' then
-              begin
-                NeedBrackets;
-                CurStep.NodeTestType := ntAnyNode;
-              end
-              else  // [37] NameTest, second or third case
-              begin
-                // !!!: Doesn't support namespaces yet
-                // (this will have to wait until the DOM unit supports them)
-                CurStep.NodeTestType := ntName;
-                CurStep.NodeTestString := CurTokenString;
-
-                if NextToken = tkColon then
-                begin
-                  case NextToken of
-                    tkIdentifier: NextToken; { foo:bar }
-                    tkAsterisk:   NextToken;   { foo:* }
-                  else
-                    Error(SParserExpectedQName);
-                  end;
-                end;
-              end;
-            end;
-          tkEndOfStream:	// Enable support of "/" and "//" as path
-        else
-          Exit;
-        end;
-
-        // Parse predicates
-        while CurToken = tkLeftSquareBracket do
-        begin
-          NextToken;
-          CurStep.Predicates.Add(ParseOrExpr);
-          if CurToken <> tkRightSquareBracket then
-            Error(SParserExpectedRightSquareBracket);
-          NextToken;
-        end;
-      end;
-    end;
+    ParseStep(CurStep);
 
     // Continue with parsing of [3] RelativeLocationPath
     if CurToken = tkSlashSlash then
@@ -1918,6 +1769,159 @@ begin
     else
       NextToken;   // skip the slash
   until False;
+end;
+
+procedure TXPathScanner.ParseStep(var Dest: TStep);  // [4]
+var
+  NeedColonColon: Boolean;
+
+  procedure NeedBrackets;
+  begin
+    if (NextToken <> tkLeftBracket) or
+       (NextToken <> tkRightBracket) then
+       Error(SParserExpectedBrackets);
+    NextToken;
+  end;
+
+begin
+  if CurToken = tkDot then          // [12] Abbreviated step, first case
+  begin
+    NextToken;
+    Dest.Axis := axisSelf;
+    Dest.NodeTestType := ntAnyNode;
+  end
+  else if CurToken = tkDotDot then  // [12] Abbreviated step, second case
+  begin
+    NextToken;
+    Dest.Axis := axisParent;
+    Dest.NodeTestType := ntAnyNode;
+  end
+  else		// Parse [5] AxisSpecifier
+  begin
+    if CurToken = tkAt then         // [13] AbbreviatedAxisSpecifier
+    begin
+      Dest.Axis := axisAttribute;
+      NextToken;
+    end
+    else if CurToken = tkIdentifier then       // [5] AxisName '::'
+    begin
+      { TODO: should first check whether identifier is followed by '::',
+        if not, it should be treated as NodeTest, not AxisName }
+      // Check for [6] AxisName
+      NeedColonColon := True;
+      if CurTokenString = 'ancestor' then
+        Dest.Axis := axisAncestor
+      else if CurTokenString = 'ancestor-or-self' then
+        Dest.Axis := axisAncestorOrSelf
+      else if CurTokenString = 'attribute' then
+        Dest.Axis := axisAttribute
+      else if CurTokenString = 'child' then
+        Dest.Axis := axisChild
+      else if CurTokenString = 'descendant' then
+        Dest.Axis := axisDescendant
+      else if CurTokenString = 'descendant-or-self' then
+        Dest.Axis := axisDescendantOrSelf
+      else if CurTokenString = 'following' then
+        Dest.Axis := axisFollowing
+      else if CurTokenString = 'following-sibling' then
+        Dest.Axis := axisFollowingSibling
+      else if CurTokenString = 'namespace' then
+        Dest.Axis := axisNamespace
+      else if CurTokenString = 'parent' then
+        Dest.Axis := axisParent
+      else if CurTokenString = 'preceding' then
+        Dest.Axis := axisPreceding
+      else if CurTokenString = 'preceding-sibling' then
+        Dest.Axis := axisPrecedingSibling
+      else if CurTokenString = 'self' then
+        Dest.Axis := axisSelf
+      else
+      begin
+        NeedColonColon := False;
+        Dest.Axis := axisChild;
+      end;
+      if NeedColonColon then
+      begin
+        if NextToken <> tkColonColon then
+          Error(SParserExpectedColonColon);
+        NextToken;
+      end;
+    end
+    else if CurToken <> tkEndOfStream then
+      Dest.Axis := axisChild;
+
+    // Parse [7] NodeTest
+    if CurToken = tkAsterisk then   // [37] NameTest, first case
+    begin
+      Dest.NodeTestType := ntAnyPrincipal;
+      NextToken;
+    end
+    else if CurToken = tkIdentifier then
+    begin
+      { TODO: should first check whether identifier is followed by '(',
+       if not, it is a NodeTest, not NodeType }
+      // Check for case [38] NodeType
+      if CurTokenString = 'comment' then
+      begin
+        NeedBrackets;
+        Dest.NodeTestType := ntCommentNode;
+      end
+      else if CurTokenString = 'text' then
+      begin
+        NeedBrackets;
+        Dest.NodeTestType := ntTextNode;
+      end
+      else if CurTokenString = 'processing-instruction' then
+      begin
+        if NextToken <> tkLeftBracket then
+          Error(SParserExpectedLeftBracket);
+        if NextToken = tkString then
+        begin
+          // TODO: Handle processing-instruction('name') constructs
+          Dest.NodeTestString := CurTokenString;
+          NextToken;
+        end;
+        if CurToken <> tkRightBracket then
+          Error(SParserExpectedRightBracket);
+        NextToken;
+        Dest.NodeTestType := ntPINode;
+      end
+      else if CurTokenString = 'node' then
+      begin
+        NeedBrackets;
+        Dest.NodeTestType := ntAnyNode;
+      end
+      else  // [37] NameTest, second or third case
+      begin
+        // !!!: Doesn't support namespaces yet
+        // (this will have to wait until the DOM unit supports them)
+        Dest.NodeTestType := ntName;
+        Dest.NodeTestString := CurTokenString;
+
+        if NextToken = tkColon then
+        begin
+          case NextToken of
+            tkIdentifier: NextToken; { foo:bar }
+            tkAsterisk:   NextToken;   { foo:* }
+          else
+            Error(SParserExpectedQName);
+          end;
+        end;
+      end;
+    end
+    else
+      Exit;
+
+    // Parse predicates
+    while CurToken = tkLeftSquareBracket do
+    begin
+      NextToken;
+      Dest.Predicates.Add(ParseOrExpr);
+      if CurToken <> tkRightSquareBracket then
+        Error(SParserExpectedRightSquareBracket);
+      NextToken;
+    end;
+  end;
 end;
 
 function TXPathScanner.ParsePrimaryExpr: TXPathExprNode;  // [15]
