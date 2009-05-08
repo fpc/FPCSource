@@ -252,10 +252,11 @@ type
 
   TXPathLocationPathNode = class(TXPathExprNode)
   private
+    FLeft: TXPathExprNode;
     FFirstStep: TStep;
     FIsAbsolutePath: Boolean;
   public
-    constructor Create(AIsAbsolutePath: Boolean);
+    constructor Create(ALeft: TXPathExprNode; AIsAbsolutePath: Boolean);
     destructor destroy;override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
@@ -357,7 +358,6 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     procedure Error(const Msg: String);
-    function ParseLocationPath: TXPathLocationPathNode;  // [1]
     procedure ParseStep(var Dest: TStep);                // [4]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
     function ParseUnionExpr: TXPathExprNode;   // [18]
@@ -1074,9 +1074,10 @@ begin
   inherited destroy;
 end;
 
-constructor TXPathLocationPathNode.Create(AIsAbsolutePath: Boolean);
+constructor TXPathLocationPathNode.Create(ALeft: TXPathExprNode; AIsAbsolutePath: Boolean);
 begin
   inherited Create;
+  FLeft := ALeft;
   FIsAbsolutePath := AIsAbsolutePath;
 end;
 
@@ -1332,12 +1333,15 @@ begin
 end;
 
 destructor TXPathLocationPathNode.destroy;
-var tmp:TStep;
+var
+  tmp:TStep;
 begin
- while FFirstStep<>nil do begin
-  tmp:=FFirstStep.NextStep;
-  FFirstStep.free;
-  FFirstStep:=tmp;
+  FLeft.Free;
+  while FFirstStep<>nil do
+  begin
+    tmp:=FFirstStep.NextStep;
+    FFirstStep.free;
+    FFirstStep:=tmp;
  end;
 end;
 
@@ -1713,64 +1717,6 @@ begin
   raise Exception.Create(Msg) at get_caller_addr(get_frame);
 end;
 
-function TXPathScanner.ParseLocationPath: TXPathLocationPathNode;  // [1]
-var
-  IsAbsolute: Boolean;
-  CurStep, NextStep: TStep;
-
-begin
-  CurStep := nil;
-  IsAbsolute := False;
-
-  case CurToken of
-    tkSlash:          // [2] AbsoluteLocationPath, first case
-      begin
-        NextToken;
-        CurStep := TStep.Create(axisSelf, ntAnyNode);
-        IsAbsolute := True;
-      end;
-    tkSlashSlash:     // [10] AbbreviatedAbsoluteLocationPath
-      begin
-        NextToken;
-        IsAbsolute := True;
-        CurStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
-      end;
-  end;
-
-  Result := TXPathLocationPathNode.Create(IsAbsolute);
-  Result.FFirstStep := CurStep;
-
-  // Parse [3] RelativeLocationPath
-  repeat
-    if CurToken <> tkEndOfStream then
-    begin
-      NextStep := TStep.Create(axisInvalid, ntAnyPrincipal); { args are dummy }
-      if Assigned(CurStep) then
-        CurStep.NextStep := NextStep
-      else
-        Result.FFirstStep := NextStep;
-      CurStep := NextStep;
-    end;
-
-    // Parse [4] Step
-    ParseStep(CurStep);
-
-    // Continue with parsing of [3] RelativeLocationPath
-    if CurToken = tkSlashSlash then
-    begin
-      NextToken;
-      // Found abbreviated step ("//" for "descendant-or-self::node()")
-      NextStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
-      CurStep.NextStep := NextStep;
-      CurStep := NextStep;
-    end
-    else if CurToken <> tkSlash then
-      break
-    else
-      NextToken;   // skip the slash
-  until False;
-end;
-
 procedure TXPathScanner.ParseStep(var Dest: TStep);  // [4]
 var
   NeedColonColon: Boolean;
@@ -1988,6 +1934,7 @@ function TXPathScanner.ParsePathExpr: TXPathExprNode;  // [19]
 var
   ScannerState: TXPathScannerState;
   IsFunctionCall: Boolean;
+  CurStep, NextStep: TStep;
 begin
   // Try to detect wether a LocationPath [1] or a FilterExpr [20] follows
   IsFunctionCall := False;
@@ -2003,15 +1950,64 @@ begin
     RestoreState(ScannerState);
   end;
 
+  Result := nil;
+  CurStep := nil;
   if IsFunctionCall or (CurToken in
     [tkDollar, tkLeftBracket, tkString, tkNumber]) then
   begin
     // second, third or fourth case of [19]
     Result := ParseFilterExpr;
-    // !!!: Doesn't handle "/" or "//" plus RelativeLocationPath yet!
+    if not (CurToken in [tkSlash, tkSlashSlash]) then
+      Exit;
+  end;
+  Result := TXPathLocationPathNode.Create(Result,
+    (Result = nil) and (CurToken in [tkSlash, tkSlashSlash]));
+
+  if CurToken = tkSlashSlash then
+  begin
+    CurStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
+    TXPathLocationPathNode(Result).FFirstStep := CurStep;
+    NextToken;
   end
-  else
-    Result := ParseLocationPath;
+  else if CurToken = tkSlash then
+  begin
+    NextToken;
+    // TODO: This looks unnecessary, but evaluate() should be fixed
+    if TXPathLocationPathNode(Result).FLeft = nil then
+    begin
+      CurStep := TStep.Create(axisSelf, ntAnyNode);
+      TXPathLocationPathNode(Result).FFirstStep := CurStep;
+    end;
+  end;
+
+  repeat
+    if CurToken <> tkEndOfStream then
+    begin
+      NextStep := TStep.Create(axisInvalid, ntAnyPrincipal); { args are dummy }
+      if Assigned(CurStep) then
+        CurStep.NextStep := NextStep
+      else
+        TXPathLocationPathNode(Result).FFirstStep := NextStep;
+      CurStep := NextStep;
+    end;
+
+    // Parse [4] Step
+    ParseStep(CurStep);
+
+    // Continue with parsing of [3] RelativeLocationPath
+    if CurToken = tkSlashSlash then
+    begin
+      NextToken;
+      // Found abbreviated step ("//" for "descendant-or-self::node()")
+      NextStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
+      CurStep.NextStep := NextStep;
+      CurStep := NextStep;
+    end
+    else if CurToken <> tkSlash then
+      break
+    else
+      NextToken;   // skip the slash
+  until False;
 end;
 
 function TXPathScanner.ParseFilterExpr: TXPathExprNode;  // [20]
