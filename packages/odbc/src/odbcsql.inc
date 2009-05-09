@@ -184,6 +184,7 @@ const
 
   { C datatype to SQL datatype mapping }
   SQL_C_CHAR   = SQL_CHAR;
+  SQL_C_WCHAR  = SQL_WCHAR;
   SQL_C_LONG   = SQL_INTEGER;
   SQL_C_SHORT  = SQL_SMALLINT;
   SQL_C_FLOAT  = SQL_REAL;

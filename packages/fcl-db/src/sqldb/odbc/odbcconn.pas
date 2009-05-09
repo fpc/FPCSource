@@ -695,10 +695,9 @@ begin
   // Note: optionally we can implement the use of SQLBindCol later for even more speed
   // TODO: finish this
   case FieldDef.DataType of
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-    ftGuid,ftWideString,ftFixedWideChar,
-{$ENDIF}
-    ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField, TWideStringField)
+    ftWideString,ftFixedWideChar: // mapped to TWideStringField
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size, @StrLenOrInd);
+    ftGuid, ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField)
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
@@ -987,8 +986,8 @@ begin
       SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize+1; end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_WCHAR:         begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end; // NB if TFieldDef.Size should be nr. of characters, then we should change this
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end;
+      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
+      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$ENDIF}
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
