@@ -343,13 +343,6 @@ type
 
 { XPath lexical scanner }
 
-  TXPathScannerState = class
-  private
-    FCurData: DOMPChar;
-    FCurToken: TXPathToken;
-    FCurTokenString: DOMString;
-  end;
-
   TXPathScanner = class
   private
     FExpressionString, FCurData: DOMPChar;
@@ -370,11 +363,11 @@ type
     function ParseAdditiveExpr: TXPathExprNode;    // [25]
     function ParseMultiplicativeExpr: TXPathExprNode;  // [26]
     function ParseUnaryExpr: TXPathExprNode;   // [27]
+    function GetToken: TXPathToken;
   public
     constructor Create(const AExpressionString: DOMString);
     function NextToken: TXPathToken;
-    function SaveState: TXPathScannerState;
-    procedure RestoreState(AState: TXPathScannerState);
+    function PeekToken: TXPathToken;
     property CurToken: TXPathToken read FCurToken;
     property CurTokenString: DOMString read FCurTokenString;
   end;
@@ -1537,7 +1530,24 @@ begin
   NextToken;
 end;
 
+function TXPathScanner.PeekToken: TXPathToken;
+var
+  save: DOMPChar;
+begin
+  save := FCurData;
+  Result := GetToken;
+  FCurData := save;
+end;
+
 function TXPathScanner.NextToken: TXPathToken;
+begin
+  Result := GetToken;
+  FCurToken := Result;
+  if Result in [tkIdentifier, tkNumber, tkString] then
+    SetString(FCurTokenString, FTokenStart, FTokenLength);
+end;
+
+function TXPathScanner.GetToken: TXPathToken;
 
   procedure GetNumber(HasDot: Boolean);
   begin
@@ -1690,26 +1700,6 @@ begin
   // We have processed at least one character now; eat it:
   if Result <> tkEndOfStream then
     Inc(FCurData);
-
-  FCurToken := Result;
-  if Result in [tkIdentifier, tkNumber, tkString] then
-    SetString(FCurTokenString, FTokenStart, FTokenLength);
-end;
-
-function TXPathScanner.SaveState: TXPathScannerState;
-begin
-  Result := TXPathScannerState.Create;
-  Result.FCurData := FCurData;
-  Result.FCurToken := FCurToken;
-  Result.FCurTokenString := FCurTokenString;
-end;
-
-procedure TXPathScanner.RestoreState(AState: TXPathScannerState);
-begin
-  FCurData := AState.FCurData;
-  FCurToken := AState.FCurToken;
-  FCurTokenString := AState.FCurTokenString;
-  AState.Free;
 end;
 
 procedure TXPathScanner.Error(const Msg: String);
@@ -1932,7 +1922,6 @@ end;
 
 function TXPathScanner.ParsePathExpr: TXPathExprNode;  // [19]
 var
-  ScannerState: TXPathScannerState;
   IsFunctionCall: Boolean;
   CurStep, NextStep: TStep;
 begin
@@ -1942,13 +1931,9 @@ begin
     (CurTokenString <> 'comment') and
     (CurTokenString <> 'text') and
     (CurTokenString <> 'processing-instruction') and
-    (CurTokenString <> 'node') then
-  begin
-    ScannerState := SaveState;
-    if NextToken = tkLeftBracket then
+    (CurTokenString <> 'node') and
+    (PeekToken = tkLeftBracket) then
       IsFunctionCall := True;
-    RestoreState(ScannerState);
-  end;
 
   Result := nil;
   CurStep := nil;
