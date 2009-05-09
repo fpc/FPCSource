@@ -41,8 +41,8 @@ resourcestring
   { Parser errors }
   SParserExpectedLeftBracket = 'Expected "("';
   SParserExpectedRightBracket = 'Expected ")"';
-  SParserExpectedColonColon = 'Expected "::" after axis specifier';
-  SParserExpectedBrackets = 'Expected "()" after NodeType test';
+  SParserBadAxisName = 'Invalid axis name';
+  SParserBadNodeType = 'Invalid node type';
   SParserExpectedRightSquareBracket = 'Expected "]" after predicate';
   SParserInvalidPrimExpr = 'Invalid primary expression';
   SParserGarbageAfterExpression = 'Unrecognized input after expression';
@@ -351,7 +351,7 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     procedure Error(const Msg: String);
-    procedure ParseStep(var Dest: TStep);                // [4]
+    procedure ParseStep(Dest: TStep);          // [4]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
     function ParseUnionExpr: TXPathExprNode;   // [18]
     function ParsePathExpr: TXPathExprNode;    // [19]
@@ -1707,15 +1707,13 @@ begin
   raise Exception.Create(Msg) at get_caller_addr(get_frame);
 end;
 
-procedure TXPathScanner.ParseStep(var Dest: TStep);  // [4]
-var
-  NeedColonColon: Boolean;
+procedure TXPathScanner.ParseStep(Dest: TStep);  // [4]
 
   procedure NeedBrackets;
   begin
-    if (NextToken <> tkLeftBracket) or
-       (NextToken <> tkRightBracket) then
-       Error(SParserExpectedBrackets);
+    NextToken;
+    if NextToken <> tkRightBracket then
+       Error(SParserExpectedRightBracket);
     NextToken;
   end;
 
@@ -1739,12 +1737,9 @@ begin
       Dest.Axis := axisAttribute;
       NextToken;
     end
-    else if CurToken = tkIdentifier then       // [5] AxisName '::'
+    else if (CurToken = tkIdentifier) and (PeekToken = tkColonColon) then  // [5] AxisName '::'
     begin
-      { TODO: should first check whether identifier is followed by '::',
-        if not, it should be treated as NodeTest, not AxisName }
       // Check for [6] AxisName
-      NeedColonColon := True;
       if CurTokenString = 'ancestor' then
         Dest.Axis := axisAncestor
       else if CurTokenString = 'ancestor-or-self' then
@@ -1772,16 +1767,10 @@ begin
       else if CurTokenString = 'self' then
         Dest.Axis := axisSelf
       else
-      begin
-        NeedColonColon := False;
-        Dest.Axis := axisChild;
-      end;
-      if NeedColonColon then
-      begin
-        if NextToken <> tkColonColon then
-          Error(SParserExpectedColonColon);
-        NextToken;
-      end;
+        Error(SParserBadAxisName);
+
+      NextToken;  // skip identifier and the '::'
+      NextToken;
     end
     else if CurToken <> tkEndOfStream then
       Dest.Axis := axisChild;
@@ -1794,38 +1783,40 @@ begin
     end
     else if CurToken = tkIdentifier then
     begin
-      { TODO: should first check whether identifier is followed by '(',
-       if not, it is a NodeTest, not NodeType }
       // Check for case [38] NodeType
-      if CurTokenString = 'comment' then
+      if PeekToken = tkLeftBracket then
       begin
-        NeedBrackets;
-        Dest.NodeTestType := ntCommentNode;
-      end
-      else if CurTokenString = 'text' then
-      begin
-        NeedBrackets;
-        Dest.NodeTestType := ntTextNode;
-      end
-      else if CurTokenString = 'processing-instruction' then
-      begin
-        if NextToken <> tkLeftBracket then
-          Error(SParserExpectedLeftBracket);
-        if NextToken = tkString then
+        if CurTokenString = 'comment' then
         begin
-          // TODO: Handle processing-instruction('name') constructs
-          Dest.NodeTestString := CurTokenString;
+          NeedBrackets;
+          Dest.NodeTestType := ntCommentNode;
+        end
+        else if CurTokenString = 'text' then
+        begin
+          NeedBrackets;
+          Dest.NodeTestType := ntTextNode;
+        end
+        else if CurTokenString = 'processing-instruction' then
+        begin
+          NextToken;   { skip '('; we know it's there }
+          if NextToken = tkString then
+          begin
+            // TODO: Handle processing-instruction('name') constructs
+            Dest.NodeTestString := CurTokenString;
+            NextToken;
+          end;
+          if CurToken <> tkRightBracket then
+            Error(SParserExpectedRightBracket);
           NextToken;
-        end;
-        if CurToken <> tkRightBracket then
-          Error(SParserExpectedRightBracket);
-        NextToken;
-        Dest.NodeTestType := ntPINode;
-      end
-      else if CurTokenString = 'node' then
-      begin
-        NeedBrackets;
-        Dest.NodeTestType := ntAnyNode;
+          Dest.NodeTestType := ntPINode;
+        end
+        else if CurTokenString = 'node' then
+        begin
+          NeedBrackets;
+          Dest.NodeTestType := ntAnyNode;
+        end
+        else
+          Error(SParserBadNodeType);
       end
       else  // [37] NameTest, second or third case
       begin
