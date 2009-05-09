@@ -191,8 +191,10 @@ const
 
 var
   orphaned_freelists : tfreelists;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   heap_lock : trtlcriticalsection;
   heap_lock_use : integer;
+{$endif}
 threadvar
   freelists : tfreelists;
 
@@ -738,7 +740,9 @@ begin
   if not assigned(poc) and (assigned(orphaned_freelists.waitfixed)
       or assigned(orphaned_freelists.waitvar) or (orphaned_freelists.oscount > 0)) then
     begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
       entercriticalsection(heap_lock);
+{$endif}
       finish_waitfixedlist(@orphaned_freelists);
       finish_waitvarlist(@orphaned_freelists);
       if orphaned_freelists.oscount > 0 then
@@ -762,7 +766,9 @@ begin
               loc_freelists^.oslist_all := poc;
             end;
         end;
+{$ifdef FPC_HAS_FEATURE_THREADING}
       leavecriticalsection(heap_lock);
+{$endif}
     end;
   if poc = nil then
     begin
@@ -1023,18 +1029,26 @@ end;
 
 procedure waitfree_fixed(pmc: pmemchunk_fixed; poc: poschunk);
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
+{$endif}
   pmc^.next_fixed := poc^.freelists^.waitfixed;
   poc^.freelists^.waitfixed := pmc;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   leavecriticalsection(heap_lock);
+{$endif}
 end;
 
 procedure waitfree_var(pmcv: pmemchunk_var);
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
+{$endif}
   pmcv^.next_var := pmcv^.freelists^.waitvar;
   pmcv^.freelists^.waitvar := pmcv;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   leavecriticalsection(heap_lock);
+{$endif}
 end;
 
 function SysFreeMem_Fixed(loc_freelists: pfreelists; pmc: pmemchunk_fixed): ptruint;
@@ -1145,9 +1159,13 @@ function try_finish_waitfixedlist(loc_freelists: pfreelists): boolean;
 begin
   if loc_freelists^.waitfixed = nil then 
     exit(false);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
+{$endif}
   finish_waitfixedlist(loc_freelists);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   leavecriticalsection(heap_lock);
+{$endif}
   result := true;
 end;
 
@@ -1169,9 +1187,13 @@ procedure try_finish_waitvarlist(loc_freelists: pfreelists);
 begin
   if loc_freelists^.waitvar = nil then 
     exit;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   entercriticalsection(heap_lock);
+{$endif}
   finish_waitvarlist(loc_freelists);
+{$ifdef FPC_HAS_FEATURE_THREADING}
   leavecriticalsection(heap_lock);
+{$endif}
 end;
 
 {*****************************************************************************
@@ -1388,6 +1410,7 @@ end;
 
 { This function will initialize the Heap manager and need to be called from
   the initialization of the system unit }
+{$ifdef FPC_HAS_FEATURE_THREADING}
 procedure InitHeapThread;
 var
   loc_freelists: pfreelists;
@@ -1405,14 +1428,17 @@ begin
   fillchar(maxsizeusage,sizeof(sizeusage),0);
 {$endif}
 end;
+{$endif}
 
 procedure InitHeap;
 var
   loc_freelists: pfreelists;
 begin
+{$ifdef FPC_HAS_FEATURE_THREADING}
   { we cannot initialize the locks here yet, thread support is
     not loaded yet }
   heap_lock_use := 0;
+{$endif}
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
   fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
@@ -1424,8 +1450,10 @@ var
 begin
   { this function should be called in main thread context }
   loc_freelists := @freelists;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   heap_lock_use := 1;
   initcriticalsection(heap_lock);
+{$endif}
   { loc_freelists still points to main thread's freelists, but they
     have a reference to the global main freelists, fix them to point
     to the main thread specific variable }
@@ -1438,19 +1466,23 @@ procedure FinalizeHeap;
 var
   poc, poc_next: poschunk;
   loc_freelists: pfreelists;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   last_thread: boolean;
+{$endif}
 {$ifdef DUMP_MEM_USAGE}
   i : longint;
 {$endif}
 begin
   loc_freelists := @freelists;
+{$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then
   begin
     entercriticalsection(heap_lock);
     finish_waitfixedlist(loc_freelists);
     finish_waitvarlist(loc_freelists);
-{$ifdef HAS_SYSOSFREE}
   end;
+{$endif}
+{$ifdef HAS_SYSOSFREE}
   poc := loc_freelists^.oslist;
   while assigned(poc) do
   begin
@@ -1464,9 +1496,10 @@ begin
   end;
   loc_freelists^.oslist := nil;
   loc_freelists^.oscount := 0;
+{$endif HAS_SYSOSFREE}
+{$ifdef FPC_HAS_FEATURE_THREADING}
   if heap_lock_use > 0 then
   begin
-{$endif HAS_SYSOSFREE}
     poc := modify_freelists(loc_freelists, @orphaned_freelists);
     if assigned(poc) then
     begin
@@ -1481,6 +1514,7 @@ begin
     if last_thread then
       donecriticalsection(heap_lock);
   end;
+{$endif}
 {$ifdef SHOW_MEM_USAGE}
   writeln('Max heap used/size: ', loc_freelists^.internal_status.maxheapused, '/', 
     loc_freelists^.internal_status.maxheapsize);

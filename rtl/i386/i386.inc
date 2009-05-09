@@ -1452,6 +1452,8 @@ procedure fpc_cpucodeinit;
 {$if not defined(darwin) and defined(regcall) }
 { darwin requires that the stack is aligned to 16 bytes when calling another function }
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -1524,6 +1526,8 @@ asm
 .Lj4031:
 // [442] end;
 end;
+
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$endif ndef darwin and defined(regcall) }
 

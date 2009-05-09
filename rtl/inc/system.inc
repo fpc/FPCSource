@@ -814,7 +814,9 @@ Procedure FinalizeHeap;forward;
 Procedure InternalExit;
 var
   current_exit : Procedure;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   pstdout : ^Text;
+{$endif}
 {$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
 {$endif}

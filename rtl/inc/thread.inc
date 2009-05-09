@@ -37,16 +37,22 @@ Var
         if assigned(widestringmanager.ThreadInitProc) then
           widestringmanager.ThreadInitProc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
         { ExceptAddrStack and ExceptObjectStack are threadvars       }
         { so every thread has its on exception handling capabilities }
         SysInitExceptions;
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
         { Open all stdio fds again }
         SysInitStdio;
         InOutRes:=0;
         // ErrNo:=0;
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
+{$ifdef FPC_HAS_FEATURE_STACKCHECK}
         { Stack checking }
         StackLength:= CheckInitialStkLen(stkLen);
         StackBottom:=Sptr - StackLength;
+{$endif FPC_HAS_FEATURE_STACKCHECK}
         ThreadID := CurrentTM.GetCurrentThreadID();
       end;
 
