@@ -860,16 +860,13 @@ begin
   try
     Op2 := FOperand2.Evaluate(AContext, AEnvironment);
     try
-      nsnum := 0;
-      if Op1 is TXPathNodeSetVariable then
-        Inc(nsnum);
-      if Op2 is TXPathNodeSetVariable then
-        Inc(nsnum);
+      nsnum := ord(Op1 is TXPathNodeSetVariable) or
+       (ord(Op2 is TXPathNodeSetVariable) shl 1);
       case nsnum of
         0: begin  // neither op is a nodeset
           if (FOperator in [opEqual, opNotEqual]) then
           begin
-            if ((Op1 is TXPathBooleanVariable) or (Op2 is TXPathBooleanVariable)) then
+            if (Op1 is TXPathBooleanVariable) or (Op2 is TXPathBooleanVariable) then
               BoolResult := (Op1.AsBoolean = Op2.AsBoolean) xor (FOperator = opNotEqual)
             else if (Op1 is TXPathNumberVariable) or (Op2 is TXPathNumberVariable) then
               BoolResult := CmpNumbers(Op1.AsNumber, Op2.AsNumber, FOperator)
@@ -880,26 +877,22 @@ begin
             BoolResult := CmpNumbers(Op1.AsNumber, Op2.AsNumber, FOperator);
         end;
 
-        1: begin
-          if Op1 is TXPathNodeSetVariable then
-          begin
-            if Op2 is TXPathNumberVariable then
-              BoolResult := CmpNodesetWithNumber(Op1.AsNodeSet, Op2.AsNumber, FOperator)
-            else if Op2 is TXPathStringVariable then
-              BoolResult := CmpNodesetWithString(Op1.AsNodeSet, Op2.AsText, FOperator)
-            else
-              BoolResult := CmpNodesetWithBoolean(Op1.AsNodeSet, Op2.AsBoolean, FOperator);
-          end
-          else  // Op2 is nodeset
-          begin
-            if Op1 is TXPathNumberVariable then
-              BoolResult := CmpNodesetWithNumber(Op2.AsNodeSet, Op1.AsNumber, reverse[FOperator])
-            else if Op1 is TXPathStringVariable then
-              BoolResult := CmpNodesetWithString(Op2.AsNodeSet, Op1.AsText, reverse[FOperator])
-            else
-              BoolResult := CmpNodesetWithBoolean(Op2.AsNodeSet, Op1.AsBoolean, reverse[FOperator]);
-          end;
-        end;
+        1: // Op1 is nodeset
+          if Op2 is TXPathNumberVariable then
+            BoolResult := CmpNodesetWithNumber(Op1.AsNodeSet, Op2.AsNumber, FOperator)
+          else if Op2 is TXPathStringVariable then
+            BoolResult := CmpNodesetWithString(Op1.AsNodeSet, Op2.AsText, FOperator)
+          else
+            BoolResult := CmpNodesetWithBoolean(Op1.AsNodeSet, Op2.AsBoolean, FOperator);
+
+        2: // Op2 is nodeset
+          if Op1 is TXPathNumberVariable then
+            BoolResult := CmpNodesetWithNumber(Op2.AsNodeSet, Op1.AsNumber, reverse[FOperator])
+          else if Op1 is TXPathStringVariable then
+            BoolResult := CmpNodesetWithString(Op2.AsNodeSet, Op1.AsText, reverse[FOperator])
+          else
+            BoolResult := CmpNodesetWithBoolean(Op2.AsNodeSet, Op1.AsBoolean, reverse[FOperator]);
+
       else  // both ops are nodesets
         BoolResult := CmpNodesets(Op1.AsNodeSet, Op2.AsNodeSet, FOperator);
       end;
