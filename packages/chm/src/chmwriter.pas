@@ -283,7 +283,8 @@ const
     ParentIndex,
     TmpIndex: TPMGIDirectoryChunk;
   begin
-    with IndexHeader do begin
+    with IndexHeader do 
+    begin
       PMGIsig := PMGI;
       UnusedSpace := NToLE(IndexBlock.FreeSpace);
     end;
@@ -291,10 +292,12 @@ const
     IndexBlock.WriteChunkToStream(FDirectoryListings, ChunkIndex, ShouldFinish);
     IndexBlock.Clear;
     if HeaderSection1.IndexOfRootChunk < 0 then HeaderSection1.IndexOfRootChunk := ChunkIndex;
-    if ShouldFinish then begin;
+    if ShouldFinish then 
+    begin
       HeaderSection1.IndexTreeDepth := 2;
       ParentIndex := IndexBlock.ParentChunk;
-      if ParentIndex <> nil then repeat // the parent index is notified by our child index when to write
+      if ParentIndex <> nil then 
+      repeat // the parent index is notified by our child index when to write
         HeaderSection1.IndexOfRootChunk := ChunkIndex;
         TmpIndex := ParentIndex;
         ParentIndex := ParentIndex.ParentChunk;

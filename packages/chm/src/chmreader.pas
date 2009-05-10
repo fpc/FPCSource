@@ -683,7 +683,7 @@ var
     I: Integer;
   begin
     OldPosn := ChunkStream.Position;
-    Posn := ChunkStream.Size-1-SizeOf(Word);
+    Posn := ChunkStream.Size-SizeOf(Word);
     ChunkStream.Position := Posn;
     
     ItemCount := LEToN(ChunkStream.ReadWord);
