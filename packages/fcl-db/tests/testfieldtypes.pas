@@ -27,6 +27,7 @@ type
     procedure TearDown; override;
     procedure RunTest; override;
   published
+    procedure TestEmptyUpdateQuery; // bug 13654
     procedure TestClearUpdateableStatus;
     procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
@@ -919,6 +920,11 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestEmptyUpdateQuery;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update fpdev set name=''nothing'' where (1=0)');
 end;
 
 procedure TTestFieldTypes.TestTableNames;

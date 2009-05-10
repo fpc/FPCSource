@@ -630,6 +630,7 @@ end;
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
 var
   ODBCCursor:TODBCCursor;
+  Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -638,11 +639,14 @@ begin
 
   // execute the statement
   case ODBCCursor.FSchemaType of
-    stNoSchema  : ODBCCheckResult( SQLExecute(ODBCCursor.FSTMTHandle), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-    stTables    : ODBCCheckResult( SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-    stColumns   : ODBCCheckResult( SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
-    stProcedures: ODBCCheckResult( SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 ), SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
+    stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
+    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, nil, 0 );
+    stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
+    stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+    else          Res:=SQL_NO_DATA;
   end; {case}
+
+  if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
   // free parameter buffers
   FreeParamBuffers(ODBCCursor);
