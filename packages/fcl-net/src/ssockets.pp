@@ -346,6 +346,11 @@ begin
             Stream:=SockToStream(NewSocket);
             DoConnect(Stream);
             end
+          else
+            begin
+            CloseSocket(NewSocket);
+            NewSocket:=-1;
+            end;          
           end
       except
         On E : ESocketError do
