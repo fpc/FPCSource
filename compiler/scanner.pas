@@ -1590,31 +1590,29 @@ In case not, the value returned can be arbitrary.
           hpath  : TCmdStr;
         begin
           (* look for the include file
-           If path was specified as part of {$I } then
-            1. specified path (expanded with path of inputfile if relative)
+           If path was absolute and specified as part of {$I } then
+            1. specified path
            else
             1. path of current inputfile,current dir
             2. local includepath
-            3. global includepath *)
+            3. global includepath
+
+            -- Check mantis #13461 before changing this *)
            found:=false;
            foundfile:='';
            hpath:='';
-           if path<>'' then
+           if path_absolute(path) then
              begin
-               if not path_absolute(path) then
-                 hpath:=current_scanner.inputfile.path^+path
-               else
-                 hpath:=path;
-               found:=FindFile(name, hpath,true,foundfile);
+               found:=FindFile(name,path,true,foundfile);
              end
            else
              begin
                hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
-               found:=FindFile(name, hpath,true,foundfile);
+               found:=FindFile(path+name, hpath,true,foundfile);
                if not found then
-                 found:=current_module.localincludesearchpath.FindFile(name,true,foundfile);
+                 found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
                if not found  then
-                 found:=includesearchpath.FindFile(name,true,foundfile);
+                 found:=includesearchpath.FindFile(path+name,true,foundfile);
              end;
            result:=found;
         end;
