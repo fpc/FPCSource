@@ -101,7 +101,7 @@ type
   TXPathExprNode = class
   protected
     function EvalPredicate(AContext: TXPathContext;
-      AEnvironment: TXPathEnvironment; APosition: Integer): Boolean;
+      AEnvironment: TXPathEnvironment): Boolean;
   public
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; virtual; abstract;
@@ -586,14 +586,14 @@ end;
 { XPath parse tree classes }
 
 function TXPathExprNode.EvalPredicate(AContext: TXPathContext;
-  AEnvironment: TXPathEnvironment; APosition: Integer): Boolean;
+  AEnvironment: TXPathEnvironment): Boolean;
 var
   resvar: TXPathVariable;
 begin
   resvar := Evaluate(AContext, AEnvironment);
   try
     if resvar.InheritsFrom(TXPathNumberVariable) then
-      Result := resvar.AsNumber = APosition + 1   // TODO: trunc/round?
+      Result := resvar.AsNumber = AContext.ContextPosition   // TODO: trunc/round?
     else
       Result := resvar.AsBoolean;
   finally
@@ -1030,7 +1030,7 @@ begin
         for j := 0 to FPredicates.Count - 1 do
         begin
           DoAdd := TXPathExprNode(FPredicates[j]).EvalPredicate(NewContext,
-            AEnvironment, i);
+            AEnvironment);
           if not DoAdd then
             Break;
         end;
@@ -1258,10 +1258,16 @@ var
         Predicate := TXPathExprNode(AStep.Predicates[i]);
         for j := 0 to StepNodes.Count - 1 do
         begin
+          // ContextPosition must honor the axis direction
+          if AStep.Axis in [axisAncestor, axisAncestorOrSelf,
+            axisPreceding, axisPrecedingSibling] then
+            NewContext.ContextPosition := StepNodes.Count - j
+          else
+            NewContext.ContextPosition := j+1;
+
           Node := TDOMNode(StepNodes[j]);
           NewContext.ContextNode := Node;
-          Inc(NewContext.ContextPosition);
-          if Predicate.EvalPredicate(NewContext, AEnvironment, j) then
+          if Predicate.EvalPredicate(NewContext, AEnvironment) then
             NewStepNodes.Add(Node);
         end;
       finally
