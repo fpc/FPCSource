@@ -1174,7 +1174,7 @@ asm
   or     r6,r7,r8
   stwcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
-  mr     r3, r6
+  mr     r3, r10
 end;
 
 {$IFDEF MORPHOS}

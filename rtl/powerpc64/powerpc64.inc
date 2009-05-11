@@ -682,7 +682,7 @@ asm
   or     r6,r7,r8
   stwcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
-  mr     r3, r6
+  mr     r3, r10
 end;
 
 function InterLockedDecrement64(var Target: Int64) : Int64; assembler; nostackframe;
@@ -754,7 +754,7 @@ asm
   or     r6,r7,r8
   stdcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
-  mr     r3, r6
+  mr     r3, r10
 end;
 
 {$ifndef FPC_SYSTEM_HAS_MEM_BARRIER}
