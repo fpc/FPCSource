@@ -417,6 +417,9 @@ type
     function GetOwnerDocument: TDOMDocument; override;
     procedure SetTextContent(const value: DOMString); override;
     procedure RemoveID(Elem: TDOMElement);
+    function GetChildNodeList(aNode: TDOMNode): TDOMNodeList;
+    function GetElementList(aNode: TDOMNode; const tagName: DOMString): TDOMNodeList;
+    function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString): TDOMNodeList;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     property DocType: TDOMDocumentType read GetDocType;
@@ -807,7 +810,7 @@ end;
 
 function TDOMNode.GetChildNodes: TDOMNodeList;
 begin
-  Result := TDOMNodeList.Create(Self);
+  Result := FOwnerDocument.GetChildNodeList(Self);
 end;
 
 function TDOMNode.GetFirstChild: TDOMNode;
@@ -1933,14 +1936,29 @@ begin
   Result:=nil;
 end;
 
+function TDOMDocument.GetChildNodeList(aNode: TDOMNode): TDOMNodeList;
+begin
+  Result := TDOMNodeList.Create(aNode);
+end;
+
+function TDOMDocument.GetElementList(aNode: TDOMNode; const tagName: DOMString): TDOMNodeList;
+begin
+  Result := TDOMElementList.Create(aNode, tagname);
+end;
+
+function TDOMDocument.GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString): TDOMNodeList;
+begin
+  Result := TDOMElementList.Create(aNode, nsURI, aLocalName);
+end;
+
 function TDOMDocument.GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 begin
-  Result := TDOMElementList.Create(Self, tagname);
+  Result := GetElementList(Self, tagname);
 end;
 
 function TDOMDocument.GetElementsByTagNameNS(const nsURI, aLocalName: DOMString): TDOMNodeList;
 begin
-  Result := TDOMElementList.Create(Self, nsURI, aLocalName);
+  Result := GetElementList(Self, nsURI, aLocalName);
 end;
 
 function TDOMDocument.CreateAttributeNS(const nsURI,
@@ -2313,12 +2331,12 @@ end;
 
 function TDOMElement.GetElementsByTagName(const name: DOMString): TDOMNodeList;
 begin
-  Result := TDOMElementList.Create(Self, name);
+  Result := FOwnerDocument.GetElementList(Self, name);
 end;
 
 function TDOMElement.GetElementsByTagNameNS(const nsURI, aLocalName: DOMString): TDOMNodeList;
 begin
-  Result := TDOMElementList.Create(Self, nsURI, aLocalName);
+  Result := FOwnerDocument.GetElementList(Self, nsURI, aLocalName);
 end;
 
 function TDOMElement.hasAttribute(const name: DOMString): Boolean;
