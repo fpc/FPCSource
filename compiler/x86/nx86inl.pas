@@ -235,6 +235,7 @@ implementation
                else
                  internalerror(200506081);
              end;
+             tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList, href);
              current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ANDPS,S_XMM,href,location.register))
            end
          else

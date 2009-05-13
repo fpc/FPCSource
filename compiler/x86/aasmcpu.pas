@@ -1298,6 +1298,9 @@ implementation
       begin
         result:=(oper[opidx]^.typ=top_ref) and
                 (oper[opidx]^.ref^.refaddr=addr_no) and
+    {$ifdef x86_64}
+                (oper[opidx]^.ref^.base<>NR_RIP) and
+    {$endif x86_64}
                 (
                  (
                   (oper[opidx]^.ref^.index<>NR_NO) and
@@ -2279,13 +2282,28 @@ implementation
                      2,4 :
                        begin
                          currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
+                         currval:=oper[opidx]^.ref^.offset;
 {$ifdef x86_64}
                          if oper[opidx]^.ref^.refaddr=addr_pic then
                            currabsreloc:=RELOC_GOTPCREL
                          else
+                           if oper[opidx]^.ref^.base=NR_RIP then
+                             begin
+                               currabsreloc:=RELOC_RELATIVE;
+                               { Adjust reloc value depending of immediate operand size }
+                               case Ord(codes^) of
+                                 12,13,14,16,17,18,20,21,22:
+                                   Dec(currval, 1);
+                                 24,25,26:
+                                   Dec(currval, 2);
+                                 32,33,34:
+                                   Dec(currval, 4);
+                               end;
+                             end
+                           else
 {$endif x86_64}
-                           currabsreloc:=RELOC_ABSOLUTE32;
-                         objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,currsym,currabsreloc);
+                             currabsreloc:=RELOC_ABSOLUTE32;
+                         objdata.writereloc(currval,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
                        end;
                    end;

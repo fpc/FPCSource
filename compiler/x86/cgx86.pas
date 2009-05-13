@@ -381,29 +381,62 @@ unit cgx86;
                   end;
                end;
           end;
-        if (cs_create_pic in current_settings.moduleswitches) and
-         assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
+
+        if assigned(ref.symbol) and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ in [AT_LABEL,AT_FUNCTION])) then
           begin
-            reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
-            hreg:=getaddressregister(list);
-            href.refaddr:=addr_pic;
-            href.base:=NR_RIP;
-            list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
-
-            ref.symbol:=nil;
-
-            if ref.base=NR_NO then
-              ref.base:=hreg
-            else if ref.index=NR_NO then
+            if cs_create_pic in current_settings.moduleswitches then
               begin
-                ref.index:=hreg;
-                ref.scalefactor:=1;
+                reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                hreg:=getaddressregister(list);
+                href.refaddr:=addr_pic;
+                href.base:=NR_RIP;
+                list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
+
+                ref.symbol:=nil;
+
+                if ref.base=NR_NO then
+                  ref.base:=hreg
+                else if ref.index=NR_NO then
+                  begin
+                    ref.index:=hreg;
+                    ref.scalefactor:=1;
+                  end
+                else
+                  begin
+                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                    ref.base:=hreg;
+                  end;
               end
             else
-              begin
-                list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
-                ref.base:=hreg;
-              end;
+              { Always use RIP relative symbol addressing for Windows targets. }
+              if (target_info.system in system_all_windows) and (ref.base<>NR_RIP) then
+                begin
+                  if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
+                    { Set RIP relative addressing for simple symbol references }
+                    ref.base:=NR_RIP
+                  else
+                    begin
+                      { Use temp register to load calculated 64-bit symbol address for complex references }
+                      reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                      href.base:=NR_RIP;
+                      hreg:=GetAddressRegister(list);
+                      list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
+                      ref.symbol:=nil;
+                      if ref.base=NR_NO then
+                        ref.base:=hreg
+                      else if ref.index=NR_NO then
+                        begin
+                          ref.index:=hreg;
+                          ref.scalefactor:=0;
+                        end
+                      else
+                        begin
+                          list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                          ref.base:=hreg;
+                        end;
+                    end;
+
+                end;
           end;
 {$else x86_64}
         add_hreg:=false;
