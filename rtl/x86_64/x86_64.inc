@@ -266,7 +266,7 @@ function declocked(var l : longint) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Ldeclockednolock
      lock
      decl       (%rcx)
@@ -285,7 +285,7 @@ function declocked(var l : longint) : boolean;assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
@@ -308,7 +308,7 @@ function declocked(var l : int64) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Ldeclockednolock
      lock
      decq       (%rcx)
@@ -327,7 +327,7 @@ function declocked(var l : int64) : boolean;assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
@@ -351,7 +351,7 @@ procedure inclocked(var l : longint);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Linclockednolock
      lock
      incl       (%rcx)
@@ -369,7 +369,7 @@ procedure inclocked(var l : longint);assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Linclockednolock
      lock
@@ -392,7 +392,7 @@ procedure inclocked(var l : int64);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Linclockednolock
      lock
      incq       (%rcx)
@@ -410,7 +410,7 @@ procedure inclocked(var l : int64);assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Linclockednolock
      lock
@@ -604,9 +604,9 @@ begin
     movq mxcsr@GOTPCREL(%rip),%rax
     ldmxcsr (%rax)
 {$else FPC_PIC}
-    fldcw fpucw
+    fldcw fpucw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
     { set sse exceptions }
-    ldmxcsr mxcsr
+    ldmxcsr mxcsr{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
   end ['RAX'];
   { x86-64 might use softfloat code }

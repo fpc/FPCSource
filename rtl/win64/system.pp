@@ -405,7 +405,11 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      asm
         xorl %rax,%rax
         movw %ss,%ax
+{$ifdef FPC_HAS_RIP_RELATIVE}
+        movl %eax,_SS(%rip)
+{$else}
         movl %eax,_SS
+{$endif}        
         xorl %rbp,%rbp
         call PASCALMAIN
         popq %rbp

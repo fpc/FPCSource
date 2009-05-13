@@ -45,9 +45,9 @@ FPC_ABSMASK_DOUBLE:
         fnclex
         fldcw (%rdx)
 {$else FPC_PIC}
-        movw %ax,default8087cw
+        movw %ax,default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
         fnclex
-        fldcw default8087cw
+        fldcw default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
       end;
 
