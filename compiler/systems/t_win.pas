@@ -980,10 +980,13 @@ implementation
                 if IsSharedLibrary then
                   ibase:='10000000'
                 else
-                  if target_info.system in [system_arm_wince] then
+                  if target_info.system in system_wince then
                     ibase:='10000'
                   else
-                    ibase:='400000';
+                    if target_info.system=system_x86_64_win64 then
+                      ibase:='100000000'
+                    else
+                      ibase:='400000';
               end;
             Concat('IMAGEBASE $' + ibase);
             Concat('HEADER');
