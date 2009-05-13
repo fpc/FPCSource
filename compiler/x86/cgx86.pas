@@ -1840,11 +1840,10 @@ unit cgx86;
                 if helpsize>0 then
                   begin
 {$ifdef cpu64bitalu}
-                    if sizeof(aint)=8 then
-                      list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
-                    else
+                    list.concat(Taicpu.op_none(A_MOVSQ,S_NO))
+{$else}
+                    list.concat(Taicpu.op_none(A_MOVSD,S_NO));
 {$endif cpu64bitalu}
-                      list.concat(Taicpu.op_none(A_MOVSD,S_NO));
                   end;
                 if len>=4 then
                   begin
