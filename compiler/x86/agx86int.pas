@@ -972,6 +972,7 @@ implementation
 *****************************************************************************}
 
     const
+{$ifdef i386}
        as_i386_tasm_info : tasminfo =
           (
             id           : as_i386_tasm;
@@ -1007,7 +1008,7 @@ implementation
             labelprefix : '@@';
             comment : '; ';
           );
-
+{$endif i386}
 {$ifdef x86_64}
        as_x86_64_masm_info : tasminfo =
           (

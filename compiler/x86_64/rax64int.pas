@@ -39,7 +39,7 @@ Unit rax64int;
     uses
       rabase,systems,rax86,aasmcpu;
 
-{
+(*
     procedure tx8664intreader.handleopcode;
       var
         instr : Tx86Instruction;
@@ -55,7 +55,7 @@ Unit rax64int;
         instr.ConcatInstruction(curlist);
         instr.Free;
       end;
-}
+*)
 
 const
   asmmode_x86_64_intel_info : tasmmodeinfo =

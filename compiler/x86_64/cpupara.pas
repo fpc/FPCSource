@@ -491,7 +491,7 @@ unit cpupara;
         loc        : array[1..2] of tcgloc;
         paralen,
         locidx,
-        l,i,
+        i,
         varalign,
         paraalign  : longint;
       begin

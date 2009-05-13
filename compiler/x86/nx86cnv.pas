@@ -87,9 +87,7 @@ implementation
       var
 {$ifndef cpu64bitalu}
         hreg2,
-{$endif not cpu64bitalu}
         hregister : tregister;
-{$ifndef cpu64bitalu}
         href      : treference;
 {$endif not cpu64bitalu}
         resflags  : tresflags;
