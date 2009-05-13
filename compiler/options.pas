@@ -2365,6 +2365,9 @@ begin
 {$endif}
   def_system_macro('FPC_HAS_UNICODESTRING');
   def_system_macro('FPC_RTTI_PACKSET1');
+{$ifdef x86_64}
+  def_system_macro('FPC_HAS_RIP_RELATIVE');
+{$endif x86_64}
 
 { these cpus have an inline rol/ror implementaion }
 {$if defined(x86) or defined(arm) or defined(powerpc) or defined(powerpc64)}
