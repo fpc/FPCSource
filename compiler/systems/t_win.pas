@@ -100,7 +100,7 @@ implementation
 
 
   const
-{$ifdef i386}
+{$ifndef x86_64}
     res_gnu_windres_info : tresinfo =
         (
           id     : res_gnu_windres;
@@ -111,8 +111,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
-{$endif i386}
-{$ifdef x86_64}
+{$else x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
