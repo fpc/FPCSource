@@ -36,7 +36,7 @@ type
     function GetTestFilesURI: string; virtual;
   protected
     FParser: TDOMParser;
-    FAutoFree: TFPObjectList;
+    FAutoFree: TObjectList;
     procedure SetUp; override;
     procedure TearDown; override;
     procedure GC(obj: TObject);
@@ -97,7 +97,7 @@ procedure TDOMTestBase.SetUp;
 begin
   FParser := TDOMParser.Create;
   FParser.Options.PreserveWhitespace := True;
-  FAutoFree := TFPObjectList.Create(True);
+  FAutoFree := TObjectList.Create(True);
 end;
 
 procedure TDOMTestBase.TearDown;

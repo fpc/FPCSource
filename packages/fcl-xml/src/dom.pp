@@ -259,6 +259,7 @@ type
   protected
     FFirstChild, FLastChild: TDOMNode;
     FChildNodeTree: TAVLTree;
+    FChildNodes: TDOMNodeList;
     function GetFirstChild: TDOMNode; override;
     function GetLastChild: TDOMNode; override;
     procedure CloneChildren(ACopy: TDOMNode; ACloneOwner: TDOMDocument);
@@ -409,6 +410,7 @@ type
     FImplementation: TDOMImplementation;
     FNamespaces: TNamespaces;
     FNames: THashTable;
+    FEmptyNode: TDOMElement;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -1073,7 +1075,8 @@ end;
 destructor TDOMNode_WithChildren.Destroy;
 begin
   FreeChildren;
-  FreeAndNil(FChildNodeTree);  
+  FreeAndNil(FChildNodeTree);
+  FChildNodes.Free; // its destructor will zero the field
   inherited Destroy;
 end;
 
@@ -1308,6 +1311,9 @@ end;
 
 destructor TDOMNodeList.Destroy;
 begin
+  if (FNode is TDOMNode_WithChildren) and
+    (TDOMNode_WithChildren(FNode).FChildNodes = Self) then
+    TDOMNode_WithChildren(FNode).FChildNodes := nil;
   FList.Free;
   inherited Destroy;
 end;
@@ -1744,11 +1750,13 @@ begin
   // Namespace #0 should always be an empty string
   FNamespaces[1] := stduri_xml;
   FNamespaces[2] := stduri_xmlns;
+  FEmptyNode := TDOMElement.Create(Self);
 end;
 
 destructor TDOMDocument.Destroy;
 begin
   FreeAndNil(FIDList);   // set to nil before starting destroying children
+  FEmptyNode.Free;
   inherited Destroy;
   FNames.Free;           // free the nametable after inherited has destroyed the children
                          // (because children reference the nametable)
@@ -1938,7 +1946,14 @@ end;
 
 function TDOMDocument.GetChildNodeList(aNode: TDOMNode): TDOMNodeList;
 begin
-  Result := TDOMNodeList.Create(aNode);
+  if not (aNode is TDOMNode_WithChildren) then
+    aNode := FEmptyNode;
+  Result := TDOMNode_WithChildren(aNode).FChildNodes;
+  if Result = nil then
+  begin
+    Result := TDOMNodeList.Create(aNode);
+    TDOMNode_WithChildren(aNode).FChildNodes := Result;
+  end;
 end;
 
 function TDOMDocument.GetElementList(aNode: TDOMNode; const tagName: DOMString): TDOMNodeList;
