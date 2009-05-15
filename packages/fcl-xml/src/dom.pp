@@ -2399,6 +2399,7 @@ end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
 begin
+  Changing;
   if offset > Length then
     raise EDOMIndexSize.Create('Text.SplitText');
 
