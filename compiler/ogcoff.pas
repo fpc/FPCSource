@@ -250,6 +250,7 @@ interface
        TPECoffexeoutput = class(TCoffexeoutput)
        private
          idatalabnr : longword;
+         FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
          constructor create;override;
@@ -2648,7 +2649,7 @@ const pemagic : array[0..3] of byte = (
         offset : longword;
         w: word;
       begin
-        if not RelocSection then
+        if not RelocSection or FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -2695,6 +2696,7 @@ const pemagic : array[0..3] of byte = (
               end;
           end;
         FinishBlock;
+        FRelocsGenerated:=true;
       end;
 
 
