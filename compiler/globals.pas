@@ -292,7 +292,6 @@ interface
 
     const
        DLLsource : boolean = false;
-       DLLImageBase : pshortstring = nil;
 
        { used to set all registers used for each global function
          this should dramatically decrease the number of
@@ -1350,8 +1349,6 @@ implementation
 
    procedure DoneGlobals;
      begin
-       if assigned(DLLImageBase) then
-         StringDispose(DLLImageBase);
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;

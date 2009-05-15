@@ -931,8 +931,7 @@ implementation
 
     procedure TInternalLinkerWin.DefaultLinkScript;
       var
-        s,s2,
-        ibase : TCmdStr;
+        s,s2 : TCmdStr;
         secname,
         secnames : string;
       begin
@@ -973,23 +972,20 @@ implementation
                 else
                   Concat('ENTRYNAME _mainCRTStartup');
               end;
-            ibase:='';
-            if assigned(DLLImageBase) then
-              ibase:=DLLImageBase^
-            else
+            if not ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
-                  ibase:='10000000'
+                  imagebase:=$10000000
                 else
                   if target_info.system in system_wince then
-                    ibase:='10000'
+                    imagebase:=$10000
                   else
                     if target_info.system=system_x86_64_win64 then
-                      ibase:='100000000'
+                      imagebase:=$100000000
                     else
-                      ibase:='400000';
+                      imagebase:=$400000;
               end;
-            Concat('IMAGEBASE $' + ibase);
+            Concat('IMAGEBASE $' + hexStr(imagebase, SizeOf(imagebase)*2));
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  SYMBOL __text_start__');
@@ -1353,8 +1349,8 @@ implementation
           EntryStr:='--entry=_WinMainCRTStartup'
         else
           EntryStr:='--entry=_mainCRTStartup';
-        if assigned(DLLImageBase) then
-          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if ImageBaseSetExplicity then
+          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
@@ -1455,8 +1451,8 @@ implementation
           end
         else
           EntryStr:='--entry _DLLMainCRTStartup';
-        if assigned(DLLImageBase) then
-          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if ImageBaseSetExplicity then
+          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then

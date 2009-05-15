@@ -1456,8 +1456,10 @@ begin
                           non relocatable DLL at a specific base address PM }
                         if (length(More)>j) then
                           begin
-                            if DLLImageBase=nil then
-                              DLLImageBase:=StringDup(Copy(More,j+1,255));
+                            val('$'+Copy(More,j+1,255),imagebase,code);
+                            if code<>0 then
+                              IllegalPara(opt);
+                            ImageBaseSetExplicity:=true;
                           end
                         else
                           begin
