@@ -78,11 +78,12 @@ uses
 {$endif wince}
   procedure GetModuleByAddr(addr: pointer; var baseaddr: pointer; var filename: string);
     begin
-      baseaddr:= nil;
+      baseaddr:=nil;
       if VirtualQuery(addr, @Tmm, SizeOf(Tmm))<>sizeof(Tmm) then
         filename:=ParamStr(0)
       else
         begin
+          baseaddr:=Tmm.AllocationBase;
           TST[0]:= #0;
           GetModuleFileName(THandle(Tmm.AllocationBase), TST, Length(TST));
 {$ifdef wince}
@@ -494,9 +495,10 @@ begin
     exit;
   e.sechdrofs:=filepos(e.f);
   e.nsects:=peheader.NumberOfSections;
-  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
+  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol);
   if e.secstrofs>e.size then
     exit;
+  e.processaddress:=peheader.ImageBase;
   OpenPeCoff:=true;
 end;
 {$endif PE32}
@@ -522,8 +524,7 @@ type
      SizeOfUninitializedData : longint;
      AddressOfEntryPoint : longint;
      BaseOfCode : longint;
-     BaseOfData : longint;
-     ImageBase : longint;
+     ImageBase : qword;
      SectionAlignment : longint;
      FileAlignment : longint;
      MajorOperatingSystemVersion : word;
@@ -538,10 +539,10 @@ type
      CheckSum : longint;
      Subsystem : word;
      DllCharacteristics : word;
-     SizeOfStackReserve : int64;
-     SizeOfStackCommit : int64;
-     SizeOfHeapReserve : int64;
-     SizeOfHeapCommit : int64;
+     SizeOfStackReserve : qword;
+     SizeOfStackCommit : qword;
+     SizeOfHeapReserve : qword;
+     SizeOfHeapCommit : qword;
      LoaderFlags : longint;
      NumberOfRvaAndSizes : longint;
      DataDirectory : array[1..$80] of byte;
@@ -561,9 +562,10 @@ begin
    exit;
   e.sechdrofs:=filepos(e.f);
   e.nsects:=peheader.NumberOfSections;
-  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol)+4;
+  e.secstrofs:=peheader.PointerToSymbolTable+peheader.NumberOfSymbols*sizeof(coffsymbol);
   if e.secstrofs>e.size then
     exit;
+  e.processaddress:=peheader.ImageBase;
   OpenPePlusCoff:=true;
 end;
 {$endif PE32PLUS}

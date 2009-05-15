@@ -153,7 +153,7 @@ begin
         exit;
     end;
 
-  e.processaddress:=e.processaddress+dword(baseaddr);
+  e.processaddress:=ptruint(baseaddr)-e.processaddress;
 
   if FindExeSection(e,'.debug_line',dwarfoffset,dwarfsize) then
     Opendwarf:=true
