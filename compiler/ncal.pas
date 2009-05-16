@@ -1600,8 +1600,8 @@ implementation
                                 crefdef.register_created_object_type;
                               end
                              else
-                              { the created class can be any child class as well -> register classrefdef }
-                              methodpointer.resultdef.register_created_object_type;
+                               { the created class can be any child class as well -> register classrefdef }
+                               methodpointer.resultdef.register_created_object_type;
                           end;
                       end;
                   end;
