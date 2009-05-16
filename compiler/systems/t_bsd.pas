@@ -152,11 +152,11 @@ begin
            end
          else
            begin
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
              if (apptype<>app_bundle) then
-               DllCmd[1]:='libtool $PRTOBJ $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='libtool $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
