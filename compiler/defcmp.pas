@@ -276,7 +276,9 @@ implementation
                    end;
                  objectdef:
                    begin
-                     if is_class_or_interface_or_dispinterface(def_from) and (cdo_explicit in cdoptions) then
+                     if (m_delphi in current_settings.modeswitches) and
+                        is_class_or_interface_or_dispinterface(def_from) and
+                        (cdo_explicit in cdoptions) then
                       begin
                         eq:=te_convert_l1;
                         if (fromtreetype=niln) then
