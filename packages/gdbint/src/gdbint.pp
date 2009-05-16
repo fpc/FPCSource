@@ -217,7 +217,7 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
-  {$LINKLIB libintl.a}
+
   {$ifdef USE_MINGW_GDB}
     {$LINKLIB libm.a}
     {$LINKLIB libmoldname.a}
@@ -226,6 +226,7 @@ interface
     {$LINKLIB libmingwex.a}
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
+    {$undef GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
     {$LINKLIB libncurses.a}
@@ -234,6 +235,7 @@ interface
     {$endif GDB_USES_EXPAT_LIB}
     {$LINKLIB gcc}
     {$LINKLIB cygwin} { alias of libm.a and libc.a }
+  {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
   {$endif not USE_MINGW_GDB}	
   {$LINKLIB kernel32}
