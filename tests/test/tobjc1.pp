@@ -1,8 +1,8 @@
+{ %target=darwin }
+{ %cpu=powerpc,i386 }
+
 {$mode objfpc}
 {$modeswitch objectivec1}
-
-uses
-  ctypes;
 
 var
   a: NSObject;
