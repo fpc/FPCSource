@@ -684,6 +684,7 @@ ide/fpmdebug.inc svneol=native#text/plain
 ide/fpmedit.inc svneol=native#text/plain
 ide/fpmfile.inc svneol=native#text/plain
 ide/fpmhelp.inc svneol=native#text/plain
+ide/fpmingw.pas svneol=native#text/plain
 ide/fpmopts.inc svneol=native#text/plain
 ide/fpmrun.inc svneol=native#text/plain
 ide/fpmsrch.inc svneol=native#text/plain
