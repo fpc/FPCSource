@@ -2100,6 +2100,9 @@ begin
   gdb_command('set print vtbl on');
   gdb_command('set print object on');
   gdb_command('set print null-stop');
+  {$ifdef USE_MINGW_GDB}  // maybe this also should be done for newer cygwin gdbs.
+  gdb_command('set confirm off');
+  {$endif}
 end;
 
 
