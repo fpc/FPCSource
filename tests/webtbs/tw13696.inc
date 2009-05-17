@@ -1,0 +1,3 @@
+procedure test;
+begin
+end;

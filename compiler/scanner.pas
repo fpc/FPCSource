@@ -1682,6 +1682,12 @@ In case not, the value returned can be arbitrary.
            hs:=FixFileName(hs);
            path:=ExtractFilePath(hs);
            name:=ExtractFileName(hs);
+           { Special case for Delphi compatibility: '*' has to be replaced
+             by the file name of the current source file.  }
+           if (length(name)>=1) and
+              (name[1]='*') then
+             name:=ChangeFileExt(current_module.sourcefiles.get_file_name(current_filepos.fileindex),'')+ExtractFileExt(name);
+
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
            if (ExtractFileExt(name)='') then
