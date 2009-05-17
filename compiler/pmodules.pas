@@ -602,7 +602,15 @@ implementation
           AddUnit('macpas');
         { Objective-C 1.0 support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
-          AddUnit('objc1');
+          begin
+            { interface to Objective-C run time }
+            AddUnit('objc1');
+            loadobjctypes;
+            { NSObject }
+            if not(current_module.is_unit) or
+               (current_module.modulename^<>'OBJCBASE') then
+              AddUnit('objcbase');
+          end;
         { Profile unit? Needed for go32v2 only }
         if (cs_profile in current_settings.moduleswitches) and
            (target_info.system in [system_i386_go32v2,system_i386_watcom]) then

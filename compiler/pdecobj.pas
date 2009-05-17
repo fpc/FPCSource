@@ -267,6 +267,9 @@ implementation
                    odt_cppclass:
                      if not(is_cppclass(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
+                   odt_objcclass:
+                     if not(is_objcclass(childof)) then
+                       Message(parser_e_mix_of_classes_and_objects);
                    odt_object:
                      if not(is_object(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
@@ -295,6 +298,9 @@ implementation
               odt_interfacecom:
                 if current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
+              odt_objcclass:
+                if current_objectdef<>objcclass_nsobject then
+                  childof:=objcclass_nsobject;
             end;
           end;
 
@@ -362,6 +368,21 @@ implementation
 
     procedure parse_object_members;
 
+      procedure chkobjc(pd: tprocdef);
+        begin
+          if is_objcclass(pd._class) then
+            begin
+              { none of the explicit calling conventions should be allowed }
+              if (po_hascallingconvention in pd.procoptions) then
+                internalerror(2009032501);
+              pd.proccalloption:=pocall_cdecl;
+              if not(po_msgstr in pd.procoptions) then
+                Message(parser_e_objc_requires_msgstr);
+              include(pd.procoptions,po_objc);
+            end;
+        end;
+
+
         procedure chkcpp(pd:tprocdef);
         begin
            if is_cppclass(pd._class) then
@@ -390,7 +411,7 @@ implementation
         object_member_blocktype : tblock_type;
       begin
         { empty class declaration ? }
-        if (current_objectdef.objecttype=odt_class) and
+        if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
            (token=_SEMICOLON) then
           exit;
 
@@ -545,6 +566,7 @@ implementation
                       include(current_objectdef.objectoptions,oo_has_virtual);
 
                     chkcpp(pd);
+                    chkobjc(pd);
                   end;
 
                 maybe_parse_hint_directives(pd);

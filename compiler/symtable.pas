@@ -196,10 +196,12 @@ interface
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
     function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
+    function  search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
@@ -1761,6 +1763,43 @@ implementation
       end;
 
 
+    function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
+      var
+        stackitem  : psymtablestackitem;
+      begin
+        result:=false;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            if (srsymtable.symtabletype=globalsymtable) and
+               (srsymtable.name^=unitname) then
+              begin
+                srsym:=tsym(srsymtable.find(symname));
+                if not assigned(srsym) then
+                  break;
+                result:=true;
+                exit;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+
+        { If the module is the current unit we also need
+          to search the local symtable }
+        if (current_module.globalsymtable=srsymtable) and
+           assigned(current_module.localsymtable) then
+          begin
+            srsymtable:=current_module.localsymtable;
+            srsym:=tsym(srsymtable.find(symname));
+            if assigned(srsym) then
+              begin
+                result:=true;
+                exit;
+              end;
+          end;
+      end;
+
+
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid : THashedIDString;
@@ -1905,6 +1944,28 @@ implementation
           cgmessage1(cg_f_unknown_system_type,s);
         result:=ttypesym(sym);
       end;
+
+
+    function search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
+      var
+        contextobjdef : tobjectdef;
+        stackitem  : psymtablestackitem;
+        srsymtable: tsymtable;
+        sym: tsym;
+      begin
+        if searchsym_in_named_module(unitname,typename,sym,srsymtable) and
+           (sym.typ=typesym) then
+          begin
+            result:=ttypesym(sym);
+            exit;
+          end
+        else
+          begin
+            cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+            result:=nil;
+          end;
+      end;
+
 
 
     function search_class_member(pd : tobjectdef;const s : string):tsym;

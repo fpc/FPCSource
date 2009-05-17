@@ -278,6 +278,22 @@ implementation
 
     procedure types_dec;
 
+      procedure finish_objc_class(od: tobjectdef);
+        begin
+          { Objective-C classes can be external -> all messages inside are
+            external (defined at the class level instead of per method, so
+            that you cannot define some methods as external and some not)
+          }
+          if (token = _ID) and
+             (idtoken = _EXTERNAL) then
+            begin
+              consume(_EXTERNAL);
+              consume(_SEMICOLON);
+              od.make_all_methods_external;
+            end;
+        end;
+
+
         function parse_generic_parameters:TFPObjectList;
         var
           generictype : ttypesym;
@@ -361,7 +377,8 @@ implementation
                begin
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
-                     (token=_DISPINTERFACE)) and
+                     (token=_DISPINTERFACE) or
+                     (token=_OBJCCLASS)) and
                     (assigned(ttypesym(sym).typedef)) and
                     is_class_or_interface_or_dispinterface(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
@@ -376,6 +393,8 @@ implementation
                           objecttype:=odt_interfacecorba;
                       _DISPINTERFACE :
                         objecttype:=odt_dispinterface;
+                      _OBJCCLASS :
+                        objecttype:=odt_objcclass;
                       else
                         internalerror(200811072);
                     end;
@@ -473,7 +492,8 @@ implementation
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) and
-                       not(df_generic in hdef.defoptions) then
+                       not(df_generic in hdef.defoptions) and
+                       not is_objcclass(hdef) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;
@@ -481,6 +501,9 @@ implementation
                       end;
                     try_consume_hintdirective(newtype.symoptions);
                     consume(_SEMICOLON);
+
+                    if is_objcclass(hdef) then
+                      finish_objc_class(tobjectdef(hdef));
                   end;
                 recorddef :
                   begin

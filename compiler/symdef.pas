@@ -299,6 +299,7 @@ interface
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
+          procedure make_all_methods_external;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -517,6 +518,7 @@ interface
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
           function  cplusplusmangledname : string;
+          function  objcmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
        end;
@@ -660,6 +662,13 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
+       { Objective-C base types }
+       objc_metaclasstype,
+       objc_superclasstype,
+       objc_idtype,
+       objc_seltype         : tpointerdef;
+       objcclass_nsobject   : tobjectdef;
+
     const
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
@@ -708,10 +717,13 @@ interface
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
+    function is_objcclass(def: tdef): boolean;
+    function is_objcclassref(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
 
+    procedure loadobjctypes;
 
 {$ifdef x86}
     function use_sse(def : tdef) : boolean;
@@ -3498,6 +3510,24 @@ implementation
       end;
 
 
+    function  tprocdef.objcmangledname : string;
+      begin
+        if not (po_msgstr in procoptions) then
+          internalerror(2009030901);
+        { we may very well need longer strings to handle these... }
+        if ((255-length(tobjectdef(procsym.owner.defowner).objrealname^)
+             -length('+[ ]')-length(messageinf.str^)) < 0) then
+          Message1(parser_e_objc_message_name_too_long,messageinf.str^);
+        if not(po_classmethod in procoptions) then
+          result:='-['
+        else
+          result:='+[';
+        result:=
+          result+tobjectdef(procsym.owner.defowner).objrealname^+' '+
+          messageinf.str^+']';
+      end;
+
+
     procedure tprocdef.setmangledname(const s : string);
       begin
         { This is not allowed anymore, the forward declaration
@@ -3685,6 +3715,12 @@ implementation
         else
           ImplementedInterfaces:=nil;
         writing_class_record_dbginfo:=false;
+
+       { make NSObject immediately known in the same unit }
+       if (childof=nil) and
+           (objecttype=odt_objcclass) and
+           (objrealname^='NSObject') then
+          objcclass_nsobject:=self;
      end;
 
 
@@ -3761,6 +3797,10 @@ implementation
             (objecttype=odt_interfacecom) and
             (objname^='IUNKNOWN') then
            interface_iunknown:=self;
+         if (childof=nil) and
+            (objecttype=odt_objcclass) and
+            (objrealname^='NSObject') then
+           objcclass_nsobject:=self;
          writing_class_record_dbginfo:=false;
        end;
 
@@ -4031,7 +4071,7 @@ implementation
         { inherit options and status }
         objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
         { add the data of the anchestor class/object }
-        if (objecttype in [odt_class,odt_object]) then
+        if (objecttype in [odt_class,odt_object,odt_objcclass]) then
           begin
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
@@ -4053,7 +4093,7 @@ implementation
      var
        vs: tfieldvarsym;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass] then
           exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
@@ -4148,7 +4188,7 @@ implementation
 
     function tobjectdef.size : aint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass] then
           result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
@@ -4157,7 +4197,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass] then
           alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
@@ -4171,6 +4211,8 @@ implementation
         odt_class:
           { the +2*sizeof(pint) is size and -size }
           vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
+        odt_objcclass:
+          vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba:
           vmtmethodoffset:=index*sizeof(pint);
         else
@@ -4203,7 +4245,8 @@ implementation
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
               needs_inittable:=tObjectSymtable(symtable).needs_init_final;
-            odt_cppclass:
+            odt_cppclass,
+            odt_objcclass:
               needs_inittable:=false;
             else
               internalerror(200108267);
@@ -4285,6 +4328,25 @@ implementation
             current_module.wpoinfo.addmaybecreatedbyclassref(self);
           end;
       end;
+
+
+    procedure make_procdef_external(data: tobject; arg: pointer);
+      var
+        def: tdef absolute data;
+      begin
+        if (def.typ = procdef) then
+          begin
+            include(tprocdef(def).procoptions,po_external);
+            tprocdef(def).forwarddef:=false;
+          end;
+      end;
+
+
+    procedure tobjectdef.make_all_methods_external;
+      begin
+         self.symtable.deflist.foreachcall(@make_procdef_external,nil);
+      end;
+
 
 {****************************************************************************
                              TImplementedInterface
@@ -4566,6 +4628,24 @@ implementation
       end;
 
 
+    function is_objcclass(def: tdef): boolean;
+      begin
+        is_objcclass:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_objcclass);
+      end;
+
+
+    function is_objcclassref(def: tdef): boolean;
+      begin
+        is_objcclassref:=
+          assigned(def) and
+          (def.typ=classrefdef) and
+          is_objcclass(tclassrefdef(def).pointeddef);
+      end;
+
+
     function is_class_or_interface(def: tdef): boolean;
       begin
         result:=
@@ -4593,7 +4673,17 @@ implementation
       end;
 
 
+    procedure loadobjctypes;
+      begin
+        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC1','POBJC_CLASS').typedef);
+        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC1','POBJC_SUPER').typedef);
+        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC1','ID').typedef);
+        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC1','SEL').typedef);
+      end;
+
+
 {$ifdef x86}
+
     function use_sse(def : tdef) : boolean;
       begin
         use_sse:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or

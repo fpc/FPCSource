@@ -3014,6 +3014,13 @@ implementation
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
               doappend;
             end;
+          odt_objcclass:
+            begin
+              // Objective-C class: plain pointer for now
+              append_entry(DW_TAG_pointer_type,false,[]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(voidpointertype));
+              finish_entry;
+            end;
           else
             internalerror(200602041);
         end;

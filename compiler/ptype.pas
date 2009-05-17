@@ -987,6 +987,11 @@ implementation
                 consume(token);
                 def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil);
               end;
+            _OBJCCLASS :
+              begin
+                consume(token);
+                def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil);
+              end;
             _INTERFACE :
               begin
                 { need extra check here since interface is a keyword
@@ -1099,7 +1104,8 @@ implementation
             { Init }
             if (
                 assigned(def.typesym) and
-                (st.symtabletype=globalsymtable)
+                (st.symtabletype=globalsymtable) and
+                not is_objcclass(def)
                ) or
                def.needs_inittable or
                (ds_init_table_used in def.defstates) then
@@ -1107,7 +1113,8 @@ implementation
             { RTTI }
             if (
                   assigned(def.typesym) and
-                  (st.symtabletype=globalsymtable)
+                  (st.symtabletype=globalsymtable) and
+                  not is_objcclass(def)
                ) or
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);

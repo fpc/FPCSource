@@ -449,9 +449,18 @@ implementation
                 current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;
               if doinclude then
-                include(current_settings.modeswitches,i)
+                begin
+                  include(current_settings.modeswitches,i);
+                  if (i=m_objectivec1) then
+                    include(current_settings.modeswitches,m_class);
+                end
               else
-                exclude(current_settings.modeswitches,i);
+                begin
+                  exclude(current_settings.modeswitches,i);
+                  if (i=m_objectivec1) and
+                     ([m_delphi,m_objfpc]*current_settings.modeswitches=[]) then
+                    exclude(current_settings.modeswitches,m_class);
+                end;
 
               { set other switches depending on changed mode switch }
               HandleModeSwitches(changeinit);

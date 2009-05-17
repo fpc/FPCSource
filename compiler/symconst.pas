@@ -289,7 +289,8 @@ type
     odt_interfacecom_function,
     odt_interfacecorba,
     odt_cppclass,
-    odt_dispinterface
+    odt_dispinterface,
+    odt_objcclass
   );
 
   { Variations in interfaces implementation }
@@ -364,7 +365,9 @@ type
     vo_is_range_check,
     vo_is_overflow_check,
     vo_is_typinfo_para,
-    vo_is_weak_external
+    vo_is_weak_external,
+    { Objective-C message selector parameter }
+    vo_is_msgsel
   );
   tvaroptions=set of tvaroption;
 

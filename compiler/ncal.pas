@@ -118,7 +118,9 @@ interface
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
+          constructor createinternfromunit(const unitname, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
+          constructor createinternresfromunit(const unitname, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -206,7 +208,7 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,nset,
+      ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       procinfo,cpuinfo,
       cgbase,
       wpobase
@@ -934,12 +936,40 @@ implementation
        end;
 
 
+     constructor tcallnode.createinternfromunit(const unitname, procname: string; params: tnode);
+       var
+         srsym: tsym;
+         srsymtable: tsymtable;
+       begin
+         if not searchsym_in_named_module(unitname,procname,srsym,srsymtable) or
+            (srsym.typ<>procsym) then
+           Message1(cg_f_unknown_compilerproc,unitname+'.'+procname);
+         create(params,tprocsym(srsym),srsymtable,nil,[]);
+       end;
+
+
     constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef);
       var
         pd : tprocdef;
       begin
         createintern(name,params);
-        typedef := res;
+        typedef:=res;
+        include(callnodeflags,cnf_typedefset);
+        pd:=tprocdef(symtableprocentry.ProcdefList[0]);
+        { both the normal and specified resultdef either have to be returned via a }
+        { parameter or not, but no mixing (JM)                                      }
+        if paramanager.ret_in_param(typedef,pd.proccalloption) xor
+          paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+          internalerror(200108291);
+      end;
+
+
+    constructor tcallnode.createinternresfromunit(const unitname, procname: string; params: tnode; res:tdef);
+      var
+        pd : tprocdef;
+      begin
+        createinternfromunit(unitname,procname,params);
+        typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
         { both the normal and specified resultdef either have to be returned via a }
@@ -2810,6 +2840,14 @@ implementation
     function tcallnode.pass_1 : tnode;
       begin
          result:=nil;
+
+         { convert Objective-C calls into a message call }
+         if (procdefinition.typ=procdef) and
+            (po_objc in tprocdef(procdefinition).procoptions) then
+           begin
+             result:=cobjcmessagesendnode.create(self.getcopy);
+             exit;
+           end;
 
          { Check if the call can be inlined, sets the cnf_do_inline flag }
          check_inlining;

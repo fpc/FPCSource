@@ -79,13 +79,13 @@ implementation
 
     uses
       systems,
-      cutils,verbose,globals,constexp,
+      cutils,cclasses,verbose,globals,constexp,
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
       cgutils,cgobj,
-      tgobj,ncgutil
+      tgobj,ncgutil,objcgutl
       ;
 
 
@@ -95,17 +95,35 @@ implementation
 
     procedure tcgloadvmtaddrnode.pass_generate_code;
       var
-       href : treference;
+        href    : treference;
+        pool    : THashSet;
+        entry   : PHashSetItem;
+        typename: string;
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          if (left.nodetype=typen) then
            begin
-             reference_reset_symbol(href,
-               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0,
-               sizeof(pint));
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+             if not is_objcclass(left.resultdef) then
+               begin
+                 reference_reset_symbol(href,
+                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0,
+                   sizeof(pint));
+                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+               end
+             else
+               begin
+                 { find/add necessary classref/classname pool entries }
+                 if current_asmdata.ConstPools[sp_objcmetaclass]=nil then
+                   current_asmdata.ConstPools[sp_objcmetaclass]:=THashSet.Create(64, True, False);
+                 pool:=current_asmdata.ConstPools[sp_objcmetaclass];
+                 typename:=left.resultdef.gettypename;
+                 entry:=pool.FindOrAdd(@typename[1],length(typename));
+                 objcfinishstringrefpoolentry(entry,sec_objc_cls_refs,sec_objc_class_names);
+                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+               end;
            end
          else
            begin
@@ -256,7 +274,8 @@ implementation
            exit;
          paraloc1.init;
          { classes and interfaces must be dereferenced implicit }
-         if is_class_or_interface(left.resultdef) then
+         if is_class_or_interface(left.resultdef) or
+            is_objcclass(left.resultdef) then
            begin
              { the contents of a class are aligned to a sizeof(pointer) }
              location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));

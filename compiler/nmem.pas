@@ -172,16 +172,20 @@ implementation
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
            firstpass(left)
-         else if not assigned(current_procinfo) or
-             (po_inline in current_procinfo.procdef.procoptions) or
-             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+         else if not is_objcclass(left.resultdef) and
+                 not is_objcclassref(left.resultdef) then
            begin
-             { keep track of which classes might be instantiated via a classrefdef }
-             if (left.resultdef.typ=classrefdef) then
-               tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
-             else if (left.resultdef.typ=objectdef) then
-               tobjectdef(left.resultdef).register_maybe_created_object_type
-           end
+             if not assigned(current_procinfo) or
+               (po_inline in current_procinfo.procdef.procoptions) or
+               wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+             begin
+               { keep track of which classes might be instantiated via a classrefdef }
+               if (left.resultdef.typ=classrefdef) then
+                 tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
+               else if (left.resultdef.typ=objectdef) then
+                 tobjectdef(left.resultdef).register_maybe_created_object_type
+             end
+           end;
       end;
 
 

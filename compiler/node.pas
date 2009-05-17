@@ -110,7 +110,8 @@ interface
           rttin,            { Rtti information so they can be accessed in result/firstpass}
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
           dataconstn,       { node storing some binary data }
-          objcselectorn
+          objcselectorn,    { node for an Objective-C message selector }
+          objcmessagesendn  { node for message sent to an Objective-C instance (similar to a method call) }
        );
 
        tnodetypeset = set of tnodetype;
@@ -192,7 +193,8 @@ interface
           'rttin',
           'loadparentfpn',
           'dataconstn',
-          'objcselectorn');
+          'objcselectorn',
+          'objcmessagesendn');
 
     type
        { all boolean field of ttree are now collected in flags }

@@ -39,7 +39,8 @@ interface
         pd_notobjintf,   { directive can not be used interface declaration }
         pd_notprocvar,   { directive can not be used procvar declaration }
         pd_dispinterface,{ directive can be used with dispinterface methods }
-        pd_cppobject     { directive can be used with cppclass }
+        pd_cppobject,    { directive can be used with cppclass }
+        pd_objcclass     { directive can be used with objcclass }
       );
       tpdflags=set of tpdflag;
 
@@ -158,7 +159,16 @@ implementation
         hdef     : tdef;
         vsp      : tvarspez;
       begin
-        if (pd.typ=procvardef) and
+        if (pd.typ=procdef) and
+           is_objcclass(tprocdef(pd)._class) then
+          begin
+            { insert Objective-C self and selector parameters }
+            vs:=tparavarsym.create('$msgsel',paranr_vmt,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+            vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+          end
+        else if (pd.typ=procvardef) and
            pd.is_methodpointer then
           begin
             { Generate self variable }
@@ -1018,6 +1028,9 @@ implementation
 
           _CONSTRUCTOR :
             begin
+              { Objective-C does not know the concept of a constructor }
+              if is_objcclass(aclass) then
+                Message(parser_e_objc_no_constructor_destructor);
               consume(_CONSTRUCTOR);
               parse_proc_head(aclass,potype_constructor,pd);
               if assigned(pd) and
@@ -1038,6 +1051,9 @@ implementation
 
           _DESTRUCTOR :
             begin
+              { Objective-C does not know the concept of a destructor }
+              if is_objcclass(aclass) then
+                Message(parser_e_objc_no_constructor_destructor);
               consume(_DESTRUCTOR);
               parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then
@@ -1330,21 +1346,33 @@ var
 begin
   if pd.typ<>procdef then
     internalerror(2003042613);
-  if not is_class(tprocdef(pd)._class) then
+  if not is_class(tprocdef(pd)._class) and
+     not is_objcclass(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
   { check parameter type }
-  paracnt:=0;
-  pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
-  if paracnt<>1 then
-    Message(parser_e_ill_msg_param);
+  if not is_objcclass(tprocdef(pd)._class) then
+    begin
+      paracnt:=0;
+      pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
+      if paracnt<>1 then
+        Message(parser_e_ill_msg_param);
+    end;
   pt:=comp_expr(true);
   if pt.nodetype=stringconstn then
     begin
       include(pd.procoptions,po_msgstr);
+      if (tstringconstnode(pt).len>255) then
+        Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
+      { the message string is the last part we need to set the mangled name
+        for an Objective-C message
+      }
+      if is_objcclass(tprocdef(pd)._class) then
+        tprocdef(pd).setmangledname(tprocdef(pd).objcmangledname);
     end
   else
-   if is_constintnode(pt) then
+   if is_constintnode(pt) and
+      is_class(tprocdef(pd)._class) then
     begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
@@ -1826,7 +1854,7 @@ const
       mutexclpo     : [po_external,po_exports]
     ),(
       idtok:_MESSAGE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
       handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
@@ -1984,7 +2012,7 @@ const
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
-      pd_flags : [pd_interface,pd_implemen,pd_procvar];
+      pd_flags : [pd_interface,pd_implemen,pd_procvar,pd_objcclass];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
@@ -2062,7 +2090,7 @@ const
            end;
          end;
 
-        { C directive is MAC only, because it breaks too much existing code
+        { C directive is MacPas only, because it breaks too much existing code
           on other platforms (PFV) }
         if (idtoken=_C) and
            not(m_mac in current_settings.modeswitches) then
@@ -2081,7 +2109,7 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if ((pdflags * [pd_procvar,pd_object])=[]) and
+            if ((pdflags * [pd_procvar,pd_object,pd_objcclass])=[]) and
                not(idtoken=_PROPERTY) then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
@@ -2139,9 +2167,15 @@ const
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
+
            { check if method and directive not for interface }
            if is_dispinterface(tprocdef(pd)._class) and
              not(pd_dispinterface in proc_direcdata[p].pd_flags) then
+            exit;
+
+           { check if method and directive not for objcclass }
+           if is_objcclass(tprocdef(pd)._class) and
+             not(pd_objcclass in proc_direcdata[p].pd_flags) then
             exit;
          end;
 

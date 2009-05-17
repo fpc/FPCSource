@@ -79,7 +79,8 @@ interface
          sp_ansistr,
          sp_widestr,
          sp_unicodestr,
-         sp_objcselector
+         sp_objcselector,
+         sp_objcmetaclass
       );
       
     const

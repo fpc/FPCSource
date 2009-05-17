@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03250 is the last used one
+# 03252 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1176,7 +1176,24 @@ parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibil
 % The virtual method overrides an method that is declared with a higher visibility. This might give
 % unexpected results. In case the new visibility is private than it might be that a call to inherited in a
 % new child class will call the higher visible method in a parent class and ignores the private method.
+parser_e_objc_requires_msgstr=03251_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
+% Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
+% While bindings to other languages automatically generate such names based on the identifier you use (by replacing
+% all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
+% colons.
+parser_e_objc_no_constructor_destructor=03252_E_Objective-C does not have formal constructors or destructors. Use initXXX and the dealloc instance methods.
+% The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
+% purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
+% guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
+% inherited ``constructors''). For these reasons, we have opted to follow the standard Objective-C patterns for
+% instance creation/destruction.
+parser_e_message_string_too_long=03253_E_Message name is too long (max. 255 characters)
+% Due to compiler implementation reasons, message names are currently limited to 255 characters.
+parser_e_objc_message_name_too_long=03254_E_Objective-C message symbol name for "$1" is too long
+% Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
+% code) are currently limited to 255 characters.
 % \end{description}
+
 #
 # Type Checking
 #
@@ -1785,6 +1802,11 @@ cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
 % The label used in the goto definition is not defined or optimized away by the
 % unreachable code elemination.
 % \end{description}
+cg_f_unknown_type_in_unit=06050_F_Cannot find type "$1" in unit "$2". Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
 # EndOfTeX
 
 #

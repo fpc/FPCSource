@@ -338,6 +338,10 @@ const
   parser_e_weak_external_not_supported=03248;
   parser_e_forward_mismatch=03249;
   parser_n_ignore_lower_visibility=03250;
+  parser_e_objc_requires_msgstr=03251;
+  parser_e_objc_no_constructor_destructor=03252;
+  parser_e_message_string_too_long=03253;
+  parser_e_objc_message_name_too_long=03254;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -494,6 +498,7 @@ const
   cg_f_unknown_system_type=06047;
   cg_h_inherited_ignored=06048;
   cg_e_goto_label_not_found=06049;
+  cg_f_unknown_type_in_unit=06050;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -787,9 +792,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 51070;
+  MsgTxtSize = 51509;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,251,88,65,50,108,22,202,62,
+    24,87,255,88,65,51,108,22,202,62,
     47,20,1,1,1,1,1,1,1,1
   );
