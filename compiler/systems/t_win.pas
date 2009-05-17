@@ -980,9 +980,11 @@ implementation
                   if target_info.system in system_wince then
                     imagebase:=$10000
                   else
+{$ifdef cpu64bitaddr}
                     if target_info.system=system_x86_64_win64 then
                       imagebase:=$100000000
                     else
+{$endif}
                       imagebase:=$400000;
               end;
             Concat('IMAGEBASE $' + hexStr(imagebase, SizeOf(imagebase)*2));

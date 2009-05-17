@@ -245,7 +245,7 @@ interface
        peflags : longint;
        minstacksize,
        maxstacksize,
-       imagebase : aword;
+       imagebase     : puint;
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
