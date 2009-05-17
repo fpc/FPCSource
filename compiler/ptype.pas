@@ -1112,9 +1112,9 @@ implementation
               RTTIWriter.write_rtti(def,initrtti);
             { RTTI }
             if (
-                  assigned(def.typesym) and
-                  (st.symtabletype=globalsymtable) and
-                  not is_objcclass(def)
+                assigned(def.typesym) and
+                (st.symtabletype=globalsymtable) and
+                not is_objcclass(def)
                ) or
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);
