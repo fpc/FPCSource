@@ -1121,6 +1121,12 @@ implementation
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
+                       end
+                     else if is_objcclass(def_from) and
+                             (def_to=objc_idtype) then
+                       begin
+                         doconv:=tc_equal;
+                         eq:=te_convert_l1;
                        end;
                    end;
                end;
@@ -1282,7 +1288,14 @@ implementation
                        doconv:=tc_int_2_int;
                        eq:=te_convert_l1;
                      end;
-                 end;
+                 end
+                else if is_objcclass(def_to) and
+                        (def_from=objc_idtype) then
+                  begin
+                    { All Objective-C classes are compatible with ID }
+                    doconv:=tc_equal;
+                    eq:=te_convert_l1;
+                  end;
              end;
 
            classrefdef :
