@@ -146,7 +146,6 @@ type
   TDOMNotationEx = class(TDOMNotation);
   TDOMDocumentTypeEx = class(TDOMDocumentType);
   TDOMElementDef = class;
-  TDOMAttrDef = class;
 
   TDTDSubsetType = (dsNone, dsInternal, dsExternal);
 
@@ -289,13 +288,6 @@ type
 
   TXMLReadState = (rsProlog, rsDTD, rsRoot, rsEpilog);
 
-  TAttrDefault = (
-    adImplied,
-    adDefault,
-    adRequired,
-    adFixed
-  );
-
   TElementContentType = (
     ctAny,
     ctEmpty,
@@ -436,20 +428,6 @@ type
   end;
 
   // Attribute/Element declarations
-
-  TDOMAttrDef = class(TDOMAttr)
-  private
-    FTag: Cardinal;
-  protected
-    FExternallyDeclared: Boolean;
-    FDefault: TAttrDefault;
-    FEnumeration: array of WideString;
-    function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: WideString): Boolean;
-    function Clone(AElement: TDOMElement): TDOMAttr;
-  public
-    property Tag: Cardinal read FTag write FTag;
-  end;
 
   TDOMElementDef = class(TDOMElement)
   public
@@ -2329,10 +2307,9 @@ begin
   begin
     CheckName;
     ExpectWhitespace;
-    AttDef := TDOMAttrDef.Create(doc);
+    AttDef := doc.CreateAttributeDef(FName.Buffer, FName.Length);
     try
-      AttDef.FExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
-      AttDef.FNSI.QName := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
+      AttDef.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
 // In case of duplicate declaration of the same attribute, we must discard it,
 // not modifying ElDef, and suppressing certain validation errors.
       DiscardIt := Assigned(ElDef.GetAttributeNode(AttDef.Name));
@@ -2341,7 +2318,7 @@ begin
 
       if CheckForChar('(') then     // [59]
       begin
-        AttDef.FDataType := dtNmToken;
+        AttDef.DataType := dtNmToken;
         repeat
           SkipWhitespace;
           CheckName([cnToken]);
@@ -2364,7 +2341,7 @@ begin
         end;
         if Found and SkipWhitespace then
         begin
-          AttDef.FDataType := dt;
+          AttDef.DataType := dt;
           if (dt = dtId) and not DiscardIt then
           begin
             if Assigned(ElDef.IDAttr) then
@@ -2406,18 +2383,18 @@ begin
       end;
       StoreLocation(FTokenStart);
       if FSource.Matches('#REQUIRED') then
-        AttDef.FDefault := adRequired
+        AttDef.Default := adRequired
       else if FSource.Matches('#IMPLIED') then
-        AttDef.FDefault := adImplied
+        AttDef.Default := adImplied
       else if FSource.Matches('#FIXED') then
       begin
-        AttDef.FDefault := adFixed;
+        AttDef.Default := adFixed;
         ExpectWhitespace;
       end
       else
-        AttDef.FDefault := adDefault;
+        AttDef.Default := adDefault;
 
-      if AttDef.FDefault in [adDefault, adFixed] then
+      if AttDef.Default in [adDefault, adFixed] then
       begin
         if AttDef.DataType = dtId then
           ValidationError('An attribute of type ID cannot have a default value',[]);
@@ -2950,21 +2927,21 @@ procedure CheckValue;
 var
   AttValue, OldValue: WideString;
 begin
-  if FStandalone and AttDef.FExternallyDeclared then
+  if FStandalone and AttDef.ExternallyDeclared then
   begin
     OldValue := Attr.Value;
-    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    Attr.DataType := AttDef.DataType;
     AttValue := Attr.Value;
     if AttValue <> OldValue then
       StandaloneError(-1);
   end
   else
   begin
-    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    Attr.DataType := AttDef.DataType;
     AttValue := Attr.Value;
   end;
   // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
-  if (AttDef.FDefault = adFixed) and (AttDef.Value <> AttValue) then
+  if (AttDef.Default = adFixed) and (AttDef.Value <> AttValue) then
     ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[AttDef.Name], -1);
   if not ValidateAttrSyntax(AttDef, AttValue) then
     ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name], -1);
@@ -2997,7 +2974,7 @@ begin
   FCursor := attr;
   ExpectAttValue;
 
-  if Assigned(AttDef) and ((AttDef.FDataType <> dtCdata) or (AttDef.FDefault = adFixed)) then
+  if Assigned(AttDef) and ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
     CheckValue;
 end;
 
@@ -3049,11 +3026,11 @@ begin
 
     if AttDef.Tag <> FAttrTag then  // this one wasn't specified
     begin
-      case AttDef.FDefault of
+      case AttDef.Default of
         adDefault, adFixed: begin
-          if FStandalone and AttDef.FExternallyDeclared then
+          if FStandalone and AttDef.ExternallyDeclared then
             StandaloneError;
-          Attr := AttDef.Clone(Element);
+          Attr := TDOMAttr(AttDef.CloneNode(True));
           Element.SetAttributeNode(Attr);
           ValidateAttrValue(Attr, Attr.Value);
         end;
@@ -3271,51 +3248,6 @@ begin
     FCurrContentType := ctAny;
     FSaViolation := False;
   end;
-end;
-
-{ TDOMAttrDef }
-
-function TDOMAttrDef.AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-var
-  I, L: Integer;
-begin
-  // TODO: this implementaion is the slowest possible...
-  Result := False;
-  L := Length(FEnumeration);
-  for I := 0 to L-1 do
-  begin
-    if (Len = Length(FEnumeration[I])) and CompareMem(Buf, DOMPChar(FEnumeration[I]), Len*sizeof(WideChar)) then
-      Exit;
-  end;
-  SetLength(FEnumeration, L+1);
-  SetString(FEnumeration[L], Buf, Len);
-  Result := True;
-end;
-
-function TDOMAttrDef.HasEnumToken(const aValue: WideString): Boolean;
-var
-  I: Integer;
-begin
-  Result := True;
-  if Length(FEnumeration) = 0 then
-    Exit;
-  for I := 0 to Length(FEnumeration)-1 do
-  begin
-    if FEnumeration[I] = aValue then
-      Exit;
-  end;
-  Result := False;
-end;
-
-type
-  TDOMAttrEx = class(TDOMAttr);
-
-function TDOMAttrDef.Clone(AElement: TDOMElement): TDOMAttr;
-begin
-  Result := TDOMAttr.Create(FOwnerDocument);
-  TDOMAttrEx(Result).FNSI.QName := Self.FNSI.QName;
-  TDOMAttrEx(Result).FDataType := FDataType;
-  CloneChildren(Result, FOwnerDocument);
 end;
 
 { TElementValidator }

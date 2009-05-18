@@ -97,6 +97,7 @@ type
   TDOMDocumentType = class;
   TDOMEntityReference = class;
   TDOMProcessingInstruction = class;
+  TDOMAttrDef = class;
 
 
 // -------------------------------------------------------
@@ -442,6 +443,7 @@ type
       TDOMProcessingInstruction; virtual;
     function CreateAttribute(const name: DOMString): TDOMAttr;
     function CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
+    function CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
@@ -527,7 +529,8 @@ type
     property Value: DOMString read GetNodeValue write SetNodeValue;
     property OwnerElement: TDOMElement read FOwnerElement;
     // extensions
-    property DataType: TAttrDataType read FDataType;
+    // TODO: this is to be replaced with DOM 3 TypeInfo
+    property DataType: TAttrDataType read FDataType write FDataType;
   end;
 
 
@@ -704,6 +707,31 @@ type
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Target: DOMString read FTarget;
     property Data: DOMString read FNodeValue write SetNodeValue;
+  end;
+
+// Attribute declaration - Attr descendant which carries rudimentary type info
+// must be severely improved while developing Level 3
+
+  TAttrDefault = (
+    adImplied,
+    adDefault,
+    adRequired,
+    adFixed
+  );
+
+  TDOMAttrDef = class(TDOMAttr)
+  protected
+    FExternallyDeclared: Boolean;
+    FDefault: TAttrDefault;
+    FTag: Cardinal;
+    FEnumeration: array of DOMString;
+  public
+    function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
+    function HasEnumToken(const aValue: DOMString): Boolean;
+    function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
+    property Default: TAttrDefault read FDefault write FDefault;
+    property ExternallyDeclared: Boolean read FExternallyDeclared write FExternallyDeclared;
+    property Tag: Cardinal read FTag write FTag;
   end;
 
 // URIs of predefined namespaces
@@ -1939,6 +1967,12 @@ begin
   Include(Result.FFlags, nfSpecified);
 end;
 
+function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
+begin
+  Result := TDOMAttrDef.Create(Self);
+  Result.FNSI.QName := FNames.FindOrAdd(Buf, Length);
+end;
+
 function TDOMDocument.CreateEntityReference(const name: DOMString):
   TDOMEntityReference;
 begin
@@ -2591,6 +2625,46 @@ procedure TDOMProcessingInstruction.SetNodeValue(const AValue: DOMString);
 begin
   Changing;
   FNodeValue := AValue;
+end;
+
+{ TDOMAttrDef }
+
+function TDOMAttrDef.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
+begin
+  Result := inherited CloneNode(deep, ACloneOwner);
+  Exclude(Result.FFlags, nfSpecified);
+end;
+
+function TDOMAttrDef.AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
+var
+  I, L: Integer;
+begin
+  // TODO: this implementaion is the slowest possible...
+  Result := False;
+  L := Length(FEnumeration);
+  for I := 0 to L-1 do
+  begin
+    if CompareDomStrings(Buf, DOMPChar(FEnumeration[I]), Len, Length(FEnumeration[I])) = 0 then
+      Exit;
+  end;
+  SetLength(FEnumeration, L+1);
+  SetString(FEnumeration[L], Buf, Len);
+  Result := True;
+end;
+
+function TDOMAttrDef.HasEnumToken(const aValue: DOMString): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  if Length(FEnumeration) = 0 then
+    Exit;
+  for I := 0 to Length(FEnumeration)-1 do
+  begin
+    if FEnumeration[I] = aValue then
+      Exit;
+  end;
+  Result := False;
 end;
 
 end.
