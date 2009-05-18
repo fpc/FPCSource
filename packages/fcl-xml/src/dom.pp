@@ -180,7 +180,8 @@ type
     nfRecycled,
     nfLevel2,
     nfIgnorableWS,
-    nfSpecified
+    nfSpecified,
+    nfDestroying
   );
   TNodeFlags = set of TNodeFlagEnum;
 
@@ -1002,7 +1003,7 @@ end;
 
 procedure TDOMNode.Changing;
 begin
-  if nfReadOnly in FFlags then
+  if (nfReadOnly in FFlags) and not (nfDestroying in FOwnerDocument.FFlags) then
     raise EDOMError.Create(NO_MODIFICATION_ALLOWED_ERR, 'Node.CheckReadOnly');
 end;
 
@@ -1755,6 +1756,7 @@ end;
 
 destructor TDOMDocument.Destroy;
 begin
+  Include(FFlags, nfDestroying);
   FreeAndNil(FIDList);   // set to nil before starting destroying children
   FEmptyNode.Free;
   inherited Destroy;
