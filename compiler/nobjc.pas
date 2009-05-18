@@ -191,12 +191,14 @@ function tobjcmessagesendnode.pass_1: tnode;
   var
     msgsendname: string;
     newparas,
-    lastpara: tcallparanode;
+    para: tcallparanode;
     block: tblocknode;
     statements: tstatementnode;
     temp: ttempcreatenode;
     objcsupertype: tdef;
     field: tfieldvarsym;
+    selfpara,
+    msgselpara: tcallparanode;
   begin
     { pass1 of left has already run, see constructor }
 
@@ -228,12 +230,22 @@ function tobjcmessagesendnode.pass_1: tnode;
       msgsendname:='OBJC_MSGSENDSUPER';
 
     newparas:=tcallparanode(tcallnode(left).left);
-    { parameters are chained from right to left, and we have to insert the two
-      first parameters (self and selector) -> walk to the end of the chain
-    }
-    lastpara:=newparas;
-    while assigned(lastpara.right) do
-      lastpara:=tcallparanode(lastpara.right);
+    { Find the self and msgsel parameters.  }
+    para:=newparas;
+    selfpara:=nil;
+    msgselpara:=nil;
+    while assigned(para) do
+      begin
+        if (vo_is_self in para.parasym.varoptions) then
+          selfpara:=para
+        else if (vo_is_msgsel in para.parasym.varoptions) then
+          msgselpara:=para;
+        para:=tcallparanode(para.right);
+      end;
+    if not assigned(selfpara) then
+      internalerror(2009051801);
+    if not assigned(msgselpara) then
+      internalerror(2009051802);
     { Handle self }
     { 1) If we're calling a class method, use a class ref.  }
     if (po_classmethod in tcallnode(left).procdefinition.procoptions) and
@@ -283,12 +295,15 @@ function tobjcmessagesendnode.pass_1: tnode;
          tcallnode(left).methodpointer:=block;
          typecheckpass(block);
       end;
-    lastpara.right:=ccallparanode.create(tcallnode(left).methodpointer,nil);
-    { insert selector }
-    lastpara.right:=ccallparanode.create(
+    { replace self parameter }
+    selfpara.left.free;
+    selfpara.left:=tcallnode(left).methodpointer;
+    { replace selector parameter }
+    msgselpara.left.Free;
+    msgselpara.left:=
       cobjcselectornode.create(
-        cstringconstnode.createstr(tprocdef(tcallnode(left).procdefinition).messageinf.str^)),
-     lastpara.right);
+       cstringconstnode.createstr(tprocdef(tcallnode(left).procdefinition).messageinf.str^)
+      );
     { parameters are reused -> make sure they don't get freed }
     tcallnode(left).left:=nil;
     { methodpointer is also reused }
