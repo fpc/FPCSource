@@ -667,7 +667,6 @@ interface
        objc_superclasstype,
        objc_idtype,
        objc_seltype         : tpointerdef;
-       objcclass_nsobject   : tobjectdef;
 
     const
 {$ifdef i386}
@@ -3715,12 +3714,6 @@ implementation
         else
           ImplementedInterfaces:=nil;
         writing_class_record_dbginfo:=false;
-
-       { make NSObject immediately known in the same unit }
-       if (childof=nil) and
-           (objecttype=odt_objcclass) and
-           (objrealname^='NSObject') then
-          objcclass_nsobject:=self;
      end;
 
 
@@ -3797,10 +3790,6 @@ implementation
             (objecttype=odt_interfacecom) and
             (objname^='IUNKNOWN') then
            interface_iunknown:=self;
-         if (childof=nil) and
-            (objecttype=odt_objcclass) and
-            (objrealname^='NSObject') then
-           objcclass_nsobject:=self;
          writing_class_record_dbginfo:=false;
        end;
 

@@ -299,8 +299,7 @@ implementation
                 if current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
               odt_objcclass:
-                if current_objectdef<>objcclass_nsobject then
-                  childof:=objcclass_nsobject;
+                CGMessage(parser_h_no_objc_parent);
             end;
           end;
 
