@@ -584,6 +584,10 @@ implementation
                 if is_interface(current_objectdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
+                { Objective-C does not know the concept of a constructor }
+                if is_objcclass(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
+
                 oldparse_only:=parse_only;
                 parse_only:=true;
                 pd:=constructor_head;
@@ -616,6 +620,10 @@ implementation
 
                 if (current_objectdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
+
+                { Objective-C does not know the concept of a destructor }
+                if is_objcclass(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;

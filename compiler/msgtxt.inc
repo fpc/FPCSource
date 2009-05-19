@@ -390,8 +390,8 @@ const msgtxt : array[0..000215,1..240] of char=(
   'ass $3 ($4)'#000+
   '03251_E_Objective-C messages require their Objec','tive-C selector name'+
   ' to be specified using the "message" directive.'#000+
-  '03252_E_Objective-C does not have formal constructors or destructors. '+
-  'Use initXXX and the dealloc instance methods.'#000+
+  '03252_E_Objective-C does not have formal constructors nor destructors.'+
+  ' Use the alloc, initXXX and dealloc messages.'#000+
   '03253_E_Message name is too long (max. 255 characters)'#000+
   '0','3254_E_Objective-C message symbol name for "$1" is too long'#000+
   '03255_H_Defining a new Objective-C root class. To derive from another '+

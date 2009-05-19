@@ -1028,9 +1028,6 @@ implementation
 
           _CONSTRUCTOR :
             begin
-              { Objective-C does not know the concept of a constructor }
-              if is_objcclass(aclass) then
-                Message(parser_e_objc_no_constructor_destructor);
               consume(_CONSTRUCTOR);
               parse_proc_head(aclass,potype_constructor,pd);
               if assigned(pd) and
@@ -1051,9 +1048,6 @@ implementation
 
           _DESTRUCTOR :
             begin
-              { Objective-C does not know the concept of a destructor }
-              if is_objcclass(aclass) then
-                Message(parser_e_objc_no_constructor_destructor);
               consume(_DESTRUCTOR);
               parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then

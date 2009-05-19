@@ -1181,7 +1181,7 @@ parser_e_objc_requires_msgstr=03251_E_Objective-C messages require their Objecti
 % While bindings to other languages automatically generate such names based on the identifier you use (by replacing
 % all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
 % colons.
-parser_e_objc_no_constructor_destructor=03252_E_Objective-C does not have formal constructors or destructors. Use initXXX and the dealloc instance methods.
+parser_e_objc_no_constructor_destructor=03252_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
 % The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
 % purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
 % guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
