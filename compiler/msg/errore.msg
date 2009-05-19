@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03252 is the last used one
+# 03255 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1192,6 +1192,12 @@ parser_e_message_string_too_long=03253_E_Message name is too long (max. 255 char
 parser_e_objc_message_name_too_long=03254_E_Objective-C message symbol name for "$1" is too long
 % Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
 % code) are currently limited to 255 characters.
+parser_h_no_objc_parent=03255_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
+% If no parent class is specified for an Object Pascal class, then it automatically derives from TObject.
+% Objective-C classes however do not automatically derive from NSObject, because one can have multiple
+% root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
+% Therefore, you have to explicitly define a parent class (such as NSObject) if you want to derive your
+% Objective-C class from it.
 % \end{description}
 
 #
