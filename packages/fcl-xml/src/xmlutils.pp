@@ -66,6 +66,7 @@ type
     function FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem; overload;
     function Get(Key: PWideChar; KeyLen: Integer): TObject;
     function Remove(Entry: PHashItem): Boolean;
+    function RemoveData(aData: TObject): Boolean;
     procedure ForEach(proc: THashForEach; arg: Pointer);
     property Count: LongWord read FCount;
   end;
@@ -423,7 +424,10 @@ begin
   else
   begin
     New(Result);
-    SetString(Result^.Key, Key, KeyLength);
+    // SetString for WideStrings trims on zero chars
+    // need to investigate and report
+    SetLength(Result^.Key, KeyLength);
+    Move(Key^, Pointer(Result^.Key)^, KeyLength*sizeof(WideChar));
     Result^.HashValue := h;
     Result^.Data := nil;
     Result^.Next := nil;
@@ -474,6 +478,33 @@ begin
       Exit;
     end;
     chain := @chain^^.Next;
+  end;
+  Result := False;
+end;
+
+// this does not free the aData object
+function THashTable.RemoveData(aData: TObject): Boolean;
+var
+  i: Integer;
+  chain: PPHashItem;
+  e: PHashItem;
+begin
+  for i := 0 to FBucketCount-1 do
+  begin
+    chain := @FBucket[i];
+    while Assigned(chain^) do
+    begin
+      if chain^^.Data = aData then
+      begin
+        e := chain^;
+        chain^ := e^.Next;
+        Dispose(e);
+        Dec(FCount);
+        Result := True;
+        Exit;
+      end;
+      chain := @chain^^.Next;
+    end;
   end;
   Result := False;
 end;

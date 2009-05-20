@@ -413,6 +413,7 @@ type
     FNamespaces: TNamespaces;
     FNames: THashTable;
     FEmptyNode: TDOMElement;
+    FNodeLists: THashTable;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -422,8 +423,8 @@ type
     procedure SetTextContent(const value: DOMString); override;
     procedure RemoveID(Elem: TDOMElement);
     function GetChildNodeList(aNode: TDOMNode): TDOMNodeList;
-    function GetElementList(aNode: TDOMNode; const tagName: DOMString): TDOMNodeList;
-    function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString): TDOMNodeList;
+    function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString; UseNS: Boolean): TDOMNodeList;
+    procedure NodeListDestroyed(aList: TDOMNodeList);
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     property DocType: TDOMDocumentType read GetDocType;
@@ -1342,7 +1343,9 @@ destructor TDOMNodeList.Destroy;
 begin
   if (FNode is TDOMNode_WithChildren) and
     (TDOMNode_WithChildren(FNode).FChildNodes = Self) then
-    TDOMNode_WithChildren(FNode).FChildNodes := nil;
+    TDOMNode_WithChildren(FNode).FChildNodes := nil
+  else
+    FNode.FOwnerDocument.NodeListDestroyed(Self);
   FList.Free;
   inherited Destroy;
 end;
@@ -1780,12 +1783,14 @@ begin
   FNamespaces[1] := stduri_xml;
   FNamespaces[2] := stduri_xmlns;
   FEmptyNode := TDOMElement.Create(Self);
+  FNodeLists := THashTable.Create(32, True);
 end;
 
 destructor TDOMDocument.Destroy;
 begin
   Include(FFlags, nfDestroying);
   FreeAndNil(FIDList);   // set to nil before starting destroying children
+  FNodeLists.Free;
   FEmptyNode.Free;
   inherited Destroy;
   FNames.Free;           // free the nametable after inherited has destroyed the children
@@ -1992,24 +1997,63 @@ begin
   end;
 end;
 
-function TDOMDocument.GetElementList(aNode: TDOMNode; const tagName: DOMString): TDOMNodeList;
+function TDOMDocument.GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString;
+  UseNS: Boolean): TDOMNodeList;
+var
+  L: Integer;
+  Key, P: DOMPChar;
+  Item: PHashItem;
 begin
-  Result := TDOMElementList.Create(aNode, tagname);
-end;
-
-function TDOMDocument.GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString): TDOMNodeList;
-begin
-  Result := TDOMElementList.Create(aNode, nsURI, aLocalName);
+  L := (sizeof(Pointer) div sizeof(WideChar)) + Length(aLocalName);
+  if UseNS then
+    Inc(L, Length(nsURI)+1);
+  GetMem(Key, L*sizeof(WideChar));
+  try
+    // compose the key for hashing
+    P := Key;
+    PPointer(P)^ := aNode;
+    Inc(PPointer(P));
+    Move(DOMPChar(aLocalName)^, P^, Length(aLocalName)*sizeof(WideChar));
+    if UseNS then
+    begin
+      Inc(P, Length(aLocalName));
+      P^ := #12; Inc(P);  // separator -- diff ('foo','bar') from 'foobar'
+      Move(DOMPChar(nsURI)^, P^, Length(nsURI)*sizeof(WideChar));
+    end;
+    // try finding in the hashtable
+    Item := FNodeLists.FindOrAdd(Key, L);
+    Result := TDOMNodeList(Item^.Data);
+    if Result = nil then
+    begin
+      if UseNS then
+        Result := TDOMElementList.Create(aNode, nsURI, aLocalName)
+      else
+        Result := TDOMElementList.Create(aNode, aLocalName);
+      Item^.Data := Result;
+    end;
+  finally
+    FreeMem(Key);
+  end;
 end;
 
 function TDOMDocument.GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
 begin
-  Result := GetElementList(Self, tagname);
+  Result := GetElementList(Self, '', tagname, False);
 end;
 
 function TDOMDocument.GetElementsByTagNameNS(const nsURI, aLocalName: DOMString): TDOMNodeList;
 begin
-  Result := GetElementList(Self, nsURI, aLocalName);
+  Result := GetElementList(Self, nsURI, aLocalName, True);
+end;
+
+{ This is linear hence slow. However:
+  - if user code frees each nodelist ASAP, there are only few items in the hashtable
+  - if user code does not free nodelists, this is not called at all.
+}
+procedure TDOMDocument.NodeListDestroyed(aList: TDOMNodeList);
+begin
+  if not (nfDestroying in FFlags) then
+    FNodeLists.RemoveData(aList);
 end;
 
 function TDOMDocument.CreateAttributeNS(const nsURI,
@@ -2382,12 +2426,12 @@ end;
 
 function TDOMElement.GetElementsByTagName(const name: DOMString): TDOMNodeList;
 begin
-  Result := FOwnerDocument.GetElementList(Self, name);
+  Result := FOwnerDocument.GetElementList(Self, '', name, False);
 end;
 
 function TDOMElement.GetElementsByTagNameNS(const nsURI, aLocalName: DOMString): TDOMNodeList;
 begin
-  Result := FOwnerDocument.GetElementList(Self, nsURI, aLocalName);
+  Result := FOwnerDocument.GetElementList(Self, nsURI, aLocalName, True);
 end;
 
 function TDOMElement.hasAttribute(const name: DOMString): Boolean;

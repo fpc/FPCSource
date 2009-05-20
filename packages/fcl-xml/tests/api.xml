@@ -153,7 +153,7 @@
 <item id="cloneNode" result="Node">
   <arg>deep</arg>
 </item>
-<item id="getElementsByTagName" gc="yes">
+<item id="getElementsByTagName">
   <arg>tagname</arg>
 </item>
 <item id="childNodes"/>
@@ -240,7 +240,7 @@
   <arg>namespaceURI</arg>
   <arg>localName</arg>
 </item>
-<item id="getElementsByTagNameNS" gc="yes">
+<item id="getElementsByTagNameNS">
   <arg>namespaceURI</arg>
   <arg>localName</arg>
 </item>
