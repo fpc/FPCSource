@@ -928,9 +928,7 @@ end;
 
 function TDOMNode.RemoveChild(OldChild: TDOMNode): TDOMNode;
 begin
-  DetachChild(OldChild);
-  OldChild.Free;
-  Result:=nil;
+  Result := DetachChild(OldChild);
 end;
 
 function TDOMNode.AppendChild(NewChild: TDOMNode): TDOMNode;
@@ -1248,8 +1246,7 @@ begin
   InsertBefore(NewChild, OldChild);
   if Assigned(OldChild) then
     RemoveChild(OldChild);
-  // TODO: per DOM spec, must return OldChild, but OldChild is destroyed
-  Result := NewChild;
+  Result := OldChild;
 end;
 
 function TDOMNode_WithChildren.DetachChild(OldChild: TDOMNode): TDOMNode;
@@ -1352,7 +1349,8 @@ end;
 procedure TDOMNode_WithChildren.SetTextContent(const AValue: DOMString);
 begin
   Changing;
-  FreeChildren;
+  while Assigned(FFirstChild) do
+    DetachChild(FFirstChild);
   if AValue <> '' then
     AppendChild(FOwnerDocument.CreateTextNode(AValue));
 end;
@@ -1972,31 +1970,36 @@ function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
   if not IsXmlName(tagName, FXML11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateElement');
-  Result := TDOMElement.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMElement);
+  Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(tagName), Length(tagName));
   // TODO: attach default attributes
 end;
 
 function TDOMDocument.CreateElementBuf(Buf: DOMPChar; Length: Integer): TDOMElement;
 begin
-  Result := TDOMElement.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMElement);
+  Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(Buf, Length);
 end;
 
 function TDOMDocument.CreateDocumentFragment: TDOMDocumentFragment;
 begin
-  Result := TDOMDocumentFragment.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMDocumentFragment);
+  Result.Create(Self);
 end;
 
 function TDOMDocument.CreateTextNode(const data: DOMString): TDOMText;
 begin
-  Result := TDOMText.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMText);
+  Result.Create(Self);
   Result.FNodeValue := data;
 end;
 
 function TDOMDocument.CreateTextNodeBuf(Buf: DOMPChar; Length: Integer; IgnWS: Boolean): TDOMText;
 begin
-  Result := TDOMText.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMText);
+  Result.Create(Self);
   SetString(Result.FNodeValue, Buf, Length);
   if IgnWS then
     Include(Result.FFlags, nfIgnorableWS);
@@ -2005,13 +2008,15 @@ end;
 
 function TDOMDocument.CreateComment(const data: DOMString): TDOMComment;
 begin
-  Result := TDOMComment.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMComment);
+  Result.Create(Self);
   Result.FNodeValue := data;
 end;
 
 function TDOMDocument.CreateCommentBuf(Buf: DOMPChar; Length: Integer): TDOMComment;
 begin
-  Result := TDOMComment.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMComment);
+  Result.Create(Self);
   SetString(Result.FNodeValue, Buf, Length);
 end;
 
@@ -2033,20 +2038,23 @@ function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
 begin
   if not IsXmlName(name, FXML11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateAttribute');
-  Result := TDOMAttr.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMAttr);
+  Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(name), Length(name));
   Include(Result.FFlags, nfSpecified);
 end;
 
 function TDOMDocument.CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
 begin
-  Result := TDOMAttr.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMAttr);
+  Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(buf, Length);
   Include(Result.FFlags, nfSpecified);
 end;
 
 function TDOMDocument.CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
 begin
+// not using custom allocation here
   Result := TDOMAttrDef.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(Buf, Length);
 end;
@@ -2183,7 +2191,8 @@ end;
 function TXMLDocument.CreateCDATASection(const data: DOMString):
   TDOMCDATASection;
 begin
-  Result := TDOMCDATASection.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMCDATASection);
+  Result.Create(Self);
   Result.FNodeValue := data;
 end;
 
@@ -2192,7 +2201,8 @@ function TXMLDocument.CreateProcessingInstruction(const target,
 begin
   if not IsXmlName(target, FXML11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateProcessingInstruction');
-  Result := TDOMProcessingInstruction.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMProcessingInstruction);
+  Result.Create(Self);
   Result.FTarget := target;
   Result.FNodeValue := data;
 end;
@@ -2205,7 +2215,8 @@ var
 begin
   if not IsXmlName(name, FXML11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateEntityReference');
-  Result := TDOMEntityReference.Create(Self);
+  TDOMNode(Result) := Alloc(TDOMEntityReference);
+  Result.Create(Self);
   Result.FName := name;
   dType := DocType;
   if Assigned(dType) then
@@ -2459,25 +2470,11 @@ end;
 function TDOMElement.SetAttributeNode(NewAttr: TDOMAttr): TDOMAttr;
 begin
   Result := Attributes.SetNamedItem(NewAttr) as TDOMAttr;
-
-  // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
-  if Assigned(Result) and (Result <> NewAttr) then
-  begin
-    Result.Free;
-    Result := nil;
-  end;  
 end;
 
 function TDOMElement.SetAttributeNodeNS(NewAttr: TDOMAttr): TDOMAttr;
 begin
   Result := Attributes.SetNamedItemNS(NewAttr) as TDOMAttr;
-
-  // TODO -cConformance: here goes inconsistency with DOM 2 - same as in TDOMNode.RemoveChild
-  if Assigned(Result) and (Result <> NewAttr) then
-  begin
-    Result.Free;
-    Result := nil;
-  end;  
 end;
 
 
