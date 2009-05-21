@@ -97,7 +97,10 @@ type
   TDOMDocumentType = class;
   TDOMEntityReference = class;
   TDOMProcessingInstruction = class;
+
   TDOMAttrDef = class;
+  PNodePool = ^TNodePool;
+  TNodePool = class;
 
 
 // -------------------------------------------------------
@@ -188,6 +191,7 @@ type
 
   TDOMNode = class
   protected
+    FPool: TObject;
     FFlags: TNodeFlags;
     FParentNode: TDOMNode;
     FPreviousSibling, FNextSibling: TDOMNode;
@@ -213,6 +217,7 @@ type
   public
     constructor Create(AOwner: TDOMDocument);
     destructor Destroy; override;
+    procedure FreeInstance; override;
 
     function GetChildNodes: TDOMNodeList;
 
@@ -252,6 +257,7 @@ type
     function CompareName(const name: DOMString): Integer; virtual;
   end;
 
+  TDOMNodeClass = class of TDOMNode;
 
   { The following class is an implementation specific extension, it is just an
     extended implementation of TDOMNode, the generic DOM::Node interface
@@ -414,6 +420,8 @@ type
     FNames: THashTable;
     FEmptyNode: TDOMElement;
     FNodeLists: THashTable;
+    FMaxPoolSize: Integer;
+    FPools: PNodePool;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -425,6 +433,7 @@ type
     function GetChildNodeList(aNode: TDOMNode): TDOMNodeList;
     function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString; UseNS: Boolean): TDOMNodeList;
     procedure NodeListDestroyed(aList: TDOMNodeList);
+    function Alloc(AClass: TDOMNodeClass): TDOMNode;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     property DocType: TDOMDocumentType read GetDocType;
@@ -735,6 +744,31 @@ type
     property Tag: Cardinal read FTag write FTag;
   end;
 
+// TNodePool - custom memory management for TDOMNode's
+// One pool manages objects of the same InstanceSize (may be of various classes)
+
+  PExtent = ^TExtent;
+  TExtent = record
+    Next: PExtent;
+    // following: array of TDOMNode instances
+  end;
+
+  TNodePool = class(TObject)
+  private
+    FCurrExtent: PExtent;
+    FCurrExtentSize: Integer;
+    FElementSize: Integer;
+    FCurrBlock: TDOMNode;
+    FFirstFree: TDOMNode;
+    procedure AddExtent(AElemCount: Integer);
+  public
+    constructor Create(AElementSize: Integer; AElementCount: Integer = 32);
+    destructor Destroy; override;
+    function AllocNode(AClass: TDOMNodeClass): TDOMNode;
+    procedure FreeNode(ANode: TDOMNode);
+  end;
+
+
 // URIs of predefined namespaces
 const
   stduri_xml: DOMString = 'http://www.w3.org/XML/1998/namespace';
@@ -828,6 +862,17 @@ begin
   if Assigned(FParentNode) then
     FParentNode.DetachChild(Self);
   inherited Destroy;
+end;
+
+procedure TDOMNode.FreeInstance;
+begin
+  if Assigned(FPool) then
+  begin
+    CleanupInstance;
+    TNodePool(FPool).FreeNode(Self);
+  end
+  else
+    inherited FreeInstance;
 end;
 
 function TDOMNode.GetNodeValue: DOMString;
@@ -1777,6 +1822,8 @@ constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
   FOwnerDocument := Self;
+  FMaxPoolSize := TDOMAttr.InstanceSize + sizeof(Pointer);
+  FPools := AllocMem(FMaxPoolSize);
   FNames := THashTable.Create(256, True);
   SetLength(FNamespaces, 3);
   // Namespace #0 should always be an empty string
@@ -1787,14 +1834,40 @@ begin
 end;
 
 destructor TDOMDocument.Destroy;
+var
+  i: Integer;
 begin
   Include(FFlags, nfDestroying);
   FreeAndNil(FIDList);   // set to nil before starting destroying children
   FNodeLists.Free;
   FEmptyNode.Free;
   inherited Destroy;
+  for i := 0 to (FMaxPoolSize div sizeof(TNodePool))-1 do
+    FPools[i].Free;
+  FreeMem(FPools);
   FNames.Free;           // free the nametable after inherited has destroyed the children
                          // (because children reference the nametable)
+end;
+
+function TDOMDocument.Alloc(AClass: TDOMNodeClass): TDOMNode;
+var
+  pp: TNodePool;
+  size: Integer;
+begin
+  size := (AClass.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1);
+  if size > FMaxPoolSize then
+  begin
+    Result := TDOMNode(AClass.NewInstance);
+    Exit;
+  end;
+
+  pp := FPools[size div sizeof(TNodePool)];
+  if pp = nil then
+  begin
+    pp := TNodePool.Create(size);
+    FPools[size div sizeof(TNodePool)] := pp;
+  end;
+  Result := pp.AllocNode(AClass);
 end;
 
 function TDOMDocument.AddID(Attr: TDOMAttr): Boolean;
@@ -2709,6 +2782,83 @@ begin
       Exit;
   end;
   Result := False;
+end;
+
+{ TNodePool }
+
+constructor TNodePool.Create(AElementSize: Integer; AElementCount: Integer);
+begin
+  FElementSize := AElementSize;
+  AddExtent(AElementCount);
+end;
+
+destructor TNodePool.Destroy;
+var
+  ext, next: PExtent;
+  ptr, ptr_end: Pointer;
+  sz: Integer;
+begin
+  ext := FCurrExtent;
+  ptr := Pointer(FCurrBlock) + FElementSize;
+  sz := FCurrExtentSize;
+  while Assigned(ext) do
+  begin
+    // call destructors for everyone still there
+    ptr_end := Pointer(ext) + sizeof(TExtent) + (sz - 1) * FElementSize;
+    while ptr <= ptr_end do
+    begin
+      if TDOMNode(ptr).FPool = Self then
+        TObject(ptr).Destroy;
+      Inc(ptr, FElementSize);
+    end;
+    // dispose the extent and pass to the next one
+    next := ext^.Next;
+    FreeMem(ext);
+    ext := next;
+    sz := sz div 2;
+    ptr := Pointer(ext) + sizeof(TExtent);
+  end;
+  inherited Destroy;
+end;
+
+procedure TNodePool.AddExtent(AElemCount: Integer);
+var
+  ext: PExtent;
+begin
+  Assert((FCurrExtent = nil) or
+    (Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent)));
+  Assert(AElemCount > 0);
+
+  GetMem(ext, sizeof(TExtent) + AElemCount * FElementSize);
+  ext^.Next := FCurrExtent;
+  // point to the beginning of the last block of extent
+  FCurrBlock := TDOMNode(Pointer(ext) + sizeof(TExtent) + (AElemCount - 1) * FElementSize);
+  FCurrExtent := ext;
+  FCurrExtentSize := AElemCount;
+end;
+
+function TNodePool.AllocNode(AClass: TDOMNodeClass): TDOMNode;
+begin
+  if Assigned(FFirstFree) then
+  begin
+    Result := FFirstFree;       // remove from free list
+    FFirstFree := TDOMNode(Result.FPool);
+  end
+  else
+  begin
+    if Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent) then
+      AddExtent(FCurrExtentSize * 2);
+    Result := FCurrBlock;
+    Dec(PChar(FCurrBlock), FElementSize);
+  end;
+  AClass.InitInstance(Result);
+  Result.FPool := Self;        // mark as used
+end;
+
+procedure TNodePool.FreeNode(ANode: TDOMNode);
+begin
+  ANode.FPool := FFirstFree;
+  FFirstFree := ANode;
 end;
 
 end.
