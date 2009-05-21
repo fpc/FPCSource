@@ -21,7 +21,7 @@
   ---------------------------------------------------------------------}
 
 Type
-  TLibHandle = Longint;
+  TLibHandle = System.THandle;
 
 Const
   NilHandle = 0;
