@@ -61,11 +61,19 @@ type
   end;
   pobjc_protocal = ^_fpc_objc_protocol_type;
 
+  { type that certainly will be returned by address }
+  tdummyrecbyaddrresult = record
+    a: array[0..1000] of shortstring;
+  end;
+
 { sending messages }
 function  objc_msgSend(self: id; op: SEL): id; cdecl; varargs; external libname;
 function  objc_msgSendSuper(const super: pobjc_super; op: SEL): id; cdecl; varargs; external libname;
-procedure objc_msgSend_stret(stret: Pointer; self: id; op: SEL); cdecl; varargs; external libname;
-procedure objc_msgSendSuper_stret(stret: Pointer; const super: pobjc_super; op: SEL); cdecl; varargs; external libname;
+{ The following two are declared as procedures with the hidden result pointer
+  as their first parameter. This corresponds to the declaration below as far
+  as the code generator is concerned (and is easier to handle in the compiler).  }
+function  objc_msgSend_stret(self: id; op: SEL): tdummyrecbyaddrresult; cdecl; varargs; external libname;
+function  objc_msgSendSuper_stret(const super: pobjc_super; op: SEL): tdummyrecbyaddrresult; cdecl; varargs; external libname;
 {$ifdef cpui386}
 function  objc_msgSend_fpret (self: id; op: SEL): double; cdecl; varargs; external libname;
 {$endif cpui386}
