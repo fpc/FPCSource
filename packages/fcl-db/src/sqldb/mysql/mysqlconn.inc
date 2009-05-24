@@ -310,18 +310,21 @@ begin
 
   InitialiseMysql;
 
-  H:=HostName;
-  U:=UserName;
-  P:=Password;
-  AMySQL := nil;
-  ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
-
-  if mysql_query(AMySQL,pchar(query))<>0 then
-    MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
-
-  mysql_close(AMySQL);
-
-  ReleaseMysql;
+  try
+    H:=HostName;
+    U:=UserName;
+    P:=Password;
+    AMySQL := nil;
+    ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
+    try
+      if mysql_query(AMySQL,pchar(query))<>0 then
+        MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
+    finally
+      mysql_close(AMySQL);
+    end;
+  finally
+    ReleaseMysql;
+  end;
 end;
 
 function TConnectionName.EscapeString(const Str: string): string;
