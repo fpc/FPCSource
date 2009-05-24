@@ -143,7 +143,7 @@ Begin
   TextBackGround(0);
 End;
 
-Procedure GotoXY(X: Byte; Y: Byte);
+Procedure GotoXY(X: tcrtcoord; Y: tcrtcoord);
 
 begin
   GotoXY32(X,Y);
@@ -227,7 +227,7 @@ begin
     Coord, @Temp);
 end;
 
-Function WhereX: Byte;
+Function WhereX: tcrtcoord;
 
 
 begin
@@ -245,7 +245,7 @@ Begin
   WhereX32:= x - WindMinX +1;
 End;
 
-Function WhereY: Byte;
+Function WhereY: tcrtcoord;
 
 begin
   WhereY:=WhereY32 mod 256;
