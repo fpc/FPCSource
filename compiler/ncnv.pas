@@ -1667,7 +1667,14 @@ implementation
                   { Only leave when there is no conversion to do.
                     We can still need to call a conversion routine,
                     like the routine to convert a stringconstnode }
-                  if convtype in [tc_equal,tc_not_possible] then
+                  if (convtype in [tc_equal,tc_not_possible]) and
+                     { some conversions, like dynarray to pointer in Delphi
+                       mode, must not be removed, because then we get memory
+                       leaks due to missing temp finalization }
+                     (not is_refcounted_type(left.resultdef) or
+                     { different kinds of refcounted types may need calls
+                       to different kinds of refcounting helpers }
+                      (resultdef=left.resultdef)) then
                    begin
                      left.resultdef:=resultdef;
                      if (nf_explicit in flags) and (left.nodetype = addrn) then

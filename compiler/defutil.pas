@@ -88,9 +88,13 @@ interface
     }
     function is_signed(def : tdef) : boolean;
 
-    {# Returns true whether def_from's range is comprised in def_to's if both are
+    {# Returns whether def_from's range is comprised in def_to's if both are
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
+
+    {# Returns whether def is reference counted }
+    function is_refcounted_type(def: tdef) : boolean;
+
 
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
@@ -491,6 +495,15 @@ implementation
                           (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
          end;
       end;
+
+
+    function is_refcounted_type(def: tdef): boolean;
+      begin
+        result:=
+          def.needs_inittable and
+          not is_class(def);
+      end;
+
 
     { true, if p points to an open array def }
     function is_open_string(p : tdef) : boolean;
