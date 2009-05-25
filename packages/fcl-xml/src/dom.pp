@@ -332,6 +332,8 @@ type
     function GetItem(index: LongWord): TDOMNode;
     function GetLength: LongWord;
     function Find(const name: DOMString; out Index: LongWord): Boolean;
+    function Delete(index: LongWord): TDOMNode;
+    procedure RestoreDefault(const name: DOMString);
     function InternalRemove(const name: DOMString): TDOMNode;
     function ValidateInsert(arg: TDOMNode): Integer;
   public
@@ -533,6 +535,7 @@ type
     function GetSpecified: Boolean;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
+    destructor Destroy; override;
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
     property Name: DOMString read GetNodeName;
     property Specified: Boolean read GetSpecified;
@@ -553,6 +556,8 @@ type
     FAttributes: TDOMNamedNodeMap;
     function GetNodeType: Integer; override;
     function GetAttributes: TDOMNamedNodeMap; override;
+    procedure AttachDefaultAttrs;
+    procedure RestoreDefaultAttr(AttrDef: TDOMAttr);
   public
     destructor Destroy; override;
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
@@ -1591,7 +1596,7 @@ begin
   if Exists then
   begin
     Result := TDOMNode(FList.List^[i]);
-    if FNodeType = ATTRIBUTE_NODE then
+    if (Result <> arg) and (FNodeType = ATTRIBUTE_NODE) then
       TDOMAttr(Result).FOwnerElement := nil;
     FList.List^[i] := arg;
     exit;
@@ -1612,6 +1617,34 @@ begin
     Result := nil;
 end;
 
+function TDOMNamedNodeMap.Delete(index: LongWord): TDOMNode;
+begin
+  Result := TDOMNode(FList.List^[index]);
+  FList.Delete(index);
+  if FNodeType = ATTRIBUTE_NODE then
+    TDOMAttr(Result).FOwnerElement := nil;
+end;
+
+procedure TDOMNamedNodeMap.RestoreDefault(const name: DOMString);
+var
+  eldef: TDOMElement;
+  attrdef: TDOMAttr;
+begin
+  if FNodeType = ATTRIBUTE_NODE then
+  begin
+    if not Assigned(TDOMElement(FOwner).FNSI.QName) then  // safeguard
+      Exit;
+    eldef := TDOMElement(TDOMElement(FOwner).FNSI.QName^.Data);
+    if Assigned(eldef) then
+    begin
+      // TODO: can be avoided by linking attributes directly to their defs
+      attrdef := eldef.GetAttributeNode(name);
+      if Assigned(attrdef) and (TDOMAttrDef(attrdef).FDefault in [adDefault, adFixed]) then
+        TDOMElement(FOwner).RestoreDefaultAttr(attrdef);
+    end;
+  end;
+end;
+
 function TDOMNamedNodeMap.InternalRemove(const name: DOMString): TDOMNode;
 var
   i: Cardinal;
@@ -1619,10 +1652,8 @@ begin
   Result := nil;
   if Find(name, i) then
   begin
-    Result := TDOMNode(FList.List^[i]);
-    FList.Delete(I);
-    if Result.NodeType = ATTRIBUTE_NODE then
-      TDOMAttr(Result).FOwnerElement := nil;
+    Result := Delete(I);
+    RestoreDefault(name);
   end;
 end;
 
@@ -1973,7 +2004,7 @@ begin
   TDOMNode(Result) := Alloc(TDOMElement);
   Result.Create(Self);
   Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(tagName), Length(tagName));
-  // TODO: attach default attributes
+  Result.AttachDefaultAttrs;
 end;
 
 function TDOMDocument.CreateElementBuf(Buf: DOMPChar; Length: Integer): TDOMElement;
@@ -2302,6 +2333,14 @@ begin
   Result := ATTRIBUTE_NODE;
 end;
 
+destructor TDOMAttr.Destroy;
+begin
+  if Assigned(FOwnerElement) and not (nfDestroying in FOwnerElement.FFlags) then
+  // TODO: This may raise NOT_FOUND_ERR in case something's really wrong
+    FOwnerElement.RemoveAttributeNode(Self);
+  inherited Destroy;
+end;
+
 function TDOMAttr.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   // Cloned attribute is always specified and carries its children
@@ -2339,6 +2378,7 @@ end;
 
 destructor TDOMElement.Destroy;
 begin
+  Include(FFlags, nfDestroying);
   if Assigned(FOwnerDocument.FIDList) then
     FOwnerDocument.RemoveID(Self);
   // FIX: Attribute nodes are now freed by TDOMNamedNodeMap.Destroy
@@ -2358,6 +2398,34 @@ begin
   end;
   if deep then
     CloneChildren(Result, ACloneOwner);
+end;
+
+procedure TDOMElement.AttachDefaultAttrs;
+var
+  eldef: TDOMElement;
+  attrdef: TDOMAttrDef;
+  I: Integer;
+begin
+  if not Assigned(FNSI.QName) then     // safeguard
+    Exit;
+  eldef := TDOMElement(FNSI.QName^.Data);
+  if Assigned(eldef) and Assigned(eldef.FAttributes) then
+  begin
+    for I := 0 to eldef.FAttributes.Length-1 do
+    begin
+      attrdef := TDOMAttrDef(eldef.FAttributes[I]);
+      if attrdef.FDefault in [adDefault, adFixed] then
+        RestoreDefaultAttr(attrdef);
+    end;
+  end;
+end;
+
+procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
+var
+  Attr: TDOMAttr;
+begin
+  Attr := TDOMAttr(AttrDef.CloneNode(True));
+  SetAttributeNode(Attr);
 end;
 
 procedure TDOMElement.Normalize;
@@ -2489,6 +2557,8 @@ begin
   if Assigned(FAttributes) and (FAttributes.FList.Remove(OldAttr) > -1) then
   begin
     Result := OldAttr;
+    if Assigned(OldAttr.FNSI.QName) then  // safeguard
+      FAttributes.RestoreDefault(OldAttr.FNSI.QName^.Key);
   end
   else
     raise EDOMNotFound.Create('Element.RemoveAttributeNode');
