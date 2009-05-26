@@ -4765,6 +4765,7 @@ packages/winunits-base/src/richedit.pp svneol=native#text/plain
 packages/winunits-base/src/shellapi.pp svneol=native#text/plain
 packages/winunits-base/src/shfolder.pp svneol=native#text/plain
 packages/winunits-base/src/shlobj.pp svneol=native#text/plain
+packages/winunits-base/src/uxtheme.pp svneol=native#text/plain
 packages/winunits-base/src/wininet.pp svneol=native#text/plain
 packages/winunits-base/src/winver.pp svneol=native#text/plain
 packages/winunits-base/tests/OOHelper.pp svneol=native#text/plain
