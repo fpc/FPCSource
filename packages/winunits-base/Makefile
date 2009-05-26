@@ -2889,3 +2889,4 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
+uxtheme$(PPUEXT) : src/uxtheme.pp src/tmschame.inc

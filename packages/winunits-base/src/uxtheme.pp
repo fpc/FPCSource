@@ -51,6 +51,9 @@ interface
 uses
   Windows;
 
+// this file is in uxtheme under Delphi, while a separate one in apilib
+{$i tmschema.inc}
+
 procedure FreeThemeLibrary;
 function InitThemeLibrary: Boolean;
 function UseThemes: Boolean;

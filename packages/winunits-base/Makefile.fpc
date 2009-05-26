@@ -28,3 +28,5 @@ sourcedir=src
 
 [rules]
 .NOTPARALLEL:
+
+uxtheme$(PPUEXT) : src/uxtheme.pp src/tmschame.inc
