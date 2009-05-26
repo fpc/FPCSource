@@ -1808,8 +1808,12 @@ end;
 
 function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
   SystemID: DOMString): TDOMDocumentType;
+var
+  res: Integer;
 begin
-  // DONE: Implemented
+  res := CheckQName(QualifiedName, -1, False);
+  if res < 0 then
+    raise EDOMError.Create(-res, 'Implementation.CreateDocumentType');
   Result := TDOMDocumentType.Create(nil);
   Result.FName := QualifiedName;
 
@@ -1823,14 +1827,13 @@ function TDOMImplementation.CreateDocument(const NamespaceURI,
 var
   Root: TDOMNode;
 begin
-  // TODO: This method is not usable yet due to CreateElementNS...
+  if Assigned(doctype) and Assigned(doctype.OwnerDocument) then
+    raise EDOMWrongDocument.Create('Implementation.CreateDocument');
   Result := TXMLDocument.Create;
   Result.FImplementation := Self;
   try
     if Assigned(doctype) then
     begin
-      if Assigned(doctype.OwnerDocument) then
-        raise EDOMWrongDocument.Create('Implementation.CreateDocument');
       Doctype.FOwnerDocument := Result;
       Result.AppendChild(doctype);
     end;
@@ -1924,32 +1927,9 @@ end;
 // TODO: This could be much faster if removing ID happens
 // upon modification of corresponding attribute value.
 
-type
-  TempRec = record
-    Element: TDOMElement;
-    Entry: PHashItem;
-  end;
-
-function CheckID(Entry: PHashItem; arg: Pointer): Boolean;
-begin
-  if Entry^.Data = TempRec(arg^).Element then
-  begin
-    TempRec(arg^).Entry := Entry;
-    Result := False;
-  end
-  else
-    Result := True;
-end;
-
 procedure TDOMDocument.RemoveID(Elem: TDOMElement);
-var
-  hr: TempRec;
 begin
-  hr.Element := Elem;
-  hr.Entry := nil;
-  FIDList.ForEach(@CheckID, @hr);
-  if Assigned(hr.Entry) then
-    FIDList.Remove(hr.Entry);
+  FIDList.RemoveData(Elem);
 end;
 
 function TDOMDocument.GetNodeType: Integer;
@@ -2170,18 +2150,38 @@ end;
 
 function TDOMDocument.CreateAttributeNS(const nsURI,
   QualifiedName: DOMString): TDOMAttr;
+var
+  idx, PrefIdx: Integer;
 begin
-  // TODO: Implement TDOMDocument.CreateAttributeNS
-  raise EDOMNotSupported.Create('TDOMDocument.CreateAttributeNS');
-  Result := nil;
+  idx := IndexOfNS(nsURI, True);
+  PrefIdx := CheckQName(QualifiedName, idx, FXml11);
+  if PrefIdx < 0 then
+    raise EDOMError.Create(-PrefIdx, 'Document.CreateAttributeNS');
+  TDOMNode(Result) := Alloc(TDOMAttr);
+  Result.Create(Self);
+  Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(QualifiedName), Length(QualifiedName));
+  Result.FNSI.NSIndex := Word(idx);
+  Result.FNSI.PrefixLen := Word(PrefIdx);
+  Include(Result.FFlags, nfLevel2);
+  Include(Result.FFlags, nfSpecified);
 end;
 
 function TDOMDocument.CreateElementNS(const nsURI,
   QualifiedName: DOMString): TDOMElement;
+var
+  idx, PrefIdx: Integer;
 begin
-  // TODO: Implement TDOMDocument.CreateElementNS
-  raise EDOMNotSupported.Create('TDOMDocument.CreateElementNS');
-  Result := nil;
+  idx := IndexOfNS(nsURI, True);
+  PrefIdx := CheckQName(QualifiedName, idx, FXml11);
+  if PrefIdx < 0 then
+    raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
+  TDOMNode(Result) := Alloc(TDOMElement);
+  Result.Create(Self);
+  Result.FNSI.QName := FNames.FindOrAdd(DOMPChar(QualifiedName), Length(QualifiedName));
+  Result.FNSI.NSIndex := Word(idx);
+  Result.FNSI.PrefixLen := Word(PrefIdx);
+  Include(Result.FFlags, nfLevel2);
+  Result.AttachDefaultAttrs;
 end;
 
 function TDOMDocument.GetElementById(const ElementID: DOMString): TDOMElement;
@@ -2508,7 +2508,14 @@ procedure TDOMElement.SetAttributeNS(const nsURI, qualifiedName,
   value: DOMString);
 var
   Attr: TDOMAttr;
+  idx, prefIdx: Integer;
 begin
+  Changing;
+  idx := FOwnerDocument.IndexOfNS(nsURI, True);
+  prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXml11);
+  if prefIdx < 0 then
+    raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
+    
   Attr := Attributes.GetNamedItemNS(nsURI, qualifiedName) as TDOMAttr;
   if attr = nil then
   begin
@@ -2727,7 +2734,8 @@ end;
 
 function TDOMNotation.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
-  Result := TDOMNotation.Create(ACloneOwner);
+  Result := ACloneOwner.Alloc(TDOMNotation);
+  TDOMNotation(Result).Create(ACloneOwner);
   TDOMNotation(Result).FName := FName;
   TDOMNotation(Result).FPublicID := PublicID;
   TDOMNotation(Result).FSystemID := SystemID;
@@ -2751,7 +2759,8 @@ end;
 
 function TDOMEntity.CloneNode(deep: Boolean; aCloneOwner: TDOMDocument): TDOMNode;
 begin
-  Result := TDOMEntity.Create(aCloneOwner);
+  Result := aCloneOwner.Alloc(TDOMEntity);
+  TDOMEntity(Result).Create(aCloneOwner);
   TDOMEntity(Result).FName := FName;
   TDOMEntity(Result).FSystemID := FSystemID;
   TDOMEntity(Result).FPublicID := FPublicID;
