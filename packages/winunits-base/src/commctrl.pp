@@ -60,8 +60,8 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE4PLUS}
 {$define IE5plus}
 {$define WIN32XP}
+{$define win32vista}
 {$define ie501plus}
-
 {$ifdef win32}
   {$define _win32}
 {$endif win32}
@@ -3417,6 +3417,26 @@ CONST
 {$ENDIF}      // _WIN32_IE >= 0x0400
          PBM_SETBKCOLOR                 = CCM_SETBKCOLOR;     // lParam = bkColor
 {$ENDIF}      // _WIN32_IE >= 0x0300
+
+{$ifdef win32xp}  //_WIN32_WINNT >= 0x0501
+         PBS_MARQUEE                    = $08;
+         PBM_SETMARQUEE                 = (WM_USER+10);
+{$endif} //_WIN32_WINNT >= 0x0501
+
+{$ifdef win32vista}
+
+ PBM_GETSTEP             = (WM_USER+13);
+ PBM_GETBKCOLOR          = (WM_USER+14);
+ PBM_GETBARCOLOR         = (WM_USER+15);
+ PBM_SETSTATE            = (WM_USER+16); // wParam = PBST_[State] (NORMAL, ERROR, PAUSED)
+ PBM_GETSTATE            = (WM_USER+17);
+
+ PBST_NORMAL             = $0001;
+ PBST_ERROR              = $0002;
+ PBST_PAUSED             = $0003;
+{$endif}
+
+// end_r_commctrl
 
 
 {$ENDIF}  // NOPROGRESS
