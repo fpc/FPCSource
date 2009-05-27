@@ -59,12 +59,14 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$define WIN32XP}
-{$define win32vista} // till lvgroup
+{$define WIN32XP} // also 0x501, win2003
+{$define win32vista} // till WC_STATICA
 {$define ie501plus}
 {$ifdef win32}
   {$define _win32}
 {$endif win32}
+{$define ie6plus}
+{$define NTDDI_WIN7}
 
 {$ifdef win64}
   {$define _win32}
@@ -103,6 +105,26 @@ CONST CommCtrlDLL = 'comctl32.dll';
 //    NOSCROLLBAR  Scrollbar control.
 //
 //=============================================================================
+// Moved items due to forward defining limitations
+
+Const
+         MAX_LINKID_TEXT                = 48;
+         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
+Type
+         tagLITEM             = Record
+                                 mask         : UINT;
+                                 iLink        : cint;
+                                 state        : UINT;
+                                 stateMask    : UINT;
+                                 szID         : Array [0..MAX_LINKID_TEXT-1] OF WCHAR;
+                                 szUrl        : Array [0..L_MAX_URL_LENGTH-1] OF WCHAR;
+                                 END;
+         LITEM                = tagLITEM;
+         PLITEM               = ^tagLITEM;
+         TLITEM               = tagLITEM;
+//         PLITEM               = ^tagLITEM;
+
+
 
 // include <prsht.h>
 
@@ -3749,7 +3771,7 @@ CONST
          LVSIL_NORMAL                   = 0;
          LVSIL_SMALL                    = 1;
          LVSIL_STATE                    = 2;
-
+	 LVSIL_GROUPHEADER       	= 3;
          LVM_SETIMAGELIST               = (LVM_FIRST + 3);
 
 // Macro 43
@@ -3896,7 +3918,8 @@ Type
          LV_ITEM                        = LVITEM;
          TLVItem                        = LVITEM;
          PLVItem                        = LPLVITEM;
-
+         TLV_ITEM                       = LVITEM;
+         PLV_ITEM                       = PLVITEM;
 CONST
          LPSTR_TEXTCALLBACKW = LPWSTR(-1);
          LPSTR_TEXTCALLBACKA = LPSTR (-1);
@@ -4865,6 +4888,22 @@ TYPE
                                  stateMask    : UINT;
                                  state        : UINT;
                                  uAlign       : UINT;
+{$ifdef win32vista}
+                                 pszSubtitle         : LPWSTR;
+                                 cchSubtitle         : UINT;
+                                 pszTask             : LPWSTR;
+                                 cchTask             : UINT;
+                                 pszDescriptionTop   : LPWSTR;
+                                 cchDescriptionTop   : UINT;
+                                 pszDescriptionBottom: LPWSTR;
+                                 cchDescriptionBottom: UINT;
+                                 iTitleImage         : cint;
+                                 iExtendedImage      : cint;
+                                 iFirstItem          : cint;   // Read only
+                                 cItems              : UINT; // Read only
+                                 pszSubsetTitle      : LPWSTR;// NULL if group is not subset
+                                 cchSubsetTitle      : UINT;
+{$endif}
                                  END;
          LVGROUP              = tagLVGROUP;
          PLVGROUP             = ^tagLVGROUP;
@@ -4995,10 +5034,13 @@ CONST
          LVTVIF_FIXEDWIDTH              = $00000001;
          LVTVIF_FIXEDHEIGHT             = $00000002;
          LVTVIF_FIXEDSIZE               = $00000003;
-
+{$ifdef win32vista}
+  	 LVTVIF_EXTENDED       		= $00000004;
+{$endif}
          LVTVIM_TILESIZE                = $00000001;
          LVTVIM_COLUMNS                 = $00000002;
          LVTVIM_LABELMARGIN             = $00000004;
+
 
 TYPE
 
@@ -5020,6 +5062,9 @@ TYPE
                                  iItem        : cint;
                                  cColumns     : UINT;
                                  puColumns    : PUINT;
+				{$ifdef win32vista}
+ 				 piColFmt     : PCINT;
+				{$endif}
                                  END;
          LVTILEINFO           = tagLVTILEINFO;
          PLVTILEINFO          = ^tagLVTILEINFO;
@@ -5166,7 +5211,95 @@ CONST
 
 // Macro 153
 Function ListView_MapIDToIndex( hwnd : hwnd; id : WPARAM):UINT;
+
+const    LVM_ISITEMVISIBLE    		= (LVM_FIRST + 182);
+
+// macro 153b
+function  ListView_IsItemVisible(hwnd:hwnd; aindex:cuint):cuint;
+//    (UINT)SNDMSG((hwnd), LVM_ISITEMVISIBLE, (WPARAM)(index), (LPARAM)0)
+
 {$ENDIF}
+
+{$ifdef win32vista}
+CONST
+	LVM_GETEMPTYTEXT   		= (LVM_FIRST + 204);
+	LVM_GETFOOTERRECT  		= (LVM_FIRST + 205);
+	LVM_GETFOOTERINFO 		= (LVM_FIRST + 206);
+	LVM_GETFOOTERITEMRECT 		= (LVM_FIRST + 207);
+	LVM_GETFOOTERITEM 		= (LVM_FIRST + 208);
+	LVM_GETITEMINDEXRECT    	= (LVM_FIRST + 209);
+	LVM_SETITEMINDEXSTATE   	= (LVM_FIRST + 210);
+	LVM_GETNEXTITEMINDEX    	= (LVM_FIRST + 211);
+
+// footer flags
+        LVFF_ITEMCOUNT         		= $00000001;
+
+// footer item flags
+        LVFIF_TEXT               	= $00000001;
+        LVFIF_STATE              	= $00000002;
+
+// footer item state
+	LVFIS_FOCUSED            	= $0001;
+
+TYPE
+        tagLVFOOTERINFO                 = Record
+					    mask      : CUINT;          // LVFF_*
+					    pszText   : LPWSTR;
+					    cchTextMax: CINT;
+					    cItems    : CUINT;
+                                           end;
+
+        LVFOOTERINFO                    = tagLVFOOTERINFO;
+        LPLVFOOTERINFO                  = ^tagLVFOOTERINFO;
+        TLVFOOTERINFO                   = tagLVFOOTERINFO;
+        PLVFOOTERINFO                   = LPLVFOOTERINFO;
+
+
+        tagLVFOOTERITEM                 = Record
+					    mask      : CUINT;          // LVFIF_*
+					    iItem     : CINT;
+					    pszText   : LPWSTR;
+					    cchTextMax: CINT;
+					    state     : CUINT;         // LVFIS_*
+					    stateMask : CUINT;     // LVFIS_*
+                                          end;
+
+        LVFOOTERITEM                    = tagLVFOOTERITEM;
+        LPLVFOOTERITEM                  = ^tagLVFOOTERITEM;
+        TLVFOOTERITEM                   = tagLVFOOTERITEM;
+        PLVFOOTERITEM                   = LPLVFOOTERITEM;
+
+// supports a single item in multiple groups.
+        tagLVITEMINDEX                  = Record
+					   iItem      : CINT; // listview item index
+					   iGroup     : CINT; // group index (must be -1 if group view is not enabled)
+                                           end;
+        LVITEMINDEX			= tagLVITEMINDEX;
+        PLVITEMINDEX			= ^tagLVITEMINDEX;
+        tLVITEMINDEX			= TAGLVITEMINDEX;
+
+
+function ListView_SetGroupHeaderImageList(hwnd:HWNd;himl:HIMAGELIST):HIMAGELIST;
+
+function ListView_GetGroupHeaderImageList(hwnd:HWND):HIMAGELIST;
+
+function ListView_GetEmptyText(hwnd:HWND;pszText:LPWSTR; cchText:CUINT):BOOL;
+
+function ListView_GetFooterRect(hwnd:HWND; prc:PRECT):BOOL;
+
+function ListView_GetFooterInfo(hwnd:HWND;plvfi: LPLVFOOTERINFO ):BOOL;
+
+function ListView_GetFooterItemRect(hwnd:HWND;iItem:CUINT;prc:PRECT):BOOL;
+
+function ListView_GetFooterItem(hwnd:HWND;iItem:CUINT; pfi:PLVFOOTERITEM):BOOL;
+
+function ListView_GetItemIndexRect(hwnd:hwnd; plvii:PLVITEMINDEX; iSubItem:clong; code:clong; prc:LPRECT) :BOOL;
+
+function ListView_SetItemIndexState(hwndLV:HWND; plvii:PLVITEMINDEX; data:CUINT; mask:CUINT):HRESULT;
+
+function ListView_GetNextItemIndex(hwnd:HWND;plvii:PLVITEMINDEX; flags:LPARAM):BOOL;
+
+{$endif}
 
 Type
 
@@ -5504,6 +5637,19 @@ CONST
          LVN_MARQUEEBEGIN               = (LVN_FIRST-56);
 {$ENDIF}
 
+{$ifdef win32vista}
+Type
+	 tagNMLVLIN           = Record
+                                  hdr:         NMHDR;
+                                  link:        LITEM;
+                                  iItem:       cint;
+                                  iSubItem:    cint;
+				end;
+	 NMLVLINK	      = tagNMLVLIN;
+	 TNMLVLINK	      = tagNMLVLIN;
+	 PNMLVLINK	      = ^tagNMLVLIN;
+{$endif}
+
 {$ifdef ie4plus}
 TYPE
 
@@ -5551,6 +5697,17 @@ CONST
 
          LVN_GETINFOTIPA                = (LVN_FIRST-57);
          LVN_GETINFOTIPW                = (LVN_FIRST-58);
+	 LVN_INCREMENTALSEARCHA   	= (LVN_FIRST-62);
+	 LVN_INCREMENTALSEARCHW   	= (LVN_FIRST-63);
+
+	 LVNSCH_DEFAULT  		= -1;
+	 LVNSCH_ERROR    		= -2;
+	 LVNSCH_IGNORE   		= -3;
+
+{$ifdef win32vista}
+	 LVN_COLUMNDROPDOWN       	= (LVN_FIRST-64);
+	 LVN_COLUMNOVERFLOWCLICK  	= (LVN_FIRST-66);
+{$endif}
 
 Const
 {$IFDEF UNICODE}
@@ -5567,7 +5724,7 @@ type
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
 
-{$ifdef win32xp}
+{$ifdef win32xp} // actually 2003
          tagNMLVSCROLL        = Record
                                  hdr          : NMHDR;
                                  dx           : cint;
@@ -5580,9 +5737,28 @@ type
 
 
 CONST
-         LVN_BEGINSCROLL                = (LVN_FIRST-80)          ;
+         LVN_BEGINSCROLL                = (LVN_FIRST-80);
          LVN_ENDSCROLL                  = (LVN_FIRST-81);
 // {$ENDIF}
+
+{$ifdef win32vista}
+	 LVN_LINKCLICK           	= (LVN_FIRST-84);
+	 LVN_GETEMPTYMARKUP      	= (LVN_FIRST-87);
+
+	 EMF_CENTERED            	= $00000001;  // render markup centered in the listview area
+
+Type
+	 tagNMLVEMPTYMARKUP   = Record
+          			  hdr : NMHDR;
+				  // out params from client back to listview
+    			          dwFlags :DWORD;                      // EMF_*
+     				  szMarkup : array[0..L_MAX_URL_LENGTH-1] of wchar;   // markup displayed
+				end;
+         NMLVEMPTYMARKUP      = tagNMLVEMPTYMARKUP;
+         TNMLVEMPTYMARKUP     = tagNMLVEMPTYMARKUP;
+         PNMLVEMPTYMARKUP     = ^tagNMLVEMPTYMARKUP;
+
+{$endif}
 
 {$ENDIF} // NOLISTVIEW
 
@@ -5628,8 +5804,19 @@ CONST
 {$ifdef ie5plus}
          TVS_NOHSCROLL                  = $8000;              // TVS_NOSCROLL overrides this
 {$ENDIF}
+{$ifdef win32vista}
+         TVS_EX_MULTISELECT             = $0002;
+         TVS_EX_DOUBLEBUFFER            = $0004;
+         TVS_EX_NOINDENTSTATE           = $0008;
+         TVS_EX_RICHTOOLTIP             = $0010;
+         TVS_EX_AUTOHSCROLL             = $0020;
+         TVS_EX_FADEINOUTEXPANDOS       = $0040;
+         TVS_EX_PARTIALCHECKBOXES       = $0080;
+         TVS_EX_EXCLUSIONCHECKBOXES     = $0100;
+         TVS_EX_DIMMEDCHECKBOXES        = $0200;
+         TVS_EX_DRAWIMAGEASYNC          = $0400;
+{$endif}
 {$ENDIF}
-
 
 // end_r_commctrl
 
@@ -5647,6 +5834,10 @@ CONST
 {$ifdef ie4plus}
          TVIF_INTEGRAL                  = $0080;
 {$ENDIF}
+{$ifdef win32vista}
+ 	 TVIF_STATEEX            	= $0100;	
+	 TVIF_EXPANDEDIMAGE      	= $0200;
+{$endif}
          TVIS_SELECTED                  = $0002;
          TVIS_CUT                       = $0004;
          TVIS_DROPHILITED               = $0008;
@@ -5661,6 +5852,25 @@ CONST
          TVIS_STATEIMAGEMASK            = $F000;
          TVIS_USERMASK                  = $F000;
 
+// IE6
+	 TVIS_EX_FLAT            	= $0001;
+{$ifdef win32vista}
+	 TVIS_EX_DISABLED        	= $0002;
+{$endif}
+	 TVIS_EX_ALL             	= $0002;
+Type
+
+// Structure for TreeView's NM_TVSTATEIMAGECHANGING notification
+         tagNMTVSTATEIMAGECHANGING = Record
+                                      hdr 		    : NMHDR;
+                                      hti                   : HTREEITEM;
+                                      iOldStateImageIndex   : cint;
+                                      iNewStateImageIndex   : cint;
+                                      end;
+	 NMTVSTATEIMAGECHANGING    = tagNMTVSTATEIMAGECHANGING;
+	 LPNMTVSTATEIMAGECHANGING  = ^tagNMTVSTATEIMAGECHANGING;
+
+Const
          I_CHILDRENCALLBACK             = (-1);
 Type
          tagTVITEMA           = Record
@@ -5674,6 +5884,14 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+				 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMA              = tagTVITEMA;
          LPTVITEMA            = ^tagTVITEMA;
@@ -5692,6 +5910,14 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+				 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMW              = tagTVITEMW;
          LPTVITEMW            = ^tagTVITEMW;
@@ -5953,12 +6179,13 @@ CONST
          TVGN_PREVIOUSVISIBLE           = $0007;
          TVGN_DROPHILITE                = $0008;
          TVGN_CARET                     = $0009;
-
 {$ifdef ie4plus}
          TVGN_LASTVISIBLE               = $000A;
 {$ENDIF}      // _WIN32_IE >= 0x0400
-
-{$ifdef win32xp}
+{$ifdef ie6plus}
+	 TVGN_NEXTSELECTED       	= $000B;
+{$endif}
+{$ifdef win32xp}  // 0x501
          TVSI_NOSINGLEEXPAND            = $8000;              // Should not conflict with TVGN flags.
 {$ENDIF}
 
@@ -5975,6 +6202,9 @@ function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
+{$ifdef win32vista}
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+{$endif}
 
 CONST
          TVM_SELECTITEM                 = (TV_FIRST + 11);
@@ -6367,9 +6597,40 @@ CONST
 // Macro 216
 Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 
-
-
 {$ENDIF}
+
+{$ifdef win32vista}
+CONST 
+         TVM_GETSELECTEDCOUNT       	= (TV_FIRST + 70);
+	 TVM_SHOWINFOTIP            	= (TV_FIRST + 71);
+	 TVM_GETITEMPARTRECT            = (TV_FIRST + 72);
+
+Type
+	 TVITEMPART 	= (TVGIPR_BUTTON    = $0001);
+         pTVITEMPART	= ^TVITEMPART;
+
+	 tagTVGETITEMPARTRECTINFO 	= Record
+                                            hti :HTREEITEM ;
+                                            prc :PRECT;
+                                            partID :TVITEMPART;
+					  end;
+ 	 TVGETITEMPARTRECTINFO 		= tagTVGETITEMPARTRECTINFO;
+
+function  TreeView_GetSelectedCount(hwnd:hwnd):DWORD;
+//    (DWORD)SNDMSG((hwnd), TVM_GETSELECTEDCOUNT, 0, 0)
+
+function  TreeView_ShowInfoTip(hwnd:HWND; hitem:HTREEITEM):DWORD;
+//    (DWORD)SNDMSG((hwnd), TVM_SHOWINFOTIP, 0, (LPARAM)(hitem))
+
+function  TreeView_GetItemPartRect(hwnd:HWND; hitem:HTREEITEM; prc:prect; partid:TVITEMPART):bool;
+//{ TVGETITEMPARTRECTINFO info; \
+//  info.hti = (hitem); \
+//  info.prc = (prc); \
+//  info.partID = (partid); \
+//  (BOOL)SNDMSG((hwnd), TVM_GETITEMPARTRECT, 0, (LPARAM)&info); \
+
+{$endif}
+
 
 TYPE
          PFNTVCOMPARE =function (lparam1:LPARAM;lparam2:LPARAM;lParamSort:LParam): cint; STDCALL;
@@ -6504,6 +6765,35 @@ Type
          LPNMTVDISPINFO      = LPNMTVDISPINFOA;
 {$ENDIF}
 
+{$ifdef IE6plus}
+ 	 tagTVDISPINFOEXA    = Record
+				hdr  : NMHDR;
+				item :TVITEMEXA;
+				end;
+	 NMTVDISPINFOEXA     = tagTVDISPINFOEXA;
+	 LPNMTVDISPINFOEXA   = ^tagTVDISPINFOEXA;
+
+ 	 tagTVDISPINFOEXW    = Record
+				hdr  : NMHDR;
+				item :TVITEMEXW;
+				end;
+	 NMTVDISPINFOEXW     = tagTVDISPINFOEXW;
+	 LPNMTVDISPINFOEXW   = ^tagTVDISPINFOEXW;
+
+{$IFDEF UNICODE}
+         NMTVDISPINFOEX        = NMTVDISPINFOEXW;
+         LPNMTVDISPINFOEX      = LPNMTVDISPINFOEXW;
+{$ELSE}
+         NMTVDISPINFOEX        = NMTVDISPINFOEXA;
+         LPNMTVDISPINFOEX      = LPNMTVDISPINFOEXA;
+{$ENDIF}
+
+	 TV_DISPINFOEXA          = NMTVDISPINFOEXA;
+	 TV_DISPINFOEXW          = NMTVDISPINFOEXW;
+	 TV_DISPINFOEX           = NMTVDISPINFOEX;
+
+
+{$endif}
 
 {$ifdef ie3plus}
           TV_DISPINFOA        = NMTVDISPINFOA;
@@ -6549,6 +6839,14 @@ CONST
          TVNRET_DEFAULT                 = 0;
          TVNRET_SKIPOLD                 = 1;
          TVNRET_SKIPNEW                 = 2;
+
+{$ifdef win32vista}
+	 TVN_ITEMCHANGINGA       	= (TVN_FIRST-16);
+	 TVN_ITEMCHANGINGW       	= (TVN_FIRST-17);
+	 TVN_ITEMCHANGEDA        	= (TVN_FIRST-18);
+	 TVN_ITEMCHANGEDW        	= (TVN_FIRST-19);
+	 TVN_ASYNCDRAW           	= (TVN_FIRST-20);
+{$endif}
 
 {$ENDIF} // 0x400
 
@@ -6680,6 +6978,41 @@ CONST
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
+{$ifdef ie6plus}
+Type
+     tagTVITEMCHANGE = packed record
+          hdr : NMHDR;
+          uChanged : UINT;
+          hItem : HTREEITEM;
+          uStateNew : UINT;
+          uStateOld : UINT;
+          lParam : LPARAM;
+       end;
+     NMTVITEMCHANGE = tagTVITEMCHANGE;
+     PNMTVITEMCHANGE = ^NMTVITEMCHANGE;
+
+     tagNMTVASYNCDRAW = packed record
+          hdr : NMHDR; 
+          pimldp : PIMAGELISTDRAWPARAMS;   { the draw that failed }
+          hr : HRESULT;                    { why it failed }
+          hItem : HTREEITEM;               { item that failed to draw icon }
+          lParam : LPARAM;                 { its data }
+          dwRetFlags : DWORD;              { Out Params }
+          iRetImageIndex : longint;        { What listview should do on return }
+       end;                                { used if ADRF_DRAWIMAGE is returned }
+     NMTVASYNCDRAW = tagNMTVASYNCDRAW;
+     PNMTVASYNCDRAW = ^NMTVASYNCDRAW;
+
+CONST
+{$IFDEF UNICODE}
+         TVN_ITEMCHANGING      = TVN_ITEMCHANGINGW;
+         TVN_ITEMCHANGED       = TVN_ITEMCHANGEDW;
+{$ELSE}
+         TVN_ITEMCHANGING      = TVN_ITEMCHANGINGA;
+         TVN_ITEMCHANGED       = TVN_ITEMCHANGEDA;
+{$ENDIF}
+{$endif}
+
 {$ENDIF}      // NOTREEVIEW
 
 {$ifdef ie3plus}
@@ -6805,7 +7138,9 @@ CONST
 {$ifdef ie4plus}
          CBES_EX_NOSIZELIMIT            = $00000008;
          CBES_EX_CASESENSITIVE          = $00000010;
-
+{$ifdef win32vista}
+	 CBES_EX_TEXTENDELLIPSIS      	= $00000020;
+{$endif}
 TYPE
 
          DummyStruct9         = Record
@@ -8875,11 +9210,92 @@ CONST
          BCN_HOTITEMCHANGE              = (BCN_FIRST + $0001);
 
          BST_HOT                        = $0200;
+{$ifdef win32vista}
+         BST_DROPDOWNPUSHED      = $0400;
 
+// BUTTON STYLES
+         BS_SPLITBUTTON          = $00000000C;  // This block L suffixed (unsigned)
+         BS_DEFSPLITBUTTON       = $00000000D;
+         BS_COMMANDLINK          = $00000000E;
+         BS_DEFCOMMANDLINK       = $00000000F;
+
+// SPLIT BUTTON INFO mask flags
+         BCSIF_GLYPH             = $00001;
+         BCSIF_IMAGE             = $00002;
+         BCSIF_STYLE             = $00004;
+         BCSIF_SIZE              = $00008;
+
+// SPLIT BUTTON STYLE flags
+         BCSS_NOSPLIT            = $00001;
+         BCSS_STRETCH            = $00002;
+         BCSS_ALIGNLEFT          = $00004;
+         BCSS_IMAGE              = $00008;
+
+         BCM_SETDROPDOWNSTATE    = (BCM_FIRST + $0006);
+         BCM_SETSPLITINFO        = (BCM_FIRST + $0007);
+         BCM_GETSPLITINFO        = (BCM_FIRST + $0008);
+         BCM_SETNOTE             = (BCM_FIRST + $0009);
+         BCM_GETNOTE             = (BCM_FIRST + $000A);
+         BCM_GETNOTELENGTH       = (BCM_FIRST + $000B);
+         BCM_SETSHIELD           = (BCM_FIRST + $000C);
+
+
+// Value to pass to BCM_SETIMAGELIST to indicate that no glyph should be
+// displayed
+	 BCCL_NOGLYPH  		 = HIMAGELIST(-1);
+
+	 BCN_DROPDOWN            = (BCN_FIRST + $0002);
+Type
+
+     tagBUTTON_SPLITINFO =  record
+			      mask : UINT;
+          		      himlGlyph : HIMAGELIST;
+          		      uSplitStyle : UINT;
+          		      size : SIZE;
+			      end;
+     BUTTON_SPLITINFO   = tagBUTTON_SPLITINFO;
+     PBUTTON_SPLITINFO  = ^BUTTON_SPLITINFO;
+     LPBUTTON_SPLITINFO = PBUTTON_SPLITINFO;
+
+  { NOTIFICATION MESSAGES }
+
+     tagNMBCDROPDOWN = packed record
+          hdr : NMHDR;
+          rcButton : RECT;
+       end;
+     NMBCDROPDOWN    = tagNMBCDROPDOWN;
+     PNMBCDROPDOWN   = ^NMBCDROPDOWN;
+     LPNMBCDROPDOWN  = PNMBCDROPDOWN;
+
+// BUTTON MESSAGES
+
+function Button_SetDropDownState(hwnd:HWND; fDropDown:BOOL) : BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETDROPDOWNSTATE, (WPARAM)(fDropDown), 0)
+
+function Button_SetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO):BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETSPLITINFO, 0, (LPARAM)(pInfo))
+
+function Button_GetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_GETSPLITINFO, 0, (LPARAM)(pInfo))
+
+function Button_SetNote(hwnd:HWND; psz:LPCWSTR) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETNOTE, 0, (LPARAM)(psz))
+
+function Button_GetNote(hwnd:HWND; psz:LPCWSTR; pcc:cint) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_GETNOTE, (WPARAM)pcc, (LPARAM)psz)
+
+function Button_GetNoteLength(hwnd:HWND) :LRESULT;
+//    (LRESULT)SNDMSG((hwnd), BCM_GETNOTELENGTH, 0, 0)
+
+// Macro to use on a button or command link to display an elevated icon
+
+function Button_SetElevationRequiredState(hwnd:HWND; fRequired:BOOL) :LRESULT;
+//    (LRESULT)SNDMSG((hwnd), BCM_SETSHIELD, 0, (LPARAM)fRequired)
+
+{$endif}
 {$ENDIF}
-
-
 {$ENDIF} // NOBUTTON
+
 
 /// =====================  End Button Control =========================
 
@@ -8887,6 +9303,7 @@ CONST
 
 {$IFNDEF NOSTATIC}
 
+const
 {$IFDEF _WIN32}
 
 // Static Class Name
@@ -9104,8 +9521,8 @@ CONST
 {$ifdef win32xp}
 
          INVALID_LINK_INDEX             = (-1);
-         MAX_LINKID_TEXT                = 48;
-         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
+
+
 
          WC_LINK                        = {L}'SysLink';
 
@@ -9133,19 +9550,6 @@ CONST
 {$endif}
 
 TYPE
-
-         tagLITEM             = Record
-                                 mask         : UINT;
-                                 iLink        : cint;
-                                 state        : UINT;
-                                 stateMask    : UINT;
-                                 szID         : Array [0..MAX_LINKID_TEXT-1] OF WCHAR;
-                                 szUrl        : Array [0..L_MAX_URL_LENGTH-1] OF WCHAR;
-                                 END;
-         LITEM                = tagLITEM;
-         PLITEM               = ^tagLITEM;
-         TLITEM               = tagLITEM;
-//         PLITEM               = ^tagLITEM;
 
 
          tagLHITTESTINFO      = Record
@@ -10981,7 +11385,76 @@ Function ListView_MapIDToIndex( hwnd : hwnd; id : WPARAM):UINT;
 Begin
  Result:=UINT(SendMessage((hwnd), LVM_MAPIDTOINDEX, id, LPARAM(0)));
 end;
+
+function  ListView_IsItemVisible(hwnd:hwnd; aindex:cuint):cuint;
+begin
+ Result:=UINT(SendMessage((hwnd),LVM_ISITEMVISIBLE, WPARAM(aindex), LPARAM(0)));
+end;
 {$ENDIF}
+
+{$ifdef win32vista}
+
+function ListView_SetGroupHeaderImageList(hwnd:HWNd;himl:HIMAGELIST):HIMAGELIST;
+begin
+ Result:=HIMAGELIST(SendMessage((hwnd),LVM_SETIMAGELIST, WPARAM(LVSIL_GROUPHEADER), LPARAM(HIMAGELIST((himl)))));
+end;
+
+function ListView_GetGroupHeaderImageList(hwnd:HWND):HIMAGELIST;
+begin
+ Result:=HIMAGELIST(SendMessage((hwnd),LVM_GETIMAGELIST, WPARAM(LVSIL_GROUPHEADER),LPARAM(0)));
+end;
+
+function ListView_GetEmptyText(hwnd:HWND;pszText:LPWSTR; cchText:CUINT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETEMPTYTEXT, WPARAM(cchText), LPARAM(pszText)));
+end;
+
+function ListView_GetFooterRect(hwnd:HWND; prc:PRECT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERRECT, WPARAM(0), LPARAM(prc)));
+end;
+
+function ListView_GetFooterInfo(hwnd:HWND;plvfi: LPLVFOOTERINFO ):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERINFO, WPARAM(0), LPARAM(plvfi)));
+end;
+
+function ListView_GetFooterItemRect(hwnd:HWND;iItem:CUINT;prc:PRECT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERITEMRECT, WPARAM(iItem), LPARAM(prc)));
+end;
+
+function ListView_GetFooterItem(hwnd:HWND;iItem:CUINT; pfi:PLVFOOTERITEM):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERITEM, WPARAM(iItem), LPARAM(pfi)));
+end;
+
+// (hwnd), LVM_GETITEMINDEXRECT, (WPARAM)(LVITEMINDEX*)(plvii), \
+//                ((prc) ? ((((LPRECT)(prc))->top = (iSubItem)), (((LPRECT)(prc))->left = (code)), (LPARAM)(prc)) : (LPARAM)(LPRECT)NULL))
+
+function ListView_GetItemIndexRect(hwnd:hwnd; plvii:PLVITEMINDEX; iSubItem:clong; code:clong; prc:LPRECT) :BOOL;
+begin
+ if assigned(prc) then
+  begin
+   prc^.top:=iSubItem;
+   prc^.left:=code;
+  end;
+ Result:=BOOL(SendMessage((hwnd), LVM_GETITEMINDEXRECT, WPARAM(pLVITEMINDEX(plvii)), LPARAM(PRC)));
+end;
+
+function ListView_SetItemIndexState(hwndLV:HWND; plvii:PLVITEMINDEX; data:CUINT; mask:CUINT):HRESULT;
+ var macro_lvi: LV_ITEM ;
+begin
+  macro_lvi.stateMask := (mask);
+  macro_lvi.state := (data);
+  Result:=HRESULT(SendMessage((hwndLV),LVM_SETITEMINDEXSTATE, WPARAM(pLVITEMINDEX(plvii)), LPARAM(PLV_ITEM(@macro_lvi))));
+end;
+
+function ListView_GetNextItemIndex(hwnd:HWND;plvii:PLVITEMINDEX; flags:LPARAM):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETNEXTITEMINDEX, WPARAM(pLVITEMINDEX(plvii)), MAKELPARAM(flags, 0)));
+end;
+{$endif}
 
 // Macro 154
 // #define ListView_SetBkImage(hwnd, plvbki) \
@@ -11715,6 +12188,27 @@ Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 
 Begin
  Result:=UINT(SendMessage((hwnd), TVM_MAPHTREEITEMTOACCID, htreeitem, 0))
+end;
+{$endif}
+
+{$ifdef win32vista}
+function  TreeView_GetSelectedCount(hwnd:hwnd):DWORD;
+Begin
+ Result:=DWORD(SendMessage((hwnd),TVM_GETSELECTEDCOUNT, 0, 0));
+end;
+
+function  TreeView_ShowInfoTip(hwnd:HWND; hitem:HTREEITEM):DWORD;
+Begin
+ Result:=DWORD(SendMessage((hwnd),TVM_SHOWINFOTIP, 0, LPARAM(hitem)));
+end;
+
+function  TreeView_GetItemPartRect(hwnd:HWND; hitem:HTREEITEM; prc:prect; partid:TVITEMPART):bool;
+var info : TVGETITEMPARTRECTINFO;
+Begin
+  info.hti := (hitem); 
+  info.prc := (prc);
+  info.partID := (partid);
+  Result:=BOOL(SendMessage((hwnd), TVM_GETITEMPARTRECT, 0, LPARAM(@info))); 
 end;
 {$endif}
 
@@ -12741,5 +13235,49 @@ Begin
  Result:=cint(SendMessage((hwnd), CB_GETMINVISIBLE, 0, 0))
 end;
 
+{$ifdef win32vista}
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+begin
+ result:=TreeView_GetNextItem(hwnd, hitem,  TVGN_NEXTSELECTED)
+end;
+{$endif}
 
+{$ifdef win32vista}
+function Button_SetDropDownState(hwnd:HWND; fDropDown:BOOL) : BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETDROPDOWNSTATE, WPARAM(fDropDown), 0));
+end;
+
+function Button_SetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO):BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETSPLITINFO, 0, LPARAM(pInfo)));
+end;
+
+function Button_GetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_GETSPLITINFO, 0, LPARAM(pInfo)));
+end;
+
+function Button_SetNote(hwnd:HWND; psz:LPCWSTR) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETNOTE, 0, LPARAM(psz)));
+end;
+
+function Button_GetNote(hwnd:HWND; psz:LPCWSTR; pcc:cint) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_GETNOTE, WPARAM(pcc), LPARAM(psz)));
+end;
+
+function Button_GetNoteLength(hwnd:HWND) :LRESULT;
+Begin
+ Result:=LRESULT(SendMessage((hwnd), BCM_GETNOTELENGTH, 0, 0));
+end;
+
+// Macro to use on a button or command link to display an elevated icon
+
+function Button_SetElevationRequiredState(hwnd:HWND; fRequired:BOOL) :LRESULT;
+Begin
+ Result:=LRESULT(SendMessage((hwnd),  BCM_SETSHIELD, 0, LPARAM(fRequired)));
+end;
+{$endif}
 End.
