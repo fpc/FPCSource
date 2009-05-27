@@ -59,13 +59,14 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$define WIN32XP} // also 0x501, win2003
+{$define WIN32XP} 
 {$define win32vista} // till WC_STATICA
 {$define ie501plus}
 {$ifdef win32}
   {$define _win32}
 {$endif win32}
 {$define ie6plus}
+{$define ntddi_vista}
 {$define NTDDI_WIN7}
 
 {$ifdef win64}
@@ -263,7 +264,7 @@ CONST
 
 {$ifdef ie4plus}
          PGM_FIRST                      = $1400;              // Pager control messages
-{$ifdef win32xp}
+{$ifdef win32xp}// actually 0x501=2003 or some sp?
          ECM_FIRST                      = $1500;              // Edit control messages
          BCM_FIRST                      = $1600;              // Button control messages
          CBM_FIRST                      = $1700;              // Combobox control messages
@@ -293,7 +294,7 @@ CONST
          CCM_GETUNICODEFORMAT           = (CCM_FIRST + 6);
 
 {$ifdef ie5plus}
-{$ifdef win32xp}
+{$ifdef win32xp} 
          COMCTL32_VERSION               = 6;
 {$ELSE}
          COMCTL32_VERSION               = 5;
@@ -3338,6 +3339,9 @@ CONST
 {$ENDIF}
 {$ifdef win32vista}
 	 TBS_NOTIFYBEFOREMOVE    	= $0800;  // Trackbar should notify parent before repositioning the slider due to user action (enables snapping)
+{$endif}
+{$ifdef NTDDI_VISTA}
+	 TBS_TRANSPARENTBKGND    	= $1000;  // Background is painted by the parent via WM_PRINTCLIENT
 {$endif}
 
 // end_r_commctrl
@@ -8144,6 +8148,12 @@ TYPE
                                  pt           : POINT;
                                  uHit         : UINT;          // out param
                                  st           : SYSTEMTIME;
+{$ifdef NTDDI_VISTA}
+				 rc 	      : RECT;
+				 iOffset      : cint;
+				 iRow         : cint;
+				 iCol	      : cint;
+{$endif}				 
                                  END;
          MCHITTESTINFO        = DummyStruct16;
          PMCHITTESTINFO       = ^DummyStruct16;
@@ -8277,6 +8287,93 @@ CONST
 
 Function MonthCal_GetUnicodeFormat( hwnd : hwnd):BOOL;
 
+{$ifdef NTDDI_VISTA}
+Const
+// View
+         MCMV_MONTH      = 0;
+         MCMV_YEAR       = 1;
+         MCMV_DECADE     = 2;
+         MCMV_CENTURY    = 3;
+         MCMV_MAX        = MCMV_CENTURY;
+
+         MCM_GETCURRENTVIEW 		= (MCM_FIRST + 22);
+         MCM_GETCALENDARCOUNT 		= (MCM_FIRST + 23);
+         MCM_GETCALENDARGRIDINFO 	= (MCM_FIRST + 24);
+         MCM_GETCALID 			= (MCM_FIRST + 27);
+         MCM_SETCALID 			= (MCM_FIRST + 28);
+// Returns the min rect that will fit the max number of calendars for the passed in rect.
+         MCM_SIZERECTTOMIN 		= (MCM_FIRST + 29);
+         MCM_SETCALENDARBORDER 		= (MCM_FIRST + 30);
+         MCM_GETCALENDARBORDER 		= (MCM_FIRST + 31);
+         MCM_SETCURRENTVIEW 		= (MCM_FIRST + 32);
+
+// Part
+         MCGIP_CALENDARCONTROL      = 0;
+         MCGIP_NEXT                 = 1;
+         MCGIP_PREV                 = 2;
+         MCGIP_FOOTER               = 3;
+         MCGIP_CALENDAR             = 4;
+         MCGIP_CALENDARHEADER       = 5;
+         MCGIP_CALENDARBODY         = 6;
+         MCGIP_CALENDARROW          = 7;
+         MCGIP_CALENDARCELL         = 8;
+
+         MCGIF_DATE                 = $00000001;
+         MCGIF_RECT                 = $00000002;
+         MCGIF_NAME                 = $00000004;
+
+// Note: iRow of -1 refers to the row header and iCol of -1 refers to the col header.
+
+Type
+ tagMCGRIDINFO = record
+          cbSize : UINT;
+          dwPart : DWORD;
+          dwFlags : DWORD;
+          iCalendar : longint;
+          iRow : longint;
+          iCol : longint;
+          bSelected : BOOL;
+          stStart : SYSTEMTIME;
+          stEnd : SYSTEMTIME;
+          rc : RECT;
+          pszName : LPWSTR;
+          cchName : size_t;
+       end;
+     MCGRIDINFO   = tagMCGRIDINFO;
+     TPMCGRIDINFO = MCGRIDINFO;
+     PMCGRIDINFO  = ^MCGRIDINFO;
+     LPMCGRIDINFO = PMCGRIDINFO;
+
+function MonthCal_GetCurrentView(hmc:HWND):DWORD;
+//        (DWORD)SNDMSG(hmc, MCM_GETCURRENTVIEW, 0, 0)
+
+function MonthCal_GetCalendarCount(hmc:HWND):DWORD;
+//        (DWORD)SNDMSG(hmc, MCM_GETCALENDARCOUNT, 0, 0)
+
+function MonthCal_GetCalendarGridInfo(hmc:HWND; pmc:pMCGRIDINFO):BOOL;
+//        (BOOL)SNDMSG(hmc, MCM_GETCALENDARGRIDINFO, 0, (LPARAM)(PMCGRIDINFO)(pmcGridInfo))
+
+function MonthCal_GetCALID(hmc:HWND):CALID;
+//        (CALID)SNDMSG(hmc, MCM_GETCALID, 0, 0)
+
+function MonthCal_SetCALID(hmc:HWND; calid:cuint):LRESULT;
+//        SNDMSG(hmc, MCM_SETCALID, (WPARAM)(calid), 0)
+
+function MonthCal_SizeRectToMin(hmc:HWND; prc:prect):LRESULT;
+//        SNDMSG(hmc, MCM_SIZERECTTOMIN, 0, (LPARAM)(prc))
+
+function MonthCal_SetCalendarBorder(hmc:HWND; fset:bool; xyborder:cint):LRESULT;
+//        SNDMSG(hmc, MCM_SETCALENDARBORDER, (WPARAM)(fset), (LPARAM)(xyborder))
+
+function MonthCal_GetCalendarBorder(hmc:HWND):cint;
+//        (int)SNDMSG(hmc, MCM_GETCALENDARBORDER, 0, 0)
+
+function MonthCal_SetCurrentView(hmc:HWND; dwNewView:DWord):BOOL;
+//        (BOOL)SNDMSG(hmc, MCM_SETCURRENTVIEW, 0, (LPARAM)(dwNewView))
+
+
+{$endif}
+
 {$ENDIF}
 
 // MCN_SELCHANGE is sent whenever the currently displayed date changes
@@ -8347,9 +8444,11 @@ CONST
 {$ELSE}
          MCS_NOTODAY                    = $0008;
 {$ENDIF}
-
-
-// end_r_commctrl
+{$ifdef NTDDI_Vista}
+	 MCS_NOTRAILINGDATES  		= $0040;
+	 MCS_SHORTDAYSOFWEEK  		= $0080;
+	 MCS_NOSELCHANGEONNAV 		= $0100;
+{$endif}
 
          GMR_VISIBLE                    = 0;                  // visible portion of display
          GMR_DAYSTATE                   = 1;                  // above plus the grayed out parts of
@@ -8369,13 +8468,28 @@ CONST
          DATETIMEPICK_CLASSA            = 'SysDateTimePick32';
 
 {$IFDEF UNICODE}
-
-TYPE
          DATETIMEPICK_CLASS  = DATETIMEPICK_CLASSW;
 {$ELSE}
          DATETIMEPICK_CLASS  = DATETIMEPICK_CLASSA;
 {$ENDIF}
 
+{$ifdef NTDDI_VISTA}
+Type
+	tagDATETIMEPICKERINFO = packed record
+          cbSize : DWORD;
+          rcCheck : RECT;
+          stateCheck : DWORD;
+          rcButton : RECT;
+          stateButton : DWORD;
+          hwndEdit : HWND;
+          hwndUD : HWND;
+          hwndDropDown : HWND;
+       end;
+     DATETIMEPICKERINFO   = tagDATETIMEPICKERINFO;
+     PDATETIMEPICKERINFO  = ^DATETIMEPICKERINFO;
+     LPDATETIMEPICKERINFO = PDATETIMEPICKERINFO;
+     TDATETIMEPICKERINFO  = DATETIMEPICKERINFO;
+{$endif}
 
 CONST
          DTM_FIRST                      = $1000;
@@ -8476,16 +8590,47 @@ function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
 
 CONST
          DTM_SETMCFONT                  = (DTM_FIRST + 9);
-// Macro 284
 
-// #define DateTime_SetMonthCalFont(hdp, hfont, fRedraw) SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
+// Macro 284
+procedure DateTime_SetMonthCalFont(hdp:HWND; hfont:HFONT; fRedraw:LPARAM);
+//  SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
 
 
 CONST
          DTM_GETMCFONT                  = (DTM_FIRST + 10);
-// Macro 285
 
-// #define DateTime_GetMonthCalFont(hdp) SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
+// Macro 285
+function DateTime_GetMonthCalFont(hdp:HWND):HFONT;
+// SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
+
+{$ifdef NTDDI_VISTA}
+Const
+	 DTM_SETMCSTYLE    		= (DTM_FIRST + 11);
+	 DTM_GETMCSTYLE    		= (DTM_FIRST + 12);
+	 DTM_CLOSEMONTHCAL 		= (DTM_FIRST + 13);
+	 DTM_GETDATETIMEPICKERINFO 	= (DTM_FIRST + 14);
+	 DTM_GETIDEALSIZE 		= (DTM_FIRST + 15);
+
+function DateTime_SetMonthCalStyle(hdp:HWND; dwStyle:DWord):LResult;
+// SNDMSG(hdp, DTM_SETMCSTYLE, 0, (LPARAM)dwStyle)
+
+function DateTime_GetMonthCalStyle(hdp:HWND):LRESULT;
+//  SNDMSG(hdp, DTM_GETMCSTYLE, 0, 0)
+
+function DateTime_CloseMonthCal(hdp:HWND):LRESULT;
+//  SNDMSG(hdp, DTM_CLOSEMONTHCAL, 0, 0)
+
+// DateTime_GetDateTimePickerInfo(HWND hdp, DATETIMEPICKERINFO* pdtpi)
+// Retrieves information about the selected date time picker.
+
+function DateTime_GetDateTimePickerInfo(hdp:HWND; pdtpi:PDATETIMEPICKERINFO):LRESULT;
+// SNDMSG(hdp, DTM_GETDATETIMEPICKERINFO, 0, (LPARAM)(pdtpi))
+
+function DateTime_GetIdealSize(hdp:HWND; ps:PSIZE): LResult;
+// (BOOL)SNDMSG((hdp), DTM_GETIDEALSIZE, 0, (LPARAM)(psize))
+
+{$endif}
+
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
@@ -9397,6 +9542,19 @@ CONST
 
 Function Edit_HideBalloonTip( hwnd : hwnd):BOOL;
 
+{$ifdef win32vista}
+const
+	 EM_SETHILITE        		= (ECM_FIRST + 5);
+	 EM_GETHILITE        		= (ECM_FIRST + 6);
+
+// both are "unimplemented" in MSDN, so probably typing is off.
+procedure Edit_SetHilite(hwndCtl:hwnd; ichStart:Wparam; ichEnd:lparam);
+// ((void)SNDMSG((hwndCtl), EM_SETHILITE, (ichStart), (ichEnd)))
+
+function Edit_GetHilite(hwndCtl:hwnd):DWORD;
+// ((DWORD)SNDMSG((hwndCtl), EM_GETHILITE, 0L, 0L))
+{$endif}
+
 {$ENDIF}
 
 {$ENDIF} // NOEDIT
@@ -9747,6 +9905,17 @@ function RemoveWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UIN
 function DefSubclassProc(hWnd:HWND;uMsg:UINT;wParam:WPARAM;lParam:LPARAM):LRESULT; stdcall; external commctrldll name 'DefSubclassProc';
 {$ENDIF}
 
+{$ifdef NTDDI_VISTA}
+type _LI_METRIC= (
+
+   LIM_SMALL=0, // corresponds to SM_CXSMICON/SM_CYSMICON
+   LIM_LARGE   // corresponds to SM_CXICON/SM_CYICON
+		 );
+
+Function LoadIconMetric( hinst:HINST; pszName:LPCWStr;lims:cint; var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
+Function LoadIconWithScaleDown( hinst:HINST; pszName:LPCWStr;cx:cint;cy:cint;var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
+
+{$endif}
 
 {$ifdef win32xp}
 
@@ -12280,7 +12449,7 @@ end;
 Function TabCtrl_InsertItem( hwnd : hwnd; iItem : cint;const  pitem : TC_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)))
+ Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)));
 end;
 
 
@@ -13280,4 +13449,107 @@ Begin
  Result:=LRESULT(SendMessage((hwnd),  BCM_SETSHIELD, 0, LPARAM(fRequired)));
 end;
 {$endif}
+{$ifdef win32vista}
+procedure Edit_SetHilite(hwndCtl:hwnd; ichStart:Wparam; ichEnd:lparam);
+begin
+  sendmessage(hwndctl, EM_SETHILITE, (ichStart), (ichEnd));
+end;
+
+function Edit_GetHilite(hwndCtl:hwnd):Dword;
+begin
+ result:=SendMessage((hwndCtl), EM_GETHILITE, 0, 0);
+end;
+{$endif}
+
+{$ifdef ntddi_vista}
+function MonthCal_GetCurrentView(hmc:HWND):DWORD;
+Begin
+ Result:=DWord(SendMessage(hmc, MCM_GETCURRENTVIEW, 0, 0));
+end;
+
+function MonthCal_GetCalendarCount(hmc:HWND):DWORD;
+Begin
+ Result:=DWord(SendMessage(hmc,MCM_GETCALENDARCOUNT, 0, 0));
+end;
+
+function MonthCal_GetCalendarGridInfo(hmc:HWND; pmc:pMCGRIDINFO):BOOL;
+Begin
+ Result:=BOOL(SendMessage(hmc, MCM_GETCALENDARGRIDINFO, 0, LPARAM(PMCGRIDINFO(pmc))));
+end;
+
+function MonthCal_GetCALID(hmc:HWND):CALID;
+Begin
+  Result:=CALID(SendMessage(hmc, MCM_GETCALID, 0, 0));
+end;
+
+function MonthCal_SetCALID(hmc:HWND; calid:cuint):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SETCALID, WPARAM(calid), 0));
+end;
+
+function MonthCal_SizeRectToMin(hmc:HWND; prc:prect):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SIZERECTTOMIN, 0, LPARAM(prc)));
+end;
+
+function MonthCal_SetCalendarBorder(hmc:HWND; fset:bool; xyborder:cint):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SETCALENDARBORDER, WPARAM(fset), LPARAM(xyborder)));
+end;
+
+function MonthCal_GetCalendarBorder(hmc:HWND):cint;
+Begin
+ Result:=cint(SendMessage(hmc, MCM_GETCALENDARBORDER, 0, 0));
+end;
+
+function MonthCal_SetCurrentView(hmc:HWND; dwNewView:DWord):BOOL;
+Begin
+ Result:=BOOL(SendMessage(hmc, MCM_SETCURRENTVIEW, 0, LPARAM(dwNewView)));
+end;
+
+{$endif}
+
+{$ifdef NTDDI_VISTA}
+function DateTime_SetMonthCalStyle(hdp:HWND; dwStyle:DWord):LResult;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_SETMCSTYLE, 0, LPARAM(dwStyle)));
+end;
+
+function DateTime_GetMonthCalStyle(hdp:HWND):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_GETMCSTYLE, 0, 0));
+end;
+
+function DateTime_CloseMonthCal(hdp:HWND):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_CLOSEMONTHCAL, 0, 0));
+end;
+
+// DateTime_GetDateTimePickerInfo(HWND hdp, DATETIMEPICKERINFO* pdtpi)
+// Retrieves information about the selected date time picker.
+
+function DateTime_GetDateTimePickerInfo(hdp:HWND; pdtpi:PDATETIMEPICKERINFO):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp, DTM_GETDATETIMEPICKERINFO, 0, LPARAM(pdtpi)));
+end;
+
+function DateTime_GetIdealSize(hdp:HWND; ps:PSIZE): LResult;
+Begin
+ Result:=LRESULT(SendMessage(hdp, DTM_GETIDEALSIZE, 0, LPARAM(ps)));
+end;
+
+{$endif}
+
+// Macro 284
+procedure DateTime_SetMonthCalFont(hdp:HWND; hfont:HFONT; fRedraw:LPARAM);
+begin
+  SendMessage(hdp, DTM_SETMCFONT, WPARAM(hfont), LPARAM(fRedraw));
+end;
+
+// Macro 285
+function DateTime_GetMonthCalFont(hdp:HWND):HFONT;
+begin
+ Result:=HFONT(SendMessage(hdp, DTM_GETMCFONT, 0, 0));
+end;
+
 End.
