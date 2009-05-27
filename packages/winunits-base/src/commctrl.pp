@@ -60,7 +60,7 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE4PLUS}
 {$define IE5plus}
 {$define WIN32XP}
-{$define win32vista}
+{$define win32vista} // till lvgroup
 {$define ie501plus}
 {$ifdef win32}
   {$define _win32}
@@ -223,6 +223,10 @@ CONST
          BCN_LAST                       = (0-1350);
 {$ENDIF}
 
+{$ifdef win32vista}
+	 TRBN_FIRST              	= cardinal(0-1501);       // trackbar
+	 TRBN_LAST               	= cardinal(0-1519);
+{$endif}
          MSGF_COMMCTRL_BEGINDRAG        = $4200;
          MSGF_COMMCTRL_SIZEHEADER       = $4201;
          MSGF_COMMCTRL_DRAGSELECT       = $4202;
@@ -328,6 +332,11 @@ CONST
          NM_RDOWN                       = (NM_FIRST-21);
          NM_THEMECHANGED                = (NM_FIRST-22);
 {$ENDIF}
+{$ifdef win32vista}
+	 NM_FONTCHANGED                  = (NM_FIRST-23);
+	 NM_CUSTOMTEXT                   = (NM_FIRST-24);   // uses NMCUSTOMTEXT struct
+	 NM_TVSTATEIMAGECHANGING         = (NM_FIRST-24);   // uses NMTVSTATEIMAGECHANGING struct, defined after HTREEITEM
+{$endif}
 
 {$IFNDEF CCSIZEOF_STRUCT}
 
@@ -415,7 +424,22 @@ Type
          TNMCHAR              = tagNMCHAR;
          PNMCHAR              = ^tagNMCHAR;
 
+{$ifdef win32vista}
+         tagNMCUSTOMTEXT      = Record
+			         hdr      : NMHDR;
+				 hDC      : HDC;
+                                 lpString : LPCWSTR;
+			         nCount   : cint;
+			         lpRect   : LPRECT; 
+			         uFormat  : UINT;
+			         fLink    : bool;
+				end;
 
+         NMCUSTOMTEXT 		= tagNMCUSTOMTEXT;
+	 LPNMCUSTOMTEXT 	= ^tagNMCUSTOMTEXT;
+	 TNMCUSTOMTEXT 		= tagNMCUSTOMTEXT;
+	 PNMCUSTOMTEXT 		= LPNMCUSTOMTEXT;
+{$endif}
 {$ENDIF}           // _WIN32_IE >= 0x0400
 
 
@@ -470,6 +494,11 @@ CONST
 {$ifdef win32xp}
          CDIS_SHOWKEYBOARDCUES          = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 CDIS_NEARHOT            	= $0400;
+	 CDIS_OTHERSIDEHOT       	= $0800;
+	 CDIS_DROPHILITED        	= $1000;
+{$endif}
 
 TYPE
 
@@ -562,6 +591,10 @@ CONST
          ILC_MIRROR                     = $00002000;          // Mirror the icons contained, if the process is mirrored
          ILC_PERITEMMIRROR              = $00008000;          // Causes the mirroring code to mirror each item when inserting a set of images, verses the whole strip
 {$ENDIF}
+{$ifdef win32vista}
+         ILC_ORIGINALSIZE        	= $00010000;      // Imagelist should accept smaller than set images and apply OriginalSize based on image added
+         ILC_HIGHQUALITYSCALE    	= $00020000;      // Imagelist should enable use of the high quality scaler.
+{$endif}
 
 function ImageList_Create(cx:cint;cy:cint;flags:UINT;cInitial:cint;cGrow:cint):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Create';
 function ImageList_Destroy(himl:HIMAGELIST):BOOL; stdcall; external commctrldll name 'ImageList_Destroy';
@@ -600,6 +633,9 @@ CONST
          ILD_PRESERVEALPHA              = $00001000;          // This preserves the alpha channel in dest
          ILD_SCALE                      = $00002000;          // Causes the image to be scaled to cx, cy instead of clipped
          ILD_DPISCALE                   = $00004000;
+{$ifdef win32vista}
+	 ILD_ASYNC               	= $00008000;
+{$endif}
 
          ILD_SELECTED                   = ILD_BLEND50;
          ILD_FOCUS                      = ILD_BLEND25;
@@ -612,11 +648,20 @@ CONST
          ILS_SATURATE                   = $00000004;
          ILS_ALPHA                      = $00000008;
 
+{$ifdef win32vista}
+         ILGT_NORMAL             	= $00000000;
+	 ILGT_ASYNC              	= $00000001;
+{$endif}
+
 function ImageList_Draw(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;fStyle:UINT):BOOL; stdcall; external commctrldll name 'ImageList_Draw';
 
 
 {$IFDEF _WIN32}
 
+{$ifdef win32vista}
+const 
+  HBITMAP_CALLBACK               =HBITMAP(-1);       // only for SparseImageList
+{$endif}
 function ImageList_Replace(himl:HIMAGELIST;i:cint;hbmImage:HBITMAP;hbmMask:HBITMAP):BOOL; stdcall; external commctrldll name 'ImageList_Replace';
 
 function ImageList_AddMasked(himl:HIMAGELIST;hbmImage:HBITMAP;crMask:COLORREF):cint; stdcall; external commctrldll name 'ImageList_AddMasked';
@@ -761,6 +806,11 @@ CONST
 {$ifdef win32xp}
          HDS_FLAT                       = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+         HDS_CHECKBOXES          	= $0400;
+	 HDS_NOSIZING            	= $0800;
+	 HDS_OVERFLOW            	= $1000;
+{$endif}
 // end_r_commctrl
 
 {$ifdef ie5plus}
@@ -826,6 +876,9 @@ TYPE
                                  _type        : UINT;          // [in] filter type (defined what pvFilter is a pointer to)
                                  pvFilter     : Pointer;       // [in] fillter data see above
 {$ENDIF}
+{$ifdef win32vista}
+			         state	      : UINT;
+{$endif}
                                  END;
          HDITEMA              = _HD_ITEMA;
          pHDITEMA             = ^_HD_ITEMA;
@@ -857,6 +910,9 @@ TYPE
                                  _type        : UINT;          // [in] filter type (defined what pvFilter is a pointer to)
                                  pvFilter     : Pointer;       // [in] fillter data see above
 {$ENDIF}
+{$ifdef win32vista}
+			         state	      : UINT;
+{$endif}
                                  END;
          HDITEMW              = _HD_ITEMW;
          pHDITEMW             = ^_HD_ITEMW;
@@ -896,6 +952,9 @@ CONST
 {$ifdef ie5plus}
          HDI_FILTER                     = $0100;
 {$ENDIF}
+{$ifdef win32vista}
+	HDI_STATE               	= $0200;
+{$endif}
 
          HDF_LEFT                       = $0000;
          HDF_RIGHT                      = $0001;
@@ -915,6 +974,17 @@ CONST
          HDF_SORTUP                     = $0400;
          HDF_SORTDOWN                   = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 HDF_CHECKBOX            	= $0040;
+	 HDF_CHECKED             	= $0080;
+	 HDF_FIXEDWIDTH          	= $0100; // Can't resize the column; same as LVCFMT_FIXED_WIDTH
+	 HDF_SPLITBUTTON      		= $1000000; // Column is a split button; same as LVCFMT_SPLITBUTTON
+{$endif}
+
+{$ifdef win32vista}
+	 HDIS_FOCUSED            	= $00000001;
+{$endif}
+
 
          HDM_GETITEMCOUNT               = (HDM_FIRST + 0);
 
@@ -1005,7 +1075,11 @@ CONST
          HHT_BELOW                      = $0200;
          HHT_TORIGHT                    = $0400;
          HHT_TOLEFT                     = $0800;
-
+{$ifdef win32vista}
+	 HHT_ONITEMSTATEICON     	= $1000;
+	 HHT_ONDROPDOWN          	= $2000;
+	 HHT_ONOVERFLOW          	= $4000;
+{$endif}
 
 TYPE
          _HD_HITTESTINFO      = Record
@@ -1150,6 +1224,22 @@ Function Header_ClearAllFilters( hwnd : hwnd):cint;
 
 {$ENDIF}
 
+{$ifdef win32vista}
+//  HDM_TRANSLATEACCELERATOR    = CCM_TRANSLATEACCELERATOR; // CCM_* not defined anywhere yet in w7 sdk
+
+const
+   HDM_GETITEMDROPDOWNRECT = (HDM_FIRST+25);
+   HDM_GETOVERFLOWRECT     = (HDM_FIRST+26);
+   HDM_GETFOCUSEDITEM      = (HDM_FIRST+27);
+   HDM_SETFOCUSEDITEM      = (HDM_FIRST+28);
+
+// macro 37a through 37d
+function Header_GetItemDropDownRect(hwnd : hwnd;iItem:cint; lprc:lprect):bool;
+function Header_GetOverflowRect( hwnd : hwnd; lprc:lprect):bool;
+function Header_GetFocusedItem (hwnd : hwnd):cint;
+function Header_SetFocusedItem (hwnd:hwnd; iItem:cint):BOOL;
+{$endif}
+
 CONST
          HDN_ITEMCHANGINGA              = (HDN_FIRST-0);
          HDN_ITEMCHANGINGW              = (HDN_FIRST-20);
@@ -1177,6 +1267,15 @@ CONST
          HDN_FILTERCHANGE               = (HDN_FIRST-12);
          HDN_FILTERBTNCLICK             = (HDN_FIRST-13);
 {$ENDIF}
+{$ifdef win32vista}
+         HDN_BEGINFILTEREDIT            = (HDN_FIRST-14);
+         HDN_ENDFILTEREDIT              = (HDN_FIRST-15);
+
+         HDN_ITEMSTATEICONCLICK         = (HDN_FIRST-16);
+         HDN_ITEMKEYDOWN                = (HDN_FIRST-17);
+         HDN_DROPDOWN                   = (HDN_FIRST-18);
+         HDN_OVERFLOWCLICK              = (HDN_FIRST-19);
+{$endif}
 
 {$IFDEF UNICODE}
          HDN_ITEMCHANGING               = HDN_ITEMCHANGINGW;
@@ -1479,6 +1578,9 @@ CONST
          TBCDRF_BLENDICON               = $00200000;          // Use ILD_BLEND50 on the icon image
          TBCDRF_NOBACKGROUND            = $00400000;          // Use ILD_BLEND50 on the icon image
 {$ENDIF}
+{$ifdef win32vista}
+	 TBCDRF_USECDCOLORS          	= $00800000;  // Use CustomDrawColors to RenderText regardless of VisualStyle
+{$endif}
 
 CONST
          TB_ENABLEBUTTON                = (WM_USER + 1);
@@ -1526,6 +1628,12 @@ CONST
          IDB_HIST_SMALL_COLOR           = 8;
          IDB_HIST_LARGE_COLOR           = 9;
 {$ENDIF}
+{$ifdef win32vista}
+         IDB_HIST_NORMAL                = 12;
+         IDB_HIST_HOT                   = 13;
+         IDB_HIST_DISABLED              = 14;
+         IDB_HIST_PRESSED               = 15;
+{$endif}
 
 // icon indexes for standard bitmap
 
@@ -1889,6 +1997,10 @@ CONST
          TB_SETMETRICS                  = (WM_USER + 102);
 {$ENDIF}
 
+{$ifdef win32vista}
+         TB_SETPRESSEDIMAGELIST         = (WM_USER + 104);
+         TB_GETPRESSEDIMAGELIST         = (WM_USER + 105);
+{$endif}
 
 {$ifdef win32xp}
          TB_SETWINDOWTHEME              = CCM_SETWINDOWTHEME;
@@ -2266,6 +2378,10 @@ CONST
          RBBIM_LPARAM                   = $00000400;
          RBBIM_HEADERSIZE               = $00000800;          // control the size of the header
 {$ENDIF}
+{$ifdef win32vista}
+	 RBBIM_CHEVRONLOCATION 		= $00001000;
+	 RBBIM_CHEVRONSTATE    		= $00002000;
+{$endif}
 
 TYPE
 
@@ -2292,6 +2408,10 @@ TYPE
                                  lParam       : LPARAM;
                                  cxHeader     : UINT;
 {$ENDIF}
+{$ifdef win32vista}
+			         rcChevronLocation : RECT;  // the rect is in client co-ord wrt hwndChild
+    			         uChevronState     : cUINT;      // STATE_SYSTEM_*
+{$endif}
                                  END;
          REBARBANDINFOA       = tagREBARBANDINFOA;
          LPREBARBANDINFOA     = ^tagREBARBANDINFOA;
@@ -2326,6 +2446,11 @@ TYPE
                                  lParam       : LPARAM;
                                  cxHeader     : UINT;
 {$ENDIF}
+{$ifdef win32vista}
+			         rcChevronLocation : RECT;  // the rect is in client co-ord wrt hwndChild
+    			         uChevronState     : cUINT;      // STATE_SYSTEM_*
+{$endif}
+
                                  END;
          REBARBANDINFOW       = tagREBARBANDINFOW;
          LPREBARBANDINFOW     = ^tagREBARBANDINFOW;
@@ -2442,10 +2567,18 @@ CONST
          RB_GETBANDMARGINS              = (WM_USER + 40);
          RB_SETWINDOWTHEME              = CCM_SETWINDOWTHEME;
 {$ENDIF}
+{$ifdef win32vista}
+	 RB_SETEXTENDEDSTYLE 		= (WM_USER + 41);
+	 RB_GETEXTENDEDSTYLE 		= (WM_USER + 42);
+{$endif}
 
 {$ifdef ie5plus}
          RB_PUSHCHEVRON                 = (WM_USER + 43);
 {$ENDIF}      // _WIN32_IE >= 0x0500
+
+{$ifdef win32vista}
+	 RB_SETBANDWIDTH     		= (WM_USER + 44);   // set width for docked band
+{$endif}
 
          RBN_HEIGHTCHANGE               = (RBN_FIRST - 0);
 
@@ -2462,7 +2595,9 @@ CONST
 {$ifdef ie5plus}
          RBN_CHEVRONPUSHED              = (RBN_FIRST - 10);
 {$ENDIF}      // _WIN32_IE >= 0x0500
-
+{$ifdef win32vista}
+ 	 RBN_SPLITTERDRAG    		= (RBN_FIRST - 11);
+{$endif}
 
 {$ifdef ie5plus}
          RBN_MINMAX                     = (RBN_FIRST - 21);
@@ -2536,6 +2671,16 @@ TYPE
          PNMREBARCHEVRON      = ^tagNMREBARCHEVRON;
 
 {$ENDIF}
+{$ifdef win32vista}
+	tagNMREBARSPLITTER    = record
+				 hdr:      NMHDR;
+				 rcSizing: RECT;
+				 end;
+	NMREBARSPLITTER       = tagNMREBARSPLITTER;
+	LPNMREBARSPLITTER     = ^tagNMREBARSPLITTER;
+	TNMREBARSPLITTER      = tagNMREBARSPLITTER;
+	PNMREBARSPLITTER      = LPNMREBARSPLITTER;
+{$endif}
 
 {$ifdef Win32XP}
 CONST
@@ -2568,6 +2713,9 @@ CONST
 {$ifdef ie5plus}
          RBHT_CHEVRON                   = $0008;
 {$ENDIF}
+{$ifdef win32vista}
+	 RBHT_SPLITTER   		= $0010;
+{$endif}
 
 TYPE
          _RB_HITTESTINFO      = Record
@@ -2709,6 +2857,9 @@ CONST
          TTS_BALLOON                    = $40;
          TTS_CLOSE                      = $80;
 {$ENDIF}
+{$ifdef win32vista}
+	 TTS_USEVISUALSTYLE      	= $100;  // Use themed hyperlinks
+{$endif}
 
 // end_r_commctrl
 
@@ -2744,6 +2895,11 @@ CONST
          TTI_INFO                       = 1;
          TTI_WARNING                    = 2;
          TTI_ERROR                      = 3;
+{$ifdef win32vista}
+	 TTI_INFO_LARGE          	= 4;
+	 TTI_WARNING_LARGE       	= 5;
+	 TTI_ERROR_LARGE         	= 6;
+{$endif}
 
 // Tool Tip Messages
          TTM_ACTIVATE                   = (WM_USER + 1);
@@ -3158,6 +3314,9 @@ CONST
 {$ifdef ie501plus}
          TBS_DOWNISLEFT                 = $0400;              // Down=Left and Up=Right (default is Down=Right and Up=Left)
 {$ENDIF}
+{$ifdef win32vista}
+	 TBS_NOTIFYBEFOREMOVE    	= $0800;  // Trackbar should notify parent before repositioning the slider due to user action (enables snapping)
+{$endif}
 
 // end_r_commctrl
 
@@ -3225,7 +3384,9 @@ CONST
          TBCD_THUMB                     = $0002;
          TBCD_CHANNEL                   = $0003;
 {$ENDIF}
-
+{$ifdef win32vista}
+	 TRBN_THUMBPOSCHANGING       	= (TRBN_FIRST-1);
+{$endif}
 {$ENDIF} // trackbar
 
 //====== DRAG LIST CONTROL ====================================================
@@ -3424,6 +3585,10 @@ CONST
 {$endif} //_WIN32_WINNT >= 0x0501
 
 {$ifdef win32vista}
+	 PBS_SMOOTHREVERSE       = $10;
+{$endif}
+
+{$ifdef win32vista}
 
  PBM_GETSTEP             = (WM_USER+13);
  PBM_GETBKCOLOR          = (WM_USER+14);
@@ -3609,6 +3774,9 @@ CONST
          LVIF_GROUPID                   = $0100;
          LVIF_COLUMNS                   = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVIF_COLFMT                    = $00010000; // The piColFmt member is valid in addition to puColumns
+{$endif}
 
          LVIS_FOCUSED                   = $0001;
          LVIS_SELECTED                  = $0002;
@@ -3659,6 +3827,10 @@ TYPE
                                  cColumns     : UINT;          // tile view columns
                                  puColumns    : PUINT;
 {$ENDIF}
+{$ifdef win32vista}
+				 piColFmt : pcint;
+				 iGroup   : cint; // readonly. only valid for owner data.
+{$endif}
                                  END;
          LVITEMA              = tagLVITEMA;
          LPLVITEMA            = ^tagLVITEMA;
@@ -3684,6 +3856,10 @@ TYPE
                                  cColumns     : UINT;          // tile view columns
                                  puColumns    : PUINT;
 {$ENDIF}
+{$ifdef win32vista}
+				 piColFmt : pcint;
+				 iGroup   : cint; // readonly. only valid for owner data.
+{$endif}
                                  END;
 
          LVITEMW              = tagLVITEMW;
@@ -3953,6 +4129,10 @@ TYPE
 {$ifdef ie3plus}
                                  iSubItem     : cint;          // this is was NOT in win95.  valid only for LVM_SUBITEMHITTEST
 {$ENDIF}
+{$ifdef win32vista}
+				 iGroup       : cint;  // readonly. index of group. only valid for owner data.
+				                       // supports single item in multiple groups.
+{$endif}
                                  END;
          LVHITTESTINFO        = tagLVHITTESTINFO;
          LPLVHITTESTINFO      = ^tagLVHITTESTINFO;
@@ -4041,6 +4221,11 @@ TYPE
                                  iImage       : cint;
                                  iOrder       : cint;
 {$ENDIF}
+{$ifdef win32vista}
+		 		 cxmin 	      : cint; // min snap point
+				 cxDefault    : cint;   // default snap point
+				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+{$endif}
                                  END;
          LVCOLUMNA            = tagLVCOLUMNA;
          LPLVCOLUMNA          = ^tagLVCOLUMNA;
@@ -4059,6 +4244,11 @@ TYPE
                                  iImage       : cint;
                                  iOrder       : cint;
 {$ENDIF}
+{$ifdef win32vista}
+		 		 cxmin 	      : cint; // min snap point
+				 cxDefault    : cint;   // default snap point
+				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+{$endif}
                                  END;
          LVCOLUMNW            = tagLVCOLUMNW;
          LPLVCOLUMNW          = ^tagLVCOLUMNW;
@@ -4100,6 +4290,11 @@ CONST
          LVCF_IMAGE                     = $0010;
          LVCF_ORDER                     = $0020;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVCF_MINWIDTH           	= $0040;
+	 LVCF_DEFAULTWIDTH       	= $0080;
+	 LVCF_IDEALWIDTH         	= $0100;
+{$endif}
 
          LVCFMT_LEFT                    = $0000;
          LVCFMT_RIGHT                   = $0001;
@@ -4111,6 +4306,11 @@ CONST
          LVCFMT_BITMAP_ON_RIGHT         = $1000;
          LVCFMT_COL_HAS_IMAGES          = $8000;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVCFMT_FIXED_WIDTH          	= $00100;  // Can't resize the column; same as HDF_FIXEDWIDTH
+	 LVCFMT_NO_DPI_SCALE         	= $40000;  // If not set, CCM_DPISCALE will govern scaling up fixed width
+	 LVCFMT_FIXED_RATIO          	= $80000;  // Width will augment with the row height
+{$endif}
 
          LVM_GETCOLUMNA                 = (LVM_FIRST + 25);
          LVM_GETCOLUMNW                 = (LVM_FIRST + 95);
@@ -4413,6 +4613,17 @@ CONST
          LVS_EX_SNAPTOGRID              = $00080000;          // Icons automatically snap to grid.
          LVS_EX_SIMPLESELECT            = $00100000;          // Also changes overlay rendering to top right for icon mode.
 {$ENDIF}
+{$ifdef win32vista}
+         LVS_EX_JUSTIFYCOLUMNS          = $00200000;  // Icons are lined up in columns that use up the whole view area.
+         LVS_EX_TRANSPARENTBKGND        = $00400000;  // Background is painted by the parent via WM_PRINTCLIENT
+         LVS_EX_TRANSPARENTSHADOWTEXT   = $00800000;  // Enable shadow text on transparent backgrounds only (useful with bitmaps)
+         LVS_EX_AUTOAUTOARRANGE         = $01000000;  // Icons automatically arrange if no icon positions have been set
+         LVS_EX_HEADERINALLVIEWS        = $02000000;  // Display column header in all view modes
+         LVS_EX_AUTOCHECKSELECT         = $08000000;
+         LVS_EX_AUTOSIZECOLUMNS         = $10000000;
+         LVS_EX_COLUMNSNAPPOINTS        = $40000000;
+         LVS_EX_COLUMNOVERFLOW          = $80000000;
+{$endif}
 
          LVM_GETSUBITEMRECT             = (LVM_FIRST + 56);
 
@@ -4617,6 +4828,18 @@ CONST
          LVGF_STATE                     = $00000004;
          LVGF_ALIGN                     = $00000008;
          LVGF_GROUPID                   = $00000010;
+
+{$ifdef win32vista}
+         LVGF_SUBTITLE                 = $00000100;  // pszSubtitle is valid
+         LVGF_TASK                     = $00000200;  // pszTask is valid
+         LVGF_DESCRIPTIONTOP           = $00000400;  // pszDescriptionTop is valid
+         LVGF_DESCRIPTIONBOTTOM        = $00000800;  // pszDescriptionBottom is valid
+         LVGF_TITLEIMAGE               = $00001000;  // iTitleImage is valid
+         LVGF_EXTENDEDIMAGE            = $00002000;  // iExtendedImage is valid
+         LVGF_ITEMS                    = $00004000;  // iFirstItem and cItems are valid
+         LVGF_SUBSET                   = $00008000;  // pszSubsetTitle is valid
+         LVGF_SUBSETITEMS              = $00010000;  // readonly, cItems holds count of items in visible subset, iFirstItem is valid
+{$endif}
 
          LVGS_NORMAL                    = $00000000;
          LVGS_COLLAPSED                 = $00000001;
@@ -8889,6 +9112,13 @@ CONST
          LWS_TRANSPARENT                = $0001;
          LWS_IGNORERETURN               = $0002;
 
+{$ifdef win32vista}
+         LWS_NOPREFIX                   = $0004;
+         LWS_USEVISUALSTYLE             = $0008;
+         LWS_USECUSTOMTEXT              = $0010;
+         LWS_RIGHT                      = $0020;
+{$endif}
+
          LIF_ITEMINDEX                  = $00000001;
          LIF_STATE                      = $00000002;
          LIF_ITEMID                     = $00000004;
@@ -8897,6 +9127,10 @@ CONST
          LIS_FOCUSED                    = $00000001;
          LIS_ENABLED                    = $00000002;
          LIS_VISITED                    = $00000004;
+{$ifdef win32vista}
+	 LIS_HOTTRACK        		= $00000008;
+	 LIS_DEFAULTCOLORS   		= $00000010; // Don't use any custom text colors
+{$endif}
 
 TYPE
 
@@ -9429,6 +9663,27 @@ Function Header_ClearAllFilters( hwnd : hwnd):cint;
 
 Begin
  Result:=cint(SendMessage((hwnd), HDM_CLEARFILTER, WPARAM(-1), 0))
+end;
+{$endif}
+{$ifdef win32vista}
+// macro 37a ..37d
+function Header_GetOverflowRect( hwnd : hwnd; lprc:lprect):bool;
+begin
+  result:=bool(sendmessage(hwnd, HDM_GETOVERFLOWRECT, 0, LPARAM(lprc)));
+end;
+
+function Header_GetFocusedItem(hwnd : hwnd):cint;
+begin
+  Result:=cint(SendMessage((hwnd), HDM_GETFOCUSEDITEM, WPARAM(0), LPARAM(0)));
+end;
+
+function Header_SetFocusedItem(hwnd:hwnd; iItem:cint):BOOL;
+begin
+  result:=bool(sendmessage(hwnd, HDM_SETFOCUSEDITEM, WPARAM(0),LPARAM(iItem)));
+end;
+function Header_GetItemDropDownRect(hwnd : hwnd;iItem:cint; lprc:lprect):bool;
+begin
+  result:=bool(sendmessage(hwnd, HDM_GETITEMDROPDOWNRECT, WPARAM(iItem), LPARAM(lprc)));
 end;
 {$endif}
 
