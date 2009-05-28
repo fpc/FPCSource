@@ -828,10 +828,13 @@ var
            HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
            CurrentColor := OldCurrentColor;
          end;
-       $ff:
-         begin
-           HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
-         end;
+      $ff:
+        begin
+          OldCurrentColor := CurrentColor;
+          CurrentColor := FillSettings.Color;
+          HLine(x1-StartXViewPort,x2-StartXViewPort,y-StartYViewPort);
+          CurrentColor := OldCurrentColor;
+        end;
        else
          begin
            { number of times to go throuh the 8x8 pattern }
