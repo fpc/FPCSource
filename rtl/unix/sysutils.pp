@@ -668,6 +668,8 @@ var
   UnixFindData : PUnixFindData;
 Begin
   UnixFindData:=PUnixFindData(f.FindHandle);
+  If (UnixFindData=Nil) then
+    Exit;
   if UnixFindData^.SearchType=0 then
     begin
       if UnixFindData^.dirptr<>nil then
@@ -728,6 +730,8 @@ Begin
   { SearchSpec='' means that there were no wild cards, so only one file to
     find.
   }
+  If (UnixFindData=Nil) then 
+    exit;
   if UnixFindData^.SearchSpec='' then
     exit;
   if (UnixFindData^.SearchType=0) and
@@ -786,19 +790,21 @@ Begin
   UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
-   begin
-     if FindGetFileInfo(Path,Rslt) then
-       Result:=0;
-   end
+    begin
+    if FindGetFileInfo(Path,Rslt) then
+      Result:=0;
+    end
   else
-   begin
-     {Create Info}
-     UnixFindData^.SearchSpec := Path;
-     UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
-     while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
-       dec(UnixFindData^.NamePos);
-     Result:=FindNext(Rslt);
-   end;
+    begin
+    {Create Info}
+    UnixFindData^.SearchSpec := Path;
+    UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
+    while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
+      dec(UnixFindData^.NamePos);
+    Result:=FindNext(Rslt);
+    end;
+  If (Result<>0) then
+    FindClose(Rslt); 
 End;
 
 
