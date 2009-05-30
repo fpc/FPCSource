@@ -1,3 +1,5 @@
+{ %fail }
+
 var
   p: pointer;
 begin
