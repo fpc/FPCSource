@@ -522,6 +522,8 @@ type
     function GetPrefix: DOMString; override;
     procedure SetPrefix(const Value: DOMString); override;
   public
+    { Used by parser }
+    procedure SetNSI(const nsUri: DOMString; ColonPos: Integer);
     function CompareName(const AName: DOMString): Integer; override;
     property NSI: TNamespaceInfo read FNSI;
   end;
@@ -2322,6 +2324,13 @@ end;
 function TDOMNode_NS.CompareName(const AName: DOMString): Integer;
 begin
   Result := CompareDOMStrings(DOMPChar(AName), DOMPChar(NodeName), Length(AName), Length(NodeName));
+end;
+
+procedure TDOMNode_NS.SetNSI(const nsUri: DOMString; ColonPos: Integer);
+begin
+  FNSI.NSIndex := FOwnerDocument.IndexOfNS(nsURI, True);
+  FNSI.PrefixLen := ColonPos;
+  Include(FFlags, nfLevel2);
 end;
 
 // -------------------------------------------------------

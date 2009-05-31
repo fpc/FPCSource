@@ -71,6 +71,29 @@ type
     property Count: LongWord read FCount;
   end;
 
+{ another hash, for detecting duplicate namespaced attributes without memory allocations }
+
+  PWideString = ^WideString;
+  PExpHashEntry = ^TExpHashEntry;
+  TExpHashEntry = record
+    rev: LongWord;
+    hash: LongWord;
+    uriPtr: PWideString;
+    lname: PWideChar;
+    lnameLen: Integer;
+  end;
+
+  TDblHashArray = class(TObject)
+  private
+    FSizeLog: Integer;
+    FRevision: LongWord;
+    FData: PExpHashEntry;
+  public  
+    procedure Init(NumSlots: Integer);
+    function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+    destructor Destroy; override;
+  end;
+
 {$i names.inc}
 
 implementation
@@ -524,6 +547,71 @@ begin
       e := e^.Next;
     end;
   end;
+end;
+
+{ TDblHashArray }
+
+destructor TDblHashArray.Destroy;
+begin
+  FreeMem(FData);
+  inherited Destroy;
+end;
+
+procedure TDblHashArray.Init(NumSlots: Integer);
+var
+  i: Integer;
+begin
+  if ((NumSlots * 2) shr FSizeLog) <> 0 then   // need at least twice more entries, and no less than 8
+  begin
+    FSizeLog := 3;
+    while (NumSlots shr FSizeLog) <> 0 do
+      Inc(FSizeLog);
+    ReallocMem(FData, (1 shl FSizeLog) * sizeof(TExpHashEntry));
+    FRevision := 0;
+  end;
+  if FRevision = 0 then
+  begin
+    FRevision := $FFFFFFFF;
+    for i := (1 shl FSizeLog)-1 downto 0 do
+      FData[i].rev := FRevision;
+  end;
+  Dec(FRevision);
+end;
+
+function TDblHashArray.Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+var
+  step: Byte;
+  mask: LongWord;
+  idx: Integer;
+  HashValue: LongWord;
+begin
+  HashValue := Hash(0, PWideChar(uri^), Length(uri^));
+  HashValue := Hash(HashValue, localName, localLength);
+
+  mask := (1 shl FSizeLog) - 1;
+  step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
+  idx := HashValue and mask;
+  result := True;
+  while FData[idx].rev = FRevision do
+  begin
+    if (HashValue = FData[idx].hash) and (FData[idx].uriPtr^ = uri^) and
+      (FData[idx].lnameLen = localLength) and
+       CompareMem(FData[idx].lname, localName, localLength * sizeof(WideChar)) then
+      Exit;
+    if idx < step then
+      Inc(idx, (1 shl FSizeLog) - step)
+    else
+      Dec(idx, step);
+  end;
+  with FData[idx] do
+  begin
+    rev := FRevision;
+    hash := HashValue;
+    uriPtr := uri;
+    lname := localName;
+    lnameLen := localLength;
+  end;
+  result := False;
 end;
 
 initialization
