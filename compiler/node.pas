@@ -255,7 +255,16 @@ interface
          nf_get_asm_position,
 
          { tblocknode }
-         nf_block_with_exit
+         nf_block_with_exit,
+
+         { tloadvmtaddrnode }
+         nf_ignore_for_wpo  { we know that this loadvmtaddrnode cannot be used to construct a class instance }
+
+         { WARNING: there are now 32 elements in this type, and a set of this
+             type is written to the PPU. So before adding any more elements,
+             either move some flags to specific nodes, or stream a normalset
+             to the ppu
+         }
 
        );
 

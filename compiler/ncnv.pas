@@ -3202,6 +3202,11 @@ implementation
          if codegenerror then
            exit;
 
+         { Passing a class type to an "is" expression cannot result in a class
+           of that type to be constructed.
+         }
+         include(right.flags,nf_ignore_for_wpo);
+
          if (right.resultdef.typ=classrefdef) then
           begin
             { left must be a class }
@@ -3399,6 +3404,10 @@ implementation
         procname: string;
       begin
         result:=nil;
+        { Passing a class type to an "as" expression cannot result in a class
+          of that type to be constructed.
+        }
+        include(right.flags,nf_ignore_for_wpo);
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and

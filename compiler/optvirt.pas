@@ -1054,18 +1054,6 @@ unit optvirt;
              exit;
            end;
 
-         { get the component names for the class/procdef combo }
-         defsdecompose(realobjdef,tprocdef(procdef),unitid,classid,vmtentry);
-
-         { do we have any info for this unit? }
-         unitdevirtinfo:=findunit(unitid^);
-         result:=false;
-         if not assigned(unitdevirtinfo) then
-           exit;
-         { and for this class? }
-         classdevirtinfo:=unitdevirtinfo.findclass(classid^);
-         if not assigned(classdevirtinfo) then
-           exit;
          { if it's for a vmtentry of an objdef and the objdef is
            not instantiated, then we can fill the vmt with pointers
            to FPC_ABSTRACTERROR, except for published methods
@@ -1073,7 +1061,34 @@ unit optvirt;
             to the original method)
          }
          if forvmtentry and
-            (tprocdef(procdef).procsym.visibility=vis_published) then
+            (tprocdef(procdef).visibility=vis_published) then
+           begin
+             result:=false;
+             exit;
+           end;
+
+         { get the component names for the class/procdef combo }
+         defsdecompose(realobjdef,tprocdef(procdef),unitid,classid,vmtentry);
+
+         { If we don't have information about a particular unit/class/method,
+           it means that such class cannot be instantiated. So if we are
+           looking up information for a vmt entry, we can always safely return
+           FPC_ABSTRACTERROR if we do not find anything, unless it's a
+           published method (but those are handled already above) or a
+           class method (can be called even if the class is not instantiated).
+         }
+         result:=
+           forvmtentry and
+           not(po_classmethod in tprocdef(procdef).procoptions);
+         staticname:='FPC_ABSTRACTERROR';
+
+         { do we have any info for this unit? }
+         unitdevirtinfo:=findunit(unitid^);
+         if not assigned(unitdevirtinfo) then
+           exit;
+         { and for this class? }
+         classdevirtinfo:=unitdevirtinfo.findclass(classid^);
+         if not assigned(classdevirtinfo) then
            exit;
          if forvmtentry and
             (objdef.typ=objectdef) and
@@ -1081,7 +1096,9 @@ unit optvirt;
             { virtual class methods can be called even if the class is not instantiated }
             not(po_classmethod in tprocdef(procdef).procoptions) then
            begin
-             staticname:='FPC_ABSTRACTERROR';
+             { already set above
+               staticname:='FPC_ABSTRACTERROR';
+             }
              result:=true;
            end
          else
