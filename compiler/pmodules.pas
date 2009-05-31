@@ -1034,6 +1034,9 @@ implementation
            needs to be added implicitly }
          current_module.updatemaps;
 
+         { create whole program optimisation information }
+         current_module.wpoinfo:=tunitwpoinfo.create;
+
          { ... parse the declarations }
          Message1(parser_u_parsing_interface,current_module.realmodulename^);
          symtablestack.push(current_module.globalsymtable);
@@ -1111,9 +1114,6 @@ implementation
 
          symtablestack.push(current_module.globalsymtable);
          symtablestack.push(current_module.localsymtable);
-
-         { create whole program optimisation information }
-         current_module.wpoinfo:=tunitwpoinfo.create;
 
          if not current_module.interface_only then
            begin

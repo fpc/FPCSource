@@ -44,7 +44,8 @@ implementation
        { parser specific stuff }
        pbase,pexpr,pdecvar,
        { codegen }
-       cpuinfo,cgbase,dbgbase
+       cpuinfo,cgbase,dbgbase,
+       wpobase
        ;
 
 {$maxfpuregisters 0}
@@ -329,6 +330,11 @@ implementation
                 if not Tobjectdef(tclassrefdef(n.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
                   IncompatibleTypes(n.resultdef, def);
                 list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(n.resultdef).pointeddef).vmt_mangledname)));
+                { update wpo info }
+                if not assigned(current_procinfo) or
+                   (po_inline in current_procinfo.procdef.procoptions) or
+                   wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+                  tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
              niln:
                list.concat(Tai_const.Create_sym(nil));
