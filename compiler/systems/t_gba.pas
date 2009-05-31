@@ -31,7 +31,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_gba,link;
 
     type
@@ -414,7 +414,7 @@ begin
       add('		*(.data)');
       add('		*(.data.*)');
       add('		*(.gnu.linkonce.d*)');
-      add('		*(.fpc*)');      
+      add('		*(.fpc*)');
       add('		CONSTRUCTORS');
       add('		. = ALIGN(4);');
       add('	} >iwram = 0xff');

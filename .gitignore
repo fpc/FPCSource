@@ -629,6 +629,7 @@ packages/gtk2/src/pango/*.ppu
 packages/gtk2/src/pango/*.s
 packages/gtk2/src/pango/fpcmade.*
 packages/gtk2/src/pango/units
+packages/libndsfpc/examples/graphics/capture
 packages/numlib/doc/*.bak
 packages/numlib/doc/*.exe
 packages/numlib/doc/*.o

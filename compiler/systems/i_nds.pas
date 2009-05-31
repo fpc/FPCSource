@@ -34,13 +34,12 @@ unit i_nds;
             system       : system_arm_nds;
             name         : 'Nintendo DS';
             shortname    : 'nds';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
-                            tf_use_function_relative_addresses,tf_requires_proper_alignment,
-	                          tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
+                           ,tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
-            extradefines : 'CPUARMEL';
-            exeext       : '.nef';//'.bin';
+            extradefines : '';
+            exeext       : '.bin';
             defext       : '.def';
             scriptext    : '.sh';
             smartext     : '.sl';
@@ -58,8 +57,6 @@ unit i_nds;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -68,7 +65,7 @@ unit i_nds;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_elf;
+            res          : res_none;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;
@@ -89,7 +86,7 @@ unit i_nds;
               );
             first_parm_offset : 8;
             stacksize    : $3CFF; //15615? or 16384?;
-            abi : abi_eabi
+            abi : abi_default
           );
 
   implementation

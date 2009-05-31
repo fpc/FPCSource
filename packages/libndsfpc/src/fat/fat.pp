@@ -13,20 +13,28 @@ interface
 uses
   ctypes, nds9;
 
+{$linklib fat}
 {$linklib nds9}
-{$linklib libfat.a}
 
 {$linklib c}
 {$linklib gcc}
 {$linklib sysbase}
 
 {$define NDS_INTERFACE}
+{$include fathelper.inc}
+{$include ../nds/disc_io.inc}
 {$include fat.inc}
 {$undef NDS_INTERFACE}
 
 implementation
 {$define NDS_IMPLEMENTATION}
+{$include fathelper.inc}
+{$include ../nds/disc_io.inc}
 {$include fat.inc}
 {$undef NDS_IMPLEMENTATION}
+
+initialization
+
+finalization
 
 end.

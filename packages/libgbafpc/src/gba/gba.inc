@@ -1,6 +1,6 @@
 {$include gba_types.inc}
 {$include gba_base.inc}
-{$include helper.inc}
+{$include gba_helper.inc}
 
 
 {$include boyscout.inc}

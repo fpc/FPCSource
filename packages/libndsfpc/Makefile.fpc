@@ -4,17 +4,19 @@
 
 [package]
 name=libndsfpc
-version=2.2.2
+version=2.2.4a
 
 [target]
-units=nds9 nds7 dswifi9 dswifi7 fat gbfs mikmod9  mikmod7
-examples=
+units=nds9 nds7 dswifi9 dswifi7 fat gbfs filesystem maxmod9  maxmod7
+exampledirs=examples
 
 [compiler]
 options=
-includedir=src src/dswifi src/fat src/libmikmod
+includedir=src src/dswifi src/fat src/maxmod
 sourcedir=src tests
 
+[prerules]
+BINUTILSPREFIX=arm-eabi-
 
 [install]
 fpcpackage=y
@@ -26,6 +28,9 @@ fpcdir=../..
 
 [require]
 nortl=y
+
+[shared]
+build=n
 
 [rules]
 .NOTPARALLEL:

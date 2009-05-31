@@ -43,7 +43,29 @@ type
   f32 = integer;
 
 const
-  REG_DISPCNT		: pcuint32 = pointer($4000000);
+  DIV_CR = REG_DIVCNT;
+
+  DIV_NUMERATOR64 = REG_DIV_NUMER;
+  DIV_NUMERATOR32 = REG_DIV_NUMER_L;
+
+  DIV_DENOMINATOR64 = REG_DIV_DENOM;
+  DIV_DENOMINATOR32 = REG_DIV_DENOM_L;
+
+  DIV_RESULT64 = REG_DIV_RESULT;
+  DIV_RESULT32 = REG_DIV_RESULT_L;
+
+  DIV_REMAINDER64 = REG_DIVREM_RESULT;
+  DIV_REMAINDER32 = REG_DIVREM_RESULT_L;
+
+  SQRT_CR = REG_SQRTCNT;
+
+  SQRT_PARAM64 = REG_SQRT_PARAM;
+  SQRT_PARAM32 = REG_SQRT_PARAM_L;
+
+  SQRT_RESULT32 = REG_SQRT_RESULT;
+
+
+  DISPLAY_CR = REG_DISPCNT;
 
 {$ifdef ARM9}
   {$define   WAIT_CR := REG_EXMEMCNT}
@@ -54,46 +76,33 @@ const
 {$define   DISP_SR := REG_DISPSTAT}
 {$define   DISP_Y := REG_VCOUNT}
   
-  REG_BGCTRL		: pcuint16 = pointer($4000008);
-  REG_BG0CNT		: pcuint16 = pointer($4000008);
-  REG_BG1CNT		: pcuint16 = pointer($400000A);
-  REG_BG2CNT		: pcuint16 = pointer($400000C);
-  REG_BG3CNT		: pcuint16 = pointer($400000E);
+  BG0_CR = REG_BG0CNT;
+  BG1_CR = REG_BG1CNT;
+  BG2_CR = REG_BG2CNT;
+  BG3_CR = REG_BG3CNT;
   
-  REG_BGOFFSETS	: pcuint16 = pointer($4000010);
-  REG_BG0HOFS		: pcuint16 = pointer($4000010);
-  REG_BG0VOFS		: pcuint16 = pointer($4000012);
-  REG_BG1HOFS		: pcuint16 = pointer($4000014);
-  REG_BG1VOFS		: pcuint16 = pointer($4000016);
-  REG_BG2HOFS		: pcuint16 = pointer($4000018);
-  REG_BG2VOFS		: pcuint16 = pointer($400001A);
-  REG_BG3HOFS		: pcuint16 = pointer($400001C);
-  REG_BG3VOFS		: pcuint16 = pointer($400001E);
+  BG0_X0 = REG_BG0HOFS; 
+  BG0_Y0 = REG_BG0VOFS;
+  BG1_X0 = REG_BG1HOFS;
+  BG1_Y0 = REG_BG1VOFS;
+  BG2_X0 = REG_BG2HOFS;
+  BG2_Y0 = REG_BG2VOFS;
+  BG3_X0 = REG_BG3HOFS;
+  BG3_Y0 = REG_BG3VOFS;
   
-  REG_BG2PA		: pcuint16 = pointer($4000020);
-  REG_BG2PB		: pcuint16 = pointer($4000022);
-  REG_BG2PC		: pcuint16 = pointer($4000024);
-  REG_BG2PD		: pcuint16 = pointer($4000026);
+  BG2_XDX = REG_BG2PA;
+  BG2_XDY = REG_BG2PB;
+  BG2_YDX = REG_BG2PC;
+  BG2_YDY = REG_BG2PD;
+  BG2_CX = REG_BG2X;
+  BG2_CY = REG_BG2Y;
   
-  REG_BG2X		: pcuint32 = pointer($4000028);
-  REG_BG2X_L		: pcuint16 = pointer($4000028);
-  REG_BG2X_H		: pcuint16 = pointer($400002A);
-  
-  REG_BG2Y		: pcuint32 = pointer($400002C);
-  REG_BG2Y_L		: pcuint16 = pointer($400002C);
-  REG_BG2Y_H		: pcuint16 = pointer($400002E);
-  
-  REG_BG3PA		: pcuint16 = pointer($4000030);
-  REG_BG3PB		: pcuint16 = pointer($4000032);
-  REG_BG3PC		: pcuint16 = pointer($4000034);
-  REG_BG3PD		: pcuint16 = pointer($4000036);
-  
-  REG_BG3X		: pcuint32 = pointer($4000038);
-  REG_BG3X_L		: pcuint16 = pointer($4000038);
-  REG_BG3X_H		: pcuint16 = pointer($400003A);
-  REG_BG3Y		: pcuint32 = pointer($400003C);
-  REG_BG3Y_L		: pcuint16 = pointer($400003C);
-  REG_BG3Y_H		: pcuint16 = pointer($400003E);
+  BG3_XDX = REG_BG3PA;
+  BG3_XDY = REG_BG3PB;
+  BG3_YDX = REG_BG3PC;
+  BG3_XDY = REG_BG3PD;
+  BG3_CX = REG_BG3X;
+  BG3_CY = REG_BG3Y;
   
   REG_WIN0H		: pcuint16 = pointer($4000040);
   REG_WIN1H		: pcuint16 = pointer($4000042);
@@ -106,9 +115,13 @@ const
   REG_MOSAIC_L	: pcuint32 = pointer($400004C);
   REG_MOSAIC_H	: pcuint32 = pointer($400004E);
   
-  REG_BLDMOD		: pcuint16 = pointer($4000050);
-  REG_COLV		: pcuint16 = pointer($4000052);
-  REG_COLY		: pcuint16 = pointer($4000054);
+  BLEND_CR = REG_BLDCNT;
+  BLEND_AB = REG_BLDALPHA;
+  BLEND_Y = REG_BLDY;
+
+  SUB_BLEND_CR = REG_BLDCNT_SUB;
+  SUB_BLEND_AB = REG_BLDALPHA_SUB;
+  SUB_BLEND_Y = REG_BLDY_SUB;
 
 {$ifdef ARM7}
   {$define SERIAL_CR := REG_SPICNT}
@@ -116,43 +129,42 @@ const
   {$define SIO_CR := REG_SIOCNT}
   {$define R_CR := REG_RCNT}  
 {$endif ARM7}
+
+  DISP_CAPTURE = REG_DISPCAPCNT;
+
+  BRIGHTNESS = REG_MASTER_BRIGHT;
+  SUB_BRIGHTNESS = REG_MASTER_BRIGHT_SUB;
+
   (*	secondary screen *)
-  REG_DISPCNT_SUB		: pcuint32 = pointer($4001000);
-  REG_BGCTRL_SUB		: pcuint16 = pointer($4001008);
-  REG_BG0CNT_SUB		: pcuint16 = pointer($4001008);
-  REG_BG1CNT_SUB		: pcuint16 = pointer($400100A);
-  REG_BG2CNT_SUB		: pcuint16 = pointer($400100C);
-  REG_BG3CNT_SUB		: pcuint16 = pointer($400100E);
+  SUB_DISPLAY_CR = REG_DISPCNT_SUB;
+
+  SUB_BG0_CR = REG_BG0CNT_SUB;
+  SUB_BG1_CR = REG_BG1CNT_SUB;
+  SUB_BG2_CR = REG_BG2CNT_SUB;
+  SUB_BG3_CR = REG_BG3CNT_SUB;
   
-  REG_BGOFFSETS_SUB	: pcuint16 = pointer($4001010);
-  REG_BG0HOFS_SUB		: pcuint16 = pointer($4001010);
-  REG_BG0VOFS_SUB		: pcuint16 = pointer($4001012);
-  REG_BG1HOFS_SUB		: pcuint16 = pointer($4001014);
-  REG_BG1VOFS_SUB		: pcuint16 = pointer($4001016);
-  REG_BG2HOFS_SUB		: pcuint16 = pointer($4001018);
-  REG_BG2VOFS_SUB		: pcuint16 = pointer($400101A);
-  REG_BG3HOFS_SUB		: pcuint16 = pointer($400101C);
-  REG_BG3VOFS_SUB		: pcuint16 = pointer($400101E);
+  SUB_BG0_X0 = REG_BG0HOFS_SUB; 
+  SUB_BG0_Y0 = REG_BG0VOFS_SUB;
+  SUB_BG1_X0 = REG_BG1HOFS_SUB;
+  SUB_BG1_Y0 = REG_BG1VOFS_SUB;
+  SUB_BG2_X0 = REG_BG2HOFS_SUB;
+  SUB_BG2_Y0 = REG_BG2VOFS_SUB;
+  SUB_BG3_X0 = REG_BG3HOFS_SUB;
+  SUB_BG3_Y0 = REG_BG3VOFS_SUB;
   
-  REG_BG2PA_SUB		: pcuint16 = pointer($4001020);
-  REG_BG2PB_SUB		: pcuint16 = pointer($4001022);
-  REG_BG2PC_SUB		: pcuint16 = pointer($4001024);
-  REG_BG2PD_SUB		: pcuint16 = pointer($4001026);
+  SUB_BG2_XDX = REG_BG2PA_SUB;
+  SUB_BG2_XDY = REG_BG2PB_SUB;
+  SUB_BG2_YDX = REG_BG2PC_SUB;
+  SUB_BG2_YDY = REG_BG2PD_SUB;
+  SUB_BG2_CX = REG_BG2X_SUB;
+  SUB_BG2_CY = REG_BG2Y_SUB;
   
-  REG_BG2X_SUB		: pcuint32 = pointer($4001028);
-  REG_BG2Y_SUB		: pcuint32 = pointer($400102C);
-  
-  REG_BG3PA_SUB		: pcuint16 = pointer($4001030);
-  REG_BG3PB_SUB		: pcuint16 = pointer($4001032);
-  REG_BG3PC_SUB		: pcuint16 = pointer($4001034);
-  REG_BG3PD_SUB		: pcuint16 = pointer($4001036);
-  
-  REG_BG3X_SUB		: pcuint32 = pointer($4001038);
-  REG_BG3X_L_SUB		: pcuint16 = pointer($4001038);
-  REG_BG3X_H_SUB		: pcuint16 = pointer($400103A);
-  REG_BG3Y_SUB		: pcuint32 = pointer($400103C);
-  REG_BG3Y_L_SUB		: pcuint16 = pointer($400103C);
-  REG_BG3Y_H_SUB		: pcuint16 = pointer($400103E);
+  SUB_BG3_XDX = REG_BG3PA_SUB;
+  SUB_BG3_XDY = REG_BG3PB_SUB;
+  SUB_BG3_YDX = REG_BG3PC_SUB;
+  SUB_BG3_XDY = REG_BG3PD_SUB;
+  SUB_BG3_CX = REG_BG3X_SUB;
+  SUB_BG3_CY = REG_BG3Y_SUB;
   
   REG_WIN0H_SUB		: pcuint16 = pointer($4001040);
   REG_WIN1H_SUB		: pcuint16 = pointer($4001042);
@@ -162,16 +174,15 @@ const
   REG_WINOUT_SUB		: pcuint16 = pointer($400104A);
   
   REG_MOSAIC_SUB		: pcuint32 = pointer($400104C);
-  REG_MOSAIC_L_SUB	: pcuint32 = pointer($400104C);
-  REG_MOSAIC_H_SUB	: pcuint32 = pointer($400104E);
+  REG_MOSAIC_L_SUB	: pcuint16 = pointer($400104C);
+  REG_MOSAIC_H_SUB	: pcuint16 = pointer($400104E);
   
   REG_BLDMOD_SUB	: pcuint16 = pointer($4001050);
   REG_COLV_SUB	: pcuint16 = pointer($4001052);
   REG_COLY_SUB	: pcuint16 = pointer($4001054);
   
   (*common*)
-  REG_DMA			: pcuint32 = pointer($40000B0);
-  
+ 
   REG_DMA0SAD		: pcuint32 = pointer($40000B0);
   REG_DMA0SAD_L	: pcuint16 = pointer($40000B0);
   REG_DMA0SAD_H	: pcuint16 = pointer($40000B2);
@@ -310,4 +321,8 @@ const
   REG_CARD_1B4		: pcuint32 = pointer($040001B4);
   REG_CARD_1B8		: pcuint16 = pointer($040001B8);
   REG_CARD_1BA		: pcuint16 = pointer($040001BA);
+  
+  SOUND_CR          = REG_SOUNDCNT;
+  SOUND_MASTER_VOL  = REG_MASTER_VOLUME;
+  SOUND_BIAS        = REG_SOUNDBIAS;
 {$endif NDS_INTERFACE}

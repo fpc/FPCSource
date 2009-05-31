@@ -4,17 +4,17 @@
 
 [package]
 name=libgbafpc
-version=2.2.2
+version=2.2.4a
 
 [target]
 loaders=core_asm
-units=gba
+units=gba maxmod
 exampledirs=examples
 
 
 [compiler]
 options=
-includedir=src
+includedir=src src/maxmod
 sourcedir=src tests
 
 [prerules]

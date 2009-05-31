@@ -58,8 +58,11 @@ const
   KEY_Y      : KEYPAD_BITS = (1 shl 11); // Keypad Y button.
   KEY_TOUCH  : KEYPAD_BITS = (1 shl 12); // Touchscreen pendown.
   KEY_LID    : KEYPAD_BITS = (1 shl 13); // Lid state.
+
   
 procedure scanKeys(); cdecl; external;
+
+function keysCurrent(): cuint32; cdecl; external;
 
 function keysHeld(): cuint32; cdecl; external;
 
@@ -72,4 +75,6 @@ procedure keysSetRepeat(setDelay: cuint8; setRepeat: cuint8); cdecl; external;
 function keysUp(): cuint32; cdecl; external;
 
 function touchReadXY(): touchPosition; cdecl; external;
+
+procedure touchRead(var data: touchPosition); cdecl; external;
 {$endif NDS_INTERFACE}

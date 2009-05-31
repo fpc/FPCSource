@@ -24,10 +24,10 @@ interface
 {$define FPC_HAS_FEATURE_TEXTIO}
 {$define FPC_HAS_FEATURE_FILEIO}
 
-
 {$i systemh.inc}
 {$i ndsbiosh.inc}
 {$i ndsh.inc}
+
 
 
 {$define fpc_softfpu_interface}
@@ -65,7 +65,7 @@ var
   argc: LongInt = 0;
   argv: PPChar;
   envp: PPChar;
-  errno: integer;
+//  errno: integer;
   fake_heap_end: ^byte; cvar; external;
   irq_vector: integer; external name '__irq_vector';
   
@@ -92,6 +92,7 @@ implementation
 {$i system.inc}
 {$i ndsbios.inc}
 {$i nds.inc}
+
 
 
 {$ifdef FPC_HAS_FEATURE_PROCESSES}

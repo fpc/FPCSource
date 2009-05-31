@@ -13,7 +13,8 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  *****************************************************************************}
- 
+
+(*
 type
   TStat = packed record
     st_dev: qword;
@@ -40,8 +41,9 @@ type
     __unused5 : dword;
   end;
   PStat = ^TStat;
-  
+*)
   (* libc file handling types and routines *)
+(*
   _FILE = record
     firstCluster: longword;
     length: longword;
@@ -61,6 +63,7 @@ type
     dirEntOffset: integer;                // The offset within the directory sector
   end;
   P_FILE = ^_FILE;
+*)
 
 type
     TDoOpen     = procedure (var f; p: pchar; flags: longint);
@@ -113,12 +116,9 @@ type
   PFileIODevice = ^TFileIODevice;
 
 
-
-
-
-
-
 function IsARM9(): boolean;
+
+
 procedure AssignDevice(const FIOD: TFileIODevice);
 
 var

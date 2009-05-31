@@ -38,7 +38,81 @@
 
 *)
 
+{$ifdef NDS_INTERFACE}
+type
+  ClockDivider = cint;
+const
+  ClockDivider_1   : ClockDivider = 0;
+  ClockDivider_64  : ClockDivider = 1;
+  ClockDivider_256 : ClockDivider = 2;
+  ClockDivider_1024: ClockDivider = 3;
+
+
+procedure timerStart(channel: cint; divider: ClockDivider; ticks: cuint16; callback: fp); cdecl; external; 
+function timerElapsed(channel: cint): cuint16; cdecl; external;
+
+function timerFreqToTicks_1(freq: cint): cuint16; inline;
+function timerFreqToTicks_64(freq: cint): cuint16; inline;
+function timerFreqToTicks_256(freq: cint): cuint16; inline;
+function timerFreqToTicks_1024(freq: cint): cuint16; inline;
+
+function TIMER_FREQ(n: cint): cint; inline;
+function TIMER_FREQ_64(n: cint): cint; inline;
+function TIMER_FREQ_256(n: cint): cint; inline;
+function TIMER_FREQ_1024(n: cint): cint; inline; 
+
+const
+  TIMER0_DATA    : pcuint16 = pointer($04000100);
+  TIMER1_DATA    : pcuint16 = pointer($04000104);
+  TIMER2_DATA    : pcuint16 = pointer($04000108);
+  TIMER3_DATA    : pcuint16 = pointer($0400010C);
+function TIMER_DATA(n: cuint): pcuint16; inline;
+
+
+const
+  TIMER0_CR   : pcuint16 = pointer($04000102);
+  TIMER1_CR   : pcuint16 = pointer($04000106);
+  TIMER2_CR   : pcuint16 = pointer($0400010A);
+  TIMER3_CR   : pcuint16 = pointer($0400010E);
+function TIMER_CR(n: cint): pcuint16; inline;
+
+const
+  TIMER_ENABLE    = (1 shl 7);
+  TIMER_IRQ_REQ   = (1 shl 6);
+  TIMER_CASCADE   = (1 shl 2);
+  TIMER_DIV_1     = (0);
+  TIMER_DIV_64    = (1);
+  TIMER_DIV_256   = (2);
+  TIMER_DIV_1024  = (3);
+
+procedure timerStop(channel: cint); inline;
+
+{$endif NDS_INTERFACE}
+
+
+
 {$ifdef NDS_IMPLEMENTATION}
+
+function timerFreqToTicks_1(freq: cint): cuint16; inline;
+begin
+  result := -$2000000 div freq;
+end;
+
+function timerFreqToTicks_64(freq: cint): cuint16; inline;
+begin
+  result := (-$2000000 shr 6) div freq;
+end;
+
+function timerFreqToTicks_256(freq: cint): cuint16; inline;
+begin
+  result := (-$2000000 shr 8) div freq;
+end;
+
+function timerFreqToTicks_1024(freq: cint): cuint16; inline;
+begin
+  result := (-$2000000 shr 10) div freq;
+end;
+
 function TIMER_FREQ(n: cint): cint; inline;
 begin
   TIMER_FREQ := cint(-$2000000 div (n));
@@ -58,73 +132,19 @@ function TIMER_FREQ_1024(n: cint): cint; inline;
 begin
   TIMER_FREQ_1024 := cint(-($2000000 shr 10) div (n));
 end;
-{$endif NDS_IMPLEMENTATION}
 
-{$ifdef NDS_INTERFACE}
-const
-  //!	Same as %TIMER_DATA(0).
-  TIMER0_DATA    : pcuint16 = pointer($04000100);
-  //!	Same as %TIMER_DATA(1).
-  TIMER1_DATA    : pcuint16 = pointer($04000104);
-  //!	Same as %TIMER_DATA(2).
-  TIMER2_DATA    : pcuint16 = pointer($04000108);
-  //!	Same as %TIMER_DATA(3).
-  TIMER3_DATA    : pcuint16 = pointer($0400010C);
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_IMPLEMENTATION}
 function TIMER_DATA(n: cuint): pcuint16; inline;
 begin
   TIMER_DATA := pcuint16($04000100 + (n shl 2));
 end;
-{$endif NDS_IMPLEMENTATION}
 
-{$ifdef NDS_INTERFACE}
-const
-// Timer control registers
-  //!	Same as %TIMER_CR(0).
-  TIMER0_CR   : pcuint16 = pointer($04000102);
-  //!	Same as %TIMER_CR(1).
-  TIMER1_CR   : pcuint16 = pointer($04000106);
-  //!	Same as %TIMER_CR(2).
-  TIMER2_CR   : pcuint16 = pointer($0400010A);
-  //!	Same as %TIMER_CR(3).
-  TIMER3_CR   : pcuint16 = pointer($0400010E);
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_IMPLEMENTATION}
 function TIMER_CR(n: cint): pcuint16; inline;
 begin
   TIMER_CR := pcuint16($04000102 + (n shl 2));
 end;
+
+procedure timerStop(channel: cint); inline;
+begin
+  TIMER_CR(channel)^ := TIMER_CR(channel)^ and not TIMER_ENABLE;
+end;
 {$endif NDS_IMPLEMENTATION}
-
-{$ifdef NDS_INTERFACE}
-const
-  //!	Enables the timer.
-  TIMER_ENABLE  = (1 shl 7);
-
-  //!	Causes the timer to request an Interupt on overflow.
-  TIMER_IRQ_REQ = (1 shl 6);
-
-  //!	When set will cause the timer to count when the timer below overflows (unavailable for timer 0).
-  TIMER_CASCADE = (1 shl 2);
-  
-  //!	Causes the timer to count at 33.514Mhz.
-  TIMER_DIV_1   =  (0);
-  //!	Causes the timer to count at (33.514 / 64) Mhz.
-  TIMER_DIV_64  = (1);
-  //!	Causes the timer to count at (33.514 / 256) Mhz.
-  TIMER_DIV_256 = (2);
-  //!	Causes the timer to count at (33.514 / 1024)Mhz.
-  TIMER_DIV_1024  = (3);
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_INTERFACE}
-function TIMER_FREQ(n: cint): cint; inline;
-function TIMER_FREQ_64(n: cint): cint; inline;
-function TIMER_FREQ_256(n: cint): cint; inline;
-function TIMER_FREQ_1024(n: cint): cint; inline; 
-function TIMER_DATA(n: cuint): pcuint16; inline;
-function TIMER_CR(n: cint): pcuint16; inline;
-{$endif NDS_INTERFACE}
