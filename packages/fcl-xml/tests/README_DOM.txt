@@ -13,9 +13,18 @@ implementation frees. Therefore, running the tests WILL result in heap
 corruption, executing arbitrary code, and any other imaginable kind of
 disaster. Be warned.
 
+[Update: This was fixed in SVN revision 13196, dated 26 May 2009.]
+
 *** End of notice
 --------------------------------------------------------------------
 
+The fcl-xml package support for testing its DOM implementation consists of
+the following files:
+
+1) testgen.pp  - an utility for generating Pascal source from XML descriptions.
+2) api.xml     - database used by testgen.
+3) domunit.pp  - FPCUnit extensions required at runtime.
+4) README_DOM.txt - this file.
 
 To test the FCL DOM implementation, follow these steps:
 
@@ -45,12 +54,19 @@ Level 1 Core (527 tests):
 
 Level 2 Core (282 tests):
   testgen 2001/DOM-Test-Suite/tests/level2/core core2.pp
+  
+Level 2 HTML (677 out of 685 tests, only conversion -- not runnable yet):
+  testgen 2001/DOM-Test-Suite/tests/level2/html html2.pp
 
 Level 3 Core (partial only, 131 out of 722 tests):
   testgen 2001/DOM-Test-Suite/tests/level3/core core3.pp
+  
+Level 3 XPath (63 tests, only conversion -- not runnable yet):
+  testgen 2001/DOM-Test-Suite/tests/level3/xpath xpath3.pp
 
-In the examples above, output names (core1.pp, etc.) carry no defined meaning, you may
-use anything instead.
+In the examples above, output names (core1.pp, etc.) carry no defined meaning, except
+they are used to construct test names which appear in the test reports. The test name
+is constructed from the unit name by removing the extension and adding a 'TTest' prefix.
 
 Normally, tests that contain properties/methods unsupported by FCL DOM, or
 other elements not yet known to testgen, will be skipped. The conversion may be forced
@@ -62,4 +78,7 @@ its uses clause, and compile. During compilation, path to 'domunit.pp' should be
 to the unit search paths.
 
 5) During runtime, tests must be able to read test files which are located
-within CVS source tree ('files' subdirectory of each module directory).
+within CVS source tree ('files' subdirectory of each module directory). For this purpose,
+each generated test class contains a function 'GetTestFilesURI' which returns the path
+that was supplied to testgen. Therefore, either use an absolute path, or ensure that both
+generated sources and the test executable are located in the same directory.
