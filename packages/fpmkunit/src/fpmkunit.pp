@@ -4596,7 +4596,7 @@ end;
 
 function TTarget.HaveOptions: Boolean;
 begin
-
+  Result:=(FOptions<>Nil);
 end;
 
 
