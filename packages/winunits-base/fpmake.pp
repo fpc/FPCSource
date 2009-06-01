@@ -49,6 +49,7 @@ begin
 	  AddUnit('wininet');
           AddUnit('uxtheme');  
           AddInclude('tmschema.inc');
+          AddUnit('dwmapi');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -69,6 +70,7 @@ begin
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('wininet.pp');
     T:=P.Targets.AddImplicitUnit('uxtheme.pp');
+    T:=P.Targets.AddImplicitUnit('dwmapi.pp');
     T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');
