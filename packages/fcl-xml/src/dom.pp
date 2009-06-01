@@ -290,6 +290,8 @@ type
 //   NodeList
 // -------------------------------------------------------
 
+  TFilterResult = (frFalse, frNorecurseFalse, frTrue, frNorecurseTrue);
+
   TDOMNodeList = class(TObject)
   protected
     FNode: TDOMNode;
@@ -297,6 +299,8 @@ type
     FList: TFPList;
     function GetCount: LongWord;
     function GetItem(index: LongWord): TDOMNode;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; virtual;
+    // now deprecated in favor of NodeFilter
     procedure BuildList; virtual;
   public
     constructor Create(ANode: TDOMNode);
@@ -313,7 +317,7 @@ type
     filter: DOMString;
     FNamespaceFilter: DOMString;
     UseFilter: Boolean;
-    procedure BuildList; override;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; override;
   public
     constructor Create(ANode: TDOMNode; const AFilter: DOMString); overload;
     constructor Create(ANode: TDOMNode; const nsURI, localName: DOMString); overload;
@@ -1412,18 +1416,43 @@ begin
   inherited Destroy;
 end;
 
+function TDOMNodeList.NodeFilter(aNode: TDOMNode): TFilterResult;
+begin
+// accept all nodes but don't allow recursion
+  Result := frNorecurseTrue;
+end;
+
 procedure TDOMNodeList.BuildList;
 var
-  Child: TDOMNode;
+  current, next: TDOMNode;
+  res: TFilterResult;
 begin
   FList.Clear;
   FRevision := FNode.GetRevision; // refresh
 
-  Child := FNode.FirstChild;
-  while Assigned(Child) do
+  current := FNode.FirstChild;
+
+  while Assigned(current) do
   begin
-    FList.Add(Child);
-    Child := Child.NextSibling;
+    res := NodeFilter(current);
+    if res in [frTrue, frNorecurseTrue] then
+      FList.Add(current);
+
+    next := nil;
+    if res in [frTrue, frFalse] then
+      next := current.FirstChild;
+
+    if next = nil then
+    begin
+      while current <> FNode do
+      begin
+        next := current.NextSibling;
+        if Assigned(next) then
+          Break;
+        current := current.ParentNode;
+      end;
+    end;
+    current := next;
   end;
 end;
 
@@ -1464,33 +1493,13 @@ begin
 end;
 
 // TODO: namespace support here
-procedure TDOMElementList.BuildList;
-var
-  Child: TDOMNode;
+function TDOMElementList.NodeFilter(aNode: TDOMNode): TFilterResult;
 begin
-  FList.Clear;
-  FRevision := FNode.GetRevision; // refresh
-
-  Child := FNode.FirstChild;
-  while Assigned(Child) and (Child <> FNode) do
-  begin
-    if (Child.NodeType = ELEMENT_NODE) and (not UseFilter or (TDOMElement(Child).TagName = filter)) then
-          FList.Add(Child);
-    // recursive track node hierarchy  
-    if Assigned(Child.FirstChild) then
-      Child := Child.FirstChild
-    else
-      if Assigned(Child.NextSibling) then
-        Child := Child.NextSibling
-      else
-      begin
-         Child := Child.ParentNode;
-         while Assigned(Child) and (Child <> FNode) and not Assigned(Child.NextSibling) do
-           Child := Child.ParentNode;
-         if Assigned(Child) and (Child <> FNode) then
-            Child := Child.NextSibling;
-      end;
-  end;
+  if (aNode.NodeType = ELEMENT_NODE) and
+    (not UseFilter or (TDOMElement(aNode).TagName = Filter)) then
+    Result := frTrue
+  else
+    Result := frFalse;
 end;
 
 
