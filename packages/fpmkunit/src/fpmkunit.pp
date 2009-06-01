@@ -210,13 +210,19 @@ Type
     FCommandAt: TCommandAt;
     FDestFile: String;
     FIgnoreResult: Boolean;
-    FOptions: String;
+    FOptions: TStrings;
     FSourceFile: String;
+    Function GetOptions : TStrings;
+    Procedure SetOptions(Const Value : TStrings);
   Public
+    Destructor Destroy; override;
+    Function HaveOptions : Boolean;
+    Function CmdLineOptions : String;
+    Procedure ParseOptions(S : String);
     Property SourceFile : String Read FSourceFile Write FSourceFile;
     Property DestFile : String Read FDestFile Write FDestFile;
     Property Command : String Read FCommand Write FCommand;
-    Property Options : String Read FOptions Write FOptions;
+    Property Options : TStrings Read GetOptions Write SetOptions;
     Property At : TCommandAt Read FCommandAt Write FCommandAt;
     Property IgnoreResult : Boolean Read FIgnoreResult Write FIgnoreResult;
     Property BeforeCommand : TNotifyEvent Read FBeforeCommand Write FBeforeCommand;
@@ -370,10 +376,12 @@ Type
     FExtension: String;
     FTargetSourceFileName : String;
     FFileType: TFileType;
-    FOptions: String;
+    FOptions: TStrings;
     FFPCTarget: String;
     FTargetState: TTargetState;
     FTargetType: TTargetType;
+    function GetOptions: TStrings;
+    procedure SetOptions(const AValue: TStrings);
   Protected
     Function GetSourceFileName : String; virtual;
     Function GetUnitFileName : String; virtual;
@@ -384,6 +392,7 @@ Type
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
+    Function HaveOptions : Boolean;
     procedure SetName(const AValue: String);override;
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB: String; ACPU:TCPU; AOS : TOS); virtual;
@@ -395,7 +404,7 @@ Type
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
     Property Mode : TCompilerMode Read FMode Write FMode;
-    Property Options : String Read FOptions Write Foptions;
+    Property Options : TStrings Read GetOptions Write SetOptions;
     Property SourceFileName: String Read GetSourceFileName ;
     Property UnitFileName : String Read GetUnitFileName;
     Property ObjectFileName : String Read GetObjectFileName;
@@ -515,7 +524,7 @@ Type
     FTargets: TTargets;
     FSources: TSources;
     FDirectory: String;
-    FOptions: String;
+    FOptions: TStrings;
     FFileName: String;
     FAuthor: String;
     FLicense: String;
@@ -532,7 +541,9 @@ Type
     FUnitDir : String;
     Function GetDescription : string;
     Function GetFileName : string;
+    function GetOptions: TStrings;
     Function GetVersion : string;
+    procedure SetOptions(const AValue: TStrings);
     Procedure SetVersion(const V : string);
   Protected
     procedure SetName(const AValue: String);override;
@@ -541,6 +552,7 @@ Type
   Public
     constructor Create(ACollection: TCollection); override;
     destructor destroy; override;
+    Function HaveOptions : Boolean;
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
@@ -562,7 +574,7 @@ Type
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
     Property NeedLibC : Boolean Read FNeedLibC Write FNeedLibC;
-    Property Options: String Read FOptions Write FOptions;
+    Property Options: TStrings Read GetOptions Write SetOptions;
     Property UnitPath : TConditionalStrings Read FUnitPath;
     Property ObjectPath : TConditionalStrings Read FObjectPath;
     Property IncludePath : TConditionalStrings Read FIncludePath;
@@ -613,7 +625,7 @@ Type
     FCopy: String;
     FMkDir: String;
     FMove: String;
-    FOptions: String;
+    FOptions: TStrings;
     FCPU: TCPU;
     FOS: TOS;
     FMode : TCompilerMode;
@@ -637,19 +649,23 @@ Type
     function GetCompiler: String;
     function GetDocInstallDir: String;
     function GetExamplesInstallDir: String;
+    function GetOptions: TStrings;
     function GetUnitInstallDir: String;
     procedure SetLocalUnitDir(const AValue: String);
     procedure SetGlobalUnitDir(const AValue: String);
     procedure SetBaseInstallDir(const AValue: String);
     procedure SetCPU(const AValue: TCPU);
+    procedure SetOptions(const AValue: TStrings);
     procedure SetOS(const AValue: TOS);
     procedure SetPrefix(const AValue: String);
     procedure SetTarget(const AValue: String);
   Protected
     procedure RecalcTarget;
+    Function CmdLineOptions : String;
   Public
     Constructor Create;
     Procedure InitDefaults;
+    Function HaveOptions: Boolean;
     procedure CompilerDefaults; virtual;
     Procedure LocalInit(Const AFileName : String);
     Procedure LoadFromFile(Const AFileName : String);
@@ -662,7 +678,7 @@ Type
     Property CPU : TCPU Read FCPU Write SetCPU;
     Property Mode : TCompilerMode Read FMode Write FMode;
     Property UnixPaths : Boolean Read FUnixPaths Write FUnixPaths;
-    Property Options : String Read FOptions Write FOptions;    // Default compiler options.
+    Property Options : TStrings Read GetOptions Write SetOptions;    // Default compiler options.
     Property NoFPCCfg : Boolean Read FNoFPCCfg Write FNoFPCCfg;
     // paths etc.
     Property LocalUnitDir : String Read GetLocalUnitDir Write SetLocalUnitDir;
@@ -1435,12 +1451,11 @@ begin
     List[i] := ExtractRelativepath(IncludeTrailingPathDelimiter(CurrDir), List[i]);
 end;
 
-
-procedure SplitCommand(const Cmd : String; var Exe, Options : String);
-
 Const
   WhiteSpace = [#9,#10,#13,' '];
   QuoteChars = ['''','"'];
+
+procedure SplitCommand(const Cmd : String; var Exe, Options : String);
 
 Var
   I : Integer;
@@ -1468,6 +1483,46 @@ begin
   Exe:=Copy(S,1,I-1);
   Delete(S,1,I);
   Options:=Trim(S);
+end;
+
+Function OptionListToString(L : TStrings) : String;
+
+var
+  I : Integer;
+  S : String;
+
+begin
+  Result:='';
+  For I:=0 to L.Count-1 do
+    begin
+    If (Result<>'') then
+      Result:=Result+' ';
+    S:=L[I];
+    If (Pos(' ',S)<>0) or (S='') then
+     Result:='"'+S+'"';
+    end;
+end;
+
+Function OptionsToStringList(S : String) : TStrings;
+
+Var
+  P : Integer;
+
+begin
+  Result:=Nil;
+  If (S='') then
+    Exit;
+  Result:=TStringList.Create;
+  Repeat
+    P:=Pos(' ',S);
+    If P=0 then
+      P:=Length(S)+1;
+    Result.Add(Copy(S,1,P-1));
+    Delete(S,1,P);
+    S:=Trim(S);
+  Until Length(S)=0;
+  If Result.Count=0 then
+    FreeAndNil(Result);
 end;
 
 
@@ -1883,7 +1938,13 @@ begin
   FreeAndNil(FSources);
   FreeAndNil(FTargets);
   FreeAndNil(FVersion);
+  FreeAndNil(FOptions);
   inherited destroy;
+end;
+
+function TPackage.HaveOptions: Boolean;
+begin
+  Result:=(FOptions<>Nil);
 end;
 
 
@@ -1981,6 +2042,14 @@ begin
   result:=FVersion.AsString;
 end;
 
+procedure TPackage.SetOptions(const AValue: TStrings);
+begin
+  If (AValue=Nil) or (AValue.Count=0) then
+    FreeAndNil(Foptions)
+  else
+    Options.Assign(AValue);
+end;
+
 
 Procedure TPackage.SetVersion(const V : string);
 begin
@@ -1997,6 +2066,13 @@ begin
       Result := Name + '-' + FVersion.AsString
     else
       Result := Name;
+end;
+
+function TPackage.GetOptions: TStrings;
+begin
+  If (FOptions=Nil) then
+    FOptions:=TStringList.Create;
+  Result:=FOptions;
 end;
 
 
@@ -2204,6 +2280,14 @@ begin
   RecalcTarget;
 end;
 
+procedure TCustomDefaults.SetOptions(const AValue: TStrings);
+begin
+  If (AValue=Nil) or (AValue.Count=0) then
+    FreeAndNil(Foptions)
+  else
+    Options.Assign(AValue)
+end;
+
 
 function TCustomDefaults.GetBaseInstallDir: String;
 begin
@@ -2259,6 +2343,13 @@ begin
       Result:=Prefix+'share'+PathDelim+'docs'+PathDelim+'examples'
     else
       Result:=BaseInstallDir+'examples';
+end;
+
+function TCustomDefaults.GetOptions: TStrings;
+begin
+  If (FOptions=Nil) then
+    FOptions:=TStringList.Create;
+  Result:=FOptions;
 end;
 
 
@@ -2361,6 +2452,12 @@ begin
   Ftarget:=CPUToString(FCPU)+'-'+OStoString(FOS);
 end;
 
+function TCustomDefaults.CmdLineOptions: String;
+begin
+  If Haveoptions then
+    Result:=OptionListToString(FOptions);
+end;
+
 
 constructor TCustomDefaults.Create;
 begin
@@ -2378,6 +2475,11 @@ begin
   FNoFPCCfg:=False;
   FCPU:=cpuNone;
   FOS:=osNone;
+end;
+
+function TCustomDefaults.HaveOptions: Boolean;
+begin
+  Result:=Assigned(FOptions);
 end;
 
 
@@ -2486,7 +2588,7 @@ begin
       Values[KeyCopy]:=FCopy;
       Values[KeyMkDir]:=FMkDir;
       Values[KeyMove]:=FMove;
-      Values[KeyOptions]:=FOptions;
+      Values[KeyOptions]:=CmdLineOptions;
       Values[KeyCPU]:=CPUToString(FCPU);
       Values[KeyOS]:=OSToString(FOS);
       Values[KeyMode]:=ModeToString(FMode);
@@ -2538,7 +2640,7 @@ begin
       FMkDir:=Values[KeyMkDir];
       FMove:=Values[KeyMove];
       FRemove:=Values[KeyRemove];
-      FOptions:=Values[KeyOptions];
+      Options:=OptionsToStringList(Values[KeyOptions]);
       Line:=Values[KeyCPU];
       If (Line<>'') then
         FCPU:=StringToCPU(Line);
@@ -3228,7 +3330,7 @@ begin
             begin
             If Assigned(C.BeforeCommand) then
               C.BeforeCommand(C);
-            O:=Substitute(C.Options,['SOURCE',C.SourceFile,'DEST',C.DestFile]);
+            O:=Substitute(C.CmdLineOptions,['SOURCE',C.SourceFile,'DEST',C.DestFile]);
             Cmd:=C.Command;
             If (ExtractFilePath(Cmd)='') then
               Cmd:=ExeSearch(Cmd,GetEnvironmentvariable('PATH'));
@@ -3556,12 +3658,12 @@ begin
     Args.Add('-Fi'+L[i]);
   FreeAndNil(L);
   // Custom Options
-  If (Defaults.Options<>'') then
-    Args.Add(Defaults.Options);
-  If (APackage.Options<>'') then
-    Args.Add(APackage.Options);
-  If (ATarget.Options<>'') then
-    Args.Add(ATarget.Options);
+  If (Defaults.HaveOptions) then
+    Args.AddStrings(Defaults.Options);
+  If (APackage.HaveOptions) then
+    Args.AddStrings(APackage.Options);
+  If (ATarget.HaveOptions) then
+    Args.AddStrings(ATarget.Options);
   // Add Filename to compile
   Args.Add(ATarget.TargetSourceFileName);
   // Convert to string
@@ -4432,9 +4534,24 @@ begin
   FreeAndNil(FIncludePath);
   FreeAndNil(FDependencies);
   FreeAndNil(FCommands);
+  FreeAndNil(Foptions);
   inherited Destroy;
 end;
 
+function TTarget.GetOptions: TStrings;
+begin
+  If Foptions=Nil then
+    FOptions:=TStringList.Create;
+  Result:=FOptions;
+end;
+
+procedure TTarget.SetOptions(const AValue: TStrings);
+begin
+  If (AValue=Nil) or (AValue.Count=0) then
+    FreeAndNil(FOptions)
+  else
+    Options.Assign(AValue);
+end;
 
 function TTarget.GetSourceFileName: String;
 begin
@@ -4475,6 +4592,11 @@ begin
     Result:=GetUnitFileName
   else
     Result:=GetProgramFileName(AOs);
+end;
+
+function TTarget.HaveOptions: Boolean;
+begin
+
 end;
 
 
@@ -4615,7 +4737,8 @@ function TCommands.AddCommand(At: TCommandAt; const Cmd, Options, Dest, Source: 
 begin
   Result:=Add as TCommand;
   Result.Command:=Cmd;
-  Result.Options:=Options;
+  If (Options<>'') then
+    Result.ParseOptions(Options);
   Result.At:=At;
   Result.SourceFile:=Source;
   Result.DestFile:=Dest;
@@ -4972,7 +5095,6 @@ begin
     end;
 end;
 
-
 {****************************************************************************
                                  Default Instances
 ****************************************************************************}
@@ -4993,6 +5115,48 @@ begin
   Result := Installer(TFPCInstaller);
 end;
 
+
+
+{ TCommand }
+
+function TCommand.GetOptions: TStrings;
+begin
+  If (FOptions=Nil) then
+    FOptions:=TStringList.Create;
+  Result:=FOptions;
+end;
+
+procedure TCommand.SetOptions(const Value: TStrings);
+begin
+  If (Value=Nil) or (Value.Count=0) then
+    FreeAndNil(FOptions)
+  else
+    Options.Assign(Value);
+end;
+
+destructor TCommand.Destroy;
+begin
+  FreeAndNil(FOptions);
+  inherited Destroy;
+end;
+
+function TCommand.HaveOptions: Boolean;
+begin
+  Result:=(FOptions<>Nil);
+end;
+
+
+function TCommand.CmdLineOptions: String;
+begin
+  If HaveOptions then
+    Result:=OptionListToString(Options);
+end;
+
+procedure TCommand.ParseOptions(S: String);
+
+begin
+  Options:=OptionsToStringList(S);
+end;
 
 Initialization
   OnGetApplicationName:=@GetFPMakeName;
