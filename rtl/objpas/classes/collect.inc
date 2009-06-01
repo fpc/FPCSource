@@ -42,7 +42,7 @@ end;
 procedure TCollectionItem.Changed(AllItems: Boolean);
 
 begin
- If (FCollection<>Nil) then
+ If (FCollection<>Nil) and (FCollection.UpdateCount=0) then
   begin
   If AllItems then
     FCollection.Update(Nil)
@@ -123,7 +123,7 @@ end;
 
 function TCollection.Owner: TPersistent;
 begin
-        result:=getowner;
+  result:=getowner;
 end;
 
 
