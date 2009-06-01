@@ -315,7 +315,10 @@ type
   TDOMElementList = class(TDOMNodeList)
   protected
     filter: DOMString;
-    FNamespaceFilter: DOMString;
+    FNSIndexFilter: Integer;
+    localNameFilter: DOMString;
+    FMatchNS: Boolean;
+    FMatchAnyNS: Boolean;
     UseFilter: Boolean;
     function NodeFilter(aNode: TDOMNode): TFilterResult; override;
   public
@@ -1487,19 +1490,35 @@ end;
 constructor TDOMElementList.Create(ANode: TDOMNode; const nsURI, localName: DOMString);
 begin
   inherited Create(ANode);
-  filter := localName;
-  FNamespaceFilter := nsURI;
-  UseFilter := (filter <> '*') and (FNamespaceFilter <> '*');
+  localNameFilter := localName;
+  FMatchNS := True;
+  FMatchAnyNS := (nsURI = '*');
+  if not FMatchAnyNS then
+    FNSIndexFilter := ANode.FOwnerDocument.IndexOfNS(nsURI);
+  UseFilter := (localName <> '*');
 end;
 
-// TODO: namespace support here
 function TDOMElementList.NodeFilter(aNode: TDOMNode): TFilterResult;
+var
+  I, L: Integer;
 begin
-  if (aNode.NodeType = ELEMENT_NODE) and
-    (not UseFilter or (TDOMElement(aNode).TagName = Filter)) then
-    Result := frTrue
-  else
-    Result := frFalse;
+  Result := frFalse;
+  if aNode.NodeType = ELEMENT_NODE then with TDOMElement(aNode) do
+  begin
+    if FMatchNS then
+    begin
+      if (FMatchAnyNS or (FNSI.NSIndex = Word(FNSIndexFilter))) then
+      begin
+        I := FNSI.PrefixLen;
+        L := system.Length(FNSI.QName^.Key);
+        if (not UseFilter or ((L-I = system.Length(localNameFilter)) and
+          CompareMem(@FNSI.QName^.Key[I+1], DOMPChar(localNameFilter), system.Length(localNameFilter)*sizeof(WideChar)))) then
+          Result := frTrue;
+      end;
+    end
+    else if (not UseFilter or (TagName = Filter)) then
+      Result := frTrue;
+  end;
 end;
 
 
@@ -1924,7 +1943,9 @@ var
   s: string;
 begin
   s := feature;   // force Ansi, features do not contain non-ASCII chars
-  Result := SameText(s, 'XML') and ((version = '') or (version = '1.0'));
+  Result := (SameText(s, 'XML') and ((version = '') or (version = '1.0') or (version = '2.0'))) or
+            (SameText(s, 'Core') and ((version = '') or (version = '2.0')));
+
 end;
 
 function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
