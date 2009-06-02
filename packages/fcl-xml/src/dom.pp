@@ -251,6 +251,7 @@ type
     property Prefix: DOMString read GetPrefix write SetPrefix;
     // DOM level 3
     property TextContent: DOMString read GetTextContent write SetTextContent;
+    function LookupNamespaceURI(const APrefix: DOMString): DOMString;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
@@ -1125,6 +1126,64 @@ begin
   Result := CompareDOMStrings(DOMPChar(name), DOMPChar(SelfName), Length(name), Length(SelfName));
 end;
 
+// This will return nil for Entity, Notation, DocType and DocFragment's
+function GetAncestorElement(n: TDOMNode): TDOMElement;
+var
+  parent: TDOMNode;
+begin
+  parent := n.ParentNode;
+  while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
+    parent := parent.ParentNode;
+  Result := TDOMElement(parent);
+end;
+
+// TODO: specs prescribe to return default namespace if APrefix=null,
+// but we aren't able to distinguish null from an empty string.
+// This breaks level3/nodelookupnamespaceuri08 which passes an empty string.
+function TDOMNode.LookupNamespaceURI(const APrefix: DOMString): DOMString;
+var
+  Attr: TDOMAttr;
+  Map: TDOMNamedNodeMap;
+  I: Integer;
+begin
+  Result := '';
+  if Self = nil then
+    Exit;
+  case NodeType of
+    ELEMENT_NODE:
+    begin
+      if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
+      begin
+        result := Self.NamespaceURI;
+        Exit;
+      end;
+      if HasAttributes then
+      begin
+        Map := Attributes;
+        for I := 0 to Map.Length-1 do
+        begin
+          Attr := TDOMAttr(Map[I]);
+          // should ignore level 1 atts here
+          if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
+             ((Attr.localName = 'xmlns') and (APrefix = '')) then
+          begin
+            result := Attr.NodeValue;
+            Exit;
+          end;
+        end
+      end;
+      result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+    end;
+    DOCUMENT_NODE:
+      result := TDOMDocument(Self).documentElement.LookupNamespaceURI(APrefix);
+
+    ATTRIBUTE_NODE:
+      result := TDOMAttr(Self).OwnerElement.LookupNamespaceURI(APrefix);
+
+  else
+    Result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+  end;
+end;
 
 //------------------------------------------------------------------------------
 
@@ -2607,8 +2666,33 @@ end;
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
 var
   Attr: TDOMAttr;
+  ColonPos: Integer;
+  AttrName, nsuri: DOMString;
 begin
   Attr := TDOMAttr(AttrDef.CloneNode(True));
+  AttrName := Attr.Name;
+  ColonPos := Pos(WideChar(':'), AttrName);
+  if Pos(DOMString('xmlns'), AttrName) = 1 then
+  begin
+    if (Length(AttrName) = 5) or (ColonPos = 6) then
+      Attr.SetNSI(stduri_xmlns, ColonPos);
+  end
+  else if ColonPos > 0 then
+  begin
+    if (ColonPos = 4) and (Pos(DOMString('xml'), AttrName) = 1) then
+      Attr.SetNSI(stduri_xml, 4)
+    else
+    begin
+      nsuri := LookupNamespaceURI(Copy(AttrName, 1, ColonPos-1));
+      // TODO: what if prefix isn't defined?
+      Attr.SetNSI(nsuri, ColonPos);
+    end
+  end;
+  // TODO: this is cheat, should look at config['namespaces'] instead.
+  // revisit when it is implemented.
+  if nfLevel2 in FFlags then
+    Include(Attr.FFlags, nfLevel2);
+  // There should be no matching attribute at this point, so non-namespace method is ok
   SetAttributeNode(Attr);
 end;
 
