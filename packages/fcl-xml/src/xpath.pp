@@ -107,6 +107,7 @@ type
       AEnvironment: TXPathEnvironment): TXPathVariable; virtual; abstract;
   end;
 
+  TXPathNodeArray = array of TXPathExprNode;
 
   TXPathConstantNode = class(TXPathExprNode)
   private
@@ -132,7 +133,7 @@ type
   TXPathFunctionNode = class(TXPathExprNode)
   private
     FName: DOMString;
-    FArgs: TList;
+    FArgs: TFPList;
   public
     constructor Create(const AName: DOMString);
     destructor Destroy; override;
@@ -220,7 +221,7 @@ type
   TXPathFilterNode = class(TXPathExprNode)
   private
     FExpr: TXPathExprNode;
-    FPredicates: TList;
+    FPredicates: TXPathNodeArray;
   public
     constructor Create(AExpr: TXPathExprNode);
     destructor Destroy; override;
@@ -245,7 +246,7 @@ type
     Axis: TAxis;
     NodeTestType: TNodeTestType;
     NodeTestString: DOMString;
-    Predicates: TList;
+    Predicates: TXPathNodeArray;
     constructor Create(aAxis: TAxis; aTest: TNodeTestType);
     destructor Destroy; override;
   end;
@@ -263,7 +264,7 @@ type
   end;
 
 
-  TNodeSet = TList;
+  TNodeSet = TFPList;
 
 { Exceptions }
 
@@ -351,6 +352,7 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     procedure Error(const Msg: String);
+    procedure ParsePredicates(var Dest: TXPathNodeArray);
     procedure ParseStep(Dest: TStep);          // [4]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
     function ParseUnionExpr: TXPathExprNode;   // [18]
@@ -389,15 +391,15 @@ type
   the variables and functions, which are part of the context in the official
   standard). }
 
-  TXPathVarList = TList;
+  TXPathVarList = TFPList;
 
   TXPathFunction = function(Context: TXPathContext; Args: TXPathVarList):
     TXPathVariable of object;
 
   TXPathEnvironment = class
   private
-    FFunctions: TList;
-    FVariables: TList;
+    FFunctions: TFPList;
+    FVariables: TFPList;
     function GetFunctionCount: Integer;
     function GetVariableCount: Integer;
     function GetFunction(Index: Integer): TXPathFunction;
@@ -583,6 +585,15 @@ begin
   end;
 end;
 
+procedure AddNodes(var Dst: TXPathNodeArray; const Src: array of TXPathExprNode);
+var
+  L: Integer;
+begin
+  L := Length(Dst);
+  SetLength(Dst, L + High(Src)+1);
+  Move(Src[0], Dst[L], (High(Src)+1)*sizeof(TObject));
+end;
+
 { XPath parse tree classes }
 
 function TXPathExprNode.EvalPredicate(AContext: TXPathContext;
@@ -640,7 +651,7 @@ constructor TXPathFunctionNode.Create(const AName: DOMString);
 begin
   inherited Create;
   FName := AName;
-  FArgs := TList.Create;
+  FArgs := TFPList.Create;
 end;
 
 destructor TXPathFunctionNode.Destroy;
@@ -984,16 +995,14 @@ constructor TXPathFilterNode.Create(AExpr: TXPathExprNode);
 begin
   inherited Create;
   FExpr := AExpr;
-  FPredicates := TList.Create;
 end;
 
 destructor TXPathFilterNode.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to FPredicates.Count - 1 do
-    TXPathExprNode(FPredicates[i]).Free;
-  FPredicates.Free;
+  for i := 0 to High(FPredicates) do
+    FPredicates[i].Free;
   inherited Destroy;
 end;
 
@@ -1020,9 +1029,9 @@ begin
         NewContext.ContextNode := CurContextNode;
         Inc(NewContext.ContextPosition);
         DoAdd := True;
-        for j := 0 to FPredicates.Count - 1 do
+        for j := 0 to High(FPredicates) do
         begin
-          DoAdd := TXPathExprNode(FPredicates[j]).EvalPredicate(NewContext,
+          DoAdd := FPredicates[j].EvalPredicate(NewContext,
             AEnvironment);
           if not DoAdd then
             Break;
@@ -1047,16 +1056,14 @@ begin
   inherited Create;
   Axis := aAxis;
   NodeTestType := aTest;
-  Predicates := TList.Create;
 end;
 
 destructor TStep.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to Predicates.Count - 1 do
-    TXPathExprNode(Predicates[i]).Free;
-  Predicates.Free;
+  for i := 0 to High(Predicates) do
+    Predicates[i].Free;
   inherited destroy;
 end;
 
@@ -1074,7 +1081,7 @@ var
 
   procedure EvaluateStep(AStep: TStep; AContext: TXPathContext);
   var
-    StepNodes: TList;
+    StepNodes: TFPList;
 
     procedure DoNodeTest(Node: TDOMNode);
     begin
@@ -1120,12 +1127,11 @@ var
     i, j: Integer;
 
     NewContext: TXPathContext;
-    NewStepNodes: TNodeSet;
     Predicate: TXPathExprNode;
-    TempList: TList;
+    TempList: TFPList;
 
   begin
-    StepNodes := TList.Create;
+    StepNodes := TFPList.Create;
     // !!!: Protect this with an try/finally block
     case AStep.Axis of
       axisAncestor:
@@ -1197,7 +1203,7 @@ var
           DoNodeTest(AContext.ContextNode);
       axisPreceding:
         begin
-          TempList := TList.Create;
+          TempList := TFPList.Create;
           try
             Node := AContext.ContextNode;
             // build list of ancestors
@@ -1224,11 +1230,14 @@ var
         end;
       axisPrecedingSibling:
         begin
-          Node := AContext.ContextNode.PreviousSibling;
-          while Assigned(Node) do
+          if Assigned(AContext.ContextNode.ParentNode) then
           begin
-            DoNodeTest(Node);
-            Node := Node.PreviousSibling;
+            Node := AContext.ContextNode.ParentNode.FirstChild;
+            while Assigned(Node) and (Node <> AContext.ContextNode) do
+            begin
+              DoNodeTest(Node);
+              Node := Node.NextSibling;
+            end;
           end;
         end;
       axisSelf:
@@ -1236,19 +1245,17 @@ var
     end;
 
     { Filter the nodes of this step using the predicates: The current
-      node set (StepNodes) is filtered, all passed nodes will be added
-      to NewStepNodes. After one filter has been applied, NewStepNodes
-      gets copied to StepNodes, and the next filter will be processed.
+      node set (StepNodes) is filtered, nodes not passing the filter
+      are replaced by nil. After one filter has been applied, StepNodes
+      is packed, and the next filter will be processed.
       The final result will then be passed to the next step, or added
       to the result of the LocationPath if this is the last step. }
 
-    for i := 0 to AStep.Predicates.Count - 1 do
+    for i := 0 to High(AStep.Predicates) do
     begin
       NewContext := TXPathContext.Create(nil, 0, StepNodes.Count);
-      NewStepNodes := nil;
       try
-        NewStepNodes := TNodeSet.Create;
-        Predicate := TXPathExprNode(AStep.Predicates[i]);
+        Predicate := AStep.Predicates[i];
         for j := 0 to StepNodes.Count - 1 do
         begin
           // ContextPosition must honor the axis direction
@@ -1260,13 +1267,12 @@ var
 
           Node := TDOMNode(StepNodes[j]);
           NewContext.ContextNode := Node;
-          if Predicate.EvalPredicate(NewContext, AEnvironment) then
-            NewStepNodes.Add(Node);
+          if not Predicate.EvalPredicate(NewContext, AEnvironment) then
+            StepNodes[j] := nil;
         end;
+        StepNodes.Pack;
       finally
         NewContext.Free;
-        StepNodes.Free;
-        StepNodes := NewStepNodes;
       end;
     end;
 
@@ -1706,6 +1712,32 @@ begin
   raise Exception.Create(Msg) at get_caller_addr(get_frame);
 end;
 
+procedure TXPathScanner.ParsePredicates(var Dest: TXPathNodeArray);
+var
+  Buffer: array[0..15] of TXPathExprNode;
+  I: Integer;
+begin
+  I := 0;
+  // accumulate nodes in local buffer, then add all at once
+  // this reduces amount of ReallocMem's
+  while CurToken = tkLeftSquareBracket do
+  begin
+    NextToken;
+    Buffer[I] := ParseOrExpr;
+    Inc(I);
+    if I > High(Buffer) then
+    begin
+      AddNodes(Dest, Buffer);
+      I := 0;
+    end;
+    if CurToken <> tkRightSquareBracket then
+      Error(SParserExpectedRightSquareBracket);
+    NextToken;
+  end;
+  if I > 0 then
+    AddNodes(Dest, Slice(Buffer, I));
+end;
+
 procedure TXPathScanner.ParseStep(Dest: TStep);  // [4]
 
   procedure NeedBrackets;
@@ -1837,16 +1869,7 @@ begin
     end
     else
       Exit;
-
-    // Parse predicates
-    while CurToken = tkLeftSquareBracket do
-    begin
-      NextToken;
-      Dest.Predicates.Add(ParseOrExpr);
-      if CurToken <> tkRightSquareBracket then
-        Error(SParserExpectedRightSquareBracket);
-      NextToken;
-    end;
+    ParsePredicates(Dest.Predicates);
   end;
 end;
 
@@ -1986,24 +2009,13 @@ begin
 end;
 
 function TXPathScanner.ParseFilterExpr: TXPathExprNode;  // [20]
-var
-  IsFirst: Boolean;
 begin
   Result := ParsePrimaryExpr;
   // Parse predicates
-  IsFirst := True;
-  while CurToken = tkLeftSquareBracket do
+  if CurToken = tkLeftSquareBracket then
   begin
-    NextToken;
-    if IsFirst then
-    begin
-      Result := TXPathFilterNode.Create(Result);
-      IsFirst := False;
-    end;
-    TXPathFilterNode(Result).FPredicates.Add(ParseOrExpr);
-    if CurToken <> tkRightSquareBracket then
-      Error(SParserExpectedRightSquareBracket);
-    NextToken;
+    Result := TXPathFilterNode.Create(Result);
+    ParsePredicates(TXPathFilterNode(Result).FPredicates);
   end;
 end;
 
@@ -2151,8 +2163,8 @@ type
 constructor TXPathEnvironment.Create;
 begin
   inherited Create;
-  FFunctions := TList.Create;
-  FVariables := TList.Create;
+  FFunctions := TFPList.Create;
+  FVariables := TFPList.Create;
 
   // Add the functions of the XPath Core Function Library
 
