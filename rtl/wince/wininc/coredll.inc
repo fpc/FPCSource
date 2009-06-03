@@ -2319,6 +2319,7 @@ function GlobalHandle(pMem:LPCVOID):HGLOBAL;
 function GlobalLockPtr(lp:pointer):Pointer;
 function GlobalLock(hMem:HGLOBAL):LPVOID;
 function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
+function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
 function GlobalSize(hMem:HGLOBAL):DWORD;
 function GlobalUnlock(hMem:HGLOBAL):WINBOOL;
 procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external KernelDLL name 'GlobalMemoryStatus';
