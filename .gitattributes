@@ -5033,6 +5033,7 @@ packages/winunits-base/src/dwmapi.pp svneol=native#text/plain
 packages/winunits-base/src/flatsb.pp svneol=native#text/plain
 packages/winunits-base/src/imagehlp.pp svneol=native#text/plain
 packages/winunits-base/src/mmsystem.pp svneol=native#text/plain
+packages/winunits-base/src/multimon.pp svneol=native#text/plain
 packages/winunits-base/src/ole2.pp svneol=native#text/plain
 packages/winunits-base/src/oleserver.pp svneol=native#text/plain
 packages/winunits-base/src/richedit.pp svneol=native#text/plain
