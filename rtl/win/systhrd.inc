@@ -181,7 +181,7 @@ CONST
                          creationFlags : dword;var ThreadId : TThreadID) : TThreadID;
       var
         ti : pthreadinfo;
-        _threadid : TThreadID;
+        _threadid : dword;
       begin
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
@@ -203,7 +203,7 @@ CONST
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        _threadid:=ThreadID;
+        _threadid:=0;
         SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,_threadid);
 
         { creation failed? if yes, we dispose the parameter record }
