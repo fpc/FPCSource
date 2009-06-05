@@ -33,4 +33,5 @@ function Supports(const AClass: TClass; const IID: Shortstring): Boolean; overlo
 function StringToGUID(const S: string): TGUID;
 function GUIDToString(const GUID: TGUID): string;
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
+function GuidCase(const GUID: TGUID; const List: array of TGuid): Integer;
 

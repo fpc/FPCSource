@@ -145,6 +145,15 @@ begin
 end;
 
 
+function GuidCase(const GUID: TGUID; const List: array of TGuid): Integer;
+begin
+  for Result := High(List) downto 0 do
+    if IsEqualGUID(GUID, List[Result]) then
+      Exit;
+  Result := -1;
+end;
+
+
 function GUIDToString(const GUID: TGUID): string;
 begin
   SetLength(Result, 38);
