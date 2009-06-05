@@ -64,6 +64,13 @@ end;
 
 
 function StringToGUID(const S: string): TGUID;
+begin
+  if not TryStringToGUID(S, Result) then
+    raise EConvertError.CreateFmt(SInvalidGUID, [S]);
+end;
+
+
+function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
 
   function HexChar(c: Char): Byte;
   begin
@@ -90,10 +97,9 @@ var
   src: PChar;
   dest: PByte;
 begin
-  if ((Length(S)<>38) or
-      (s[1]<>'{')) then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-  dest:=PByte(@Result);
+  if ((Length(S)<>38) or (s[1]<>'{')) then
+    Exit(False);
+  dest:=PByte(@Guid);
   src:=PChar(s);
   inc(src);
   for i:=0 to 3 do
@@ -101,7 +107,7 @@ begin
   inc(src, 8);
   inc(dest, 4);
   if src[0]<>'-' then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
+    Exit(False);
   inc(src);
   for i:=0 to 1 do
    begin
@@ -111,7 +117,7 @@ begin
      inc(dest);
      inc(src, 4);
      if src[0]<>'-' then
-       raise EConvertError.CreateFmt(SInvalidGUID, [s]);
+       Exit(False);
      inc(src);
    end;
   dest^:=HexByte(src);
@@ -121,7 +127,7 @@ begin
   inc(dest);
   inc(src, 2);
   if src[0]<>'-' then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
+    Exit(False);
   inc(src);
   for i:=0 to 5 do
    begin
@@ -129,6 +135,7 @@ begin
      inc(dest);
      inc(src, 2);
    end;
+   Result := True;
 end;
 
 

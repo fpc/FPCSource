@@ -33,6 +33,7 @@ function Supports(const AClass: TClass; const IID: TGUID): Boolean; overload;
 function Supports(const AClass: TClass; const IID: Shortstring): Boolean; overload;
 
 //function CreateGUID(out Guid: TGUID): HResult;
+function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
 function StringToGUID(const S: string): TGUID;
 function GUIDToString(const GUID: TGUID): string;
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
