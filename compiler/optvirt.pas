@@ -40,6 +40,7 @@ unit optvirt;
         fdef: tobjectdef;
         fparent: tinheritancetreenode;
         fchilds: tfpobjectlist;
+        fcalledvmtmethods: tbitset;
         finstantiated: boolean;
 
         function getchild(index: longint): tinheritancetreenode;
@@ -57,6 +58,7 @@ unit optvirt;
           this def (either new or existing one
         }
         function  maybeaddchild(_def: tobjectdef; _instantiated: boolean): tinheritancetreenode;
+        function  findchild(_def: tobjectdef): tinheritancetreenode;
       end;
 
 
@@ -73,6 +75,9 @@ unit optvirt;
         function registerinstantiatedobjectdefrecursive(def: tobjectdef; instantiated: boolean): tinheritancetreenode;
         procedure markvmethods(node: tinheritancetreenode; p: pointer);
         procedure printobjectvmtinfo(node: tinheritancetreenode; arg: pointer);
+        procedure addcalledvmtentries(node: tinheritancetreenode; arg: pointer);
+
+        function  getnodefordef(def: tobjectdef): tinheritancetreenode;
        public
         constructor create;
         destructor destroy; override;
@@ -81,6 +86,7 @@ unit optvirt;
         }
         procedure registerinstantiatedobjdef(def: tdef);
         procedure registerinstantiatedclassrefdef(def: tdef);
+        procedure registercalledvmtentries(entries: tcalledvmtentries);
         procedure checkforclassrefinheritance(def: tdef);
         procedure foreachnode(proctocall: tinheritancetreecallback; arg: pointer);
         procedure foreachleafnode(proctocall: tinheritancetreecallback; arg: pointer);
@@ -178,6 +184,8 @@ unit optvirt;
         fparent:=_parent;
         fdef:=_def;
         finstantiated:=_instantiated;
+        if assigned(_def) then
+          fcalledvmtmethods:=tbitset.create(_def.vmtentries.count);
       end;
 
 
@@ -185,6 +193,7 @@ unit optvirt;
       begin
         { fchilds owns its members, so it will free them too }
         fchilds.free;
+        fcalledvmtmethods.free;
         inherited destroy;
       end;
 
@@ -211,8 +220,6 @@ unit optvirt;
 
 
     function tinheritancetreenode.maybeaddchild(_def: tobjectdef; _instantiated: boolean): tinheritancetreenode;
-      var
-        i: longint;
       begin
         { sanity check }
         if assigned(_def.childof) then 
@@ -226,18 +233,31 @@ unit optvirt;
         if not assigned(fchilds) then
           fchilds:=tfpobjectlist.create(true);
         { def already a child -> return }
-        for i := 0 to fchilds.count-1 do
-          if (tinheritancetreenode(fchilds[i]).def=_def) then
-            begin
-              result:=tinheritancetreenode(fchilds[i]);
-              result.finstantiated:=result.finstantiated or _instantiated;
-              exit;
-            end;
-        { not found, add new child }
-        result:=tinheritancetreenode.create(self,_def,_instantiated);
-        fchilds.add(result);
+        result:=findchild(_def);
+        if assigned(result) then
+          result.finstantiated:=result.finstantiated or _instantiated
+        else
+          begin
+            { not found, add new child }
+            result:=tinheritancetreenode.create(self,_def,_instantiated);
+            fchilds.add(result);
+          end;
       end;
 
+
+    function tinheritancetreenode.findchild(_def: tobjectdef): tinheritancetreenode;
+      var
+        i: longint;
+      begin
+        result:=nil;
+        if assigned(fchilds) then
+          for i := 0 to fchilds.count-1 do
+            if (tinheritancetreenode(fchilds[i]).def=_def) then
+              begin
+                result:=tinheritancetreenode(fchilds[i]);
+                break;
+              end;
+      end;
 
     { *************************** tinheritancetree ************************* }
 
@@ -293,6 +313,37 @@ unit optvirt;
           classrefdefs.add(def)
         else
           internalerror(2008101401);
+      end;
+
+
+    function tinheritancetree.getnodefordef(def: tobjectdef): tinheritancetreenode;
+      begin
+        if assigned(def.childof) then
+          begin
+            result:=getnodefordef(def.childof);
+            if assigned(result) then
+              result:=result.findchild(def);
+          end
+        else
+          result:=froots.findchild(def);
+      end;
+
+
+    procedure tinheritancetree.registercalledvmtentries(entries: tcalledvmtentries);
+      var
+        node: tinheritancetreenode;
+      begin
+        node:=getnodefordef(tobjectdef(entries.objdef));
+        { it's possible that no instance of this class or its descendants are
+          instantiated
+        }
+        if not assigned(node) then
+          exit;
+        { now mark these methods as (potentially) called for this type and for
+          all of its descendants
+        }
+        addcalledvmtentries(node,entries.calledentries);
+        foreachnodefromroot(node,@addcalledvmtentries,entries.calledentries);
       end;
 
 
@@ -408,8 +459,19 @@ unit optvirt;
               
               if not assigned(currnode.def.vmcallstaticinfo) then
                 currnode.def.vmcallstaticinfo:=allocmem(currnode.def.vmtentries.count*sizeof(tvmcallstatic));
+              { if this method cannot be called, we can just mark it as
+                unreachable. This will cause its static name to be set to
+                FPC_ABSTRACTERROR later on. Exception: published methods are
+                always reachable (via RTTI).
+              }
+              if (pd.visibility<>vis_published) and
+                 not(currnode.fcalledvmtmethods.isset(i)) then
+                begin
+                  currnode.def.vmcallstaticinfo^[i]:=vmcs_unreachable;
+                  currnode:=currnode.parent;
+                end
               { same procdef as in all instantiated childs? (yes or don't know) }
-              if (currnode.def.vmcallstaticinfo^[i] in [vmcs_default,vmcs_yes]) then
+              else if (currnode.def.vmcallstaticinfo^[i] in [vmcs_default,vmcs_yes]) then
                 begin
                   { methods in uninstantiated classes can be made static if
                     they are the same in all instantiated derived classes
@@ -439,14 +501,16 @@ unit optvirt;
                     end;
                   currnode:=currnode.parent;
                 end
-              else
+              else if (currnode.def.vmcallstaticinfo^[i]=vmcs_no) then
                 begin
                   {$IFDEF DEBUG_DEVIRT}
                   writeln('    not processing parents, already non-static for ',currnode.def.typename);
                   {$ENDIF}
                   { parents are already set to vmcs_no, so no need to continue }
                   currnode:=nil;
-                end;
+                end
+              else
+                currnode:=currnode.parent;
             until not assigned(currnode) or
                   not assigned(currnode.def);
           end;
@@ -463,10 +527,12 @@ unit optvirt;
       var
         i,
         totaldevirtualised,
-        totalvirtual: ptrint;
+        totalvirtual,
+        totalunreachable: ptrint;
       begin
         totaldevirtualised:=0;
         totalvirtual:=0;
+        totalunreachable:=0;
         writeln(node.def.typename);
         if (node.def.vmtentries.count=0) then
           begin
@@ -481,10 +547,23 @@ unit optvirt;
                 begin
                   inc(totaldevirtualised);
                   writeln('  Devirtualised: ',pvmtentry(node.def.vmtentries[i])^.procdef.typename);
+                end
+              else if (node.def.vmcallstaticinfo^[i]=vmcs_unreachable) then
+                begin
+                  inc(totalunreachable);
+                  writeln('   Unreachable: ',pvmtentry(node.def.vmtentries[i])^.procdef.typename);
                 end;
             end;
-        writeln('Total devirtualised: ',totaldevirtualised,'/',totalvirtual);
+        writeln('Total devirtualised/unreachable/all: ',totaldevirtualised,'/',totalunreachable,'/',totalvirtual);
         writeln;
+      end;
+
+
+    procedure tinheritancetree.addcalledvmtentries(node: tinheritancetreenode; arg: pointer);
+      var
+        vmtentries: tbitset absolute arg;
+      begin
+        node.fcalledvmtmethods.addset(vmtentries);
       end;
 
 
@@ -622,11 +701,18 @@ unit optvirt;
         if (node.def.vmtentries.count=0) then
           exit;
         for i:=0 to node.def.vmtentries.count-1 do
-          if (po_virtualmethod in pvmtentry(node.def.vmtentries[i])^.procdef.procoptions) and
-             (node.def.vmcallstaticinfo^[i]=vmcs_yes) then
-            begin
-              { add info about devirtualised vmt entry }
-              classdevirtinfo.addstaticmethod(i,pvmtentry(node.def.vmtentries[i])^.procdef.mangledname);
+          if (po_virtualmethod in pvmtentry(node.def.vmtentries[i])^.procdef.procoptions) then
+            case node.def.vmcallstaticinfo^[i] of
+              vmcs_yes:
+                begin
+                  { add info about devirtualised vmt entry }
+                  classdevirtinfo.addstaticmethod(i,pvmtentry(node.def.vmtentries[i])^.procdef.mangledname);
+                end;
+              vmcs_unreachable:
+                begin
+                  { static reference to FPC_ABSTRACTERROR }
+                  classdevirtinfo.addstaticmethod(i,'FPC_ABSTRACTERROR');
+                end;
             end;
       end;
 
@@ -808,6 +894,17 @@ unit optvirt;
                  internalerror(2008101101);
              end;
            end;
+
+         { add info about called virtual methods }
+         hp:=tmodule(loaded_units.first);
+         while assigned(hp) do
+          begin
+            if assigned(hp.wpoinfo.calledvmtentries) then
+              for i:=0 to hp.wpoinfo.calledvmtentries.count-1 do
+                inheritancetree.registercalledvmtentries(tcalledvmtentries(hp.wpoinfo.calledvmtentries[i]));
+            hp:=tmodule(hp.next);
+          end;
+
 
          inheritancetree.optimizevirtualmethods;
 {$ifdef DEBUG_DEVIRT}

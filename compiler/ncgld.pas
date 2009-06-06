@@ -64,7 +64,8 @@ implementation
       cpubase,parabase,
       tgobj,ncgutil,
       cgobj,
-      ncgbas,ncgflw;
+      ncgbas,ncgflw,
+      wpobase;
 
 {*****************************************************************************
                    SSA (for memory temps) support
@@ -481,6 +482,16 @@ implementation
                      if (po_virtualmethod in procdef.procoptions) and
                         not(nf_inherited in flags) then
                        begin
+                         if (not assigned(current_procinfo) or
+                             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                           procdef._class.register_vmt_call(procdef.extnumber);
+            {$ifdef vtentry}
+                         if not is_interface(procdef._class) then
+                           begin
+                             inc(current_asmdata.NextVTEntryNr);
+                             current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
+                           end;
+            {$endif vtentry}
                          { a classrefdef already points to the VMT }
                          if (left.resultdef.typ<>classrefdef) then
                            begin

@@ -231,7 +231,7 @@ interface
 
        { tobjectdef }
 
-       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
+       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no, vmcs_unreachable);
        pmvcallstaticinfo = ^tmvcallstaticinfo;
        tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
        tobjectdef = class(tabstractrecorddef)
@@ -296,9 +296,11 @@ interface
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
+          { WPO }
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
+          procedure register_vmt_call(index:longint);
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -4285,6 +4287,14 @@ implementation
             current_module.wpoinfo.addmaybecreatedbyclassref(self);
           end;
       end;
+
+
+    procedure tobjectdef.register_vmt_call(index: longint);
+      begin
+        if (is_object(self) or is_class(self)) then
+          current_module.wpoinfo.addcalledvmtentry(self,index);
+      end;
+
 
 {****************************************************************************
                              TImplementedInterface
