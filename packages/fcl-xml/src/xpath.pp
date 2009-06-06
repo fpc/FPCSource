@@ -240,7 +240,12 @@ type
   TNodeTestType = (ntAnyPrincipal, ntName, ntTextNode,
     ntCommentNode, ntPINode, ntAnyNode);
 
+  TNodeSet = TFPList;
+
   TStep = class
+  private
+    procedure SelectNodes(ANode: TDOMNode; out ResultNodes: TNodeSet);
+    procedure ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
   public
     NextStep: TStep;
     Axis: TAxis;
@@ -262,9 +267,6 @@ type
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
-
-
-  TNodeSet = TFPList;
 
 { Exceptions }
 
@@ -1067,6 +1069,198 @@ begin
   inherited destroy;
 end;
 
+procedure TStep.SelectNodes(ANode: TDOMNode; out ResultNodes: TNodeSet);
+var
+  Node, Node2: TDOMNode;
+  Attr: TDOMNamedNodeMap;
+  i: Integer;
+  TempList: TFPList;
+
+  procedure DoNodeTest(Node: TDOMNode);
+  begin
+    case NodeTestType of
+      ntAnyPrincipal:
+        // !!!: Probably this isn't ready for namespace support yet
+        if (Axis <> axisAttribute) and
+          (Node.NodeType <> ELEMENT_NODE) then
+          exit;
+      ntName:
+        if Node.NodeName <> NodeTestString then
+          exit;
+      ntTextNode:
+        if not Node.InheritsFrom(TDOMCharacterData) then
+          exit;
+      ntCommentNode:
+        if Node.NodeType <> COMMENT_NODE then
+          exit;
+      ntPINode:
+        if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
+          exit;
+    end;
+    if ResultNodes.IndexOf(Node) < 0 then
+      ResultNodes.Add(Node);
+  end;
+
+  procedure AddDescendants(CurNode: TDOMNode);
+  var
+    Child: TDOMNode;
+  begin
+    Child := CurNode.FirstChild;
+    while Assigned(Child) do
+    begin
+      DoNodeTest(Child);
+      AddDescendants(Child);
+      Child := Child.NextSibling;
+    end;
+  end;
+
+begin
+  ResultNodes := TNodeSet.Create;
+  case Axis of
+    axisAncestor:
+      begin
+        Node := ANode.ParentNode;
+        while Assigned(Node) do
+        begin
+          DoNodeTest(Node);
+          Node := Node.ParentNode;
+        end;
+      end;
+    axisAncestorOrSelf:
+      begin
+        Node := ANode;
+        repeat
+          DoNodeTest(Node);
+          Node := Node.ParentNode;
+        until not Assigned(Node);
+      end;
+    axisAttribute:
+      begin
+        Attr := ANode.Attributes;
+        if Assigned(Attr) then
+          for i := 0 to Attr.Length - 1 do
+            DoNodeTest(Attr[i]);
+      end;
+    axisChild:
+      begin
+        Node := ANode.FirstChild;
+        while Assigned(Node) do
+        begin
+          DoNodeTest(Node);
+          Node := Node.NextSibling;
+        end;
+      end;
+    axisDescendant:
+      AddDescendants(ANode);
+    axisDescendantOrSelf:
+      begin
+        DoNodeTest(ANode);
+        AddDescendants(ANode);
+      end;
+    axisFollowing:
+      begin
+        Node := ANode;
+        repeat
+          Node2 := Node.NextSibling;
+          while Assigned(Node2) do
+          begin
+            DoNodeTest(Node2);
+            AddDescendants(Node2);
+            Node2 := Node2.NextSibling;
+          end;
+          Node := Node.ParentNode;
+        until not Assigned(Node);
+      end;
+    axisFollowingSibling:
+      begin
+        Node := ANode.NextSibling;
+        while Assigned(Node) do
+        begin
+          DoNodeTest(Node);
+          Node := Node.NextSibling;
+        end;
+      end;
+    {axisNamespace: !!!: Not supported yet}
+    axisParent:
+      if Assigned(ANode.ParentNode) then
+        DoNodeTest(ANode.ParentNode);
+    axisPreceding:
+      begin
+        TempList := TFPList.Create;
+        try
+          Node := ANode;
+          // build list of ancestors
+          while Assigned(Node) do
+          begin
+            TempList.Add(Node);
+            Node := Node.ParentNode;
+          end;
+          // then process it in reverse order
+          for i := TempList.Count-1 downto 1 do
+          begin
+            Node := TDOMNode(TempList[i]);
+            Node2 := Node.FirstChild;
+            while Assigned(Node2) and (Node2 <> TDOMNode(TempList[i-1])) do
+            begin
+              DoNodeTest(Node2);
+              AddDescendants(Node2);
+              Node2 := Node2.NextSibling;
+            end;
+          end;
+        finally
+          TempList.Free;
+        end;
+      end;
+    axisPrecedingSibling:
+      begin
+        if Assigned(ANode.ParentNode) then
+        begin
+          Node := ANode.ParentNode.FirstChild;
+          while Assigned(Node) and (Node <> ANode) do
+          begin
+            DoNodeTest(Node);
+            Node := Node.NextSibling;
+          end;
+        end;
+      end;
+    axisSelf:
+      DoNodeTest(ANode);
+  end;
+end;
+
+{ Filter the nodes of this step using the predicates: The current
+  node set is filtered, nodes not passing the filter are replaced
+  by nil. After one filter has been applied, Nodes is packed, and
+  the next filter will be processed. }
+
+procedure TStep.ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
+var
+  i, j: Integer;
+  NewContext: TXPathContext;
+begin
+  for i := 0 to High(Predicates) do
+  begin
+    NewContext := TXPathContext.Create(nil, 0, Nodes.Count);
+    try
+      for j := 0 to Nodes.Count - 1 do
+      begin
+        // ContextPosition must honor the axis direction
+        if Axis in [axisAncestor, axisAncestorOrSelf,
+          axisPreceding, axisPrecedingSibling] then
+          NewContext.ContextPosition := Nodes.Count - j
+        else
+          NewContext.ContextPosition := j+1;
+        NewContext.ContextNode := TDOMNode(Nodes[j]);
+        if not Predicates[i].EvalPredicate(NewContext, AEnvironment) then
+          Nodes[j] := nil;
+      end;
+      Nodes.Pack;
+    finally
+      NewContext.Free;
+    end;
+  end;
+end;
+
 constructor TXPathLocationPathNode.Create(ALeft: TXPathExprNode; AIsAbsolutePath: Boolean);
 begin
   inherited Create;
@@ -1078,251 +1272,56 @@ function TXPathLocationPathNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   ResultNodeSet: TNodeSet;
+  LeftResult: TXPathVariable;
+  i: Integer;
 
-  procedure EvaluateStep(AStep: TStep; AContext: TXPathContext);
+  procedure EvaluateStep(AStep: TStep; AContextNode: TDOMNode);
   var
     StepNodes: TFPList;
-
-    procedure DoNodeTest(Node: TDOMNode);
-    begin
-      case AStep.NodeTestType of
-        ntAnyPrincipal:
-          // !!!: Probably this isn't ready for namespace support yet
-          if (AStep.Axis <> axisAttribute) and
-            (Node.NodeType <> ELEMENT_NODE) then
-            exit;
-        ntName:
-          if Node.NodeName <> AStep.NodeTestString then
-            exit;
-        ntTextNode:
-          if not Node.InheritsFrom(TDOMCharacterData) then
-            exit;
-        ntCommentNode:
-          if Node.NodeType <> COMMENT_NODE then
-            exit;
-        ntPINode:
-          if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
-            exit;
-      end;
-      if StepNodes.IndexOf(Node) < 0 then
-        StepNodes.Add(Node);
-    end;
-
-    procedure AddDescendants(CurNode: TDOMNode);
-    var
-      Child: TDOMNode;
-    begin
-      Child := CurNode.FirstChild;
-      while Assigned(Child) do
-      begin
-        DoNodeTest(Child);
-        AddDescendants(Child);
-        Child := Child.NextSibling;
-      end;
-    end;
-
-  var
-    Node, Node2: TDOMNode;
-    Attr: TDOMNamedNodeMap;
-    i, j: Integer;
-
-    NewContext: TXPathContext;
-    Predicate: TXPathExprNode;
-    TempList: TFPList;
-
+    Node: TDOMNode;
+    i: Integer;
   begin
-    StepNodes := TFPList.Create;
-    // !!!: Protect this with an try/finally block
-    case AStep.Axis of
-      axisAncestor:
-        begin
-          Node := AContext.ContextNode.ParentNode;
-          while Assigned(Node) do
-          begin
-            DoNodeTest(Node);
-            Node := Node.ParentNode;
-          end;
-        end;
-      axisAncestorOrSelf:
-        begin
-          Node := AContext.ContextNode;
-          repeat
-            DoNodeTest(Node);
-            Node := Node.ParentNode;
-         until not Assigned(Node);
-        end;
-      axisAttribute:
-        begin
-          Attr := AContext.ContextNode.Attributes;
-          if Assigned(Attr) then
-            for i := 0 to Attr.Length - 1 do
-              DoNodeTest(Attr[i]);
-        end;
-      axisChild:
-        begin
-          Node := AContext.ContextNode.FirstChild;
-          while Assigned(Node) do
-          begin
-            DoNodeTest(Node);
-            Node := Node.NextSibling;
-          end;
-        end;
-      axisDescendant:
-        AddDescendants(AContext.ContextNode);
-      axisDescendantOrSelf:
-        begin
-          DoNodeTest(AContext.ContextNode);
-          AddDescendants(AContext.ContextNode);
-        end;
-      axisFollowing:
-        begin
-          Node := AContext.ContextNode;
-          repeat
-            Node2 := Node.NextSibling;
-            while Assigned(Node2) do
-            begin
-              DoNodeTest(Node2);
-              AddDescendants(Node2);
-              Node2 := Node2.NextSibling;
-            end;
-            Node := Node.ParentNode;
-          until not Assigned(Node);
-        end;
-      axisFollowingSibling:
-        begin
-          Node := AContext.ContextNode.NextSibling;
-          while Assigned(Node) do
-          begin
-            DoNodeTest(Node);
-            Node := Node.NextSibling;
-          end;
-        end;
-      {axisNamespace: !!!: Not supported yet}
-      axisParent:
-        if Assigned(AContext.ContextNode.ParentNode) then
-          DoNodeTest(AContext.ContextNode);
-      axisPreceding:
-        begin
-          TempList := TFPList.Create;
-          try
-            Node := AContext.ContextNode;
-            // build list of ancestors
-            while Assigned(Node) do
-            begin
-              TempList.Add(Node);
-              Node := Node.ParentNode;
-            end;
-            // then process it in reverse order
-            for i := TempList.Count-1 downto 1 do
-            begin
-              Node := TDOMNode(TempList[i]);
-              Node2 := Node.FirstChild;
-              while Assigned(Node2) and (Node2 <> TDOMNode(TempList[i-1])) do
-              begin
-                DoNodeTest(Node2);
-                AddDescendants(Node2);
-                Node2 := Node2.NextSibling;
-              end;
-            end;
-          finally
-            TempList.Free;
-          end;
-        end;
-      axisPrecedingSibling:
-        begin
-          if Assigned(AContext.ContextNode.ParentNode) then
-          begin
-            Node := AContext.ContextNode.ParentNode.FirstChild;
-            while Assigned(Node) and (Node <> AContext.ContextNode) do
-            begin
-              DoNodeTest(Node);
-              Node := Node.NextSibling;
-            end;
-          end;
-        end;
-      axisSelf:
-        DoNodeTest(AContext.ContextNode);
-    end;
+    AStep.SelectNodes(AContextNode, StepNodes);
+    try
+      AStep.ApplyPredicates(StepNodes, AEnvironment);
 
-    { Filter the nodes of this step using the predicates: The current
-      node set (StepNodes) is filtered, nodes not passing the filter
-      are replaced by nil. After one filter has been applied, StepNodes
-      is packed, and the next filter will be processed.
-      The final result will then be passed to the next step, or added
-      to the result of the LocationPath if this is the last step. }
-
-    for i := 0 to High(AStep.Predicates) do
-    begin
-      NewContext := TXPathContext.Create(nil, 0, StepNodes.Count);
-      try
-        Predicate := AStep.Predicates[i];
-        for j := 0 to StepNodes.Count - 1 do
-        begin
-          // ContextPosition must honor the axis direction
-          if AStep.Axis in [axisAncestor, axisAncestorOrSelf,
-            axisPreceding, axisPrecedingSibling] then
-            NewContext.ContextPosition := StepNodes.Count - j
-          else
-            NewContext.ContextPosition := j+1;
-
-          Node := TDOMNode(StepNodes[j]);
-          NewContext.ContextNode := Node;
-          if not Predicate.EvalPredicate(NewContext, AEnvironment) then
-            StepNodes[j] := nil;
-        end;
-        StepNodes.Pack;
-      finally
-        NewContext.Free;
-      end;
-    end;
-
-    if Assigned(AStep.NextStep) then
-    begin
-      NewContext := TXPathContext.Create(nil, 0, StepNodes.Count);
-      try
+      if Assigned(AStep.NextStep) then
+      begin
+        for i := 0 to StepNodes.Count - 1 do
+          EvaluateStep(AStep.NextStep, TDOMNode(StepNodes[i]));
+      end else
+      begin
+        // Only add nodes to result if it isn't duplicate
         for i := 0 to StepNodes.Count - 1 do
         begin
-          NewContext.ContextNode := TDOMNode(StepNodes[i]);
-          Inc(NewContext.ContextPosition);
-          EvaluateStep(AStep.NextStep, NewContext);
+          Node := TDOMNode(StepNodes[i]);
+          if ResultNodeSet.IndexOf(Node) < 0 then
+            ResultNodeSet.Add(Node);
         end;
-      finally
-        NewContext.Free;
       end;
-    end else
-    begin
-      // Only add nodes to result if it isn't duplicate
-      for i := 0 to StepNodes.Count - 1 do
-      begin
-        Node := TDOMNode(StepNodes[i]);
-        if ResultNodeSet.IndexOf(Node) < 0 then
-          ResultNodeSet.Add(Node);
-      end;
+    finally
+      StepNodes.Free;
     end;
-
-    StepNodes.Free;
   end;
 
-var
-  NewContext: TXPathContext;
 begin
   ResultNodeSet := TNodeSet.Create;
   try
-    if FIsAbsolutePath then
+    if Assigned(FLeft) then
     begin
-      if AContext.ContextNode.NodeType = DOCUMENT_NODE then
-        NewContext := TXPathContext.Create(AContext.ContextNode, 1, 1)
-      else
-        NewContext := TXPathContext.Create(AContext.ContextNode.OwnerDocument,
-        1, 1);
+      LeftResult := FLeft.Evaluate(AContext, AEnvironment);
       try
-        EvaluateStep(FFirstStep, NewContext);
+        with LeftResult.AsNodeSet do
+          for i := 0 to Count-1 do
+            EvaluateStep(FFirstStep, TDOMNode(Items[i]));
       finally
-        NewContext.Free;
+        LeftResult.Release;
       end;
     end
+    else if FIsAbsolutePath and (AContext.ContextNode.NodeType <> DOCUMENT_NODE) then
+      EvaluateStep(FFirstStep, AContext.ContextNode.OwnerDocument)
     else
-      EvaluateStep(FFirstStep, AContext);
+      EvaluateStep(FFirstStep, AContext.ContextNode);
   except
     ResultNodeSet.Free;
     raise;
