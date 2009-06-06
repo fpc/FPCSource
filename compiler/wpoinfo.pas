@@ -141,33 +141,41 @@ implementation
       if ppufile.readentry<>ibcreatedobjtypes then
         cgmessage(unit_f_ppu_read_error);
 
-      len:=ppufile.getlongint;
-      fcreatedobjtypes:=tfpobjectlist.create(false);
-      fcreatedobjtypes.count:=len;
-      getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fcreatedobjtypesderefs^[i]);
+      { don't load the wpo info from the units if we are not generating
+        a wpo feedback file (that would just take time and memory)
+      }
+      if (init_settings.genwpoptimizerswitches=[]) then
+        ppufile.skipdata(ppufile.entrysize)
+      else
+        begin
+          len:=ppufile.getlongint;
+          fcreatedobjtypes:=tfpobjectlist.create(false);
+          fcreatedobjtypes.count:=len;
+          getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fcreatedobjtypesderefs^[i]);
 
-      len:=ppufile.getlongint;
-      fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
-      fcreatedclassrefobjtypes.count:=len;
-      getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
+          len:=ppufile.getlongint;
+          fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
+          fcreatedclassrefobjtypes.count:=len;
+          getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
 
-      len:=ppufile.getlongint;
-      fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
-      fmaybecreatedbyclassrefdeftypes.count:=len;
-      getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
+          len:=ppufile.getlongint;
+          fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
+          fmaybecreatedbyclassrefdeftypes.count:=len;
+          getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
 
-      len:=ppufile.getlongint;
-      fcalledvmtentriestemplist:=tfpobjectlist.create(false);
-      fcalledvmtentriestemplist.count:=len;
-      fcalledvmtentries:=tfphashlist.create;
-      for i:=0 to len-1 do
-        fcalledvmtentriestemplist[i]:=tcalledvmtentries.ppuload(ppufile);
+          len:=ppufile.getlongint;
+          fcalledvmtentriestemplist:=tfpobjectlist.create(false);
+          fcalledvmtentriestemplist.count:=len;
+          fcalledvmtentries:=tfphashlist.create;
+          for i:=0 to len-1 do
+            fcalledvmtentriestemplist[i]:=tcalledvmtentries.ppuload(ppufile);
+        end;
     end;
 
 
@@ -203,6 +211,9 @@ implementation
       len: longint;
 
     begin
+      if (init_settings.genwpoptimizerswitches=[]) then
+        exit;
+
       { don't free deref arrays immediately after use, as the types may need
         re-resolving in case a unit needs to be reloaded
       }

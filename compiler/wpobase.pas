@@ -369,10 +369,16 @@ implementation
       fmaybecreatedbyclassrefdeftypes.free;
       fmaybecreatedbyclassrefdeftypes:=nil;
 
-      for i:=0 to fcalledvmtentries.count-1 do
-        tcalledvmtentries(fcalledvmtentries[i]).free;
-      fcalledvmtentries.free;
-      fcalledvmtentries:=nil;
+      { may not be assigned in case the info was loaded from a ppu and we
+        are not generating a wpo feedback file (see tunitwpoinfo.ppuload)
+      }
+      if assigned(fcalledvmtentries) then
+        begin
+          for i:=0 to fcalledvmtentries.count-1 do
+            tcalledvmtentries(fcalledvmtentries[i]).free;
+          fcalledvmtentries.free;
+          fcalledvmtentries:=nil;
+        end;
 
       inherited destroy;
     end;
