@@ -2376,10 +2376,10 @@ implementation
             exit;
           end;
 
+        result:=cachedelesize*aint(cachedelecount);
         if (ado_IsBitPacked in arrayoptions) then
-          size:=(cachedelesize * aint(cachedelecount) + 7) div 8
-        else
-          result:=cachedelesize*aint(cachedelecount);
+          { can't just add 7 and divide by 8, because that may overflow }
+          result:=result div 8 + ord((result mod 8)<>0);
       end;
 
 

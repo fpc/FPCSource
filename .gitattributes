@@ -8228,6 +8228,7 @@ tests/test/tparray22.pp svneol=native#text/plain
 tests/test/tparray23.pp svneol=native#text/plain
 tests/test/tparray24.pp svneol=native#text/plain
 tests/test/tparray25.pp svneol=native#text/plain
+tests/test/tparray26.pp svneol=native#text/plain
 tests/test/tparray3.pp svneol=native#text/plain
 tests/test/tparray4.pp svneol=native#text/plain
 tests/test/tparray5.pp svneol=native#text/plain
