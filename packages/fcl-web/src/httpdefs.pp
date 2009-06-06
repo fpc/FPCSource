@@ -1113,6 +1113,9 @@ var
   R : String;
 
 begin
+{$ifdef CGIDEBUG}
+  SendMethodEnter('TRequest.InitRequestVars');
+{$endif}
   R:=Method;
   if (R='') then
     Raise Exception.Create(SErrNoRequestMethod);
@@ -1126,6 +1129,9 @@ begin
     InitGetVars
   else
     Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);
+{$ifdef CGIDEBUG}
+  SendMethodExit('TRequest.InitRequestVars');
+{$endif}
 end;
 
 Type
@@ -1158,7 +1164,7 @@ begin
     CT:=ContentType;
     if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
       ProcessMultiPart(M,CT, ContentFields)
-    else if CompareText('APPLICATION/X-WWW-FORM-URLENCODED',CT)=0 then
+    else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
       ProcessUrlEncoded(M, ContentFields)
     else
       begin
