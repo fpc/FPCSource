@@ -2549,11 +2549,11 @@ option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with s
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
 % \begin{description}
-wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file $1
+wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file "$1"
 % The compiler cannot open the specified feedback file with whole program optimization information.
-wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
+wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file "$1"
 % The compiler starts processing whole program optimization information found in the named file.
-wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file $1
+wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file "$1"
 % The compiler has finished processing the whole program optimization information found in the named file.
 wpo_expected_section=12003_E_Expected section header, but got "$2" at line $1 of wpo feedback file
 % The compiler expected a section header in the whole program optimization file (starting with \%),

@@ -446,7 +446,9 @@ implementation
 
   constructor twpofilereader.create(const fn: tcmdstr; dest: twpoinfomanagerbase);
     begin
-      if not FileExists(fn) then
+      if not FileExists(fn) or
+         { FileExists also returns true for directories }
+         DirectoryExists(fn) then
         begin
           cgmessage1(wpo_cant_find_file,fn);
           exit;
