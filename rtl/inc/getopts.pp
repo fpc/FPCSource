@@ -91,7 +91,10 @@ begin
   s:='';
   for i:=1 to paramcount do
     begin
-     s:=s+paramstr(i)+' ';
+    if Pos(' ', paramstr(i)) > 0 then 
+      s := s + '"' + paramstr(i) + '" '
+    else 
+      s:=s+paramstr(i)+' ';
     end;
   s:=s+#0;
   cmdline:=@s[1];
