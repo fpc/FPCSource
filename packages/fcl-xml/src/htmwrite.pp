@@ -180,8 +180,13 @@ begin
     wc := Cardinal(Src^);  Inc(Src);
     case wc of
       $0A: pb := StrECopy(pb, PChar(FLineBreak));
+      $0D: begin
+        pb := StrECopy(pb, PChar(FLineBreak));
+        if (Src < SrcEnd) and (Src^ = #$0A) then
+          Inc(Src);
+      end;
 
-      0..$09, $0B..$7F:  begin
+      0..$09, $0B, $0C, $0E..$7F:  begin
         pb^ := char(wc); Inc(pb);
       end;
 
