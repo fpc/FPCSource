@@ -23,7 +23,7 @@ interface
 uses
     flatsb, winver, mmsystem, comconst, commctrl, comobj, commdlg,
     ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,
-    imagehlp, wininet, uxtheme, dwmapi, multimon;
+    imagehlp, wininet, uxtheme, dwmapi, multimon, htmlhelp;
 
 implementation
 
