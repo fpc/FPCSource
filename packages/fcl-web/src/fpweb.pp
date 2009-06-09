@@ -38,10 +38,10 @@ Type
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); override;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
     Procedure GetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean);
-    Procedure Assign(Source : TPersistent); override;
   Public
     Constructor create(ACollection : TCollection); override;
     Destructor destroy; override;
+    Procedure Assign(Source : TPersistent); override;
   published
     Property Content : String Read GetStringContent Write SetContent;
     Property Contents : TStrings Read GetContents Write SetContents;
@@ -332,7 +332,7 @@ end;
 
 procedure TCustomFPWebModule.SetActions(const AValue: TFPWebActions);
 begin
-  if (FActions<>AValue) then;
+  if (FActions<>AValue) then
     FActions.Assign(AValue);
 end;
 
