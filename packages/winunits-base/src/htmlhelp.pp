@@ -47,7 +47,7 @@ const
         HH_KEYWORD_LOOKUP        = $000D;
         HH_DISPLAY_TEXT_POPUP    = $000E;  // display string resource id or text in a popup window
         HH_HELP_CONTEXT          = $000F;  // display mapped numeric value in dwData
-        HH_TP_HELP_CONTEXTMENU   = $0010;  // text popup help, same as WinHelp HELP_CONTEXTMENU
+        HH_TP_HELP_CONTEXTMENU   = $0010;  // text popup help, same as WinHelp HELP_CONTEXTlMENU
         HH_TP_HELP_WM_HELP       = $0011;  // text popup help, same as WinHelp HELP_WM_HELP
         HH_CLOSE_ALL             = $0012;  // close all windows opened directly or indirectly by the caller
         HH_ALINK_LOOKUP          = $0013;  // ALink version of HH_KEYWORD_LOOKUP
@@ -234,7 +234,7 @@ const
         HHACT_LAST_ENUM            = 23;
 
   const
-    External_library='htmlhelp.dll'; {Setup as you need}
+    External_library='hhctrl.ocx'; {Setup as you need}
 
   { Pointers to basic pascal types, inserted by h2pas conversion program.}
 
