@@ -372,6 +372,7 @@ type
     constructor Create(const AExpressionString: DOMString);
     function NextToken: TXPathToken;
     function PeekToken: TXPathToken;
+    function SkipToken(tok: TXPathToken): Boolean;
     property CurToken: TXPathToken read FCurToken;
     property CurTokenString: DOMString read FCurTokenString;
   end;
@@ -1274,6 +1275,7 @@ var
   ResultNodeSet: TNodeSet;
   LeftResult: TXPathVariable;
   i: Integer;
+  Node: TDOMNode;
 
   procedure EvaluateStep(AStep: TStep; AContextNode: TDOMNode);
   var
@@ -1318,10 +1320,17 @@ begin
         LeftResult.Release;
       end;
     end
-    else if FIsAbsolutePath and (AContext.ContextNode.NodeType <> DOCUMENT_NODE) then
-      EvaluateStep(FFirstStep, AContext.ContextNode.OwnerDocument)
     else
-      EvaluateStep(FFirstStep, AContext.ContextNode);
+    begin
+      if FIsAbsolutePath and (AContext.ContextNode.NodeType <> DOCUMENT_NODE) then
+        Node := AContext.ContextNode.OwnerDocument
+      else
+        Node := AContext.ContextNode;
+      if Assigned(FFirstStep) then
+        EvaluateStep(FFirstStep, Node)
+      else
+        ResultNodeSet.Add(Node);  // Assert(FIsAbsolutePath)
+    end;
   except
     ResultNodeSet.Free;
     raise;
@@ -1551,6 +1560,13 @@ begin
     SetString(FCurTokenString, FTokenStart, FTokenLength);
 end;
 
+function TXPathScanner.SkipToken(tok: TXPathToken): Boolean; { inline? }
+begin
+  Result := (FCurToken = tok);
+  if Result then
+    NextToken;
+end;
+
 function TXPathScanner.GetToken: TXPathToken;
 
   procedure GetNumber(HasDot: Boolean);
@@ -1566,16 +1582,22 @@ function TXPathScanner.GetToken: TXPathToken;
     Result := tkNumber;
   end;
 
-begin
-  if FCurToken = tkEndOfStream then
+  // TODO: no surrogate pairs/XML 1.1 support yet
+  function ScanNCName: Boolean;
   begin
-    Result := tkEndOfStream;
-    exit;
+    Result := Byte(FCurData^) in NamingBitmap[NamePages[hi(Word(FCurData^))]];
+    if Result then
+    begin
+      FTokenLength := 1;
+      while Byte(FCurData[1]) in NamingBitmap[NamePages[$100+hi(Word(FCurData[1]))]] do
+      begin
+        Inc(FCurData);
+        Inc(FTokenLength);
+      end;
+    end;
   end;
 
-  { No, we cannot use a lookup table here, as future
-    versions will use WideStrings  -sg }
-
+begin
   // Skip whitespace
   while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
     Inc(FCurData);
@@ -1686,17 +1708,10 @@ begin
     '|':
       Result := tkPipe;
     else
-      // TODO: no surrogate pairs/XML 1.1 support yet
-      if Byte(FCurData^) in NamingBitmap[NamePages[hi(Word(FCurData^))]] then
-      begin
-        FTokenLength := 1;
-        Result := tkIdentifier;
-        while Byte(FCurData[1]) in NamingBitmap[NamePages[$100+hi(Word(FCurData[1]))]] do
-        begin
-          Inc(FCurData);
-          Inc(FTokenLength);
-        end;
-      end
+      if ScanNCName then
+      // TODO: must handle 'NCName:*' and 'NCName:NCName' here,
+      // these are single tokens which may not have whitespace inbetween.
+        Result := tkIdentifier
       else
         Error(SScannerInvalidChar);
   end;
@@ -1719,9 +1734,8 @@ begin
   I := 0;
   // accumulate nodes in local buffer, then add all at once
   // this reduces amount of ReallocMem's
-  while CurToken = tkLeftSquareBracket do
+  while SkipToken(tkLeftSquareBracket) do
   begin
-    NextToken;
     Buffer[I] := ParseOrExpr;
     Inc(I);
     if I > High(Buffer) then
@@ -1729,9 +1743,8 @@ begin
       AddNodes(Dest, Buffer);
       I := 0;
     end;
-    if CurToken <> tkRightSquareBracket then
+    if not SkipToken(tkRightSquareBracket) then
       Error(SParserExpectedRightSquareBracket);
-    NextToken;
   end;
   if I > 0 then
     AddNodes(Dest, Slice(Buffer, I));
@@ -1801,9 +1814,7 @@ begin
 
       NextToken;  // skip identifier and the '::'
       NextToken;
-    end
-    else if CurToken <> tkEndOfStream then
-      Dest.Axis := axisChild;
+    end;
 
     // Parse [7] NodeTest
     if CurToken = tkAsterisk then   // [37] NameTest, first case
@@ -1925,32 +1936,23 @@ end;
 function TXPathScanner.ParseUnionExpr: TXPathExprNode;  // [18]
 begin
   Result := ParsePathExpr;
-  while CurToken = tkPipe do
-  begin
-    NextToken;
+  while SkipToken(tkPipe) do
     Result := TXPathUnionNode.Create(Result, ParsePathExpr);
-  end;
 end;
 
 function TXPathScanner.ParsePathExpr: TXPathExprNode;  // [19]
 var
-  IsFunctionCall: Boolean;
   CurStep, NextStep: TStep;
 begin
-  // Try to detect wether a LocationPath [1] or a FilterExpr [20] follows
-  IsFunctionCall := False;
-  if (CurToken = tkIdentifier) and
+  Result := nil;
+  CurStep := nil;
+  // Try to detect whether a LocationPath [1] or a FilterExpr [20] follows
+  if ((CurToken = tkIdentifier) and (PeekToken = tkLeftBracket) and
     (CurTokenString <> 'comment') and
     (CurTokenString <> 'text') and
     (CurTokenString <> 'processing-instruction') and
-    (CurTokenString <> 'node') and
-    (PeekToken = tkLeftBracket) then
-      IsFunctionCall := True;
-
-  Result := nil;
-  CurStep := nil;
-  if IsFunctionCall or (CurToken in
-    [tkDollar, tkLeftBracket, tkString, tkNumber]) then
+    (CurTokenString <> 'node')) or
+    (CurToken in [tkDollar, tkLeftBracket, tkString, tkNumber]) then
   begin
     // second, third or fourth case of [19]
     Result := ParseFilterExpr;
@@ -1967,26 +1969,17 @@ begin
     NextToken;
   end
   else if CurToken = tkSlash then
-  begin
     NextToken;
-    // TODO: This looks unnecessary, but evaluate() should be fixed
-    if TXPathLocationPathNode(Result).FLeft = nil then
-    begin
-      CurStep := TStep.Create(axisSelf, ntAnyNode);
-      TXPathLocationPathNode(Result).FFirstStep := CurStep;
-    end;
-  end;
-
-  repeat
-    if CurToken <> tkEndOfStream then
-    begin
-      NextStep := TStep.Create(axisInvalid, ntAnyPrincipal); { args are dummy }
-      if Assigned(CurStep) then
-        CurStep.NextStep := NextStep
-      else
-        TXPathLocationPathNode(Result).FFirstStep := NextStep;
-      CurStep := NextStep;
-    end;
+    
+  while CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier] do  
+  begin
+    // axisChild is the default. ntAnyPrincipal is dummy.
+    NextStep := TStep.Create(axisChild, ntAnyPrincipal);    
+    if Assigned(CurStep) then
+      CurStep.NextStep := NextStep
+    else
+      TXPathLocationPathNode(Result).FFirstStep := NextStep;
+    CurStep := NextStep;
 
     // Parse [4] Step
     ParseStep(CurStep);
@@ -2000,11 +1993,9 @@ begin
       CurStep.NextStep := NextStep;
       CurStep := NextStep;
     end
-    else if CurToken <> tkSlash then
-      break
-    else
-      NextToken;   // skip the slash
-  until False;
+    else if not SkipToken(tkSlash) then
+      break;
+  end;
 end;
 
 function TXPathScanner.ParseFilterExpr: TXPathExprNode;  // [20]
@@ -2120,11 +2111,8 @@ var
   NegCount: Integer;
 begin
   NegCount := 0;
-  while CurToken = tkMinus do
-  begin
+  while SkipToken(tkMinus) do
     Inc(NegCount);
-    NextToken;
-  end;
   Result := ParseUnionExpr;
 
   if Odd(NegCount) then
