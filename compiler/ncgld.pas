@@ -116,6 +116,14 @@ implementation
                   result := fen_norecurse_true;
                 end;
             end;
+          { Subscriptn must be rejected, otherwise we may replace an
+            an entire record with a temp for its first field, mantis #13948)
+            Exception: the field's size is the same as the entire record
+          }
+          subscriptn:
+            if not(tsubscriptnode(n).left.resultdef.typ in [recorddef,objectdef]) or
+               (tsubscriptnode(n).left.resultdef.size <> tsubscriptnode(n).resultdef.size) then
+              result := fen_norecurse_false;
           { optimize the searching a bit }
           derefn,addrn,
           calln,inlinen,casen,
