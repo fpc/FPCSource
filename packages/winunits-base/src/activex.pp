@@ -2036,7 +2036,7 @@ TYPE
      IEnumUnknown = Interface(IUnknown)
         ['{00000100-0000-0000-C000-000000000046}']
         //    pointer_default(unique)
-     Function Next(Celt:Ulong;out rgelt:IUnknown;out pCeltFetched:pulong):HRESULT;StdCall;
+     Function Next(Celt:Ulong;out rgelt;out pCeltFetched:pulong):HRESULT;StdCall;
 //    HRESULT RemoteNext(        [in] ULONG celt,        [out, size_is(celt), length_is( *pceltFetched)]        IUnknown **rgelt,        [out] ULONG *pceltFetched);
      Function Skip(Celt:Ulong):HResult;StdCall;
      Function Reset():HResult;
