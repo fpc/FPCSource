@@ -37,6 +37,8 @@ resourcestring
   SScannerQuotStringIsOpen = 'Ending ''"'' for string not found';
   SScannerAposStringIsOpen = 'Ending "''" for string not found';
   SScannerInvalidChar = 'Invalid character';
+  SScannerMalformedQName = 'Expected "*" or local part after colon';
+  SScannerExpectedVarName = 'Expected variable name after "$"';
 
   { Parser errors }
   SParserExpectedLeftBracket = 'Expected "("';
@@ -47,8 +49,7 @@ resourcestring
   SParserInvalidPrimExpr = 'Invalid primary expression';
   SParserGarbageAfterExpression = 'Unrecognized input after expression';
   SParserInvalidNodeTest = 'Invalid node test (syntax error)';
-  SParserExpectedVarName = 'Expected variable name after "$"';
-  SParserExpectedQName = 'Expected "*" or LocalName after colon';
+
 
   { Evaluation errors }
   SEvalUnknownFunction = 'Unknown function: "%s"';
@@ -68,9 +69,10 @@ type
     tkInvalid,
     tkEndOfStream,
     tkIdentifier,
+    tkNSNameTest,               // NCName:*
     tkString,
     tkNumber,
-    tkDollar,                   // "$"
+    tkVariable,                 // $QName
     tkLeftBracket,              // "("
     tkRightBracket,             // ")"
     tkAsterisk,                 // "*"
@@ -81,7 +83,6 @@ type
     tkDotDot,                   // ".."
     tkSlash,                    // "/"
     tkSlashSlash,               // "//"
-    tkColon,                    // ":"
     tkColonColon,               // "::"
     tkLess,                     // "<"
     tkLessEqual,                // "<="
@@ -353,6 +354,7 @@ type
     FCurTokenString: DOMString;
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
+    FPrefixLength: Integer;
     procedure Error(const Msg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
     procedure ParseStep(Dest: TStep);          // [4]
@@ -368,6 +370,7 @@ type
     function ParseMultiplicativeExpr: TXPathExprNode;  // [26]
     function ParseUnaryExpr: TXPathExprNode;   // [27]
     function GetToken: TXPathToken;
+    function ScanQName: Boolean;
   public
     constructor Create(const AExpressionString: DOMString);
     function NextToken: TXPathToken;
@@ -1556,7 +1559,7 @@ function TXPathScanner.NextToken: TXPathToken;
 begin
   Result := GetToken;
   FCurToken := Result;
-  if Result in [tkIdentifier, tkNumber, tkString] then
+  if Result in [tkIdentifier, tkNSNameTest, tkNumber, tkString, tkVariable] then
     SetString(FCurTokenString, FTokenStart, FTokenLength);
 end;
 
@@ -1565,6 +1568,38 @@ begin
   Result := (FCurToken = tok);
   if Result then
     NextToken;
+end;
+
+// TODO: no surrogate pairs/XML 1.1 support yet
+function TXPathScanner.ScanQName: Boolean;
+var
+  p: DOMPChar;
+begin
+  FPrefixLength := 0;
+  p := FCurData;
+  repeat
+    if (Byte(p^) in NamingBitmap[NamePages[hi(Word(p^))]]) then
+      Inc(p)
+    else
+    begin
+      // either the first char of name is bad (it may be a colon),
+      // or a colon is not followed by a valid NameStartChar
+      Result := False;
+      Break;
+    end;
+
+    while Byte(p^) in NamingBitmap[NamePages[$100+hi(Word(p^))]] do
+      Inc(p);
+
+    Result := True;
+    if (p^ <> ':') or (p[1] = ':') or (FPrefixLength > 0) then
+      Break;
+    // first colon, and not followed by another one -> remember its position
+    FPrefixLength := p-FTokenStart;
+    Inc(p);
+  until False;
+  FCurData := p;
+  FTokenLength := p-FTokenStart;
 end;
 
 function TXPathScanner.GetToken: TXPathToken;
@@ -1580,21 +1615,6 @@ function TXPathScanner.GetToken: TXPathToken;
         HasDot := True;
     end;
     Result := tkNumber;
-  end;
-
-  // TODO: no surrogate pairs/XML 1.1 support yet
-  function ScanNCName: Boolean;
-  begin
-    Result := Byte(FCurData^) in NamingBitmap[NamePages[hi(Word(FCurData^))]];
-    if Result then
-    begin
-      FTokenLength := 1;
-      while Byte(FCurData[1]) in NamingBitmap[NamePages[$100+hi(Word(FCurData[1]))]] do
-      begin
-        Inc(FCurData);
-        Inc(FTokenLength);
-      end;
-    end;
   end;
 
 begin
@@ -1631,7 +1651,15 @@ begin
         Result := tkString;
       end;
     '$':
-      Result := tkDollar;
+      begin
+        Inc(FCurData);
+        Inc(FTokenStart);
+        if ScanQName then
+          Result := tkVariable
+        else
+          Error(SScannerExpectedVarName);
+        Exit;
+      end;
     '''':
       begin
         FTokenLength := 0;
@@ -1682,7 +1710,7 @@ begin
         Inc(FCurData);
         Result := tkColonColon;
       end else
-        Result := tkColon;
+        Error(SScannerInvalidChar);  // single colons are handled as part of identifier
     '<':
       if FCurData[1] = '=' then
       begin
@@ -1707,13 +1735,26 @@ begin
       Result := tkRightSquareBracket;
     '|':
       Result := tkPipe;
-    else
-      if ScanNCName then
-      // TODO: must handle 'NCName:*' and 'NCName:NCName' here,
-      // these are single tokens which may not have whitespace inbetween.
-        Result := tkIdentifier
+  else
+    if ScanQName then
+    begin
+      Result := tkIdentifier;
+      Exit;
+    end
+    else if FPrefixLength > 0 then
+    begin
+      if FCurData^ = '*'  then
+      begin
+        Inc(FCurData);
+        Inc(FTokenLength);
+        Result := tkNSNameTest;
+        Exit;
+      end
       else
-        Error(SScannerInvalidChar);
+        Error(SScannerMalformedQName);
+    end
+    else
+      Error(SScannerInvalidChar);
   end;
 
   // We have processed at least one character now; eat it:
@@ -1822,6 +1863,11 @@ begin
       Dest.NodeTestType := ntAnyPrincipal;
       NextToken;
     end
+    else if CurToken = tkNSNameTest then // [37] NameTest, second case
+    begin
+      NextToken;
+      // TODO: resolve the prefix and set Dest properties
+    end
     else if CurToken = tkIdentifier then
     begin
       // Check for case [38] NodeType
@@ -1859,22 +1905,17 @@ begin
         else
           Error(SParserBadNodeType);
       end
-      else  // [37] NameTest, second or third case
+      else  // [37] NameTest, third case
       begin
         // !!!: Doesn't support namespaces yet
         // (this will have to wait until the DOM unit supports them)
         Dest.NodeTestType := ntName;
         Dest.NodeTestString := CurTokenString;
-
-        if NextToken = tkColon then
+        if FPrefixLength > 0 then
         begin
-          case NextToken of
-            tkIdentifier: NextToken; { foo:bar }
-            tkAsterisk:   NextToken;   { foo:* }
-          else
-            Error(SParserExpectedQName);
-          end;
+          // TODO: resolve the prefix and set Dest properties
         end;
+        NextToken;
       end;
     end
     else
@@ -1888,12 +1929,8 @@ var
   IsFirstArg: Boolean;
 begin
   case CurToken of
-    tkDollar:         // [36] Variable reference
-      begin
-        if NextToken <> tkIdentifier then
-          Error(SParserExpectedVarName);
+    tkVariable:         // [36] Variable reference
         Result := TXPathVariableNode.Create(CurTokenString);
-      end;
     tkLeftBracket:
       begin
         NextToken;
@@ -1952,7 +1989,7 @@ begin
     (CurTokenString <> 'text') and
     (CurTokenString <> 'processing-instruction') and
     (CurTokenString <> 'node')) or
-    (CurToken in [tkDollar, tkLeftBracket, tkString, tkNumber]) then
+    (CurToken in [tkVariable, tkLeftBracket, tkString, tkNumber]) then
   begin
     // second, third or fourth case of [19]
     Result := ParseFilterExpr;
@@ -1971,7 +2008,7 @@ begin
   else if CurToken = tkSlash then
     NextToken;
     
-  while CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier] do  
+  while CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest] do
   begin
     // axisChild is the default. ntAnyPrincipal is dummy.
     NextStep := TStep.Create(axisChild, ntAnyPrincipal);    
@@ -2764,7 +2801,7 @@ begin
   inherited Create;
   FRootNode := AScanner.ParseOrExpr;
   if CompleteExpression and (AScanner.CurToken <> tkEndOfStream) then
-    EvaluationError(SParserGarbageAfterExpression);
+    EvaluationError(SParserGarbageAfterExpression + ' ' + AScanner.FExpressionString);
 end;
 
 function TXPathExpression.Evaluate(AContextNode: TDOMNode): TXPathVariable;
