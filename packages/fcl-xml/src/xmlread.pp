@@ -1526,6 +1526,7 @@ begin
     end;
 
     BufAppendChunk(FName, FSource.FBuf, p);
+    Result := (FName.Length > 0);
 
     FSource.FBuf := p;
     if (p^ <> #0) or not FSource.Reload then
@@ -1533,7 +1534,6 @@ begin
 
     p := FSource.FBuf;
   until False;
-  Result := (FName.Length > 0);
   if not (Result or (cnOptional in aFlags)) then
     RaiseNameNotFound;
 end;
@@ -2463,8 +2463,7 @@ begin
       if DiscardIt then
         AttDef.Free;
     except
-      if AttDef.OwnerElement = nil then
-        AttDef.Free;
+      AttDef.Free;
       raise;
     end;
     SkipWhitespace;
@@ -3639,8 +3638,8 @@ begin
   Reader := TXMLReader.Create;
   try
     Reader.ProcessXML(Src);
-    ADoc := TXMLDocument(Reader.Doc);
   finally
+    ADoc := TXMLDocument(Reader.Doc);
     Reader.Free;
   end;
 end;
@@ -3688,7 +3687,6 @@ begin
   Reader := TXMLReader.Create;
   try
     Src := TXMLFileInputSource.Create(f);
-    Src.SystemID := FilenameToURI(TTextRec(f).Name);
     Reader.ProcessFragment(Src, AParentNode);
   finally
     Reader.Free;
@@ -3737,10 +3735,9 @@ begin
   Reader := TXMLReader.Create;
   try
     Src := TXMLFileInputSource.Create(f);
-    Src.SystemID := FilenameToURI(TTextRec(f).Name);
     Reader.ProcessDTD(Src);
-    ADoc := TXMLDocument(Reader.doc);
   finally
+    ADoc := TXMLDocument(Reader.doc);
     Reader.Free;
   end;
 end;
@@ -3756,8 +3753,8 @@ begin
     Src := TXMLStreamInputSource.Create(f, False);
     Src.SystemID := ABaseURI;
     Reader.ProcessDTD(Src);
-    ADoc := TXMLDocument(Reader.doc);
   finally
+    ADoc := TXMLDocument(Reader.doc);
     Reader.Free;
   end;
 end;
