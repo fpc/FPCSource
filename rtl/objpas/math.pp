@@ -416,6 +416,7 @@ function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
+function RandomRange(const aFrom, aTo: Integer): Integer;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 { calculates the standard deviation }
@@ -1217,6 +1218,13 @@ function randg(mean,stddev : float) : float;
      until s2<1;
      randg:=Sqrt(-2*ln(S2)/S2)*u1*stddev+Mean;
   end;
+
+
+function RandomRange(const aFrom, aTo: Integer): Integer;
+begin
+  Result:=Random(Abs(aFrom-aTo))+Min(aTo,AFrom);
+end;
+
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function stddev(const data : array of Single) : float;
