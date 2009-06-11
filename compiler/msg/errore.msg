@@ -2203,7 +2203,7 @@ link_f_executable_too_big=09200_F_Executable image size is too big for $1 target
 % Fatal error when resulting executable is too big.
 link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute relocation to symbol "$2".
 % Warning when 64-bit object file contains 32-bit absolute relocations.
-% In such case an executable image can be loaded into lower 4Gb of 
+% In such case an executable image can be loaded into lower 4Gb of
 % address space only.
 %\end{description}
 # EndOfTeX
@@ -2884,10 +2884,11 @@ S*2Tlinux_Linux
 **2*_h : Show hints                  c : Show conditionals
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
+**2*_s : Show time stamps            q : Show message numbers
 **2*_a : Show everything             x : Executable info (Win32 only)
-**2*_b : Write file names messages with full path
-**2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info      q : Show message numbers
+**2*_b : Write file names messages   p : Write tree.log with parse tree
+**2*_    with full path              v : Write fpcdebug.txt with
+**2*_                                    lots of debugging info
 **2*_m<x>,<y> : Don't show messages numbered <x> and <y>
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)
