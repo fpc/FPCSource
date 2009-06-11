@@ -22,13 +22,13 @@ uses
   dom, xmlread, xmlwrite, xpath;
 
 type
-  TResultType = (rtString, rtNumber, rtBool, rtNodeset);
+  TResultType = (rtString, rtNumber, rtBool, rtNodeStr, rtOther);
 
   TTestRec = record
     data: string;              // UTF-8 encoded
     expr: DOMString;
   case rt: TResultType of
-    rtString: (s: DOMPChar);   // cannot use DOMString here
+    rtString, rtNodeStr: (s: DOMPChar);   // cannot use DOMString here
     rtNumber: (n: Extended);
     rtBool:   (b: Boolean);
   end;
@@ -414,12 +414,20 @@ const
   '<a id="c"/>'+
   '<a id="d"/>'+
   '</t04>';
+  
+  pos04='<doc>'+
+  '<a test="true"><num>1</num></a>'+
+  '<a><num>1191</num></a>'+
+  '<a><num>263</num></a>'+
+  '<a test="true"><num>2</num></a>'+
+  '<a><num>827</num></a>'+
+  '<a><num>256</num></a>'+
+  '<a test="true"><num>3</num></a>'+
+  '<a test="true"><num>4</num></a>'+
+  '</doc>';
 
-  FunctionTests: array[0..50] of TTestRec = (
+  FunctionTests: array[0..51] of TTestRec = (
   // last()
-  // position()
-  // count()
-  // id()
   // local-name()
   // namespace-uri()
   // name()
@@ -442,13 +450,15 @@ const
     (expr: 'not("")';      rt: rtBool; b: True),
 
     // lang() tests. These ones, however, test much more than lang().
-    // Moreover, I've added string(), otherwise result would be a nodeset
-    (data: expr01; expr: 'string(para[@id="1" and lang("en")])'; rt: rtString; s: 'en'),     // expression01
-    (data: expr01; expr: 'string(para[@id="4" and lang("en")])'; rt: rtString; s: 'en-us'),  // expression03
-    (data: expr01; expr: 'string(div/para[lang("en")])'; rt: rtString; s: 'en'),             // expression04
-    (data: expr01; expr: 'string(para[@id="3" and lang("en")])'; rt: rtString; s: 'EN'),     // expression05
+    (data: expr01; expr: 'para[@id="1" and lang("en")]'; rt: rtNodeStr; s: 'en'),     // expression01
+    (data: expr01; expr: 'para[@id="4" and lang("en")]'; rt: rtNodeStr; s: 'en-us'),  // expression03
+    (data: expr01; expr: 'div/para[lang("en")]'; rt: rtNodeStr; s: 'en'),             // expression04
+    (data: expr01; expr: 'para[@id="3" and lang("en")]'; rt: rtNodeStr; s: 'EN'),     // expression05
     
-    (data: id04; expr: 'id("c")/@id'; rt: rtString; s: 'c'),  // idkey04
+    (data: id04; expr: 'id("c")/@id'; rt: rtNodeStr; s: 'c'),  // idkey04
+    
+    // position() tests
+    (data: pos04; expr: '*[@test][position()=4]/num'; rt: rtNodeStr; s: '4'),
 
     (expr: 'number("1.5")';   rt: rtNumber; n: 1.5),
     (expr: 'number("abc")';   rt: rtNumber; n: NaN),
@@ -512,7 +522,22 @@ const
 '      e'#10+
 '    ';
 
-  StringTests: array[0..59] of TTestRec = (
+  node08='<docs xmlns:ped="http://www.ped.com"><?MyPI DoesNothing ?><!-- This is a big tree containing all letters of the alphabet -->'#10+
+  '<a attr1="This should not be seen">A</a>'#10+
+  '<b><c attr1="tsnbs" attr2="tsnbs">B-C</c>'#10+
+  '<d><e><f>TextNode_between_F_and_G'#10+
+  '<g><h><i><j><k><l><m><n><o><p><q><r><s><t><u><v><w><x><y><z><Yahoo>Yahoo</Yahoo>'#10+
+  '</z></y></x></w></v></u></t></s></r></q></p></o></n></m></l></k></j></i></h>SecondNode_after_H</g></f></e></d></b>'#10+
+  '</docs>';
+  
+  out08=#10+
+  'A'#10+
+  'B-C'#10+
+  'TextNode_between_F_and_G'#10+
+  'Yahoo'#10+
+  'SecondNode_after_H'#10;
+
+  StringTests: array[0..60] of TTestRec = (
     (expr: 'string(5)';       rt: rtString; s: '5'),
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
     (expr: 'string(-0.5)';    rt: rtString; s: '-0.5'),
@@ -523,6 +548,7 @@ const
     (expr: 'string(-1 div 0)'; rt: rtString; s: '-Infinity'),
     // maybe other checks for correct numeric formats
     (data: str14; expr: 'string(av//*)'; rt: rtString; s: out14),
+    (data: node08; expr: '/'; rt: rtNodeStr; s: out08),
 
     (expr: 'concat("titi","toto")'; rt: rtString; s: 'tititoto'),
     (expr: 'concat("titi","toto","tata")'; rt: rtString; s: 'tititototata'),
@@ -588,6 +614,63 @@ const
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
     (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx')   // #96
   );
+  
+  ax114='<doc>'+
+  '<foo att1="c">'+
+  '  <foo att1="b">'+
+  '     <foo att1="a"/>'+
+  '  </foo>'+
+  '</foo>'+
+  '<baz/>'+
+  '</doc>';
+
+  ax115='<doc>'+
+  '<foo att1="c"/>'+
+  '<foo att1="b"/>'+
+  '<foo att1="a"/>'+
+  '<baz/>'+
+  '</doc>';
+
+
+  ax117='<chapter title="A" x="0">'+
+  '<section title="A1" x="1">'+
+  '  <subsection title="A1a" x="2">hello</subsection>'+
+  '  <subsection title="A1b">ahoy</subsection>'+
+  '</section>'+
+  '<section title="A2">'+
+  '  <subsection title="A2a">goodbye</subsection>'+
+  '  <subsection title="A2b">sayonara</subsection>'+
+  '  <subsection title="A2c">adios</subsection>'+
+  '</section>'+
+  '<section title="A3">'+
+  '  <subsection title="A3a">aloha</subsection>'+
+  '  <subsection title="A3b">'+
+  '    <footnote x="3">A3b-1</footnote>'+
+  '    <footnote>A3b-2</footnote>'+
+  '  </subsection>'+
+  '  <subsection title="A3c">shalom</subsection>'+
+  '</section>'+
+  '</chapter>';
+
+  AxesTests: array[0..13] of TTestRec = (
+    (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
+    (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
+    (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
+    (data: ax117; expr: 'count(//section//@title)';           rt: rtNumber; n: 11),
+    (data: ax117; expr: 'count(/chapter/.//@*)';              rt: rtNumber; n: 16),
+    (data: ax117; expr: 'count(/chapter/.//@title)';          rt: rtNumber; n: 12),
+    (data: ax117; expr: 'count(/chapter/section[1]//@*)';     rt: rtNumber; n: 5),
+    (data: ax117; expr: 'count(/chapter/section[1]//@title)'; rt: rtNumber; n: 3),
+    (data: ax117; expr: 'count(/chapter/section[2]//@*)';     rt: rtNumber; n: 4),
+    (data: ax117; expr: 'count(/chapter/section[2]//@title)'; rt: rtNumber; n: 4),
+    (data: ax117; expr: 'count(/chapter/section[3]//@*)';     rt: rtNumber; n: 5),
+    (data: ax117; expr: 'count(/chapter/section[3]//@title)'; rt: rtNumber; n: 4),
+
+    (data: ax114; expr: '//baz/preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+//  (data: ax114; expr: '//baz/(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
+    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a')
+//  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
+  );
 {$warnings on}
 
 var
@@ -627,6 +710,16 @@ begin
         Exit;
       writeln;  
       writeln('Failed: ', t.expr);
+      writeln('Expected: ', DOMString(t.s), ' got: ', r.AsText);
+    end;
+    rtNodeStr:
+    begin
+      if (r is TXPathNodeSetVariable) and (r.AsNodeSet.Count = 1) and (r.AsText = DOMString(t.s)) then
+        Exit;
+      writeln;  
+      writeln('Failed: ', t.expr);
+      if r.AsNodeSet.Count > 1 then
+        writeln('Result is not a single node');
       writeln('Expected: ', DOMString(t.s), ' got: ', r.AsText);
     end;
   end;
@@ -693,6 +786,7 @@ begin
   DoSuite(FloatTests);
   DoSuite(FunctionTests);
   DoSuite(StringTests);
+  DoSuite(AxesTests);
 
   writeln;
   writeln('Total failed tests: ', FailCount);
