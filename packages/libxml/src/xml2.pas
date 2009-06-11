@@ -22,6 +22,7 @@ const
 {$IF Defined(WINDOWS)}
   xml2lib = 'libxml2.'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
+  {$DEFINE NO_EXTERNAL_VARS}
 {$ELSEIF Defined(UNIX)}
   xml2lib = 'libxml2.'+sharedsuffix;
   {$DEFINE EXTDECL := cdecl}
@@ -264,7 +265,7 @@ begin
   Result := not assigned(ns) or (ns^.nodeNr = 0) or (ns^.nodeTab = nil);
 end;
 
-{$IFDEF WINDOWS}
+{$IFDEF NO_EXTERNAL_VARS}
 procedure LoadExternalVariables;
 var
   libHandle: THandle;
@@ -311,7 +312,7 @@ end;
 {$ENDIF}
 
 initialization
-{$IFDEF WINDOWS}
+{$IFDEF NO_EXTERNAL_VARS}
   LoadExternalVariables;
 {$ENDIF}
 
