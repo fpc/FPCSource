@@ -1,7 +1,7 @@
 {$ifdef Delphi}
-const msgtxt : array[0..000212] of string[240]=(
+const msgtxt : array[0..000213] of string[240]=(
 {$else Delphi}
-const msgtxt : array[0..000212,1..240] of char=(
+const msgtxt : array[0..000213,1..240] of char=(
 {$endif Delphi}
   '01000_T_Compiler: $1'#000+
   '01001_D_Compiler OS: $1'#000+
@@ -1147,71 +1147,70 @@ const msgtxt : array[0..000212,1..240] of char=(
   '**2*_h : Show ','hints                  c : Show conditionals'#010+
   '**2*_i : Show general info           d : Show debug info'#010+
   '**2*_l : Show linenumbers            r : Rhide/GCC compatibility mode'#010+
-  '**2*_a : Show everything             x : Executable info (Win32 only',')'+
-  #010+
-  '**2*_b : Write file names messages with full path'#010+
-  '**2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tre'+
+  '**2*_s : Show time stamps            q : Show message numbers'#010+
+  '**2*_a',' : Show everything             x : Executable info (Win32 only'+
+  ')'#010+
+  '**2*_b : Write file names messages   p : Write tree.log with parse tre'+
   'e'#010+
-  '**2*_    lots of debugging info      q : Show message numbers'#010+
-  '**2*_m<x>,<y> : Don'#039't show messages numbered <x> and <','y>'#010+
+  '**2*_    with full path              v : Write fpcdebug.txt with'#010+
+  '**2*_                                  ','  lots of debugging info'#010+
+  '**2*_m<x>,<y> : Don'#039't show messages numbered <x> and <y>'#010+
   '3*1W<x>_Target-specific options (targets)'#010+
   'A*1W<x>_Target-specific options (targets)'#010+
   'P*1W<x>_Target-specific options (targets)'#010+
-  'p*1W<x>_Target-specific options (targets)'#010+
+  'p*1W<x>_Target-specific options ','(targets)'#010+
   '3*2Wb_Create a bundle instead of a library (Darwin)'#010+
-  'P*2Wb_Create a bu','ndle instead of a library (Darwin)'#010+
+  'P*2Wb_Create a bundle instead of a library (Darwin)'#010+
   'p*2Wb_Create a bundle instead of a library (Darwin)'#010+
   '3*2WB_Create a relocatable image (Windows)'#010+
-  'A*2WB_Create a relocatable image (Windows, Symbian)'#010+
-  '3*2WC_Specify console type application (EMX, OS/2, Windows',')'#010+
+  'A*2WB_Create a relocatable imag','e (Windows, Symbian)'#010+
+  '3*2WC_Specify console type application (EMX, OS/2, Windows)'#010+
   'A*2WC_Specify console type application (Windows)'#010+
   'P*2WC_Specify console type application (Classic Mac OS)'#010+
-  '3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
+  '3*2WD_Use DEFFILE to export functions of DLL or EXE (W','indows)'#010+
   'A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)'#010+
-  '3*2We_Use',' external resources (Darwin)'#010+
+  '3*2We_Use external resources (Darwin)'#010+
   'P*2We_Use external resources (Darwin)'#010+
   'p*2We_Use external resources (Darwin)'#010+
   '3*2WF_Specify full-screen type application (EMX, OS/2)'#010+
-  '3*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
-  'A*2WG_Specify graphi','c type application (Windows)'#010+
+  '3','*2WG_Specify graphic type application (EMX, OS/2, Windows)'#010+
+  'A*2WG_Specify graphic type application (Windows)'#010+
   'P*2WG_Specify graphic type application (Classic Mac OS)'#010+
   '3*2Wi_Use internal resources (Darwin)'#010+
-  'P*2Wi_Use internal resources (Darwin)'#010+
+  'P*2Wi_Use internal resources (Darwin)'#010,
   'p*2Wi_Use internal resources (Darwin)'#010+
-  '3*2WN_Do not generate relocation code, ne','eded for debugging (Windows'+
-  ')'#010+
+  '3*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   'A*2WN_Do not generate relocation code, needed for debugging (Windows)'#010+
   '3*2WR_Generate relocation code (Windows)'#010+
-  'A*2WR_Generate relocation code (Windows)'#010+
+  'A*2WR_Generate reloca','tion code (Windows)'#010+
   'P*2WT_Specify MPW tool type application (Classic Mac OS)'#010+
-  '3*','2WX_Enable executable stack (Linux)'#010+
+  '3*2WX_Enable executable stack (Linux)'#010+
   'A*2WX_Enable executable stack (Linux)'#010+
   'p*2WX_Enable executable stack (Linux)'#010+
   'P*2WX_Enable executable stack (Linux)'#010+
-  '**1X_Executable options:'#010+
-  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD',', L'+
-  'inux)'#010+
+  '**1X_Execut','able options:'#010+
+  '**2Xc_Pass --shared/-dynamic to the linker (BeOS, Darwin, FreeBSD, Lin'+
+  'ux)'#010+
   '**2Xd_Do not use standard library search path (needed for cross compil'+
   'e)'#010+
   '**2Xe_Use external linker'#010+
-  '**2Xg_Create debuginfo in a separate file and add a debuglink section '+
-  'to executable'#010+
-  '**2XD_Try to link units dynamically      (define','s FPC_LINK_DYNAMIC)'#010+
+  '**2Xg_Create debuginfo in a separate file and add a d','ebuglink sectio'+
+  'n to executable'#010+
+  '**2XD_Try to link units dynamically      (defines FPC_LINK_DYNAMIC)'#010+
   '**2Xi_Use internal linker'#010+
   '**2Xm_Generate link map'#010+
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
-  '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_Set library search path to <x> (n','eeded for cross compile) ('+
-  'BeOS, Linux)'#010+
+  '**2XP<x>_Prepend th','e binutils names with the prefix <x>'#010+
+  '**2Xr<x>_Set library search path to <x> (needed for cross compile) (Be'+
+  'OS, Linux)'#010+
   '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
   ', Linux, Mac OS, Solaris)'#010+
-  '**2Xs_Strip all symbols from executable'#010+
-  '**2XS_Try to link units statically (default, defines FPC_LINK_STA','TIC'+
-  ')'#010+
+  '**2Xs_Strip all symbols fr','om executable'#010+
+  '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
   '**2Xt_Link with static libraries (-static is passed to linker)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
-  '**1h_Shows this help without waiting'
+  '*','*1h_Shows this help without waiting'
 );
