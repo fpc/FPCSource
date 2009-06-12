@@ -289,6 +289,7 @@ type
   TXMLReadState = (rsProlog, rsDTD, rsRoot, rsEpilog);
 
   TElementContentType = (
+    ctUndeclared,
     ctAny,
     ctEmpty,
     ctMixed,
@@ -458,7 +459,6 @@ type
   public
     FExternallyDeclared: Boolean;
     ContentType: TElementContentType;
-    HasElementDecl: Boolean;
     IDAttr: TDOMAttrDef;
     NotationAttr: TDOMAttrDef;
     RootCP: TContentParticle;
@@ -2246,10 +2246,10 @@ var
   ExtDecl: Boolean;
 begin
   CP := nil;
-  Typ := ctAny;         // satisfy compiler
+  Typ := ctUndeclared;         // satisfy compiler
   ExpectWhitespace;
   ElDef := FindOrCreateElDef;
-  if ElDef.HasElementDecl then
+  if ElDef.ContentType <> ctUndeclared then
     ValidationError('Duplicate declaration of element ''%s''', [ElDef.TagName], FName.Length);
 
   ExtDecl := FSource.DTDSubsetType <> dsInternal;
@@ -2306,9 +2306,8 @@ begin
   else
     FatalError('Invalid content specification');
   // SAX: DeclHandler.ElementDecl(name, model);
-  if not ElDef.HasElementDecl then
+  if ElDef.ContentType = ctUndeclared then
   begin
-    ElDef.HasElementDecl := True;
     ElDef.FExternallyDeclared := ExtDecl;
     ElDef.ContentType := Typ;
     ElDef.RootCP := CP;
@@ -2893,7 +2892,7 @@ begin
 
   // Find declaration for this element
   ElDef := TDOMElementDef(ElName^.Data);
-  if (ElDef = nil) or (not ElDef.HasElementDecl) then
+  if (ElDef = nil) or (ElDef.ContentType = ctUndeclared) then
     ValidationError('Using undeclared element ''%s''',[ElName^.Key], FName.Length);
 
   // Check if new element is allowed in current context
@@ -3485,7 +3484,7 @@ begin
         else
           FFailed := True;  // used to prevent extra error at the end of element
       end;
-      // ctAny: returns True by default
+      // ctAny, ctUndeclared: returns True by default
     end;
   end;
 end;
