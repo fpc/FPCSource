@@ -241,6 +241,7 @@ begin
   {$IFDEF CHM_DEBUG}
   WriteLn('PMGI depth = ', fDirectoryHeader.IndexTreeDepth);
   WriteLn('PMGI Root =  ', fDirectoryHeader.IndexOfRootChunk);
+  Writeln('DirCount  =  ', fDirectoryHeader.DirectoryChunkCount);
   {$ENDIF}
   fDirectoryEntriesStartPos := fStream.Position;
   fDirectoryHeaderLength := LEtoN(fHeaderEntries[1].Length);
