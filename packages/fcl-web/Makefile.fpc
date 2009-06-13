@@ -8,8 +8,8 @@ version=2.2.2
 
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb \
-      webutil fpdatasetform cgiapp ezcgi fpapache 
-units_linux=fastcgi custfcgi fpfcgi
+      webutil fpdatasetform cgiapp ezcgi fpapache fastcgi custfcgi fpfcgi
+
 rsts=fpcgi fphtml fpweb websession cgiapp
 
 [require]

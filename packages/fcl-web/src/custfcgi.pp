@@ -85,7 +85,7 @@ uses
 {$ifdef CGIDEBUG}
   dbugintf,
 {$endif}
-  BaseUnix, Sockets;
+  Sockets;
 
 { TFCGIHTTPRequest }
 
@@ -243,7 +243,7 @@ var BytesToWrite : word;
     BytesWritten  : Integer;
 begin
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
-  BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, ARecord, BytesToWrite, MSG_NOSIGNAL);
+  BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, ARecord, BytesToWrite, {$ifdef unix} MSG_NOSIGNAL{$else}0{$endif});
   Assert(BytesWritten=BytesToWrite);
 end;
 
@@ -336,7 +336,7 @@ begin
     if not TFCGIRequest(ARequest).KeepConnectionAfterRequest then
       begin
       fpshutdown(FHandle,SHUT_RDWR);
-      FpClose(FHandle);
+      CloseSocket(FHandle);
       FHandle := -1;
       end;
     Request := Nil;
@@ -359,7 +359,7 @@ var Header : FCGI_Header;
    result := False;
     if ByteAmount>0 then
       begin
-      BytesRead := sockets.fpRecv(FHandle, ReadBuf, ByteAmount, MSG_NOSIGNAL);
+      BytesRead := sockets.fpRecv(FHandle, ReadBuf, ByteAmount, {$ifdef unix} MSG_NOSIGNAL{$else}0{$endif});
       if BytesRead<>ByteAmount then
         begin
 //        SendDebug('FCGIRecord incomplete');
