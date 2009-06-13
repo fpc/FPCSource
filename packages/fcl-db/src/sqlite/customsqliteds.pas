@@ -45,6 +45,8 @@ const
   DefaultStringSize = 255;
 
 type
+  TCustomSqliteDataset = class;
+
   PDataRecord = ^DataRecord;
   PPDataRecord = ^PDataRecord;
   DataRecord = record
@@ -57,12 +59,14 @@ type
   TDSStream = class(TStream)
   private
     FActiveItem: PDataRecord;
+    FDataset: TCustomSqliteDataset;
     FFieldRow: PChar;
-    FFieldIndex: Integer;
+    FField: TField;
+    FFieldOffset: Integer;
     FRowSize: Integer;
     FPosition: LongInt;
   public
-    constructor Create(const ActiveItem: PDataRecord; FieldIndex: Integer);
+    constructor Create(Dataset: TCustomSqliteDataset; Field: TField);
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     function Seek(Offset: LongInt; Origin: Word): LongInt; override;
@@ -323,13 +327,18 @@ end;
 
 // TDSStream
 
-constructor TDSStream.Create(const ActiveItem: PDataRecord; FieldIndex: Integer);
+constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField);
 begin
   inherited Create;
   //FPosition := 0;
-  FActiveItem := ActiveItem;
-  FFieldIndex := FieldIndex;
-  FFieldRow := ActiveItem^.Row[FieldIndex];
+  FDataset := Dataset;
+  FField := Field;
+  if Field.FieldNo >= 0 then
+    FFieldOffset := Field.FieldNo - 1
+  else
+    FFieldOffset := Dataset.FieldDefs.Count + Dataset.FCalcFieldList.IndexOf(Field);
+  FActiveItem := PPDataRecord(Dataset.ActiveBuffer)^;
+  FFieldRow := FActiveItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
     FRowSize := StrLen(FFieldRow);
   //else
@@ -360,7 +369,7 @@ begin
   if FRowSize > 0 then
     Move(FFieldRow^, NewRow^, FRowSize);
   Move(Buffer, (NewRow + FRowSize)^, Count);
-  FActiveItem^.Row[FFieldIndex] := NewRow;
+  FActiveItem^.Row[FFieldOffset] := NewRow;
   StrDispose(FFieldRow);
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('##TDSStream.Write##');
@@ -373,6 +382,8 @@ begin
   FFieldRow := NewRow;
   FRowSize := StrLen(NewRow);
   Inc(FPosition, Count);
+  if not (FDataset.State in [dsCalcFields, dsFilter, dsNewValue]) then
+    FDataset.DataEvent(deFieldChange, PtrInt(FField));
 end; 
  
 function TDSStream.Read(var Buffer; Count: Longint): LongInt;
@@ -454,7 +465,7 @@ begin
     StrDispose(FCacheItem^.Row[Field.FieldNo - 1]);
     FCacheItem^.Row[Field.FieldNo - 1] := nil;
   end;
-  Result:= TDSStream.Create(PPDataRecord(ActiveBuffer)^, Field.FieldNo - 1);
+  Result := TDSStream.Create(Self, Field);
 end;
 
 procedure TCustomSqliteDataset.DoBeforeClose;
@@ -1590,7 +1601,7 @@ begin
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('  Result: ', Result);
   {$endif}   
-end;    
+end;
 
 function TCustomSqliteDataset.CreateTable: Boolean;
 begin
