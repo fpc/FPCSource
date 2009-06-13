@@ -206,6 +206,7 @@ type
     function Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant; override;
     // Additional procedures
     function ApplyUpdates: Boolean;
+    procedure ClearUpdates(RecordStates: TRecordStateSet = [rsAdded, rsDeleted, rsUpdated]);
     function CreateTable: Boolean;
     function CreateTable(const ATableName: String): Boolean;
     procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
@@ -213,6 +214,7 @@ type
     procedure ExecSQL(const ASql: String);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String); virtual; abstract;
+    function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
     procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer = nil);
     function QuickQuery(const ASql: String):String;overload;
     function QuickQuery(const ASql: String; const AStrList: TStrings): String; overload;
@@ -1457,6 +1459,14 @@ begin
     DatabaseError(ReturnString, Self);
 end;
 
+function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer
+  ): String;
+begin
+  if (State = dsInactive) or (FieldIndex < 0) or (FieldIndex >= FieldDefs.Count) then
+    DatabaseError('Error retrieving SQL value: dataset inactive or field out of range', Self);
+  Result := FGetSqlStr[FieldIndex](Values[FieldIndex]);
+end;
+
 procedure TCustomSqliteDataset.ExecSQL;
 begin
   ExecSQL(FSQL);
@@ -1601,6 +1611,16 @@ begin
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('  Result: ', Result);
   {$endif}   
+end;
+
+procedure TCustomSqliteDataset.ClearUpdates(RecordStates: TRecordStateSet);
+begin
+  if rsUpdated in RecordStates then
+    FUpdatedItems.Clear;
+  if rsDeleted in RecordStates then
+    FDeletedItems.Clear;
+  if rsAdded in RecordStates then
+    FAddedItems.Clear;
 end;
 
 function TCustomSqliteDataset.CreateTable: Boolean;
