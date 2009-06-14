@@ -279,6 +279,7 @@ type
   end;
 
   TElementValidator = object
+    FElement: TDOMElement;
     FElementDef: TDOMElementDef;
     FCurCP: TContentParticle;
     FFailed: Boolean;
@@ -359,7 +360,6 @@ type
     procedure GetChar;
     procedure Initialize(ASource: TXMLCharSource);
     function DoParseAttValue(Delim: WideChar): Boolean;
-    procedure DoParseFragment;
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
     function ContextPop: Boolean;
     procedure XML11_BuildTables;
@@ -407,6 +407,8 @@ type
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
     procedure ParseElement;                                             // [39]
+    procedure ParseEndTag;                                              // [42]
+    procedure DoEndElement(ErrOffset: Integer);
     procedure ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
     procedure ParseContent;                                             // [43]
     function  ResolvePredefined: Boolean;
@@ -429,7 +431,7 @@ type
     procedure AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
     procedure EndNamespaceScope(var Chain: TBinding);
 
-    procedure PushVC(aElDef: TDOMElementDef);
+    procedure PushVC(aElement: TDOMElement; aElDef: TDOMElementDef);
     procedure PopVC;
     procedure UpdateConstraints;
     procedure ValidateDTD;
@@ -1446,7 +1448,7 @@ begin
   FState := rsProlog;
   FNesting := 0;
   Initialize(ASource);
-  DoParseFragment;
+  ParseContent;
 
   if FState < rsRoot then
     FatalError('Root element is missing');
@@ -1462,7 +1464,7 @@ begin
   FState := rsRoot;
   Initialize(ASource);
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
-  DoParseFragment;
+  ParseContent;
 end;
 
 function TXMLReader.CheckName(aFlags: TCheckNameFlags): Boolean;
@@ -1693,15 +1695,6 @@ begin
   Result := wc <> #0;
 end;
 
-procedure TXMLReader.DoParseFragment;
-begin
-  // SAX: ContentHandler.StartDocument() - here?
-  ParseContent;
-  if FSource.FBuf^ <> #0 then
-    FatalError('End-tag is not allowed here');
-  // SAX: ContentHandler.EndDocument() - here? or somewhere in destructor?  
-end;
-
 function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
 var
   Src: TXMLCharSource;
@@ -1798,7 +1791,7 @@ begin
         if InAttr then
           DoParseAttValue(#0)
         else
-          DoParseFragment;
+          ParseContent;
         AEntity.FResolved := True;
       finally
         AEntity.SetReadOnly(True);
@@ -2769,16 +2762,24 @@ procedure TXMLReader.ParseContent;
 var
   nonWs: Boolean;
   wc: WideChar;
+  StartNesting: Integer;
 begin
+  StartNesting := FNesting;
   with FSource do
   repeat
     if FBuf^ = '<' then
     begin
-      if FBufEnd < FBuf + 3 then
-        Reload;
       Inc(FBuf);
-      if FBuf^ = '/' then Break;     // end tag case is as frequent as start tag
-      if CheckName([cnOptional]) then
+      if FBufEnd < FBuf + 2 then
+        Reload;
+      if FBuf^ = '/' then
+      begin
+        if FNesting <= StartNesting then
+          FatalError('End-tag is not allowed here');
+        Inc(FBuf);
+        ParseEndTag;
+      end
+      else if CheckName([cnOptional]) then
         ParseElement
       else if FBuf^ = '!' then
       begin
@@ -2847,6 +2848,8 @@ begin
         FatalError('Illegal at document level', -1);
     end;
   until FBuf^ = #0;
+  if FNesting > StartNesting then
+    FatalError('End-tag is missing for ''%s''', [FValidator[FNesting].FElement.NSI.QName^.Key]);
 end;
 
 procedure TXMLCharSource.NextChar;
@@ -2870,7 +2873,6 @@ var
   NewElem: TDOMElement;
   ElDef: TDOMElementDef;
   IsEmpty: Boolean;
-  ErrOffset: Integer;
   ElName: PHashItem;
 begin
   if FState > rsRoot then
@@ -2917,57 +2919,61 @@ begin
 
   if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
     ProcessDefaultAttributes(NewElem, ElDef.FAttributes);
-  PushVC(ElDef);  // this increases FNesting
+  PushVC(NewElem, ElDef);  // this increases FNesting
   if FNamespaces then
     ProcessNamespaceAtts(NewElem);
 
-  // SAX: ContentHandler.StartElement(...)
-  // SAX: ContentHandler.StartPrefixMapping(...)
-
-  ErrOffset := 0;
   if not IsEmpty then
   begin
     FCursor := NewElem;
     if not FPreserveWhitespace then   // critical for testsuite compliance
       SkipS;
-    ParseContent;
-    if FSource.FBuf^ = '/' then         // Get ETag [42]
-    begin
-      FSource.NextChar;
-      CheckName;
-      if not BufEquals(FName, ElName^.Key) then
-        FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], FName.Length);
-      if FSource.FBuf^ = '>' then    // this handles majority of cases
-      begin
-        ErrOffset := FName.Length+1;
-        FSource.NextChar;
-      end
-      else    // but if closing '>' is preceded by whitespace,
-      begin   // skipping it is likely to lose position info.
-        StoreLocation(FTokenStart);
-        Dec(FTokenStart.LinePos, FName.Length);
-        ErrOffset := -1;
-        SkipS;
-        ExpectChar('>');
-      end;
-    end
-    else if FSource.FBuf^ <> #0 then
-      RaiseNameNotFound
-    else // End of stream in content
-      FatalError('End-tag is missing for ''%s''', [ElName^.Key]);
-  end;
-  // SAX: ContentHandler.EndElement(...)
-  // SAX: ContentHandler.EndPrefixMapping(...)
+  end
+  else
+    DoEndElement(0);
+end;
+
+procedure TXMLReader.DoEndElement(ErrOffset: Integer);
+var
+  NewElem: TDOMElement;
+begin
+  NewElem := FValidator[FNesting].FElement;
   TDOMNode(FCursor) := NewElem.ParentNode;
   if FCursor = doc then
     FState := rsEpilog;
 
   if FValidate and FValidator[FNesting].Incomplete then
-    ValidationError('Element ''%s'' is missing required sub-elements', [ElName^.Key], ErrOffset);
+    ValidationError('Element ''%s'' is missing required sub-elements', [NewElem.NSI.QName^.Key], ErrOffset);
 
   if FNamespaces then
     EndNamespaceScope(FBindingStack[FNesting]);
   PopVC;
+end;
+
+procedure TXMLReader.ParseEndTag;     // [42]
+var
+  ErrOffset: Integer;
+  ElName: PHashItem;
+begin
+  ElName := FValidator[FNesting].FElement.NSI.QName;
+
+  CheckName;
+  if not BufEquals(FName, ElName^.Key) then
+    FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], FName.Length);
+  if FSource.FBuf^ = '>' then    // this handles majority of cases
+  begin
+    ErrOffset := FName.Length+1;
+    FSource.NextChar;
+  end
+  else    // but if closing '>' is preceded by whitespace,
+  begin   // skipping it is likely to lose position info.
+    StoreLocation(FTokenStart);
+    Dec(FTokenStart.LinePos, FName.Length);
+    ErrOffset := -1;
+    SkipS;
+    ExpectChar('>');
+  end;
+  DoEndElement(ErrOffset);
 end;
 
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
@@ -3419,11 +3425,12 @@ begin
     ValidationError('Duplicate notation declaration: ''%s''', [aName]);
 end;
 
-procedure TXMLReader.PushVC(aElDef: TDOMElementDef);
+procedure TXMLReader.PushVC(aElement: TDOMElement; aElDef: TDOMElementDef);
 begin
   Inc(FNesting);
   if FNesting >= Length(FValidator) then
     SetLength(FValidator, FNesting * 2);
+  FValidator[FNesting].FElement := aElement;
   FValidator[FNesting].FElementDef := aElDef;
   FValidator[FNesting].FCurCP := nil;
   FValidator[FNesting].FFailed := False;
