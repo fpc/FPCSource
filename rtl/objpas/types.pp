@@ -406,13 +406,20 @@ begin
     OffsetRect:=false;
 end;
 
-function CenterPoint(const Rect: TRect): TPoint;
-
+function Avg(a, b: Longint): Longint;
 begin
-  With Rect do
+  if a < b then
+    Result := a + ((b - a) shr 1)
+  else
+    Result := b + ((a - b) shr 1);
+end;
+
+function CenterPoint(const Rect: TRect): TPoint;
+begin
+  with Rect do
     begin
-    Result.X:=(Left+Right) div 2;
-    Result.Y:=(Top+Bottom) div 2;
+      Result.X := Avg(Left, Right);
+      Result.Y := Avg(Top, Bottom);
     end;
 end;
 
