@@ -25,6 +25,9 @@ Uses baseunix,UnixType;
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
+Type 
+ TSockLen = BaseUnix.TSocklen;
+
 {$i unxsockh.inc}
 {$i socketsh.inc}
 
