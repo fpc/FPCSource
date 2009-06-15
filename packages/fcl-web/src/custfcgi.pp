@@ -87,6 +87,15 @@ uses
 {$endif}
   Sockets;
 
+{$undef nosignal}
+
+{$if defined(FreeBSD) or defined(Linux)}
+  {$define nosignal}
+{$ifend}
+
+Const 
+   NoSignalAttr =  {$ifdef nosignal} MSG_NOSIGNAL{$else}0{$endif};
+
 { TFCGIHTTPRequest }
 
 procedure TFCGIRequest.ReadContent;
@@ -243,7 +252,7 @@ var BytesToWrite : word;
     BytesWritten  : Integer;
 begin
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
-  BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, ARecord, BytesToWrite, {$ifdef unix} MSG_NOSIGNAL{$else}0{$endif});
+  BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, ARecord, BytesToWrite, NoSignalAttr);
   Assert(BytesWritten=BytesToWrite);
 end;
 
@@ -359,7 +368,7 @@ var Header : FCGI_Header;
    result := False;
     if ByteAmount>0 then
       begin
-      BytesRead := sockets.fpRecv(FHandle, ReadBuf, ByteAmount, {$ifdef unix} MSG_NOSIGNAL{$else}0{$endif});
+      BytesRead := sockets.fpRecv(FHandle, ReadBuf, ByteAmount, NoSignalAttr);
       if BytesRead<>ByteAmount then
         begin
 //        SendDebug('FCGIRecord incomplete');
