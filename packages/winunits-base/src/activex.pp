@@ -2940,7 +2940,7 @@ TYPE
      Function  FindName(szNameBuf: pOleStr; lHashVal: ULONG; OUT ppTInfo: ITypeInfo; OUT rgMemId: MEMBERID; VAR pcFound: USHORT; OUT pBstrLibName: WideString):HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-      Procedure ReleaseTLibAttr(Const pTLibAttr : TLIBATTR); StdCall;
+      Procedure ReleaseTLibAttr( pTLibAttr : LPTLIBATTR); StdCall;
       {$else}
      Function  LocalReleaseTLibAttr:HResult;StdCall;
      {$endif}
