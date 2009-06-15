@@ -137,7 +137,7 @@ interface
 
         { DWARF 3 values.   }
         DW_AT_allocated := $4e,DW_AT_associated := $4f,
-        DW_AT_data_location := $50,DW_AT_stride := $51,
+        DW_AT_data_location := $50,DW_AT_byte_stride := $51,
         DW_AT_entry_pc := $52,DW_AT_use_UTF8 := $53,
         DW_AT_extension := $54,DW_AT_ranges := $55,
         DW_AT_trampoline := $56,DW_AT_call_column := $57,
@@ -1327,6 +1327,7 @@ implementation
       var
         size : aint;
         elesize : aint;
+        elestrideattr : tdwarf_attribute;
         labsym: tasmlabel;
       begin
         if is_dynamic_array(def) then
@@ -1340,9 +1341,15 @@ implementation
           end;
 
         if not is_packed_array(def) then
-          elesize := def.elesize*8
+          begin
+          elestrideattr := DW_AT_byte_stride;
+          elesize := def.elesize;
+          end
         else
+          begin
+          elestrideattr := DW_AT_stride_size;
           elesize := def.elepackedbitsize;
+          end;
 
         if is_special_array(def) then
           begin
@@ -1350,11 +1357,11 @@ implementation
             if assigned(def.typesym) then
               append_entry(DW_TAG_array_type,true,[
                 DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                DW_AT_stride_size,DW_FORM_udata,elesize
+                elestrideattr,DW_FORM_udata,elesize
                 ])
             else
               append_entry(DW_TAG_array_type,true,[
-                DW_AT_stride_size,DW_FORM_udata,elesize
+                elestrideattr,DW_FORM_udata,elesize
                 ]);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
@@ -1370,12 +1377,12 @@ implementation
               append_entry(DW_TAG_array_type,true,[
                 DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
                 DW_AT_byte_size,DW_FORM_udata,size,
-                DW_AT_stride_size,DW_FORM_udata,elesize
+                elestrideattr,DW_FORM_udata,elesize
                 ])
             else
               append_entry(DW_TAG_array_type,true,[
                 DW_AT_byte_size,DW_FORM_udata,size,
-                DW_AT_stride_size,DW_FORM_udata,elesize
+                elestrideattr,DW_FORM_udata,elesize
                 ]);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
@@ -1467,7 +1474,7 @@ implementation
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
           append_entry(DW_TAG_array_type,true,[
             DW_AT_byte_size,DW_FORM_udata,def.size,
-            DW_AT_stride_size,DW_FORM_udata,1*8
+            DW_AT_byte_stride,DW_FORM_udata,1
             ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
           finish_entry;
@@ -3130,6 +3137,7 @@ implementation
         finish_entry;
         { to simplify things, we don't write a multidimensional array here }
         append_entry(DW_TAG_subrange_type,false,[
+          DW_AT_byte_stride,DW_FORM_udata,def.elesize,
           DW_AT_lower_bound,DW_FORM_udata,0,
           DW_AT_upper_bound,DW_FORM_block1,5
           ]);
