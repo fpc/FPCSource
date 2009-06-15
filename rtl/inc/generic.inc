@@ -124,8 +124,9 @@ begin
     begin
       v:=(value shl 8) or value;
       v:=(v shl 16) or v;
-      if sizeof(ptruint)=8 then
-        v:=(v shl 32) or v;
+{$ifdef CPU64}
+      v:=(v shl 32) or v;
+{$endif CPU64}
       { Align on native pointer size }
       pend:=pbyte(align(pdest,sizeof(PtrUInt)));
       dec(count,pend-pdest);
@@ -241,6 +242,24 @@ end;
 {$endif FPC_SYSTEM_HAS_FILLDWORD}
 
 
+{$ifndef FPC_SYSTEM_HAS_FILLQWORD}
+procedure fillqword(var x;count : SizeInt;value : qword);
+var
+  pdest,pend : pqword;
+begin
+  if count <= 0 then
+    exit;
+  pdest:=@x;
+  pend:=pdest+count;
+  while pdest<pend do
+    begin
+      pdest^:=value;
+      inc(pdest);
+    end;
+end;
+{$endif FPC_SYSTEM_HAS_FILLQWORD}
+
+
 {$ifndef FPC_SYSTEM_HAS_INDEXBYTE}
 function IndexByte(Const buf;len:SizeInt;b:byte):SizeInt;
 var
@@ -349,6 +368,47 @@ begin
   result:=-1;
 end;
 {$endif not FPC_SYSTEM_HAS_INDEXDWORD}
+
+
+{$ifndef FPC_SYSTEM_HAS_INDEXQWORD}
+function IndexQWord(Const buf;len:SizeInt;b:QWord):SizeInt;
+var
+  psrc,pend : pqword;
+begin
+  psrc:=@buf;
+  { simulate assembler implementations behaviour, which is expected }
+  { fpc_pchar_to_ansistr in astrings.inc                            }
+  if (len < 0) or
+     (len > high(PtrInt) div 4) or
+     (psrc+len < psrc) then
+    pend:=pqword(high(PtrUInt)-sizeof(qword))
+  else
+    pend:=psrc+len;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  if (ptruint(psrc) mod 8)<>0 then
+    while psrc<pend do
+      begin
+        if unaligned(psrc^)=b then
+          begin
+            result:=psrc-pqword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end
+  else
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+    while psrc<pend do
+      begin
+        if psrc^=b then
+          begin
+            result:=psrc-pqword(@buf);
+            exit;
+          end;
+        inc(psrc);
+      end;
+  result:=-1;
+end;
+{$endif not FPC_SYSTEM_HAS_INDEXQWORD}
 
 
 {$ifndef FPC_SYSTEM_HAS_COMPAREBYTE}
