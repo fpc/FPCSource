@@ -1141,7 +1141,9 @@ begin
         CheckControlMessage(True);
       CheckControlMessage(False);
       end;
-    end;
+    end
+  else
+    FDaemon.Status:=csStopped;
 end;
 
 
