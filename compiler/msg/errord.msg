@@ -1,9 +1,9 @@
 #
 #   German (alternative, LATIN-US DOS) Language File for Free Pascal
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
-#   <karl-michael.schindler at physik.uni-halle.de>
+#   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 12528
+#   Based on errore.msg of SVN revision 13257 + one
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2009 by the Free Pascal Development team
@@ -1185,7 +1185,7 @@ parser_n_ignore_lower_visibility=03250_N_Die virtuelle Methode "$1" hat eine nie
 #
 # Type Checking
 #
-# 04083 is the last used one
+# 04087 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1469,6 +1469,20 @@ type_w_pointer_to_signed=04082_W_Die Konvertierung von Pointern in einen Integer
 type_interface_has_no_guid=04083_E_Interface Typ $1 hat keine gÅltige GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid GUID.
+type_e_invalid_objc_selector_name=04084_E_UngÅltiger Objective-C-Selector-Name
+% An Objective-C selector cannot be empty, must be a valid identifier or a single colon,
+% and if it contains at least one colon it must also end in one.
+type_e_expected_objc_method_but_got=04085_E_Erwartete eine Objective-C-Methode, erhielt aber $1
+% A selector can only be created for Objective-C methods, not for any other kind
+% of procedure/function/method.
+type_e_expected_objc_method=04086_E_Erwartete eine Objective-C-Methode, oder den Namen einer konstanten Methode
+% A selector can only be created for Objective-C methods, either by specifying
+% the name using a string constant, or by using an Objective-C method identifier
+% that is visible in the current scope.
+type_e_no_type_info=04087_E_FÅr diesen Typ steht keine Typ-Information zu VerfÅgung
+% Type information is not generated for some types, such as enumerations with gaps
+% in their value range (this includes enumerations whose lower bound is different
+% from zero).
 % \end{description}
 #
 # Symtable
@@ -1574,12 +1588,12 @@ sym_w_uninitialized_local_variable=05036_W_Lokale Variable "$1" wird verwendet, 
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_w_uninitialized_variable=05037_W_Variable "$1" scheint nicht initialisiert worden zu sein
 % These messages are displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % wasn't initialized first (i.e. appeared in the left-hand side of an
-% assigment).
+% assignassignmentment).
 sym_e_id_no_member=05038_E_Bezeichener verweist nicht auf ein Element: $1
 % This error is generated when an identifier of a record,
 % field or method is accessed while it is not defined.
@@ -1614,22 +1628,22 @@ sym_h_uninitialized_local_variable=05057_H_Die Variable "$1" scheint nicht initi
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. it did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_uninitialized_variable=05058_H_Die Variable "$1" scheint nicht initialisiert zu sein
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. t did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_w_function_result_uninitialized=05059_W_Die Ergebnisvariable der Funktion scheint nicht initialisiert zu sein
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. before it appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_function_result_uninitialized=05060_H_Die Ergebnisvariable der Funktion scheint nicht initialisiert zu sein
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. it appears in the left-hand side of an
-% assigment)
+% assignment)
 sym_w_identifier_only_read=05061_W_Die Variable "$1" wird gelesen, obwohl ihr aber noch kein Wert zugewiesen wurde
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
@@ -2192,6 +2206,10 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 % \begin{description}
 link_f_executable_too_big=09200_F_Das Programm - Image ist fÅr das Target $1 zu gro·
 % Fatal error when resulting executable is too big.
+link_w_32bit_absolute_reloc=09201_W_Object Daei "$1" enthÑlt eine 32-bit absolute Relocation auf Symbol "$2".
+% Warning when 64-bit object file contains 32-bit absolute relocations.
+% In such case an executable image can be loaded into lower 4Gb of
+% address space only.
 %\end{description}
 # EndOfTeX
 
@@ -2401,7 +2419,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 wurde mit einer anderen Feedback-Einga
 #
 #  Options
 #
-# 11044 is the last used one
+# 11046 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2516,6 +2534,13 @@ option_unsupported_target=11044_F_Die Option "$1" wird auf der Zielplattform nic
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
 % option is incompatible with the currently selected target platform.
 %\end{description}
+option_unsupported_target_for_feature=11045_F_Das Feature "$1" wird fÅr die ausgewÑhlte Zielplattform nicht oder noch nicht unterstÅtzt
+% Not all features are supported or implemented for all target platforms. This message informs you that a chosen
+% feature is incompatible with the currently selected target platform.
+option_dwarf_smart_linking=11046_N_DWARF Debug-Information kann auf dieser Zielplattform nicht zusammen mit Smartlinking benutzt werden, es wird auf statisches Linken umgeschaltet
+% Smart linking is currently incompatble with DWARF debug information on most
+% platforms, so smart linking is disabled in such cases.
+
 # EndOfTeX
 
 #
@@ -2529,11 +2554,11 @@ option_unsupported_target=11044_F_Die Option "$1" wird auf der Zielplattform nic
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
 % \begin{description}
-wpo_cant_find_file=12000_F_Feedback-Datei $1 fÅr die Gesamtprogramm-Optimierung kann nicht geîffnet werden
+wpo_cant_find_file=12000_F_Feedback-Datei "$1" fÅr die Gesamtprogramm-Optimierung kann nicht geîffnet werden
 % The compiler cannot open the specified feedback file with whole program optimization information.
-wpo_begin_processing=12001_D_Bearbeite die Informationen zur Gesamtprogramm-Optimierung aus der wpo-Feedback-Datei $1
+wpo_begin_processing=12001_D_Bearbeite die Informationen zur Gesamtprogramm-Optimierung aus der wpo-Feedback-Datei "$1"
 % The compiler starts processing whole program optimization information found in the named file.
-wpo_end_processing=12002_D_Bearbeitung der Informationen zur Gesamtprogramm-Optimierung aus der wpo-Feedback-Datei $1 beendet
+wpo_end_processing=12002_D_Bearbeitung der Informationen zur Gesamtprogramm-Optimierung aus der wpo-Feedback-Datei "$1" beendet
 % The compiler has finished processing the whole program optimization information found in the named file.
 wpo_expected_section=12003_E_Erwarte einen Sektions-Header, statt dessen "$2" in Zeile $1 der wpo-Feedback-Datei erhalten
 % The compiler expected a section header in the whole program optimization file (starting with \%),
@@ -2630,6 +2655,9 @@ UnterstÅtzte Optimierungen:
 UnterstÅtzte Gesamtprogramm-Optimierungen:
   All
   $WPOPTIMIZATIONS
+
+UnterstÅtzte Microcontroller:
+  $CONTROLLERTYPES
 
 Dieses Programm unterliegt der GNU General Public Licence
 Weitere Informationen sind in COPYING.FPC zu finden
@@ -2850,19 +2878,20 @@ S*2Tlinux_Linux
 **1u<x>_Entferne die Definition fÅr das Symbol <x>
 **1U<x>_Unit-Optionen:
 **2Un_PrÅfe den Unitnamen nicht
-**2Ur_Erzeuge release unit Dateien
+**2Ur_Erzeuge "release unit"-Dateien
 **2Us_Erzeuge eine Systemunit
 **1v<x>_Meldungen, <x> ist eine Kombination der folgenden Zeichen:
 **2*_e : Fehler (Standard)             0 : Nichts (ausser Fehlern)
 **2*_w : Warnungen                     u : Unit Informationen
 **2*_n : Anmerkungen                   t : Angesprochene/benutzte Dateien
-**2*_h : Hinweise                      c : Preprozessordirektive
+**2*_h : Hinweise                      c : Preprozessordirektiven
 **2*_i : Allgemeine Informationen      d : Debug Informationen
 **2*_l : Zeilennummern                 r : Rhide/GCC kompatibler Modus
+**2*_s : Zeitstempel                   q : Nummer der Meldung
 **2*_a : Alles                         x : Exe-Datei Informationen (nur Win32)
-**2*_b : Schreibe bei Meldungen mit Dateinamen den vollstÑndigem Pfad
-**2*_v : Schreibe fpcdebug.txt mit     p : Schreibe tree.log mit Analysenbaum (parse tree)
-**2*_   ganz viel Information          q : Zeige die Nummer der Meldung
+**2*_b : Schreibe bei Meldungen mit    p : Schreibe tree.log mit Analysenbaum (parse tree)
+**2*_    Dateinamen den vollstÑndigen  v : Schreibe fpcdebug.txt mit 
+**2*_    Pfad                              ganz viel Information
 **2*_m<x>,<y> : Zeige die Meldungen mit den Nummern <x> und <y> nicht
 3*1W<x>_Ziel-spezifische Optionen (Ziele)
 A*1W<x>_Ziel-spezifische Optionen (Ziele)
@@ -2909,7 +2938,7 @@ P*2WX_Ermîgliche den executable stack (Linux)
 **2XP<x>_Stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
 **2Xr<x>_Setze den Bibliotheks-Suchpfad zu <x>       (benîtigt fÅr cross compile)
 **2XR<x>_Stelle allen Linker-Suchpfaden den Namen <x> voran (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
-**2Xs_Entferne alle Symbole von ausfÅhrbarer Datei
+**2Xs_Entferne alle Symbole aus der ausfÅhrbaren Datei
 **2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
 **2Xt_Linke mit statischen Bibliotheken              (-static wird an den Linker Åbergeben)
 **2XX_Versuche Units smart zu linken                 (definiert FPC_LINK_SMART)

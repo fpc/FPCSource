@@ -1588,7 +1588,7 @@ sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initializ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_e_id_no_member=05038_E_identifier idents no member "$1"
 % This error is generated when an identifier of a record,
 % field or method is accessed while it is not defined.
@@ -1623,22 +1623,22 @@ sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to 
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. it did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. t did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_w_function_result_uninitialized=05059_W_Function result variable does not seem to initialized
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. before it appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_function_result_uninitialized=05060_H_Function result variable does not seem to be initialized
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. it appears in the left-hand side of an
-% assigment)
+% assignment)
 sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
