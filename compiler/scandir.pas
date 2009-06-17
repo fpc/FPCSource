@@ -23,22 +23,10 @@ unit scandir;
 
 {$i fpcdefs.inc}
 
-interface
-
-
-    procedure InitScannerDirectives;
-
-implementation
+  interface
 
     uses
-      SysUtils,
-      cutils,cfileutl,
-      globtype,globals,systems,widestr,cpuinfo,
-      verbose,comphook,ppu,
-      scanner,switches,
-      fmodule,
-      symconst,symtable,
-      rabase;
+      globtype;
 
     const
       switchesstatestackmax = 20;
@@ -49,9 +37,26 @@ implementation
         verbosity: longint;
       end;
 
+    type
+      tswitchesstatestack = array[0..switchesstatestackmax] of tsavedswitchesstate;
+
     var
-      switchesstatestack: array[0..switchesstatestackmax] of tsavedswitchesstate;
+      switchesstatestack:tswitchesstatestack;
       switchesstatestackpos: Integer;
+
+    procedure InitScannerDirectives;
+
+  implementation
+
+    uses
+      SysUtils,
+      cutils,cfileutl,
+      globals,systems,widestr,cpuinfo,
+      verbose,comphook,ppu,
+      scanner,switches,
+      fmodule,
+      symconst,symtable,
+      rabase;
 
 {*****************************************************************************
                                     Helpers
@@ -1405,6 +1410,4 @@ implementation
         AddDirective('Z4',directive_all, @dir_z4);
       end;
 
-begin
-  switchesstatestackpos:= 0;
 end.
