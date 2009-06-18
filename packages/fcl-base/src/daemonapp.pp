@@ -1143,7 +1143,10 @@ begin
       end;
     end
   else
+    begin
     FDaemon.Status:=csStopped;
+    Application.Terminate;
+    end;
 end;
 
 
