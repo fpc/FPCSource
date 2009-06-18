@@ -1444,6 +1444,7 @@ end;
 procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
+  doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI  
   FCursor := doc;
   FState := rsProlog;
   FNesting := 0;

@@ -431,6 +431,7 @@ type
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
     FPools: PNodePool;
+    FDocumentURI: DOMString;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -473,6 +474,8 @@ type
     function CreateAttributeNS(const nsURI, QualifiedName: DOMString): TDOMAttr;
     function GetElementsByTagNameNS(const nsURI, alocalName: DOMString): TDOMNodeList;
     function GetElementById(const ElementID: DOMString): TDOMElement;
+    // DOM level 3:
+    property documentURI: DOMString read FDocumentURI write FDocumentURI;
     // Extensions to DOM interface:
     constructor Create;
     destructor Destroy; override;
@@ -542,6 +545,7 @@ type
     function  GetNodeValue: DOMString; override;
     function GetNodeType: Integer; override;
     function GetSpecified: Boolean;
+    function GetIsID: Boolean;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
     destructor Destroy; override;
@@ -550,6 +554,7 @@ type
     property Specified: Boolean read GetSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
     property OwnerElement: TDOMElement read FOwnerElement;
+    property IsID: Boolean read GetIsID;
     // extensions
     // TODO: this is to be replaced with DOM 3 TypeInfo
     property DataType: TAttrDataType read FDataType write FDataType;
@@ -2576,6 +2581,11 @@ end;
 function TDOMAttr.GetSpecified: Boolean;
 begin
   Result := nfSpecified in FFlags;
+end;
+
+function TDOMAttr.GetIsID: Boolean;
+begin
+  Result := FDataType = dtID;
 end;
 
 // -------------------------------------------------------
