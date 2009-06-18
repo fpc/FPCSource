@@ -425,6 +425,12 @@ unit lpc21x4;
         b .Lhalt
       end;
 
+    var
+      _data: record end; external name '_data';
+      _edata: record end; external name '_edata';
+      _etext: record end; external name '_etext';
+      _bss_start: record end; external name '_bss_start';
+      _bss_end: record end; external name '_bss_end';
 
     procedure _FPC_start; assembler; nostackframe;
       label
@@ -526,20 +532,37 @@ unit lpc21x4;
         ldr r0,.L6
         str r1,[r0]
 
+        // copy initialized data from flash to ram
+        ldr r1,.L_etext
+        ldr r2,.L_data
+        ldr r3,.L_edata
+.Lcopyloop:
+        cmp r2,r3
+        ldr r0,[r1],#4
+        str r0,[r2],#4
+        bls .Lcopyloop
+
         // clear onboard ram
-        mov r1,#0x1000
-        ldr r2,.LRAMStart
+        ldr r1,.L_bss_start
+        ldr r2,.L_bss_end
         mov r0,#0
 .Lzeroloop:
-        str r0,[r2]
-        subs r1,r1,#1
-        add r2,r2,#4
-        bne .Lzeroloop
+        cmp r1,r2
+        str r0,[r1],#4
+        bls .Lzeroloop
 
         bl PASCALMAIN
         bl _FPC_haltproc
-.LRAMStart:
-        .long 0x40000000
+.L_bss_start:
+        .long _bss_start
+.L_bss_end:
+        .long _bss_end
+.L_etext:
+        .long _etext
+.L_data:
+        .long _data
+.L_edata:
+        .long _edata
 .LDefaultHandlerAddr:
         .long .LDefaultHandler
         // default irq handler just returns
