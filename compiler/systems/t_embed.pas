@@ -224,32 +224,62 @@ begin
       with linkres do
         begin
           Add('ENTRY(_START)');
-          Add('SECTIONS');
+          Add('MEMORY');
           Add('{');
-          Add('     . = 0x0;  /* start of flash */');
-          Add('    /* code and constants */');
-          Add('    .text :');
-          Add('    {');
-          Add('    *(.init, .init.*)');
-          Add('    *(.text, .text.*)');
-          Add('    *(.strings)');
-          Add('    *(.rodata.*)');
-          Add('    *(.comment)');
-          Add('    }');
-          Add('    /* uninitialized data */');
-          Add('    . = 0x40000000;  /* start of ram */');
-          Add('    .bss :');
-          Add('    {');
-          Add('    *(.bss, .bss.*)');
-          Add('    *(COMMON)');
-          Add('    *(.data, .data.*)');
-          Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
-          Add('    }');
+          Add('    flash : ORIGIN = 0, LENGTH = 128K');
+          Add('    ram : ORIGIN = 0x40000000, LENGTH = 4K');
           Add('}');
         end;
+      ct_at91sam7s256,
+      ct_at91sam7se256,
+      ct_at91sam7x256,
+      ct_at91sam7xc256:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add('    flash : ORIGIN = 0, LENGTH = 256K');
+          Add('    ram : ORIGIN = 0x200000, LENGTH = 64K');
+          Add('}');
+          Add('_stack_end = 0x20FFFC;');
+        end;
+
     else
       internalerror(200902011);
   end;
+
+  with linkres do
+    begin
+      Add('SECTIONS');
+      Add('{');
+      Add('     .text :');
+      Add('    {');
+      Add('    *(.init, .init.*)');
+      Add('    *(.text, .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    } >flash');
+      Add('    .data :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data, .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    } >ram AT >flash');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss, .bss.*)');
+      Add('    *(COMMON)');
+      Add('    } >ram');
+      Add('. = ALIGN(4);');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
 {$endif ARM}
 
   { Write and Close response }
@@ -308,17 +338,16 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
-{ Post process
+{ Post process }
   if success then
     begin
-      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O hex '+
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+
-        current_module.exefilename^,true,false);
+        ChangeFileExt(current_module.exefilename^,'.hex'),true,false);
     end;
-}
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

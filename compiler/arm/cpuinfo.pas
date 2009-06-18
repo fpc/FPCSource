@@ -49,9 +49,17 @@ Type
 
    tcontrollertype =
      (ct_none,
+
+      { Phillips }
       ct_lpc2114,
       ct_lpc2124,
-      ct_lpc2194
+      ct_lpc2194,
+
+      { ATMEL }
+      ct_at91sam7s256,
+      ct_at91sam7se256,
+      ct_at91sam7x256,
+      ct_at91sam7xc256
      );
 
 Const
@@ -94,14 +102,22 @@ Const
      ('',
       'LPC2114',
       'LPC2124',
-      'LPC2194'
+      'LPC2194',
+      'AT91SAM7S256',
+      'AT91SAM7SE256',
+      'AT91SAM7X256',
+      'AT91SAM7XC256'
      );
 
    controllerunitstr : array[tcontrollertype] of string[20] =
      ('',
       'LPC21x4',
       'LPC21x4',
-      'LPC21x4'
+      'LPC21x4',
+      'AT91SAM7x256',
+      'AT91SAM7x256',
+      'AT91SAM7x256',
+      'AT91SAM7x256'
      );
 
 
