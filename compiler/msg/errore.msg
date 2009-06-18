@@ -2770,14 +2770,15 @@ S*2Aas_Assemble using GNU AS
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2go<x>_Set debug information options
-*g3godwarfsets_ Enable Dwarf set debug information (breaks gdb < 6.5)
+*g3godwarfsets_ Enable DWARF set debug information (breaks gdb < 6.5)
+*g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
 *g2gp_Preserve case in stabs symbol names
-*g2gs_Generate stabs debug information
+*g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses)
-*g2gv_Generates programs traceable with valgrind
-*g2gw_Generate dwarf-2 debug information (same as -gw2)
-*g2gw2_Generate dwarf-2 debug information
-*g2gw3_Generate dwarf-3 debug information
+*g2gv_Generates programs traceable with Valgrind
+*g2gw_Generate DWARFv2 debug information (same as -gw2)
+*g2gw2_Generate DWARFv2 debug information
+*g2gw3_Generate DWARFv3 debug information
 **1i_Information
 **2iD_Return compiler date
 **2iV_Return short compiler version
