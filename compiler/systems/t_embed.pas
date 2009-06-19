@@ -226,8 +226,8 @@ begin
           Add('ENTRY(_START)');
           Add('MEMORY');
           Add('{');
-          Add('    flash : ORIGIN = 0, LENGTH = 128K');
-          Add('    ram : ORIGIN = 0x40000000, LENGTH = 4K');
+          Add('    flash : ORIGIN = 0, LENGTH = 256K');
+          Add('    ram : ORIGIN = 0x40000000, LENGTH = 16K');
           Add('}');
         end;
       ct_at91sam7s256,
@@ -344,7 +344,7 @@ begin
 { Post process }
   if success then
     begin
-      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O hex '+
+      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+
         ChangeFileExt(current_module.exefilename^,'.hex'),true,false);
     end;
