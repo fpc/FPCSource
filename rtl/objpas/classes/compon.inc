@@ -15,137 +15,126 @@
 {*                             TComponent                                   *}
 {****************************************************************************}
 
-Function  TComponent.GetComponent(AIndex: Integer): TComponent;
-
+function TComponent.GetComponent(AIndex: Integer): TComponent;
 begin
-  If not assigned(FComponents) then
-    Result:=Nil
+  if Assigned(FComponents) then
+    Result := TComponent(FComponents.Items[Aindex])
   else
-    Result:=TComponent(FComponents.Items[Aindex]);
+    Result := nil;
 end;
 
-function TComponent.IsImplementorOf (const Intf:IInterface):boolean;
-var ref : IInterfaceComponentReference;
+
+function TComponent.IsImplementorOf(const Intf: IInterface):boolean;
+var
+  ref: IInterfaceComponentReference;
 begin
- result:=assigned(intf) and supports(intf,IInterfaceComponentReference,ref);
- if result then
-   result:=ref.getcomponent=self;
+  result := Assigned(intf) and Supports(intf,IInterfaceComponentReference,ref) and (ref.getcomponent=self);
 end;
 
-procedure TComponent.ReferenceInterface(const intf:IInterface;op:TOperation);
-var ref : IInterfaceComponentReference;
-    comp : TComponent;
+
+procedure TComponent.ReferenceInterface(const intf: IInterface; op: TOperation);
+var
+  ref: IInterfaceComponentReference;
+  comp: TComponent;
 begin
- if assigned(intf) and supports(intf,IInterfaceComponentReference,ref) then
-   begin
-    comp:=ref.getcomponent;
-    comp.notification(self,op); 
-   end;
+  if assigned(intf) and supports(intf,IInterfaceComponentReference,ref) then
+  begin
+    comp := ref.getcomponent;
+    comp.notification(self,op);
+  end;
 end;
 
-Function  TComponent.GetComponentCount: Integer;
 
+function TComponent.GetComponentCount: Integer;
 begin
-  If not assigned(FComponents) then
-    result:=0
+  if assigned(FComponents) then
+    Result := FComponents.Count
   else
-    Result:=FComponents.Count;
+    Result := 0;
 end;
 
 
-Function  TComponent.GetComponentIndex: Integer;
-
+function TComponent.GetComponentIndex: Integer;
 begin
-  If Assigned(FOwner) and Assigned(FOwner.FComponents) then
-    Result:=FOWner.FComponents.IndexOf(Self)
+  if Assigned(FOwner) and Assigned(FOwner.FComponents) then
+    Result := FOwner.FComponents.IndexOf(Self)
   else
-    Result:=-1;
+    Result := -1;
 end;
 
 
-Procedure TComponent.Insert(AComponent: TComponent);
-
+procedure TComponent.Insert(AComponent: TComponent);
 begin
-  If not assigned(FComponents) then
-    FComponents:=TList.Create;
+  if not Assigned(FComponents) then
+    FComponents := TList.Create;
   FComponents.Add(AComponent);
-  AComponent.FOwner:=Self;
+  AComponent.FOwner := Self;
 end;
 
 
-Procedure TComponent.ReadLeft(Reader: TReader);
-
+procedure TComponent.ReadLeft(Reader: TReader);
 begin
-  LongRec(FDesignInfo).Lo:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Lo := Reader.ReadInteger;
 end;
 
 
-Procedure TComponent.ReadTop(Reader: TReader);
-
+procedure TComponent.ReadTop(Reader: TReader);
 begin
-  LongRec(FDesignInfo).Hi:=Reader.ReadInteger;
+  LongRec(FDesignInfo).Hi := Reader.ReadInteger;
 end;
 
 
-Procedure TComponent.Remove(AComponent: TComponent);
-
+procedure TComponent.Remove(AComponent: TComponent);
 begin
-  AComponent.FOwner:=Nil;
-  If assigned(FCOmponents) then
-    begin
+  AComponent.FOwner := nil;
+  if Assigned(FCOmponents) then
+  begin
     FComponents.Remove(AComponent);
-    IF FComponents.Count=0 then
-      begin
-      FComponents.Free;
-      FComponents:=Nil;
-      end;
-    end;
+    iF FComponents.Count = 0 then
+      FreeAndNil(FComponents);
+  end;
 end;
 
 
-Procedure TComponent.RemoveNotification(AComponent: TComponent);
-
+procedure TComponent.RemoveNotification(AComponent: TComponent);
 begin
-  if FFreeNotifies<>nil then
-    begin
+  if Assigned(FFreeNotifies) then
+  begin
     FFreeNotifies.Remove(AComponent);
     if FFreeNotifies.Count=0 then
-      begin
-      FFreeNotifies.Free;
-      FFreeNotifies:=nil;
-      Exclude(FComponentState,csFreeNotification);
-      end;
-    end;
-end;
-
-
-Procedure TComponent.SetComponentIndex(Value: Integer);
-
-Var Temp,Count : longint;
-
-begin
-  If Not assigned(Fowner) then exit;
-  Temp:=getcomponentindex;
-  If temp<0 then exit;
-  If value<0 then value:=0;
-  Count:=Fowner.FComponents.Count;
-  If Value>=Count then value:=count-1;
-  If Value<>Temp then
     begin
-    FOWner.FComponents.Delete(Temp);
-    FOwner.FComponents.Insert(Value,Self);
+      FreeAndNil(FFreeNotifies);
+      Exclude(FComponentState,csFreeNotification);
     end;
+  end;
 end;
 
 
-Procedure TComponent.SetReference(Enable: Boolean);
+procedure TComponent.SetComponentIndex(Value: Integer);
+var
+  OldIndex, Count: Integer;
+begin
+  if not Assigned(FOwner) then Exit;
+  OldIndex := GetComponentIndex;
+  if OldIndex < 0 then Exit;
+  if Value < 0 then Value := 0;
+  Count := FOwner.FComponents.Count;
+  if Value >= Count then Value := Count-1;
+  if Value <> OldIndex then
+  begin
+    FOwner.FComponents.Delete(OldIndex);
+    FOwner.FComponents.Insert(Value, Self);
+  end;
+end;
 
+
+procedure TComponent.SetReference(Enable: Boolean);
 var
   Field: ^TComponent;
 begin
-  if Assigned(Owner) then
+  if Assigned(FOwner) then
   begin
-    Field := Owner.FieldAddress(Name);
+    Field := FOwner.FieldAddress(Name);
     if Assigned(Field) then
       if Enable then
         Field^ := Self
@@ -155,35 +144,31 @@ begin
 end;
 
 
-Procedure TComponent.WriteLeft(Writer: TWriter);
-
+procedure TComponent.WriteLeft(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(FDesignInfo).Lo);
 end;
 
 
-Procedure TComponent.WriteTop(Writer: TWriter);
-
+procedure TComponent.WriteTop(Writer: TWriter);
 begin
   Writer.WriteInteger(LongRec(FDesignInfo).Hi);
 end;
 
 
-Procedure TComponent.ChangeName(const NewName: TComponentName);
-
+{procedure TComponent.ChangeName(const NewName: TComponentName);
 begin
-  FName:=NewName;
-end;
+  FName := NewName;
+end;}
 
 
-Procedure TComponent.DefineProperties(Filer: TFiler);
-
-Var Ancestor : TComponent;
-    Temp : longint;
-
+procedure TComponent.DefineProperties(Filer: TFiler);
+var
+  Ancestor: TComponent;
+  Temp: Longint;
 begin
-  Temp:=0;
-  Ancestor:=TComponent(Filer.Ancestor);
+  Temp := 0;
+  Ancestor := TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.FDesignInfo;
   Filer.Defineproperty('left',@readleft,@writeleft,
                        (longrec(FDesignInfo).Lo<>Longrec(temp).Lo));
@@ -192,383 +177,355 @@ begin
 end;
 
 
-Procedure TComponent.GetChildren(Proc: TGetChildProc; Root: TComponent);
-
+procedure TComponent.GetChildren(Proc: TGetChildProc; Root: TComponent);
 begin
   // Does nothing.
 end;
 
 
-Function  TComponent.GetChildOwner: TComponent;
-
+function TComponent.GetChildOwner: TComponent;
 begin
- Result:=Nil;
+  Result := nil;
 end;
 
 
-Function  TComponent.GetChildParent: TComponent;
-
+function TComponent.GetChildParent: TComponent;
 begin
-  Result:=Self;
+  Result := Self;
 end;
 
 
-Function  TComponent.GetNamePath: string;
-
+function TComponent.GetNamePath: string;
 begin
-  Result:=FName;
+  Result := FName;
 end;
 
 
-Function  TComponent.GetOwner: TPersistent;
-
+function TComponent.GetOwner: TPersistent;
 begin
-  Result:=FOwner;
+  Result := FOwner;
 end;
 
 
-Procedure TComponent.Loaded;
-
+procedure TComponent.Loaded;
 begin
   Exclude(FComponentState,csLoading);
 end;
 
-Procedure TComponent.Loading;
 
+procedure TComponent.Loading;
 begin
   Include(FComponentState,csLoading);
 end;
 
 
-Procedure TComponent.Notification(AComponent: TComponent;
-  Operation: TOperation);
-
-Var Runner : Longint;
-
+procedure TComponent.Notification(AComponent: TComponent; Operation: TOperation);
+var
+  Runner: Integer;
 begin
-  If (Operation=opRemove) and Assigned(FFreeNotifies) then
-    begin
+  if (Operation=opRemove) and Assigned(FFreeNotifies) then
+  begin
     FFreeNotifies.Remove(AComponent);
-            If FFreeNotifies.Count=0 then
-      begin
-      FFreeNotifies.Free;
-      FFreenotifies:=Nil;
-      end;
+    if FFreeNotifies.Count=0 then
+    begin
+      FreeAndNil(FFreeNotifies);
+      Exclude(FComponentState,csFreeNotification);
     end;
-  If assigned(FComponents) then
-    For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
+  end;
+
+  if Assigned(FComponents) then
+    for Runner := 0 To FComponents.Count-1 do
+      TComponent(FComponents.List^[Runner]).Notification(AComponent,Operation);
 end;
 
 
 procedure TComponent.PaletteCreated;
-  begin
-  end;
+begin
+end;
 
 
-Procedure TComponent.ReadState(Reader: TReader);
-
+procedure TComponent.ReadState(Reader: TReader);
 begin
   Reader.ReadData(Self);
 end;
 
 
-Procedure TComponent.SetAncestor(Value: Boolean);
-
-Var Runner : Longint;
-
+procedure TComponent.SetAncestor(Value: Boolean);
+var
+  Runner: Integer;
 begin
-  If Value then
+  if Value then
     Include(FComponentState,csAncestor)
   else
     Exclude(FCOmponentState,csAncestor);
+
   if Assigned(FComponents) then
-    For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).SetAncestor(Value);
+    For Runner := 0 To FComponents.Count-1 do
+      TComponent(FComponents.List^[Runner]).SetAncestor(Value);
 end;
 
 
-Procedure TComponent.SetDesigning(Value: Boolean; SetChildren : Boolean = True);
-
-Var Runner : Longint;
-
+procedure TComponent.SetDesigning(Value: Boolean; SetChildren : Boolean = True);
+var
+  Runner: Integer;
 begin
-  If Value then
+  if Value then
     Include(FComponentState,csDesigning)
   else
     Exclude(FComponentState,csDesigning);
+
   if Assigned(FComponents) and SetChildren then
-    For Runner:=0 To FComponents.Count - 1 do
-      TComponent(FComponents.items[Runner]).SetDesigning(Value);
+    For Runner := 0 To FComponents.Count - 1 do
+      TComponent(FComponents.List^[Runner]).SetDesigning(Value);
 end;
 
-Procedure TComponent.SetDesignInstance(Value: Boolean);
 
+procedure TComponent.SetDesignInstance(Value: Boolean);
 begin
-  If Value then
+  if Value then
     Include(FComponentState,csDesignInstance)
   else
     Exclude(FComponentState,csDesignInstance);
 end;
 
-Procedure TComponent.SetInline(Value: Boolean);
 
+procedure TComponent.SetInline(Value: Boolean);
 begin
-  If Value then
+  if Value then
     Include(FComponentState,csInline)
   else
     Exclude(FComponentState,csInline);
 end;
 
 
-Procedure TComponent.SetName(const NewName: TComponentName);
-
+procedure TComponent.SetName(const NewName: TComponentName);
 begin
-  If FName=NewName then exit;
-  If (NewName<>'') and not IsValidIdent(NewName) then
-    Raise EComponentError.CreateFmt(SInvalidName,[NewName]);
-  If Assigned(FOwner) Then
+  if FName=NewName then Exit;
+  if (NewName<>'') and not IsValidIdent(NewName) then
+    raise EComponentError.CreateFmt(SInvalidName,[NewName]);
+
+  if Assigned(FOwner) Then
     FOwner.ValidateRename(Self,FName,NewName)
   else
     ValidateRename(Nil,FName,NewName);
+
   SetReference(False);
-  ChangeName(NewName);
+  //ChangeName(NewName);
+  FName := NewName;
   Setreference(True);
 end;
 
 
-Procedure TComponent.SetChildOrder(Child: TComponent; Order: Integer);
-
+procedure TComponent.SetChildOrder(Child: TComponent; Order: Integer);
 begin
   // does nothing
 end;
 
 
-Procedure TComponent.SetParentComponent(Value: TComponent);
-
+procedure TComponent.SetParentComponent(Value: TComponent);
 begin
   // Does nothing
 end;
 
 
-Procedure TComponent.Updating;
-
+procedure TComponent.Updating;
 begin
   Include (FComponentState,csUpdating);
 end;
 
 
-Procedure TComponent.Updated;
-
+procedure TComponent.Updated;
 begin
   Exclude(FComponentState,csUpdating);
 end;
 
 
-class Procedure TComponent.UpdateRegistry(Register: Boolean; const ClassID, ProgID: string);
-
+class procedure TComponent.UpdateRegistry(Register: Boolean; const ClassID, ProgID: string);
 begin
   // For compatibility only.
 end;
 
 
-Procedure TComponent.ValidateRename(AComponent: TComponent;
+procedure TComponent.ValidateRename(AComponent: TComponent;
   const CurName, NewName: string);
-
 begin
 //!! This contradicts the Delphi manual.
-  If (AComponent<>Nil) and (CompareText(CurName,NewName)<>0) and (AComponent.Owner = Self) and
-     (FindComponent(NewName)<>Nil) then
-      raise EComponentError.Createfmt(SDuplicateName,[newname]);
-  If (csDesigning in FComponentState) and (FOwner<>Nil) then
+  if Assigned(AComponent) and (CompareText(CurName,NewName)<>0) and
+      (AComponent.Owner = Self) and Assigned(FindComponent(NewName)) then
+    raise EComponentError.Createfmt(SDuplicateName,[newname]);
+
+  if (csDesigning in FComponentState) and Assigned(FOwner) then
     FOwner.ValidateRename(AComponent,Curname,Newname);
 end;
 
 
-Procedure TComponent.ValidateContainer(AComponent: TComponent);
-
+procedure TComponent.ValidateContainer(AComponent: TComponent);
 begin
   AComponent.ValidateInsert(Self);
 end;
 
 
-Procedure TComponent.ValidateInsert(AComponent: TComponent);
-
+procedure TComponent.ValidateInsert(AComponent: TComponent);
 begin
   // Does nothing.
 end;
 
 
-Procedure TComponent.WriteState(Writer: TWriter);
-
+procedure TComponent.WriteState(Writer: TWriter);
 begin
   Writer.WriteComponentData(Self);
 end;
 
 
-Constructor TComponent.Create(AOwner: TComponent);
-
+constructor TComponent.Create(AOwner: TComponent);
 begin
-  FComponentStyle:=[csInheritable];
-  If Assigned(AOwner) then AOwner.InsertComponent(Self);
+  FComponentStyle := [csInheritable];
+  if Assigned(AOwner) then
+    AOwner.InsertComponent(Self);
 end;
 
 
-Destructor TComponent.Destroy;
+destructor TComponent.Destroy;
+var
+  C: TComponent;
+begin
+  while Assigned(FFreeNotifies) and (FFreeNotifies.Count > 0) do
+  begin
+    C := TComponent(FFreeNotifies.List^[0]);
+    FFreeNotifies.Delete(0);
+    C.Notification(Self, opRemove);
+  end;
+  FreeAndNil(FFreeNotifies);
+  Exclude(FComponentState,csFreeNotification);
 
-Var
-  I : Integer;
-  C : TComponent;
+  DestroyComponents;
+  if Assigned(FOwner) then
+    FOwner.RemoveComponent(Self);
 
+  inherited Destroy;
+end;
+
+
+procedure TComponent.BeforeDestruction;
 begin
   Destroying;
-  If Assigned(FFreeNotifies) then
-    begin
-    I:=FFreeNotifies.Count-1;
-    While (I>=0) do
-      begin
-      C:=TComponent(FFreeNotifies.Items[I]);
-      // Delete, so one component is not notified twice, if it is owned.
-      FFreeNotifies.Delete(I);
-      C.Notification (self,opRemove);
-      If (FFreeNotifies=Nil) then
-        I:=0
-      else if (I>FFreeNotifies.Count) then
-        I:=FFreeNotifies.Count;
-      dec(i);
-      end;
-    FreeAndNil(FFreeNotifies);
-    end;
-  DestroyComponents;
-  If FOwner<>Nil Then FOwner.RemoveComponent(Self);
-  inherited destroy;
 end;
 
 
-Procedure TComponent.BeforeDestruction;
+procedure TComponent.DestroyComponents;
+var
+  acomponent: TComponent;
 begin
-  if not(csDestroying in FComponentstate) then
-    Destroying;
-end;
-
-
-Procedure TComponent.DestroyComponents;
-
-Var acomponent: TComponent;
-
-begin
-  While assigned(FComponents) do
-    begin
-    aComponent:=TComponent(FComponents.Last);
+  while assigned(FComponents) do
+  begin
+    aComponent := TComponent(FComponents.Last);
     Remove(aComponent);
-    Acomponent.Destroy;
-    end;
+    Acomponent.Free;
+  end;
 end;
 
 
-Procedure TComponent.Destroying;
-
-Var Runner : longint;
-
+procedure TComponent.Destroying;
+var
+  Runner: Integer;
 begin
-  If csDestroying in FComponentstate Then Exit;
-  include (FComponentState,csDestroying);
-  If Assigned(FComponents) then
-    for Runner:=0 to FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).Destroying;
+  if csDestroying in FComponentstate then Exit;
+  Include(FComponentState,csDestroying);
+  if Assigned(FComponents) then
+    for Runner := 0 to FComponents.Count-1 do
+      TComponent(FComponents.List^[Runner]).Destroying;
 end;
 
 
 function TComponent.ExecuteAction(Action: TBasicAction): Boolean;
 begin
   if Action.HandlesTarget(Self) then
-   begin
-     Action.ExecuteTarget(Self);
-     Result := True;
-   end
-  else
-   Result := False;
+  begin
+    Action.ExecuteTarget(Self);
+    Result := True;
+  end else
+    Result := False;
 end;
 
 
-Function  TComponent.FindComponent(const AName: string): TComponent;
-
-Var I : longint;
-
+function TComponent.FindComponent(const AName: string): TComponent;
+var
+  I: Integer;
 begin
-  Result:=Nil;
-  If (AName='') or Not assigned(FComponents) then exit;
-  For i:=0 to FComponents.Count-1 do
-    if (CompareText(TComponent(FComponents[I]).Name,AName)=0) then
-      begin
-      Result:=TComponent(FComponents.Items[I]);
-      exit;
-      end;
-end;
+  Result := nil;
+  if (AName='') or not Assigned(FComponents) then
+    Exit;
 
-
-Procedure TComponent.FreeNotification(AComponent: TComponent);
-
-begin
-  If (Owner<>Nil) and (AComponent=Owner) then exit;
-  if csDestroying in ComponentState then
-    AComponent.Notification(Self,opRemove)
-  else
+  for I := 0 to FComponents.Count-1 do
+    if (CompareText(TComponent(FComponents.List^[I]).Name,AName)=0) then
     begin
-    If not (Assigned(FFreeNotifies)) then
-      FFreeNotifies:=TList.Create;
-    If FFreeNotifies.IndexOf(AComponent)=-1 then
-      begin
-      FFreeNotifies.Add(AComponent);
-      AComponent.FreeNotification (self);
-      end;
+      Result := TComponent(FComponents.List^[I]);
+      Exit;
     end;
+end;
+
+
+procedure TComponent.FreeNotification(AComponent: TComponent);
+begin
+  if Assigned(Owner) and (AComponent=Owner) then
+    Exit;
+
+  if not (csDestroying in ComponentState) then
+  begin
+    if not Assigned(FFreeNotifies) then
+    begin
+      FFreeNotifies := TList.Create;
+      Include(FComponentState,csFreeNotification);
+    end;
+
+    if FFreeNotifies.IndexOf(AComponent)=-1 then
+    begin
+      FFreeNotifies.Add(AComponent);
+      AComponent.FreeNotification(Self);
+    end;
+  end else
+    AComponent.Notification(Self,opRemove)
 end;
 
 
 procedure TComponent.RemoveFreeNotification(AComponent: TComponent);
 begin
   RemoveNotification(AComponent);
-  AComponent.RemoveNotification (self);
+  AComponent.RemoveNotification(Self);
 end;
 
 
-Procedure TComponent.FreeOnRelease;
-
+procedure TComponent.FreeOnRelease;
 begin
   // Delphi compatibility only at the moment.
 end;
 
 
-Function  TComponent.GetParentComponent: TComponent;
-
+function TComponent.GetParentComponent: TComponent;
 begin
-  Result:=Nil;
+  Result := nil;
 end;
 
 
-Function  TComponent.HasParent: Boolean;
-
+function TComponent.HasParent: Boolean;
 begin
-  Result:=False;
+  Result := False;
 end;
 
 
-Procedure TComponent.InsertComponent(AComponent: TComponent);
-
+procedure TComponent.InsertComponent(AComponent: TComponent);
 begin
   AComponent.ValidateContainer(Self);
   ValidateRename(AComponent,'',AComponent.FName);
   Insert(AComponent);
   AComponent.SetReference(True);
-  If csDesigning in FComponentState then
+  if csDesigning in FComponentState then
     AComponent.SetDesigning(true);
   Notification(AComponent,opInsert);
 end;
 
 
-Procedure TComponent.RemoveComponent(AComponent: TComponent);
-
+procedure TComponent.RemoveComponent(AComponent: TComponent);
 begin
   Notification(AComponent,opRemove);
   AComponent.SetReference(False);
@@ -578,12 +535,12 @@ begin
 end;
 
 
-Function  TComponent.SafeCallException(ExceptObject: TObject;
+function  TComponent.SafeCallException(ExceptObject: TObject;
   ExceptAddr: Pointer): Integer;
-
 begin
-  SafeCallException:=0;
+  SafeCallException := 0;
 end;
+
 
 procedure TComponent.SetSubComponent(ASubComponent: Boolean);
 begin
@@ -597,34 +554,36 @@ end;
 function TComponent.UpdateAction(Action: TBasicAction): Boolean;
 begin
   if Action.HandlesTarget(Self) then
-    begin
-      Action.UpdateTarget(Self);
-      Result := True;
-    end
-  else
+  begin
+    Action.UpdateTarget(Self);
+    Result := True;
+  end else
     Result := False;
 end;
+
 
 function TComponent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
 begin
   if GetInterface(IID, Obj) then
-    result:=S_OK
+    Result := S_OK
   else
-    result:=E_NOINTERFACE;
+    Result := E_NOINTERFACE;
 end;
+
 
 function TComponent._AddRef: Integer;stdcall;
 begin
-  result:=-1;
+  Result := -1;
 end;
+
 
 function TComponent._Release: Integer;stdcall;
 begin
-  result:=-1;
+  Result := -1;
 end;
 
-function TComponent.iicrGetComponent: TComponent;
 
+function TComponent.iicrGetComponent: TComponent;
 begin
-  result:=self;
+  Result := self;
 end;
