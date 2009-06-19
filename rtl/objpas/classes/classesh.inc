@@ -1510,7 +1510,7 @@ type
     procedure WriteTop(Writer: TWriter);
   protected
     FComponentStyle: TComponentStyle;
-    //procedure ChangeName(const NewName: TComponentName);
+    procedure ChangeName(const NewName: TComponentName);
     procedure DefineProperties(Filer: TFiler); override;
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); dynamic;
     function GetChildOwner: TComponent; dynamic;
