@@ -1027,6 +1027,9 @@
      DSS_UNION = 16;
      DSS_DISABLED = 32;
      DSS_MONO = 128;
+     DSS_HIDEPREFIX = 512;
+     DSS_PREFIXONLY = 1024;
+     DSS_RIGHT = 32768;
   { DrawStatusText  }
      SBT_NOBORDERS = 256;
      SBT_OWNERDRAW = 4096;
