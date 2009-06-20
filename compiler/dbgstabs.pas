@@ -73,6 +73,7 @@ interface
         procedure field_add_stabstr(p:TObject;arg:pointer);
         procedure method_add_stabstr(p:TObject;arg:pointer);
         procedure field_write_defs(p:TObject;arg:pointer);
+        function  get_enum_defstr(def: tenumdef; lowerbound: longint): ansistring;
       protected
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
         procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
@@ -561,25 +562,36 @@ implementation
       end;
 
 
-    procedure TDebugInfoStabs.appenddef_enum(list:TAsmList;def:tenumdef);
+    function TDebugInfoStabs.get_enum_defstr(def: tenumdef; lowerbound: longint): ansistring;
       var
-        st : ansistring;
-        p  : Tenumsym;
+        i: longint;
+        p: tenumsym;
       begin
         { we can specify the size with @s<size>; prefix PM }
         if def.size <> std_param_align then
-          st:='@s'+tostr(def.size*8)+';e'
+          result:='@s'+tostr(def.size*8)+';e'
         else
-          st:='e';
+          result:='e';
         p := tenumsym(def.firstenum);
+        { the if-test is required because pred(def.minval) might overflow;
+          the longint() typecast should be safe because stabs is not
+          supported for 64 bit targets }
+        if (def.minval<>lowerbound) then
+          for i:=lowerbound to pred(longint(def.minval)) do
+            result:=result+'<invalid>:'+tostr(i)+',';
+
         while assigned(p) do
           begin
-            st:=st+GetSymName(p)+':'+tostr(p.value)+',';
+            result:=result+GetSymName(p)+':'+tostr(p.value)+',';
             p:=p.nextenum;
           end;
         { the final ',' is required to have a valid stabs }
-        st:=st+';';
-        write_def_stabstr(list,def,st);
+        result:=result+';';
+      end;
+
+    procedure TDebugInfoStabs.appenddef_enum(list:TAsmList;def:tenumdef);
+      begin
+        write_def_stabstr(list,def,get_enum_defstr(def,def.minval));
       end;
 
 
@@ -787,9 +799,34 @@ implementation
 
     procedure TDebugInfoStabs.appenddef_set(list:TAsmList;def:tsetdef);
       var
+        st,
         ss : ansistring;
+        p: pchar;
+        elementdefstabnr: string;
       begin
-        ss:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),def_stab_number(tsetdef(def).elementdef)]);
+        { ugly hack: create a temporary subrange type if the lower bound of
+          the set's element type is not a multiple of 8 (because we store them
+          as if the lower bound is a multiple of 8) }
+        if (def.setbase<>get_min_value(def.elementdef)) then
+          begin
+            { allocate a def number }
+            inc(global_stab_number);
+            elementdefstabnr:=tostr(global_stab_number);
+            { anonymous subrange def }
+            st:='":t'+elementdefstabnr+'=';
+            if (def.elementdef.typ = enumdef) then
+              st:=st+get_enum_defstr(tenumdef(def.elementdef),def.setbase)
+            else
+              st:=st+def_stabstr_evaluate(def.elementdef,'r'+elementdefstabnr+';$1;$2;',[tostr(longint(def.setbase)),tostr(longint(get_max_value(def.elementdef).svalue))]);
+            st:=st+'",'+tostr(N_LSYM)+',0,0,0';
+            { add to list }
+            getmem(p,length(st)+1);
+            move(pchar(st)^,p^,length(st)+1);
+            list.concat(Tai_stab.create(stab_stabs,p));
+          end
+        else
+          elementdefstabnr:=def_stab_number(def.elementdef);
+        ss:=def_stabstr_evaluate(def,'@s$1;S$2',[tostr(def.size*8),elementdefstabnr]);
         write_def_stabstr(list,def,ss);
       end;
 

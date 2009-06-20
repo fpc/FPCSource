@@ -308,6 +308,8 @@ interface
       TDebugInfoDwarf2 = class(TDebugInfoDwarf)
       private
       protected
+        procedure appenddef_set_intern(list:TAsmList;def:tsetdef; force_tag_set: boolean);
+
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
@@ -320,7 +322,7 @@ interface
 
       { TDebugInfoDwarf3 }
 
-      TDebugInfoDwarf3 = class(TDebugInfoDwarf)
+      TDebugInfoDwarf3 = class(TDebugInfoDwarf2)
       private
       protected
         procedure appenddef_array(list:TAsmList;def:tarraydef); override;
@@ -3026,11 +3028,12 @@ implementation
         end;
       end;
 
-    procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+    procedure TDebugInfoDwarf2.appenddef_set_intern(list:TAsmList;def: tsetdef; force_tag_set: boolean);
       var
         lab: tasmlabel;
       begin
-        if (ds_dwarf_sets in current_settings.debugswitches) then
+        if force_tag_set or
+           (ds_dwarf_sets in current_settings.debugswitches) then
           begin
             { current (20070704 -- patch was committed on 20060513) gdb cvs supports set types }
 
@@ -3045,21 +3048,21 @@ implementation
                 ]);
             if assigned(def.elementdef) then
               begin
-                if (def.elementdef.typ=enumdef) then
-                  begin
-                    { gdb 6.7 - 6.8 is broken for regular enum sets }
-                    if not(tf_dwarf_only_local_labels in target_info.flags) then
-                      current_asmdata.getdatalabel(lab)
-                    else
-                      current_asmdata.getaddrlabel(lab);
-                    append_labelentry_ref(DW_AT_type,lab);
-                    finish_entry;
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
-                    append_entry(DW_TAG_subrange_type,false,[
-                      DW_AT_lower_bound,DW_FORM_sdata,tenumdef(def.elementdef).minval,
-                      DW_AT_upper_bound,DW_FORM_sdata,tenumdef(def.elementdef).maxval
-                      ]);
-                  end;
+                if not(tf_dwarf_only_local_labels in target_info.flags) then
+                  current_asmdata.getdatalabel(lab)
+                else
+                  current_asmdata.getaddrlabel(lab);
+                append_labelentry_ref(DW_AT_type,lab);
+                finish_entry;
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
+                { Sets of e.g. [1..5] are actually stored as a set of [0..7],
+                  so write the exact boundaries of the set here. Let's hope no
+                  debugger ever rejects this because this "subrange" type can
+                  actually have a larger range than the original one.  }
+                append_entry(DW_TAG_subrange_type,false,[
+                  DW_AT_lower_bound,DW_FORM_sdata,def.setbase,
+                  DW_AT_upper_bound,DW_FORM_sdata,get_max_value(def.elementdef).svalue
+                  ]);
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef))
               end
           end
@@ -3080,6 +3083,11 @@ implementation
                 ]);
           end;
         finish_entry;
+      end;
+
+    procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+      begin
+        appenddef_set_intern(list,def,false);
       end;
 
     procedure TDebugInfoDwarf2.appenddef_undefined(list:TAsmList;def: tundefineddef);
@@ -3401,18 +3409,7 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_set(list:TAsmList;def: tsetdef);
       begin
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ])
-        else
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ]);
-        if assigned(tsetdef(def).elementdef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementdef));
-        finish_entry;
+        appenddef_set_intern(list,def,true);
       end;
 
     procedure TDebugInfoDwarf3.appenddef_undefined(list:TAsmList;def: tundefineddef);
