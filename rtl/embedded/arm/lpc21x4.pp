@@ -431,6 +431,7 @@ unit lpc21x4;
       _etext: record end; external name '_etext';
       _bss_start: record end; external name '_bss_start';
       _bss_end: record end; external name '_bss_end';
+      _stack_top: record end; external name '_stack_top';
 
     procedure _FPC_start; assembler; nostackframe;
       label
@@ -484,15 +485,14 @@ unit lpc21x4;
 
     _start:
         (*
-          Set SP for Supervisor mode. Depending upon
-          the stack the application needs this value
-          needs to be set.
+          Set absolute stack top
+
           stack is already set by bootloader
           but if this point is entered by any
           other means than reset, the stack pointer
           needs to be set explicity
         *)
-        // LDR SP,=0x40001000
+        ldr r0,.L_stack_top
 
         (*
           Setting up SP for IRQ and FIQ mode.
@@ -506,17 +506,16 @@ unit lpc21x4;
         *)
 
         (*
-          setup for fiq and irq interrupt stacks to run
-          below current stack by 1000.
+          setup irq and fiq stacks each 128 bytes
         *)
-        mov r0, sp         // copy current stack pointer
-        sub r0, r0, #1000  // make irq stack pointer
-        sub r1, r0, #1000  // make fiq stack pointer
         msr cpsr_c, #0x12  // switch to irq mode
         mov sp, r0         // set irq stack pointer
+        sub r0,r0,#128     // irq stack size
         msr cpsr_c, #0x11  // fiq mode
-        mov sp, r1         // set fiq stack pointer
+        mov sp, r0         // set fiq stack pointer
+        sub r0,r0,#128     // fiq stack size
         msr cpsr_c, #0x13  // supervisor mode F,I enabled
+        mov sp, r0         // stack
 
         ldr r1,.LDefaultHandlerAddr
         ldr r0,.L1
@@ -538,8 +537,8 @@ unit lpc21x4;
         ldr r3,.L_edata
 .Lcopyloop:
         cmp r2,r3
-        ldr r0,[r1],#4
-        str r0,[r2],#4
+        ldrls r0,[r1],#4
+        strls r0,[r2],#4
         bls .Lcopyloop
 
         // clear onboard ram
@@ -548,7 +547,7 @@ unit lpc21x4;
         mov r0,#0
 .Lzeroloop:
         cmp r1,r2
-        str r0,[r1],#4
+        strls r0,[r1],#4
         bls .Lzeroloop
 
         bl PASCALMAIN
@@ -563,6 +562,8 @@ unit lpc21x4;
         .long _data
 .L_edata:
         .long _edata
+.L_stack_top:
+        .long _stack_top
 .LDefaultHandlerAddr:
         .long .LDefaultHandler
         // default irq handler just returns

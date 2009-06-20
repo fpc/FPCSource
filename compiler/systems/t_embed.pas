@@ -229,6 +229,7 @@ begin
           Add('    flash : ORIGIN = 0, LENGTH = 256K');
           Add('    ram : ORIGIN = 0x40000000, LENGTH = 16K');
           Add('}');
+          Add('_stack_top = 0x40003FFC;');
         end;
       ct_at91sam7s256,
       ct_at91sam7se256,
@@ -242,7 +243,7 @@ begin
           Add('    flash : ORIGIN = 0, LENGTH = 256K');
           Add('    ram : ORIGIN = 0x200000, LENGTH = 64K');
           Add('}');
-          Add('_stack_end = 0x20FFFC;');
+          Add('_stack_top = 0x20FFFC;');
         end;
 
     else
