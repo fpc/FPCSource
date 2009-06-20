@@ -357,7 +357,6 @@ type
     FNamespaces: Boolean;
 
     procedure RaiseExpectedQmark;
-    procedure GetChar;
     procedure Initialize(ASource: TXMLCharSource);
     function DoParseAttValue(Delim: WideChar): Boolean;
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
@@ -1197,11 +1196,6 @@ begin
   FSource.Initialize;
 end;
 
-procedure TXMLReader.GetChar;
-begin
-  FSource.NextChar;
-end;
-
 procedure TXMLReader.RaiseExpectedQmark;
 begin
   FatalError('Expected single or double quote');
@@ -1618,7 +1612,7 @@ begin
       else
         Break;
       end;
-      GetChar;
+      FSource.NextChar;
     until Value > $10FFFF
     else
     repeat
@@ -1627,7 +1621,7 @@ begin
       else
         Break;
       end;
-      GetChar;
+      FSource.NextChar;
     until Value > $10FFFF;
 
     case Value of
@@ -1847,7 +1841,7 @@ begin
   if (FSource.FBuf^ <> '''') and (FSource.FBuf^ <> '"') then
     RaiseExpectedQmark;
   Delim := FSource.FBuf^;
-  GetChar;  // skip quote
+  FSource.NextChar;  // skip quote
   StoreLocation(FTokenStart);
   if not DoParseAttValue(Delim) then
     FatalError('Literal has no closing quote',-1);
@@ -1860,7 +1854,7 @@ begin
   if (FSource.FBuf^ = '''') or (FSource.FBuf^ = '"') then
   begin
     Delim := FSource.FBuf^;
-    GetChar;  // skip quote
+    FSource.NextChar;  // skip quote
     StoreLocation(FTokenStart);
     FValue.Length := 0;
     if Delim = '''' then
@@ -1949,7 +1943,7 @@ var
   Name, Value: WideString;
   PINode: TDOMProcessingInstruction;
 begin
-  GetChar;      // skip '?'
+  FSource.NextChar;      // skip '?'
   Name := ExpectName;
   CheckNCName;
   with FName do
@@ -2142,7 +2136,7 @@ begin
     SkipS;
   if FSource.FBuf^ <> '=' then
     FatalError('Expected "="');
-  GetChar;
+  FSource.NextChar;
   SkipS;
 end;
 
@@ -2203,7 +2197,7 @@ begin
       ExpectChoiceOrSeq(CurrentCP);
       if CurrentEntity <> FSource.FEntity then
         BadPENesting;
-      GetChar;
+      FSource.NextChar;
     end
     else
       CurrentCP.Def := FindOrCreateElDef;
@@ -2222,7 +2216,7 @@ begin
     else
       if FSource.FBuf^ <> Delim then
         FatalError(Delim);
-    GetChar; // skip delimiter
+    FSource.NextChar; // skip delimiter
   until False;
   if Delim = '|' then
     CP.CPType := ctChoice
@@ -2279,7 +2273,7 @@ begin
         end;
         if CurrentEntity <> FSource.FEntity then
           BadPENesting;
-        GetChar;
+        FSource.NextChar;
         if (not CheckForChar('*')) and (CP.ChildCount > 0) then
           FatalError(WideChar('*'));
       end
@@ -2289,7 +2283,7 @@ begin
         ExpectChoiceOrSeq(CP);
         if CurrentEntity <> FSource.FEntity then
           BadPENesting;
-        GetChar;
+        FSource.NextChar;
         ParseQuantity(CP);
       end;
     except
@@ -2407,6 +2401,7 @@ begin
             ExpectChar('(');
             repeat
               SkipWhitespace;
+              StoreLocation(FTokenStart);
               CheckName;
               CheckNCName;
               if not AttDef.AddEnumToken(FName.Buffer, FName.Length) then
@@ -2539,7 +2534,7 @@ begin
     begin
       NDataAllowed := False;
       Delim := FSource.FBuf^;
-      GetChar;
+      FSource.NextChar;
       StoreLocation(Entity.FStartLocation);
       if not ParseEntityDeclValue(Delim) then
         DoErrorPos(esFatal, 'Literal has no closing quote', Entity.FStartLocation);
@@ -2556,6 +2551,7 @@ begin
       if FSource.Matches('NDATA') then
       begin
         ExpectWhitespace;
+        StoreLocation(FTokenStart);
         Entity.FNotationName := ExpectName;
         AddForwardRef(FNotationRefs, FName.Buffer, FName.Length);
         // SAX: DTDHandler.UnparsedEntityDecl(...);
@@ -2914,7 +2910,7 @@ begin
   if FSource.FBuf^ = '/' then
   begin
     IsEmpty := True;
-    GetChar;
+    FSource.NextChar;
   end;
   ExpectChar('>');
 
@@ -3043,14 +3039,8 @@ var
   w: PForwardRef;
 begin
   New(w);
-  SetString(w^.Value, Buf, Abs(Length));
-  if Length > 0 then
-  begin
-    StoreLocation(w^.Loc);
-    Dec(w^.Loc.LinePos, Length);
-  end
-  else
-    w^.Loc := FTokenStart;
+  SetString(w^.Value, Buf, Length);
+  w^.Loc := FTokenStart;
   aList.Add(w);
 end;
 
@@ -3304,8 +3294,7 @@ begin
         EndPos := StartPos;
         while (EndPos <= L) and (aValue[EndPos] <> #32) do
           Inc(EndPos);
-        // pass negative length, so uses FTokenStart as location
-        AddForwardRef(FIDRefs, @aValue[StartPos], StartPos-EndPos);
+        AddForwardRef(FIDRefs, @aValue[StartPos], EndPos-StartPos);
         StartPos := EndPos + 1;
       end;
     end;
