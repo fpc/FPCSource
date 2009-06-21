@@ -1,43 +1,66 @@
-{ Source provided for Free Pascal Bug Report 14019 }
-{ Submitted by "hennymcc" on  2009-06-21 }
+{ %opt=-gh }
 
-program tw14019;
+program RefCountBug;
 
-{$mode objfpc}
+{$ifdef fpc}
+  //{$mode objfpc}{$H+}
+  {$mode delphi}
+{$endif}
+
+{$ifdef mswindows}
+  {$apptype console}
+{$endif}
+
+uses
+  Classes,
+  SysUtils;
 
 type
   ITest = interface
     function SomeMethod(): ITest;
-    function GetValue(): Integer;
+    function GetValue(): AnsiString;
   end;
 
   TTest = class(TInterfacedObject, ITest)
+  private
+    fValue: AnsiString;
   public
-    procedure FreeInstance; override;
+    constructor Create(Value: AnsiString);
+    destructor Destroy(); override;
     function SomeMethod(): ITest;
-    function GetValue(): Integer;
+    function GetValue(): AnsiString;
   end;
 
-procedure TTest.FreeInstance;
+constructor TTest.Create(Value: AnsiString);
 begin
-  FillChar(Pointer(Self)^, InstanceSize, 0);
-  inherited FreeInstance;
+  inherited Create();
+  fValue := Value;
+  Writeln('TTest.Create('+Value+')');
+end;
+
+destructor TTest.Destroy();
+begin
+  Writeln('TTest.Destroy('+fValue+')');
+  inherited;
 end;
 
 function TTest.SomeMethod(): ITest;
 begin
-  Result := TTest.Create();
+  if (FRefCount <> 1) then
+    halt(1);
+  Writeln('SomeMethod: ' + fValue, ' ', FRefCount);
+  Result := TTest.Create(fValue + ',MethodCall');
 end;
 
-function TTest.GetValue(): Integer;
+function TTest.GetValue(): AnsiString;
 begin
-  Result := 0;
+  Result := fValue;
 end;
 
 var
   t: ITest;
 begin
-  t := TTest.Create();
-  t.SomeMethod().SomeMethod().GetValue();
+  HaltOnNotReleased := true;
+  t := TTest.Create('Create');
+  Writeln('Result: ' + t.SomeMethod().SomeMethod().GetValue);
 end.
-
