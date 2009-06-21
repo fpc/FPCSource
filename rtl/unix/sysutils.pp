@@ -542,17 +542,18 @@ begin
 end;
 
 
-Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
+Function LinuxToWinAttr (const FN : Ansistring; Const Info : Stat) : Longint;
 
 Var
-  FNL : String;
   LinkInfo : Stat;
 
 begin
   Result:=faArchive;
   If fpS_ISDIR(Info.st_mode) then
     Result:=Result or faDirectory;
-  If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
+  If (Length(FN)>=2) and
+     (FN[1]='.') and
+     (FN[2]<>'.')  then
     Result:=Result or faHidden;
   If (Info.st_Mode and S_IWUSR)=0 Then
      Result:=Result or faReadOnly;
@@ -562,8 +563,7 @@ begin
     begin
     Result:=Result or faSymLink;
     // Windows reports if the link points to a directory.
-    FNL:=StrPas(FN);
-    if (fpstat(FNL,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+    if (fpstat(FN,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
       Result := Result or faDirectory;
     end;
 end;
@@ -660,8 +660,6 @@ Type
     SearchAttr : Byte;        {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
-Var
-  CurrSearchNum : LongInt;
 
 Procedure FindClose(Var f: TSearchRec);
 var
@@ -684,9 +682,7 @@ Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
 var
   st           : baseunix.stat;
   WinAttr      : longint;
-  ResolvedPath : string;
-  LinkLen      : ssize_t;
-  
+
 begin
   FindGetFileInfo:=false;
   If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
@@ -695,7 +691,7 @@ begin
     FindGetFileInfo:=(fpstat(pointer(s),st)=0);
   If not FindGetFileInfo then
     exit;
-  WinAttr:=LinuxToWinAttr(PChar(pointer(s)),st);
+  WinAttr:=LinuxToWinAttr(ExtractFileName(s),st);
   If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
      f.Name:=ExtractFileName(s);
