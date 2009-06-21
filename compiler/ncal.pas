@@ -1246,7 +1246,6 @@ implementation
         hdef : tdef;
         ptemp : ttempcreatenode;
         usederef : boolean;
-        usevoidpointer : boolean;
       begin
         { Load all complex loads into a temp to prevent
           double calls to a function. We can't simply check for a hp.nodetype=calln }
@@ -1257,33 +1256,22 @@ implementation
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
                       is_shortstring(p.resultdef) or
                       is_object(p.resultdef);
-            { avoid refcount increase }
-            usevoidpointer:=is_interface(p.resultdef);
 
             if usederef then
               hdef:=tpointerdef.create(p.resultdef)
             else
               hdef:=p.resultdef;
 
-            if usevoidpointer then
+            ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
+            if usederef then
               begin
-                ptemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
-                loadp:=ctypeconvnode.create_internal(p,voidpointertype);
-                refp:=ctypeconvnode.create_internal(ctemprefnode.create(ptemp),hdef);
+                loadp:=caddrnode.create_internal(p);
+                refp:=cderefnode.create(ctemprefnode.create(ptemp));
               end
             else
               begin
-                ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
-                if usederef then
-                  begin
-                    loadp:=caddrnode.create_internal(p);
-                    refp:=cderefnode.create(ctemprefnode.create(ptemp));
-                  end
-                else
-                  begin
-                    loadp:=p;
-                    refp:=ctemprefnode.create(ptemp)
-                  end
+                loadp:=p;
+                refp:=ctemprefnode.create(ptemp)
               end;
             add_init_statement(ptemp);
             add_init_statement(cassignmentnode.create(
