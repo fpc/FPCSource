@@ -66,6 +66,8 @@ type
     FCDSectionsAsText: Boolean;
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
+    FDisallowDoctype: Boolean;
+    FMaxChars: Cardinal;
   public
     property Validate: Boolean read FValidate write FValidate;
     property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
@@ -74,6 +76,8 @@ type
     property CDSectionsAsText: Boolean read FCDSectionsAsText write FCDSectionsAsText;
     property ResolveExternals: Boolean read FResolveExternals write FResolveExternals;
     property Namespaces: Boolean read FNamespaces write FNamespaces;
+    property DisallowDoctype: Boolean read FDisallowDoctype write FDisallowDoctype;
+    property MaxChars: Cardinal read FMaxChars write FMaxChars;
   end;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
@@ -162,7 +166,9 @@ type
     FOnStack: Boolean;
     FBetweenDecls: Boolean;
     FReplacementText: DOMString;
+    FURI: DOMString;
     FStartLocation: TLocation;
+    FCharCount: Cardinal;
   end;
 
   PWideCharBuf = ^TWideCharBuf;
@@ -186,6 +192,7 @@ type
     FXML11Rules: Boolean;
     FSystemID: WideString;
     FPublicID: WideString;
+    FCharCount: Cardinal;
     function GetSystemID: WideString;
     function GetPublicID: WideString;
   protected
@@ -355,6 +362,8 @@ type
     FCDSectionsAsText: Boolean;
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
+    FDisallowDoctype: Boolean;
+    FMaxChars: Cardinal;
 
     procedure RaiseExpectedQmark;
     procedure Initialize(ASource: TXMLCharSource);
@@ -373,6 +382,7 @@ type
     procedure CallErrorHandler(E: EXMLReadError);
     function  FindOrCreateElDef: TDOMElementDef;
     function  SkipUntilSeq(const Delim: TSetOfChar; const More: array of WideChar): Boolean;
+    procedure CheckMaxChars;
   protected
     FCursor: TDOMNode_WithChildren;
     FNesting: Integer;
@@ -424,7 +434,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveEntity(const AbsSysID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
     procedure AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
@@ -796,6 +806,7 @@ begin
   FBuf := PWideChar(AData);
   FBufEnd := FBuf + Length(AData);
   LFPos := FBuf-1;
+  FCharCount := Length(AData);
 end;
 
 procedure TXMLCharSource.Initialize;
@@ -948,7 +959,12 @@ begin
     if rslt = 0 then
       Break
     else if rslt < 0 then
-      DecodingError('Invalid character in input stream');
+      DecodingError('Invalid character in input stream')
+    else
+    begin
+      Inc(FCharCount, rslt);
+      FReader.CheckMaxChars;
+    end;
   until False;
 
   FBufEnd^ := #0;
@@ -1153,20 +1169,14 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveEntity(const AbsSysID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
 var
-  AbsSysID: WideString;
   Filename: string;
   Stream: TStream;
   fd: THandle;
 begin
   Source := nil;
   Result := False;
-  if not Assigned(FSource) then
-    AbsSysID := SystemID
-  else
-    if not ResolveRelativeURI(FSource.SystemID, SystemID, AbsSysID) then
-      Exit;
   { TODO: alternative resolvers
     These may be 'internal' resolvers or a handler set by application.
     Internal resolvers should probably produce a TStream
@@ -1254,6 +1264,23 @@ begin
   // No 'finally'! If user handler raises exception, control should not get here
   // and the exception will be freed in CallErrorHandler (below)
   E.Free;
+end;
+
+procedure TXMLReader.CheckMaxChars;
+var
+  src: TXMLCharSource;
+  total: Cardinal;
+begin
+  if FMaxChars = 0 then
+    Exit;
+  src := FSource;
+  total := 0;
+  repeat
+    Inc(total, src.FCharCount);
+    if total > FMaxChars then
+      FatalError('Exceeded character count limit');
+    src := src.FParent;
+  until src = nil;
 end;
 
 procedure TXMLReader.CallErrorHandler(E: EXMLReadError);
@@ -1402,6 +1429,8 @@ begin
   FIgnoreComments := FCtrl.Options.IgnoreComments;
   FResolveExternals := FCtrl.Options.ResolveExternals;
   FNamespaces := FCtrl.Options.Namespaces;
+  FDisallowDoctype := FCtrl.Options.DisallowDoctype;
+  FMaxChars := FCtrl.Options.MaxChars;
 end;
 
 destructor TXMLReader.Destroy;
@@ -1696,7 +1725,7 @@ var
 begin
   if AEntity.SystemID <> '' then
   begin
-    Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, Src);
+    Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, Src);
     if not Result then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
@@ -1731,6 +1760,7 @@ begin
     if Assigned(FSource.FEntity) then
     begin
       TDOMEntityEx(FSource.FEntity).FOnStack := False;
+      TDOMEntityEx(FSource.FEntity).FCharCount := FSource.FCharCount;
 // [28a] PE that was started between MarkupDecls may not end inside MarkupDecl
       Error := TDOMEntityEx(FSource.FEntity).FBetweenDecls and FInsideDecl;
     end;
@@ -1748,9 +1778,11 @@ var
   RefName: WideString;
   Child: TDOMNode;
   SaveCursor: TDOMNode_WithChildren;
+  cnt: Cardinal;
 begin
   AEntity := nil;
   SetString(RefName, FName.Buffer, FName.Length);
+  cnt := FName.Length+2;
 
   if Assigned(FDocType) then
     AEntity := FDocType.Entities.GetNamedItem(RefName) as TDOMEntityEx;
@@ -1758,19 +1790,19 @@ begin
   if AEntity = nil then
   begin
     if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.SystemID <> '')) then
-      FatalError('Reference to undefined entity ''%s''', [RefName], FName.Length+2)
+      FatalError('Reference to undefined entity ''%s''', [RefName], cnt)
     else
-      ValidationError('Undefined entity ''%s'' referenced', [RefName], FName.Length+2);
+      ValidationError('Undefined entity ''%s'' referenced', [RefName], cnt);
     FCursor.AppendChild(doc.CreateEntityReference(RefName));
     Exit;
   end;
 
   if InAttr and (AEntity.SystemID <> '') then
-    FatalError('External entity reference is not allowed in attribute value', FName.Length+2);
+    FatalError('External entity reference is not allowed in attribute value', cnt);
   if FStandalone and AEntity.FExternallyDeclared then
-    FatalError('Standalone constraint violation', FName.Length+2);
+    FatalError('Standalone constraint violation', cnt);
   if AEntity.NotationName <> '' then
-    FatalError('Reference to unparsed entity ''%s''', [RefName], FName.Length+2);
+    FatalError('Reference to unparsed entity ''%s''', [RefName], cnt);
 
   if not AEntity.FResolved then
   begin
@@ -1796,6 +1828,9 @@ begin
       end;
     end;
   end;
+  // charcount of the entity included is known at this point
+  Inc(FSource.FCharCount, AEntity.FCharCount - cnt);
+  CheckMaxChars;
   if (not FExpandEntities) or (not AEntity.FResolved) then
   begin
     // This will clone Entity children
@@ -2071,9 +2106,12 @@ end;
 procedure TXMLReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
+  DoctypeURI: WideString;
 begin
   if FState >= rsDTD then
     FatalError('Markup declaration is not allowed here');
+  if FDisallowDoctype then
+    FatalError('Document type is prohibited by parser settings');
 
   ExpectString('DOCTYPE');
   SkipS(True);
@@ -2111,7 +2149,8 @@ begin
 
   if (FDocType.SystemID <> '') then
   begin
-    if ResolveEntity(FDocType.SystemID, FDocType.PublicID, Src) then
+    ResolveRelativeURI(FSource.SystemID, FDocType.SystemID, DoctypeURI);
+    if ResolveEntity(DocTypeURI, FDocType.PublicID, Src) then
     begin
       Initialize(Src);
       try
@@ -2541,8 +2580,13 @@ begin
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
     end
     else
+    begin
       if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
         FatalError('Expected entity value or external ID');
+      { need to resolve entity's SystemID relative to the current source,
+        which may differ from the source at the point of inclusion }
+      ResolveRelativeURI(FSource.SystemID, Entity.SystemID, Entity.FURI);
+    end;
 
     if NDataAllowed then                // [76]
     begin

@@ -1097,9 +1097,9 @@ begin
     child.SetReadOnly(Value);
     child := child.NextSibling;
   end;
-  attrs := Attributes;
-  if Assigned(attrs) then
+  if HasAttributes then
   begin
+    attrs := Attributes;
     for I := 0 to attrs.Length-1 do
       attrs[I].SetReadOnly(Value);
   end;
