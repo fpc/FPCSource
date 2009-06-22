@@ -104,7 +104,7 @@ interface
     type
        tcodepagestring = string[20];
 
-       tsettings = record
+       tsettings = packed record
          globalswitches  : tglobalswitches;
          moduleswitches  : tmoduleswitches;
          localswitches   : tlocalswitches;
