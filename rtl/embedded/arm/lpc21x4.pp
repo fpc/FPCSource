@@ -442,18 +442,14 @@ unit lpc21x4;
         .align 16
         .globl _start
         b   _start
-        ldr pc, .L1
-        ldr pc, .L2
-        ldr pc, .L3
-        ldr pc, .L4
+        b   .LUndefined_Addr  // Undefined Instruction vector
+        b   .LSWI_Addr        // Software Interrupt vector
+        b   .LPrefetch_Addr   // Prefetch abort vector
+        b   .LAbort_Addr      // Data abort vector
+        nop                   // reserved
+        b   .LIRQ_Addr        // Interrupt Request (IRQ) vector
+        b   .LFIQ_Addr        // Fast interrupt request (FIQ) vector
 
-        // signature
-        nop
-        ldr r0, .L5
-        // FIQ
-        ldr r0, .L6
-        ldr pc, [r0]
-(*
     .LUndefined_Addr:
         ldr r0,.L1
         ldr pc,[r0]
@@ -466,10 +462,13 @@ unit lpc21x4;
     .LAbort_Addr:
         ldr r0,.L4
         ldr pc,[r0]
+    .LIRQ_Addr:
+        ldr r0,.L5
+        ldr pc,[r0]
     .LFIQ_Addr:
         ldr r0,.L5
         ldr pc,[r0]
-*)
+
     .L1:
         .long     Undefined_Handler
     .L2:

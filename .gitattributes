@@ -5526,6 +5526,7 @@ rtl/darwin/x86_64/sig_cpu.inc svneol=native#text/plain
 rtl/darwin/x86_64/sighnd.inc svneol=native#text/plain
 rtl/embedded/Makefile svneol=native#text/plain
 rtl/embedded/Makefile.fpc svneol=native#text/plain
+rtl/embedded/arm/at91sam7x256.pp svneol=native#text/plain
 rtl/embedded/arm/lpc21x4.pp svneol=native#text/plain
 rtl/embedded/check.inc svneol=native#text/plain
 rtl/embedded/empty.cfg -text
