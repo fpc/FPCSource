@@ -955,7 +955,8 @@ implementation
         gotvec,
         gotclass,
         gotdynarray,
-        gotderef : boolean;
+        gotderef,
+        gottypeconv : boolean;
         fromdef,
         todef    : tdef;
         errmsg,
@@ -976,6 +977,7 @@ implementation
         gotpointer:=false;
         gotdynarray:=false;
         gotstring:=false;
+        gottypeconv:=false;
         hp:=p;
         if not(valid_void in opts) and
            is_void(hp.resultdef) then
@@ -1013,6 +1015,17 @@ implementation
                       { same when we got a class and subscript (= deref) }
                       (gotclass and gotsubscript) or
                       (
+                       { allowing assignments to typecasted properties
+                           a) is Delphi-incompatible
+                           b) causes problems in case the getter is a function
+                              (because then the result of the getter is
+                               typecasted to this type, and then we "assign" to
+                               this typecasted function result) -> always
+                               disallow, since property accessors should be
+                               transparantly changeable to functions at all
+                               times
+                       }
+                       not(gottypeconv) and
                        not(gotsubscript and gotrecord) and
                        not(gotstring and gotvec)
                       ) then
@@ -1059,6 +1072,7 @@ implementation
                end;
              typeconvn :
                begin
+                 gottypeconv:=true;
                  { typecast sizes must match, exceptions:
                    - implicit typecast made by absolute
                    - from formaldef
