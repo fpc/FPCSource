@@ -8,8 +8,21 @@ version=2.2.2
 
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb \
-      webutil fpdatasetform cgiapp ezcgi fpapache fastcgi custfcgi fpfcgi
+      webutil fpdatasetform cgiapp ezcgi fpapache
 rsts=fpcgi fphtml fpweb websession cgiapp
+
+# these units are listed separately because they don't work for
+# darwin (which does support the rest of fcl-web)
+units_beos=fastcgi custfcgi fpfcgi
+units_haiku=fastcgi custfcgi fpfcgi
+units_freebsd=fastcgi custfcgi fpfcgi
+units_solaris=fastcgi custfcgi fpfcgi
+units_netbsd=fastcgi custfcgi fpfcgi
+units_openbsd=fastcgi custfcgi fpfcgi
+units_linux=fastcgi custfcgi fpfcgi
+units_win32=fastcgi custfcgi fpfcgi
+units_win64=fastcgi custfcgi fpfcgi
+units_wince=fastcgi custfcgi fpfcgi
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-process httpd22
