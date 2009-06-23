@@ -240,6 +240,7 @@ type
     FStream: TStream;
     FCapacity: Integer;
     FOwnStream: Boolean;
+    FEof: Boolean;
   public
     constructor Create(AStream: TStream; AOwnStream: Boolean);
     destructor Destroy; override;
@@ -1099,7 +1100,8 @@ var
   OldBuf: PChar;
 begin
   Assert(FCharBufEnd - FCharBuf < Slack-4);
-
+  if FEof then
+    Exit;
   OldBuf := FCharBuf;
   Remainder := FCharBufEnd - FCharBuf;
   if Remainder < 0 then
@@ -1108,6 +1110,8 @@ begin
   if Remainder > 0 then
     Move(OldBuf^, FCharBuf^, Remainder);
   BytesRead := FStream.Read(FAllocated[Slack-4], FCapacity);
+  if BytesRead < FCapacity then
+    FEof := True;
   FCharBufEnd := FAllocated + (Slack-4) + BytesRead;
   PWideChar(FCharBufEnd)^ := #0;
 end;
@@ -1723,7 +1727,7 @@ function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
 var
   Src: TXMLCharSource;
 begin
-  if AEntity.SystemID <> '' then
+  if (AEntity.SystemID <> '') and not AEntity.FResolved then
   begin
     Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, Src);
     if not Result then
@@ -1736,6 +1740,8 @@ begin
   else
   begin
     Src := TXMLCharSource.Create(AEntity.FReplacementText);
+    // needed in case of prefetched external PE
+    Src.SystemID := AEntity.FURI;
     Src.FLineNo := AEntity.FStartLocation.Line;
     Src.LFPos := Src.FBuf - AEntity.FStartLocation.LinePos;
   end;
@@ -1863,6 +1869,27 @@ begin
 
   if PEnt.FOnStack then
     FatalError('Entity ''%%%s'' recursively references itself', [PEnt.NodeName]);
+
+  { cache an external PE so it's only fetched once }
+  if (PEnt.SystemID <> '') and not PEnt.FResolved then
+  begin
+    if ContextPush(PEnt) then
+    try
+      FValue.Length := 0;
+      FSource.SkipUntil(FValue, [#0]);
+      SetString(PEnt.FReplacementText, FValue.Buffer, FValue.Length);
+      PEnt.FCharCount := FValue.Length;
+      PEnt.FStartLocation.Line := 1;
+      PEnt.FStartLocation.LinePos := 1;
+    finally
+      ContextPop;
+      PEnt.FResolved := True;
+      FValue.Length := 0;
+    end;
+  end;
+
+  Inc(FSource.FCharCount, PEnt.FCharCount);
+  CheckMaxChars;
 
   PEnt.FBetweenDecls := not FInsideDecl;
   ContextPush(PEnt);
@@ -2578,6 +2605,7 @@ begin
       if not ParseEntityDeclValue(Delim) then
         DoErrorPos(esFatal, 'Literal has no closing quote', Entity.FStartLocation);
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
+      Entity.FCharCount := FEntityValue.Length;
     end
     else
     begin
