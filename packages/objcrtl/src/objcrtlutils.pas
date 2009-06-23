@@ -28,6 +28,11 @@ function super(obj: id): objc_super;
 
 implementation
 
+var
+  SEL_alloc   : SEL = nil;
+  SEL_init    : SEL = nil;
+  SEL_release : SEL = nil;
+
 function super(obj: id): objc_super;
 begin
   Result.reciever := obj;
@@ -57,17 +62,20 @@ end;
 
 procedure release(objc: id); inline;
 begin
-  objc_msgSend(objc, selector('release'), []);
+  if SEL_release=nil then SEL_release := selector('release');
+  objc_msgSend(objc, SEL_release, []);
 end;
 
 function AllocAndInit(classname: PChar): id; inline;
 begin
-  Result:= objc_msgSend( alloc( classname ), selector('init'), []);
+  if SEL_init=nil then SEL_init := selector('init');
+  Result:= objc_msgSend( alloc( classname ), SEL_init, []);
 end;
 
 function AllocAndInitEx(classname: PChar; extraBytes: Integer): id; inline;
 begin
-  Result := objc_msgSend( allocEx( classname, extraBytes ), selector('init'), []);
+  if SEL_init=nil then SEL_init := selector('init');
+  Result := objc_msgSend( allocEx( classname, extraBytes ), SEL_init, []);
 end;
 
 
