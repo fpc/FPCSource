@@ -289,9 +289,9 @@ type
     class function TypeName: String; virtual; abstract;
     procedure Release;
     function AsNodeSet: TNodeSet; virtual;
-    function AsBoolean: Boolean; virtual;
-    function AsNumber: Extended; virtual;
-    function AsText: DOMString; virtual;
+    function AsBoolean: Boolean; virtual; abstract;
+    function AsNumber: Extended; virtual; abstract;
+    function AsText: DOMString; virtual; abstract;
   end;
 
   TXPathNodeSetVariable = class(TXPathVariable)
@@ -1382,24 +1382,6 @@ function TXPathVariable.AsNodeSet: TNodeSet;
 begin
   Error(SVarNoConversion, [TypeName, TXPathNodeSetVariable.TypeName]);
   Result := nil;
-end;
-
-function TXPathVariable.AsBoolean: Boolean;
-begin
-  Error(SVarNoConversion, [TypeName, TXPathBooleanVariable.TypeName]);
-  Result := False;
-end;
-
-function TXPathVariable.AsNumber: Extended;
-begin
-  Error(SVarNoConversion, [TypeName, TXPathNumberVariable.TypeName]);
-  Result := 0;
-end;
-
-function TXPathVariable.AsText: DOMString;
-begin
-  Error(SVarNoConversion, [TypeName, TXPathStringVariable.TypeName]);
-  SetLength(Result, 0);
 end;
 
 procedure TXPathVariable.Error(const Msg: String; const Args: array of const);
@@ -2801,7 +2783,7 @@ begin
   inherited Create;
   FRootNode := AScanner.ParseOrExpr;
   if CompleteExpression and (AScanner.CurToken <> tkEndOfStream) then
-    EvaluationError(SParserGarbageAfterExpression + ' ' + AScanner.FExpressionString);
+    EvaluationError(SParserGarbageAfterExpression);
 end;
 
 function TXPathExpression.Evaluate(AContextNode: TDOMNode): TXPathVariable;

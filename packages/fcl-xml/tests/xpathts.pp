@@ -537,10 +537,17 @@ const
   'Yahoo'#10+
   'SecondNode_after_H'#10;
 
-  StringTests: array[0..60] of TTestRec = (
-    (expr: 'string(5)';       rt: rtString; s: '5'),
+  str30='<doc xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">'#10+
+  '<ns1:a attrib1="test" xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1"/>'#10+
+  '<b ns1:attrib2="test"/>'#10+
+  '</doc>';
+
+  StringTests: array[0..75] of TTestRec = (             // numbers refer to xalan/string/stringXX
+    (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
     (expr: 'string(-0.5)';    rt: rtString; s: '-0.5'),
+    (expr: 'string("test")';  rt: rtString; s: 'test'), // #40
+    (expr: 'string("")';      rt: rtString; s: ''),     // #41
     (expr: 'string(true())';  rt: rtString; s: 'true'),
     (expr: 'string(false())'; rt: rtString; s: 'false'),
     (expr: 'string(0 div 0)'; rt: rtString; s: 'NaN'),
@@ -559,9 +566,11 @@ const
 
     (expr: 'starts-with("tititoto","titi")'; rt: rtBool; b: True),
     (expr: 'starts-with("tititoto","to")';   rt: rtBool; b: False),
-    (expr: 'starts-with("ab", "abc")';       rt: rtBool; b: False),
-    (expr: 'starts-with("abc", "")';         rt: rtBool; b: True),     // xalan/string/string48
+    (expr: 'starts-with("ab", "abc")';       rt: rtBool; b: False),    // #46
+    (expr: 'starts-with("abc", "bc")';       rt: rtBool; b: False),    // #47
+    (expr: 'starts-with("abc", "")';         rt: rtBool; b: True),     // #48
     (expr: 'starts-with("", "")';            rt: rtBool; b: True),     // #49
+    (expr: 'starts-with(true(), "tr")';      rt: rtBool; b: True),     // #50
 
 
 
@@ -569,11 +578,12 @@ const
     (expr: 'contains("tititototata","toto")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tata")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tita")'; rt: rtBool; b: False),
-    (expr: 'contains("ab", "abc")';           rt: rtBool; b: False),   // #59
+    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true          // #57    
+    (expr: 'contains("ab", "abc")';           rt: rtBool; b: False),   // #58
     (expr: 'contains("abc", "bcd")';          rt: rtBool; b: False),   // #60
     (expr: 'contains("abc", "")';             rt: rtBool; b: True),    // #61
     (expr: 'contains("", "")';                rt: rtBool; b: True),    // #62
-    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true
+    (expr: 'contains(true(), "e")';           rt: rtBool; b: True),    // #63    
 
     (expr: 'substring("12345",2,3)'; rt: rtString; s: '234'),
     (expr: 'substring("12345",2)';   rt: rtString; s: '2345'),
@@ -581,24 +591,24 @@ const
     (expr: 'substring("12345",3.4)'; rt: rtString; s: '345'),
     (expr: 'substring("12345",3.6)'; rt: rtString; s: '45'),
 
-    (expr: 'substring("12345",1.5,2.6)'; rt: rtString; s: '234'),
+    (expr: 'substring("12345",1.5,2.6)'; rt: rtString; s: '234'), // #16
     (expr: 'substring("12345",2.2,2.2)'; rt: rtString; s: '23'),
-    (expr: 'substring("12345",0,3)';     rt: rtString; s: '12'),
+    (expr: 'substring("12345",0,3)';     rt: rtString; s: '12'),  // #17
     (expr: 'substring("12345",-8,10)';   rt: rtString; s: '1'),
     (expr: 'substring("12345",4,-10)';   rt: rtString; s: ''),
 
-    (expr: 'substring("12345",0 div 0, 3)'; rt: rtString; s: ''),
-    (expr: 'substring("12345",1, 0 div 0)'; rt: rtString; s: ''),
+    (expr: 'substring("12345",0 div 0, 3)'; rt: rtString; s: ''), // #18
+    (expr: 'substring("12345",1, 0 div 0)'; rt: rtString; s: ''), // #19
     (expr: 'substring("12345",1 div 0, 3)'; rt: rtString; s: ''),
     (expr: 'substring("12345",3,-1 div 0)'; rt: rtString; s: ''),
-    (expr: 'substring("12345",-42, 1 div 0)'; rt: rtString; s: '12345'),
+    (expr: 'substring("12345",-42, 1 div 0)'; rt: rtString; s: '12345'), // #20
 
-    (expr: 'substring("12345",-1 div 0, 1 div 0)'; rt: rtString; s: ''),
+    (expr: 'substring("12345",-1 div 0, 1 div 0)'; rt: rtString; s: ''), // #21
     (expr: 'substring("12345",-1 div 0,5)';        rt: rtString; s: ''),
 
-    (expr: 'substring-before("1999/04/01","/")'; rt: rtString; s: '1999'),
-    (expr: 'substring-before("1999/04/01","a")'; rt: rtString; s: ''),
-    (expr: 'substring-after("1999/04/01","/")'; rt: rtString; s: '04/01'),
+    (expr: 'substring-before("1999/04/01","/")'; rt: rtString; s: '1999'),  // #08
+    (expr: 'substring-before("1999/04/01","a")'; rt: rtString; s: ''),      // #68 modified
+    (expr: 'substring-after("1999/04/01","/")'; rt: rtString; s: '04/01'),  // #09
     (expr: 'substring-after("1999/04/01","19")'; rt: rtString; s: '99/04/01'),
     (expr: 'substring-after("1999/04/01","a")'; rt: rtString; s: ''),
 
@@ -608,11 +618,23 @@ const
     (data: str04;  expr: 'string-length(/)'; rt: rtNumber; n:27),    // #04.1 modified
     (data: str04;  expr: 'string-length(/doc/a)'; rt: rtNumber; n: 12), // #04.2
     (data: str04;  expr: 'string-length()';  rt: rtNumber; n: 27),
-    (expr: 'normalize-space("'#9#10#13' ab   cd'#10#13#9'ef'#9#10#13'  ")'; rt: rtString; s: 'ab cd ef'),
+    (expr: 'normalize-space("'#9#10#13' ab   cd'#10#13#9'ef'#9#10#13'  ")'; rt: rtString; s: 'ab cd ef'), // #10
 
-    (expr: 'translate("bar", "abc", "ABC")'; rt: rtString; s: 'BAr'),
+    (expr: 'translate("bar", "abc", "ABC")'; rt: rtString; s: 'BAr'),  // #11
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
-    (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx')   // #96
+    (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx'),   // #96
+
+    (data: str30; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
+    (data: str30; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
+    (data: str30; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
+    (data: str30; expr: 'name(baz1:a)'; rt: rtString; s: 'ns1:a'),  // #33
+    (data: str30; expr: 'name(baz2:b)'; rt: rtString; s: 'b'),      // #34
+    (data: str30; expr: 'name(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''),            // #35
+    (data: str30; expr: 'name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'ns1:attrib2'), // #36
+
+    (data: str30; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
+    (data: str30; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
+    (data: str30; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
   );
   
   ax114='<doc>'+
@@ -734,6 +756,7 @@ begin
   parser := TDOMParser.Create;
   try
     parser.Options.PreserveWhitespace := True;
+    parser.Options.Namespaces := True;
     src := TXMLInputSource.Create(data);
     try
       parser.Parse(src, Result);
