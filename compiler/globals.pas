@@ -133,6 +133,8 @@ interface
 
          minfpconstprec  : tfloattype;
 
+         disabledircache : boolean;
+
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM)}
         controllertype   : tcontrollertype;

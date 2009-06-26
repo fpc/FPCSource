@@ -2750,6 +2750,7 @@ S*2Aas_Assemble using GNU AS
 **2Fa<x>[,y]_(for a program) load units <x> and [y] before uses is parsed
 **2Fc<x>_Set input codepage to <x>
 **2FC<x>_Set RC compiler binary name to <x>
+**2Fd_Disable the compiler's internal directory cache
 **2FD<x>_Set the directory where to search for compiler utilities
 **2Fe<x>_Redirect error output to <x>
 **2Ff<x>_Add <x> to framework path (Darwin only)
