@@ -540,6 +540,31 @@ uses
 {  ------------ Stop of declaration in "mysql_com.h"   -----------------------  }
 
 { $include "mysql_time.h"}
+    type
+        mysql_timestamp_type = (
+          MYSQL_TIMESTAMP_NONE = -2,
+          MYSQL_TIMESTAMP_ERROR = -1,
+          MYSQL_TIMESTAMP_DATE = 0,
+          MYSQL_TIMESTAMP_DATETIME = 1,
+          MYSQL_TIMESTAMP_TIME = 2
+        );
+
+        Pst_mysql_time = ^st_mysql_time;
+        st_mysql_time = record
+          year:        cuint;
+          month:       cuint;
+          day:         cuint;
+          hour:        cuint;
+          minute:      cuint;
+          second:      cuint;
+          second_part: culong;
+          neg:         my_bool;
+          time_type:   mysql_timestamp_type;
+        end;
+
+        PMYSQL_TIME = ^MYSQL_TIME;
+        MYSQL_TIME = st_mysql_time;
+
 { $include "mysql_version.h"}
 { $include "typelib.h"}
 { $include "my_list.h" /* for LISTs used in 'MYSQL' and 'MYSQL_STMT' */}
