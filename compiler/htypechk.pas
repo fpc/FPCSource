@@ -68,10 +68,10 @@ interface
         FAllowVariant : boolean;
         procedure collect_overloads_in_class(ProcdefOverloadList:TFPObjectList);
         procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList);
-        procedure create_candidate_list(ignorevisibility:boolean);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas:boolean);
         function  proc_add(ps:tprocsym;pd:tprocdef):pcandidate;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas:boolean);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -1613,7 +1613,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas:boolean);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -1621,7 +1621,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
-        create_candidate_list(ignorevisibility);
+        create_candidate_list(ignorevisibility,allowdefaultparas);
       end;
 
 
@@ -1631,7 +1631,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
-        create_candidate_list(false);
+        create_candidate_list(false,false);
       end;
 
 
@@ -1744,7 +1744,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas:boolean);
       var
         j     : integer;
         pd    : tprocdef;
@@ -1803,8 +1803,17 @@ implementation
               it is visible }
             if (FParalength>=pd.minparacount) and
                (
-                (FParalength<=pd.maxparacount) or
-                (po_varargs in pd.procoptions)
+                (
+                 allowdefaultparas and
+                 (
+                  (FParalength<=pd.maxparacount) or
+                  (po_varargs in pd.procoptions)
+                 )
+                ) or
+                (
+                 not allowdefaultparas and
+                 (FParalength=pd.maxparacount)
+                )
                ) and
                (
                 ignorevisibility or

@@ -2330,7 +2330,7 @@ implementation
                   { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                   ignorevisibility:=(nf_isproperty in flags) or
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
-                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility);
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,not(nf_isproperty in flags));
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -2369,9 +2369,7 @@ implementation
                             end
                           else
                             begin
-                              if assigned(left) then
-                               current_filepos:=left.fileinfo;
-                              CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
+                              CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,symtableprocentry.realname);
                               symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;
