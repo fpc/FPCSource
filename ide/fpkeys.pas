@@ -36,13 +36,13 @@ Const
 type
    PKeyDialog = ^TKeyDialog;
    TKeyDialog = object(TCenterDialog)
-     Constructor Init(Const ATitle : String);
-     {Procedure HandleEvent(var E : TEvent);virtual;}
-     function Execute : Word;Virtual;
       PSTL : Array [1..NumWantedKeys] of PLabel;
       PL : Array [1..NumWantedKeys] of PInputLine;
       KeyOK : Array [1..NumWantedKeys] of boolean;
       PST,PST2 : PAdvancedStaticText;
+      Constructor Init(Const ATitle : String);
+     {Procedure HandleEvent(var E : TEvent);virtual;}
+     function Execute : Word;Virtual;
    end;
 
 Procedure LoadKeys(var S : TStream);
