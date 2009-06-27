@@ -459,6 +459,9 @@ type
     last_breakpoint_line : longint;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
+    user_screen_shown,
+    switch_to_user     : boolean;
+
     { init }
     constructor init;
     destructor  done;
@@ -475,8 +478,6 @@ type
     function  set_current_frame(level : longint) : boolean;
     procedure clear_frames;
     { Highlevel }
-    user_screen_shown,
-    switch_to_user     : boolean;
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
     procedure SelectSourceline(fn:pchar;line:longint);
     procedure StartSession;
