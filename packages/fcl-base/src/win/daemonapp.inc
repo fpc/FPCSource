@@ -246,7 +246,7 @@ begin
     Try
       SD:=DD.Description;
       D.lpDescription:=Pchar(SD);
-      ChangeService2(SV,SERVICE_CONFIG_DESCRIPTION,@D);
+      ChangeServiceConfig2(SV,SERVICE_CONFIG_DESCRIPTION,@D);
       If (PIDTag<>Nil) then
         DD.WinBindings.IDTag:=IDTag;
     finally
