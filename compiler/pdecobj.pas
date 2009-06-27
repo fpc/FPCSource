@@ -101,6 +101,11 @@ implementation
             include(p.propoptions,ppo_defaultproperty);
             if not(ppo_hasparameters in p.propoptions) then
               message(parser_e_property_need_paras);
+            if (token=_COLON) then
+              begin
+                Message(parser_e_field_not_allowed_here);
+                consume_all_until(_SEMICOLON);
+              end;
             consume(_SEMICOLON);
           end;
         { hint directives, these can be separated by semicolons here,
@@ -388,6 +393,7 @@ implementation
         oldparse_only,
         old_parse_generic : boolean;
         object_member_blocktype : tblock_type;
+        fields_allowed: boolean;
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype=odt_class) and
@@ -404,6 +410,7 @@ implementation
           current_objectdef.symtable.currentvisibility:=vis_public;
         testcurobject:=1;
         has_destructor:=false;
+        fields_allowed:=true;
         object_member_blocktype:=bt_general;
         repeat
           case token of
@@ -431,6 +438,7 @@ implementation
                        consume(_PRIVATE);
                        current_objectdef.symtable.currentvisibility:=vis_private;
                        include(current_objectdef.objectoptions,oo_has_private);
+                       fields_allowed:=true;
                      end;
                    _PROTECTED :
                      begin
@@ -439,6 +447,7 @@ implementation
                        consume(_PROTECTED);
                        current_objectdef.symtable.currentvisibility:=vis_protected;
                        include(current_objectdef.objectoptions,oo_has_protected);
+                       fields_allowed:=true;
                      end;
                    _PUBLIC :
                      begin
@@ -446,6 +455,7 @@ implementation
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
                        current_objectdef.symtable.currentvisibility:=vis_public;
+                       fields_allowed:=true;
                      end;
                    _PUBLISHED :
                      begin
@@ -456,6 +466,7 @@ implementation
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLISHED);
                        current_objectdef.symtable.currentvisibility:=vis_published;
+                       fields_allowed:=true;
                      end;
                    _STRICT :
                      begin
@@ -483,6 +494,7 @@ implementation
                           end
                         else
                           message(parser_e_protected_or_private_expected);
+                        fields_allowed:=true;
                       end;
                     else
                       begin
@@ -494,6 +506,8 @@ implementation
                             if (current_objectdef.symtable.currentvisibility=vis_published) and
                                not(oo_can_have_published in current_objectdef.objectoptions) then
                               Message(parser_e_cant_have_published);
+                            if (not fields_allowed) then
+                              Message(parser_e_field_not_allowed_here);
 
                             read_record_fields([vd_object])
                           end
@@ -505,6 +519,7 @@ implementation
             _PROPERTY :
               begin
                 property_dec;
+                fields_allowed:=false;
               end;
             _PROCEDURE,
             _FUNCTION,
@@ -550,6 +565,7 @@ implementation
                 maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
+                fields_allowed:=false;
               end;
             _CONSTRUCTOR :
               begin
@@ -579,6 +595,7 @@ implementation
                 maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
+                fields_allowed:=false;
               end;
             _DESTRUCTOR :
               begin
@@ -613,6 +630,7 @@ implementation
                 maybe_parse_hint_directives(pd);
 
                 parse_only:=oldparse_only;
+                fields_allowed:=false;
               end;
             _END :
               begin

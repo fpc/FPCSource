@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03250 is the last used one
+# 03251 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1176,6 +1176,11 @@ parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibil
 % The virtual method overrides an method that is declared with a higher visibility. This might give
 % unexpected results. In case the new visibility is private than it might be that a call to inherited in a
 % new child class will call the higher visible method in a parent class and ignores the private method.
+parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or property definition, start a new visibility section first
+% Once a method or property has been defined in a class or object, you cannot define any fields afterwards
+% without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
+% that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
+% such as \var{default} and \var{register} also as field names.
 % \end{description}
 #
 # Type Checking

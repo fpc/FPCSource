@@ -1118,7 +1118,14 @@ implementation
           message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
-          consume(_SEMICOLON);
+          begin
+            if (token=_COLON) then
+              begin
+                message(parser_e_field_not_allowed_here);
+                consume_all_until(_SEMICOLON);
+              end;
+            consume(_SEMICOLON);
+          end;
         result:=pd;
 
         if locationstr<>'' then
@@ -2459,7 +2466,14 @@ const
                      (token in [_END,_RKLAMMER,_EQUAL]) then
                     break
                   else
-                    consume(_SEMICOLON);
+                    begin
+                      if (token=_COLON) then
+                        begin
+                          Message(parser_e_field_not_allowed_here);
+                          consume_all_until(_SEMICOLON);
+                        end;
+                      consume(_SEMICOLON)
+                    end;
                 end;
             end
            else
