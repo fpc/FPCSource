@@ -31,10 +31,10 @@ interface
 
     type
        tcgwhilerepeatnode = class(twhilerepeatnode)
+          usedregvars: tusedregvars;
+
           procedure pass_generate_code;override;
           procedure sync_regvars(checkusedregvars: boolean);
-
-          usedregvars: tusedregvars;
        end;
 
        tcgifnode = class(tifnode)
@@ -42,10 +42,10 @@ interface
        end;
 
        tcgfornode = class(tfornode)
+          usedregvars: tusedregvars;
+
           procedure pass_generate_code;override;
           procedure sync_regvars(checkusedregvars: boolean);
-
-          usedregvars: tusedregvars;
        end;
 
        tcgexitnode = class(texitnode)

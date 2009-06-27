@@ -109,10 +109,10 @@ type
   TInetServer = Class(TSocketServer)
   Protected
     FAddr : TINetSockAddr;
-    Function  SockToStream (ASocket : Longint) : TSocketStream;Override;
-    Function Accept : Longint;override;
     FPort : Word;
     FHost: string;
+    Function  SockToStream (ASocket : Longint) : TSocketStream;Override;
+    Function Accept : Longint;override;
   Public
     Procedure Bind; Override;
     Constructor Create(APort: Word);

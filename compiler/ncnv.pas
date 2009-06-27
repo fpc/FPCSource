@@ -189,13 +189,13 @@ interface
        ttypeconvnodeclass = class of ttypeconvnode;
 
        tasnode = class(tbinarynode)
+          call: tnode;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
-          call: tnode;
        end;
        tasnodeclass = class of tasnode;
 

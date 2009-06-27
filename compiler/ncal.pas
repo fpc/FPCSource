@@ -75,6 +75,7 @@ interface
           procedure register_created_object_types;
 
 
+       private
           { inlining support }
           inlinelocals            : TFPObjectList;
           inlineinitstatement,

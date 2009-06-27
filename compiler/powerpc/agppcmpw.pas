@@ -41,11 +41,12 @@ interface
         procedure WriteExternals;
         procedure WriteAsmFileHeader;
       private
+        cur_CSECT_name: String;
+        cur_CSECT_class: String;
+
         procedure WriteInstruction(hp : tai);
         procedure WriteProcedureHeader(var hp:tai);
         procedure WriteDataHeader(var s:string; isExported, isConst:boolean);
-        cur_CSECT_name: String;
-        cur_CSECT_class: String;
       end;
 
 

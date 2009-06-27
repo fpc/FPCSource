@@ -36,16 +36,16 @@ Unit aoptda;
       TAOptDFA = class
         { uses the same constructor as TAoptCpu = constructor from TAoptObj }
 
+        { How many instructions are between the current instruction and the }
+        { last one that modified the register                               }
+        InstrSinceLastMod: TInstrSinceLastMod;
+
         { gathers the information regarding the contents of every register }
         { at the end of every instruction                                  }
         Procedure DoDFA;
 
         { handles the processor dependent dataflow analizing               }
         Procedure CpuDFA(p: PInstr); Virtual; Abstract;
-
-        { How many instructions are between the current instruction and the }
-        { last one that modified the register                               }
-        InstrSinceLastMod: TInstrSinceLastMod;
 
         { convert a TInsChange value into the corresponding register }
         //!!!!!!!!!! Function TCh2Reg(Ch: TInsChange): TRegister; Virtual;

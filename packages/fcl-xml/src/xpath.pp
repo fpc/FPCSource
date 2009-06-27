@@ -385,11 +385,12 @@ type
 
   TXPathContext = class
   public
-    constructor Create(AContextNode: TDOMNode;
-      AContextPosition, AContextSize: Integer);
     ContextNode: TDOMNode;
     ContextPosition: Integer;
     ContextSize: Integer;
+
+    constructor Create(AContextNode: TDOMNode;
+      AContextPosition, AContextSize: Integer);
   end;
 
 

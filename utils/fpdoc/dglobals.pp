@@ -262,6 +262,12 @@ type
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
   public
+    Output: String;
+    HasContentFile: Boolean;
+    HidePrivate: Boolean;       // Hide private class members in output?
+    HideProtected: Boolean;     // Hide protected class members in output?
+    WarnNoNode : Boolean;       // Warn if no description node found for element.
+
     constructor Create;
     destructor Destroy; override;
     procedure SetPackageName(const APackageName: String);
@@ -295,12 +301,6 @@ type
     property RootLinkNode: TLinkNode read FRootLinkNode;
     property RootDocNode: TDocNode read FRootDocNode;
     property Package: TPasPackage read FPackage;
-
-    Output: String;
-    HasContentFile: Boolean;
-    HidePrivate: Boolean;       // Hide private class members in output?
-    HideProtected: Boolean;     // Hide protected class members in output?
-    WarnNoNode : Boolean;       // Warn if no description node found for element.
   end;
 
 

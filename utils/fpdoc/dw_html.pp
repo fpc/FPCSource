@@ -90,7 +90,6 @@ type
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
     FAllocator: TFileAllocator;
-    Procedure CreateAllocator; virtual;
     CurDirectory: String;       // relative to curdir of process
     BaseDirectory: String;      // relative path to package base directory
     PageInfos: TObjectList;     // list of TPageInfo objects
@@ -111,6 +110,8 @@ type
     FIndexColCount : Integer;
     FSearchPage : String;
     FBaseImageURL : String;
+
+    Procedure CreateAllocator; virtual;
     function ResolveLinkID(const Name: String): DOMString;
     function ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
@@ -423,10 +424,11 @@ Type
   { TLinkData }
 
   TLinkData = Class(TObject)
-    Constructor Create(Const APathName,ALink,AModuleName : string);
     FPathName,
     FLink,
     FModuleName : String;
+
+    Constructor Create(Const APathName,ALink,AModuleName : string);
   end;
 
 { TLinkData }

@@ -91,12 +91,11 @@ interface
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
         protected
-          procedure setdatasize(val: aint);
           _datasize       : aint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
           databitsize    : aint;
-          { bitpacked? -> all fieldvarsym offsets are in bits instead of bytes }
+          procedure setdatasize(val: aint);
         public
           property datasize : aint read _datasize write setdatasize;
        end;

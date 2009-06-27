@@ -137,9 +137,10 @@ interface
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
         private
-          procedure setvardef(def:tdef);
           _vardef     : tdef;
           vardefderef : tderef;
+
+          procedure setvardef(def:tdef);
         public
           property vardef: tdef read _vardef write setvardef;
       end;
