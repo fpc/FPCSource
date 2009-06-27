@@ -191,7 +191,7 @@ unit at91sam7x256;
 
         { Wait the startup time (until PMC Status register MOSCEN bit is set)
           result: $FFFFFC68 bit 0 will set when main oscillator has stabilized}
-      	while (AT91C_PMC_SR and AT91C_PMC_MOSCS)=0 do
+        while (AT91C_PMC_SR and AT91C_PMC_MOSCS)=0 do
            ;
 
 
@@ -310,7 +310,7 @@ unit at91sam7x256;
         ldr r0,.L_stack_top
 
         (*
-          Setting up SP for IRQ and FIQ mode.
+          Setting up SP for the different CPU modes.
           Change mode before setting each one
           move back again to Supervisor mode
           Each interrupt has its own link
@@ -319,18 +319,28 @@ unit at91sam7x256;
           initialized for interrupts to be
           used later.
         *)
+        msr   cpsr_c, #0xdb     // switch to Undefined Instruction Mode
+        mov   sp, r0
+        sub   r0, r0, #0x10
 
-        (*
-          setup irq and fiq stacks each 128 bytes
-        *)
-        msr cpsr_c, #0x12  // switch to irq mode
-        mov sp, r0         // set irq stack pointer
-        sub r0,r0,#128     // irq stack size
-        msr cpsr_c, #0x11  // fiq mode
-        mov sp, r0         // set fiq stack pointer
-        sub r0,r0,#128     // fiq stack size
-        msr cpsr_c, #0x13  // supervisor mode F,I enabled
-        mov sp, r0         // stack
+        msr   cpsr_c, #0xd7   // switch to Abort Mode
+        mov   sp, r0
+        sub   r0, r0, #0x10
+
+        msr   CPSR_c, #0xd1   // switch to FIQ Mode
+        mov   sp, r0
+        sub   r0, r0, #0x80
+
+        msr   CPSR_c, #0xd2   // switch to IRQ Mode
+        mov   sp, r0
+        sub   r0, r0, #0x80
+
+        msr   CPSR_c, #0xd3   // switch to Supervisor Mode
+        mov   sp, r0
+        sub   r0, r0, #0x80
+
+        msr   CPSR_c, #0x1f   // switch to System Mode, interrupts enabled
+        mov   sp, r0
 
         // for now, all handlers are set to a default one
         ldr r1,.LDefaultHandlerAddr
