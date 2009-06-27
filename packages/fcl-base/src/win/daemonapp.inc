@@ -185,12 +185,13 @@ Procedure TCustomDaemonApplication.SysInstallDaemon(Daemon : TCustomDaemon);
 
 Var
   SM,SV: SC_HANDLE;
-  N,DN,E,LG,UN,UP : String;
+  SD,N,DN,E,LG,UN,UP : String;
   DD : TDaemonDef;
   ST,STT,ES: Integer;
   IDTag : DWord;
   PIDTag : LPDWord;
   PDeps,PN,PP : PChar;
+  D : TServiceDescriptionA;
   
 begin
   SM:=TSMData(FSysData).FHandle;
@@ -243,6 +244,9 @@ begin
     If (SV=0) then
       RaiseLastOSError;
     Try
+      SD:=DD.Description;
+      D.lpDescription:=Pchar(SD);
+      ChangeService2(SV,SERVICE_CONFIG_DESCRIPTION,@D);
       If (PIDTag<>Nil) then
         DD.WinBindings.IDTag:=IDTag;
     finally
