@@ -138,9 +138,9 @@ interface
          disabledircache : boolean;
 
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM)}
+{$endif defined(ARM) or defined(AVR)}
        end;
 
     const

@@ -120,7 +120,6 @@ Const
       'AT91SAM7x256'
      );
 
-
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+
