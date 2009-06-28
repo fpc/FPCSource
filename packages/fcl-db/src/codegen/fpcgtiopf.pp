@@ -26,7 +26,7 @@ TYpe
   TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,caListAddMethod,caListItemsProperty);
   TClassOptions = Set of TClassOption;
   TVisitorOption = (voRead,voReadList,voCreate,voDelete,voUpdate,
-                    voCommonSetupParams,voSingleSaveVisitor);
+                    voCommonSetupParams,voSingleSaveVisitor,voRegisterVisitors);
   TVisitorOptions = set of TVisitorOption;
   
   { TTiOPFCodeOptions }
@@ -76,6 +76,8 @@ TYpe
     // Auxiliary routines
     procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef);
     procedure WriteAssignToParam(Strings: TStrings; F: TFieldPropDef);
+    procedure WriteRegisterVisitorLine(Strings: TStrings;
+      const V: TVisitorOption; const ObjectClassName: String);
     procedure WriteSetSQL(Strings: TStrings; const ASQL: String);
     procedure WriteSQLConstants(Strings: TStrings);
     Procedure WriteTerminateVisitor(Strings : TStrings; V : TVisitorOption; const ObjectClassName: String);
@@ -90,6 +92,7 @@ TYpe
     procedure WriteReadVisitor(Strings: TStrings; const ObjectClassName: String );
     procedure WriteVisitorDeclaration(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
     procedure WriteVisitorImplementation(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
+    procedure WriteVisitorRegistration(Strings: TStrings; const ObjectClassName: String);
   Protected
     // Not to be overridden.
     procedure WriteListAddObject(Strings: TStrings; const ListClassName, ObjectClassName: String);
@@ -370,6 +373,8 @@ begin
   If (Result<>'') then
     Result:=Result+', ';
   Result:=Result+'tiVisitor, tiVisitorDB, tiObject';
+  If (voRegisterVisitors in tiOPFoptions.VisitorOptions) then
+    Result:=Result+', tiOPFManager';
 end;
 
 procedure TTiOPFCodeGenerator.DoGenerateInterface(Strings: TStrings);
@@ -399,6 +404,12 @@ begin
     Finally
       DecIndent;
     end;
+    end;
+  If voRegisterVisitors in tiOPFoptions.VisitorOptions then
+    begin
+    AddLn(Strings);
+    AddLn(Strings,'Procedure Register'+tiOPFoptions.ObjectClassName+'Visitors;');
+    AddLn(Strings);
     end;
 end;
 
@@ -526,7 +537,7 @@ procedure TTiOPFCodeGenerator.WriteSQLConstants(Strings : TStrings);
 
 Const
   VisSQL : Array [TVisitorOption] of string
-         = ('Read','ReadList','Create','Delete','Update','','');
+         = ('Read','ReadList','Create','Delete','Update','','','');
 
 Var
   OCN,S : String;
@@ -596,6 +607,8 @@ begin
     For V:=Low(TVisitorOption) to High(TVisitorOption) do
       If V in VisitorOptions then
         WriteVisitorImplementation(Strings,V,ObjectClassName);
+    If (voRegisterVisitors in TiOPFOptions.VisitorOptions) then
+      WriteVisitorRegistration(Strings,ObjectClassName);
     end;
 end;
 
@@ -618,6 +631,7 @@ begin
   If v in TiOPFOptions.FinalVisitors then
     WriteTerminateVisitor(Strings,V,ObjectClassName);
 end;
+
 
 Function TTiOPFCodeGenerator.BeginInit(Strings : TStrings; const AClass : String) : String;
 
@@ -672,6 +686,54 @@ begin
   DeclareObjectVariable(Strings,ObjectClassName);
   AddLn(Strings,'begin');
   IncIndent;
+end;
+
+{ ---------------------------------------------------------------------
+  Visitor registration
+  ---------------------------------------------------------------------}
+
+procedure TTiOPFCodeGenerator.WriteRegisterVisitorLine(Strings : TStrings; Const V: TVisitorOption; Const ObjectClassName : String);
+
+Var
+  C : String;
+  S : String;
+
+begin
+  C:=VisitorClassName(v,ObjectClassName);
+  Case V of
+    voRead        : S:='Read';
+    voReadList    : S:='ReadList';
+    voCreate      : S:='Create';
+    voDelete      : S:='Delete';
+    voUpdate      : S:='Update';
+  end;
+  S:=ObjectClassName+S;
+  S:=Format('GTIOPFManager.RegisterVisitor(''%s'',%s);',[S,C]);
+  AddLn(Strings,S);
+end;
+
+procedure TTiOPFCodeGenerator.WriteVisitorRegistration(Strings : TStrings; Const ObjectClassName : String);
+
+Const
+  RealVis = [voRead,voReadList,voCreate,voDelete,voUpdate];
+
+Var
+  v : TVisitorOption;
+  S : String;
+
+begin
+  Addln(Strings);
+  S:='Procedure Register'+ObjectClassName+'Visitors;';
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  For v:=Low(TVisitorOption) to High(TVisitorOption) do
+    begin
+    If (V in RealVis) and (V in TiOPFOptions.VisitorOptions) then
+      WriteRegisterVisitorLine(Strings,V,ObjectClassName);
+    end;
+  DecIndent;
+  EndMethod(Strings,S);
 end;
 
 { ---------------------------------------------------------------------
