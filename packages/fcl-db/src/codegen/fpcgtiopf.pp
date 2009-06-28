@@ -23,7 +23,9 @@ uses
   Classes, SysUtils, db, fpddcodegen;
   
 TYpe
-  TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,caListAddMethod,caListItemsProperty);
+  TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,
+                  caListAddMethod,caListItemsProperty,caOverrideRead,
+                  caOverrideReadThis,caOverrideSave);
   TClassOptions = Set of TClassOption;
   TVisitorOption = (voRead,voReadList,voCreate,voDelete,voUpdate,
                     voCommonSetupParams,voSingleSaveVisitor,voRegisterVisitors);
@@ -76,6 +78,7 @@ TYpe
     // Auxiliary routines
     procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef);
     procedure WriteAssignToParam(Strings: TStrings; F: TFieldPropDef);
+    procedure WriteReadWriteOverride(Strings: TStrings; const AAMethod, AVisitorGroup: String);
     procedure WriteRegisterVisitorLine(Strings: TStrings;
       const V: TVisitorOption; const ObjectClassName: String);
     procedure WriteSetSQL(Strings: TStrings; const ASQL: String);
@@ -99,8 +102,10 @@ TYpe
     // Overrides of parent objects
     function AllowPropertyDeclaration(F: TFieldPropDef; AVisibility: TVisibilities): Boolean; override;
     Function GetInterfaceUsesClause : string; override;
+    procedure WriteVisibilityStart(V: TVisibility; Strings: TStrings); override;
     Procedure DoGenerateInterface(Strings: TStrings); override;
     Procedure DoGenerateImplementation(Strings: TStrings); override;
+    procedure CreateImplementation(Strings: TStrings); override;
     Function NeedsConstructor : Boolean; override;
     Function NeedsDestructor : Boolean; override;
     Class Function NeedsFieldDefs : Boolean; override;
@@ -373,9 +378,11 @@ begin
   If (Result<>'') then
     Result:=Result+', ';
   Result:=Result+'tiVisitor, tiVisitorDB, tiObject';
-  If (voRegisterVisitors in tiOPFoptions.VisitorOptions) then
+  If (voRegisterVisitors in tiOPFoptions.VisitorOptions)
+     or ([caOverrideRead,caOverrideReadThis,caOverrideSave]*tiOPFOptions.ClassOptions<>[]) then
     Result:=Result+', tiOPFManager';
 end;
+
 
 procedure TTiOPFCodeGenerator.DoGenerateInterface(Strings: TStrings);
 
@@ -613,6 +620,57 @@ begin
 end;
 
 { ---------------------------------------------------------------------
+  Override read/write/readthis
+  ---------------------------------------------------------------------}
+
+procedure TTiOPFCodeGenerator.WriteVisibilityStart(V: TVisibility;
+  Strings: TStrings);
+begin
+  Inherited;
+  If (V=vPublic) then
+    begin
+    if (caOverrideSave in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure Save; override;');
+    If (caOverrideRead in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure Read; override;');
+    If (caOverrideReadThis in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure ReadThis; override;');
+    end;
+end;
+
+procedure TTiOPFCodeGenerator.CreateImplementation(Strings: TStrings);
+
+begin
+  inherited CreateImplementation(Strings);
+  if (caOverrideSave in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'Save','Save');
+  If (caOverrideRead in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'Read','Read');
+  If (caOverrideReadThis in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'ReadThis','Read');
+end;
+
+procedure TTiOPFCodeGenerator.WriteReadWriteOverride(Strings : TStrings; Const AAMethod,AVisitorGroup : String);
+
+Const
+  SExecVisitor = 'GTIOPFManager.VisitorManager.Execute(''%s_%s'',Self);';
+
+Var
+  OCN,S: String;
+
+begin
+  OCN:=TiOPFOptions.ObjectClassName;
+  S:=Format('Procedure %s.%s;',[OCN,AAMethod]);
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  S:=Format(SExecVisitor,[OCN,AVisitorGroup]);
+  AddLn(Strings,S);
+  DecIndent;
+  EndMethod(Strings,S);
+end;
+
+{ ---------------------------------------------------------------------
   Visitor helper routines
   ---------------------------------------------------------------------}
 
@@ -703,11 +761,11 @@ begin
   Case V of
     voRead        : S:='Read';
     voReadList    : S:='ReadList';
-    voCreate      : S:='Create';
-    voDelete      : S:='Delete';
-    voUpdate      : S:='Update';
+    voCreate      : S:='Save';
+    voDelete      : S:='Save';
+    voUpdate      : S:='Save';
   end;
-  S:=ObjectClassName+S;
+  S:=ObjectClassName+'_'+S;
   S:=Format('GTIOPFManager.RegisterVisitor(''%s'',%s);',[S,C]);
   AddLn(Strings,S);
 end;
