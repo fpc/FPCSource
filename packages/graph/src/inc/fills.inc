@@ -78,9 +78,11 @@ begin
     p0 := ptable[i];
     if (i+1) >= numpoints then p1 := ptable[0]
     else p1 := ptable[i+1];
+   { draw the edges }
+    Line(p0.x,p0.y,p1.x,p1.y);
    { ignore if this is a horizontal edge}
     if (p0.y = p1.y) then continue;
-    {swap ptable if necessary to ensure p0 contains yMin}
+   { swap ptable if necessary to ensure p0 contains yMin}
     if (p0.y > p1.y) then begin
       p0 := p1;
       p1 := ptable[i];
@@ -169,7 +171,7 @@ begin
       x0 := AET^[i]^.x;
       x1 := AET^[i+1]^.x;
       {Left edge adjustment for positive fraction.  0 is interior. }
-      if (AET^[i]^.frac > 0) then inc(x0);
+      if (AET^[i]^.frac >= 0) then inc(x0);
       {Right edge adjustment for negative fraction.  0 is exterior. }
       if (AET^[i+1]^.frac <= 0) then dec(x1);
 

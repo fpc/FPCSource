@@ -64,7 +64,8 @@ implementation
       cpubase,parabase,
       tgobj,ncgutil,
       cgobj,
-      ncgbas,ncgflw;
+      ncgbas,ncgflw,
+      wpobase;
 
 {*****************************************************************************
                    SSA (for memory temps) support
@@ -115,6 +116,14 @@ implementation
                   result := fen_norecurse_true;
                 end;
             end;
+          { Subscriptn must be rejected, otherwise we may replace an
+            an entire record with a temp for its first field, mantis #13948)
+            Exception: the field's size is the same as the entire record
+          }
+          subscriptn:
+            if not(tsubscriptnode(n).left.resultdef.typ in [recorddef,objectdef]) or
+               (tsubscriptnode(n).left.resultdef.size <> tsubscriptnode(n).resultdef.size) then
+              result := fen_norecurse_false;
           { optimize the searching a bit }
           derefn,addrn,
           calln,inlinen,casen,
@@ -481,6 +490,16 @@ implementation
                      if (po_virtualmethod in procdef.procoptions) and
                         not(nf_inherited in flags) then
                        begin
+                         if (not assigned(current_procinfo) or
+                             wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                           procdef._class.register_vmt_call(procdef.extnumber);
+            {$ifdef vtentry}
+                         if not is_interface(procdef._class) then
+                           begin
+                             inc(current_asmdata.NextVTEntryNr);
+                             current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+procdef._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
+                           end;
+            {$endif vtentry}
                          { a classrefdef already points to the VMT }
                          if (left.resultdef.typ<>classrefdef) then
                            begin

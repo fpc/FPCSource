@@ -24,8 +24,15 @@ uses
 
 Type
   // Supported objects in this data dictionary
-  TObjectType = (otUnknown,otDictionary,otTables,otTable,otFields,otField,
-                 otConnection,otTableData,otIndexDefs,otIndexDef);
+  TObjectType = (otUnknown,otDictionary,
+                 otTables,otTable,
+                 otFields,otField,
+                 otConnection,otTableData,
+                 otIndexDefs,otIndexDef,
+                 otSequenceDefs,otSequenceDef,
+                 otForeignKeyDefs,otForeignKeyDef,
+                 otDomainDefs,otDomainDef);
+
   TDDProgressEvent = Procedure(Sender : TObject; Const Msg : String) of Object;
 
   TFPDDFieldList = Class;
@@ -450,7 +457,9 @@ Type
   end;
 
   { TFPDDSQLEngine }
-  TSQLEngineOption = (eoLineFeedAfterField,eoUseOldInWhereParams,eoAndTermsInBrackets,eoQuoteFieldNames,eoLineFeedAfterAndTerm,eoAddTerminator);
+  TSQLEngineOption = (eoLineFeedAfterField,eoUseOldInWhereParams,eoAndTermsInBrackets,
+                      eoQuoteFieldNames,eoLineFeedAfterAndTerm,eoAddTerminator,
+                      eoSkipForeignkeys);
   TSQLEngineOptions = Set of TSQLEngineOption;
   
 
@@ -470,7 +479,8 @@ Type
     Procedure ResetLine;
     Procedure AddToStringLN(Var Res : String; S : String);
     Procedure AddToString(Var Res : String; S : String);
-    Procedure FixUpStatement(var Res : String);
+    Procedure FixUpStatement(var Res : String; ForceTerminator : Boolean = False);
+    Procedure FixUpStatement(SQL : TStrings; ForceTerminator : Boolean = False);
     Procedure AddWhereClause(Var Res : String; FieldList: TFPDDFieldList; UseOldParam:Boolean);
     Function CreateAndTerm(FD : TDDFieldDef; UseOldParam : Boolean): string;
     // Primitives. Override for engine-specifics
@@ -488,6 +498,7 @@ Type
   Public
     Constructor Create; virtual;
     function  CreateWhereSQL(Var Res : String; FieldList: TFPDDFieldList; UseOldParam:Boolean): String;
+    // Methods that fill a stringlist
     Procedure CreateSelectSQLStrings(FieldList,KeyFields : TFPDDFieldList; SQL : TStrings);
     Procedure CreateInsertSQLStrings(FieldList : TFPDDFieldList; SQL : TStrings);
     Procedure CreateUpdateSQLStrings(FieldList,KeyFields : TFPDDFieldList; SQL : TStrings);
@@ -495,23 +506,29 @@ Type
     Procedure CreateCreateSQLStrings(Fields,KeyFields : TFPDDFieldList; SQL : TStrings);
     Procedure CreateCreateSQLStrings(KeyFields : TFPDDFieldList; SQL : TStrings);
     Procedure CreateIndexesSQLStrings(Indexes : TFPDDIndexList; SQL : TStrings);
+    Procedure CreateForeignKeysSQLStrings(ForeignKeys: TDDForeignKeyDefs; SQL : TStrings);
     Procedure CreateSequencesSQLStrings(Sequences : TFPDDSequenceList; SQL : TStrings);
     Procedure CreateDomainsSQLStrings(Domains : TFPDDDomainList; SQL : TStrings);
+    // Insert/Update/Delete statements.
     Function  CreateSelectSQL(FieldList,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateInsertSQL(FieldList : TFPDDFieldList) : String; virtual;
     Function  CreateUpdateSQL(FieldList,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateDeleteSQL(KeyFields : TFPDDFieldList) : String; virtual;
+    // CREATE TABLE statement
     Function  CreateCreateSQL(Fields,KeyFields : TFPDDFieldList) : String; virtual;
     Function  CreateCreateSQL(KeyFields : TFPDDFieldList) : String; virtual;
-    // Indexes
+    // CREATE INDEX
     Function  CreateIndexSQL(Index : TDDIndexDef) : String; virtual;
     Function  CreateIndexesSQL(Indexes : TFPDDIndexList) : String;
     Function  CreateIndexesSQL(Indexes : TDDIndexDefs) : String;
-    // Sequences
+    // CONSTRAINT: Foreign keys
+    Function  CreateForeignKeySQL(ForeignKey: TDDForeignKeyDef) : String;virtual;
+    Function  CreateForeignKeysSQL(ForeignKeys: TDDForeignKeyDefs) : String;
+    // CREATE SEQUENCE
     Function  CreateSequenceSQL(Sequence : TDDSequenceDef) : String; virtual;
     Function  CreateSequencesSQL(Sequences : TFPDDSequenceList) : String;
     Function  CreateSequencesSQL(Sequences : TDDSequenceDefs) : String;
-    // Domains
+    // CREATE DOMAIN
     Function  CreateDomainSQL(Domain : TDDDomainDef) : String; virtual;
     Function  CreateDomainsSQL(Domains : TFPDDDomainList) : String;
     Function  CreateDomainsSQL(Domains : TDDDomainDefs) : String;
@@ -1317,6 +1334,7 @@ begin
   FTableName:=AValue;
   FFieldDefs.TableName:=AValue;
   FIndexDefs.TableName:=AValue;
+  FKeyDefs.TableName:=AValue;
 end;
 
 function TDDTableDef.GetPrimaryKeyName: String;
@@ -1461,6 +1479,7 @@ begin
     OnProgress(Self,Format(SSavingFieldsFrom,[TableName]));
   FFieldDefs.SaveToIni(Ini,ASection+SFieldSuffix);
   FIndexDefs.SaveToIni(Ini,ASection+SIndexSuffix);
+  FKeyDefs.SaveToIni(Ini,ASection+SKeySuffix);
 end;
 
 procedure TDDTableDef.LoadFromIni(Ini: TCustomInifile; ASection: String);
@@ -1474,6 +1493,7 @@ begin
     OnProgress(Self,Format(SLoadingFieldsFrom,[TableName]));
   FFieldDefs.LoadFromIni(Ini,ASection+SFieldSuffix);
   FIndexDefs.LoadFromIni(Ini,ASection+SIndexSuffix);
+  FKeyDefs.LoadFromIni(Ini,ASection+SKeySuffix);
 end;
 
 procedure TDDTableDef.PrimaryIndexToFields;
@@ -1935,7 +1955,6 @@ end;
 function TFPDDEngine.ImportDomains(Domains: TDDDomainDefs; List : TStrings; UpdateExisting : boolean) : Integer;
 begin
   result := 0;
-  writeln ('importing no domains');
 end;
 
 function TFPDDEngine.GetSequenceList(List: TStrings): integer;
@@ -1947,7 +1966,6 @@ end;
 function TFPDDEngine.ImportSequences(Sequences: TDDSequenceDefs; List : TStrings; UpdateExisting : boolean) : Integer;
 begin
   result := 0;
-  writeln ('importing no sequences');
 end;
 
 procedure TFPDDEngine.CreateTable(Table: TDDTableDef);
@@ -2015,11 +2033,33 @@ begin
   NoIndent;
 end;
 
-procedure TFPDDSQLEngine.FixUpStatement(var Res: String);
+procedure TFPDDSQLEngine.FixUpStatement(var Res: String; ForceTerminator : Boolean = False);
+
+Var
+  L : Integer;
+
 begin
   Res:=Trim(Res);
-  if (eoAddTerminator in Options) then
-    Res:=Res+FTerminatorChar;
+  if (eoAddTerminator in Options) or ForceTerminator then
+    begin
+    L:=Length(Res);
+    If (L=0) or (Res[L]<>FTerminatorChar) then
+      Res:=Res+FTerminatorChar;
+    end;
+end;
+
+procedure TFPDDSQLEngine.FixUpStatement(SQL: TStrings; ForceTerminator: Boolean = False);
+
+Var
+  S : String;
+
+begin
+  If (SQL.Count>0) then
+    begin
+    S:=SQL[SQL.Count-1];
+    FixupStatement(S,ForceTerminator);
+    SQL[SQL.Count-1]:=S;
+    end;
 end;
 
 Procedure TFPDDSQLEngine.AddToStringLN(Var Res : String;S : String);
@@ -2428,6 +2468,31 @@ begin
   end;
 end;
 
+function TFPDDSQLEngine.CreateForeignKeySQL(ForeignKey: TDDForeignKeyDef
+  ): String;
+
+begin
+  Result:=Format('ALTER TABLE %s ADD CONSTRAINT %s',[TableDef.TableName,ForeignKey.KeyName]);
+  Result:=Result+Format(' FOREIGN KEY (%s)',[ForeignKey.KeyFields]);
+  Result:=Result+Format(' REFERENCES %s(%s)',[ForeignKey.ReferencesTable,ForeignKey.ReferencedFields])
+end;
+
+function TFPDDSQLEngine.CreateForeignKeysSQL(ForeignKeys: TDDForeignKeyDefs
+  ): String;
+
+Var
+  SQL : TStrings;
+
+begin
+  SQL:=TStringList.Create;
+  try
+    CreateForeignKeysSQLStrings(ForeignKeys,SQL);
+    Result:=SQL.Text;
+  finally
+    SQL.Free;
+  end;
+end;
+
 function TFPDDSQLEngine.CreateSequenceSQL(Sequence: TDDSequenceDef): String;
 begin
   Result:='CREATE SEQUENCE '+Sequence.SequenceName;
@@ -2529,7 +2594,8 @@ Var
   KF : TFPDDFieldlist;
   ID : TDDIndexDef;
   FD : TDDFieldDef;
-  
+  S : String;
+
 begin
   CheckTableDef;
   L:=TStringList.Create;
@@ -2547,7 +2613,16 @@ begin
             KF.Add(FD);
           end;
       CreateCreateSQLStrings(KF,SQL);
+      FixupStatement(SQL,True);
       L.Text:=CreateIndexesSQL(TableDef.Indexes);
+      If (L.Count>0) then
+        begin
+        SQL.AddStrings(L);
+        FixupStatement(SQL,True);
+        end;
+      L.Clear;
+      If Not (eoSkipForeignKeys in Options) then
+        L.Text:=CreateForeignKeysSQL(TableDef.ForeignKeys);
       SQL.AddStrings(L);
     finally
       KF.Free;
@@ -2603,6 +2678,17 @@ begin
   For I:=0 to Indexes.Count-1 do
     if not (ixPrimary in Indexes[i].Options) then
       SQL.Add(CreateIndexSQL(Indexes[i])+TerminatorChar);
+end;
+
+procedure TFPDDSQLEngine.CreateForeignKeysSQLStrings(
+  ForeignKeys: TDDForeignKeyDefs; SQL: TStrings);
+
+Var
+  I : integer;
+
+begin
+  For I:=0 to ForeignKeys.Count-1 do
+    SQL.Add(CreateForeignKeySQL(ForeignKeys[i])+TerminatorChar);
 end;
 
 procedure TFPDDSQLEngine.CreateSequencesSQLStrings(Sequences: TFPDDSequenceList;

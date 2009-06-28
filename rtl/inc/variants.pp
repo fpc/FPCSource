@@ -3770,7 +3770,9 @@ end;
 function TCustomVariantType.VarDataIsStr(const V: TVarData): Boolean;
 
 begin
-   Result:=(V.vType and varTypeMask) in [varOleStr,varString];
+   Result:=
+     ((V.vType and varTypeMask) = varOleStr) or
+     ((V.vType and varTypeMask) = varString);
 end;
 
 

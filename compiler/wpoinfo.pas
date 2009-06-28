@@ -41,6 +41,7 @@ type
     fcreatedobjtypesderefs: pderefarray;
     fcreatedclassrefobjtypesderefs: pderefarray;
     fmaybecreatedbyclassrefdeftypesderefs: pderefarray;
+    fcalledvmtentriestemplist: tfpobjectlist;
    { devirtualisation information -- end }
 
    public
@@ -92,6 +93,13 @@ implementation
           freemem(fmaybecreatedbyclassrefdeftypesderefs);
           fmaybecreatedbyclassrefdeftypesderefs:=nil;
         end;
+
+      if assigned(fcalledvmtentriestemplist) then
+        begin
+          fcalledvmtentriestemplist.free;
+          fcalledvmtentriestemplist:=nil;
+        end;
+
       inherited destroy;
     end;
     
@@ -113,6 +121,10 @@ implementation
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         ppufile.putderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
 
+      ppufile.putlongint(fcalledvmtentries.count);
+      for i:=0 to fcalledvmtentries.count-1 do
+        tcalledvmtentries(fcalledvmtentries[i]).ppuwrite(ppufile);
+
       ppufile.writeentry(ibcreatedobjtypes);
 
       { don't free deref arrays immediately after use, as the types may need
@@ -129,26 +141,41 @@ implementation
       if ppufile.readentry<>ibcreatedobjtypes then
         cgmessage(unit_f_ppu_read_error);
 
-      len:=ppufile.getlongint;
-      fcreatedobjtypes:=tfpobjectlist.create(false);
-      fcreatedobjtypes.count:=len;
-      getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fcreatedobjtypesderefs^[i]);
+      { don't load the wpo info from the units if we are not generating
+        a wpo feedback file (that would just take time and memory)
+      }
+      if (init_settings.genwpoptimizerswitches=[]) then
+        ppufile.skipdata(ppufile.entrysize)
+      else
+        begin
+          len:=ppufile.getlongint;
+          fcreatedobjtypes:=tfpobjectlist.create(false);
+          fcreatedobjtypes.count:=len;
+          getmem(fcreatedobjtypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fcreatedobjtypesderefs^[i]);
 
-      len:=ppufile.getlongint;
-      fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
-      fcreatedclassrefobjtypes.count:=len;
-      getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
+          len:=ppufile.getlongint;
+          fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
+          fcreatedclassrefobjtypes.count:=len;
+          getmem(fcreatedclassrefobjtypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fcreatedclassrefobjtypesderefs^[i]);
 
-      len:=ppufile.getlongint;
-      fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
-      fmaybecreatedbyclassrefdeftypes.count:=len;
-      getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
-      for i:=0 to len-1 do
-        ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
+          len:=ppufile.getlongint;
+          fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
+          fmaybecreatedbyclassrefdeftypes.count:=len;
+          getmem(fmaybecreatedbyclassrefdeftypesderefs,len*sizeof(tderef));
+          for i:=0 to len-1 do
+            ppufile.getderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
+
+          len:=ppufile.getlongint;
+          fcalledvmtentriestemplist:=tfpobjectlist.create(false);
+          fcalledvmtentriestemplist.count:=len;
+          fcalledvmtentries:=tfphashlist.create;
+          for i:=0 to len-1 do
+            fcalledvmtentriestemplist[i]:=tcalledvmtentries.ppuload(ppufile);
+        end;
     end;
 
 
@@ -167,6 +194,9 @@ implementation
       getmem(fmaybecreatedbyclassrefdeftypesderefs,fmaybecreatedbyclassrefdeftypes.count*sizeof(tderef));
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         fmaybecreatedbyclassrefdeftypesderefs^[i].build(fmaybecreatedbyclassrefdeftypes[i]);
+
+      for i:=0 to fcalledvmtentries.count-1 do
+        tcalledvmtentries(fcalledvmtentries[i]).objdefderef.build(tcalledvmtentries(fcalledvmtentries[i]).objdef);
     end;
 
 
@@ -178,7 +208,12 @@ implementation
   procedure tunitwpoinfo.deref;
     var
       i: longint;
+      len: longint;
+
     begin
+      if (init_settings.genwpoptimizerswitches=[]) then
+        exit;
+
       { don't free deref arrays immediately after use, as the types may need
         re-resolving in case a unit needs to be reloaded
       }
@@ -190,6 +225,23 @@ implementation
 
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         fmaybecreatedbyclassrefdeftypes[i]:=fmaybecreatedbyclassrefdeftypesderefs^[i].resolve;
+
+      { in case we are re-resolving, free previous batch }
+      if (fcalledvmtentries.count<>0) then
+        { don't just re-deref, in case the name might have changed (?) }
+        fcalledvmtentries.clear;
+      { allocate enough internal memory in one go }
+      fcalledvmtentries.capacity:=fcalledvmtentriestemplist.count;
+      { now resolve all items in the list and add them to the hash table }
+      for i:=0 to fcalledvmtentriestemplist.count-1 do
+        begin
+          with tcalledvmtentries(fcalledvmtentriestemplist[i]) do
+            begin
+              objdef:=tdef(objdefderef.resolve);
+              fcalledvmtentries.add(tobjectdef(objdef).vmt_mangledname,
+                fcalledvmtentriestemplist[i]);
+            end;
+        end;
     end;
 
 

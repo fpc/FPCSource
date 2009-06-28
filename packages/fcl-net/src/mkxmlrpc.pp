@@ -47,11 +47,11 @@ type
   end;
 
   TRPCList = class
+    ServerClasses: TList;
+    UsedModules: TStringList;
     constructor Create;
     destructor Destroy; override;
     procedure AddServerClass(const AClassName: String);
-    ServerClasses: TList;
-    UsedModules: TStringList;
   end;
 
 var

@@ -124,10 +124,10 @@ type
 
     PSourceEditor = ^TSourceEditor;
     TSourceEditor = object(TFileEditor)
-      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
-          PScrollBar; AIndicator: PIndicator;const AFileName: string);
       CompileStamp : longint;
       CodeCompleteTip: PFPToolTip;
+      constructor Init(var Bounds: TRect; AHScrollBar, AVScrollBar:
+          PScrollBar; AIndicator: PIndicator;const AFileName: string);
 {$ifndef NODEBUG}
     private
       ShouldHandleBreakpoints : boolean;

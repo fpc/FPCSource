@@ -55,12 +55,12 @@ type
   // Phony element for pas pages.
 
   TTopicElement = Class(TPaselement)
-    Constructor Create(const AName: String; AParent: TPasElement); override;
-    Destructor Destroy; override;
     TopicNode : TDocNode;
     Previous,
     Next : TPasElement;
     Subtopics : TList;
+    Constructor Create(const AName: String; AParent: TPasElement); override;
+    Destructor Destroy; override;
   end;
 
   { TFPDocWriter }

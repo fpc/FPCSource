@@ -160,17 +160,17 @@ CONST
         { Allocate local thread vars, this must be the first thing,
           because the exception management and io depends on threadvars }
         SysAllocateThreadVars;
+
         { Copy parameter to local data }
-{$ifdef DEBUG_MT}
-        writeln('New thread started, initialising ...');
-{$endif DEBUG_MT}
         ti:=pthreadinfo(param)^;
         dispose(pthreadinfo(param));
+
         { Initialize thread }
         InitThread(ti.stklen);
+
         { Start thread function }
 {$ifdef DEBUG_MT}
-        writeln('Jumping to thread function');
+        writeln('Jumping to thread function of thread ',Win32GetCurrentThreadId);
 {$endif DEBUG_MT}
         ThreadMain:=ti.f(ti.p);
       end;
@@ -181,7 +181,7 @@ CONST
                          creationFlags : dword;var ThreadId : TThreadID) : TThreadID;
       var
         ti : pthreadinfo;
-        _threadid : DWord;
+        _threadid : dword;
       begin
 {$ifdef DEBUG_MT}
         writeln('Creating new thread');
@@ -200,12 +200,21 @@ CONST
         ti^.f:=ThreadFunction;
         ti^.p:=p;
         ti^.stklen:=stacksize;
-        { call pthread_create }
 {$ifdef DEBUG_MT}
         writeln('Starting new thread');
 {$endif DEBUG_MT}
-        _threadid:=ThreadID;
+        _threadid:=0;
         SysBeginThread:=CreateThread(sa,stacksize,@ThreadMain,ti,creationflags,_threadid);
+
+        { creation failed? if yes, we dispose the parameter record }
+        if SysBeginThread=0 then
+          begin
+{$ifdef DEBUG_MT}
+            writeln('Thread creation failed');
+{$endif DEBUG_MT}
+            dispose(ti);
+          end;
+
         ThreadID:=_threadid;
       end;
 

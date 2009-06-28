@@ -189,13 +189,13 @@ interface
        ttypeconvnodeclass = class of ttypeconvnode;
 
        tasnode = class(tbinarynode)
+          call: tnode;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
-          call: tnode;
        end;
        tasnodeclass = class of tasnode;
 
@@ -3202,6 +3202,11 @@ implementation
          if codegenerror then
            exit;
 
+         { Passing a class type to an "is" expression cannot result in a class
+           of that type to be constructed.
+         }
+         include(right.flags,nf_ignore_for_wpo);
+
          if (right.resultdef.typ=classrefdef) then
           begin
             { left must be a class }
@@ -3399,6 +3404,10 @@ implementation
         procname: string;
       begin
         result:=nil;
+        { Passing a class type to an "as" expression cannot result in a class
+          of that type to be constructed.
+        }
+        include(right.flags,nf_ignore_for_wpo);
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and

@@ -318,10 +318,8 @@ type
 
       { functions and properties to match TBits class }
       procedure SetBit(bit : longint; value : Boolean);
-      function GetSize : longint;
       procedure SetSize(value : longint);
       procedure CheckBitIndex (Bit : longint;CurrentSize : Boolean);
-      procedure Resize(Nbit : longint);
    public
       { Public declarations }
       constructor Create(TheSize : longint = 0); virtual;
@@ -345,7 +343,7 @@ type
       { functions and properties to match TBits class }
       function OpenBit: longint;
       property Bits[Bit: longint]: Boolean read get write SetBit; default;
-      property Size: longint read getSize write setSize;
+      property Size: longint read FBSize write setSize;
    end;
 
 { TPersistent abstract class }

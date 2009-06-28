@@ -1312,7 +1312,7 @@ begin
           ptstatic,
           ptvirtual :
             begin
-              if (PropInfo^.PropProcs and 3)=ptStatic then
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
                 AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;

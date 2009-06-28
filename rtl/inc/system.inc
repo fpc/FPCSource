@@ -376,7 +376,7 @@ function aligntoptr(p : pointer) : pointer;inline;
 {$i rtti.inc}
 {$endif FPC_HAS_FEATURE_VARIANTS}
 
-
+{$if defined(FPC_HAS_FEATURE_RANDOM)}
 
 {----------------------------------------------------------------------
    Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
@@ -556,6 +556,8 @@ begin
   random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
 end;
 {$endif}
+{$endif FPC_HAS_FEATURE_RANDOM}
+
 
 {****************************************************************************
                             Memory Management

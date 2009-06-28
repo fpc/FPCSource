@@ -505,14 +505,20 @@ var
   Element: TDOMElement;
   i: Integer;
 begin
-  // WriteLn('Start: ', LocalName, '. Node buffer before: ', FNodeBuffer.Count, ' elements');
+  {$ifdef SAX_HTML_DEBUG}
+  WriteLn('Start: ', LocalName, '. Node buffer before: ', FNodeBuffer.Count, ' elements');
+  {$endif}
   Element := FDocument.CreateElement(LocalName);
   if Assigned(Attr) then
   begin
-    // WriteLn('Attribute: ', Attr.GetLength);
+    {$ifdef SAX_HTML_DEBUG}
+     WriteLn('Attribute: ', Attr.GetLength);
+    {$endif}
     for i := 0 to Attr.GetLength - 1 do
     begin
-      // WriteLn('#', i, ': LocalName = ', Attr.GetLocalName(i), ', Value = ', Attr.GetValue(i));
+      {$ifdef SAX_HTML_DEBUG}
+       WriteLn('#', i, ': LocalName = ', Attr.GetLocalName(i), ', Value = ', Attr.GetValue(i));
+      {$endif}
       Element[Attr.GetLocalName(i)] := Attr.GetValue(i);
     end;
   end;
@@ -531,7 +537,9 @@ begin
     if not Assigned(FDocument.DocumentElement) then
       FDocument.AppendChild(Element);
   FNodeBuffer.Add(NodeInfo);
-  // WriteLn('Start: ', LocalName, '. Node buffer after: ', FNodeBuffer.Count, ' elements');
+  {$ifdef SAX_HTML_DEBUG}
+    WriteLn('Start: ', LocalName, '. Node buffer after: ', FNodeBuffer.Count, ' elements');
+  {$endif}
 end;
 
 procedure THTMLToDOMConverter.ReaderEndElement(Sender: TObject;
@@ -543,7 +551,9 @@ var
   TagInfo: PHTMLElementProps;
 
 begin
-  // WriteLn('End: ', LocalName, '. Node buffer: ', FNodeBuffer.Count, ' elements');
+  {$ifdef SAX_HTML_DEBUG}
+    WriteLn('End: ', LocalName, '. Node buffer: ', FNodeBuffer.Count, ' elements');
+  {$endif}
   // Find the matching start tag
   i := FNodeBuffer.Count - 1;
   while i >= 0 do

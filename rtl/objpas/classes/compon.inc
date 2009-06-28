@@ -281,7 +281,7 @@ begin
   If Value then
     Include(FComponentState,csAncestor)
   else
-    Include(FCOmponentState,csAncestor);
+    Exclude(FCOmponentState,csAncestor);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).SetAncestor(Value);

@@ -126,6 +126,6 @@
 
 {$define SUPPORT_UNALIGNED}
 
-{$if not defined(cpui386) and defined(i386)}
-{$error Cross-compiling from non-i386 to i386 is not yet supported at this time }
+{$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
+{$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
 {$endif}

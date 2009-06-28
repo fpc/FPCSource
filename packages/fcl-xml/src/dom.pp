@@ -251,6 +251,7 @@ type
     property Prefix: DOMString read GetPrefix write SetPrefix;
     // DOM level 3
     property TextContent: DOMString read GetTextContent write SetTextContent;
+    function LookupNamespaceURI(const APrefix: DOMString): DOMString;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
@@ -290,6 +291,8 @@ type
 //   NodeList
 // -------------------------------------------------------
 
+  TFilterResult = (frFalse, frNorecurseFalse, frTrue, frNorecurseTrue);
+
   TDOMNodeList = class(TObject)
   protected
     FNode: TDOMNode;
@@ -297,6 +300,8 @@ type
     FList: TFPList;
     function GetCount: LongWord;
     function GetItem(index: LongWord): TDOMNode;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; virtual;
+    // now deprecated in favor of NodeFilter
     procedure BuildList; virtual;
   public
     constructor Create(ANode: TDOMNode);
@@ -311,9 +316,12 @@ type
   TDOMElementList = class(TDOMNodeList)
   protected
     filter: DOMString;
-    FNamespaceFilter: DOMString;
+    FNSIndexFilter: Integer;
+    localNameFilter: DOMString;
+    FMatchNS: Boolean;
+    FMatchAnyNS: Boolean;
     UseFilter: Boolean;
-    procedure BuildList; override;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; override;
   public
     constructor Create(ANode: TDOMNode; const AFilter: DOMString); overload;
     constructor Create(ANode: TDOMNode; const nsURI, localName: DOMString); overload;
@@ -344,11 +352,10 @@ type
     function SetNamedItem(arg: TDOMNode): TDOMNode;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
     // Introduced in DOM Level 2:
-    function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
-    function setNamedItemNS(arg: TDOMNode): TDOMNode;
-    function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode;
+    function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode; virtual;
+    function setNamedItemNS(arg: TDOMNode): TDOMNode; virtual;
+    function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode; virtual;
 
-    // FIX: made readonly. Reason: Anyone was allowed to insert any node without any checking.
     property Item[index: LongWord]: TDOMNode read GetItem; default;
     property Length: LongWord read GetLength;
   end;
@@ -424,6 +431,7 @@ type
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
     FPools: PNodePool;
+    FDocumentURI: DOMString;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -466,6 +474,8 @@ type
     function CreateAttributeNS(const nsURI, QualifiedName: DOMString): TDOMAttr;
     function GetElementsByTagNameNS(const nsURI, alocalName: DOMString): TDOMNodeList;
     function GetElementById(const ElementID: DOMString): TDOMElement;
+    // DOM level 3:
+    property documentURI: DOMString read FDocumentURI write FDocumentURI;
     // Extensions to DOM interface:
     constructor Create;
     destructor Destroy; override;
@@ -535,6 +545,7 @@ type
     function  GetNodeValue: DOMString; override;
     function GetNodeType: Integer; override;
     function GetSpecified: Boolean;
+    function GetIsID: Boolean;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
     destructor Destroy; override;
@@ -543,6 +554,7 @@ type
     property Specified: Boolean read GetSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
     property OwnerElement: TDOMElement read FOwnerElement;
+    property IsID: Boolean read GetIsID;
     // extensions
     // TODO: this is to be replaced with DOM 3 TypeInfo
     property DataType: TAttrDataType read FDataType write FDataType;
@@ -787,6 +799,19 @@ const
 // =======================================================
 
 implementation
+
+{ a namespace-enabled NamedNodeMap }
+type
+  TAttributeMap = class(TDOMNamedNodeMap)
+  private
+    function FindNS(nsIndex: Integer; const aLocalName: DOMString;
+      out Index: LongWord): Boolean;
+    function InternalRemoveNS(const nsURI, aLocalName: DOMString): TDOMNode;
+  public
+    function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode; override;
+    function setNamedItemNS(arg: TDOMNode): TDOMNode; override;
+    function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode; override;
+  end;
 
 // -------------------------------------------------------
 //   DOM Exception
@@ -1072,9 +1097,9 @@ begin
     child.SetReadOnly(Value);
     child := child.NextSibling;
   end;
-  attrs := Attributes;
-  if Assigned(attrs) then
+  if HasAttributes then
   begin
+    attrs := Attributes;
     for I := 0 to attrs.Length-1 do
       attrs[I].SetReadOnly(Value);
   end;
@@ -1106,6 +1131,64 @@ begin
   Result := CompareDOMStrings(DOMPChar(name), DOMPChar(SelfName), Length(name), Length(SelfName));
 end;
 
+// This will return nil for Entity, Notation, DocType and DocFragment's
+function GetAncestorElement(n: TDOMNode): TDOMElement;
+var
+  parent: TDOMNode;
+begin
+  parent := n.ParentNode;
+  while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
+    parent := parent.ParentNode;
+  Result := TDOMElement(parent);
+end;
+
+// TODO: specs prescribe to return default namespace if APrefix=null,
+// but we aren't able to distinguish null from an empty string.
+// This breaks level3/nodelookupnamespaceuri08 which passes an empty string.
+function TDOMNode.LookupNamespaceURI(const APrefix: DOMString): DOMString;
+var
+  Attr: TDOMAttr;
+  Map: TDOMNamedNodeMap;
+  I: Integer;
+begin
+  Result := '';
+  if Self = nil then
+    Exit;
+  case NodeType of
+    ELEMENT_NODE:
+    begin
+      if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
+      begin
+        result := Self.NamespaceURI;
+        Exit;
+      end;
+      if HasAttributes then
+      begin
+        Map := Attributes;
+        for I := 0 to Map.Length-1 do
+        begin
+          Attr := TDOMAttr(Map[I]);
+          // should ignore level 1 atts here
+          if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
+             ((Attr.localName = 'xmlns') and (APrefix = '')) then
+          begin
+            result := Attr.NodeValue;
+            Exit;
+          end;
+        end
+      end;
+      result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+    end;
+    DOCUMENT_NODE:
+      result := TDOMDocument(Self).documentElement.LookupNamespaceURI(APrefix);
+
+    ATTRIBUTE_NODE:
+      result := TDOMAttr(Self).OwnerElement.LookupNamespaceURI(APrefix);
+
+  else
+    Result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+  end;
+end;
 
 //------------------------------------------------------------------------------
 
@@ -1400,18 +1483,43 @@ begin
   inherited Destroy;
 end;
 
+function TDOMNodeList.NodeFilter(aNode: TDOMNode): TFilterResult;
+begin
+// accept all nodes but don't allow recursion
+  Result := frNorecurseTrue;
+end;
+
 procedure TDOMNodeList.BuildList;
 var
-  Child: TDOMNode;
+  current, next: TDOMNode;
+  res: TFilterResult;
 begin
   FList.Clear;
   FRevision := FNode.GetRevision; // refresh
 
-  Child := FNode.FirstChild;
-  while Assigned(Child) do
+  current := FNode.FirstChild;
+
+  while Assigned(current) do
   begin
-    FList.Add(Child);
-    Child := Child.NextSibling;
+    res := NodeFilter(current);
+    if res in [frTrue, frNorecurseTrue] then
+      FList.Add(current);
+
+    next := nil;
+    if res in [frTrue, frFalse] then
+      next := current.FirstChild;
+
+    if next = nil then
+    begin
+      while current <> FNode do
+      begin
+        next := current.NextSibling;
+        if Assigned(next) then
+          Break;
+        current := current.ParentNode;
+      end;
+    end;
+    current := next;
   end;
 end;
 
@@ -1446,38 +1554,34 @@ end;
 constructor TDOMElementList.Create(ANode: TDOMNode; const nsURI, localName: DOMString);
 begin
   inherited Create(ANode);
-  filter := localName;
-  FNamespaceFilter := nsURI;
-  UseFilter := (filter <> '*') and (FNamespaceFilter <> '*');
+  localNameFilter := localName;
+  FMatchNS := True;
+  FMatchAnyNS := (nsURI = '*');
+  if not FMatchAnyNS then
+    FNSIndexFilter := ANode.FOwnerDocument.IndexOfNS(nsURI);
+  UseFilter := (localName <> '*');
 end;
 
-// TODO: namespace support here
-procedure TDOMElementList.BuildList;
+function TDOMElementList.NodeFilter(aNode: TDOMNode): TFilterResult;
 var
-  Child: TDOMNode;
+  I, L: Integer;
 begin
-  FList.Clear;
-  FRevision := FNode.GetRevision; // refresh
-
-  Child := FNode.FirstChild;
-  while Assigned(Child) and (Child <> FNode) do
+  Result := frFalse;
+  if aNode.NodeType = ELEMENT_NODE then with TDOMElement(aNode) do
   begin
-    if (Child.NodeType = ELEMENT_NODE) and (not UseFilter or (TDOMElement(Child).TagName = filter)) then
-          FList.Add(Child);
-    // recursive track node hierarchy  
-    if Assigned(Child.FirstChild) then
-      Child := Child.FirstChild
-    else
-      if Assigned(Child.NextSibling) then
-        Child := Child.NextSibling
-      else
+    if FMatchNS then
+    begin
+      if (FMatchAnyNS or (FNSI.NSIndex = Word(FNSIndexFilter))) then
       begin
-         Child := Child.ParentNode;
-         while Assigned(Child) and (Child <> FNode) and not Assigned(Child.NextSibling) do
-           Child := Child.ParentNode;
-         if Assigned(Child) and (Child <> FNode) then
-            Child := Child.NextSibling;
+        I := FNSI.PrefixLen;
+        L := system.Length(FNSI.QName^.Key);
+        if (not UseFilter or ((L-I = system.Length(localNameFilter)) and
+          CompareMem(@FNSI.QName^.Key[I+1], DOMPChar(localNameFilter), system.Length(localNameFilter)*sizeof(WideChar)))) then
+          Result := frTrue;
       end;
+    end
+    else if (not UseFilter or (TagName = Filter)) then
+      Result := frTrue;
   end;
 end;
 
@@ -1551,11 +1655,11 @@ begin
     Result := nil;
 end;
 
+// Note: this *may* raise NOT_SUPPORTED_ERR if the document is e.g. HTML.
+// This isn't checked now.
 function TDOMNamedNodeMap.GetNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
 begin
-  // TODO: implement TDOMNamedNodeMap.GetNamedItemNS
-  raise EDOMNotSupported.Create('TDOMNamedNodeMap.GetNamedItemNS');
-    Result := nil;
+  Result := nil;
 end;
 
 function TDOMNamedNodeMap.ValidateInsert(arg: TDOMNode): Integer;
@@ -1608,15 +1712,13 @@ begin
 end;
 
 function TDOMNamedNodeMap.SetNamedItemNS(arg: TDOMNode): TDOMNode;
-var
-  res: Integer;
 begin
-  // TODO: implement TDOMNamedNodeMap.SetNamedItemNS
-  res := ValidateInsert(arg);
-  if res <> 0 then
-    raise EDOMError.Create(res, 'NamedNodeMap.SetNamedItemNS');
-
-    Result := nil;
+{ Since the map contains only namespaceless nodes (all having empty
+  localName and namespaceURI properties), a namespaced arg won't match
+  any of them. Therefore, add it using nodeName as key.
+  Note: a namespaceless arg is another story, as it will match *any* node
+  in the map. This can be considered as a flaw in specs. }
+  Result := SetNamedItem(arg);
 end;
 
 function TDOMNamedNodeMap.Delete(index: LongWord): TDOMNode;
@@ -1670,12 +1772,112 @@ end;
 
 function TDOMNamedNodeMap.RemoveNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
 begin
-  if nfReadOnly in FOwner.FFlags then
-    raise EDOMError.Create(NO_MODIFICATION_ALLOWED_ERR, 'NamedNodeMap.RemoveNamedItemNS');
-  // TODO: Implement TDOMNamedNodeMap.RemoveNamedItemNS
+// see comments to SetNamedItemNS. Related tests are written clever enough
+// in the sense they don't expect NO_MODIFICATION_ERR in first place.
+  raise EDOMNotFound.Create('NamedNodeMap.RemoveNamedItemNS');
   Result := nil;
 end;
 
+{ TAttributeMap }
+
+// Since list is kept sorted by nodeName, we must use linear search here.
+// This routine is not called while parsing, so parsing speed is not lowered.
+function TAttributeMap.FindNS(nsIndex: Integer; const aLocalName: DOMString;
+  out Index: LongWord): Boolean;
+var
+  I: Integer;
+  P: DOMPChar;
+begin
+  for I := 0 to FList.Count-1 do
+  begin
+    with TDOMAttr(FList.List^[I]) do
+    begin
+      if nsIndex = FNSI.NSIndex then
+      begin
+        P := DOMPChar(FNSI.QName^.Key);
+        if FNSI.PrefixLen > 1 then
+          Inc(P, FNSI.PrefixLen);
+        if CompareDOMStrings(DOMPChar(aLocalName), P, System.Length(aLocalName), System.Length(FNSI.QName^.Key) - FNSI.PrefixLen) = 0 then
+        begin
+          Index := I;
+          Result := True;
+          Exit;
+        end;
+      end;
+    end;
+  end;
+  Result := False;
+end;
+
+function TAttributeMap.InternalRemoveNS(const nsURI, aLocalName: DOMString): TDOMNode;
+var
+  i: Cardinal;
+  nsIndex: Integer;
+begin
+  Result := nil;
+  nsIndex := FOwner.FOwnerDocument.IndexOfNS(nsURI);
+  if (nsIndex >= 0) and FindNS(nsIndex, aLocalName, i) then
+  begin
+    Result := Delete(I);
+    RestoreDefault(TDOMAttr(Result).FNSI.QName^.Key);
+  end;
+end;
+
+function TAttributeMap.getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
+var
+  nsIndex: Integer;
+  i: LongWord;
+begin
+  nsIndex := FOwner.FOwnerDocument.IndexOfNS(namespaceURI);
+  if (nsIndex >= 0) and FindNS(nsIndex, localName, i) then
+    Result := TDOMNode(FList.List^[i])
+  else
+    Result := nil;
+end;
+
+function TAttributeMap.setNamedItemNS(arg: TDOMNode): TDOMNode;
+var
+  i: LongWord;
+  res: Integer;
+  Exists: Boolean;
+begin
+  res := ValidateInsert(arg);
+  if res <> 0 then
+    raise EDOMError.Create(res, 'NamedNodeMap.SetNamedItemNS');
+
+  Result := nil;
+  with TDOMAttr(arg) do
+  begin
+    // calling LocalName is no good... but it is done once
+    if FindNS(FNSI.NSIndex, localName, i) then
+    begin
+      Result := TDOMNode(FList.List^[i]);
+      FList.Delete(i);
+    end;
+    // Do a non-namespace search in order to keep the list sorted on nodeName
+    Exists := Find(FNSI.QName^.Key, i);
+    if Exists and (Result = nil) then  // case when arg has no namespace
+    begin
+      Result := TDOMNode(FList.List^[i]);
+      FList.List^[i] := arg;
+    end
+    else
+      FList.Insert(i, arg);
+  end;
+  if Assigned(Result) then
+    TDOMAttr(Result).FOwnerElement := nil;
+  TDOMAttr(arg).FOwnerElement := TDOMElement(FOwner);
+end;
+
+function TAttributeMap.removeNamedItemNS(const namespaceURI,
+  localName: DOMString): TDOMNode;
+begin
+  if nfReadOnly in FOwner.FFlags then
+    raise EDOMError.Create(NO_MODIFICATION_ALLOWED_ERR, 'NamedNodeMap.RemoveNamedItemNS');
+  Result := InternalRemoveNS(namespaceURI, localName);
+  if Result = nil then
+     raise EDOMNotFound.Create('NamedNodeMap.RemoveNamedItemNS');
+end;
 
 // -------------------------------------------------------
 //   CharacterData
@@ -1805,7 +2007,9 @@ var
   s: string;
 begin
   s := feature;   // force Ansi, features do not contain non-ASCII chars
-  Result := SameText(s, 'XML') and ((version = '') or (version = '1.0'));
+  Result := (SameText(s, 'XML') and ((version = '') or (version = '1.0') or (version = '2.0'))) or
+            (SameText(s, 'Core') and ((version = '') or (version = '2.0')));
+
 end;
 
 function TDOMImplementation.CreateDocumentType(const QualifiedName, PublicID,
@@ -2353,7 +2557,10 @@ end;
 function TDOMAttr.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 begin
   // Cloned attribute is always specified and carries its children
-  Result := ACloneOwner.CreateAttribute(NodeName);
+  if nfLevel2 in FFlags then
+    Result := ACloneOwner.CreateAttributeNS(namespaceURI, NodeName)
+  else
+    Result := ACloneOwner.CreateAttribute(NodeName);
   TDOMAttr(Result).FDataType := FDataType;
   CloneChildren(Result, ACloneOwner);
 end;
@@ -2376,6 +2583,11 @@ begin
   Result := nfSpecified in FFlags;
 end;
 
+function TDOMAttr.GetIsID: Boolean;
+begin
+  Result := FDataType = dtID;
+end;
+
 // -------------------------------------------------------
 //   Element
 // -------------------------------------------------------
@@ -2390,7 +2602,6 @@ begin
   Include(FFlags, nfDestroying);
   if Assigned(FOwnerDocument.FIDList) then
     FOwnerDocument.RemoveID(Self);
-  // FIX: Attribute nodes are now freed by TDOMNamedNodeMap.Destroy
   FreeAndNil(FAttributes);
   inherited Destroy;
 end;
@@ -2398,12 +2609,45 @@ end;
 function TDOMElement.CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode;
 var
   i: Integer;
+  Attr, AttrClone: TDOMAttr;
 begin
-  Result := ACloneOwner.CreateElement(NodeName);
-  if Assigned(FAttributes) then
+  if ACloneOwner <> FOwnerDocument then
   begin
-    for i := 0 to FAttributes.Length - 1 do
-      TDOMElement(Result).SetAttributeNode(TDOMAttr(FAttributes[i].CloneNode(True, ACloneOwner)));
+    // Importing has to go the hard way...
+    if nfLevel2 in FFlags then
+      Result := ACloneOwner.CreateElementNS(NamespaceURI, NodeName)
+    else
+      Result := ACloneOwner.CreateElement(NodeName);
+    if Assigned(FAttributes) then
+    begin
+      for i := 0 to FAttributes.Length - 1 do
+      begin
+        Attr := TDOMAttr(FAttributes[i]);
+        // destroy defaulted attributes (if any), it is safe because caller had not seen them yet
+        if Attr.Specified then
+          TDOMElement(Result).SetAttributeNode(TDOMAttr(Attr.CloneNode(True, ACloneOwner))).Free;
+      end;
+    end;
+  end
+  else   // Cloning may cheat a little bit.
+  begin
+    Result := FOwnerDocument.Alloc(TDOMElement);
+    TDOMElement(Result).Create(FOwnerDocument);
+    TDOMElement(Result).FNSI := FNSI;
+    if nfLevel2 in FFlags then
+      Include(Result.FFlags, nfLevel2);
+    if Assigned(FAttributes) then
+    begin
+      // clone all attributes, but preserve nfSpecified flag
+      for i := 0 to FAttributes.Length - 1 do
+      begin
+        Attr := TDOMAttr(FAttributes[i]);
+        AttrClone := TDOMAttr(Attr.CloneNode(True, ACloneOwner));
+        if not Attr.Specified then
+          Exclude(AttrClone.FFlags, nfSpecified);
+        TDOMElement(Result).SetAttributeNode(AttrClone);
+      end;
+    end;
   end;
   if deep then
     CloneChildren(Result, ACloneOwner);
@@ -2432,8 +2676,33 @@ end;
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
 var
   Attr: TDOMAttr;
+  ColonPos: Integer;
+  AttrName, nsuri: DOMString;
 begin
   Attr := TDOMAttr(AttrDef.CloneNode(True));
+  AttrName := Attr.Name;
+  ColonPos := Pos(WideChar(':'), AttrName);
+  if Pos(DOMString('xmlns'), AttrName) = 1 then
+  begin
+    if (Length(AttrName) = 5) or (ColonPos = 6) then
+      Attr.SetNSI(stduri_xmlns, ColonPos);
+  end
+  else if ColonPos > 0 then
+  begin
+    if (ColonPos = 4) and (Pos(DOMString('xml'), AttrName) = 1) then
+      Attr.SetNSI(stduri_xml, 4)
+    else
+    begin
+      nsuri := LookupNamespaceURI(Copy(AttrName, 1, ColonPos-1));
+      // TODO: what if prefix isn't defined?
+      Attr.SetNSI(nsuri, ColonPos);
+    end
+  end;
+  // TODO: this is cheat, should look at config['namespaces'] instead.
+  // revisit when it is implemented.
+  if nfLevel2 in FFlags then
+    Include(Attr.FFlags, nfLevel2);
+  // There should be no matching attribute at this point, so non-namespace method is ok
   SetAttributeNode(Attr);
 end;
 
@@ -2450,7 +2719,7 @@ end;
 function TDOMElement.GetAttributes: TDOMNamedNodeMap;
 begin
   if FAttributes=nil then
-    FAttributes := TDOMNamedNodeMap.Create(Self, ATTRIBUTE_NODE);
+    FAttributes := TAttributeMap.Create(Self, ATTRIBUTE_NODE);
   Result := FAttributes;
 end;
 
@@ -2509,13 +2778,14 @@ procedure TDOMElement.RemoveAttributeNS(const nsURI,
   aLocalName: DOMString);
 begin
   Changing;
-  // TODO: Implement TDOMElement.RemoveAttributeNS
-  raise EDOMNotSupported.Create('TDOMElement.RemoveAttributeNS');
+  if Assigned(FAttributes) then
+    TAttributeMap(FAttributes).InternalRemoveNS(nsURI, aLocalName).Free;
 end;
 
 procedure TDOMElement.SetAttributeNS(const nsURI, qualifiedName,
   value: DOMString);
 var
+  I: Cardinal;
   Attr: TDOMAttr;
   idx, prefIdx: Integer;
 begin
@@ -2524,14 +2794,27 @@ begin
   prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXml11);
   if prefIdx < 0 then
     raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
-    
-  Attr := Attributes.GetNamedItemNS(nsURI, qualifiedName) as TDOMAttr;
-  if attr = nil then
+
+  if TAttributeMap(Attributes).FindNS(idx, Copy(qualifiedName, prefIdx+1, MaxInt), I) then
   begin
-    attr := FOwnerDocument.CreateAttributeNS(nsURI, qualifiedName);
-    // TODO 5: keep sorted!
-    FAttributes.FList.Add(attr);
+    Attr := TDOMAttr(FAttributes[I]);
+    // need to reinsert because the nodeName may change
+    FAttributes.FList.Delete(I);
+  end
+  else
+  begin
+    TDOMNode(Attr) := FOwnerDocument.Alloc(TDOMAttr);
+    Attr.Create(FOwnerDocument);
+    Attr.FOwnerElement := Self;
+    Attr.FNSI.NSIndex := Word(idx);
+    Include(Attr.FFlags, nfLevel2);
   end;
+  // keep list sorted by DOM Level 1 name
+  FAttributes.Find(qualifiedName, I);
+  FAttributes.FList.Insert(I, Attr);
+  // TODO: rehash properly, same issue as with Node.SetPrefix()
+  Attr.FNSI.QName := FOwnerDocument.FNames.FindOrAdd(DOMPChar(qualifiedName), Length(qualifiedName));
+  Attr.FNSI.PrefixLen := Word(prefIdx);
   attr.NodeValue := value;
 end;
 

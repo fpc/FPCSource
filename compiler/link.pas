@@ -100,12 +100,12 @@ interface
          procedure PrintLinkerScript;
          function  RunLinkScript(const outputname:TCmdStr):boolean;
       protected
+         linkscript : TCmdStrList;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
-         linkscript : TCmdStrList;
       public
          IsSharedLibrary : boolean;
          Constructor Create;override;

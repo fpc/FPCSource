@@ -34,7 +34,7 @@ uses gdbint; // force dependancies that hopefully make it execute at the right m
 Type
   TAtexitFunction = function(p:TCFUnction):longint cdecl;
 
-var _imp__atexit : TAtExitFunction; Cvar;  // "true" atexit in mingw libs.
+var _imp__atexit : TAtExitFunction; Cvar; external;  // "true" atexit in mingw libs.
 
 function atexit(p:TCFunction):longint;cdecl; [public, alias : '_atexit'];
 

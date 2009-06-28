@@ -236,7 +236,8 @@ interface
 
 
        palignmentinfo = ^talignmentinfo;
-       talignmentinfo = record
+       { this is written to ppus during token recording for generics so it must be packed }
+       talignmentinfo = packed record
          procalign,
          loopalign,
          jumpalign,

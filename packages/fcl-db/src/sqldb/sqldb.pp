@@ -1214,7 +1214,14 @@ var tel, fieldc : integer;
     ReadFromFile: Boolean;
 begin
   ReadFromFile:=IsReadFromPacket;
-  Prepare;
+  if ReadFromFile then
+    begin
+    FCursor:=TSQLCursor.Create;
+    FCursor.FStatementType:=stSelect;
+    FUpdateable:=True;
+    end
+  else
+    Prepare;
   if FCursor.FStatementType in [stSelect,stExecProcedure] then
     begin
     if not ReadFromFile then

@@ -110,6 +110,31 @@ type
   { ** Information created per unit for use during subsequent compilation *** }
   { ************************************************************************* }
 
+  { information about called vmt entries for a class }
+  tcalledvmtentries = class
+   protected
+    { the class }
+    fobjdef: tdef;
+    fobjdefderef: tderef;
+    { the vmt entries }
+    fcalledentries: tbitset;
+   public
+    constructor create(_objdef: tdef; nentries: longint);
+    constructor ppuload(ppufile: tcompilerppufile);
+    destructor destroy; override;
+    procedure ppuwrite(ppufile: tcompilerppufile);
+
+    procedure buildderef;
+    procedure buildderefimpl;
+    procedure deref;
+    procedure derefimpl;
+
+    property objdef: tdef read fobjdef write fobjdef;
+    property objdefderef: tderef read fobjdefderef write fobjdefderef;
+    property calledentries: tbitset read fcalledentries write fcalledentries;
+  end;
+
+
   { base class of information collected per unit. Still needs to be
     generalised for different kinds of wpo information, currently specific
     to devirtualization.
@@ -127,6 +152,12 @@ type
        so they can end up in a classrefdef var and be instantiated)
     }
     fmaybecreatedbyclassrefdeftypes: tfpobjectlist;
+
+    { called virtual methods for all classes (hashed by mangled classname,
+      entries bitmaps indicating which vmt entries per class are called --
+      tcalledvmtentries)
+    }
+    fcalledvmtentries: tfphashlist;
    public
     constructor create; reintroduce; virtual;
     destructor destroy; override;
@@ -134,10 +165,12 @@ type
     property createdobjtypes: tfpobjectlist read fcreatedobjtypes;
     property createdclassrefobjtypes: tfpobjectlist read fcreatedclassrefobjtypes;
     property maybecreatedbyclassrefdeftypes: tfpobjectlist read fmaybecreatedbyclassrefdeftypes;
+    property calledvmtentries: tfphashlist read fcalledvmtentries;
 
     procedure addcreatedobjtype(def: tdef);
     procedure addcreatedobjtypeforclassref(def: tdef);
     procedure addmaybecreatedbyclassref(def: tdef);
+    procedure addcalledvmtentry(def: tdef; index: longint);
   end;
 
   { ************************************************************************* }
@@ -321,10 +354,13 @@ implementation
       fcreatedobjtypes:=tfpobjectlist.create(false);
       fcreatedclassrefobjtypes:=tfpobjectlist.create(false);
       fmaybecreatedbyclassrefdeftypes:=tfpobjectlist.create(false);
+      fcalledvmtentries:=tfphashlist.create;
     end;
 
 
   destructor tunitwpoinfobase.destroy;
+    var
+      i: longint;
     begin
       fcreatedobjtypes.free;
       fcreatedobjtypes:=nil;
@@ -332,6 +368,18 @@ implementation
       fcreatedclassrefobjtypes:=nil;
       fmaybecreatedbyclassrefdeftypes.free;
       fmaybecreatedbyclassrefdeftypes:=nil;
+
+      { may not be assigned in case the info was loaded from a ppu and we
+        are not generating a wpo feedback file (see tunitwpoinfo.ppuload)
+      }
+      if assigned(fcalledvmtentries) then
+        begin
+          for i:=0 to fcalledvmtentries.count-1 do
+            tcalledvmtentries(fcalledvmtentries[i]).free;
+          fcalledvmtentries.free;
+          fcalledvmtentries:=nil;
+        end;
+
       inherited destroy;
     end;
     
@@ -341,15 +389,34 @@ implementation
       fcreatedobjtypes.add(def);
     end;
 
+
   procedure tunitwpoinfobase.addcreatedobjtypeforclassref(def: tdef);
     begin
       fcreatedclassrefobjtypes.add(def);
     end;
 
+
   procedure tunitwpoinfobase.addmaybecreatedbyclassref(def: tdef);
     begin
       fmaybecreatedbyclassrefdeftypes.add(def);
     end;
+
+
+  procedure tunitwpoinfobase.addcalledvmtentry(def: tdef; index: longint);
+    var
+      entries: tcalledvmtentries;
+      key: shortstring;
+    begin
+      key:=tobjectdef(def).vmt_mangledname;
+      entries:=tcalledvmtentries(fcalledvmtentries.find(key));
+      if not assigned(entries) then
+        begin
+          entries:=tcalledvmtentries.create(def,tobjectdef(def).vmtentries.count);
+          fcalledvmtentries.add(key,entries);
+        end;
+      entries.calledentries.include(index);
+    end;
+
 
   { twpofilereader }
 
@@ -379,7 +446,9 @@ implementation
 
   constructor twpofilereader.create(const fn: tcmdstr; dest: twpoinfomanagerbase);
     begin
-      if not FileExists(fn) then
+      if not FileExists(fn) or
+         { FileExists also returns true for directories }
+         DirectoryExists(fn) then
         begin
           cgmessage1(wpo_cant_find_file,fn);
           exit;
@@ -675,6 +744,64 @@ implementation
         if assigned(wpoinfouse[i]) then
           wpoinfouse[i].free;
       inherited destroy;
+    end;
+
+  { tcalledvmtentries }
+
+  constructor tcalledvmtentries.create(_objdef: tdef; nentries: longint);
+    begin
+      objdef:=_objdef;
+      calledentries:=tbitset.create(nentries);
+    end;
+
+
+  constructor tcalledvmtentries.ppuload(ppufile: tcompilerppufile);
+    var
+      len: longint;
+    begin
+      ppufile.getderef(fobjdefderef);
+      len:=ppufile.getlongint;
+      calledentries:=tbitset.create_bytesize(len);
+      if (len <> calledentries.datasize) then
+        internalerror(2009060301);
+      ppufile.readdata(calledentries.data^,len);
+    end;
+
+
+  destructor tcalledvmtentries.destroy;
+    begin
+      fcalledentries.free;
+      inherited destroy;
+    end;
+
+
+  procedure tcalledvmtentries.ppuwrite(ppufile: tcompilerppufile);
+    begin
+      ppufile.putderef(objdefderef);
+      ppufile.putlongint(calledentries.datasize);
+      ppufile.putdata(calledentries.data^,calledentries.datasize);
+    end;
+
+
+  procedure tcalledvmtentries.buildderef;
+    begin
+      objdefderef.build(objdef);
+    end;
+
+
+  procedure tcalledvmtentries.buildderefimpl;
+    begin
+    end;
+
+
+  procedure tcalledvmtentries.deref;
+    begin
+      objdef:=tdef(objdefderef.resolve);
+    end;
+
+
+  procedure tcalledvmtentries.derefimpl;
+    begin
     end;
 
 end.

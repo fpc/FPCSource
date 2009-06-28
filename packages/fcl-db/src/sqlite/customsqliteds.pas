@@ -45,6 +45,8 @@ const
   DefaultStringSize = 255;
 
 type
+  TCustomSqliteDataset = class;
+
   PDataRecord = ^DataRecord;
   PPDataRecord = ^PDataRecord;
   DataRecord = record
@@ -57,12 +59,14 @@ type
   TDSStream = class(TStream)
   private
     FActiveItem: PDataRecord;
+    FDataset: TCustomSqliteDataset;
     FFieldRow: PChar;
-    FFieldIndex: Integer;
+    FField: TField;
+    FFieldOffset: Integer;
     FRowSize: Integer;
     FPosition: LongInt;
   public
-    constructor Create(const ActiveItem: PDataRecord; FieldIndex: Integer);
+    constructor Create(Dataset: TCustomSqliteDataset; Field: TField);
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     function Seek(Offset: LongInt; Origin: Word): LongInt; override;
@@ -202,6 +206,7 @@ type
     function Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant; override;
     // Additional procedures
     function ApplyUpdates: Boolean;
+    procedure ClearUpdates(RecordStates: TRecordStateSet = [rsAdded, rsDeleted, rsUpdated]);
     function CreateTable: Boolean;
     function CreateTable(const ATableName: String): Boolean;
     procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
@@ -209,6 +214,7 @@ type
     procedure ExecSQL(const ASql: String);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String); virtual; abstract;
+    function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
     procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer = nil);
     function QuickQuery(const ASql: String):String;overload;
     function QuickQuery(const ASql: String; const AStrList: TStrings): String; overload;
@@ -323,13 +329,18 @@ end;
 
 // TDSStream
 
-constructor TDSStream.Create(const ActiveItem: PDataRecord; FieldIndex: Integer);
+constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField);
 begin
   inherited Create;
   //FPosition := 0;
-  FActiveItem := ActiveItem;
-  FFieldIndex := FieldIndex;
-  FFieldRow := ActiveItem^.Row[FieldIndex];
+  FDataset := Dataset;
+  FField := Field;
+  if Field.FieldNo >= 0 then
+    FFieldOffset := Field.FieldNo - 1
+  else
+    FFieldOffset := Dataset.FieldDefs.Count + Dataset.FCalcFieldList.IndexOf(Field);
+  FActiveItem := PPDataRecord(Dataset.ActiveBuffer)^;
+  FFieldRow := FActiveItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
     FRowSize := StrLen(FFieldRow);
   //else
@@ -360,7 +371,7 @@ begin
   if FRowSize > 0 then
     Move(FFieldRow^, NewRow^, FRowSize);
   Move(Buffer, (NewRow + FRowSize)^, Count);
-  FActiveItem^.Row[FFieldIndex] := NewRow;
+  FActiveItem^.Row[FFieldOffset] := NewRow;
   StrDispose(FFieldRow);
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('##TDSStream.Write##');
@@ -373,6 +384,8 @@ begin
   FFieldRow := NewRow;
   FRowSize := StrLen(NewRow);
   Inc(FPosition, Count);
+  if not (FDataset.State in [dsCalcFields, dsFilter, dsNewValue]) then
+    FDataset.DataEvent(deFieldChange, PtrInt(FField));
 end; 
  
 function TDSStream.Read(var Buffer; Count: Longint): LongInt;
@@ -454,7 +467,7 @@ begin
     StrDispose(FCacheItem^.Row[Field.FieldNo - 1]);
     FCacheItem^.Row[Field.FieldNo - 1] := nil;
   end;
-  Result:= TDSStream.Create(PPDataRecord(ActiveBuffer)^, Field.FieldNo - 1);
+  Result := TDSStream.Create(Self, Field);
 end;
 
 procedure TCustomSqliteDataset.DoBeforeClose;
@@ -1446,6 +1459,14 @@ begin
     DatabaseError(ReturnString, Self);
 end;
 
+function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer
+  ): String;
+begin
+  if (State = dsInactive) or (FieldIndex < 0) or (FieldIndex >= FieldDefs.Count) then
+    DatabaseError('Error retrieving SQL value: dataset inactive or field out of range', Self);
+  Result := FGetSqlStr[FieldIndex](Values[FieldIndex]);
+end;
+
 procedure TCustomSqliteDataset.ExecSQL;
 begin
   ExecSQL(FSQL);
@@ -1590,7 +1611,17 @@ begin
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('  Result: ', Result);
   {$endif}   
-end;    
+end;
+
+procedure TCustomSqliteDataset.ClearUpdates(RecordStates: TRecordStateSet);
+begin
+  if rsUpdated in RecordStates then
+    FUpdatedItems.Clear;
+  if rsDeleted in RecordStates then
+    FDeletedItems.Clear;
+  if rsAdded in RecordStates then
+    FAddedItems.Clear;
+end;
 
 function TCustomSqliteDataset.CreateTable: Boolean;
 begin

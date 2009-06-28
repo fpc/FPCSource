@@ -86,6 +86,7 @@ implementation
          pattern:='';
          orgpattern:='';
          current_scanner:=nil;
+         switchesstatestackpos:=0;
 
          { register all nodes and tais }
          registernodes;
@@ -280,6 +281,8 @@ implementation
           oldcurrent_procinfo : tprocinfo;
           old_settings : tsettings;
           oldsourcecodepage : tcodepagestring;
+          old_switchesstatestack : tswitchesstatestack;
+          old_switchesstatestackpos : Integer;
         end;
 
       var
@@ -300,11 +303,13 @@ implementation
          with olddata^ do
           begin
             old_current_module:=current_module;
-          { save symtable state }
+
+            { save symtable state }
             oldsymtablestack:=symtablestack;
             oldmacrosymtablestack:=macrosymtablestack;
             oldcurrent_procinfo:=current_procinfo;
-          { save scanner state }
+
+            { save scanner state }
             oldc:=c;
             oldpattern:=pattern;
             oldorgpattern:=orgpattern;
@@ -312,14 +317,19 @@ implementation
             oldidtoken:=idtoken;
             old_block_type:=block_type;
             oldtokenpos:=current_tokenpos;
-          { save cg }
+            old_switchesstatestack:=switchesstatestack;
+            old_switchesstatestackpos:=switchesstatestackpos;
+
+            { save cg }
             oldparse_only:=parse_only;
-          { save akt... state }
-          { handle the postponed case first }
+
+            { save akt... state }
+            { handle the postponed case first }
             flushpendingswitchesstate;
             oldcurrent_filepos:=current_filepos;
             old_settings:=current_settings;
           end;
+
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
          afterassignment:=false;
@@ -457,8 +467,12 @@ implementation
                 idtoken:=oldidtoken;
                 current_tokenpos:=oldtokenpos;
                 block_type:=old_block_type;
+                switchesstatestack:=old_switchesstatestack;
+                switchesstatestackpos:=old_switchesstatestackpos;
+
                 { restore cg }
                 parse_only:=oldparse_only;
+
                 { restore symtable state }
                 symtablestack:=oldsymtablestack;
                 macrosymtablestack:=oldmacrosymtablestack;

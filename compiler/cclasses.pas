@@ -504,6 +504,35 @@ type
       end;
 
 
+{******************************************************************
+                             tbitset
+*******************************************************************}
+
+       tbitset = class
+       private
+         fdata: pbyte;
+         fdatasize: longint;
+       public
+         constructor create(initsize: longint);
+         constructor create_bytesize(bytesize: longint);
+         destructor destroy; override;
+         procedure clear;
+         procedure grow(nsize: longint);
+         { sets a bit }
+         procedure include(index: longint);
+         { clears a bit }
+         procedure exclude(index: longint);
+         { finds an entry, creates one if not exists }
+         function isset(index: longint): boolean;
+
+         procedure addset(aset: tbitset);
+         procedure subset(aset: tbitset);
+
+         property data: pbyte read fdata;
+         property datasize: longint read fdatasize;
+      end;
+
+
     function FPHash(const s:shortstring):LongWord;
     function FPHash(P: PChar; Len: Integer): LongWord;
 
@@ -2756,5 +2785,99 @@ end;
           end;
         Result := False;
       end;
+
+
+{****************************************************************************
+                                tbitset
+****************************************************************************}
+
+    constructor tbitset.create(initsize: longint);
+      begin
+        create_bytesize((initsize+7) div 8);
+      end;
+
+
+    constructor tbitset.create_bytesize(bytesize: longint);
+      begin
+        fdatasize:=bytesize;
+        getmem(fdata,fdataSize);
+        clear;
+      end;
+
+
+    destructor tbitset.destroy;
+      begin
+        freemem(fdata,fdatasize);
+        inherited destroy;
+      end;
+
+
+    procedure tbitset.clear;
+      begin
+        fillchar(fdata^,fdatasize,0);
+      end;
+
+
+    procedure tbitset.grow(nsize: longint);
+      begin
+        reallocmem(fdata,nsize);
+        fillchar(fdata[fdatasize],nsize-fdatasize,0);
+        fdatasize:=nsize;
+      end;
+
+
+    procedure tbitset.include(index: longint);
+      var
+        dataindex: longint;
+      begin
+        { don't use bitpacked array, not endian-safe }
+        dataindex:=index shr 3;
+        if (dataindex>=datasize) then
+          grow(dataindex);
+        fdata[dataindex]:=fdata[dataindex] or (1 shl (index and 7));
+      end;
+
+
+    procedure tbitset.exclude(index: longint);
+      var
+        dataindex: longint;
+      begin
+        dataindex:=index shr 3;
+        if (dataindex>=datasize) then
+          exit;
+        fdata[dataindex]:=fdata[dataindex] and not(1 shl (index and 7));
+      end;
+
+
+    function tbitset.isset(index: longint): boolean;
+      var
+        dataindex: longint;
+      begin
+        dataindex:=index shr 3;
+        result:=
+          (dataindex<datasize) and
+          (((fdata[index shr 3] shr (index and 7)) and 1)<>0);
+      end;
+
+
+    procedure tbitset.addset(aset: tbitset);
+      var
+        i: longint;
+      begin
+        if (aset.datasize>datasize) then
+          grow(aset.datasize);
+        for i:=0 to aset.datasize-1 do
+          fdata[i]:=fdata[i] or aset.data[i];
+      end;
+
+
+    procedure tbitset.subset(aset: tbitset);
+      var
+        i: longint;
+      begin
+        for i:=0 to min(datasize,aset.datasize)-1 do
+          fdata[i]:=fdata[i] and not(aset.data[i]);
+      end;
+
 
 end.

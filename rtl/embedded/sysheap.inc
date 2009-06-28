@@ -20,12 +20,11 @@
 
 function SysOSAlloc(size: ptruint): pointer;
 begin
-  result := pointer($02000000);
+  result:=nil; // pointer($02000000);
 end;
 
 { $define HAS_SYSOSFREE}
 
 procedure SysOSFree(p: pointer; size: ptruint);
 begin
-  
 end;

@@ -852,6 +852,11 @@ begin
                    end;
                  'C' :
                    RCCompiler := More;
+                 'd' :
+                   if UnsetBool(more, 0) then
+                     init_settings.disabledircache:=false
+                   else
+                     init_settings.disabledircache:=true;
                  'D' :
                    utilsdirectory:=FixPath(More,true);
                  'e' :

@@ -23,10 +23,12 @@ uses
   Classes, SysUtils, db, fpddcodegen;
   
 TYpe
-  TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,caListAddMethod,caListItemsProperty);
+  TClassOption = (caCreateClass,caConstructor,caDestructor,caCreateList,
+                  caListAddMethod,caListItemsProperty,caOverrideRead,
+                  caOverrideReadThis,caOverrideSave);
   TClassOptions = Set of TClassOption;
   TVisitorOption = (voRead,voReadList,voCreate,voDelete,voUpdate,
-                    voCommonSetupParams,voSingleSaveVisitor);
+                    voCommonSetupParams,voSingleSaveVisitor,voRegisterVisitors);
   TVisitorOptions = set of TVisitorOption;
   
   { TTiOPFCodeOptions }
@@ -76,6 +78,9 @@ TYpe
     // Auxiliary routines
     procedure WriteFieldAssign(Strings: TStrings; F: TFieldPropDef);
     procedure WriteAssignToParam(Strings: TStrings; F: TFieldPropDef);
+    procedure WriteReadWriteOverride(Strings: TStrings; const AAMethod, AVisitorGroup: String);
+    procedure WriteRegisterVisitorLine(Strings: TStrings;
+      const V: TVisitorOption; const ObjectClassName: String);
     procedure WriteSetSQL(Strings: TStrings; const ASQL: String);
     procedure WriteSQLConstants(Strings: TStrings);
     Procedure WriteTerminateVisitor(Strings : TStrings; V : TVisitorOption; const ObjectClassName: String);
@@ -90,14 +95,17 @@ TYpe
     procedure WriteReadVisitor(Strings: TStrings; const ObjectClassName: String );
     procedure WriteVisitorDeclaration(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
     procedure WriteVisitorImplementation(Strings: TStrings; V: TVisitorOption; const ObjectClassName: String);
+    procedure WriteVisitorRegistration(Strings: TStrings; const ObjectClassName: String);
   Protected
     // Not to be overridden.
     procedure WriteListAddObject(Strings: TStrings; const ListClassName, ObjectClassName: String);
     // Overrides of parent objects
     function AllowPropertyDeclaration(F: TFieldPropDef; AVisibility: TVisibilities): Boolean; override;
     Function GetInterfaceUsesClause : string; override;
+    procedure WriteVisibilityStart(V: TVisibility; Strings: TStrings); override;
     Procedure DoGenerateInterface(Strings: TStrings); override;
     Procedure DoGenerateImplementation(Strings: TStrings); override;
+    procedure CreateImplementation(Strings: TStrings); override;
     Function NeedsConstructor : Boolean; override;
     Function NeedsDestructor : Boolean; override;
     Class Function NeedsFieldDefs : Boolean; override;
@@ -370,7 +378,11 @@ begin
   If (Result<>'') then
     Result:=Result+', ';
   Result:=Result+'tiVisitor, tiVisitorDB, tiObject';
+  If (voRegisterVisitors in tiOPFoptions.VisitorOptions)
+     or ([caOverrideRead,caOverrideReadThis,caOverrideSave]*tiOPFOptions.ClassOptions<>[]) then
+    Result:=Result+', tiOPFManager';
 end;
+
 
 procedure TTiOPFCodeGenerator.DoGenerateInterface(Strings: TStrings);
 
@@ -399,6 +411,12 @@ begin
     Finally
       DecIndent;
     end;
+    end;
+  If voRegisterVisitors in tiOPFoptions.VisitorOptions then
+    begin
+    AddLn(Strings);
+    AddLn(Strings,'Procedure Register'+tiOPFoptions.ObjectClassName+'Visitors;');
+    AddLn(Strings);
     end;
 end;
 
@@ -526,7 +544,7 @@ procedure TTiOPFCodeGenerator.WriteSQLConstants(Strings : TStrings);
 
 Const
   VisSQL : Array [TVisitorOption] of string
-         = ('Read','ReadList','Create','Delete','Update','','');
+         = ('Read','ReadList','Create','Delete','Update','','','');
 
 Var
   OCN,S : String;
@@ -596,7 +614,60 @@ begin
     For V:=Low(TVisitorOption) to High(TVisitorOption) do
       If V in VisitorOptions then
         WriteVisitorImplementation(Strings,V,ObjectClassName);
+    If (voRegisterVisitors in TiOPFOptions.VisitorOptions) then
+      WriteVisitorRegistration(Strings,ObjectClassName);
     end;
+end;
+
+{ ---------------------------------------------------------------------
+  Override read/write/readthis
+  ---------------------------------------------------------------------}
+
+procedure TTiOPFCodeGenerator.WriteVisibilityStart(V: TVisibility;
+  Strings: TStrings);
+begin
+  Inherited;
+  If (V=vPublic) then
+    begin
+    if (caOverrideSave in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure Save; override;');
+    If (caOverrideRead in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure Read; override;');
+    If (caOverrideReadThis in TiOPFOptions.ClassOptions) then
+      AddLn(Strings,'Procedure ReadThis; override;');
+    end;
+end;
+
+procedure TTiOPFCodeGenerator.CreateImplementation(Strings: TStrings);
+
+begin
+  inherited CreateImplementation(Strings);
+  if (caOverrideSave in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'Save','Save');
+  If (caOverrideRead in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'Read','Read');
+  If (caOverrideReadThis in TiOPFOptions.ClassOptions) then
+    WriteReadWriteOverride(Strings,'ReadThis','Read');
+end;
+
+procedure TTiOPFCodeGenerator.WriteReadWriteOverride(Strings : TStrings; Const AAMethod,AVisitorGroup : String);
+
+Const
+  SExecVisitor = 'GTIOPFManager.VisitorManager.Execute(''%s_%s'',Self);';
+
+Var
+  OCN,S: String;
+
+begin
+  OCN:=TiOPFOptions.ObjectClassName;
+  S:=Format('Procedure %s.%s;',[OCN,AAMethod]);
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  S:=Format(SExecVisitor,[OCN,AVisitorGroup]);
+  AddLn(Strings,S);
+  DecIndent;
+  EndMethod(Strings,S);
 end;
 
 { ---------------------------------------------------------------------
@@ -618,6 +689,7 @@ begin
   If v in TiOPFOptions.FinalVisitors then
     WriteTerminateVisitor(Strings,V,ObjectClassName);
 end;
+
 
 Function TTiOPFCodeGenerator.BeginInit(Strings : TStrings; const AClass : String) : String;
 
@@ -672,6 +744,54 @@ begin
   DeclareObjectVariable(Strings,ObjectClassName);
   AddLn(Strings,'begin');
   IncIndent;
+end;
+
+{ ---------------------------------------------------------------------
+  Visitor registration
+  ---------------------------------------------------------------------}
+
+procedure TTiOPFCodeGenerator.WriteRegisterVisitorLine(Strings : TStrings; Const V: TVisitorOption; Const ObjectClassName : String);
+
+Var
+  C : String;
+  S : String;
+
+begin
+  C:=VisitorClassName(v,ObjectClassName);
+  Case V of
+    voRead        : S:='Read';
+    voReadList    : S:='ReadList';
+    voCreate      : S:='Save';
+    voDelete      : S:='Save';
+    voUpdate      : S:='Save';
+  end;
+  S:=ObjectClassName+'_'+S;
+  S:=Format('GTIOPFManager.RegisterVisitor(''%s'',%s);',[S,C]);
+  AddLn(Strings,S);
+end;
+
+procedure TTiOPFCodeGenerator.WriteVisitorRegistration(Strings : TStrings; Const ObjectClassName : String);
+
+Const
+  RealVis = [voRead,voReadList,voCreate,voDelete,voUpdate];
+
+Var
+  v : TVisitorOption;
+  S : String;
+
+begin
+  Addln(Strings);
+  S:='Procedure Register'+ObjectClassName+'Visitors;';
+  BeginMethod(Strings,S);
+  AddLn(Strings,'begin');
+  IncIndent;
+  For v:=Low(TVisitorOption) to High(TVisitorOption) do
+    begin
+    If (V in RealVis) and (V in TiOPFOptions.VisitorOptions) then
+      WriteRegisterVisitorLine(Strings,V,ObjectClassName);
+    end;
+  DecIndent;
+  EndMethod(Strings,S);
 end;
 
 { ---------------------------------------------------------------------

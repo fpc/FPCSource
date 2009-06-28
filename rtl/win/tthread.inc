@@ -22,19 +22,23 @@ begin
                          FThreadID);
   if FHandle = TThreadID(0) then
     raise EThread.create('Failed to create new thread, code:'+inttostr(getlasterror));
-  
+
   FFatalException := nil;
 end;
 
 
 destructor TThread.Destroy;
 begin
-  if not FFinished and not Suspended then
-  begin
-    Terminate;
-    WaitFor;
-  end;
-  if FHandle <> 0 then CloseHandle(FHandle);
+  if FHandle<>0 then
+    begin
+      if not FFinished and not Suspended then
+        begin
+          Terminate;
+          WaitFor;
+        end;
+      CloseHandle(FHandle);
+    end;
+
   FFatalException.Free;
   FFatalException := nil;
   inherited Destroy;

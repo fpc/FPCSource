@@ -123,8 +123,8 @@ implementation
        procedure genOrdConstNodeMod;
          var
              modreg, maskreg, tempreg : tregister;
-{
          begin
+{
              if (tordconstnode(right).value = 0) then begin
                  internalerror(2005061702);
              end

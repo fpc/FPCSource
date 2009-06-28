@@ -1079,23 +1079,41 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
-function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
+{ This is the case of Win9x. Limited to current locale of course, but it's better
+  than not working at all. }
+function DoCompareStringA(const s1, s2: WideString; Flags: DWORD): PtrInt;
+  var
+    a1, a2: AnsiString;
+  begin
+    a1:=s1;
+    a2:=s2;
+    SetLastError(0);
+    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
+      length(a1),pchar(a2),length(a2))-2;
+  end;
+
+function DoCompareStringW(const s1, s2: WideString; Flags: DWORD): PtrInt;
   begin
     SetLastError(0);
-    Result:=CompareStringW(LOCALE_USER_DEFAULT,0,pwidechar(s1),
+    Result:=CompareStringW(LOCALE_USER_DEFAULT,Flags,pwidechar(s1),
       length(s1),pwidechar(s2),length(s2))-2;
+    if GetLastError=0 then
+      Exit;
+    if GetLastError=ERROR_CALL_NOT_IMPLEMENTED then  // Win9x case
+      Result:=DoCompareStringA(s1, s2, Flags);
     if GetLastError<>0 then
       RaiseLastOSError;
+  end;
+
+function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
+  begin
+    Result:=DoCompareStringW(s1, s2, 0);
   end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    SetLastError(0);
-    Result:=CompareStringW(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pwidechar(s1),
-      length(s1),pwidechar(s2),length(s2))-2;
-    if GetLastError<>0 then
-      RaiseLastOSError;
+    Result:=DoCompareStringW(s1, s2, NORM_IGNORECASE);
   end;
 
 

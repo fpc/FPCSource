@@ -425,6 +425,13 @@ unit lpc21x4;
         b .Lhalt
       end;
 
+    var
+      _data: record end; external name '_data';
+      _edata: record end; external name '_edata';
+      _etext: record end; external name '_etext';
+      _bss_start: record end; external name '_bss_start';
+      _bss_end: record end; external name '_bss_end';
+      _stack_top: record end; external name '_stack_top';
 
     procedure _FPC_start; assembler; nostackframe;
       label
@@ -435,18 +442,14 @@ unit lpc21x4;
         .align 16
         .globl _start
         b   _start
-        ldr pc, .L1
-        ldr pc, .L2
-        ldr pc, .L3
-        ldr pc, .L4
+        b   .LUndefined_Addr  // Undefined Instruction vector
+        b   .LSWI_Addr        // Software Interrupt vector
+        b   .LPrefetch_Addr   // Prefetch abort vector
+        b   .LAbort_Addr      // Data abort vector
+        nop                   // reserved
+        b   .LIRQ_Addr        // Interrupt Request (IRQ) vector
+        b   .LFIQ_Addr        // Fast interrupt request (FIQ) vector
 
-        // signature
-        nop
-        ldr r0, .L5
-        // FIQ
-        ldr r0, .L6
-        ldr pc, [r0]
-(*
     .LUndefined_Addr:
         ldr r0,.L1
         ldr pc,[r0]
@@ -459,10 +462,13 @@ unit lpc21x4;
     .LAbort_Addr:
         ldr r0,.L4
         ldr pc,[r0]
+    .LIRQ_Addr:
+        ldr r0,.L5
+        ldr pc,[r0]
     .LFIQ_Addr:
         ldr r0,.L5
         ldr pc,[r0]
-*)
+
     .L1:
         .long     Undefined_Handler
     .L2:
@@ -478,15 +484,14 @@ unit lpc21x4;
 
     _start:
         (*
-          Set SP for Supervisor mode. Depending upon
-          the stack the application needs this value
-          needs to be set.
+          Set absolute stack top
+
           stack is already set by bootloader
           but if this point is entered by any
           other means than reset, the stack pointer
           needs to be set explicity
         *)
-        // LDR SP,=0x40001000
+        ldr r0,.L_stack_top
 
         (*
           Setting up SP for IRQ and FIQ mode.
@@ -500,17 +505,16 @@ unit lpc21x4;
         *)
 
         (*
-          setup for fiq and irq interrupt stacks to run
-          below current stack by 1000.
+          setup irq and fiq stacks each 128 bytes
         *)
-        mov r0, sp         // copy current stack pointer
-        sub r0, r0, #1000  // make irq stack pointer
-        sub r1, r0, #1000  // make fiq stack pointer
         msr cpsr_c, #0x12  // switch to irq mode
         mov sp, r0         // set irq stack pointer
+        sub r0,r0,#128     // irq stack size
         msr cpsr_c, #0x11  // fiq mode
-        mov sp, r1         // set fiq stack pointer
+        mov sp, r0         // set fiq stack pointer
+        sub r0,r0,#128     // fiq stack size
         msr cpsr_c, #0x13  // supervisor mode F,I enabled
+        mov sp, r0         // stack
 
         ldr r1,.LDefaultHandlerAddr
         ldr r0,.L1
@@ -526,20 +530,39 @@ unit lpc21x4;
         ldr r0,.L6
         str r1,[r0]
 
+        // copy initialized data from flash to ram
+        ldr r1,.L_etext
+        ldr r2,.L_data
+        ldr r3,.L_edata
+.Lcopyloop:
+        cmp r2,r3
+        ldrls r0,[r1],#4
+        strls r0,[r2],#4
+        bls .Lcopyloop
+
         // clear onboard ram
-        mov r1,#0x1000
-        ldr r2,.LRAMStart
+        ldr r1,.L_bss_start
+        ldr r2,.L_bss_end
         mov r0,#0
 .Lzeroloop:
-        str r0,[r2]
-        subs r1,r1,#1
-        add r2,r2,#4
-        bne .Lzeroloop
+        cmp r1,r2
+        strls r0,[r1],#4
+        bls .Lzeroloop
 
         bl PASCALMAIN
         bl _FPC_haltproc
-.LRAMStart:
-        .long 0x40000000
+.L_bss_start:
+        .long _bss_start
+.L_bss_end:
+        .long _bss_end
+.L_etext:
+        .long _etext
+.L_data:
+        .long _data
+.L_edata:
+        .long _edata
+.L_stack_top:
+        .long _stack_top
 .LDefaultHandlerAddr:
         .long .LDefaultHandler
         // default irq handler just returns

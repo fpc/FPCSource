@@ -974,6 +974,23 @@ implementation
          { procedure variable or normal function call ? }
          if (right=nil) then
            begin
+             { register call for WPO (must be done before wpo test below,
+               otherwise optimised called methods are no longer registered)
+             }
+             if (po_virtualmethod in procdefinition.procoptions) and
+                assigned(methodpointer) and
+                (methodpointer.nodetype<>typen) and
+                (not assigned(current_procinfo) or
+                 wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+               tprocdef(procdefinition)._class.register_vmt_call(tprocdef(procdefinition).extnumber);
+{$ifdef vtentry}
+             if not is_interface(tprocdef(procdefinition)._class) then
+               begin
+                 inc(current_asmdata.NextVTEntryNr);
+                 current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
+               end;
+{$endif vtentry}
+
              name_to_call:='';
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
@@ -1005,14 +1022,10 @@ implementation
 
                  { Call through VMT, generate a VTREF symbol to notify the linker }
                  vmtoffset:=tprocdef(procdefinition)._class.vmtmethodoffset(tprocdef(procdefinition).extnumber);
-{$ifdef vtentry}
-                 if not is_interface(tprocdef(procdefinition)._class) then
-                   begin
-                     inc(current_asmdata.NextVTEntryNr);
-                     current_asmdata.CurrAsmList.Concat(tai_symbol.CreateName('VTREF'+tostr(current_asmdata.NextVTEntryNr)+'_'+tprocdef(procdefinition)._class.vmt_mangledname+'$$'+tostr(vmtoffset div sizeof(pint)),AT_FUNCTION,0));
-                   end;
-{$endif vtentry}
-
+                 { register call for WPO }
+                 if (not assigned(current_procinfo) or
+                     wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+                   tprocdef(procdefinition)._class.register_vmt_call(tprocdef(procdefinition).extnumber);
 {$ifndef x86}
                  pvreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_ADDR);
 {$endif not x86}

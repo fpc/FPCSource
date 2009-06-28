@@ -46,16 +46,11 @@ interface
       CUtils,CClasses,
       Systems;
 
-    const
-      { On case sensitive file systems, you have 9 lookups per used unit, }
-      { including the system unit, in the current directory               }
-      MinSearchesBeforeCache = 20;
-
     type
       TCachedDirectory = class(TFPHashObject)
       private
         FDirectoryEntries : TFPHashList;
-        FSearchCount: longint;
+        FCached : Boolean;
         procedure FreeDirectoryEntries;
         function GetItemAttr(const AName: TCmdStr): byte;
         function TryUseCache: boolean;
@@ -196,6 +191,7 @@ end;
       begin
         inherited create(AList,AName);
         FDirectoryEntries:=TFPHashList.Create;
+        FCached:=False;
       end;
 
 
@@ -209,25 +205,21 @@ end;
 
     function TCachedDirectory.TryUseCache:boolean;
       begin
-        Result:=true;
-        if (FSearchCount > MinSearchesBeforeCache) then
+        Result:=True;
+        if FCached then
           exit;
-        if (FSearchCount = MinSearchesBeforeCache) then
-          begin
-            inc(FSearchCount);
-            Reload;
-            exit;
-          end;
-        inc(FSearchCount);
-        Result:=false;
+        if not current_settings.disabledircache then
+          ForceUseCache
+        else
+          Result:=False;
       end;
 
 
     procedure TCachedDirectory.ForceUseCache;
       begin
-        if (FSearchCount<=MinSearchesBeforeCache) then
+        if not FCached then
           begin
-            FSearchCount:=MinSearchesBeforeCache+1;
+            FCached:=True;
             Reload;
           end;
       end;

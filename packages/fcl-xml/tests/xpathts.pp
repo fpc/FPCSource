@@ -22,13 +22,13 @@ uses
   dom, xmlread, xmlwrite, xpath;
 
 type
-  TResultType = (rtString, rtNumber, rtBool, rtNodeset);
+  TResultType = (rtString, rtNumber, rtBool, rtNodeStr, rtOther);
 
   TTestRec = record
     data: string;              // UTF-8 encoded
     expr: DOMString;
   case rt: TResultType of
-    rtString: (s: DOMPChar);   // cannot use DOMString here
+    rtString, rtNodeStr: (s: DOMPChar);   // cannot use DOMString here
     rtNumber: (n: Extended);
     rtBool:   (b: Boolean);
   end;
@@ -414,12 +414,20 @@ const
   '<a id="c"/>'+
   '<a id="d"/>'+
   '</t04>';
+  
+  pos04='<doc>'+
+  '<a test="true"><num>1</num></a>'+
+  '<a><num>1191</num></a>'+
+  '<a><num>263</num></a>'+
+  '<a test="true"><num>2</num></a>'+
+  '<a><num>827</num></a>'+
+  '<a><num>256</num></a>'+
+  '<a test="true"><num>3</num></a>'+
+  '<a test="true"><num>4</num></a>'+
+  '</doc>';
 
-  FunctionTests: array[0..50] of TTestRec = (
+  FunctionTests: array[0..51] of TTestRec = (
   // last()
-  // position()
-  // count()
-  // id()
   // local-name()
   // namespace-uri()
   // name()
@@ -442,13 +450,15 @@ const
     (expr: 'not("")';      rt: rtBool; b: True),
 
     // lang() tests. These ones, however, test much more than lang().
-    // Moreover, I've added string(), otherwise result would be a nodeset
-    (data: expr01; expr: 'string(para[@id="1" and lang("en")])'; rt: rtString; s: 'en'),     // expression01
-    (data: expr01; expr: 'string(para[@id="4" and lang("en")])'; rt: rtString; s: 'en-us'),  // expression03
-    (data: expr01; expr: 'string(div/para[lang("en")])'; rt: rtString; s: 'en'),             // expression04
-    (data: expr01; expr: 'string(para[@id="3" and lang("en")])'; rt: rtString; s: 'EN'),     // expression05
+    (data: expr01; expr: 'para[@id="1" and lang("en")]'; rt: rtNodeStr; s: 'en'),     // expression01
+    (data: expr01; expr: 'para[@id="4" and lang("en")]'; rt: rtNodeStr; s: 'en-us'),  // expression03
+    (data: expr01; expr: 'div/para[lang("en")]'; rt: rtNodeStr; s: 'en'),             // expression04
+    (data: expr01; expr: 'para[@id="3" and lang("en")]'; rt: rtNodeStr; s: 'EN'),     // expression05
     
-    (data: id04; expr: 'id("c")/@id'; rt: rtString; s: 'c'),  // idkey04
+    (data: id04; expr: 'id("c")/@id'; rt: rtNodeStr; s: 'c'),  // idkey04
+    
+    // position() tests
+    (data: pos04; expr: '*[@test][position()=4]/num'; rt: rtNodeStr; s: '4'),
 
     (expr: 'number("1.5")';   rt: rtNumber; n: 1.5),
     (expr: 'number("abc")';   rt: rtNumber; n: NaN),
@@ -512,10 +522,32 @@ const
 '      e'#10+
 '    ';
 
-  StringTests: array[0..59] of TTestRec = (
-    (expr: 'string(5)';       rt: rtString; s: '5'),
+  node08='<docs xmlns:ped="http://www.ped.com"><?MyPI DoesNothing ?><!-- This is a big tree containing all letters of the alphabet -->'#10+
+  '<a attr1="This should not be seen">A</a>'#10+
+  '<b><c attr1="tsnbs" attr2="tsnbs">B-C</c>'#10+
+  '<d><e><f>TextNode_between_F_and_G'#10+
+  '<g><h><i><j><k><l><m><n><o><p><q><r><s><t><u><v><w><x><y><z><Yahoo>Yahoo</Yahoo>'#10+
+  '</z></y></x></w></v></u></t></s></r></q></p></o></n></m></l></k></j></i></h>SecondNode_after_H</g></f></e></d></b>'#10+
+  '</docs>';
+  
+  out08=#10+
+  'A'#10+
+  'B-C'#10+
+  'TextNode_between_F_and_G'#10+
+  'Yahoo'#10+
+  'SecondNode_after_H'#10;
+
+  str30='<doc xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">'#10+
+  '<ns1:a attrib1="test" xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1"/>'#10+
+  '<b ns1:attrib2="test"/>'#10+
+  '</doc>';
+
+  StringTests: array[0..75] of TTestRec = (             // numbers refer to xalan/string/stringXX
+    (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
     (expr: 'string(-0.5)';    rt: rtString; s: '-0.5'),
+    (expr: 'string("test")';  rt: rtString; s: 'test'), // #40
+    (expr: 'string("")';      rt: rtString; s: ''),     // #41
     (expr: 'string(true())';  rt: rtString; s: 'true'),
     (expr: 'string(false())'; rt: rtString; s: 'false'),
     (expr: 'string(0 div 0)'; rt: rtString; s: 'NaN'),
@@ -523,6 +555,7 @@ const
     (expr: 'string(-1 div 0)'; rt: rtString; s: '-Infinity'),
     // maybe other checks for correct numeric formats
     (data: str14; expr: 'string(av//*)'; rt: rtString; s: out14),
+    (data: node08; expr: '/'; rt: rtNodeStr; s: out08),
 
     (expr: 'concat("titi","toto")'; rt: rtString; s: 'tititoto'),
     (expr: 'concat("titi","toto","tata")'; rt: rtString; s: 'tititototata'),
@@ -533,9 +566,11 @@ const
 
     (expr: 'starts-with("tititoto","titi")'; rt: rtBool; b: True),
     (expr: 'starts-with("tititoto","to")';   rt: rtBool; b: False),
-    (expr: 'starts-with("ab", "abc")';       rt: rtBool; b: False),
-    (expr: 'starts-with("abc", "")';         rt: rtBool; b: True),     // xalan/string/string48
+    (expr: 'starts-with("ab", "abc")';       rt: rtBool; b: False),    // #46
+    (expr: 'starts-with("abc", "bc")';       rt: rtBool; b: False),    // #47
+    (expr: 'starts-with("abc", "")';         rt: rtBool; b: True),     // #48
     (expr: 'starts-with("", "")';            rt: rtBool; b: True),     // #49
+    (expr: 'starts-with(true(), "tr")';      rt: rtBool; b: True),     // #50
 
 
 
@@ -543,11 +578,12 @@ const
     (expr: 'contains("tititototata","toto")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tata")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","tita")'; rt: rtBool; b: False),
-    (expr: 'contains("ab", "abc")';           rt: rtBool; b: False),   // #59
+    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true          // #57    
+    (expr: 'contains("ab", "abc")';           rt: rtBool; b: False),   // #58
     (expr: 'contains("abc", "bcd")';          rt: rtBool; b: False),   // #60
     (expr: 'contains("abc", "")';             rt: rtBool; b: True),    // #61
     (expr: 'contains("", "")';                rt: rtBool; b: True),    // #62
-    // 'contains(concat(.,'BC'),concat('A','B','C'))' == true
+    (expr: 'contains(true(), "e")';           rt: rtBool; b: True),    // #63    
 
     (expr: 'substring("12345",2,3)'; rt: rtString; s: '234'),
     (expr: 'substring("12345",2)';   rt: rtString; s: '2345'),
@@ -555,24 +591,24 @@ const
     (expr: 'substring("12345",3.4)'; rt: rtString; s: '345'),
     (expr: 'substring("12345",3.6)'; rt: rtString; s: '45'),
 
-    (expr: 'substring("12345",1.5,2.6)'; rt: rtString; s: '234'),
+    (expr: 'substring("12345",1.5,2.6)'; rt: rtString; s: '234'), // #16
     (expr: 'substring("12345",2.2,2.2)'; rt: rtString; s: '23'),
-    (expr: 'substring("12345",0,3)';     rt: rtString; s: '12'),
+    (expr: 'substring("12345",0,3)';     rt: rtString; s: '12'),  // #17
     (expr: 'substring("12345",-8,10)';   rt: rtString; s: '1'),
     (expr: 'substring("12345",4,-10)';   rt: rtString; s: ''),
 
-    (expr: 'substring("12345",0 div 0, 3)'; rt: rtString; s: ''),
-    (expr: 'substring("12345",1, 0 div 0)'; rt: rtString; s: ''),
+    (expr: 'substring("12345",0 div 0, 3)'; rt: rtString; s: ''), // #18
+    (expr: 'substring("12345",1, 0 div 0)'; rt: rtString; s: ''), // #19
     (expr: 'substring("12345",1 div 0, 3)'; rt: rtString; s: ''),
     (expr: 'substring("12345",3,-1 div 0)'; rt: rtString; s: ''),
-    (expr: 'substring("12345",-42, 1 div 0)'; rt: rtString; s: '12345'),
+    (expr: 'substring("12345",-42, 1 div 0)'; rt: rtString; s: '12345'), // #20
 
-    (expr: 'substring("12345",-1 div 0, 1 div 0)'; rt: rtString; s: ''),
+    (expr: 'substring("12345",-1 div 0, 1 div 0)'; rt: rtString; s: ''), // #21
     (expr: 'substring("12345",-1 div 0,5)';        rt: rtString; s: ''),
 
-    (expr: 'substring-before("1999/04/01","/")'; rt: rtString; s: '1999'),
-    (expr: 'substring-before("1999/04/01","a")'; rt: rtString; s: ''),
-    (expr: 'substring-after("1999/04/01","/")'; rt: rtString; s: '04/01'),
+    (expr: 'substring-before("1999/04/01","/")'; rt: rtString; s: '1999'),  // #08
+    (expr: 'substring-before("1999/04/01","a")'; rt: rtString; s: ''),      // #68 modified
+    (expr: 'substring-after("1999/04/01","/")'; rt: rtString; s: '04/01'),  // #09
     (expr: 'substring-after("1999/04/01","19")'; rt: rtString; s: '99/04/01'),
     (expr: 'substring-after("1999/04/01","a")'; rt: rtString; s: ''),
 
@@ -582,11 +618,80 @@ const
     (data: str04;  expr: 'string-length(/)'; rt: rtNumber; n:27),    // #04.1 modified
     (data: str04;  expr: 'string-length(/doc/a)'; rt: rtNumber; n: 12), // #04.2
     (data: str04;  expr: 'string-length()';  rt: rtNumber; n: 27),
-    (expr: 'normalize-space("'#9#10#13' ab   cd'#10#13#9'ef'#9#10#13'  ")'; rt: rtString; s: 'ab cd ef'),
+    (expr: 'normalize-space("'#9#10#13' ab   cd'#10#13#9'ef'#9#10#13'  ")'; rt: rtString; s: 'ab cd ef'), // #10
 
-    (expr: 'translate("bar", "abc", "ABC")'; rt: rtString; s: 'BAr'),
+    (expr: 'translate("bar", "abc", "ABC")'; rt: rtString; s: 'BAr'),  // #11
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
-    (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx')   // #96
+    (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx'),   // #96
+
+    (data: str30; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
+    (data: str30; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
+    (data: str30; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
+    (data: str30; expr: 'name(baz1:a)'; rt: rtString; s: 'ns1:a'),  // #33
+    (data: str30; expr: 'name(baz2:b)'; rt: rtString; s: 'b'),      // #34
+    (data: str30; expr: 'name(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''),            // #35
+    (data: str30; expr: 'name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'ns1:attrib2'), // #36
+
+    (data: str30; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
+    (data: str30; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
+    (data: str30; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
+  );
+  
+  ax114='<doc>'+
+  '<foo att1="c">'+
+  '  <foo att1="b">'+
+  '     <foo att1="a"/>'+
+  '  </foo>'+
+  '</foo>'+
+  '<baz/>'+
+  '</doc>';
+
+  ax115='<doc>'+
+  '<foo att1="c"/>'+
+  '<foo att1="b"/>'+
+  '<foo att1="a"/>'+
+  '<baz/>'+
+  '</doc>';
+
+
+  ax117='<chapter title="A" x="0">'+
+  '<section title="A1" x="1">'+
+  '  <subsection title="A1a" x="2">hello</subsection>'+
+  '  <subsection title="A1b">ahoy</subsection>'+
+  '</section>'+
+  '<section title="A2">'+
+  '  <subsection title="A2a">goodbye</subsection>'+
+  '  <subsection title="A2b">sayonara</subsection>'+
+  '  <subsection title="A2c">adios</subsection>'+
+  '</section>'+
+  '<section title="A3">'+
+  '  <subsection title="A3a">aloha</subsection>'+
+  '  <subsection title="A3b">'+
+  '    <footnote x="3">A3b-1</footnote>'+
+  '    <footnote>A3b-2</footnote>'+
+  '  </subsection>'+
+  '  <subsection title="A3c">shalom</subsection>'+
+  '</section>'+
+  '</chapter>';
+
+  AxesTests: array[0..13] of TTestRec = (
+    (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
+    (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
+    (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
+    (data: ax117; expr: 'count(//section//@title)';           rt: rtNumber; n: 11),
+    (data: ax117; expr: 'count(/chapter/.//@*)';              rt: rtNumber; n: 16),
+    (data: ax117; expr: 'count(/chapter/.//@title)';          rt: rtNumber; n: 12),
+    (data: ax117; expr: 'count(/chapter/section[1]//@*)';     rt: rtNumber; n: 5),
+    (data: ax117; expr: 'count(/chapter/section[1]//@title)'; rt: rtNumber; n: 3),
+    (data: ax117; expr: 'count(/chapter/section[2]//@*)';     rt: rtNumber; n: 4),
+    (data: ax117; expr: 'count(/chapter/section[2]//@title)'; rt: rtNumber; n: 4),
+    (data: ax117; expr: 'count(/chapter/section[3]//@*)';     rt: rtNumber; n: 5),
+    (data: ax117; expr: 'count(/chapter/section[3]//@title)'; rt: rtNumber; n: 4),
+
+    (data: ax114; expr: '//baz/preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+//  (data: ax114; expr: '//baz/(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
+    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a')
+//  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
   );
 {$warnings on}
 
@@ -629,6 +734,16 @@ begin
       writeln('Failed: ', t.expr);
       writeln('Expected: ', DOMString(t.s), ' got: ', r.AsText);
     end;
+    rtNodeStr:
+    begin
+      if (r is TXPathNodeSetVariable) and (r.AsNodeSet.Count = 1) and (r.AsText = DOMString(t.s)) then
+        Exit;
+      writeln;  
+      writeln('Failed: ', t.expr);
+      if r.AsNodeSet.Count > 1 then
+        writeln('Result is not a single node');
+      writeln('Expected: ', DOMString(t.s), ' got: ', r.AsText);
+    end;
   end;
   Inc(FailCount);
 end;
@@ -641,6 +756,7 @@ begin
   parser := TDOMParser.Create;
   try
     parser.Options.PreserveWhitespace := True;
+    parser.Options.Namespaces := True;
     src := TXMLInputSource.Create(data);
     try
       parser.Parse(src, Result);
@@ -693,6 +809,7 @@ begin
   DoSuite(FloatTests);
   DoSuite(FunctionTests);
   DoSuite(StringTests);
+  DoSuite(AxesTests);
 
   writeln;
   writeln('Total failed tests: ', FailCount);

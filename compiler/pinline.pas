@@ -79,7 +79,10 @@ implementation
         p:=comp_expr(true);
         { calc return type }
         if is_new then
-          set_varstate(p,vs_written,[])
+          begin
+            set_varstate(p,vs_written,[]);
+            valid_for_var(p,true);
+          end
         else
           set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
         if (m_mac in current_settings.modeswitches) and

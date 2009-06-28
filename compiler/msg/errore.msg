@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03255 is the last used one
+# 03256 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1176,23 +1176,28 @@ parser_n_ignore_lower_visibility=03250_N_Virtual method "$1" has a lower visibil
 % The virtual method overrides an method that is declared with a higher visibility. This might give
 % unexpected results. In case the new visibility is private than it might be that a call to inherited in a
 % new child class will call the higher visible method in a parent class and ignores the private method.
-parser_e_objc_requires_msgstr=03251_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
+parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or property definition, start a new visibility section first
+% Once a method or property has been defined in a class or object, you cannot define any fields afterwards
+% without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
+% that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
+% such as \var{default} and \var{register} also as field names.
+parser_e_objc_requires_msgstr=03252_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
 % Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
 % While bindings to other languages automatically generate such names based on the identifier you use (by replacing
 % all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
 % colons.
-parser_e_objc_no_constructor_destructor=03252_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
+parser_e_objc_no_constructor_destructor=03253_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
 % The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
 % purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
 % guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
 % inherited ``constructors''). For these reasons, we have opted to follow the standard Objective-C patterns for
 % instance creation/destruction.
-parser_e_message_string_too_long=03253_E_Message name is too long (max. 255 characters)
+parser_e_message_string_too_long=03254_E_Message name is too long (max. 255 characters)
 % Due to compiler implementation reasons, message names are currently limited to 255 characters.
-parser_e_objc_message_name_too_long=03254_E_Objective-C message symbol name for "$1" is too long
+parser_e_objc_message_name_too_long=03255_E_Objective-C message symbol name for "$1" is too long
 % Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
 % code) are currently limited to 255 characters.
-parser_h_no_objc_parent=03255_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
+parser_h_no_objc_parent=03256_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
 % If no parent class is specified for an Object Pascal class, then it automatically derives from TObject.
 % Objective-C classes however do not automatically derive from NSObject, because one can have multiple
 % root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
@@ -1611,7 +1616,7 @@ sym_w_uninitialized_variable=05037_W_Variable "$1" does not seem to be initializ
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_e_id_no_member=05038_E_identifier idents no member "$1"
 % This error is generated when an identifier of a record,
 % field or method is accessed while it is not defined.
@@ -1646,22 +1651,22 @@ sym_h_uninitialized_local_variable=05057_H_Local variable "$1" does not seem to 
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. it did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_uninitialized_variable=05058_H_Variable "$1" does not seem to be initialized
 % This message is displayed if the compiler thinks that a variable will
 % be used (i.e. it appears in the right-hand side of an expression) when it
 % was not initialized first (i.e. t did not appear in the left-hand side of an
-% assigment).
+% assignment).
 sym_w_function_result_uninitialized=05059_W_Function result variable does not seem to initialized
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. before it appeared in the left-hand side of an
-% assigment).
+% assignment).
 sym_h_function_result_uninitialized=05060_H_Function result variable does not seem to be initialized
 % This message is displayed if the compiler thinks that the function result
 % variable will be used (i.e. it appears in the right-hand side of an expression)
 % before it is initialized (i.e. it appears in the left-hand side of an
-% assigment)
+% assignment)
 sym_w_identifier_only_read=05061_W_Variable "$1" read but nowhere assigned
 % You have read the value of a variable, but nowhere assigned a value to
 % it.
@@ -2231,7 +2236,7 @@ link_f_executable_too_big=09200_F_Executable image size is too big for $1 target
 % Fatal error when resulting executable is too big.
 link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute relocation to symbol "$2".
 % Warning when 64-bit object file contains 32-bit absolute relocations.
-% In such case an executable image can be loaded into lower 4Gb of 
+% In such case an executable image can be loaded into lower 4Gb of
 % address space only.
 %\end{description}
 # EndOfTeX
@@ -2577,11 +2582,11 @@ option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with s
 % This section lists errors that occur when the compiler is performing
 % whole program optimization.
 % \begin{description}
-wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file $1
+wpo_cant_find_file=12000_F_Cannot open whole program optimization feedback file "$1"
 % The compiler cannot open the specified feedback file with whole program optimization information.
-wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file $1
+wpo_begin_processing=12001_D_Processing whole program optimization information in wpo feedback file "$1"
 % The compiler starts processing whole program optimization information found in the named file.
-wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file $1
+wpo_end_processing=12002_D_Finished processing the whole program optimization information in wpo feedback file "$1"
 % The compiler has finished processing the whole program optimization information found in the named file.
 wpo_expected_section=12003_E_Expected section header, but got "$2" at line $1 of wpo feedback file
 % The compiler expected a section header in the whole program optimization file (starting with \%),
@@ -2778,6 +2783,7 @@ S*2Aas_Assemble using GNU AS
 **2Fa<x>[,y]_(for a program) load units <x> and [y] before uses is parsed
 **2Fc<x>_Set input codepage to <x>
 **2FC<x>_Set RC compiler binary name to <x>
+**2Fd_Disable the compiler's internal directory cache
 **2FD<x>_Set the directory where to search for compiler utilities
 **2Fe<x>_Redirect error output to <x>
 **2Ff<x>_Add <x> to framework path (Darwin only)
@@ -2798,14 +2804,15 @@ S*2Aas_Assemble using GNU AS
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2go<x>_Set debug information options
-*g3godwarfsets_ Enable Dwarf set debug information (breaks gdb < 6.5)
+*g3godwarfsets_ Enable DWARF set debug information (breaks gdb < 6.5)
+*g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
 *g2gp_Preserve case in stabs symbol names
-*g2gs_Generate stabs debug information
+*g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses)
-*g2gv_Generates programs traceable with valgrind
-*g2gw_Generate dwarf-2 debug information (same as -gw2)
-*g2gw2_Generate dwarf-2 debug information
-*g2gw3_Generate dwarf-3 debug information
+*g2gv_Generates programs traceable with Valgrind
+*g2gw_Generate DWARFv2 debug information (same as -gw2)
+*g2gw2_Generate DWARFv2 debug information
+*g2gw3_Generate DWARFv3 debug information
 **1i_Information
 **2iD_Return compiler date
 **2iV_Return short compiler version
@@ -2912,10 +2919,11 @@ S*2Tlinux_Linux
 **2*_h : Show hints                  c : Show conditionals
 **2*_i : Show general info           d : Show debug info
 **2*_l : Show linenumbers            r : Rhide/GCC compatibility mode
+**2*_s : Show time stamps            q : Show message numbers
 **2*_a : Show everything             x : Executable info (Win32 only)
-**2*_b : Write file names messages with full path
-**2*_v : Write fpcdebug.txt with     p : Write tree.log with parse tree
-**2*_    lots of debugging info      q : Show message numbers
+**2*_b : Write file names messages   p : Write tree.log with parse tree
+**2*_    with full path              v : Write fpcdebug.txt with
+**2*_                                    lots of debugging info
 **2*_m<x>,<y> : Don't show messages numbered <x> and <y>
 3*1W<x>_Target-specific options (targets)
 A*1W<x>_Target-specific options (targets)

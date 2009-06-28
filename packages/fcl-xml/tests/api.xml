@@ -195,7 +195,7 @@
   <arg>namespaceURI</arg>
   <arg>qualifiedName</arg>
 </item>
-<item id="createDocument">
+<item id="createDocument" gc="yes">
   <arg>namespaceURI</arg>
   <arg>qualifiedName</arg>
   <arg>doctype</arg>
@@ -258,8 +258,10 @@
 <item id="canSetParameter"/>
 <item id="setParameter"/>
 <item id="normalizeDocument"/>
+-->
 <item id="isId"/>
-
+<item id="documentURI" type="prop"/>
+<!--
 // assertNotEquals
 // assertLowerSeverity
 
@@ -267,9 +269,11 @@
 <item id="setUserData"/>
 <item id="isEqualNode"/>
 <item id="isSameNode"/>
+-->
 <item id="lookupNamespaceURI">
   <arg>prefix</arg>
 </item>
+<!--
 <item id="lookupPrefix"/>
 <item id="isDefaultNamespace"/>
 <item id="adoptNode"/>

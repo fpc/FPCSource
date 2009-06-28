@@ -218,13 +218,6 @@ type
     function getlabelwithsym(sym: tasmlabel): tai;
 
    private
-    { Walks through the list to find the lowest and highest label number, inits the }
-    { labeltable and fixes/optimizes some regallocs                                 }
-     procedure initlabeltable;
-
-    function initdfapass2: boolean;
-    procedure dodfapass2;
-
     { asm list we're working on }
     list: TAsmList;
 
@@ -240,6 +233,13 @@ type
     { all labels in the current block: their value mapped to their location }
     lolab, hilab, labdif: longint;
     labeltable: plabeltable;
+
+    { Walks through the list to find the lowest and highest label number, inits the }
+    { labeltable and fixes/optimizes some regallocs                                 }
+     procedure initlabeltable;
+
+    function initdfapass2: boolean;
+    procedure dodfapass2;
   end;
 
 

@@ -236,6 +236,7 @@ Type
   Published
     Property DaemonClassName : String Read FDaemonClassName Write FDaemonClassName;
     Property Name : String Read FName Write SetName;
+    Property Description : String Read FDescription Write FDescription;
     Property DisplayName : String Read FDisplayName Write FDisplayName;
     Property RunArguments : String Read FRunArgs Write FRunArgs;
     Property Options : TDaemonOptions Read FOptions Write FOptions;
@@ -1141,6 +1142,11 @@ begin
         CheckControlMessage(True);
       CheckControlMessage(False);
       end;
+    end
+  else
+    begin
+    FDaemon.Status:=csStopped;
+    Application.Terminate;
     end;
 end;
 

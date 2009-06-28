@@ -75,6 +75,7 @@ interface
           procedure register_created_object_types;
 
 
+       private
           { inlining support }
           inlinelocals            : TFPObjectList;
           inlineinitstatement,
@@ -1276,7 +1277,6 @@ implementation
         hdef : tdef;
         ptemp : ttempcreatenode;
         usederef : boolean;
-        usevoidpointer : boolean;
       begin
         { Load all complex loads into a temp to prevent
           double calls to a function. We can't simply check for a hp.nodetype=calln }
@@ -1287,33 +1287,22 @@ implementation
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
                       is_shortstring(p.resultdef) or
                       is_object(p.resultdef);
-            { avoid refcount increase }
-            usevoidpointer:=is_interface(p.resultdef);
 
             if usederef then
               hdef:=tpointerdef.create(p.resultdef)
             else
               hdef:=p.resultdef;
 
-            if usevoidpointer then
+            ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
+            if usederef then
               begin
-                ptemp:=ctempcreatenode.create(voidpointertype,voidpointertype.size,tt_persistent,true);
-                loadp:=ctypeconvnode.create_internal(p,voidpointertype);
-                refp:=ctypeconvnode.create_internal(ctemprefnode.create(ptemp),hdef);
+                loadp:=caddrnode.create_internal(p);
+                refp:=cderefnode.create(ctemprefnode.create(ptemp));
               end
             else
               begin
-                ptemp:=ctempcreatenode.create(hdef,hdef.size,tt_persistent,true);
-                if usederef then
-                  begin
-                    loadp:=caddrnode.create_internal(p);
-                    refp:=cderefnode.create(ctemprefnode.create(ptemp));
-                  end
-                else
-                  begin
-                    loadp:=p;
-                    refp:=ctemprefnode.create(ptemp)
-                  end
+                loadp:=p;
+                refp:=ctemprefnode.create(ptemp)
               end;
             add_init_statement(ptemp);
             add_init_statement(cassignmentnode.create(
@@ -2372,7 +2361,7 @@ implementation
                   { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                   ignorevisibility:=(nf_isproperty in flags) or
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
-                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility);
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,not(nf_isproperty in flags));
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are
@@ -2411,9 +2400,7 @@ implementation
                             end
                           else
                             begin
-                              if assigned(left) then
-                               current_filepos:=left.fileinfo;
-                              CGMessage1(parser_e_wrong_parameter_size,symtableprocentry.realname);
+                              CGMessagePos1(fileinfo,parser_e_wrong_parameter_size,symtableprocentry.realname);
                               symtableprocentry.write_parameter_lists(nil);
                             end;
                         end;

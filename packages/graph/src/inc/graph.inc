@@ -466,7 +466,7 @@ var
                     { with predefined line patterns...                 }
                     if LinePatterns[PixelCount and 15] = TRUE then
                       begin
-                    DirectPutPixel(x1,PixelCount);
+                        DirectPutPixel(x1,PixelCount);
                       end;
               end
             else
@@ -590,7 +590,7 @@ var
              begin
                   if LinePatterns[i and 15] = TRUE then
                     begin
-                          DirectPutPixel(x,y);
+                      DirectPutPixel(x,y);
                     end;
              if d < 0 then
                  begin
@@ -843,24 +843,29 @@ var
              Begin
                for j:=0 to 7 do
                     Begin
-                            { x1 mod 8 }
+                    { x1 mod 8 }
                     if RevBitArray[x1 and 7] and TmpFillPattern <> 0 then
-                       DirectPutpixel(x1,y)
+                      begin
+                        OldCurrentColor := CurrentColor;
+                        CurrentColor := FillSettings.Color;
+                        DirectPutpixel(x1,y);
+                        CurrentColor := OldCurrentColor;
+                      end
                     else
                       begin
-                            { According to the TP graph manual, we overwrite everything }
-                            { which is filled up - checked against VGA and CGA drivers  }
-                            { of TP.                                                    }
-                            OldCurrentColor := CurrentColor;
-                            CurrentColor := CurrentBkColor;
-                            DirectPutPixel(x1,y);
-                            CurrentColor := OldCurrentColor;
+                        { According to the TP graph manual, we overwrite everything }
+                        { which is filled up - checked against VGA and CGA drivers  }
+                        { of TP.                                                    }
+                        OldCurrentColor := CurrentColor;
+                        CurrentColor := CurrentBkColor;
+                        DirectPutPixel(x1,y);
+                        CurrentColor := OldCurrentColor;
                       end;
                     Inc(x1);
                     if x1 > x2 then
                      begin
-                           CurrentWriteMode := OldWriteMode;
-                           exit;
+                       CurrentWriteMode := OldWriteMode;
+                       exit;
                      end;
                    end;
              end;
@@ -868,8 +873,6 @@ var
      End;
      CurrentWriteMode := OldWriteMode;
    end;
-
-
 
 
   procedure LineRel(Dx, Dy: smallint);

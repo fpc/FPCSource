@@ -7,9 +7,9 @@ interface
 
 type
   tc = class
-    function t(const s: string): string; virtual;
     pref: string;
     parent: tc;
+    function t(const s: string): string; virtual;
   end;
 
 function test(c: tc): string; inline;

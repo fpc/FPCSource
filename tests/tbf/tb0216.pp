@@ -1,3 +1,5 @@
+{ %fail }
+
 { Old file: tbs0133.pp }
 { object type declaration not 100% compatibile with TP7 }
 

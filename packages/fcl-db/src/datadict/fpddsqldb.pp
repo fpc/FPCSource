@@ -57,6 +57,7 @@ Const
   KeyUserName     = 'User';
   KeyPassword     = 'Password';
   KeyEncode       = 'Trivial';
+  KeyCharset      = 'Charset';
 
 implementation
 
@@ -105,6 +106,7 @@ begin
     FConn.Password:=XorDecode(KeyEncode,L.Values[KeyPassword]);
     FConn.LoginPrompt:=False;
     FConn.Connected:=True;
+    FConn.CharSet:=L.Values[KeyCharset];
     FConnected:=True;
     FConnectString:=AConnectString;
     Result:=True;

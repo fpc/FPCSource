@@ -231,7 +231,7 @@ interface
 
        { tobjectdef }
 
-       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no);
+       tvmcallstatic = (vmcs_default, vmcs_yes, vmcs_no, vmcs_unreachable);
        pmvcallstaticinfo = ^tmvcallstaticinfo;
        tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
        tobjectdef = class(tabstractrecorddef)
@@ -296,9 +296,11 @@ interface
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
+          { WPO }
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
+          procedure register_vmt_call(index:longint);
           procedure make_all_methods_external;
        end;
 
@@ -2385,10 +2387,10 @@ implementation
             exit;
           end;
 
+        result:=cachedelesize*aint(cachedelecount);
         if (ado_IsBitPacked in arrayoptions) then
-          size:=(cachedelesize * aint(cachedelecount) + 7) div 8
-        else
-          result:=cachedelesize*aint(cachedelecount);
+          { can't just add 7 and divide by 8, because that may overflow }
+          result:=result div 8 + ord((result mod 8)<>0);
       end;
 
 
@@ -4316,6 +4318,13 @@ implementation
             maybe_created_in_current_module:=true;
             current_module.wpoinfo.addmaybecreatedbyclassref(self);
           end;
+      end;
+
+
+    procedure tobjectdef.register_vmt_call(index: longint);
+      begin
+        if (is_object(self) or is_class(self)) then
+          current_module.wpoinfo.addcalledvmtentry(self,index);
       end;
 
 

@@ -455,11 +455,13 @@ const
    GDK_SCROLL_MASK              = 1 shl 21;
    GDK_ALL_EVENTS_MASK          = $3FFFFE;
 
-   GDK_WINDOW_STATE_WITHDRAWN = 1 shl 0;
-   GDK_WINDOW_STATE_ICONIFIED = 1 shl 1;
-   GDK_WINDOW_STATE_MAXIMIZED = 1 shl 2;
-   GDK_WINDOW_STATE_STICKY    = 1 shl 3;
-
+   GDK_WINDOW_STATE_WITHDRAWN  = 1 shl 0;
+   GDK_WINDOW_STATE_ICONIFIED  = 1 shl 1;
+   GDK_WINDOW_STATE_MAXIMIZED  = 1 shl 2;
+   GDK_WINDOW_STATE_STICKY     = 1 shl 3;
+   GDK_WINDOW_STATE_FULLSCREEN = 1 shl 4;
+   GDK_WINDOW_STATE_ABOVE      = 1 shl 5;
+   GDK_WINDOW_STATE_BELOW      = 1 shl 6;
 
 function gdk_event_get_type:GType; cdecl; external gdklib;
 function gdk_events_pending:gboolean; cdecl; external gdklib;

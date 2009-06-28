@@ -48,7 +48,7 @@ CPU_UNITS=
 SYSINIT_UNITS=
 
 ifeq ($(ARCH),arm)
-CPU_UNITS=lpc21x4
+CPU_UNITS=lpc21x4 at91sam7x256
 endif
 
 # Paths

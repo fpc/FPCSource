@@ -37,12 +37,13 @@ type
 
     { offset where the frame pointer from the outer procedure is stored. }
     parent_framepointer_offset: longint;
+
+    needs_frame_pointer : boolean;
+
     constructor create(aparent: tprocinfo); override;
     procedure set_first_temp_offset; override;
     function calc_stackframe_size: longint; override;
     function calc_stackframe_size(numgpr, numfpr : longint): longint;
-
-    needs_frame_pointer : boolean;
 
     procedure allocate_got_register(list: TAsmList); override;
   end;

@@ -104,7 +104,9 @@ interface
     type
        tcodepagestring = string[20];
 
-       tsettings = record
+       { this is written to ppus during token recording for generics so it must be packed }
+       tsettings = packed record
+         alignment       : talignmentinfo;
          globalswitches  : tglobalswitches;
          moduleswitches  : tmoduleswitches;
          localswitches   : tlocalswitches;
@@ -119,7 +121,10 @@ interface
            >0: round to this size }
          setalloc,
          packenum        : shortint;
-         alignment       : talignmentinfo;
+
+         packrecords     : shortint;
+         maxfpuregisters : shortint;
+
          cputype,
          optimizecputype : tcputype;
          fputype         : tfputype;
@@ -128,15 +133,14 @@ interface
          defproccall     : tproccalloption;
          sourcecodepage  : tcodepagestring;
 
-         packrecords     : shortint;
-         maxfpuregisters : shortint;
-
          minfpconstprec  : tfloattype;
 
+         disabledircache : boolean;
+
         { CPU targets with microcontroller support can add a controller specific unit }
-{$if defined(ARM)}
+{$if defined(ARM) or defined(AVR)}
         controllertype   : tcontrollertype;
-{$endif defined(ARM)}
+{$endif defined(ARM) or defined(AVR)}
        end;
 
     const
@@ -328,16 +332,6 @@ interface
 
     const
       default_settings : TSettings = (
-        globalswitches : [cs_check_unit_name,cs_link_static];
-        moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable];
-        modeswitches : fpcmodeswitches;
-        optimizerswitches : [];
-        genwpoptimizerswitches : [];
-        dowpoptimizerswitches : [];
-        debugswitches : [];
-        setalloc : 0;
-        packenum : 4;
         alignment : (
           procalign : 0;
           loopalign : 0;
@@ -352,6 +346,21 @@ interface
           recordalignmax : 0;
           maxCrecordalign : 0;
         );
+        globalswitches : [cs_check_unit_name,cs_link_static];
+        moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
+        localswitches : [cs_check_io,cs_typed_const_writable];
+        modeswitches : fpcmodeswitches;
+        optimizerswitches : [];
+        genwpoptimizerswitches : [];
+        dowpoptimizerswitches : [];
+        debugswitches : [];
+
+        setalloc : 0;
+        packenum : 4;
+
+        packrecords     : 0;
+        maxfpuregisters : 0;
+
 {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
@@ -396,9 +405,9 @@ interface
         interfacetype : it_interfacecom;
         defproccall : pocall_default;
         sourcecodepage : '8859-1';
-        packrecords     : 0;
-        maxfpuregisters : 0;
         minfpconstprec : s32real;
+
+        disabledircache : false;
 {$if defined(ARM)}
         controllertype : ct_none;
 {$endif defined(ARM)}
