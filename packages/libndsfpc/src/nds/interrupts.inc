@@ -41,8 +41,7 @@
 
 {$ifdef NDS_INTERFACE}
 type
-  IRQ_MASKS = cuint;
-  IRQ_MASK = IRQ_MASKS;
+  IRQ_MASK = cuint;
 const
   IRQ_VBLANK			    : IRQ_MASK =	(1 shl 0);		(* vertical blank interrupt mask *)
   IRQ_HBLANK			    : IRQ_MASK =	(1 shl 1);		(* horizontal blank interrupt mask *)
@@ -67,7 +66,10 @@ const
   IRQ_LID				      : IRQ_MASK =	(1 shl 22);	  (* interrupt mask *)
   IRQ_SPI				      : IRQ_MASK =	(1 shl 23);	  (* SPI interrupt mask *)
   IRQ_WIFI			      : IRQ_MASK =	(1 shl 24);	  (* WIFI interrupt mask (ARM7)*)
-  IRQ_ALL				      : IRQ_MASK =	 $FFFFFF {not 0};
+  IRQ_ALL				      : IRQ_MASK =	(not 0);      //$FFFFFF ?
+
+
+function IRQ_TIMER(n: cint): cint; inline;
 
 const
   MAX_INTERRUPTS  = 25;
@@ -121,3 +123,13 @@ procedure irqInitHandler(handler: pointer); cdecl; external;
 procedure irqEnable(irq: cuint32); cdecl; external;
 procedure irqDisable(irq: cuint32); cdecl; external;
 {$endif NDS_INTERFACE}
+
+{$ifdef NDS_IMPLEMENTATION}
+
+function IRQ_TIMER(n: cint): cint; inline;
+begin
+  result := (1 shl (n + 3));
+end;
+
+{$endif NDS_IMPLEMENTATION}
+

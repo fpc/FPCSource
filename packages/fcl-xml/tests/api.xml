@@ -5,20 +5,32 @@
   This is used by testgen program to convert w3.org XML test descriptions into 
   fpcUnit-compatible Pascal code.
  -->
-<!DOCTYPE api [
+<!DOCTYPE test-data [
+<!ELEMENT test-data (blacklist*, uses*, api)>
 <!ELEMENT api (item)+ >
 <!ELEMENT item (arg*)>
 <!ELEMENT arg (#PCDATA)>
+<!ELEMENT blacklist (#PCDATA)>
+<!ELEMENT uses EMPTY>
 <!ATTLIST item
   id ID #REQUIRED
-  type (func|prop|method) "func"
+  type (func|prop|method|defprop) "func"
   result CDATA #IMPLIED
   objtype CDATA #IMPLIED
   rename CDATA #IMPLIED
   gc (yes|no) #IMPLIED>
 <!ATTLIST arg
   type CDATA #IMPLIED>
-]>
+<!ATTLIST uses
+  pattern CDATA #REQUIRED
+  unit CDATA #REQUIRED>
+]>  
+<test-data>
+<blacklist>HTMLCollection04</blacklist>
+<blacklist>HTMLTableElement21</blacklist>
+<blacklist>HTMLTableElement24</blacklist>
+<uses pattern="/html" unit="dom_html"/>
+<uses pattern="/xpath" unit="xpath"/>
 <api>
 <item id="createDocumentFragment"/>
 <item id="createTextNode">
@@ -77,11 +89,9 @@
 <item id="publicId" type="prop"/> <!-- settable for DOM lvl 3 LSInput -->
 <item id="systemId" type="prop"/>
 <item id="notationName"/>
-<!-- Handled separately because our DOM has it as a default property, not a function
-<item id="item" result="Node">
+<item id="item" result="Node" type="defprop">
   <arg>index</arg>
 </item>
--->
 <item id="getNamedItem" result="Node">
   <arg>name</arg>
 </item>
@@ -143,10 +153,10 @@
 <item id="cloneNode" result="Node">
   <arg>deep</arg>
 </item>
-<item id="getElementsByTagName" gc="yes">
+<item id="getElementsByTagName">
   <arg>tagname</arg>
 </item>
-<item id="childNodes" gc="yes"/>
+<item id="childNodes"/>
 
 <item id="value" type="prop"/>
 <item id="nodeValue" type="prop"/>
@@ -230,7 +240,7 @@
   <arg>namespaceURI</arg>
   <arg>localName</arg>
 </item>
-<item id="getElementsByTagNameNS" gc="yes">
+<item id="getElementsByTagNameNS">
   <arg>namespaceURI</arg>
   <arg>localName</arg>
 </item>
@@ -693,3 +703,4 @@
 
 
 </api>
+</test-data>

@@ -95,13 +95,13 @@ procedure rtcReset(); cdecl; external;
 procedure rtcTransaction(command: pcuint8; commandLength: cuint32; result: pcuint8; resultLength: cuint32); cdecl; external;
 procedure rtcGetTime(time: pcuint8); cdecl; external;
 procedure rtcSetTime(time: pcuint8); cdecl; external;
-procedure rtcGetData(data: pcuint8; size: cuint32); cdecl; external;
 
 procedure rtcGetTimeAndDate(time: pcuint8); cdecl; external;
 procedure rtcSetTimeAndDate(time: pcuint8); cdecl; external;
 
-procedure BCDToInteger(data: pcuint8; length: cuint32); cdecl; external;
-procedure integerToBCD(data: pcuint8; length: uint32); cdecl; external;
+procedure rtcGetData(var data: cuint8; size: cuint32); cdecl; external;
+procedure BCDToInteger(var data: cuint8; length: cuint32); cdecl; external;
+procedure integerToBCD(var data: cuint8; length: cuint32); cdecl; external;
 
 procedure initClockIRQ(); cdecl; external;
 {$endif NDS_INTERFACE}

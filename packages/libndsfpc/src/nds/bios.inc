@@ -75,7 +75,7 @@ procedure swiWaitForVBlank(); cdecl; external;
 
 function swiDivide(numerator, divisor: cint): cint; cdecl; external;
 function swiRemainder(numerator, divisor: cint): cint; cdecl; external;
-procedure swiDivMod(numerator, divisor: cint; result, remainder: pcint); cdecl; external;
+procedure swiDivMod(numerator, divisor: cint; var result, remainder: cint); cdecl; external;
 
 const
   COPY_MODE_HWORD = (0);
@@ -101,25 +101,23 @@ function swiDecompressHuffman(source, destination: pointer; toGetSize: cuint32; 
 
 procedure swiDecompressRLEWram(source, destination: pointer); cdecl; external;
 function swiDecompressRLEVram(source, destination: pointer; toGetSize: cuint32; stream: PDecompressionStream): cint; cdecl; external;
-{$endif NDS_INTERFACE}
 
-
-{$ifdef NDS_INTERFACE}
 {$ifdef ARM9}
-procedure swiWaitForIRQ(); cdecl; external;
-procedure swiSetHaltCR(data: cuint32); cdecl; external;
-procedure swiDecodeDelta8(source, destination: pointer); cdecl; external;
-procedure swiDecodeDelta16(source, destination: pointer); cdecl; external;
+  procedure swiWaitForIRQ(); cdecl; external;
+  procedure swiSetHaltCR(data: cuint32); cdecl; external;
+  procedure swiDecodeDelta8(source, destination: pointer); cdecl; external;
+  procedure swiDecodeDelta16(source, destination: pointer); cdecl; external;
 {$endif ARM9}
 
 {$ifdef ARM7}
-procedure swiHalt(); cdecl; external;
-procedure swiSleep(); cdecl; external;
-procedure swiSwitchToGBAMode(); cdecl; external;
-procedure swiSetHaltCR(data: cuint8); cdecl; external;
-function swiGetSineTable(index: cint): cuint16; cdecl; external;
-function swiGetPitchTable(index: cint): cuint16; cdecl; external;
-function swiGetVolumeTable(index: cint): cuint8; cdecl; external;
-procedure swiChangeSoundBias(enabled, delay: cint); cdecl; external;
+  procedure swiHalt(); cdecl; external;
+  procedure swiSleep(); cdecl; external;
+  procedure swiSwitchToGBAMode(); cdecl; external;
+  procedure swiSetHaltCR(data: cuint8); cdecl; external;
+  function swiGetSineTable(index: cint): cuint16; cdecl; external;
+  function swiGetPitchTable(index: cint): cuint16; cdecl; external;
+  function swiGetVolumeTable(index: cint): cuint8; cdecl; external;
+  procedure swiChangeSoundBias(enabled, delay: cint); cdecl; external;
 {$endif ARM7}
+
 {$endif NDS_INTERFACE}

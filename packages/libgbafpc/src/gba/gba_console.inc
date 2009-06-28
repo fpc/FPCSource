@@ -37,65 +37,62 @@
 *)
 
 {$ifdef GBA_INTERFACE}
-(*
-function CON_CLS(): string; inline;
-function CON_POS(_x, _y: integer): string; inline;
-function CON_UP(_dy: integer): string; inline;
-function CON_DOWN(_dy: integer): string; inline;
-function CON_RIGHT(_dx: integer): string; inline;
-function CON_LEFT(_dx: integer): string; inline;
-function CON_ERASE(): string; inline;
-procedure CON_CLL(_y: integer); inline;
-*)
+// Make console interaction a little less eye-crossing
 
-procedure consoleInit(charBase, mapBase, background: integer; 
-					const font: pu8; fontsize, palette: integer); cdecl; external;
+function CON_CLS(): pchar; inline;
+function CON_ERASE(): pchar; inline;
+function CON_POS(_x, _y: cint): pchar; inline;
+function CON_UP(_dy: cint): pchar; inline;
+function CON_DOWN(_dy: cint): pchar; inline;
+function CON_RIGHT(_dx: cint): pchar; inline;
+function CON_LEFT(_dx: cint): pchar; inline;
+function CON_CLL(_y: cint): pchar; inline;
 
+procedure consoleInit(charBase, mapBase, background: cint;
+					const font: pcuint8; fontsize, palette: cint); cdecl; external;
+procedure consoleDemoInit(); cdecl; external;
 
 {$endif GBA_INTERFACE}
 
 
 {$ifdef GBA_IMPLEMENTATION}
-(*
-function CON_CLS(): string; inline;
+function CON_CLS(): pchar; inline;
 begin
-  CON_CLS := #51'[2J';
-end;
-  
-function CON_POS(_x, _y: integer): string; inline;
-begin
-  CON_POS := format(#51'[%i;%iH', [_y, _x]);
-end;
-  
-function CON_UP(_dy: integer): string; inline;
-begin
-  CON_UP := format(#51'[%iA', [_dy]);	 
+ CON_CLS := #27'[2J';
 end;
 
-function CON_DOWN(_dy: integer): string; inline;
+function CON_ERASE(): pchar; inline;
 begin
-  CON_DOWN := format(#51'[%iB', [_dy]);	 
+  CON_ERASE := #27'[K';
 end;
 
-function CON_RIGHT(_dx: integer): string; inline;
+function CON_POS(_x, _y: cint): pchar; inline;
 begin
-  CON_RIGHT := format(#51'[%iC', [_dx]);	 
+  CON_POS := pchar(#27'[' + (GBAIntToStr(_y)) +';' + (GBAIntToStr(_x)) +  'H');
 end;
 
-function CON_LEFT(_dx: integer): string; inline;
+function CON_UP(_dy: cint): pchar; inline;
 begin
-  CON_LEFT := format(#51'[%iD', [_dx]);
-end;	 
-
-function CON_ERASE(): string; inline;
-begin
-  CON_ERASE := #51'[K';	 
+  CON_UP := pchar(#27'[' + GBAIntToStr(_dy) +'A');
 end;
 
-procedure CON_CLL(_y: integer); inline;
+function CON_DOWN(_dy: cint): pchar; inline;
 begin
-  CON_POS(1,_y); 
-  CON_ERASE();
+	CON_DOWN := pchar(#27'[' + GBAIntToStr(_dy) + 'B');
 end;
-*)
+
+function CON_RIGHT(_dx: cint): pchar; inline;
+begin
+  CON_RIGHT := pchar(#27'[' + GBAIntToStr(_dx) + 'C');
+end;
+
+function CON_LEFT(_dx: cint): pchar; inline;
+begin
+  CON_LEFT := pchar(#27'[' + GBAIntToStr(_dx) + 'D');
+end;
+
+function CON_CLL(_y: cint): pchar; inline;
+begin
+  CON_CLL := pchar(concat(CON_POS(1, _y), CON_ERASE()));
+end;
 {$endif GBA_IMPLEMENTATION}

@@ -613,7 +613,7 @@ var
   i: integer;
 begin
   if FFreeObjects then
-    for i := 0 to FList.Count - 1 do
+    for i := FList.Count-1 downto 0  do
       TObject(FList[i]).Free;
   FList.Clear;
 end;

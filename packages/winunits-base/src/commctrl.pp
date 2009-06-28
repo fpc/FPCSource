@@ -59,12 +59,15 @@ CONST CommCtrlDLL = 'comctl32.dll';
 {$DEFINE IE3PLUS}
 {$DEFINE IE4PLUS}
 {$define IE5plus}
-{$define WIN32XP}
+{$define WIN32XP} 
+{$define win32vista} // till WC_STATICA
 {$define ie501plus}
-
 {$ifdef win32}
   {$define _win32}
 {$endif win32}
+{$define ie6plus}
+{$define ntddi_vista}
+{$define NTDDI_WIN7}
 
 {$ifdef win64}
   {$define _win32}
@@ -103,6 +106,26 @@ CONST CommCtrlDLL = 'comctl32.dll';
 //    NOSCROLLBAR  Scrollbar control.
 //
 //=============================================================================
+// Moved items due to forward defining limitations
+
+Const
+         MAX_LINKID_TEXT                = 48;
+         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
+Type
+         tagLITEM             = Record
+                                 mask         : UINT;
+                                 iLink        : cint;
+                                 state        : UINT;
+                                 stateMask    : UINT;
+                                 szID         : Array [0..MAX_LINKID_TEXT-1] OF WCHAR;
+                                 szUrl        : Array [0..L_MAX_URL_LENGTH-1] OF WCHAR;
+                                 END;
+         LITEM                = tagLITEM;
+         PLITEM               = ^tagLITEM;
+         TLITEM               = tagLITEM;
+//         PLITEM               = ^tagLITEM;
+
+
 
 // include <prsht.h>
 
@@ -223,6 +246,10 @@ CONST
          BCN_LAST                       = (0-1350);
 {$ENDIF}
 
+{$ifdef win32vista}
+	 TRBN_FIRST              	= cardinal(0-1501);       // trackbar
+	 TRBN_LAST               	= cardinal(0-1519);
+{$endif}
          MSGF_COMMCTRL_BEGINDRAG        = $4200;
          MSGF_COMMCTRL_SIZEHEADER       = $4201;
          MSGF_COMMCTRL_DRAGSELECT       = $4202;
@@ -237,7 +264,7 @@ CONST
 
 {$ifdef ie4plus}
          PGM_FIRST                      = $1400;              // Pager control messages
-{$ifdef win32xp}
+{$ifdef win32xp}// actually 0x501=2003 or some sp?
          ECM_FIRST                      = $1500;              // Edit control messages
          BCM_FIRST                      = $1600;              // Button control messages
          CBM_FIRST                      = $1700;              // Combobox control messages
@@ -267,7 +294,7 @@ CONST
          CCM_GETUNICODEFORMAT           = (CCM_FIRST + 6);
 
 {$ifdef ie5plus}
-{$ifdef win32xp}
+{$ifdef win32xp} 
          COMCTL32_VERSION               = 6;
 {$ELSE}
          COMCTL32_VERSION               = 5;
@@ -328,6 +355,11 @@ CONST
          NM_RDOWN                       = (NM_FIRST-21);
          NM_THEMECHANGED                = (NM_FIRST-22);
 {$ENDIF}
+{$ifdef win32vista}
+	 NM_FONTCHANGED                  = (NM_FIRST-23);
+	 NM_CUSTOMTEXT                   = (NM_FIRST-24);   // uses NMCUSTOMTEXT struct
+	 NM_TVSTATEIMAGECHANGING         = (NM_FIRST-24);   // uses NMTVSTATEIMAGECHANGING struct, defined after HTREEITEM
+{$endif}
 
 {$IFNDEF CCSIZEOF_STRUCT}
 
@@ -415,7 +447,22 @@ Type
          TNMCHAR              = tagNMCHAR;
          PNMCHAR              = ^tagNMCHAR;
 
+{$ifdef win32vista}
+         tagNMCUSTOMTEXT      = Record
+			         hdr      : NMHDR;
+				 hDC      : HDC;
+                                 lpString : LPCWSTR;
+			         nCount   : cint;
+			         lpRect   : LPRECT; 
+			         uFormat  : UINT;
+			         fLink    : bool;
+				end;
 
+         NMCUSTOMTEXT 		= tagNMCUSTOMTEXT;
+	 LPNMCUSTOMTEXT 	= ^tagNMCUSTOMTEXT;
+	 TNMCUSTOMTEXT 		= tagNMCUSTOMTEXT;
+	 PNMCUSTOMTEXT 		= LPNMCUSTOMTEXT;
+{$endif}
 {$ENDIF}           // _WIN32_IE >= 0x0400
 
 
@@ -470,6 +517,11 @@ CONST
 {$ifdef win32xp}
          CDIS_SHOWKEYBOARDCUES          = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 CDIS_NEARHOT            	= $0400;
+	 CDIS_OTHERSIDEHOT       	= $0800;
+	 CDIS_DROPHILITED        	= $1000;
+{$endif}
 
 TYPE
 
@@ -562,6 +614,10 @@ CONST
          ILC_MIRROR                     = $00002000;          // Mirror the icons contained, if the process is mirrored
          ILC_PERITEMMIRROR              = $00008000;          // Causes the mirroring code to mirror each item when inserting a set of images, verses the whole strip
 {$ENDIF}
+{$ifdef win32vista}
+         ILC_ORIGINALSIZE        	= $00010000;      // Imagelist should accept smaller than set images and apply OriginalSize based on image added
+         ILC_HIGHQUALITYSCALE    	= $00020000;      // Imagelist should enable use of the high quality scaler.
+{$endif}
 
 function ImageList_Create(cx:cint;cy:cint;flags:UINT;cInitial:cint;cGrow:cint):HIMAGELIST; stdcall; external commctrldll name 'ImageList_Create';
 function ImageList_Destroy(himl:HIMAGELIST):BOOL; stdcall; external commctrldll name 'ImageList_Destroy';
@@ -600,6 +656,9 @@ CONST
          ILD_PRESERVEALPHA              = $00001000;          // This preserves the alpha channel in dest
          ILD_SCALE                      = $00002000;          // Causes the image to be scaled to cx, cy instead of clipped
          ILD_DPISCALE                   = $00004000;
+{$ifdef win32vista}
+	 ILD_ASYNC               	= $00008000;
+{$endif}
 
          ILD_SELECTED                   = ILD_BLEND50;
          ILD_FOCUS                      = ILD_BLEND25;
@@ -612,11 +671,20 @@ CONST
          ILS_SATURATE                   = $00000004;
          ILS_ALPHA                      = $00000008;
 
+{$ifdef win32vista}
+         ILGT_NORMAL             	= $00000000;
+	 ILGT_ASYNC              	= $00000001;
+{$endif}
+
 function ImageList_Draw(himl:HIMAGELIST;i:cint;hdcDst:HDC;x:cint;y:cint;fStyle:UINT):BOOL; stdcall; external commctrldll name 'ImageList_Draw';
 
 
 {$IFDEF _WIN32}
 
+{$ifdef win32vista}
+const 
+  HBITMAP_CALLBACK               =HBITMAP(-1);       // only for SparseImageList
+{$endif}
 function ImageList_Replace(himl:HIMAGELIST;i:cint;hbmImage:HBITMAP;hbmMask:HBITMAP):BOOL; stdcall; external commctrldll name 'ImageList_Replace';
 
 function ImageList_AddMasked(himl:HIMAGELIST;hbmImage:HBITMAP;crMask:COLORREF):cint; stdcall; external commctrldll name 'ImageList_AddMasked';
@@ -761,6 +829,11 @@ CONST
 {$ifdef win32xp}
          HDS_FLAT                       = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+         HDS_CHECKBOXES          	= $0400;
+	 HDS_NOSIZING            	= $0800;
+	 HDS_OVERFLOW            	= $1000;
+{$endif}
 // end_r_commctrl
 
 {$ifdef ie5plus}
@@ -826,6 +899,9 @@ TYPE
                                  _type        : UINT;          // [in] filter type (defined what pvFilter is a pointer to)
                                  pvFilter     : Pointer;       // [in] fillter data see above
 {$ENDIF}
+{$ifdef win32vista}
+			         state	      : UINT;
+{$endif}
                                  END;
          HDITEMA              = _HD_ITEMA;
          pHDITEMA             = ^_HD_ITEMA;
@@ -857,6 +933,9 @@ TYPE
                                  _type        : UINT;          // [in] filter type (defined what pvFilter is a pointer to)
                                  pvFilter     : Pointer;       // [in] fillter data see above
 {$ENDIF}
+{$ifdef win32vista}
+			         state	      : UINT;
+{$endif}
                                  END;
          HDITEMW              = _HD_ITEMW;
          pHDITEMW             = ^_HD_ITEMW;
@@ -896,6 +975,9 @@ CONST
 {$ifdef ie5plus}
          HDI_FILTER                     = $0100;
 {$ENDIF}
+{$ifdef win32vista}
+	HDI_STATE               	= $0200;
+{$endif}
 
          HDF_LEFT                       = $0000;
          HDF_RIGHT                      = $0001;
@@ -915,6 +997,17 @@ CONST
          HDF_SORTUP                     = $0400;
          HDF_SORTDOWN                   = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 HDF_CHECKBOX            	= $0040;
+	 HDF_CHECKED             	= $0080;
+	 HDF_FIXEDWIDTH          	= $0100; // Can't resize the column; same as LVCFMT_FIXED_WIDTH
+	 HDF_SPLITBUTTON      		= $1000000; // Column is a split button; same as LVCFMT_SPLITBUTTON
+{$endif}
+
+{$ifdef win32vista}
+	 HDIS_FOCUSED            	= $00000001;
+{$endif}
+
 
          HDM_GETITEMCOUNT               = (HDM_FIRST + 0);
 
@@ -1005,7 +1098,11 @@ CONST
          HHT_BELOW                      = $0200;
          HHT_TORIGHT                    = $0400;
          HHT_TOLEFT                     = $0800;
-
+{$ifdef win32vista}
+	 HHT_ONITEMSTATEICON     	= $1000;
+	 HHT_ONDROPDOWN          	= $2000;
+	 HHT_ONOVERFLOW          	= $4000;
+{$endif}
 
 TYPE
          _HD_HITTESTINFO      = Record
@@ -1150,6 +1247,22 @@ Function Header_ClearAllFilters( hwnd : hwnd):cint;
 
 {$ENDIF}
 
+{$ifdef win32vista}
+//  HDM_TRANSLATEACCELERATOR    = CCM_TRANSLATEACCELERATOR; // CCM_* not defined anywhere yet in w7 sdk
+
+const
+   HDM_GETITEMDROPDOWNRECT = (HDM_FIRST+25);
+   HDM_GETOVERFLOWRECT     = (HDM_FIRST+26);
+   HDM_GETFOCUSEDITEM      = (HDM_FIRST+27);
+   HDM_SETFOCUSEDITEM      = (HDM_FIRST+28);
+
+// macro 37a through 37d
+function Header_GetItemDropDownRect(hwnd : hwnd;iItem:cint; lprc:lprect):bool;
+function Header_GetOverflowRect( hwnd : hwnd; lprc:lprect):bool;
+function Header_GetFocusedItem (hwnd : hwnd):cint;
+function Header_SetFocusedItem (hwnd:hwnd; iItem:cint):BOOL;
+{$endif}
+
 CONST
          HDN_ITEMCHANGINGA              = (HDN_FIRST-0);
          HDN_ITEMCHANGINGW              = (HDN_FIRST-20);
@@ -1177,6 +1290,15 @@ CONST
          HDN_FILTERCHANGE               = (HDN_FIRST-12);
          HDN_FILTERBTNCLICK             = (HDN_FIRST-13);
 {$ENDIF}
+{$ifdef win32vista}
+         HDN_BEGINFILTEREDIT            = (HDN_FIRST-14);
+         HDN_ENDFILTEREDIT              = (HDN_FIRST-15);
+
+         HDN_ITEMSTATEICONCLICK         = (HDN_FIRST-16);
+         HDN_ITEMKEYDOWN                = (HDN_FIRST-17);
+         HDN_DROPDOWN                   = (HDN_FIRST-18);
+         HDN_OVERFLOWCLICK              = (HDN_FIRST-19);
+{$endif}
 
 {$IFDEF UNICODE}
          HDN_ITEMCHANGING               = HDN_ITEMCHANGINGW;
@@ -1479,6 +1601,9 @@ CONST
          TBCDRF_BLENDICON               = $00200000;          // Use ILD_BLEND50 on the icon image
          TBCDRF_NOBACKGROUND            = $00400000;          // Use ILD_BLEND50 on the icon image
 {$ENDIF}
+{$ifdef win32vista}
+	 TBCDRF_USECDCOLORS          	= $00800000;  // Use CustomDrawColors to RenderText regardless of VisualStyle
+{$endif}
 
 CONST
          TB_ENABLEBUTTON                = (WM_USER + 1);
@@ -1526,6 +1651,12 @@ CONST
          IDB_HIST_SMALL_COLOR           = 8;
          IDB_HIST_LARGE_COLOR           = 9;
 {$ENDIF}
+{$ifdef win32vista}
+         IDB_HIST_NORMAL                = 12;
+         IDB_HIST_HOT                   = 13;
+         IDB_HIST_DISABLED              = 14;
+         IDB_HIST_PRESSED               = 15;
+{$endif}
 
 // icon indexes for standard bitmap
 
@@ -1889,6 +2020,10 @@ CONST
          TB_SETMETRICS                  = (WM_USER + 102);
 {$ENDIF}
 
+{$ifdef win32vista}
+         TB_SETPRESSEDIMAGELIST         = (WM_USER + 104);
+         TB_GETPRESSEDIMAGELIST         = (WM_USER + 105);
+{$endif}
 
 {$ifdef win32xp}
          TB_SETWINDOWTHEME              = CCM_SETWINDOWTHEME;
@@ -2266,6 +2401,10 @@ CONST
          RBBIM_LPARAM                   = $00000400;
          RBBIM_HEADERSIZE               = $00000800;          // control the size of the header
 {$ENDIF}
+{$ifdef win32vista}
+	 RBBIM_CHEVRONLOCATION 		= $00001000;
+	 RBBIM_CHEVRONSTATE    		= $00002000;
+{$endif}
 
 TYPE
 
@@ -2292,6 +2431,10 @@ TYPE
                                  lParam       : LPARAM;
                                  cxHeader     : UINT;
 {$ENDIF}
+{$ifdef win32vista}
+			         rcChevronLocation : RECT;  // the rect is in client co-ord wrt hwndChild
+    			         uChevronState     : cUINT;      // STATE_SYSTEM_*
+{$endif}
                                  END;
          REBARBANDINFOA       = tagREBARBANDINFOA;
          LPREBARBANDINFOA     = ^tagREBARBANDINFOA;
@@ -2326,6 +2469,11 @@ TYPE
                                  lParam       : LPARAM;
                                  cxHeader     : UINT;
 {$ENDIF}
+{$ifdef win32vista}
+			         rcChevronLocation : RECT;  // the rect is in client co-ord wrt hwndChild
+    			         uChevronState     : cUINT;      // STATE_SYSTEM_*
+{$endif}
+
                                  END;
          REBARBANDINFOW       = tagREBARBANDINFOW;
          LPREBARBANDINFOW     = ^tagREBARBANDINFOW;
@@ -2442,10 +2590,18 @@ CONST
          RB_GETBANDMARGINS              = (WM_USER + 40);
          RB_SETWINDOWTHEME              = CCM_SETWINDOWTHEME;
 {$ENDIF}
+{$ifdef win32vista}
+	 RB_SETEXTENDEDSTYLE 		= (WM_USER + 41);
+	 RB_GETEXTENDEDSTYLE 		= (WM_USER + 42);
+{$endif}
 
 {$ifdef ie5plus}
          RB_PUSHCHEVRON                 = (WM_USER + 43);
 {$ENDIF}      // _WIN32_IE >= 0x0500
+
+{$ifdef win32vista}
+	 RB_SETBANDWIDTH     		= (WM_USER + 44);   // set width for docked band
+{$endif}
 
          RBN_HEIGHTCHANGE               = (RBN_FIRST - 0);
 
@@ -2462,7 +2618,9 @@ CONST
 {$ifdef ie5plus}
          RBN_CHEVRONPUSHED              = (RBN_FIRST - 10);
 {$ENDIF}      // _WIN32_IE >= 0x0500
-
+{$ifdef win32vista}
+ 	 RBN_SPLITTERDRAG    		= (RBN_FIRST - 11);
+{$endif}
 
 {$ifdef ie5plus}
          RBN_MINMAX                     = (RBN_FIRST - 21);
@@ -2536,6 +2694,16 @@ TYPE
          PNMREBARCHEVRON      = ^tagNMREBARCHEVRON;
 
 {$ENDIF}
+{$ifdef win32vista}
+	tagNMREBARSPLITTER    = record
+				 hdr:      NMHDR;
+				 rcSizing: RECT;
+				 end;
+	NMREBARSPLITTER       = tagNMREBARSPLITTER;
+	LPNMREBARSPLITTER     = ^tagNMREBARSPLITTER;
+	TNMREBARSPLITTER      = tagNMREBARSPLITTER;
+	PNMREBARSPLITTER      = LPNMREBARSPLITTER;
+{$endif}
 
 {$ifdef Win32XP}
 CONST
@@ -2568,6 +2736,9 @@ CONST
 {$ifdef ie5plus}
          RBHT_CHEVRON                   = $0008;
 {$ENDIF}
+{$ifdef win32vista}
+	 RBHT_SPLITTER   		= $0010;
+{$endif}
 
 TYPE
          _RB_HITTESTINFO      = Record
@@ -2709,6 +2880,9 @@ CONST
          TTS_BALLOON                    = $40;
          TTS_CLOSE                      = $80;
 {$ENDIF}
+{$ifdef win32vista}
+	 TTS_USEVISUALSTYLE      	= $100;  // Use themed hyperlinks
+{$endif}
 
 // end_r_commctrl
 
@@ -2744,6 +2918,11 @@ CONST
          TTI_INFO                       = 1;
          TTI_WARNING                    = 2;
          TTI_ERROR                      = 3;
+{$ifdef win32vista}
+	 TTI_INFO_LARGE          	= 4;
+	 TTI_WARNING_LARGE       	= 5;
+	 TTI_ERROR_LARGE         	= 6;
+{$endif}
 
 // Tool Tip Messages
          TTM_ACTIVATE                   = (WM_USER + 1);
@@ -3158,6 +3337,12 @@ CONST
 {$ifdef ie501plus}
          TBS_DOWNISLEFT                 = $0400;              // Down=Left and Up=Right (default is Down=Right and Up=Left)
 {$ENDIF}
+{$ifdef win32vista}
+	 TBS_NOTIFYBEFOREMOVE    	= $0800;  // Trackbar should notify parent before repositioning the slider due to user action (enables snapping)
+{$endif}
+{$ifdef NTDDI_VISTA}
+	 TBS_TRANSPARENTBKGND    	= $1000;  // Background is painted by the parent via WM_PRINTCLIENT
+{$endif}
 
 // end_r_commctrl
 
@@ -3225,7 +3410,9 @@ CONST
          TBCD_THUMB                     = $0002;
          TBCD_CHANNEL                   = $0003;
 {$ENDIF}
-
+{$ifdef win32vista}
+	 TRBN_THUMBPOSCHANGING       	= (TRBN_FIRST-1);
+{$endif}
 {$ENDIF} // trackbar
 
 //====== DRAG LIST CONTROL ====================================================
@@ -3418,6 +3605,30 @@ CONST
          PBM_SETBKCOLOR                 = CCM_SETBKCOLOR;     // lParam = bkColor
 {$ENDIF}      // _WIN32_IE >= 0x0300
 
+{$ifdef win32xp}  //_WIN32_WINNT >= 0x0501
+         PBS_MARQUEE                    = $08;
+         PBM_SETMARQUEE                 = (WM_USER+10);
+{$endif} //_WIN32_WINNT >= 0x0501
+
+{$ifdef win32vista}
+	 PBS_SMOOTHREVERSE       = $10;
+{$endif}
+
+{$ifdef win32vista}
+
+ PBM_GETSTEP             = (WM_USER+13);
+ PBM_GETBKCOLOR          = (WM_USER+14);
+ PBM_GETBARCOLOR         = (WM_USER+15);
+ PBM_SETSTATE            = (WM_USER+16); // wParam = PBST_[State] (NORMAL, ERROR, PAUSED)
+ PBM_GETSTATE            = (WM_USER+17);
+
+ PBST_NORMAL             = $0001;
+ PBST_ERROR              = $0002;
+ PBST_PAUSED             = $0003;
+{$endif}
+
+// end_r_commctrl
+
 
 {$ENDIF}  // NOPROGRESS
 
@@ -3564,7 +3775,7 @@ CONST
          LVSIL_NORMAL                   = 0;
          LVSIL_SMALL                    = 1;
          LVSIL_STATE                    = 2;
-
+	 LVSIL_GROUPHEADER       	= 3;
          LVM_SETIMAGELIST               = (LVM_FIRST + 3);
 
 // Macro 43
@@ -3589,6 +3800,9 @@ CONST
          LVIF_GROUPID                   = $0100;
          LVIF_COLUMNS                   = $0200;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVIF_COLFMT                    = $00010000; // The piColFmt member is valid in addition to puColumns
+{$endif}
 
          LVIS_FOCUSED                   = $0001;
          LVIS_SELECTED                  = $0002;
@@ -3639,6 +3853,10 @@ TYPE
                                  cColumns     : UINT;          // tile view columns
                                  puColumns    : PUINT;
 {$ENDIF}
+{$ifdef win32vista}
+				 piColFmt : pcint;
+				 iGroup   : cint; // readonly. only valid for owner data.
+{$endif}
                                  END;
          LVITEMA              = tagLVITEMA;
          LPLVITEMA            = ^tagLVITEMA;
@@ -3664,6 +3882,10 @@ TYPE
                                  cColumns     : UINT;          // tile view columns
                                  puColumns    : PUINT;
 {$ENDIF}
+{$ifdef win32vista}
+				 piColFmt : pcint;
+				 iGroup   : cint; // readonly. only valid for owner data.
+{$endif}
                                  END;
 
          LVITEMW              = tagLVITEMW;
@@ -3700,7 +3922,8 @@ Type
          LV_ITEM                        = LVITEM;
          TLVItem                        = LVITEM;
          PLVItem                        = LPLVITEM;
-
+         TLV_ITEM                       = LVITEM;
+         PLV_ITEM                       = PLVITEM;
 CONST
          LPSTR_TEXTCALLBACKW = LPWSTR(-1);
          LPSTR_TEXTCALLBACKA = LPSTR (-1);
@@ -3933,6 +4156,10 @@ TYPE
 {$ifdef ie3plus}
                                  iSubItem     : cint;          // this is was NOT in win95.  valid only for LVM_SUBITEMHITTEST
 {$ENDIF}
+{$ifdef win32vista}
+				 iGroup       : cint;  // readonly. index of group. only valid for owner data.
+				                       // supports single item in multiple groups.
+{$endif}
                                  END;
          LVHITTESTINFO        = tagLVHITTESTINFO;
          LPLVHITTESTINFO      = ^tagLVHITTESTINFO;
@@ -4021,6 +4248,11 @@ TYPE
                                  iImage       : cint;
                                  iOrder       : cint;
 {$ENDIF}
+{$ifdef win32vista}
+		 		 cxmin 	      : cint; // min snap point
+				 cxDefault    : cint;   // default snap point
+				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+{$endif}
                                  END;
          LVCOLUMNA            = tagLVCOLUMNA;
          LPLVCOLUMNA          = ^tagLVCOLUMNA;
@@ -4039,6 +4271,11 @@ TYPE
                                  iImage       : cint;
                                  iOrder       : cint;
 {$ENDIF}
+{$ifdef win32vista}
+		 		 cxmin 	      : cint; // min snap point
+				 cxDefault    : cint;   // default snap point
+				 cxIdeal      : cint;     // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+{$endif}
                                  END;
          LVCOLUMNW            = tagLVCOLUMNW;
          LPLVCOLUMNW          = ^tagLVCOLUMNW;
@@ -4080,6 +4317,11 @@ CONST
          LVCF_IMAGE                     = $0010;
          LVCF_ORDER                     = $0020;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVCF_MINWIDTH           	= $0040;
+	 LVCF_DEFAULTWIDTH       	= $0080;
+	 LVCF_IDEALWIDTH         	= $0100;
+{$endif}
 
          LVCFMT_LEFT                    = $0000;
          LVCFMT_RIGHT                   = $0001;
@@ -4091,6 +4333,11 @@ CONST
          LVCFMT_BITMAP_ON_RIGHT         = $1000;
          LVCFMT_COL_HAS_IMAGES          = $8000;
 {$ENDIF}
+{$ifdef win32vista}
+	 LVCFMT_FIXED_WIDTH          	= $00100;  // Can't resize the column; same as HDF_FIXEDWIDTH
+	 LVCFMT_NO_DPI_SCALE         	= $40000;  // If not set, CCM_DPISCALE will govern scaling up fixed width
+	 LVCFMT_FIXED_RATIO          	= $80000;  // Width will augment with the row height
+{$endif}
 
          LVM_GETCOLUMNA                 = (LVM_FIRST + 25);
          LVM_GETCOLUMNW                 = (LVM_FIRST + 95);
@@ -4393,6 +4640,17 @@ CONST
          LVS_EX_SNAPTOGRID              = $00080000;          // Icons automatically snap to grid.
          LVS_EX_SIMPLESELECT            = $00100000;          // Also changes overlay rendering to top right for icon mode.
 {$ENDIF}
+{$ifdef win32vista}
+         LVS_EX_JUSTIFYCOLUMNS          = $00200000;  // Icons are lined up in columns that use up the whole view area.
+         LVS_EX_TRANSPARENTBKGND        = $00400000;  // Background is painted by the parent via WM_PRINTCLIENT
+         LVS_EX_TRANSPARENTSHADOWTEXT   = $00800000;  // Enable shadow text on transparent backgrounds only (useful with bitmaps)
+         LVS_EX_AUTOAUTOARRANGE         = $01000000;  // Icons automatically arrange if no icon positions have been set
+         LVS_EX_HEADERINALLVIEWS        = $02000000;  // Display column header in all view modes
+         LVS_EX_AUTOCHECKSELECT         = $08000000;
+         LVS_EX_AUTOSIZECOLUMNS         = $10000000;
+         LVS_EX_COLUMNSNAPPOINTS        = $40000000;
+         LVS_EX_COLUMNOVERFLOW          = $80000000;
+{$endif}
 
          LVM_GETSUBITEMRECT             = (LVM_FIRST + 56);
 
@@ -4598,6 +4856,18 @@ CONST
          LVGF_ALIGN                     = $00000008;
          LVGF_GROUPID                   = $00000010;
 
+{$ifdef win32vista}
+         LVGF_SUBTITLE                 = $00000100;  // pszSubtitle is valid
+         LVGF_TASK                     = $00000200;  // pszTask is valid
+         LVGF_DESCRIPTIONTOP           = $00000400;  // pszDescriptionTop is valid
+         LVGF_DESCRIPTIONBOTTOM        = $00000800;  // pszDescriptionBottom is valid
+         LVGF_TITLEIMAGE               = $00001000;  // iTitleImage is valid
+         LVGF_EXTENDEDIMAGE            = $00002000;  // iExtendedImage is valid
+         LVGF_ITEMS                    = $00004000;  // iFirstItem and cItems are valid
+         LVGF_SUBSET                   = $00008000;  // pszSubsetTitle is valid
+         LVGF_SUBSETITEMS              = $00010000;  // readonly, cItems holds count of items in visible subset, iFirstItem is valid
+{$endif}
+
          LVGS_NORMAL                    = $00000000;
          LVGS_COLLAPSED                 = $00000001;
          LVGS_HIDDEN                    = $00000002;
@@ -4622,6 +4892,22 @@ TYPE
                                  stateMask    : UINT;
                                  state        : UINT;
                                  uAlign       : UINT;
+{$ifdef win32vista}
+                                 pszSubtitle         : LPWSTR;
+                                 cchSubtitle         : UINT;
+                                 pszTask             : LPWSTR;
+                                 cchTask             : UINT;
+                                 pszDescriptionTop   : LPWSTR;
+                                 cchDescriptionTop   : UINT;
+                                 pszDescriptionBottom: LPWSTR;
+                                 cchDescriptionBottom: UINT;
+                                 iTitleImage         : cint;
+                                 iExtendedImage      : cint;
+                                 iFirstItem          : cint;   // Read only
+                                 cItems              : UINT; // Read only
+                                 pszSubsetTitle      : LPWSTR;// NULL if group is not subset
+                                 cchSubsetTitle      : UINT;
+{$endif}
                                  END;
          LVGROUP              = tagLVGROUP;
          PLVGROUP             = ^tagLVGROUP;
@@ -4752,10 +5038,13 @@ CONST
          LVTVIF_FIXEDWIDTH              = $00000001;
          LVTVIF_FIXEDHEIGHT             = $00000002;
          LVTVIF_FIXEDSIZE               = $00000003;
-
+{$ifdef win32vista}
+  	 LVTVIF_EXTENDED       		= $00000004;
+{$endif}
          LVTVIM_TILESIZE                = $00000001;
          LVTVIM_COLUMNS                 = $00000002;
          LVTVIM_LABELMARGIN             = $00000004;
+
 
 TYPE
 
@@ -4777,6 +5066,9 @@ TYPE
                                  iItem        : cint;
                                  cColumns     : UINT;
                                  puColumns    : PUINT;
+				{$ifdef win32vista}
+ 				 piColFmt     : PCINT;
+				{$endif}
                                  END;
          LVTILEINFO           = tagLVTILEINFO;
          PLVTILEINFO          = ^tagLVTILEINFO;
@@ -4923,7 +5215,95 @@ CONST
 
 // Macro 153
 Function ListView_MapIDToIndex( hwnd : hwnd; id : WPARAM):UINT;
+
+const    LVM_ISITEMVISIBLE    		= (LVM_FIRST + 182);
+
+// macro 153b
+function  ListView_IsItemVisible(hwnd:hwnd; aindex:cuint):cuint;
+//    (UINT)SNDMSG((hwnd), LVM_ISITEMVISIBLE, (WPARAM)(index), (LPARAM)0)
+
 {$ENDIF}
+
+{$ifdef win32vista}
+CONST
+	LVM_GETEMPTYTEXT   		= (LVM_FIRST + 204);
+	LVM_GETFOOTERRECT  		= (LVM_FIRST + 205);
+	LVM_GETFOOTERINFO 		= (LVM_FIRST + 206);
+	LVM_GETFOOTERITEMRECT 		= (LVM_FIRST + 207);
+	LVM_GETFOOTERITEM 		= (LVM_FIRST + 208);
+	LVM_GETITEMINDEXRECT    	= (LVM_FIRST + 209);
+	LVM_SETITEMINDEXSTATE   	= (LVM_FIRST + 210);
+	LVM_GETNEXTITEMINDEX    	= (LVM_FIRST + 211);
+
+// footer flags
+        LVFF_ITEMCOUNT         		= $00000001;
+
+// footer item flags
+        LVFIF_TEXT               	= $00000001;
+        LVFIF_STATE              	= $00000002;
+
+// footer item state
+	LVFIS_FOCUSED            	= $0001;
+
+TYPE
+        tagLVFOOTERINFO                 = Record
+					    mask      : CUINT;          // LVFF_*
+					    pszText   : LPWSTR;
+					    cchTextMax: CINT;
+					    cItems    : CUINT;
+                                           end;
+
+        LVFOOTERINFO                    = tagLVFOOTERINFO;
+        LPLVFOOTERINFO                  = ^tagLVFOOTERINFO;
+        TLVFOOTERINFO                   = tagLVFOOTERINFO;
+        PLVFOOTERINFO                   = LPLVFOOTERINFO;
+
+
+        tagLVFOOTERITEM                 = Record
+					    mask      : CUINT;          // LVFIF_*
+					    iItem     : CINT;
+					    pszText   : LPWSTR;
+					    cchTextMax: CINT;
+					    state     : CUINT;         // LVFIS_*
+					    stateMask : CUINT;     // LVFIS_*
+                                          end;
+
+        LVFOOTERITEM                    = tagLVFOOTERITEM;
+        LPLVFOOTERITEM                  = ^tagLVFOOTERITEM;
+        TLVFOOTERITEM                   = tagLVFOOTERITEM;
+        PLVFOOTERITEM                   = LPLVFOOTERITEM;
+
+// supports a single item in multiple groups.
+        tagLVITEMINDEX                  = Record
+					   iItem      : CINT; // listview item index
+					   iGroup     : CINT; // group index (must be -1 if group view is not enabled)
+                                           end;
+        LVITEMINDEX			= tagLVITEMINDEX;
+        PLVITEMINDEX			= ^tagLVITEMINDEX;
+        tLVITEMINDEX			= TAGLVITEMINDEX;
+
+
+function ListView_SetGroupHeaderImageList(hwnd:HWNd;himl:HIMAGELIST):HIMAGELIST;
+
+function ListView_GetGroupHeaderImageList(hwnd:HWND):HIMAGELIST;
+
+function ListView_GetEmptyText(hwnd:HWND;pszText:LPWSTR; cchText:CUINT):BOOL;
+
+function ListView_GetFooterRect(hwnd:HWND; prc:PRECT):BOOL;
+
+function ListView_GetFooterInfo(hwnd:HWND;plvfi: LPLVFOOTERINFO ):BOOL;
+
+function ListView_GetFooterItemRect(hwnd:HWND;iItem:CUINT;prc:PRECT):BOOL;
+
+function ListView_GetFooterItem(hwnd:HWND;iItem:CUINT; pfi:PLVFOOTERITEM):BOOL;
+
+function ListView_GetItemIndexRect(hwnd:hwnd; plvii:PLVITEMINDEX; iSubItem:clong; code:clong; prc:LPRECT) :BOOL;
+
+function ListView_SetItemIndexState(hwndLV:HWND; plvii:PLVITEMINDEX; data:CUINT; mask:CUINT):HRESULT;
+
+function ListView_GetNextItemIndex(hwnd:HWND;plvii:PLVITEMINDEX; flags:LPARAM):BOOL;
+
+{$endif}
 
 Type
 
@@ -5261,6 +5641,19 @@ CONST
          LVN_MARQUEEBEGIN               = (LVN_FIRST-56);
 {$ENDIF}
 
+{$ifdef win32vista}
+Type
+	 tagNMLVLIN           = Record
+                                  hdr:         NMHDR;
+                                  link:        LITEM;
+                                  iItem:       cint;
+                                  iSubItem:    cint;
+				end;
+	 NMLVLINK	      = tagNMLVLIN;
+	 TNMLVLINK	      = tagNMLVLIN;
+	 PNMLVLINK	      = ^tagNMLVLIN;
+{$endif}
+
 {$ifdef ie4plus}
 TYPE
 
@@ -5308,6 +5701,17 @@ CONST
 
          LVN_GETINFOTIPA                = (LVN_FIRST-57);
          LVN_GETINFOTIPW                = (LVN_FIRST-58);
+	 LVN_INCREMENTALSEARCHA   	= (LVN_FIRST-62);
+	 LVN_INCREMENTALSEARCHW   	= (LVN_FIRST-63);
+
+	 LVNSCH_DEFAULT  		= -1;
+	 LVNSCH_ERROR    		= -2;
+	 LVNSCH_IGNORE   		= -3;
+
+{$ifdef win32vista}
+	 LVN_COLUMNDROPDOWN       	= (LVN_FIRST-64);
+	 LVN_COLUMNOVERFLOWCLICK  	= (LVN_FIRST-66);
+{$endif}
 
 Const
 {$IFDEF UNICODE}
@@ -5324,7 +5728,7 @@ type
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
 
-{$ifdef win32xp}
+{$ifdef win32xp} // actually 2003
          tagNMLVSCROLL        = Record
                                  hdr          : NMHDR;
                                  dx           : cint;
@@ -5337,9 +5741,28 @@ type
 
 
 CONST
-         LVN_BEGINSCROLL                = (LVN_FIRST-80)          ;
+         LVN_BEGINSCROLL                = (LVN_FIRST-80);
          LVN_ENDSCROLL                  = (LVN_FIRST-81);
 // {$ENDIF}
+
+{$ifdef win32vista}
+	 LVN_LINKCLICK           	= (LVN_FIRST-84);
+	 LVN_GETEMPTYMARKUP      	= (LVN_FIRST-87);
+
+	 EMF_CENTERED            	= $00000001;  // render markup centered in the listview area
+
+Type
+	 tagNMLVEMPTYMARKUP   = Record
+          			  hdr : NMHDR;
+				  // out params from client back to listview
+    			          dwFlags :DWORD;                      // EMF_*
+     				  szMarkup : array[0..L_MAX_URL_LENGTH-1] of wchar;   // markup displayed
+				end;
+         NMLVEMPTYMARKUP      = tagNMLVEMPTYMARKUP;
+         TNMLVEMPTYMARKUP     = tagNMLVEMPTYMARKUP;
+         PNMLVEMPTYMARKUP     = ^tagNMLVEMPTYMARKUP;
+
+{$endif}
 
 {$ENDIF} // NOLISTVIEW
 
@@ -5385,8 +5808,19 @@ CONST
 {$ifdef ie5plus}
          TVS_NOHSCROLL                  = $8000;              // TVS_NOSCROLL overrides this
 {$ENDIF}
+{$ifdef win32vista}
+         TVS_EX_MULTISELECT             = $0002;
+         TVS_EX_DOUBLEBUFFER            = $0004;
+         TVS_EX_NOINDENTSTATE           = $0008;
+         TVS_EX_RICHTOOLTIP             = $0010;
+         TVS_EX_AUTOHSCROLL             = $0020;
+         TVS_EX_FADEINOUTEXPANDOS       = $0040;
+         TVS_EX_PARTIALCHECKBOXES       = $0080;
+         TVS_EX_EXCLUSIONCHECKBOXES     = $0100;
+         TVS_EX_DIMMEDCHECKBOXES        = $0200;
+         TVS_EX_DRAWIMAGEASYNC          = $0400;
+{$endif}
 {$ENDIF}
-
 
 // end_r_commctrl
 
@@ -5404,6 +5838,10 @@ CONST
 {$ifdef ie4plus}
          TVIF_INTEGRAL                  = $0080;
 {$ENDIF}
+{$ifdef win32vista}
+ 	 TVIF_STATEEX            	= $0100;	
+	 TVIF_EXPANDEDIMAGE      	= $0200;
+{$endif}
          TVIS_SELECTED                  = $0002;
          TVIS_CUT                       = $0004;
          TVIS_DROPHILITED               = $0008;
@@ -5418,6 +5856,25 @@ CONST
          TVIS_STATEIMAGEMASK            = $F000;
          TVIS_USERMASK                  = $F000;
 
+// IE6
+	 TVIS_EX_FLAT            	= $0001;
+{$ifdef win32vista}
+	 TVIS_EX_DISABLED        	= $0002;
+{$endif}
+	 TVIS_EX_ALL             	= $0002;
+Type
+
+// Structure for TreeView's NM_TVSTATEIMAGECHANGING notification
+         tagNMTVSTATEIMAGECHANGING = Record
+                                      hdr 		    : NMHDR;
+                                      hti                   : HTREEITEM;
+                                      iOldStateImageIndex   : cint;
+                                      iNewStateImageIndex   : cint;
+                                      end;
+	 NMTVSTATEIMAGECHANGING    = tagNMTVSTATEIMAGECHANGING;
+	 LPNMTVSTATEIMAGECHANGING  = ^tagNMTVSTATEIMAGECHANGING;
+
+Const
          I_CHILDRENCALLBACK             = (-1);
 Type
          tagTVITEMA           = Record
@@ -5431,6 +5888,14 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+				 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMA              = tagTVITEMA;
          LPTVITEMA            = ^tagTVITEMA;
@@ -5449,6 +5914,14 @@ Type
                                  iSelectedImage : cint;
                                  cChildren    : cint;
                                  lParam       : LPARAM;
+{$ifdef ie6plus}
+                                 uStateEx     : cUINT;
+                                 hwnd         : HWND;
+                                 iExpandedImage  : cint;
+{$endif}
+{$ifdef NTDDI_WIN7}
+				 iPadding        : cint;
+{$endif}
                                  END;
          TVITEMW              = tagTVITEMW;
          LPTVITEMW            = ^tagTVITEMW;
@@ -5710,12 +6183,13 @@ CONST
          TVGN_PREVIOUSVISIBLE           = $0007;
          TVGN_DROPHILITE                = $0008;
          TVGN_CARET                     = $0009;
-
 {$ifdef ie4plus}
          TVGN_LASTVISIBLE               = $000A;
 {$ENDIF}      // _WIN32_IE >= 0x0400
-
-{$ifdef win32xp}
+{$ifdef ie6plus}
+	 TVGN_NEXTSELECTED       	= $000B;
+{$endif}
+{$ifdef win32xp}  // 0x501
          TVSI_NOSINGLEEXPAND            = $8000;              // Should not conflict with TVGN flags.
 {$ENDIF}
 
@@ -5732,6 +6206,9 @@ function TreeView_GetDropHilite(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetRoot(hwnd:hwnd) : HTREEITEM;inline;
 function TreeView_GetLastVisible(hwnd:hwnd) : HTREEITEM;inline;
 
+{$ifdef win32vista}
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+{$endif}
 
 CONST
          TVM_SELECTITEM                 = (TV_FIRST + 11);
@@ -6124,9 +6601,40 @@ CONST
 // Macro 216
 Function TreeView_MapHTREEITEMToAccID( hwnd : hwnd; htreeitem : WPARAM):UINT;
 
-
-
 {$ENDIF}
+
+{$ifdef win32vista}
+CONST 
+         TVM_GETSELECTEDCOUNT       	= (TV_FIRST + 70);
+	 TVM_SHOWINFOTIP            	= (TV_FIRST + 71);
+	 TVM_GETITEMPARTRECT            = (TV_FIRST + 72);
+
+Type
+	 TVITEMPART 	= (TVGIPR_BUTTON    = $0001);
+         pTVITEMPART	= ^TVITEMPART;
+
+	 tagTVGETITEMPARTRECTINFO 	= Record
+                                            hti :HTREEITEM ;
+                                            prc :PRECT;
+                                            partID :TVITEMPART;
+					  end;
+ 	 TVGETITEMPARTRECTINFO 		= tagTVGETITEMPARTRECTINFO;
+
+function  TreeView_GetSelectedCount(hwnd:hwnd):DWORD;
+//    (DWORD)SNDMSG((hwnd), TVM_GETSELECTEDCOUNT, 0, 0)
+
+function  TreeView_ShowInfoTip(hwnd:HWND; hitem:HTREEITEM):DWORD;
+//    (DWORD)SNDMSG((hwnd), TVM_SHOWINFOTIP, 0, (LPARAM)(hitem))
+
+function  TreeView_GetItemPartRect(hwnd:HWND; hitem:HTREEITEM; prc:prect; partid:TVITEMPART):bool;
+//{ TVGETITEMPARTRECTINFO info; \
+//  info.hti = (hitem); \
+//  info.prc = (prc); \
+//  info.partID = (partid); \
+//  (BOOL)SNDMSG((hwnd), TVM_GETITEMPARTRECT, 0, (LPARAM)&info); \
+
+{$endif}
+
 
 TYPE
          PFNTVCOMPARE =function (lparam1:LPARAM;lparam2:LPARAM;lParamSort:LParam): cint; STDCALL;
@@ -6261,6 +6769,35 @@ Type
          LPNMTVDISPINFO      = LPNMTVDISPINFOA;
 {$ENDIF}
 
+{$ifdef IE6plus}
+ 	 tagTVDISPINFOEXA    = Record
+				hdr  : NMHDR;
+				item :TVITEMEXA;
+				end;
+	 NMTVDISPINFOEXA     = tagTVDISPINFOEXA;
+	 LPNMTVDISPINFOEXA   = ^tagTVDISPINFOEXA;
+
+ 	 tagTVDISPINFOEXW    = Record
+				hdr  : NMHDR;
+				item :TVITEMEXW;
+				end;
+	 NMTVDISPINFOEXW     = tagTVDISPINFOEXW;
+	 LPNMTVDISPINFOEXW   = ^tagTVDISPINFOEXW;
+
+{$IFDEF UNICODE}
+         NMTVDISPINFOEX        = NMTVDISPINFOEXW;
+         LPNMTVDISPINFOEX      = LPNMTVDISPINFOEXW;
+{$ELSE}
+         NMTVDISPINFOEX        = NMTVDISPINFOEXA;
+         LPNMTVDISPINFOEX      = LPNMTVDISPINFOEXA;
+{$ENDIF}
+
+	 TV_DISPINFOEXA          = NMTVDISPINFOEXA;
+	 TV_DISPINFOEXW          = NMTVDISPINFOEXW;
+	 TV_DISPINFOEX           = NMTVDISPINFOEX;
+
+
+{$endif}
 
 {$ifdef ie3plus}
           TV_DISPINFOA        = NMTVDISPINFOA;
@@ -6306,6 +6843,14 @@ CONST
          TVNRET_DEFAULT                 = 0;
          TVNRET_SKIPOLD                 = 1;
          TVNRET_SKIPNEW                 = 2;
+
+{$ifdef win32vista}
+	 TVN_ITEMCHANGINGA       	= (TVN_FIRST-16);
+	 TVN_ITEMCHANGINGW       	= (TVN_FIRST-17);
+	 TVN_ITEMCHANGEDA        	= (TVN_FIRST-18);
+	 TVN_ITEMCHANGEDW        	= (TVN_FIRST-19);
+	 TVN_ASYNCDRAW           	= (TVN_FIRST-20);
+{$endif}
 
 {$ENDIF} // 0x400
 
@@ -6437,6 +6982,41 @@ CONST
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
+{$ifdef ie6plus}
+Type
+     tagTVITEMCHANGE = packed record
+          hdr : NMHDR;
+          uChanged : UINT;
+          hItem : HTREEITEM;
+          uStateNew : UINT;
+          uStateOld : UINT;
+          lParam : LPARAM;
+       end;
+     NMTVITEMCHANGE = tagTVITEMCHANGE;
+     PNMTVITEMCHANGE = ^NMTVITEMCHANGE;
+
+     tagNMTVASYNCDRAW = packed record
+          hdr : NMHDR; 
+          pimldp : PIMAGELISTDRAWPARAMS;   { the draw that failed }
+          hr : HRESULT;                    { why it failed }
+          hItem : HTREEITEM;               { item that failed to draw icon }
+          lParam : LPARAM;                 { its data }
+          dwRetFlags : DWORD;              { Out Params }
+          iRetImageIndex : longint;        { What listview should do on return }
+       end;                                { used if ADRF_DRAWIMAGE is returned }
+     NMTVASYNCDRAW = tagNMTVASYNCDRAW;
+     PNMTVASYNCDRAW = ^NMTVASYNCDRAW;
+
+CONST
+{$IFDEF UNICODE}
+         TVN_ITEMCHANGING      = TVN_ITEMCHANGINGW;
+         TVN_ITEMCHANGED       = TVN_ITEMCHANGEDW;
+{$ELSE}
+         TVN_ITEMCHANGING      = TVN_ITEMCHANGINGA;
+         TVN_ITEMCHANGED       = TVN_ITEMCHANGEDA;
+{$ENDIF}
+{$endif}
+
 {$ENDIF}      // NOTREEVIEW
 
 {$ifdef ie3plus}
@@ -6562,7 +7142,9 @@ CONST
 {$ifdef ie4plus}
          CBES_EX_NOSIZELIMIT            = $00000008;
          CBES_EX_CASESENSITIVE          = $00000010;
-
+{$ifdef win32vista}
+	 CBES_EX_TEXTENDELLIPSIS      	= $00000020;
+{$endif}
 TYPE
 
          DummyStruct9         = Record
@@ -7566,6 +8148,12 @@ TYPE
                                  pt           : POINT;
                                  uHit         : UINT;          // out param
                                  st           : SYSTEMTIME;
+{$ifdef NTDDI_VISTA}
+				 rc 	      : RECT;
+				 iOffset      : cint;
+				 iRow         : cint;
+				 iCol	      : cint;
+{$endif}				 
                                  END;
          MCHITTESTINFO        = DummyStruct16;
          PMCHITTESTINFO       = ^DummyStruct16;
@@ -7699,6 +8287,93 @@ CONST
 
 Function MonthCal_GetUnicodeFormat( hwnd : hwnd):BOOL;
 
+{$ifdef NTDDI_VISTA}
+Const
+// View
+         MCMV_MONTH      = 0;
+         MCMV_YEAR       = 1;
+         MCMV_DECADE     = 2;
+         MCMV_CENTURY    = 3;
+         MCMV_MAX        = MCMV_CENTURY;
+
+         MCM_GETCURRENTVIEW 		= (MCM_FIRST + 22);
+         MCM_GETCALENDARCOUNT 		= (MCM_FIRST + 23);
+         MCM_GETCALENDARGRIDINFO 	= (MCM_FIRST + 24);
+         MCM_GETCALID 			= (MCM_FIRST + 27);
+         MCM_SETCALID 			= (MCM_FIRST + 28);
+// Returns the min rect that will fit the max number of calendars for the passed in rect.
+         MCM_SIZERECTTOMIN 		= (MCM_FIRST + 29);
+         MCM_SETCALENDARBORDER 		= (MCM_FIRST + 30);
+         MCM_GETCALENDARBORDER 		= (MCM_FIRST + 31);
+         MCM_SETCURRENTVIEW 		= (MCM_FIRST + 32);
+
+// Part
+         MCGIP_CALENDARCONTROL      = 0;
+         MCGIP_NEXT                 = 1;
+         MCGIP_PREV                 = 2;
+         MCGIP_FOOTER               = 3;
+         MCGIP_CALENDAR             = 4;
+         MCGIP_CALENDARHEADER       = 5;
+         MCGIP_CALENDARBODY         = 6;
+         MCGIP_CALENDARROW          = 7;
+         MCGIP_CALENDARCELL         = 8;
+
+         MCGIF_DATE                 = $00000001;
+         MCGIF_RECT                 = $00000002;
+         MCGIF_NAME                 = $00000004;
+
+// Note: iRow of -1 refers to the row header and iCol of -1 refers to the col header.
+
+Type
+ tagMCGRIDINFO = record
+          cbSize : UINT;
+          dwPart : DWORD;
+          dwFlags : DWORD;
+          iCalendar : longint;
+          iRow : longint;
+          iCol : longint;
+          bSelected : BOOL;
+          stStart : SYSTEMTIME;
+          stEnd : SYSTEMTIME;
+          rc : RECT;
+          pszName : LPWSTR;
+          cchName : size_t;
+       end;
+     MCGRIDINFO   = tagMCGRIDINFO;
+     TPMCGRIDINFO = MCGRIDINFO;
+     PMCGRIDINFO  = ^MCGRIDINFO;
+     LPMCGRIDINFO = PMCGRIDINFO;
+
+function MonthCal_GetCurrentView(hmc:HWND):DWORD;
+//        (DWORD)SNDMSG(hmc, MCM_GETCURRENTVIEW, 0, 0)
+
+function MonthCal_GetCalendarCount(hmc:HWND):DWORD;
+//        (DWORD)SNDMSG(hmc, MCM_GETCALENDARCOUNT, 0, 0)
+
+function MonthCal_GetCalendarGridInfo(hmc:HWND; pmc:pMCGRIDINFO):BOOL;
+//        (BOOL)SNDMSG(hmc, MCM_GETCALENDARGRIDINFO, 0, (LPARAM)(PMCGRIDINFO)(pmcGridInfo))
+
+function MonthCal_GetCALID(hmc:HWND):CALID;
+//        (CALID)SNDMSG(hmc, MCM_GETCALID, 0, 0)
+
+function MonthCal_SetCALID(hmc:HWND; calid:cuint):LRESULT;
+//        SNDMSG(hmc, MCM_SETCALID, (WPARAM)(calid), 0)
+
+function MonthCal_SizeRectToMin(hmc:HWND; prc:prect):LRESULT;
+//        SNDMSG(hmc, MCM_SIZERECTTOMIN, 0, (LPARAM)(prc))
+
+function MonthCal_SetCalendarBorder(hmc:HWND; fset:bool; xyborder:cint):LRESULT;
+//        SNDMSG(hmc, MCM_SETCALENDARBORDER, (WPARAM)(fset), (LPARAM)(xyborder))
+
+function MonthCal_GetCalendarBorder(hmc:HWND):cint;
+//        (int)SNDMSG(hmc, MCM_GETCALENDARBORDER, 0, 0)
+
+function MonthCal_SetCurrentView(hmc:HWND; dwNewView:DWord):BOOL;
+//        (BOOL)SNDMSG(hmc, MCM_SETCURRENTVIEW, 0, (LPARAM)(dwNewView))
+
+
+{$endif}
+
 {$ENDIF}
 
 // MCN_SELCHANGE is sent whenever the currently displayed date changes
@@ -7769,9 +8444,11 @@ CONST
 {$ELSE}
          MCS_NOTODAY                    = $0008;
 {$ENDIF}
-
-
-// end_r_commctrl
+{$ifdef NTDDI_Vista}
+	 MCS_NOTRAILINGDATES  		= $0040;
+	 MCS_SHORTDAYSOFWEEK  		= $0080;
+	 MCS_NOSELCHANGEONNAV 		= $0100;
+{$endif}
 
          GMR_VISIBLE                    = 0;                  // visible portion of display
          GMR_DAYSTATE                   = 1;                  // above plus the grayed out parts of
@@ -7791,13 +8468,28 @@ CONST
          DATETIMEPICK_CLASSA            = 'SysDateTimePick32';
 
 {$IFDEF UNICODE}
-
-TYPE
          DATETIMEPICK_CLASS  = DATETIMEPICK_CLASSW;
 {$ELSE}
          DATETIMEPICK_CLASS  = DATETIMEPICK_CLASSA;
 {$ENDIF}
 
+{$ifdef NTDDI_VISTA}
+Type
+	tagDATETIMEPICKERINFO = packed record
+          cbSize : DWORD;
+          rcCheck : RECT;
+          stateCheck : DWORD;
+          rcButton : RECT;
+          stateButton : DWORD;
+          hwndEdit : HWND;
+          hwndUD : HWND;
+          hwndDropDown : HWND;
+       end;
+     DATETIMEPICKERINFO   = tagDATETIMEPICKERINFO;
+     PDATETIMEPICKERINFO  = ^DATETIMEPICKERINFO;
+     LPDATETIMEPICKERINFO = PDATETIMEPICKERINFO;
+     TDATETIMEPICKERINFO  = DATETIMEPICKERINFO;
+{$endif}
 
 CONST
          DTM_FIRST                      = $1000;
@@ -7898,16 +8590,47 @@ function DateTime_GetMonthCal(hdp: HWND): HWND;inline;
 
 CONST
          DTM_SETMCFONT                  = (DTM_FIRST + 9);
-// Macro 284
 
-// #define DateTime_SetMonthCalFont(hdp, hfont, fRedraw) SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
+// Macro 284
+procedure DateTime_SetMonthCalFont(hdp:HWND; hfont:HFONT; fRedraw:LPARAM);
+//  SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
 
 
 CONST
          DTM_GETMCFONT                  = (DTM_FIRST + 10);
-// Macro 285
 
-// #define DateTime_GetMonthCalFont(hdp) SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
+// Macro 285
+function DateTime_GetMonthCalFont(hdp:HWND):HFONT;
+// SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
+
+{$ifdef NTDDI_VISTA}
+Const
+	 DTM_SETMCSTYLE    		= (DTM_FIRST + 11);
+	 DTM_GETMCSTYLE    		= (DTM_FIRST + 12);
+	 DTM_CLOSEMONTHCAL 		= (DTM_FIRST + 13);
+	 DTM_GETDATETIMEPICKERINFO 	= (DTM_FIRST + 14);
+	 DTM_GETIDEALSIZE 		= (DTM_FIRST + 15);
+
+function DateTime_SetMonthCalStyle(hdp:HWND; dwStyle:DWord):LResult;
+// SNDMSG(hdp, DTM_SETMCSTYLE, 0, (LPARAM)dwStyle)
+
+function DateTime_GetMonthCalStyle(hdp:HWND):LRESULT;
+//  SNDMSG(hdp, DTM_GETMCSTYLE, 0, 0)
+
+function DateTime_CloseMonthCal(hdp:HWND):LRESULT;
+//  SNDMSG(hdp, DTM_CLOSEMONTHCAL, 0, 0)
+
+// DateTime_GetDateTimePickerInfo(HWND hdp, DATETIMEPICKERINFO* pdtpi)
+// Retrieves information about the selected date time picker.
+
+function DateTime_GetDateTimePickerInfo(hdp:HWND; pdtpi:PDATETIMEPICKERINFO):LRESULT;
+// SNDMSG(hdp, DTM_GETDATETIMEPICKERINFO, 0, (LPARAM)(pdtpi))
+
+function DateTime_GetIdealSize(hdp:HWND; ps:PSIZE): LResult;
+// (BOOL)SNDMSG((hdp), DTM_GETIDEALSIZE, 0, (LPARAM)(psize))
+
+{$endif}
+
 
 {$ENDIF}      // _WIN32_IE >= 0x0400
 
@@ -8632,11 +9355,92 @@ CONST
          BCN_HOTITEMCHANGE              = (BCN_FIRST + $0001);
 
          BST_HOT                        = $0200;
+{$ifdef win32vista}
+         BST_DROPDOWNPUSHED      = $0400;
 
+// BUTTON STYLES
+         BS_SPLITBUTTON          = $00000000C;  // This block L suffixed (unsigned)
+         BS_DEFSPLITBUTTON       = $00000000D;
+         BS_COMMANDLINK          = $00000000E;
+         BS_DEFCOMMANDLINK       = $00000000F;
+
+// SPLIT BUTTON INFO mask flags
+         BCSIF_GLYPH             = $00001;
+         BCSIF_IMAGE             = $00002;
+         BCSIF_STYLE             = $00004;
+         BCSIF_SIZE              = $00008;
+
+// SPLIT BUTTON STYLE flags
+         BCSS_NOSPLIT            = $00001;
+         BCSS_STRETCH            = $00002;
+         BCSS_ALIGNLEFT          = $00004;
+         BCSS_IMAGE              = $00008;
+
+         BCM_SETDROPDOWNSTATE    = (BCM_FIRST + $0006);
+         BCM_SETSPLITINFO        = (BCM_FIRST + $0007);
+         BCM_GETSPLITINFO        = (BCM_FIRST + $0008);
+         BCM_SETNOTE             = (BCM_FIRST + $0009);
+         BCM_GETNOTE             = (BCM_FIRST + $000A);
+         BCM_GETNOTELENGTH       = (BCM_FIRST + $000B);
+         BCM_SETSHIELD           = (BCM_FIRST + $000C);
+
+
+// Value to pass to BCM_SETIMAGELIST to indicate that no glyph should be
+// displayed
+	 BCCL_NOGLYPH  		 = HIMAGELIST(-1);
+
+	 BCN_DROPDOWN            = (BCN_FIRST + $0002);
+Type
+
+     tagBUTTON_SPLITINFO =  record
+			      mask : UINT;
+          		      himlGlyph : HIMAGELIST;
+          		      uSplitStyle : UINT;
+          		      size : SIZE;
+			      end;
+     BUTTON_SPLITINFO   = tagBUTTON_SPLITINFO;
+     PBUTTON_SPLITINFO  = ^BUTTON_SPLITINFO;
+     LPBUTTON_SPLITINFO = PBUTTON_SPLITINFO;
+
+  { NOTIFICATION MESSAGES }
+
+     tagNMBCDROPDOWN = packed record
+          hdr : NMHDR;
+          rcButton : RECT;
+       end;
+     NMBCDROPDOWN    = tagNMBCDROPDOWN;
+     PNMBCDROPDOWN   = ^NMBCDROPDOWN;
+     LPNMBCDROPDOWN  = PNMBCDROPDOWN;
+
+// BUTTON MESSAGES
+
+function Button_SetDropDownState(hwnd:HWND; fDropDown:BOOL) : BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETDROPDOWNSTATE, (WPARAM)(fDropDown), 0)
+
+function Button_SetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO):BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETSPLITINFO, 0, (LPARAM)(pInfo))
+
+function Button_GetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_GETSPLITINFO, 0, (LPARAM)(pInfo))
+
+function Button_SetNote(hwnd:HWND; psz:LPCWSTR) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_SETNOTE, 0, (LPARAM)(psz))
+
+function Button_GetNote(hwnd:HWND; psz:LPCWSTR; pcc:cint) :BOOL;
+//    (BOOL)SNDMSG((hwnd), BCM_GETNOTE, (WPARAM)pcc, (LPARAM)psz)
+
+function Button_GetNoteLength(hwnd:HWND) :LRESULT;
+//    (LRESULT)SNDMSG((hwnd), BCM_GETNOTELENGTH, 0, 0)
+
+// Macro to use on a button or command link to display an elevated icon
+
+function Button_SetElevationRequiredState(hwnd:HWND; fRequired:BOOL) :LRESULT;
+//    (LRESULT)SNDMSG((hwnd), BCM_SETSHIELD, 0, (LPARAM)fRequired)
+
+{$endif}
 {$ENDIF}
-
-
 {$ENDIF} // NOBUTTON
+
 
 /// =====================  End Button Control =========================
 
@@ -8644,6 +9448,7 @@ CONST
 
 {$IFNDEF NOSTATIC}
 
+const
 {$IFDEF _WIN32}
 
 // Static Class Name
@@ -8736,6 +9541,19 @@ CONST
 
 
 Function Edit_HideBalloonTip( hwnd : hwnd):BOOL;
+
+{$ifdef win32vista}
+const
+	 EM_SETHILITE        		= (ECM_FIRST + 5);
+	 EM_GETHILITE        		= (ECM_FIRST + 6);
+
+// both are "unimplemented" in MSDN, so probably typing is off.
+procedure Edit_SetHilite(hwndCtl:hwnd; ichStart:Wparam; ichEnd:lparam);
+// ((void)SNDMSG((hwndCtl), EM_SETHILITE, (ichStart), (ichEnd)))
+
+function Edit_GetHilite(hwndCtl:hwnd):DWORD;
+// ((DWORD)SNDMSG((hwndCtl), EM_GETHILITE, 0L, 0L))
+{$endif}
 
 {$ENDIF}
 
@@ -8861,13 +9679,20 @@ CONST
 {$ifdef win32xp}
 
          INVALID_LINK_INDEX             = (-1);
-         MAX_LINKID_TEXT                = 48;
-         L_MAX_URL_LENGTH               = (2048 + 32 + length('://'));
+
+
 
          WC_LINK                        = {L}'SysLink';
 
          LWS_TRANSPARENT                = $0001;
          LWS_IGNORERETURN               = $0002;
+
+{$ifdef win32vista}
+         LWS_NOPREFIX                   = $0004;
+         LWS_USEVISUALSTYLE             = $0008;
+         LWS_USECUSTOMTEXT              = $0010;
+         LWS_RIGHT                      = $0020;
+{$endif}
 
          LIF_ITEMINDEX                  = $00000001;
          LIF_STATE                      = $00000002;
@@ -8877,21 +9702,12 @@ CONST
          LIS_FOCUSED                    = $00000001;
          LIS_ENABLED                    = $00000002;
          LIS_VISITED                    = $00000004;
+{$ifdef win32vista}
+	 LIS_HOTTRACK        		= $00000008;
+	 LIS_DEFAULTCOLORS   		= $00000010; // Don't use any custom text colors
+{$endif}
 
 TYPE
-
-         tagLITEM             = Record
-                                 mask         : UINT;
-                                 iLink        : cint;
-                                 state        : UINT;
-                                 stateMask    : UINT;
-                                 szID         : Array [0..MAX_LINKID_TEXT-1] OF WCHAR;
-                                 szUrl        : Array [0..L_MAX_URL_LENGTH-1] OF WCHAR;
-                                 END;
-         LITEM                = tagLITEM;
-         PLITEM               = ^tagLITEM;
-         TLITEM               = tagLITEM;
-//         PLITEM               = ^tagLITEM;
 
 
          tagLHITTESTINFO      = Record
@@ -9089,6 +9905,17 @@ function RemoveWindowSubclass(hWnd:HWND;pfnSubclass:SUBCLASSPROC;uIdSubclass:UIN
 function DefSubclassProc(hWnd:HWND;uMsg:UINT;wParam:WPARAM;lParam:LPARAM):LRESULT; stdcall; external commctrldll name 'DefSubclassProc';
 {$ENDIF}
 
+{$ifdef NTDDI_VISTA}
+type _LI_METRIC= (
+
+   LIM_SMALL=0, // corresponds to SM_CXSMICON/SM_CYSMICON
+   LIM_LARGE   // corresponds to SM_CXICON/SM_CYICON
+		 );
+
+Function LoadIconMetric( hinst:HINST; pszName:LPCWStr;lims:cint; var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
+Function LoadIconWithScaleDown( hinst:HINST; pszName:LPCWStr;cx:cint;cy:cint;var phico: HICON ):HRESULT; stdcall; external commctrldll name 'LoadIconMetric';
+
+{$endif}
 
 {$ifdef win32xp}
 
@@ -9409,6 +10236,27 @@ Function Header_ClearAllFilters( hwnd : hwnd):cint;
 
 Begin
  Result:=cint(SendMessage((hwnd), HDM_CLEARFILTER, WPARAM(-1), 0))
+end;
+{$endif}
+{$ifdef win32vista}
+// macro 37a ..37d
+function Header_GetOverflowRect( hwnd : hwnd; lprc:lprect):bool;
+begin
+  result:=bool(sendmessage(hwnd, HDM_GETOVERFLOWRECT, 0, LPARAM(lprc)));
+end;
+
+function Header_GetFocusedItem(hwnd : hwnd):cint;
+begin
+  Result:=cint(SendMessage((hwnd), HDM_GETFOCUSEDITEM, WPARAM(0), LPARAM(0)));
+end;
+
+function Header_SetFocusedItem(hwnd:hwnd; iItem:cint):BOOL;
+begin
+  result:=bool(sendmessage(hwnd, HDM_SETFOCUSEDITEM, WPARAM(0),LPARAM(iItem)));
+end;
+function Header_GetItemDropDownRect(hwnd : hwnd;iItem:cint; lprc:lprect):bool;
+begin
+  result:=bool(sendmessage(hwnd, HDM_GETITEMDROPDOWNRECT, WPARAM(iItem), LPARAM(lprc)));
 end;
 {$endif}
 
@@ -10706,7 +11554,76 @@ Function ListView_MapIDToIndex( hwnd : hwnd; id : WPARAM):UINT;
 Begin
  Result:=UINT(SendMessage((hwnd), LVM_MAPIDTOINDEX, id, LPARAM(0)));
 end;
+
+function  ListView_IsItemVisible(hwnd:hwnd; aindex:cuint):cuint;
+begin
+ Result:=UINT(SendMessage((hwnd),LVM_ISITEMVISIBLE, WPARAM(aindex), LPARAM(0)));
+end;
 {$ENDIF}
+
+{$ifdef win32vista}
+
+function ListView_SetGroupHeaderImageList(hwnd:HWNd;himl:HIMAGELIST):HIMAGELIST;
+begin
+ Result:=HIMAGELIST(SendMessage((hwnd),LVM_SETIMAGELIST, WPARAM(LVSIL_GROUPHEADER), LPARAM(HIMAGELIST((himl)))));
+end;
+
+function ListView_GetGroupHeaderImageList(hwnd:HWND):HIMAGELIST;
+begin
+ Result:=HIMAGELIST(SendMessage((hwnd),LVM_GETIMAGELIST, WPARAM(LVSIL_GROUPHEADER),LPARAM(0)));
+end;
+
+function ListView_GetEmptyText(hwnd:HWND;pszText:LPWSTR; cchText:CUINT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETEMPTYTEXT, WPARAM(cchText), LPARAM(pszText)));
+end;
+
+function ListView_GetFooterRect(hwnd:HWND; prc:PRECT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERRECT, WPARAM(0), LPARAM(prc)));
+end;
+
+function ListView_GetFooterInfo(hwnd:HWND;plvfi: LPLVFOOTERINFO ):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERINFO, WPARAM(0), LPARAM(plvfi)));
+end;
+
+function ListView_GetFooterItemRect(hwnd:HWND;iItem:CUINT;prc:PRECT):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERITEMRECT, WPARAM(iItem), LPARAM(prc)));
+end;
+
+function ListView_GetFooterItem(hwnd:HWND;iItem:CUINT; pfi:PLVFOOTERITEM):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETFOOTERITEM, WPARAM(iItem), LPARAM(pfi)));
+end;
+
+// (hwnd), LVM_GETITEMINDEXRECT, (WPARAM)(LVITEMINDEX*)(plvii), \
+//                ((prc) ? ((((LPRECT)(prc))->top = (iSubItem)), (((LPRECT)(prc))->left = (code)), (LPARAM)(prc)) : (LPARAM)(LPRECT)NULL))
+
+function ListView_GetItemIndexRect(hwnd:hwnd; plvii:PLVITEMINDEX; iSubItem:clong; code:clong; prc:LPRECT) :BOOL;
+begin
+ if assigned(prc) then
+  begin
+   prc^.top:=iSubItem;
+   prc^.left:=code;
+  end;
+ Result:=BOOL(SendMessage((hwnd), LVM_GETITEMINDEXRECT, WPARAM(pLVITEMINDEX(plvii)), LPARAM(PRC)));
+end;
+
+function ListView_SetItemIndexState(hwndLV:HWND; plvii:PLVITEMINDEX; data:CUINT; mask:CUINT):HRESULT;
+ var macro_lvi: LV_ITEM ;
+begin
+  macro_lvi.stateMask := (mask);
+  macro_lvi.state := (data);
+  Result:=HRESULT(SendMessage((hwndLV),LVM_SETITEMINDEXSTATE, WPARAM(pLVITEMINDEX(plvii)), LPARAM(PLV_ITEM(@macro_lvi))));
+end;
+
+function ListView_GetNextItemIndex(hwnd:HWND;plvii:PLVITEMINDEX; flags:LPARAM):BOOL;
+begin
+ Result:=BOOL(SendMessage((hwnd),LVM_GETNEXTITEMINDEX, WPARAM(pLVITEMINDEX(plvii)), MAKELPARAM(flags, 0)));
+end;
+{$endif}
 
 // Macro 154
 // #define ListView_SetBkImage(hwnd, plvbki) \
@@ -11443,6 +12360,27 @@ Begin
 end;
 {$endif}
 
+{$ifdef win32vista}
+function  TreeView_GetSelectedCount(hwnd:hwnd):DWORD;
+Begin
+ Result:=DWORD(SendMessage((hwnd),TVM_GETSELECTEDCOUNT, 0, 0));
+end;
+
+function  TreeView_ShowInfoTip(hwnd:HWND; hitem:HTREEITEM):DWORD;
+Begin
+ Result:=DWORD(SendMessage((hwnd),TVM_SHOWINFOTIP, 0, LPARAM(hitem)));
+end;
+
+function  TreeView_GetItemPartRect(hwnd:HWND; hitem:HTREEITEM; prc:prect; partid:TVITEMPART):bool;
+var info : TVGETITEMPARTRECTINFO;
+Begin
+  info.hti := (hitem); 
+  info.prc := (prc);
+  info.partID := (partid);
+  Result:=BOOL(SendMessage((hwnd), TVM_GETITEMPARTRECT, 0, LPARAM(@info))); 
+end;
+{$endif}
+
 // Macro 217
 
 //#define TabCtrl_GetImageList(hwnd) \
@@ -11511,7 +12449,7 @@ end;
 Function TabCtrl_InsertItem( hwnd : hwnd; iItem : cint;const  pitem : TC_ITEM ):cint;
 
 Begin
- Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)))
+ Result:=cint(SendMessage((hwnd), TCM_INSERTITEM, iItem, LPARAM(@pitem)));
 end;
 
 
@@ -12466,5 +13404,152 @@ Begin
  Result:=cint(SendMessage((hwnd), CB_GETMINVISIBLE, 0, 0))
 end;
 
+{$ifdef win32vista}
+function  TreeView_GetNextSelected(hwnd:hwnd; hitem:HTREEITEM):HTREEITEM;inline;   
+begin
+ result:=TreeView_GetNextItem(hwnd, hitem,  TVGN_NEXTSELECTED)
+end;
+{$endif}
+
+{$ifdef win32vista}
+function Button_SetDropDownState(hwnd:HWND; fDropDown:BOOL) : BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETDROPDOWNSTATE, WPARAM(fDropDown), 0));
+end;
+
+function Button_SetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO):BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETSPLITINFO, 0, LPARAM(pInfo)));
+end;
+
+function Button_GetSplitInfo(hwnd:HWND; pInfo:PBUTTON_SPLITINFO) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_GETSPLITINFO, 0, LPARAM(pInfo)));
+end;
+
+function Button_SetNote(hwnd:HWND; psz:LPCWSTR) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_SETNOTE, 0, LPARAM(psz)));
+end;
+
+function Button_GetNote(hwnd:HWND; psz:LPCWSTR; pcc:cint) :BOOL;
+Begin
+ Result:=BOOL(SendMessage((hwnd), BCM_GETNOTE, WPARAM(pcc), LPARAM(psz)));
+end;
+
+function Button_GetNoteLength(hwnd:HWND) :LRESULT;
+Begin
+ Result:=LRESULT(SendMessage((hwnd), BCM_GETNOTELENGTH, 0, 0));
+end;
+
+// Macro to use on a button or command link to display an elevated icon
+
+function Button_SetElevationRequiredState(hwnd:HWND; fRequired:BOOL) :LRESULT;
+Begin
+ Result:=LRESULT(SendMessage((hwnd),  BCM_SETSHIELD, 0, LPARAM(fRequired)));
+end;
+{$endif}
+{$ifdef win32vista}
+procedure Edit_SetHilite(hwndCtl:hwnd; ichStart:Wparam; ichEnd:lparam);
+begin
+  sendmessage(hwndctl, EM_SETHILITE, (ichStart), (ichEnd));
+end;
+
+function Edit_GetHilite(hwndCtl:hwnd):Dword;
+begin
+ result:=SendMessage((hwndCtl), EM_GETHILITE, 0, 0);
+end;
+{$endif}
+
+{$ifdef ntddi_vista}
+function MonthCal_GetCurrentView(hmc:HWND):DWORD;
+Begin
+ Result:=DWord(SendMessage(hmc, MCM_GETCURRENTVIEW, 0, 0));
+end;
+
+function MonthCal_GetCalendarCount(hmc:HWND):DWORD;
+Begin
+ Result:=DWord(SendMessage(hmc,MCM_GETCALENDARCOUNT, 0, 0));
+end;
+
+function MonthCal_GetCalendarGridInfo(hmc:HWND; pmc:pMCGRIDINFO):BOOL;
+Begin
+ Result:=BOOL(SendMessage(hmc, MCM_GETCALENDARGRIDINFO, 0, LPARAM(PMCGRIDINFO(pmc))));
+end;
+
+function MonthCal_GetCALID(hmc:HWND):CALID;
+Begin
+  Result:=CALID(SendMessage(hmc, MCM_GETCALID, 0, 0));
+end;
+
+function MonthCal_SetCALID(hmc:HWND; calid:cuint):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SETCALID, WPARAM(calid), 0));
+end;
+
+function MonthCal_SizeRectToMin(hmc:HWND; prc:prect):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SIZERECTTOMIN, 0, LPARAM(prc)));
+end;
+
+function MonthCal_SetCalendarBorder(hmc:HWND; fset:bool; xyborder:cint):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hmc, MCM_SETCALENDARBORDER, WPARAM(fset), LPARAM(xyborder)));
+end;
+
+function MonthCal_GetCalendarBorder(hmc:HWND):cint;
+Begin
+ Result:=cint(SendMessage(hmc, MCM_GETCALENDARBORDER, 0, 0));
+end;
+
+function MonthCal_SetCurrentView(hmc:HWND; dwNewView:DWord):BOOL;
+Begin
+ Result:=BOOL(SendMessage(hmc, MCM_SETCURRENTVIEW, 0, LPARAM(dwNewView)));
+end;
+
+{$endif}
+
+{$ifdef NTDDI_VISTA}
+function DateTime_SetMonthCalStyle(hdp:HWND; dwStyle:DWord):LResult;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_SETMCSTYLE, 0, LPARAM(dwStyle)));
+end;
+
+function DateTime_GetMonthCalStyle(hdp:HWND):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_GETMCSTYLE, 0, 0));
+end;
+
+function DateTime_CloseMonthCal(hdp:HWND):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp,DTM_CLOSEMONTHCAL, 0, 0));
+end;
+
+// DateTime_GetDateTimePickerInfo(HWND hdp, DATETIMEPICKERINFO* pdtpi)
+// Retrieves information about the selected date time picker.
+
+function DateTime_GetDateTimePickerInfo(hdp:HWND; pdtpi:PDATETIMEPICKERINFO):LRESULT;
+Begin
+ Result:=LRESULT(SendMessage(hdp, DTM_GETDATETIMEPICKERINFO, 0, LPARAM(pdtpi)));
+end;
+
+function DateTime_GetIdealSize(hdp:HWND; ps:PSIZE): LResult;
+Begin
+ Result:=LRESULT(SendMessage(hdp, DTM_GETIDEALSIZE, 0, LPARAM(ps)));
+end;
+
+{$endif}
+
+// Macro 284
+procedure DateTime_SetMonthCalFont(hdp:HWND; hfont:HFONT; fRedraw:LPARAM);
+begin
+  SendMessage(hdp, DTM_SETMCFONT, WPARAM(hfont), LPARAM(fRedraw));
+end;
+
+// Macro 285
+function DateTime_GetMonthCalFont(hdp:HWND):HFONT;
+begin
+ Result:=HFONT(SendMessage(hdp, DTM_GETMCFONT, 0, 0));
+end;
 
 End.

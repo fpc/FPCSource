@@ -20,6 +20,9 @@ begin
   if CreateSuspended then Flags := CREATE_SUSPENDED;
   FHandle := BeginThread(nil, StackSize, @ThreadProc, pointer(self), Flags,
                          FThreadID);
+  if FHandle = TThreadID(0) then
+    raise EThread.create('Failed to create new thread, code:'+inttostr(getlasterror));
+  
   FFatalException := nil;
 end;
 

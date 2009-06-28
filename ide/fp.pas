@@ -37,7 +37,11 @@ uses
 {$endif Windows}
 {$ifndef NODEBUG}
 {$ifdef Windows}
-  fpcygwin,
+  {$ifdef USE_MINGW_GDB}
+    fpmingw,
+  {$else}
+    fpcygwin, 
+  {$endif}
 {$endif Windows}
 {$endif NODEBUG}
 {$ifdef IDEHeapTrc}
@@ -354,8 +358,10 @@ BEGIN
 {$ifndef NODEBUG}
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
+  {$ifndef USE_MINGW_GDB}
    writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
+  {$endif}
  {$endif Windows}
 {$endif NODEBUG}
 

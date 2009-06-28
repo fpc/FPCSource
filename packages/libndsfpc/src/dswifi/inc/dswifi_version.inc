@@ -1,0 +1,7 @@
+{$ifdef NDS_INTERFACE}
+const
+  DSWIFI_MAJOR    = 0;
+  DSWIFI_MINOR    = 3;
+  DSWIFI_REVISION = 6;
+  DSWIFI_VERSION  = '0.3.6';
+{$endif NDS_INTERFACE}

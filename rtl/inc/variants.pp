@@ -3645,14 +3645,14 @@ end;
 procedure TCustomVariantType.VarDataInit(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataInit');
+  FillChar(Dest,SizeOf(Dest),0);
 end;
 
 
 procedure TCustomVariantType.VarDataClear(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataClear');
+  VarClearProc(Dest);
 end;
 
 
@@ -3660,14 +3660,15 @@ end;
 procedure TCustomVariantType.VarDataCopy(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCopy');
+  DoVarCopy(Dest,Source)
 end;
 
 
 procedure TCustomVariantType.VarDataCopyNoInd(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCopyNoInd');
+  // This is probably not correct, but there is no DoVarCopyInd
+  DoVarCopy(Dest,Source);
 end;
 
 
@@ -3675,28 +3676,28 @@ end;
 procedure TCustomVariantType.VarDataCast(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCast');
+  DoVarCast(Dest, Source, VarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastTo');
+  DoVarCast(Dest, Source, AVarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastTo(var Dest: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastTo');
+  DoVarCast(Dest,Dest,AVarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastToOleStr(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastToOleStr');
+  VarDataCastTo(Dest, Dest, varOleStr);
 end;
 
 
@@ -3704,21 +3705,21 @@ end;
 procedure TCustomVariantType.VarDataFromStr(var V: TVarData; const Value: string);
 
 begin
-  NotSupported('TCustomVariantType.VarDataFromStr');
+  sysvarfromlstr(Variant(V),Value);
 end;
 
 
 procedure TCustomVariantType.VarDataFromOleStr(var V: TVarData; const Value: WideString);
 
 begin
-  NotSupported('TCustomVariantType.VarDataFromOleStr');
+  sysvarfromwstr(variant(V),Value);
 end;
 
 
 function TCustomVariantType.VarDataToStr(const V: TVarData): string;
 
 begin
-  NotSupported('TCustomVariantType.VarDataToStr');
+  sysvartolstr(Result,Variant(V));
 end;
 
 
@@ -3726,21 +3727,21 @@ end;
 function TCustomVariantType.VarDataIsEmptyParam(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsEmptyParam');
+  VarIsEmptyParam(Variant(V));
 end;
 
 
 function TCustomVariantType.VarDataIsByRef(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsByRef');
+  Result:=(V.vType and varByRef)=varByRef;
 end;
 
 
 function TCustomVariantType.VarDataIsArray(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsArray');
+  Result:=(V.vType and varArray)=varArray;
 end;
 
 
@@ -3748,28 +3749,28 @@ end;
 function TCustomVariantType.VarDataIsOrdinal(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsOrdinal');
+  Result:=(V.vType and varTypeMask) in OrdinalVarTypes;
 end;
 
 
 function TCustomVariantType.VarDataIsFloat(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsFloat');
+  Result:=(V.vType and varTypeMask) in FloatVarTypes;
 end;
 
 
 function TCustomVariantType.VarDataIsNumeric(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsNumeric');
+  Result:=(V.vType and varTypeMask) in (OrdinalVarTypes + FloatVarTypes);
 end;
 
 
 function TCustomVariantType.VarDataIsStr(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsStr');
+   Result:=(V.vType and varTypeMask) in [varOleStr,varString];
 end;
 
 
@@ -3790,7 +3791,7 @@ end;
 constructor TCustomVariantType.Create(RequestedVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.Create');
+  FVarType:=RequestedVarType;
 end;
 
 
@@ -3803,7 +3804,6 @@ begin
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
-
   inherited Destroy;
 end;
 
@@ -3811,22 +3811,27 @@ end;
 
 function TCustomVariantType.IsClear(const V: TVarData): Boolean;
 
+Var
+  VT : TVarType;
+  
 begin
-  NotSupported('TCustomVariantType.IsClear');
+  VT:=V.vType and varTypeMask;
+  Result:=(VT=varEmpty) or (((VT=varDispatch) or (VT=varUnknown))
+                            and (TVarData(V).vDispatch=Nil));
 end;
 
 
 procedure TCustomVariantType.Cast(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.Cast');
+  DoVarCast(Dest,Source,VarType);
 end;
 
 
 procedure TCustomVariantType.CastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.CastTo');
+  DoVarCast(Dest,Source,AVarType);
 end;
 
 

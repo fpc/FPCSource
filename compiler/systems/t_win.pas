@@ -975,17 +975,12 @@ implementation
             if not ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
-                  imagebase:=$10000000
+                  imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
                 else
                   if target_info.system in system_wince then
                     imagebase:=$10000
                   else
-{$ifdef cpu64bitaddr}
-                    if target_info.system=system_x86_64_win64 then
-                      imagebase:=$100000000
-                    else
-{$endif}
-                      imagebase:=$400000;
+                    imagebase:={$ifdef cpu64bitaddr} $100000000 {$else} $400000 {$endif};
               end;
             Concat('IMAGEBASE $' + hexStr(imagebase, SizeOf(imagebase)*2));
             Concat('HEADER');

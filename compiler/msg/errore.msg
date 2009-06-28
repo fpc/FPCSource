@@ -1,6 +1,6 @@
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1999-2008 by the Free Pascal Development team
+#   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
 #   English (default) Language File for Free Pascal
 #

@@ -57,8 +57,6 @@ unit i_gba;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
-            importlibprefix : 'libimp';
-            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -77,14 +75,14 @@ unit i_gba;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 8;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
             first_parm_offset : 8;
             stacksize    : 16384;

@@ -479,7 +479,7 @@ begin
    ConData := pos + 1;
 end;
 
-function WhereX : Byte;
+function WhereX : tcrtcoord;
 begin
    WhereX := Byte(ConData(CD_CURRX))-lo(windmin);
 end;
@@ -494,7 +494,7 @@ begin
  RealY := Byte(ConData(CD_CURRY));
 end;
 
-function WhereY : Byte;
+function WhereY : tcrtcoord;
 begin
    WhereY := Byte(ConData(CD_CURRY))-hi(windmin);
 end;
@@ -516,7 +516,7 @@ end;
  end;
 
 
- procedure gotoxy(x,y : byte);
+ procedure gotoxy(x,y : tcrtcoord);
  begin
         if (x<1) then
           x:=1;

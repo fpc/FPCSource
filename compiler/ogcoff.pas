@@ -62,9 +62,9 @@ interface
          bsize : longword;
          entry : longword;
          text_start : longword;
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
          data_start : longword;
-{$endif x86_64}
+{$endif cpu64bitaddr}
          ImageBase : aword;
          SectionAlignment : longword;
          FileAlignment : longword;
@@ -805,9 +805,9 @@ const pemagic : array[0..3] of byte = (
         address,
         relocval : aint;
         relocsec : TObjSection;
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
         s        : string;
-{$endif x86_64}
+{$endif cpu64bitaddr}
       begin
         if (ObjRelocations.Count>0) and
            not assigned(data) then
@@ -826,10 +826,10 @@ const pemagic : array[0..3] of byte = (
                   data.Write(zero,4);
                   continue;
                 end;
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
               RELOC_ABSOLUTE:
                 address_size:=8;
-{$endif x86_64}
+{$endif cpu64bitaddr}
             end;
 
             address:=0;
@@ -944,7 +944,7 @@ const pemagic : array[0..3] of byte = (
 
             data.Seek(objreloc.dataoffset);
             data.Write(address,address_size);
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
             if objreloc.typ = RELOC_ABSOLUTE32 then begin
               if assigned(objreloc.symbol) then
                 s:=objreloc.symbol.Name
@@ -952,7 +952,7 @@ const pemagic : array[0..3] of byte = (
                 s:=objreloc.objsection.Name;
               Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
             end;
-{$endif x86_64}
+{$endif cpu64bitaddr}
           end;
       end;
 
@@ -1066,13 +1066,13 @@ const pemagic : array[0..3] of byte = (
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE);
                       inc(data,symaddr);
                     end;
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
                   RELOC_ABSOLUTE32 :
                     begin
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE32);
                       inc(data,symaddr);
                     end;
-{$endif x86_64}
+{$endif cpu64bitaddr}
                   RELOC_RELATIVE :
                     begin
                       inc(data,symaddr-len-CurrObjSec.Size);
@@ -2269,9 +2269,9 @@ const pemagic : array[0..3] of byte = (
             if assigned(BSSExeSec) then
               peoptheader.bsize:=BSSExeSec.Size;
             peoptheader.text_start:=TextExeSec.mempos;
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
             peoptheader.data_start:=DataExeSec.mempos;
-{$endif x86_64}
+{$endif cpu64bitaddr}
             peoptheader.entry:=EntrySym.Address;
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
@@ -2670,7 +2670,7 @@ const pemagic : array[0..3] of byte = (
                 for k:=0 to objsec.ObjRelocations.Count-1 do
                   begin
                     objreloc:=TObjRelocation(objsec.ObjRelocations[k]);
-                    if not (objreloc.typ in [{$ifdef x86_64}RELOC_ABSOLUTE32,{$endif x86_64}RELOC_ABSOLUTE]) then
+                    if not (objreloc.typ in [{$ifdef cpu64bitaddr}RELOC_ABSOLUTE32,{$endif cpu64bitaddr}RELOC_ABSOLUTE]) then
                       continue;
                     offset:=objsec.MemPos+objreloc.dataoffset;
                     if (offset<pgaddr) and (pgaddr<>longword(-1)) then
@@ -2684,11 +2684,11 @@ const pemagic : array[0..3] of byte = (
                         { Reserving space for block size. The size will be written later in FinishBlock }
                         internalObjData.writebytes(k,4);
                       end;
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
                     if objreloc.typ = RELOC_ABSOLUTE then
                       w:=IMAGE_REL_BASED_DIR64
                     else
-{$endif x86_64}
+{$endif cpu64bitaddr}
                       w:=IMAGE_REL_BASED_HIGHLOW;
                     w:=(w shl 12) or (offset-pgaddr);
                     internalObjData.writebytes(w,2);

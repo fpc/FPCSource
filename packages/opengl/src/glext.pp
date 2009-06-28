@@ -4484,7 +4484,7 @@ begin
     if not Assigned(glCompressedTexSubImage1D) then Exit;
     glGetCompressedTexImage := wglGetProcAddress('glGetCompressedTexImage');
     if not Assigned(glGetCompressedTexImage) then Exit;
-    Result := TRUE;
+    Result := Load_GL_version_1_2;
 
 end;
 
@@ -9081,7 +9081,7 @@ begin
     if not Assigned(glWindowPos3s) then Exit;
     glWindowPos3sv := wglGetProcAddress('glWindowPos3sv');
     if not Assigned(glWindowPos3sv) then Exit;
-    Result := TRUE;
+    Result := Load_GL_version_1_3;
 
 end;
 
@@ -9131,7 +9131,7 @@ begin
     if not Assigned(glGetBufferParameteriv) then Exit;
     glGetBufferPointerv := wglGetProcAddress('glGetBufferPointerv');
     if not Assigned(glGetBufferPointerv) then Exit;
-    Result := TRUE;
+    Result := Load_GL_version_1_4;
 
 end;
 
@@ -9329,7 +9329,7 @@ begin
     if not Assigned(glVertexAttrib4usv) then Exit;
     glVertexAttribPointer := wglGetProcAddress('glVertexAttribPointer');
     if not Assigned(glVertexAttribPointer) then Exit;
-    Result := TRUE;
+    Result := Load_GL_version_1_5;
 
 end;
 

@@ -66,15 +66,23 @@ var
   WindMinY : DWord;
   WindMaxY : DWord      ;
 
+type
+  { all crt unit coordinates are 1-based }
+  tcrtcoord = 1..255;
+
 { Interface procedures }
 procedure AssignCrt(var F: Text);
 function KeyPressed: Boolean;
 function ReadKey: Char;
 procedure TextMode (Mode: word);
+{ Window parameters not changed to tcrtcoord, because the window() procedure
+  does nothing if (x1 > x2) or (y1 > y2), and some people may set x2 or y2
+  to 0 if they don't want it to do anything (JM)
+}
 procedure Window(X1,Y1,X2,Y2: Byte);
-procedure GotoXY(X,Y: Byte);
-function WhereX: Byte;
-function WhereY: Byte;
+procedure GotoXY(X,Y: tcrtcoord);
+function WhereX: tcrtcoord;
+function WhereY: tcrtcoord;
 procedure ClrScr;
 procedure ClrEol;
 procedure InsLine;

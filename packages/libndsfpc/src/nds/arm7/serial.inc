@@ -94,44 +94,7 @@ const
 // i.e. when we're part of a continuous transfer
   SPI_CONTINUOUS       = (1 shl 11);
 
-// Fixme: does this stuff really belong in serial.h?
-
-// Power management registers
-  PM_CONTROL_REG    = 0;
-  PM_BATTERY_REG    = 1;
-  PM_AMPLIFIER_REG  = 2;
-  PM_READ_REGISTER  = (1 shl 7);
-
-// PM control register bits - power control
-  PM_SOUND_AMP         = (1 shl 0);    // Power the sound hardware (needed to hear stuff in GBA mode too)
-  PM_SOUND_MUTE        = (1 shl 1);    // Mute the main speakers, headphone output will still work.
-  PM_BACKLIGHT_BOTTOM  = (1 shl 2);    // Enable the top backlight if set
-  PM_BACKLIGHT_TOP     = (1 shl 3);    // Enable the bottom backlight if set
-  PM_SYSTEM_PWR        = (1 shl 6);    // Turn the power *off* if set
-  PM_POWER_DOWN        = (1 shl 6);    // Same thing, I like this name better tho
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_IMPLEMENTATION}
-// PM control register bits - LED control
-function PM_LED_CONTROL(m: cint): cint; inline;
-begin
-  PM_LED_CONTROL := m shl 4;  // ?
-end;
-{$endif NDS_IMPLEMENTATION}
-
-{$ifdef NDS_INTERFACE}
 const
-  PM_LED_ON     = (0 shl 4);  // Steady on
-  PM_LED_SLEEP  = (1 shl 4);  // Blinking, mostly off
-  PM_LED_BLINK  = (3 shl 4);  // Blinking, mostly on
-
-
-  PM_AMP_OFFSET  = 2;
-  PM_AMP_ON      = 1;
-  PM_AMP_OFF     = 0;
-
-// Fixme: does this stuff really belong in serial.h?
-
 // Firmware commands
   FIRMWARE_WREN = $06;
   FIRMWARE_WRDI = $04;
@@ -145,6 +108,9 @@ const
   FIRMWARE_SE   = $D8;
   FIRMWARE_DP   = $B9;
   FIRMWARE_RDP  = $AB;
+
+procedure SerialWaitBusy(); inline;
+procedure readFirmware(address: cuint32; destination: pointer; size: cuint32); cdecl; external;
 {$endif NDS_INTERFACE}
 
 
@@ -155,31 +121,3 @@ begin
     swiDelay(1); 
 end;
 {$endif NDS_IMPLEMENTATION}
-
-// Warning: These functions use the SPI chain, and are thus 'critical'
-// sections, make sure to disable interrupts during the call if you've
-// got a VBlank IRQ polling the touch screen, etc...
-
-// Read/write a power management register
-
-{$ifdef NDS_INTERFACE}
-function writePowerManagement(reg: cint; command: cint): cint; cdecl; external;
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_IMPLEMENTATION}
-function readPowerManagement(reg: cint): cint; inline;
-begin
-  readPowerManagement := writePowerManagement(reg or PM_READ_REGISTER, 0); 
-end;
-{$endif NDS_IMPLEMENTATION}
-
-{$ifdef NDS_INTERFACE}
-// Read the firmware
-procedure readFirmware(address: cuint32; destination: pointer; size: cuint32); cdecl; external;
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_INTERFACE}
-function PM_LED_CONTROL(m: cint): cint; inline;
-procedure SerialWaitBusy(); inline;
-function readPowerManagement(reg: cint): cint; inline;
-{$endif NDS_INTERFACE}

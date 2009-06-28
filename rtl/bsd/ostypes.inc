@@ -216,6 +216,23 @@ CONST
   F_SetLkW = 7;
   F_SetOwn = 8;
   F_GetOwn = 9;
+{$ifdef darwin}
+  F_CHKCLEAN       = 41;          { Used for regression test }
+  F_PREALLOCATE    = 42;          { Preallocate storage }
+  F_SETSIZE        = 43;          { Truncate a file without zeroing space }     
+  F_RDADVISE       = 44;          { Issue an advisory read async with no copy to user }
+  F_RDAHEAD        = 45;          { turn read ahead off/on }
+  F_READBOOTSTRAP  = 46;          { Read bootstrap from disk }
+  F_WRITEBOOTSTRAP = 47;          { Write bootstrap on disk }
+  F_NOCACHE        = 48;          { turning data caching off/on }
+  F_LOG2PHYS       = 49;          { file offset to device offset }
+  F_GETPATH        = 50;          { return the full path of the fd }
+  F_FULLFSYNC      = 51;          { fsync + ask the drive to flush to the media }
+  F_PATHPKG_CHECK  = 52;          { find which component (if any) is a package }
+  F_FREEZE_FS      = 53;          { "freeze" all fs operations }
+  F_THAW_FS        = 54;          { "thaw" all fs operations }
+  F_GLOBAL_NOCACHE = 55;          { turn data caching off/on (globally) for this file }
+{$endif}
 
 
 type

@@ -99,6 +99,7 @@
   {$include arm9/rumble.inc}
   {$include arm9/sound.inc}
   {$include arm9/trig_lut.inc}
+  {$include arm9/ndsmotion.inc}
   {$include arm9/video.inc}
   {$include arm9/videoGL.inc}
   {$include arm9/sprite.inc}

@@ -83,17 +83,11 @@ unit optbase;
     procedure DFASetInclude(var s : tdfaset;e : integer);
       var
         i,
-        oldhigh,
         e8 : Integer;
       begin
         e8:=e div 8;
         if e8>high(s) then
-          begin
-            oldhigh:=high(s);
-            SetLength(s,e8+1);
-            for i:=oldhigh+1 to high(s) do
-              s[i]:=0;
-          end;
+          SetLength(s,e8+1);
         s[e8]:=s[e8] or (1 shl (e mod 8));
       end;
 
@@ -114,9 +108,8 @@ unit optbase;
         e8 : Integer;
       begin
         e8:=e div 8;
-        if e8>high(s) then
-          SetLength(s,e8+1);
-        s[e8]:=s[e8] and not(1 shl (e mod 8));
+        if e8<=high(s) then
+          s[e8]:=s[e8] and not(1 shl (e mod 8));
       end;
 
 
@@ -124,11 +117,11 @@ unit optbase;
       var
         e8 : Integer;
       begin
-        result:=false;
         e8:=e div 8;
-        if e8>high(s) then
-          exit;
-        result:=(s[e8] and (1 shl (e mod 8)))<>0;
+        if e8<=high(s) then
+          result:=(s[e8] and (1 shl (e mod 8)))<>0
+        else
+          result:=false;
       end;
 
 
@@ -137,10 +130,14 @@ unit optbase;
         i : integer;
       begin
         SetLength(d,max(Length(s1),Length(s2)));
-        for i:=0 to high(s1) do
-          d[i]:=s1[i];
-        for i:=0 to high(s2) do
-          d[i]:=d[i] or s2[i];
+        for i:=0 to min(high(s1),high(s2)) do
+          d[i]:=s1[i] or s2[i];
+        if high(s1)<high(s2) then
+          for i:=high(s1)+1 to high(s2) do
+            d[i]:=s2[i]
+        else
+          for i:=high(s2)+1 to high(s1) do
+            d[i]:=s1[i];
       end;
 
 
@@ -149,7 +146,7 @@ unit optbase;
         i : integer;
       begin
         SetLength(d,min(Length(s1),Length(s2)));
-        for i:=0 to min(high(s1),high(s2)) do
+        for i:=0 to high(d) do
           d[i]:=s1[i] and s2[i];
       end;
 

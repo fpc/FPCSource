@@ -232,6 +232,16 @@ begin
   HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
+
+  // MySQL _Server_ version 4.1 and later
+  // major_version*10000 + minor_version *100 + sub_version
+  if (trim(CharSet) <> '')  and (4*10000 + 1*100 <= mysql_get_server_version(HMySQL)) then
+    begin
+    // Only available for mysql 5.0.7 and later...
+    // if (mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0) then
+    if mysql_query(FMySQL,PChar('SET CHARACTER SET ''' + EscapeString(CharSet) +''''))<>0 then
+      MySQLError(HMySQL,Format(SErrExecuting,[StrPas(mysql_error(HMySQL))]),Self);
+    end;
 end;
 
 function TConnectionName.GetAsSQLText(Field : TField) : string;
@@ -300,18 +310,21 @@ begin
 
   InitialiseMysql;
 
-  H:=HostName;
-  U:=UserName;
-  P:=Password;
-  AMySQL := nil;
-  ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
-
-  if mysql_query(AMySQL,pchar(query))<>0 then
-    MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
-
-  mysql_close(AMySQL);
-
-  ReleaseMysql;
+  try
+    H:=HostName;
+    U:=UserName;
+    P:=Password;
+    AMySQL := nil;
+    ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
+    try
+      if mysql_query(AMySQL,pchar(query))<>0 then
+        MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
+    finally
+      mysql_close(AMySQL);
+    end;
+  finally
+    ReleaseMysql;
+  end;
 end;
 
 function TConnectionName.EscapeString(const Str: string): string;

@@ -1726,6 +1726,8 @@ implementation
              inserttypeconv(right,sinttype);
              if nodetype in [addn,subn] then
                begin
+                 if (lt=niln) then
+                   CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),'NIL',rd.typename);
                  if not(cs_extsyntax in current_settings.moduleswitches) or
                     (not(is_pchar(ld)) and not(m_add_pointer in current_settings.modeswitches)) then
                    CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);

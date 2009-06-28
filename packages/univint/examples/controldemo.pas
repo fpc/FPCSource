@@ -111,7 +111,12 @@ var
   cmdEvent: EventTypeSpec;
   eventHandler: EventHandlerUPP;
   fontStyle: ControlFontStyleRec;
+  psn: ProcessSerialNumber;
 begin
+  psn.highLongOfPSN:=0;
+  psn.lowLongOfPSN:=kCurrentProcess;
+  TransformProcessType( psn, kProcessTransformToForegroundApplication );
+  setFrontProcess( psn );
   status := CreateNewWindow(kDocumentWindowClass,
    (kWindowStandardDocumentAttributes or kWindowStandardHandlerAttribute
     or kWindowCompositingAttribute),

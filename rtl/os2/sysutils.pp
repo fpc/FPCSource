@@ -617,7 +617,11 @@ begin
     Rslt.ExcludeAttr := 0;
     TRec (Rslt.Time).T := FStat^.TimeLastWrite;
     TRec (Rslt.Time).D := FStat^.DateLastWrite;
+  end else if (Rslt.Findhandle<>0) then
+  begin
+    FindClose(Rslt); 
   end;
+  
   Dispose (FStat);
 end;
 

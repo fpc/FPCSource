@@ -177,7 +177,10 @@ unit cgcpu;
               list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
             end
           else
-            list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+            begin
+              make_simple_ref(list,href);
+              list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+            end;
         end;
 
       var

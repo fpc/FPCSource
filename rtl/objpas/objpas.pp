@@ -50,22 +50,22 @@ Var
 
     { Untyped file support }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+     Procedure AssignFile(out f:File;const Name:string);
+     Procedure AssignFile(out f:File;p:pchar);
+     Procedure AssignFile(out f:File;c:char);
      Procedure CloseFile(var f:File);
 
      { Text file support }
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+     Procedure AssignFile(out t:Text;const s:string);
+     Procedure AssignFile(out t:Text;p:pchar);
+     Procedure AssignFile(out t:Text;c:char);
      Procedure CloseFile(Var t:Text);
 
      { Typed file supoort }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+     Procedure AssignFile(out f:TypedFile;const Name:string);
+     Procedure AssignFile(out f:TypedFile;p:pchar);
+     Procedure AssignFile(out f:TypedFile;c:char);
 
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
@@ -106,19 +106,19 @@ Var
 
 { Untyped file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
+Procedure AssignFile(out f:File;const Name:string);
 
 begin
   System.Assign (F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
+Procedure AssignFile(out f:File;p:pchar);
 
 begin
   System.Assign (F,P);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure AssignFile(out f:File;c:char);
 
 begin
   System.Assign (F,C);
@@ -133,19 +133,19 @@ end;
 
 { Text file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
+Procedure AssignFile(out t:Text;const s:string);
 
 begin
   System.Assign (T,S);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
+Procedure AssignFile(out t:Text;p:pchar);
 
 begin
   System.Assign (T,P);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure AssignFile(out t:Text;c:char);
 
 begin
   System.Assign (T,C);
@@ -160,19 +160,19 @@ end;
 
 { Typed file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure AssignFile(out f:TypedFile;const Name:string);
 
 begin
   system.Assign(F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure AssignFile(out f:TypedFile;p:pchar);
 
 begin
   system.Assign (F,p);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure AssignFile(out f:TypedFile;c:char);
 
 begin
   system.Assign (F,C);

@@ -146,7 +146,6 @@ type
   TDOMNotationEx = class(TDOMNotation);
   TDOMDocumentTypeEx = class(TDOMDocumentType);
   TDOMElementDef = class;
-  TDOMAttrDef = class;
 
   TDTDSubsetType = (dsNone, dsInternal, dsExternal);
 
@@ -289,13 +288,6 @@ type
 
   TXMLReadState = (rsProlog, rsDTD, rsRoot, rsEpilog);
 
-  TAttrDefault = (
-    adImplied,
-    adDefault,
-    adRequired,
-    adFixed
-  );
-
   TElementContentType = (
     ctAny,
     ctEmpty,
@@ -304,6 +296,19 @@ type
   );
 
   TCheckNameFlags = set of (cnOptional, cnToken);
+  
+  TBinding = class
+  public
+    uri: WideString;
+    next: TBinding;
+    prevPrefixBinding: TObject;
+    Prefix: PHashItem;
+  end;
+
+  TPrefixedAttr = record
+    Attr: TDOMAttr;
+    PrefixLen: Integer;  // to avoid recalculation
+  end;
 
   TXMLReader = class
   private
@@ -330,6 +335,15 @@ type
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
+    FPrefixes: THashTable;
+    FBindings: TFPList;
+    FDefaultPrefix: THashItem;
+    FWorkAtts: array of TPrefixedAttr;
+    FBindingStack: array of TBinding;
+    FFreeBindings: TBinding;
+    FNsAttHash: TDblHashArray;
+    FStdPrefix_xml: PHashItem;
+    FStdPrefix_xmlns: PHashItem;
 
     FColonPos: Integer;
     FValidate: Boolean;            // parsing options, copy of FCtrl.Options
@@ -410,6 +424,9 @@ type
     procedure ParseNotationDecl;
     function ResolveEntity(const SystemID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
+    procedure ProcessNamespaceAtts(Element: TDOMElement);
+    procedure AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
+    procedure EndNamespaceScope(var Chain: TBinding);
 
     procedure PushVC(aElDef: TDOMElementDef);
     procedure PopVC;
@@ -436,20 +453,6 @@ type
   end;
 
   // Attribute/Element declarations
-
-  TDOMAttrDef = class(TDOMAttr)
-  private
-    FTag: Cardinal;
-  protected
-    FExternallyDeclared: Boolean;
-    FDefault: TAttrDefault;
-    FEnumeration: array of WideString;
-    function AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-    function HasEnumToken(const aValue: WideString): Boolean;
-    function Clone(AElement: TDOMElement): TDOMAttr;
-  public
-    property Tag: Cardinal read FTag write FTag;
-  end;
 
   TDOMElementDef = class(TDOMElement)
   public
@@ -1360,13 +1363,32 @@ begin
   end;  
 end;
 
+const
+  PrefixDefault: array[0..4] of WideChar = ('x','m','l','n','s');
+
 constructor TXMLReader.Create;
+var
+  b: TBinding;
 begin
   inherited Create;
   BufAllocate(FName, 128);
   BufAllocate(FValue, 512);
   FIDRefs := TFPList.Create;
   FNotationRefs := TFPList.Create;
+
+  FPrefixes := THashTable.Create(16, False);
+  FBindings := TFPList.Create;
+  FNsAttHash := TDblHashArray.Create;
+  SetLength(FWorkAtts, 16);
+  SetLength(FBindingStack, 16);
+  FStdPrefix_xml := FPrefixes.FindOrAdd(@PrefixDefault, 3);
+  FStdPrefix_xmlns := FPrefixes.FindOrAdd(@PrefixDefault, 5);
+  { implicit binding for the 'xml' prefix }
+  b := TBinding.Create;
+  FBindings.Add(b);
+  FStdPrefix_xml^.Data := b;
+  b.uri := stduri_xml;
+  b.Prefix := FStdPrefix_xml;
 
   // Set char rules to XML 1.0
   FNamePages := @NamePages;
@@ -1387,6 +1409,8 @@ begin
 end;
 
 destructor TXMLReader.Destroy;
+var
+  I: Integer;
 begin
   if Assigned(FEntityValue.Buffer) then
     FreeMem(FEntityValue.Buffer);
@@ -1398,6 +1422,11 @@ begin
   FPEMap.Free;
   ClearRefs(FNotationRefs);
   ClearRefs(FIDRefs);
+  FNsAttHash.Free;
+  for I := FBindings.Count-1 downto 0 do
+    TObject(FBindings.List^[I]).Free;
+  FPrefixes.Free;
+  FBindings.Free;
   FNotationRefs.Free;
   FIDRefs.Free;
   inherited Destroy;
@@ -2329,10 +2358,9 @@ begin
   begin
     CheckName;
     ExpectWhitespace;
-    AttDef := TDOMAttrDef.Create(doc);
+    AttDef := doc.CreateAttributeDef(FName.Buffer, FName.Length);
     try
-      AttDef.FExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
-      AttDef.FNSI.QName := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
+      AttDef.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
 // In case of duplicate declaration of the same attribute, we must discard it,
 // not modifying ElDef, and suppressing certain validation errors.
       DiscardIt := Assigned(ElDef.GetAttributeNode(AttDef.Name));
@@ -2341,7 +2369,7 @@ begin
 
       if CheckForChar('(') then     // [59]
       begin
-        AttDef.FDataType := dtNmToken;
+        AttDef.DataType := dtNmToken;
         repeat
           SkipWhitespace;
           CheckName([cnToken]);
@@ -2364,7 +2392,7 @@ begin
         end;
         if Found and SkipWhitespace then
         begin
-          AttDef.FDataType := dt;
+          AttDef.DataType := dt;
           if (dt = dtId) and not DiscardIt then
           begin
             if Assigned(ElDef.IDAttr) then
@@ -2406,18 +2434,18 @@ begin
       end;
       StoreLocation(FTokenStart);
       if FSource.Matches('#REQUIRED') then
-        AttDef.FDefault := adRequired
+        AttDef.Default := adRequired
       else if FSource.Matches('#IMPLIED') then
-        AttDef.FDefault := adImplied
+        AttDef.Default := adImplied
       else if FSource.Matches('#FIXED') then
       begin
-        AttDef.FDefault := adFixed;
+        AttDef.Default := adFixed;
         ExpectWhitespace;
       end
       else
-        AttDef.FDefault := adDefault;
+        AttDef.Default := adDefault;
 
-      if AttDef.FDefault in [adDefault, adFixed] then
+      if AttDef.Default in [adDefault, adFixed] then
       begin
         if AttDef.DataType = dtId then
           ValidationError('An attribute of type ID cannot have a default value',[]);
@@ -2892,6 +2920,8 @@ begin
   if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
     ProcessDefaultAttributes(NewElem, ElDef.FAttributes);
   PushVC(ElDef);  // this increases FNesting
+  if FNamespaces then
+    ProcessNamespaceAtts(NewElem);
 
   // SAX: ContentHandler.StartElement(...)
   // SAX: ContentHandler.StartPrefixMapping(...)
@@ -2937,6 +2967,8 @@ begin
   if FValidate and FValidator[FNesting].Incomplete then
     ValidationError('Element ''%s'' is missing required sub-elements', [ElName^.Key], ErrOffset);
 
+  if FNamespaces then
+    EndNamespaceScope(FBindingStack[FNesting]);
   PopVC;
 end;
 
@@ -2950,21 +2982,21 @@ procedure CheckValue;
 var
   AttValue, OldValue: WideString;
 begin
-  if FStandalone and AttDef.FExternallyDeclared then
+  if FStandalone and AttDef.ExternallyDeclared then
   begin
     OldValue := Attr.Value;
-    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    Attr.DataType := AttDef.DataType;
     AttValue := Attr.Value;
     if AttValue <> OldValue then
       StandaloneError(-1);
   end
   else
   begin
-    TDOMAttrDef(Attr).FDataType := AttDef.FDataType;
+    Attr.DataType := AttDef.DataType;
     AttValue := Attr.Value;
   end;
   // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
-  if (AttDef.FDefault = adFixed) and (AttDef.Value <> AttValue) then
+  if (AttDef.Default = adFixed) and (AttDef.Value <> AttValue) then
     ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[AttDef.Name], -1);
   if not ValidateAttrSyntax(AttDef, AttValue) then
     ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name], -1);
@@ -2997,7 +3029,7 @@ begin
   FCursor := attr;
   ExpectAttValue;
 
-  if Assigned(AttDef) and ((AttDef.FDataType <> dtCdata) or (AttDef.FDefault = adFixed)) then
+  if Assigned(AttDef) and ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
     CheckValue;
 end;
 
@@ -3049,11 +3081,11 @@ begin
 
     if AttDef.Tag <> FAttrTag then  // this one wasn't specified
     begin
-      case AttDef.FDefault of
+      case AttDef.Default of
         adDefault, adFixed: begin
-          if FStandalone and AttDef.FExternallyDeclared then
+          if FStandalone and AttDef.ExternallyDeclared then
             StandaloneError;
-          Attr := AttDef.Clone(Element);
+          Attr := TDOMAttr(AttDef.CloneNode(True));
           Element.SetAttributeNode(Attr);
           ValidateAttrValue(Attr, Attr.Value);
         end;
@@ -3061,6 +3093,153 @@ begin
       end;
     end;
   end;
+end;
+
+
+procedure TXMLReader.AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
+var
+  nsUri: DOMString;
+  b: TBinding;
+begin
+  nsUri := Attr.NodeValue;
+  { 'xml' is allowed to be bound to the correct namespace }
+  if ((nsUri = stduri_xml) <> (Prefix = FStdPrefix_xml)) or
+   (Prefix = FStdPrefix_xmlns) or
+   (nsUri = stduri_xmlns) then
+  begin
+    if (Prefix = FStdPrefix_xml) or (Prefix = FStdPrefix_xmlns) then
+      FatalError('Illegal usage of reserved prefix ''%s''', [Prefix^.Key])
+    else
+      FatalError('Illegal usage of reserved namespace URI ''%s''', [nsUri]);
+  end;
+
+  { try reusing an existing binding }
+  b := FFreeBindings;
+  if Assigned(b) then
+    FFreeBindings := b.Next
+  else { no free bindings, create a new one }
+  begin
+    b := TBinding.Create;
+    FBindings.Add(b);
+  end;
+
+  b.uri := nsUri;
+  b.prefix := Prefix;
+  b.PrevPrefixBinding := Prefix^.Data;
+  if nsUri = '' then
+  begin
+    if (FXML11 or (Prefix = @FDefaultPrefix)) then // prefix being unbound
+      Prefix^.Data := nil
+    else
+      FatalError('Illegal undefining of namespace');  { position - ? }
+  end
+  else
+    Prefix^.Data := b;
+
+  b.Next := Chain;
+  Chain := b;
+end;
+
+procedure TXMLReader.EndNamespaceScope(var Chain: TBinding);
+var
+  b: TBinding;
+begin
+  while Assigned(Chain) do
+  begin
+    b := Chain;
+    Chain := b.next;
+    b.next := FFreeBindings;
+    FFreeBindings := b;
+    b.Prefix^.Data := b.prevPrefixBinding;
+  end;  
+end;
+
+procedure TXMLReader.ProcessNamespaceAtts(Element: TDOMElement);
+var
+  I, J: Integer;
+  Map: TDOMNamedNodeMap;
+  Prefix, AttrName: PHashItem;
+  Attr: TDOMAttr;
+  PrefixCount: Integer;
+  b: TBinding;
+begin
+  if FNesting = Length(FBindingStack) then
+    SetLength(FBindingStack, FNesting * 2);
+  PrefixCount := 0;
+  if Element.HasAttributes then
+  begin
+    Map := Element.Attributes;
+    if Map.Length > LongWord(Length(FWorkAtts)) then
+      SetLength(FWorkAtts, Map.Length+10);
+    { Pass 1, identify prefixed attrs and assign prefixes }
+    for I := 0 to Map.Length-1 do
+    begin
+      Attr := TDOMAttr(Map[I]);
+      AttrName := Attr.NSI.QName;
+      if Pos(WideString('xmlns'), AttrName^.Key) = 1 then
+      begin
+        { this is a namespace declaration }
+        if Length(AttrName^.Key) = 5 then
+        begin
+          // TODO: check all consequences of having zero PrefixLength
+          Attr.SetNSI(stduri_xmlns, 0);
+          AddBinding(Attr, @FDefaultPrefix, FBindingStack[FNesting]);
+        end
+        else if AttrName^.Key[6] = ':' then
+        begin
+          Prefix := FPrefixes.FindOrAdd(@AttrName^.Key[7], Length(AttrName^.Key)-6);
+          Attr.SetNSI(stduri_xmlns, 6);
+          AddBinding(Attr, Prefix, FBindingStack[FNesting]);
+        end;
+      end
+      else
+      begin
+        J := Pos(WideChar(':'), AttrName^.Key);
+        if J > 1 then
+        begin
+          FWorkAtts[PrefixCount].Attr := Attr;
+          FWorkAtts[PrefixCount].PrefixLen := J;
+          Inc(PrefixCount);
+        end;
+      end;
+    end;
+  end;
+  { Pass 2, now all bindings are known, handle remaining prefixed attributes }
+  if PrefixCount > 0 then
+  begin
+    FNsAttHash.Init(PrefixCount);
+    for I := 0 to PrefixCount-1 do
+    begin
+      AttrName := FWorkAtts[I].Attr.NSI.QName;    
+      Prefix := FPrefixes.FindOrAdd(PWideChar(AttrName^.Key), FWorkAtts[I].PrefixLen-1);
+      b := TBinding(Prefix^.Data);
+      if b = nil then
+        FatalError('Unbound prefix "%s"', [Prefix^.Key]);
+      { detect duplicates }
+      J := FWorkAtts[I].PrefixLen+1;
+
+      if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J) then
+        FatalError('Duplicate prefixed attribute');
+
+      // convert Attr into namespaced one (by hack for the time being)
+      FWorkAtts[I].Attr.SetNSI(b.uri, J-1);
+    end;
+  end;
+  { Finally, expand the element name }
+  J := Pos(WideChar(':'), Element.NSI.QName^.Key);
+  if J > 1 then
+  begin
+    Prefix := FPrefixes.FindOrAdd(PWideChar(Element.NSI.QName^.Key), J-1);
+    if Prefix^.Data = nil then
+      FatalError('Unbound prefix "%s"', [Prefix^.Key]);
+    b := TBinding(Prefix^.Data);
+  end
+  else if Assigned(FDefaultPrefix.Data) then
+    b := TBinding(FDefaultPrefix.Data)
+  else
+    Exit;
+  // convert Element into namespaced one (by hack for the time being)
+  Element.SetNSI(b.uri, J);
 end;
 
 function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
@@ -3271,51 +3450,6 @@ begin
     FCurrContentType := ctAny;
     FSaViolation := False;
   end;
-end;
-
-{ TDOMAttrDef }
-
-function TDOMAttrDef.AddEnumToken(Buf: DOMPChar; Len: Integer): Boolean;
-var
-  I, L: Integer;
-begin
-  // TODO: this implementaion is the slowest possible...
-  Result := False;
-  L := Length(FEnumeration);
-  for I := 0 to L-1 do
-  begin
-    if (Len = Length(FEnumeration[I])) and CompareMem(Buf, DOMPChar(FEnumeration[I]), Len*sizeof(WideChar)) then
-      Exit;
-  end;
-  SetLength(FEnumeration, L+1);
-  SetString(FEnumeration[L], Buf, Len);
-  Result := True;
-end;
-
-function TDOMAttrDef.HasEnumToken(const aValue: WideString): Boolean;
-var
-  I: Integer;
-begin
-  Result := True;
-  if Length(FEnumeration) = 0 then
-    Exit;
-  for I := 0 to Length(FEnumeration)-1 do
-  begin
-    if FEnumeration[I] = aValue then
-      Exit;
-  end;
-  Result := False;
-end;
-
-type
-  TDOMAttrEx = class(TDOMAttr);
-
-function TDOMAttrDef.Clone(AElement: TDOMElement): TDOMAttr;
-begin
-  Result := TDOMAttr.Create(FOwnerDocument);
-  TDOMAttrEx(Result).FNSI.QName := Self.FNSI.QName;
-  TDOMAttrEx(Result).FDataType := FDataType;
-  CloneChildren(Result, FOwnerDocument);
 end;
 
 { TElementValidator }

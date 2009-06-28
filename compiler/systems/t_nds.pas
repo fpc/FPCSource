@@ -31,7 +31,7 @@ implementation
 
     uses
        SysUtils,
-       cutils,cfileutl,cclasses,
+       cutils,cfileutils,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_nds,link;
 
     type
@@ -251,7 +251,7 @@ begin
         add('	rom	: ORIGIN = 0x08000000, LENGTH = 32M');
         add('	ewram	: ORIGIN = 0x02000000, LENGTH = 4M - 4k');
         add('	dtcm	: ORIGIN = 0x0b000000, LENGTH = 16K');
-        add('	vectors : ORIGIN = 0x00000000, LENGTH = 256');
+        add('	vectors : ORIGIN = 0x01000000, LENGTH = 256');
         add('	itcm    : ORIGIN = 0x01000100, LENGTH = 32K - 256');
         add('}');
         add('');
@@ -716,10 +716,6 @@ begin
    app_arm9: preName:='.nef';
    app_arm7: preName:='.nlf';
   end;
-
-
-  if (cs_link_map in current_settings.globalswitches) then
-   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
 
   GCSectionsStr:='--gc-sections';
   if not(cs_link_nolink in current_settings.globalswitches) then

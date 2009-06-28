@@ -6,7 +6,7 @@
 #   Based on errore.msg of SVN revision 12528
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2008 by the Free Pascal Development team
+#   Copyright (c) 1998-2009 by the Free Pascal Development team
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -1174,7 +1174,7 @@ parser_e_weak_external_not_supported=03248_E_Schwache externe Symbole werden fÅr
 % A "weak external" symbol is a symbol which may or may not exist at (either static
 % or dynamic) link time. This concept may not be available (or implemented yet)
 % on the current cpu/OS target.
-parser_e_forward_mismatch=03249_E_Forward Typddefinition passt nicht
+parser_e_forward_mismatch=03249_E_Forward Typdefinition passt nicht
 % Classes and interfaces being defined forward must have the same type
 % when being implemented. A forward interface can not be changed into a class.
 parser_n_ignore_lower_visibility=03250_N_Die virtuelle Methode "$1" hat eine niedrigere Sichtbarkeit ($2) als die Elternklasse $3 ($4)
@@ -1657,7 +1657,7 @@ sym_w_forward_not_resolved=05064_W_Forward Deklaration "$1" wird nicht aufgelîst
 cg_e_parasize_too_big=06009_E_Grîsse der Parameterliste Åbersteigt 65535 Bytes
 % The I386 processor limits the parameter list to 65535 bytes. (The \var{RET}
 % instruction causes this).
-cg_e_file_must_call_by_reference=06012_E_Dateitypen mÅssen var Parameter sein
+cg_e_file_must_call_by_reference=06012_E_Dateitypen mÅssen VAR Parameter sein
 % You cannot specify files as value parameters, i.e., they must always be
 % declared \var{var} parameters.
 cg_e_cant_use_far_pointer_there=06013_E_Die Verwendung eines FAR-Zeigers ist in dieser Art nicht erlaubt
@@ -1676,7 +1676,7 @@ cg_w_member_cd_call_from_method=06016_W_Mîglicherweise unzulÑssiger Aufruf eines
 % The compiler detected that a constructor or destructor is called within a
 % a method. This will probably lead to problems, since constructors / destructors
 % require parameters on entry.
-cg_n_inefficient_code=06017_N_Ineffiziente Programmierung
+cg_n_inefficient_code=06017_N_Uneffiziente Programmierung
 % You construction seems dubious to the compiler.
 cg_w_unreachable_code=06018_W_Code wird niemals ausgefÅhrt
 % You specified a loop which will never be executed. Example:
