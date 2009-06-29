@@ -39,7 +39,9 @@ unit cgutils;
          offset      : aint;
          symbol,
          relsymbol   : tasmsymbol;
+{$if defined(x86) or defined(m68k)}
          segment,
+{$endif defined(x86) or defined(m68k)}
          base,
          index       : tregister;
          refaddr     : trefaddr;
