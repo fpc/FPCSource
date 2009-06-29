@@ -333,9 +333,9 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
 
 var
   Attr: TSAXAttributes;
-  EntString, TagName: String;
+  TagName: String;
   Found: Boolean;
-  Ent: Char;
+  Ent: SAXChar;
   i: Integer;
 begin
   case ScannerContext of
@@ -347,8 +347,7 @@ begin
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
         begin
-          EntString := Ent;
-          DoCharacters(PSAXChar(EntString), 0, 1);
+          DoCharacters(@Ent, 0, 1);
         end else
         begin
           { Is this a predefined Unicode character entity? We must check this,
@@ -364,7 +363,7 @@ begin
           if Found then
             DoSkippedEntity(TokenText)
           else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
+            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 2);
         end;
       end;
     scTag:

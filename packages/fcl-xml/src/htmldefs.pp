@@ -557,7 +557,7 @@ const
 
 
 function ResolveHTMLEntityReference(const Name: String;
-  var Entity: Char): Boolean;
+  var Entity: WideChar): Boolean;
 
 
 
@@ -566,10 +566,11 @@ implementation
 uses SysUtils;
 
 function ResolveHTMLEntityReference(const Name: String;
-  var Entity: Char): Boolean;
+  var Entity: WideChar): Boolean;
 var
-  Ent: Char;
+  Ent: WideChar;
   i: Integer;
+  value: Integer;
 begin
   if Name = 'quot' then
   begin
@@ -591,17 +592,40 @@ begin
   begin
     Entity := '>';
     Result := True;
-  end else if (Length(Name) > 0) and (Name[1] = '#') then
+  end else if (Length(Name) > 1) and (Name[1] = '#') then
   begin
-    for i := 2 to Length(Name) do
-      if (Name[i] < '0') or (Name[i] > '9') then
-        break;
-    if i > 2 then
+    value := 0;
+    if Name[2] in ['x', 'X'] then
     begin
-      Entity := Chr(StrToInt(Copy(Name, 2, i - 1)));
-      Result := True;
-    end else
-      Result := False;
+      i := 3;
+      while i <= Length(Name) do
+      begin
+        case Name[i] of
+          '0'..'9': Value := Value * 16 + Ord(Name[i]) - Ord('0');
+          'a'..'f': Value := Value * 16 + Ord(Name[i]) - (Ord('a') - 10);
+          'A'..'F': Value := Value * 16 + Ord(Name[i]) - (Ord('A') - 10);
+        else
+          Break;
+        end;
+        Inc(i);
+      end;
+    end
+    else
+    begin
+      i := 2;
+      while i <= Length(Name) do
+      begin
+        case Name[i] of
+          '0'..'9': Value := Value * 10 + Ord(Name[i]) - Ord('0');
+        else
+          Break;
+        end;
+        Inc(i);
+      end;
+    end;
+    Result := (i = Length(Name)+1);
+    if Result then
+      Entity := WideChar(Value);
   end else
   begin
     for Ent := Low(HTMLEntities) to High(HTMLEntities) do
