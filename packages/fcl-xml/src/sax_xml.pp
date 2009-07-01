@@ -184,12 +184,10 @@ begin
                 EnterNewScannerContext(scTag);
               end;
             else
-              EnterNewScannerContext(scText);
+              FScannerContext := scText
           end;
         scText:
           case Buffer[BufferPos] of
-            #9, #10, #13, ' ':
-              EnterNewScannerContext(scWhitespace);
             '&':
               begin
                 Inc(BufferPos);
