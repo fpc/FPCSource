@@ -97,8 +97,9 @@ type
     efPCDATAContent,                    // may have PCDATA content
     efPreserveWhitespace,               // preserve all whitespace
     efDeprecated,                       // can be dropped in future versions
-    efNoChecks                          // Checks (attributes,subtags,...) can only be implemented in descendants
-    );
+    efNoChecks,                         // Checks (attributes,subtags,...) can only be implemented in descendants
+    efEndTagOptional
+  );
   THTMLElementFlags = set of THTMLElementFlag;
 
   PHTMLElementProps = ^THTMLElementProps;
@@ -184,10 +185,10 @@ const
     (Name: 'col';       Flags: [];
      Attributes: atsattrs+atscellhalign+[atvalign,atspan,atwidth]),
 
-    (Name: 'colgroup';  Flags: [efSubelementContent];
+    (Name: 'colgroup';  Flags: [efSubelementContent, efEndTagOptional];
      Attributes: atsattrs+atscellhalign+[atvalign,atspan,atwidth]),
 
-    (Name: 'dd';        Flags: efSubcontent; Attributes: atsattrs),
+    (Name: 'dd';        Flags: efSubcontent+[efEndTagOptional]; Attributes: atsattrs),
 
     (Name: 'del';       Flags: [efSubelementContent]; Attributes: atsattrs+[atcite,atdatetime]),
 
@@ -195,11 +196,11 @@ const
 
     (Name: 'dir';       Flags: [efSubelementContent,efDeprecated]; Attributes: atsattrs),
 
-    (Name: 'div';       Flags: [efSubelementContent]; Attributes: atsattrs),
+    (Name: 'div';       Flags: efSubContent; Attributes: atsattrs),
 
     (Name: 'dl';        Flags: [efSubelementContent]; Attributes: atsattrs),
 
-    (Name: 'dt';        Flags: [efPCDataContent]; Attributes: atsattrs),
+    (Name: 'dt';        Flags: [efPCDataContent, efEndTagOptional]; Attributes: atsattrs),
 
     (Name: 'em';        Flags: efSubcontent; Attributes: atsattrs),
 
@@ -260,7 +261,7 @@ const
 
     (Name: 'legend';    Flags: efSubcontent; Attributes: atsattrs+[ataccesskey]),
 
-    (Name: 'li';        Flags: efSubcontent; Attributes: atsattrs),
+    (Name: 'li';        Flags: efSubcontent+[efEndTagOptional]; Attributes: atsattrs),
 
     (Name: 'link';      Flags: [];
      Attributes: atsattrs+[atcharset,athref,athreflang,attype,atrel,atrev,atmedia]),
@@ -283,10 +284,10 @@ const
 
     (Name: 'optgroup';  Flags: efSubcontent; Attributes: atsattrs+[atdisabled,atlabel]),
 
-    (Name: 'option';    Flags: efSubcontent;
+    (Name: 'option';    Flags: efSubcontent+[efEndTagOptional];
      Attributes: atsattrs+[atselected,atdisabled,atlabel,atvalue]),
 
-    (Name: 'p';         Flags: efSubcontent; Attributes: atsattrs),
+    (Name: 'p';         Flags: efSubcontent+[efEndTagOptional]; Attributes: atsattrs),
 
     (Name: 'param';     Flags: []; Attributes: [atid,atname,atvalue,atvaluetype,attype]),
 
@@ -324,23 +325,23 @@ const
 
     (Name: 'tbody';     Flags: [efSubelementContent]; Attributes: atsattrs+atscellhalign+[atvalign]),
 
-    (Name: 'td';        Flags: efSubcontent;
+    (Name: 'td';        Flags: efSubcontent+[efEndTagOptional];
      Attributes: atsattrs+atscellhalign+[atvalign,atabbr,ataxis,atheaders,atscope,atrowspan,atcolspan]),
 
     (Name: 'textarea';  Flags: [efPCDATAContent];
      Attributes: atsattrs+[atname,atrows,atcols,atdisabled,atreadonly,attabindex,
                  ataccesskey,atonfocus,atonblur,atonselect,atonchange]),
 
-    (Name: 'tfoot';     Flags: [efSubelementContent]; Attributes: atsattrs+atscellhalign+[atvalign]),
+    (Name: 'tfoot';     Flags: [efSubelementContent,efEndTagOptional]; Attributes: atsattrs+atscellhalign+[atvalign]),
 
-    (Name: 'th';        Flags: efSubcontent;
+    (Name: 'th';        Flags: efSubcontent+[efEndTagOptional];
      Attributes: atsattrs+atscellhalign+[atvalign,atabbr,ataxis,atheaders,atscope,atrowspan,atcolspan]),
 
-    (Name: 'thead';     Flags: [efSubelementContent]; Attributes: atsattrs+atscellhalign+[atvalign]),
+    (Name: 'thead';     Flags: [efSubelementContent, efEndTagOptional]; Attributes: atsattrs+atscellhalign+[atvalign]),
 
     (Name: 'title';     Flags: efSubcontent; Attributes: atsi18n),
 
-    (Name: 'tr';        Flags: [efSubelementContent];
+    (Name: 'tr';        Flags: [efSubelementContent, efEndTagOptional];
      Attributes: atsattrs+atscellhalign+[atvalign]),
 
     (Name: 'tt';        Flags: efSubcontent; Attributes: atsattrs),
@@ -559,11 +560,80 @@ const
 function ResolveHTMLEntityReference(const Name: String;
   var Entity: WideChar): Boolean;
 
+function IsAutoClose(NewTag, OldTag: THTMLElementTag): Boolean;
 
 
 implementation
 
 uses SysUtils;
+
+{ Define which elements auto-close other elements, modelled after libxml2.
+  This is an array of variable-length lists, each terminated by etUnknown.
+  Indices to first element of each list are provided by AutoCloseIndex array,
+  which *must* be updated after any change. }
+const
+  AutoCloseTab: array[0..277] of THTMLElementTag = (
+
+  etform,       etform, etp, ethr, eth1, eth2, eth3, eth4, eth5, eth6,
+                etdl, etul, etol, etmenu, etdir, etaddress, etpre,
+                ethead, etUnknown,
+  ethead,       etp, etUnknown,
+  ettitle,      etp, etUnknown,
+  etbody,       ethead, etstyle, etlink, ettitle, etp, etUnknown,
+  etframeset,   ethead, etstyle, etlink, ettitle, etp, etUnknown,
+  etli,         etp, eth1, eth2, eth3, eth4, eth5, eth6, etdl, etaddress,
+                etpre, ethead, etli, etUnknown,
+  ethr,         etp, ethead, etUnknown,
+  eth1,         etp, ethead, etUnknown,
+  eth2,         etp, ethead, etUnknown,
+  eth3,         etp, ethead, etUnknown,
+  eth4,         etp, ethead, etUnknown,
+  eth5,         etp, ethead, etUnknown,
+  eth6,         etp, ethead, etUnknown,
+  etdir,        etp, ethead, etUnknown,
+  etaddress,    etp, ethead, etul, etUnknown,
+  etpre,        etp, ethead, etul, etUnknown,
+  etblockquote, etp, ethead, etUnknown,
+  etdl,         etp, etdt, etmenu, etdir, etaddress, etpre,
+                ethead, etUnknown,
+  etdt,         etp, etmenu, etdir, etaddress, etpre,
+                ethead, etdd, etUnknown,
+  etdd,         etp, etmenu, etdir, etaddress, etpre,
+                ethead, etdt, etUnknown,
+  etul,         etp, ethead, etol, etmenu, etdir, etaddress, etpre, etUnknown,
+  etol,         etp, ethead, etul, etUnknown,
+  etmenu,       etp, ethead, etul, etUnknown,
+  etp,          etp, ethead, eth1, eth2, eth3, eth4, eth5, eth6, etUnknown,
+  etdiv,        etp, ethead, etUnknown,
+  etnoscript,   etp, ethead, etUnknown,
+  etcenter,     etfont, etb, eti, etp, ethead, etUnknown,
+  eta,          eta, etUnknown,
+  etcaption,    etp, etUnknown,
+  etcolgroup,   etcaption, etcolgroup, etcol, etp, etUnknown,
+  etcol,        etcaption, etcol, etp, etUnknown,
+  ettable,      etp, ethead, eth1, eth2, eth3, eth4, eth5, eth6, etpre,
+                eta, etUnknown,
+  etth,         etth, ettd, etp, etspan, etfont, eta, etb, eti, etu, etUnknown,
+  ettd,         etth, ettd, etp, etspan, etfont, eta, etb, eti, etu, etUnknown,
+  ettr,         etth, ettd, ettr, etcaption, etcol, etcolgroup, etp, etUnknown,
+  etthead,      etcaption, etcol, etcolgroup, etUnknown,
+  ettfoot,      etth, ettd, ettr, etcaption, etcol, etcolgroup, etthead,
+                ettbody, etp, etUnknown,
+  ettbody,      etth, ettd, ettr, etcaption, etcol, etcolgroup, etthead,
+                ettfoot, ettbody, etp, etUnknown,
+  etoptgroup,   etoption, etUnknown,
+  etoption,     etoption, etUnknown,
+  etfieldset,   etlegend, etp, ethead, eth1, eth2, eth3, eth4, eth5, eth6,
+                etpre, eta, etUnknown,
+  etUnknown);
+
+  AutoCloseIndex: array[0..40] of Integer = (
+    0, 19, 22, 25, 32, 39, 53, 57, 61, 65, 69,
+    73, 77, 81, 85, 90, 95, 99, 108, 117, 126,
+    135, 140, 145, 155, 159, 163, 170, 173, 176,
+    182, 187, 199, 210, 221, 230, 235, 246, 258,
+    261, 264
+  );
 
 function ResolveHTMLEntityReference(const Name: String;
   var Entity: WideChar): Boolean;
@@ -637,6 +707,28 @@ begin
       end;
     Result := False;
   end;
+end;
+
+function IsAutoClose(NewTag, OldTag: THTMLElementTag): Boolean;
+var
+  i, j: Integer;
+begin
+  Result := False;
+  for i := 0 to high(AutoCloseIndex) do
+    if NewTag = AutoCloseTab[AutoCloseIndex[i]] then
+    begin
+      j := AutoCloseIndex[i]+1;
+      while AutoCloseTab[j] <> etUnknown do
+      begin
+        if AutoCloseTab[j] = OldTag then
+        begin
+          Result := True;
+          Exit;
+        end;
+        Inc(j);
+      end;
+      Exit;
+    end;
 end;
 
 end.
