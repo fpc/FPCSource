@@ -83,15 +83,18 @@ type
 
     function  GetValue(const APath: WideString; const ADefault: WideString): WideString; overload;
     function  GetValue(const APath: WideString; ADefault: Integer): Integer; overload;
+    function  GetValue(const APath: WideString; ADefault: Int64): Int64; overload;
     function  GetValue(const APath: WideString; ADefault: Boolean): Boolean; overload;
     function  GetValue(const APath: WideString; ADefault: Double): Double; overload;
     procedure SetValue(const APath: WideString; const AValue: WideString); overload;
     procedure SetValue(const APath: WideString; AValue: Integer); overload;
+    procedure SetValue(const APath: WideString; AValue: Int64); overload;
     procedure SetValue(const APath: WideString; AValue: Boolean); overload;
     procedure SetValue(const APath: WideString; AValue: Double); overload;
 
     procedure SetDeleteValue(const APath: WideString; const AValue, DefValue: WideString); overload;
     procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Integer); overload;
+    procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Int64); overload;
     procedure SetDeleteValue(const APath: WideString; AValue, DefValue: Boolean); overload;
 
     procedure DeletePath(const APath: WideString);
@@ -284,6 +287,20 @@ begin
     Result:=StrToIntDef(El.AsString,ADefault);
 end;
 
+function TJSONConfig.GetValue(const APath: WideString; ADefault: Int64): Int64;
+var
+  El : TJSONData;
+
+begin
+  El:=FindElement(StripSlash(APath),False);
+  If Not Assigned(el) then
+    Result:=ADefault
+  else if (el is TJSONNumber) then
+    Result:=El.AsInt64
+  else
+    Result:=StrToInt64Def(El.AsString,ADefault);
+end;
+
 function TJSONConfig.GetValue(const APath: WideString; ADefault: Boolean): Boolean;
 
 var
@@ -376,8 +393,44 @@ begin
   FModified:=True;
 end;
 
+procedure TJSONConfig.SetValue(const APath: WideString; AValue: Int64);
+
+var
+  El : TJSONData;
+  ElName : WideString;
+  O : TJSONObject;
+  I : integer;
+
+begin
+  El:=FindElement(StripSlash(APath),True,O,ElName);
+  if Assigned(El) and (Not (El is TJSONInt64Number)) then
+    begin
+    I:=O.IndexOfName(elName);
+    If (I<>-1) then // Normally not needed...
+      O.Delete(i);
+    El:=Nil;
+    end;
+  If Not Assigned(el) then
+    begin
+    El:=TJSONInt64Number.Create(AValue);
+    O.Add(ElName,El);
+    end
+  else
+    El.AsInt64:=AValue;
+  FModified:=True;
+end;
+
 procedure TJSONConfig.SetDeleteValue(const APath: WideString; AValue,
   DefValue: Integer);
+begin
+  if AValue = DefValue then
+    DeleteValue(APath)
+  else
+    SetValue(APath, AValue);
+end;
+
+procedure TJSONConfig.SetDeleteValue(const APath: WideString; AValue,
+  DefValue: Int64);
 begin
   if AValue = DefValue then
     DeleteValue(APath)
