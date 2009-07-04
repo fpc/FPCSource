@@ -122,7 +122,8 @@ interface
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
         (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
       );
-    const
+
+      { true, if we are parsing stuff which allows array constructors }
       allow_array_constructor : boolean = false;
 
     function node2opstr(nt:tnodetype):string;

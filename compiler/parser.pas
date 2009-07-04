@@ -49,7 +49,7 @@ implementation
       script,gendef,
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,psub,ncgrtti,
+      pbase,ptype,psystem,pmodules,psub,ncgrtti,htypechk,
       cresstr,cpuinfo,procinfo;
 
 
@@ -337,6 +337,7 @@ implementation
          named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;
+         allow_array_constructor:=false;
 
        { show info }
          Message1(parser_i_compiling,filename);
