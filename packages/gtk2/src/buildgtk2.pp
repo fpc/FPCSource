@@ -29,7 +29,7 @@ uses
 {$ifdef unix}  
   ,gdk2x
 {$endif unix}
-  ;
+  , pangocairo;
 
 implementation
 

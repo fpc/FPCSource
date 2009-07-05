@@ -29,7 +29,7 @@ unit gdk2; // keep unit name lowercase for kylix
 
 interface
 
-uses glib2, gdk2pixbuf, pango;
+uses glib2, gdk2pixbuf, pango, cairo;
 
 const
 // OS dependent defines

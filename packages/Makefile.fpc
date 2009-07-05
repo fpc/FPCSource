@@ -227,11 +227,11 @@ gtk1_smart: x11_smart opengl_smart
 gtk1_release: x11_release opengl_release
 gtk1_shared: x11_shared opengl_shared
 
-gtk2_all: x11_all
-gtk2_shared: x11_shared
-gtk2_smart: x11_smart
-gtk2_debug: x11_debug
-gtk2_release: x11_release
+gtk2_all: x11_all cairo_all
+gtk2_shared: x11_shared cairo_shared
+gtk2_smart: x11_smart cairo_smart
+gtk2_debug: x11_debug cairo_debug
+gtk2_release: x11_release cairo_release
 else
 ifeq ($(findstring $(OS_TARGET),os2 emx),)
 gtk1_all:  opengl_all
@@ -240,6 +240,12 @@ gtk1_smart:  opengl_smart
 gtk1_release:  opengl_release
 gtk1_shared:  opengl_shared
 endif
+
+gtk2_all: cairo_all
+gtk2_shared: cairo_shared
+gtk2_smart: cairo_smart
+gtk2_debug: cairo_debug
+gtk2_release: cairo_release
 endif
 
 imlib_all: gtk1_all x11_all
