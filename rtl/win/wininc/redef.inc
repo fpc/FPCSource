@@ -1015,6 +1015,7 @@ function InterLockedIncrement (var Target: longint) : longint; register; externa
 function InterLockedDecrement (var Target: longint) : longint; register; external name 'FPC_INTERLOCKEDDECREMENT';
 function InterLockedExchange (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGE';
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterLockedExchangeAdd (Target: plongint;Source : longint) : longint; register; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; register; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$calling stdcall}
 
