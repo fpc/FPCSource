@@ -1587,6 +1587,8 @@ Unit Rax86int;
                             oper.opr.val:=toffset;
                           end;
                       end;
+                    OPR_REGISTER :
+                      Message(asmr_e_invalid_reference_syntax);
                     OPR_SYMBOL:
                       Message(asmr_e_invalid_symbol_ref);
                     else
