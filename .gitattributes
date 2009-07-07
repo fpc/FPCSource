@@ -2546,6 +2546,7 @@ packages/gtk2/src/pango/pango-types.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango.pas svneol=native#text/plain
 packages/gtk2/src/pango/pangoincludes.inc svneol=native#text/plain
 packages/gtk2/src/pango/pangoutils.pas svneol=native#text/plain
+packages/gtk2/src/pangocairo/pangocairo.pas svneol=native#text/plain
 packages/hash/Makefile svneol=native#text/plain
 packages/hash/Makefile.fpc svneol=native#text/plain
 packages/hash/examples/Makefile svneol=native#text/plain
