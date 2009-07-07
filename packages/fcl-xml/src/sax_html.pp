@@ -93,7 +93,6 @@ type
       Start, Count: Integer);
     procedure ReaderIgnorableWhitespace(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
-    procedure ReaderSkippedEntity(Sender: TObject; const Name: SAXString);
     procedure ReaderStartElement(Sender: TObject;
       const NamespaceURI, LocalName, RawName: SAXString; Attr: TSAXAttributes);
     procedure ReaderEndElement(Sender: TObject;
@@ -389,7 +388,6 @@ procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
   TagName: String;
-  Found: Boolean;
   Ent: SAXChar;
   i: Integer;
   elTag: THTMLElementTag;
@@ -405,25 +403,9 @@ begin
     scEntityReference:
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
-        begin
-          DoCharacters(@Ent, 0, 1);
-        end else
-        begin
-          { Is this a predefined Unicode character entity? We must check this,
-            as undefined entities must be handled as text, for compatiblity
-            to popular browsers... }
-          Found := False;
-          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-            if UnicodeHTMLEntities[i] = TokenText then
-            begin
-              Found := True;
-              break;
-            end;
-          if Found then
-            DoSkippedEntity(TokenText)
-          else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 2);
-        end;
+          DoCharacters(@Ent, 0, 1)
+        else
+          DoCharacters(PSAXChar('&' + TokenText + ';'), 0, Length(TokenText) + 2);
       end;
     scTag:
       if Length(TokenText) > 0 then
@@ -485,7 +467,6 @@ begin
   FReader := AReader;
   FReader.OnCharacters := @ReaderCharacters;
   FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
-  FReader.OnSkippedEntity := @ReaderSkippedEntity;
   FReader.OnStartElement := @ReaderStartElement;
   FReader.OnEndElement := @ReaderEndElement;
   FDocument := ADocument;
@@ -541,17 +522,6 @@ begin
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntWhitespace;
   NodeInfo.DOMNode := FDocument.CreateTextNode(s);
-  FNodeBuffer.Add(NodeInfo);
-end;
-
-procedure THTMLToDOMConverter.ReaderSkippedEntity(Sender: TObject;
-  const Name: SAXString);
-var
-  NodeInfo: THTMLNodeInfo;
-begin
-  NodeInfo := THTMLNodeInfo.Create;
-  NodeInfo.NodeType := ntEntityReference;
-  NodeInfo.DOMNode := FDocument.CreateEntityReference(Name);
   FNodeBuffer.Add(NodeInfo);
 end;
 

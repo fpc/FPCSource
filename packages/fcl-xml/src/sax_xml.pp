@@ -343,26 +343,11 @@ begin
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
+        // TODO: xml must NOT recognize HTML entities, except 5 defined for xml.
         if ResolveHTMLEntityReference(TokenText, Ent) then
-        begin
-          DoCharacters(@Ent, 0, 1);
-        end else
-        begin
-          { Is this a predefined Unicode character entity? We must check this,
-            as undefined entities must be handled as text, for compatiblity
-            to popular browsers... }
-          Found := False;
-          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-            if UnicodeHTMLEntities[i] = TokenText then
-            begin
-              Found := True;
-              break;
-            end;
-          if Found then
-            DoSkippedEntity(TokenText)
-          else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 2);
-        end;
+          DoCharacters(@Ent, 0, 1)
+        else
+          DoSkippedEntity(TokenText);
       end;
     scTag:
       if Length(TokenText) > 0 then
