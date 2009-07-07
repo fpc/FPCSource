@@ -2535,6 +2535,7 @@ packages/gtk2/src/pango/pango-engine.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-font.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-fontmap.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-fontset.inc svneol=native#text/plain
+packages/gtk2/src/pango/pango-glyph-item.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-glyph.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-item.inc svneol=native#text/plain
 packages/gtk2/src/pango/pango-layout.inc svneol=native#text/plain
