@@ -186,7 +186,9 @@
 
 
 type
+{$ifndef fpc}
     smallint = -32768..32767;
+{$endif}
 
     TResolutionRec = record
       x,y: longint;
