@@ -324,11 +324,11 @@ implementation
                         { define range and type of range }
                         hdef:=tarraydef.create(0,-1,s32inttype);
                         { define field type }
-                        single_type(arraytype,false);
+                        single_type(arraytype,false,false);
                         tarraydef(hdef).elementdef:=arraytype;
                       end
                     else
-                      single_type(hdef,false);
+                      single_type(hdef,false,false);
                   end
                 else
                   hdef:=cformaltype;
@@ -358,7 +358,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (aclass=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,false);
+              single_type(p.propdef,false,false);
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
@@ -674,7 +674,7 @@ implementation
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
-             single_type(def,false);
+             single_type(def,false,false);
 
              if not(is_interface(def)) then
                message(parser_e_class_implements_must_be_interface);

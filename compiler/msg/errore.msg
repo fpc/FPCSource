@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03251 is the last used one
+# 03252 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1181,6 +1181,14 @@ parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or p
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
 % that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
 % such as \var{default} and \var{register} also as field names.
+parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definitions. Use a separate type definition in a type block.
+% In Pascal, types are not considered to be identical simply because they are semantically equivalent.
+% Two variables or parameters are only considered to be of the same type if they refer to the
+% same type definition.
+% As a result, it is not allowed to define new types inside parameter lists, because then it is impossible to
+% refer to the same type definition in the procedure headers of the interface and implementation of a unit
+% (both procedure headers would define a separate type). Keep in mind that expressions such as
+% ``file of byte'' or ``string[50]'' also define a new type.
 % \end{description}
 #
 # Type Checking

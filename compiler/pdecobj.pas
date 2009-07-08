@@ -234,7 +234,7 @@ implementation
         if try_to_consume(_LKLAMMER) then
           begin
             { use single_type instead of id_type for specialize support }
-            single_type(hdef,false);
+            single_type(hdef,false,false);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin

@@ -40,7 +40,7 @@ interface
     procedure id_type(var def : tdef;isforwarddef:boolean);
 
     { reads a string, file type or a type identifier }
-    procedure single_type(var def:tdef;isforwarddef:boolean);
+    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
 
     { reads any type declaration, where the resulting type will get name as type identifier }
     procedure read_named_type(var def:tdef;const name : TIDString;genericdef:tstoreddef;genericlist:TFPObjectList;parseprocvardir:boolean);
@@ -414,7 +414,7 @@ implementation
       end;
 
 
-    procedure single_type(var def:tdef;isforwarddef:boolean);
+    procedure single_type(var def:tdef;isforwarddef,allowtypedef:boolean);
        var
          t2 : tdef;
          dospecialize,
@@ -425,14 +425,17 @@ implementation
            again:=false;
              case token of
                _STRING:
-                 string_dec(def);
+                 string_dec(def,allowtypedef);
 
                _FILE:
                  begin
                     consume(_FILE);
-                    if try_to_consume(_OF) then
+                    if (token=_OF) then
                       begin
-                         single_type(t2,false);
+                         if not(allowtypedef) then
+                           Message(parser_e_no_local_para_def);
+                         consume(_OF);
+                         single_type(t2,false,false);
                          def:=tfiledef.createtyped(t2);
                       end
                     else
@@ -829,7 +832,7 @@ implementation
          case token of
             _STRING,_FILE:
               begin
-                single_type(def,false);
+                single_type(def,false,true);
               end;
            _LKLAMMER:
               begin
@@ -902,7 +905,7 @@ implementation
            _CARET:
               begin
                 consume(_CARET);
-                single_type(tt2,(block_type=bt_type));
+                single_type(tt2,(block_type=bt_type),false);
                 def:=tpointerdef.create(tt2);
                 if tt2.typ=forwarddef then
                   current_module.checkforwarddefs.add(def);
@@ -967,7 +970,7 @@ implementation
                    ) then
                   begin
                     consume(_OF);
-                    single_type(hdef,(block_type=bt_type));
+                    single_type(hdef,(block_type=bt_type),false);
                     if is_class(hdef) then
                       def:=tclassrefdef.create(hdef)
                     else
@@ -1015,7 +1018,7 @@ implementation
                 if is_func then
                  begin
                    consume(_COLON);
-                   single_type(pd.returndef,false);
+                   single_type(pd.returndef,false,false);
                  end;
                 if token=_OF then
                   begin
