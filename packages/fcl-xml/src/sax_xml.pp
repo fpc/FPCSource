@@ -107,6 +107,11 @@ uses htmldefs; // for entities...
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];
+  char_lt: SAXChar = '<';
+  char_gt: SAXChar = '>';
+  char_quot: SAXChar = '"';
+  char_apos: SAXChar = '''';
+  char_amp: SAXChar = '&';
 
 
 constructor TSAXXMLReader.Create;
@@ -343,9 +348,21 @@ begin
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
-        // TODO: xml must NOT recognize HTML entities, except 5 defined for xml.
-        if ResolveHTMLEntityReference(TokenText, Ent) then
-          DoCharacters(@Ent, 0, 1)
+        if (Length(TokenText) >= 2) and (TokenText[1] = '#') and
+          (((TokenText[2] >= '0') and (TokenText[2] <= '9')) or (TokenText[2]='x')) and
+          // here actually using it to resolve character references
+          ResolveHTMLEntityReference(TokenText, Ent) then
+            DoCharacters(@Ent, 0, 1)
+        else if TokenText = 'lt' then
+          DoCharacters(@char_lt, 0, 1)
+        else if TokenText = 'gt' then
+          DoCharacters(@char_gt, 0, 1)
+        else if TokenText = 'amp' then
+          DoCharacters(@char_amp, 0, 1)
+        else if TokenText = 'quot' then
+          DoCharacters(@char_quot, 0, 1)
+        else if TokenText = 'apos' then
+          DoCharacters(@char_apos, 0, 1)
         else
           DoSkippedEntity(TokenText);
       end;
