@@ -536,7 +536,7 @@ implementation
                     typecheckpass(p);
                   end;
                 { classes and interfaces have implicit dereferencing }
-                hasimplicitderef:=is_class_or_interface(p.resultdef) or
+                hasimplicitderef:=is_class_or_interface_or_objc(p.resultdef) or
                                   (p.resultdef.typ = classrefdef);
                 if hasimplicitderef then
                   hdef:=p.resultdef

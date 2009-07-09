@@ -44,6 +44,7 @@ type
     _class: pobjc_class;
   end;
   id = ^objc_object;
+  pobjc_object = id;
 
   _fpc_objc_sel_type = record
   end;

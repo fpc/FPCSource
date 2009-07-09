@@ -370,11 +370,12 @@ implementation
                 ttypenode(p1).allowed:=true;
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
-              if (p1.resultdef.typ = objectdef) or
-                 (assigned(current_procinfo) and
-                  ((po_classmethod in current_procinfo.procdef.procoptions) or
-                   (po_staticmethod in current_procinfo.procdef.procoptions)) and
-                  (p1.resultdef.typ=classrefdef)) then
+              if not(is_objc_class_or_protocol(p1.resultdef)) and
+                 ((p1.resultdef.typ = objectdef) or
+                  (assigned(current_procinfo) and
+                   ((po_classmethod in current_procinfo.procdef.procoptions) or
+                    (po_staticmethod in current_procinfo.procdef.procoptions)) and
+                   (p1.resultdef.typ=classrefdef))) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -488,7 +489,7 @@ implementation
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not is_class_or_interface(p1.resultdef) then
+                     if not is_class_or_interface_or_objc(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;

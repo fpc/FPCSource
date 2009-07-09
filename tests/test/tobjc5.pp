@@ -6,8 +6,8 @@
 
 type
   ta = objcclass
-    { no constructors in Objective-C }
-    constructor create; message 'create';
+    { needs message name specification }
+    procedure test; 
   end; external;
 
 begin

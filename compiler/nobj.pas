@@ -39,6 +39,7 @@ interface
         _Class : tobjectdef;
         function  is_new_vmt_entry(pd:tprocdef):boolean;
         procedure add_new_vmt_entry(pd:tprocdef);
+        function  check_msg_str(vmtpd, pd: tprocdef):boolean;
         function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
         procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
         procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
@@ -47,7 +48,8 @@ interface
       public
         constructor create(c:tobjectdef);
         destructor  destroy;override;
-        procedure generate_vmt;
+        procedure  generate_vmt;
+        procedure  build_interface_mappings;
       end;
 
     type
@@ -179,9 +181,49 @@ implementation
       end;
 
 
+      function TVMTBuilder.check_msg_str(vmtpd, pd: tprocdef): boolean;
+        begin
+          result:=true;
+          if not(is_objc_class_or_protocol(_class)) then
+            begin
+              { the only requirement for normal methods is that both either
+                have a message string or not (the value is irrelevant) }
+              if ((pd.procoptions * [po_msgstr]) <> (vmtpd.procoptions * [po_msgstr])) then
+                begin
+                  MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                  tprocsym(vmtpd.procsym).write_parameter_lists(pd);
+                  result:=false;
+                end
+            end
+          else
+            begin
+              { the compiler should have ensured that the protocol or parent
+                class method has a message name specified }
+              if not(po_msgstr in vmtpd.procoptions) then
+                internalerror(2009070601);
+              if not(po_msgstr in pd.procoptions) then
+                begin
+                  { copy the protocol's/parent class' message name to the one in
+                    the class if none has been specified there }
+                  include(pd.procoptions,po_msgstr);
+                  pd.messageinf.str:=stringdup(vmtpd.messageinf.str^);
+                end
+              else
+                begin
+                  { if both have a message name, make sure they are equal }
+                  if (vmtpd.messageinf.str^<>pd.messageinf.str^) then
+                    begin
+                      MessagePos2(pd.fileinfo,parser_e_objc_message_name_changed,vmtpd.messageinf.str^,pd.messageinf.str^);
+                      result:=false;
+                    end;
+                end;
+            end;
+        end;
+
+
     function TVMTBuilder.is_new_vmt_entry(pd:tprocdef):boolean;
       const
-        po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
+        po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
         i : longint;
@@ -233,7 +275,7 @@ implementation
                (
                 not(po_virtualmethod in pd.procoptions) or
                 { new one has not override }
-                (is_class_or_interface(_class) and not(po_overridingmethod in pd.procoptions))
+                (is_class_or_interface_or_objc(_class) and not(po_overridingmethod in pd.procoptions))
                ) then
               begin
                 if (
@@ -242,7 +284,31 @@ implementation
                    ) then
                   begin
                     if not(po_reintroduce in pd.procoptions) then
-                      MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false));
+                      if not(is_objc_class_or_protocol(_class)) then
+                        MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                      else
+                        begin
+                          { In Objective-C, you cannot create a new VMT entry to
+                            start a new inheritance tree. We therefore give an
+                            error when the class is implemented in Pascal, to
+                            avoid confusion due to things working differently
+                            with Object Pascal classes.
+
+                            In case of external classes, we only give a hint,
+                            because requiring override everywhere may make
+                            automated header translation tools too complex.  }
+                          if not(oo_is_external in _class.objectoptions) then
+                            MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,pd.fullprocname(false))
+                          { there may be a lot of these in auto-translated
+                            heaeders, so only calculate the fullprocname if
+                            the hint will be shown  }
+                          else if CheckVerbosity(V_Hint) then
+                            MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,pd.fullprocname(false));
+                          { no new entry, but copy the message name if any from
+                            the procdef in the parent class }
+                          check_msg_str(vmtpd,pd);
+                          exit;
+                        end;
                     { disable/hide old VMT entry }
                     vmtentry^.visibility:=vis_hidden;
                   end;
@@ -275,6 +341,8 @@ implementation
                          tprocsym(vmtpd.procsym).write_parameter_lists(pd);
                        end;
 
+                    check_msg_str(vmtpd,pd);
+
                     { Give a note if the new visibility is lower. For a higher
                       visibility update the vmt info }
                     if vmtentry^.visibility>pd.visibility then
@@ -301,10 +369,12 @@ implementation
                      begin
                        if not(po_reintroduce in pd.procoptions) then
                          begin
-                           if not is_object(_class) then
+                           if not is_object(_class) and
+                              not is_objc_class_or_protocol(_class) then
                              MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
                            else
-                             { objects don't allow starting a new virtual tree }
+                             { objects don't allow starting a new virtual tree
+                               and neither does Objective-C }
                              MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
                          end;
                        { disable/hide old VMT entry }
@@ -320,7 +390,7 @@ implementation
 
     function TVMTBuilder.intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
       const
-        po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgstr,po_msgint,
+        po_comp = [po_classmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
       var
         implprocdef : Tprocdef;
@@ -346,7 +416,8 @@ implementation
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
                        (proc.proccalloption=implprocdef.proccalloption) and
                        (proc.proctypeoption=implprocdef.proctypeoption) and
-                       ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) then
+                       ((proc.procoptions*po_comp)=((implprocdef.procoptions+[po_virtualmethod])*po_comp)) and
+                       check_msg_str(proc,implprocdef) then
                       begin
                         result:=implprocdef;
                         exit;
@@ -386,9 +457,32 @@ implementation
                   implprocdef:=intf_search_procdef_by_name(tprocdef(def),tprocdef(def).procsym.name);
                 { Add procdef to the implemented interface }
                 if assigned(implprocdef) then
-                  ImplIntf.AddImplProc(implprocdef)
+                  begin
+                    if (implprocdef._class.objecttype<>odt_objcclass) then
+                      ImplIntf.AddImplProc(implprocdef)
+                    else
+                      begin
+                        { If no message name has been specified for the method
+                          in the objcclass, copy it from the protocol
+                          definition.  }
+                        if not(po_msgstr in tprocdef(def).procoptions) then
+                          begin
+                            include(tprocdef(def).procoptions,po_msgstr);
+                            implprocdef.messageinf.str:=stringdup(tprocdef(def).messageinf.str^);
+                          end
+                        else
+                          begin
+                            { If a message name has been specified in the
+                              objcclass, it has to match the message name in the
+                              protocol definition.  }
+                            if (implprocdef.messageinf.str^<>tprocdef(def).messageinf.str^) then
+                              MessagePos2(implprocdef.fileinfo,parser_e_objc_message_name_changed,tprocdef(def).messageinf.str^,implprocdef.messageinf.str^);
+                          end;
+                      end;
+                  end
                 else
-                  if ImplIntf.IType=etStandard then
+                  if (ImplIntf.IType=etStandard) and
+                     not(tprocdef(def).optional) then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
@@ -545,7 +639,6 @@ implementation
       var
         i : longint;
         def : tdef;
-        ImplIntf : TImplementedInterface;
         old_current_objectdef : tobjectdef;
       begin
         old_current_objectdef:=current_objectdef;
@@ -574,7 +667,25 @@ implementation
                   add_new_vmt_entry(tprocdef(def));
               end;
           end;
+        build_interface_mappings;
+        if assigned(_class.ImplementedInterfaces) and
+           not(is_objc_class_or_protocol(_class)) then
+          begin
+            { Optimize interface tables to reuse wrappers }
+            intf_optimize_vtbls;
+            { Allocate interface tables }
+            intf_allocate_vtbls;
+          end;
 
+        current_objectdef:=old_current_objectdef;
+      end;
+
+
+    procedure TVMTBuilder.build_interface_mappings;
+      var
+        ImplIntf : TImplementedInterface;
+        i: longint;
+      begin
         { Find Procdefs implementing the interfaces }
         if assigned(_class.ImplementedInterfaces) then
           begin
@@ -584,13 +695,7 @@ implementation
                 ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
                 intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
               end;
-            { Optimize interface tables to reuse wrappers }
-            intf_optimize_vtbls;
-            { Allocate interface tables }
-            intf_allocate_vtbls;
           end;
-
-        current_objectdef:=old_current_objectdef;
       end;
 
 

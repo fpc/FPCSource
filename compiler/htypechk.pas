@@ -218,7 +218,7 @@ implementation
             pointerdef :
               begin
                 if ((rd.typ in [orddef,enumdef,pointerdef,classrefdef,procvardef]) or
-                    is_class_or_interface(rd)) then
+                    is_class_or_interface_or_objc(rd)) then
                  begin
                    allowed:=false;
                    exit;
@@ -280,7 +280,7 @@ implementation
               begin
                 { <> and = are defined for classes }
                 if (treetyp in [equaln,unequaln]) and
-                   is_class_or_interface(ld) then
+                   is_class_or_interface_or_objc(ld) then
                  begin
                    allowed:=false;
                    exit;
@@ -842,7 +842,7 @@ implementation
                end;
              subscriptn :
                begin
-                 if is_class_or_interface(tunarynode(p).left.resultdef) then
+                 if is_class_or_interface_or_objc(tunarynode(p).left.resultdef) then
                    newstate := vs_read;
                  p:=tunarynode(p).left;
                end;
@@ -996,7 +996,7 @@ implementation
                  pointerdef :
                    gotpointer:=true;
                  objectdef :
-                   gotclass:=is_class_or_interface(hp.resultdef);
+                   gotclass:=is_class_or_interface_or_objc(hp.resultdef);
                  recorddef :
                    gotrecord:=true;
                  classrefdef :
@@ -1113,7 +1113,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resultdef);
+                     gotclass:=is_class_or_interface_or_objc(hp.resultdef);
                    classrefdef :
                      gotclass:=true;
                    arraydef :
@@ -1210,7 +1210,7 @@ implementation
                  { a class/interface access is an implicit }
                  { dereferencing                           }
                  hp:=tsubscriptnode(hp).left;
-                 if is_class_or_interface(hp.resultdef) then
+                 if is_class_or_interface_or_objc(hp.resultdef) then
                    gotderef:=true;
                end;
              muln,
@@ -1299,7 +1299,7 @@ implementation
                    pointerdef :
                      gotpointer:=true;
                    objectdef :
-                     gotclass:=is_class_or_interface(hp.resultdef);
+                     gotclass:=is_class_or_interface_or_objc(hp.resultdef);
                    recorddef, { handle record like class it needs a subscription }
                    classrefdef :
                      gotclass:=true;

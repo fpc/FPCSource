@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03256 is the last used one
+# 03261 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -911,12 +911,12 @@ parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in
 % Constructor and destructor declarations aren't allowed in interfaces.
 % In the most cases method \var{QueryInterface} of \var{IUnknown} can
 % be used to create a new interface.
-parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACES
+parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACEs and OBJCPROTOCOLs
 % The access specifiers \var{public}, \var{private}, \var{protected} and
-% \var{published} can't be used in interfaces because all methods
-% of an interface must be public.
-parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
-% Declarations of fields aren't allowed in interfaces. An interface
+% \var{published} can't be used in interfaces and Objective-C protocols because all methods
+% of an interface/protocol must be public.
+parser_e_no_vars_in_interfaces=03173_E_An interface or Objective-C protocol cannot contain fields
+% Declarations of fields are not allowed in interfaces and Objective-C protocols. An interface/protocol
 % can contain only methods and properties with method read/write specifiers.
 parser_e_no_local_proc_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
@@ -1203,12 +1203,30 @@ parser_h_no_objc_parent=03256_H_Defining a new Objective-C root class. To derive
 % root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
 % Therefore, you have to explicitly define a parent class (such as NSObject) if you want to derive your
 % Objective-C class from it.
+parser_e_no_objc_published=03257_E_Objective-C classes cannot have published sections.
+% In Object Pascal, ``published'' determines whether or not RTTI is generated. Since the Objective-C runtime always needs
+% RTTI for everything, this specified does not make sense for Objective-C classes.
+parser_f_need_objc=03258_F_This module requires an Objective-C mode switch to be compiled
+% This error indicates the use of Objective-C language features without an Objective-C mode switch
+% active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
+parser_e_must_use_override_objc=03259_E_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_h_should_use_override_objc=03260_H_Inherited methods can only be overridden in Objective-C, add ``override''.
+% It is not possible to ``reintroduce'' methods in Objective-C like in Object Pascal. Methods with the same
+% name always map to the same virtual method entry. In order to make this clear in the source code,
+% the compiler always requires the ``override'' directive to be specified when implementing overriding
+% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
+% does not have any ``override''-style keyword (since it's the default and only behaviour in that language),
+% which makes it hard for automated header conversion tools to include it everywhere.
+parser_e_objc_message_name_changed=03261_E_Message name "$1" in inherited class is different from message name "$2" in current class.
+% An overriding Objective-C method cannot have a different message name than an inherited method. The reason
+% is that these message names uniquely define the message to the Objective-C runtime, which means that
+% giving them a different message name breaks the ``override'' semantics.
 % \end{description}
 
 #
 # Type Checking
 #
-# 04087 is the last used one
+# 04088 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1506,6 +1524,8 @@ type_e_no_type_info=04087_E_No type info available for this type
 % Type information is not generated for some types, such as enumerations with gaps
 % in their value range (this includes enumerations whose lower bound is different
 % from zero).
+type_e_protocol_type_expected=04088_E_Objective-C protocol type expected, but got "$1"
+% The compiler expected a protocol type name, but found something else.
 % \end{description}
 #
 # Symtable

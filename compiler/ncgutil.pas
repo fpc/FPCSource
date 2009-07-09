@@ -2867,7 +2867,8 @@ implementation
 
         { test validity of VMT }
         if not(is_interface(objdef)) and
-           not(is_cppclass(objdef)) then
+           not(is_cppclass(objdef)) and
+           not(is_objc_class_or_protocol(objdef)) then
            cg.g_maybe_testvmt(list,vmtreg,objdef);
       end;
 

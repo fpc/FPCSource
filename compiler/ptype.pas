@@ -302,7 +302,7 @@ implementation
             { Reparse the original type definition }
             if not err then
               begin
-                { Firsta new typesym so we can reuse this specialization and
+                { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
                 specializest.insert(srsym);
@@ -357,7 +357,7 @@ implementation
             (current_objectdef.objname^=pattern) and
             (
              (testcurobject=2) or
-             is_class_or_interface(current_objectdef)
+             is_class_or_interface_or_objc(current_objectdef)
             )then
            begin
              consume(_ID);
@@ -542,7 +542,7 @@ implementation
               (current_objectdef.objname^=pattern) and
               (
                (testcurobject=2) or
-               is_class_or_interface(current_objectdef)
+               is_class_or_interface_or_objc(current_objectdef)
               )then
              begin
                consume(_ID);
@@ -989,6 +989,9 @@ implementation
               end;
             _OBJCCLASS :
               begin
+                if not(m_objectivec1 in current_settings.modeswitches) then
+                  Message(parser_f_need_objc);
+
                 consume(token);
                 def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil);
               end;
@@ -1004,6 +1007,14 @@ implementation
                 else {it_interfacecorba}
                   def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil);
               end;
+            _OBJCPROTOCOL :
+               begin
+                if not(m_objectivec1 in current_settings.modeswitches) then
+                  Message(parser_f_need_objc);
+
+                consume(token);
+                def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil);
+               end;
             _OBJECT :
               begin
                 consume(token);
@@ -1105,7 +1116,7 @@ implementation
             if (
                 assigned(def.typesym) and
                 (st.symtabletype=globalsymtable) and
-                not is_objcclass(def)
+                not is_objc_class_or_protocol(def)
                ) or
                def.needs_inittable or
                (ds_init_table_used in def.defstates) then
@@ -1114,7 +1125,7 @@ implementation
             if (
                 assigned(def.typesym) and
                 (st.symtabletype=globalsymtable) and
-                not is_objcclass(def)
+                not is_objc_class_or_protocol(def)
                ) or
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);

@@ -1,14 +1,14 @@
-{ %fail }
 { %target=darwin }
 { %cpu=powerpc,i386 }
 
+{$mode objfpc}
 {$modeswitch objectivec1}
 
 type
+  ta = objcclass;
+
   ta = objcclass
-    { no destructors in Objective-C }
-    destructor done; message 'done';
-  end; external;
+  end;
 
 begin
 end.

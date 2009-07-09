@@ -278,19 +278,30 @@ implementation
 
     procedure types_dec;
 
-      procedure finish_objc_class(od: tobjectdef);
+      procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
         begin
           { Objective-C classes can be external -> all messages inside are
             external (defined at the class level instead of per method, so
             that you cannot define some methods as external and some not)
           }
-          if (token = _ID) and
-             (idtoken = _EXTERNAL) then
+          if (token=_ID) and
+             (idtoken=_EXTERNAL) then
             begin
               consume(_EXTERNAL);
+              if (token=_ID) and
+                 (idtoken=_NAME) then
+                begin
+                  consume(_NAME);
+                  od.objextname:=stringdup(get_stringconst);
+                end
+              else
+                od.objextname:=stringdup(od.objrealname^);
               consume(_SEMICOLON);
               od.make_all_methods_external;
-            end;
+              include(od.objectoptions,oo_is_external);
+            end
+          else { or also allow "public name 'x'"? }
+            od.objextname:=stringdup(od.objrealname^);
         end;
 
 
@@ -380,7 +391,7 @@ implementation
                      (token=_DISPINTERFACE) or
                      (token=_OBJCCLASS)) and
                     (assigned(ttypesym(sym).typedef)) and
-                    is_class_or_interface_or_dispinterface(ttypesym(sym).typedef) and
+                    is_class_or_interface_or_dispinterface_or_objc(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
                   begin
                     case token of
@@ -395,6 +406,8 @@ implementation
                         objecttype:=odt_dispinterface;
                       _OBJCCLASS :
                         objecttype:=odt_objcclass;
+                      _OBJCPROTOCOL :
+                        objecttype:=odt_objcprotocol;
                       else
                         internalerror(200811072);
                     end;
@@ -432,7 +445,7 @@ implementation
                       hdef:=tstoreddef(hdef).getcopy;
 
                       { fix name, it is used e.g. for tables }
-                      if is_class_or_interface_or_dispinterface(hdef) then
+                      if is_class_or_interface_or_dispinterface_or_objc(hdef) then
                         with tobjectdef(hdef) do
                           begin
                             stringdispose(objname);
@@ -489,21 +502,33 @@ implementation
                   end;
                 objectdef :
                   begin
+                    try_consume_hintdirective(newtype.symoptions);
+                    consume(_SEMICOLON);
+
+                    { we have to know whether the class or protocol is
+                      external before the vmt is built, because some errors/
+                      hints depend on this  }
+                    if is_objc_class_or_protocol(hdef) then
+                      get_objc_class_or_protocol_external_status(tobjectdef(hdef));
+
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) and
-                       not(df_generic in hdef.defoptions) and
-                       not is_objcclass(hdef) then
+                       not(df_generic in hdef.defoptions) then
                       begin
                         vmtbuilder:=TVMTBuilder.Create(tobjectdef(hdef));
                         vmtbuilder.generate_vmt;
                         vmtbuilder.free;
                       end;
-                    try_consume_hintdirective(newtype.symoptions);
-                    consume(_SEMICOLON);
 
-                    if is_objcclass(hdef) then
-                      finish_objc_class(tobjectdef(hdef));
+                    { In case of an objcclass, verify that all methods have a message
+                      name set. We only check this now, because message names can be set
+                      during the protocol (interface) mapping. At the same time, set the
+                      mangled names.
+                    }
+                    if is_objc_class_or_protocol(hdef) then
+                      tobjectdef(hdef).check_and_finish_messages;
+
                   end;
                 recorddef :
                   begin

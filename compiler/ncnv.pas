@@ -1793,8 +1793,8 @@ implementation
                        make_not_regable(left,[ra_addr_regable]);
 
                      { class/interface to class/interface, with checkobject support }
-                     if is_class_or_interface(resultdef) and
-                        is_class_or_interface(left.resultdef) then
+                     if is_class_or_interface_or_objc(resultdef) and
+                        is_class_or_interface_or_objc(left.resultdef) then
                        begin
                          { check if the types are related }
                          if not(nf_internal in flags) and
@@ -1815,7 +1815,9 @@ implementation
                            end;
 
                          { Add runtime check? }
-                         if (cs_check_object in current_settings.localswitches) and
+                         if not is_objc_class_or_protocol(resultdef) and
+                            not is_objc_class_or_protocol(left.resultdef) and
+                            (cs_check_object in current_settings.localswitches) and
                             not(nf_internal in flags) then
                            begin
                              { we can translate the typeconvnode to 'as' when
@@ -1866,7 +1868,7 @@ implementation
                                    { however, there are some exceptions }
                                    (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
                                                           filedef,variantdef,objectdef]) or
-                                   is_class_or_interface(resultdef) or
+                                   is_class_or_interface_or_objc(resultdef) or
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))

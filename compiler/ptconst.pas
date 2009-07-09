@@ -1223,7 +1223,7 @@ implementation
             end;
 
           { only allow nil for class and interface }
-          if is_class_or_interface(def) then
+          if is_class_or_interface_or_objc(def) then
             begin
               n:=comp_expr(true);
               if n.nodetype<>niln then

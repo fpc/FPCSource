@@ -5,9 +5,9 @@
 {$modeswitch objectivec1}
 
 type
-  ta = objcclass
-    { no constructors in Objective-C }
-    constructor create; message 'create';
+  ta = objcprotocol
+    { needs message name specification }
+    procedure test; 
   end; external;
 
 begin

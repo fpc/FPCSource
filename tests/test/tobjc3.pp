@@ -11,5 +11,16 @@ type
   ta = objcclass
   end; external;
 
+var
+  a: ta;
+  b: nsobject;
+  c: id;
 begin
+  { avoid hints about unused types/variables/units }
+  a:=nil;
+  if (a<>nil) then
+    exit;
+  c:=nil;
+  b:=c;
+  b.isEqual_(b);
 end.

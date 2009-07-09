@@ -277,7 +277,7 @@ implementation
                  objectdef:
                    begin
                      if (m_delphi in current_settings.modeswitches) and
-                        is_class_or_interface_or_dispinterface(def_from) and
+                        is_class_or_interface_or_dispinterface_or_objc(def_from) and
                         (cdo_explicit in cdoptions) then
                       begin
                         eq:=te_convert_l1;
@@ -1113,7 +1113,7 @@ implementation
                        can be assigned to void pointers, but it is less
                        preferred than assigning to a related objectdef }
                      if (
-                         is_class_or_interface_or_dispinterface(def_from) or
+                         is_class_or_interface_or_dispinterface_or_objc(def_from) or
                          (def_from.typ=classrefdef)
                         ) and
                         (tpointerdef(def_to).pointeddef.typ=orddef) and
@@ -1122,11 +1122,11 @@ implementation
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
                        end
-                     else if is_objcclass(def_from) and
+                     else if is_objc_class_or_protocol(def_from) and
                              (def_to=objc_idtype) then
                        begin
                          doconv:=tc_equal;
-                         eq:=te_convert_l1;
+                         eq:=te_convert_l2;
                        end;
                    end;
                end;
@@ -1230,7 +1230,7 @@ implementation
                 end
                else
                { Class/interface specific }
-                if is_class_or_interface_or_dispinterface(def_to) then
+                if is_class_or_interface_or_dispinterface_or_objc(def_to) then
                  begin
                    { void pointer also for delphi mode }
                    if (m_delphi in current_settings.modeswitches) and
@@ -1247,9 +1247,19 @@ implementation
                        doconv:=tc_equal;
                        eq:=te_convert_l1;
                      end
-                   { classes can be assigned to interfaces }
-                   else if is_interface(def_to) and
-                           is_class(def_from) and
+                   { All Objective-C classes are compatible with ID }
+                   else if is_objcclass(def_to) and
+                           (def_from=objc_idtype) then
+                      begin
+                       doconv:=tc_equal;
+                       eq:=te_convert_l2;
+                     end
+                   { classes can be assigned to interfaces
+                     (same with objcclass and objcprotocol) }
+                   else if ((is_interface(def_to) and
+                             is_class(def_from)) or
+                            (is_objcprotocol(def_to) and
+                             is_objcclass(def_from))) and
                            assigned(tobjectdef(def_from).ImplementedInterfaces) then
                      begin
                         { we've to search in parent classes as well }
@@ -1258,7 +1268,11 @@ implementation
                           begin
                              if hobjdef.find_implemented_interface(tobjectdef(def_to))<>nil then
                                begin
-                                  doconv:=tc_class_2_intf;
+                                  if is_interface(def_to) then
+                                    doconv:=tc_class_2_intf
+                                  else
+                                    { for Objective-C, we don't have to do anything special }
+                                    doconv:=tc_equal;
                                   { don't prefer this over objectdef->objectdef }
                                   eq:=te_convert_l2;
                                   break;
@@ -1288,14 +1302,7 @@ implementation
                        doconv:=tc_int_2_int;
                        eq:=te_convert_l1;
                      end;
-                 end
-                else if is_objcclass(def_to) and
-                        (def_from=objc_idtype) then
-                  begin
-                    { All Objective-C classes are compatible with ID }
-                    doconv:=tc_equal;
-                    eq:=te_convert_l1;
-                  end;
+                 end;
              end;
 
            classrefdef :
@@ -1693,8 +1700,8 @@ implementation
           (equal_defs(parentretdef,childretdef)) or
           ((parentretdef.typ=objectdef) and
            (childretdef.typ=objectdef) and
-           is_class_or_interface(parentretdef) and
-           is_class_or_interface(childretdef) and
+           is_class_or_interface_or_objc(parentretdef) and
+           is_class_or_interface_or_objc(childretdef) and
            (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
       end;
 
