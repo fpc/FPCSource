@@ -258,7 +258,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     { 2) convert parameter to id to match objc_MsgSend* signatures }
     inserttypeconv_internal(tcallnode(left).methodpointer,objc_idtype);
     { in case of sending a message to a superclass, self is a pointer to
-      and objc_super record
+      an objc_super record
     }
     if (cnf_inherited in tcallnode(left).callnodeflags) then
       begin
