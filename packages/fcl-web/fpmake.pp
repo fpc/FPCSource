@@ -21,6 +21,7 @@ begin
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
+    P.Dependencies.Add('fastcgi');
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';

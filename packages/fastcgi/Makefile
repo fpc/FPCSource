@@ -251,325 +251,166 @@ ifeq ($(UNITSDIR),)
 UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
-override PACKAGE_NAME=fcl-web
+override PACKAGE_NAME=fastcgi
 override PACKAGE_VERSION=2.2.2
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
+override TARGET_UNITS+=fastcgi
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_RSTS+=fpcgi fphtml fpweb websession cgiapp
+override TARGET_UNITS+=fastcgi
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -1085,37 +926,6 @@ endif
 endif
 else
 CROSSBINDIR=
-endif
-ifeq ($(OS_SOURCE),linux)
-ifndef GCCLIBDIR
-ifeq ($(CPU_TARGET),i386)
-ifneq ($(findstring x86_64,$(shell uname -a)),)
-ifeq ($(BINUTILSPREFIX),)
-GCCLIBDIR:=$(shell dirname `gcc -m32 -print-libgcc-file-name`)
-endif
-endif
-endif
-ifeq ($(CPU_TARGET),powerpc64)
-ifeq ($(BINUTILSPREFIX),)
-GCCLIBDIR:=$(shell dirname `gcc -m64 -print-libgcc-file-name`)
-endif
-endif
-endif
-ifndef GCCLIBDIR
-CROSSGCC=$(strip $(wildcard $(addsuffix /$(BINUTILSPREFIX)gcc$(SRCEXEEXT),$(SEARCHPATH))))
-ifneq ($(CROSSGCC),)
-GCCLIBDIR:=$(shell dirname `$(CROSSGCC) -print-libgcc-file-name`)
-endif
-endif
-ifndef OTHERLIBDIR
-OTHERLIBDIR:=$(shell grep -v "^\#" /etc/ld.so.conf | awk '{ ORS=" "; print $1 }')
-endif
-endif
-ifdef inUnix
-ifeq ($(OS_SOURCE),netbsd)
-OTHERLIBDIR+=/usr/pkg/lib
-endif
-export GCCLIBDIR OTHERLIB
 endif
 BATCHEXT=.bat
 LOADEREXT=.as
@@ -1668,674 +1478,165 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi
+override REQUIRE_PACKAGES=rtl 
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS-BASE=1
-REQUIRE_PACKAGES_WINUNITS-JEDI=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_UNIVINT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_UNIVINT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_UNIVINT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_WINUNITS-BASE=1
-REQUIRE_PACKAGES_WINUNITS-JEDI=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
-REQUIRE_PACKAGES_PXLIB=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_UNIVINT=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_ICONVENC=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
-REQUIRE_PACKAGES_IBASE=1
-REQUIRE_PACKAGES_POSTGRES=1
-REQUIRE_PACKAGES_MYSQL=1
-REQUIRE_PACKAGES_ODBC=1
-REQUIRE_PACKAGES_ORACLE=1
-REQUIRE_PACKAGES_SQLITE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
-REQUIRE_PACKAGES_FCL-BASE=1
-REQUIRE_PACKAGES_FCL-XML=1
-REQUIRE_PACKAGES_FCL-DB=1
-REQUIRE_PACKAGES_FCL-PROCESS=1
-REQUIRE_PACKAGES_HTTPD22=1
-REQUIRE_PACKAGES_FASTCGI=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -2361,448 +1662,6 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-BASE
-PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-BASE),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-BASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-BASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-BASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-BASE=
-UNITDIR_FCL-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-BASE),)
-UNITDIR_FCL-BASE:=$(firstword $(UNITDIR_FCL-BASE))
-else
-UNITDIR_FCL-BASE=
-endif
-endif
-ifdef UNITDIR_FCL-BASE
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_ICONVENC
-PACKAGEDIR_ICONVENC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /iconvenc/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_ICONVENC),)
-ifneq ($(wildcard $(PACKAGEDIR_ICONVENC)/units/$(TARGETSUFFIX)),)
-UNITDIR_ICONVENC=$(PACKAGEDIR_ICONVENC)/units/$(TARGETSUFFIX)
-else
-UNITDIR_ICONVENC=$(PACKAGEDIR_ICONVENC)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_ICONVENC)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_ICONVENC) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_ICONVENC)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_ICONVENC=
-UNITDIR_ICONVENC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /iconvenc/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_ICONVENC),)
-UNITDIR_ICONVENC:=$(firstword $(UNITDIR_ICONVENC))
-else
-UNITDIR_ICONVENC=
-endif
-endif
-ifdef UNITDIR_ICONVENC
-override COMPILER_UNITDIR+=$(UNITDIR_ICONVENC)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-XML
-PACKAGEDIR_FCL-XML:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-xml/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-XML),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-XML)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-XML=$(PACKAGEDIR_FCL-XML)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-XML=$(PACKAGEDIR_FCL-XML)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-XML)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-XML) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-XML)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-XML=
-UNITDIR_FCL-XML:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-xml/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-XML),)
-UNITDIR_FCL-XML:=$(firstword $(UNITDIR_FCL-XML))
-else
-UNITDIR_FCL-XML=
-endif
-endif
-ifdef UNITDIR_FCL-XML
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-XML)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-DB
-PACKAGEDIR_FCL-DB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-DB),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-DB)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-DB=$(PACKAGEDIR_FCL-DB)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-DB=$(PACKAGEDIR_FCL-DB)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-DB)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-DB) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-DB)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-DB=
-UNITDIR_FCL-DB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-db/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-DB),)
-UNITDIR_FCL-DB:=$(firstword $(UNITDIR_FCL-DB))
-else
-UNITDIR_FCL-DB=
-endif
-endif
-ifdef UNITDIR_FCL-DB
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-DB)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FCL-PROCESS
-PACKAGEDIR_FCL-PROCESS:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FCL-PROCESS),)
-ifneq ($(wildcard $(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)),)
-UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FCL-PROCESS=$(PACKAGEDIR_FCL-PROCESS)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FCL-PROCESS) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-PROCESS)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FCL-PROCESS=
-UNITDIR_FCL-PROCESS:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-process/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FCL-PROCESS),)
-UNITDIR_FCL-PROCESS:=$(firstword $(UNITDIR_FCL-PROCESS))
-else
-UNITDIR_FCL-PROCESS=
-endif
-endif
-ifdef UNITDIR_FCL-PROCESS
-override COMPILER_UNITDIR+=$(UNITDIR_FCL-PROCESS)
-endif
-endif
-ifdef REQUIRE_PACKAGES_HTTPD22
-PACKAGEDIR_HTTPD22:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /httpd22/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_HTTPD22),)
-ifneq ($(wildcard $(PACKAGEDIR_HTTPD22)/units/$(TARGETSUFFIX)),)
-UNITDIR_HTTPD22=$(PACKAGEDIR_HTTPD22)/units/$(TARGETSUFFIX)
-else
-UNITDIR_HTTPD22=$(PACKAGEDIR_HTTPD22)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_HTTPD22)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_HTTPD22) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_HTTPD22)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_HTTPD22=
-UNITDIR_HTTPD22:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /httpd22/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_HTTPD22),)
-UNITDIR_HTTPD22:=$(firstword $(UNITDIR_HTTPD22))
-else
-UNITDIR_HTTPD22=
-endif
-endif
-ifdef UNITDIR_HTTPD22
-override COMPILER_UNITDIR+=$(UNITDIR_HTTPD22)
-endif
-endif
-ifdef REQUIRE_PACKAGES_FASTCGI
-PACKAGEDIR_FASTCGI:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fastcgi/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_FASTCGI),)
-ifneq ($(wildcard $(PACKAGEDIR_FASTCGI)/units/$(TARGETSUFFIX)),)
-UNITDIR_FASTCGI=$(PACKAGEDIR_FASTCGI)/units/$(TARGETSUFFIX)
-else
-UNITDIR_FASTCGI=$(PACKAGEDIR_FASTCGI)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_FASTCGI)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_FASTCGI) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_FASTCGI)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_FASTCGI=
-UNITDIR_FASTCGI:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fastcgi/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_FASTCGI),)
-UNITDIR_FASTCGI:=$(firstword $(UNITDIR_FASTCGI))
-else
-UNITDIR_FASTCGI=
-endif
-endif
-ifdef UNITDIR_FASTCGI
-override COMPILER_UNITDIR+=$(UNITDIR_FASTCGI)
-endif
-endif
-ifdef REQUIRE_PACKAGES_IBASE
-PACKAGEDIR_IBASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /ibase/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_IBASE),)
-ifneq ($(wildcard $(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_IBASE=$(PACKAGEDIR_IBASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_IBASE=$(PACKAGEDIR_IBASE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_IBASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_IBASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_IBASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_IBASE=
-UNITDIR_IBASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /ibase/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_IBASE),)
-UNITDIR_IBASE:=$(firstword $(UNITDIR_IBASE))
-else
-UNITDIR_IBASE=
-endif
-endif
-ifdef UNITDIR_IBASE
-override COMPILER_UNITDIR+=$(UNITDIR_IBASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_POSTGRES
-PACKAGEDIR_POSTGRES:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /postgres/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_POSTGRES),)
-ifneq ($(wildcard $(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)),)
-UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)/units/$(TARGETSUFFIX)
-else
-UNITDIR_POSTGRES=$(PACKAGEDIR_POSTGRES)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_POSTGRES)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_POSTGRES) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_POSTGRES)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_POSTGRES=
-UNITDIR_POSTGRES:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /postgres/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_POSTGRES),)
-UNITDIR_POSTGRES:=$(firstword $(UNITDIR_POSTGRES))
-else
-UNITDIR_POSTGRES=
-endif
-endif
-ifdef UNITDIR_POSTGRES
-override COMPILER_UNITDIR+=$(UNITDIR_POSTGRES)
-endif
-endif
-ifdef REQUIRE_PACKAGES_MYSQL
-PACKAGEDIR_MYSQL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /mysql/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_MYSQL),)
-ifneq ($(wildcard $(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)),)
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)/units/$(TARGETSUFFIX)
-else
-UNITDIR_MYSQL=$(PACKAGEDIR_MYSQL)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_MYSQL)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_MYSQL) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_MYSQL)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_MYSQL=
-UNITDIR_MYSQL:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /mysql/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_MYSQL),)
-UNITDIR_MYSQL:=$(firstword $(UNITDIR_MYSQL))
-else
-UNITDIR_MYSQL=
-endif
-endif
-ifdef UNITDIR_MYSQL
-override COMPILER_UNITDIR+=$(UNITDIR_MYSQL)
-endif
-endif
-ifdef REQUIRE_PACKAGES_ODBC
-PACKAGEDIR_ODBC:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /odbc/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_ODBC),)
-ifneq ($(wildcard $(PACKAGEDIR_ODBC)/units/$(TARGETSUFFIX)),)
-UNITDIR_ODBC=$(PACKAGEDIR_ODBC)/units/$(TARGETSUFFIX)
-else
-UNITDIR_ODBC=$(PACKAGEDIR_ODBC)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_ODBC)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_ODBC) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_ODBC)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_ODBC=
-UNITDIR_ODBC:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /odbc/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_ODBC),)
-UNITDIR_ODBC:=$(firstword $(UNITDIR_ODBC))
-else
-UNITDIR_ODBC=
-endif
-endif
-ifdef UNITDIR_ODBC
-override COMPILER_UNITDIR+=$(UNITDIR_ODBC)
-endif
-endif
-ifdef REQUIRE_PACKAGES_ORACLE
-PACKAGEDIR_ORACLE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /oracle/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_ORACLE),)
-ifneq ($(wildcard $(PACKAGEDIR_ORACLE)/units/$(TARGETSUFFIX)),)
-UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_ORACLE=$(PACKAGEDIR_ORACLE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_ORACLE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_ORACLE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_ORACLE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_ORACLE=
-UNITDIR_ORACLE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /oracle/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_ORACLE),)
-UNITDIR_ORACLE:=$(firstword $(UNITDIR_ORACLE))
-else
-UNITDIR_ORACLE=
-endif
-endif
-ifdef UNITDIR_ORACLE
-override COMPILER_UNITDIR+=$(UNITDIR_ORACLE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_SQLITE
-PACKAGEDIR_SQLITE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_SQLITE),)
-ifneq ($(wildcard $(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)),)
-UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_SQLITE=$(PACKAGEDIR_SQLITE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_SQLITE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_SQLITE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_SQLITE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_SQLITE=
-UNITDIR_SQLITE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /sqlite/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_SQLITE),)
-UNITDIR_SQLITE:=$(firstword $(UNITDIR_SQLITE))
-else
-UNITDIR_SQLITE=
-endif
-endif
-ifdef UNITDIR_SQLITE
-override COMPILER_UNITDIR+=$(UNITDIR_SQLITE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_PXLIB
-PACKAGEDIR_PXLIB:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_PXLIB),)
-ifneq ($(wildcard $(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)),)
-UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)/units/$(TARGETSUFFIX)
-else
-UNITDIR_PXLIB=$(PACKAGEDIR_PXLIB)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_PXLIB)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_PXLIB) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_PXLIB)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_PXLIB=
-UNITDIR_PXLIB:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /pxlib/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_PXLIB),)
-UNITDIR_PXLIB:=$(firstword $(UNITDIR_PXLIB))
-else
-UNITDIR_PXLIB=
-endif
-endif
-ifdef UNITDIR_PXLIB
-override COMPILER_UNITDIR+=$(UNITDIR_PXLIB)
-endif
-endif
-ifdef REQUIRE_PACKAGES_WINUNITS-BASE
-PACKAGEDIR_WINUNITS-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /winunits-base/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_WINUNITS-BASE),)
-ifneq ($(wildcard $(PACKAGEDIR_WINUNITS-BASE)/units/$(TARGETSUFFIX)),)
-UNITDIR_WINUNITS-BASE=$(PACKAGEDIR_WINUNITS-BASE)/units/$(TARGETSUFFIX)
-else
-UNITDIR_WINUNITS-BASE=$(PACKAGEDIR_WINUNITS-BASE)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_WINUNITS-BASE)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_WINUNITS-BASE) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_WINUNITS-BASE)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_WINUNITS-BASE=
-UNITDIR_WINUNITS-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /winunits-base/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_WINUNITS-BASE),)
-UNITDIR_WINUNITS-BASE:=$(firstword $(UNITDIR_WINUNITS-BASE))
-else
-UNITDIR_WINUNITS-BASE=
-endif
-endif
-ifdef UNITDIR_WINUNITS-BASE
-override COMPILER_UNITDIR+=$(UNITDIR_WINUNITS-BASE)
-endif
-endif
-ifdef REQUIRE_PACKAGES_WINUNITS-JEDI
-PACKAGEDIR_WINUNITS-JEDI:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /winunits-jedi/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_WINUNITS-JEDI),)
-ifneq ($(wildcard $(PACKAGEDIR_WINUNITS-JEDI)/units/$(TARGETSUFFIX)),)
-UNITDIR_WINUNITS-JEDI=$(PACKAGEDIR_WINUNITS-JEDI)/units/$(TARGETSUFFIX)
-else
-UNITDIR_WINUNITS-JEDI=$(PACKAGEDIR_WINUNITS-JEDI)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_WINUNITS-JEDI)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_WINUNITS-JEDI) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_WINUNITS-JEDI)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_WINUNITS-JEDI=
-UNITDIR_WINUNITS-JEDI:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /winunits-jedi/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_WINUNITS-JEDI),)
-UNITDIR_WINUNITS-JEDI:=$(firstword $(UNITDIR_WINUNITS-JEDI))
-else
-UNITDIR_WINUNITS-JEDI=
-endif
-endif
-ifdef UNITDIR_WINUNITS-JEDI
-override COMPILER_UNITDIR+=$(UNITDIR_WINUNITS-JEDI)
-endif
-endif
-ifdef REQUIRE_PACKAGES_UNIVINT
-PACKAGEDIR_UNIVINT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /univint/Makefile.fpc,$(PACKAGESDIR))))))
-ifneq ($(PACKAGEDIR_UNIVINT),)
-ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)),)
-UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)
-else
-UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)
-endif
-ifdef CHECKDEPEND
-$(PACKAGEDIR_UNIVINT)/$(FPCMADE):
-	$(MAKE) -C $(PACKAGEDIR_UNIVINT) $(FPCMADE)
-override ALLDEPENDENCIES+=$(PACKAGEDIR_UNIVINT)/$(FPCMADE)
-endif
-else
-PACKAGEDIR_UNIVINT=
-UNITDIR_UNIVINT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /univint/Package.fpc,$(UNITSDIR)))))
-ifneq ($(UNITDIR_UNIVINT),)
-UNITDIR_UNIVINT:=$(firstword $(UNITDIR_UNIVINT))
-else
-UNITDIR_UNIVINT=
-endif
-endif
-ifdef UNITDIR_UNIVINT
-override COMPILER_UNITDIR+=$(UNITDIR_UNIVINT)
 endif
 endif
 ifndef NOCPUDEF
@@ -2923,12 +1782,6 @@ endif
 endif
 endif
 ifdef LINKSHARED
-endif
-ifdef GCCLIBDIR
-override FPCOPT+=-Fl$(GCCLIBDIR)
-endif
-ifdef OTHERLIBDIR
-override FPCOPT+=$(addprefix -Fl,$(OTHERLIBDIR))
 endif
 ifdef OPT
 override FPCOPT+=$(OPT)
