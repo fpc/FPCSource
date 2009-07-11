@@ -57,6 +57,8 @@ const
   {$WARNINGS OFF}
 {$ENDIF}
 
+{ $define HasPango1_22}
+
 Type
   PPangoCairoFont = pointer;   
   PPangoCairoFontMap = pointer;
@@ -78,7 +80,6 @@ function pango_cairo_font_map_get_type():GType;cdecl;external pangocairolib;
 function pango_cairo_font_map_new:PPangoFontMap;cdecl;external pangocairolib;
 function pango_cairo_font_map_new_for_font_type(fonttype:cairo_font_type_t):PPangoFontMap;cdecl;external pangocairolib;
 function pango_cairo_font_map_get_default:PPangoFontMap;cdecl;external pangocairolib;
-procedure pango_cairo_font_map_set_default(fontmap:PPangoCairoFontMap);cdecl;external pangocairolib;
 function pango_cairo_font_map_get_font_type(fontmap:PPangoCairoFontMap):cairo_font_type_t;cdecl;external pangocairolib;
 procedure pango_cairo_font_map_set_resolution(fontmap:PPangoCairoFontMap; dpi:double);cdecl;external pangocairolib;
 function pango_cairo_font_map_get_resolution(fontmap:PPangoCairoFontMap):double;cdecl;external pangocairolib;
@@ -96,11 +97,9 @@ procedure pango_cairo_context_set_resolution(context:PPangoContext; dpi:double);
 function pango_cairo_context_get_resolution(context:PPangoContext):double;cdecl;external pangocairolib;
 procedure pango_cairo_context_set_shape_renderer(context:PPangoContext; func:PangoCairoShapeRendererFunc; data:gpointer; dnotify:GDestroyNotify);cdecl;external pangocairolib;
 function pango_cairo_context_get_shape_renderer(context:PPangoContext; data:Pgpointer):PangoCairoShapeRendererFunc;cdecl;external pangocairolib;
-function pango_cairo_create_context(cr:Pcairo_t):PPangoContext;cdecl;external pangocairolib;
 function pango_cairo_create_layout(cr:Pcairo_t):PPangoLayout;cdecl;external pangocairolib;
 procedure pango_cairo_update_layout(cr:Pcairo_t; layout:PPangoLayout);cdecl;external pangocairolib;
 procedure pango_cairo_show_glyph_string(cr:Pcairo_t; font:PPangoFont; glyphs:PPangoGlyphString);cdecl;external pangocairolib;
-procedure pango_cairo_show_glyph_item(cr:Pcairo_t; text:Pchar; glyph_item:PPangoGlyphItem);cdecl;external pangocairolib;
 procedure pango_cairo_show_layout_line(cr:Pcairo_t; line:PPangoLayoutLine);cdecl;external pangocairolib;
 procedure pango_cairo_show_layout(cr:Pcairo_t; layout:PPangoLayout);cdecl;external pangocairolib;
 procedure pango_cairo_show_error_underline(cr:Pcairo_t; x:double; y:double; width:double; height:double);cdecl;external pangocairolib;
@@ -108,6 +107,12 @@ procedure pango_cairo_glyph_string_path(cr:Pcairo_t; font:PPangoFont; glyphs:PPa
 procedure pango_cairo_layout_line_path(cr:Pcairo_t; line:PPangoLayoutLine);cdecl;external pangocairolib;
 procedure pango_cairo_layout_path(cr:Pcairo_t; layout:PPangoLayout);cdecl;external pangocairolib;
 procedure pango_cairo_error_underline_path(cr:Pcairo_t; x:double; y:double; width:double; height:double);cdecl;external pangocairolib;
+
+{$ifdef HasPango1_22}
+procedure pango_cairo_font_map_set_default(fontmap:PPangoCairoFontMap);cdecl;external pangocairolib;
+function pango_cairo_create_context(cr:Pcairo_t):PPangoContext;cdecl;external pangocairolib;
+procedure pango_cairo_show_glyph_item(cr:Pcairo_t; text:Pchar; glyph_item:PPangoGlyphItem);cdecl;external pangocairolib;
+{$endif}
 
 implementation
 
