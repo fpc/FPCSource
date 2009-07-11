@@ -58,21 +58,21 @@ type
       );
 
   THTMLAttributeTag = (
-      atabbr, atacceptcharset, ataccept, ataccesskey, ataction, atalign, atalt, atarchive,
-      ataxis, atborder, atcellpadding, atcellspacing, atchar, atcharoff, atcharset,
-      atchecked, atcite, atclass, atclassid, atcodebase, atcodetype, atcols,
-      atcolspan, atcontent, atcoords, atdata, atdatetime, atdeclare,atdefer,
-      atdir, atdisabled, atenctype, atfor, atframe, atframeborder, atheaders,
-      atheight, athref, athreflang, athttpequiv, atid, atismap, atlabel, atlang,
+      atabbr, atalink, atacceptcharset, ataccept, ataccesskey, ataction, atalign, atalt, atarchive,
+      ataxis, atbackground, atbgcolor, atborder, atcellpadding, atcellspacing, atchar, atcharoff, atcharset,
+      atchecked, atcite, atclass, atclassid, atclear, atcode, atcodebase, atcodetype, atcolor, atcols,
+      atcolspan, atcompact, atcontent, atcoords, atdata, atdatetime, atdeclare,atdefer,
+      atdir, atdisabled, atenctype, atface, atfor, atframe, atframeborder, atheaders,
+      atheight, athref, athreflang, athspace, athttpequiv, atid, atismap, atlabel, atlang, atlink,
       atlongdesc, atmarginheight, atmarginwidth, atmaxlength, atmedia, atmethod,
-      atmultiple, atname, atnohref, atnoresize, atonblur, atonchange, atonclick,
+      atmultiple, atname, atnohref, atnoresize, atnoshade, atnowrap, atobject, atonblur, atonchange, atonclick,
       atondblclick, atonfocus, atonkeydown, atonkeypress, atonkeyup, atonload,
       atonmousedown, atonmousemove, atonmouseout, atonmouseover, atonmouseup,
-      atonreset, atonselect, atonsubmit, atonunload, atprofile, atreadonly,
+      atonreset, atonselect, atonsubmit, atonunload, atprofile, atprompt, atreadonly,
       atrel, atrev, atrows, atrowspan, atrules, atscheme, atscope, atscrolling,
-      atselected, atshape, atsize, atspan, atsrc, atstandby, atstyle, atsummary,
-      attabindex, attarget, attitle, attype, atusemap, atvalign, atvalue,
-      atvaluetype, atwidth
+      atselected, atshape, atsize, atspan, atsrc, atstandby, atstart, atstyle, atsummary,
+      attabindex, attarget, attext, attitle, attype, atusemap, atvalign, atvalue,
+      atvaluetype, atversion, atvlink, atvspace, atwidth
       );
   THTMLAttributeSet = set of THTMLAttributeTag;
 
@@ -114,6 +114,10 @@ const
 
   BooleanAttributes = [atchecked,atdeclare,atdefer,atdisabled,atnohref,atnoresize,
                     atmultiple,atreadonly,atselected];
+
+  DeprecatedAttributes = [atalink, atbackground, atbgcolor, atclear, atcode, atcolor,
+    atcompact, atface, athspace, atlink, atnoshade, atnowrap, atobject, atprompt,
+    atstart, attext, atvlink, atversion, atvspace];
 
   efSubcontent = [efSubelementContent, efPCDATAContent];
 
@@ -358,22 +362,22 @@ const
 
     );
 
-  HTMLAttributeTag : array [THTMLAttributeTag] of string = (
-      'abbr', 'accept-charset', 'accept', 'accesskey', 'action', 'align', 'alt', 'archive',
-      'axis', 'border', 'cellpadding', 'cellspacing', 'char', 'charoff', 'charset',
-      'checked', 'cite', 'class', 'classid', 'codebase', 'codetype', 'cols',
-      'colspan', 'content', 'coords', 'data', 'datetime', 'declare', 'defer',
-      'dir', 'disabled', 'enctype', 'for', 'frame', 'frameborder', 'headers',
-      'height', 'href', 'hreflang', 'http-equiv', 'id', 'ismap', 'label', 'lang',
+  HTMLAttributeTag : array [THTMLAttributeTag] of String = (
+      'abbr', 'alink', 'accept-charset', 'accept', 'accesskey', 'action', 'align', 'alt', 'archive',
+      'axis', 'background', 'bgcolor', 'border', 'cellpadding', 'cellspacing', 'char', 'charoff', 'charset',
+      'checked', 'cite', 'class', 'classid', 'clear', 'code', 'codebase', 'codetype', 'color', 'cols',
+      'colspan', 'compact', 'content', 'coords', 'data', 'datetime', 'declare', 'defer',
+      'dir', 'disabled', 'enctype', 'face', 'for', 'frame', 'frameborder', 'headers',
+      'height', 'href', 'hreflang', 'hspace', 'http-equiv', 'id', 'ismap', 'label', 'lang', 'link',
       'longdesc', 'marginheight', 'marginwidth', 'maxlength', 'media', 'method',
-      'multiple', 'name', 'nohref', 'noresize', 'onblur', 'onchange', 'onclick',
+      'multiple', 'name', 'nohref', 'noresize', 'noshade', 'nowrap', 'object', 'onblur', 'onchange', 'onclick',
       'ondblclick', 'onfocus', 'onkeydown', 'onkeypress', 'onkeyup', 'onload',
       'onmousedown', 'onmousemove', 'onmouseout', 'onmouseover', 'onmouseup',
-      'onreset', 'onselect', 'onsubmit', 'onunload', 'profile', 'readonly',
+      'onreset', 'onselect', 'onsubmit', 'onunload', 'profile', 'prompt', 'readonly',
       'rel', 'rev', 'rows', 'rowspan', 'rules', 'scheme', 'scope', 'scrolling',
-      'selected', 'shape', 'size', 'span', 'src', 'standby', 'style', 'summary',
-      'tabindex', 'target', 'title', 'type', 'usemap', 'valign', 'value',
-      'valuetype', 'width');
+      'selected', 'shape', 'size', 'span', 'src', 'standby', 'start', 'style', 'summary',
+      'tabindex', 'target', 'text', 'title', 'type', 'usemap', 'valign', 'value',
+      'valuetype', 'version', 'vlink', 'vspace', 'width');
 
   HTMLColor : array [THTMLColor] of string =
     ('Black', 'Silver', 'Gray', 'White', 'Maroon', 'Red', 'Purple', 'Fuchsia',
