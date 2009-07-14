@@ -300,6 +300,8 @@ begin
   pagesize := params.Values['PAGE_SIZE'];
   if pagesize <> '' then
     CreateSQL := CreateSQL + ' PAGE_SIZE '+pagesize;
+  if CharSet <> '' then
+    CreateSQL := CreateSQL + ' DEFAULT CHARACTER SET ' + CharSet;
 
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);
