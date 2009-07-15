@@ -22,7 +22,7 @@ const
     'IncludeTrailingPathDelimiter on ''./:'' = ''./:/''',
     'ExcludeTrailingPathDelimiter on ''./:'' = ''./:'''
    ),
-    
+
    (
     'ExtractFilePath on ''C:/blah:blah'' = ''C:/''',
     'ExtractFileName on ''C:/blah:blah'' = ''blah:blah''',
@@ -30,7 +30,7 @@ const
     'IncludeTrailingPathDelimiter on ''C:/blah:blah'' = ''C:/blah:blah/''',
     'ExcludeTrailingPathDelimiter on ''C:/blah:blah'' = ''C:/blah:blah'''
    ),
-    
+
    (
     'ExtractFilePath on ''./\'' = ''./''',
     'ExtractFileName on ''./\'' = ''\''',
@@ -38,7 +38,7 @@ const
     'IncludeTrailingPathDelimiter on ''./\'' = ''./\/''',
     'ExcludeTrailingPathDelimiter on ''./\'' = ''./\'''
    ),
-    
+
    (
     'ExtractFilePath on ''./c:'' = ''./''',
     'ExtractFileName on ''./c:'' = ''c:''',
@@ -46,7 +46,7 @@ const
     'IncludeTrailingPathDelimiter on ''./c:'' = ''./c:/''',
     'ExcludeTrailingPathDelimiter on ''./c:'' = ''./c:'''
    ),
-    
+
    (
     'ExtractFilePath on ''\\server\share\file'' = ''''',
     'ExtractFileName on ''\\server\share\file'' = ''\\server\share\file''',
@@ -65,7 +65,7 @@ const
     'IncludeTrailingPathDelimiter on ''./:'' = ''./:\''',
     'ExcludeTrailingPathDelimiter on ''./:'' = ''./:'''
    ),
-   
+
    (
     'ExtractFilePath on ''C:/blah:blah'' = ''C:/blah:''',
     'ExtractFileName on ''C:/blah:blah'' = ''blah''',
@@ -73,7 +73,7 @@ const
     'IncludeTrailingPathDelimiter on ''C:/blah:blah'' = ''C:/blah:blah\''',
     'ExcludeTrailingPathDelimiter on ''C:/blah:blah'' = ''C:/blah:blah'''
    ),
-   
+
    (
     'ExtractFilePath on ''./\'' = ''./\''',
     'ExtractFileName on ''./\'' = ''''',
@@ -81,7 +81,7 @@ const
     'IncludeTrailingPathDelimiter on ''./\'' = ''./\''',
     'ExcludeTrailingPathDelimiter on ''./\'' = ''./'''
    ),
-   
+
    (
     'ExtractFilePath on ''./c:'' = ''./c:''',
     'ExtractFileName on ''./c:'' = ''''',
@@ -89,7 +89,7 @@ const
     'IncludeTrailingPathDelimiter on ''./c:'' = ''./c:\''',
     'ExcludeTrailingPathDelimiter on ''./c:'' = ''./c:'''
    ),
-   
+
    (
     'ExtractFilePath on ''\\server\share\file'' = ''\\server\share\''',
     'ExtractFileName on ''\\server\share\file'' = ''file''',
@@ -114,15 +114,34 @@ begin
                 [strPath, ExcludeTrailingPathDelimiter(strPath)]));
 
   if (Format('ExtractFilePath on ''%s'' = ''%s''',[strPath, ExtractFilePath(strPath)]) <> results[1]) then
-    halt(1);
+    begin
+      writeln('ExtractFilePath: ',ExtractFilePath(strPath));
+      halt(1);
+    end;
+
   if (Format('ExtractFileName on ''%s'' = ''%s''',[strPath, ExtractFileName(strPath)]) <> results[2]) then
-    halt(2);
+    begin
+      writeln('ExtractFileName: ',ExtractFileName(strPath));
+      halt(2);
+    end;
+
   if (Format('ExtractFileDrive on ''%s'' = ''%s''',[strPath, ExtractFileDrive(strPath)]) <> results[3]) then
-    halt(3);
+    begin
+      writeln('ExtractFileDrive: ',ExtractFileDrive(strPath));
+      halt(3);
+    end;
+
   if (Format('IncludeTrailingPathDelimiter on ''%s'' = ''%s''',[strPath, IncludeTrailingPathDelimiter(strPath)]) <> results[4]) then
-    halt(4);
+    begin
+      writeln('IncludeTrailingPathDelimiter: ',IncludeTrailingPathDelimiter(strPath));
+      halt(4);
+    end;
+
   if (Format('ExcludeTrailingPathDelimiter on ''%s'' = ''%s''',[strPath, ExcludeTrailingPathDelimiter(strPath)]) <> results[5]) then
-    halt(5);
+    begin
+      writeln('ExcludeTrailingPathDelimiter: ',ExcludeTrailingPathDelimiter(strPath));
+      halt(5);
+    end;
 
   WriteLn;
 end;
@@ -138,4 +157,5 @@ begin
   TestFuncs('./\',results[3]);
   TestFuncs('./c:',results[4]);
   TestFuncs('\\server\share\file',results[5]);
+  writeln('ok');
 end.

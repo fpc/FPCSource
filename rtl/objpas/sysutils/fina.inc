@@ -65,14 +65,12 @@ begin
 end;
 
 function ExtractFileDrive(const FileName: string): string;
-
 var
   i,l: longint;
-
 begin
   Result := '';
   l:=Length(FileName);
-  if (L<2) then
+  if (l<2) then
     exit;
   If (FileName[2] in AllowDriveSeparators) then
     result:=Copy(FileName,1,2)
@@ -80,7 +78,13 @@ begin
           (FileName[2] in AllowDirectorySeparators) then
     begin
       i := 2;
-      While (i<L) and Not (Filename[i+1] in AllowDirectorySeparators) do
+	
+	  { skip share }
+      While (i<l) and Not (Filename[i+1] in AllowDirectorySeparators) do
+        inc(i);
+      inc(i);
+	
+      While (i<l) and Not (Filename[i+1] in AllowDirectorySeparators) do
         inc(i);
       Result:=Copy(FileName,1,i);
     end;
