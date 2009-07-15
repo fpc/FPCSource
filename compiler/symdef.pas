@@ -2366,7 +2366,7 @@ implementation
 
         { prevent overflow, return -1 to indicate overflow }
         { also make sure we don't need 64/128 bit arithmetic to calculate offsets }
-        if (cachedelecount > high(aint)) or
+        if (cachedelecount > aword(high(aint))) or
            ((high(aint) div cachedelesize) < aint(cachedelecount)) or
            { also lowrange*elesize must be < high(aint) to prevent overflow when
              accessing the array, see ncgmem (PFV) }
