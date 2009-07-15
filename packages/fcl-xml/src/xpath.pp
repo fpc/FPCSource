@@ -1486,9 +1486,78 @@ begin
 end;
 
 function TXPathNumberVariable.AsText: DOMString;
+var
+  frec: TFloatRec;
+  i, nd, reqlen: Integer;
+  P: DOMPChar;
 begin
-// TODO: Decimal separator!!!
-  Result := FloatToStr(FValue);
+  FloatToDecimal(frec, FValue, fvExtended, 17, 9999);
+
+  // TODO: remove workaround after #14143 is fixed
+  if {frec.Exponent = -32768} frec.Digits[0] = 'N' then
+  begin
+    Result := 'NaN';          // do not localize
+    Exit;
+  end
+  else if {frec.Exponent = 32767} (frec.Digits[0] = 'I') or ((frec.Digits[0] = '+') and (frec.Digits[1] = 'I')) then
+  begin
+    if frec.Negative then
+      Result := '-Infinity'   // do not localize
+    else
+      Result := 'Infinity';   // do not localize
+    Exit;  
+  end
+  else if frec.Digits[0] = #0 then
+  begin
+    Result := '0';
+    Exit;
+  end
+  else
+  begin
+    nd := StrLen(@frec.Digits[0]);
+    reqlen := nd + ord(frec.Negative);  // maybe minus sign
+    if frec.Exponent > nd then
+      Inc(reqlen, frec.Exponent - nd)   // add this much zeroes at the right
+    else if frec.Exponent < nd then
+    begin
+      Inc(reqlen);                      // decimal point
+      if frec.Exponent <= 0 then
+        Inc(reqlen, 1 - frec.Exponent); // zeroes at the left + one more for the int part
+    end;
+    SetLength(Result, reqlen);
+    P := DOMPChar(Result);
+    if frec.Negative then
+    begin
+      P^ := '-';
+      Inc(P);
+    end;
+    if frec.Exponent <= 0 then          // value less than 1, put zeroes at left
+    begin
+      for i := 0 to 1-frec.Exponent do
+        P[i] := '0';
+      P[1] := '.';
+      for i := 0 to nd-1 do
+        P[i+2-frec.Exponent] := WideChar(ord(frec.Digits[i]));
+    end
+    else if frec.Exponent > nd then    // large integer, put zeroes at right
+    begin
+      for i := 0 to nd-1 do
+        P[i] := WideChar(ord(frec.Digits[i]));
+      for i := nd to reqlen-1-ord(frec.Negative) do
+        P[i] := '0';
+    end
+    else  // 0 < exponent <= digits, insert decimal point into middle
+    begin
+      for i := 0 to frec.Exponent-1 do
+        P[i] := WideChar(ord(frec.Digits[i]));
+      if frec.Exponent < nd then
+      begin
+        P[frec.Exponent] := '.';
+        for i := frec.Exponent to nd-1 do
+          P[i+1] := WideChar(ord(frec.Digits[i]));
+      end;
+    end;
+  end;
 end;
 
 

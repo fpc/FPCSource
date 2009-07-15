@@ -542,7 +542,8 @@ const
   '<b ns1:attrib2="test"/>'#10+
   '</doc>';
 
-  StringTests: array[0..75] of TTestRec = (             // numbers refer to xalan/string/stringXX
+  StringTests: array[0..84] of TTestRec = (             // numbers refer to xalan/string/stringXX
+    (expr: 'string(0)';       rt: rtString; s: '0'),
     (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
     (expr: 'string(-0.5)';    rt: rtString; s: '-0.5'),
@@ -634,7 +635,20 @@ const
 
     (data: str30; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
     (data: str30; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
-    (data: str30; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
+    (data: str30; expr: 'local-name()'; rt: rtString; s: 'doc'),      // namespace26
+    
+    // tests for number->string conversions at boundary conditions
+    (expr: 'string(123456789012345678)';     rt: rtString; s: '123456789012345680'),    // #132.1
+    (expr: 'string(-123456789012345678)';    rt: rtString; s: '-123456789012345680'),   // #132.2
+    (expr: 'string(.10123456789234567893)';  rt: rtString; s: '0.10123456789234568'),   // #133.1
+    (expr: 'string(-.10123456789234567893)'; rt: rtString; s: '-0.10123456789234568'),  // #133.2
+    
+    (expr: 'string(9.87654321012345)'; rt: rtString; s: '9.87654321012345'),  // #134.1
+    (expr: 'string(98765432101234.5)'; rt: rtString; s: '98765432101234.5'),  // #134.2
+    (expr: 'string(.0000000000000000000000000000000000000000123456789)'; rt: rtString;  // #135.1
+      s: '0.0000000000000000000000000000000000000000123456789'),
+    (expr: 'string(-.0000000000000000000000000000000000000000123456789)'; rt: rtString; // #135.2
+      s: '-0.0000000000000000000000000000000000000000123456789')
   );
   
   ax114='<doc>'+
