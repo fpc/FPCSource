@@ -104,20 +104,28 @@ procedure GetFormatSettings;
     GetLocaleChar := nl_langinfo(item)^;
   end;
 
+  procedure OmitModifiers(const s: string; var i: integer);
+  var
+    l: Integer;
+  begin
+    l := Length(s);
+    //possible flag, with specifier or modifier - glibc exension
+    while (i<=l) and (s[i] in ['0'..'9', '_', '-', '^', '#', 'E', 'O']) do 
+      inc(i);
+  end;
+
   function FindSeparator(const s: string; Def: char): char;
   var
-    i, l: integer;
+    i: integer;
   begin
     FindSeparator := Def;
     i := Pos('%', s);
     if i=0 then
       Exit;
-    l := Length(s);
     inc(i);
-    if (i<=l) and (s[i] in ['E', 'O']) then //possible modifier
-      inc(i);
-    inc(i); 
-    if i<=l then
+    OmitModifiers(s, i);
+    inc(i);
+    if i<=Length(s) then
       FindSeparator := s[i];
   end;
 
@@ -133,8 +141,7 @@ procedure GetFormatSettings;
     while i<=l do begin
       if s[i]='%' then begin
         inc(i);
-        if (i<=l) and (s[i] in ['E', 'O']) then //ignore modifier
-          inc(i);
+        OmitModifiers(s, i);
         if i>l then
           Exit;
         case s[i] of
