@@ -260,7 +260,10 @@ begin
   OrgFormatSettings.LongTimeFormat:=longtimeformat;
 {$endif}
 
-  LongTimeFormat := TransformFormatStr(LongTimeFormat);
+  if (LongTimeFormat='') then
+    LongTimeFormat:=ShortTimeFormat
+  else
+    LongTimeFormat := TransformFormatStr(LongTimeFormat);
 
   {$Ifdef BSD}
      plocale:=localeconv;
