@@ -2842,7 +2842,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
       while (Length(s) > n) and (s[n] = ' ')  do
         inc(n);
       while (Length(s) >= n) and
-            (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E']) do
+            (s[n] in ['0'..'9', '+', '-', DecimalSeparator, 'e', 'E']) do
         begin
           s1 := s1+s[n];
           inc(n);
