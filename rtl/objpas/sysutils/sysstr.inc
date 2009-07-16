@@ -2306,6 +2306,7 @@ End;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 var
   Buffer: String[254];  //Though str func returns only 25 chars, this might change in the future
+  InfNan: string[3];
   Error, N, L, Start, C: Integer;
   GotNonZeroBeforeDot, BeforeDot : boolean;
 begin
@@ -2329,7 +2330,26 @@ begin
     Inc(N);
   Result.Negative := (Buffer[N] = '-');
   if Result.Negative then
-    Inc(N);
+    Inc(N)
+  else if (Buffer[N] = '+') then
+    inc(N);
+  { special cases for Inf and Nan }
+  if (L>=N+2) then
+    begin
+      InfNan:=copy(Buffer,N,3);
+      if (InfNan='Inf') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=32767;
+          exit
+        end;
+      if (InfNan='Nan') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=-32768;
+          exit
+        end;
+    end;
   Start := N;  //Start of digits
   Result.Exponent := 0; BeforeDot := true;
   GotNonZeroBeforeDot := false;
