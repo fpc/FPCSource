@@ -1716,7 +1716,7 @@ implementation
                     a procvar. Because isconvertable cannot check for procedures we
                     use an extra check for them.}
                   if (left.nodetype=calln) and
-                     (tcallnode(left).para_count=0) and
+                     (tcallnode(left).required_para_count=0) and
                      (resultdef.typ=procvardef) and
                      (
                       (m_tp_procvar in current_settings.modeswitches) or
