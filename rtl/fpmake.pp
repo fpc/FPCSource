@@ -439,6 +439,7 @@ begin
           AddInclude('syspchh.inc');
           AddInclude('sysansih.inc');
           AddInclude('syswideh.inc');
+          AddInclude('sysunih.inc');
           AddInclude('finah.inc');
           AddInclude('filutilh.inc');
           AddInclude('diskh.inc');
@@ -458,6 +459,7 @@ begin
           AddInclude('sysint.inc');
           AddInclude('sysansi.inc');
           AddInclude('syswide.inc');
+          AddInclude('sysuni.inc');
           AddInclude('sysformt.inc');
           AddInclude('sysuthrd.inc');
           AddInclude('osutil.inc');

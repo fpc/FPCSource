@@ -160,6 +160,7 @@ begin
       Add(SysUtilsDir+'syspchh.inc');
       Add(SysUtilsDir+'systhrdh.inc');
       Add(SysUtilsDir+'syswideh.inc');
+      Add(SysUtilsDir+'sysunih.inc');
       Add(SysUtilsDir+'dati.inc');
       Add(SysUtilsDir+'fina.inc');
       Add(SysUtilsDir+'stre.inc');
@@ -167,6 +168,7 @@ begin
       Add(SysUtilsDir+'syspch.inc');
       Add(SysUtilsDir+'sysuintf.inc');
       Add(SysUtilsDir+'syswide.inc');
+      Add(SysUtilsDir+'sysuni.inc');
       Add(SysUtilsDir+'diskh.inc');
       Add(SysUtilsDir+'intfh.inc');
       Add(SysUtilsDir+'strg.inc');
