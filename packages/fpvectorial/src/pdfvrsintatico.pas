@@ -54,7 +54,9 @@ begin
   case Estado of
   1:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado 1');
+    {$endif}
              if(t.token_string = 'Type') then
                    begin
                        Estado := 2;
@@ -66,7 +68,9 @@ begin
   end;
   2:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado 2');
+    {$endif}
              if(t.token_string = 'Page') then
                    begin
                         Estado := 3;
@@ -78,7 +82,9 @@ begin
   end;
   3:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado 3');
+    {$endif}
              if(t.token_string = 'Contents') then
                    begin
                         Estado := 4;
@@ -90,7 +96,9 @@ begin
   end;
   4:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado 4');
+    {$endif}
              if(t.tipo = 1) then // numbers 1
                    begin
                         obj1:=t.token_string;
@@ -104,7 +112,9 @@ begin
   end;
   5:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado 5');
+    {$endif}
              if(t.tipo = 1) then // numbers 2
                    begin
                         obj2:=t.token_string;
@@ -118,7 +128,9 @@ begin
                    end;
   end;
   else
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPage.automata Estado ELSE');
+    {$endif}
     Estado := 1;
   end;
 end;
@@ -132,7 +144,9 @@ begin
   case Estado of
   1:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 1');
+    {$endif}
              if(t.token_string = obj1) then
                    begin
                         Estado := 2;
@@ -144,7 +158,9 @@ begin
   end;
   2:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 2');
+    {$endif}
              if(t.token_string = obj2) then
                    begin
                         Estado := 3;
@@ -156,7 +172,9 @@ begin
   end;
   3:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 3');
+    {$endif}
              if(t.token_string = 'obj') then
                    begin
                         Estado := 4;
@@ -168,7 +186,9 @@ begin
   end;
   4:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 4');
+    {$endif}
              if(t.token_string = 'Length') then
                    begin
                         Estado := 5;
@@ -184,7 +204,9 @@ begin
   end;
   5:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 5');
+    {$endif}
              if(t.tipo = 1) then
                    begin
                         h.page_length := StrToInt(t.token_string);
@@ -199,7 +221,9 @@ begin
   end;
   6:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 6');
+    {$endif}
              if(t.token_string = 'Filter') then
                    begin
                         Estado := 7;
@@ -244,7 +268,9 @@ begin
   end;
   7:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 7');
+    {$endif}
              if(t.token_string = 'FlateDecode') then
                    begin
                         h.flate_decode := true;
@@ -258,7 +284,9 @@ begin
   end;
   8:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado 8');
+    {$endif}
              if(t.token_string = 'stream') then
                    begin
                         contentsFound := true;
@@ -274,7 +302,9 @@ begin
                    end;
   end;
   else
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoPageContents.automata Estado ELSE');
+    {$endif}
     Estado := 1;
   end;
 end;
@@ -284,7 +314,9 @@ begin
   case Estado of
   1:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoLength.automata Estado 1');
+    {$endif}
              if(t.token_string = len_obj1) then
                    begin
                         Estado := 2;
@@ -296,7 +328,9 @@ begin
   end;
   2:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoLength.automata Estado 2');
+    {$endif}
              if(t.token_string = len_obj2) then
                    begin
                         Estado := 3;
@@ -308,7 +342,9 @@ begin
   end;
   3:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoLength.automata Estado 3');
+    {$endif}
              if(t.token_string = 'obj') then
                    begin
                         Estado := 4;
@@ -320,7 +356,9 @@ begin
   end;
   4:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoLength.automata Estado 4 Length: ', StrToInt(t.token_string));
+    {$endif}
              if(t.tipo = 1) then
                    begin
                         page_length:=StrToInt(t.token_string);
@@ -334,7 +372,9 @@ begin
                    end;
   end;
   else
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoLength.automata Estado ELSE');
+    {$endif}
     Estado := 1;
   end;
 end;
@@ -355,7 +395,9 @@ begin
   case Estado of
   1:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 1');
+    {$endif}
              if(t.tipo = 1) then // numbers 1
                    begin
                        Estado := 2;
@@ -418,7 +460,9 @@ begin
   end;
   2:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 2');
+    {$endif}
              if(t.tipo = 1) then // numbers 2
                    begin
                         Estado := 3;
@@ -430,7 +474,9 @@ begin
   end;
   3:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 3');
+    {$endif}
              if(t.tipo = 1) then // numbers 3
                   begin
                        Estado := 5;
@@ -458,7 +504,9 @@ begin
   end;
   5:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 5');
+    {$endif}
              if(t.tipo = 1) then // numbers 4
                    begin
                        Estado := 6;
@@ -470,7 +518,9 @@ begin
   end;
   6:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 6');
+    {$endif}
              if(t.tipo = 1) then // numbers 5
                    begin
                        Estado := 7;
@@ -500,7 +550,9 @@ begin
   end;
   7:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 7');
+    {$endif}
              if(t.tipo = 1) then // numbers 6
                    begin
                        Estado := 8;
@@ -512,7 +564,9 @@ begin
   end;
   8:
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado 8');
+    {$endif}
              if(t.token_string = 'c') then // commmand c
                    begin
                        Estado := 19; // symbolic state
@@ -535,7 +589,9 @@ begin
                    end;
   end;
   else
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSintaticoCommand.automata Estado ELSE');
+    {$endif}
     Estado := 1;
   end;
 end;

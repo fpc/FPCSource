@@ -26,7 +26,9 @@ function AnSemantico.generate(c: Command; AData: TvVectorialDocument): String;
 var
   enter_line : String;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> AnSemantico.generate');
+  {$endif}
   enter_line:= LineEnding; //chr(13) + chr(10); // CR and LF
 
   if ((c.code = cc_H_CLOSE_PATH) or (c.code = cc_hS_CLOSE_AND_END_PATH)) then // command h or s
@@ -39,13 +41,13 @@ begin
   begin
      if ((c.code = cc_m_START_PATH) or (c.code = cc_l_ADD_LINE_TO_PATH)) then
      begin
-       WriteLn(':: anSemantico.generate convert code ', Integer(c.code));
+       //WriteLn(':: anSemantico.generate convert code ', Integer(c.code));
        c.cord_x := convert(c.cord_x,c.cord_y,'x');
        c.cord_y := convert(c.cord_x,c.cord_y,'y');
      end;
      if ((c.code = cc_c_BEZIER_TO_X_Y_USING_X2_Y2_AND_X3_Y3)) then
      begin
-       WriteLn(':: anSemantico.generate convert code ', Integer(c.code));
+       //WriteLn(':: anSemantico.generate convert code ', Integer(c.code));
        c.cord_x := convert(c.cord_x,c.cord_y,'x');
        c.cord_y := convert(c.cord_x,c.cord_y,'y');
        c.cord_x2 := convert(c.cord_x2,c.cord_y2,'x');
@@ -58,7 +60,9 @@ begin
   case c.code of
   cc_m_START_PATH: // command m
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 1 EndPath StartPath');
+    {$endif}
     // Result:='G01' + ' ' + 'X' + c.cord_x + ' ' + 'Y' + c.cord_y + enter_line +
     //            'G01 Z50 // Abaixa a cabeça de gravação';
 
@@ -72,27 +76,35 @@ begin
   end;
   cc_l_ADD_LINE_TO_PATH: // command l
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 2 AddPointToPath');
+    {$endif}
     // Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y;
 
     AData.AddLineToPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
   end;
   cc_h_CLOSE_PATH: // command h
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 3 AddPointToPath');
+    {$endif}
     //Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y;
 
     AData.AddLineToPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
   end;
   cc_S_END_PATH: // command S
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 4 EndPath');
+    {$endif}
     // Result:='G01 Z0 // Sobe a cabeça de gravação' + enter_line;
     AData.EndPath();
   end;
   cc_hS_CLOSE_AND_END_PATH: // command s
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 5 AddPoint EndPath');
+    {$endif}
     //Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y + enter_line
     //       +'G01 Z0 // Sobe a cabeça de gravação' + enter_line;
 
@@ -101,7 +113,9 @@ begin
   end;
   cc_c_BEZIER_TO_X_Y_USING_X2_Y2_AND_X3_Y3: // command c
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado 6 Bezier');
+    {$endif}
     //Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y + enter_line
     //       +'G01 Z0 // Sobe a cabeça de gravação' + enter_line;
 
@@ -113,7 +127,9 @@ begin
   end;
   cc_CONCATENATE_MATRIX: // command cm
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.cc_CONCATENATE_MATRIX');
+    {$endif}
 
     cm_a := StrToFloat(c.cord_x3);
     cm_b := StrToFloat(c.cord_y3);
@@ -124,7 +140,9 @@ begin
   end;
   cc_RESTORE_MATRIX: // command Q
   begin
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.cc_RESTORE_MATRIX');
+    {$endif}
 
     cm_a:=1;
     cm_b:=0;
@@ -134,14 +152,18 @@ begin
     cm_f:=0;
   end;
   else
+    {$ifdef FPVECTORIALDEBUG}
     WriteLn(':> AnSemantico.generate Estado ELSE');
+    {$endif}
     Result:=c.my_operator;
   end;
 end;
 
 function AnSemantico.convert(x: String; y: String; Axis: Char): String;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> AnSemantico.convert');
+  {$endif}
   // convert from 1/72 inch to milimeters and change axis if necessary
 
   if (Axis = 'y') then
@@ -161,7 +183,9 @@ function AnSemantico.startMachine(): String;
 var
   enter_line : String;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> AnSemantico.startMachine');
+  {$endif}
   enter_line:=chr(13) + chr(10); // CR and LF
 
   Result:='M216 // Ligar monitor de carga' + enter_line +
@@ -173,7 +197,9 @@ function AnSemantico.endMachine(): String;
 var
   enter_line : String;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> AnSemantico.endMachine');
+  {$endif}
   enter_line:=chr(13) + chr(10); // CR and LF
 
   Result:='M30 // Parar o programa e retornar para posição inicial' + enter_line +

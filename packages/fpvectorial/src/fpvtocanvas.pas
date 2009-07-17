@@ -25,7 +25,9 @@ var
   CurveLength: Integer;
   t: Double;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':>DrawFPVectorialToCanvas');
+  {$endif}
 
   PosX := 0;
   PosY := 0;
@@ -74,7 +76,9 @@ begin
     end;
   end;
 
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':<DrawFPVectorialToCanvas');
+  {$endif}
 end;
 
 end.

@@ -60,7 +60,9 @@ var
   myAnSintaticoContents: AnSintaticoPageContents;
   AInput2: TStream;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> TvPDFVectorialReader.getFirstPage');
+  {$endif}
   AInput2 := TMemoryStream.Create;
   AInput2.Size := AInput.Size;
   AInput2.CopyFrom(AInput, AInput.Size);
@@ -122,7 +124,9 @@ begin
 
   Result:=myAnSintaticoContents.h;
 
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':< TvPDFVectorialReader.getFirstPage');
+  {$endif}
 
 //  AInput2.Free;
 end;
@@ -134,8 +138,10 @@ var
   myDecode: decode;
   BufStr: string;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> TvPDFVectorialReader.unzipPage');
-
+  {$endif}
+  
   myDecode := Decode.Create;
 
   comprLen := 10000 * SizeOf(Integer); // don't overflow
@@ -162,7 +168,9 @@ begin
   FreeMem(compr, comprLen);
   FreeMem(uncompr, uncomprLen);
 
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':< TvPDFVectorialReader.unzipPage');
+  {$endif}
 end;
 
 procedure TvPDFVectorialReader.translatePage(AInput: TStream;
@@ -174,7 +182,9 @@ var
   mytoken: Token;
   c: Command;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> TvPDFVectorialReader.translatePage');
+  {$endif}
 
   // initialize data main
   myAnLexico := AnLexico.Create;
@@ -204,7 +214,9 @@ var
   APageHeader: PageHeader;
   APageStream, AUnzipStream: TStream;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> TvPDFVectorialReader.ReadFromStream');
+  {$endif}
 
   APageStream := TMemoryStream.Create;
   AUnzipStream := TMemoryStream.Create;
@@ -233,8 +245,10 @@ begin
   AUnzipStream.Free;
 
   //ShowMessage('Sucesso!');
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn(':< TvPDFVectorialReader.ReadFromStream');
   WriteLn('Sucesso!');
+  {$endif}
 end;
 
 {*******************************************************************

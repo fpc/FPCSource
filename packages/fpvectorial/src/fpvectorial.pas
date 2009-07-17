@@ -281,13 +281,13 @@ var
   Len: Integer;
 begin
   Len := SizeOf(TPath);
-  WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
+  //WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
   Path := GetMem(Len);
-  WriteLn(':>TvVectorialDocument.AddPath 2');
+  //WriteLn(':>TvVectorialDocument.AddPath 2');
   Move(APath, Path^, Len);
-  WriteLn(':>TvVectorialDocument.AddPath 3');
+  //WriteLn(':>TvVectorialDocument.AddPath 3');
   FPaths.Add(Path);
-  WriteLn(':>TvVectorialDocument.AddPath 4');
+  //WriteLn(':>TvVectorialDocument.AddPath 4');
 end;
 
 {@@

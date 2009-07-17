@@ -97,7 +97,9 @@ var
   DestX, DestY, DestZ: Double;
   i: Integer;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn('TvAvisoCNCGCodeReader.ReadString ', AStr);
+  {$endif}
   AParams := SeparateString(AStr, ' ');
 
   {
@@ -209,14 +211,18 @@ procedure TvAvisoCNCGCodeReader.ReadFromStrings(AStrings: TStrings;
 var
   i: Integer;
 begin
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn('TvAvisoCNCGCodeReader.ReadFromStrings AStrings = ', PtrInt(AStrings), ' AData = ', PtrInt(AData));
-
+  {$endif}
+  
   AData.StartPath(0, 0);
 
   for i := 0 to AStrings.Count - 1 do
     ReadString(AStrings.Strings[i], AData);
 
+  {$ifdef FPVECTORIALDEBUG}
   WriteLn('AData.EndPath');
+  {$endif}
   AData.EndPath();
 end;
 
