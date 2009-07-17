@@ -8,18 +8,21 @@ version=2.2.2
 
 [require]
 libc=n
+packages=fcl-image
 
 [target]
-units=fpvectorial
+units=fpvectbuildunit
 exampledirs=
-implicitunits=
+implicitunits= avisocncgcodereader avisocncgcodewriter avisozlib fpvectorial \
+	       fpvtocanvas  pdfvectorialreader pdfvrlexico pdfvrsemantico \
+	       pdfvrsintatico
 
 [compiler]
 includedir=src
 sourcedir=src
 
 [install]
-buildunit=
+buildunit=fpvectbuildunit
 fpcpackage=y
 
 [shared]
@@ -30,3 +33,5 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
+
+

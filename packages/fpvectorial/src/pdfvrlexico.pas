@@ -38,11 +38,11 @@ type
 
   AnLexico = class
   public
+    Doc: TStream;
+    bytesRemaining: Int64;
     constructor Create();
     function getToken(): Token;
     function getPageToken(): Token;
-    Doc: TStream;
-    bytesRemaining: Int64;
   end;
 
 implementation
