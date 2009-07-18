@@ -1006,6 +1006,12 @@ begin
   FSize:=20;
 end;
 
+procedure TStringField.SetFieldType(AValue: TFieldType);
+begin
+  if avalue in [ftString, ftFixedChar] then
+    SetDataType(AValue);
+end;
+
 class procedure TStringField.CheckTypeSize(AValue: Longint);
 
 begin
@@ -1065,7 +1071,10 @@ end;
 function TStringField.GetDataSize: Integer;
 
 begin
-  Result:=Size+1;
+  if DataType=ftFixedChar then
+    Result:=Size
+  else
+    Result:=Size+1;
 end;
 
 function TStringField.GetDefaultWidth: Longint;
