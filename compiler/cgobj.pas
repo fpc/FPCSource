@@ -638,7 +638,7 @@ implementation
       begin
         if not assigned(rg[R_INTREGISTER]) then
           internalerror(200312122);
-        result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(size));
+        result:=rg[R_INTREGISTER].getregister(list,cgsize2subreg(R_INTREGISTER,size));
       end;
 
 
@@ -646,7 +646,7 @@ implementation
       begin
         if not assigned(rg[R_FPUREGISTER]) then
           internalerror(200312123);
-        result:=rg[R_FPUREGISTER].getregister(list,cgsize2subreg(size));
+        result:=rg[R_FPUREGISTER].getregister(list,cgsize2subreg(R_FPUREGISTER,size));
       end;
 
 
@@ -654,7 +654,7 @@ implementation
       begin
         if not assigned(rg[R_MMREGISTER]) then
           internalerror(2003121214);
-        result:=rg[R_MMREGISTER].getregister(list,cgsize2subreg(size));
+        result:=rg[R_MMREGISTER].getregister(list,cgsize2subreg(R_MMREGISTER,size));
       end;
 
 
@@ -675,7 +675,7 @@ implementation
       var
         subreg:Tsubregister;
       begin
-        subreg:=cgsize2subreg(size);
+        subreg:=cgsize2subreg(getregtype(reg),size);
         result:=reg;
         setsubreg(result,subreg);
         { notify RA }

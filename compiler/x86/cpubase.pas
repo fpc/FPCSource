@@ -244,7 +244,7 @@ uses
                                   Helpers
 *****************************************************************************}
 
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function reg2opsize(r:Tregister):topsize;
     function reg_cgsize(const reg: tregister): tcgsize;
     function is_calljmp(o:tasmop):boolean;
@@ -295,7 +295,7 @@ implementation
                                   Helpers
 *****************************************************************************}
 
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
         case s of
           OS_8,OS_S8:
@@ -308,9 +308,24 @@ implementation
             cgsize2subreg:=R_SUBQ;
           OS_M64:
             cgsize2subreg:=R_SUBNONE;
-          OS_F32,OS_F64,OS_C64,
+          OS_F32,OS_F64,OS_C64:
+            case regtype of
+              R_FPUREGISTER:
+                cgsize2subreg:=R_SUBWHOLE;
+              R_MMREGISTER:
+                case s of
+                  OS_F32:
+                    cgsize2subreg:=R_SUBMMS;
+                  OS_F64:
+                    cgsize2subreg:=R_SUBMMD;
+                  else
+                    internalerror(2009071901);
+                end;
+              else
+                internalerror(2009071902);
+            end;
           OS_M128,OS_MS128:
-            cgsize2subreg:=R_SUBWHOLE;
+            cgsize2subreg:=R_SUBMMWHOLE;
           else
             internalerror(200301231);
         end;

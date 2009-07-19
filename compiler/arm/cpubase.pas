@@ -354,7 +354,7 @@ unit cpubase;
 
     { Returns the tcgsize corresponding with the size of reg.}
     function reg_cgsize(const reg: tregister) : tcgsize;
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function is_calljmp(o:tasmop):boolean;
     procedure inverse_flags(var f: TResFlags);
     function flags_to_cond(const f: TResFlags) : TAsmCond;
@@ -391,7 +391,7 @@ unit cpubase;
       );
 
 
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
         cgsize2subreg:=R_SUBWHOLE;
       end;

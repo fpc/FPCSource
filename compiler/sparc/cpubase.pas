@@ -336,7 +336,7 @@ uses
     function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function reg_cgsize(const reg: tregister): tcgsize;
     function std_regname(r:Tregister):string;
     function std_regnum_search(const s:string):Tregister;
@@ -395,12 +395,28 @@ implementation
       end;
 
 
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
-        if s in [OS_64,OS_S64] then
-          cgsize2subreg:=R_SUBQ
-        else
-          cgsize2subreg:=R_SUBWHOLE;
+        case regtype of
+          R_FPUREGISTER:
+            case s of
+              OS_F32:
+                cgsize2subreg:=R_SUBFS;
+              OS_F64:
+                cgsize2subreg:=R_SUBFD;
+              OS_F128:
+                cgsize2subreg:=R_SUBFQ;
+              else
+                internalerror(2009071903);
+            end;
+          else
+            begin
+              if s in [OS_64,OS_S64] then
+                cgsize2subreg:=R_SUBQ
+              else
+                cgsize2subreg:=R_SUBWHOLE;
+            end;
+        end;
       end;
 
 
