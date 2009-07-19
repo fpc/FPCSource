@@ -1,22 +1,23 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <PathDelim Value="\"/>
+    <Version Value="7"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="pp"/>
     </General>
     <PublishOptions>
       <Version Value="2"/>
+      <DestinationDirectory Value="$(TestDir)\publishedproject\"/>
       <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
       <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
     </PublishOptions>
@@ -33,25 +34,25 @@
         <UnitName Value="pp"/>
       </Unit0>
       <Unit1>
-        <Filename Value="x86/aasmcpu.pas"/>
+        <Filename Value="x86\aasmcpu.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="aasmcpu"/>
       </Unit1>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="8"/>
+    <PathDelim Value="\"/>
     <Target>
-      <Filename Value="x86_64/pp"/>
+      <Filename Value="x86_64\pp"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="x86_64/"/>
-      <OtherUnitFiles Value="x86_64/;x86/;systems/"/>
-      <UnitOutputDirectory Value="x86_64/lazbuild"/>
+      <IncludeFiles Value="x86_64\"/>
+      <OtherUnitFiles Value="x86_64\;x86\;systems\"/>
+      <UnitOutputDirectory Value="x86_64\lazbuild"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
-        <D2Extensions Value="False"/>
         <CStyleOperator Value="False"/>
         <AllowLabel Value="False"/>
         <CPPInline Value="False"/>
