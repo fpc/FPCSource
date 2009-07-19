@@ -854,18 +854,15 @@ implementation
          try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
-          if not is_cdecl then
+          if (idtoken<>_NAME) and (token<>_SEMICOLON) then
             begin
-              if idtoken<>_NAME then
-                begin
-                  is_dll:=true;
-                  dll_name:=get_stringconst;
-                  if ExtractFileExt(dll_name)='' then
-                    dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
-                end;
-              if try_to_consume(_NAME) then
-                C_name:=get_stringconst;
+              is_dll:=true;
+              dll_name:=get_stringconst;
+              if ExtractFileExt(dll_name)='' then
+                dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
             end;
+          if not(is_cdecl) and try_to_consume(_NAME) then
+            C_name:=get_stringconst;
           consume(_SEMICOLON);
         end;
 
