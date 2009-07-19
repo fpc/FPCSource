@@ -450,18 +450,12 @@ begin
     SQL_VARYING :
       begin
         TrType := ftString;
-        if SQLLen > dsMaxStringSize then
-          TrLen := dsMaxStringSize
-        else
-          TrLen := SQLLen;
+        TrLen := SQLLen;
       end;
     SQL_TEXT :
       begin
         TrType := ftFixedChar;
-        if SQLLen > dsMaxStringSize then
-          TrLen := dsMaxStringSize
-        else
-          TrLen := SQLLen;
+        TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
       TrType := ftDate{Time};
@@ -889,8 +883,6 @@ begin
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
-          if VarcharLen > dsMaxStringSize then
-            VarcharLen:=dsMaxStringSize;
           CurrBuff := SQLData + 2;
           end
         else
