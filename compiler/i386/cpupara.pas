@@ -360,9 +360,9 @@ unit cpupara;
                p.funcretloc[side].loc:=LOC_REGISTER;
                p.funcretloc[side].size:=retcgsize;
                if side=callerside then
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
              end;
           end;
       end;
@@ -576,7 +576,7 @@ unit cpupara;
                             paraloc:=hp.paraloc[side].add_location;
                             paraloc^.size:=paracgsize;
                             paraloc^.loc:=LOC_REGISTER;
-                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
+                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(R_INTREGISTER,paracgsize));
                             inc(parareg);
                           end;
                       end
