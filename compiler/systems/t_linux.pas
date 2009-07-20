@@ -628,7 +628,7 @@ begin
           add('SECTIONS');
           add('{');
           add('  /* Read-only sections, merged into text segment: */');
-          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000;');
+          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
           add('  .hash           : { *(.hash) }');
@@ -847,7 +847,7 @@ begin
           add('SECTIONS');
           add('{');
           {Read-only sections, merged into text segment:}
-          add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 +0x100;');
+          add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 + SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .hash           : { *(.hash) }');
           add('  .dynsym         : { *(.dynsym) }');
