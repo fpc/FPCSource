@@ -994,8 +994,12 @@ end;
 
 function CompInsensitive(Value: PChar; const Key: String): Boolean;
 begin
+  //fpc does not provide a function to compare UTF8 directly, so use a temporary
+  //widestring here. In unix systems with UTF8 encoding this would not be necessary
+  //but there's no direct way to check that
+  //todo: change this code when fpc has better support for unicode
   if Value <> nil then
-    Result := StrIComp(Value, PChar(Key)) = 0
+    Result := WideCompareText(UTF8Decode(Value), UTF8Decode(Key)) = 0
   else
     Result := False;
 end;
@@ -1018,8 +1022,12 @@ end;
 
 function CompInsensitiveWild(Value: PChar; const Key: String): Boolean;
 begin
+  //IsWild is not unicode aware and fpc does not provide functions to properly
+  //uppercase UTF8 strings, so convert to a temporary WideString and uppercase it
+  //(that will be implicitely converted back to the system encoding)
+  //todo: change this code when fpc has better support for unicode
   if Value <> nil then
-    Result := IsWild(String(Value), Key, True)
+    Result := IsWild(WideUpperCase(UTF8Decode(Value)), WideUpperCase(UTF8Decode(Key)), False)
   else
     Result := False;
 end;
