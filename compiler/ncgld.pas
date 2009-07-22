@@ -706,7 +706,7 @@ implementation
                   end;
               end
             else
-              internalerror(200204249);
+              internalerror(2002042410);
           end
        { try to reuse memory locations instead of copying }
        { copy to a memory location ... }
