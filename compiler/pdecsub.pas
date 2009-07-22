@@ -2317,7 +2317,14 @@ const
                   if assigned(pd._class) then
                    pd.aliasnames.insert(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
                   else
-                   pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    begin
+                      { Export names are not mangled on Windows and OS/2, see also pexports.pas }
+                      if (target_info.system in (system_all_windows+[system_i386_emx, system_i386_os2])) and
+                        (po_exports in pd.procoptions) then
+                        pd.aliasnames.insert(pd.procsym.realname)
+                      else
+                        pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    end;
                 end;
               pocall_cppdecl :
                 begin
