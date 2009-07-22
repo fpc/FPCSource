@@ -977,9 +977,16 @@ type
   end;
 
 function CompInsensitivePartial(Value: PChar; const Key: String): Boolean;
+var
+  AnsiKey, AnsiValue: AnsiString;
 begin
+  //see comments of CompInsensitive and CompInsensitiveWild functions
   if Value <> nil then
-    Result := StrLIComp(Value, PChar(Key), Length(Key)) = 0
+  begin
+    AnsiKey := UTF8Decode(Key);
+    AnsiValue := UTF8Decode(Value);
+    Result := AnsiStrLIComp(PChar(AnsiValue), PChar(AnsiKey), Length(AnsiKey)) = 0;
+  end
   else
     Result := False;
 end;
