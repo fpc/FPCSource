@@ -7,7 +7,7 @@ name=bzip2
 version=2.2.2
 
 [target]
-units=bzip2
+units=bzip2comn bzip2 bzip2stream
 
 [require]
 package=rtl

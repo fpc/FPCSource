@@ -1,9 +1,12 @@
-unit bzip2;
+{$mode objfpc}
+{$h+}
+unit bzip2stream;
 {****************************************************************************
 
                              BZIP2 decompression unit
 
                         Copyright (C) 2002 by Daniel Mantione
+                        Class port (C) 2009 by Michael Van Canneyt
 
 This unit provides a decompression stream to decode .bz2 files. It is
 inpired by Julian R. Seward's libbzip2 library and therefore you should
@@ -16,6 +19,7 @@ be included. In case of problems, contact the author.
 
 E-mail addresses:
 
+Michael Van Canneyt <michael@freepascal.org>
 Daniel Mantione     <daniel.mantione@freepascal.org>
 Julian R. Seward    <jseward@acm.org>
 
@@ -26,104 +30,122 @@ interface
 
 {$goto on}
 
-uses objects, bzip2comn;
+uses Classes,SysUtils, bzip2comn;
 
 Type
-      Tbzip2_decode_stream=object(Tstream)
-        short:cardinal;
-        readstream:Pstream;
-        block_randomized:boolean;
-        blocksize:byte;
-        tt:Pcardinal_array;
-        tt_count:cardinal;
-        rle_run_left,rle_run_data:byte;
-        nextrle:Pbyte;
-        decode_available:cardinal;
-        block_origin:cardinal;
-        current_block:cardinal;
-        read_data,bits_available:byte;
-        inuse16:set of 0..15;
-        inuse:set of 0..255;
-        inuse_count:cardinal;
-        seq_to_unseq:array[0..255] of byte;
-        alphasize:cardinal;
-        group_count,group_pos,gsel,gminlen:byte;
-        group_no:cardinal;
-        glimit,gperm,gbase:Phuffarray;
-        selector_count:cardinal;
-        selector,selector_mtf:array[0..max_selectors] of byte;
-        len:array[0..max_groups,0..max_alpha_size] of byte;
-        limit:array[0..max_groups,0..max_alpha_size] of cardinal;
-        base:array[0..max_groups,0..max_alpha_size] of cardinal;
-        perm:array[0..max_groups,0..max_alpha_size] of cardinal;
-        minlens:array[0..max_groups] of byte;
-        cftab:array[0..257] of cardinal;
-        mtfbase:array[0..256 div mtfl_size-1] of cardinal;
-        mtfa:array[0..mtfa_size-1] of byte;
-        constructor init(Areadstream:Pstream);
-        function get_bits(n:byte):byte;
-        function get_boolean:boolean;
-        function get_byte:byte;
-        function get_cardinal24:cardinal;
-        function get_cardinal:cardinal;
-        procedure receive_mapping_table;
-        procedure receive_selectors;
-        procedure undo_mtf_values;
-        procedure receive_coding_tables;
-        procedure make_hufftab;
-        procedure init_mtf;
-        function get_mtf_value:cardinal;
-        procedure move_mtf_block;
-        procedure receive_mtf_values;
-        procedure detransform;
-        function decode_block:boolean;
-        procedure read(var buf;count:Longint);virtual;
-        procedure new_block;
-        procedure consume_rle;inline;
-        procedure rle_read(bufptr:Pbyte;var count:Longint);
-        destructor done;virtual;
-      end;
-
+  TDecompressBzip2Stream=Class(TOwnerStream)
+  Private
+    block_randomized:boolean;
+    blocksize:byte;
+    tt:Pcardinal_array;
+    tt_count:cardinal;
+    rle_run_left,rle_run_data:byte;
+    nextrle:Pbyte;
+    decode_available:cardinal;
+    block_origin:cardinal;
+    current_block:cardinal;
+    read_data,bits_available:byte;
+    inuse16:set of 0..15;
+    inuse:set of 0..255;
+    inuse_count:cardinal;
+    seq_to_unseq:array[0..255] of byte;
+    alphasize:cardinal;
+    group_count,group_pos,gsel,gminlen:byte;
+    group_no:cardinal;
+    glimit,gperm,gbase:Phuffarray;
+    selector_count:cardinal;
+    selector,selector_mtf:array[0..max_selectors] of byte;
+    len:array[0..max_groups,0..max_alpha_size] of byte;
+    limit:array[0..max_groups,0..max_alpha_size] of cardinal;
+    base:array[0..max_groups,0..max_alpha_size] of cardinal;
+    perm:array[0..max_groups,0..max_alpha_size] of cardinal;
+    minlens:array[0..max_groups] of byte;
+    cftab:array[0..257] of cardinal;
+    mtfbase:array[0..256 div mtfl_size-1] of cardinal;
+    mtfa:array[0..mtfa_size-1] of byte;
+    
+    function get_bits(n:byte):byte;
+    function get_boolean:boolean;
+    function get_byte:byte;
+    function get_cardinal24:cardinal;
+    function get_cardinal:cardinal;
+    procedure receive_mapping_table;
+    procedure receive_selectors;
+    procedure undo_mtf_values;
+    procedure receive_coding_tables;
+    procedure make_hufftab;
+    procedure init_mtf;
+    function get_mtf_value:cardinal;
+    procedure move_mtf_block;
+    procedure receive_mtf_values;
+    procedure detransform;
+    function decode_block : boolean;
+    Function new_block : boolean;
+    Function consume_rle : Boolean; inline;
+    Function rle_read(bufptr:Pbyte;count:Longint) : longint;
+    Procedure Error(Msg : String; ACode : Integer);
+  Public  
+    Constructor Create(ASource : TStream);
+    Destructor Destroy; override;
+    function Read(var Buffer; Count: Longint): Longint; override;
+  end;
+  
+  EBzip2 = Class(Exception)
+    ErrCode : Integer;
+  end;
 
 implementation
 
 {$ifdef i386}
-  {$i bzip2i386.inc}
+  {$i bzip2si386.inc}
 {$endif}
 
 {*****************************************************************************
-                             Tbzip2_decode_stream
+                             TDecompressBzip2Stream
 *****************************************************************************}
 
-constructor Tbzip2_decode_stream.init(Areadstream:Pstream);
+Resourcestring
+  BZip2Initialize   = 'Invalid BZip2 stream: invalid header';
+  SDecodingError    = 'Decoding error';
+  SErrUnimplemented = 'Feature not implemented';
+  
+Constructor TDecompressBzip2Stream.Create(ASource: TStream);
 
 var magic:array[1..3] of char;
     c:char;
 
 begin
-  readstream:=Areadstream;
+  Inherited Create(ASource);
   {Read the magic.}
-  readstream^.read(magic,sizeof(magic));
+  Source.ReadBuffer(magic,sizeof(magic));
   if magic<>bzip2_stream_magic then
-    begin
-      error(stiniterror,bzip2_bad_header_magic);
-      exit;
-    end;
+    Error(BZip2Initialize,bzip2_bad_header_magic);
   {Read the block size and allocate the working array.}
-  readstream^.read(c,1);
+  Source.ReadBuffer(c,1);
   blocksize:=byte(c)-byte('0');
-  getmem(tt,blocksize*100000*sizeof(cardinal));
+  GetMem(tt,blocksize*100000*sizeof(cardinal));
   decode_available:=high(decode_available);
 end;
 
-function Tbzip2_decode_stream.get_bits(n:byte):byte;
+Procedure TDecompressBzip2Stream.Error(Msg : String; ACode : Integer);
+
+Var
+  BE : EBzip2;
+
+begin
+  BE:=EBzip2.Create(Msg);
+  BE.ErrCode:=ACode;
+  Raise BE;
+end;
+   
+function TDecompressBzip2Stream.get_bits(n:byte):byte;
 
 var data:byte;
 
 begin
   if n>bits_available then
     begin
-      readstream^.read(data,1);
+      Source.ReadBuffer(data,1);
       get_bits:=(read_data shr (8-n)) or data shr (8-(n-bits_available));
       read_data:=data shl (n-bits_available);
       inc(bits_available,8);
@@ -136,33 +158,33 @@ begin
   dec(bits_available,n);
 end;
 
-function Tbzip2_decode_stream.get_boolean:boolean;
+function TDecompressBzip2Stream.get_boolean:boolean;
 
 begin
   get_boolean:=boolean(get_bits(1));
 end;
 
-function Tbzip2_decode_stream.get_byte:byte;
+function TDecompressBzip2Stream.get_byte:byte;
 
 begin
   get_byte:=get_bits(8);
 end;
 
-function Tbzip2_decode_stream.get_cardinal24:cardinal;
+function TDecompressBzip2Stream.get_cardinal24:cardinal;
 
 begin
   get_cardinal24:=get_bits(8) shl 16 or get_bits(8) shl 8 or get_bits(8);
 end;
 
 
-function Tbzip2_decode_stream.get_cardinal:cardinal;
+function TDecompressBzip2Stream.get_cardinal:cardinal;
 
 begin
   get_cardinal:=get_bits(8) shl 24 or get_bits(8) shl 16 or get_bits(8) shl 8 or
                 get_bits(8);
 end;
 
-procedure Tbzip2_decode_stream.receive_mapping_table;
+procedure TDecompressBzip2Stream.receive_mapping_table;
 
 {Receive the mapping table. To save space, the inuse set is stored in pieces
  of 16 bits. First 16 bits are stored which pieces of 16 bits are used, then
@@ -196,7 +218,7 @@ begin
   writeln;}
 end;
 
-procedure Tbzip2_decode_stream.receive_selectors;
+procedure TDecompressBzip2Stream.receive_selectors;
 
 {Receives the selectors.}
 
@@ -213,7 +235,7 @@ begin
         begin
           inc(j);
           if j>5 then
-            error(streaderror,bzip2_data_error);
+            error(SDecodingError,bzip2_data_error);
         end;
       selector_mtf[i]:=j;
     end;
@@ -223,7 +245,7 @@ begin
   writeln;}
 end;
 
-procedure Tbzip2_decode_stream.undo_mtf_values;
+procedure TDecompressBzip2Stream.undo_mtf_values;
 
 {Undo the MTF values for the selectors.}
 
@@ -248,7 +270,7 @@ begin
     end;
 end;
 
-procedure Tbzip2_decode_stream.receive_coding_tables;
+procedure TDecompressBzip2Stream.receive_coding_tables;
 
 var t,curr:byte;
     i:cardinal;
@@ -261,10 +283,7 @@ begin
         begin
           repeat
             if not(curr in [1..20]) then
-              begin
-                error(streaderror,bzip2_data_error);
-                exit;
-              end;
+              error(SDecodingError,bzip2_data_error);
             if not get_boolean then
               break;
             if get_boolean then
@@ -275,16 +294,9 @@ begin
           len[t,i]:=curr;
         end;
     end;
-{  writeln('Coding tables:');
-  for t:=0 to group_count-1 do
-    begin
-      for i:=0 to alphasize-1 do
-        system.write(len[t,i],' ');
-      writeln;
-    end;}
 end;
 
-procedure Tbzip2_decode_stream.make_hufftab;
+procedure TDecompressBzip2Stream.make_hufftab;
 
 {Builds the Huffman tables.}
 
@@ -309,7 +321,7 @@ begin
     end;
 end;
 
-procedure Tbzip2_decode_stream.init_mtf;
+procedure TDecompressBzip2Stream.init_mtf;
 
 var i,j:byte;
     k:cardinal;
@@ -327,7 +339,7 @@ begin
     end;
 end;
 
-function Tbzip2_decode_stream.get_mtf_value:cardinal;
+function TDecompressBzip2Stream.get_mtf_value:cardinal;
 
 var zn:byte;
     zvec:cardinal;
@@ -354,7 +366,7 @@ begin
   get_mtf_value:=gperm^[zvec-gbase^[zn]];
 end;
 
-procedure Tbzip2_decode_stream.move_mtf_block;
+procedure TDecompressBzip2Stream.move_mtf_block;
 
 var i:byte;
     j,k:cardinal;
@@ -373,7 +385,7 @@ begin
     end;
 end;
 
-procedure Tbzip2_decode_stream.receive_mtf_values;
+procedure TDecompressBzip2Stream.receive_mtf_values;
 
 const run_a=0;
       run_b=1;
@@ -411,10 +423,7 @@ begin
           n:=seq_to_unseq[mtfa[mtfbase[0]]];
           inc(cftab[n],es);
           if t+es>100000*blocksize then
-            begin
-              error(streaderror,bzip2_data_error);
-              exit;
-            end;
+            error(SDecodingError,bzip2_data_error);
           while es>0 do
             begin
               tt^[t]:=n;
@@ -465,10 +474,7 @@ begin
           tt^[t]:=cardinal(seq_to_unseq[n]);
           inc(t);
           if t>100000*blocksize then
-            begin
-              error(streaderror,bzip2_data_error);
-              exit;
-            end;
+            error(SDecodingError,bzip2_data_error);
           next_sym:=get_mtf_value;
         end;
     end;
@@ -486,7 +492,7 @@ end;
 
 {$ifndef HAVE_DETRANSFORM}
 
-procedure Tbzip2_decode_stream.detransform;
+procedure TDecompressBzip2Stream.detransform;
 
 var a:cardinal;
     p,q,r:Pcardinal;
@@ -507,7 +513,7 @@ end;
 
 {$endif}
 
-function Tbzip2_decode_stream.decode_block:boolean;
+function TDecompressBzip2Stream.decode_block:boolean;
 
 {Decode a new compressed block.}
 
@@ -521,7 +527,6 @@ begin
   if magic='1AY&SY' then
     begin
       inc(current_block);
-{      writeln('Block ',current_block,': Header ok');}
       stored_blockcrc:=get_cardinal;
       block_randomized:=get_boolean;
       block_origin:=get_cardinal24;
@@ -529,53 +534,41 @@ begin
       {Receive the mapping table.}
       receive_mapping_table;
       alphasize:=cardinal(inuse_count)+2;
-{      writeln('Mapping table ok.');}
-
-      {Receive the selectors.}
+      
+      {Receive the selectors. Raises exception}
       receive_selectors;
-      if status<>0 then
-        exit;
-{      writeln('Selectors ok.');}
       {Undo the MTF values for the selectors.}
       undo_mtf_values;
-{      writeln('Undo mtf ok.');}
       {Receive the coding tables.}
       receive_coding_tables;
-      if status<>0 then
-        exit;
-{      writeln('Coding tables ok');}
       {Build the Huffman tables.}
       make_hufftab;
-{      writeln('Huffman ok.');}
       {Receive the MTF values.}
       receive_mtf_values;
-{      writeln('MTF OK');}
       {Undo the Burrows Wheeler transformation.}
       detransform;
-{      writeln('Detransform OK');}
       decode_available:=tt_count;
+      Result:=True;
     end
   else
     begin
       if magic<>#$17'rE8P'#$90 then
-        error(streaderror,bzip2_bad_block_magic);
-      decode_block:=false;
+        error(SDecodingError,bzip2_bad_block_magic);
+      Result:=false;
     end;
 end;
 
-procedure Tbzip2_decode_stream.new_block;
+Function TDecompressBzip2Stream.new_block : Boolean;
 
 begin
-  if decode_block then
+  Result:=decode_block;
+  If result then
     nextrle:=@tt^[tt^[block_origin] shr 8]
   else
-    begin
-      error(streaderror,bzip2_endoffile);
-      nextrle:=nil;
-    end;
+    nextrle:=nil;
 end;
 
-procedure Tbzip2_decode_stream.consume_rle;inline;
+Function TDecompressBzip2Stream.consume_rle : Boolean;inline;
 
 {Make nextrle point to the next decoded byte. If nextrle did point to the last
  byte in the current block, decode the next block.}
@@ -585,10 +578,12 @@ begin
   nextrle:=@tt^[Pcardinal(nextrle)^ shr 8];
   dec(decode_available);
   if decode_available=0 then
-    new_block;
+    Result:=new_block
+  else
+    Result:=True;  
 end;
 
-procedure Tbzip2_decode_stream.rle_read(bufptr:Pbyte;var count:Longint);
+Function TDecompressBzip2Stream.rle_read(bufptr:Pbyte;Count:Longint) : LongInt;
 
 var rle_len:cardinal;
     data:byte;
@@ -596,11 +591,12 @@ var rle_len:cardinal;
 label rle_write;
 
 begin
+  Result:=0;
   rle_len:=rle_run_left;
   data:=rle_run_data;
   if block_randomized then
     {Not yet implemented.}
-    runerror(212)
+    Error(SErrUnimplemented,-1)
   else
     begin
       if rle_len<>0 then
@@ -612,65 +608,62 @@ begin
           break;
         rle_len:=1;
         data:=nextrle^;
-        consume_rle;
-        if (decode_available>0) and (data=nextrle^) then
+        if consume_rle and (decode_available>0) and (data=nextrle^) then
           begin
             inc(rle_len);
-            consume_rle;
-            if (decode_available>0) and (data=nextrle^) then
+            if consume_rle and (decode_available>0) and (data=nextrle^) then
               begin
                 inc(rle_len);
-                consume_rle;
-                if (decode_available>0) and (data=nextrle^) then
+                if consume_rle and (decode_available>0) and (data=nextrle^) then
                   begin
-                    consume_rle;
+                  if consume_rle then
                     inc(rle_len,nextrle^+1);
-                    consume_rle;
+                  consume_rle;
                   end;
-              end;
-          end;
+                end;
+            end;
 rle_write:
         repeat
             bufptr^:=data;
             inc(bufptr);
             dec(count);
             dec(rle_len);
+            inc(Result);
         until (rle_len=0) or (count=0);
       until count=0;
-      short:=count;
     end;
   rle_run_data:=data;
   rle_run_left:=rle_len;
 end;
 
-procedure Tbzip2_decode_stream.read(var buf;count:Longint);
+Function TDecompressBzip2Stream.Read(var Buffer; Count : Longint) : LongInt;
 
 var bufptr:Pbyte;
 
 begin
-  short:=0;
-  bufptr:=@buf;
+  bufptr:=@buffer;
   if decode_available=high(decode_available) then
     begin
       {Initialize the rle process:
         - Decode a block
         - Initialize pointer.}
+      system.Write('.');
       if not decode_block then
         begin
-          error(streaderror,bzip2_endoffile);
-          nextrle:=nil;
+        nextrle:=nil;
+        error(SDecodingError,bzip2_endoffile);
         end;
       nextrle:=@tt^[tt^[block_origin] shr 8];
     end;
-  rle_read(bufptr,count);
+  Result:=rle_read(bufptr,count);
 end;
 
-destructor Tbzip2_decode_stream.done;
+Destructor TDecompressBzip2Stream.Destroy;
 
 begin
   if tt<>nil then
-    freemem(tt,blocksize*100000*sizeof(cardinal));
-  inherited done;
+    FreeMem(tt,blocksize*100000*sizeof(cardinal));
+  Inherited;
 end;
 
 end.
