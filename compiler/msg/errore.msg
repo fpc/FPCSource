@@ -2948,7 +2948,7 @@ P*2WX_Enable executable stack (Linux)
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2XP<x>_Prepend the binutils names with the prefix <x>
-**2Xr<x>_Set library search path to <x> (needed for cross compile) (BeOS, Linux)
+**2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
 **2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)

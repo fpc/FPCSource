@@ -1209,13 +1209,13 @@ const msgtxt : array[0..000214,1..240] of char=(
   '**2XM<x>_Set the name of the '#039'main'#039' program routine (default i'+
   's '#039'main'#039')'#010+
   '**2XP<x>_Prepend the binutils names with the prefix <x>'#010+
-  '**2Xr<x>_Set library search path to <x> (needed for cross compile) (Be'+
-  'OS, Linux)'#010+
-  '**2XR<x>_Prepend <x> to al','l linker search paths (BeOS, Darwin, FreeB'+
-  'SD, Linux, Mac OS, Solaris)'#010+
+  '**2Xr<x>_Set the linker'#039's rlink-path to <x> (needed for cross comp'+
+  'ile, see the ld manual for more informati','on) (BeOS, Linux)'#010+
+  '**2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD'+
+  ', Linux, Mac OS, Solaris)'#010+
   '**2Xs_Strip all symbols from executable'#010+
   '**2XS_Try to link units statically (default, defines FPC_LINK_STATIC)'#010+
-  '**2Xt_Link with static libraries (-static is passed to linke','r)'#010+
+  '**2Xt_Link with ','static libraries (-static is passed to linker)'#010+
   '**2XX_Try to smartlink units             (defines FPC_LINK_SMART)'#010+
   '**1*_'#010+
   '**1?_Show this help'#010+
