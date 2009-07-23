@@ -2436,8 +2436,8 @@ option_usage=11000_O_$1 [options] <inputfile> [options]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_Only one source file supported
-% You can specify only one source file on the command line. The first
+option_only_one_source_support=11001_W_Only one source file supported, changing source file to compile from "$1" into "$2"
+% You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
 option_def_only_for_os2=11002_W_DEF file can be created only for OS/2

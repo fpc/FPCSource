@@ -1716,6 +1716,8 @@ begin
                   inc(j);
                 end;
              end;
+           else
+             IllegalPara(opt);
          end;
        end;
 
@@ -1728,7 +1730,7 @@ begin
     else
       begin
         if (length(param_file)<>0) then
-          Message(option_only_one_source_support);
+          Message2(option_only_one_source_support,param_file,opt);
         param_file:=opt;
         Message1(option_found_file,opt);
       end;
