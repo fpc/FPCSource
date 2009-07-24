@@ -47,7 +47,7 @@ function fpsigsuspend(const sigmask:TSigSet):cint;
 }
 
 begin
-  fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,TSysParam(@sigmask));
+  fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,TSysParam(@sigmask),TSysParam(8));
 end;
 
 Type
