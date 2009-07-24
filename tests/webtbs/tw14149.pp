@@ -18,5 +18,7 @@ begin
   fpAlarm(10);
   Writeln ('Pausing');
   fpPause;
+  if fpGetErrno<>0 then
+    halt(1);
   Writeln ('Pause returned');
 end.
