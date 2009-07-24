@@ -109,6 +109,7 @@ const
     Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
     Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpAlarm      (seconds : cuint) : cuint; cdecl;external clib name 'alarm';
     Function  FpPause   : cInt; cdecl; external clib name 'pause';
     Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
 {$ifdef solaris}   

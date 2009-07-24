@@ -15,10 +15,10 @@ begin
   Writeln('Setting alarm handler');
   fpSignal(SIGALRM,SignalHandler(@AlarmHandler));
   Writeln ('Scheduling Alarm in 10 seconds');
-  fpAlarm(10);
+  fpAlarm(2);
   Writeln ('Pausing');
   fpPause;
-  if fpGetErrno<>0 then
+  if fpGetErrno<>ESysEINTR then
     halt(1);
   Writeln ('Pause returned');
 end.
