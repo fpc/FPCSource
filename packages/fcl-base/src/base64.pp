@@ -30,14 +30,13 @@ uses classes, sysutils;
 
 type
 
-  TBase64EncodingStream = class(TStream)
+  TBase64EncodingStream = class(TOwnerStream)
   protected
-    OutputStream: TStream;
     TotalBytesProcessed, BytesWritten: LongWord;
     Buf: array[0..2] of Byte;
     BufSize: Integer;    // # of bytes used in Buf
   public
-    constructor Create(AOutputStream: TStream);
+    constructor Create(ASource: TStream);
     destructor Destroy; override;
 
     function Write(const Buffer; Count: Longint): Longint; override;
@@ -60,23 +59,22 @@ type
 
   { TBase64DecodingStream }
 
-  TBase64DecodingStream = class(TStream)
+  TBase64DecodingStream = class(TOwnerStream)
   private
     FMode: TBase64DecodingMode;
     procedure SetMode(const AValue: TBase64DecodingMode);
     function  GetSize: Int64; override;
     function  GetPosition: Int64; override;
   protected
-    InputStream: TStream;
     CurPos,             // 0-based (decoded) position of this stream (nr. of decoded & Read bytes since last reset)
     DecodedSize: Int64; // length of decoded stream ((expected) decoded bytes since last Reset until Mode-dependent end of stream)
     ReadBase64ByteCount: Int64; // number of valid base64 bytes read from input stream since last Reset
     Buf: array[0..2] of Byte; // last 3 decoded bytes
-    BufPos: Integer;          // offset in Buf of byte which is to be read next; if >2, next block must be read from InputStream & decoded
+    BufPos: Integer;          // offset in Buf of byte which is to be read next; if >2, next block must be read from Source & decoded
     FEOF: Boolean;            // if true, all decoded bytes have been read
   public
-    constructor Create(AInputStream: TStream);
-    constructor Create(AInputStream: TStream; AMode: TBase64DecodingMode);
+    constructor Create(ASource: TStream);
+    constructor Create(ASource: TStream; AMode: TBase64DecodingMode);
     procedure Reset;
 
     function Read(var Buffer; Count: Longint): Longint; override;
@@ -126,10 +124,9 @@ const
 
   Alphabet = ['a'..'z','A'..'Z','0'..'9','+','/','=']; // all 65 chars that are in the base64 encoding alphabet
 
-constructor TBase64EncodingStream.Create(AOutputStream: TStream);
+constructor TBase64EncodingStream.Create(ASource: TStream);
 begin
-  inherited Create;
-  OutputStream := AOutputStream;
+  inherited Create(ASource);
 end;
 
 destructor TBase64EncodingStream.Destroy;
@@ -143,14 +140,14 @@ begin
         WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4];
         WriteBuf[2] := '=';
         WriteBuf[3] := '=';
-        OutputStream.Write(WriteBuf, 4);
+        Source.Write(WriteBuf, 4);
       end;
     2: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
         WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
         WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
         WriteBuf[3] := '=';
-        OutputStream.Write(WriteBuf, 4);
+        Source.Write(WriteBuf, 4);
       end;
   end;
   inherited Destroy;
@@ -179,7 +176,7 @@ begin
     WriteBuf[1] := EncodingTable[(Buf[0] and 3) shl 4 or (Buf[1] shr 4)];
     WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2 or (Buf[2] shr 6)];
     WriteBuf[3] := EncodingTable[Buf[2] and 63];
-    OutputStream.Write(WriteBuf, 4);
+    Source.Write(WriteBuf, 4);
     Inc(BytesWritten, 4);
     BufSize := 0;
   end;
@@ -215,15 +212,15 @@ var
   i: Integer;
   c: Char;
 begin
-  // Note: this method only works on Seekable InputStreams (for bdmStrict we also get the Size property)
+  // Note: this method only works on Seekable Sources (for bdmStrict we also get the Size property)
   if DecodedSize<>-1 then Exit(DecodedSize);
-  ipos := InputStream.Position; // save position in input stream
+  ipos := Source.Position; // save position in input stream
   case Mode of
     bdmMIME:  begin
       // read until end of input stream or first occurence of a '='
       Result := ReadBase64ByteCount; // keep number of valid base64 bytes since last Reset in Result
       repeat
-        count := InputStream.Read(scanBuf, SizeOf(scanBuf));
+        count := Source.Read(scanBuf, SizeOf(scanBuf));
         for i := 0 to count-1 do begin
           c := scanBuf[i];
           if c in Alphabet-['='] then // base64 encoding characters except '='
@@ -244,13 +241,13 @@ begin
     end;
     bdmStrict:begin
       // seek to end of input stream, read last two bytes and determine size
-      //   from InputStream size and the number of leading '=' bytes
+      //   from Source size and the number of leading '=' bytes
       // NB we don't raise an exception here if the input does not contains an integer multiple of 4 bytes
-      ipos  := InputStream.Position;
-      isize := InputStream.Size;
+      ipos  := Source.Position;
+      isize := Source.Size;
       Result := ((ReadBase64ByteCount + (isize - ipos) + 3) div 4) * 3;
-      InputStream.Seek(-2, soFromEnd);
-      InputStream.Read(endBytes, 2);
+      Source.Seek(-2, soFromEnd);
+      Source.Read(endBytes, 2);
       if endBytes[1] = '=' then begin // last byte
         Dec(Result);
       if endBytes[0] = '=' then       // second to last byte
@@ -258,7 +255,7 @@ begin
       end;
     end;
   end;
-  InputStream.Position := ipos; // restore position in input stream
+  Source.Position := ipos; // restore position in input stream
   // store calculated DecodedSize
   DecodedSize := Result;
 end;
@@ -268,22 +265,21 @@ begin
   Result := CurPos;
 end;
 
-constructor TBase64DecodingStream.Create(AInputStream: TStream);
+constructor TBase64DecodingStream.Create(ASource: TStream);
 begin
-  Create(AInputStream, bdmMIME); // MIME mode is default
+  Create(ASource, bdmMIME); // MIME mode is default
 end;
 
-constructor TBase64DecodingStream.Create(AInputStream: TStream; AMode: TBase64DecodingMode);
+constructor TBase64DecodingStream.Create(ASource: TStream; AMode: TBase64DecodingMode);
 begin
-  inherited Create;
-  InputStream := AInputStream;
+  inherited Create(ASource);
   Mode := AMode;
   Reset;
 end;
 
 procedure TBase64DecodingStream.Reset;
 begin
-  ReadBase64ByteCount := 0; // number of bytes Read form InputStream since last call to Reset
+  ReadBase64ByteCount := 0; // number of bytes Read form Source since last call to Reset
   CurPos := 0; // position in decoded byte sequence since last Reset
   DecodedSize := -1; // indicates unknown; will be set after first call to GetSize or when reaching end of stream
   BufPos := 3; // signals we need to read & decode a new block of 4 bytes
@@ -324,7 +320,7 @@ begin
       ReadOK := 0; // number of base64 bytes already read into ReadBuf
       while ToRead > 0 do begin
         OrgToRead := ToRead;
-        HaveRead := InputStream.Read(ReadBuf[ReadOK], ToRead);
+        HaveRead := Source.Read(ReadBuf[ReadOK], ToRead);
         //WriteLn('ToRead = ', ToRead, ', HaveRead = ', HaveRead, ', ReadOK=', ReadOk);
         if HaveRead > 0 then begin // if any new bytes; in ReadBuf[ReadOK .. ReadOK + HaveRead-1]
           for i := ReadOK to ReadOK + HaveRead - 1 do begin
@@ -359,11 +355,11 @@ begin
           else if (ReadBuf[0] = PC) or (ReadBuf[1] = PC) then
             raise EBase64DecodingException.CreateFmt(SStrictMisplacedPadChar,[])   // =BBB or B=BB
           else if (ReadBuf[2] = PC) then begin
-            if (ReadBuf[3] <> PC) or (InputStream.Position < InputStream.Size) then
+            if (ReadBuf[3] <> PC) or (Source.Position < Source.Size) then
               raise EBase64DecodingException.CreateFmt(SStrictMisplacedPadChar,[]); // BB=B or BB==, but not at end of input stream
             DetectedEnd(CurPos + 1)  // only one byte left to read;  BB==, at end of input stream
           end else if (ReadBuf[3] = PC) then begin
-            if (InputStream.Position < InputStream.Size) then
+            if (Source.Position < Source.Size) then
               raise EBase64DecodingException.CreateFmt(SStrictMisplacedPadChar,[]); // BBB=, but not at end of input stream
             DetectedEnd(CurPos + 2); // only two bytes left to read; BBB=, at end of input stream
           end;
