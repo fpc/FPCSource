@@ -73,9 +73,155 @@ type
   end;
 
   // TODO encoder...
+  TASCII85EncoderStream = class(TOwnerStream)
+  private
+    FPos,
+    FCount,
+    FTuple : Cardinal;
+    FWidth : Integer;
+    FBoundary : Boolean;
+  protected  
+    Procedure WriteBoundary;
+    Procedure Flush;
+    procedure Encode;
+  public
+    Constructor Create(ADest: TStream; AWidth : Integer = 72; ABoundary : Boolean = False); 
+    Destructor Destroy; Override;
+    function Write(Const aBuffer; aCount : longint) : longint; override;
+    Property Width : Integer Read FWidth;
+    Property Boundary : Boolean Read FBoundary;
+  end;                      
+        
 
 implementation
 
+{ TASCII85EncoderStream }
+
+Procedure TASCII85EncoderStream.WriteBoundary;
+
+Const
+  SBoundary = '<~';
+
+begin
+  Source.Write(SBoundary[1],2);
+  FPos:=2;
+end;
+
+Procedure TASCII85EncoderStream.Encode;
+
+Var
+  S : String[7];
+  I,J : Integer;
+  Buf : Array[0..4] of Byte;
+  
+begin
+  If (FTuple=0) then
+    begin
+    // Write 'z'
+    S:='z';
+    Inc(FPos);
+    If (FPos>FWidth) then
+      begin
+      S:=S+sLineBreak;
+      FPos:=0;
+      end;
+    end
+  else
+    begin  
+    For I:=0 to 4 do
+      begin
+      Buf[i]:=FTuple mod 85;
+      FTuple:=FTuple div 85;
+      end;
+    J:=0;  
+    S:='';
+    For I:=FCount+1 downto 0 do
+      begin
+      Inc(j);
+      S[J]:=Char(Buf[i]+Ord('!'));
+      SetLength(S,J);
+      Inc(FPos);
+      If (FPos>FWidth) then
+        begin
+        FPos:=0;
+        S:=S+sLinebreak;
+        J:=Length(S);
+        end;
+      end;
+    end;
+  Source.Write(S[1],Length(S));
+  FTuple:=0;
+  FCount:=-1;
+end;
+
+
+Procedure TASCII85EncoderStream.Flush;
+
+Const 
+  Boundary1 = '~>'+slinebreak;
+  Boundary2 = slinebreak+Boundary1;
+  
+Var
+  S : String;
+
+begin
+  If FCount>0 then
+    Encode;
+  If FBoundary then
+    begin
+    If FPos+2>FWidth then
+      S:=Boundary2
+    else
+      S:=Boundary1;
+    Source.Write(S[1],Length(S));
+    FBoundary:=False;
+    end;
+end;
+
+Constructor TASCII85EncoderStream.Create(ADest: TStream; AWidth : Integer = 72; ABoundary : Boolean = False);
+
+begin
+  Inherited Create(ADest);
+  FWidth:=AWidth;
+  FBoundary:=ABoundary;
+  If FBoundary then
+    WriteBoundary;
+end;
+
+Destructor TASCII85EncoderStream.Destroy; 
+
+begin
+  Flush;
+  Inherited;
+end;
+
+function TASCII85EncoderStream.Write(Const aBuffer; aCount : longint) : longint;
+
+Var
+  P : PByte;
+  C : Byte;
+  
+begin
+  P:=@Abuffer;  
+  Result:=ACount;
+  While ACount>0 do
+    begin
+    C:=P^;
+    Case FCount of
+      0 : FTuple:=FTuple or (C shl 24);
+      1 : FTuple:=FTuple or (C shl 16);
+      2 : FTuple:=FTuple or (C shl 8);
+      3 : begin
+          FTuple:=FTuple or C;
+          encode;
+          end;
+     end;     
+     Inc(FCount);
+     Inc(P);
+     Dec(ACount);
+     end;
+end;
+                     
 { TRingBuffer }
 
 function TASCII85RingBuffer.GetBufferSize() : Cardinal; inline;
