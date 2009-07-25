@@ -647,7 +647,6 @@ begin
       {Initialize the rle process:
         - Decode a block
         - Initialize pointer.}
-      system.Write('.');
       if not decode_block then
         begin
         nextrle:=nil;
