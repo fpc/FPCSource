@@ -14,6 +14,97 @@
 
  **********************************************************************}
 
+
+Const
+   DLL_PROCESS_ATTACH = 1;
+   DLL_THREAD_ATTACH = 2;
+   DLL_PROCESS_DETACH = 0;
+   DLL_THREAD_DETACH = 3;
+   DLLExitOK : boolean = true;
+Var
+  DLLBuf : Jmp_buf;
+  MainThreadIdWin32 : DWORD;
+
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
+  var
+    res : longbool;
+  begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     EntryInformation:=info;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     IsLibrary:=true;
+     Dll_entry:=false;
+     case DLLreason of
+       DLL_PROCESS_ATTACH :
+         begin
+           MainThreadIdWin32 := Win32GetCurrentThreadId;
+           If SetJmp(DLLBuf) = 0 then
+             begin
+               if assigned(Dll_Process_Attach_Hook) then
+                 begin
+                   res:=Dll_Process_Attach_Hook(DllParam);
+                   if not res then
+                     exit(false);
+                 end;
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               EntryInformation.PascalMain();
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               PascalMain;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               Dll_entry:=true;
+             end
+           else
+             Dll_entry:=DLLExitOK;
+         end;
+       DLL_THREAD_ATTACH :
+         begin
+           inclocked(Thread_count);
+
+           if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
+           begin
+             { Set up TLS slot for the DLL }
+             SysInitMultiThreading;
+             { Allocate Threadvars  }
+             { NS : no idea what is correct to pass here - pass dummy value for now }
+			 { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+           end;
+
+           if assigned(Dll_Thread_Attach_Hook) then
+             Dll_Thread_Attach_Hook(DllParam);
+           Dll_entry:=true; { return value is ignored }
+         end;
+       DLL_THREAD_DETACH :
+         begin
+           declocked(Thread_count);
+           if assigned(Dll_Thread_Detach_Hook) then
+             Dll_Thread_Detach_Hook(DllParam);
+           { Release Threadvars }
+           if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
+             DoneThread; { Assume everything is idempotent there }
+           Dll_entry:=true; { return value is ignored }
+         end;
+       DLL_PROCESS_DETACH :
+         begin
+           Dll_entry:=true; { return value is ignored }
+           If SetJmp(DLLBuf) = 0 then
+             FPC_Do_Exit;
+           if assigned(Dll_Process_Detach_Hook) then
+             Dll_Process_Detach_Hook(DllParam);
+
+           { Free TLS resources used by ThreadVars }
+           SysFiniMultiThreading;
+         end;
+     end;
+  end;
+
+
+Procedure ExitDLL(Exitcode : longint);
+  begin
+    DLLExitOK:=ExitCode=0;
+    LongJmp(DLLBuf,1);
+  end;
+
 {****************************************************************************
                     Error Message writing using messageboxes
 ****************************************************************************}
@@ -120,7 +211,7 @@ function GetProcessID: SizeUInt;
   begin
     GetProcessID := ProcessID;
   end;
-  
+
 
 {******************************************************************************
                               Unicode
@@ -168,7 +259,7 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
-  
+
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
