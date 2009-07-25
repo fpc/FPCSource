@@ -111,7 +111,6 @@ begin
   {$I-}
   if ioresult<>0 then
    exit;
-{$ifdef i386}
   case target_info.system of
     system_i386_Os2, system_i386_emx:
       begin
@@ -125,15 +124,19 @@ begin
         writeln(t,'STACKSIZE'#9+tostr(stacksize));
         writeln(t,'HEAPSIZE'#9+tostr(heapsize));
       end;
-  system_i386_win32, system_i386_wdosx :
-    begin
-      if description<>'' then
-        writeln(t,'DESCRIPTION '+''''+description+'''');
-      if dllversion<>'' then
-        writeln(t,'VERSION '+dllversion);
-    end;
+    system_i386_win32,
+    system_x86_64_win64,
+    system_ia64_win64,
+    system_arm_wince,
+    system_i386_wince,
+    system_i386_wdosx :
+      begin
+        if description<>'' then
+          writeln(t,'DESCRIPTION '+''''+description+'''');
+        if dllversion<>'' then
+          writeln(t,'VERSION '+dllversion);
+      end;
   end;
-{$endif}
 
 {write imports}
   if not importlist.empty then

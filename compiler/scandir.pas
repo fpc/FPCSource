@@ -312,8 +312,8 @@ unit scandir;
 
     procedure dir_description;
       begin
-        if not (target_info.system in [system_i386_os2,system_i386_emx,
-                 system_i386_win32,system_i386_netware,system_i386_wdosx,system_i386_netwlibc]) then
+        if not (target_info.system in system_all_windows+[system_i386_os2,system_i386_emx,
+                 system_i386_netware,system_i386_wdosx,system_i386_netwlibc]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
         { it not used but in win32, os2 and netware }
@@ -1100,8 +1100,8 @@ unit scandir;
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.system in [system_i386_os2,system_i386_emx,
-                 system_i386_win32,system_i386_netware,system_i386_wdosx,
+        if not (target_info.system in system_all_windows+[system_i386_os2,system_i386_emx,
+                 system_i386_netware,system_i386_wdosx,
                  system_i386_netwlibc]) then
           begin
             Message(scan_n_version_not_support);
