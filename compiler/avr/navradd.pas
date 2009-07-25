@@ -196,7 +196,18 @@ interface
     function tavraddnode.pass_1 : tnode;
       begin
         result:=inherited pass_1;
+{
+        if not(assigned(result)) then
+          begin
+            unsigned:=not(is_signed(left.resultdef)) or
+              not(is_signed(right.resultdef));
 
+            if is_64bit(left.resultdef) and
+              ((nodetype in [equaln,unequaln]) or
+               (unsigned and (nodetype in [ltn,lten,gtn,gten]))
+              ) then
+              expectloc:=LOC_FLAGS;
+          end;
         { handling boolean expressions }
         if not(assigned(result)) and
            (
@@ -205,6 +216,7 @@ interface
              is_dynamic_array(left.resultdef)
            ) then
           expectloc:=LOC_FLAGS;
+}
       end;
 
 
