@@ -725,7 +725,7 @@ function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external
 function GetObjectType(h:HGDIOBJ):DWORD; external 'gdi32' name 'GetObjectType';
 function GetPaletteEntries(_para1:HPALETTE; _para2:UINT; _para3:UINT; _para4:LPPALETTEENTRY):UINT; external 'gdi32' name 'GetPaletteEntries';
 function GetPixel(_para1:HDC; _para2:longint; _para3:longint):COLORREF; external 'gdi32' name 'GetPixel';
-function GetPixelFormat(_para1:HDC):longint; external 'gdi32' name 'GetPixelFormat';
+function GetPixelFormat(DC:HDC):longint; external 'gdi32' name 'GetPixelFormat';
 function GetPolyFillMode(_para1:HDC):longint; external 'gdi32' name 'GetPolyFillMode';
 function GetRasterizerCaps(_para1:LPRASTERIZER_STATUS; _para2:UINT):WINBOOL; external 'gdi32' name 'GetRasterizerCaps';
 function GetRegionData(_para1:HRGN; _para2:DWORD; _para3:LPRGNDATA):DWORD; external 'gdi32' name 'GetRegionData';
@@ -990,12 +990,12 @@ function QueryServiceStatus(hService:SC_HANDLE; lpServiceStatus:LPSERVICE_STATUS
 function SetServiceObjectSecurity(hService:SC_HANDLE; dwSecurityInformation:SECURITY_INFORMATION; lpSecurityDescriptor:PSECURITY_DESCRIPTOR):WINBOOL;external 'advapi32' name 'SetServiceObjectSecurity';
 function SetServiceStatus(hServiceStatus:SERVICE_STATUS_HANDLE; lpServiceStatus:LPSERVICE_STATUS):WINBOOL; external 'advapi32' name 'SetServiceStatus';
 function UnlockServiceDatabase(ScLock:SC_LOCK):WINBOOL; external 'advapi32' name 'UnlockServiceDatabase';
-function ChoosePixelFormat(_para1:HDC; _para2:PPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
-function DescribePixelFormat(_para1:HDC; _para2:longint; _para3:UINT; _para4:LPPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'DescribePixelFormat';
+function ChoosePixelFormat(DC:HDC; ppfd:PPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
+function DescribePixelFormat(DC:HDC; iPixelFormat:longint; nBytes:UINT; ppfd:LPPIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'DescribePixelFormat';
 {$ifdef Unknown_functions}{ WARNING: function is not in my gdi32.dll !! PM}function GetEnhMetaFilePixelFormat(_para1:HENHMETAFILE; _para2:DWORD; var _para3:PIXELFORMATDESCRIPTOR):UINT; external 'gdi32' name 'GetEnhMetaFilePixelFormat';
 {$endif Unknown_functions}{    function GetPixelFormat(_para1:HDC):longint; external 'gdi32' name 'GetPixelFormat'; }
-function SetPixelFormat(_para1:HDC; _para2:longint;_para3:PPIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32' name 'SetPixelFormat';
-function SwapBuffers(_para1:HDC):WINBOOL; external 'gdi32' name 'SwapBuffers';
+function SetPixelFormat(DC:HDC; iPixelFormat:longint; ppfd:PPIXELFORMATDESCRIPTOR):WINBOOL; external 'gdi32' name 'SetPixelFormat';
+function SwapBuffers(DC:HDC):WINBOOL; external 'gdi32' name 'SwapBuffers';
 function DragQueryPoint(_para1:HDROP; _para2:LPPOINT):WINBOOL; external 'shell32' name 'DragQueryPoint';
 procedure DragFinish(_para1:HDROP); external 'shell32' name 'DragFinish';
 procedure DragAcceptFiles(_para1:HWND; _para2:WINBOOL); external 'shell32' name 'DragAcceptFiles';
@@ -1050,30 +1050,30 @@ function SHGetSpecialFolderLocation(_para1:HWND; _para2:longint; var _para3:LPIT
 function CommDlgExtendedError : DWORD; external 'comdlg32' name 'CommDlgExtendedError';
 }
 { wgl Windows OpenGL helper functions }
-function wglUseFontBitmaps(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
-function wglCreateContext(_para1:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';
-function wglCreateLayerContext(_para1:HDC; _para2:longint):HGLRC; external 'opengl32' name 'wglCreateLayerContext';
-function wglCopyContext(_para1:HGLRC; _para2:HGLRC; _para3:UINT):WINBOOL; external 'opengl32' name 'wglCopyContext';
-function wglDeleteContext(_para1:HGLRC):WINBOOL; external 'opengl32' name 'wglDeleteContext';
+function wglUseFontBitmaps(DC:HDC; first:DWORD; count:DWORD; listbase:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
+function wglCreateContext(hdc:HDC):HGLRC; external 'opengl32' name 'wglCreateContext';
+function wglCreateLayerContext(hdc:HDC; iLayerPlane:longint):HGLRC; external 'opengl32' name 'wglCreateLayerContext';
+function wglCopyContext(glrcSrc:HGLRC; glrcDst:HGLRC; mask:UINT):WINBOOL; external 'opengl32' name 'wglCopyContext';
+function wglDeleteContext(glrc:HGLRC):WINBOOL; external 'opengl32' name 'wglDeleteContext';
 function wglGetCurrentContext:HGLRC; external 'opengl32' name 'wglGetCurrentContext';
 function wglGetCurrentDC:HDC; external 'opengl32' name 'wglGetCurrentDC';
-function wglMakeCurrent(_para1:HDC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglMakeCurrent';
-function wglShareLists(_para1:HGLRC; _para2:HGLRC):WINBOOL; external 'opengl32' name 'wglShareLists';
-function wglUseFontBitmapsW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsW';
+function wglMakeCurrent(DC:HDC; glrc:HGLRC):WINBOOL; external 'opengl32' name 'wglMakeCurrent';
+function wglShareLists(glrc1:HGLRC; glrc2:HGLRC):WINBOOL; external 'opengl32' name 'wglShareLists';
+function wglUseFontBitmapsW(DC:HDC; first:DWORD; count:DWORD; listbase:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsW';
 { Delphi doesn't declare these, but we do: }
-function wglUseFontOutlines(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
-  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
-function wglUseFontBitmapsA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
-function wglUseFontOutlinesA(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
-  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
-function wglDescribeLayerPlane(_para1:HDC; _para2:longint; _para3:longint; _para4:UINT; _para5:LPLAYERPLANEDESCRIPTOR):WINBOOL; external 'opengl32' name 'wglDescribeLayerPlane';
-function wglGetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglGetLayerPaletteEntries';
-function wglGetProcAddress(_para1:LPCSTR):PROC; external 'opengl32' name 'wglGetProcAddress';
-function wglRealizeLayerPalette(_para1:HDC; _para2:longint; _para3:WINBOOL):WINBOOL; external 'opengl32' name 'wglRealizeLayerPalette';
-function wglSetLayerPaletteEntries(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; var _para5:COLORREF):longint; external 'opengl32' name 'wglSetLayerPaletteEntries';
-function wglSwapLayerBuffers(_para1:HDC; _para2:UINT):WINBOOL; external 'opengl32' name 'wglSwapLayerBuffers';
-function wglUseFontOutlinesW(_para1:HDC; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:Single;
-  _para6:Single; _para7:longint; _para8:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
+function wglUseFontOutlines(DC:HDC; first:DWORD; count:DWORD; listbase:DWORD; deviation:Single;
+  extrusion:Single; format:longint; lpgmf:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
+function wglUseFontBitmapsA(DC:HDC; first:DWORD; count:DWORD; listbase:DWORD):WINBOOL; external 'opengl32' name 'wglUseFontBitmapsA';
+function wglUseFontOutlinesA(DC:HDC; first:DWORD; count:DWORD; listbase:DWORD; deviation:Single;
+  extrusion:Single; format:longint; lpgmf:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesA';
+function wglDescribeLayerPlane(DC:HDC; iPixelFormat:longint; iLayerPane:longint; nBytes:UINT; plpd:LPLAYERPLANEDESCRIPTOR):WINBOOL; external 'opengl32' name 'wglDescribeLayerPlane';
+function wglGetLayerPaletteEntries(DC:HDC; iLayerPlane:longint; iStart:longint; cEntries:longint; var cr:COLORREF):longint; external 'opengl32' name 'wglGetLayerPaletteEntries';
+function wglGetProcAddress(ProcName:LPCSTR):PROC; external 'opengl32' name 'wglGetProcAddress';
+function wglRealizeLayerPalette(DC:HDC; iLayerPlane: longint; bRealize:WINBOOL):WINBOOL; external 'opengl32' name 'wglRealizeLayerPalette';
+function wglSetLayerPaletteEntries(DC:HDC; iLayerPlane:longint; iStart:longint; cEntries:longint; var cr:COLORREF):longint; external 'opengl32' name 'wglSetLayerPaletteEntries';
+function wglSwapLayerBuffers(DC:HDC; fuPlanes:UINT):WINBOOL; external 'opengl32' name 'wglSwapLayerBuffers';
+function wglUseFontOutlinesW(DC:HDC; first:DWORD; count:DWORD;  listbase:DWORD; deviation:Single;
+  extrusion:Single; format:longint; lpgmf:LPGLYPHMETRICSFLOAT):WINBOOL; external 'opengl32' name 'wglUseFontOutlinesW';
 
 { translated macros }
 function Animate_Create(hWndP:HWND; id:HMENU;dwStyle:DWORD;hInstance:HINST):HWND;

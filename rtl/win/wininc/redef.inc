@@ -305,7 +305,7 @@ function ChangeDisplaySettingsExW(lpszDeviceName: LPWSTR; var lpDevMode: TDevice
 {$endif NO_SMART_LINK}
 function ChangeDisplaySettingsW(var lpDevMode: TDeviceModeW; dwFlags: DWORD): Longint; external 'user32' name 'ChangeDisplaySettingsW';
 //function CheckColorsInGamut(DC: HDC; var RGBQuads, Results; Count: DWORD): BOOL; external 'gdi32' name 'CheckColorsInGamut';
-function ChoosePixelFormat(_para1:HDC; var _para2:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
+function ChoosePixelFormat(DC:HDC; var pfd:PIXELFORMATDESCRIPTOR):longint; external 'gdi32' name 'ChoosePixelFormat';
 function ClearCommError(hFile: THandle; var lpErrors: DWORD; lpStat: PComStat): BOOL; external 'kernel32' name 'ClearCommError';
 function ClientToScreen(hWnd: HWND; var lpPoint: TPoint): BOOL; external 'user32' name 'ClientToScreen';
 function ClipCursor(var lpRect:RECT):WINBOOL; external 'user32' name 'ClipCursor';
@@ -369,7 +369,7 @@ function CreateRemoteThread(hProcess: THandle; lpThreadAttributes: Pointer; dwSt
 function CreateThread(lpThreadAttributes: Pointer; dwStackSize: DWORD; lpStartAddress: TFNThreadStartRoutine; lpParameter: Pointer; dwCreationFlags: DWORD; var lpThreadId: DWORD): THandle; external 'kernel32' name 'CreateThread';
 function DdeSetQualityOfService(hWndClient: HWnd; const pqosNew: TSecurityQualityOfService; pqosPrev: PSecurityQualityOfService): BOOL;external 'user32' name 'DdeSetQualityOfService';
 //function DeleteAce(var pAcl: TACL; dwAceIndex: DWORD): BOOL; external 'advapi32' name 'DeleteAce';
-function DescribePixelFormat(DC: HDC; p2: Integer; p3: UINT; var p4: TPixelFormatDescriptor): BOOL; external 'gdi32' name 'DescribePixelFormat';
+function DescribePixelFormat(DC: HDC; iPixelFormat: Integer; nBytes: UINT; var pfd: TPixelFormatDescriptor): BOOL; external 'gdi32' name 'DescribePixelFormat';
 //function DestroyPrivateObjectSecurity(var ObjectDescriptor: PSecurityDescriptor): BOOL; external 'advapi32' name 'DestroyPrivateObjectSecurity';
 function DeviceIoControl(hDevice: THandle; dwIoControlCode: DWORD; lpInBuffer: Pointer; nInBufferSize: DWORD; lpOutBuffer: Pointer; nOutBufferSize: DWORD; var lpBytesReturned: DWORD; lpOverlapped: POverlapped): BOOL;
   external 'kernel32' name 'DeviceIoControl';
@@ -918,9 +918,9 @@ function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation;
 function VirtualQueryEx(hProcess: THandle; lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external 'kernel32' name 'VirtualQueryEx';
 function WaitCommEvent(hFile: THandle; var lpEvtMask: DWORD; lpOverlapped: POverlapped): BOOL; external 'kernel32' name 'WaitCommEvent';
 function WaitForDebugEvent(var lpDebugEvent: TDebugEvent; dwMilliseconds: DWORD): BOOL; external 'kernel32' name 'WaitForDebugEvent';
-function wglDescribeLayerPlane(p1: HDC; p2, p3: Integer; p4: Cardinal; var p5: TLayerPlaneDescriptor): BOOL;external 'opengl32' name 'wglDescribeLayerPlane';
-function wglGetLayerPaletteEntries(p1: HDC; p2, p3, p4: Integer; var pcr): Integer;external 'opengl32' name 'wglGetLayerPaletteEntries';
-function wglSetLayerPaletteEntries(p1: HDC; p2, p3, p4: Integer; var pcr): Integer;external 'opengl32' name 'wglSetLayerPaletteEntries';
+function wglDescribeLayerPlane(DC: HDC; iPixelFormat, iLayerPlane: Integer; nBytes: Cardinal; var pfd: TLayerPlaneDescriptor): BOOL;external 'opengl32' name 'wglDescribeLayerPlane';
+function wglGetLayerPaletteEntries(DC: HDC; iLayerPlane, iStart, cEntries: Integer; var pcr): Integer;external 'opengl32' name 'wglGetLayerPaletteEntries';
+function wglSetLayerPaletteEntries(DC: HDC; iLayerPlane, iStart, cEntries: Integer; var pcr): Integer;external 'opengl32' name 'wglSetLayerPaletteEntries';
 //function wglSwapMultipleBuffers(p1: UINT; const p2: PWGLSwap): DWORD;external 'opengl32' name 'wglSwapMultipleBuffers';
 //function WinSubmitCertificate(var lpCertificate: TWinCertificate): BOOL;external 'imaghlp' name 'WinSubmitCertificate';
 //function WinVerifyTrust(hwnd: HWND; const ActionID: TGUID; ActionData: Pointer): Longint;external 'imaghlp' name 'WinVerifyTrust';
