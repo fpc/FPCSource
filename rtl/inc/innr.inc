@@ -78,6 +78,7 @@ const
    fpc_in_rol_x             = 67;
    fpc_in_rol_x_x           = 68;
    fpc_objc_selector_x      = 69;
+   fpc_objc_protocol_x      = 70;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;
