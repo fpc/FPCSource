@@ -590,8 +590,8 @@ Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMIN
 Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function SwapEndian(const AValue: SmallInt): SmallInt;
-function SwapEndian(const AValue: Word): Word;
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: LongInt): LongInt;
 function SwapEndian(const AValue: DWord): DWord;
 function SwapEndian(const AValue: Int64): Int64;
