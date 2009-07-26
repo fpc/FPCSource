@@ -71,27 +71,37 @@ PROCEDURE CipherIdea(Input: TIDEACryptData; VAR outdata: TIDEACryptData; z: TIDE
 Type
   EIDEAError = Class(EStreamError);
 
+  { TIDEAStream }
+
   TIDEAStream = Class(TOwnerStream)
   Private
     FKey    : TIDEAKey;
     FData   : TIDEACryptData;
     FBufpos : Byte;
     FPos    : Longint;
+  Protected
+    Procedure CreateCryptKey(Const S : String; Var Key : TIDEACryptKey);
   Public
     Constructor Create(AKey : TIDEAKey; Dest: TStream);
     Property Key : TIDEAKey Read FKey;
   end;
 
+  { TIDEAEncryptStream }
+
   TIDEAEncryptStream = Class(TIDEAStream)
   public
+    Constructor Create(Const AKey : String; Dest: TStream);
     Destructor Destroy; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
     procedure Flush;
   end;
 
+  { TIDEADeCryptStream }
+
   TIDEADeCryptStream = Class(TIDEAStream)
   public
+    Constructor Create(Const AKey : String; Dest: TStream);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
@@ -100,6 +110,7 @@ Implementation
 
 Const
   SNoSeekAllowed  = 'Seek not allowed on encryption streams';
+  SErrEmptyKey    = 'String Key may not be empty';
 
 PROCEDURE mul(VAR a:Word; b: Word);
 VAR p: LongInt;
@@ -246,7 +257,7 @@ END;
   ---------------------------------------------------------------------}
   
 
-Constructor TIDEAStream.Create(AKey : ideakey; Dest: TStream);
+Constructor TIDEAStream.Create(AKey : TIDEAKey; Dest: TStream);
 
 begin
   inherited Create(Dest);
@@ -255,9 +266,36 @@ begin
   Fpos:=0;
 end;
 
+procedure TIDEAStream.CreateCryptKey(const S: String; var Key: TIDEACryptKey);
+
+Var
+  KLen : Integer;
+
+begin
+  KLen:=Length(S);
+  If (KLen=0) then
+    Raise EIDEAError.Create(SErrEmptyKey);
+  If (Length(S)>SizeOf(Key)) then
+    KLen:=SizeOf(Key);
+  Move(S[1],Key,KLen);
+end;
+
+
 { ---------------------------------------------------------------------
     TIDEAEncryptStream
   ---------------------------------------------------------------------}
+
+constructor TIDEAEncryptStream.Create(Const AKey: String; Dest: TStream);
+
+Var
+  K : TIdeaCryptKey;
+  Z : TIDeaKey;
+
+begin
+  CreateCryptKey(AKey,K);
+  EnKeyIDEA(K,Z);
+  Inherited Create(Z,Dest);
+end;
 
 Destructor TIDEAEncryptStream.Destroy;
 
@@ -329,6 +367,18 @@ end;
     TIDEADecryptStream
   ---------------------------------------------------------------------}
 
+constructor TIDEADeCryptStream.Create(const AKey: String; Dest: TStream);
+
+Var
+  K : TIdeaCryptKey;
+  Z1,Z2 : TIDeaKey;
+
+begin
+  CreateCryptKey(AKey,K);
+  EnKeyIDEA(K,Z1);
+  DeKeyIDEA(Z1,Z2);
+  Inherited Create(Z2,Dest);
+end;
 
 function TIDEADeCryptStream.Read(var Buffer; Count: Longint): Longint;
 
