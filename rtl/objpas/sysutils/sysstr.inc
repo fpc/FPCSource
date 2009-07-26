@@ -35,7 +35,8 @@ begin
    end;
 end;
 
-{ declaring this breaks delphi compatibility and e.g. tw3721.pp
+{$ifdef dummy}
+{ declaring this breaks delphi compatibility and e.g. tw3721.pp }
 FUNCTION NewStr (Const S: ShortString): PShortString;
 VAR P: PShortString;
 BEGIN
@@ -48,7 +49,7 @@ BEGIN
      End;
    NewStr := P;                                       { Return result }
 END;
-}
+{$endif dummy}
 
 {   DisposeStr frees the memory occupied by S   }
 
