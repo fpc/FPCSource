@@ -37,10 +37,18 @@ type
   tobjcselectornode = class(tunarynode)
    public
     constructor create(formethod: tnode);
-    function pass_typecheck:tnode;override;
-    function pass_1 : tnode;override;
+    function pass_typecheck: tnode;override;
+    function pass_1: tnode;override;
   end;
   tobjcselectornodeclass = class of tobjcselectornode;
+
+  tobjcprotocolnode = class(tunarynode)
+   public
+    constructor create(forprotocol: tnode);
+    function pass_typecheck: tnode;override;
+    function pass_1: tnode;override;
+  end;
+  tobjcprotocolnodeclass = class of tobjcprotocolnode;
 
   tobjcmessagesendnode = class(tunarynode)
    public
@@ -53,6 +61,7 @@ type
 var
   cobjcselectornode : tobjcselectornodeclass;
   cobjcmessagesendnode : tobjcmessagesendnodeclass;
+  cobjcprotocolnode : tobjcprotocolnodeclass;
 
 implementation
 
@@ -162,6 +171,36 @@ function tobjcselectornode.pass_1: tnode;
     result:=nil;
     expectloc:=LOC_CREFERENCE;
   end;
+
+
+{*****************************************************************************
+                            TOBJPROTOCOLNODE
+*****************************************************************************}
+
+constructor tobjcprotocolnode.create(forprotocol: tnode);
+  begin
+    inherited create(objcprotocoln,forprotocol);
+  end;
+
+
+function tobjcprotocolnode.pass_typecheck: tnode;
+  begin
+    result:=nil;
+    typecheckpass(left);
+    if (left.nodetype<>typen) then
+      MessagePos(left.fileinfo,type_e_type_id_expected)
+    else if not is_objcprotocol(left.resultdef) then
+      MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'ObjCProtocol');
+    resultdef:=objc_protocoltype;
+  end;
+
+
+function tobjcprotocolnode.pass_1: tnode;
+  begin
+    result:=nil;
+    expectloc:=LOC_CREFERENCE;
+  end;
+
 
 {*****************************************************************************
                           TOBJCMESSAGESENDNODE
@@ -325,7 +364,6 @@ function tobjcmessagesendnode.pass_1: tnode;
         result:=block;
      end;
   end;
-
 
 begin
   cobjcmessagesendnode:=tobjcmessagesendnode;

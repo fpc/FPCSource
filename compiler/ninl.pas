@@ -2456,6 +2456,12 @@ implementation
                   { reused }
                   left:=nil;
                 end;
+              in_objc_protocol_x:
+                begin
+                  result:=cobjcprotocolnode.create(left);
+                  { reused }
+                  left:=nil;
+                end;
               else
                 internalerror(8);
             end;

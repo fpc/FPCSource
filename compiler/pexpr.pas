@@ -2579,6 +2579,21 @@ implementation
                   postfixoperators(p1,again);
                 end;
              end;
+           _OBJCPROTOCOL:
+             begin
+               { The @protocol keyword is used in two ways in Objective-C:
+                   1) to declare protocols (~ Object Pascal interfaces)
+                   2) to obtain the metaclass (~ Object Pascal) "class of")
+                      of a declared protocol
+                 This code is for handling the second case. Because of 1),
+                 we cannot simply use a system unit symbol.
+               }
+               consume(_OBJCPROTOCOL);
+               consume(_LKLAMMER);
+               p1:=factor(false);
+               consume(_RKLAMMER);
+               p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
+             end;
 
            else
              begin

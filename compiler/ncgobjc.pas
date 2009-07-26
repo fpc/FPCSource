@@ -34,6 +34,10 @@ type
     procedure pass_generate_code; override;
   end;
 
+  tcgobjcprotocolnode = class(tobjcprotocolnode)
+    procedure pass_generate_code; override;
+  end;
+
 implementation
 
 uses
@@ -86,6 +90,18 @@ procedure tcgobjcselectornode.pass_generate_code;
   end;
 
 
+{*****************************************************************************
+                           TCGOBJCPROTOCOLNODE
+*****************************************************************************}
+
+procedure tcgobjcprotocolnode.pass_generate_code;
+  begin
+    { first needs support for writing class definitions }
+    internalerror(2009072601);
+  end;
+
+
 begin
   cobjcselectornode:=tcgobjcselectornode;
+  cobjcprotocolnode:=tcgobjcprotocolnode;
 end.
