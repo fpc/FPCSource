@@ -1,3 +1,4 @@
+{ %target=win32,win64,wince,os2 }
 { %norun }
 library tw12987a;
 

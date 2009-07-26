@@ -1,3 +1,4 @@
+{ %target=win32,win64,wince,os2 }
 { %needlibrary }
 procedure test;external 'tw12987a' name 'test';
 
