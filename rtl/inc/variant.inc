@@ -240,7 +240,7 @@ end;
 
 operator :=(const source : UTF8String) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
-  VariantManager.VarFromWStr(Dest,UTF8Encode(Source));
+  VariantManager.VarFromWStr(Dest,UTF8Decode(Source));
 end;
 
 
