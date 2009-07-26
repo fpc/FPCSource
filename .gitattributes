@@ -3934,7 +3934,6 @@ packages/numlib/tests/timer.pas svneol=native#text/plain
 packages/numlib/tests/turte.pas svneol=native#text/plain
 packages/objcrtl/Makefile svneol=native#text/plain
 packages/objcrtl/Makefile.fpc svneol=native#text/plain
-packages/objcrtl/Package.fpc svneol=native#text/plain
 packages/objcrtl/examples/objcrtltest.pas svneol=native#text/plain
 packages/objcrtl/fpmake.pp svneol=native#text/plain
 packages/objcrtl/src/objcrtl.pas svneol=native#text/plain
