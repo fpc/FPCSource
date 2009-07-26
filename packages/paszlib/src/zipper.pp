@@ -332,7 +332,9 @@ Type
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
     Procedure ZipFiles(AFileName : String; FileList : TStrings);
+    Procedure ZipFiles(FileList : TStrings);
     Procedure ZipFiles(AFileName : String; Entries : TZipFileEntries);
+    Procedure ZipFiles(Entries : TZipFileEntries);
     Procedure Clear;
   Public
     Property BufferSize : LongWord Read FBufSize Write SetBufSize;
@@ -1401,14 +1403,23 @@ end;
 Procedure TZipper.ZipFiles(AFileName : String; FileList : TStrings);
 
 begin
-  FFiles.Assign(FileList);
   FFileName:=AFileName;
+end;
+
+procedure TZipper.ZipFiles(FileList: TStrings);
+begin
+  FFiles.Assign(FileList);
   ZipAllFiles;
 end;
 
 procedure TZipper.ZipFiles(AFileName: String; Entries: TZipFileEntries);
 begin
   FFileName:=AFileName;
+  ZipFiles(Entries);
+end;
+
+procedure TZipper.ZipFiles(Entries: TZipFileEntries);
+begin
   FEntries.Assign(Entries);
   ZipAllFiles;
 end;
@@ -1901,6 +1912,8 @@ begin
     FSize:=Z.FSize;
     FDateTime:=Z.FDateTime;
     FStream:=Z.FStream;
+    FOS:=Z.OS;
+    FAttributes:=Z.Attributes;
     end
   else
     inherited Assign(Source);
