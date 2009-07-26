@@ -7,5 +7,5 @@
 var
   a: sel;
 begin
-  a:=selector('my:method');
+  a:=objcselector('my:method');
 end.
