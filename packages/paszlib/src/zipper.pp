@@ -255,7 +255,6 @@ Type
   private
     FArchiveFileName: String;
     FAttributes: LongInt;
-    FCRC32: LongWord;
     FDateTime: TDateTime;
     FDiskFileName: String;
     FHeaderPos: Longint;
@@ -278,7 +277,6 @@ Type
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
     property OS: Byte read FOS write FOS;
     property Attributes: LongInt read FAttributes write FAttributes;
-    property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
   { TZipFileEntries }
@@ -354,9 +352,11 @@ Type
   private
     FCompressedSize: LongInt;
     FCompressMethod: Word;
+    FCRC32: LongWord;
   Public
     Property CompressMethod : Word Read FCompressMethod;
     Property CompressedSize :  LongInt Read FCompressedSize;
+    property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
   { TFullZipFileEntries }
@@ -394,9 +394,9 @@ Type
     Procedure CloseOutput;
     Procedure CloseInput;
     Procedure ReadZipDirectory;
-    Procedure ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
+    Procedure ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
     Procedure DoEndOfFile;
-    Procedure UnZipOneFile(Item : TZipFileEntry); virtual;
+    Procedure UnZipOneFile(Item : TFullZipFileEntry); virtual;
     Function  OpenOutput(OutFileName : String) : Boolean;
     Procedure SetBufSize(Value : LongWord);
     Procedure SetFileName(Value : String);
@@ -407,6 +407,7 @@ Type
     Destructor Destroy;override;
     Procedure UnZipAllFiles; virtual;
     Procedure UnZipFiles(AFileName : String; FileList : TStrings);
+    Procedure UnZipFiles(FileList : TStrings);
     Procedure UnZipAllFiles(AFileName : String);
     Procedure Clear;
     Procedure Examine;
@@ -1519,7 +1520,7 @@ Begin
 end;
 
 
-Procedure TUnZipper.ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
+Procedure TUnZipper.ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
 Var
   S : String;
   D : TDateTime;
@@ -1615,7 +1616,7 @@ begin
   end;
 end;
 
-Procedure TUnZipper.UnZipOneFile(Item : TZipFileEntry);
+Procedure TUnZipper.UnZipOneFile(Item : TFullZipFileEntry);
 
 Var
   Count, Attrs: Longint;
@@ -1722,7 +1723,7 @@ end;
 
 Procedure TUnZipper.UnZipAllFiles;
 Var
-   Item : TZipFileEntry;
+   Item : TFullZipFileEntry;
    I : Integer;
    AllFiles : Boolean;
 
@@ -1775,8 +1776,13 @@ end;
 Procedure TUnZipper.UnZipFiles(AFileName : String; FileList : TStrings);
 
 begin
-  FFiles.Assign(FileList);
   FFileName:=AFileName;
+  UNzipFiles(FileList);
+end;
+
+procedure TUnZipper.UnZipFiles(FileList: TStrings);
+begin
+  FFiles.Assign(FileList);
   UnZipAllFiles;
 end;
 
