@@ -467,6 +467,7 @@ type
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure SetFieldType(AValue: TFieldType); override;
     property FixedChar : Boolean read FFixedChar write FFixedChar;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
     property Value: String read GetAsString write SetAsString;
@@ -1338,7 +1339,7 @@ type
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write SetFilterOptions;
     property Active: Boolean read GetActive write SetActive default False;
-    property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields;
+    property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields default true;
     property BeforeOpen: TDataSetNotifyEvent read FBeforeOpen write FBeforeOpen;
     property AfterOpen: TDataSetNotifyEvent read FAfterOpen write FAfterOpen;
     property BeforeClose: TDataSetNotifyEvent read FBeforeClose write FBeforeClose;

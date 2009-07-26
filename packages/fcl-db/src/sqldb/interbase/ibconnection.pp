@@ -300,6 +300,8 @@ begin
   pagesize := params.Values['PAGE_SIZE'];
   if pagesize <> '' then
     CreateSQL := CreateSQL + ' PAGE_SIZE '+pagesize;
+  if CharSet <> '' then
+    CreateSQL := CreateSQL + ' DEFAULT CHARACTER SET ' + CharSet;
 
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);
@@ -445,13 +447,15 @@ begin
       TrType := ftFMTBcd;
     end
   else case (SQLType and not 1) of
-    SQL_VARYING,SQL_TEXT :
+    SQL_VARYING :
       begin
         TrType := ftString;
-        if SQLLen > dsMaxStringSize then
-          TrLen := dsMaxStringSize
-        else
-          TrLen := SQLLen;
+        TrLen := SQLLen;
+      end;
+    SQL_TEXT :
+      begin
+        TrType := ftFixedChar;
+        TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
       TrType := ftDate{Time};
@@ -879,8 +883,6 @@ begin
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
-          if VarcharLen > dsMaxStringSize then
-            VarcharLen:=dsMaxStringSize;
           CurrBuff := SQLData + 2;
           end
         else
@@ -928,7 +930,7 @@ begin
           end;
         ftDate, ftTime, ftDateTime:
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
-        ftString  :
+        ftString, ftFixedChar  :
           begin
             Move(CurrBuff^, Buffer^, VarCharLen);
             PChar(Buffer + VarCharLen)^ := #0;

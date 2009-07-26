@@ -38,6 +38,7 @@ begin
   FEOF := True;
   FBOF := True;
   FIsUniDirectional := False;
+  FAutoCalcFields := True;
 end;
 
 

@@ -26,6 +26,7 @@ begin
     P.NeedLibC:= true;  // true for headers that indirectly link to libc?
 
     P.Dependencies.Add('x11',AllUnixOSes);
+    P.Dependencies.Add('cairo');
 
     T:=P.Targets.AddUnit('src/atk/atk.pas');
      T.IncludePath.Add('src/atk');
@@ -129,6 +130,7 @@ begin
           AddUnit('gdkglext');
           AddUnit('gtkglext');
           AddUnit('gdk2x',AllUnixOSes);
+          AddUnit('pangocairo');
         end;
     T:=P.Targets.AddUnit('src/gtk+/gdk-pixbuf/gdk2pixbuf.pas');
       T.IncludePath.Add('src/gtk+/gdk-pixbuf');
@@ -1212,6 +1214,14 @@ begin
           AddInclude('pango-layout.inc');
           AddInclude('pango-tabs.inc');
           AddUnit('glib2');
+        end;
+    
+    T:=P.Targets.AddUnit('src/pangocairo/pangocairo.pas');
+      T.IncludePath.Add('src/pangocairo');
+      with T.Dependencies do
+        begin
+          AddUnit('glib2');
+          AddUnit('pango');
         end;
 
     T:=P.Targets.AddUnit('src/gtkext/gtk2ext.pp');

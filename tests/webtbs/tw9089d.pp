@@ -14,4 +14,5 @@ begin
     halt(1);
   close(t);
   erase(t);
+  writeln('ok');
 end.

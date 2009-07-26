@@ -52,6 +52,11 @@ type
     FTokenText: SAXString;
     FCurStringValueDelimiter: Char;
     FAttrNameRead: Boolean;
+    FStack: array of THTMLElementTag;
+    FNesting: Integer;
+    procedure AutoClose(const aName: string);
+    procedure NamePush(const aName: string);
+    procedure NamePop;
   protected
     procedure EnterNewScannerContext(NewContext: THTMLScannerContext);
   public
@@ -88,7 +93,6 @@ type
       Start, Count: Integer);
     procedure ReaderIgnorableWhitespace(Sender: TObject; const ch: PSAXChar;
       Start, Count: Integer);
-    procedure ReaderSkippedEntity(Sender: TObject; const Name: SAXString);
     procedure ReaderStartElement(Sender: TObject;
       const NamespaceURI, LocalName, RawName: SAXString; Attr: TSAXAttributes);
     procedure ReaderEndElement(Sender: TObject;
@@ -122,6 +126,7 @@ constructor THTMLReader.Create;
 begin
   inherited Create;
   FScannerContext := scUnknown;
+  SetLength(FStack, 16);
 end;
 
 destructor THTMLReader.Destroy;
@@ -193,12 +198,10 @@ begin
                 EnterNewScannerContext(scTag);
               end;
             else
-              EnterNewScannerContext(scText);
+              FScannerContext := scText;
           end;
         scText:
           case Buffer[BufferPos] of
-            #9, #10, #13, ' ':
-              EnterNewScannerContext(scWhitespace);
             '&':
               begin
                 Inc(BufferPos);
@@ -267,114 +270,142 @@ begin
   end;
 end;
 
-procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
-
-  function SplitTagString(const s: String; var Attr: TSAXAttributes): String;
-  var
-    i, j: Integer;
-    AttrName: String;
-    ValueDelimiter: Char;
-    DoIncJ: Boolean;
-  begin
-    Attr := nil;
-    i := Pos(' ', s);
-    if i <= 0 then
-      Result := LowerCase(s)
-    else
+function LookupTag(const aName: string): THTMLElementTag;
+var
+  j: THTMLElementTag;
+begin
+  for j := Low(THTMLElementTag) to High(THTMLElementTag) do
+    if SameText(HTMLElementProps[j].Name, aName) then
     begin
-      Result := LowerCase(Copy(s, 1, i - 1));
-      Attr := TSAXAttributes.Create;
+      Result := j;
+      Exit;
+    end;
+  Result := etUnknown;
+end;
 
+procedure THTMLReader.AutoClose(const aName: string);
+var
+  newTag: THTMLElementTag;
+begin
+  newTag := LookupTag(aName);
+  while (FNesting > 0) and IsAutoClose(newTag, FStack[FNesting-1]) do
+  begin
+    DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
+    namePop;
+  end;
+end;
+
+procedure THTMLReader.NamePush(const aName: string);
+var
+  tag: THTMLElementTag;
+begin
+  tag := LookupTag(aName);
+  if FNesting >= Length(FStack) then
+    SetLength(FStack, FNesting * 2);
+  FStack[FNesting] := tag;
+  Inc(FNesting);
+end;
+
+procedure THTMLReader.NamePop;
+begin
+  if FNesting <= 0 then
+    Exit;
+  Dec(FNesting);
+  FStack[FNesting] := etUnknown;
+end;
+
+function SplitTagString(const s: String; var Attr: TSAXAttributes): String;
+var
+  i, j: Integer;
+  AttrName: String;
+  ValueDelimiter: Char;
+  DoIncJ: Boolean;
+begin
+  Attr := nil;
+  i := Pos(' ', s);
+  if i <= 0 then
+    Result := LowerCase(s)
+  else
+  begin
+    Result := LowerCase(Copy(s, 1, i - 1));
+    Attr := TSAXAttributes.Create;
+    Inc(i);
+
+    while (i <= Length(s)) and (s[i] in WhitespaceChars) do
       Inc(i);
 
-      while (i <= Length(s)) and (s[i] in WhitespaceChars) do
-        Inc(i);
+    SetLength(AttrName, 0);
+    j := i;
 
-      SetLength(AttrName, 0);
-      j := i;
-
-      while j <= Length(s) do
-        if s[j] = '=' then
+    while j <= Length(s) do
+      if s[j] = '=' then
+      begin
+        AttrName := LowerCase(Copy(s, i, j - i));
+        Inc(j);
+        if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
         begin
-          AttrName := LowerCase(Copy(s, i, j - i));
+          ValueDelimiter := s[j];
           Inc(j);
-          if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
-          begin
-            ValueDelimiter := s[j];
-            Inc(j);
-          end else
-            ValueDelimiter := #0;
-          i := j;
-          DoIncJ := False;
-          while j <= Length(s) do
-            if ValueDelimiter = #0 then
-              if s[j] in WhitespaceChars then
-                break
-              else
-                Inc(j)
-            else if s[j] = ValueDelimiter then
-            begin
-              DoIncJ := True;
-              break
-            end else
-              Inc(j);
-
-          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
-
-          if DoIncJ then
-            Inc(j);
-
-          while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-            Inc(j);
-          i := j;
-        end
-        else if s[j] in WhitespaceChars then
-        begin
-          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
-          Inc(j);
-          while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-            Inc(j);
-          i := j;
         end else
-          Inc(j);
-    end;
-  end;
+          ValueDelimiter := #0;
+        i := j;
+        DoIncJ := False;
+        while j <= Length(s) do
+          if ValueDelimiter = #0 then
+            if s[j] in WhitespaceChars then
+              break
+            else
+              Inc(j)
+          else if s[j] = ValueDelimiter then
+          begin
+            DoIncJ := True;
+            break
+          end else
+            Inc(j);
 
+        Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
+
+        if DoIncJ then
+          Inc(j);
+
+        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+          Inc(j);
+        i := j;
+      end
+      else if s[j] in WhitespaceChars then
+      begin
+        Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+        Inc(j);
+        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+          Inc(j);
+        i := j;
+      end else
+        Inc(j);
+  end;
+end;
+
+procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
-  EntString, TagName: String;
-  Found: Boolean;
-  Ent: Char;
+  TagName: String;
+  Ent: SAXChar;
   i: Integer;
+  elTag: THTMLElementTag;
 begin
   case ScannerContext of
     scWhitespace:
-      DoIgnorableWhitespace(PSAXChar(TokenText), 1, Length(TokenText));
+      if (FNesting > 0) and (efPCDataContent in HTMLElementProps[FStack[FNesting-1]].Flags) then
+        DoCharacters(PSAXChar(TokenText), 0, Length(TokenText))
+      else
+        DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
     scText:
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
         if ResolveHTMLEntityReference(TokenText, Ent) then
-        begin
-          EntString := Ent;
-          DoCharacters(PSAXChar(EntString), 0, 1);
-        end else
-        begin
-          { Is this a predefined Unicode character entity? We must check this,
-            as undefined entities must be handled as text, for compatiblity
-            to popular browsers... }
-          Found := False;
-          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-            if UnicodeHTMLEntities[i] = TokenText then
-            begin
-              Found := True;
-              break;
-            end;
-          if Found then
-            DoSkippedEntity(TokenText)
-          else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
-        end;
+          DoCharacters(@Ent, 0, 1)
+        else
+          DoCharacters(PSAXChar('&' + TokenText + ';'), 0, Length(TokenText) + 2);
       end;
     scTag:
       if Length(TokenText) > 0 then
@@ -385,18 +416,35 @@ begin
           setlength(fTokenText,length(fTokenText)-1);
           // Do NOT combine to a single line, as Attr is an output value!
           TagName := SplitTagString(TokenText, Attr);
+          AutoClose(TagName);
           DoStartElement('', TagName, '', Attr);
           DoEndElement('', TagName, '');
         end
         else if TokenText[1] = '/' then
         begin
-          DoEndElement('',
-            SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
+          Delete(FTokenText, 1, 1);
+          TagName := SplitTagString(TokenText, Attr);
+          elTag := LookupTag(TagName);
+          i := FNesting-1;
+          while (i >= 0) and (FStack[i] <> elTag) and
+            (efEndTagOptional in HTMLElementProps[FStack[i]].Flags) do
+            Dec(i);
+          if (i>=0) and (FStack[i] = elTag) then
+            while FStack[FNesting-1] <> elTag do
+            begin
+              DoEndElement('', HTMLElementProps[FStack[FNesting-1]].Name, '');
+              namePop;
+            end;
+
+          DoEndElement('', TagName, '');
+          namePop;
         end
         else if TokenText[1] <> '!' then
         begin
           // Do NOT combine to a single line, as Attr is an output value!
           TagName := SplitTagString(TokenText, Attr);
+          AutoClose(TagName);
+          namePush(TagName);
           DoStartElement('', TagName, '', Attr);
         end;
         if Assigned(Attr) then
@@ -419,7 +467,6 @@ begin
   FReader := AReader;
   FReader.OnCharacters := @ReaderCharacters;
   FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
-  FReader.OnSkippedEntity := @ReaderSkippedEntity;
   FReader.OnStartElement := @ReaderStartElement;
   FReader.OnEndElement := @ReaderEndElement;
   FDocument := ADocument;
@@ -430,16 +477,7 @@ end;
 constructor THTMLToDOMConverter.CreateFragment(AReader: THTMLReader;
   AFragmentRoot: TDOMNode);
 begin
-  inherited Create;
-  FReader := AReader;
-  FReader.OnCharacters := @ReaderCharacters;
-  FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
-  FReader.OnSkippedEntity := @ReaderSkippedEntity;
-  FReader.OnStartElement := @ReaderStartElement;
-  FReader.OnEndElement := @ReaderEndElement;
-  FDocument := AFragmentRoot.OwnerDocument;
-  FElementStack := TList.Create;
-  FNodeBuffer := TList.Create;
+  Create(AReader, AFragmentRoot.OwnerDocument);
   FragmentRoot := AFragmentRoot;
   IsFragmentMode := True;
 end;
@@ -484,17 +522,6 @@ begin
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntWhitespace;
   NodeInfo.DOMNode := FDocument.CreateTextNode(s);
-  FNodeBuffer.Add(NodeInfo);
-end;
-
-procedure THTMLToDOMConverter.ReaderSkippedEntity(Sender: TObject;
-  const Name: SAXString);
-var
-  NodeInfo: THTMLNodeInfo;
-begin
-  NodeInfo := THTMLNodeInfo.Create;
-  NodeInfo.NodeType := ntEntityReference;
-  NodeInfo.DOMNode := FDocument.CreateEntityReference(Name);
   FNodeBuffer.Add(NodeInfo);
 end;
 

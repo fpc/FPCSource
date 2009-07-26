@@ -9,7 +9,7 @@ type
   public
     procedure do_something;
   end;
-  
+
   tcoll = class(TCollection)
   public
     procedure Update(Item: TCollectionItem); override;
@@ -17,7 +17,7 @@ type
 
 var
   c: tcoll;
-  item: titem;  
+  item: titem;
   i: Integer;
   update_counter: Integer;
 
@@ -36,7 +36,7 @@ end;
 begin
   c := tcoll.Create(titem);
   item := titem(c.Add);
-  update_counter := 0;  
+  update_counter := 0;
   c.BeginUpdate;
   try
     for i := 0 to 9 do
@@ -45,7 +45,11 @@ begin
     c.EndUpdate;
   end;
   writeln('updates: ', update_counter);
-  c.Free;
   if update_counter<>1 then
-    Halt(1);
+    begin
+      c.Free;
+      Halt(1);
+    end;
+  c.Free;
+  writeln('ok');
 end.

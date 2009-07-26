@@ -9,6 +9,7 @@
 
 {$IFDEF read_interface_types}
   TGDataForeachFunc = procedure (key_id:TGQuark; data:gpointer; user_data:gpointer);cdecl;
+  GDestroyNotify = procedure (data:gpointer);cdecl;
 {$ENDIF read_interface_types}
 
 {$IFDEF read_interface_rest}

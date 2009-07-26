@@ -146,6 +146,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
           function  para_count:longint;
+          function  required_para_count:longint;
           { checks if there are any parameters which end up at the stack, i.e.
             which have LOC_REFERENCE and set pi_has_stackparameter if this applies }
           procedure check_stack_parameters;
@@ -1243,6 +1244,23 @@ implementation
           begin
             if not(assigned(ppn.parasym) and
                    (vo_is_hidden_para in ppn.parasym.varoptions)) then
+              inc(result);
+            ppn:=tcallparanode(ppn.right);
+          end;
+      end;
+
+
+    function tcallnode.required_para_count: longint;
+      var
+        ppn : tcallparanode;
+      begin
+        result:=0;
+        ppn:=tcallparanode(left);
+        while assigned(ppn) do
+          begin
+            if not(assigned(ppn.parasym) and
+                   ((vo_is_hidden_para in ppn.parasym.varoptions) or
+                    assigned(ppn.parasym.defaultconstsym))) then
               inc(result);
             ppn:=tcallparanode(ppn.right);
           end;

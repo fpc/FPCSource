@@ -11,6 +11,9 @@
 {$include pango-fontmap.inc}
 {$include pango-glyph.inc}
 {$include pango-item.inc}
+{$ifdef HasPango1_20}
+  {$include pango-glyph-item.inc}
+{$endif}
 {$include pango-layout.inc}
 {$include pango-matrix.inc}
 { $include pango-enum-types.inc}

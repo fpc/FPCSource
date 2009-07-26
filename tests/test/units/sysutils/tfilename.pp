@@ -40,7 +40,7 @@ begin
 
   TestFuncs(13,ExtractFilePath('\\server\share\file'),'\\server\share\');
   TestFuncs(14,ExtractFileName('\\server\share\file'),'file');
-  TestFuncs(15,ExtractFileDrive('\\server\share\file'),'\\server');
+  TestFuncs(15,ExtractFileDrive('\\server\share\file'),'\\server\share');
 
   // Kylix compatibility mode
   AllowDirectorySeparators:=['/'];
@@ -86,7 +86,7 @@ begin
 
   TestFuncs(213,ExtractFilePath('\\server\share\file'),'\\server\share\');
   TestFuncs(214,ExtractFileName('\\server\share\file'),'file');
-  TestFuncs(215,ExtractFileDrive('\\server\share\file'),'\\server');
+  TestFuncs(215,ExtractFileDrive('\\server\share\file'),'\\server\share');
 
   // Windows/DOS/SO2 Delphi Compatibility
   AllowDirectorySeparators:=['\'];
@@ -109,7 +109,7 @@ begin
 
   TestFuncs(313,ExtractFilePath('\\server\share\file'),'\\server\share\');
   TestFuncs(314,ExtractFileName('\\server\share\file'),'file');
-  TestFuncs(315,ExtractFileDrive('\\server\share\file'),'\\server');
+  TestFuncs(315,ExtractFileDrive('\\server\share\file'),'\\server\share');
 
   if err then
     halt(1);

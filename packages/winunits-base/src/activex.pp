@@ -2924,9 +2924,9 @@ TYPE
 
      Function  GetTypeComp(OUT ppTComp: ITypeComp):HResult;StdCall;
      {$ifndef Call_as}
-     Function  GetDocumentation(index: WINT; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     Function  GetDocumentation(index: WINT; pBstrName: PWideString; pBstrDocString: PWideString; pdwHelpContext: PDWORD; pBstrHelpFile: PWideString):HResult;StdCall;
      {$else}
-     Function  GetDocumentation(index: WINT; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     Function  GetDocumentation(index: WINT; refPtrFlags: DWORD; pBstrName: PWideString; pBstrDocString: PWideString; pdwHelpContext: PDWORD; pBstrHelpFile: PWideString):HResult;StdCall;
      {$endif}
 
      {$ifndef Call_as}

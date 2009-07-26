@@ -100,50 +100,26 @@ TYPE
   pUtsName= ^utsname;
 
   { file characteristics services }
-(*   stat    = record { the types are real}
+   stat    = packed record { the types are real}
         st_dev        : dev_t;             // inode's device
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
+        st_size       : off_t;             // file size, in bytes
         st_rdev       : dev_t;             // device type
+        st_blksize    : cint32;            // optimal blocksize for I/O
         st_atime      : time_t;            // time of last access
         st_atimensec  : clong;             // nsec of last access
         st_mtime      : time_t;            // time of last data modification
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
-{$ifdef netbsdPowerpc}
-	st_padd1	      : cint;
-{$endif}
-        st_size       : off_t;             // file size, in bytes
-        st_blocks     : cint64;            // blocks allocated for file
-        st_blksize    : cuint32;           // optimal blocksize for I/O
-        st_flags      : cuint32;           // user defined flags for file
-        st_gen        : cuint32;           // file generation number
-{$ifdef netbsdPowerpc}
-	st_padd2	      : cint;
-{$endif}
-{$ifndef NetBSD}
-        st_lspare     : cint32;
-{$endif}
-        st_qspare     : array[0..1] Of cint64;
-   end;*)
-   stat = packed record
-      dev:longint;     {"device" that this file resides on}
-      ino:int64;       {this file's inode #, unique per device}
-      st_mode:dword;      {mode bits (rwx for user, group, etc)}      
-      nlink:longint;   {number of hard links to this file}
-      uid:dword;       {user id of the owner of this file}
-      gid:dword;       {group id of the owner of this file}
-      st_size:int64;      {size of this file (in bytes)}
-      rdev:longint;    {device type (not used)}
-      blksize:longint; {preferref block size for i/o}
-      atime:longint;   {last access time}
-      st_mtime:longint;   {last modification time}
-      ctime:longint;   {last change time, not creation time}
-      crtime:longint;  {creation time}
+        st_crtime     : time_t;            // time of creation file
+        st_crtimensec : clong;             // nsec of creation file
+		st_type       : cint;              // attribute/index type
+        st_blocks     : fsblkcnt_t;        // blocks allocated for file
    end;
    
    TStat = stat;

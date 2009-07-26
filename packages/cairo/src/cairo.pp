@@ -55,7 +55,20 @@ interface
 Uses CTypes;
 
 const
-  LIB_CAIRO = 'cairo';
+{$ifdef win32}
+  LIB_CAIRO = 'libcairo-2.dll';
+  {$IFDEF FPC}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
+  {$ENDIF}
+{$else}
+  {$ifdef UseCustomLibs}
+  LIB_CAIRO = '';
+  {$else}
+  LIB_CAIRO = 'libcairo.so.2';
+  {$endif}
+{$endif}
 
 {$IFDEF FPC}
   {$PACKRECORDS C}

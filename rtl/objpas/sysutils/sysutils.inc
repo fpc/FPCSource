@@ -108,6 +108,11 @@
   { wide string functions }
   {$i syswide.inc}
 
+{$ifdef FPC_HAS_UNICODESTRING}
+  { unicode string functions }
+  {$i sysuni.inc}
+{$endif FPC_HAS_UNICODESTRING}
+  
   { threading stuff }
   {$i sysuthrd.inc}
 

@@ -32,6 +32,7 @@ type
 
   TCustomSQLScript = class(TComponent)
   private
+    FAutoCommit: Boolean;
     FLine: Integer;
     FCol: Integer;
     FDefines: TStrings;
@@ -75,6 +76,7 @@ type
   protected
     property Aborted: Boolean read FAborted;
     property Line: Integer read GetLine;
+    Property AutoCommit : Boolean Read FAutoCommit Write FAutoCommit;
     property CommentsInSQL: Boolean read FCommentsInSQL write FCommentsInSQL;
     property UseSetTerm: Boolean read FUseSetTerm write FUseSetTerm;
     property UseCommit: Boolean read FUseCommit write FUseCommit;
@@ -401,7 +403,8 @@ begin
       end
     else If Not FIsSkipping then
       begin
-      if FUseCommit and (Directive = 'COMMIT') then
+      // If AutoCommit, skip any explicit commits.
+      if FUseCommit and (Directive = 'COMMIT') and not FAutoCommit then
         InternalCommit
       else if FUseSetTerm and (Directive = 'SET TERM') then
         FTerminator:=S
@@ -411,7 +414,11 @@ begin
     end
   else
     if (not FIsSkipping) then
+      begin
       InternalStatement(FCurrentStatement,FAborted);
+      If FAutoCommit and not FAborted then
+        InternalCommit;
+      end;
 end;
 
 procedure TCustomSQLScript.Execute;

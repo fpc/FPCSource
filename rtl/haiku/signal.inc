@@ -234,7 +234,7 @@ type
   
   Pvregs = ^vregs;
 
-  sigset_t = array[0..3] of Longint;
+  sigset_t = array[0..0] of Longint;
 
     PSigContextRec = ^SigContextRec;
     SigContextRec = record
@@ -304,6 +304,7 @@ type
 
   PSigActionRec = ^SigActionRec;
 
+  {$PACKRECORDS C}
   pstack_t = ^stack_t;
   stack_t = record
     ss_sp: pChar;                       {* signal stack base *}

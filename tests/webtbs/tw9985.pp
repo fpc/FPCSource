@@ -17,9 +17,9 @@ begin
   DiskNum := AddDisk('/');
 {$else}
   { dos/windows/os/2 ... Still needs other cases for other OSes }
-  DiskNum := AddDisk('C:');
+  DiskNum := 3;
 {$endif}
-  Writeln(DiskFree(DiskNum), '/', DiskSize(DiskNum));  
+  Writeln(DiskFree(DiskNum), '/', DiskSize(DiskNum));
   if (disksize(3)<>disksize(disknum)) then
     halt(1);
 end.

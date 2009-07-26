@@ -480,7 +480,7 @@ implementation
               begin
                 block_type:=bt_var_type;
                 consume(_COLON);
-                single_type(pv.returndef,false);
+                single_type(pv.returndef,false,false);
                 block_type:=bt_var;
               end;
              hdef:=pv;
@@ -519,7 +519,7 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,false);
+                   single_type(arrayelementdef,false,false);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
@@ -532,7 +532,7 @@ implementation
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,false);
+                    single_type(hdef,false,false);
                     block_type:=bt_var;
                   end;
 
@@ -919,7 +919,7 @@ implementation
         isclassmethod : boolean;
         locationstr: string;
         old_parse_generic,
-        popclass : boolean;
+        popclass           : boolean;
       begin
         locationstr:='';
         pd:=nil;
@@ -960,7 +960,7 @@ implementation
                              popclass:=true;
                              parse_generic:=(df_generic in pd._class.defoptions);
                            end;
-                         single_type(pd.returndef,false);
+                         single_type(pd.returndef,false,false);
                          if popclass then
                            symtablestack.pop(pd._class.symtable);
                          dec(testcurobject);
@@ -1104,7 +1104,7 @@ implementation
                     end
                   else
                    begin
-                     single_type(pd.returndef,false);
+                     single_type(pd.returndef,false,false);
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
@@ -2349,7 +2349,14 @@ const
                   if assigned(pd._class) then
                    pd.aliasnames.insert(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
                   else
-                   pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    begin
+                      { Export names are not mangled on Windows and OS/2, see also pexports.pas }
+                      if (target_info.system in (system_all_windows+[system_i386_emx, system_i386_os2])) and
+                        (po_exports in pd.procoptions) then
+                        pd.aliasnames.insert(pd.procsym.realname)
+                      else
+                        pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    end;
                 end;
               pocall_cppdecl :
                 begin

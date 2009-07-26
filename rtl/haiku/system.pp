@@ -23,7 +23,7 @@ implementation
 
 procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
 
-function disable_debugger(state : integer): integer; external 'root' name 'disable_debugger';
+function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
 //begin
 //end;
 
@@ -321,14 +321,15 @@ end;
 //void	set_signal_stack(void *ptr, size_t size);
 //int		sigaltstack(const stack_t *ss, stack_t *oss);
 
-procedure set_signal_stack(ptr : pointer; size : size_t); external 'root' name 'set_signal_stack';
-function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; external 'root' name 'sigaltstack'; 
+procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
+function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
 
 type
-  TAlternateSignalStack = record
+  {$PACKRECORDS C}
+  TAlternateSignalStack = packed record
   	case Integer of
-  	  0 : (buffer : array[0..SIGSTKSZ] of Char);
-  	  1 : (ld : int64);
+  	  0 : (buffer : array[0..SIGSTKSZ * 4] of Char);
+  	  1 : (ld : clonglong);
   	  2 : (l : integer);
   	  3 : (p : pointer);
   end;
@@ -340,23 +341,26 @@ procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec)
 var
   r : integer;
   st : stack_t;
+  act : SigActionRec;
 begin
-  FillChar(st, sizeof(st), 0);
-
   st.ss_flags := 0;
-  st.ss_sp := alternate_signal_stack.buffer;
-  st.ss_size := SizeOf(alternate_signal_stack);
+  st.ss_sp := @alternate_signal_stack.buffer;
+  st.ss_size := SizeOf(alternate_signal_stack.buffer);
 
   r := sigaltstack(@st, nil);
 
   if (r <> 0) then
-  	WriteLn('error sigalstack');
+  begin
+    debugger('sigaltstack error');
+  end;
+
   { Initialize the sigaction structure }
   { all flags and information set to zero }
-  FillChar(act, sizeof(SigActionRec),0);
+  FillChar(act, sizeof(SigActionRec), #0);
   { initialize handler                    }
+  act.sa_mask[0] := 0;
   act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags := SA_ONSTACK;
+  act.sa_flags := SA_ONSTACK or SA_NODEFER or SA_RESETHAND;
   FpSigAction(signum,@act,@oldact);
 end;
 

@@ -328,7 +328,7 @@ unit cpubase;
 
     procedure inverse_flags(var r : TResFlags);
     function  flags_to_cond(const f: TResFlags) : TAsmCond;
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
     function reg_cgsize(const reg: tregister): tcgsize;
 
     function findreg_by_number(r:Tregister):tregisterindex;
@@ -407,7 +407,7 @@ implementation
         flags_to_cond := flags2cond[f];
       end;
 
-    function cgsize2subreg(s:Tcgsize):Tsubregister;
+    function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       var p: pointer;
       begin
         case s of

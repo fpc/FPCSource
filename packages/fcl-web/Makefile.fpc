@@ -13,19 +13,19 @@ rsts=fpcgi fphtml fpweb websession cgiapp
 
 # these units are listed separately because they don't work for
 # darwin (which does support the rest of fcl-web)
-units_beos=fastcgi custfcgi fpfcgi
-units_haiku=fastcgi custfcgi fpfcgi
-units_freebsd=fastcgi custfcgi fpfcgi
-units_solaris=fastcgi custfcgi fpfcgi
-units_netbsd=fastcgi custfcgi fpfcgi
-units_openbsd=fastcgi custfcgi fpfcgi
-units_linux=fastcgi custfcgi fpfcgi
-units_win32=fastcgi custfcgi fpfcgi
-units_win64=fastcgi custfcgi fpfcgi
-units_wince=fastcgi custfcgi fpfcgi
+units_beos=custfcgi fpfcgi
+units_haiku=custfcgi fpfcgi
+units_freebsd=custfcgi fpfcgi
+units_solaris=custfcgi fpfcgi
+units_netbsd=custfcgi fpfcgi
+units_openbsd=custfcgi fpfcgi
+units_linux=custfcgi fpfcgi
+units_win32=custfcgi fpfcgi
+units_win64=custfcgi fpfcgi
+units_wince=custfcgi fpfcgi
 
 [require]
-packages=fcl-base fcl-xml fcl-db fcl-process httpd22
+packages=fcl-base fcl-xml fcl-db fcl-process httpd22 fastcgi
 packages_darwin=univint
 
 [compiler]

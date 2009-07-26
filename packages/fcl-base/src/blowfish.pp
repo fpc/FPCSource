@@ -47,6 +47,8 @@ type
 Type
   EBlowFishError = Class(EStreamError);
 
+  { TBlowFishStream }
+
   TBlowFishStream = Class(TOwnerStream)
   Private
     FBF     : TBlowFish;
@@ -55,6 +57,7 @@ Type
     FPos    : Int64;
   Public
     Constructor Create(AKey : TBlowFishKey; AKeySize : Byte; Dest: TStream);
+    Constructor Create(Const KeyPhrase : String; Dest: TStream);
     Destructor Destroy; override;
     Property BlowFish : TBlowFish Read FBF;
   end;
@@ -77,6 +80,7 @@ Implementation
 
 ResourceString
   SNoSeekAllowed  = 'Seek not allowed on encryption streams';
+  SErrEmptyPassPhraseNotAllowed = 'Empty passphrase is not allowed in constructor';
 
 { Blowfish lookup tables }
 
@@ -542,6 +546,22 @@ begin
   FBF:=TBlowFish.Create(AKey,AKeySize);
   FBufPos:=0;
   FPos:=0;
+end;
+
+constructor TBlowFishStream.Create(const KeyPhrase: String; Dest: TStream);
+
+Var
+  KLen : Integer;
+  K : TBlowFishKey;
+
+begin
+  If (KeyPhrase='') then
+    Raise EBlowFishError.Create(SErrEmptyPassPhraseNotAllowed);
+  KLen:=Length(KeyPhrase);
+  If KLen>56 then
+    KLen:=56;
+  Move(KeyPhrase[1],K,Klen);
+  Create(K,KLen,Dest);
 end;
 
 Destructor TBlowFishStream.Destroy;

@@ -472,9 +472,9 @@ unit cpupara;
               begin
                 p.funcretloc[side].size:=retcgsize;
                 if side=callerside then
-                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                 else
-                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
               end;
           end;
       end;
@@ -577,7 +577,7 @@ unit cpupara;
                               { s64comp is pushed in an int register }
                               if paraloc^.size=OS_C64 then
                                 paraloc^.size:=OS_64;
-                              subreg:=cgsize2subreg(paraloc^.size);
+                              subreg:=cgsize2subreg(R_INTREGISTER,paraloc^.size);
                             end;
 
                           { winx64 uses different registers }
@@ -598,11 +598,20 @@ unit cpupara;
                           paraloc:=hp.paraloc[side].add_location;
                           paraloc^.loc:=LOC_MMREGISTER;
 
+                          case paracgsize of
+                            OS_F32:
+                              subreg:=R_SUBMMS;
+                            OS_F64:
+                              subreg:=R_SUBMMD;
+                            else
+                              subreg:=R_SUBMMWHOLE;
+                          end;
+
                           { winx64 uses different registers }
                           if target_info.system=system_x86_64_win64 then
-                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],R_SUBNONE)
+                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs_winx64[mmparareg],subreg)
                           else
-                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],R_SUBNONE);
+                            paraloc^.register:=newreg(R_MMREGISTER,parammsupregs[mmparareg],subreg);
                           if paracgsize=OS_F128 then
                             paraloc^.size:=OS_F64
                           else

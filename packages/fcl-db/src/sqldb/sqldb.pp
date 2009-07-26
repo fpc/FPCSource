@@ -1026,9 +1026,12 @@ end;
 
 procedure TCustomSQLQuery.InternalClose;
 begin
-  if StatementType in [stSelect,stExecProcedure] then FreeFldBuffers;
-// Database and FCursor could be nil, for example if the database is not assigned, and .open is called
-  if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
+  if not IsReadFromPacket then
+    begin
+    if StatementType in [stSelect,stExecProcedure] then FreeFldBuffers;
+    // Database and FCursor could be nil, for example if the database is not assigned, and .open is called
+    if (not IsPrepared) and (assigned(database)) and (assigned(FCursor)) then TSQLConnection(database).UnPrepareStatement(FCursor);
+    end;
   if DefaultFields then
     DestroyFields;
   FIsEOF := False;
@@ -1216,7 +1219,8 @@ begin
   ReadFromFile:=IsReadFromPacket;
   if ReadFromFile then
     begin
-    FCursor:=TSQLCursor.Create;
+    if not assigned(fcursor) then
+      FCursor := TSQLConnection(Database).AllocateCursorHandle;
     FCursor.FStatementType:=stSelect;
     FUpdateable:=True;
     end

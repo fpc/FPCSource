@@ -1,0 +1,24 @@
+#
+#   Makefile.fpc for FastCGI
+#
+
+[package]
+name=fastcgi
+version=2.2.2
+
+[target]
+units=fastcgi
+
+[compiler]
+options=-S2h
+sourcedir=src
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+
+[rules]
+.NOTPARALLEL:

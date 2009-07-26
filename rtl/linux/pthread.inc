@@ -174,7 +174,7 @@ Type
     function sem_close (__sem:Psem_t):longint;cdecl;external;
     function sem_unlink (__name:Pchar):longint;cdecl;external;
     function sem_wait (__sem:Psem_t):longint;cdecl;external;
-    function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;
+    function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;external;
     function sem_trywait  (__sem:Psem_t):longint;cdecl;external;
     function sem_post     (__sem:Psem_t):longint;cdecl;external;
     function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;

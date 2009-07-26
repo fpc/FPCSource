@@ -658,3 +658,69 @@ asm
 end;
 
 {$endif}
+
+{****************************************************************************
+                          Math Routines
+****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+{ SwapEndian(<16 Bit>) being inlined is faster than using assembler }
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
+  end;
+
+
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result := Word((AValue shr 8) or (AValue shl 8));
+  end;
+
+
+function SwapEndian(const AValue: LongInt): LongInt; assembler;
+asm
+{$ifdef win64}
+  movl %ecx, %eax
+{$else win64}
+  movl %edi, %eax
+{$endif win64}
+  bswap %eax
+end;
+
+
+function SwapEndian(const AValue: DWord): DWord; assembler;
+asm
+{$ifdef win64}
+  movl %ecx, %eax
+{$else win64}
+  movl %edi, %eax
+{$endif win64}
+  bswap %eax
+end;
+
+
+function SwapEndian(const AValue: Int64): Int64; assembler;
+asm
+{$ifdef win64}
+  movq %rcx, %rax
+{$else win64}
+  movq %rdi, %rax
+{$endif win64}
+  bswap %rax
+end;
+
+
+function SwapEndian(const AValue: QWord): QWord; assembler;
+asm
+{$ifdef win64}
+  movq %rcx, %rax
+{$else win64}
+  movq %rdi, %rax
+{$endif win64}
+  bswap %rax
+end;

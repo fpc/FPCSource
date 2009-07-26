@@ -336,21 +336,37 @@ var
   s: string;
   ElFlags: THTMLElementFlags;
   j: THTMLElementTag;
+  meta: Boolean;
 begin
   if not FInsideTextNode then
     wrtIndent;
-    
+
+  meta := False;
   s := LowerCase(node.NodeName);
   ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
     if HTMLElementProps[J].Name = s then
     begin
       ElFlags := HTMLElementProps[j].Flags;
+      if j = etMeta then
+        meta := True;
       break;
     end;
 
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
+
+  { Force charset label to utf-8, because it is the encoding we actually write }
+  if meta then
+  begin
+    s := TDOMElement(node).GetAttribute('http-equiv');
+    if SameText(s, 'content-type') then
+    begin
+      wrtStr(' content="text/html; charset=utf-8" http-equiv="Content-Type">');
+      Exit;
+    end;
+  end;
+
   if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
     begin

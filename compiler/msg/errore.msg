@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03261 is the last used one
+# 03262 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1181,43 +1181,51 @@ parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or p
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
 % that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
 % such as \var{default} and \var{register} also as field names.
-parser_e_objc_requires_msgstr=03252_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
+parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definitions. Use a separate type definition in a type block.
+% In Pascal, types are not considered to be identical simply because they are semantically equivalent.
+% Two variables or parameters are only considered to be of the same type if they refer to the
+% same type definition.
+% As a result, it is not allowed to define new types inside parameter lists, because then it is impossible to
+% refer to the same type definition in the procedure headers of the interface and implementation of a unit
+% (both procedure headers would define a separate type). Keep in mind that expressions such as
+% ``file of byte'' or ``string[50]'' also define a new type.
+parser_e_objc_requires_msgstr=03253_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
 % Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
 % While bindings to other languages automatically generate such names based on the identifier you use (by replacing
 % all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
 % colons.
-parser_e_objc_no_constructor_destructor=03253_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
+parser_e_objc_no_constructor_destructor=03254_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
 % The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
 % purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
 % guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
 % inherited ``constructors''). For these reasons, we have opted to follow the standard Objective-C patterns for
 % instance creation/destruction.
-parser_e_message_string_too_long=03254_E_Message name is too long (max. 255 characters)
+parser_e_message_string_too_long=03255_E_Message name is too long (max. 255 characters)
 % Due to compiler implementation reasons, message names are currently limited to 255 characters.
-parser_e_objc_message_name_too_long=03255_E_Objective-C message symbol name for "$1" is too long
+parser_e_objc_message_name_too_long=03256_E_Objective-C message symbol name for "$1" is too long
 % Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
 % code) are currently limited to 255 characters.
-parser_h_no_objc_parent=03256_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
+parser_h_no_objc_parent=03257_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
 % If no parent class is specified for an Object Pascal class, then it automatically derives from TObject.
 % Objective-C classes however do not automatically derive from NSObject, because one can have multiple
 % root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
 % Therefore, you have to explicitly define a parent class (such as NSObject) if you want to derive your
 % Objective-C class from it.
-parser_e_no_objc_published=03257_E_Objective-C classes cannot have published sections.
+parser_e_no_objc_published=03258_E_Objective-C classes cannot have published sections.
 % In Object Pascal, ``published'' determines whether or not RTTI is generated. Since the Objective-C runtime always needs
 % RTTI for everything, this specified does not make sense for Objective-C classes.
-parser_f_need_objc=03258_F_This module requires an Objective-C mode switch to be compiled
+parser_f_need_objc=03259_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03259_E_Inherited methods can only be overridden in Objective-C, add ``override''.
-parser_h_should_use_override_objc=03260_H_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_e_must_use_override_objc=03260_E_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_h_should_use_override_objc=03261_H_Inherited methods can only be overridden in Objective-C, add ``override''.
 % It is not possible to ``reintroduce'' methods in Objective-C like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the ``override'' directive to be specified when implementing overriding
 % Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
 % does not have any ``override''-style keyword (since it's the default and only behaviour in that language),
 % which makes it hard for automated header conversion tools to include it everywhere.
-parser_e_objc_message_name_changed=03261_E_Message name "$1" in inherited class is different from message name "$2" in current class.
+parser_e_objc_message_name_changed=03262_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
@@ -2476,8 +2484,8 @@ option_usage=11000_O_$1 [options] <inputfile> [options]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_Only one source file supported
-% You can specify only one source file on the command line. The first
+option_only_one_source_support=11001_W_Only one source file supported, changing source file to compile from "$1" into "$2"
+% You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
 option_def_only_for_os2=11002_W_DEF file can be created only for OS/2
@@ -2988,7 +2996,7 @@ P*2WX_Enable executable stack (Linux)
 **2Xm_Generate link map
 **2XM<x>_Set the name of the 'main' program routine (default is 'main')
 **2XP<x>_Prepend the binutils names with the prefix <x>
-**2Xr<x>_Set library search path to <x> (needed for cross compile) (BeOS, Linux)
+**2Xr<x>_Set the linker's rlink-path to <x> (needed for cross compile, see the ld manual for more information) (BeOS, Linux)
 **2XR<x>_Prepend <x> to all linker search paths (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Strip all symbols from executable
 **2XS_Try to link units statically (default, defines FPC_LINK_STATIC)

@@ -13,44 +13,44 @@ dirs_powerpc64_linux=graph
 dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
-dirs_beos=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_beos=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
-dirs_haiku=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_haiku=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
-dirs_freebsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                users iconvenc
-dirs_darwin=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc
 dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl
 dirs_powerpc_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib objcrtl
 dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_arm_darwin= httpd13 httpd20 httpd22 opengles objcrtl
-dirs_solaris=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi  openssl gnome1 httpd13 httpd20 httpd22 numlib
-dirs_netbsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
+dirs_netbsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
-dirs_openbsd=fv fcl-web fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
+dirs_openbsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc  postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
-dirs_linux=fv fcl-web fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
+dirs_linux=fv fcl-web fastcgi fcl-async ibase mysql ncurses unzip zlib oracle dbus odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 uuid ldap modplug dts mad  gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg \
                a52 bfd aspell svgalib newt cdrom users  iconvenc libxml proj4 \
                imlib utmp  fpgtk openal lua oggvorbis xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
-dirs_win32=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
+dirs_win32=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick \
                gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua \
                oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml
-dirs_win64=fv winunits-base winunits-jedi fcl-web ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-                tcl opengl gtk1 gtk2 librsvg fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib
-dirs_wince=winceunits httpd22 fcl-web tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
+dirs_win64=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick \
+                tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib
+dirs_wince=winceunits httpd22 fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_netware=fv zlib unzip
@@ -140,11 +140,11 @@ fcl-net_release: fcl-passrc_release fcl-xml_release fcl-async_release
 fcl-net_shared: fcl-passrc_shared fcl-xml_shared fcl-async_shared
 endif
 
-fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all httpd22_all
-fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug
-fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart
-fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release httpd22_release
-fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared
+fcl-web_all: fcl-db_all fcl-xml_all fcl-process_all httpd22_all fastcgi_all
+fcl-web_debug: fcl-db_debug fcl-xml_debug fcl-process_debug httpd22_debug fastcgi_debug
+fcl-web_smart: fcl-db_smart fcl-xml_smart fcl-process_smart httpd22_smart fastcgi_smart
+fcl-web_release: fcl-db_release fcl-xml_release fcl-process_release httpd22_release fastcgi_release
+fcl-web_shared: fcl-db_shared fcl-xml_shared fcl-process_shared httpd22_shared fastcgi_shared
 
 ifneq ($(findstring $(OS_TARGET),linux freebsd openbsd netbsd win32 beos haiku),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all pxlib_all
@@ -227,11 +227,11 @@ gtk1_smart: x11_smart opengl_smart
 gtk1_release: x11_release opengl_release
 gtk1_shared: x11_shared opengl_shared
 
-gtk2_all: x11_all
-gtk2_shared: x11_shared
-gtk2_smart: x11_smart
-gtk2_debug: x11_debug
-gtk2_release: x11_release
+gtk2_all: x11_all cairo_all
+gtk2_shared: x11_shared cairo_shared
+gtk2_smart: x11_smart cairo_smart
+gtk2_debug: x11_debug cairo_debug
+gtk2_release: x11_release cairo_release
 else
 ifeq ($(findstring $(OS_TARGET),os2 emx),)
 gtk1_all:  opengl_all
@@ -240,6 +240,12 @@ gtk1_smart:  opengl_smart
 gtk1_release:  opengl_release
 gtk1_shared:  opengl_shared
 endif
+
+gtk2_all: cairo_all
+gtk2_shared: cairo_shared
+gtk2_smart: cairo_smart
+gtk2_debug: cairo_debug
+gtk2_release: cairo_release
 endif
 
 imlib_all: gtk1_all x11_all

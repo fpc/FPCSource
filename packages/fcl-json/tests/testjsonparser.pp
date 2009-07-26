@@ -41,6 +41,7 @@ type
     procedure TestFalse;
     procedure TestFloat;
     procedure TestInteger;
+    procedure TestInt64;
     procedure TestString;
     procedure TestArray;
     procedure TestObject;
@@ -82,6 +83,26 @@ begin
       Fail('Parse of 1 fails');
     TestJSONType(J,jtNumber);
     TestAsInteger(J,1);
+  Finally
+    FreeAndNil(J);
+    FreeAndNil(P);
+  end;
+end;
+
+procedure TTestParser.TestInt64;
+
+Var
+  P : TJSONParser;
+  J : TJSONData;
+
+begin
+  P:=TJSONParser.Create('123456789012345');
+  Try
+    J:=P.Parse;
+    If (J=Nil) then
+      Fail('Parse of 123456789012345 fails');
+    TestJSONType(J,jtNumber);
+    TestAsInt64(J,123456789012345);
   Finally
     FreeAndNil(J);
     FreeAndNil(P);
@@ -185,6 +206,9 @@ begin
   DoTestArray('[1]',1);
   DoTestArray('[1, 2]',2);
   DoTestArray('[1, 2, 3]',3);
+  DoTestArray('[1234567890123456]',1);
+  DoTestArray('[1234567890123456, 2234567890123456]',2);
+  DoTestArray('[1234567890123456, 2234567890123456, 3234567890123456]',3);
   Str(1.2,S1);
   Str(2.3,S2);
   Str(3.4,S3);

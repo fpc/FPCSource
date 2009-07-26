@@ -1,4 +1,4 @@
-{ %OPT=-Nu }
+{ %OPT=-Ooloopunroll }
 var
   i : integer;
   s : single;

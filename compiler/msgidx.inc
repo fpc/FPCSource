@@ -339,16 +339,17 @@ const
   parser_e_forward_mismatch=03249;
   parser_n_ignore_lower_visibility=03250;
   parser_e_field_not_allowed_here=03251;
-  parser_e_objc_requires_msgstr=03252;
-  parser_e_objc_no_constructor_destructor=03253;
-  parser_e_message_string_too_long=03254;
-  parser_e_objc_message_name_too_long=03255;
-  parser_h_no_objc_parent=03256;
-  parser_e_no_objc_published=03257;
-  parser_f_need_objc=03258;
-  parser_e_must_use_override_objc=03259;
-  parser_h_should_use_override_objc=03260;
-  parser_e_objc_message_name_changed=03261;
+  parser_e_no_local_para_def=03252;
+  parser_e_objc_requires_msgstr=03253;
+  parser_e_objc_no_constructor_destructor=03254;
+  parser_e_message_string_too_long=03255;
+  parser_e_objc_message_name_too_long=03256;
+  parser_h_no_objc_parent=03257;
+  parser_e_no_objc_published=03258;
+  parser_f_need_objc=03259;
+  parser_e_must_use_override_objc=03260;
+  parser_h_should_use_override_objc=03261;
+  parser_e_objc_message_name_changed=03262;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -800,9 +801,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52451;
+  MsgTxtSize = 52654;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,262,89,65,51,108,22,202,62,
+    24,87,263,89,65,51,108,22,202,62,
     47,20,1,1,1,1,1,1,1,1
   );

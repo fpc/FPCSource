@@ -666,7 +666,11 @@ implementation
           begin
              case nodetype of
                 addn :
-                  t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                  begin
+                    t:=cstringconstnode.createpchar(concatansistrings(s1,s2,l1,l2),l1+l2);
+                    typecheckpass(t);
+                    tstringconstnode(t).changestringtype(resultdef);
+                  end;
                 ltn :
                   t:=cordconstnode.create(byte(compareansistrings(s1,s2,l1,l2)<0),booltype,true);
                 lten :

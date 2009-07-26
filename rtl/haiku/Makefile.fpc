@@ -1,5 +1,5 @@
 #
-#   Makefile.fpc for Free Pascal BeOS RTL
+#   Makefile.fpc for Free Pascal Haiku RTL
 #
 
 [package]
@@ -32,8 +32,8 @@ target=haiku
 cpu=i386
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(OSPROCINC) $(BEOSINC)
-sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(BEOSINC)
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(OSPROCINC) $(HAIKUINC)
+sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(CPU_TARGET) $(HAIKUINC)
 targetdir=.
 
 [lib]
@@ -52,7 +52,7 @@ RTL=..
 INC=$(RTL)/inc
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
-BEOSINC=$(RTL)/beos
+HAIKUINC=$(RTL)/haiku
 
 UNITPREFIX=rtl
 

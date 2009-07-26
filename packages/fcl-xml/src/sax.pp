@@ -27,6 +27,8 @@ uses SysUtils, Classes;
 
 resourcestring
   SSAXAttributeIndexError = 'Invalid attribute index %d';
+  SSAXUnrecognizedFeature = 'Unknown SAX feature: "%s"';
+  SSAXUnrecognizedProperty = 'Unknown SAX property: "%s"';
 
 const
   XMLNS = 'http://www.w3.org/XML/1998/namespace';
@@ -47,6 +49,7 @@ type
   end;
 
   ESAXParseException = class(ESAXError);
+  ESAXNotRecognizedException = class(ESAXError);
 
 
 { TSAXInputSource: A single input source for an XML entity }
@@ -175,40 +178,40 @@ type
     FCurColumnNumber, FCurLineNumber: Integer;
     FCurPublicID, FCurSystemID: SAXString;
 
-    function GetFeature(const Name: String): Boolean; dynamic; abstract;
-    function GetProperty(const Name: String): TObject; dynamic; abstract;
-    procedure SetFeature(const Name: String; Value: Boolean); dynamic; abstract;
-    procedure SetProperty(const Name: String; Value: TObject); dynamic; abstract;
+    function GetFeature(const Name: String): Boolean; virtual;
+    function GetProperty(const Name: String): TObject; virtual;
+    procedure SetFeature(const Name: String; Value: Boolean); virtual;
+    procedure SetProperty(const Name: String; Value: TObject); virtual;
 
     // Notification of the content of a document
-    procedure DoCharacters(const ch: PSAXChar; AStart, ALength: Integer); dynamic;
-    procedure DoComment(const ch: PSAXChar; AStart, ALength: Integer); dynamic;
-    procedure DoEndDocument; dynamic;
-    procedure DoEndElement(const NamespaceURI, LocalName, QName: SAXString); dynamic;
-    procedure DoEndPrefixMapping(const Prefix: SAXString); dynamic;
-    procedure DoIgnorableWhitespace(const ch: PSAXChar; AStart, ALength: Integer); dynamic;
-    procedure DoProcessingInstruction(const Target, Data: SAXString); dynamic;
-    procedure DoSkippedEntity(const Name: SAXString); dynamic;
-    procedure DoStartDocument; dynamic;
-    procedure DoStartElement(const NamespaceURI, LocalName, QName: SAXString; Atts: TSAXAttributes); dynamic;
-    procedure DoStartPrefixMapping(const Prefix, URI: SAXString); dynamic;
+    procedure DoCharacters(const ch: PSAXChar; AStart, ALength: Integer); virtual;
+    procedure DoComment(const ch: PSAXChar; AStart, ALength: Integer); virtual;
+    procedure DoEndDocument; virtual;
+    procedure DoEndElement(const NamespaceURI, LocalName, QName: SAXString); virtual;
+    procedure DoEndPrefixMapping(const Prefix: SAXString); virtual;
+    procedure DoIgnorableWhitespace(const ch: PSAXChar; AStart, ALength: Integer); virtual;
+    procedure DoProcessingInstruction(const Target, Data: SAXString); virtual;
+    procedure DoSkippedEntity(const Name: SAXString); virtual;
+    procedure DoStartDocument; virtual;
+    procedure DoStartElement(const NamespaceURI, LocalName, QName: SAXString; Atts: TSAXAttributes); virtual;
+    procedure DoStartPrefixMapping(const Prefix, URI: SAXString); virtual;
 
     // Notification of basic DTD-related events
-    procedure DoNotationDecl(const Name, PublicID, SystemID: SAXString); dynamic;
+    procedure DoNotationDecl(const Name, PublicID, SystemID: SAXString); virtual;
     procedure DoUnparsedEntityDecl(const Name, PublicID,
-      SystemID, NotationName: SAXString); dynamic;
+      SystemID, NotationName: SAXString); virtual;
 
     // Resolving entities
     function DoResolveEntity(const PublicID,
-      SystemID: SAXString): TSAXInputSource; dynamic;
+      SystemID: SAXString): TSAXInputSource; virtual;
 
     // SAX error handlers
-    procedure DoError(AException: ESAXParseException); dynamic;
-    procedure DoFatalError(AException: ESAXParseException); dynamic;
-    procedure DoWarning(AException: ESAXParseException); dynamic;
+    procedure DoError(AException: ESAXParseException); virtual;
+    procedure DoFatalError(AException: ESAXParseException); virtual;
+    procedure DoWarning(AException: ESAXParseException); virtual;
   public
-    procedure Parse(AInput: TSAXInputSource); dynamic; abstract; overload;
-    procedure Parse(const SystemID: SAXString); dynamic; overload;
+    procedure Parse(AInput: TSAXInputSource); virtual; abstract; overload;
+    procedure Parse(const SystemID: SAXString); virtual; overload;
     procedure ParseStream(AStream: TStream);
 
     // Current location
@@ -670,6 +673,28 @@ procedure TSAXReader.DoUnparsedEntityDecl(const Name, PublicID,
 begin
   if Assigned(OnUnparsedEntityDecl) then
     OnUnparsedEntityDecl(Self, Name, PublicID, SystemID, NotationName);
+end;
+
+function TSAXReader.GetFeature(const Name: String): Boolean;
+begin
+  raise ESAXNotRecognizedException.CreateFmt(SSAXUnrecognizedFeature, [Name]);
+  Result := False;
+end;
+
+function TSAXReader.GetProperty(const Name: String): TObject;
+begin
+  raise ESAXNotRecognizedException.CreateFmt(SSAXUnrecognizedProperty, [Name]);
+  Result := nil;
+end;
+
+procedure TSAXReader.SetFeature(const Name: String; Value: Boolean);
+begin
+  raise ESAXNotRecognizedException.CreateFmt(SSAXUnrecognizedFeature, [Name]);
+end;
+
+procedure TSAXReader.SetProperty(const Name: String; Value: TObject);
+begin
+  raise ESAXNotRecognizedException.CreateFmt(SSAXUnrecognizedProperty, [Name]);
 end;
 
 procedure TSAXReader.DoCharacters(const ch: PSAXChar;

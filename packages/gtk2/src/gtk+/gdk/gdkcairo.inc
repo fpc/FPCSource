@@ -1,7 +1,6 @@
 // included by gdk2.pp
 
 {$IFDEF read_interface_types}
-  Pcairo_t = pointer;
 {$ENDIF read_interface_types}
 
 //------------------------------------------------------------------------------

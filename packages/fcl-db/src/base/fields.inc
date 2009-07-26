@@ -1006,13 +1006,19 @@ begin
   FSize:=20;
 end;
 
+procedure TStringField.SetFieldType(AValue: TFieldType);
+begin
+  if avalue in [ftString, ftFixedChar] then
+    SetDataType(AValue);
+end;
+
 class procedure TStringField.CheckTypeSize(AValue: Longint);
 
 begin
 // A size of 0 is allowed, since for example Firebird allows
 // a query like: 'select '' as fieldname from table' which
 // results in a string with size 0.
-  If (AValue<0) or (AValue>dsMaxStringSize) Then
+  If (AValue<0) Then
     databaseErrorFmt(SInvalidFieldSize,[AValue])
 end;
 
@@ -1065,7 +1071,10 @@ end;
 function TStringField.GetDataSize: Integer;
 
 begin
-  Result:=Size+1;
+  if DataType=ftFixedChar then
+    Result:=Size
+  else
+    Result:=Size+1;
 end;
 
 function TStringField.GetDefaultWidth: Longint;
@@ -1083,19 +1092,39 @@ end;
 function TStringField.GetValue(var AValue: string): Boolean;
 
 Var Buf, TBuf : TStringFieldBuffer;
+    DynBuf, TDynBuf : Array of char;
 
 begin
-  Result:=GetData(@Buf);
-  If Result then
+  if DataSize <= dsMaxStringSize then
     begin
-    if transliterate then
+    Result:=GetData(@Buf);
+    If Result then
       begin
-      DataSet.Translate(Buf,TBuf,False);
-      AValue:=TBuf;
+      if transliterate then
+        begin
+        DataSet.Translate(Buf,TBuf,False);
+        AValue:=TBuf;
+        end
+      else
+        AValue:=Buf
       end
-    else
-      AValue:=Buf
     end
+  else
+    begin
+    SetLength(DynBuf,DataSize);
+    Result:=GetData(@DynBuf[0]);
+    If Result then
+      begin
+      if transliterate then
+        begin
+        SetLength(TDynBuf,DataSize);
+        DataSet.Translate(@DynBuf[0],@TDynBuf[0],False);
+        AValue:=pchar(TDynBuf);
+        end
+      else
+        AValue:=pchar(DynBuf);
+      end
+    end;
 end;
 
 procedure TStringField.SetAsBoolean(AValue: Boolean);
@@ -1166,7 +1195,7 @@ begin
 // A size of 0 is allowed, since for example Firebird allows
 // a query like: 'select '' as fieldname from table' which
 // results in a string with size 0.
-  If (AValue<0) or (AValue>(dsMaxStringSize div 2)) Then
+  If (AValue<0) Then
     databaseErrorFmt(SInvalidFieldSize,[AValue]);
 end;
 

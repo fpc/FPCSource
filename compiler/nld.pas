@@ -837,7 +837,7 @@ implementation
         Do this only if we didn't convert the arrayconstructor yet. This
         is needed for the cases where the resultdef is forced for a second
         run }
-        if (not allow_array_constructor) then
+        if not(allow_array_constructor) then
          begin
            hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(tnode(hp));

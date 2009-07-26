@@ -139,10 +139,8 @@ Function Do_IsDevice(Handle:Longint):boolean;
   Data points to data needed for the Ndx function. The structure of this
   data is function-dependent.
 }
-CONST
-  IOCtl_TCGETS=$5401;
-var
-  Data : array[0..255] of byte; {Large enough for termios info}
 begin
-  Do_IsDevice:=(Fpioctl(handle,IOCTL_TCGETS,@data)<>-1);
+  do_isdevice:= (handle=StdInputHandle) or
+                (handle=StdOutputHandle) or
+                (handle=StdErrorHandle);
 end;

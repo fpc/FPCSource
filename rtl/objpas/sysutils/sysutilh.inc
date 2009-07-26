@@ -222,6 +222,11 @@ Type
   { wide string functions }
   {$i syswideh.inc}
 
+{$ifdef FPC_HAS_UNICODESTRING}
+  { unicode string functions }
+  {$i sysunih.inc}
+{$endif FPC_HAS_UNICODESTRING}
+  
   { Read filename handling functions declaration }
   {$i finah.inc}
 

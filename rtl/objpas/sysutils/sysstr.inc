@@ -35,18 +35,21 @@ begin
    end;
 end;
 
+{$ifdef dummy}
+{ declaring this breaks delphi compatibility and e.g. tw3721.pp }
 FUNCTION NewStr (Const S: ShortString): PShortString;
 VAR P: PShortString;
 BEGIN
-   If (S = '') Then 
-     P := Nil 
-    Else 
+   If (S = '') Then
+     P := Nil
+    Else
      Begin               { Return nil }
      GetMem(P, Length(S) + 1);                        { Allocate memory }
      If (P<>Nil) Then P^ := S;                        { Hold string }
      End;
    NewStr := P;                                       { Return result }
 END;
+{$endif dummy}
 
 {   DisposeStr frees the memory occupied by S   }
 
@@ -251,7 +254,7 @@ end;
 
 type
   TCaseTranslationTable = array[0..255] of char;
-  
+
 var
   { Tables with upper and lowercase forms of character sets.
     MUST be initialized with the correct code-pages }
@@ -333,7 +336,7 @@ begin
     Result:=Ord(S1^)-Ord(S2^); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  end;  
+  end;
   if (Result=0) and (S1^<>S2^) then // loop ended because exactly one has #0
     if S1^=#0 then // shorter string is smaller
       result:=-1
@@ -1759,7 +1762,7 @@ begin
 end;
 
 // from textmode IDE util funcs.
-function BoolToStr(B: boolean; const TrueS, FalseS: string): string; 
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
 begin
   if B then Result:=TrueS else BoolToStr:=FalseS;
 end;
@@ -2048,7 +2051,7 @@ Var
         places, remove decimal point. }
       If (DecimalPoint < len) And (Digits[DecimalPoint + 1] = ' ') Then
           Digits[DecimalPoint] := ' ';
-      { Convert spaces left from obligatory decimal point to zeroes. 
+      { Convert spaces left from obligatory decimal point to zeroes.
         MVC : If - sign is encountered, replace it too, and put at position 1}
       I:=DecimalPoint-Placehold[2];
       J:=0;
@@ -2085,7 +2088,7 @@ Var
 
       { Find and cut out exponent. Always the
         last 6 characters in the string.
-        -> 0000E+0000                         
+        -> 0000E+0000
         *** No, not always the last 6 characters, this depends on
             the maximally supported precision (JM)}
       I:=Pos('E',Digits);
@@ -2306,6 +2309,7 @@ End;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 var
   Buffer: String[254];  //Though str func returns only 25 chars, this might change in the future
+  InfNan: string[3];
   Error, N, L, Start, C: Integer;
   GotNonZeroBeforeDot, BeforeDot : boolean;
 begin
@@ -2329,7 +2333,26 @@ begin
     Inc(N);
   Result.Negative := (Buffer[N] = '-');
   if Result.Negative then
-    Inc(N);
+    Inc(N)
+  else if (Buffer[N] = '+') then
+    inc(N);
+  { special cases for Inf and Nan }
+  if (L>=N+2) then
+    begin
+      InfNan:=copy(Buffer,N,3);
+      if (InfNan='Inf') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=32767;
+          exit
+        end;
+      if (InfNan='Nan') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=-32768;
+          exit
+        end;
+    end;
   Start := N;  //Start of digits
   Result.Exponent := 0; BeforeDot := true;
   GotNonZeroBeforeDot := false;
@@ -2820,7 +2843,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
       while (Length(s) > n) and (s[n] = ' ')  do
         inc(n);
       while (Length(s) >= n) and
-            (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E']) do
+            (s[n] in ['0'..'9', '+', '-', DecimalSeparator, 'e', 'E']) do
         begin
           s1 := s1+s[n];
           inc(n);

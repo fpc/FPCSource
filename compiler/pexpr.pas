@@ -39,7 +39,7 @@ interface
     { reads a single factor }
     function factor(getaddr : boolean) : tnode;
 
-    procedure string_dec(var def: tdef);
+    procedure string_dec(var def: tdef; allowtypedef: boolean);
 
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
 
@@ -87,7 +87,7 @@ implementation
        { last def found, only used by anon. inherited calls to insert proper type casts }
        srdef : tdef = nil;
 
-    procedure string_dec(var def:tdef);
+    procedure string_dec(var def:tdef; allowtypedef: boolean);
     { reads a string type with optional length }
     { and returns a pointer to the string      }
     { definition                               }
@@ -96,8 +96,11 @@ implementation
       begin
          def:=cshortstringtype;
          consume(_STRING);
-         if try_to_consume(_LECKKLAMMER) then
+         if (token=_LECKKLAMMER) then
            begin
+              if not(allowtypedef) then
+                Message(parser_e_no_local_para_def);
+              consume(_LECKKLAMMER);
               p:=comp_expr(true);
               if not is_constintnode(p) then
                 begin
@@ -2387,7 +2390,7 @@ implementation
 
            _STRING :
              begin
-               string_dec(hdef);
+               string_dec(hdef,true);
                { STRING can be also a type cast }
                if try_to_consume(_LKLAMMER) then
                 begin

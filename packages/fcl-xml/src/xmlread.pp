@@ -201,7 +201,7 @@ type
     DTDSubsetType: TDTDSubsetType;
     constructor Create(const AData: WideString);
     procedure NextChar;
-    procedure NewLine(p: PWideChar); virtual;
+    procedure NewLine; virtual;
     function SkipUntil(var ToFill: TWideCharBuf; const Delim: TSetOfChar;
       wsflag: PBoolean = nil): WideChar; virtual;
     procedure Initialize; virtual;
@@ -228,7 +228,7 @@ type
     procedure AfterConstruction; override;
     destructor Destroy; override;
     function SetEncoding(const AEncoding: string): Boolean; override;
-    procedure NewLine(p: PWideChar); override;
+    procedure NewLine; override;
     function SkipUntil(var ToFill: TWideCharBuf; const Delim: TSetOfChar;
       wsflag: PBoolean = nil): WideChar; override;
     procedure Initialize; override;
@@ -844,10 +844,10 @@ begin
   Result := False;
 end;
 
-procedure TXMLCharSource.NewLine(p: PWideChar);
+procedure TXMLCharSource.NewLine;
 begin
   Inc(FLineNo);
-  LFPos := p;
+  LFPos := FBuf;
 end;
 
 function TXMLCharSource.SkipUntil(var ToFill: TWideCharBuf; const Delim: TSetOfChar;
@@ -860,7 +860,7 @@ begin
   nonws := False;
   repeat
     if FBuf^ = #10 then
-      NewLine(FBuf);
+      NewLine;
     if (FBuf^ < #255) and (Char(ord(FBuf^)) in Delim) then
       Break;
     if (FBuf^ > #32) or not (Char(ord(FBuf^)) in [#32, #9, #10, #13]) then
@@ -910,8 +910,11 @@ begin
 // count line endings to obtain correct error location
   while FBuf < FBufEnd do
   begin
-    if FBuf^ = #10 then
+    if (FBuf^ = #10) or (FBuf^ = #13) or (FXML11Rules and ((FBuf^ = #$85) or (FBuf^ = #$2028))) then
     begin
+      if (FBuf^ = #13) and (FBuf < FBufEnd-1) and
+      ((FBuf[1] = #10) or (FXML11Rules and (FBuf[1] = #$85))) then
+        Inc(FBuf);
       LFPos := FBuf;
       Inc(FLineNo);
     end;
@@ -1039,17 +1042,16 @@ begin
     Result := False;
 end;
 
-procedure TXMLDecodingSource.NewLine(p: PWideChar);
+procedure TXMLDecodingSource.NewLine;
 begin
-  case p^ of
+  case FBuf^ of
     #10: begin
       Inc(FLineNo);
-      LFPos := p;
+      LFPos := FBuf;
     end;
     #13: begin
-      FBuf := p;
       Inc(FLineNo);
-      LFPos := p;
+      LFPos := FBuf;
       // Reload trashes the buffer, it should be consumed beforehand
       if (FBufEnd >= FBuf+2) or Reload then
       begin
@@ -1063,9 +1065,9 @@ begin
     end;
     #$85, #$2028: if FXML11Rules then
     begin
-      p^ := #10;
+      FBuf^ := #10;
       Inc(FLineNo);
-      LFPos := p;
+      LFPos := FBuf;
     end;
   end;
 end;
@@ -1353,7 +1355,7 @@ begin
       if (p^ = #10) or (p^ = #13) or (FXML11 and ((p^ = #$85) or (p^ = #$2028))) then
       begin
         FSource.FBuf := p;
-        FSource.NewLine(p);
+        FSource.NewLine;
         p := FSource.FBuf;
       end
       else if (p^ <> #32) and (p^ <> #9) then
@@ -2403,6 +2405,7 @@ var
   AttDef: TDOMAttrDef;
   dt: TAttrDataType;
   Found, DiscardIt: Boolean;
+  Offsets: array [Boolean] of Integer;
 begin
   ExpectWhitespace;
   ElDef := FindOrCreateElDef;
@@ -2481,10 +2484,16 @@ begin
             ExpectWhitespace;
           end;
         end
-        else if Found then
-          ExpectWhitespace
         else
-          FatalError('Illegal attribute type for ''%s''', [AttDef.Name]);
+        begin
+          // don't report 'expected whitespace' if token does not match completely
+          Offsets[False] := 0;
+          Offsets[True] := Length(AttrDataTypeNames[dt]);
+          if Found and (FSource.FBuf^ < 'A') then
+            ExpectWhitespace
+          else
+            FatalError('Illegal attribute type for ''%s''', [AttDef.Name], Offsets[Found]);
+        end;
       end;
       StoreLocation(FTokenStart);
       if FSource.Matches('#REQUIRED') then
@@ -2805,7 +2814,7 @@ begin
       begin
 // strictly this is needed only for 2-byte lineendings
         BufAppendChunk(ToFill, old, FBuf);
-        NewLine(FBuf);
+        NewLine;
         old := FBuf;
         wc := FBuf^
       end

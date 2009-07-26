@@ -1194,7 +1194,7 @@ type
   end;
 
   {$IFNDEF JWA_INCLUDEMODE}
-  ULONG_PTR = LongWord;
+  ULONG_PTR = PtrUint;
   {$ENDIF JWA_INCLUDEMODE}
 
   tagIDLDESC = packed record

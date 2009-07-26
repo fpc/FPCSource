@@ -976,50 +976,66 @@ type
     CompFunction: TLocateCompareFunction;
   end;
 
-function CompInsensitivePartial(Value: PChar; const Key: String): Boolean;
+function CompInsensitivePartial(UTF8Value: PChar; const AnsiKey: String): Boolean;
+var
+  AnsiValue: AnsiString;
 begin
-  if Value <> nil then
-    Result := StrLIComp(Value, PChar(Key), Length(Key)) = 0
+  //see comments of CompInsensitive and CompInsensitiveWild functions
+  if UTF8Value <> nil then
+  begin
+    AnsiValue := UTF8Decode(UTF8Value);
+    Result := AnsiStrLIComp(PChar(AnsiValue), PChar(AnsiKey), Length(AnsiKey)) = 0;
+  end
   else
     Result := False;
 end;
 
-function CompSensitivePartial(Value: PChar; const Key: String): Boolean;
+function CompSensitivePartial(UTF8Value: PChar; const UTF8Key: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrLComp(Value, PChar(Key), Length(Key)) = 0
+  if UTF8Value <> nil then
+    Result := StrLComp(UTF8Value, PChar(UTF8Key), Length(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function CompInsensitive(Value: PChar; const Key: String): Boolean;
+function CompInsensitive(UTF8Value: PChar; const AnsiKey: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrIComp(Value, PChar(Key)) = 0
+  //fpc does not provide a function to compare UTF8 directly, so convert the
+  //UTF8Value string to ansi through a temporary widestring and compare with the
+  //AnsiKey (already encoded in the system ansi encoding).
+  //In unix systems where UTF8 is the system ansi encoding this would not be
+  //necessary but there's no direct way to check that
+  //todo: change this code when fpc has better support for unicode
+  if UTF8Value <> nil then
+    Result := AnsiCompareText(UTF8Decode(UTF8Value), AnsiKey) = 0
   else
     Result := False;
 end;
 
-function CompSensitive(Value: PChar; const Key: String): Boolean;
+function CompSensitive(UTF8Value: PChar; const UTF8Key: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrComp(Value, PChar(Key)) = 0
+  if UTF8Value <> nil then
+    Result := StrComp(UTF8Value, PChar(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function CompSensitiveWild(Value: PChar; const Key: String): Boolean;
+function CompSensitiveWild(UTF8Value: PChar; const UTF8Key: String): Boolean;
 begin
-  if Value <> nil then
-    Result := IsWild(String(Value), Key, False)
+  if UTF8Value <> nil then
+    Result := IsWild(String(UTF8Value), UTF8Key, False)
   else
     Result := False;
 end;
 
-function CompInsensitiveWild(Value: PChar; const Key: String): Boolean;
+function CompInsensitiveWild(UTF8Value: PChar; const AnsiKey: String): Boolean;
 begin
-  if Value <> nil then
-    Result := IsWild(String(Value), Key, True)
+  //IsWild does not work with UTF8 encoded strings for case insensitive searches,
+  //so convert UTF8Value to the system ansi encoding before passing to IsWild.
+  //AnsiKey is already encoded in ansi
+  //todo: change this code when fpc has better support for unicode
+  if UTF8Value <> nil then
+    Result := IsWild(UTF8Decode(UTF8Value), AnsiKey, True)
   else
     Result := False;
 end;
@@ -1092,6 +1108,9 @@ begin
             LocateFields[i].Key := VarToStr(KeyValues[i])
           else
             LocateFields[i].Key := VarToStr(KeyValues);
+          //store Key encoded as the system ansi encoding
+          if loCaseInsensitive in LocateOptions then
+            LocateFields[i].Key := UTF8Decode(LocateFields[i].Key);
         end
         else
         begin

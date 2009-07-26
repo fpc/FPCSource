@@ -45,6 +45,7 @@ type
     Procedure TestIsNull(J : TJSONData;Expected : Boolean);
     Procedure TestAsBoolean(J : TJSONData;Expected : Boolean; ExpectError : boolean = False);
     Procedure TestAsInteger(J : TJSONData; Expected : Integer; ExpectError : boolean = False);
+    Procedure TestAsInt64(J : TJSONData; Expected : Int64; ExpectError : boolean = False);
     Procedure TestAsString(J : TJSONData; Expected : String; ExpectError : boolean = False);
     Procedure TestAsFloat(J : TJSONData; Expected : TJSONFloat; ExpectError : boolean = False);
   end;
@@ -69,6 +70,17 @@ type
   TTestInteger = class(TTestJSON)
   Private
     Procedure DoTest(I : Integer);
+  published
+    procedure TestPositive;
+    procedure TestNegative;
+    procedure TestZero;
+  end;
+
+  { TTestInt64 }
+
+  TTestInt64 = class(TTestJSON)
+  Private
+    Procedure DoTest(I : Int64);
   published
     procedure TestPositive;
     procedure TestNegative;
@@ -121,6 +133,7 @@ type
     procedure TestCreateNilPointer;
     procedure TestCreatePointer;
     procedure TestAddInteger;
+    procedure TestAddInt64;
     procedure TestAddFloat;
     procedure TestAddBooleanTrue;
     procedure TestAddBooleanFalse;
@@ -152,6 +165,7 @@ type
     procedure TestCreateNilPointer;
     procedure TestCreatePointer;
     procedure TestAddInteger;
+    procedure TestAddInt64;
     procedure TestAddFloat;
     procedure TestAddBooleanTrue;
     procedure TestAddBooleanFalse;
@@ -255,6 +269,40 @@ begin
     end;
 end;
 
+procedure TTestJSON.TestAsInt64(J: TJSONData; Expected: Int64;
+  ExpectError: boolean);
+
+Var
+  I : Int64;
+  AssignOK : Boolean;
+  Msg : String;
+
+begin
+  AssignOK:=False;
+  Try
+    I:=J.AsInt64;
+    AssignOK:=True;
+    If Not ExpectError then
+      AssertEquals(J.Classname+'.AsInt64',Expected,I);
+  except
+    On E : Exception do
+      begin
+      AssignOK:=False;
+      Msg:=E.Message;
+      end;
+  end;
+  If ExpectError then
+    begin
+    If AssignOK then
+      Fail(J.ClassName+'.AsInt64 must raise error');
+    end
+  else
+    begin
+    If not AssignOK then
+      Fail(J.ClassName+'.AsInt64 raised unexpected exception: '+Msg)
+    end;
+end;
+
 procedure TTestJSON.TestAsString(J: TJSONData; Expected: String;
   ExpectError: boolean);
   
@@ -339,6 +387,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,True);
     TestAsInteger(J,1);
+    TestAsInt64(J,1);
     TestAsString(J,BoolToStr(True));
     TestAsFloat(J,1.0);
   finally
@@ -360,6 +409,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,False);
     TestAsInteger(J,0);
+    TestAsInt64(J,0);
     TestAsString(J,BoolToStr(False));
     TestAsFloat(J,0.0);
   finally
@@ -385,6 +435,7 @@ begin
     TestIsNull(J,True);
     TestAsBoolean(J,False,True);
     TestAsInteger(J,0,true);
+    TestAsInt64(J,0,true);
     TestAsString(J,BoolToStr(False),true);
     TestAsFloat(J,0.0,true);
   finally
@@ -412,6 +463,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,False,True);
     TestAsInteger(J,0,true);
+    TestAsInt64(J,0,true);
     TestAsString(J,S);
     TestAsFloat(J,0.0,true);
   finally
@@ -436,6 +488,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,True,False);
     TestAsInteger(J,1,False);
+    TestAsInt64(J,1,False);
     TestAsString(J,S);
     TestAsFloat(J,1.0,False);
   finally
@@ -460,6 +513,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,True,False);
     TestAsInteger(J,-1,False);
+    TestAsInt64(J,-1,False);
     TestAsString(J,S);
     TestAsFloat(J,-1.0,False);
   finally
@@ -503,6 +557,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,True,False);
     TestAsInteger(J,-1,True);
+    TestAsInt64(J,-1,True);
     TestAsString(J,S);
     TestAsFloat(J,-1.0,True);
   finally
@@ -527,6 +582,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,False,False);
     TestAsInteger(J,0,True);
+    TestAsInt64(J,0,True);
     TestAsString(J,S);
     TestAsFloat(J,0,True);
   finally
@@ -548,6 +604,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,(F<>0),Not OK);
     TestAsInteger(J,Round(F),(Pos('.',S)<>0) or (Pos('E',UpperCase(S))<>0));
+    TestAsInt64(J,Round(F),(Pos('.',S)<>0) or (Pos('E',UpperCase(S))<>0));
     TestAsString(J,S);
     TestAsFloat(J,F,Not OK);
   finally
@@ -573,6 +630,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,(I<>0));
     TestAsInteger(J,I);
+    TestAsInt64(J,I);
     TestAsString(J,IntToStr(I));
     TestAsFloat(J,I);
   finally
@@ -596,6 +654,47 @@ begin
   DoTest(0);
 end;
 
+{ TTestInt64 }
+
+procedure TTestInt64.DoTest(I: Int64);
+
+Var
+  J : TJSONInt64Number;
+
+begin
+  J:=TJSONInt64Number.Create(I);
+  try
+    TestJSONType(J,jtNumber);
+    TestItemCount(J,0);
+    AssertEquals('Numbertype is ntInt64',ord(ntInt64),Ord(J.NumberType));
+    TestJSON(J,IntToStr(i));
+    TestIsNull(J,False);
+    TestAsBoolean(J,(I<>0));
+    TestAsInteger(J,I);
+    TestAsInt64(J,I);
+    TestAsString(J,IntToStr(I));
+    TestAsFloat(J,I);
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestInt64.TestPositive;
+
+begin
+  DoTest(1);
+end;
+
+procedure TTestInt64.TestNegative;
+begin
+  DoTest(-1);
+end;
+
+procedure TTestInt64.TestZero;
+begin
+  DoTest(0);
+end;
+
 { TTestFloat }
 
 procedure TTestFloat.DoTest(F: TJSONFloat);
@@ -615,6 +714,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,(F<>0));
     TestAsInteger(J,Round(F));
+    TestAsInt64(J,Round(F));
     TestAsString(J,S);
     TestAsFloat(J,F);
   finally
@@ -663,6 +763,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,False,True);
     TestAsInteger(J,1,True);
+    TestAsInt64(J,1,True);
     TestAsString(J,'',True);
     TestAsFloat(J,0.0,True);
   finally
@@ -780,12 +881,10 @@ end;
 procedure TTestArray.TestCreateInt64;
 
 Const
-  S : Int64 = $FFFFFF;
+  S : Int64 = $FFFFFFFFFFFFF;
 
 Var
   J : TJSONArray;
-  r : String;
-  F : TJSONFloat;
 
 begin
   J:=TJSonArray.Create([S]);
@@ -793,9 +892,7 @@ begin
     TestJSONType(J,jtArray);
     TestItemCount(J,1);
     TestJSONType(J[0],jtNumber);
-    F:=S;
-    Str(F,R);
-    TestJSON(J,'['+R+']');
+    TestJSON(J,'['+IntToStr(S)+']');
   finally
     FreeAndNil(J);
   end;
@@ -920,13 +1017,36 @@ Var
 begin
   J:=TJSonArray.Create;
   try
-    J.Add(0);
+    J.Add(Integer(0));
     TestItemCount(J,1);
     TestJSONType(J[0],jtNumber);
     AssertEquals('J[0] is TJSONIntegerNumber',J[0].ClassType,TJSONIntegerNumber);
     AssertEquals('j.Types[0]=jtNumber',ord(J.Types[0]),Ord(jtNumber));
     AssertEquals('J.Integers[0]=0',0,J.integers[0]);
     TestAsInteger(J[0],0);
+    TestAsInt64(J[0],0);
+    TestJSON(J,'[0]');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestArray.TestAddInt64;
+
+Var
+  J : TJSONArray;
+
+begin
+  J:=TJSonArray.Create;
+  try
+    J.Add(Int64(0));
+    TestItemCount(J,1);
+    TestJSONType(J[0],jtNumber);
+    AssertEquals('J[0] is TJSONInt64Number',J[0].ClassType,TJSONInt64Number);
+    AssertEquals('j.Types[0]=jtNumber',ord(J.Types[0]),Ord(jtNumber));
+    AssertEquals('J.Int64s[0]=0',0,J.Int64s[0]);
+    TestAsInteger(J[0],0);
+    TestAsInt64(J[0],0);
     TestJSON(J,'[0]');
   finally
     FreeAndNil(J);
@@ -1057,6 +1177,8 @@ begin
     AssertEquals('J.Arrays[0] is TJSONArray',TJSONArray,J.Arrays[0].ClassType);
     TestAsInteger(J.Arrays[0][0],0);
     TestAsInteger(J.Arrays[0][1],1);
+    TestAsInt64(J.Arrays[0][0],0);
+    TestAsInt64(J.Arrays[0][1],1);
     TestJSON(J,'[[0, 1]]');
   finally
     FreeAndNil(J);
@@ -1086,6 +1208,8 @@ begin
     AssertEquals('J.Objects[0] is TJSONObject',TJSONObject,J.Objects[0].ClassType);
     TestAsInteger(J.Objects[0][A],0);
     TestAsInteger(J.Objects[0][B],1);
+    TestAsInt64(J.Objects[0][A],0);
+    TestAsInt64(J.Objects[0][B],1);
     TestJSON(J,'[{ "a" : 0, "b" : 1 }]');
   finally
     FreeAndNil(J);
@@ -1137,6 +1261,8 @@ begin
     TestItemCount(J,2);
     TestAsInteger(J[0],0);
     TestAsInteger(J[1],2);
+    TestAsInt64(J[0],0);
+    TestAsInt64(J[1],2);
   finally
     FreeAndNil(J);
   end;
@@ -1158,6 +1284,7 @@ begin
     TestIsNull(J,False);
     TestAsBoolean(J,False,True);
     TestAsInteger(J,1,True);
+    TestAsInt64(J,1,True);
     TestAsString(J,'',True);
     TestAsFloat(J,0.0,True);
   finally
@@ -1176,13 +1303,39 @@ Var
 begin
   J:=TJSonObject.Create;
   try
-    J.Add(A,0);
+    J.Add(A,Integer(0));
     TestItemCount(J,1);
     TestJSONType(J[A],jtNumber);
     AssertEquals('J[''a''] is TJSONIntegerNumber',J[A].ClassType,TJSONIntegerNumber);
     AssertEquals('j.Types[''a'']=jtNumber',ord(J.Types[A]),Ord(jtNumber));
     AssertEquals('J.Integers[''a'']=0',0,J.integers[A]);
     TestAsInteger(J[A],0);
+    TestAsInt64(J[A],0);
+    TestJSON(J,'{ "'+A+'" : 0 }');
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
+procedure TTestObject.TestAddInt64;
+
+Const
+  A = 'a';
+
+Var
+  J : TJSONObject;
+
+begin
+  J:=TJSonObject.Create;
+  try
+    J.Add(A,Int64(0));
+    TestItemCount(J,1);
+    TestJSONType(J[A],jtNumber);
+    AssertEquals('J[''a''] is TJSONInt64Number',J[A].ClassType,TJSONInt64Number);
+    AssertEquals('j.Types[''a'']=jtNumber',ord(J.Types[A]),Ord(jtNumber));
+    AssertEquals('J.Int64s[''a'']=0',0,J.Int64s[A]);
+    TestAsInteger(J[A],0);
+    TestAsInt64(J[A],0);
     TestJSON(J,'{ "'+A+'" : 0 }');
   finally
     FreeAndNil(J);
@@ -1330,6 +1483,8 @@ begin
     AssertEquals('J.Objects[''a''] is TJSONObject',TJSONObject,J.Objects[A].ClassType);
     TestAsInteger(J.Objects[A][B],0);
     TestAsInteger(J.Objects[A][C],1);
+    TestAsInt64(J.Objects[A][B],0);
+    TestAsInt64(J.Objects[A][C],1);
     TestJSON(J,'{ "a" : { "b" : 0, "c" : 1 } }');
   finally
     FreeAndNil(J);
@@ -1358,6 +1513,8 @@ begin
     AssertEquals('J.Arrays[0] is TJSONArray',TJSONArray,J.Arrays[A].ClassType);
     TestAsInteger(J.Arrays[A][0],0);
     TestAsInteger(J.Arrays[A][1],1);
+    TestAsInt64(J.Arrays[A][0],0);
+    TestAsInt64(J.Arrays[A][1],1);
     TestJSON(J,'{ "a" : [0, 1] }');
   finally
     FreeAndNil(J);
@@ -1418,6 +1575,8 @@ begin
     TestItemCount(J,2);
     TestAsInteger(J[a],1);
     TestAsInteger(J[c],3);
+    TestAsInt64(J[a],1);
+    TestAsInt64(J[c],3);
   finally
     FreeAndNil(J);
   end;
@@ -1541,12 +1700,10 @@ procedure TTestObject.TestCreateInt64;
 
 Const
   A = 'A';
-  S : Int64 = $FFFFFF;
+  S : Int64 = $FFFFFFFFFFFFF;
 
 Var
   J : TJSONObject;
-  r : String;
-  F : TJSONFloat;
 
 begin
   J:=TJSONObject.Create([A,S]);
@@ -1554,9 +1711,7 @@ begin
     TestJSONType(J,jtObject);
     TestItemCount(J,1);
     TestJSONType(J[A],jtNumber);
-    F:=S;
-    Str(F,R);
-    TestJSON(J,'{ "A" : '+R+' }');
+    TestJSON(J,'{ "A" : '+IntToStr(S)+' }');
   finally
     FreeAndNil(J);
   end;
@@ -1792,6 +1947,7 @@ initialization
   RegisterTest(TTestNull);
   RegisterTest(TTestBoolean);
   RegisterTest(TTestInteger);
+  RegisterTest(TTestInt64);
   RegisterTest(TTestFloat);
   RegisterTest(TTestString);
   RegisterTest(TTestArray);

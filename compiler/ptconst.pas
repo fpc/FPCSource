@@ -988,10 +988,9 @@ implementation
           n.free;
         end;
 
-        procedure parse_recorddef(list:tasmlist;def:trecorddef);
+      procedure parse_recorddef(list:tasmlist;def:trecorddef);
         var
           n       : tnode;
-          i,
           symidx  : longint;
           recsym,
           srsym   : tsym;
@@ -1003,23 +1002,49 @@ implementation
           bp   : tbitpackedval;
           error,
           is_packed: boolean;
+
+        procedure handle_stringconstn;
+          var
+            i       : longint;
+          begin
+            hs:=strpas(tstringconstnode(n).value_str);
+            if string2guid(hs,tmpguid) then
+              begin
+                list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                list.concat(Tai_const.Create_16bit(tmpguid.D2));
+                list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                  list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+              end
+            else
+              Message(parser_e_improper_guid_syntax);
+          end;
+
+        var
+          i       : longint;
+
         begin
           { GUID }
           if (def=rec_tguid) and (token=_ID) then
             begin
               n:=comp_expr(true);
-              inserttypeconv(n,rec_tguid);
-              if n.nodetype=guidconstn then
-                begin
-                  tmpguid:=tguidconstnode(n).value;
-                  list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-                  list.concat(Tai_const.Create_16bit(tmpguid.D2));
-                  list.concat(Tai_const.Create_16bit(tmpguid.D3));
-                  for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                    list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
-                end
+              if n.nodetype=stringconstn then
+                handle_stringconstn
               else
-                Message(parser_e_illegal_expression);
+                begin
+                  inserttypeconv(n,rec_tguid);
+                  if n.nodetype=guidconstn then
+                    begin
+                      tmpguid:=tguidconstnode(n).value;
+                      list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                      list.concat(Tai_const.Create_16bit(tmpguid.D2));
+                      list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                      for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                        list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                    end
+                  else
+                    Message(parser_e_illegal_expression);
+                end;
               n.free;
               exit;
             end;
@@ -1028,19 +1053,7 @@ implementation
               n:=comp_expr(true);
               inserttypeconv(n,cshortstringtype);
               if n.nodetype=stringconstn then
-                begin
-                  hs:=strpas(tstringconstnode(n).value_str);
-                  if string2guid(hs,tmpguid) then
-                    begin
-                      list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-                      list.concat(Tai_const.Create_16bit(tmpguid.D2));
-                      list.concat(Tai_const.Create_16bit(tmpguid.D3));
-                      for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                        list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
-                    end
-                  else
-                    Message(parser_e_improper_guid_syntax);
-                end
+                handle_stringconstn
               else
                 Message(parser_e_illegal_expression);
               n.free;

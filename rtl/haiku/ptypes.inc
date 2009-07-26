@@ -51,11 +51,11 @@ type
     TIno     = ino_t;
     pIno     = ^ino_t;
 
-    mode_t   = cuint16;         { used for file attributes     }
+    mode_t   = cuint32;         { used for file attributes     }
     TMode    = mode_t;
     pMode    = ^mode_t;
 
-    nlink_t  = cuint16;         { used for link counts         }
+    nlink_t  = cint32;          { used for link counts         }
     TnLink   = nlink_t;
     pnLink   = ^nlink_t;
 

@@ -7,9 +7,9 @@
 var
   a: sel;
 begin
-  a:=selector('mymethod');
-  a:=selector('mymethod');
-  a:=selector('mymethod:');
-  a:=selector('::');
-  a:=selector('a:b:c:');
+  a:=objcselector('mymethod');
+  a:=objcselector('mymethod');
+  a:=objcselector('mymethod:');
+  a:=objcselector('::');
+  a:=objcselector('a:b:c:');
 end.

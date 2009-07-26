@@ -831,7 +831,7 @@ implementation
          len:=length(p^.data.messageinf.str^);
          current_asmdata.asmlists[al_globals].concat(tai_const.create_8bit(len));
          getmem(ca,len+1);
-         move(p^.data.messageinf.str[1],ca^,len);
+         move(p^.data.messageinf.str^[1],ca^,len);
          ca[len]:=#0;
          current_asmdata.asmlists[al_globals].concat(Tai_string.Create_pchar(ca,len));
          if assigned(p^.r) then

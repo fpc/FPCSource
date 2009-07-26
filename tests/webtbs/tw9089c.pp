@@ -3,16 +3,16 @@
 
 program ptest;
 
-{$mode objfpc}{$H+}
+{$ifdef fpc}{$mode objfpc}{$H+}{$endif fpc}
 
 const
-{$ifdef windows}
+{$if defined(windows) or defined(mswindows)}
   libname='tw9089b.dll';
 {$else}
   libname='tw9089a';
   {$linklib tw9089b}
-{$endif}
-  
+{$ifend}
+
 function Test: Integer; cdecl; external libname;
 
 begin

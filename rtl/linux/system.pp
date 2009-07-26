@@ -87,6 +87,10 @@ procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
 {$endif}
 
+{$ifdef FPC_USE_LIBC}
+function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
+{$endif}
+
 procedure System_exit;
 begin
   haltproc(ExitCode);

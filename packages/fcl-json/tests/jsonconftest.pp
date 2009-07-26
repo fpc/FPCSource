@@ -48,10 +48,11 @@ end;
 procedure TTestJSONConfig.TestDataTypes;
 
 Const
-  A = 1;
+  A = Integer(1);
   B = 'A string';
   C = 1.23;
   D = True;
+  E = Int64($FFFFFFFFFFFFF);
 
 Var
   Co : TJSONCOnfig;
@@ -67,6 +68,8 @@ begin
     AssertEquals('Float read/Write',c,Co.GetValue('c',0.0),0.01);
     Co.SetValue('d',d);
     AssertEquals('Boolean read/Write',d,Co.GetValue('d',False));
+    Co.SetValue('e',E);
+    AssertEquals('Int64 read/Write',e,Co.GetValue('e',Int64(0)));
     Co.Flush;
   finally
     DeleteConf(Co,True);

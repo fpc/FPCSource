@@ -138,6 +138,7 @@ CONST
     procedure SysReleaseThreadVars;
       begin
         LocalFree(TlsGetValue(tlskey));
+        TlsSetValue(tlskey, nil);
       end;
 
 
@@ -175,6 +176,26 @@ CONST
         ThreadMain:=ti.f(ti.p);
       end;
 
+    procedure SysInitMultithreading;
+      begin
+        { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
+        if TLSKey = 0 then
+         begin
+           { We're still running in single thread mode, setup the TLS }
+           TLSKey:=TlsAlloc;
+           InitThreadVars(@SysRelocateThreadvar);
+           IsMultiThread:=true;
+         end;
+      end;
+
+    procedure SysFiniMultithreading;
+      begin
+        if IsMultiThread then
+         begin
+           TlsFree(TLSKey);
+           TLSKey := 0;
+         end;
+      end;
 
     function SysBeginThread(sa : Pointer;stacksize : ptruint;
                          ThreadFunction : tthreadfunc;p : pointer;
@@ -187,13 +208,8 @@ CONST
         writeln('Creating new thread');
 {$endif DEBUG_MT}
         { Initialize multithreading if not done }
-        if not IsMultiThread then
-         begin
-           { We're still running in single thread mode, setup the TLS }
-           TLSKey:=TlsAlloc;
-           InitThreadVars(@SysRelocateThreadvar);
-           IsMultiThread:=true;
-         end;
+        SysInitMultithreading;
+
         { the only way to pass data to the newly created thread
           in a MT safe way, is to use the heap }
         new(ti);

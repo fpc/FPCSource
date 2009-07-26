@@ -29,22 +29,22 @@ unit at91sam7x256;
       end;
 
     var
-      AIC_SMR : array[0..31] of AT91_REG absolute $FFFFF000; // Source Mode Register
-      AIC_SVR : array[0..31] of AT91_REG absolute $FFFFF020; // Source Vector Register
-      AIC_IVR : AT91_REG absolute $FFFFF040; // IRQ Vector Register
-      AIC_FVR : AT91_REG absolute $FFFFF044; // FIQ Vector Register
-      AIC_ISR : AT91_REG absolute $FFFFF048; // Interrupt Status Register
-      AIC_IPR : AT91_REG absolute $FFFFF04C; // Interrupt Pending Register
-      AIC_IMR : AT91_REG absolute $FFFFF050; // Interrupt Mask Register
-      AIC_CISR : AT91_REG absolute $FFFFF054; // Core Interrupt Status Register }
+      AT91C_AIC_SMR : array[0..31] of AT91_REG absolute $FFFFF000; // Source Mode Register
+      AT91C_AIC_SVR : array[0..31] of AT91_REG absolute $FFFFF020; // Source Vector Register
+      AT91C_AIC_IVR : AT91_REG absolute $FFFFF040; // IRQ Vector Register
+      AT91C_AIC_FVR : AT91_REG absolute $FFFFF044; // FIQ Vector Register
+      AT91C_AIC_ISR : AT91_REG absolute $FFFFF048; // Interrupt Status Register
+      AT91C_AIC_IPR : AT91_REG absolute $FFFFF04C; // Interrupt Pending Register
+      AT91C_AIC_IMR : AT91_REG absolute $FFFFF050; // Interrupt Mask Register
+      AT91C_AIC_CISR : AT91_REG absolute $FFFFF054; // Core Interrupt Status Register }
       // Reserved0 : array[0..1] of AT91_REG;
-      AIC_IECR : AT91_REG absolute $FFFFF060; // Interrupt Enable Command Register
-      AIC_IDCR : AT91_REG absolute $FFFFF064; // Interrupt Disable Command Register
-      AIC_ICCR : AT91_REG absolute $FFFFF068; // Interrupt Clear Command Register
-      AIC_ISCR : AT91_REG absolute $FFFFF06C; // Interrupt Set Command Register
-      AIC_EOICR : AT91_REG absolute $FFFFF070; // End of Interrupt Command Register
-      AIC_SPU : AT91_REG absolute $FFFFF074; // Spurious Vector Register
-      AIC_DCR : AT91_REG absolute $FFFFF078; // Debug Control Register (Protect) }
+      AT91C_AIC_IECR : AT91_REG absolute $FFFFF060; // Interrupt Enable Command Register
+      AT91C_AIC_IDCR : AT91_REG absolute $FFFFF064; // Interrupt Disable Command Register
+      AT91C_AIC_ICCR : AT91_REG absolute $FFFFF068; // Interrupt Clear Command Register
+      AT91C_AIC_ISCR : AT91_REG absolute $FFFFF06C; // Interrupt Set Command Register
+      AT91C_AIC_EOICR : AT91_REG absolute $FFFFF070; // End of Interrupt Command Register
+      AT91C_AIC_SPU : AT91_REG absolute $FFFFF074; // Spurious Vector Register
+      AT91C_AIC_DCR : AT91_REG absolute $FFFFF078; // Debug Control Register (Protect) }
       // Reserved1 : array[0..0] of AT91_REG;
 
     // ========== Register definition for PIOA peripheral ==========
@@ -77,6 +77,37 @@ unit at91sam7x256;
       AT91C_PIOA_CODR    : DWord absolute $FFFFF434; // Clear Output Data Register
       AT91C_PIOA_OWSR    : DWord absolute $FFFFF4A8; // Output Write Status Register
       AT91C_PIOA_OWER    : DWord absolute $FFFFF4A0; // Output Write Enable Register
+    // ========== Register definition for PIOB peripheral ==========
+      AT91C_PIOB_PER     : DWord absolute $FFFFF600; //  PIO Enable Register
+      AT91C_PIOB_PDR     : DWord absolute $FFFFF604; //  PIO Disable Register
+      AT91C_PIOB_PSR     : DWord absolute $FFFFF608; //  PIO Status Register
+      AT91C_PIOB_OER     : DWord absolute $FFFFF610; //  Output Enable Register
+      AT91C_PIOB_ODR     : DWord absolute $FFFFF614; //  Output Disable Registerr
+      AT91C_PIOB_OSR     : DWord absolute $FFFFF618; //  Output Status Register
+      AT91C_PIOB_IFER    : DWord absolute $FFFFF620; //  Input Filter Enable Register
+      AT91C_PIOB_IFDR    : DWord absolute $FFFFF624; //  Input Filter Disable Register
+      AT91C_PIOB_IFSR    : DWord absolute $FFFFF628; //  Input Filter Status Register
+      AT91C_PIOB_SODR    : DWord absolute $FFFFF630; //  Set Output Data Register
+      AT91C_PIOB_CODR    : DWord absolute $FFFFF634; //  Clear Output Data Register
+      AT91C_PIOB_ODSR    : DWord absolute $FFFFF638; //  Output Data Status Register
+      AT91C_PIOB_PDSR    : DWord absolute $FFFFF63C; //  Pin Data Status Register
+      AT91C_PIOB_IER     : DWord absolute $FFFFF640; //  Interrupt Enable Register
+      AT91C_PIOB_IDR     : DWord absolute $FFFFF644; //  Interrupt Disable Register
+      AT91C_PIOB_IMR     : DWord absolute $FFFFF648; //  Interrupt Mask Register
+      AT91C_PIOB_ISR     : DWord absolute $FFFFF64C; //  Interrupt Status Register
+      AT91C_PIOB_MDER    : DWord absolute $FFFFF650; //  Multi-driver Enable Register
+      AT91C_PIOB_MDDR    : DWord absolute $FFFFF654; //  Multi-driver Disable Register
+      AT91C_PIOB_MDSR    : DWord absolute $FFFFF658; //  Multi-driver Status Register
+      AT91C_PIOB_PPUDR   : DWord absolute $FFFFF660; //  Pull-up Disable Register
+      AT91C_PIOB_PPUER   : DWord absolute $FFFFF664; //  Pull-up Enable Register
+      AT91C_PIOB_PPUSR   : DWord absolute $FFFFF668; //  Pull-up Status Register
+      AT91C_PIOB_ASR     : DWord absolute $FFFFF670; //  Select A Register
+      AT91C_PIOB_BSR     : DWord absolute $FFFFF674; //  Select B Register
+      AT91C_PIOB_ABSR    : DWord absolute $FFFFF678; //  AB Select Status Register
+      AT91C_PIOB_OWER    : DWord absolute $FFFFF6A0; //  Output Write Enable Register
+      AT91C_PIOB_OWDR    : DWord absolute $FFFFF6A4; //  Output Write Disable Register
+      AT91C_PIOB_OWSR    : DWord absolute $FFFFF6A8; //  Output Write Status Register
+
     // ========== Register definition for CKGR peripheral ==========
       AT91C_CKGR_PLLR    : DWord absolute $FFFFFC2C; // PLL Register
       AT91C_CKGR_MCFR    : DWord absolute $FFFFFC24; // Main Clock  Frequency Register
@@ -111,6 +142,18 @@ unit at91sam7x256;
       AT91C_RSTC_RMR     : DWord absolute $FFFFFD08; // Reset Mode Register
       AT91C_RSTC_RCR     : DWord absolute $FFFFFD00; // Reset Control Register
 
+    // ========== Register definition for RTTC peripheral ==========
+      AT91C_RTTC_RTMR    : DWord absolute $FFFFFD20; // Real-time Mode Register
+      AT91C_RTTC_RTAR    : DWord absolute $FFFFFD24; // Real-time Alarm Register
+      AT91C_RTTC_RTVR    : DWord absolute $FFFFFD28; // Real-time Value Register
+      AT91C_RTTC_RTSR    : DWord absolute $FFFFFD2C; // Real-time Status Register
+
+    // ========== Register definition for PITC peripheral ==========
+      AT91C_PITC_PIMR    : DWord absolute $FFFFFD30; // Period Interval Mode Register
+      AT91C_PITC_PISR    : DWord absolute $FFFFFD34; // Period Interval Status Register
+      AT91C_PITC_PIVR    : DWord absolute $FFFFFD38; // Period Interval Value Register
+      AT91C_PITC_PIIR    : DWord absolute $FFFFFD3C; // Period Interval Image Register
+
     // ========== Register definition for WDTC peripheral ==========
       AT91C_WDTC_WDMR    : DWord absolute $FFFFFD44; // Watchdog Mode Register
       AT91C_WDTC_WDSR    : DWord absolute $FFFFFD48; // Watchdog Status Register
@@ -137,6 +180,186 @@ unit at91sam7x256;
       AT91C_BASE_WDTC : DWord absolute $FFFFFD40; // (WDTC) Base Address
       AT91C_BASE_VREG : DWord absolute $FFFFFD60; // (VREG) Base Address
       AT91C_BASE_MC   : DWord absolute $FFFFFF00; // (MC) Base Address
+
+    // ========== Peripheral mapping ==========
+
+    // ========== Register definition for TC0 peripheral ==========
+      AT91C_TC0_CCR   : DWord absolute $FFFA0000; // Channel Control Register
+      AT91C_TC0_CMR   : DWord absolute $FFFA0004; // Channel Mode Register (Capture Mode / Waveform Mode)
+      AT91C_TC0_CV    : DWord absolute $FFFA0010; // Counter Value
+      AT91C_TC0_RA    : DWord absolute $FFFA0014; // Register A
+      AT91C_TC0_RB    : DWord absolute $FFFA0018; // Register B
+      AT91C_TC0_RC    : DWord absolute $FFFA001C; // Register C
+      AT91C_TC0_SR    : DWord absolute $FFFA0020; // Status Register
+      AT91C_TC0_IMR   : DWord absolute $FFFA002C; // Interrupt Mask Register
+      AT91C_TC0_IER   : DWord absolute $FFFA0024; // Interrupt Enable Register
+      AT91C_TC0_IDR   : DWord absolute $FFFA0028; // Interrupt Disable Register
+    // ========== Register definition for TC1 peripheral ==========
+      AT91C_TC1_CCR   : DWord absolute $FFFA0040; // Channel Control Register
+      AT91C_TC1_CMR   : DWord absolute $FFFA0044; // Channel Mode Register (Capture Mode / Waveform Mode)
+      AT91C_TC1_CV    : DWord absolute $FFFA0050; // Counter Value
+      AT91C_TC1_RA    : DWord absolute $FFFA0054; // Register A
+      AT91C_TC1_RB    : DWord absolute $FFFA0058; // Register B
+      AT91C_TC1_RC    : DWord absolute $FFFA005C; // Register C
+      AT91C_TC1_SR    : DWord absolute $FFFA0060; // Status Register
+      AT91C_TC1_IER   : DWord absolute $FFFA0064; // Interrupt Enable Register
+      AT91C_TC1_IDR   : DWord absolute $FFFA0068; // Interrupt Disable Register
+      AT91C_TC1_IMR   : DWord absolute $FFFA006C; // Interrupt Mask Register
+    // ========== Register definition for TC2 peripheral ==========
+      AT91C_TC2_CCR   : DWord absolute $FFFA0080; // Channel Control Register
+      AT91C_TC2_CMR   : DWord absolute $FFFA0084; // Channel Mode Register (Capture Mode / Waveform Mode;
+      AT91C_TC2_CV    : DWord absolute $FFFA0090; // Counter Value
+      AT91C_TC2_RA    : DWord absolute $FFFA0094; // Register A
+      AT91C_TC2_RB    : DWord absolute $FFFA0098; // Register B
+      AT91C_TC2_RC    : DWord absolute $FFFA009C; // Register C
+      AT91C_TC2_SR    : DWord absolute $FFFA00A0; // Status Register
+      AT91C_TC2_IER   : DWord absolute $FFFA00A4; // Interrupt Enable Register
+      AT91C_TC2_IDR   : DWord absolute $FFFA00A8; // Interrupt Disable Register
+      AT91C_TC2_IMR   : DWord absolute $FFFA00AC; // Interrupt Mask Register
+    // ========== Register definition for TCB peripheral ==========
+      AT91C_TCB_BCR   : DWord absolute $FFFA00C0; // TC Block Control Register
+      AT91C_TCB_BMR   : DWord absolute $FFFA00C4; // TC Block Mode Register
+    // ========== Register definition for UDP peripheral ==========
+      AT91C_UDP_NUM   : DWord absolute $FFFB0000; // Frame Number Register
+      AT91C_UDP_GLBSTATE : DWord absolute $FFFB0004; // Global State Register
+      AT91C_UDP_FADDR : DWord absolute $FFFB0008; // Function Address Register
+      AT91C_UDP_IER   : DWord absolute $FFFB0010; // Interrupt Enable Register
+      AT91C_UDP_IDR   : DWord absolute $FFFB0014; // Interrupt Disable Register
+      AT91C_UDP_IMR   : DWord absolute $FFFB0018; // Interrupt Mask Register
+      AT91C_UDP_ISR   : DWord absolute $FFFB001C; // Interrupt Status Register
+      AT91C_UDP_ICR   : DWord absolute $FFFB0020; // Interrupt Clear Register
+      AT91C_UDP_RSTEP : DWord absolute $FFFB0028; // Reset Endpoint Register
+      AT91C_UDP_CSR   : DWord absolute $FFFB0030; // Endpoint Control and Status Register
+      AT91C_UDP_FDR   : DWord absolute $FFFB0050; // Endpoint FIFO Data Register
+      AT91C_UDP_TXVC  : DWord absolute $FFFB0074; // Transceiver Control Register
+    // ========== Register definition for TWI peripheral ==========
+      AT91C_TWI_CR    : DWord absolute $FFFB8000; // Control Register
+      AT91C_TWI_MMR   : DWord absolute $FFFB8004; // Master Mode Register
+      AT91C_TWI_IADR  : DWord absolute $FFFB800C; // Internal Address Register
+      AT91C_TWI_CWGR  : DWord absolute $FFFB8010; // Clock Waveform Generator Register
+      AT91C_TWI_SR    : DWord absolute $FFFB8020; // Status Register
+      AT91C_TWI_IER   : DWord absolute $FFFB8024; // Interrupt Enable Register
+      AT91C_TWI_IDR   : DWord absolute $FFFB8028; // Interrupt Disable Register
+      AT91C_TWI_IMR   : DWord absolute $FFFB802C; // Interrupt Mask Register
+      AT91C_TWI_RHR   : DWord absolute $FFFB8030; // Receive Holding Register
+      AT91C_TWI_THR   : DWord absolute $FFFB8034; // Transmit Holding Register
+    // ========== Register definition for US0 peripheral ==========
+      AT91C_US0_CR    : DWord absolute $FFFC0000; // Control Register
+      AT91C_US0_MR    : DWord absolute $FFFC0004; // Mode Register
+      AT91C_US0_IER   : DWord absolute $FFFC0008; // Interrupt Enable Register
+      AT91C_US0_IDR   : DWord absolute $FFFC000C; // Interrupt Disable Register
+      AT91C_US0_IMR   : DWord absolute $FFFC0010; // Interrupt Mask Register
+      AT91C_US0_CSR   : DWord absolute $FFFC0014; // Channel Status Register
+      AT91C_US0_RHR   : DWord absolute $FFFC0018; // Receiver Holding Register
+      AT91C_US0_THR   : DWord absolute $FFFC001C; // Transmitter Holding Register
+      AT91C_US0_BRGR  : DWord absolute $FFFC0020; // Baud Rate Generator Register
+      AT91C_US0_RTOR  : DWord absolute $FFFC0024; // Receiver Time-out Register
+      AT91C_US0_TTGR  : DWord absolute $FFFC0028; // Transmitter Time-guard Register
+      AT91C_US0_FIDI  : DWord absolute $FFFC0040; // FI_DI_Ratio Register
+      AT91C_US0_NER   : DWord absolute $FFFC0044; // Nb Errors Register
+      AT91C_US0_IF    : DWord absolute $FFFC004C; // IRDA_FILTER Register
+    // ========== Register definition for PDC_US0 peripheral ==========
+      AT91C_US0_RPR   : DWord absolute $FFFC0100; // Receive Pointer Register
+      AT91C_US0_RCR   : DWord absolute $FFFC0104; // Receive Counter Register
+      AT91C_US0_TPR   : DWord absolute $FFFC0108; // Transmit Pointer Register
+      AT91C_US0_TCR   : DWord absolute $FFFC010C; // Transmit Counter Register
+      AT91C_US0_RNPR  : DWord absolute $FFFC0110; // Receive Next Pointer Register
+      AT91C_US0_RNCR  : DWord absolute $FFFC0114; // Receive Next Counter Register
+      AT91C_US0_TNPR  : DWord absolute $FFFC0118; // Transmit Next Pointer Register
+      AT91C_US0_TNCR  : DWord absolute $FFFC011C; // Transmit Next Counter Register
+      AT91C_US0_PTCR  : DWord absolute $FFFC0120; // PDC Transfer Control Register
+      AT91C_US0_PTSR  : DWord absolute $FFFC0124; // PDC Transfer Status Register
+    // ========== Register definition for US1 peripheral ==========
+      AT91C_US1_CR    : DWord absolute $FFFC4000; // Control Register
+      AT91C_US1_MR    : DWord absolute $FFFC4004; // Mode Register
+      AT91C_US1_IER   : DWord absolute $FFFC4008; // Interrupt Enable Register
+      AT91C_US1_IDR   : DWord absolute $FFFC400C; // Interrupt Disable Register
+      AT91C_US1_IMR   : DWord absolute $FFFC4010; // Interrupt Mask Register
+      AT91C_US1_CSR   : DWord absolute $FFFC4014; // Channel Status Register
+      AT91C_US1_THR   : DWord absolute $FFFC401C; // Transmitter Holding Register
+      AT91C_US1_RHR   : DWord absolute $FFFC4018; // Receiver Holding Register
+      AT91C_US1_BRGR  : DWord absolute $FFFC4020; // Baud Rate Generator Register
+      AT91C_US1_RTOR  : DWord absolute $FFFC4024; // Receiver Time-out Register
+      AT91C_US1_TTGR  : DWord absolute $FFFC4028; // Transmitter Time-guard Register
+      AT91C_US1_FIDI  : DWord absolute $FFFC4040; // FI_DI_Ratio Register
+      AT91C_US1_NER   : DWord absolute $FFFC4044; // Nb Errors Register
+      AT91C_US1_IF    : DWord absolute $FFFC404C; // IRDA_FILTER Register
+    // ========== Register definition for PDC_US1 peripheral ==========
+      AT91C_US1_RPR   : DWord absolute $FFFC4100; // Receive Pointer Register
+      AT91C_US1_RCR   : DWord absolute $FFFC4104; // Receive Counter Register
+      AT91C_US1_TPR   : DWord absolute $FFFC4108; // Transmit Pointer Register
+      AT91C_US1_TCR   : DWord absolute $FFFC410C; // Transmit Counter Register
+      AT91C_US1_RNPR  : DWord absolute $FFFC4110; // Receive Next Pointer Register
+      AT91C_US1_RNCR  : DWord absolute $FFFC4114; // Receive Next Counter Register
+      AT91C_US1_TNPR  : DWord absolute $FFFC4118; // Transmit Next Pointer Register
+      AT91C_US1_TNCR  : DWord absolute $FFFC411C; // Transmit Next Counter Register
+      AT91C_US1_PTCR  : DWord absolute $FFFC4120; // PDC Transfer Control Register
+      AT91C_US1_PTSR  : DWord absolute $FFFC4124; // PDC Transfer Status Register
+    // ========== Register definition for PWMC peripheral ==========
+      AT91C_PWMC_MR   : DWord absolute $FFFCC000; // PWMC Mode Register
+      AT91C_PWMC_ENA  : DWord absolute $FFFCC004; // PWMC Enable Register
+      AT91C_PWMC_DIS  : DWord absolute $FFFCC008; // PWMC Disable Register
+      AT91C_PWMC_SR   : DWord absolute $FFFCC00C; // PWMC Status Register
+      AT91C_PWMC_IER  : DWord absolute $FFFCC010; // PWMC Interrupt Enable Register
+      AT91C_PWMC_ISR  : DWord absolute $FFFCC01C; // PWMC Interrupt Status Register
+      AT91C_PWMC_IDR  : DWord absolute $FFFCC014; // PWMC Interrupt Disable Register
+      AT91C_PWMC_IMR  : DWord absolute $FFFCC018; // PWMC Interrupt Mask Register
+      AT91C_PWMC_VR   : DWord absolute $FFFCC0FC; // PWMC Version Register
+    // ========== Register definition for PWMC_CH0 peripheral ==========
+      AT91C_PWMC_CH0_CMR   : DWord absolute $FFFCC200; // Channel Mode Register
+      AT91C_PWMC_CH0_CDTYR : DWord absolute $FFFCC204; // Channel Duty Cycle Register
+      AT91C_PWMC_CH0_CPRDR : DWord absolute $FFFCC208; // Channel Period Register
+      AT91C_PWMC_CH0_CCNTR : DWord absolute $FFFCC20C; // Channel Counter Register
+      AT91C_PWMC_CH0_CUPDR : DWord absolute $FFFCC210; // Channel Update Register
+    // ========== Register definition for PWMC_CH1 peripheral ==========
+      AT91C_PWMC_CH1_CMR   : DWord absolute $FFFCC220; // Channel Mode Register
+      AT91C_PWMC_CH1_CDTYR : DWord absolute $FFFCC224; // Channel Duty Cycle Register
+      AT91C_PWMC_CH1_CPRDR : DWord absolute $FFFCC228; // Channel Period Register
+      AT91C_PWMC_CH1_CCNTR : DWord absolute $FFFCC22C; // Channel Counter Register
+      AT91C_PWMC_CH1_CUPDR : DWord absolute $FFFCC230; // Channel Update Register
+    // ========== Register definition for PWMC_CH2 peripheral ==========
+      AT91C_PWMC_CH2_CMR   : DWord absolute $FFFCC240; // Channel Mode Register
+      AT91C_PWMC_CH2_CDTYR : DWord absolute $FFFCC244; // Channel Duty Cycle Register
+      AT91C_PWMC_CH2_CPRDR : DWord absolute $FFFCC248; // Channel Period Register
+      AT91C_PWMC_CH2_CCNTR : DWord absolute $FFFCC24C; // Channel Counter Register
+      AT91C_PWMC_CH2_CUPDR : DWord absolute $FFFCC250; // Channel Update Register
+    // ========== Register definition for PWMC_CH3 peripheral ==========
+      AT91C_PWMC_CH3_CMR   : DWord absolute $FFFCC260; // Channel Mode Register
+      AT91C_PWMC_CH3_CDTYR : DWord absolute $FFFCC264; // Channel Duty Cycle Register
+      AT91C_PWMC_CH3_CPRDR : DWord absolute $FFFCC268; // Channel Period Register
+      AT91C_PWMC_CH3_CCNTR : DWord absolute $FFFCC26C; // Channel Counter Register
+      AT91C_PWMC_CH3_CUPDR : DWord absolute $FFFCC270; // Channel Update Register
+    // ========== Register definition for ADC peripheral ==========
+      AT91C_ADC_CR    : DWord absolute $FFFD8000; // ADC Control Register
+      AT91C_ADC_MR    : DWord absolute $FFFD8004; // ADC Mode Register
+      AT91C_ADC_CHER  : DWord absolute $FFFD8010; // ADC Channel Enable Register
+      AT91C_ADC_CHDR  : DWord absolute $FFFD8014; // ADC Channel Disable Register
+      AT91C_ADC_CHSR  : DWord absolute $FFFD8018; // ADC Channel Status Register
+      AT91C_ADC_SR    : DWord absolute $FFFD801C; // ADC Status Register
+      AT91C_ADC_LCDR  : DWord absolute $FFFD8020; // ADC Last Converted Data Register
+      AT91C_ADC_IER   : DWord absolute $FFFD8024; // ADC Interrupt Enable Register
+      AT91C_ADC_IDR   : DWord absolute $FFFD8028; // ADC Interrupt Disable Register
+      AT91C_ADC_IMR   : DWord absolute $FFFD802C; // ADC Interrupt Mask Register
+      AT91C_ADC_CDR0  : DWord absolute $FFFD8030; // ADC Channel Data Register 0
+      AT91C_ADC_CDR1  : DWord absolute $FFFD8034; // ADC Channel Data Register 1
+      AT91C_ADC_CDR2  : DWord absolute $FFFD8038; // ADC Channel Data Register 2
+      AT91C_ADC_CDR3  : DWord absolute $FFFD803C; // ADC Channel Data Register 3
+      AT91C_ADC_CDR4  : DWord absolute $FFFD8040; // ADC Channel Data Register 4
+      AT91C_ADC_CDR5  : DWord absolute $FFFD8044; // ADC Channel Data Register 5
+      AT91C_ADC_CDR6  : DWord absolute $FFFD8048; // ADC Channel Data Register 6
+      AT91C_ADC_CDR7  : DWord absolute $FFFD804C; // ADC Channel Data Register 7
+    // ========== Register definition for PDC_ADC peripheral ==========
+      AT91C_ADC_RPR   : DWord absolute $FFFD8100; // Receive Pointer Register
+      AT91C_ADC_RCR   : DWord absolute $FFFD8104; // Receive Counter Register
+      AT91C_ADC_TPR   : DWord absolute $FFFD8108; // Transmit Pointer Register
+      AT91C_ADC_TCR   : DWord absolute $FFFD810C; // Transmit Counter Register
+      AT91C_ADC_RNPR  : DWord absolute $FFFD8110; // Receive Next Pointer Register
+      AT91C_ADC_RNCR  : DWord absolute $FFFD8114; // Receive Next Counter Register
+      AT91C_ADC_TNPR  : DWord absolute $FFFD8118; // Transmit Next Pointer Register
+      AT91C_ADC_TNCR  : DWord absolute $FFFD811C; // Transmit Next Counter Register
+      AT91C_ADC_PTCR  : DWord absolute $FFFD8120; // PDC Transfer Control Register
+      AT91C_ADC_PTSR  : DWord absolute $FFFD8124; // PDC Transfer Status Register
+
 
     procedure lowlevelinit(LowLewelValues:TAT91C_Low_Lewel_Settings);
 
@@ -225,12 +448,12 @@ unit at91sam7x256;
           ;
 
         { Set up the default interrupts handler vectors }
-        AIC_SVR[0]:=AT91_REG(@AT91F_Default_FIQ_handler);
+        AT91C_AIC_SVR[0]:=AT91_REG(@AT91F_Default_FIQ_handler);
 
         for i:=1 to 30 do
-          AIC_SVR[i]:=AT91_REG(@AT91F_Default_IRQ_handler);
+          AT91C_AIC_SVR[i]:=AT91_REG(@AT91F_Default_IRQ_handler);
 
-        AIC_SPU:=AT91_REG(@AT91F_Spurious_handler);
+        AT91C_AIC_SPU:=AT91_REG(@AT91F_Spurious_handler);
       end;
 
 

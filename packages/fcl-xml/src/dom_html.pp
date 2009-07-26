@@ -14,9 +14,6 @@
 
  **********************************************************************}
 
-{ Please note that this is a very early version, most properties and methods
-  are not implemented yet. }
-
 {$mode objfpc}
 {$H+}
 
@@ -24,462 +21,499 @@ unit DOM_HTML;
 
 interface
 
-uses DOM, xmlutils;
+uses DOM, htmldefs, xmlutils, SysUtils;
 
 type
-
   THTMLDocument = class;
   THTMLFormElement = class;
   THTMLTableCaptionElement = class;
   THTMLTableSectionElement = class;
 
-  THTMLCollection = class
+  TFilterProc = function(aNode: TDOMNode): TFilterResult;
+
+  // Tests cast Collection <-> OptionsCollection in arbitrary way...
+  THTMLCollection = class(TDOMNodeList)
+  protected
+    FFilterProc: TFilterProc;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; override;
   public
-    property Length: Cardinal;  // !!!: ro
-    function Item(Index: Cardinal): TDOMNode;
+    constructor Create(aNode: TDOMNode; Proc: TFilterProc);
     function NamedItem(const Index: DOMString): TDOMNode;
   end;
 
-  THTMLOptionsCollection = class
-  public
-    property Length: Cardinal;  // !!!: ro
-    function Item(Index: Cardinal): TDOMNode;
-    function NamedItem(const Index: DOMString): TDOMNode;
+  // differs from HTMLCollection in that Length *may* be writable.
+  // for now, let's pretend it's not...
+  THTMLOptionsCollection = class(THTMLCollection)
   end;
 
   THTMLElement = class(TDOMElement)
   private
-    function GetID: DOMString;
-    procedure SetID(const Value: DOMString);
-    function GetTitle: DOMString;
-    procedure SetTitle(const Value: DOMString);
-    function GetLang: DOMString;
-    procedure SetLang(const Value: DOMString);
-    function GetDir: DOMString;
-    procedure SetDir(const Value: DOMString);
-    function GetClassName: DOMString;
-    procedure SetClassName(const Value: DOMString);
+    function GetStrAttr(idx: THTMLAttributeTag): DOMString;
+    procedure SetStrAttr(idx: THTMLAttributeTag; const value: DOMString);
+    function GetIntAttr(idx: THTMLAttributeTag): Integer;
+    procedure SetIntAttr(idx: THTMLAttributeTag; value: Integer);
+    function GetUIntAttr(idx: THTMLAttributeTag): Cardinal;
+    procedure SetUIntAttr(idx: THTMLAttributeTag; value: Cardinal);
+    function GetBoolAttr(idx: THTMLAttributeTag): Boolean;
+    procedure SetBoolAttr(idx: THTMLAttributeTag; value: Boolean);
+  protected
+    function GetForm: THTMLFormElement;
   public
-    property ID: DOMString read GetID write SetID;
-    property Title: DOMString read GetTitle write SetTitle;
-    property Lang: DOMString read GetLang write SetLang;
-    property Dir: DOMString read GetDir write SetDir;
-    property ClassName: DOMString read GetClassName write SetClassName;
+    property ID: DOMString index atid read GetStrAttr write SetStrAttr;
+    property Title: DOMString index attitle read GetStrAttr write SetStrAttr;
+    property Lang: DOMString index atlang read GetStrAttr write SetStrAttr;
+    property Dir: DOMString index atdir read GetStrAttr write SetStrAttr;
+    property ClassName: DOMString index atclass read GetStrAttr write SetStrAttr;
   end;
 
   THTMLHtmlElement = class(THTMLElement)
-  private
-    function GetVersion: DOMString;
-    procedure SetVersion(const Value: DOMString);
   public
-    property Version: DOMString read GetVersion write SetVersion;
+    property Version: DOMString index atversion read GetStrAttr write SetStrAttr;
   end;
 
   THTMLHeadElement = class(THTMLElement)
-  private
-    function GetProfile: DOMString;
-    procedure SetProfile(const Value: DOMString);
   public
-    property Profile: DOMString read GetProfile write SetProfile;
+    property Profile: DOMString index atprofile read GetStrAttr write SetStrAttr;
   end;
 
   THTMLLinkElement = class(THTMLElement)
   public
-    property Disabled: Boolean; // !!!: rw
-    property Charset: DOMString;        // !!!: rw
-    property HRef: DOMString;   // !!!: rw
-    property HRefLang: DOMString;       // !!!: rw
-    property Media: DOMString;  // !!!: rw
-    property Rel: DOMString;    // !!!: rw
-    property Rev: DOMString;    // !!!: rw
-    property Target: DOMString; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property Charset: DOMString index atcharset read GetStrAttr write SetStrAttr;
+    property HRef: DOMString index athref read GetStrAttr write SetStrAttr;
+    property HRefLang: DOMString index athreflang read GetStrAttr write SetStrAttr;
+    property Media: DOMString index atmedia read GetStrAttr write SetStrAttr;
+    property Rel: DOMString index atrel read GetStrAttr write SetStrAttr;
+    property Rev: DOMString index atrev read GetStrAttr write SetStrAttr;
+    property Target: DOMString index attarget read GetStrAttr write SetStrAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
   end;
 
   THTMLTitleElement = class(THTMLElement)
   public
-    property Text: DOMString;   // !!!: rw
+    property Text: DOMString read GetTextContent write SetTextContent;
   end;
 
   THTMLMetaElement = class(THTMLElement)
   public
-    property Content: DOMString;        // !!!: rw
-    property HTTPEqiv: DOMString;       // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property Scheme: DOMString; // !!!: rw
+    property Content: DOMString index atcontent read GetStrAttr write SetStrAttr;
+    property HTTPEquiv: DOMString index athttpequiv read GetStrAttr write SetStrAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property Scheme: DOMString index atscheme read GetStrAttr write SetStrAttr;
   end;
 
   THTMLBaseElement = class(THTMLElement)
   public
-    property HRef: DOMString;   // !!!: rw
-    property Target: DOMString; // !!!: rw
+    property HRef: DOMString index athref read GetStrAttr write SetStrAttr;
+    property Target: DOMString index attarget read GetStrAttr write SetStrAttr;
   end;
 
   THTMLIsIndexElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property Prompt: DOMString; // !!!: rw
+    property Form: THTMLFormElement read GetForm;
+    property Prompt: DOMString index atprompt read GetStrAttr write SetStrAttr; // 4.01 deprecated
   end;
 
   THTMLStyleElement = class(THTMLElement)
   public
-    property Disabled: Boolean; // !!!: rw
-    property Media: DOMString;  // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property Media: DOMString index atmedia read GetStrAttr write SetStrAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
   end;
 
   THTMLBodyElement = class(THTMLElement)
   public
-    property ALink: DOMString;  // !!!: rw
-    property Background: DOMString;     // !!!: rw
-    property BgColor: DOMString;        // !!!: rw
-    property Link: DOMString;   // !!!: rw
-    property Text: DOMString;   // !!!: rw
-    property VLink: DOMString;  // !!!: rw
+    property ALink: DOMString index atalink read GetStrAttr write SetStrAttr;
+    property Background: DOMString index atbackground read GetStrAttr write SetStrAttr;
+    property BgColor: DOMString index atbgcolor read GetStrAttr write SetStrAttr;
+    property Link: DOMString index atlink read GetStrAttr write SetStrAttr;
+    property Text: DOMString index attext read GetStrAttr write SetStrAttr;
+    property VLink: DOMString index atvlink read GetStrAttr write SetStrAttr;
   end;
 
   THTMLFormElement = class(THTMLElement)
+  private
+    function GetElements: THTMLCollection;
+    function GetLength: Integer;
   public
-    property Elements: THTMLCollection; // !!!: ro
-    property Length: Integer;   // !!!: ro
-    property Name: DOMString;   // !!!: rw
-    property AcceptCharset: DOMString;  // !!!: rw
-    property Action: DOMString; // !!!: rw
-    property EncType: DOMString;        // !!!: rw
-    property Method: DOMString; // !!!: rw
-    property Target: DOMString; // !!!: rw
-    procedure Submit; virtual; abstract;
-    procedure Reset; virtual; abstract;
+    property Elements: THTMLCollection read GetElements;
+    property Length: Integer read GetLength;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property AcceptCharset: DOMString index atacceptcharset read GetStrAttr write SetStrAttr;
+    property Action: DOMString index ataction read GetStrAttr write SetStrAttr;
+    property EncType: DOMString index atenctype read GetStrAttr write SetStrAttr;
+    property Method: DOMString index atmethod read GetStrAttr write SetStrAttr;
+    property Target: DOMString index attarget read GetStrAttr write SetStrAttr;
+    procedure Submit;
+    procedure Reset;
   end;
 
   THTMLSelectElement = class(THTMLElement)
+  private
+    FSelectedIndex: Integer;
+    function GetType: DOMString;
+    function GetValue: DOMString;
+    procedure SetValue(const value: DOMString);
+    function GetOptions: THTMLOptionsCollection;
+    function GetLength: Cardinal;
+    procedure SetLength(aValue: Cardinal);
   public
-    property HTMLType: DOMString;       // !!!: ro
-    property SelectedIndex: Integer;    // !!!: rw
-    property Value: DOMString;  // !!!: rw
-    property Length: Cardinal;  // !!!: rw
-    property Form: THTMLFormElement;    // !!!: ro
-    property Options: THTMLOptionsCollection;   // !!!: ro
-    property Disabled: Boolean; // !!!: rw
-    property Multiple: Boolean; // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property Size: Integer;     // !!!: rw
-    property TabIndex: Integer; // !!!: rw
+    property HTMLType: DOMString read GetType;
+    property SelectedIndex: Integer read FSelectedIndex write FSelectedIndex;
+    property Value: DOMString read GetValue write SetValue;
+    // maps to Options.Length
+    property Length: Cardinal read GetLength write SetLength;
+    property Form: THTMLFormElement read GetForm;
+    property Options: THTMLOptionsCollection read GetOptions;
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property Multiple: Boolean index atmultiple read GetBoolAttr write SetBoolAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property Size: Integer index atsize read GetIntAttr write SetIntAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
     procedure Add(Element, Before: THTMLElement);
     procedure Remove(Index: Integer);
-    procedure Blur; virtual; abstract;
-    procedure Focus; virtual; abstract;
+    procedure Blur;
+    procedure Focus;
   end;
 
   THTMLOptGroupElement = class(THTMLElement)
   public
-    property Disabled: Boolean; // !!!: rw
-    property GroupLabel: DOMString;     // !!!: rw
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property GroupLabel: DOMString index atlabel read GetStrAttr write SetStrAttr;
   end;
 
   THTMLOptionElement = class(THTMLElement)
+  private
+    function GetIndex: Integer;
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property DefaultSelected: Boolean;  // !!!: rw
-    property Text: DOMString;   // !!!: ro
-    property Index: Integer;    // !!!: ro
-    property Disabled: Boolean; // !!!: rw
-    property OptionLabel: DOMString;    // !!!: rw
-    property Selected: Boolean; // !!!: rw
-    property Value: DOMString;  // !!!: rw
+    property Form: THTMLFormElement read GetForm;
+    property DefaultSelected: Boolean index atselected read GetBoolAttr write SetBoolAttr;
+    property Text: DOMString read GetTextContent;
+    property Index: Integer read GetIndex;
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    // TODO: name? was 'label'
+    property OptionLabel: DOMString index atlabel read GetStrAttr write SetStrAttr;
+    // TODO: GUI state, must not be mapped to attribute
+    property Selected: Boolean index atselected read GetBoolAttr write SetBoolAttr;
+    property Value: DOMString index atvalue read GetStrAttr write SetStrAttr;
   end;
 
   THTMLInputElement = class(THTMLElement)
+  private
+    FChecked: Boolean; // !!! TEMP
   public
-    property DefaultValue: DOMString;   // !!!: rw
-    property DefaultChecked: Boolean;   // !!!: rw
-    property Form: THTMLFormElement;    // !!!: ro
-    property Accept: DOMString; // !!!: rw
-    property AccessKey: DOMString;      // !!!: rw
-    property Align: DOMString;  // !!!: rw
-    property Alt: DOMString;    // !!!: rw
-    property Checked: Boolean;  // !!!: rw
-    property Disabled: Boolean; // !!!: rw
-    property MaxLength: Integer;        // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property ReadOnly: Boolean; // !!!: rw
-    property Size: Cardinal;    // !!!: rw
-    property Src: DOMString;    // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    property UseMap: DOMString; // !!!: rw
-    property Value: DOMString;  // !!!: rw
-    procedure Blur; virtual; abstract;
-    procedure Focus; virtual; abstract;
-    procedure Select; virtual; abstract;
-    procedure Click; virtual; abstract;
+    property DefaultValue: DOMString index atvalue read GetStrAttr write SetStrAttr;
+    property DefaultChecked: Boolean index atchecked read GetBoolAttr write SetBoolAttr;
+    property Form: THTMLFormElement read GetForm;
+    property Accept: DOMString index ataccept read GetStrAttr write SetStrAttr;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Alt: DOMString index atalt read GetStrAttr write SetStrAttr;
+    // TODO: GUI state, not mapped to attribute
+    property Checked: Boolean read FChecked write FChecked;
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property MaxLength: Integer index atmaxlength read GetIntAttr write SetIntAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property ReadOnly: Boolean index atreadonly read GetBoolAttr write SetBoolAttr;
+    property Size: Cardinal index atsize read GetUIntAttr write SetUIntAttr;
+    property Src: DOMString index atsrc read GetStrAttr write SetStrAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
+    property UseMap: DOMString index atusemap read GetStrAttr write SetStrAttr;
+    // TODO: GUI state, not mapped to attribute
+    property Value: DOMString index atvalue read GetStrAttr write SetStrAttr;
+    procedure Blur;
+    procedure Focus;
+    procedure Select;
+    procedure Click;
   end;
 
   THTMLTextAreaElement = class(THTMLElement)
+  private
+    function GetType: DOMString;
   public
-    property DefaultValue: DOMString;   // !!!: rw
-    property Form: THTMLFormElement;    // !!!: ro
-    property AccessKey: DOMString;      // !!!: rw
-    property Cols: Integer;     // !!!: rw
-    property Disabled: Boolean; // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property ReadOnly: Boolean; // !!!: rw
-    property Rows: Integer;     // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    property Value: DOMString;  // !!!: rw
-    procedure Blur; virtual; abstract;
-    procedure Focus; virtual; abstract;
-    procedure Select; virtual; abstract;
+    property DefaultValue: DOMString read GetTextContent write SetTextContent;
+    property Form: THTMLFormElement read GetForm;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property Cols: Integer index atcols read GetIntAttr write SetIntAttr;
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property ReadOnly: Boolean index atreadonly read GetBoolAttr write SetBoolAttr;
+    property Rows: Integer index atrows read GetIntAttr write SetIntAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property HTMLType: DOMString read GetType;
+    // TODO: GUI state, not mapped to attribute
+    property Value: DOMString read GetTextContent write SetTextContent;
+    procedure Blur;
+    procedure Focus;
+    procedure Select;
   end;
 
   THTMLButtonElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property AccessKey: DOMString;      // !!!: rw
-    property Disabled: Boolean; // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    property Value: DOMString;  // !!!: rw
+    property Form: THTMLFormElement read GetForm;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property Disabled: Boolean index atdisabled read GetBoolAttr write SetBoolAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
+    property Value: DOMString index atvalue read GetStrAttr write SetStrAttr;
   end;
 
   THTMLLabelElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property AccessKey: DOMString;      // !!!: rw
-    property HtmlFor: DOMString;        // !!!: rw
+    property Form: THTMLFormElement read GetForm;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property HtmlFor: DOMString index atfor read GetStrAttr write SetStrAttr;
   end;
 
   THTMLFieldSetElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;    // !!!: ro
+    property Form: THTMLFormElement read GetForm;
   end;
 
   THTMLLegendElement = class(THTMLElement)
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property AccessKey: DOMString;      // !!!: rw
-    property Align: DOMString;  // !!!: rw
+    property Form: THTMLFormElement read GetForm;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
   end;
 
   THTMLUListElement = class(THTMLElement)
   public
-    property Compact: Boolean;  // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
+    property Compact: Boolean index atcompact read GetBoolAttr write SetBoolAttr; // 4.01 deprecated
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
   end;
 
   THTMLOListElement = class(THTMLElement)
   public
-    property Compact: Boolean;  // !!!: rw
-    property Start: Integer;    // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
+    property Compact: Boolean index atcompact read GetBoolAttr write SetBoolAttr; // 4.01 deprecated
+    property Start: Integer index atstart read GetIntAttr write SetIntAttr;       // 4.01 deprecated
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr; // 4.01 deprecated
   end;
 
   THTMLDListElement = class(THTMLElement)
   public
-    property Compact: Boolean;  // !!!: rw
+    property Compact: Boolean index atcompact read GetBoolAttr write SetBoolAttr; // 4.01 deprecated
   end;
 
-  THTMLDirectoryElement = class(THTMLElement)
+  THTMLDirectoryElement = class(THTMLElement) // 4.01 deprecated
   public
-    property Compact: Boolean;  // !!!: rw
+    property Compact: Boolean index atcompact read GetBoolAttr write SetBoolAttr;
   end;
 
-  THTMLMenuElement = class(THTMLElement)
+  THTMLMenuElement = class(THTMLElement)  // 4.01 deprecated
   public
-    property Compact: Boolean;  // !!!: rw
+    property Compact: Boolean index atcompact read GetBoolAttr write SetBoolAttr;
   end;
 
   THTMLLIElement = class(THTMLElement)
   public
-    property HTMLType: DOMString;       // !!!: rw
-    property Value: Integer;    // !!!: rw
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;  // 4.01 deprecated
+    property Value: Integer index atvalue read GetIntAttr write SetIntAttr;  // 4.01 deprecated
   end;
 
   THTMLDivElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;  // 4.01 deprecated
   end;
 
   THTMLParagraphElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;  // 4.01 deprecated
   end;
 
   THTMLHeadingElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;  // 4.01 deprecated
   end;
 
   THTMLQuoteElement = class(THTMLElement)
   public
-    property Cite: DOMString;   // !!!: rw
+    property Cite: DOMString index atcite read GetStrAttr write SetStrAttr;
   end;
 
   THTMLPreElement = class(THTMLElement)
   public
-    property Width: Integer;    // !!!: rw
+    property Width: Integer index atwidth read GetIntAttr write SetIntAttr;  // 4.01 deprecated
   end;
 
-  THTMLBREElement = class(THTMLElement)
+  THTMLBRElement = class(THTMLElement)
   public
-    property Clear: DOMString;  // !!!: rw
+    property Clear: DOMString index atclear read GetStrAttr write SetStrAttr; // 4.01 deprecated
   end;
 
-  THTMLBaseFontElement = class(THTMLElement)
+  // yep, BaseFont.size is integer, but Font.size is a String
+  THTMLBaseFontElement = class(THTMLElement) // 4.01 deprecated
   public
-    property Color: DOMString;  // !!!: rw
-    property Face: DOMString;   // !!!: rw
-    property Size: Integer;     // !!!: rw
+    property Color: DOMString index atcolor read GetStrAttr write SetStrAttr; // 4.01 deprecated
+    property Face: DOMString index atface read GetStrAttr write SetStrAttr;   // 4.01 deprecated
+    property Size: Integer index atsize read GetIntAttr write SetIntAttr; // 4.01 deprecated
   end;
 
-  THTMLFontElement = class(THTMLElement)
+  THTMLFontElement = class(THTMLElement)  // 4.01 deprecated
   public
-    property Color: DOMString;  // !!!: rw
-    property Face: DOMString;   // !!!: rw
-    property Size: Integer;     // !!!: rw
+    property Color: DOMString index atcolor read GetStrAttr write SetStrAttr;
+    property Face: DOMString index atface read GetStrAttr write SetStrAttr;
+    property Size: DOMString index atsize read GetStrAttr write SetStrAttr;
   end;
 
   THTMLHRElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
-    property NoShade: Boolean;  // !!!: rw
-    property Size: DOMString;   // !!!: rw
-    property Width: DOMString;  // !!!: rw
+    property Align: DOMString index atalign  read GetStrAttr write SetStrAttr;
+    property NoShade: Boolean index atnoshade read GetBoolAttr write SetBoolAttr; // 4.01 deprecated
+    property Size: DOMString index atsize read GetStrAttr write SetStrAttr;
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
   end;
 
   THTMLModElement = class(THTMLElement)
   public
-    property Cite: DOMString;   // !!!: rw
-    property DateTime: DOMString;       // !!!: rw
+    property Cite: DOMString index atcite read GetStrAttr write SetStrAttr;
+    property DateTime: DOMString index atdatetime read GetStrAttr write SetStrAttr;
   end;
 
   THTMLAnchorElement = class(THTMLElement)
   public
-    property AccessKey: DOMString;      // !!!: rw
-    property Charset: DOMString;        // !!!: rw
-    property Coords: DOMString; // !!!: rw
-    property HRef: DOMString;   // !!!: rw
-    property HRefLang: DOMString;       // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property Rel: DOMString;    // !!!: rw
-    property Rev: DOMString;    // !!!: rw
-    property Shape: DOMString;  // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property Target: DOMString; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    procedure Blur; virtual; abstract;
-    procedure Focus; virtual; abstract;
+    property AccessKey: DOMString index ataccesskey read GetStrAttr write SetStrAttr;
+    property Charset: DOMString index atcharset read GetStrAttr write SetStrAttr;
+    property Coords: DOMString index atcoords read GetStrAttr write SetStrAttr;
+    property HRef: DOMString index athref read GetStrAttr write SetStrAttr;
+    property HRefLang: DOMString index athreflang read GetStrAttr write SetStrAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property Rel: DOMString index atrel read GetStrAttr write SetStrAttr;
+    property Rev: DOMString index atrev read GetStrAttr write SetStrAttr;
+    property Shape: DOMString index atshape read GetStrAttr write SetStrAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property Target: DOMString index attarget read GetStrAttr write SetStrAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
+    procedure Blur;
+    procedure Focus;
   end;
 
   THTMLImageElement = class(THTMLElement)
   public
-    property Name: DOMString;   // !!!: rw
-    property Align: DOMString;  // !!!: rw
-    property Alt: DOMString;    // !!!: rw
-    property Border: DOMString; // !!!: rw
-    property Height: Integer;   // !!!: rw
-    property HSpace: Integer;   // !!!: rw
-    property IsMap: Boolean;    // !!!: rw
-    property LongDesc: DOMString;       // !!!: rw
-    property Src: Integer;      // !!!: rw
-    property UseMap: DOMString; // !!!: rw
-    property VSpace: Integer;   // !!!: rw
-    property Width: Integer;    // !!!: rw
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Alt: DOMString index atalt read GetStrAttr write SetStrAttr;
+    property Border: DOMString index atborder read GetStrAttr write SetStrAttr;
+    property Height: Integer index atheight read GetIntAttr write SetIntAttr;
+    property HSpace: Integer index athspace read GetIntAttr write SetIntAttr; // 4.01 deprecated
+    property IsMap: Boolean index atismap read GetBoolAttr write SetBoolAttr;
+    property LongDesc: DOMString index atlongdesc read GetStrAttr write SetStrAttr;
+    property Src: DOMString index atsrc read GetStrAttr write SetStrAttr;
+    property UseMap: DOMString index atusemap read GetStrAttr write SetStrAttr;
+    property VSpace: Integer index atvspace read GetIntAttr write SetIntAttr; // 4.01 deprecated
+    property Width: Integer index atwidth read GetIntAttr write SetIntAttr;
   end;
 
   THTMLObjectElement = class(THTMLElement)
+  private
+    function GetContentDocument: TDOMDocument;
   public
-    property Form: THTMLFormElement;    // !!!: ro
-    property Code: DOMString;   // !!!: rw
-    property Align: DOMString;  // !!!: rw
-    property Archive: DOMString;        // !!!: rw
-    property Border: DOMString; // !!!: rw
-    property CodeBase: DOMString;       // !!!: rw
-    property CodeType: DOMString;       // !!!: rw
-    property Data: DOMString;   // !!!: rw
-    property Declare: Boolean;  // !!!: rw
-    property Height: DOMString; // !!!: rw
-    property HSpace: Integer;   // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property StandBy: DOMString;        // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    property UseMap: DOMString; // !!!: rw
-    property VSpace: Integer;   // !!!: rw
-    property Width: Integer;    // !!!: rw
-    property ContentDocument: TDOMDocument;     // !!!: ro
+    property Form: THTMLFormElement read GetForm;
+    property Code: DOMString index atcode read GetStrAttr write SetStrAttr; // 4.01 deprecated
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Archive: DOMString index atarchive read GetStrAttr write SetStrAttr;
+    property Border: DOMString index atborder read GetStrAttr write SetStrAttr;
+    property CodeBase: DOMString index atcodebase read GetStrAttr write SetStrAttr;
+    property CodeType: DOMString index atcodetype read GetStrAttr write SetStrAttr;
+    property Data: DOMString index atdata read GetStrAttr write SetStrAttr;
+    property Declare: Boolean index atdeclare read GetBoolAttr write SetBoolAttr;
+    property Height: DOMString index atheight read GetStrAttr write SetStrAttr;
+    property HSpace: Integer index athspace read GetIntAttr write SetIntAttr; // 4.01 deprecated
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property StandBy: DOMString index atstandby read GetStrAttr write SetStrAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
+    property UseMap: DOMString index atusemap read GetStrAttr write SetStrAttr;
+    property VSpace: Integer index atvspace read GetIntAttr write SetIntAttr; // 4.01 deprecated
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
+    property ContentDocument: TDOMDocument read GetContentDocument;
   end;
 
   THTMLParamElement = class(THTMLElement)
   public
-    property Name: DOMString;   // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
-    property Value: DOMString;  // !!!: rw
-    property ValueType: DOMString;      // !!!: rw
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
+    property Value: DOMString index atvalue read GetStrAttr write SetStrAttr;
+    property ValueType: DOMString index atvaluetype read GetStrAttr write SetStrAttr;
   end;
 
   THTMLAppletElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
-    property Alt: DOMString;    // !!!: rw
-    property Archive: DOMString;        // !!!: rw
-    property Code: DOMString;   // !!!: rw
-    property CodeBase: DOMString;       // !!!: rw
-    property Height: DOMString; // !!!: rw
-    property HSpace: Integer;   // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property AppletObject: DOMString;   // !!!: rw
-    property VSpace: Integer;   // !!!: rw
-    property Width: Integer;    // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Alt: DOMString index atalt read GetStrAttr write SetStrAttr;
+    property Archive: DOMString index atarchive read GetStrAttr write SetStrAttr;
+    property Code: DOMString index atcode read GetStrAttr write SetStrAttr;  // 4.01 deprecated
+    property CodeBase: DOMString index atcodebase  read GetStrAttr write SetStrAttr;
+    property Height: DOMString index atheight read GetStrAttr write SetStrAttr;
+    property HSpace: Integer index athspace read GetIntAttr write SetIntAttr;  // 4.01 deprecated
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property AppletObject: DOMString index atobject read GetStrAttr write SetStrAttr;
+    property VSpace: Integer index atvspace read GetIntAttr write SetIntAttr;  // 4.01 deprecated
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
   end;
 
   THTMLMapElement = class(THTMLElement)
+  private
+    function GetAreas: THTMLCollection;
   public
-    property Areas: THTMLCollection;    // !!!: ro
-    property Name: DOMString;   // !!!: rw
+    property Areas: THTMLCollection read GetAreas;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
   end;
 
   THTMLAreaElement = class(THTMLElement)
   public
-    property AccessKey: DOMString;      // !!!: rw
-    property Alt: DOMString;    // !!!: rw
-    property Coords: DOMString; // !!!: rw
-    property HRef: DOMString;   // !!!: rw
-    property NoHRef: Boolean;   // !!!: rw
-    property Shape: DOMString;  // !!!: rw
-    property TabIndex: Integer; // !!!: rw
-    property Target: DOMString; // !!!: rw
+    property AccessKey: DOMString index ataccesskey  read GetStrAttr write SetStrAttr;
+    property Alt: DOMString index atalt read GetStrAttr write SetStrAttr;
+    property Coords: DOMString index atcoords read GetStrAttr write SetStrAttr;
+    property HRef: DOMString index athref read GetStrAttr write SetStrAttr;
+    property NoHRef: Boolean index atnohref read GetBoolAttr write SetBoolAttr;
+    property Shape: DOMString index atshape read GetStrAttr write SetStrAttr;
+    property TabIndex: Integer index attabindex read GetIntAttr write SetIntAttr;
+    property Target: DOMString index attarget read GetStrAttr write SetStrAttr;
   end;
 
   THTMLScriptElement = class(THTMLElement)
+  private
+    function GetEvent: DOMString;
+    procedure SetEvent(const Value: DOMString);
   public
-    property Text: DOMString;   // !!!: rw
-    property HtmlFor: DOMString;        // !!!: rw
-    property Event: DOMString;  // !!!: rw
-    property Charset: DOMString;        // !!!: rw
-    property Defer: Boolean;    // !!!: rw
-    property Src: DOMString;    // !!!: rw
-    property HTMLType: DOMString;       // !!!: rw
+    property Text: DOMString read GetTextContent write SetTextContent;
+    property HtmlFor: DOMString index atfor read GetStrAttr write SetStrAttr;
+    { reserved for future use }
+    property Event: DOMString read GetEvent write SetEvent;
+    property Charset: DOMString index atcharset read GetStrAttr write SetStrAttr;
+    property Defer: Boolean index atdefer read GetBoolAttr write SetBoolAttr;
+    property Src: DOMString index atsrc read GetStrAttr write SetStrAttr;
+    property HTMLType: DOMString index attype read GetStrAttr write SetStrAttr;
   end;
 
   THTMLTableElement = class(THTMLElement)
+  private
+    function GetRows: THTMLCollection;
+    function GetBodies: THTMLCollection;
+    function GetCaption: THTMLTableCaptionElement;
+    procedure SetCaption(value: THTMLTableCaptionElement);
+    function GetHead: THTMLTableSectionElement;
+    procedure SetHead(value: THTMLTableSectionElement);
+    function GetFoot: THTMLTableSectionElement;
+    procedure SetFoot(value: THTMLTableSectionElement);
   public
-    property Caption: THTMLTableCaptionElement; // !!!: rw
-    property THead: THTMLTableSectionElement;   // !!!: rw
-    property TFoot: THTMLTableSectionElement;   // !!!: rw
-    property Rows: THTMLCollection;     // !!!: ro
-    property TBodies: THTMLCollection;  // !!!: ro
-    property Align: DOMString;  // !!!: rw
-    property BgColor: DOMString;        // !!!: rw
-    property Border: DOMString; // !!!: rw
-    property CellPadding: DOMString;    // !!!: rw
-    property CellSpacing: DOMString;    // !!!: rw
-    property Frame: DOMString;  // !!!: rw
-    property Rules: DOMString;  // !!!: rw
-    property Summary: DOMString;        // !!!: rw
-    property Width: DOMString;  // !!!: rw
+    property Caption: THTMLTableCaptionElement read GetCaption write SetCaption;
+    property THead: THTMLTableSectionElement read GetHead write SetHead;
+    property TFoot: THTMLTableSectionElement read GetFoot write SetFoot;
+    property Rows: THTMLCollection read GetRows;
+    property TBodies: THTMLCollection read GetBodies;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property BgColor: DOMString index atbgcolor read GetStrAttr write SetStrAttr;  // 4.01 deprecated
+    property Border: DOMString index atborder read GetStrAttr write SetStrAttr;
+    property CellPadding: DOMString index atcellpadding read GetStrAttr write SetStrAttr;
+    property CellSpacing: DOMString index atcellspacing read GetStrAttr write SetStrAttr;
+    property Frame: DOMString index atframe read GetStrAttr write SetStrAttr;
+    property Rules: DOMString index atrules read GetStrAttr write SetStrAttr;
+    property Summary: DOMString index atsummary read GetStrAttr write SetStrAttr;
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
     function CreateTHead: THTMLElement;
     procedure DeleteTHead;
     function CreateTFoot: THTMLElement;
@@ -492,116 +526,139 @@ type
 
   THTMLTableCaptionElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
   end;
 
   THTMLTableColElement = class(THTMLElement)
   public
-    property Align: DOMString;  // !!!: rw
-    property Ch: DOMString;     // !!!: rw
-    property ChOff: DOMString;  // !!!: rw
-    property Span: Integer;     // !!!: rw
-    property VAlign: DOMString; // !!!: rw
-    property Width: DOMString;  // !!!: rw
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Ch: DOMString index atchar read GetStrAttr write SetStrAttr;
+    property ChOff: DOMString index atcharoff read GetStrAttr write SetStrAttr;
+    property Span: Integer index atspan read GetIntAttr write SetIntAttr;
+    property VAlign: DOMString index atvalign read GetStrAttr write SetStrAttr;
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
   end;
 
   THTMLTableSectionElement = class(THTMLElement)
+  private
+    function GetRows: THTMLCollection;
   public
-    property Align: DOMString;  // !!!: rw
-    property Ch: DOMString;     // !!!: rw
-    property ChOff: DOMString;  // !!!: rw
-    property VAlign: DOMString; // !!!: rw
-    property Rows: THTMLCollection;     // !!!: ro
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Ch: DOMString index atchar read GetStrAttr write SetStrAttr;
+    property ChOff: DOMString index atcharoff read GetStrAttr write SetStrAttr;
+    property VAlign: DOMString index atvalign read GetStrAttr write SetStrAttr;
+    property Rows: THTMLCollection read GetRows;
     function InsertRow(Index: Integer): THTMLElement;
     procedure DeleteRow(Index: Integer);
   end;
 
   THTMLTableRowElement = class(THTMLElement)
+  private
+    function GetRowIndex: Integer;
+    function GetSectionRowIndex: Integer;
+    function GetCells: THTMLCollection;
   public
-    property RowIndex: Integer; // !!!: ro
-    property SectionRowIndex: Integer;  // !!!: ro
-    property Cells: THTMLCollection;    // !!!: ro
-    property Align: DOMString;  // !!!: rw
-    property BgColor: DOMString;        // !!!: rw
-    property Ch: DOMString;     // !!!: rw
-    property ChOff: DOMString;  // !!!: rw
-    property VAlign: DOMString; // !!!: rw
+    property RowIndex: Integer read GetRowIndex;
+    property SectionRowIndex: Integer read GetSectionRowIndex;
+    property Cells: THTMLCollection read GetCells;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property BgColor: DOMString index atbgcolor read GetStrAttr write SetStrAttr;  // 4.01 deprecated
+    property Ch: DOMString index atchar read GetStrAttr write SetStrAttr;
+    property ChOff: DOMString index atcharoff read GetStrAttr write SetStrAttr;
+    property VAlign: DOMString index atvalign read GetStrAttr write SetStrAttr;
     function InsertCell(Index: Integer): THTMLElement;
     procedure DeleteCell(Index: Integer);
   end;
 
   THTMLTableCellElement = class(THTMLElement)
+  private
+    function GetCellIndex: Integer;
   public
-    property CellIndex: Integer;        // !!!: ro
-    property Abbr: DOMString;   // !!!: rw
-    property Align: DOMString;  // !!!: rw
-    property Axis: DOMString;   // !!!: rw
-    property BgColor: DOMString;        // !!!: rw
-    property Ch: DOMString;     // !!!: rw
-    property ChOff: DOMString;  // !!!: rw
-    property ColSpan: Integer;  // !!!: rw
-    property Headers: DOMString;        // !!!: rw
-    property Height: DOMString; // !!!: rw
-    property NoWrap: Boolean;   // !!!: rw
-    property RowSpan: Integer;  // !!!: rw
-    property Scope: DOMString;  // !!!: rw
-    property VAlign: DOMString; // !!!: rw
-    property Width: DOMString;  // !!!: rw
+    property CellIndex: Integer read GetCellIndex;
+    property Abbr: DOMString index atabbr read GetStrAttr write SetStrAttr;
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property Axis: DOMString index ataxis read GetStrAttr write SetStrAttr;
+    property BgColor: DOMString index atbgcolor read GetStrAttr write SetStrAttr;  // 4.01 deprecated
+    property Ch: DOMString index atchar read GetStrAttr write SetStrAttr;
+    property ChOff: DOMString index atcharoff read GetStrAttr write SetStrAttr;
+    property ColSpan: Integer index atcolspan read GetIntAttr write SetIntAttr;
+    property Headers: DOMString index atheaders read GetStrAttr write SetStrAttr;
+    property Height: DOMString index atheight read GetStrAttr write SetStrAttr;
+    property NoWrap: Boolean index atnowrap read GetBoolAttr write SetBoolAttr;  // 4.01 deprecated
+    property RowSpan: Integer index atrowspan read GetIntAttr write SetIntAttr;
+    property Scope: DOMString index atscope read GetStrAttr write SetStrAttr;
+    property VAlign: DOMString index atvalign read GetStrAttr write SetStrAttr;
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
   end;
 
   THTMLFrameSetElement = class(THTMLElement)
   public
-    property Cols: DOMString;   // !!!: rw
-    property Rows: DOMString;   // !!!: rw
+    property Cols: DOMString index atcols read GetStrAttr write SetStrAttr;
+    property Rows: DOMString index atrows read GetStrAttr write SetStrAttr;
   end;
 
   THTMLFrameElement = class(THTMLElement)
+  private
+    FContentDocument: TDOMDocument;  // !!! TEMP
   public
-    property FrameBorder: DOMString;    // !!!: rw
-    property LongDesc: DOMString;       // !!!: rw
-    property MarginHeight: DOMString;   // !!!: rw
-    property MarginWidth: DOMString;    // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property NoResize: Boolean; // !!!: rw
-    property Scrolling: DOMString;      // !!!: rw
-    property Src: DOMString;    // !!!: rw
-    property ContentDocument: TDOMDocument;     // !!!: ro
+    property FrameBorder: DOMString index atframeborder  read GetStrAttr write SetStrAttr;
+    property LongDesc: DOMString index atlongdesc read GetStrAttr write SetStrAttr;
+    property MarginHeight: DOMString index atmarginheight read GetStrAttr write SetStrAttr;
+    property MarginWidth: DOMString index atmarginwidth read GetStrAttr write SetStrAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property NoResize: Boolean index atnoresize read GetBoolAttr write SetBoolAttr;
+    property Scrolling: DOMString index atscrolling  read GetStrAttr write SetStrAttr;
+    property Src: DOMString index atsrc read GetStrAttr write SetStrAttr;
+    property ContentDocument: TDOMDocument read FContentDocument;
   end;
 
   THTMLIFrameElement = class(THTMLElement)
+  private
+    FContentDocument: TDOMDocument;  // !!! TEMP
   public
-    property Align: DOMString;  // !!!: rw
-    property FrameBorder: DOMString;    // !!!: rw
-    property Height: DOMString; // !!!: rw
-    property LongDesc: DOMString;       // !!!: rw
-    property MarginHeight: DOMString;   // !!!: rw
-    property MarginWidth: DOMString;    // !!!: rw
-    property Name: DOMString;   // !!!: rw
-    property Scrolling: DOMString;      // !!!: rw
-    property Src: DOMString;    // !!!: rw
-    property Width: DOMString;  // !!!: rw
-    property ContentDocument: TDOMDocument;     // !!!: ro
+    property Align: DOMString index atalign read GetStrAttr write SetStrAttr;
+    property FrameBorder: DOMString index atframeborder read GetStrAttr write SetStrAttr;
+    property Height: DOMString index atheight read GetStrAttr write SetStrAttr;
+    property LongDesc: DOMString index atlongdesc read GetStrAttr write SetStrAttr;
+    property MarginHeight: DOMString index atmarginheight  read GetStrAttr write SetStrAttr;
+    property MarginWidth: DOMString index atmarginwidth read GetStrAttr write SetStrAttr;
+    property Name: DOMString index atname read GetStrAttr write SetStrAttr;
+    property Scrolling: DOMString index atscrolling read GetStrAttr write SetStrAttr;
+    property Src: DOMString index atsrc read GetStrAttr write SetStrAttr;
+    property Width: DOMString index atwidth read GetStrAttr write SetStrAttr;
+    property ContentDocument: TDOMDocument read FContentDocument;
   end;
 
   THTMLDocument = class(TXMLDocument)
   private
     function GetTitle: DOMString;
     procedure SetTitle(const Value: DOMString);
+    function GetBody: THTMLElement;
+    procedure SetBody(value: THTMLElement);
+    function GetAnchors: THTMLCollection;
+    function GetApplets: THTMLCollection;
+    function GetCookie: DOMString;
+    procedure SetCookie(const Value: DOMString);
+    function GetDomain: DOMString;
+    function GetForms: THTMLCollection;
+    function GetImages: THTMLCollection;
+    function GetLinks: THTMLCollection;
+    function GetReferrer: DOMString;
   public
     property Title: DOMString read GetTitle write SetTitle;
-    property Referrer: DOMString;       // !!!: ro
-    property Domain: DOMString; // !!!: ro
-    property URL: DOMString;    // !!!: ro
-    property Body: THTMLElement;        // !!!: rw
-    property Images: THTMLCollection;   // !!!: ro
-    property Applets: THTMLCollection;  // !!!: ro
-    property Links: THTMLCollection;    // !!!: ro
-    property Forms: THTMLCollection;    // !!!: ro
-    property Anchors: THTMLCollection;  // !!!: ro
-    property Cookie: DOMString;         // !!!: rw
+    property Referrer: DOMString read GetReferrer;
+    property Domain: DOMString read GetDomain;
+    property URL: DOMString read FDocumentURI;
+    property Body: THTMLElement read GetBody write SetBody;
+    property Images: THTMLCollection read GetImages;
+    property Applets: THTMLCollection read GetApplets;
+    property Links: THTMLCollection read GetLinks;
+    property Forms: THTMLCollection read GetForms;
+    property Anchors: THTMLCollection read GetAnchors;
+    property Cookie: DOMString read GetCookie write SetCookie;
 
-    procedure Open; virtual; abstract;
-    procedure Close; virtual; abstract;
+    procedure Open;
+    procedure Close;
     procedure Write(const AText: DOMString);
     procedure WriteLn(const AText: DOMString);
     function GetElementsByName(const ElementName: DOMString): TDOMNodeList;
@@ -694,86 +751,250 @@ type
 
 implementation
 
+{ THTMLCollection }
 
-function THTMLCollection.Item(Index: Cardinal): TDOMNode;
+constructor THTMLCollection.Create(aNode: TDOMNode; Proc: TFilterProc);
 begin
-  Result := nil;
+  inherited Create(aNode);
+  FFilterProc := Proc;
+end;
+
+function THTMLCollection.NodeFilter(aNode: TDOMNode): TFilterResult;
+begin
+  Result := FFilterProc(aNode);
 end;
 
 function THTMLCollection.NamedItem(const Index: DOMString): TDOMNode;
+var
+  I: Cardinal;
 begin
+// Finds node with matching 'id' attribute
+  for I := 0 to Length-1 do
+  begin
+    // TODO: could be improved when we're able to build ID table for HTML docs.
+    Result := GetItem(I);
+    if (Result.NodeType = ELEMENT_NODE) and (TDOMElement(Result)['id'] = Index) then
+      Exit;
+  end;
+// HTML4.01: additionally search for a node with matching 'name' attr
   Result := nil;
 end;
 
 
-function THTMLOptionsCollection.Item(Index: Cardinal): TDOMNode;
+{ THTMLElement }
+
+function THTMLElement.GetForm: THTMLFormElement;
+var
+  r: TDOMNode;
 begin
-  Result := nil;
+// TODO: rewrite properly
+  r := ParentNode;
+  while Assigned(r) and (r.NodeName <> 'form') do
+    r := r.ParentNode;
+  result := THTMLFormElement(r);
 end;
 
-function THTMLOptionsCollection.NamedItem(const Index: DOMString): TDOMNode;
+function THTMLElement.GetStrAttr(idx: THTMLAttributeTag): DOMString;
 begin
-  Result := nil;
+// TODO: values of attributes that are value lists must be returned in lowercase
+  result := GetAttribute(HTMLAttributeTag[idx]);
 end;
 
-function THTMLElement.GetID: DOMString; begin Result := GetAttribute('id') end;
-procedure THTMLElement.SetID(const Value: DOMString); begin SetAttribute('id', Value) end;
-function THTMLElement.GetTitle: DOMString; begin Result := GetAttribute('title') end;
-procedure THTMLElement.SetTitle(const Value: DOMString); begin SetAttribute('title', Value) end;
-function THTMLElement.GetLang: DOMString; begin Result := GetAttribute('lang') end;
-procedure THTMLElement.SetLang(const Value: DOMString); begin SetAttribute('lang', Value) end;
-function THTMLElement.GetDir: DOMString; begin Result := GetAttribute('dir') end;
-procedure THTMLElement.SetDir(const Value: DOMString); begin SetAttribute('dir', Value) end;
-function THTMLElement.GetClassName: DOMString; begin  Result := GetAttribute('class') end;
-procedure THTMLElement.SetClassName(const Value: DOMString); begin SetAttribute('class', Value) end;
-
-
-function THTMLHtmlElement.GetVersion: DOMString; begin  Result := GetAttribute('version') end;
-procedure THTMLHtmlElement.SetVersion(const Value: DOMString); begin SetAttribute('version', Value) end;
-
-
-function THTMLHeadElement.GetProfile: DOMString; begin  Result := GetAttribute('profile') end;
-procedure THTMLHeadElement.SetProfile(const Value: DOMString); begin SetAttribute('profile', Value) end;
-
-
-procedure THTMLSelectElement.Add(Element, Before: THTMLElement);
+procedure THTMLElement.SetStrAttr(idx: THTMLAttributeTag; const Value: DOMString);
 begin
+  SetAttribute(HTMLAttributeTag[idx], Value);
 end;
 
-procedure THTMLSelectElement.Remove(Index: Integer);
+function THTMLElement.GetIntAttr(idx: THTMLAttributeTag): Integer;
 begin
+  if not TryStrToInt(GetAttribute(HTMLAttributeTag[idx]), result) then
+    result := 0;
 end;
 
+procedure THTMLElement.SetIntAttr(idx: THTMLAttributeTag; value: Integer);
+begin
+  SetAttribute(HTMLAttributeTag[idx], IntToStr(value));
+end;
+
+function THTMLElement.GetUIntAttr(idx: THTMLAttributeTag): Cardinal;
+var
+  tmp: DOMString;
+  code: word;
+begin
+  tmp := GetAttribute(HTMLAttributeTag[idx]);
+  val(tmp, result, code);
+  if code <> 0 then
+    result := 0;
+end;
+
+procedure THTMLElement.SetUIntAttr(idx: THTMLAttributeTag; value: Cardinal);
+begin
+  SetAttribute(HTMLAttributeTag[idx], IntToStr(value));
+end;
+
+function THTMLElement.GetBoolAttr(idx: THTMLAttributeTag): Boolean;
+begin
+// attribute value is irrelevant?
+  result := HasAttribute(HTMLAttributeTag[idx]);
+end;
+
+procedure THTMLElement.SetBoolAttr(idx: THTMLAttributeTag; value: Boolean);
+begin
+  if value then
+    SetAttribute(HTMLAttributeTag[idx], HTMLAttributeTag[idx])
+  else
+    RemoveAttribute(HTMLAttributeTag[idx]);
+end;
+
+{ THTMLTableElement }
+
+function TableRowFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'tr') then
+    Result := frNorecurseTrue
+  else
+    Result := frFalse;
+end;
+
+function TableBodyFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'tbody') then
+    Result := frNorecurseTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLTableElement.GetRows: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @TableRowFilter);
+end;
+
+function THTMLTableElement.GetBodies: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @TableBodyFilter);
+end;
+
+function THTMLTableElement.GetCaption: THTMLTableCaptionElement;
+var
+  child: TDOMNode;
+begin
+  child := FirstChild;
+  while Assigned(child) do
+  begin
+    if child.NodeName = 'caption' then
+      Break;
+    child := child.NextSibling;
+  end;
+  result := THTMLTableCaptionElement(child);
+end;
+
+procedure THTMLTableElement.SetCaption(value: THTMLTableCaptionElement);
+begin
+  // TODO: implement
+end;
+
+function THTMLTableElement.GetHead: THTMLTableSectionElement;
+var
+  child: TDOMNode;
+begin
+  child := FirstChild;
+  while Assigned(child) do
+  begin
+    if child.NodeName = 'thead' then
+      Break;
+    child := child.NextSibling;
+  end;
+  result := THTMLTableSectionElement(child);
+end;
+
+procedure THTMLTableElement.SetHead(value: THTMLTableSectionElement);
+begin
+  // TODO: implement
+end;
+
+function THTMLTableElement.GetFoot: THTMLTableSectionElement;
+var
+  child: TDOMNode;
+begin
+  child := FirstChild;
+  while Assigned(child) do
+  begin
+    if child.NodeName = 'tfoot' then
+      Break;
+    child := child.NextSibling;
+  end;
+  result := THTMLTableSectionElement(child);
+end;
+
+procedure THTMLTableElement.SetFoot(value: THTMLTableSectionElement);
+begin
+  // TODO: implement
+end;
 
 function THTMLTableElement.CreateTHead: THTMLElement;
 begin
-  Result := nil;
+  Result := GetHead;
+  if Assigned(Result) then
+    Exit;
+  Result := THTMLTableSectionElement.Create(OwnerDocument);
+  Result.FNSI.QName := THTMLDocument(OwnerDocument).HashForName('thead');
+  AppendChild(Result);
 end;
 
 procedure THTMLTableElement.DeleteTHead;
+var
+  node: TDOMNode;
 begin
+  node := GetHead;
+  if Assigned(node) then
+    RemoveChild(node);
 end;
 
 function THTMLTableElement.CreateTFoot: THTMLElement;
 begin
-  Result := nil;
+  Result := GetFoot;
+  if Assigned(Result) then
+    Exit;
+  Result := THTMLTableSectionElement.Create(OwnerDocument);
+  Result.FNSI.QName := THTMLDocument(OwnerDocument).HashForName('tfoot');
+  AppendChild(Result);
 end;
 
 procedure THTMLTableElement.DeleteTFoot;
+var
+  node: TDOMNode;
 begin
+  node := GetFoot;
+  if Assigned(node) then
+    RemoveChild(node);
 end;
 
 function THTMLTableElement.CreateCaption: THTMLElement;
 begin
-  Result := nil;
+  Result := GetCaption;
+  if Assigned(Result) then
+    Exit;
+  Result := THTMLTableCaptionElement.Create(OwnerDocument);
+  Result.FNSI.QName := THTMLDocument(OwnerDocument).HashForName('caption');
+  AppendChild(Result);
 end;
 
 procedure THTMLTableElement.DeleteCaption;
+var
+  node: TDOMNode;
 begin
+  node := GetCaption;
+  if Assigned(node) then
+    RemoveChild(node);
 end;
 
 function THTMLTableElement.InsertRow(Index: Integer): THTMLElement;
 begin
+{ Insert a new empty row in the table. The new row is inserted immediately
+ before and in the same section as the current indexth row in the table.
+  If index is -1 or equal to the number of rows, the new row is appended.
+  In addition, when the table is empty the row is inserted into a TBODY which
+  is created and inserted into the table. }
   Result := nil;
 end;
 
@@ -781,26 +1002,48 @@ procedure THTMLTableElement.DeleteRow(Index: Integer);
 begin
 end;
 
+{ THTMLTableSectionElement }
+
+function THTMLTableSectionElement.GetRows: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @TableRowFilter);
+end;
 
 function THTMLTableSectionElement.InsertRow(Index: Integer): THTMLElement;
+var
+  row: TDOMNode;
 begin
-  Result := nil;
+  with GetRows do
+  try
+    if (Index < -1) or (Index > Integer(Length)) then
+      raise EDOMIndexSize.Create('HTMLTableSectionElement.InsertRow');
+    row := GetItem(LongWord(Index));  // may be nil
+    Result := THTMLTableRowElement.Create(OwnerDocument);
+    Result.FNSI.QName := THTMLDocument(OwnerDocument).HashForName('tr');
+    InsertBefore(Result, row);
+  finally
+    Free;
+  end;
 end;
 
 procedure THTMLTableSectionElement.DeleteRow(Index: Integer);
+var
+  row: TDOMNode;
 begin
+  with GetRows do
+  try
+    if Index = -1 then
+      Index := Length-1;
+    row := GetItem(LongWord(Index));
+    if row = nil then
+      raise EDOMIndexSize.Create('HTMLTableSectionElement.DeleteRow');
+    RemoveChild(row);
+  finally
+    Free;
+  end;
 end;
 
-
-function THTMLTableRowElement.InsertCell(Index: Integer): THTMLElement;
-begin
-  Result := nil;
-end;
-
-procedure THTMLTableRowElement.DeleteCell(Index: Integer);
-begin
-end;
-
+{ THTMLDocument }
 
 function THTMLDocument.GetTitle: DOMString;
 var
@@ -852,6 +1095,146 @@ begin
   TitleEl.AppendChild(CreateTextNode(Value));
 end;
 
+function THTMLDocument.GetBody: THTMLElement;
+var
+  Node: TDOMNode;
+begin
+  if not Assigned(DocumentElement) then
+    AppendChild(CreateHtmlElement);
+  Node := DocumentElement.FirstChild;
+  while Assigned(Node) and (Node.NodeName <> 'body') do
+    Node := Node.NextSibling;
+  if not Assigned(Node) then
+  begin
+    Node := CreateBodyElement;
+    DocumentElement.AppendChild(Node);
+  end;
+  result := THTMLElement(Node);
+end;
+
+procedure THTMLDocument.SetBody(value: THTMLElement);
+begin
+
+end;
+
+function DocImageFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'img') then
+    Result := frNorecurseTrue
+  else
+    Result := frFalse;
+end;
+
+function DocFormFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'form') then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function DocAnchorFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'a') and
+    TDOMElement(aNode).HasAttribute('name') then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function DocAppletFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and ((aNode.NodeName = 'applet') or
+    (aNode.NodeName = 'object')) then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function DocLinksFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and ((aNode.NodeName = 'area') or
+  ((aNode.NodeName = 'a') and TDOMElement(aNode).HasAttribute('href'))) then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+type
+  TByNameNodeList = class(TDOMNodeList)
+  protected
+    FFilter: DOMString;
+    function NodeFilter(aNode: TDOMNode): TFilterResult; override;
+  public
+    constructor Create(aNode: TDOMNode; const aFilter: DOMString);
+  end;
+
+constructor TByNameNodeList.Create(aNode: TDOMNode; const aFilter: DOMString);
+begin
+  inherited Create(aNode);
+  FFilter := aFilter;
+end;
+
+function TByNameNodeList.NodeFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (TDOMElement(aNode)['name'] = FFilter) then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLDocument.GetAnchors: THTMLCollection;
+begin
+  Result := THTMLCollection.Create(Self, @DocAnchorFilter);
+end;
+
+function THTMLDocument.GetApplets: THTMLCollection;
+begin
+  Result := THTMLCollection.Create(Self, @DocAppletFilter);
+end;
+
+function THTMLDocument.GetForms: THTMLCollection;
+begin
+  Result := THTMLCollection.Create(Self, @DocFormFilter);
+end;
+
+function THTMLDocument.GetImages: THTMLCollection;
+begin
+  Result := THTMLCollection.Create(Self, @DocImageFilter);
+end;
+
+function THTMLDocument.GetLinks: THTMLCollection;
+begin
+  Result := THTMLCollection.Create(Self, @DocLinksFilter);
+end;
+
+function THTMLDocument.GetDomain: DOMString;
+begin
+  Result := '';
+end;
+
+function THTMLDocument.GetReferrer: DOMString;
+begin
+  Result := '';
+end;
+
+function THTMLDocument.GetCookie: DOMString;
+begin
+  Result := '';
+end;
+
+procedure THTMLDocument.SetCookie(const Value: DOMString);
+begin
+end;
+
+procedure THTMLDocument.Open;
+begin
+end;
+
+procedure THTMLDocument.Close;
+begin
+end;
+
 procedure THTMLDocument.Write(const AText: DOMString);
 begin
 end;
@@ -862,7 +1245,7 @@ end;
 
 function THTMLDocument.GetElementsByName(const ElementName: DOMString): TDOMNodeList;
 begin
-  Result := nil;
+  Result := TByNameNodeList.Create(Self, ElementName);
 end;
 
 function THTMLDocument.CreateElement(const tagName: DOMString): THTMLElement;
@@ -957,6 +1340,296 @@ function THTMLDocument.CreateParagraphElement: THTMLParagraphElement;
 begin
   Result := THTMLParagraphElement.Create(Self);
   Result.FNSI.QName := HashForName('p');
+end;
+
+{ THTMLFormElement }
+
+function FormElementsFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and ((aNode.NodeName = 'input') or
+    (aNode.NodeName = 'select') or (aNode.NodeName = 'textarea') or
+    (aNode.NodeName = 'label') or (aNode.NodeName = 'button')) then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLFormElement.GetElements: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @FormElementsFilter);
+end;
+
+function THTMLFormElement.GetLength: Integer;
+begin
+  with GetElements do
+  try
+    Result := Length;
+  finally
+    Free;
+  end;
+end;
+
+procedure THTMLFormElement.Submit;
+begin
+end;
+
+procedure THTMLFormElement.Reset;
+begin
+end;
+
+{ THTMLMapElement }
+
+function MapAreasFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'area') then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLMapElement.GetAreas: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @MapAreasFilter);
+end;
+
+{ THTMLSelectElement }
+
+function SelectOptionFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and (aNode.NodeName = 'option') then
+    Result := frTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLSelectElement.GetType: DOMString;
+begin
+  if HasAttribute(HTMLAttributeTag[atmultiple]) then
+    result := 'select-multiple'
+  else
+    result := 'select-one';
+end;
+
+function THTMLSelectElement.GetValue: DOMString;
+begin
+  result := '';
+end;
+
+procedure THTMLSelectElement.SetValue(const value: DOMString);
+begin
+
+end;
+
+function THTMLSelectElement.GetOptions: THTMLOptionsCollection;
+begin
+  result := THTMLOptionsCollection.Create(Self, @SelectOptionFilter);
+end;
+
+procedure THTMLSelectElement.Add(Element, Before: THTMLElement);
+begin
+end;
+
+procedure THTMLSelectElement.Remove(Index: Integer);
+begin
+end;
+
+procedure THTMLSelectElement.Blur;
+begin
+end;
+
+procedure THTMLSelectElement.Focus;
+begin
+end;
+
+function THTMLSelectElement.GetLength: Cardinal;
+begin
+  with GetOptions do
+  try
+    Result := Length;
+  finally
+    Free;
+  end;
+end;
+
+procedure THTMLSelectElement.SetLength(aValue: Cardinal);
+begin
+  raise EDOMNotSupported.Create('HTMLSelectElement.SetLength');
+end;
+
+{ THTMLTableRowElement }
+
+function RowCellsFilter(aNode: TDOMNode): TFilterResult;
+begin
+  if (aNode.NodeType = ELEMENT_NODE) and
+   ((aNode.NodeName = 'td') or (aNode.NodeName = 'th')) then
+    Result := frNorecurseTrue
+  else
+    Result := frFalse;
+end;
+
+function THTMLTableRowElement.GetCells: THTMLCollection;
+begin
+  result := THTMLCollection.Create(Self, @RowCellsFilter);
+end;
+
+function THTMLTableRowElement.GetRowIndex: Integer;
+begin
+{ result := SectionRowIndex;
+  if parent is 'tbody' then inc(result, table.head.rowcount);
+  if parent is 'tfoot' then inc(result, table.bodies.rowcount);
+  // what about multiple bodies?
+}
+  result := -1;
+end;
+
+function THTMLTableRowElement.GetSectionRowIndex: Integer;
+var
+  node: TDOMNode;
+begin
+  result := 0;
+  node := PreviousSibling;
+  while Assigned(node) do
+  begin
+  // TODO: should we also check whether the name is same?
+    if node.NodeType = ELEMENT_NODE then
+      Inc(result);
+    node := node.PreviousSibling;
+  end;
+end;
+
+function THTMLTableRowElement.InsertCell(Index: Integer): THTMLElement;
+var
+  cell: TDOMNode;
+begin
+  with GetCells do
+  try
+    if (Index < -1) or (Index > Integer(Length)) then
+      raise EDOMIndexSize.Create('HTMLTableRowElement.InsertCell');
+    cell := GetItem(LongWord(Index));  // may be nil
+    Result := THTMLTableCellElement.Create(OwnerDocument);
+    Result.FNSI.QName := THTMLDocument(OwnerDocument).HashForName('td');
+    InsertBefore(Result, cell);
+  finally
+    Free;
+  end;
+end;
+
+procedure THTMLTableRowElement.DeleteCell(Index: Integer);
+var
+  cell: TDOMNode;
+begin
+  with GetCells do
+  try
+    if Index = -1 then
+      Index := Length-1;
+    cell := GetItem(LongWord(Index));
+    if cell = nil then
+      raise EDOMIndexSize.Create('HTMLTableRowElement.DeleteCell');
+    RemoveChild(cell);
+  finally
+    Free;
+  end;
+end;
+
+{ THTMLTableCellElement }
+
+function THTMLTableCellElement.GetCellIndex: Integer;
+var
+  node: TDOMNode;
+begin
+  result := 0;
+  node := PreviousSibling;
+  while Assigned(node) do
+  begin
+  // TODO: should we also check whether the name is same?
+    if node.NodeType = ELEMENT_NODE then
+      Inc(result);
+    node := node.PreviousSibling;
+  end;
+
+end;
+
+{ THTMLOptionElement }
+
+// TODO: probably should account for possible OPTGROUP elements (no tests)
+function THTMLOptionElement.GetIndex: Integer;
+var
+  node: TDOMNode;
+begin
+  result := 0;
+  node := PreviousSibling;
+  while Assigned(node) do
+  begin
+  // TODO: should we also check whether the name is same?
+    if node.NodeType = ELEMENT_NODE then
+      Inc(result);
+    node := node.PreviousSibling;
+  end;
+end;
+
+{ THTMLTextAreaElement }
+
+function THTMLTextAreaElement.GetType: DOMString;
+begin
+  result := 'textarea';
+end;
+
+procedure THTMLTextAreaElement.Blur;
+begin
+end;
+
+procedure THTMLTextAreaElement.Focus;
+begin
+end;
+
+procedure THTMLTextAreaElement.Select;
+begin
+end;
+
+{ THTMLInputElement }
+
+procedure THTMLInputElement.Blur;
+begin
+end;
+
+procedure THTMLInputElement.Focus;
+begin
+end;
+
+procedure THTMLInputElement.Select;
+begin
+end;
+
+procedure THTMLInputElement.Click;
+begin
+end;
+
+{ THTMLAnchorElement }
+
+procedure THTMLAnchorElement.Blur;
+begin
+end;
+
+procedure THTMLAnchorElement.Focus;
+begin
+end;
+
+{ THTMLObjectElement }
+
+function THTMLObjectElement.GetContentDocument: TDOMDocument;
+begin
+  result := nil;
+end;
+
+{ THTMLScriptElement }
+
+function THTMLScriptElement.GetEvent: DOMString;
+begin
+  Result := '';
+end;
+
+procedure THTMLScriptElement.SetEvent(const Value: DOMString);
+begin
 end;
 
 end.

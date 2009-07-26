@@ -289,8 +289,6 @@ interface
             'LOC_CONST',
             'LOC_JUMP',
             'LOC_FLAGS',
-            'LOC_CREF',
-            'LOC_REF',
             'LOC_REG',
             'LOC_CREG',
             'LOC_FPUREG',
@@ -302,7 +300,10 @@ interface
             'LOC_SSETREG',
             'LOC_CSSETREG',
             'LOC_SSETREF',
-            'LOC_CSSETREF');
+            'LOC_CSSETREF',
+            'LOC_CREF',
+            'LOC_REF'
+            );
 
     var
        mms_movescalar : pmmshuffle;

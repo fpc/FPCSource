@@ -84,6 +84,8 @@ type
     procedure TestBCDParamQuery;
     procedure TestAggregates;
 
+    procedure TestStringLargerThen8192;
+
     // SchemaType tests
     procedure TestTableNames;
     procedure TestFieldNames;
@@ -925,6 +927,29 @@ end;
 procedure TTestFieldTypes.TestEmptyUpdateQuery;
 begin
   TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update fpdev set name=''nothing'' where (1=0)');
+end;
+
+procedure TTestFieldTypes.TestStringLargerThen8192;
+
+var
+  s             : string;
+  i             : integer;
+
+begin
+  CreateTableWithFieldType(ftString,'VARCHAR(9000)');
+  TestFieldDeclaration(ftString,9001);
+
+  setlength(s,9000);
+  for i := 1 to 9000 do
+    s[i]:=chr((i mod 10)+ord('a'));
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('insert into FPDEV2 (FT) values (''' + s + ''')');
+
+  with TSQLDBConnector(DBConnector).Query do
+    begin
+    Open;
+    AssertEquals(s,fields[0].AsString);
+    close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestTableNames;

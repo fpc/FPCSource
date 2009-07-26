@@ -18,6 +18,9 @@ unit zipper;
 Interface
 
 Uses
+  {$IFDEF UNIX}
+   BaseUnix,
+  {$ENDIF}
    SysUtils,Classes,ZStream;
 
 
@@ -251,15 +254,21 @@ Type
   TZipFileEntry = Class(TCollectionItem)
   private
     FArchiveFileName: String;
+    FAttributes: LongInt;
+    FCRC32: LongWord;
     FDateTime: TDateTime;
     FDiskFileName: String;
     FHeaderPos: Longint;
+    FOS: Byte;
     FSize: Integer;
     FStream: TStream;
     function GetArchiveFileName: String;
   Protected
     Property HdrPos : Longint Read FHeaderPos Write FheaderPos;
   Public
+    constructor Create;
+    function IsDirectory: Boolean;
+    function IsLink: Boolean;
     Procedure Assign(Source : TPersistent); override;
     Property Stream : TStream Read FStream Write FStream;
   Published
@@ -267,6 +276,9 @@ Type
     Property DiskFileName : String Read FDiskFileName Write FDiskFileName;
     Property Size : Integer Read FSize Write FSize;
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
+    property OS: Byte read FOS write FOS;
+    property Attributes: LongInt read FAttributes write FAttributes;
+    property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
   { TZipFileEntries }
@@ -337,8 +349,6 @@ Type
     Property Entries : TZipFileEntries Read FEntries Write SetEntries;
   end;
 
-  { TYbZipper }
-
   { TUnZipper }
 
   TUnZipper = Class(TObject)
@@ -363,7 +373,7 @@ Type
     Procedure OpenInput;
     Procedure CloseOutput;
     Procedure CloseInput;
-    Procedure ReadZipHeader(Item : TZipFileEntry; out ACRC : LongWord;out AMethod : Word);
+    Procedure ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
     Procedure ReadZipDirectory;
     Procedure DoEndOfFile;
     Procedure UnZipOneFile(Item : TZipFileEntry); virtual;
@@ -495,6 +505,67 @@ begin
   M:=(ZD shr 5) and 15;
   Y:=((ZD shr 9) and 127)+1980;
   DT:=ComposeDateTime(EncodeDate(Y,M,D),EncodeTime(H,N,S,MS));
+end;
+
+const
+  OS_FAT = 0;
+  OS_UNIX = 3;
+
+  UNIX_MASK = $F000;
+  UNIX_FIFO = $1000;
+  UNIX_CHAR = $2000;
+  UNIX_DIR  = $4000;
+  UNIX_BLK  = $6000;
+  UNIX_FILE = $8000;
+  UNIX_LINK = $A000;
+  UNIX_SOCK = $C000;
+
+
+  UNIX_RUSR = $0100;
+  UNIX_WUSR = $0080;
+  UNIX_XUSR = $0040;
+
+  UNIX_RGRP = $0020;
+  UNIX_WGRP = $0010;
+  UNIX_XGRP = $0008;
+
+  UNIX_ROTH = $0004;
+  UNIX_WOTH = $0002;
+  UNIX_XOTH = $0001;
+
+  UNIX_DEFAULT = UNIX_RUSR or UNIX_WUSR or UNIX_XUSR or UNIX_RGRP or UNIX_ROTH;
+
+
+function ZipUnixAttrsToFatAttrs(const Name: String; Attrs: Longint): Longint;
+begin
+  Result := faArchive;
+
+  if (Pos('.', Name) = 1) and (Name <> '.') and (Name <> '..') then
+    Result := Result + faHidden;
+  case (Attrs and UNIX_MASK) of
+    UNIX_DIR:  Result := Result + faDirectory;
+    UNIX_LINK: Result := Result + faSymLink;
+    UNIX_FIFO, UNIX_CHAR, UNIX_BLK, UNIX_SOCK:
+               Result := Result + faSysFile;
+  end;
+
+  if (Attrs and UNIX_WUSR) = 0 then
+    Result := Result + faReadOnly;
+end;
+
+function ZipFatAttrsToUnixAttrs(Attrs: Longint): Longint;
+begin
+  Result := UNIX_DEFAULT;
+  if (faReadOnly and Attrs) > 0 then
+    Result := Result and not (UNIX_WUSR);
+
+  if (faSymLink and Attrs) > 0 then
+    Result := Result or UNIX_LINK
+  else
+    if (faDirectory and Attrs) > 0 then
+      Result := Result or UNIX_DIR
+    else
+      Result := Result or UNIX_FILE;
 end;
 
 { ---------------------------------------------------------------------
@@ -639,7 +710,7 @@ Const
    SPECIAL     =    256;        { Special function code                            }
    INCSIZE     =      1;        { Code indicating a jump in code size              }
    CLEARCODE   =      2;        { Code indicating code table has been cleared      }
-   STDATTR     =    $23;        { Standard file attribute for DOS Find First/Next  }
+   STDATTR     =    faAnyFile;  { Standard file attribute for DOS Find First/Next  }
 
 constructor TShrinker.Create(AInFile, AOutFile : TStream; ABufSize : LongWord);
 begin
@@ -1001,7 +1072,9 @@ Var
   F : TZipFileEntry;
   Info : TSearchRec;
   I       : Longint;
-
+{$IFDEF UNIX}
+  UnixInfo: Stat;
+{$ENDIF}
 Begin
   For I := 0 to FEntries.Count-1 do
     begin
@@ -1014,6 +1087,12 @@ Begin
         try
           F.Size:=Info.Size;
           F.DateTime:=FileDateToDateTime(Info.Time);
+        {$IFDEF UNIX}
+          if fplstat(F.DiskFileName, @UnixInfo) = 0 then
+            F.Attributes := UnixInfo.st_mode;
+        {$ELSE}
+          F.Attributes := Info.Attr;
+        {$ENDIF}
         finally
           FindClose(Info);
         end
@@ -1025,6 +1104,11 @@ Begin
       If (F.ArchiveFileName='') then
         Raise EZipError.CreateFmt(SErrMissingArchiveName,[I]);
       F.Size:=F.Stream.Size;
+    {$IFDEF UNIX}
+      F.Attributes := UNIX_FILE or UNIX_DEFAULT;
+    {$ELSE}
+      F.Attributes := faArchive;
+    {$ENDIF}
       end;
     end;
 end;
@@ -1049,7 +1133,10 @@ Begin
   If (Item.Stream<>nil) then
     FInFile:=Item.Stream
   else
-    FInFile:=TFileStream.Create(Item.DiskFileName,fmOpenRead);
+    if Item.IsDirectory then
+      FInFile := TStringStream.Create('')
+    else
+      FInFile:=TFileStream.Create(Item.DiskFileName,fmOpenRead);
   Result:=True;
   If Assigned(FOnStartFile) then
     FOnStartFile(Self,Item.ArchiveFileName);
@@ -1143,13 +1230,20 @@ Begin
        begin
        Signature := CENTRAL_FILE_HEADER_SIGNATURE;
        MadeBy_Version := LocalHdr.Extract_Version_Reqd;
+     {$IFDEF UNIX}
+       MadeBy_Version := MadeBy_Version or (OS_UNIX shl 8);
+     {$ENDIF}
        Move(LocalHdr.Extract_Version_Reqd, Extract_Version_Reqd, 26);
        Last_Mod_Time:=localHdr.Last_Mod_Time;
        Last_Mod_Date:=localHdr.Last_Mod_Date;
        File_Comment_Length := 0;
        Starting_Disk_Num := 0;
        Internal_Attributes := 0;
-       External_Attributes := faARCHIVE;
+     {$IFDEF UNIX}
+       External_Attributes := Entries[ACount].Attributes shl 16;
+     {$ELSE}
+       External_Attributes := Entries[ACount].Attributes;
+     {$ENDIF}
        Local_Header_Offset := HdrPos;
        end;
      FOutFile.Seek(0,soFromEnd);
@@ -1367,9 +1461,21 @@ End;
 
 
 Function TUnZipper.OpenOutput(OutFileName : String) : Boolean;
-
+Var
+  Path: String;
+  OldDirectorySeparators: set of char;
 Begin
-  ForceDirectories(ExtractFilePath(OutFileName));
+  { the default RTL behaviour is broken on Unix platforms
+    for Windows compatibility: it allows both '/' and '\'
+    as directory separator. We don't want that behaviour
+    here, since 'abc\' is a valid file name under Unix.
+  }
+  OldDirectorySeparators:=AllowDirectorySeparators;
+  AllowDirectorySeparators:=[DirectorySeparator];
+  Path:=ExtractFilePath(OutFileName);
+  if (Path<>'') then
+    ForceDirectories(Path);
+  AllowDirectorySeparators:=OldDirectorySeparators;
   FOutFile:=TFileStream.Create(OutFileName,fmCreate);
   Result:=True;
   If Assigned(FOnStartFile) then
@@ -1391,12 +1497,10 @@ Begin
 end;
 
 
-Procedure TUnZipper.ReadZipHeader(Item : TZipFileEntry; out ACRC : LongWord; out AMethod : Word);
-
+Procedure TUnZipper.ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
 Var
   S : String;
   D : TDateTime;
-
 Begin
   FZipFile.Seek(Item.HdrPos,soFromBeginning);
   FZipFile.ReadBuffer(LocalHdr,SizeOf(LocalHdr));
@@ -1405,16 +1509,19 @@ Begin
 {$ENDIF}
   With LocalHdr do
     begin
-    SetLength(S,Filename_Length);
-    FZipFile.ReadBuffer(S[1],Filename_Length);
-    FZipFile.Seek(Extra_Field_Length,soCurrent);
-    Item.ArchiveFileName:=S;
-    Item.DiskFileName:=S;
-    Item.Size:=Uncompressed_Size;
-    ZipDateTimeToDateTime(Last_Mod_Date,Last_Mod_Time,D);
-    Item.DateTime:=D;
-    ACrc:=Crc32;
-    AMethod:=Compress_method;
+      SetLength(S,Filename_Length);
+      FZipFile.ReadBuffer(S[1],Filename_Length);
+      //SetLength(E,Extra_Field_Length);
+      //FZipFile.ReadBuffer(E[1],Extra_Field_Length);
+      FZipFile.Seek(Extra_Field_Length,soCurrent);
+      Item.ArchiveFileName:=S;
+      Item.DiskFileName:=S;
+      Item.Size:=Uncompressed_Size;
+      ZipDateTimeToDateTime(Last_Mod_Date,Last_Mod_Time,D);
+      Item.DateTime:=D;
+      if Crc32 <> 0 then
+        Item.CRC32 := Crc32;
+      AMethod:=Compress_method;
     end;
 End;
 
@@ -1427,7 +1534,6 @@ Var
   CenDirPos : LongInt;
   NewNode   : TZipFileEntry;
   S : String;
-
 Begin
   EndHdrPos:=FZipFile.Size-SizeOf(EndHdr);
   if EndHdrPos < 0 then
@@ -1452,14 +1558,23 @@ Begin
 {$ENDIF}
     With CentralHdr do
       begin
-      if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
-        raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
-      NewNode:=FEntries.Add as TZipFileEntry;
-      NewNode.HdrPos := Local_Header_Offset;
-      SetLength(S,Filename_Length);
-      FZipFile.ReadBuffer(S[1],Filename_Length);
-      NewNode.ArchiveFileName:=S;
-      FZipFile.Seek(Extra_Field_Length+File_Comment_Length,soCurrent);
+        if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
+          raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
+        NewNode:=FEntries.Add as TZipFileEntry;
+        NewNode.HdrPos := Local_Header_Offset;
+        SetLength(S,Filename_Length);
+        FZipFile.ReadBuffer(S[1],Filename_Length);
+        NewNode.ArchiveFileName:=S;
+        NewNode.OS := MadeBy_Version shr 8;
+
+        if NewNode.OS = OS_UNIX then
+          NewNode.Attributes := External_Attributes shr 16
+        else
+          NewNode.Attributes := External_Attributes;
+
+        NewNode.CRC32 := Crc32;
+
+        FZipFile.Seek(Extra_Field_Length + File_Comment_Length,soCurrent);
       end;
    end;
 end;
@@ -1477,35 +1592,104 @@ end;
 Procedure TUnZipper.UnZipOneFile(Item : TZipFileEntry);
 
 Var
-  Count : Longint;
-  CRC : LongWord;
+  Count, Attrs: Longint;
   ZMethod : Word;
-  OutputFileName : string;
-Begin
-  Try
-    ReadZipHeader(Item,CRC,ZMethod);
-    OutputFileName:=Item.DiskFileName;
-    if FOutputPath<>'' then
-      OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
-    OpenOutput(OutputFileName);
+  LinkTargetStream: TStringStream;
+  OutputFileName: string;
+  IsLink: Boolean;
+
+  procedure DoUnzip(const Dest: TStream);
+  begin
     if ZMethod=0 then
-      begin
-        Count:=FOutFile.CopyFrom(FZipFile,LocalHdr.Compressed_Size);
-{$warning TODO: Implement CRC Check}
-      end
+    begin
+      if (LocalHdr.Compressed_Size<>0) then
+        begin
+          Count:=Dest.CopyFrom(FZipFile,LocalHdr.Compressed_Size)
+         {$warning TODO: Implement CRC Check}
+        end
+      else
+        Count:=0;
+    end
     else
-      With CreateDecompressor(Item, ZMethod, FZipFile, FOutFile) do
-        Try
-          OnProgress:=Self.OnProgress;
-          OnPercent:=Self.OnPercent;
-          DeCompress;
-          if CRC<>Crc32Val then
-            raise EZipError.CreateFmt(SErrInvalidCRC,[Item.ArchiveFileName]);
-        Finally
-          Free;
-        end;
-  Finally
-    CloseOutput;
+    With CreateDecompressor(Item, ZMethod, FZipFile, Dest) do
+      Try
+        OnProgress:=Self.OnProgress;
+        OnPercent:=Self.OnPercent;
+        DeCompress;
+        if Item.CRC32 <> Crc32Val then
+          raise EZipError.CreateFmt(SErrInvalidCRC,[Item.ArchiveFileName]);
+      Finally
+        Free;
+      end;
+  end;
+Begin
+  ReadZipHeader(Item, ZMethod);
+  OutputFileName:=Item.DiskFileName;
+  if FOutputPath<>'' then
+    OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
+
+  IsLink := Item.IsLink;
+
+{$IFNDEF UNIX}
+  if IsLink then
+  begin
+    {$warning TODO: Implement symbolic link creation for non-unix}
+    IsLink := False;
+  end;
+{$ENDIF}
+
+
+  if IsLink then
+  begin
+  {$IFDEF UNIX}
+    LinkTargetStream := TStringStream.Create('');
+    try
+      DoUnzip(LinkTargetStream);
+      fpSymlink(PChar(LinkTargetStream.DataString), PChar(OutputFileName));
+    finally
+      LinkTargetStream.Free;
+    end;
+  {$ENDIF}
+  end
+  else
+  begin
+    if Item.IsDirectory then
+      CreateDir(OutputFileName)
+    else
+    begin
+      try
+        OpenOutput(OutputFileName);
+        DoUnzip(FOutFile);
+      Finally
+        CloseOutput;
+      end;
+    end;
+  end;
+
+  // set attributes
+  FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
+
+  if (Item.Attributes <> 0) then
+  begin
+    Attrs := 0;
+  {$IFDEF UNIX}
+    if Item.OS = OS_UNIX then Attrs := Item.Attributes;
+    if Item.OS = OS_FAT then
+      Attrs := ZipFatAttrsToUnixAttrs(Item.Attributes);
+  {$ELSE}
+    if Item.OS = OS_FAT then Attrs := Item.Attributes;
+    if Item.OS = OS_UNIX then
+      Attrs := ZipUnixAttrsToFatAttrs(ExtractFileName(Item.ArchiveFileName), Item.Attributes);
+  {$ENDIF}
+
+    if Attrs <> 0 then
+    begin
+  {$IFDEF UNIX}
+    FpChmod(OutputFileName, Attrs);
+  {$ELSE}
+    FileSetAttr(OutputFileName, Attrs);
+  {$ENDIF}
+    end;
   end;
 end;
 
@@ -1626,6 +1810,39 @@ begin
     Result:=FDiskFileName;
 end;
 
+constructor TZipFileEntry.Create;
+begin
+{$IFDEF UNIX}
+  FOS := OS_UNIX;
+{$ELSE}
+  FOS := OS_FAT;
+{$ENDIF}
+end;
+
+function TZipFileEntry.IsDirectory: Boolean;
+begin
+  Result := (DiskFileName <> '') and (DiskFileName[Length(DiskFileName)] in ['/', '\']);
+  if Attributes <> 0 then
+  begin
+    case OS of
+      OS_FAT: Result := (faDirectory and Attributes) > 0;
+      OS_UNIX: Result := (Attributes and UNIX_MASK) = UNIX_DIR;
+    end;
+  end;
+end;
+
+function TZipFileEntry.IsLink: Boolean;
+begin
+  Result := False;
+  if Attributes <> 0 then
+  begin
+    case OS of
+      OS_FAT: Result := (faSymLink and Attributes) > 0;
+      OS_UNIX: Result := (Attributes and UNIX_MASK) = UNIX_LINK;
+    end;
+  end;
+end;
+
 procedure TZipFileEntry.Assign(Source: TPersistent);
 
 Var
@@ -1657,8 +1874,7 @@ begin
   Items[AIndex]:=AValue;
 end;
 
-function TZipFileEntries.AddFileEntry(const ADiskFileName: String
-  ): TZipFileEntry;
+function TZipFileEntries.AddFileEntry(const ADiskFileName: String): TZipFileEntry;
 begin
   Result:=Add as TZipFileEntry;
   Result.DiskFileName:=ADiskFileName;

@@ -107,6 +107,11 @@ uses htmldefs; // for entities...
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];
+  char_lt: SAXChar = '<';
+  char_gt: SAXChar = '>';
+  char_quot: SAXChar = '"';
+  char_apos: SAXChar = '''';
+  char_amp: SAXChar = '&';
 
 
 constructor TSAXXMLReader.Create;
@@ -184,12 +189,10 @@ begin
                 EnterNewScannerContext(scTag);
               end;
             else
-              EnterNewScannerContext(scText);
+              FScannerContext := scText
           end;
         scText:
           case Buffer[BufferPos] of
-            #9, #10, #13, ' ':
-              EnterNewScannerContext(scWhitespace);
             '&':
               begin
                 Inc(BufferPos);
@@ -333,9 +336,9 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
 
 var
   Attr: TSAXAttributes;
-  EntString, TagName: String;
+  TagName: String;
   Found: Boolean;
-  Ent: Char;
+  Ent: SAXChar;
   i: Integer;
 begin
   case ScannerContext of
@@ -345,27 +348,23 @@ begin
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
-        if ResolveHTMLEntityReference(TokenText, Ent) then
-        begin
-          EntString := Ent;
-          DoCharacters(PSAXChar(EntString), 0, 1);
-        end else
-        begin
-          { Is this a predefined Unicode character entity? We must check this,
-            as undefined entities must be handled as text, for compatiblity
-            to popular browsers... }
-          Found := False;
-          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-            if UnicodeHTMLEntities[i] = TokenText then
-            begin
-              Found := True;
-              break;
-            end;
-          if Found then
-            DoSkippedEntity(TokenText)
-          else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
-        end;
+        if (Length(TokenText) >= 2) and (TokenText[1] = '#') and
+          (((TokenText[2] >= '0') and (TokenText[2] <= '9')) or (TokenText[2]='x')) and
+          // here actually using it to resolve character references
+          ResolveHTMLEntityReference(TokenText, Ent) then
+            DoCharacters(@Ent, 0, 1)
+        else if TokenText = 'lt' then
+          DoCharacters(@char_lt, 0, 1)
+        else if TokenText = 'gt' then
+          DoCharacters(@char_gt, 0, 1)
+        else if TokenText = 'amp' then
+          DoCharacters(@char_amp, 0, 1)
+        else if TokenText = 'quot' then
+          DoCharacters(@char_quot, 0, 1)
+        else if TokenText = 'apos' then
+          DoCharacters(@char_apos, 0, 1)
+        else
+          DoSkippedEntity(TokenText);
       end;
     scTag:
       if Length(TokenText) > 0 then
