@@ -1784,7 +1784,7 @@ end;
 {$endif}
 
 {$ifndef FPC_SYSTEM_HAS_SWAPENDIAN}
-function SwapEndian(const AValue: SmallInt): SmallInt;
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     { the extra Word type cast is necessary because the "AValue shr 8" }
     { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
@@ -1794,7 +1794,7 @@ function SwapEndian(const AValue: SmallInt): SmallInt;
   end;
 
 
-function SwapEndian(const AValue: Word): Word;
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result := Word((AValue shr 8) or (AValue shl 8));
   end;
@@ -2112,7 +2112,7 @@ function RorByte(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Result:=(AValue shr 1) or (AValue shl 7);
   end;
-  
+
 
 function RorByte(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
@@ -2144,7 +2144,7 @@ function RorWord(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
     Result:=(AValue shr 1) or (AValue shl 15);
   end;
 
-  
+
 function RorWord(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
   begin
     Dist:=Dist and 15;
