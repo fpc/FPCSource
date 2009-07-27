@@ -82,7 +82,7 @@ Type
   Protected
     Procedure CreateCryptKey(Const S : String; Var Key : TIDEACryptKey);
   Public
-    Constructor Create(AKey : TIDEAKey; Dest: TStream);
+    Constructor Create(AKey : TIDEAKey; Dest: TStream); overload;
     Property Key : TIDEAKey Read FKey;
   end;
 
@@ -90,7 +90,7 @@ Type
 
   TIDEAEncryptStream = Class(TIDEAStream)
   public
-    Constructor Create(Const AKey : String; Dest: TStream);
+    Constructor Create(Const AKey : String; Dest: TStream); overload;
     Destructor Destroy; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
@@ -101,7 +101,7 @@ Type
 
   TIDEADeCryptStream = Class(TIDEAStream)
   public
-    Constructor Create(Const AKey : String; Dest: TStream);
+    Constructor Create(Const AKey : String; Dest: TStream); overload;
     function Read(var Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
