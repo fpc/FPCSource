@@ -484,7 +484,7 @@ unit cgobj;
           procedure g_external_wrapper(list : TAsmList; procdef: tprocdef; const externalname: string); virtual;
 
           { initialize the pic/got register }
-          procedure g_maybe_got_init(list: TAsmList); virtual;
+          function g_maybe_got_init(list: TAsmList; force: boolean): tregister; virtual;
         protected
           procedure get_subsetref_load_info(const sref: tsubsetreference; out loadsize: tcgsize; out extra_load: boolean);
           procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); virtual;
@@ -3832,8 +3832,9 @@ implementation
         end;
 
 
-    procedure tcg.g_maybe_got_init(list: TAsmList);
+    function tcg.g_maybe_got_init(list: TAsmList; force: boolean): tregister;
       begin
+        result:=NR_NO;
       end;
 
 

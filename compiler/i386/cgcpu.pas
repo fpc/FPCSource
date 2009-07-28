@@ -52,7 +52,7 @@ unit cgcpu;
         procedure g_exception_reason_save_const(list : TAsmList; const href : treference; a: aint);override;
         procedure g_exception_reason_load(list : TAsmList; const href : treference);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
-        procedure g_maybe_got_init(list: TAsmList); override;
+        function g_maybe_got_init(list: TAsmList; force: boolean): tregister; override;
      end;
 
       tcg64f386 = class(tcg64f32)
@@ -494,12 +494,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.g_maybe_got_init(list: TAsmList);
+    function tcg386.g_maybe_got_init(list: TAsmList; force: boolean): tregister;
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
-           (pi_needs_got in current_procinfo.flags) then
+           (force or
+            (pi_needs_got in current_procinfo.flags)) then
           begin
             if (target_info.system<>system_i386_darwin) then
               begin
@@ -507,11 +508,14 @@ unit cgcpu;
                 cg.a_call_name_static(list,'fpc_geteipasebx');
                 list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
                 list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-                { ecx could be used in leaf procedures }
-                current_procinfo.got:=NR_EBX;
+                { ecx could be used for a parameter register }
+                result:=NR_EBX;
               end
             else
               begin
+                { is not called for darwin/i386 for external stubs }
+                if not assigned(current_procinfo) then
+                  internalerror(2009072801);
                 { can't use ecx, since that one may overwrite a parameter }
                 current_module.requires_ebx_pic_helper:=true;
                 cg.a_call_name_static(list,'fpc_geteipasebx');
@@ -520,6 +524,7 @@ unit cgcpu;
                 { got is already set by ti386procinfo.allocate_got_register }
                 list.concat(tai_regalloc.dealloc(NR_EBX,nil));
                 a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_EBX,current_procinfo.got);
+                result:=current_procinfo.got;
               end;
           end;
       end;

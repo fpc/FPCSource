@@ -1026,7 +1026,7 @@ implementation
             cg.set_regalloc_live_range_direction(rad_backwards_reinit);
             current_filepos:=entrypos;
             { load got if necessary }
-            cg.g_maybe_got_init(templist);
+            current_procinfo.got:=cg.g_maybe_got_init(templist,false);
 
             aktproccode.insertlistafter(headertai,templist);
 
