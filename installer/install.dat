@@ -426,10 +426,12 @@ pack=Commo~n~
 # Common 1
 package=doc-pdf.zip,Documentation (~P~DF)
 # Common 2
-package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
+package=doc-chm.zip,Documentation (CH~M~)
 # Common 3
-package=doc-txt.zip,Documentation (~T~XT)
+package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 4
+package=doc-txt.zip,Documentation (~T~XT)
+# Common 5
 package=demo.zip,D~e~mos
 
 
