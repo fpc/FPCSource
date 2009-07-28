@@ -2123,26 +2123,7 @@ unit cgx86;
         if (cs_create_pic in current_settings.moduleswitches) and
            { darwin/x86_64's assembler doesn't want @PLT after call symbols }
            (target_info.system<>system_x86_64_darwin) then
-          begin
-            ref.refaddr:=addr_pic;
-{$ifdef i386}
-            { it could be that we're called from a procedure not having the
-              got loaded. Since all volatile registers can contain parameters,
-              we have to use the stack.
-            }
-            list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX));
-            ref.base:=g_maybe_got_init(list,true);
-            if (ref.base<>NR_EBX) then
-              internalerror(2009072801);
-            list.concat(taicpu.op_ref_reg(A_MOV,S_L,ref,NR_EBX));
-            reference_reset_base(ref,NR_ESP,0,sizeof(pint));
-            { restore ebx to its original value, and place target address
-              on the stack }
-            list.concat(taicpu.op_reg_ref(A_XCHG,S_L,NR_EBX,ref));
-            list.concat(taicpu.op_none(A_RET));
-            exit;
-{$endif i386}
-          end
+          ref.refaddr:=addr_pic
         else
           ref.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_JMP,S_NO,ref));
