@@ -62,7 +62,7 @@ unit cgppc;
 
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
-        function  g_maybe_got_init(list: TAsmList; force: boolean): tregister; override;
+        procedure g_maybe_got_init(list: TAsmList); override;
        protected
         function  get_darwin_call_stub(const s: string; weak: boolean): tasmsymbol;
         procedure a_load_subsetref_regs_noindex(list: TAsmList; subsetsize: tcgsize; loadbitsize: byte; const sref: tsubsetreference; valuereg, extra_value_reg: tregister); override;
@@ -204,19 +204,16 @@ unit cgppc;
       end;
 
 
-    function tcgppcgen.g_maybe_got_init(list: TAsmList; force: boolean): tregister;
+    procedure tcgppcgen.g_maybe_got_init(list: TAsmList);
       var
          instr: taicpu;
          cond: tasmcond;
         savedlr: boolean;
       begin
-        if not assigned(current_procinfo) then
-          internalerror(2009072802);
         if not(po_assembler in current_procinfo.procdef.procoptions) then
           begin
             if (cs_create_pic in current_settings.moduleswitches) and
-               (force or
-                (pi_needs_got in current_procinfo.flags)) then
+               (pi_needs_got in current_procinfo.flags) then
               case target_info.system of
                 system_powerpc_darwin,
                 system_powerpc64_darwin:
@@ -240,7 +237,6 @@ unit cgppc;
                        { procedures)                                         }
                        not(pi_do_call in current_procinfo.flags) then
                       list.concat(taicpu.op_reg_reg(A_MTSPR,NR_LR,NR_R0));
-                    result:=current_procinfo.got;
                   end;
               end;
           end;
