@@ -361,7 +361,7 @@ Type
     property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
-  TOnCustomOutputEvent = Procedure(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry; AClosing : Boolean) of object;
+  TOnCustomStreamEvent = Procedure(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry) of object;
 
   { TFullZipFileEntries }
 
@@ -377,14 +377,14 @@ Type
 
   TUnZipper = Class(TObject)
   Private
-    FOnCustomOutput: TOnCustomOutputEvent;
+    FOnCreateStream: TOnCustomStreamEvent;
+    FOnDoneStream: TOnCustomStreamEvent;
     FUnZipping  : Boolean;
     FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
     FOutputPath : String;
     FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
-    FUseCustomOutputStream: Boolean;
     FZipFile     : TFileStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type;
     CentralHdr  : Central_File_Header_Type;
@@ -418,14 +418,14 @@ Type
     Procedure Examine;
   Public
     Property BufferSize : LongWord Read FBufSize Write SetBufSize;
-    Property OnCustomOutput : TOnCustomOutputEvent Read FOnCustomOutput Write FOnCustomOutput;
+    Property OnCreateStream : TOnCustomStreamEvent Read FOnCreateStream Write FOnCreateStream;
+    Property OnDoneStream : TOnCustomStreamEvent Read FOnDoneStream Write FOnDoneStream;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
     Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
     Property FileName : String Read FFileName Write SetFileName;
     Property OutputPath : String Read FOutputPath Write SetOutputPath;
-    Property UseCustomOutputStream : Boolean Read FUseCustomOutputStream Write FUseCustomOutputStream;
     Property Files : TStrings Read FFiles;
     Property Entries : TFullZipFileEntries Read FEntries;
   end;
@@ -1515,16 +1515,17 @@ Begin
   OldDirectorySeparators:=AllowDirectorySeparators;
   AllowDirectorySeparators:=[DirectorySeparator];
   Path:=ExtractFilePath(OutFileName);
-
-  If FUseCustomOutputStream and Assigned(FOnCustomOutput) then
-    FOnCustomOutput(Self, OutStream, Item, False)
-  Else
-  Begin
+  OutStream:=Nil;
+  If Assigned(FOnCreateStream) then
+    FOnCreateStream(Self, OutStream, Item);
+  // If FOnCreateStream didn't create one, we create one now.  
+  If (OutStream=Nil) then
+    Begin
     if (Path<>'') then
       ForceDirectories(Path);
     AllowDirectorySeparators:=OldDirectorySeparators;
     OutStream:=TFileStream.Create(OutFileName,fmCreate);
-  end;
+    end;
 
   Result:=True;
   If Assigned(FOnStartFile) then
@@ -1535,9 +1536,9 @@ End;
 Procedure TUnZipper.CloseOutput(Item : TFullZipFileEntry; var OutStream: TStream);
 
 Begin
-  if FUseCustomOutputStream and Assigned(FOnCustomOutput) then
+  if Assigned(FOnDoneStream) then
   begin
-    FOnCustomOutput(Self, OutStream, Item, True);
+    FOnDoneStream(Self, OutStream, Item);
     OutStream := nil;
   end
   else
@@ -1688,7 +1689,7 @@ Begin
   ReadZipHeader(Item, ZMethod);
   OutputFileName:=Item.DiskFileName;
 
-  IsCustomStream := FUseCustomOutputStream and Assigned(FOnCustomOutput);
+  IsCustomStream := Assigned(FOnCreateStream);
 
 
   if (IsCustomStream = False) and (FOutputPath<>'') then
@@ -1697,7 +1698,7 @@ Begin
   IsLink := Item.IsLink;
 
 {$IFNDEF UNIX}
-  if IsLink and (IsCustomStream := False) then
+  if IsLink and Not IsCustomStream then
   begin
     {$warning TODO: Implement symbolic link creation for non-unix}
     IsLink := False;
@@ -1705,7 +1706,7 @@ Begin
 {$ENDIF}
 
 
-  if IsCustomStream = True then
+  if IsCustomStream then
   begin
     try
       OpenOutput(OutputFileName, FOutStream, Item);
@@ -1746,7 +1747,7 @@ Begin
   end;
 
 
-  if IsCustomStream = False then
+  if Not IsCustomStream then
   begin
     // set attributes
     FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
