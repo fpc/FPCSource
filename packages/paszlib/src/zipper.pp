@@ -361,6 +361,8 @@ Type
     property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
+  TOnCustomOutputEvent = Procedure(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry; AClosing : Boolean) of object;
+
   { TFullZipFileEntries }
 
   TFullZipFileEntries = Class(TZipFileEntries)
@@ -375,13 +377,14 @@ Type
 
   TUnZipper = Class(TObject)
   Private
+    FOnCustomOutput: TOnCustomOutputEvent;
     FUnZipping  : Boolean;
     FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
     FOutputPath : String;
     FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
-    FOutFile    : TFileStream;
+    FUseCustomOutputStream: Boolean;
     FZipFile     : TFileStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type;
     CentralHdr  : Central_File_Header_Type;
@@ -393,13 +396,13 @@ Type
     FOnStartFile : TOnStartFileEvent;
   Protected
     Procedure OpenInput;
-    Procedure CloseOutput;
+    Procedure CloseOutput(Item : TFullZipFileEntry; var OutStream: TStream);
     Procedure CloseInput;
     Procedure ReadZipDirectory;
     Procedure ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
     Procedure DoEndOfFile;
     Procedure UnZipOneFile(Item : TFullZipFileEntry); virtual;
-    Function  OpenOutput(OutFileName : String) : Boolean;
+    Function  OpenOutput(OutFileName : String; var OutStream: TStream; Item : TFullZipFileEntry) : Boolean;
     Procedure SetBufSize(Value : LongWord);
     Procedure SetFileName(Value : String);
     Procedure SetOutputPath(Value:String);
@@ -415,12 +418,14 @@ Type
     Procedure Examine;
   Public
     Property BufferSize : LongWord Read FBufSize Write SetBufSize;
+    Property OnCustomOutput : TOnCustomOutputEvent Read FOnCustomOutput Write FOnCustomOutput;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
     Property OnEndFile : TOnEndOfFileEvent Read FOnEndOfFile Write FOnEndOfFile;
     Property FileName : String Read FFileName Write SetFileName;
     Property OutputPath : String Read FOutputPath Write SetOutputPath;
+    Property UseCustomOutputStream : Boolean Read FUseCustomOutputStream Write FUseCustomOutputStream;
     Property Files : TStrings Read FFiles;
     Property Entries : TFullZipFileEntries Read FEntries;
   end;
@@ -529,6 +534,9 @@ begin
   D:=ZD and 31;
   M:=(ZD shr 5) and 15;
   Y:=((ZD shr 9) and 127)+1980;
+
+  if M < 1 then M := 1;
+  if D < 1 then D := 1;
   DT:=ComposeDateTime(EncodeDate(Y,M,D),EncodeTime(H,N,S,MS));
 end;
 
@@ -1494,7 +1502,7 @@ Begin
 End;
 
 
-Function TUnZipper.OpenOutput(OutFileName : String) : Boolean;
+Function TUnZipper.OpenOutput(OutFileName : String; var OutStream: TStream; Item : TFullZipFileEntry) : Boolean;
 Var
   Path: String;
   OldDirectorySeparators: set of char;
@@ -1507,20 +1515,33 @@ Begin
   OldDirectorySeparators:=AllowDirectorySeparators;
   AllowDirectorySeparators:=[DirectorySeparator];
   Path:=ExtractFilePath(OutFileName);
-  if (Path<>'') then
-    ForceDirectories(Path);
-  AllowDirectorySeparators:=OldDirectorySeparators;
-  FOutFile:=TFileStream.Create(OutFileName,fmCreate);
+
+  If FUseCustomOutputStream and Assigned(FOnCustomOutput) then
+    FOnCustomOutput(Self, OutStream, Item, False)
+  Else
+  Begin
+    if (Path<>'') then
+      ForceDirectories(Path);
+    AllowDirectorySeparators:=OldDirectorySeparators;
+    OutStream:=TFileStream.Create(OutFileName,fmCreate);
+  end;
+
   Result:=True;
   If Assigned(FOnStartFile) then
     FOnStartFile(Self,OutFileName);
 End;
 
 
-Procedure TUnZipper.CloseOutput;
+Procedure TUnZipper.CloseOutput(Item : TFullZipFileEntry; var OutStream: TStream);
 
 Begin
-  FreeAndNil(FOutFile);
+  if FUseCustomOutputStream and Assigned(FOnCustomOutput) then
+  begin
+    FOnCustomOutput(Self, OutStream, Item, True);
+    OutStream := nil;
+  end
+  else
+    FreeAndNil(OutStream);
 end;
 
 
@@ -1634,7 +1655,10 @@ Var
   ZMethod : Word;
   LinkTargetStream: TStringStream;
   OutputFileName: string;
+  FOutStream: TStream;
   IsLink: Boolean;
+  IsCustomStream: Boolean;
+
 
   procedure DoUnzip(const Dest: TStream);
   begin
@@ -1663,13 +1687,17 @@ Var
 Begin
   ReadZipHeader(Item, ZMethod);
   OutputFileName:=Item.DiskFileName;
-  if FOutputPath<>'' then
+
+  IsCustomStream := FUseCustomOutputStream and Assigned(FOnCustomOutput);
+
+
+  if (IsCustomStream = False) and (FOutputPath<>'') then
     OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
 
   IsLink := Item.IsLink;
 
 {$IFNDEF UNIX}
-  if IsLink then
+  if IsLink and (IsCustomStream := False) then
   begin
     {$warning TODO: Implement symbolic link creation for non-unix}
     IsLink := False;
@@ -1677,56 +1705,73 @@ Begin
 {$ENDIF}
 
 
-  if IsLink then
+  if IsCustomStream = True then
   begin
-  {$IFDEF UNIX}
-    LinkTargetStream := TStringStream.Create('');
     try
-      DoUnzip(LinkTargetStream);
-      fpSymlink(PChar(LinkTargetStream.DataString), PChar(OutputFileName));
-    finally
-      LinkTargetStream.Free;
+      OpenOutput(OutputFileName, FOutStream, Item);
+      if (IsLink = False) and (Item.IsDirectory = False) then
+        DoUnzip(FOutStream);
+    Finally
+      CloseOutput(Item, FOutStream);
     end;
-  {$ENDIF}
   end
   else
   begin
-    if Item.IsDirectory then
-      CreateDir(OutputFileName)
+    if IsLink then
+    begin
+    {$IFDEF UNIX}
+      LinkTargetStream := TStringStream.Create('');
+      try
+        DoUnzip(LinkTargetStream);
+        fpSymlink(PChar(LinkTargetStream.DataString), PChar(OutputFileName));
+      finally
+        LinkTargetStream.Free;
+      end;
+    {$ENDIF}
+    end
     else
     begin
-      try
-        OpenOutput(OutputFileName);
-        DoUnzip(FOutFile);
-      Finally
-        CloseOutput;
+      if Item.IsDirectory then
+        CreateDir(OutputFileName)
+      else
+      begin
+        try
+          OpenOutput(OutputFileName, FOutStream, Item);
+          DoUnzip(FOutStream);
+        Finally
+          CloseOutput(Item, FOutStream);
+        end;
       end;
     end;
   end;
 
-  // set attributes
-  FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
 
-  if (Item.Attributes <> 0) then
+  if IsCustomStream = False then
   begin
-    Attrs := 0;
-  {$IFDEF UNIX}
-    if Item.OS = OS_UNIX then Attrs := Item.Attributes;
-    if Item.OS = OS_FAT then
-      Attrs := ZipFatAttrsToUnixAttrs(Item.Attributes);
-  {$ELSE}
-    if Item.OS = OS_FAT then Attrs := Item.Attributes;
-    if Item.OS = OS_UNIX then
-      Attrs := ZipUnixAttrsToFatAttrs(ExtractFileName(Item.ArchiveFileName), Item.Attributes);
-  {$ENDIF}
+    // set attributes
+    FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
 
-    if Attrs <> 0 then
+    if (Item.Attributes <> 0) then
     begin
-  {$IFDEF UNIX}
-    FpChmod(OutputFileName, Attrs);
-  {$ELSE}
-    FileSetAttr(OutputFileName, Attrs);
-  {$ENDIF}
+      Attrs := 0;
+    {$IFDEF UNIX}
+      if Item.OS = OS_UNIX then Attrs := Item.Attributes;
+      if Item.OS = OS_FAT then
+        Attrs := ZipFatAttrsToUnixAttrs(Item.Attributes);
+    {$ELSE}
+      if Item.OS = OS_FAT then Attrs := Item.Attributes;
+      if Item.OS = OS_UNIX then
+        Attrs := ZipUnixAttrsToFatAttrs(ExtractFileName(Item.ArchiveFileName), Item.Attributes);
+    {$ENDIF}
+
+      if Attrs <> 0 then
+      begin
+    {$IFDEF UNIX}
+      FpChmod(OutputFileName, Attrs);
+    {$ELSE}
+      FileSetAttr(OutputFileName, Attrs);
+    {$ENDIF}
+      end;
     end;
   end;
 end;
