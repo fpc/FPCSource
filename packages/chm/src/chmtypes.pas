@@ -126,7 +126,7 @@ begin
   if ItemCount mod 5 = 0 then begin
     Inc(FQuickRefEntries);
     ReversePos := ($1000) - SizeOf(Word) - (SizeOf(Word)*FQuickRefEntries);
-    Value := NtoLE(Word(CurrentPos - Size));
+    Value := NtoLE(Word(CurrentPos - Size - FHeaderSize));
     Move(Value, Buffer[ReversePos], SizeOf(Word));
   end;
 end;
