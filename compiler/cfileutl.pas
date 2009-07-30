@@ -523,7 +523,10 @@ end;
         if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
 {$elseif defined(amiga) or defined(morphos)}
-        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or (Pos(':',s) = length(s)) then
+        (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"), 
+           otherwise it's always a relative path, no matter if it starts with a directory 
+           separator or not. (KB) *)
+        if (length(s)>0) and (Pos(':',s) <> 0) then
           result:=true;
 {$elseif defined(macos)}
         if IsMacFullPath(s) then

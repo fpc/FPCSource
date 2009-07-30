@@ -38,7 +38,7 @@ const
   AllowDriveSeparators : set of char = [':'];
   maxExitCode = 255;
   MaxPathLen = 256;
-  AllFilesMask = '*';
+  AllFilesMask = '#?';
 
 const
   UnusedHandle    : LongInt = -1;
