@@ -99,7 +99,7 @@ uses chmbase;
 
 function TDirectoryChunk.CanHold(ASize: Integer): Boolean;
 begin
-  Result := CurrentPos < $1000-1 - ASize - (SizeOf(Word) * (FQuickRefEntries+2));
+  Result := CurrentPos < $1000 - ASize - (SizeOf(Word) * (FQuickRefEntries+2));
 end;
 
 function TDirectoryChunk.FreeSpace: Integer;
@@ -125,7 +125,7 @@ begin
   // now put a quickref entry if needed
   if ItemCount mod 5 = 0 then begin
     Inc(FQuickRefEntries);
-    ReversePos := ($1000-1) - SizeOf(Word) - (SizeOf(Word)*FQuickRefEntries);
+    ReversePos := ($1000) - SizeOf(Word) - (SizeOf(Word)*FQuickRefEntries);
     Value := NtoLE(Word(CurrentPos - Size));
     Move(Value, Buffer[ReversePos], SizeOf(Word));
   end;
@@ -134,10 +134,11 @@ end;
 procedure TDirectoryChunk.WriteChunkToStream(Stream: TStream);
 var
   ReversePos: Integer;
+  TmpItemCount: Word;
 begin
-  ReversePos := $1000-1 - SizeOf(Word);
-  FItemCount := NtoLE(ItemCount);
-  Move(ItemCount, Buffer[ReversePos], SizeOf(Word));
+  ReversePos := $1000 - SizeOf(Word);
+  TmpItemCount := NtoLE(Word(FItemCount));
+  Move(TmpItemCount, Buffer[ReversePos], SizeOf(Word));
 
   Stream.Write(Buffer[0], $1000);
   {$IFDEF DEBUG_CHM_CHUNKS}
