@@ -135,37 +135,37 @@ function MinIntValue(const Data: array of Integer): Integer;
 function MaxIntValue(const Data: array of Integer): Integer;
 
 { Extra, not present in Delphi, but used frequently  }
-function Min(a, b: Integer): Integer;inline;
-function Max(a, b: Integer): Integer;inline;
+function Min(a, b: Integer): Integer;inline; overload;
+function Max(a, b: Integer): Integer;inline; overload;
 { this causes more trouble than it solves
-function Min(a, b: Cardinal): Cardinal;
-function Max(a, b: Cardinal): Cardinal;
+function Min(a, b: Cardinal): Cardinal; overload;
+function Max(a, b: Cardinal): Cardinal; overload;
 }
-function Min(a, b: Int64): Int64;inline;
-function Max(a, b: Int64): Int64;inline;
+function Min(a, b: Int64): Int64;inline; overload;
+function Max(a, b: Int64): Int64;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Min(a, b: Single): Single;inline;
-function Max(a, b: Single): Single;inline;
+function Min(a, b: Single): Single;inline; overload;
+function Max(a, b: Single): Single;inline; overload;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function Min(a, b: Double): Double;inline;
-function Max(a, b: Double): Double;inline;
+function Min(a, b: Double): Double;inline; overload;
+function Max(a, b: Double): Double;inline; overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Min(a, b: Extended): Extended;inline;
-function Max(a, b: Extended): Extended;inline;
+function Min(a, b: Extended): Extended;inline; overload;
+function Max(a, b: Extended): Extended;inline; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean;inline;
-function InRange(const AValue, AMin, AMax: Int64): Boolean;inline;
+function InRange(const AValue, AMin, AMax: Integer): Boolean;inline; overload;
+function InRange(const AValue, AMin, AMax: Int64): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
+function InRange(const AValue, AMin, AMax: Double): Boolean;inline;  overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;  overload;
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;  overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
+function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
@@ -182,44 +182,44 @@ const
   ZeroValue = 0;
   PositiveValue = High(TValueSign);
 
-function Sign(const AValue: Integer): TValueSign;inline;
-function Sign(const AValue: Int64): TValueSign;inline;
+function Sign(const AValue: Integer): TValueSign;inline; overload;
+function Sign(const AValue: Int64): TValueSign;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Sign(const AValue: Single): TValueSign;inline;
+function Sign(const AValue: Single): TValueSign;inline; overload;
 {$endif}
-function Sign(const AValue: Double): TValueSign;inline;
+function Sign(const AValue: Double): TValueSign;inline; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Sign(const AValue: Extended): TValueSign;inline;
+function Sign(const AValue: Extended): TValueSign;inline; overload;
 {$endif}
 
-function IsZero(const A: Single; Epsilon: Single): Boolean;
-function IsZero(const A: Single): Boolean;inline;
+function IsZero(const A: Single; Epsilon: Single): Boolean; overload;
+function IsZero(const A: Single): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function IsZero(const A: Double; Epsilon: Double): Boolean;
-function IsZero(const A: Double): Boolean;inline;
+function IsZero(const A: Double; Epsilon: Double): Boolean; overload;
+function IsZero(const A: Double): Boolean;inline; overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function IsZero(const A: Extended; Epsilon: Extended): Boolean;
-function IsZero(const A: Extended): Boolean;inline;
+function IsZero(const A: Extended; Epsilon: Extended): Boolean; overload;
+function IsZero(const A: Extended): Boolean;inline; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function IsNan(const d : Double): Boolean;
+function IsNan(const d : Double): Boolean; overload;
 function IsInfinite(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function SameValue(const A, B: Extended): Boolean;inline;
+function SameValue(const A, B: Extended): Boolean;inline; overload;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double): Boolean;inline;
+function SameValue(const A, B: Double): Boolean;inline; overload;
 {$endif}
-function SameValue(const A, B: Single): Boolean;inline;
+function SameValue(const A, B: Single): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
+function SameValue(const A, B: Extended; Epsilon: Extended): Boolean; overload;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double; Epsilon: Double): Boolean;
+function SameValue(const A, B: Double; Epsilon: Double): Boolean; overload;
 {$endif}
-function SameValue(const A, B: Single; Epsilon: Single): Boolean;
+function SameValue(const A, B: Single; Epsilon: Single): Boolean; overload;
 
 type
   TRoundToRange = -37..37;
@@ -528,6 +528,10 @@ function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelat
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CompareValue ( const A, B : Extended; delta : Extended = 0.0 ) : TValueRelationship; inline;
 {$endif}
+
+function RandomFrom(const AValues: array of Double): Double; overload;
+function RandomFrom(const AValues: array of Integer): Integer; overload;
+function RandomFrom(const AValues: array of Int64): Int64; overload;
 
 { include cpu specific stuff }
 {$i mathuh.inc}
@@ -2398,6 +2402,22 @@ begin
     Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
+
+function RandomFrom(const AValues: array of Double): Double; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
+function RandomFrom(const AValues: array of Integer): Integer; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
+function RandomFrom(const AValues: array of Int64): Int64; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
 
 {$else}
 implementation
