@@ -367,8 +367,11 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
+          { d is currently in [0.0,1.0[ and roundcorr has been chosen so that
+            1.0+roundcorr <> 1.0 -> add d*roundcorr to d to scale the correction
+            to the actual value of d }
           if (d<>0.0) then
-            d:=d+roundCorr;
+            d:=d+d*roundCorr;
           if d >= corrVal then
             d := d + corrVal;
           if int(d) = 1 then
