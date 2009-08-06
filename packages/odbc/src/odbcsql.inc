@@ -1519,7 +1519,7 @@ Function TimeStructToDateTime (B : PSQL_TIME_STRUCT) : TDateTime;
 
 
 {$IFDEF DYNLOADINGODBC}
-Procedure InitialiseODBC;
+Procedure InitialiseODBC(OverrideName : string ='');
 Procedure ReleaseODBC;
 
 var ODBCLibraryHandle : TLibHandle;
@@ -1531,13 +1531,19 @@ implementation
 
 var RefCount : integer;
 
-Procedure InitialiseODBC;
+Procedure InitialiseODBC(OverrideName : string ='');
+
+var libname : string;
 
 begin
   inc(RefCount);
   if RefCount = 1 then
     begin
-    ODBCLibraryHandle := loadlibrary(odbclib);
+    if OverrideName='' then 
+       libname:=odbclib
+     else
+       libname:=OverrideName;
+    ODBCLibraryHandle := loadlibrary(libname);
     if ODBCLibraryHandle = nilhandle then
       begin
       RefCount := 0;
