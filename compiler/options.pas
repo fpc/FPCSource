@@ -93,7 +93,6 @@ var
   disable_configfile : boolean;
   fpcdir,
   ppccfg,
-  ppcaltcfg,
   param_file    : string;   { file to compile specified on the commandline }
 
 
@@ -2328,10 +2327,7 @@ begin
       Delete(cmd,1,pos(']',cmd));
     end
   else
-    begin
-      ppccfg:='fpc.cfg';
-      ppcaltcfg:='ppc386.cfg';
-    end;
+    ppccfg:='fpc.cfg';
 
 { first pass reading of parameters, only -i -v -T etc.}
   option.firstpass:=true;
@@ -2489,17 +2485,7 @@ begin
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
-    begin
-      read_configfile:=check_configfile(ppccfg,ppccfg);
-      { Maybe alternative configfile ? }
-      if (not read_configfile) and
-         (ppcaltcfg<>'') then
-        begin
-          read_configfile:=check_configfile(ppcaltcfg,ppccfg);
-          if read_configfile then
-            message(option_ppc386_deprecated);
-        end;
-    end
+    read_configfile:=check_configfile(ppccfg,ppccfg)
   else
     read_configfile := false;
 
