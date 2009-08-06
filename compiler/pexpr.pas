@@ -1339,6 +1339,8 @@ implementation
            { Access to funcret or need to call the function? }
            if (srsym.typ in [absolutevarsym,localvarsym,paravarsym]) and
               (vo_is_funcret in tabstractvarsym(srsym).varoptions) and
+              { result(x) is not allowed }
+              not(vo_is_result in tabstractvarsym(srsym).varoptions) and
               (
                (token=_LKLAMMER) or
                (
@@ -1346,8 +1348,7 @@ implementation
                  (m_tp7 in current_settings.modeswitches) or
                  (m_delphi in current_settings.modeswitches)
                 ) and
-                (afterassignment or in_args) and
-                not(vo_is_result in tabstractvarsym(srsym).varoptions)
+                (afterassignment or in_args)
                )
               ) then
             begin
