@@ -333,6 +333,7 @@ Var
 
 begin
   FAccepting := True;
+  NoConnections := 0;
   Listen;
   Repeat
     Repeat
@@ -341,7 +342,7 @@ begin
         If NewSocket>=0 then
           begin
           Inc (NoConnections);
-          If DoConnectQuery(NewSocket) Then
+          If FAccepting and DoConnectQuery(NewSocket) Then
             begin
             Stream:=SockToStream(NewSocket);
             DoConnect(Stream);
