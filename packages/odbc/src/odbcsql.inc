@@ -19,6 +19,10 @@
   {$define ODBCVER35}
 {$endif fpc}
 
+{$ifndef DYNLOADINGODBC}
+  {$linklib odbc}
+{$endif}
+
 interface
 
 uses
