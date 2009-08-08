@@ -1814,7 +1814,7 @@ end;
     begin
       GetExtent(R);
       R.A.Y := R.B.Y - 1;
-      R.B.X := R.B.X - 12;
+      //R.B.X := R.B.X - 2;
       New(StatusLine,
         Init(R,
           NewStatusDef(0, $EFFF,nil,nil
