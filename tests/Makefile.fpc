@@ -99,6 +99,7 @@ endif
 ifeq ($(OS_SOURCE),go32v2)
 inWinDOS=1
 inDOS=1
+SINGLEDOTESTRUNS=1
 endif
 
 ################################
@@ -293,8 +294,9 @@ vpath %.elg $(TEST_OUTPUTDIR)
 
 %.elg : %.pp
 	$(call QECHO,"  EXECUTE $<")
+ifdef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
-
+endif SINGLEDOTESTRUNS
 
 ################################
 # Compile tests
@@ -309,6 +311,9 @@ allwebtbs : testprep $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
 allwebtbf : testprep $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
 
 alltest : testprep $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
+endif
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
@@ -319,12 +324,29 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 
 allexectbs : testprep $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbs/t*.pp)
+endif
+
 allexectbf : testprep $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbf/t*.pp)
+endif
 
 allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbs/t*.pp)
+endif
+
 allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbf/t*.pp)
+endif
 
 allexectest : testprep $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
+endif
 
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 
