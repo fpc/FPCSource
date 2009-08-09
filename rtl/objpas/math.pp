@@ -171,7 +171,8 @@ function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload
 
 procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
-
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
 
 // Sign functions
 Type
@@ -1380,7 +1381,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1548,7 +1549,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1717,7 +1718,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -2216,15 +2217,13 @@ begin
 end;
 
 // Some CPUs probably allow a faster way of doing this in a single operation...
-// There weshould define CPUDIVMOD in the header mathuh.inc and implement it using asm.
-{$ifndef CPUDIVMOD}
+// There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
+{$ifndef FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
-
 begin
   Result:=Dividend Div Divisor;
-  Remainder:=Dividend Mod Divisor;
+  Remainder:=Dividend -(Result*Divisor);
 end;
-{$endif}
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
@@ -2234,6 +2233,23 @@ var
 begin
   DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
 end;
+
+
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend -(Result*Divisor);
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+var
+  UnsignedResult: DWord absolute Result;
+  UnsignedRemainder: DWord absolute Remainder;
+begin
+  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+end;
+{$endif FPC_MATH_HAS_DIVMOD}
 
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
