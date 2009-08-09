@@ -1493,13 +1493,12 @@ var
 begin
   FloatToDecimal(frec, FValue, fvExtended, 17, 9999);
 
-  // TODO: remove workaround after #14143 is fixed
-  if {frec.Exponent = -32768} frec.Digits[0] = 'N' then
+  if frec.Exponent = -32768 then
   begin
     Result := 'NaN';          // do not localize
     Exit;
   end
-  else if {frec.Exponent = 32767} (frec.Digits[0] = 'I') or ((frec.Digits[0] = '+') and (frec.Digits[1] = 'I')) then
+  else if frec.Exponent = 32767 then
   begin
     if frec.Negative then
       Result := '-Infinity'   // do not localize
