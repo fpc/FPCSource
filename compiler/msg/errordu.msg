@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 13257 + one
+#   Based on errore.msg of SVN revision 13334
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2009 by the Free Pascal Development team
@@ -370,7 +370,7 @@ scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird me
 #
 # Parser
 #
-# 03250 is the last used one
+# 03252 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1181,6 +1181,20 @@ parser_n_ignore_lower_visibility=03250_N_Die virtuelle Methode "$1" hat eine nie
 % The virtual method overrides an method that is declared with a higher visibility. This might give
 % unexpected results. In case the new visibility is private than it might be that a call to inherited in a
 % new child class will call the higher visible method in a parent class and ignores the private method.
+parser_e_field_not_allowed_here=03251_E_Felder sind nach der Definition einer Methode oder Eigenschaft nicht erlaubt. Beginne vorher eine neue Sichtbarkeitssektion
+% Once a method or property has been defined in a class or object, you cannot define any fields afterwards
+% without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
+% that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
+% such as \var{default} and \var{register} also as field names.
+parser_e_no_local_para_def=03252_E_Parameter können keine lokalen Typdeklarationen enthalten. Verwende eine getrennte Typdefinition in einem "type"-Block
+% In Pascal, types are not considered to be identical simply because they are semantically equivalent.
+% Two variables or parameters are only considered to be of the same type if they refer to the
+% same type definition.
+% As a result, it is not allowed to define new types inside parameter lists, because then it is impossible to
+% refer to the same type definition in the procedure headers of the interface and implementation of a unit
+% (both procedure headers would define a separate type). Keep in mind that expressions such as
+% ``file of byte'' or ``string[50]'' also define a new type.
+% \end{description}
 #
 # Type Checking
 #
@@ -2405,7 +2419,7 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 % When you use the \var{-vu} flag, the compiler warns that it is
 % skipping the recalculation of the internal data of the unit
 % because there is no data to recalculate.
-unit_u_unload_resunit=10060_U_Entlade die Resource Unit $1 (wird nicht benötigt) 
+unit_u_unload_resunit=10060_U_Entlade die Resource-Unit $1 (wird nicht benötigt) 
 % When you use the \var{-vu} flag, the compiler warns that it is unloading the 
 % resource handling unit, since no resources are used.
 % \end{description}
@@ -2427,8 +2441,8 @@ option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 % This section lists errors that occur when the compiler is processing the
 % command line or handling the configuration files.
 % \begin{description}
-option_only_one_source_support=11001_W_Nur eine Quelldatei unterstützt
-% You can specify only one source file on the command line. The first
+option_only_one_source_support=11001_W_Es wird nur eine Quelldatei unterstützt. Wechsel für das Kompilieren von Quelldatei "$1" zu Quelldatei "$2"
+% You can specify only one source file on the command line. The last
 % one will be compiled, others will be ignored. This may indicate that
 % you forgot a \var{'-'} sign.
 option_def_only_for_os2=11002_W_DEF-Datei kann nur für OS/2 erzeugt werden
@@ -2754,6 +2768,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2Fa<x>[,y]_Ein Program soll die Units <x> und [y] laden, bevor uses analysiert wird
 **2Fc<x>_Setze die Eingabe-Codepage zu <x>
 **2FC<x>_Setze den Namen des RC Compiler-Binärprograms auf <x>
+**2Fd_Schalte den internen Verzeichnis-Cache des Compilers aus
 **2FD<x>_Setze das Verzeichnis für die Compiler-Hilfsprogramme
 **2Fe<x>_Leite die Fehlerausgabe um nach <x>
 **2Ff<x>_Ergänze <x> zum Framework-Pfad (nur Darwin)
@@ -2774,11 +2789,15 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 *g2gh_Heaptrace-Unit einbinden
 *g2gl_Line info Unit einbinden, um mehr backtrace Informationen anzuzeigen
 *g2go<x>_Setze Optionen für die Debug Informationen
-*g3godwarfsets_Schalte Dwarf Debug Informationen für Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
+*g3godwarfsets_Schalte DWARF Debug Informationen für Mengen (sets) ein (verhindert debugging mit gdb < 6.5)
+*g3gostabsabsincludes_ Absolute/volle Include-Datei-Pfade in Stabs speichern
 *g2gp_Erhalte Gross/Kleinschreibung in Stabs-Symbolnamen
+*g2gs_Erzeuge Stabs-Debug-Informationen
 *g2gt_Lösche lokale Variablen (um eine Verwendung ohne Initialisierung zu finden)
-*g2gv_Erzeuge ein mit valgrind verfolgbares (traceable) Programm
-*g2gw_Erzeuge dwarf Informationen
+*g2gv_Erzeuge ein mit Valgrind verfolgbares (traceable) Programm
+*g2gw_Erzeuge DWARFv2-Debug-Informationen (wie -gw2)
+*g2gw2_Erzeuge DWARFv2-Debug-Informationen
+*g2gw3_Erzeuge DWARFv3-Debug-Informationen
 **1i_Zeige alle Information über den Compiler
 **2iD_Zeige Compilerdatum
 **2iV_Zeige Compilerversion
@@ -2935,7 +2954,7 @@ P*2WX_Ermögliche den executable stack (Linux)
 **2Xm_Erzeuge die "link map"
 **2XM<x>_Setze den Namen der 'main' program Routine   (default ist 'main')
 **2XP<x>_Stelle den Namen der Compiler-Hilfsprogrammen den Prefix <x> voran
-**2Xr<x>_Setze den Bibliotheks-Suchpfad zu <x>       (benötigt für cross compile)
+**2Xr<x>_Setze den rlink-Pfad des Linker zu <x> (benötigt für cross compile, siehe ld-Manual für mehr Informationen) (BeOS, Linux)
 **2XR<x>_Stelle allen Linker-Suchpfaden den Namen <x> voran (BeOS, Darwin, FreeBSD, Linux, Mac OS, Solaris)
 **2Xs_Entferne alle Symbole aus der ausführbaren Datei
 **2XS_Versuche Units statisch zu linken (default)    (definiert FPC_LINK_STATIC)
