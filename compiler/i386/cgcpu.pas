@@ -612,6 +612,7 @@ unit cgcpu;
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
+
       procedure loadmethodoffstoeax;
         var
           href : treference;
@@ -622,6 +623,7 @@ unit cgcpu;
           reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber),4);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
+
 
       var
         lab : tasmsymbol;

@@ -625,7 +625,6 @@ implementation
 
 
     procedure TVMTWriter.insertint(p : pprocdeftree;var at : pprocdeftree;var count:longint);
-
       begin
          if at=nil then
            begin
@@ -643,11 +642,10 @@ implementation
            end;
       end;
 
-    procedure TVMTWriter.insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
 
+    procedure TVMTWriter.insertstr(p : pprocdeftree;var at : pprocdeftree;var count:longint);
       var
          i : integer;
-
       begin
          if at=nil then
            begin
