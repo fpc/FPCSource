@@ -48,6 +48,12 @@ Var
   Win32MinorVersion,
   Win32BuildNumber   : dword;
   Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
+Const
+  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see 
+    also http://bugs.freepascal.org/view.php?id=8898, this allows users to configure the used
+	value
+  }
+  fmShareDenyNoneFlags : DWord = 3;  
 
 { Compatibility with Delphi }
 function Win32Check(res:boolean):boolean;inline;

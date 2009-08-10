@@ -198,8 +198,9 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 Const
-  file_Share_Read  = $00000001;
-  file_Share_Write = $00000002;
+  file_Share_Read   = $00000001;
+  file_Share_Write  = $00000002;
+  file_Share_Delete = $00000004;
 Var
   shflags,
   oflags,cd : longint;
