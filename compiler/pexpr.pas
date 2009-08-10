@@ -1200,12 +1200,14 @@ implementation
                    begin
                       if (sp_static in sym.symoptions) then
                         begin
-                           static_name:=lower(sym.owner.name^)+'_'+sym.name;
-                           searchsym(static_name,sym,srsymtable);
-                           if assigned(sym) then
-                             check_hints(sym,sym.symoptions);
-                           p1.free;
-                           p1:=cloadnode.create(sym,srsymtable);
+                          static_name:=lower(sym.owner.name^)+'_'+sym.name;
+                          searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
+                          if assigned(sym) then
+                            check_hints(sym,sym.symoptions);
+                          p1.free;
+                          p1:=nil;
+                          { static syms are always stored as absolutevarsym to handle scope and storage properly }
+                          propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
                         end
                       else
                         begin
