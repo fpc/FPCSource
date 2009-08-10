@@ -164,7 +164,7 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
         cansistringtype:=tstringdef.createansi;
-        if target_info.system in system_all_windows then
+        if target_info.system in system_windows then
           cwidestringtype:=tstringdef.createwide
         else
           cwidestringtype:=tstringdef.createunicode;

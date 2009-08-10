@@ -1842,7 +1842,6 @@ initialization
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initwidestringmanager;
 {$ifndef VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}
