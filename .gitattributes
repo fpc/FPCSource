@@ -6465,11 +6465,11 @@ rtl/sparc/stringss.inc svneol=native#text/plain
 rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
 rtl/symbian/bindings/pbeexe.cpp -text
-rtl/symbian/buildrtl.pp -text
+rtl/symbian/buildrtl.pp svneol=native#text/plain
 rtl/symbian/symbian.pas -text
-rtl/symbian/symbianinc/e32def.inc -text
-rtl/symbian/symbianinc/e32err.inc -text
-rtl/symbian/symbianinc/e32std.inc -text
+rtl/symbian/symbianinc/e32def.inc svneol=native#text/plain
+rtl/symbian/symbianinc/e32err.inc svneol=native#text/plain
+rtl/symbian/symbianinc/e32std.inc svneol=native#text/plain
 rtl/symbian/sysdir.inc svneol=native#text/plain
 rtl/symbian/sysfile.inc svneol=native#text/plain
 rtl/symbian/sysheap.inc svneol=native#text/plain
@@ -6478,8 +6478,8 @@ rtl/symbian/sysosh.inc svneol=native#text/plain
 rtl/symbian/system.pp svneol=native#text/plain
 rtl/symbian/uiq.pas -text
 rtl/symbian/uiqclasses.pas -text
-rtl/symbian/uiqinc/qikapplication.inc -text
-rtl/symbian/uiqinc/qikapplicationoo.inc -text
+rtl/symbian/uiqinc/qikapplication.inc svneol=native#text/plain
+rtl/symbian/uiqinc/qikapplicationoo.inc svneol=native#text/plain
 rtl/ucmaps/8859-1.txt svneol=native#text/plain
 rtl/ucmaps/8859-10.txt svneol=native#text/plain
 rtl/ucmaps/8859-13.txt svneol=native#text/plain
