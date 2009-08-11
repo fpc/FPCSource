@@ -515,7 +515,7 @@ end;
 
 function EndianS64_Swap( arg: SInt64 ): SInt64; inline;
 begin
-	EndianS64_Swap := (Endian32_Swap( arg and $FFFFFFFF ) shl 32) or Endian32_Swap( (arg shr 32) and $FFFFFFFF );
+	EndianS64_Swap := (SInt64( Endian32_Swap( arg and $FFFFFFFF ) ) shl 32) or Endian32_Swap( (arg shr 32) and $FFFFFFFF );
 end;
 
 {$ifc TARGET_RT_BIG_ENDIAN}
