@@ -15,7 +15,7 @@ var s,t:string;
     i:byte;
 
 begin
-   lsock:=socket(af_inet,sock_stream,0);
+   lsock:=fpsocket(af_inet,sock_stream,0);
    if lsock=-1 then
      begin
        writeln(socketerror);
@@ -29,20 +29,20 @@ begin
       addr:=0;
    end;
 
-  if not bind(lsock,saddr,sizeof(saddr)) then
+  if  fpbind(lsock,@saddr,sizeof(saddr))<>0 then
     begin
       writeln(socketerror);
       halt(1);
     end;
 
-  if not listen(lsock,1) then
+  if not fplisten(lsock,1)<>0 then
     begin
       writeln(socketerror);
       halt(1);
     end;
 
   len:=sizeof(saddr);
-  usock:=accept(lsock,saddr,len);
+  usock:=fpaccept(lsock,@saddr,@len);
   if usock=-1 then
     begin
       writeln(SocketError);
@@ -61,7 +61,7 @@ begin
   until eof(sin);
   close(sin);
   close(sout);
-  shutdown(usock,2);
+  fpshutdown(usock,2);
 end;
 
 procedure do_client;
@@ -72,11 +72,11 @@ var s:sizeint;
     str:ansistring;
 
 begin
-   s:=socket(af_inet,sock_stream,0);
+   s:=fpsocket(af_inet,sock_stream,0);
    saddr.sin_family:=af_inet;
    saddr.sin_port:=htons(port);
    saddr.sin_addr.s_addr:=hosttonet($7f000001); {127.0.0.1}
-   if connect(s,saddr,sin,sout)=false then
+   if not connect(s,saddr,sin,sout) then
      begin
        writeln(socketerror);
        halt(1);
@@ -91,7 +91,7 @@ begin
      halt(1);
    close(sin);
    close(sout);
-   shutdown(s,2);
+   fpshutdown(s,2);
 end;
 
 begin
