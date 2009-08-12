@@ -563,70 +563,73 @@ implementation
          if (tsym(sym).typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
             ((tsym(sym).owner.symtabletype in
              [parasymtable,localsymtable,ObjectSymtable,staticsymtable])) then
-          begin
-           { unused symbol should be reported only if no }
-           { error is reported                     }
-           { if the symbol is in a register it is used   }
-           { also don't count the value parameters which have local copies }
-           { also don't claim for high param of open parameters (PM) }
-           if (Errorcount<>0) or
-              ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) then
-             exit;
-           if (tstoredsym(sym).refs=0) then
-             begin
-                if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                  begin
-                    { don't warn about the result of constructors }
-                    if ((tsym(sym).owner.symtabletype<>localsymtable) or
-                       (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
-                       not(cs_opt_nodedfa in current_settings.optimizerswitches) then
-                      MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
-                  end
-                else if (tsym(sym).owner.symtabletype=parasymtable) then
-                  MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).realname)
-                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
-                else
-                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).realname);
-             end
-           else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
-             begin
-                if (tsym(sym).owner.symtabletype=parasymtable) then
-                  begin
-                    if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
-                       not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                      MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).realname)
-                  end
-                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).realname)
-                else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
-                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).realname);
-             end
-           else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
-                   ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
-             MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).realname)
-         end
-      else if ((tsym(sym).owner.symtabletype in
+           begin
+            { unused symbol should be reported only if no }
+            { error is reported                     }
+            { if the symbol is in a register it is used   }
+            { also don't count the value parameters which have local copies }
+            { also don't claim for high param of open parameters (PM) }
+            if (Errorcount<>0) or
+               ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) then
+              exit;
+            if (tstoredsym(sym).refs=0) then
+              begin
+                 if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                   begin
+                     { don't warn about the result of constructors }
+                     if ((tsym(sym).owner.symtabletype<>localsymtable) or
+                        (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
+                        not(cs_opt_nodedfa in current_settings.optimizerswitches) then
+                       MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
+                   end
+                 else if (tsym(sym).owner.symtabletype=parasymtable) then
+                   MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
+                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tsym(sym).owner.realname^,tsym(sym).prettyname)
+                 else
+                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
+              end
+            else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
+              begin
+                 if (tsym(sym).owner.symtabletype=parasymtable) then
+                   begin
+                     if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
+                        not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                       MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
+                   end
+                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).prettyname)
+                 else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
+                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
+              end
+            else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
+                    ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
+              MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).prettyname)
+          end
+        else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
            if (Errorcount<>0) or
               (sp_internal in tsym(sym).symoptions) then
              exit;
            { do not claim for inherited private fields !! }
-           if (Tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
-             MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
+           if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
+             MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).prettyname)
            { units references are problematic }
            else
             begin
-              if (Tsym(sym).refs=0) and
+              if (tsym(sym).refs=0) and
                  not(tsym(sym).typ in [enumsym,unitsym]) and
                  not(is_funcret_sym(tsym(sym))) and
+                 { don't complain about compiler generated syms for specializations, see also #13405 }
+                 not((tsym(sym).typ=typesym) and (df_specialization in ttypesym(sym).typedef.defoptions) and
+                    (pos('$',ttypesym(sym).Realname)<>0)) and
                  (
                   (tsym(sym).typ<>procsym) or
                   ((tsym(sym).owner.symtabletype=staticsymtable) and
                    not current_module.is_unit)
                  ) then
-                MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).realname);
+                MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).prettyname);
             end;
           end;
       end;
