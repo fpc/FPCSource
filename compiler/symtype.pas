@@ -105,6 +105,7 @@ interface
          constructor create(st:tsymtyp;const aname:string);
          destructor  destroy;override;
          function  mangledname:string; virtual;
+         function  prettyname:string; virtual;
          procedure buildderef;virtual;
          procedure deref;virtual;
          procedure ChangeOwner(st:TSymtable);
@@ -385,6 +386,12 @@ implementation
       begin
         internalerror(200204171);
         result:='';
+      end;
+
+
+    function tsym.prettyname : string;
+      begin
+        result:=realname;
       end;
 
 

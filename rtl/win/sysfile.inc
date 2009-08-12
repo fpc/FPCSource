@@ -235,7 +235,7 @@ begin
       shflags := file_Share_Write
   else
     if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      shflags := file_Share_Read + file_Share_Write;
+      shflags := fmShareDenyNoneFlags;
   { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin
