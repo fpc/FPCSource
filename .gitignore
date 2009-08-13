@@ -1551,13 +1551,6 @@ utils/ptop
 utils/ptop.exe
 utils/rstconv
 utils/rstconv.exe
-utils/simulator/*.bak
-utils/simulator/*.exe
-utils/simulator/*.o
-utils/simulator/*.ppu
-utils/simulator/*.s
-utils/simulator/fpcmade.*
-utils/simulator/units
 utils/tply/*.bak
 utils/tply/*.exe
 utils/tply/*.o
