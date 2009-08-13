@@ -267,7 +267,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=libndsfpc
-override PACKAGE_VERSION=2.2.4a
+override PACKAGE_VERSION=2.5.1
 BINUTILSPREFIX=arm-eabi-
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=nds9 nds7 dswifi9 dswifi7 fat gbfs filesystem maxmod9  maxmod7

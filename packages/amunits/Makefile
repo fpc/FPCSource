@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=amunits
-override PACKAGE_VERSION=2.2.2
+override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=msgbox amigautils wbargs vartags pastoc tagsarray systemvartags         deadkeys consoleio pcq longarray linklist hisoft timerutils easyasl     doublebuffer intuition graphics amigalib nonvolatile iffparse hardware  expansion diskfont conunit amigados configvars keyboard bootblock icon  cd realtime rexx translator scsidisk lowlevel configregs prefs parallel gadtools prtgfx romboot_base trackdisk expansionbase amigaguide         amigaprinter bullet clipboard keymap utility timer workbench colorwheel prtbase console locale tapedeck serial gameport gradientslider input    audio datatypes asl commodities hardblocks layers inputevent identify   gtlayout tritonmacros render mui picasso96api guigfx preferences        xadmaster cybergraphics ptreplay reqtools amarquee ttengine triton zlib mysticview ahi lucyplay ahi_sub
 endif

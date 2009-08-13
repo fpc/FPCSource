@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-res
-override PACKAGE_VERSION=2.2.2
+override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=acceleratorsresource bitmapresource coffconsts coffreader cofftypes coffwriter dfmreader elfconsts elfreader elftypes elfwriter externalreader externaltypes externalwriter fpcrestypes groupcursorresource groupiconresource groupresource icocurtypes machoconsts machoreader machotypes machowriter resdatastream resfactory resmerger resource resourcetree resreader reswriter stringtableresource strtable versionconsts versionresource versiontypes winpeimagereader
 endif

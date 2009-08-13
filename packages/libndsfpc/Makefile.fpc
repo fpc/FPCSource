@@ -4,7 +4,7 @@
 
 [package]
 name=libndsfpc
-version=2.2.4a
+version=2.5.1
 
 [target]
 units=nds9 nds7 dswifi9 dswifi7 fat gbfs filesystem maxmod9  maxmod7

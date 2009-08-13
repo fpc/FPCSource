@@ -4,7 +4,7 @@
 
 [package]
 name=libcurl
-version=2.2.2
+version=2.5.1
 
 [require]
 libc=y

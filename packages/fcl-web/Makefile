@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-web
-override PACKAGE_VERSION=2.2.2
+override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb webutil fpdatasetform cgiapp ezcgi fpapache  custfcgi fpfcgi
 endif

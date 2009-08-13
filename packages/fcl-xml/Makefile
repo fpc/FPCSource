@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=fcl-xml
-override PACKAGE_VERSION=2.2.2
+override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
 override TARGET_UNITS+=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xmlwrite xhtml htmwrite xpath htmlelements htmlwriter xmlconf sax_xml  xmliconv
 endif

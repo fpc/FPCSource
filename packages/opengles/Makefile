@@ -265,7 +265,7 @@ UNITSDIR:=$(wildcard $(FPCDIR)/units/$(OS_TARGET))
 endif
 PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(FPCDIR)/packages/extra)
 override PACKAGE_NAME=opengles
-override PACKAGE_VERSION=2.2.2
+override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-darwin)
 override TARGET_UNITS+=gles11
 endif
