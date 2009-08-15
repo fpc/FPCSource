@@ -7,7 +7,7 @@ name=unzip
 version=2.2.2
 
 [target]
-units=ziptypes unzip
+units=ziptypes unzip51g
 units_emx=unzipdll
 units_os2=unzipdll
 
