@@ -235,7 +235,13 @@ begin
       shflags := file_Share_Write
   else
     if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      shflags := fmShareDenyNoneFlags;
+      shflags :=
+{$ifdef WINCE}
+        { WinCE does not know file_share_delete }
+        file_Share_Read or file_Share_Write;
+{$else WINCE}
+        fmShareDenyNoneFlags;
+{$endif WINCE}
   { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin
