@@ -15,13 +15,13 @@
  **********************************************************************}
 unit wchmhwrap;
 
-interface 
+interface
 {$Mode Delphi}
 
 Uses  wutils,whelp,whtml,SysUtils,ChmReader,ChmSiteMap,Classes;
 
 Type
-//      TopicLinks: PTopicLinkCollection;IndexEntries : PUnsortedIndexEntryCollection;  
+//      TopicLinks: PTopicLinkCollection;IndexEntries : PUnsortedIndexEntryCollection;
 
      TChmWrapper = Class
                      private
@@ -30,7 +30,7 @@ Type
                        findex: TChmSiteMap;
                        ftopic: TChmSiteMap;
                        floaded  : boolean;
-                     public    
+                     public
                       constructor Create(name:String);
                       function	  LoadIndex(id:integer;TopicLinks: PTopicLinkCollection;IndexEntries : PUnsortedIndexEntryCollection;helpfacility:PHelpFacility):boolean;
                       function    GetTopic(name:string):PMemoryTextFile;
@@ -56,11 +56,19 @@ begin
        basepath:=extractfiledir(basepath);
        delete(relpath,1,3);
      end;
-       
-   {$ifdef combinedebug}
+
+  {$ifdef combinedebug}
     debugmessageS({$i %file%},'combine out "'+relpath+'" and "'+basepath+'"',{$i %line%},'1',0,0);
   {$endif}
-  
+  if (length(basepath)>0) and (length(relpath)>0) then
+    begin
+      if (relpath[1]<>'/') and (basepath[length(basepath)]<>'/') then
+        basepath:=basepath+'/';
+       {$ifdef combinedebug}
+        debugmessageS({$i %file%},'combine out2 "'+relpath+'" and "'+basepath+'"',{$i %line%},'1',0,0);
+       {$endif}
+    end;
+
   result:=basepath+relpath;
 end;
 
@@ -75,8 +83,8 @@ begin
     begin
       freeandnil(fchmr);
       freeandnil(ffs);
-      exit;  
-    end;      
+      exit;
+    end;
   {$ifdef wdebug}
     debugmessageS({$i %file%},'TCHMWrapper: before sitemap creation ',{$i %line%},'1',0,0);
   {$endif}
@@ -97,7 +105,7 @@ begin
 //  if (length(alias)>0) and (alias[1]<>'/') then Alias:='/'+alias;
   FormatAlias:=Alias;
 end;
-              
+
 var
     m : Classes.TMemoryStream;
     i,j : integer;
@@ -108,15 +116,15 @@ begin
  if not assigned (fchmr) then exit;
  if floaded then exit;
  {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0); 
+     debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0);
  {$endif}
-  
+
   m:=fchmr.getobject(fchmr.indexfile);
   try
    if assigned(m) then
      begin
       {$ifdef wdebug}
-       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1',0,0); 
+       debugmessageS({$i %file%},'TCHMWrapper: stream size loaded :'+inttostr(m.size),{$i %line%},'1',0,0);
       {$endif}
       findex.loadfromStream(m);
     end;
@@ -124,21 +132,21 @@ begin
     freeandnil(m);
     end;
    {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1',0,0); 
+     debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1',0,0);
   {$endif}
-  
-  tli:=TopicLinks^.AddItem(fchmr.defaultpage); 
+
+  tli:=TopicLinks^.AddItem(fchmr.defaultpage);
   TLI:=EncodeHTMLCtx(ID,TLI+1);
   IndexEntries^.Insert(NewIndexEntry(  FormatAlias('Table of contents'),ID,TLI));
   for i:=0 to findex.items.count-1 do
     begin
       item:=findex.items.item[i];
-      tli:=TopicLinks^.AddItem('/'+item.local); 
+      tli:=TopicLinks^.AddItem('/'+item.local);
       TLI:=EncodeHTMLCtx(ID,TLI+1);
       IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
     end;
    {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: endloadindex ',{$i %line%},'1',0,0); 
+     debugmessageS({$i %file%},'TCHMWrapper: endloadindex ',{$i %line%},'1',0,0);
   {$endif}
   floaded:=true;
   result:=true;
@@ -161,7 +169,7 @@ begin
       if (s[i]=' ') and not inquote then lastpoint:=i;
       if (s[i]='"') then inquote:=not inquote;
       inc(i);
-    end;  
+    end;
   scanvalue:=lastpoint;
 end;
 
@@ -191,19 +199,19 @@ var
 begin
   result:=nil;
   if not assigned(fchmr) or (name='') then exit;
-  
+
   If (name[1]<>'/') and (copy(name,1,7)<>'ms-its:') Then
     name:='/'+name;
   linedata:=Classes.TStringList.create;
   try
     {$ifdef wdebug}
-     debugmessageS({$i %file%},'TCHMWrapper: Getting file '+name,{$i %line%},'1',0,0); 
+     debugmessageS({$i %file%},'TCHMWrapper: Getting file '+name,{$i %line%},'1',0,0);
     {$endif}
 //    if uppercase(name)='TABLE OF CONTENTS' Then
   //    m:=fchmr.getobject(fchmr.tocfile)
 //    else
       m:=fchmr.getobject(name);
-    
+
     if not assigned(m) then exit;
     linedata.loadfromstream(m);
     result:=new(PMemoryTextFile,Init);
