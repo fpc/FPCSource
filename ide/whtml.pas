@@ -120,7 +120,7 @@ Type
     TTopicLinkCollection = object(TStringCollection)
       procedure   Insert(Item: Pointer); virtual;
       function    At(Index: sw_Integer): PString;
-      function    AddItem(Item: string): integer;
+      function    AddItem(Item: string): sw_integer;
     end;
 
 function EncodeHTMLCtx(FileID: integer; LinkNo: word): longint;
@@ -901,7 +901,7 @@ begin
   At:=inherited At(Index);
 end;
 
-function TTopicLinkCollection.AddItem(Item: string): integer;
+function TTopicLinkCollection.AddItem(Item: string): sw_integer;
 var Idx: sw_integer;
 begin
   if Item='' then Idx:=-1 else
