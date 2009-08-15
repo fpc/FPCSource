@@ -85,7 +85,7 @@ program install;
      commands,
      HelpCtx,
 {$ENDIF}
-     unzip,ziptypes,
+     unzip51g,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
