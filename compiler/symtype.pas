@@ -98,9 +98,9 @@ interface
       public
          fileinfo   : tfileposinfo;
          symoptions : tsymoptions;
-         visibility : tvisibility;
          refs       : longint;
          reflist    : TLinkedList;
+         visibility : tvisibility;
          isdbgwritten : boolean;
          constructor create(st:tsymtyp;const aname:string);
          destructor  destroy;override;

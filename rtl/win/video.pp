@@ -536,7 +536,6 @@ begin
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
-type TmpRec = Array[0..(1024*32) - 1] of TCharInfo;
 
 type WordRec = record
                   One, Two: Byte;
@@ -546,7 +545,7 @@ var
    BufSize,
    BufCoord    : COORD;
    WriteRegion : SMALL_RECT;
-   LineBuf     : ^TmpRec;
+   LineBuf     : Array[0..(1024*32) - 1] of TCharInfo;
    BufCounter  : Longint;
    LineCounter,
    ColCounter  : Longint;
@@ -585,7 +584,6 @@ begin
            Bottom := ScreenHeight-1;
            Right := ScreenWidth-1;
         end;
-      New(LineBuf);
       BufCounter := 0;
       x1:=ScreenWidth+1;
       x2:=-1;
@@ -608,13 +606,13 @@ begin
                       y2:=LineCounter;
                  end;
                if useunicodefunctions then
-                 LineBuf^[BufCounter].UniCodeChar := Widechar(mapcp850[WordRec(VideoBuf^[BufCounter]).One].unicode)
+                 LineBuf[BufCounter].UniCodeChar := Widechar(mapcp850[WordRec(VideoBuf^[BufCounter]).One].unicode)
                else
-                 LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
+                 LineBuf[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }
-               LineBuf^[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
+               LineBuf[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
 
                Inc(BufCounter);
              end; { for }
@@ -650,10 +648,9 @@ begin
       writeln('Y2: ',y2);
       }
       if useunicodefunctions then
-        WriteConsoleOutputW(TextRec(Output).Handle, LineBuf, BufSize, BufCoord, WriteRegion)
+        WriteConsoleOutputW(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion)
       else
-        WriteConsoleOutput(TextRec(Output).Handle, LineBuf, BufSize, BufCoord, WriteRegion);
-      Dispose(LineBuf);
+        WriteConsoleOutput(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion);
 
       move(VideoBuf^,OldVideoBuf^,VideoBufSize);
    end;
