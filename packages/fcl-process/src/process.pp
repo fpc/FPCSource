@@ -82,7 +82,7 @@ Type
     procedure SetActive(const Value: Boolean);
     procedure SetEnvironment(const Value: TStrings);
     function  PeekExitStatus: Boolean;
-  Protected  
+  Protected
     FRunning : Boolean;
     FExitCode : Cardinal;
     FInputStream  : TOutputPipeStream;
@@ -134,7 +134,7 @@ Type
     Property WindowWidth : Cardinal Read dwXSize Write SetWindowWidth;
     Property FillAttribute : Cardinal read FFillAttribute Write FFillAttribute;
   end;
-  
+
   EProcess = Class(Exception);
 
 implementation
@@ -178,9 +178,9 @@ end;
 Procedure TProcess.FreeStreams;
 begin
   If FStderrStream<>FOutputStream then
-    FreeStream(FStderrStream);
-  FreeStream(FOutputStream);
-  FreeStream(FInputStream);
+    FreeStream(THandleStream(FStderrStream));
+  FreeStream(THandleStream(FOutputStream));
+  FreeStream(THandleStream(FInputStream));
 end;
 
 
@@ -221,17 +221,17 @@ end;
 
 procedure TProcess.CloseInput;
 begin
-  FreeStream(FInputStream);
+  FreeStream(THandleStream(FInputStream));
 end;
 
 procedure TProcess.CloseOutput;
 begin
-  FreeStream(FOutputStream);
+  FreeStream(THandleStream(FOutputStream));
 end;
 
 procedure TProcess.CloseStderr;
 begin
-  FreeStream(FStderrStream);
+  FreeStream(THandleStream(FStderrStream));
 end;
 
 Procedure TProcess.SetWindowColumns (Value : Cardinal);

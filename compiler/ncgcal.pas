@@ -935,7 +935,7 @@ implementation
            internalerror(200305264);
 
          if assigned(callinitblock) then
-           secondpass(callinitblock);
+           secondpass(tnode(callinitblock));
 
          regs_to_save_int:=paramanager.get_volatile_registers_int(procdefinition.proccalloption);
          regs_to_save_fpu:=paramanager.get_volatile_registers_fpu(procdefinition.proccalloption);
@@ -1203,7 +1203,7 @@ implementation
 
          { convert persistent temps for parameters and function result to normal temps }
          if assigned(callcleanupblock) then
-           secondpass(callcleanupblock);
+           secondpass(tnode(callcleanupblock));
 
          { release temps and finalize unused return values, must be
            after the callcleanupblock because that converts temps

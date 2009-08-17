@@ -1062,9 +1062,9 @@ implementation
         left := nil;
 
         if is_typed then
-          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),newstatement)
+          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),tnode(newstatement))
         else
-          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),newstatement);
+          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),tnode(newstatement));
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
@@ -2647,7 +2647,7 @@ implementation
                    if assigned(tempnode) then
                      addstatement(newstatement,ctempdeletenode.create(tempnode));
                    { firstpass it }
-                   firstpass(newblock);
+                   firstpass(tnode(newblock));
                    { return new node }
                    result := newblock;
                  end;

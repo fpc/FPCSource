@@ -544,7 +544,7 @@ implementation
                   hdef:=tpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
                 tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
-                typecheckpass(tempnode);
+                typecheckpass(tnode(tempnode));
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode);
                 fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);

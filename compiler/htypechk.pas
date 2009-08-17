@@ -503,7 +503,7 @@ implementation
         { Display info when multiple candidates are found }
         candidates.dump_info(V_Debug);
 {$endif EXTDEBUG}
-        cand_cnt:=candidates.choose_best(operpd,false);
+        cand_cnt:=candidates.choose_best(tabstractprocdef(operpd),false);
 
         { exit when no overloads are found }
         if cand_cnt=0 then
@@ -649,7 +649,7 @@ implementation
         { Display info when multiple candidates are found }
         candidates.dump_info(V_Debug);
 {$endif EXTDEBUG}
-        cand_cnt:=candidates.choose_best(operpd,false);
+        cand_cnt:=candidates.choose_best(tabstractprocdef(operpd),false);
 
         { exit when no overloads are found }
         if cand_cnt=0 then
@@ -1519,16 +1519,8 @@ implementation
               { if they are objects              }
               if (def_from.typ=objectdef) and
                  (
-                  (
-                   not(m_delphi in current_settings.modeswitches) and
-                   (tobjectdef(def_from).objecttype in [odt_object,odt_class]) and
-                   (tobjectdef(def_to).objecttype in [odt_object,odt_class])
-                  ) or
-                  (
-                   (m_delphi in current_settings.modeswitches) and
-                   (tobjectdef(def_from).objecttype=odt_object) and
-                   (tobjectdef(def_to).objecttype=odt_object)
-                  )
+                  (tobjectdef(def_from).objecttype=odt_object) and
+                  (tobjectdef(def_to).objecttype=odt_object)
                  ) and
                  (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 eq:=te_convert_l1;

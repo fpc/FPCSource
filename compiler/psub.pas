@@ -616,7 +616,7 @@ implementation
             addstatement(newstatement,bodyexitcode);
             addstatement(newstatement,final_asmnode);
           end;
-        do_firstpass(newblock);
+        do_firstpass(tnode(newblock));
         code:=newblock;
         current_filepos:=oldfilepos;
       end;
