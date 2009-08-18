@@ -126,6 +126,9 @@ interface
     { ambivalent to pchar2pshortstring }
     function pshortstring2pchar(p : pshortstring) : pchar;
 
+    { allocate a new pchar with the contents of a}
+    function ansistring2pchar(const a: ansistring) : pchar;
+
     { Ansistring (pchar+length) support }
     procedure ansistringdispose(var p : pchar;length : longint);
     function compareansistrings(p1,p2 : pchar;length1,length2 : longint) : longint;
@@ -972,6 +975,18 @@ implementation
            p^[i-1]:=p^[i];
          p^[w]:=#0;
          pshortstring2pchar:=pchar(p);
+      end;
+
+
+    function ansistring2pchar(const a: ansistring) : pchar;
+      var
+        len: ptrint;
+      begin
+        len:=length(a);
+        getmem(result,len+1);
+        if (len<>0) then
+          move(a[1],result[0],len);
+        result[len]:=#0;
       end;
 
 

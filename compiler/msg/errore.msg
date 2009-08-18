@@ -1234,7 +1234,7 @@ parser_e_objc_message_name_changed=03262_E_Message name "$1" in inherited class 
 #
 # Type Checking
 #
-# 04088 is the last used one
+# 04089 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1534,6 +1534,13 @@ type_e_no_type_info=04087_E_No type info available for this type
 % from zero).
 type_e_protocol_type_expected=04088_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
+type_e_objc_type_unsupported=04089_E_The type "$1" is not supported for interaction with the Objective-C runtime.
+% Objective-C makes extensive use of run time type information (RTTI). This format
+% is defined by the maintainers of the run time and can therefore not be adapted
+% to all possible Object Pascal types. In particular, types that depend on
+% reference counting by the compiler (such as ansistrings and certain kinds of
+% interfaces) cannot be used as fields of Objective-C classes, cannot be
+% directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
 % \end{description}
 #
 # Symtable

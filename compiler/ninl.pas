@@ -86,7 +86,8 @@ implementation
       globtype, cutils,
       symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
-      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,nobjc,
+      ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
+      nobjc,objcutil,
       cgbase,procinfo
       ;
 
@@ -1898,6 +1899,17 @@ implementation
         end;
 
 
+      function handle_objc_encode: tnode;
+        var
+          encodedtype: ansistring;
+          errordef: tdef;
+        begin
+          encodedtype:='';
+          if not objctryencodetype(left.resultdef,encodedtype,errordef) then
+            Message1(type_e_objc_type_unsupported,errordef.typename);
+          result:=cstringconstnode.createpchar(ansistring2pchar(encodedtype),length(encodedtype));
+        end;
+
 
       var
          hightree,
@@ -2461,6 +2473,10 @@ implementation
                   result:=cobjcprotocolnode.create(left);
                   { reused }
                   left:=nil;
+                end;
+              in_objc_encode_x:
+                begin
+                  result:=handle_objc_encode;
                 end;
               else
                 internalerror(8);

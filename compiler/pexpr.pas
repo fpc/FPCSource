@@ -428,31 +428,41 @@ implementation
                end;
             end;
 
-          in_typeinfo_x :
+          in_typeinfo_x,
+          in_objc_encode_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true);
-              { When reading a class type it is parsed as loadvmtaddrn,
-                typeinfo only needs the type so we remove the loadvmtaddrn }
-              if p1.nodetype=loadvmtaddrn then
+              if (l=in_typeinfo_x) or
+                 (m_objectivec1 in current_settings.modeswitches) then
                 begin
-                  p2:=tloadvmtaddrnode(p1).left;
-                  tloadvmtaddrnode(p1).left:=nil;
-                  p1.free;
-                  p1:=p2;
+                  consume(_LKLAMMER);
+                  in_args:=true;
+                  p1:=comp_expr(true);
+                  { When reading a class type it is parsed as loadvmtaddrn,
+                    typeinfo only needs the type so we remove the loadvmtaddrn }
+                  if p1.nodetype=loadvmtaddrn then
+                    begin
+                      p2:=tloadvmtaddrnode(p1).left;
+                      tloadvmtaddrnode(p1).left:=nil;
+                      p1.free;
+                      p1:=p2;
+                    end;
+                  if p1.nodetype=typen then
+                    ttypenode(p1).allowed:=true;
+    {              else
+                    begin
+                       p1.destroy;
+                       p1:=cerrornode.create;
+                       Message(parser_e_illegal_parameter_list);
+                    end;}
+                  consume(_RKLAMMER);
+                  p2:=geninlinenode(l,false,p1);
+                  statement_syssym:=p2;
+                end
+              else
+                begin
+                  Message1(sym_e_id_not_found, orgpattern);
+                  statement_syssym:=cerrornode.create;
                 end;
-              if p1.nodetype=typen then
-                ttypenode(p1).allowed:=true;
-{              else
-                begin
-                   p1.destroy;
-                   p1:=cerrornode.create;
-                   Message(parser_e_illegal_parameter_list);
-                end;}
-              consume(_RKLAMMER);
-              p2:=geninlinenode(in_typeinfo_x,false,p1);
-              statement_syssym:=p2;
             end;
 
 {$ifdef SUPPORT_UNALIGNED}
