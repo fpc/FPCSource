@@ -1311,14 +1311,16 @@ implementation
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
          semicoloneaten: boolean;
+         is_first_field: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
-         is_first_field: boolean;
+         is_first_type: boolean;
 {$endif powerpc or powerpc64}
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
+         is_first_field:=true;
 {$if defined(powerpc) or defined(powerpc64)}
-         is_first_field := true;
+         is_first_type:=true;
 {$endif powerpc or powerpc64}
          { Force an expected ID error message }
          if not (token in [_ID,_CASE,_END]) then
@@ -1367,7 +1369,7 @@ implementation
                  the alignment of the first field.  */
              }
              if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
-                is_first_field and
+                is_first_type and
                 (symtablestack.top.symtabletype=recordsymtable) and
                 (trecordsymtable(symtablestack.top).usefieldalignment=C_alignment) then
                begin
@@ -1382,7 +1384,7 @@ implementation
                  if (maxpadalign>4) and
                     (maxpadalign>trecordsymtable(symtablestack.top).padalignment) then
                    trecordsymtable(symtablestack.top).padalignment:=maxpadalign;
-                 is_first_field:=false;
+                 is_first_type:=false;
                end;
 {$endif powerpc or powerpc64}
 
@@ -1395,6 +1397,13 @@ implementation
              { try to parse the hint directives }
              hintsymoptions:=[];
              try_consume_hintdirective(hintsymoptions);
+
+             { mark first field }
+             if (is_first_field) then
+               begin
+                 include(tfieldvarsym(sc[0]).varoptions,vo_is_first_field);
+                 is_first_field:=false;
+               end;
 
              { update variable type and hints }
              for i:=0 to sc.count-1 do
@@ -1483,6 +1492,12 @@ implementation
               read_anon_type(casetype,true);
               if assigned(fieldvs) then
                 begin
+                 { mark first field if not yet marked }
+                 if (is_first_field) then
+                   begin
+                     include(fieldvs.varoptions,vo_is_first_field);
+                     is_first_field:=false;
+                   end;
                   fieldvs.vardef:=casetype;
                   recst.addfield(fieldvs,recst.currentvisibility);
                 end;
@@ -1545,7 +1560,7 @@ implementation
 {$if defined(powerpc) or defined(powerpc64)}
               { parent inherits the alignment padding if the variant is the first "field" of the parent record/variant }
               if (target_info.system in [system_powerpc_darwin, system_powerpc_macos, system_powerpc64_darwin]) and
-                 is_first_field and
+                 is_first_type and
                  (recst.usefieldalignment=C_alignment) and
                  (maxpadalign>recst.padalignment) then
                 recst.padalignment:=maxpadalign;
@@ -1577,7 +1592,7 @@ implementation
          { free the list }
          sc.free;
 {$ifdef powerpc}
-         is_first_field := false;
+         is_first_type := false;
 {$endif powerpc}
       end;
 
