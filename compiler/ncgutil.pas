@@ -1029,7 +1029,7 @@ implementation
                        tlocalvarsym(p).getsize)
                    else
                      { may be an open string, even if is_open_string() returns }
-                     { false for some helpers in the system unit               }
+                     { false (for some helpers in the system unit)             }
                      { an open string has at least size 2                      }
                      trash_reference(list,tabstractnormalvarsym(p).initialloc.reference,
                        2);
@@ -1235,7 +1235,12 @@ implementation
                         { needs separate implementation to trash open arrays }
                         { since their size is only known at run time         }
                         not is_special_array(tparavarsym(p).vardef) then
-                       trash_reference(list,href,tparavarsym(p).vardef.size);
+                        { may be an open string, even if is_open_string() returns }
+                        { false (for some helpers in the system unit)             }
+                       if not is_shortstring(tparavarsym(p).vardef) then
+                         trash_reference(list,href,tparavarsym(p).vardef.size)
+                       else
+                         trash_reference(list,href,2);
                      if needs_inittable then
                        cg.g_initialize(list,tparavarsym(p).vardef,href);
                    end;
@@ -1253,7 +1258,7 @@ implementation
                      reference_reset_base(href,tmpreg,0,
                        used_align(tparavarsym(p).vardef.alignment,current_settings.alignment.localalignmin,current_settings.alignment.localalignmax));
                      { may be an open string, even if is_open_string() returns }
-                     { false for some helpers in the system unit               }
+                     { false (for some helpers in the system unit)             }
                      if not is_shortstring(tparavarsym(p).vardef) then
                        trash_reference(list,href,tparavarsym(p).vardef.size)
                      else
