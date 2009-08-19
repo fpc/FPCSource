@@ -85,7 +85,8 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   CGDisplayFades CGLTypes CVBase CVBuffer \
   CVDisplayLink CVHostTime CVImageBuffer CVPixelBuffer \
   CVPixelBufferPool CVPixelFormatDescription CVReturns \
-  ObjCRuntime
+  ObjCRuntime CFNetworkErrorss CFHTTPAuthentication \
+  CFError CFNetDiagnostics DriverServices TextInputSources
 
   
 exampledirs=examples

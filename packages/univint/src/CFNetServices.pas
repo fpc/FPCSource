@@ -3,9 +3,9 @@
  
      Contains:   CoreFoundation Network Net Services header
  
-     Version:    CFNetwork-71.2~1
+     Version:    CFNetwork-219~1
  
-     Copyright:  © 2001-2003 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 2001-2006 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,7 +14,7 @@
  
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 
 {
     Modified for use with Free Pascal
@@ -104,7 +104,7 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFStream,CFArray,CFRunLoop;
+uses MacTypes,CFBase,CFStream,CFArray,CFRunLoop, CFData, CFDate, CFDictionary;
 {$ALIGN MAC68K}
 {
 CFNetServices
@@ -138,7 +138,17 @@ may be retrieved from their web site at
  *    registering or for resolving.
  }
 type
-	CFNetServiceRef							= ^SInt32;
+	CFNetServiceRef = ^SInt32; { an opaque 32-bit type }
+
+{
+ *  CFNetServiceMonitorRef
+ *  
+ *  Discussion:
+ *    This is the type of a reference to a service monitor.  It may be
+ *    used for watching record changes on a CFNetServiceRef.
+ }
+type
+	CFNetServiceMonitorRef = ^SInt32; { an opaque 32-bit type }
 
 {
  *  CFNetServiceBrowserRef
@@ -148,7 +158,7 @@ type
  *    It may be used for discovering services or domains.
  }
 type
-	CFNetServiceBrowserRef							= ^SInt32;
+	CFNetServiceBrowserRef = ^SInt32; { an opaque 32-bit type }
 
 {
  *  kCFStreamErrorDomainMach
@@ -161,23 +171,26 @@ type
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
 var kCFStreamErrorDomainMach: SInt32; external name '_kCFStreamErrorDomainMach'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
  *  kCFStreamErrorDomainNetServices
  *  
  *  Discussion:
- *    Errors listed below
+ *    Errors listed below or reported by the Service Discovery API's.
+ *    See <dns_sd.h>.  The Service Discovery errors will only be
+ *    returned when using the new, Mac OS X 10.4-based API's or
+ *    CFNetServiceBrowser.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
 var kCFStreamErrorDomainNetServices: SInt32; external name '_kCFStreamErrorDomainNetServices'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -186,9 +199,10 @@ var kCFStreamErrorDomainNetServices: SInt32; external name '_kCFStreamErrorDomai
  *  Discussion:
  *    Errors from the kCFStreamErrorDomainNetServices domain.
  }
-type CFNetServicesError = SInt32;
+type
+	CFNetServicesError = SInt32;
 const
-  {
+{
    * An error of unknown type has occured.
    }
   kCFNetServicesErrorUnknown    = -72000;
@@ -206,8 +220,8 @@ const
   kCFNetServicesErrorNotFound   = -72002;
 
   {
-   * There is already a register, resolve, or browse invoke on the
-   * given object.
+   * There is already a register, resolve, browse, or monitor in
+   * progress on the given object.
    }
   kCFNetServicesErrorInProgress = -72003;
 
@@ -222,10 +236,42 @@ const
   kCFNetServicesErrorCancel     = -72005;
 
   {
-   * The given CFNetServiceBrowser has already been invalidated and can
-   * no longer be used for browsing.
+   * The given CFNetServiceBrowser or CFNetServiceMonitor has already
+   * been invalidated and can no longer be used.
    }
   kCFNetServicesErrorInvalid    = -72006;
+
+  {
+   * The given CFNetServiceResolveWithTimeout has hit the timeout
+   * before a successful resolve.
+   }
+	kCFNetServicesErrorTimeout = -72007;
+
+
+{
+ *  CFNetServiceMonitorType
+ *  
+ *  Discussion:
+ *    Record type specifier in order to inform CFNetServiceMonitor to
+ *    watch for certain record changes.
+ }
+type
+	CFNetServiceMonitorType = SInt32;
+const
+{
+   * Watch for TXT record changes.
+   }
+	kCFNetServiceMonitorTXT = 1;
+
+
+{
+ *  CFNetService flags
+ *
+ *  Discussion:
+ *      Bit flags to be used for registration of a service with CFNetServiceRegisterWithOptions.
+ }
+const
+	kCFNetServiceFlagNoAutoRename = 1;     { Indicate that registration should not auto-rename the service to prevent name conflicts.}
 
 
 {
@@ -235,10 +281,11 @@ const
  *    Result bit flags passed to CFNetServiceBrowserClientCallBack.
  }
 const
-	kCFNetServiceFlagMoreComing   = 1;    { Client will get another callback briefly and shouldn't do costly screen updates (or such). }
-  kCFNetServiceFlagIsDomain     = 2;    { If off, the result is a service. }
-  kCFNetServiceFlagIsRegistrationDomain = 4; { The result domain is the default registration domain. }
-  kCFNetServiceFlagRemove       = 8;     { The result item should be removed and not added. }
+	kCFNetServiceFlagMoreComing = 1;    { Client will get another callback briefly and shouldn't do costly screen updates (or such).}
+	kCFNetServiceFlagIsDomain = 2;    { If off, the result is a service.}
+	kCFNetServiceFlagIsDefault = 4;    { The result domain is the default domain for the given domain browse type (registration or browse).}
+	kCFNetServiceFlagIsRegistrationDomain = 4; { Same as the previous but incorrectly named.   Kept for compatibility.}
+	kCFNetServiceFlagRemove = 8;     { The result item should be removed and not added.}
 
 
 {
@@ -248,12 +295,12 @@ const
  *    Structure containing the user-defined data and callbacks for
  *    CFNetService and CFNetServiceBrowser objects.
  }
-type CFNetServiceClientContext = record
-
-  {
+type
+	CFNetServiceClientContext = record
+{
    * The version number of the structure type being passed in as a
-   * parameter to the CFNetService(Browser) client function. Valid
-   * version number is currently 0.
+   * parameter to the CFNetService, Browser, or Monitor client
+   * function.  The current version number is 0.
    }
   version: CFIndex;
 
@@ -261,7 +308,7 @@ type CFNetServiceClientContext = record
    * An arbitrary pointer to client-defined data, which can be
    * associated with the service/browser and is passed to the callbacks.
    }
-  info: Ptr;
+  info: UnivPtr;
 
   {
    * The callback used to add a retain for the service/browser on the
@@ -294,8 +341,9 @@ CFNetServiceClientContextPtr = ^CFNetServiceClientContext;
  *  
  *  Discussion:
  *    Callback function which is called upon error or completion of
- *    resolve or register.  If resolving, the callback may be called
- *    multiple times, once for each resolved address.
+ *    resolve or register.  If resolving with the deprecated API's, the
+ *    callback may be called multiple times, once for each resolved
+ *    address.
  *  
  *  Parameters:
  *    
@@ -309,8 +357,38 @@ CFNetServiceClientContextPtr = ^CFNetServiceClientContext;
  *      Client's info reference which was passed into the client
  *      context.
  }
-	type
-		CFNetServiceClientCallBack = procedure( service: CFNetServiceRef; var error: CFStreamError; info: Ptr );
+type
+	CFNetServiceClientCallBack = procedure( theService: CFNetServiceRef; var error: CFStreamError; info: UnivPtr );
+
+{
+ *  CFNetServiceMonitorClientCallBack
+ *  
+ *  Discussion:
+ *    Callback function which is called as the monitored record changes.
+ *  
+ *  Parameters:
+ *    
+ *    theMonitor:
+ *      CFNetServiceMonitor receiving the event.
+ *    
+ *    theService:
+ *      Service receiving the event.
+ *    
+ *    typeInfo:
+ *      The information type which changed.
+ *    
+ *    rdata:
+ *      The contents of the record that changed.
+ *    
+ *    error:
+ *      Reference to an error structure if the event is a failure.
+ *    
+ *    info:
+ *      Client's info reference which was passed into the client
+ *      context.
+ }
+type
+	CFNetServiceMonitorClientCallBack = procedure( theMonitor: CFNetServiceMonitorRef; theService: CFNetServiceRef; typeInfo: CFNetServiceMonitorType; rdata: CFDataRef; var error: CFStreamError; info: UnivPtr );
 
 {
  *  CFNetServiceBrowserClientCallBack
@@ -340,10 +418,8 @@ CFNetServiceClientContextPtr = ^CFNetServiceClientContext;
  *      Client's info reference which was passed into the client
  *      context.
  }
-	type
-		CFNetServiceBrowserClientCallBack = procedure( browser: CFNetServiceBrowserRef; flags: CFOptionFlags; domainOrService: CFTypeRef; var error: CFStreamError; info: Ptr );
-
-
+type
+	CFNetServiceBrowserClientCallBack = procedure( browser: CFNetServiceBrowserRef; flags: CFOptionFlags; domainOrService: CFTypeRef; var error: CFStreamError; info: UnivPtr );
 {
  *  CFNetServiceGetTypeID()
  *  
@@ -358,8 +434,26 @@ CFNetServiceClientContextPtr = ^CFNetServiceClientContext;
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
 function CFNetServiceGetTypeID: CFTypeID; external name '_CFNetServiceGetTypeID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorGetTypeID()
+ *  
+ *  Discussion:
+ *    Returns the type identifier of all CFNetServiceMonitor instances.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceMonitorGetTypeID: CFTypeID; external name '_CFNetServiceMonitorGetTypeID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
@@ -376,8 +470,8 @@ function CFNetServiceGetTypeID: CFTypeID; external name '_CFNetServiceGetTypeID'
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
 function CFNetServiceBrowserGetTypeID: CFTypeID; external name '_CFNetServiceBrowserGetTypeID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -402,7 +496,13 @@ function CFNetServiceBrowserGetTypeID: CFTypeID; external name '_CFNetServiceBro
  *    
  *    serviceType:
  *      The type of service being registered or resolved on the
- *      network. This value must be non-NULL.
+ *      network. The service type consists of the application protocol
+ *      name followed by the transport protocol name, separated by a
+ *      dot (e.g. "_ftp._tcp").  The application protocol name should
+ *      be 14 characters or less, and should only contain lower-case
+ *      letters, digits, and hyphens.  New service types should be
+ *      registered at <htp://www.dns-sd.org/ServiceTypes.html>.  This
+ *      value must be non-NULL.
  *    
  *    name:
  *      The name of the machine or application advertising the service.
@@ -423,8 +523,8 @@ function CFNetServiceBrowserGetTypeID: CFTypeID; external name '_CFNetServiceBro
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceCreate(alloc: CFAllocatorRef; domain: CFStringRef; typ: CFStringRef; name: CFStringRef; port: UInt32): CFNetServiceRef; external name '_CFNetServiceCreate';
+function CFNetServiceCreate( alloc: CFAllocatorRef; domain: CFStringRef; serviceType: CFStringRef; name: CFStringRef; port: SInt32 ): CFNetServiceRef; external name '_CFNetServiceCreate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -458,8 +558,8 @@ function CFNetServiceCreate(alloc: CFAllocatorRef; domain: CFStringRef; typ: CFS
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 function CFNetServiceCreateCopy( alloc: CFAllocatorRef; service: CFNetServiceRef ): CFNetServiceRef; external name '_CFNetServiceCreateCopy';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -488,8 +588,8 @@ function CFNetServiceCreateCopy( alloc: CFAllocatorRef; service: CFNetServiceRef
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceGetDomain(theService: CFNetServiceRef): CFStringRef; external name '_CFNetServiceGetDomain';
+function CFNetServiceGetDomain( theService: CFNetServiceRef ): CFStringRef; external name '_CFNetServiceGetDomain';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -518,8 +618,8 @@ function CFNetServiceGetDomain(theService: CFNetServiceRef): CFStringRef; extern
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceGetType(theService: CFNetServiceRef): CFStringRef; external name '_CFNetServiceGetType';
+function CFNetServiceGetType( theService: CFNetServiceRef ): CFStringRef; external name '_CFNetServiceGetType';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -548,8 +648,183 @@ function CFNetServiceGetType(theService: CFNetServiceRef): CFStringRef; external
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceGetName(theService: CFNetServiceRef): CFStringRef; external name '_CFNetServiceGetName';
+function CFNetServiceGetName( theService: CFNetServiceRef ): CFStringRef; external name '_CFNetServiceGetName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  CFNetServiceRegisterWithOptions()
+ *  
+ *  Discussion:
+ *    Registers the entity on the network.  This requires that the
+ *    service has a domain, a type, a name, and a port.  The service is
+ *    registered on the network until this function returns or is
+ *    cancelled by calling CFNetServiceCancel.  In synchronous mode,
+ *    this function will block until there is an error or it is
+ *    cancelled from another thread.  In asynchronous mode, this
+ *    function returns immediately and the underlying network
+ *    registration process will start.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to register on the network.  Must be
+ *      non-NULL.
+ *    
+ *    options:
+ *      A set of bit options used to instruct the registration process.
+ *      Current supported option is kCFNetServiceFlagNoAutoRename.
+ *    
+ *    error:
+ *      A reference to an error struct which will be set to the error
+ *      and domain of the error should one occur.  If the value of
+ *      error is not desired, set to NULL.
+ *  
+ *  Result:
+ *    Returns FALSE if domain, type, name or port is NULL.  In
+ *    synchronous mode, it will always return FALSE as a result of the
+ *    error or the cancellation.  In asynchronous mode, it will return
+ *    TRUE if the registration process could start.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceRegisterWithOptions( theService: CFNetServiceRef; options: CFOptionFlags; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceRegisterWithOptions';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceResolveWithTimeout()
+ *  
+ *  Discussion:
+ *    Resolves the information related to this service.  It will
+ *    resolve the target host, the addresses, and the first TXT record
+ *    associated with the service.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The CFNetServiceRef which should be resolved. Must be non-NULL.
+ *      If this reference is not a valid CFNetServiceRef, the behavior
+ *      is undefined.
+ *    
+ *    timeout:
+ *      CFTimeInterval representing the maximum amount of time to take
+ *      to perform the resolve.  If the resolve can not be performed
+ *      within this timeout, the function or callback will recieve a
+ *      timeout error.  Values less than or equal to zero indicate an
+ *      infinite timeout.
+ *    
+ *    error:
+ *      A reference to a CFStreamError structure which will be filled
+ *      with any error information should an error occur.  May be set
+ *      to NULL if error information is not wanted.
+ *  
+ *  Result:
+ *    Returns TRUE on success and FALSE on failure.  In asynchronous
+ *    mode, this function will return immediately.  In synchronous
+ *    mode, it will block until the resolve has completed or until the
+ *    resolve is cancelled.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceResolveWithTimeout( theService: CFNetServiceRef; timeout: CFTimeInterval; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceResolveWithTimeout';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceCancel()
+ *  
+ *  Discussion:
+ *    Cancels an outstanding request for registration or resolution.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service which is active.  Must be non-NULL.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceCancel( theService: CFNetServiceRef ); external name '_CFNetServiceCancel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  CFNetServiceGetTargetHost()
+ *  
+ *  Discussion:
+ *    Query a Network Service for its resolve target.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *    The function gets the data in a thread-safe manner, but the
+ *    resulting data is not safe.  Since it is returned as a matter of
+ *    a get opposed to a copy, the data is not safe if the service is
+ *    being altered from another thread.
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to be queried.  Must be non-NULL.
+ *  
+ *  Result:
+ *    Returns The target hostname of the machine providing the service,
+ *    or NULL if the entity's target is not known (has not been
+ *    resolved).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceGetTargetHost( theService: CFNetServiceRef ): CFStringRef; external name '_CFNetServiceGetTargetHost';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceGetPortNumber()
+ *  
+ *  Discussion:
+ *    Query a Network Service for its port number.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *    The function gets the data in a thread-safe manner.
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to be queried.  Must be non-NULL.
+ *  
+ *  Result:
+ *    Returns a SInt32 containing the port number in host byte order.
+ *    Returns -1 if the entity's port is not known (has not been
+ *    resolved)
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceGetPortNumber( theService: CFNetServiceRef ): SInt32; external name '_CFNetServiceGetPortNumber';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
 {
@@ -581,15 +856,15 @@ function CFNetServiceGetName(theService: CFNetServiceRef): CFStringRef; external
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceGetAddressing(theService: CFNetServiceRef): CFArrayRef; external name '_CFNetServiceGetAddressing';
+function CFNetServiceGetAddressing( theService: CFNetServiceRef ): CFArrayRef; external name '_CFNetServiceGetAddressing';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
- *  CFNetServiceGetProtocolSpecificInformation()
+ *  CFNetServiceGetTXTData()
  *  
  *  Discussion:
- *    Query a Network Service for its protocol specific information.
+ *    Query a Network Service for its TXT record contents.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -604,25 +879,27 @@ function CFNetServiceGetAddressing(theService: CFNetServiceRef): CFArrayRef; ext
  *      The Network Service to be queried.  Must be non-NULL.
  *  
  *  Result:
- *    Returns NULL if a resolve has not been performed or if
- *    CFNetServiceSetProtocolSpecificInformation has not been called. 
- *    It will return a CFStringRef containing the specific information
- *    if there is some.
+ *    Returns NULL if the entity's TXT is not known (has not been
+ *    resolved).  The result will contain the contents of the TXT
+ *    record.  This is suitable to pass to
+ *    CFNetServiceCreateDictionaryWithTXTData.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceGetProtocolSpecificInformation(theService: CFNetServiceRef): CFStringRef; external name '_CFNetServiceGetProtocolSpecificInformation';
+function CFNetServiceGetTXTData( theService: CFNetServiceRef ): CFDataRef; external name '_CFNetServiceGetTXTData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
- *  CFNetServiceSetProtocolSpecificInformation()
+ *  CFNetServiceSetTXTData()
  *  
  *  Discussion:
- *    Set a Network Service's protocol specific information.
+ *    Sets the TXT record for the service.  If the service is currently
+ *    registered on the network, the record will be broadcast.  Setting
+ *    the TXT record on a resolving service is not allowed.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -630,127 +907,100 @@ function CFNetServiceGetProtocolSpecificInformation(theService: CFNetServiceRef)
  *  Parameters:
  *    
  *    theService:
- *      The Network Service to be queried.  Must be non-NULL.
- *    
- *    theInfo:
- *      The protocol specific information to be added.  Pass NULL to
- *      remove the information from the service.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later in CoreServices.framework
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceSetProtocolSpecificInformation(theService: CFNetServiceRef;theInfo: CFStringRef); external name '_CFNetServiceSetProtocolSpecificInformation';
-
-
-{
- *  CFNetServiceRegister()
- *  
- *  Discussion:
- *    Registers the entity on the network.  This requires that the
- *    service has a domain, a type, a name, and a port.  The service is
- *    registered on the network until this function returns or is
- *    cancelled by calling CFNetServiceCancel.  In synchronous mode,
- *    this function will block until there is an error or it is
- *    cancelled from another thread.  In asynchronous mode, this
- *    function returns immediately and the underlying network
- *    registration process will start.
- *  
- *  Mac OS X threading:
- *    Thread safe
- *  
- *  Parameters:
- *    
- *    theService:
- *      The Network Service to register on the network.  Must be
+ *      The Network Service to receive the new record.  Must be
  *      non-NULL.
  *    
- *    error:
- *      A reference to an error struct which will be set to the error
- *      and domain of the error should one occur.  If the value of
- *      error is not desired, set to NULL.
- *  
- *  Result:
- *    Returns FALSE if domain, type, name or port is NULL.  In
- *    synchronous mode, it will always return FALSE as a result of the
- *    error or the cancellation.  In asynchronous mode, it will return
- *    TRUE if the registration process could start.
+ *    txtRecord:
+ *      The contents of the TXT record.  This should not exceed a
+ *      length of 1450 bytes.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceRegister(theService: CFNetServiceRef;error: CFStreamErrorPtr): Boolean; external name '_CFNetServiceRegister';
+function CFNetServiceSetTXTData( theService: CFNetServiceRef; txtRecord: CFDataRef ): Boolean; external name '_CFNetServiceSetTXTData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
- *  CFNetServiceResolve()
+ *  CFNetServiceCreateDictionaryWithTXTData()
  *  
  *  Discussion:
- *    Resolves the addressing for the given service.  This requires
- *    that the service has a domain, a type, and a name.  The service
- *    is  resolved on the network until this function returns or is
- *    cancelled by calling CFNetServiceCancel. In synchronous mode,
- *    this function will block until there is an error or it is
- *    cancelled from another thread.  In asynchronous mode, this
- *    function returns immediately and the underlying network
- *    resolution process will start.
+ *    Parses the given TXT record data into a set of key/value pairs as
+ *    a CFDictionary where keys are CFStringRefs and values are
+ *    CFDataRefs.  If the given record can not be parsed, NULL will be
+ *    returned.  READ THE COMMENTS FOR
+ *    CFNetServiceCreateTXTDataWithDictionary TO FULLY UNDERSTAND THE
+ *    USE AND RESULTS OF THIS FUNCTION.
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Parameters:
  *    
- *    theService:
- *      The Network Service to resolve on the network.  Must be
- *      non-NULL.
+ *    alloc:
+ *      CFAllocatorRef to be used for the creation of the result.
  *    
- *    error:
- *      A reference to an error struct which will be set to the error
- *      and domain of the error should one occur.  If the value of
- *      error is not desired, set to NULL.
+ *    txtRecord:
+ *      The TXT record data as returned by CFNetServiceGetInfo.
  *  
  *  Result:
- *    Returns FALSE if domain, type, or name is NULL.  In synchronous
- *    mode, it will return FALSE as a result of an error or a
- *    cancellation.  It will return TRUE if the resolution does
- *    succeed.  In asynchronous mode, it will return TRUE if the
- *    resolution process could start.
+ *    CFDictionaryRef containing the key/value pairs parsed from the
+ *    record. It will return NULL if the record could not be parsed. 
+ *    Keys in the dictionary are CFStringRef's.  Values are CFDataRef's.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceResolve(theService: CFNetServiceRef;error: CFStreamErrorPtr): Boolean; external name '_CFNetServiceResolve';
+function CFNetServiceCreateDictionaryWithTXTData( alloc: CFAllocatorRef; txtRecord: CFDataRef ): CFDictionaryRef; external name '_CFNetServiceCreateDictionaryWithTXTData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
- *  CFNetServiceCancel()
+ *  CFNetServiceCreateTXTDataWithDictionary()
  *  
  *  Discussion:
- *    Cancels an outstanding request for registration or resolution.
+ *    Flattens a set of key/value pairs into a CFDataRef suitable to
+ *    pass into CFNetServiceSetTXTData.  This function will properly
+ *    format the data for TXT record usage.  THIS IS NOT A GENERAL
+ *    CFDictionaryRef FLATTENING ROUTINE.  CFDictionaryRef keys should
+ *    be CFStringRef's and values should be CFDataRef's.  For
+ *    convenience, values that are CFStringRef's will be converted to
+ *    CFDataRef's representing the flattened UTF-8 bytes of the string.
+ *     The types of the values are not encoded in the CFDataRef's,
+ *    therefore CFStringRef's will be flattened into CFDataRef's, and
+ *    they will come out of CFNetServiceCreateDictionaryWithTXTData as
+ *    CFDataRef's.
  *  
  *  Mac OS X threading:
  *    Thread safe
  *  
  *  Parameters:
  *    
- *    theService:
- *      The Network Service which is active.  Must be non-NULL.
+ *    alloc:
+ *      CFAllocatorRef to be used for the creation of the result.
+ *    
+ *    keyValuePairs:
+ *      CFDictionaryRef containing keys and values to be placed into
+ *      the TXT record.  The keys must be CFStringRef's.  The values
+ *      should be CFDataRef's (CFStringRef's are permitted for
+ *      convenience).  Any other types will cause a failure.  The
+ *      length of a key and its value should not exceed 255.
+ *  
+ *  Result:
+ *    CFDataRef containing the flattened form of the keys and values. 
+ *    If the dictionary could not be flattend, NULL will be returned.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in CoreServices.framework
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceCancel(theService: CFNetServiceRef); external name '_CFNetServiceCancel';
+function CFNetServiceCreateTXTDataWithDictionary( alloc: CFAllocatorRef; keyValuePairs: CFDictionaryRef ): CFDataRef; external name '_CFNetServiceCreateTXTDataWithDictionary';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
@@ -796,8 +1046,8 @@ procedure CFNetServiceCancel(theService: CFNetServiceRef); external name '_CFNet
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceSetClient(theService: CFNetServiceRef; clientCB: CFNetServiceClientCallBack; clientContext: CFNetServiceClientContextPtr): Boolean; external name '_CFNetServiceSetClient';
+function CFNetServiceSetClient( theService: CFNetServiceRef; clientCB: CFNetServiceClientCallBack { can be NULL }; clientContext: CFNetServiceClientContextPtr { can be NULL } ): Boolean; external name '_CFNetServiceSetClient';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -827,8 +1077,8 @@ function CFNetServiceSetClient(theService: CFNetServiceRef; clientCB: CFNetServi
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceScheduleWithRunLoop(theService: CFNetServiceRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef); external name '_CFNetServiceScheduleWithRunLoop';
+procedure CFNetServiceScheduleWithRunLoop( theService: CFNetServiceRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceScheduleWithRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -859,8 +1109,212 @@ procedure CFNetServiceScheduleWithRunLoop(theService: CFNetServiceRef; runLoop: 
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceUnscheduleFromRunLoop(theService: CFNetServiceRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef); external name '_CFNetServiceUnscheduleFromRunLoop';
+procedure CFNetServiceUnscheduleFromRunLoop( theService: CFNetServiceRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceUnscheduleFromRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorCreate()
+ *  
+ *  Discussion:
+ *    Creates an instance of an object suitable for watching for
+ *    CFNetService record changes on the network.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    alloc:
+ *      The CFAllocator which should be used to allocate memory for the
+ *      monitor and its storage for values. If this reference is not a
+ *      valid CFAllocator, the behavior is undefined.
+ *    
+ *    theService:
+ *      The CFNetService to be monitored for record changes.
+ *    
+ *    clientCB:
+ *      Function pointer that will be called as record changes occur. 
+ *      Must be non-NULL.
+ *    
+ *    clientContext:
+ *      Client contextual information to be used when calling clientCB.
+ *       Must be non-NULL.
+ *  
+ *  Result:
+ *    Returns a new instance of a CFNetServiceMonitor, or NULL if the
+ *    object could not be created.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceMonitorCreate( alloc: CFAllocatorRef; theService: CFNetServiceRef; clientCB: CFNetServiceMonitorClientCallBack; var clientContext: CFNetServiceClientContext ): CFNetServiceMonitorRef; external name '_CFNetServiceMonitorCreate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorInvalidate()
+ *  
+ *  Discussion:
+ *    Invalidates the given monitor object so that it may no longer be
+ *    scheduled and callback never be called.  This will also stop any
+ *    monitors currently in progress.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    monitor:
+ *      CFNetServiceMonitor to invalidate.  Must be non-NULL.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceMonitorInvalidate( monitor: CFNetServiceMonitorRef ); external name '_CFNetServiceMonitorInvalidate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorStart()
+ *  
+ *  Discussion:
+ *    Starts monitoring for record changes on a service.  It watches
+ *    for changes of the given record type.  If there is already an
+ *    outstanding monitor, it will return FALSE.  In synchronous mode,
+ *    this call blocks until the monitor is stopped. It will return
+ *    FALSE if there is an error performing the monitor or if there is
+ *    some other error.  It will return TRUE otherwise.  In
+ *    asynchronous mode, this call will return TRUE or FALSE depending
+ *    if the underlying network query could be instantiated.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    monitor:
+ *      CFNetServiceMonitor to perform the watch.
+ *    
+ *    recordType:
+ *      CFNetServiceMonitorType indicating the record type to watch.
+ *    
+ *    error:
+ *      A reference to an error struct which will be set to the error
+ *      and domain of the error should one occur.  If the value of
+ *      error is not desired, set to NULL.
+ *  
+ *  Result:
+ *    Returns FALSE if an error occurs during a synchronous monitor or
+ *    if the monitor could not start.  It returns TRUE otherwise.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceMonitorStart( monitor: CFNetServiceMonitorRef; recordType: CFNetServiceMonitorType; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceMonitorStart';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorStop()
+ *  
+ *  Discussion:
+ *    Stops an outstanding monitor.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    monitor:
+ *      CFNetServiceMonitor with an active monitor.  Must be non-NULL.
+ *    
+ *    error:
+ *      Error value to be returned in "error" in
+ *      CFNetServiceMonitorStart if monitor is being performed in
+ *      synchronous mode.  In this case, a non-zero of the error field
+ *      of the struct will cause CFNetServiceMonitorStart to return
+ *      FALSE.  In asynchronous mode, the client call back will be
+ *      called with this error.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceMonitorStop( monitor: CFNetServiceMonitorRef; error: CFStreamErrorPtr { can be NULL } ); external name '_CFNetServiceMonitorStop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorScheduleWithRunLoop()
+ *  
+ *  Discussion:
+ *    Schedules the monitor on a run loop and mode.  Use this to place
+ *    the given monitor into asynchronous mode.  The client callback
+ *    will be triggered via one of the scheduled run loops; It is the
+ *    caller's responsibility to ensure that at least one of the
+ *    scheduled run loops is being run.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    monitor:
+ *      CFNetServiceMonitor to schedule.  Must be non-NULL.
+ *    
+ *    runLoop:
+ *      A reference to a runloop on which the monitor should be
+ *      scheduled.  Must be non-NULL.
+ *    
+ *    runLoopMode:
+ *      The mode on which to schedule the monitor.  Must be non-NULL.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceMonitorScheduleWithRunLoop( monitor: CFNetServiceMonitorRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceMonitorScheduleWithRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+
+{
+ *  CFNetServiceMonitorUnscheduleFromRunLoop()
+ *  
+ *  Discussion:
+ *    Unschedules the browser from a run loop and mode.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    monitor:
+ *      CFNetServiceMonitor to unschedule.  Must be non-NULL.
+ *    
+ *    runLoop:
+ *      A reference to a runloop from which the monitor should be
+ *      unscheduled. Must be non-NULL.
+ *    
+ *    runLoopMode:
+ *      The mode from which to unschedule the monitor.  Must be
+ *      non-NULL.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceMonitorUnscheduleFromRunLoop( monitor: CFNetServiceMonitorRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceMonitorUnscheduleFromRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
 {
@@ -884,7 +1338,7 @@ procedure CFNetServiceUnscheduleFromRunLoop(theService: CFNetServiceRef; runLoop
  *      found on the network.  Must be non-NULL.
  *    
  *    clientContext:
- *      Client ontextual information to be used when calling clientCB.
+ *      Client contextual information to be used when calling clientCB.
  *      Must be non-NULL.
  *  
  *  Result:
@@ -896,8 +1350,8 @@ procedure CFNetServiceUnscheduleFromRunLoop(theService: CFNetServiceRef; runLoop
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceBrowserCreate(alloc: CFAllocatorRef; clientCB: CFNetServiceBrowserClientCallBack; var clientContext: CFNetServiceClientContext): CFNetServiceBrowserRef; external name '_CFNetServiceBrowserCreate';
+function CFNetServiceBrowserCreate( alloc: CFAllocatorRef; clientCB: CFNetServiceBrowserClientCallBack; var clientContext: CFNetServiceClientContext ): CFNetServiceBrowserRef; external name '_CFNetServiceBrowserCreate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -918,8 +1372,8 @@ function CFNetServiceBrowserCreate(alloc: CFAllocatorRef; clientCB: CFNetService
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceBrowserInvalidate(browser: CFNetServiceBrowserRef); external name '_CFNetServiceBrowserInvalidate';
+procedure CFNetServiceBrowserInvalidate( browser: CFNetServiceBrowserRef ); external name '_CFNetServiceBrowserInvalidate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -962,8 +1416,8 @@ procedure CFNetServiceBrowserInvalidate(browser: CFNetServiceBrowserRef); extern
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceBrowserSearchForDomains(browser: CFNetServiceBrowserRef; registrationDomains: Boolean; error: CFStreamErrorPtr): Boolean; external name '_CFNetServiceBrowserSearchForDomains';
+function CFNetServiceBrowserSearchForDomains( browser: CFNetServiceBrowserRef; registrationDomains: Boolean; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceBrowserSearchForDomains';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -1008,8 +1462,8 @@ function CFNetServiceBrowserSearchForDomains(browser: CFNetServiceBrowserRef; re
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function CFNetServiceBrowserSearchForServices(browser: CFNetServiceBrowserRef; domain: CFStringRef; typ: CFStringRef; error: CFStreamErrorPtr): Boolean; external name '_CFNetServiceBrowserSearchForServices';
+function CFNetServiceBrowserSearchForServices( browser: CFNetServiceBrowserRef; domain: CFStringRef; serviceType: CFStringRef; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceBrowserSearchForServices';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -1041,8 +1495,8 @@ function CFNetServiceBrowserSearchForServices(browser: CFNetServiceBrowserRef; d
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceBrowserStopSearch(browser: CFNetServiceBrowserRef;var error: CFStreamError); external name '_CFNetServiceBrowserStopSearch';
+procedure CFNetServiceBrowserStopSearch( browser: CFNetServiceBrowserRef; error: CFStreamErrorPtr { can be NULL } ); external name '_CFNetServiceBrowserStopSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -1075,8 +1529,8 @@ procedure CFNetServiceBrowserStopSearch(browser: CFNetServiceBrowserRef;var erro
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceBrowserScheduleWithRunLoop(browser: CFNetServiceBrowserRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef); external name '_CFNetServiceBrowserScheduleWithRunLoop';
+procedure CFNetServiceBrowserScheduleWithRunLoop( browser: CFNetServiceBrowserRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceBrowserScheduleWithRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
 {
@@ -1106,7 +1560,175 @@ procedure CFNetServiceBrowserScheduleWithRunLoop(browser: CFNetServiceBrowserRef
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-procedure CFNetServiceBrowserUnscheduleFromRunLoop(browser: CFNetServiceBrowserRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef); external name '_CFNetServiceBrowserUnscheduleFromRunLoop';
+procedure CFNetServiceBrowserUnscheduleFromRunLoop( browser: CFNetServiceBrowserRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFNetServiceBrowserUnscheduleFromRunLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  CFNetServiceRegister()   *** DEPRECATED ***
+ *  
+ *  Discussion:
+ *    Registers the entity on the network.  This requires that the
+ *    service has a domain, a type, a name, and a port.  The service is
+ *    registered on the network until this function returns or is
+ *    cancelled by calling CFNetServiceCancel.  In synchronous mode,
+ *    this function will block until there is an error or it is
+ *    cancelled from another thread.  In asynchronous mode, this
+ *    function returns immediately and the underlying network
+ *    registration process will start. 
+ *    
+ *    As a result of new, better performing API's in Service Discovery,
+ *    users should now call CFNetServiceRegisterWithOptions.  Using the
+ *    new calls will allow your application to perform better on the
+ *    network.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to register on the network.  Must be
+ *      non-NULL.
+ *    
+ *    error:
+ *      A reference to an error struct which will be set to the error
+ *      and domain of the error should one occur.  If the value of
+ *      error is not desired, set to NULL.
+ *  
+ *  Result:
+ *    Returns FALSE if domain, type, name or port is NULL.  In
+ *    synchronous mode, it will always return FALSE as a result of the
+ *    error or the cancellation.  In asynchronous mode, it will return
+ *    TRUE if the registration process could start.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceRegister( theService: CFNetServiceRef; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceRegister';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  CFNetServiceResolve()   *** DEPRECATED ***
+ *  
+ *  Discussion:
+ *    Resolves the addressing for the given service.  This requires
+ *    that the service has a domain, a type, and a name.  The service
+ *    is  resolved on the network until this function returns or is
+ *    cancelled by calling CFNetServiceCancel. In synchronous mode,
+ *    this function will block until there is an error or it is
+ *    cancelled from another thread.  In asynchronous mode, this
+ *    function returns immediately and the underlying network
+ *    resolution process will start. 
+ *    
+ *    As a result of new, better performing API's in Service Discovery,
+ *    users should now call CFNetServiceResolveWithTimeout.  If needing
+ *    to monitor TXT record changes, users should use the new
+ *    CFNetServiceMonitor object. Using the new calls will allow your
+ *    application to perform better on the network.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to resolve on the network.  Must be
+ *      non-NULL.
+ *    
+ *    error:
+ *      A reference to an error struct which will be set to the error
+ *      and domain of the error should one occur.  If the value of
+ *      error is not desired, set to NULL.
+ *  
+ *  Result:
+ *    Returns FALSE if domain, type, or name is NULL.  In synchronous
+ *    mode, it will return FALSE as a result of an error or a
+ *    cancellation.  It will return TRUE if the resolution does
+ *    succeed.  In asynchronous mode, it will return TRUE if the
+ *    resolution process could start.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceResolve( theService: CFNetServiceRef; error: CFStreamErrorPtr { can be NULL } ): Boolean; external name '_CFNetServiceResolve';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  CFNetServiceGetProtocolSpecificInformation()   *** DEPRECATED ***
+ *  
+ *  Discussion:
+ *    Query a Network Service for its protocol specific information.
+ *    
+ *    
+ *    As a result of new, better performing API's in Service Discovery,
+ *    users should now call CFNetServiceGetTXTData.  If needing to
+ *    monitor TXT record changes, users should use the new
+ *    CFNetServiceMonitor object. Using the new calls will allow your
+ *    application to perform better on the network.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *    The function gets the data in a thread-safe manner, but the
+ *    resulting data is not safe.  Since it is returned as a matter of
+ *    a get opposed to a copy, the data is not safe if the service is
+ *    being altered from another thread.
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to be queried.  Must be non-NULL.
+ *  
+ *  Result:
+ *    Returns NULL if a resolve has not been performed or if
+ *    CFNetServiceSetProtocolSpecificInformation has not been called. 
+ *    It will return a CFStringRef containing the specific information
+ *    if there is some.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CFNetServiceGetProtocolSpecificInformation( theService: CFNetServiceRef ): CFStringRef; external name '_CFNetServiceGetProtocolSpecificInformation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  CFNetServiceSetProtocolSpecificInformation()   *** DEPRECATED ***
+ *  
+ *  Discussion:
+ *    Set a Network Service's protocol specific information. 
+ *    
+ *    As a result of new, better performing API's in Service Discovery,
+ *    users should now call CFNetServiceSetTXTData.  Using the new
+ *    calls will allow your application to perform better on the
+ *    network.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe
+ *  
+ *  Parameters:
+ *    
+ *    theService:
+ *      The Network Service to be queried.  Must be non-NULL.
+ *    
+ *    theInfo:
+ *      The protocol specific information to be added.  Pass NULL to
+ *      remove the information from the service.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later in CoreServices.framework but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+procedure CFNetServiceSetProtocolSpecificInformation( theService: CFNetServiceRef; theInfo: CFStringRef ); external name '_CFNetServiceSetProtocolSpecificInformation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 end.

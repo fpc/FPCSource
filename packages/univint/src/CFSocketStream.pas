@@ -3,9 +3,9 @@
  
      Contains:   CoreFoundation Network socket streams header
  
-     Version:    CFNetwork-71.2~1
+     Version:    CFNetwork-219~1
  
-     Copyright:  © 2001-2003 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 2001-2006 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,7 +14,7 @@
  
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
 
 {
     Modified for use with Free Pascal
@@ -106,6 +106,373 @@ interface
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFStream,CFBase,CFHost,CFNetServices;
 {$ALIGN MAC68K}
+
+{
+ *  kCFStreamPropertySSLPeerCertificates
+ *  
+ *  Discussion:
+ *    Stream property key for copy operations.  CFArrayRef containing
+ *    SecCertificateRefs. See SSLGetPeerCertificates in
+ *    Security/SecureTransport.h for more information.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySSLPeerCertificates: CFStringRef; external name '_kCFStreamPropertySSLPeerCertificates'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamPropertySSLSettings
+ *  
+ *  Discussion:
+ *    Stream property key for set operations.  CFDictionaryRef filled
+ *    with different security settings.  By default, there are no
+ *    security settings.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySSLSettings: CFStringRef; external name '_kCFStreamPropertySSLSettings'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLLevel
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFStringRef being one of the security levels.  The value is
+ *    kCFStreamSocketSecurityLevelNegotiatedSSL by default (not set).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLLevel: CFStringRef; external name '_kCFStreamSSLLevel'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLAllowsExpiredCertificates
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFBooleanRef indicating whether expired certificates should be
+ *    allowed or not.  The value is kCFBooleanFalse by default (not
+ *    set).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLAllowsExpiredCertificates: CFStringRef; external name '_kCFStreamSSLAllowsExpiredCertificates'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLAllowsExpiredRoots
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFBooleanRef indicating whether expired root certificates should
+ *    be allowed or not.  The value is kCFBooleanFalse by default (not
+ *    set).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLAllowsExpiredRoots: CFStringRef; external name '_kCFStreamSSLAllowsExpiredRoots'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLAllowsAnyRoot
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFBooleanRef indicating whether any root certificates should be
+ *    allowed or not.  The value is kCFBooleanFalse by default (not
+ *    set).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLAllowsAnyRoot: CFStringRef; external name '_kCFStreamSSLAllowsAnyRoot'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLValidatesCertificateChain
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFBooleanRef indicating whether the certificate chain should be
+ *    validated or not.  The value is kCFBooleanTrue by default (not
+ *    set).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLValidatesCertificateChain: CFStringRef; external name '_kCFStreamSSLValidatesCertificateChain'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLPeerName
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFStringRef overriding the name used for certificate
+ *    verification.  Set to kCFNull to prevent name verification. 
+ *    Default is the host name with which the streams were created.  If
+ *    no host name was used, no peer name will be used.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLPeerName: CFStringRef; external name '_kCFStreamSSLPeerName'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLCertificates
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFArrayRef of SecCertificateRefs, except for index [0], which is
+ *    a SecIdentityRef.  See SSLSetCertificate in
+ *    Security/SecureTransport.h for more information.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLCertificates: CFStringRef; external name '_kCFStreamSSLCertificates'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+
+{
+ *  kCFStreamSSLIsServer
+ *  
+ *  Discussion:
+ *    Security property key for kCFStreamPropertySSLSettings. 
+ *    CFBooleanRef indicating whether the connection is to act as a
+ *    server in the SSL process or not.  The value is kCFBooleanFalse
+ *    by default (not set).  If set to kCFBooleanTrue, there must be a
+ *    valid value for the kCFStreamSSLCertificates key too.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSSLIsServer: CFStringRef; external name '_kCFStreamSSLIsServer'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+{
+ *  kCFStreamErrorDomainWinSock
+ *  
+ *  Discussion:
+ *    WinSock error domain.  On Win32 platforms, networking errors will
+ *    come in this domain.  See <winsock2.h> for values.  Note that
+ *    non-networking errors, like ENOMEM, will continue to come in the
+ *    POSIX domain as on OS X.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamErrorDomainWinSock: CFIndex; external name '_kCFStreamErrorDomainWinSock'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+{
+ *  kCFStreamErrorDomainSOCKS
+ *  
+ *  Discussion:
+ *    SOCKS proxy error domain.  Errors formulated using inlines below.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamErrorDomainSOCKS: SInt32; external name '_kCFStreamErrorDomainSOCKS'; (* attribute const *)
+
+{
+CF_INLINE
+SInt32 CFSocketStreamSOCKSGetErrorSubdomain(CFStreamError* error)
+    return ((error->error >> 16) & 0x0000FFFF);
+
+CF_INLINE
+SInt32 CFSocketStreamSOCKSGetError(CFStreamError* error)
+    return (error->error & 0x0000FFFF);
+}
+
+const
+	kCFStreamErrorSOCKSSubDomainNone = 0; { Error code is a general SOCKS error}
+	kCFStreamErrorSOCKSSubDomainVersionCode = 1; { Error code is the version of SOCKS which the server wishes to use}
+	kCFStreamErrorSOCKS4SubDomainResponse = 2; { Error code is the status code returned by the server}
+	kCFStreamErrorSOCKS5SubDomainUserPass = 3; { Error code is the status code that the server returned}
+	kCFStreamErrorSOCKS5SubDomainMethod = 4; { Error code is the server's desired negotiation method}
+	kCFStreamErrorSOCKS5SubDomainResponse = 5; { Error code is the response code that the server returned in reply to the connection request}
+
+
+{ kCFStreamErrorSOCKSSubDomainNone}
+const
+	kCFStreamErrorSOCKS5BadResponseAddr = 1;
+	kCFStreamErrorSOCKS5BadState = 2;
+	kCFStreamErrorSOCKSUnknownClientVersion = 3;
+
+{ kCFStreamErrorSOCKS4SubDomainResponse}
+const
+	kCFStreamErrorSOCKS4RequestFailed = 91; { request rejected or failed }
+	kCFStreamErrorSOCKS4IdentdFailed = 92; { request rejected because SOCKS server cannot connect to identd on the client }
+	kCFStreamErrorSOCKS4IdConflict = 93;   { request rejected because the client program and identd report different user-ids }
+
+{ kCFStreamErrorSOCKS5SubDomainMethod}
+const
+	kSOCKS5NoAcceptableMethod = $FF;  { other values indicate the server's desired method }
+
+
+{
+ *  kCFStreamPropertySOCKSProxy
+ *  
+ *  Discussion:
+ *    Stream property key, for both set and copy operations.  To set a
+ *    stream to use a SOCKS proxy, call CFReadStreamSetProperty or
+ *    CFWriteStreamSetProperty with the property name set to
+ *    kCFStreamPropertySOCKSProxy and the value being a dictionary with
+ *    at least the following two keys: kCFStreamPropertySOCKSProxyHost
+ *    and kCFStreamPropertySOCKSProxyPort.  The dictionary returned by
+ *    SystemConfiguration for SOCKS proxies will work without
+ *    alteration.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSProxy: CFStringRef; external name '_kCFStreamPropertySOCKSProxy'; (* attribute const *)
+
+{
+ *  kCFStreamPropertySOCKSProxyHost
+ *  
+ *  Discussion:
+ *    CFDictionary key for SOCKS proxy information.  The key
+ *    kCFStreamPropertySOCKSProxyHost should contain a CFStringRef
+ *    value representing the SOCKS proxy host.  Defined to match
+ *    kSCPropNetProxiesSOCKSProxy
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSProxyHost: CFStringRef; external name '_kCFStreamPropertySOCKSProxyHost'; (* attribute const *)
+
+{
+ *  kCFStreamPropertySOCKSProxyPort
+ *  
+ *  Discussion:
+ *    CFDictionary key for SOCKS proxy information.  The key
+ *    kCFStreamPropertySOCKSProxyPort should contain a CFNumberRef
+ *    which itself is of type kCFNumberSInt32Type.  This value should
+ *    represent the port on which the proxy is listening.  Defined to
+ *    match kSCPropNetProxiesSOCKSPort
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSProxyPort: CFStringRef; external name '_kCFStreamPropertySOCKSProxyPort'; (* attribute const *)
+
+{
+ *  kCFStreamPropertySOCKSVersion
+ *  
+ *  Discussion:
+ *    CFDictionary key for SOCKS proxy information.  By default, SOCKS5
+ *    will be used unless there is a kCFStreamPropertySOCKSVersion key
+ *    in the dictionary.  Its value must be
+ *    kCFStreamSocketSOCKSVersion4 or kCFStreamSocketSOCKSVersion5 to
+ *    set SOCKS4 or SOCKS5, respectively.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSVersion: CFStringRef; external name '_kCFStreamPropertySOCKSVersion'; (* attribute const *)
+
+{
+ *  kCFStreamSocketSOCKSVersion4
+ *  
+ *  Discussion:
+ *    CFDictionary value for SOCKS proxy information.  Indcates that
+ *    SOCKS will or is using version 4 of the SOCKS protocol.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSocketSOCKSVersion4: CFStringRef; external name '_kCFStreamSocketSOCKSVersion4'; (* attribute const *)
+
+{
+ *  kCFStreamSocketSOCKSVersion5
+ *  
+ *  Discussion:
+ *    CFDictionary value for SOCKS proxy information.  Indcates that
+ *    SOCKS will or is using version 5 of the SOCKS protocol.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamSocketSOCKSVersion5: CFStringRef; external name '_kCFStreamSocketSOCKSVersion5'; (* attribute const *)
+
+{
+ *  kCFStreamPropertySOCKSUser
+ *  
+ *  Discussion:
+ *    CFDictionary key for SOCKS proxy information.  To set a user name
+ *    and/or password, if required, the dictionary must contain the
+ *    key(s) kCFStreamPropertySOCKSUser and/or  
+ *    kCFStreamPropertySOCKSPassword with the value being the user's
+ *    name as a CFStringRef and/or the user's password as a
+ *    CFStringRef, respectively.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSUser: CFStringRef; external name '_kCFStreamPropertySOCKSUser'; (* attribute const *)
+
+{
+ *  kCFStreamPropertySOCKSPassword
+ *  
+ *  Discussion:
+ *    CFDictionary key for SOCKS proxy information.  To set a user name
+ *    and/or password, if required, the dictionary must contain the
+ *    key(s) kCFStreamPropertySOCKSUser and/or  
+ *    kCFStreamPropertySOCKSPassword with the value being the user's
+ *    name as a CFStringRef and/or the user's password as a
+ *    CFStringRef, respectively.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.2 and later
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertySOCKSPassword: CFStringRef; external name '_kCFStreamPropertySOCKSPassword'; (* attribute const *)
 
 {
  *  kCFStreamErrorDomainSSL
@@ -215,192 +582,6 @@ var kCFStreamSocketSecurityLevelTLSv1: CFStringRef; external name '_kCFStreamSoc
  }
 var kCFStreamSocketSecurityLevelNegotiatedSSL: CFStringRef; external name '_kCFStreamSocketSecurityLevelNegotiatedSSL'; (* attribute const *)
 
-
-{
- *  kCFStreamErrorDomainSOCKS
- *  
- *  Discussion:
- *    SOCKS proxy error domain.  Errors formulated using inlines below.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamErrorDomainSOCKS: SInt32; external name '_kCFStreamErrorDomainSOCKS'; (* attribute const *)
-
-
-{
-CF_INLINE
-SInt32 CFSocketStreamSOCKSGetErrorSubdomain(CFStreamError* error)
-    return ((error->domain >> 16) & 0x0000FFFF);
-
-CF_INLINE
-SInt32 CFSocketStreamSOCKSGetError(CFStreamError* error)
-    return (error->domain & 0x0000FFFF);
-}
-
-const
-  kCFStreamErrorSOCKSSubDomainNone = 0; { Error code is a general SOCKS error }
-  kCFStreamErrorSOCKSSubDomainVersionCode = 1; { Error code is the version of SOCKS which the server wishes to use }
-  kCFStreamErrorSOCKS4SubDomainResponse = 2; { Error code is the status code returned by the server }
-  kCFStreamErrorSOCKS5SubDomainUserPass = 3; { Error code is the status code that the server returned }
-  kCFStreamErrorSOCKS5SubDomainMethod = 4; { Error code is the server's desired negotiation method }
-  kCFStreamErrorSOCKS5SubDomainResponse = 5; { Error code is the response code that the server returned in reply to the connection request }
-
-
-{ kCFStreamErrorSOCKSSubDomainNone}
-const
-  kCFStreamErrorSOCKS5BadResponseAddr = 1;
-  kCFStreamErrorSOCKS5BadState  = 2;
-  kCFStreamErrorSOCKSUnknownClientVersion = 3;
-
-{ kCFStreamErrorSOCKS4SubDomainResponse}
-const
-  kCFStreamErrorSOCKS4RequestFailed = 91; { request rejected or failed }
-  kCFStreamErrorSOCKS4IdentdFailed = 92; { request rejected because SOCKS server cannot connect to identd on the client }
-  kCFStreamErrorSOCKS4IdConflict = 93;   { request rejected because the client program and identd report different user-ids }
-
-{ kCFStreamErrorSOCKS5SubDomainMethod}
-const
-  kSOCKS5NoAcceptableMethod     = $0FF;  { other values indicate the server's desired method }
-
-
-{
- *  kCFStreamPropertySOCKSProxy
- *  
- *  Discussion:
- *    Stream property key, for both set and copy operations.  To set a
- *    stream to use a SOCKS proxy, call CFReadStreamSetProperty or
- *    CFWriteStreamSetProperty with the property name set to
- *    kCFStreamPropertySOCKSProxy and the value being a dictionary with
- *    at least the following two keys: kCFStreamPropertySOCKSProxyHost
- *    and kCFStreamPropertySOCKSProxyPort.  The dictionary returned by
- *    SystemConfiguration for SOCKS proxies will work without
- *    alteration.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSProxy: CFStringRef; external name '_kCFStreamPropertySOCKSProxy'; (* attribute const *)
-
-{
- *  kCFStreamPropertySOCKSProxyHost
- *  
- *  Discussion:
- *    CFDictinary key for SOCKS proxy information.  The key
- *    kCFStreamPropertySOCKSProxyHost should contain a CFStringRef
- *    value representing the SOCKS proxy host.  Defined to match
- *    kSCPropNetProxiesSOCKSProxy
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSProxyHost: CFStringRef; external name '_kCFStreamPropertySOCKSProxyHost'; (* attribute const *)
-
-{
- *  kCFStreamPropertySOCKSProxyPort
- *  
- *  Discussion:
- *    CFDictinary key for SOCKS proxy information.  The key
- *    kCFStreamPropertySOCKSProxyPort should contain a CFNumberRef
- *    which itself is of type kCFNumberSInt32Type.  This value should
- *    represent the port on which the proxy is listening.  Defined to
- *    match kSCPropNetProxiesSOCKSPort
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSProxyPort: CFStringRef; external name '_kCFStreamPropertySOCKSProxyPort'; (* attribute const *)
-
-{
- *  kCFStreamPropertySOCKSVersion
- *  
- *  Discussion:
- *    CFDictinary key for SOCKS proxy information.  By default, SOCKS5
- *    will be used unless there is a kCFStreamPropertySOCKSVersion key
- *    in the dictionary.  Its value must be
- *    kCFStreamSocketSOCKSVersion4 or kCFStreamSocketSOCKSVersion5 to
- *    set SOCKS4 or SOCKS5, respectively.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSVersion: CFStringRef; external name '_kCFStreamPropertySOCKSVersion'; (* attribute const *)
-
-{
- *  kCFStreamSocketSOCKSVersion4
- *  
- *  Discussion:
- *    CFDictionary value for SOCKS proxy information.  Indcates that
- *    SOCKS will or is using version 4 of the SOCKS protocol.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamSocketSOCKSVersion4: CFStringRef; external name '_kCFStreamSocketSOCKSVersion4'; (* attribute const *)
-
-{
- *  kCFStreamSocketSOCKSVersion5
- *  
- *  Discussion:
- *    CFDictionary value for SOCKS proxy information.  Indcates that
- *    SOCKS will or is using version 5 of the SOCKS protocol.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamSocketSOCKSVersion5: CFStringRef; external name '_kCFStreamSocketSOCKSVersion5'; (* attribute const *)
-
-{
- *  kCFStreamPropertySOCKSUser
- *  
- *  Discussion:
- *    CFDictinary key for SOCKS proxy information.  To set a user name
- *    and/or password, if required, the dictionary must contain the
- *    key(s) kCFStreamPropertySOCKSUser and/or  
- *    kCFStreamPropertySOCKSPassword with the value being the user's
- *    name as a CFStringRef and/or the user's password as a
- *    CFStringRef, respectively.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSUser: CFStringRef; external name '_kCFStreamPropertySOCKSUser'; (* attribute const *)
-
-{
- *  kCFStreamPropertySOCKSPassword
- *  
- *  Discussion:
- *    CFDictinary key for SOCKS proxy information.  To set a user name
- *    and/or password, if required, the dictionary must contain the
- *    key(s) kCFStreamPropertySOCKSUser and/or  
- *    kCFStreamPropertySOCKSPassword with the value being the user's
- *    name as a CFStringRef and/or the user's password as a
- *    CFStringRef, respectively.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.2 and later
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-var kCFStreamPropertySOCKSPassword: CFStringRef; external name '_kCFStreamPropertySOCKSPassword'; (* attribute const *)
-
-
 {
  *  kCFStreamPropertyShouldCloseNativeSocket
  *  
@@ -436,8 +617,8 @@ var kCFStreamPropertyShouldCloseNativeSocket: CFStringRef; external name '_kCFSt
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kCFStreamPropertySocketRemoteHost: CFStringRef; external name '_kCFStreamPropertySocketRemoteHost'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -452,8 +633,8 @@ var kCFStreamPropertySocketRemoteHost: CFStringRef; external name '_kCFStreamPro
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kCFStreamPropertySocketRemoteNetService: CFStringRef; external name '_kCFStreamPropertySocketRemoteNetService'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -494,8 +675,8 @@ var kCFStreamPropertySocketRemoteNetService: CFStringRef; external name '_kCFStr
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-procedure CFStreamCreatePairWithSocketToCFHost( alloc: CFAllocatorRef; host: CFHostRef; port: UInt32; readStream: CFReadStreamRefPtr; writeStream: CFWriteStreamRefPtr ); external name '_CFStreamCreatePairWithSocketToCFHost';
+procedure CFStreamCreatePairWithSocketToCFHost( alloc: CFAllocatorRef; host: CFHostRef; port: SInt32; readStream: CFReadStreamRefPtr { can be NULL }; writeStream: CFWriteStreamRefPtr { can be NULL } ); external name '_CFStreamCreatePairWithSocketToCFHost';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -534,8 +715,8 @@ procedure CFStreamCreatePairWithSocketToCFHost( alloc: CFAllocatorRef; host: CFH
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-procedure CFStreamCreatePairWithSocketToNetService( alloc: CFAllocatorRef; service: CFNetServiceRef; readStream: CFReadStreamRefPtr; writeStream: CFWriteStreamRefPtr ); external name '_CFStreamCreatePairWithSocketToNetService';
+procedure CFStreamCreatePairWithSocketToNetService( alloc: CFAllocatorRef; service: CFNetServiceRef; readStream: CFReadStreamRefPtr { can be NULL }; writeStream: CFWriteStreamRefPtr { can be NULL } ); external name '_CFStreamCreatePairWithSocketToNetService';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -550,7 +731,7 @@ procedure CFStreamCreatePairWithSocketToNetService( alloc: CFAllocatorRef; servi
 type
 	CFStreamSocketSecurityProtocol = SInt32;
 const
-  {
+{
    * DEPRECATED, use kCFStreamSocketSecurityLevelNone
    }
   kCFStreamSocketSecurityNone   = 0;
@@ -610,7 +791,25 @@ const
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_2
 function CFSocketStreamPairSetSecurityProtocol( socketReadStream: CFReadStreamRef; socketWriteStream: CFWriteStreamRef; securityProtocol: CFStreamSocketSecurityProtocol ): Boolean; external name '_CFSocketStreamPairSetSecurityProtocol';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_2 *)
+
+
+{
+ *  kCFStreamPropertyProxyLocalBypass
+ *  
+ *  Discussion:
+ *    CFDictionary key for proxy information.  It matches
+ *    kSCPropNetProxiesExcludeSimpleHostnames defined in
+ *    SCSchemaDefinitions.h.  CFNumber (0 or 1) indicating to bypass
+ *    the proxies for simple hostnames (names without dots).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.4 and later in CoreServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kCFStreamPropertyProxyLocalBypass: CFStringRef; external name '_kCFStreamPropertyProxyLocalBypass'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 end.

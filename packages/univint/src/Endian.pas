@@ -515,7 +515,7 @@ end;
 
 function EndianS64_Swap( arg: SInt64 ): SInt64; inline;
 begin
-	EndianS64_Swap := (Endian32_Swap( arg and $FFFFFFFF ) shl 32) or Endian32_Swap( (arg shr 32) and $FFFFFFFF );
+	EndianS64_Swap := (SInt64( Endian32_Swap( arg and $FFFFFFFF ) ) shl 32) or Endian32_Swap( (arg shr 32) and $FFFFFFFF );
 end;
 
 {$ifc TARGET_RT_BIG_ENDIAN}
@@ -763,6 +763,67 @@ begin
 end;
 
 {$endc}
+
+function EndianS16_LtoB( arg: SInt16 ): SInt16; inline;
+begin
+  EndianS16_LtoB:=EndianS16_Swap(arg);
+end;
+
+function EndianS16_BtoL( arg: SInt16 ): SInt16; inline;
+begin
+  EndianS16_BtoL:=EndianS16_Swap(arg);
+end;
+
+function EndianU16_LtoB( arg: UInt16 ): UInt16; inline;
+begin
+  EndianU16_LtoB:=Endian16_Swap(arg);
+end;
+
+function EndianU16_BtoL( arg: UInt16 ): UInt16; inline;
+begin
+  EndianU16_BtoL:=Endian16_Swap(arg);
+end;
+
+function EndianS32_LtoB( arg: SInt32 ): SInt32; inline;
+begin
+  EndianS32_LtoB:=EndianS32_Swap(arg);
+end;
+
+function EndianS32_BtoL( arg: SInt32 ): SInt32; inline;
+begin
+  EndianS32_BtoL:=EndianS32_Swap(arg);
+end;
+
+function EndianU32_LtoB( arg: UInt32 ): UInt32; inline;
+begin
+  EndianU32_LtoB:=Endian32_Swap(arg);
+end;
+
+function EndianU32_BtoL( arg: UInt32 ): UInt32; inline;
+begin
+  EndianU32_BtoL:=Endian32_Swap(arg);
+end;
+
+function EndianS64_LtoB( arg: SInt64 ): SInt64; inline;
+begin
+  EndianS64_LtoB:=EndianS64_Swap(arg);
+end;
+
+function EndianS64_BtoL( arg: SInt64 ): SInt64; inline;
+begin
+  EndianS64_BtoL:=EndianS64_Swap(arg);
+end;
+
+function EndianU64_LtoB( arg: UInt64 ): UInt64; inline;
+begin
+  EndianU64_LtoB:=Endian64_Swap_Pascal(arg);
+end;
+
+function EndianU64_BtoL( arg: UInt64 ): UInt64; inline;
+begin
+  EndianU64_BtoL:=Endian64_Swap_Pascal(arg);
+end;
+
 
 
 end.
