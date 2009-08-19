@@ -399,7 +399,7 @@ OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
 ifneq ($(findstring $(OS_TARGET),darwin linux freebsd solaris),)
 ifdef LINKSMART
 ifdef CREATESMART
-OPTWPOCOLLECT+=-OWsymbolliveness
+OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
 OPTWPOPERFORM+=-Owsymbolliveness
 endif
 endif
@@ -3358,9 +3358,9 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 ifdef RELEASE
 wpocycle:
 	$(RM) $(EXENAME)
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT) -Xs-' compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(RTLOPT) $(OPTWPOPERFORM)' rtlclean rtl
-	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT)) -Xs-' cycleclean compiler
+	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' cycleclean compiler
 	$(MOVE) $(EXENAME) $(TEMPWPONAME1)
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' cycleclean compiler
