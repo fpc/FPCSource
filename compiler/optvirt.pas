@@ -1012,8 +1012,10 @@ unit optvirt;
             { cut off the trailing & }
             setlength(classid,length(classid)-1);
             classdevirtinfo:=unitdevirtinfo.addclass(classid,instantiated);
+            { last class could be an instantiated class without any
+               optimisable methods. }
             if not reader.sectiongetnextline(vmttype) then
-              internalerror(2008100506);
+              exit;
             { any optimisable virtual methods? }
             if (vmttype<>'') then
               begin
