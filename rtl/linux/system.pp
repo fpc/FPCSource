@@ -312,8 +312,10 @@ begin
   {$ifdef has_ugetrlimit}
   success := fpugetrlimit(RLIMIT_STACK, @limits)=0;
   {$endif}
+  {$ifndef NO_SYSCALL_GETRLIMIT}
   if (not success) then
     success := fpgetrlimit(RLIMIT_STACK, @limits)=0;
+  {$endif}
   if (success) and (limits.rlim_cur < stklen) then
     result := limits.rlim_cur
   else
