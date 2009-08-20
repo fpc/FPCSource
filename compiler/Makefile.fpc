@@ -342,10 +342,10 @@ ppuclean:
         -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 
 tempclean:
-        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
+        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 
 $(addsuffix _clean,$(ALLTARGETS)):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
@@ -430,13 +430,15 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 ifdef RELEASE
 # Two WPO cycles in case of RELEASE=1
 wpocycle:
+# don't use cycle_clean, it will delete the compiler utilities again
         $(RM) $(EXENAME)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
+        $(RM) $(EXENAME)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(RTLOPT) $(OPTWPOPERFORM)' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' $(addsuffix _clean,$(ALLTARGETS)) compiler
         $(MOVE) $(EXENAME) $(TEMPWPONAME1)
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
-        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' cycleclean compiler
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
         $(COPY) $(EXENAME) $(TEMPWPONAME2)
         $(MAKE) echotime
 else
