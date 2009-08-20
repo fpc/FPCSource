@@ -150,19 +150,6 @@ NOCPUDEF=1
 # Default message file
 MSGFILE=msg/error$(FPCLANG).msg
 
-# Define Unix also for Linux
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
-
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
-
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
@@ -245,11 +232,6 @@ endif
 
 # Add Local options
 override COMPILER+=$(LOCALOPT)
-
-# Disable optimizer when compiled with 1.0.x
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override COMPILER:=$(patsubst -O%,,$(COMPILER))
-endif
 
 
 #####################################################################
