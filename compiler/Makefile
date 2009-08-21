@@ -3342,7 +3342,9 @@ endif
 	$(MOVE) $(COMPILER_TARGETDIR)/$(PPEXENAME) $(EXENAME)
 ifeq ($(CPU_SOURCE),$(PPC_TARGET))
 ifeq ($(OS_SOURCE),$(OS_TARGET))
+ifndef NOWPOCYCLE
 ifdef RELEASE
+DOWPOCYCLE=1
 wpocycle:
 	$(RM) $(EXENAME)
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
@@ -3353,8 +3355,9 @@ wpocycle:
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
 	$(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
 	$(COPY) $(EXENAME) $(TEMPWPONAME2)
-	$(MAKE) echotime
-else
+endif
+endif
+ifndef DOWPOCYCLE
 wpocycle:
 endif
 ifdef DIFF

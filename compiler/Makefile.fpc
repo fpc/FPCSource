@@ -409,7 +409,9 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 # Normal cycle
 #
 
+ifndef NOWPOCYCLE
 ifdef RELEASE
+DOWPOCYCLE=1
 # Two WPO cycles in case of RELEASE=1
 wpocycle:
 # don't use cycle_clean, it will delete the compiler utilities again
@@ -422,12 +424,12 @@ wpocycle:
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
         $(COPY) $(EXENAME) $(TEMPWPONAME2)
-        $(MAKE) echotime
-else
-wpocycle:
-
 endif
-        
+endif
+
+ifndef DOWPOCYCLE
+wpocycle:
+endif
 
 # Used to avoid unnecessary steps
 ifdef DIFF
