@@ -105,13 +105,20 @@ CONST
         dataindex : pointer;
         errorsave : dword;
       begin
-{$ifdef dummy}
-        { I've no clue why this doesn't read dataindex, imo it should (FK) }
+{$ifdef win32}
         asm
           movl TLSKey,%edx
           movl $0x2c,%eax
           movl %fs:(%eax),%eax
-          movl (%eax,%edx,4),%eax
+          orl  %eax,%eax
+          jnz  .LAddressInEAX
+          movl $0x18,%eax
+          movl %fs:(%eax),%eax
+          movl 0xe10(%eax,%edx,4),%eax
+          jmp  .LToDataIndex
+          .LAddressInEAX:
+           movl (%eax,%edx,4),%eax
+          .LToDataIndex:
           movl %eax,dataindex
         end;
         if DataIndex=nil then
