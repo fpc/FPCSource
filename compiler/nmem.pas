@@ -402,6 +402,7 @@ implementation
             if not isprocvar then
               begin
                 left:=ctypeconvnode.create_proc_to_procvar(left);
+                left.fileinfo:=fileinfo;
                 typecheckpass(left);
               end;
 

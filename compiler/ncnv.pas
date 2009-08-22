@@ -249,6 +249,7 @@ implementation
         else
          begin
            p:=ctypeconvnode.create(p,def);
+           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
@@ -270,6 +271,7 @@ implementation
         else
          begin
            p:=ctypeconvnode.create_internal(p,def);
+           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
