@@ -750,8 +750,7 @@ implementation
                     not(is_open_string(parasym.vardef)) and
                     not(equal_defs(left.resultdef,parasym.vardef)) then
                    begin
-                     current_filepos:=left.fileinfo;
-                     CGMessage(type_e_strict_var_string_violation);
+                     CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
                    end;
 
                  { Handle formal parameters separate }

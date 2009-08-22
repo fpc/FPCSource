@@ -363,6 +363,7 @@ implementation
         l : Longint;
         lr,hr : TConstExprInt;
         hp : tarrayconstructornode;
+        oldfilepos: tfileposinfo;
       begin
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
@@ -407,6 +408,7 @@ implementation
                 end;
               if codegenerror then
                break;
+              oldfilepos:=current_filepos;
               current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                  enumdef,
@@ -535,6 +537,7 @@ implementation
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
               p2.free;
+              current_filepos:=oldfilepos;
             end;
            if (hdef=nil) then
             hdef:=u8inttype;
