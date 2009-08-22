@@ -29,7 +29,7 @@ interface
       cutils,cclasses;
 
     const
-       InputFileBufSize=32*1024;
+       InputFileBufSize=32*1024+1;
        linebufincrease=512;
 
     type
@@ -268,6 +268,7 @@ uses
         endoffile:=false;
         closed:=false;
         Getmem(buf,MaxBufsize);
+        buf[0]:=#0;
         bufstart:=0;
         bufsize:=0;
         open:=true;
