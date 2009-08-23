@@ -380,6 +380,10 @@ begin
       { try to add crti and crtbegin if linking to C }
       if linklibc and (libctype<>uclibc) then
        begin
+         { crti.o must come first }
+         if librarysearchpath.FindFile('crti.o',false,s) then
+           AddFileName(s);
+         { then the crtbegin* }
          { x86_64 requires this to use entry/exit code with pic,
            see also issue #8210 regarding a discussion
            no idea about the other non i386 CPUs (FK)
@@ -392,10 +396,11 @@ begin
            end
          else
 {$endif x86_64}
-           if librarysearchpath.FindFile('crtbegin.o',false,s) then
+           if (cs_link_staticflag in current_settings.globalswitches) and
+              librarysearchpath.FindFile('crtbeginT.o',false,s) then
+             AddFileName(s)
+           else if librarysearchpath.FindFile('crtbegin.o',false,s) then
              AddFileName(s);
-         if librarysearchpath.FindFile('crti.o',false,s) then
-           AddFileName(s);
        end;
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -429,29 +434,44 @@ begin
       if not SharedLibFiles.Empty then
        begin
 
-         Add('INPUT(');
-         While not SharedLibFiles.Empty do
-          begin
-            S:=SharedLibFiles.GetFirst;
-            if (s<>'c') or reorder then
-             begin
-               i:=Pos(target_info.sharedlibext,S);
-               if i>0 then
-                Delete(S,i,255);
-               Add('-l'+s);
-             end
-            else
-             begin
-               linklibc:=true;
-             end;
-          end;
-         { be sure that libc is the last lib }
-         if linklibc and not reorder then
-          Add('-lc');
-         { when we have -static for the linker the we also need libgcc }
-         if (cs_link_staticflag in current_settings.globalswitches) then
-          Add('-lgcc');
-         Add(')');
+         if (SharedLibFiles.Count<>1) or
+            (TCmdStrListItem(SharedLibFiles.First).Str<>'c') or
+            reorder then
+           begin
+             Add('INPUT(');
+             While not SharedLibFiles.Empty do
+              begin
+                S:=SharedLibFiles.GetFirst;
+                if (s<>'c') or reorder then
+                 begin
+                   i:=Pos(target_info.sharedlibext,S);
+                   if i>0 then
+                    Delete(S,i,255);
+                   Add('-l'+s);
+                 end
+                else
+                 begin
+                   linklibc:=true;
+                 end;
+              end;
+             Add(')');
+           end;
+         if (cs_link_staticflag in current_settings.globalswitches) or
+            (linklibc and not reorder) then
+           begin
+             Add('GROUP(');
+             { when we have -static for the linker the we also need libgcc }
+             if (cs_link_staticflag in current_settings.globalswitches) then
+               begin
+                 Add('-lgcc');
+                 if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
+                   Add('-lgcc_eh');
+               end;
+             { be sure that libc is the last lib }
+             if linklibc and not reorder then
+               Add('-lc');
+             Add(')');
+           end;
        end;
 
       { objects which must be at the end }
