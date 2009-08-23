@@ -2401,12 +2401,10 @@ implementation
                 begin
                 end;
 {$endif SUPPORT_MMX}
-{$ifdef SUPPORT_UNALIGNED}
               in_unaligned_x:
                 begin
                   resultdef:=left.resultdef;
                 end;
-{$endif SUPPORT_UNALIGNED}
               in_assert_x_y :
                 begin
                   resultdef:=voidtype;
@@ -2797,12 +2795,10 @@ implementation
            begin
              expectloc:=LOC_VOID;
            end;
-{$ifdef SUPPORT_UNALIGNED}
          in_unaligned_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
            end;
-{$endif SUPPORT_UNALIGNED}
          in_rol_x,
          in_rol_x_x,
          in_ror_x,

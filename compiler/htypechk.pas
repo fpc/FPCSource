@@ -1332,11 +1332,8 @@ implementation
              inlinen :
                begin
                  if ((valid_const in opts) and
-                    (tinlinenode(hp).inlinenumber in [in_typeof_x]))
-{$ifdef SUPPORT_UNALIGNED}
-                    or (tinlinenode(hp).inlinenumber in [in_unaligned_x])
-{$endif SUPPORT_UNALIGNED}
-                    then
+                     (tinlinenode(hp).inlinenumber in [in_typeof_x])) or
+                    (tinlinenode(hp).inlinenumber in [in_unaligned_x]) then
                    result:=true
                  else
                    if report_errors then

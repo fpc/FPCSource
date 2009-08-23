@@ -135,7 +135,6 @@ implementation
               second_get_caller_frame;
             in_get_caller_addr:
               second_get_caller_addr;
-{$ifdef SUPPORT_UNALIGNED}
             in_unaligned_x:
               begin
                 secondpass(tcallparanode(left).left);
@@ -143,7 +142,6 @@ implementation
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
-{$endif SUPPORT_UNALIGNED}
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin

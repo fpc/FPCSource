@@ -2379,10 +2379,6 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_ROX');
 {$endif}
 
-{$ifdef SUPPORT_UNALIGNED}
-  def_system_macro('FPC_SUPPORTS_UNALIGNED');
-  def_system_macro('FPC_UNALIGNED_FIXED');
-{$endif SUPPORT_UNALIGNED}
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}

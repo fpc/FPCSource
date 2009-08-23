@@ -99,9 +99,7 @@ implementation
 {$if defined(x86) or defined(arm)}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
 {$endif defined(x86) or defined(arm)}
-{$ifdef SUPPORT_UNALIGNED}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
-{$endif SUPPORT_UNALIGNED}
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
       end;
 

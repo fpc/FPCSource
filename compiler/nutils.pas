@@ -747,9 +747,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
-          {$ifdef SUPPORT_UNALIGNED}
                     in_unaligned_x,
-          {$endif SUPPORT_UNALIGNED}
                     in_prefetch_var:
                       begin
                         inc(result);

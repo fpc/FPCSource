@@ -454,7 +454,6 @@ implementation
               statement_syssym:=p2;
             end;
 
-{$ifdef SUPPORT_UNALIGNED}
           in_unaligned_x :
             begin
               err:=false;
@@ -466,7 +465,6 @@ implementation
               consume(_RKLAMMER);
               statement_syssym:=p2;
             end;
-{$endif SUPPORT_UNALIGNED}
 
           in_assigned_x :
             begin
