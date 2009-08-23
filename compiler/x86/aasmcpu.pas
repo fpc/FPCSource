@@ -2402,6 +2402,8 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
+            { we don't need special code here for 32 bit loads on x86_64, since
+              those will automatically zero-extend the upper 32 bits. }
             result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),ref,r);
           R_MMREGISTER :
             case getsubreg(r) of
@@ -2421,10 +2423,24 @@ implementation
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+      var
+        size: topsize;
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_MOV,reg2opsize(r),r,ref);
+            begin
+              size:=reg2opsize(r);
+{$ifdef x86_64}
+              { even if it's a 32 bit reg, we still have to spill 64 bits
+                because we often perform 64 bit operations on them }
+              if (size=S_L) then
+                begin
+                  size:=S_Q;
+                  r:=newreg(getregtype(r),getsupreg(r),R_SUBWHOLE);
+                end;
+{$endif x86_64}
+              result:=taicpu.op_reg_ref(A_MOV,size,r,ref);
+            end;
           R_MMREGISTER :
             case getsubreg(r) of
               R_SUBMMD:
