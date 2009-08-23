@@ -456,16 +456,16 @@ end;
 
 Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 
-{$ifdef FPC_NEW_BIGENDIAN_SETS}
 type
   tsetarr = bitpacked array[0..31] of 0..1;
-{$endif}
 Var
   I : Integer;
   PTI : PTypeInfo;
 
 begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) and defined(FPC_BIG_ENDIAN)}
+{$if defined(FPC_BIG_ENDIAN)}
+  { On big endian systems, set element 0 is in the most significant bit,
+    and the same goes for the elements of bitpacked arrays there.  }
   case GetTypeData(TypeInfo)^.OrdType of
     otSByte,otUByte: Value:=Value shl 24;
     otSWord,otUWord: Value:=Value shl 16;
@@ -476,20 +476,13 @@ begin
   Result:='';
   For I:=0 to SizeOf(Integer)*8-1 do
     begin
-{$ifdef FPC_NEW_BIGENDIAN_SETS}
       if (tsetarr(Value)[i]<>0) then
-{$else}
-      if ((Value and 1)<>0) then
-{$endif}
         begin
           If Result='' then
             Result:=GetEnumName(PTI,i)
           else
             Result:=Result+','+GetEnumName(PTI,I);
         end;
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-      Value:=Value shr 1;
-{$endif FPC_NEW_BIGENDIAN_SETS}
     end;
   if Brackets then
     Result:='['+Result+']';
