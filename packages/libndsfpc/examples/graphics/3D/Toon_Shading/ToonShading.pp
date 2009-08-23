@@ -2,6 +2,7 @@ program ToonShading;
 //NB: This would look better if the object had a bit of texturing too (eyes, nose etc)
 
 {$L build/statue.bin.o}
+{$mode objfpc}
 
 uses
   ctypes, nds9;

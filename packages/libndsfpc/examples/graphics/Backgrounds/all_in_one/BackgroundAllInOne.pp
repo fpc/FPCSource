@@ -3,6 +3,8 @@ program AllInOne;
 {$L build/TextBackgrounds.o}
 {$L build/Multilayer.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9, basic, advanced, handmade, scrolling;
 

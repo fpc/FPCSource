@@ -1,5 +1,7 @@
 program keyboardAsync;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
   

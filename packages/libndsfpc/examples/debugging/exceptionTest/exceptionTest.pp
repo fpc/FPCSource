@@ -1,6 +1,5 @@
-program main;
+program exceptionTest;
 
-{$apptype arm9}
 {$mode objfpc}
 
 uses

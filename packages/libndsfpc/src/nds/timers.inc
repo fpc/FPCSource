@@ -86,7 +86,8 @@ const
   TIMER_DIV_1024  = (3);
 
 procedure timerStop(channel: cint); inline;
-
+procedure cpuStartTiming(timer: cuint32); cdecl; external;
+function cpuEndTiming(): cuint32; cdecl; external;
 {$endif NDS_INTERFACE}
 
 

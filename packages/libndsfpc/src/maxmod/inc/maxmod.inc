@@ -59,7 +59,7 @@ procedure mmSetModuleTempo(tempo: mm_word); cdecl; external;
 procedure mmSetModulePitch(pitch: mm_word); cdecl; external;
 procedure mmPlayModule(address, mode, layer: mm_word); cdecl; external;
 function mmEffect(sample_ID: mm_word): mm_sfxhand; cdecl; external;
-function mmEffectEx(sound: pmm_sound_effect): mm_sfxhand; cdecl; external;
+function mmEffectEx(var sound: mm_sound_effect): mm_sfxhand; cdecl; external;
 procedure mmEffectVolume(handle: mm_sfxhand; volume: mm_word); cdecl; external;
 procedure mmEffectPanning(handle: mm_sfxhand; panning: mm_byte); cdecl; external;
 procedure mmEffectRate(handle: mm_sfxhand; rate: mm_word); cdecl; external;

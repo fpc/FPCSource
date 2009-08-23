@@ -1,5 +1,7 @@
 program SimpleTri;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

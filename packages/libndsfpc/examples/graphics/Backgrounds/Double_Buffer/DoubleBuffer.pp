@@ -1,5 +1,7 @@
 program DoubleBuffer;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

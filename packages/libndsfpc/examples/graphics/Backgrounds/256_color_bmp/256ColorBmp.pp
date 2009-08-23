@@ -1,8 +1,6 @@
 program bmp_256_color;
 {$L build/drunkenlogo.o}
 
-{$apptype arm9}
-
 {$mode objfpc}
 
 uses

@@ -59,13 +59,13 @@ begin
 
 	// ansi escape sequence to clear screen and home cursor
 	// /x1b[line;columnH
-	iprintf(#27 + '[2J');
+	iprintf(#$1b'[2J');
 
 	// ansi escape sequence to set print co-ordinates
 	// /x1b[line;columnH
-	iprintf(#27 + '[0;8HMaxMod Audio demo');
-	iprintf(#27 + '[3;0HHold A for ambulance sound');
-	iprintf(#27 + '[4;0HPress B for boom sound');
+	iprintf(#$1b'[0;8HMaxMod Audio demo');
+	iprintf(#$1b'[3;0HHold A for ambulance sound');
+	iprintf(#$1b'[4;0HPress B for boom sound');
 	
 	// sound effect handle (for cancelling it later)
 	amb := 0;

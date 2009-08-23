@@ -80,6 +80,8 @@ function soundPlayNoise(freq: cuint16; volume, pan: cuint8): cint; cdecl; extern
 
 procedure soundPause(soundId: cint); cdecl; external;
 
+procedure soundSetWaveDuty(soundId: cint; cycle: DutyCycle); cdecl; external;
+
 procedure soundKill(soundId: cint); cdecl; external;
 
 procedure soundResume(soundId: cint); cdecl; external;

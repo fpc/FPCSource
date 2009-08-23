@@ -1,5 +1,7 @@
 program BitmapSprites;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

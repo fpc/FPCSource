@@ -1,6 +1,7 @@
 program AllocationTest;
 
 {$mode objfpc}
+
 uses
   ctypes, nds9;
 
@@ -120,7 +121,7 @@ var
 begin
   //sort our sprites on z
   //a more efficient way would be to keep a sorted list of sprites
-  qsort(@sprites, SPRITE_MAX, sizeof(TMySprite), @zsort);
+  qsort(@sprites, SPRITE_MAX, sizeof(TMySprite), TSort(@zsort));
 
   //set oam to values required by my sprite
   for i := 0 to SPRITE_MAX - 1 do
@@ -178,7 +179,7 @@ begin
 end;
 
 var
-  memUsageTemp: cint;// = $FFFFFFFF;
+  memUsageTemp: longint;// = $FFFFFFFF;
 
 begin
   randomize;

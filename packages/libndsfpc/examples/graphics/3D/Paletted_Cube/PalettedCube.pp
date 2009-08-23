@@ -19,6 +19,8 @@ program PalettedCube;
 {$L build/texture9_RGB32_A3_pal.bin.o}
 {$L build/texture9_RGB32_A3_tex.bin.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

@@ -42,9 +42,10 @@ program AnimateSimple;
 {$L build/man.o}
 {$L build/woman.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
-
 
 var
   manTiles: array [0..3071] of cuint; cvar; external;

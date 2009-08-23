@@ -1,5 +1,7 @@
 program Box_Test;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

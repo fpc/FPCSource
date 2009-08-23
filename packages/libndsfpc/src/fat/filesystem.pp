@@ -21,14 +21,14 @@ uses
 {$linklib sysbase}
 
 {$define NDS_INTERFACE}
-{$include fathelper.inc}
+{ $include fathelper.inc}
 {$include ../nds/disc_io.inc}
 {$include filesystem.inc}
 {$undef NDS_INTERFACE}
 
 implementation
 {$define NDS_IMPLEMENTATION}
-{$include fathelper.inc}
+{ $include fathelper.inc}
 {$include ../nds/disc_io.inc}
 {$include filesystem.inc}
 {$undef NDS_IMPLEMENTATION}

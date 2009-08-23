@@ -1,6 +1,7 @@
 program AudioModes;
 {$L build/soundbank.bin.o}
 
+{$mode objfpc}
 uses
   ctypes, nds9, maxmod9;
   
@@ -42,31 +43,22 @@ const
   MSL_NSAMPS	= 65;
   MSL_BANKSIZE	= 68;
 
-
-
-//---------------------------------------------
-  SHOW_TEXT = #10 +
-
-'   Maxmod Audio Modes Example'#10#10 +
-
-' Song: '#10 +
-' Mode: '#10#10 +
-
-' Left/Right: Select Song'#10 +
-' Up/Down: Change Audio Mode'#10 +
-' A: Start Playback'#10 +
-' B: Stop Playback'#10#10 +
-
-' Tip: Play subtonal with the'#10 +
-' extended mode or else it won''t'#10 +
-' sound right.'#10#10 +
-
-' Another Tip: The interpolated'#10 +
-' mode doesn''t work in current'#10 +
-' emulators.';
-//---------------------------------------------
-
-
+  SHOW_TEXT: pchar =  #10 +
+                      '   Maxmod Audio Modes Example'#10#10 +
+                      ' Song: '#10 +
+                      ' Mode: '#10#10 +
+                      ' Left/Right: Select Song'#10 +
+                      ' Up/Down: Change Audio Mode'#10 +
+                      ' A: Start Playback'#10 +
+                      ' B: Stop Playback'#10#10 +
+                      
+                      ' Tip: Play subtonal with the'#10 +
+                      ' extended mode or else it won''t'#10 +
+                      ' sound right.'#10#10 +
+                      
+                      ' Another Tip: The interpolated'#10 +
+                      ' mode doesn''t work in current'#10 +
+                      ' emulators.';
 
 
 var

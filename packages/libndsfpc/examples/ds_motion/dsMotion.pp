@@ -1,5 +1,6 @@
 program dsMotion;
 
+{$mode objfpc}
 
 uses
   ctypes, nds9;

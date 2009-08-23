@@ -2,6 +2,8 @@ program BG_Rotation;
 {$L build/drunkenlogo.bin.o}
 {$L build/palette.bin.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

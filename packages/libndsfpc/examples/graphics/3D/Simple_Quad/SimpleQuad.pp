@@ -1,8 +1,9 @@
 program SimpleQuad;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
-
 
 var
   rotateX: cfloat = 0.0;

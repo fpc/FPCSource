@@ -1,5 +1,7 @@
 program micrecord;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9, maxmod9;
 

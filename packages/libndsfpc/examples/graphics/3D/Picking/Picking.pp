@@ -3,6 +3,8 @@ program picking;
 {$L build/cylinder.bin.o}
 {$L build/sphere.bin.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
   

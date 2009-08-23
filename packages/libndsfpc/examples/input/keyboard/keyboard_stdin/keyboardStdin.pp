@@ -1,9 +1,11 @@
 program keyboardStdin;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
   
-function OnKeyPressed(key: cint): pointer;
+procedure OnKeyPressed(key: cint);
 begin
   if (key > 0) then
     iprintf('%c', key);
