@@ -455,7 +455,9 @@ begin
                  end;
               end;
              Add(')');
-           end;
+           end
+         else
+           linklibc:=true;
          if (cs_link_staticflag in current_settings.globalswitches) or
             (linklibc and not reorder) then
            begin
