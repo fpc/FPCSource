@@ -27,11 +27,14 @@ uses
 type
 {
   NSString = objcclass; external;
-  NSZone = objcclass; external;
   NSInvocation = objcclass; external;
   NSMethodSignature = objcclass; external;
   NSCoder = objcclass; external;
 }
+
+  NSZone = record
+  end;
+  PNSZone = ^NSZone;
 
   Protocol = objcclass
   end; external;
@@ -46,7 +49,7 @@ type
       NSObject and thereby of each subclass as well
     }
     function self: id;  message 'self';
-    function zone: id;  message 'zone';{ NSZone }
+    function zone: PNSZone;  message 'zone';
 
     function performSelector_(aSelector: SEL): id; message 'performSelector:';
     function performSelector_withObject_(aSelector: SEL; obj: id): id; message 'performSelector:withObject:';
@@ -84,7 +87,7 @@ type
       NSObject and thereby of each subclass as well
     }
     function self: id;
-    function zone: id; { NSZone }
+    function zone: PNSZone;
 
     function performSelector_(aSelector: SEL): id;
     function performSelector_withObject_(aSelector: SEL; obj: id): id;
@@ -119,7 +122,7 @@ type
     function init: id; message 'init';
 
     class function new: id; message 'new';
-    class function allocWithZone_(_zone: id {NSZone}): id; message 'allocWithZone:';
+    class function allocWithZone_(_zone: PNSZone): id; message 'allocWithZone:';
     class function alloc: id; message 'alloc';
     procedure dealloc; message 'dealloc';
 
@@ -130,8 +133,8 @@ type
     function copy: id; message 'copy';
     function mutableCopy: id; message 'mutableCopy';
 
-    class function copyWithZone_(_zone: id {NSZone}): id; message 'copyWithZone:';
-    class function mutableCopyWithZone_(_zone: id {NSZone}): id; message 'mutableCopyWithZone:';
+    class function copyWithZone_(_zone: PNSZone): id; message 'copyWithZone:';
+    class function mutableCopyWithZone_(_zone: PNSZone): id; message 'mutableCopyWithZone:';
 
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
     class function classSuperclass: pobjc_class; message 'superclass';
