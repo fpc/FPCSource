@@ -1,4 +1,5 @@
 program embedded_gbfs;
+{$mode objfpc}
 {$L build/data.gbfs.o}
 uses
   ctypes, nds9, gbfs;

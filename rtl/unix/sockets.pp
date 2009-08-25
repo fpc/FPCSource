@@ -17,6 +17,8 @@ Interface
 Uses baseunix,UnixType;
 {$endif}
 
+{$i osdefs.inc}       { Compile time defines }
+
 {$ifdef FreeBSD}
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}

@@ -595,13 +595,8 @@ implementation
                   { arrays of 32-bit values CEC          }
                   if source_info.endian = target_info.endian then
                     begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                       for i:=0 to p.resultdef.size-1 do
                         list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[i]));
-{$else}
-                      for i:=0 to p.resultdef.size-1 do
-                        list.concat(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(p).value_set)^[i xor 3])));
-{$endif}
                     end
                   else
                     begin

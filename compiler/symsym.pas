@@ -1743,8 +1743,8 @@ implementation
     constructor ttypesym.create(const n : string;def:tdef);
 
       begin
-         inherited create(typesym,n);
-         typedef:=def;
+        inherited create(typesym,n);
+        typedef:=def;
         { register the typesym for the definition }
         if assigned(typedef) and
            (typedef.typ<>errordef) and

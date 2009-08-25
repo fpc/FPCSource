@@ -4,7 +4,7 @@
 
 [package]
 name=univint
-version=2.2.2
+version=2.5.1
 
 [target]
 units=MacOSAll MacOS
@@ -85,7 +85,8 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
   CGDisplayFades CGLTypes CVBase CVBuffer \
   CVDisplayLink CVHostTime CVImageBuffer CVPixelBuffer \
   CVPixelBufferPool CVPixelFormatDescription CVReturns \
-  ObjCRuntime
+  ObjCRuntime CFNetworkErrorss CFHTTPAuthentication \
+  CFError CFNetDiagnostics DriverServices TextInputSources
 
   
 exampledirs=examples

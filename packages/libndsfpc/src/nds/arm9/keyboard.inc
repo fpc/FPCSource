@@ -42,8 +42,8 @@
 {$ifdef NDS_INTERFACE}
 
 type
-  KeyChangeCallback = function(key: cint): pointer;
-//  KeyChangeCallback = procedure(key: cint) of object;
+//  KeyChangeCallback = function(key: cint): pointer;
+  KeyChangeCallback = procedure(key: cint);
   PKeyChangeCallback = ^KeyChangeCallback;
 
   KeyboardState = integer;
@@ -99,6 +99,6 @@ procedure keyboardShow(); cdecl; external;
 procedure keyboardHide(); cdecl; external;
 function keyboardGetKey(x, y: cint): cint; cdecl; external;
 procedure keyboardGetString(buffer: pchar; maxLen: cint); cdecl; external;
-function keboardGetChar(): cint; cdecl; external;
+function keyboardGetChar(): cint; cdecl; external;
 function keyboardUpdate(): cint; cdecl; external;
 {$endif NDS_INTERFACE}

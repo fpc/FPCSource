@@ -150,7 +150,7 @@ var
 begin
   { Read filer signature }
   Read(Signature, 4);
-  if Signature <> LongInt({$ifdef FPC_SUPPORTS_UNALIGNED}unaligned{$endif}(FilerSignature)) then
+  if Signature <> LongInt(unaligned(FilerSignature)) then
     raise EReadError.Create(SInvalidImage);
 end;
 

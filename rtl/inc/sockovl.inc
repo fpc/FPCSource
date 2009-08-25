@@ -18,6 +18,7 @@
                           Basic Socket Functions
 ******************************************************************************}
 
+{$ifdef legacysocket}
 Function socket(Domain,SocketType,Protocol:Longint):Longint;
 begin
   Socket:=fpsocket(domain,sockettype,protocol);
@@ -95,6 +96,7 @@ Function SocketPair(Domain,SocketType,Protocol:Longint;var Pair:TSockArray):Long
 begin
   SocketPair:=fpsocketpair(domain,sockettype,protocol,@pair[1]);
 end;
+{$endif}
 
 {******************************************************************************
                                UnixSock
@@ -115,9 +117,8 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  Bind := Bind(Sock, UnixAddr, AddrLen); // what the flying fuck were you thinking?
+  Bind := fpBind(Sock, @UnixAddr, AddrLen)=0; // what the flying fuck were you thinking?
 end;
-
 
 
 Function DoAccept(Sock:longint;var addr:string):longint;
@@ -126,7 +127,7 @@ var
   AddrLen  : longint;
 begin
   AddrLen:=length(addr)+3;
-  DoAccept:=Accept(Sock,UnixAddr,AddrLen);
+  DoAccept:=fpAccept(Sock,@UnixAddr,@AddrLen);
   Move(UnixAddr.Path,Addr[1],AddrLen);
   SetLength(Addr,AddrLen);
 end;
@@ -139,7 +140,7 @@ var
   AddrLen  : longint;
 begin
   Str2UnixSockAddr(addr,UnixAddr,AddrLen);
-  DoConnect:=Connect(Sock,UnixAddr,AddrLen);
+  DoConnect:=fpConnect(Sock,@UnixAddr,AddrLen)=0;
 end;
 
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:text):Boolean;
@@ -156,8 +157,6 @@ begin
    Accept:=false;
 end;
 
-
-
 Function Accept(Sock:longint;var addr:string;var SockIn,SockOut:File):Boolean;
 var
   s : longint;
@@ -172,8 +171,6 @@ begin
    Accept:=false;
 end;
 
-
-
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:text):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
@@ -181,15 +178,12 @@ begin
      Sock2Text(Sock,SockIn,SockOut);
 end;
 
-
-
 Function Connect(Sock:longint;const addr:string;var SockIn,SockOut:file):Boolean;
 begin
   Connect:=DoConnect(Sock,addr);
   if Connect then
      Sock2File(Sock,SockIn,SockOut);
 end;
-
 
 Function CloseSocket (Sock:Longint):Longint;
 begin

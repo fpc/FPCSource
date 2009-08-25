@@ -721,7 +721,7 @@ begin
     nscount:=0;
     arcount:=0;
     end;
-  Sock:=Socket(PF_INET,SOCK_DGRAM,0);
+  Sock:=FpSocket(PF_INET,SOCK_DGRAM,0);
   If Sock=-1 then 
     exit;
   With SA do
@@ -730,7 +730,7 @@ begin
     port:=htons(DNSport);
     addr:=cardinal(DNSServers[Resolver]); // dnsservers already in net order
     end;
-  sendto(sock,qry,qrylen+12,0,SA,SizeOf(SA));
+  fpsendto(sock,@qry,qrylen+12,0,@SA,SizeOf(SA));
   // Wait for answer.
   RTO:=TimeOutS*1000+TimeOutMS;
   fpFD_ZERO(ReadFDS);
@@ -741,7 +741,7 @@ begin
     exit;
     end;
   AL:=SizeOf(SA);
-  L:=recvfrom(Sock,ans,SizeOf(Ans),0,SA,AL);
+  L:=fprecvfrom(Sock,@ans,SizeOf(Ans),0,@SA,@AL);
   fpclose(Sock);
   // Check lenght answer and fields in header data.
   If (L<12) or not CheckAnswer(Qry,Ans) Then

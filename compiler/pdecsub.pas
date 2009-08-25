@@ -308,9 +308,9 @@ implementation
                  paramanager.push_high_param(varspez,vardef,pocall_default) then
                begin
                  if is_open_string(vardef) then
-                    Message(parser_w_cdecl_no_openstring);
+                    MessagePos(fileinfo,parser_w_cdecl_no_openstring);
                  if not (po_external in pd.procoptions) then
-                   Message(parser_w_cdecl_has_no_high);
+                   MessagePos(fileinfo,parser_w_cdecl_has_no_high);
                end;
               if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
                 begin
@@ -339,12 +339,12 @@ implementation
                 if not is_variant_array(tparavarsym(sym).vardef) and
                    not is_array_of_const(tparavarsym(sym).vardef) and
                    (tparavarsym(sym).varspez<>vs_var) then
-                  Message(parser_h_c_arrays_are_references);
+                  MessagePos(tparavarsym(sym).fileinfo,parser_h_c_arrays_are_references);
                 if is_array_of_const(tparavarsym(sym).vardef) and
                    (i<lastparaidx) and
                    (tsym(pd.parast.SymList[i+1]).typ=paravarsym) and
                    not(vo_is_high_para in tparavarsym(pd.parast.SymList[i+1]).varoptions) then
-                  Message(parser_e_C_array_of_const_must_be_last);
+                  MessagePos(tparavarsym(sym).fileinfo,parser_e_C_array_of_const_must_be_last);
               end;
           end;
       end;
@@ -362,7 +362,7 @@ implementation
             { First parameter must be var }
             if (paranr=10) and
                (varspez<>vs_var) then
-              Message(parser_e_ill_msg_param);
+              MessagePos(fileinfo,parser_e_ill_msg_param);
           end;
       end;
 

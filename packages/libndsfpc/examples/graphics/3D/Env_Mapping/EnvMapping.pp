@@ -2,6 +2,8 @@ program EnvMapping;
 {$L build/teapot.bin.o}
 {$L build/cafe.bin.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

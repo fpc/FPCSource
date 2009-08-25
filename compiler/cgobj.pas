@@ -3057,6 +3057,7 @@ implementation
         cgpara1.done;
       end;
 
+
     procedure tcg.g_copyvariant(list : TAsmList;const source,dest : treference);
       var
         cgpara1,cgpara2 : TCGPara;

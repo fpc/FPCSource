@@ -1,6 +1,8 @@
 program bmp_16bit_color;
 {$L build/drunkenlogo.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

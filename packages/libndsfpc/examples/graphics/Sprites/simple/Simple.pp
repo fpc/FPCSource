@@ -1,8 +1,9 @@
 program Simple;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
-
 
 var
 	i: integer;
@@ -39,40 +40,40 @@ begin
 			touchRead(touch);
 
 		oamSet(oamMain, //main graphics engine context
-			0,           //oam index (0 to 127)  
+			0,           //oam index (0 to 127)
 			touch.px, touch.py,   //x and y pixle location of the sprite
 			0,                    //priority, lower renders last (on top)
-			0,					  //this is the palette index if multiple palettes or the alpha value if bmp sprite	
-			SpriteSize_16x16,     
-			SpriteColorFormat_256Color, 
+			0,					  //this is the palette index if multiple palettes or the alpha value if bmp sprite
+			SpriteSize_16x16,
+			SpriteColorFormat_256Color,
 			gfx,                  //pointer to the loaded graphics
-			-1,                  //sprite rotation data  
+			-1,                  //sprite rotation data
 			false,               //double the size when rotating?
 			false,			//hide the sprite?
 			false, false, //vflip, hflip
 			false	//apply mosaic
-			);              
-		
-		
+			);
+
+
 		oamSet(oamSub,
-			0, 
-			touch.px, 
-			touch.py, 
-			0, 
 			0,
-			SpriteSize_16x16, 
-			SpriteColorFormat_256Color, 
-			gfxSub, 
-			-1, 
-			false, 
-			false,			
-			false, false, 
-			false	
-			);              
-	
+			touch.px,
+			touch.py,
+			0,
+			0,
+			SpriteSize_16x16,
+			SpriteColorFormat_256Color,
+			gfxSub,
+			-1,
+			false,
+			false,
+			false, false,
+			false
+			);
+
 		swiWaitForVBlank();
 
-		
+
 		oamUpdate(oamMain);
 		oamUpdate(oamSub);
 	end;

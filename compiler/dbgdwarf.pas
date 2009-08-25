@@ -1344,13 +1344,13 @@ implementation
 
         if not is_packed_array(def) then
           begin
-          elestrideattr := DW_AT_byte_stride;
-          elesize := def.elesize;
+            elestrideattr := DW_AT_byte_stride;
+            elesize := def.elesize;
           end
         else
           begin
-          elestrideattr := DW_AT_stride_size;
-          elesize := def.elepackedbitsize;
+            elestrideattr := DW_AT_stride_size;
+            elesize := def.elepackedbitsize;
           end;
 
         if is_special_array(def) then

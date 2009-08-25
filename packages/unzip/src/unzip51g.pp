@@ -1,6 +1,6 @@
 {
 }
-UNIT Unzip;
+UNIT Unzip51g;
 {
 Unzips deflated, imploded, shrunk and stored files
   ** COMPATIBLE WITH

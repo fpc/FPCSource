@@ -1316,6 +1316,7 @@ implementation
          tempdef: tdef;
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
+         sl       : tpropaccesslist;
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
          is_first_field:=true;
@@ -1438,9 +1439,14 @@ implementation
                    begin
                      fieldvs:=tfieldvarsym(sc[i]);
                      include(fieldvs.symoptions,sp_static);
-                     hstaticvs:=tstaticvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                     { generate the symbol which reserves the space }
+                     hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
                      recst.defowner.owner.insert(hstaticvs);
                      insertbssdata(hstaticvs);
+                     { generate the symbol for the access }
+                     sl:=tpropaccesslist.create;
+                     sl.addsym(sl_load,hstaticvs);
+                     recst.insert(tabsolutevarsym.create_ref('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,hdef,sl));
                    end;
                  consume(_SEMICOLON);
                end;

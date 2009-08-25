@@ -4,10 +4,11 @@
 
 [package]
 name=fppkg
-version=2.2.2
+version=2.5.1
 
 [target]
 programs=fppkg
+units=buildfppkg
 implicitunits=fprepos fpxmlrep pkgoptions pkgglobals pkgmessages pkghandler pkgmkconv pkgdownload pkgfpmake pkgcommands pkgrepos
 implicitunits_linux=pkgwget  pkglnet
 implicitunits_beos=pkgwget pkglnet

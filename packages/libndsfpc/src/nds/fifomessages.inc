@@ -43,62 +43,52 @@ type
 {$PACKRECORDS 4} 
   FifoMessage = record
     _type: cuint16;
-    empty: array[0..31] of cuint8; 
+    case integer of
+      0: (
+        SundPlay: record
+          _type: cuint16;
+          data: pointer;
+          loopPoint: cuint16;
+          dataSize: cuint16;
+          freq: cuint16;
+          volume: cuint8;
+          pan: cuint8;
+          loop: cbool;
+          format: cuint8;
+        end;
+      );
+      1: (
+        SoundPsg: record
+          freq: cuint16;
+          dutyCycle: cuint8;
+          volume: cuint8;
+          pan: cuint8;
+        end;
+      );
+      2: (
+        MicRecord: record
+          buffer: pointer;
+          bufferLength: cuint32;
+          freq: cuint16;
+          format: cuint8;
+        end;
+      );
+      3: (
+        MicBufferFull: record
+          buffer: pointer;
+          length: cuint32;
+        end;
+      );
+      4: (
+        SystemInput: record
+          touch: touchPosition;
+          keys: cuint16;
+        end;
+      );
   end;
   TFifoMessage = FifoMessage;
   PFifoMessage = ^FifoMessage;
 
-  SoundPlayMsg = record
-    _type: cuint16; 	
-    data: pointer;
-    loopPoint: cuint16;
-    dataSize: cuint16;
-    freq: cuint16;
-    volume: cuint8;
-    pan: cuint8;
-    loop: cbool;
-    format: cuint8;
-  end;
-  TSoundPlayMsg = SoundPlayMsg;
-  PSoundPlayMsg = ^SoundPlayMsg;
-
-  SoundPsgMsg = record
-    _type: cuint16;
-    freq: cuint16;	
-    dutyCycle: cuint8;
-    volume: cuint8;
-    pan: cuint8;
-  end;
-  TSoundPsgMsg = SoundPsgMsg;
-  PSoundPsgMsg = ^SoundPsgMsg; 
-
-  MicRecordMsg = record
-    _type: cuint16;
-    buffer: pointer;
-    bufferLength: cuint32;
-    freq: cuint16;
-    format: cuint8;
-  end;
-  TMicRecordMsg = MicRecordMsg;
-  PMicRecordMsg = ^MicRecordMsg;
-
-  MicBufferFullMsg = record
-    _type: cuint16;
-    buffer: pointer;
-    length: cuint32;
-  end;
-  TMicBufferFullMsg = MicBufferFullMsg;
-  PMicBufferFullMsg = ^MicBufferFullMsg; 
-
-
-  SystemInputMsg = record
-    _type: cuint16;
-    touch: touchPosition;
-    keys: cuint16;
-  end;
-  TSystemInputMsg = SystemInputMsg; 
-  PSystemInputMsg = ^SystemInputMsg;
-  
 {$PACKRECORDS C}   
 {$endif NDS_INTERFACE}
 

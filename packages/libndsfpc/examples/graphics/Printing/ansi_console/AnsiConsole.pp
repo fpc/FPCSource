@@ -1,5 +1,7 @@
 program AnsiConsole;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

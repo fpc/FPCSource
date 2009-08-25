@@ -3894,7 +3894,9 @@ begin
        end;
     W^.HelpCtx:=hcSourceWindow;
     Desktop^.Insert(W);
+    { this makes loading a lot slower and is not needed as far as I can see (FK)
     Message(Application,evBroadcast,cmUpdate,nil);
+    }
   end;
   PopStatus;
   IOpenEditorWindow:=W;
@@ -3986,7 +3988,7 @@ begin
  FindFirst(filename,anyfile,Srec);
  while (DosError=0) do
    begin
-     ITryToOpenFile(Bounds,dir+srec.name,CurX,CurY,tryexts,true,false);    
+     ITryToOpenFile(Bounds,dir+srec.name,CurX,CurY,tryexts,true,false);
      FindNext(srec);
    end;
   FindClose(srec);
@@ -4249,7 +4251,7 @@ begin
   else
 {$endif NODEBUG}
     R2.Move(0,2);
-  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2008 by')));
+  Insert(New(PStaticText, Init(R2, ^C'Copyright (C) 1998-2009 by')));
   R2.Move(0,2);
   Insert(New(PStaticText, Init(R2, ^C'B‚rczi G bor')));
   R2.Move(0,1);

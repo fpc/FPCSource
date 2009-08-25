@@ -879,6 +879,7 @@ begin
   { Check if the ancestor can be used }
   HasAncestor := Assigned(Ancestor) and ((Instance = Root) or
     (Instance.ClassType = Ancestor.ClassType));
+  //writeln('TWriter.WriteProperty Name=',PropType^.Name,' Kind=',GetEnumName(TypeInfo(TTypeKind),ord(PropType^.Kind)),' HasAncestor=',HasAncestor);
 
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
@@ -1035,14 +1036,17 @@ begin
         if HasAncestor then
         begin
           AncestorObj := TObject(GetObjectProp(Ancestor, PropInfo));
-          if Assigned(AncestorObj) then
-            if Assigned(ObjValue) and
-              (TComponent(AncestorObj).Owner = FRootAncestor) and
-              (TComponent(ObjValue).Owner = Root) and
-              (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
-              AncestorObj := ObjValue
-//            else
-//              AncestorObj := nil;
+          if (AncestorObj is TComponent) and
+             (ObjValue is TComponent) then
+          begin
+            //writeln('TWriter.WriteProperty AncestorObj=',TComponent(AncestorObj).Name,' OwnerFit=',TComponent(AncestorObj).Owner = FRootAncestor,' ',TComponent(ObjValue).Name,' OwnerFit=',TComponent(ObjValue).Owner = Root);
+            if (TComponent(AncestorObj).Owner <> FRootAncestor) or
+             (TComponent(ObjValue).Owner <> Root) or
+             (UpperCase(TComponent(AncestorObj).Name) <> UpperCase(TComponent(ObjValue).Name)) then
+            begin
+              AncestorObj := nil;
+            end;
+          end;
         end else
           AncestorObj := nil;
 

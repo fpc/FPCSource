@@ -35,4 +35,3 @@ procedure AssignDevice(const FIOD: TFileIODevice);
 begin
   FileIODevice := FIOD;
 end;
- 

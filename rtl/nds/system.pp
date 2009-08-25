@@ -27,6 +27,7 @@ interface
 {$i systemh.inc}
 {$i ndsbiosh.inc}
 {$i ndsh.inc}
+{$i libch.inc}
 
 
 
@@ -92,6 +93,7 @@ implementation
 {$i system.inc}
 {$i ndsbios.inc}
 {$i nds.inc}
+{$i libc.inc}
 
 
 
@@ -182,8 +184,7 @@ begin
 { OS specific startup }
 
 { Set up signals handlers }
-  if IsARM9 then
-    fpc_cpucodeinit;
+  fpc_cpucodeinit;
 
 { Setup heap }
   InitHeap;

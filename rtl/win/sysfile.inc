@@ -198,8 +198,9 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 Const
-  file_Share_Read  = $00000001;
-  file_Share_Write = $00000002;
+  file_Share_Read   = $00000001;
+  file_Share_Write  = $00000002;
+  file_Share_Delete = $00000004;
 Var
   shflags,
   oflags,cd : longint;
@@ -234,7 +235,13 @@ begin
       shflags := file_Share_Write
   else
     if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      shflags := file_Share_Read + file_Share_Write;
+      shflags :=
+{$ifdef WINCE}
+        { WinCE does not know file_share_delete }
+        file_Share_Read or file_Share_Write;
+{$else WINCE}
+        fmShareDenyNoneFlags;
+{$endif WINCE}
   { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin

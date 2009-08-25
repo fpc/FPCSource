@@ -85,7 +85,7 @@ program install;
      commands,
      HelpCtx,
 {$ENDIF}
-     unzip,ziptypes,
+     unzip51g,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
@@ -93,8 +93,8 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='2.2.0';
-     installercopyright='Copyright (c) 1993-2008 Florian Klaempfl';
+     installerversion='2.5.1';
+     installercopyright='Copyright (c) 1993-2009 Florian Klaempfl';
 
 
      maxpacks=30;
@@ -1814,7 +1814,7 @@ end;
     begin
       GetExtent(R);
       R.A.Y := R.B.Y - 1;
-      R.B.X := R.B.X - 12;
+      //R.B.X := R.B.X - 2;
       New(StatusLine,
         Init(R,
           NewStatusDef(0, $EFFF,nil,nil

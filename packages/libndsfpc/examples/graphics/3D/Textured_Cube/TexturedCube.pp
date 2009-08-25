@@ -2,8 +2,6 @@ program TexturedCube;
 
 {$L build/texture.bin.o}
 
-{$apptype arm9}
-
 {$mode objfpc}
 
 uses

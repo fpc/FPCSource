@@ -161,13 +161,13 @@ begin
         PPointer(Data)^:=nil;
       end;
 {$endif VER2_2}
-{$ifdef WINDOWS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
       begin
         fpc_WideStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$endif WINDOWS}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkArray :
       arrayrtti(data,typeinfo,@int_finalize);
     tkObject,
@@ -194,10 +194,10 @@ begin
   case PByte(TypeInfo)^ of
     tkAstring :
       fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
-{$ifdef WINDOWS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
-{$endif WINDOWS}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$ifndef VER2_2}
     tkUstring :
       fpc_UnicodeStr_Incr_Ref(PPointer(Data)^);
@@ -227,10 +227,10 @@ begin
     { see AddRef for comment about below construct (JM) }
     tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-{$ifdef WINDOWS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
-{$endif WINDOWS}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$ifndef VER2_2}
     tkUString:
       fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
@@ -272,10 +272,10 @@ begin
         fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
-{$ifdef WINDOWS}
+{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
-{$endif WINDOWS}
+{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
 {$ifndef VER2_2}
     tkUstring:
       fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);

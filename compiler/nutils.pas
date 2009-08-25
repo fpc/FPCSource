@@ -115,10 +115,10 @@ implementation
             end;
           calln:
             begin
-              result := foreachnode(procmethod,tcallnode(n).callinitblock,f,arg) or result;
+              result := foreachnode(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;
               result := foreachnode(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnode(procmethod,tcallnode(n).funcretnode,f,arg) or result;
-              result := foreachnode(procmethod,tcallnode(n).callcleanupblock,f,arg) or result;
+              result := foreachnode(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
           ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
             begin
@@ -194,10 +194,10 @@ implementation
             end;
           calln:
             begin
-              result := foreachnodestatic(procmethod,tcallnode(n).callinitblock,f,arg) or result;
+              result := foreachnodestatic(procmethod,tnode(tcallnode(n).callinitblock),f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).methodpointer,f,arg) or result;
               result := foreachnodestatic(procmethod,tcallnode(n).funcretnode,f,arg) or result;
-              result := foreachnodestatic(procmethod,tcallnode(n).callcleanupblock,f,arg) or result;
+              result := foreachnodestatic(procmethod,tnode(tcallnode(n).callcleanupblock),f,arg) or result;
             end;
           ifn, whilerepeatn, forn, tryexceptn, tryfinallyn:
             begin
@@ -747,9 +747,7 @@ implementation
                     in_sqr_real,
                     in_sqrt_real,
                     in_ln_real,
-          {$ifdef SUPPORT_UNALIGNED}
                     in_unaligned_x,
-          {$endif SUPPORT_UNALIGNED}
                     in_prefetch_var:
                       begin
                         inc(result);

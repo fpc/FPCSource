@@ -2060,7 +2060,7 @@ constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
   FOwnerDocument := Self;
-  FMaxPoolSize := TDOMAttr.InstanceSize + sizeof(Pointer);
+  FMaxPoolSize := (TDOMAttr.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1) + sizeof(Pointer);
   FPools := AllocMem(FMaxPoolSize);
   FNames := THashTable.Create(256, True);
   SetLength(FNamespaces, 3);

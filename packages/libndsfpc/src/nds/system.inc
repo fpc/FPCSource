@@ -76,15 +76,17 @@ const
 	POWER_3D_CORE  : PM_Bits = PM_ARM9_DIRECT or (1 shl 3);
 	POWER_2D_B     : PM_Bits = PM_ARM9_DIRECT or (1 shl 9);
 	POWER_SWAP_LCDS: PM_Bits = PM_ARM9_DIRECT or (1 shl 15);
-	POWER_ALL_2D   : PM_Bits = PM_ARM9_DIRECT or (1 shl 0) or (1 shl 1) or (1 shl 9);
-	POWER_ALL      : PM_Bits = PM_ARM9_DIRECT or (1 shl 0) or (1 shl 1) or (1 shl 9) or (1 shl 3) or (1 shl 2);
+//	POWER_ALL_2D   : PM_Bits = PM_ARM9_DIRECT or POWER_LCD or POWER_2D_A or POWER_2D_B;
+	POWER_ALL_2D   : PM_Bits = (1 shl 16) or (1 shl 0) or (1 shl 1) or (1 shl 9);
+//	POWER_ALL      : PM_Bits = PM_ARM9_DIRECT or POWER_ALL_2D or POWER_3D_CORE or POWER_MATRIX;
+	POWER_ALL      : PM_Bits = (1 shl 16) or (1 shl 0) or (1 shl 1) or (1 shl 9) or (1 shl 3) or (1 shl 2);
 
 procedure sleep(); cdecl; external;
 
 {$ifdef ARM9}
-procedure powerOn(bits: PM_Bits); cdecl; external;
-procedure powerOff(bits: PM_Bits); cdecl; external;
-procedure ledBlink(bm: PM_LedBlinkMode); cdecl; external;
+procedure powerOn(bits: cint); cdecl; external;
+procedure powerOff(bits: cint); cdecl; external;
+procedure ledBlink(bm: cint); cdecl; external;
 
 procedure systemMsgHandler(bytes: cint; user_data: pointer); cdecl; external;
 procedure powerValueHandler(value: cuint32; data: pointer); cdecl; external;
@@ -143,7 +145,7 @@ function readPowerManagement(reg: cint): cint; inline;
 
 procedure powerOn(bits: PM_Bits); inline;
 procedure powerOff(bits: PM_Bits); inline;
-
+procedure systemShutDown(); inline;
 procedure readUserSettings(); cdecl; external;
 {$endif ARM7}
 
@@ -276,6 +278,11 @@ end;
 procedure powerOff(bits: PM_Bits); inline;
 begin
 	REG_POWERCNT^ := REG_POWERCNT^ and not bits;
+end;
+
+procedure systemShutDown(); inline;
+begin
+  powerOn(PM_SYSTEM_PWR);
 end;
 {$endif ARM7}
 {$endif NDS_IMPLEMENTATION}

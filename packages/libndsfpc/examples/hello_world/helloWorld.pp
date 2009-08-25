@@ -1,5 +1,7 @@
 program hello_world;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

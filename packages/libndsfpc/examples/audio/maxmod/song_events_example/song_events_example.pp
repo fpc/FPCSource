@@ -33,7 +33,7 @@ var
 //---------------------------------------------------------------------------------
 // callback function to handle song events
 //---------------------------------------------------------------------------------
-function myEventHandler(msg, param: mm_word): pmm_word;
+function myEventHandler(msg, param: mm_word): mm_callback;//pmm_word;
 begin
   case msg of
 

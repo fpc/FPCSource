@@ -1,5 +1,7 @@
 program DisplayList2;
 {$L build/teapot.bin.o}
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

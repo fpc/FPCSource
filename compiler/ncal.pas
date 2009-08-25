@@ -740,7 +740,7 @@ implementation
                      { release temp after next use }
                      addstatement(statements,ctempdeletenode.create_normal_temp(temp));
                      addstatement(statements,ctemprefnode.create(temp));
-                     typecheckpass(block);
+                     typecheckpass(tnode(block));
                      left:=block;
                    end;
 
@@ -752,8 +752,7 @@ implementation
                     not(is_open_string(parasym.vardef)) and
                     not(equal_defs(left.resultdef,parasym.vardef)) then
                    begin
-                     current_filepos:=left.fileinfo;
-                     CGMessage(type_e_strict_var_string_violation);
+                     CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
                    end;
 
                  { Handle formal parameters separate }
@@ -2880,13 +2879,13 @@ implementation
          { (simplify depends on typecheck info)        }
          if assigned(callinitblock) then
            begin
-             typecheckpass(callinitblock);
-             dosimplify(callinitblock);
+             typecheckpass(tnode(callinitblock));
+             dosimplify(tnode(callinitblock));
            end;
          if assigned(callcleanupblock) then
            begin
-             typecheckpass(callcleanupblock);
-             dosimplify(callcleanupblock);
+             typecheckpass(tnode(callcleanupblock));
+             dosimplify(tnode(callcleanupblock));
            end;
 
          { Continue with checking a normal call or generate the inlined code }
@@ -2923,7 +2922,7 @@ implementation
            check_stack_parameters;
 
          if assigned(callinitblock) then
-           firstpass(callinitblock);
+           firstpass(tnode(callinitblock));
 
          { function result node (tempref or simple load) }
          if assigned(funcretnode) then
@@ -2942,7 +2941,7 @@ implementation
            firstpass(methodpointer);
 
          if assigned(callcleanupblock) then
-           firstpass(callcleanupblock);
+           firstpass(tnode(callcleanupblock));
 
          if not (block_type in [bt_const,bt_type,bt_const_type,bt_var_type]) then
            include(current_procinfo.flags,pi_do_call);
@@ -3396,9 +3395,9 @@ implementation
         { consider it must not be inlined if called
           again inside the args or itself }
         exclude(procdefinition.procoptions,po_inline);
-        typecheckpass(inlineblock);
-        dosimplify(inlineblock);
-        firstpass(inlineblock);
+        typecheckpass(tnode(inlineblock));
+        dosimplify(tnode(inlineblock));
+        firstpass(tnode(inlineblock));
         include(procdefinition.procoptions,po_inline);
         result:=inlineblock;
 

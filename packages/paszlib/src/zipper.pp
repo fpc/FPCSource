@@ -255,7 +255,6 @@ Type
   private
     FArchiveFileName: String;
     FAttributes: LongInt;
-    FCRC32: LongWord;
     FDateTime: TDateTime;
     FDiskFileName: String;
     FHeaderPos: Longint;
@@ -278,7 +277,6 @@ Type
     Property DateTime : TDateTime Read FDateTime Write FDateTime;
     property OS: Byte read FOS write FOS;
     property Attributes: LongInt read FAttributes write FAttributes;
-    property CRC32: LongWord read FCRC32 write FCRC32;
   end;
 
   { TZipFileEntries }
@@ -293,7 +291,6 @@ Type
     Function AddFileEntry(Const AStream : TSTream; Const AArchiveFileName : String): TZipFileEntry;
     Property Entries[AIndex : Integer] : TZipFileEntry Read GetZ Write SetZ; default;
   end;
-
 
   { TZipper }
 
@@ -335,7 +332,9 @@ Type
     Destructor Destroy;override;
     Procedure ZipAllFiles; virtual;
     Procedure ZipFiles(AFileName : String; FileList : TStrings);
+    Procedure ZipFiles(FileList : TStrings);
     Procedure ZipFiles(AFileName : String; Entries : TZipFileEntries);
+    Procedure ZipFiles(Entries : TZipFileEntries);
     Procedure Clear;
   Public
     Property BufferSize : LongWord Read FBufSize Write SetBufSize;
@@ -349,17 +348,43 @@ Type
     Property Entries : TZipFileEntries Read FEntries Write SetEntries;
   end;
 
+  { TFullZipFileEntry }
+
+  TFullZipFileEntry = Class(TZipFileEntry)
+  private
+    FCompressedSize: LongInt;
+    FCompressMethod: Word;
+    FCRC32: LongWord;
+  Public
+    Property CompressMethod : Word Read FCompressMethod;
+    Property CompressedSize :  LongInt Read FCompressedSize;
+    property CRC32: LongWord read FCRC32 write FCRC32;
+  end;
+
+  TOnCustomStreamEvent = Procedure(Sender : TObject; var AStream : TStream; AItem : TFullZipFileEntry) of object;
+
+  { TFullZipFileEntries }
+
+  TFullZipFileEntries = Class(TZipFileEntries)
+  private
+    function GetFZ(AIndex : Integer): TFullZipFileEntry;
+    procedure SetFZ(AIndex : Integer; const AValue: TFullZipFileEntry);
+  Public
+    Property FullEntries[AIndex : Integer] : TFullZipFileEntry Read GetFZ Write SetFZ; default;
+  end;
+
   { TUnZipper }
 
   TUnZipper = Class(TObject)
   Private
+    FOnCreateStream: TOnCustomStreamEvent;
+    FOnDoneStream: TOnCustomStreamEvent;
     FUnZipping  : Boolean;
     FBufSize    : LongWord;
     FFileName   :  String;         { Name of resulting Zip file                 }
     FOutputPath : String;
-    FEntries    : TZipFileEntries;
+    FEntries    : TFullZipFileEntries;
     FFiles      : TStrings;
-    FOutFile    : TFileStream;
     FZipFile     : TFileStream;     { I/O file variables                         }
     LocalHdr    : Local_File_Header_Type;
     CentralHdr  : Central_File_Header_Type;
@@ -371,13 +396,13 @@ Type
     FOnStartFile : TOnStartFileEvent;
   Protected
     Procedure OpenInput;
-    Procedure CloseOutput;
+    Procedure CloseOutput(Item : TFullZipFileEntry; var OutStream: TStream);
     Procedure CloseInput;
-    Procedure ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
     Procedure ReadZipDirectory;
+    Procedure ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
     Procedure DoEndOfFile;
-    Procedure UnZipOneFile(Item : TZipFileEntry); virtual;
-    Function  OpenOutput(OutFileName : String) : Boolean;
+    Procedure UnZipOneFile(Item : TFullZipFileEntry); virtual;
+    Function  OpenOutput(OutFileName : String; var OutStream: TStream; Item : TFullZipFileEntry) : Boolean;
     Procedure SetBufSize(Value : LongWord);
     Procedure SetFileName(Value : String);
     Procedure SetOutputPath(Value:String);
@@ -387,10 +412,14 @@ Type
     Destructor Destroy;override;
     Procedure UnZipAllFiles; virtual;
     Procedure UnZipFiles(AFileName : String; FileList : TStrings);
+    Procedure UnZipFiles(FileList : TStrings);
     Procedure UnZipAllFiles(AFileName : String);
     Procedure Clear;
+    Procedure Examine;
   Public
     Property BufferSize : LongWord Read FBufSize Write SetBufSize;
+    Property OnCreateStream : TOnCustomStreamEvent Read FOnCreateStream Write FOnCreateStream;
+    Property OnDoneStream : TOnCustomStreamEvent Read FOnDoneStream Write FOnDoneStream;
     Property OnPercent : Integer Read FOnPercent Write FOnPercent;
     Property OnProgress : TProgressEvent Read FOnProgress Write FOnProgress;
     Property OnStartFile : TOnStartFileEvent Read FOnStartFile Write FOnStartFile;
@@ -398,7 +427,7 @@ Type
     Property FileName : String Read FFileName Write SetFileName;
     Property OutputPath : String Read FOutputPath Write SetOutputPath;
     Property Files : TStrings Read FFiles;
-    Property Entries : TZipFileEntries Read FEntries Write FEntries;
+    Property Entries : TFullZipFileEntries Read FEntries;
   end;
 
   EZipError = Class(Exception);
@@ -414,6 +443,7 @@ ResourceString
   SErrMissingFileName = 'Missing filename in entry %d';
   SErrMissingArchiveName = 'Missing archive filename in streamed entry %d';
   SErrFileDoesNotExist = 'File "%s" does not exist.';
+  SErrNoFileName = 'No archive filename for examine operation.';
 
 { ---------------------------------------------------------------------
     Auxiliary
@@ -504,6 +534,9 @@ begin
   D:=ZD and 31;
   M:=(ZD shr 5) and 15;
   Y:=((ZD shr 9) and 127)+1980;
+
+  if M < 1 then M := 1;
+  if D < 1 then D := 1;
   DT:=ComposeDateTime(EncodeDate(Y,M,D),EncodeTime(H,N,S,MS));
 end;
 
@@ -1378,14 +1411,23 @@ end;
 Procedure TZipper.ZipFiles(AFileName : String; FileList : TStrings);
 
 begin
-  FFiles.Assign(FileList);
   FFileName:=AFileName;
+end;
+
+procedure TZipper.ZipFiles(FileList: TStrings);
+begin
+  FFiles.Assign(FileList);
   ZipAllFiles;
 end;
 
 procedure TZipper.ZipFiles(AFileName: String; Entries: TZipFileEntries);
 begin
   FFileName:=AFileName;
+  ZipFiles(Entries);
+end;
+
+procedure TZipper.ZipFiles(Entries: TZipFileEntries);
+begin
   FEntries.Assign(Entries);
   ZipAllFiles;
 end;
@@ -1460,7 +1502,7 @@ Begin
 End;
 
 
-Function TUnZipper.OpenOutput(OutFileName : String) : Boolean;
+Function TUnZipper.OpenOutput(OutFileName : String; var OutStream: TStream; Item : TFullZipFileEntry) : Boolean;
 Var
   Path: String;
   OldDirectorySeparators: set of char;
@@ -1473,20 +1515,34 @@ Begin
   OldDirectorySeparators:=AllowDirectorySeparators;
   AllowDirectorySeparators:=[DirectorySeparator];
   Path:=ExtractFilePath(OutFileName);
-  if (Path<>'') then
-    ForceDirectories(Path);
-  AllowDirectorySeparators:=OldDirectorySeparators;
-  FOutFile:=TFileStream.Create(OutFileName,fmCreate);
+  OutStream:=Nil;
+  If Assigned(FOnCreateStream) then
+    FOnCreateStream(Self, OutStream, Item);
+  // If FOnCreateStream didn't create one, we create one now.  
+  If (OutStream=Nil) then
+    Begin
+    if (Path<>'') then
+      ForceDirectories(Path);
+    AllowDirectorySeparators:=OldDirectorySeparators;
+    OutStream:=TFileStream.Create(OutFileName,fmCreate);
+    end;
+
   Result:=True;
   If Assigned(FOnStartFile) then
     FOnStartFile(Self,OutFileName);
 End;
 
 
-Procedure TUnZipper.CloseOutput;
+Procedure TUnZipper.CloseOutput(Item : TFullZipFileEntry; var OutStream: TStream);
 
 Begin
-  FreeAndNil(FOutFile);
+  if Assigned(FOnDoneStream) then
+  begin
+    FOnDoneStream(Self, OutStream, Item);
+    OutStream := nil;
+  end
+  else
+    FreeAndNil(OutStream);
 end;
 
 
@@ -1497,7 +1553,7 @@ Begin
 end;
 
 
-Procedure TUnZipper.ReadZipHeader(Item : TZipFileEntry; out AMethod : Word);
+Procedure TUnZipper.ReadZipHeader(Item : TFullZipFileEntry; out AMethod : Word);
 Var
   S : String;
   D : TDateTime;
@@ -1532,7 +1588,8 @@ Var
   i,
   EndHdrPos,
   CenDirPos : LongInt;
-  NewNode   : TZipFileEntry;
+  NewNode   : TFullZipFileEntry;
+  D : TDateTime;
   S : String;
 Begin
   EndHdrPos:=FZipFile.Size-SizeOf(EndHdr);
@@ -1550,6 +1607,7 @@ Begin
     CenDirPos:=Start_Disk_Offset;
     end;
   FZipFile.Seek(CenDirPos,soFrombeginning);
+  FEntries.Clear;
   for i:=0 to EndHdr.Entries_This_Disk-1 do
     begin
     FZipFile.ReadBuffer(CentralHdr, SizeOf(CentralHdr));
@@ -1558,23 +1616,25 @@ Begin
 {$ENDIF}
     With CentralHdr do
       begin
-        if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
-          raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
-        NewNode:=FEntries.Add as TZipFileEntry;
-        NewNode.HdrPos := Local_Header_Offset;
-        SetLength(S,Filename_Length);
-        FZipFile.ReadBuffer(S[1],Filename_Length);
-        NewNode.ArchiveFileName:=S;
-        NewNode.OS := MadeBy_Version shr 8;
+      if Signature<>CENTRAL_FILE_HEADER_SIGNATURE then
+        raise EZipError.CreateFmt(SErrCorruptZIP,[FZipFile.FileName]);
+      NewNode:=FEntries.Add as TFullZipFileEntry;
+      NewNode.HdrPos := Local_Header_Offset;
+      SetLength(S,Filename_Length);
+      FZipFile.ReadBuffer(S[1],Filename_Length);
+      NewNode.ArchiveFileName:=S;
+      NewNode.Size:=Uncompressed_Size;
+      NewNode.FCompressedSize:=Compressed_Size;
+      NewNode.CRC32:=CRC32;
+      NewNode.OS := MadeBy_Version shr 8;
 
-        if NewNode.OS = OS_UNIX then
-          NewNode.Attributes := External_Attributes shr 16
-        else
-          NewNode.Attributes := External_Attributes;
-
-        NewNode.CRC32 := Crc32;
-
-        FZipFile.Seek(Extra_Field_Length + File_Comment_Length,soCurrent);
+      if NewNode.OS = OS_UNIX then
+        NewNode.Attributes := External_Attributes shr 16
+      else
+        NewNode.Attributes := External_Attributes;
+      ZipDateTimeToDateTime(Last_Mod_Date,Last_Mod_Time,D);
+      NewNode.DateTime:=D;
+      FZipFile.Seek(Extra_Field_Length+File_Comment_Length,soCurrent);
       end;
    end;
 end;
@@ -1589,14 +1649,17 @@ begin
   end;
 end;
 
-Procedure TUnZipper.UnZipOneFile(Item : TZipFileEntry);
+Procedure TUnZipper.UnZipOneFile(Item : TFullZipFileEntry);
 
 Var
   Count, Attrs: Longint;
   ZMethod : Word;
   LinkTargetStream: TStringStream;
   OutputFileName: string;
+  FOutStream: TStream;
   IsLink: Boolean;
+  IsCustomStream: Boolean;
+
 
   procedure DoUnzip(const Dest: TStream);
   begin
@@ -1625,13 +1688,17 @@ Var
 Begin
   ReadZipHeader(Item, ZMethod);
   OutputFileName:=Item.DiskFileName;
-  if FOutputPath<>'' then
+
+  IsCustomStream := Assigned(FOnCreateStream);
+
+
+  if (IsCustomStream = False) and (FOutputPath<>'') then
     OutputFileName:=IncludeTrailingPathDelimiter(FOutputPath)+OutputFileName;
 
   IsLink := Item.IsLink;
 
 {$IFNDEF UNIX}
-  if IsLink then
+  if IsLink and Not IsCustomStream then
   begin
     {$warning TODO: Implement symbolic link creation for non-unix}
     IsLink := False;
@@ -1639,56 +1706,73 @@ Begin
 {$ENDIF}
 
 
-  if IsLink then
+  if IsCustomStream then
   begin
-  {$IFDEF UNIX}
-    LinkTargetStream := TStringStream.Create('');
     try
-      DoUnzip(LinkTargetStream);
-      fpSymlink(PChar(LinkTargetStream.DataString), PChar(OutputFileName));
-    finally
-      LinkTargetStream.Free;
+      OpenOutput(OutputFileName, FOutStream, Item);
+      if (IsLink = False) and (Item.IsDirectory = False) then
+        DoUnzip(FOutStream);
+    Finally
+      CloseOutput(Item, FOutStream);
     end;
-  {$ENDIF}
   end
   else
   begin
-    if Item.IsDirectory then
-      CreateDir(OutputFileName)
+    if IsLink then
+    begin
+    {$IFDEF UNIX}
+      LinkTargetStream := TStringStream.Create('');
+      try
+        DoUnzip(LinkTargetStream);
+        fpSymlink(PChar(LinkTargetStream.DataString), PChar(OutputFileName));
+      finally
+        LinkTargetStream.Free;
+      end;
+    {$ENDIF}
+    end
     else
     begin
-      try
-        OpenOutput(OutputFileName);
-        DoUnzip(FOutFile);
-      Finally
-        CloseOutput;
+      if Item.IsDirectory then
+        CreateDir(OutputFileName)
+      else
+      begin
+        try
+          OpenOutput(OutputFileName, FOutStream, Item);
+          DoUnzip(FOutStream);
+        Finally
+          CloseOutput(Item, FOutStream);
+        end;
       end;
     end;
   end;
 
-  // set attributes
-  FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
 
-  if (Item.Attributes <> 0) then
+  if Not IsCustomStream then
   begin
-    Attrs := 0;
-  {$IFDEF UNIX}
-    if Item.OS = OS_UNIX then Attrs := Item.Attributes;
-    if Item.OS = OS_FAT then
-      Attrs := ZipFatAttrsToUnixAttrs(Item.Attributes);
-  {$ELSE}
-    if Item.OS = OS_FAT then Attrs := Item.Attributes;
-    if Item.OS = OS_UNIX then
-      Attrs := ZipUnixAttrsToFatAttrs(ExtractFileName(Item.ArchiveFileName), Item.Attributes);
-  {$ENDIF}
+    // set attributes
+    FileSetDate(OutputFileName, DateTimeToFileDate(Item.DateTime));
 
-    if Attrs <> 0 then
+    if (Item.Attributes <> 0) then
     begin
-  {$IFDEF UNIX}
-    FpChmod(OutputFileName, Attrs);
-  {$ELSE}
-    FileSetAttr(OutputFileName, Attrs);
-  {$ENDIF}
+      Attrs := 0;
+    {$IFDEF UNIX}
+      if Item.OS = OS_UNIX then Attrs := Item.Attributes;
+      if Item.OS = OS_FAT then
+        Attrs := ZipFatAttrsToUnixAttrs(Item.Attributes);
+    {$ELSE}
+      if Item.OS = OS_FAT then Attrs := Item.Attributes;
+      if Item.OS = OS_UNIX then
+        Attrs := ZipUnixAttrsToFatAttrs(ExtractFileName(Item.ArchiveFileName), Item.Attributes);
+    {$ENDIF}
+
+      if Attrs <> 0 then
+      begin
+    {$IFDEF UNIX}
+      FpChmod(OutputFileName, Attrs);
+    {$ELSE}
+      FileSetAttr(OutputFileName, Attrs);
+    {$ENDIF}
+      end;
     end;
   end;
 end;
@@ -1696,7 +1780,7 @@ end;
 
 Procedure TUnZipper.UnZipAllFiles;
 Var
-   Item : TZipFileEntry;
+   Item : TFullZipFileEntry;
    I : Integer;
    AllFiles : Boolean;
 
@@ -1749,8 +1833,13 @@ end;
 Procedure TUnZipper.UnZipFiles(AFileName : String; FileList : TStrings);
 
 begin
-  FFiles.Assign(FileList);
   FFileName:=AFileName;
+  UNzipFiles(FileList);
+end;
+
+procedure TUnZipper.UnZipFiles(FileList: TStrings);
+begin
+  FFiles.Assign(FileList);
   UnZipAllFiles;
 end;
 
@@ -1781,7 +1870,7 @@ begin
   FBufSize:=DefaultBufSize;
   FFiles:=TStringList.Create;
   TStringlist(FFiles).Sorted:=True;
-  FEntries:=TZipFileEntries.Create(TZipFileEntry);
+  FEntries:=TFullZipFileEntries.Create(TFullZipFileEntry);
   FOnPercent:=1;
 end;
 
@@ -1790,6 +1879,18 @@ Procedure TUnZipper.Clear;
 begin
   FFiles.Clear;
   FEntries.Clear;
+end;
+
+procedure TUnZipper.Examine;
+begin
+  If (FFileName='') then
+    Raise EZipError.Create(SErrNoFileName);
+  OpenInput;
+  Try
+    ReadZipDirectory;
+  Finally
+    CloseInput;
+  end;
 end;
 
 Destructor TUnZipper.Destroy;
@@ -1857,6 +1958,8 @@ begin
     FSize:=Z.FSize;
     FDateTime:=Z.FDateTime;
     FStream:=Z.FStream;
+    FOS:=Z.OS;
+    FAttributes:=Z.Attributes;
     end
   else
     inherited Assign(Source);
@@ -1893,6 +1996,19 @@ begin
   Result:=Add as TZipFileEntry;
   Result.Stream:=AStream;
   Result.ArchiveFileName:=AArchiveFileName;
+end;
+
+{ TFullZipFileEntries }
+
+function TFullZipFileEntries.GetFZ(AIndex : Integer): TFullZipFileEntry;
+begin
+  Result:=TFullZipFileEntry(Items[AIndex]);
+end;
+
+procedure TFullZipFileEntries.SetFZ(AIndex : Integer;
+  const AValue: TFullZipFileEntry);
+begin
+  Items[AIndex]:=AValue;
 end;
 
 End.

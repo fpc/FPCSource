@@ -93,7 +93,6 @@ var
   disable_configfile : boolean;
   fpcdir,
   ppccfg,
-  ppcaltcfg,
   param_file    : string;   { file to compile specified on the commandline }
 
 
@@ -2328,10 +2327,7 @@ begin
       Delete(cmd,1,pos(']',cmd));
     end
   else
-    begin
-      ppccfg:='fpc.cfg';
-      ppcaltcfg:='ppc386.cfg';
-    end;
+    ppccfg:='fpc.cfg';
 
 { first pass reading of parameters, only -i -v -T etc.}
   option.firstpass:=true;
@@ -2366,7 +2362,6 @@ begin
   def_system_macro('FPC_HAS_STR_CURRENCY');
   def_system_macro('FPC_REAL2REAL_FIXED');
   def_system_macro('FPC_STRTOCHARARRAYPROC');
-  def_system_macro('FPC_NEW_BIGENDIAN_SETS');
   def_system_macro('FPC_STRTOSHORTSTRINGPROC');
   def_system_macro('FPC_OBJFPC_EXTENDED_IF');
 {$if defined(x86) or defined(powerpc) or defined(powerpc64)}
@@ -2383,10 +2378,6 @@ begin
   def_system_macro('FPC_HAS_INTERNAL_ROX');
 {$endif}
 
-{$ifdef SUPPORT_UNALIGNED}
-  def_system_macro('FPC_SUPPORTS_UNALIGNED');
-  def_system_macro('FPC_UNALIGNED_FIXED');
-{$endif SUPPORT_UNALIGNED}
 {$ifdef powerpc64}
   def_system_macro('FPC_HAS_LWSYNC');
 {$endif}
@@ -2489,17 +2480,7 @@ begin
   { read configuration file }
   if (not disable_configfile) and
      (ppccfg<>'') then
-    begin
-      read_configfile:=check_configfile(ppccfg,ppccfg);
-      { Maybe alternative configfile ? }
-      if (not read_configfile) and
-         (ppcaltcfg<>'') then
-        begin
-          read_configfile:=check_configfile(ppcaltcfg,ppccfg);
-          if read_configfile then
-            message(option_ppc386_deprecated);
-        end;
-    end
+    read_configfile:=check_configfile(ppccfg,ppccfg)
   else
     read_configfile := false;
 
@@ -2767,7 +2748,7 @@ begin
   set_system_macro('FPC_PATCH',patch_nr);
   set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
 
-  if not(target_info.system in system_all_windows) then
+  if not(target_info.system in system_windows) then
     def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');
 
   for i:=low(tfeature) to high(tfeature) do

@@ -416,9 +416,9 @@ unit optloop;
         { clue everything together }
         if assigned(initcode) then
           begin
-            do_firstpass(initcode);
-            do_firstpass(calccode);
-            do_firstpass(deletecode);
+            do_firstpass(tnode(initcode));
+            do_firstpass(tnode(calccode));
+            do_firstpass(tnode(deletecode));
             { create a new for node, the old one will be released by the compiler }
             with tfornode(node) do
               begin

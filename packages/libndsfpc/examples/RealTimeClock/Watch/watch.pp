@@ -1,5 +1,7 @@
 program watch;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
   

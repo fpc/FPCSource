@@ -1063,9 +1063,9 @@ implementation
         left := nil;
 
         if is_typed then
-          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),newstatement)
+          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),tnode(newstatement))
         else
-          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),newstatement);
+          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),tnode(newstatement));
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
@@ -2413,12 +2413,10 @@ implementation
                 begin
                 end;
 {$endif SUPPORT_MMX}
-{$ifdef SUPPORT_UNALIGNED}
               in_unaligned_x:
                 begin
                   resultdef:=left.resultdef;
                 end;
-{$endif SUPPORT_UNALIGNED}
               in_assert_x_y :
                 begin
                   resultdef:=voidtype;
@@ -2669,7 +2667,7 @@ implementation
                    if assigned(tempnode) then
                      addstatement(newstatement,ctempdeletenode.create(tempnode));
                    { firstpass it }
-                   firstpass(newblock);
+                   firstpass(tnode(newblock));
                    { return new node }
                    result := newblock;
                  end;
@@ -2819,12 +2817,10 @@ implementation
            begin
              expectloc:=LOC_VOID;
            end;
-{$ifdef SUPPORT_UNALIGNED}
          in_unaligned_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
            end;
-{$endif SUPPORT_UNALIGNED}
          in_rol_x,
          in_rol_x_x,
          in_ror_x,

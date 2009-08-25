@@ -123,7 +123,7 @@ interface
     { the data in p is modified and p is returned     }
     function pchar2pshortstring(p : pchar) : pshortstring;
 
-    { ambivalent to pchar2pshortstring }
+    { inverse of pchar2pshortstring }
     function pshortstring2pchar(p : pshortstring) : pchar;
 
     { allocate a new pchar with the contents of a}

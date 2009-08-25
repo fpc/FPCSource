@@ -149,7 +149,7 @@ type
     TCHMTopicRenderer = object(THTMLTopicRenderer)
       function CanonicalizeURL(const Base,Relative:String):string; virtual;
       end;
-      
+
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
     TCustomHTMLHelpFile = object(THelpFile)
       constructor Init(AID: word);
@@ -165,7 +165,7 @@ type
       CurFileName: string;
       TopicLinks: PTopicLinkCollection;
     end;
-   
+
     PHTMLHelpFile = ^THTMLHelpFile;
     THTMLHelpFile = object(TCustomHTMLHelpFile)
       constructor Init(AFileName: string; AID: word; ATOCEntry: string);
@@ -178,7 +178,7 @@ type
     PCHMHelpFile = ^TCHMHelpFile;
     TCHMHelpFile = object(TCustomHTMLHelpFile)
       constructor Init(AFileName: string; AID: word);
-      destructor  Done; virtual; 
+      destructor  Done; virtual;
     public
       function    LoadIndex: boolean; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
@@ -651,7 +651,7 @@ begin
 {$IFDEF WDEBUG}
               DebugMessageS({$i %file%},' Adding Link1 "'+HRef+'"'+' "'+url+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
-              
+
               if pos('#',HRef)=1 then
                 Href:=NameAndExtOf(GetFilename)+Href;
               HRef:=canonicalizeURL(URL,HRef);
@@ -717,7 +717,7 @@ begin
     end;
 end;
 
-Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
 // uses info from filesystem (curdir) -> overriden for CHM.
 begin
  CanonicalizeURL:=CompleteURL(Base,relative);
@@ -1307,6 +1307,12 @@ begin
               Topic^.Links^[I].FileID:=Topic^.FileID;
               Topic^.Links^[I].Context:=EncodeHTMLCtx(Topic^.FileID,LinkIndexes[I]+1);
             end;
+         {$IFDEF WDEBUG}
+          if Topic^.Linkcount>High(linkindexes) then
+           DebugMessageS({$i %file%},' Maximum links exceeded ('+inttostr(Topic^.LinkCount)+') '+URL,{$i %line%},'1',0,0);
+         {$endif WDEBUG}
+
+
           { --- topic text --- }
           GetMem(TP,TextPtr);
           Move(Topic^.Text^,TP^,TextPtr);
@@ -1322,12 +1328,12 @@ begin
   BuildTopic:=OK;
 end;
 
-Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
 begin
- if copy(relative,1,7)<>'ms-its:' then 
+ if copy(relative,1,7)<>'ms-its:' then
    CanonicalizeUrl:=combinepaths(relative,base)
   else
-   CanonicalizeUrl:=relative; 
+   CanonicalizeUrl:=relative;
 end;
 
 constructor TCustomHTMLHelpFile.Init(AID: word);
@@ -1390,7 +1396,7 @@ begin
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},'(Topicinfo) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
-          
+
           Link:=FormatLink(Link);
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},'(Topicinfo) Link after formatpath "'+link+'"',{$i %line%},'1',0,0);
@@ -1584,11 +1590,11 @@ end;
 
 constructor TChmHelpFile.Init(AFileName: string; AID: word);
 begin
-  if inherited Init(AID)=false then 
+  if inherited Init(AID)=false then
     Fail;
   Dispose(renderer,done);
   renderer:=New(PCHMTopicRenderer, Init);
-  DefaultFileName:=AFileName; 
+  DefaultFileName:=AFileName;
   if (DefaultFileName='') or not ExistsFile(DefaultFilename) then
   begin
     Done;
@@ -1598,7 +1604,7 @@ begin
     chmw:=TCHMWrapper.Create(DefaultFileName);
 end;
 
-function    TChmHelpFile.LoadIndex: boolean; 
+function    TChmHelpFile.LoadIndex: boolean;
 begin
   loadindex:=false;
   if assigned(chmw) then
@@ -1705,6 +1711,9 @@ begin
           begin
             Bookmark:=copy(Link,P+1,length(Link));
             Link:=copy(Link,1,P-1);
+            {$IFDEF WDEBUG}
+              debugMessageS({$i %file%},' Removed label: "'+Link+'"',{$i %line%},'1',0,0);
+            {$endif WDEBUG}
           end;
 {          if CurFileName='' then Name:=Link else
           Name:=CompletePath(CurFileName,Link);}

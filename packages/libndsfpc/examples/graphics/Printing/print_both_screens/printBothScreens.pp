@@ -1,7 +1,5 @@
 program printBothScreens;
 
-{$apptype arm9}
-
 {$mode objfpc}
 
 uses
@@ -10,7 +8,6 @@ uses
 var
 	touch: touchPosition;
 	topScreen, bottomScreen: PrintConsole;
-//	p: PrintConsole;
 
 begin
 	videoSetMode(MODE_0_2D);
@@ -22,13 +19,6 @@ begin
 	consoleInit(@topScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, true, true);
 	consoleInit(@bottomScreen, 3,BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
 
-
-{
-  topScreen := consoleInit(nil, 3, BgType_Text4bpp, BgSize_T_256x256, 31, 0, true);
-  p := topScreen^;
-  bottomScreen := consoleInit(nil, 3, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false);
-  topScreen := @p;
-}
 	consoleSelect(@topScreen);
 	
 	iprintf(#10#10#9'Hello DS dev''rs'#10);

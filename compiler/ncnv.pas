@@ -249,6 +249,7 @@ implementation
         else
          begin
            p:=ctypeconvnode.create(p,def);
+           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
@@ -270,6 +271,7 @@ implementation
         else
          begin
            p:=ctypeconvnode.create_internal(p,def);
+           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
@@ -363,6 +365,7 @@ implementation
         l : Longint;
         lr,hr : TConstExprInt;
         hp : tarrayconstructornode;
+        oldfilepos: tfileposinfo;
       begin
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
@@ -407,6 +410,7 @@ implementation
                 end;
               if codegenerror then
                break;
+              oldfilepos:=current_filepos;
               current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                  enumdef,
@@ -535,6 +539,7 @@ implementation
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
               p2.free;
+              current_filepos:=oldfilepos;
             end;
            if (hdef=nil) then
             hdef:=u8inttype;
@@ -606,6 +611,10 @@ implementation
                 p:=ctypeconvnode.create(p,charpointertype);
             variantdef:
               if iscvarargs then
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+            { maybe warn in case it's not using "packrecords c"? }
+            recorddef:
+              if not iscvarargs then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             pointerdef:
               ;

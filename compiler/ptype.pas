@@ -114,7 +114,7 @@ implementation
                         { we need a class type for classrefdef }
                         if (def.typ=classrefdef) and
                            not(is_class(ttypesym(srsym).typedef)) then
-                          MessagePos1(tsym(srsym).fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
+                          MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                       end
                      else
                       begin

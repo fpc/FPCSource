@@ -111,10 +111,8 @@ const
   REG_WININ		: pcuint16 = pointer($4000048);
   REG_WINOUT		: pcuint16 = pointer($400004A);
   
-  REG_MOSAIC		: pcuint32 = pointer($400004C);
-  REG_MOSAIC_L	: pcuint32 = pointer($400004C);
-  REG_MOSAIC_H	: pcuint32 = pointer($400004E);
-  
+  MOSAIC_CR = REG_MOSAIC;
+
   BLEND_CR = REG_BLDCNT;
   BLEND_AB = REG_BLDALPHA;
   BLEND_Y = REG_BLDY;
@@ -171,13 +169,11 @@ const
   REG_WIN0V_SUB		: pcuint16 = pointer($4001044);
   REG_WIN1V_SUB		: pcuint16 = pointer($4001046);
   REG_WININ_SUB		: pcuint16 = pointer($4001048);
-  REG_WINOUT_SUB		: pcuint16 = pointer($400104A);
+  REG_WINOUT_SUB	: pcuint16 = pointer($400104A);
   
-  REG_MOSAIC_SUB		: pcuint32 = pointer($400104C);
-  REG_MOSAIC_L_SUB	: pcuint16 = pointer($400104C);
-  REG_MOSAIC_H_SUB	: pcuint16 = pointer($400104E);
+  SUB_MOSAIC_CR = REG_MOSAIC_SUB;
   
-  REG_BLDMOD_SUB	: pcuint16 = pointer($4001050);
+  REG_BLDMOD_SUB: pcuint16 = pointer($4001050);
   REG_COLV_SUB	: pcuint16 = pointer($4001052);
   REG_COLY_SUB	: pcuint16 = pointer($4001054);
   

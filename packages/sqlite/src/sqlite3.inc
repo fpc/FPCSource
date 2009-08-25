@@ -17,6 +17,10 @@ uses
   SysUtils, DynLibs;
 {$else}
   DynLibs;
+
+{$ifdef darwin}
+{$linklib sqlite3}
+{$endif}
 {$endif}
 
 const

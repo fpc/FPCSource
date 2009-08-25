@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=2.2.2
+version=2.5.1
 
 [target]
 programs=pp
@@ -150,19 +150,6 @@ NOCPUDEF=1
 # Default message file
 MSGFILE=msg/error$(FPCLANG).msg
 
-# Define Unix also for Linux
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
-
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
-
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
@@ -218,6 +205,20 @@ ifeq ($(PPC_TARGET),arm)
 override LOCALOPT+=
 endif
 
+OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
+OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
+# symbol liveness WPO requires nm, smart linking and no stripping (the latter
+# is forced by the Makefile when necessary)
+ifneq ($(findstring $(OS_TARGET),darwin linux freebsd solaris),)
+ifdef LINKSMART
+ifdef CREATESMART
+OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
+OPTWPOPERFORM+=-Owsymbolliveness
+endif
+endif
+endif
+
+
 [rules]
 #####################################################################
 # Setup Targets
@@ -231,11 +232,6 @@ endif
 
 # Add Local options
 override COMPILER+=$(LOCALOPT)
-
-# Disable optimizer when compiled with 1.0.x
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override COMPILER:=$(patsubst -O%,,$(COMPILER))
-endif
 
 
 #####################################################################
@@ -266,6 +262,8 @@ PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
+TEMPWPONAME1=ppcwpo1$(EXEEXT)
+TEMPWPONAME2=ppcwpo2$(EXEEXT)
 MAKEDEP=ppdep$(EXEEXT)
 MSG2INC=./msg2inc$(EXEEXT)
 ifdef CROSSINSTALL
@@ -326,10 +324,10 @@ ppuclean:
         -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 
 tempclean:
-        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
+        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 
 $(addsuffix _clean,$(ALLTARGETS)):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
@@ -411,6 +409,28 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 # Normal cycle
 #
 
+ifndef NOWPOCYCLE
+ifdef RELEASE
+DOWPOCYCLE=1
+# Two WPO cycles in case of RELEASE=1
+wpocycle:
+# don't use cycle_clean, it will delete the compiler utilities again
+        $(RM) $(EXENAME)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
+        $(RM) $(EXENAME)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(RTLOPT) $(OPTWPOPERFORM)' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+        $(MOVE) $(EXENAME) $(TEMPWPONAME1)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+        $(COPY) $(EXENAME) $(TEMPWPONAME2)
+endif
+endif
+
+ifndef DOWPOCYCLE
+wpocycle:
+endif
+
 # Used to avoid unnecessary steps
 ifdef DIFF
 ifdef OLDFPC
@@ -457,6 +477,7 @@ cycle:
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
         $(DIFF) $(TEMPNAME3) $(EXENAME)
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+        $(MAKE) wpocycle
         $(MAKE) echotime
 
 else

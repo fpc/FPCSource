@@ -4,7 +4,7 @@
 
 [package]
 name=winunits-jedi
-version=2.2.2
+version=2.5.1
 
 [require]
 packages_win32=winunits-base

@@ -247,7 +247,16 @@ implementation
                       end;
                     end;
                 end;
-            end;
+             end;
+
+            {$ifdef x86_64}
+            { 32 bit operations on 32 bit registers on x86_64 can result in
+              zeroing the upper 32 bits of the register. This does not happen
+              with memory operations, so we have to perform these calculations
+              in registers.  }
+            if (instr.opsize=S_L) then
+              replaceoper:=-1;
+            {$endif x86_64}
 
             { Replace register with spill reference }
             if replaceoper<>-1 then

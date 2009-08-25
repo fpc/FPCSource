@@ -175,7 +175,7 @@ implementation
       begin
          inherited create(loadn,nil);
          if not assigned(v) then
-          internalerror(200108121);
+          internalerror(200108122);
          symtableentry:=v;
          symtable:=st;
          procdef:=d;

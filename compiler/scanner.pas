@@ -70,6 +70,12 @@ interface
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
        tscannerfile = class
+       private
+         procedure do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
+         procedure cachenexttokenpos;
+         procedure setnexttoken;
+         procedure savetokenpos;
+         procedure restoretokenpos;
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
@@ -81,9 +87,15 @@ interface
           line_no,                    { line }
           lastlinepos  : longint;
 
-          lasttokenpos : longint;     { token }
+          lasttokenpos,
+          nexttokenpos : longint;     { token }
           lasttoken,
           nexttoken    : ttoken;
+
+          oldlasttokenpos     : longint; { temporary saving/restoring tokenpos }
+          oldcurrent_filepos,
+          oldcurrent_tokenpos : tfileposinfo;
+
 
           replaysavetoken : ttoken;
           replaytokenbuf,
@@ -95,7 +107,9 @@ interface
           last_settings : tsettings;
 
           { last filepos we stored }
-          last_filepos : tfileposinfo;
+          last_filepos,
+          { if nexttoken<>NOTOKEN, then nexttokenpos holds its filepos }
+          next_filepos   : tfileposinfo;
 
           comment_level,
           yylexcount     : longint;
@@ -1837,6 +1851,7 @@ In case not, the value returned can be arbitrary.
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
@@ -1882,6 +1897,7 @@ In case not, the value returned can be arbitrary.
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       end;
 
 
@@ -1896,6 +1912,7 @@ In case not, the value returned can be arbitrary.
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       end;
 
 
@@ -2221,7 +2238,7 @@ In case not, the value returned can be arbitrary.
 
                    line_no:=1;
                    if cs_asm_source in current_settings.globalswitches then
-                     inputfile.setline(line_no,bufstart);
+                     inputfile.setline(line_no,inputstart+inputpointer-inputbuffer);
                  end;
               end
              else
@@ -2274,27 +2291,65 @@ In case not, the value returned can be arbitrary.
         line_no:=line;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       { load new c }
         c:=inputpointer^;
         inc(inputpointer);
       end;
 
 
+    procedure tscannerfile.do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
+      begin
+        tokenpos:=inputstart+(inputpointer-inputbuffer);
+        filepos.line:=line_no;
+        filepos.column:=tokenpos-lastlinepos;
+        filepos.fileindex:=inputfile.ref_index;
+        filepos.moduleindex:=current_module.unit_index;
+      end;
+
+
     procedure tscannerfile.gettokenpos;
     { load the values of tokenpos and lasttokenpos }
       begin
-        lasttokenpos:=inputstart+(inputpointer-inputbuffer);
-        current_tokenpos.line:=line_no;
-        current_tokenpos.column:=lasttokenpos-lastlinepos;
-        current_tokenpos.fileindex:=inputfile.ref_index;
-        current_tokenpos.moduleindex:=current_module.unit_index;
+        do_gettokenpos(lasttokenpos,current_tokenpos);
         current_filepos:=current_tokenpos;
       end;
 
 
+    procedure tscannerfile.cachenexttokenpos;
+      begin
+        do_gettokenpos(nexttokenpos,next_filepos);
+      end;
+
+
+    procedure tscannerfile.setnexttoken;
+      begin
+        token:=nexttoken;
+        nexttoken:=NOTOKEN;
+        lasttokenpos:=nexttokenpos;
+        current_tokenpos:=next_filepos;
+        current_filepos:=current_tokenpos;
+        nexttokenpos:=0;
+      end;
+
+
+    procedure tscannerfile.savetokenpos;
+      begin
+        oldlasttokenpos:=lasttokenpos;
+        oldcurrent_filepos:=current_filepos;
+        oldcurrent_tokenpos:=current_tokenpos;
+      end;
+
+
+    procedure tscannerfile.restoretokenpos;
+      begin
+        lasttokenpos:=oldlasttokenpos;
+        current_filepos:=oldcurrent_filepos;
+        current_tokenpos:=oldcurrent_tokenpos;
+      end;
+
+
     procedure tscannerfile.inc_comment_level;
-      var
-         oldcurrent_filepos : tfileposinfo;
       begin
          if (m_nested_comment in current_settings.modeswitches) then
            inc(comment_level)
@@ -2302,10 +2357,10 @@ In case not, the value returned can be arbitrary.
            comment_level:=1;
          if (comment_level>1) then
           begin
-             oldcurrent_filepos:=current_filepos;
+             savetokenpos;
              gettokenpos; { update for warning }
              Message1(scan_w_comment_level,tostr(comment_level));
-             current_filepos:=oldcurrent_filepos;
+             restoretokenpos;
           end;
       end;
 
@@ -2322,8 +2377,6 @@ In case not, the value returned can be arbitrary.
     procedure tscannerfile.linebreak;
       var
          cur : char;
-         oldtokenpos,
-         oldcurrent_filepos : tfileposinfo;
       begin
         with inputfile do
          begin
@@ -2343,20 +2396,18 @@ In case not, the value returned can be arbitrary.
            { Always return #10 as line break }
            c:=#10;
            { increase line counters }
-           lastlinepos:=bufstart+(inputpointer-inputbuffer);
+           lastlinepos:=inputstart+(inputpointer-inputbuffer);
            inc(line_no);
            { update linebuffer }
            if cs_asm_source in current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
              but don't touch current_filepos ! }
-           oldcurrent_filepos:=current_filepos;
-           oldtokenpos:=current_tokenpos;
+           savetokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
            ShowStatus;
-           current_filepos:=oldcurrent_filepos;
-           current_tokenpos:=oldtokenpos;
+           restoretokenpos;
          end;
       end;
 
@@ -2491,10 +2542,8 @@ In case not, the value returned can be arbitrary.
 
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
-      var
-        oldcurrent_filepos : tfileposinfo;
       begin
-        oldcurrent_filepos:=current_filepos;
+        savetokenpos;
         repeat
           current_scanner.gettokenpos;
           p.proc();
@@ -2516,7 +2565,7 @@ In case not, the value returned can be arbitrary.
              Message1(scan_d_handling_switch,'$'+p.name);
            end;
         until false;
-        current_filepos:=oldcurrent_filepos;
+        restoretokenpos;
       end;
 
 
@@ -3235,8 +3284,7 @@ In case not, the value returned can be arbitrary.
       { was there already a token read, then return that token }
         if nexttoken<>NOTOKEN then
          begin
-           token:=nexttoken;
-           nexttoken:=NOTOKEN;
+           setnexttoken;
            goto exit_label;
          end;
 
@@ -3385,6 +3433,7 @@ In case not, the value returned can be arbitrary.
                   { first check for a . }
                     if c='.' then
                      begin
+                       cachenexttokenpos;
                        readchar;
                        { is it a .. from a range? }
                        case c of

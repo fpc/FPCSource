@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.2.4
-version=2.2.4
+title=Free Pascal Compiler 2.5.1
+version=2.5.1
 
 #
 # General
@@ -426,10 +426,12 @@ pack=Commo~n~
 # Common 1
 package=doc-pdf.zip,Documentation (~P~DF)
 # Common 2
-package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
+package=doc-chm.zip,Documentation (CH~M~)
 # Common 3
-package=doc-txt.zip,Documentation (~T~XT)
+package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 4
+package=doc-txt.zip,Documentation (~T~XT)
+# Common 5
 package=demo.zip,D~e~mos
 
 

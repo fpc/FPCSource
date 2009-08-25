@@ -1,8 +1,10 @@
 {	CFStream.h
-	Copyright (c) 2000-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 2000-2007, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+
 {
     Modified for use with Free Pascal
     Version 210
@@ -91,12 +93,10 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFString,CFDictionary,CFURL,CFRunLoop,CFSocket;
+uses MacTypes,CFBase,CFString,CFDictionary,CFURL,CFRunLoop,CFSocket,CFError;
 {$ALIGN POWER}
 
 
-type
-	CFStreamStatus = SInt32;
 const
     kCFStreamStatusNotOpen = 0;
     kCFStreamStatusOpening = 1;  { open is in-progress }
@@ -106,23 +106,9 @@ const
     kCFStreamStatusAtEnd = 5;    { no further bytes can be read/written }
     kCFStreamStatusClosed = 6;
     kCFStreamStatusError = 7;
-
 type
-	CFStreamErrorDomain = SInt32;
-const
-    kCFStreamErrorDomainCustom = -1;      { custom to the kind of stream in question }
-    kCFStreamErrorDomainPOSIX = 1;        { POSIX errno; interpret using <sys/errno.h> }
-    kCFStreamErrorDomainMacOSStatus = 2;      { OSStatus type from Carbon APIs; interpret using <MacTypes.h> }
+	CFStreamStatus = CFIndex;
 
-type
-	CFStreamError = record
-		domain: CFStreamErrorDomain;
-		error: SInt32;
-	end;
-	CFStreamErrorPtr = ^CFStreamError;
-
-type
-	CFStreamEventType = SInt32;
 const
     kCFStreamEventNone = 0;
     kCFStreamEventOpenCompleted = 1;
@@ -130,6 +116,8 @@ const
     kCFStreamEventCanAcceptBytes = 4; 
     kCFStreamEventErrorOccurred = 8;
     kCFStreamEventEndEncountered = 16;
+type
+	CFStreamEventType = CFOptionFlags;
 
 type
 	CFStreamClientContext = record
@@ -170,6 +158,7 @@ function CFWriteStreamCreateWithAllocatedBuffers( alloc: CFAllocatorRef; bufferA
 { File streams }
 function CFReadStreamCreateWithFile( alloc: CFAllocatorRef; fileURL: CFURLRef ): CFReadStreamRef; external name '_CFReadStreamCreateWithFile';
 function CFWriteStreamCreateWithFile( alloc: CFAllocatorRef; fileURL: CFURLRef ): CFWriteStreamRef; external name '_CFWriteStreamCreateWithFile';
+procedure CFStreamCreateBoundPair( alloc: CFAllocatorRef; var readStream: CFReadStreamRef; var writeStream: CFWriteStreamRef; transferBufferSize: CFIndex ); external name '_CFStreamCreateBoundPair';
 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 { Property for file write streams; value should be a CFBoolean.  Set to TRUE to append to a file, rather than to replace its contents }
@@ -202,11 +191,11 @@ procedure CFStreamCreatePairWithPeerSocketSignature( alloc: CFAllocatorRef; cons
 function CFReadStreamGetStatus( stream: CFReadStreamRef ): CFStreamStatus; external name '_CFReadStreamGetStatus';
 function CFWriteStreamGetStatus( stream: CFWriteStreamRef ): CFStreamStatus; external name '_CFWriteStreamGetStatus';
 
-{ 0 is returned if no error has occurred.  errorDomain specifies the domain
-   in which the error code should be interpretted; pass NULL if you are not 
-   interested. }
-function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
-function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';
+{ Returns NULL if no error has occurred; otherwise returns the error. }
+function CFReadStreamCopyError( stream: CFReadStreamRef ): CFErrorRef; external name '_CFReadStreamCopyError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+function CFWriteStreamCopyError( stream: CFWriteStreamRef ): CFErrorRef; external name '_CFWriteStreamCopyError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 { Returns success/failure.  Opening a stream causes it to reserve all the system
    resources it requires.  If the stream can open non-blocking, this will always 
@@ -285,9 +274,11 @@ function CFWriteStreamSetProperty( stream: CFWriteStreamRef; propertyName: CFStr
    run loops; It is the caller's responsibility to ensure that at least one of the 
    scheduled run loops is being run.
 
-   NOTE: not all streams provide these notifications.  If a stream does not support
-   asynchronous notification, CFStreamSetClient() will return NO; typically, such
-   streams will never block for device I/O (e.g. a stream on memory)
+   NOTE: Unlike other CoreFoundation APIs, pasing a NULL clientContext here will remove
+   the client.  If you do not care about the client context (i.e. your only concern
+   is that your callback be called), you should pass in a valid context where every
+   entry is 0 or NULL.
+
 }
 
 function CFReadStreamSetClient( stream: CFReadStreamRef; streamEvents: CFOptionFlags; clientCB: CFReadStreamClientCallBack; var clientContext: CFStreamClientContext ): Boolean; external name '_CFReadStreamSetClient';
@@ -299,5 +290,26 @@ procedure CFWriteStreamScheduleWithRunLoop( stream: CFWriteStreamRef; runLoop: C
 procedure CFReadStreamUnscheduleFromRunLoop( stream: CFReadStreamRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFReadStreamUnscheduleFromRunLoop';
 procedure CFWriteStreamUnscheduleFromRunLoop( stream: CFWriteStreamRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFWriteStreamUnscheduleFromRunLoop';
 
+
+{ The following API is deprecated starting in 10.5; please use CFRead/WriteStreamCopyError(), above, instead }
+const
+	kCFStreamErrorDomainCustom = -1;      { custom to the kind of stream in question }
+	kCFStreamErrorDomainPOSIX = 1;        { POSIX errno; interpret using <sys/errno.h> }
+	kCFStreamErrorDomainMacOSStatus = 2;      { OSStatus type from Carbon APIs; interpret using <MacTypes.h> }
+type
+	CFStreamErrorDomain = CFIndex;
+
+type
+	CFStreamError = record
+		domain: CFIndex; 
+		error: SInt32;
+	end;
+	CFStreamErrorPtr = ^CFStreamError;
+
+{ 0 is returned if no error has occurred.  errorDomain specifies the domain
+   in which the error code should be interpretted; pass NULL if you are not 
+   interested. }
+function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
+function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';
 
 end.

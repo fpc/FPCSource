@@ -173,7 +173,7 @@ const
         { the fractional part is not used for rounding later                }
         currprec := -1;
         { instead, round based on the next whole digit }
-        if (int(intPartStack[stackPtr]-corrVal+roundcorr) >= 5.0) then
+        if (int(intPartStack[stackPtr]-corrVal) >= 5.0) then
            roundStr(temp,spos);
         end;
 {$ifdef DEBUG_NASM}
@@ -367,8 +367,12 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
-          if (d<>0.0) then
-            d:=d+roundCorr;
+          { for single, we may write more significant digits than are available,
+            so the rounding correction itself can show up -> don't round in that
+            case
+          }
+          if real_type<>rt_s32real then
+            d:=d+d*roundCorr;
           if d >= corrVal then
             d := d + corrVal;
           if int(d) = 1 then

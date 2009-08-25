@@ -25,7 +25,8 @@ uses
   teststr,
   testu,
   redir,
-  bench;
+  bench,
+  classes;
 
 {$ifdef go32v2}
   {$define LIMIT83FS}
@@ -69,9 +70,10 @@ var
   DefaultCompilerCPU,
   DefaultCompilerTarget,
   DefaultCompilerVersion : string;
-  PPFile : string;
-  PPFileInfo : string;
+  PPFile : TStringList;
+  PPFileInfo : TStringList;
   TestName : string;
+  Current : longint;
 
 const
   DoGraph : boolean = false;
@@ -182,15 +184,15 @@ Var
   info : searchrec;
   dt : DateTime;
 begin
-  FindFirst (PPFile,anyfile,Info);
+  FindFirst (PPFile[current],anyfile,Info);
   If DosError=0 then
     begin
       UnpackTime(info.time,dt);
-      PPFileInfo:=PPFile+' '+ToStr(dt.year)+'/'+ToStrZero(dt.month,2)+'/'+
-        ToStrZero(dt.day,2)+' '+ToStrZero(dt.Hour,2)+':'+ToStrZero(dt.min,2)+':'+ToStrZero(dt.sec,2);
+      PPFileInfo.Insert(current,PPFile[current]+' '+ToStr(dt.year)+'/'+ToStrZero(dt.month,2)+'/'+
+        ToStrZero(dt.day,2)+' '+ToStrZero(dt.Hour,2)+':'+ToStrZero(dt.min,2)+':'+ToStrZero(dt.sec,2));
     end
   else
-    PPFileInfo:=PPfile;
+    PPFileInfo.Insert(current,PPFile[current]);
   FindClose (Info);
 end;
 
@@ -334,7 +336,7 @@ begin
       rewrite(t);
      {$I+}
      if ioresult<>0 then
-      Verbose(V_Abort,'Can''t append to '+logfile);
+       Verbose(V_Abort,'Can''t append to '+logfile);
    end;
   writeln(t,s);
   close(t);
@@ -556,15 +558,15 @@ begin
     passes:=1
   else
     passes:=config.wpopasses+1;
-  args:=args+' '+ppfile;
+  args:=args+' '+PPFile[current];
 
   for passnr:=1 to passes do
     begin
       if (passes>1) then
         begin
-          wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName(ppfile,'wp'+tostr(passnr));
+          wpoargs:=' -OW'+config.wpoparas+' -FW'+TestOutputFileName(PPFile[current],'wp'+tostr(passnr));
           if (passnr>1) then
-            wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName(ppfile,'wp'+tostr(passnr-1));
+            wpoargs:=wpoargs+' -Ow'+config.wpoparas+' -Fw'+TestOutputFileName(PPFile[current],'wp'+tostr(passnr-1));
         end;
       Verbose(V_Debug,'Executing '+compilerbin+' '+args+wpoargs);
       { also get the output from as and ld that writes to stderr sometimes }
@@ -582,13 +584,13 @@ begin
       if (not execres) and (ExecuteResult=0) then
         begin
           AddLog(FailLogFile,TestName);
-          AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+          AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]);
           AddLog(LongLogFile,line_separation);
-          AddLog(LongLogFile,failed_to_compile+PPFileInfo);
+          AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
           CopyFile(CompilerLogFile,LongLogFile,true);
           { avoid to try again }
-          AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
-          Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
+          AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
+          Verbose(V_Warning,'IOStatus: '+ToStr(IOStatus));
           exit;
         end;
 
@@ -598,15 +600,15 @@ begin
          AddLog(FailLogFile,TestName);
          if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-         AddLog(ResLogFile,failed_to_compile+PPFileInfo+' internalerror generated');
+         AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]+' internalerror generated');
          AddLog(LongLogFile,line_separation);
-         AddLog(LongLogFile,failed_to_compile+PPFileInfo);
+         AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
          if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
          CopyFile(CompilerLogFile,LongLogFile,true);
          { avoid to try again }
-         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo);
-         Verbose(V_Abort,'Internal error in compiler');
+         AddLog(ExeLogFile,'Failed to compile '+PPFileInfo[current]);
+         Verbose(V_Warning,'Internal error in compiler');
          exit;
        end;
     end;
@@ -616,9 +618,9 @@ begin
    begin
      if ExecuteResult<>0 then
       begin
-        AddLog(ResLogFile,success_compilation_failed+PPFileInfo);
+        AddLog(ResLogFile,success_compilation_failed+PPFileInfo[current]);
         { avoid to try again }
-        AddLog(ExeLogFile,success_compilation_failed+PPFileInfo);
+        AddLog(ExeLogFile,success_compilation_failed+PPFileInfo[current]);
         RunCompiler:=true;
       end
      else
@@ -626,11 +628,11 @@ begin
         AddLog(FailLogFile,TestName);
         if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-        AddLog(ResLogFile,failed_compilation_successful+PPFileInfo);
+        AddLog(ResLogFile,failed_compilation_successful+PPFileInfo[current]);
         AddLog(LongLogFile,line_separation);
-        AddLog(LongLogFile,failed_compilation_successful+PPFileInfo);
+        AddLog(LongLogFile,failed_compilation_successful+PPFileInfo[current]);
         { avoid to try again }
-        AddLog(ExeLogFile,failed_compilation_successful+PPFileInfo);
+        AddLog(ExeLogFile,failed_compilation_successful+PPFileInfo[current]);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
         CopyFile(CompilerLogFile,LongLogFile,true);
@@ -643,31 +645,31 @@ begin
          ((Config.KnownCompileError<>0) and (ExecuteResult=Config.KnownCompileError))) then
       begin
         AddLog(FailLogFile,TestName+known_problem+Config.KnownCompileNote);
-        AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownCompileNote);
+        AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownCompileNote);
         AddLog(LongLogFile,line_separation);
         AddLog(LongLogFile,known_problem+Config.KnownCompileNote);
-        AddLog(LongLogFile,failed_to_compile+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+        AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
         Copyfile(CompilerLogFile,LongLogFile,true);
-        Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult));
+        Verbose(V_Warning,known_problem+'exitcode: '+ToStr(ExecuteResult));
       end
      else if ExecuteResult<>0 then
       begin
         AddLog(FailLogFile,TestName);
         if Config.Note<>'' then
           AddLog(FailLogFile,Config.Note);
-        AddLog(ResLogFile,failed_to_compile+PPFileInfo);
+        AddLog(ResLogFile,failed_to_compile+PPFileInfo[current]);
         AddLog(LongLogFile,line_separation);
-        AddLog(LongLogFile,failed_to_compile+PPFileInfo);
+        AddLog(LongLogFile,failed_to_compile+PPFileInfo[current]);
         if Config.Note<>'' then
           AddLog(LongLogFile,Config.Note);
         CopyFile(CompilerLogFile,LongLogFile,true);
         { avoid to try again }
-        AddLog(ExeLogFile,failed_to_compile+PPFileInfo);
-        Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
+        AddLog(ExeLogFile,failed_to_compile+PPFileInfo[current]);
+        Verbose(V_Warning,'Exitcode: '+ToStr(ExecuteResult)+' (expected 0)');
       end
      else
       begin
-        AddLog(ResLogFile,successfully_compiled+PPFileInfo);
+        AddLog(ResLogFile,successfully_compiled+PPFileInfo[current]);
         RunCompiler:=true;
       end;
    end;
@@ -748,9 +750,9 @@ begin
   execres:=true;
   { when remote testing, leave extension away }
   if RemoteAddr='' then
-    TestExe:=OutputFileName(PPFile,ExeExt)
+    TestExe:=OutputFileName(PPFile[current],ExeExt)
   else
-    TestExe:=OutputFileName(PPFile,'');
+    TestExe:=OutputFileName(PPFile[current],'');
   if EmulatorName<>'' then
     begin
       { Get full name out log file, because we change the directory during
@@ -782,7 +784,7 @@ begin
       s:=Config.Files;
       if length(s) > 0 then
       begin
-        LocalPath:=SplitPath(PPFile);
+        LocalPath:=SplitPath(PPFile[current]);
         if Length(LocalPath) > 0 then
           LocalPath:=LocalPath+'/';
         repeat
@@ -858,13 +860,13 @@ done:
   if (not execres) and (ExecuteResult=0) then
     begin
       AddLog(FailLogFile,TestName);
-      AddLog(ResLogFile,failed_to_run+PPFileInfo);
+      AddLog(ResLogFile,failed_to_run+PPFileInfo[current]);
       AddLog(LongLogFile,line_separation);
-      AddLog(LongLogFile,failed_to_run+PPFileInfo);
+      AddLog(LongLogFile,failed_to_run+PPFileInfo[current]);
       CopyFile(EXELogFile,LongLogFile,true);
       { avoid to try again }
-      AddLog(ExeLogFile,failed_to_run+PPFileInfo);
-      Verbose(V_Abort,'IOStatus: '+ToStr(IOStatus));
+      AddLog(ExeLogFile,failed_to_run+PPFileInfo[current]);
+      Verbose(V_Warning,'IOStatus: '+ToStr(IOStatus));
       exit;
     end;
 
@@ -874,26 +876,26 @@ done:
         (ExecuteResult=Config.KnownRunError) then
        begin
          AddLog(FailLogFile,TestName+known_problem+Config.KnownRunNote);
-         AddLog(ResLogFile,failed_to_run+PPFileInfo+known_problem+Config.KnownRunNote);
+         AddLog(ResLogFile,failed_to_run+PPFileInfo[current]+known_problem+Config.KnownRunNote);
          AddLog(LongLogFile,line_separation);
          AddLog(LongLogFile,known_problem+Config.KnownRunNote);
-         AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+         AddLog(LongLogFile,failed_to_run+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
          Copyfile(EXELogFile,LongLogFile,true);
-         Verbose(V_Abort,known_problem+'exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
+         Verbose(V_Warning,known_problem+'exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
        end
      else
        begin
          AddLog(FailLogFile,TestName);
-         AddLog(ResLogFile,failed_to_run+PPFileInfo);
+         AddLog(ResLogFile,failed_to_run+PPFileInfo[current]);
          AddLog(LongLogFile,line_separation);
-         AddLog(LongLogFile,failed_to_run+PPFileInfo+' ('+ToStr(ExecuteResult)+')');
+         AddLog(LongLogFile,failed_to_run+PPFileInfo[current]+' ('+ToStr(ExecuteResult)+')');
          Copyfile(EXELogFile,LongLogFile,true);
-         Verbose(V_Abort,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
+         Verbose(V_Warning,'Exitcode: '+ToStr(ExecuteResult)+' (expected '+ToStr(Config.ResultCode)+')');
        end
    end
   else
    begin
-     AddLog(ResLogFile,successfully_run+PPFileInfo);
+     AddLog(ResLogFile,successfully_run+PPFileInfo[current]);
      RunExecutable:=true;
    end;
 
@@ -943,7 +945,6 @@ var
   end;
 
 begin
-  PPFile:='';
   if exeext<>'' then
     CompilerBin:='ppc386.'+exeext
   else
@@ -1035,22 +1036,18 @@ begin
      end
     else
      begin
-       If PPFile<>'' then
-         HelpScreen;
-       PPFile:=ForceExtension(Para,'pp');
+       PPFile.Insert(current,ForceExtension(Para,'pp'));
+       inc(current);
      end;
     end;
-  if (PPFile='') then
-   HelpScreen;
+  if current=0 then
+    HelpScreen;
   { disable graph,interactive when running remote }
   if RemoteAddr<>'' then
     begin
       DoGraph:=false;
       DoInteractive:=false;
     end;
-  SetPPFileInfo;
-  TestName:=Copy(PPFile,1,Pos('.pp',PPFile)-1);
-  Verbose(V_Debug,'Running test '+TestName+', file '+PPFile);
 end;
 
 
@@ -1059,7 +1056,7 @@ var
   PPDir : string;
   Res : boolean;
 begin
-  Res:=GetConfig(ppfile,Config);
+  Res:=GetConfig(PPFile[current],Config);
 
   if Res then
     begin
@@ -1084,7 +1081,7 @@ begin
       LongLogFile:=OutputFileName('longlog','');
       FailLogFile:=OutputFileName('faillist','');
       { Make subdir in output if needed }
-      PPDir:=SplitPath(PPFile);
+      PPDir:=SplitPath(PPFile[current]);
       if PPDir[length(PPDir)] in ['/','\'{$ifdef MACOS},':'{$endif MACOS}] then
         Delete(PPDir,length(PPDir),1);
       if PPDir<>'' then
@@ -1099,8 +1096,8 @@ begin
       else
         TestOutputDir:=OutputDir;
       { Per test logfiles }
-      CompilerLogFile:=TestOutputFileName(SplitFileName(PPFile),'log');
-      ExeLogFile:=TestOutputFileName(SplitFileName(PPFile),'elg');
+      CompilerLogFile:=TestOutputFileName(SplitFileName(PPFile[current]),'log');
+      ExeLogFile:=TestOutputFileName(SplitFileName(PPFile[current]),'elg');
       Verbose(V_Debug,'Using Compiler logfile: '+CompilerLogFile);
       Verbose(V_Debug,'Using Execution logfile: '+ExeLogFile);
     end;
@@ -1109,10 +1106,10 @@ begin
    begin
      if Config.UsesGraph and (not DoGraph) then
       begin
-        AddLog(ResLogFile,skipping_graph_test+PPFileInfo);
+        AddLog(ResLogFile,skipping_graph_test+PPFileInfo[current]);
         { avoid a second attempt by writing to elg file }
-        AddLog(EXELogFile,skipping_graph_test+PPFileInfo);
-        Verbose(V_Abort,skipping_graph_test);
+        AddLog(EXELogFile,skipping_graph_test+PPFileInfo[current]);
+        Verbose(V_Warning,skipping_graph_test);
         Res:=false;
       end;
    end;
@@ -1122,9 +1119,9 @@ begin
      if Config.IsInteractive and (not DoInteractive) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(EXELogFile,skipping_interactive_test+PPFileInfo);
-        AddLog(ResLogFile,skipping_interactive_test+PPFileInfo);
-        Verbose(V_Abort,skipping_interactive_test);
+        AddLog(EXELogFile,skipping_interactive_test+PPFileInfo[current]);
+        AddLog(ResLogFile,skipping_interactive_test+PPFileInfo[current]);
+        Verbose(V_Warning,skipping_interactive_test);
         Res:=false;
       end;
    end;
@@ -1134,9 +1131,9 @@ begin
      if Config.IsKnownCompileError and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(EXELogFile,skipping_known_bug+PPFileInfo);
-        AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
-        Verbose(V_Abort,skipping_known_bug);
+        AddLog(EXELogFile,skipping_known_bug+PPFileInfo[current]);
+        AddLog(ResLogFile,skipping_known_bug+PPFileInfo[current]);
+        Verbose(V_Warning,skipping_known_bug);
         Res:=false;
       end;
    end;
@@ -1155,9 +1152,9 @@ begin
         if CompilerVersion<Config.MinVersion then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_compiler_version_too_low+PPFileInfo);
-           AddLog(ResLogFile,skipping_compiler_version_too_low+PPFileInfo);
-           Verbose(V_Abort,'Compiler version too low '+CompilerVersion+' < '+Config.MinVersion);
+           AddLog(EXELogFile,skipping_compiler_version_too_low+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_compiler_version_too_low+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler version too low '+CompilerVersion+' < '+Config.MinVersion);
            Res:=false;
          end;
       end;
@@ -1172,9 +1169,9 @@ begin
         if CompilerVersion>Config.MaxVersion then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_compiler_version_too_high+PPFileInfo);
-           AddLog(ResLogFile,skipping_compiler_version_too_high+PPFileInfo);
-           Verbose(V_Abort,'Compiler version too high '+CompilerVersion+' > '+Config.MaxVersion);
+           AddLog(EXELogFile,skipping_compiler_version_too_high+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_compiler_version_too_high+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler version too high '+CompilerVersion+' > '+Config.MaxVersion);
            Res:=false;
          end;
       end;
@@ -1188,9 +1185,9 @@ begin
         if not IsInList(CompilerCPU,Config.NeedCPU) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
-           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
-           Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is not in list "'+Config.NeedCPU+'"');
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler cpu "'+CompilerCPU+'" is not in list "'+Config.NeedCPU+'"');
            Res:=false;
          end;
       end;
@@ -1204,9 +1201,9 @@ begin
         if IsInList(CompilerCPU,Config.SkipCPU) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
-           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
-           Verbose(V_Abort,'Compiler cpu "'+CompilerCPU+'" is in list "'+Config.SkipCPU+'"');
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler cpu "'+CompilerCPU+'" is in list "'+Config.SkipCPU+'"');
            Res:=false;
          end;
       end;
@@ -1220,9 +1217,9 @@ begin
         if IsInList(emulatorname,Config.SkipEmu) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo);
-           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo);
-           Verbose(V_Abort,'Emulator "'+emulatorname+'" is in list "'+Config.SkipEmu+'"');
+           AddLog(EXELogFile,skipping_other_cpu+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_other_cpu+PPFileInfo[current]);
+           Verbose(V_Warning,'Emulator "'+emulatorname+'" is in list "'+Config.SkipEmu+'"');
            Res:=false;
          end;
       end;
@@ -1236,9 +1233,9 @@ begin
         if not IsInList(CompilerTarget,Config.NeedTarget) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_other_target+PPFileInfo);
-           AddLog(ResLogFile,skipping_other_target+PPFileInfo);
-           Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is not in list "'+Config.NeedTarget+'"');
+           AddLog(EXELogFile,skipping_other_target+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_other_target+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler target "'+CompilerTarget+'" is not in list "'+Config.NeedTarget+'"');
            Res:=false;
          end;
       end;
@@ -1252,9 +1249,9 @@ begin
         if IsInList(CompilerTarget,Config.SkipTarget) then
          begin
            { avoid a second attempt by writing to elg file }
-           AddLog(EXELogFile,skipping_other_target+PPFileInfo);
-           AddLog(ResLogFile,skipping_other_target+PPFileInfo);
-           Verbose(V_Abort,'Compiler target "'+CompilerTarget+'" is in list "'+Config.SkipTarget+'"');
+           AddLog(EXELogFile,skipping_other_target+PPFileInfo[current]);
+           AddLog(ResLogFile,skipping_other_target+PPFileInfo[current]);
+           Verbose(V_Warning,'Compiler target "'+CompilerTarget+'" is in list "'+Config.SkipTarget+'"');
            Res:=false;
          end;
       end;
@@ -1272,27 +1269,27 @@ begin
      if (Config.NoRun) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(EXELogFile,skipping_run_test+PPFileInfo);
-        AddLog(ResLogFile,skipping_run_test+PPFileInfo);
+        AddLog(EXELogFile,skipping_run_test+PPFileInfo[current]);
+        AddLog(ResLogFile,skipping_run_test+PPFileInfo[current]);
         Verbose(V_Debug,skipping_run_test);
       end
      else if Config.IsKnownRunError and (not DoKnown) then
       begin
         { avoid a second attempt by writing to elg file }
-        AddLog(EXELogFile,skipping_known_bug+PPFileInfo);
-        AddLog(ResLogFile,skipping_known_bug+PPFileInfo);
-        Verbose(V_Abort,skipping_known_bug);
+        AddLog(EXELogFile,skipping_known_bug+PPFileInfo[current]);
+        AddLog(ResLogFile,skipping_known_bug+PPFileInfo[current]);
+        Verbose(V_Warning,skipping_known_bug);
       end
      else
       begin
         if DoExecute then
          begin
-           if FileExists(TestOutputFilename(PPFile,'ppu')) or
-              FileExists(TestOutputFilename(PPFile,'ppo')) or
-              FileExists(TestOutputFilename(PPFile,'ppw')) then
+           if FileExists(TestOutputFilename(PPFile[current],'ppu')) or
+              FileExists(TestOutputFilename(PPFile[current],'ppo')) or
+              FileExists(TestOutputFilename(PPFile[current],'ppw')) then
              begin
-               AddLog(ExeLogFile,skipping_run_unit+PPFileInfo);
-               AddLog(ResLogFile,skipping_run_unit+PPFileInfo);
+               AddLog(ExeLogFile,skipping_run_unit+PPFileInfo[current]);
+               AddLog(ResLogFile,skipping_run_unit+PPFileInfo[current]);
                Verbose(V_Debug,'Unit found, skipping run test')
              end
            else
@@ -1304,6 +1301,21 @@ end;
 
 
 begin
+  Current:=0;
+  PPFile:=TStringList.Create;
+  PPFile.Capacity:=10;
+  PPFileInfo:=TStringList.Create;
+  PPFileInfo.Capacity:=10;
   GetArgs;
-  RunTest;
+  Verbose(V_Debug,'Found '+ToStr(PPFile.Count)+' tests to run');
+  if current>0 then
+    for current:=0 to PPFile.Count-1 do
+      begin
+        SetPPFileInfo;
+        TestName:=Copy(PPFile[current],1,Pos('.pp',PPFile[current])-1);
+        Verbose(V_Normal,'Running test '+TestName+', file '+PPFile[current]);
+        RunTest;
+      end;
+  PPFile.Free;
+  PPFileInfo.Free;
 end.

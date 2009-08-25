@@ -432,18 +432,11 @@ implementation
           location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
           if (source_info.endian=target_info.endian) then
             begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
               { not plongint, because that will "sign extend" the set on 64 bit platforms }
               { if changed to "paword", please also modify "32-resultdef.size*8" and      }
               { cross-endian code below                                                   }
               { Extra aint type cast to avoid range errors                                }
               location.value:=aint(pCardinal(value_set)^)
-{$else}
-              location.value:=reverse_byte(Psetbytes(value_set)^[0]);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[2]) shl 16);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[3]) shl 24);
-{$endif}
             end
           else
             begin
@@ -490,11 +483,7 @@ implementation
                                begin
                                  if (source_info.endian=target_info.endian) then
                                    begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                                      if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
-{$else}
-                                     if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i xor 3]) then
-{$endif}
                                        break
                                    end
                                  else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
@@ -537,13 +526,8 @@ implementation
                    new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    if (source_info.endian=target_info.endian) then
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                      for i:=0 to 31 do
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-{$else}
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i xor 3])))
-{$endif}
                    else
                      for i:=0 to 31 do
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));

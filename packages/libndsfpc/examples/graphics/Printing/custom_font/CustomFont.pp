@@ -1,6 +1,8 @@
 program custom_font;
 {$L build/font.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 
@@ -19,8 +21,8 @@ var
 
 
 begin
-	videoSetModeSub(MODE_0_2D);	
-	vramSetBankC(VRAM_C_SUB_BG); 
+	videoSetModeSub(MODE_0_2D);
+	vramSetBankC(VRAM_C_SUB_BG);
 
 	console := consoleInit(nil, 0, BgType_Text4bpp, BgSize_T_256x256, map_base, tile_base, false, false);
 
@@ -33,7 +35,7 @@ begin
 	font.convertSingleColor := false;
 
 	consoleSetFont(console, @font);
-	
+
 	printf('Custom Font Demo'#10);
 	printf('   by Poffy'#10);
 	printf('modified by WinterMute'#10);

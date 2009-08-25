@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-{$ifndef cpux86_64}
+{$if not defined(cpux86_64) and not defined(NO_SYSCALL_SOCKETCALL)}
   {$define NEED_SOCKETCALL}
 {$endif}
 

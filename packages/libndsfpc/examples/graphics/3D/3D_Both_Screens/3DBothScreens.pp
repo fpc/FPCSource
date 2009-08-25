@@ -1,5 +1,7 @@
 program BothScreens3D;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

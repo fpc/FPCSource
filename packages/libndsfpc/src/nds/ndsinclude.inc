@@ -1,5 +1,5 @@
 
-{$include helper.inc}
+{ $include helper.inc}
 {$include ndstypes.inc}
 {$include bios.inc}
 {$include card.inc}

@@ -531,7 +531,7 @@ begin
   {....................................... Connect to the control socket}
   if not gpm_flag then
     begin
-      gpm_fd:=socket(AF_UNIX,SOCK_STREAM,0);
+      gpm_fd:=fpsocket(AF_UNIX,SOCK_STREAM,0);
       if gpm_fd<0 then
         begin
 {           gpm_report(GPM_PR_ERR,GPM_MESS_SOCKET,strerror(errno));}

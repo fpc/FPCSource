@@ -122,6 +122,11 @@ procedure irqInitHandler(handler: TVoidFunctionPointer); cdecl; external;
 procedure irqInitHandler(handler: pointer); cdecl; external;
 procedure irqEnable(irq: cuint32); cdecl; external;
 procedure irqDisable(irq: cuint32); cdecl; external;
+
+procedure swiIntrWait(waitForSet: cint; flags: cuint32); cdecl; external;
+procedure swiWaitForVBlank(); cdecl; external;
+function enterCriticalSection(): cint; inline;
+procedure leaveCriticalSection(oldIME: cint); inline;
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
@@ -129,6 +134,20 @@ procedure irqDisable(irq: cuint32); cdecl; external;
 function IRQ_TIMER(n: cint): cint; inline;
 begin
   result := (1 shl (n + 3));
+end;
+
+function enterCriticalSection(): cint; inline;
+var
+  oldIME: cint;
+begin
+  oldIME := REG_IME^;
+  REG_IME^ := 0;
+  result := oldIME;
+end;
+
+procedure leaveCriticalSection(oldIME: cint); inline;
+begin
+  REG_IME^ := oldIME;
 end;
 
 {$endif NDS_IMPLEMENTATION}

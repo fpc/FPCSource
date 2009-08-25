@@ -2123,13 +2123,7 @@ unit cgx86;
         if (cs_create_pic in current_settings.moduleswitches) and
            { darwin/x86_64's assembler doesn't want @PLT after call symbols }
            (target_info.system<>system_x86_64_darwin) then
-          begin
-            { it could be that we're called from a procedure not having the
-              got loaded
-            }
-            g_maybe_got_init(list);
-            ref.refaddr:=addr_pic
-          end
+          ref.refaddr:=addr_pic
         else
           ref.refaddr:=addr_full;
         list.concat(taicpu.op_ref(A_JMP,S_NO,ref));

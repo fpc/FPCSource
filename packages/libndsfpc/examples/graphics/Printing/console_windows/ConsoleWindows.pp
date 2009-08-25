@@ -1,5 +1,7 @@
 program ConsoleWindows;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

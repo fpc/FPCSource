@@ -99,9 +99,7 @@ implementation
 {$if defined(x86) or defined(arm)}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
 {$endif defined(x86) or defined(arm)}
-{$ifdef SUPPORT_UNALIGNED}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
-{$endif SUPPORT_UNALIGNED}
         systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
         systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
       end;
@@ -165,7 +163,7 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
         cansistringtype:=tstringdef.createansi;
-        if target_info.system in system_all_windows then
+        if target_info.system in system_windows then
           cwidestringtype:=tstringdef.createwide
         else
           cwidestringtype:=tstringdef.createunicode;

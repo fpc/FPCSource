@@ -388,8 +388,7 @@ implementation
                (left.nodetype in [stringconstn])
               ) then
          begin
-           current_filepos:=left.fileinfo;
-           CGMessage(type_e_no_addr_of_constant);
+           CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
            exit;
          end;
 
@@ -407,6 +406,7 @@ implementation
             if not isprocvar then
               begin
                 left:=ctypeconvnode.create_proc_to_procvar(left);
+                left.fileinfo:=fileinfo;
                 typecheckpass(left);
               end;
 
