@@ -50,7 +50,7 @@ type
 
     function performSelector_(aSelector: SEL): id; message 'performSelector:';
     function performSelector_withObject_(aSelector: SEL; obj: id): id; message 'performSelector:withObject:';
-    function performSelector_withObject_withObject(aSelector: SEL; obj1, obj2: id): id; message 'performSelector:withObject:withObject:';
+    function performSelector_withObject_withObject_(aSelector: SEL; obj1, obj2: id): id; message 'performSelector:withObject:withObject:';
 
     function isProxy: boolean; message 'isProxy';
 
@@ -65,7 +65,7 @@ type
     function autorelease: id; message 'autorelease';
     function retainCount: cint; message 'retainCount';
 
-     function description: {NSString} id; message 'description';
+    function description: {NSString} id; message 'description';
   end; external name 'NSObject';
 
 
