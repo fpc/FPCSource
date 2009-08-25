@@ -88,7 +88,7 @@ type
 
     function performSelector_(aSelector: SEL): id;
     function performSelector_withObject_(aSelector: SEL; obj: id): id;
-    function performSelector_withObject_withObject(aSelector: SEL; obj1, obj2: id): id;
+    function performSelector_withObject_withObject_(aSelector: SEL; obj1, obj2: id): id;
 
     function isProxy: boolean;
 
