@@ -1492,7 +1492,8 @@ implementation
                        else
                         begin
                           { class reference ? }
-                          if is_class(hdef) then
+                          if is_class(hdef) or
+                             is_objcclass(hdef) then
                            begin
                              if getaddr and (token=_POINT) then
                               begin

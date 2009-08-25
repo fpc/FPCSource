@@ -8227,6 +8227,7 @@ tests/test/tmt1.pp svneol=native#text/plain
 tests/test/tobjc1.pp svneol=native#text/plain
 tests/test/tobjc10.pp svneol=native#text/plain
 tests/test/tobjc11.pp svneol=native#text/plain
+tests/test/tobjc12.pp svneol=native#text/plain
 tests/test/tobjc2.pp svneol=native#text/plain
 tests/test/tobjc3.pp svneol=native#text/plain
 tests/test/tobjc4.pp svneol=native#text/plain
