@@ -612,6 +612,10 @@ implementation
             variantdef:
               if iscvarargs then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+            { maybe warn in case it's not using "packrecords c"? }
+            recorddef:
+              if not iscvarargs then
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             pointerdef:
               ;
             classrefdef:
