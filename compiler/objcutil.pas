@@ -67,7 +67,7 @@ implementation
 
     function objcsuperclassnode(def: tobjectdef): tnode;
       var
-        block: tblocknode;
+        block: tnode;
         statements: tstatementnode;
         para: tcallparanode;
       begin

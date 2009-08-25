@@ -231,7 +231,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     msgsendname: string;
     newparas,
     para: tcallparanode;
-    block: tblocknode;
+    block: tnode;
     statements: tstatementnode;
     temp: ttempcreatenode;
     objcsupertype: tdef;
