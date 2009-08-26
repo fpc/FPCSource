@@ -1,5 +1,7 @@
 program eeprom;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9, sysutils;
 

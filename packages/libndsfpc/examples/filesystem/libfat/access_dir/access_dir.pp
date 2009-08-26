@@ -1,6 +1,5 @@
 program access_dir;
 
-{$apptype arm9}
 {$mode objfpc}
 
 uses

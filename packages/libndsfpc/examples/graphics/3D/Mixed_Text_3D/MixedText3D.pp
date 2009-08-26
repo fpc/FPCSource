@@ -1,5 +1,7 @@
 program MixedText3D;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9, math;
 

@@ -1,14 +1,9 @@
 program autoconnect;
 
-{$apptype arm9}
-{$define ARM9}
-
 {$mode objfpc}
-
 
 uses
   ctypes, nds9, dswifi9;
-
 
 var
 	ip, gateway, mask, dns1, dns2: in_addr;

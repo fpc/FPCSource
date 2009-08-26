@@ -1,10 +1,6 @@
 program apSearch;
 
-{$apptype arm9}
-{$define ARM9}
-
 {$mode objfpc}
-
 
 uses
   ctypes, nds9, dswifi9;
@@ -57,7 +53,7 @@ begin
 end;
 
 //---------------------------------------------------------------------------------
-function keyPressed(c: cint): pointer;
+procedure keyPressed(c: cint);
 begin
   if (c > 0) then
     iprintf('%c', c);

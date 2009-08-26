@@ -515,15 +515,15 @@ end;
 procedure bgSetMosaic(dx, dy: cuint); inline;
 begin
   sassert( (dx < 16) and (dy < 16), 'Mosaic range is 0 to 15');
-  MOSAIC_CR^ := MOSAIC_CR^ and not $FF;
-  MOSAIC_CR^ := MOSAIC_CR^ or (dx or (dy shl 4));
+  mosaicShadow := (mosaicShadow and $ff00) or (dx or (dy shl 4));
+  REG_MOSAIC^ := mosaicShadow;
 end;
 
 procedure bgSetMosaicSub(dx, dy: cuint); inline;
 begin
   sassert( (dx < 16) and (dy < 16), 'Mosaic range is 0 to 15');
-  SUB_MOSAIC_CR^ := SUB_MOSAIC_CR^ and not $FF;
-  SUB_MOSAIC_CR^ := SUB_MOSAIC_CR^ or (dx or (dy shl 4));	 	 
+  mosaicShadowSub := (mosaicShadowSub and $ff00) or (dx or (dy shl 4));
+  REG_MOSAIC_SUB^ := mosaicShadowSub;
 end;
 
 

@@ -86,11 +86,15 @@ var
 begin
 	if (index >= v^.cur_size) then 
 	begin
+		v^.data := ReAllocMem(v^.data, sizeof(pointer) * v^.cur_size * 2);
+		FillChar(pointer(integer(v^.data^^) + v^.cur_size)^, sizeof(pointer) * v^.cur_size, 0);
 		v^.cur_size := v^.cur_size * 2;
-		v^.data := ReAllocMem(v^.data, sizeof(pointer) * v^.cur_size);
 	end;
+	{
 	i := integer(v^.data);
 	i := i + index;
   pointer(i) := item;
+  }
+  v^.data[index] := item;
 end;
 {$endif NDS_IMPLEMENTATION}

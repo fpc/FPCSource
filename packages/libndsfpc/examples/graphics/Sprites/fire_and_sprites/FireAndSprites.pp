@@ -1,6 +1,8 @@
 program FireAndSprites;
 {$L build/ball.pcx.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
   

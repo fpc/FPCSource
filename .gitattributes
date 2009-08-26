@@ -3106,26 +3106,6 @@ packages/libgbafpc/examples/audio/PlayBoyScout/Makefile.fpc svneol=native#text/p
 packages/libgbafpc/examples/audio/PlayBoyScout/PlayBoyScout.pp svneol=native#text/plain
 packages/libgbafpc/examples/audio/PlayBoyScout/data/ScoutSplash.pcx -text
 packages/libgbafpc/examples/audio/PlayBoyScout/data/tune.bgf -text
-packages/libgbafpc/examples/devkitPro/audio/PlayBoyScout/Makefile svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/audio/PlayBoyScout/Makefile.fpc svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/audio/PlayBoyScout/PlayBoyScout.pp svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/audio/PlayBoyScout/data/ScoutSplash.pcx -text svneol=unset#image/pcx
-packages/libgbafpc/examples/devkitPro/audio/PlayBoyScout/data/tune.bgf -text
-packages/libgbafpc/examples/devkitPro/graphics/PCXView/Makefile svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/PCXView/Makefile.fpc svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/PCXView/data/ScoutSplash.pcx -text svneol=unset#image/pcx
-packages/libgbafpc/examples/devkitPro/graphics/PCXView/data/splash.pcx -text svneol=unset#image/pcx
-packages/libgbafpc/examples/devkitPro/graphics/PCXView/pcx_view.pp svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/SimpleBGScroll/Makefile svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/SimpleBGScroll/Makefile.fpc svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/SimpleBGScroll/SimpleBGScroll.pp svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/SimpleBGScroll/data/r6502_portfont.bin -text
-packages/libgbafpc/examples/devkitPro/graphics/ansi_console/Makefile svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/ansi_console/Makefile.fpc svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/graphics/ansi_console/console.pp svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/template/Makefile svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/template/Makefile.fpc svneol=native#text/plain
-packages/libgbafpc/examples/devkitPro/template/template.pp svneol=native#text/plain
 packages/libgbafpc/examples/graphics/Makefile svneol=native#text/plain
 packages/libgbafpc/examples/graphics/Makefile.fpc svneol=native#text/plain
 packages/libgbafpc/examples/graphics/PCXView/Makefile svneol=native#text/plain
@@ -6053,6 +6033,8 @@ rtl/nds/classes.pp svneol=native#text/plain
 rtl/nds/cprt07.as svneol=native#text/plain
 rtl/nds/cprt09.as svneol=native#text/plain
 rtl/nds/dos.pp svneol=native#text/plain
+rtl/nds/libc.inc svneol=native#text/plain
+rtl/nds/libch.inc svneol=native#text/plain
 rtl/nds/nds.inc svneol=native#text/plain
 rtl/nds/ndsbios.inc svneol=native#text/plain
 rtl/nds/ndsbiosh.inc svneol=native#text/plain

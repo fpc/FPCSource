@@ -1,6 +1,8 @@
 program RotscaleText;
 {$L build/font.o}
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

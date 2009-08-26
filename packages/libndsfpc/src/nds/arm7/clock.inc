@@ -104,4 +104,5 @@ procedure BCDToInteger(var data: cuint8; length: cuint32); cdecl; external;
 procedure integerToBCD(var data: cuint8; length: cuint32); cdecl; external;
 
 procedure initClockIRQ(); cdecl; external;
+procedure resyncClock(); cdecl; external;
 {$endif NDS_INTERFACE}

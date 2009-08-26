@@ -69,10 +69,6 @@ procedure swiSoftReset(); cdecl; external;
 
 procedure swiDelay(duration: cuint32); cdecl; external;
 
-procedure swiIntrWait(waitForSet: cint; flags: cuint32); cdecl; external;
-
-procedure swiWaitForVBlank(); cdecl; external;
-
 function swiDivide(numerator, divisor: cint): cint; cdecl; external;
 function swiRemainder(numerator, divisor: cint): cint; cdecl; external;
 procedure swiDivMod(numerator, divisor: cint; var result, remainder: cint); cdecl; external;

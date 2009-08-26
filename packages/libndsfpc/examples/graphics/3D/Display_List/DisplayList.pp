@@ -1,5 +1,7 @@
 program DisplayList;
 
+{$mode objfpc}
+
 uses
   ctypes, nds9;
 

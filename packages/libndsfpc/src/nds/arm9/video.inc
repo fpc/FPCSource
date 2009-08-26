@@ -43,6 +43,10 @@
 {$endif ARM9}
 
 {$ifdef NDS_INTERFACE}
+var
+  mosaicShadow: cuint16; cvar; external;
+  mosaicShadowSub: cuint16; cvar; external;
+
 const
   BG_PALETTE          : pcuint16 = pointer($05000000);
   BG_PALETTE_SUB      : pcuint16 = pointer($05000400);
@@ -244,10 +248,10 @@ type
   P_ext_palette = ^_ext_palette;
 
 var
-  VRAM_E_EXT_PALETTE : P_palette absolute VRAM_E;
-  VRAM_F_EXT_PALETTE : P_palette absolute VRAM_F;
-  VRAM_G_EXT_PALETTE : P_palette absolute VRAM_G;
-  VRAM_H_EXT_PALETTE : P_palette absolute VRAM_H;
+  VRAM_E_EXT_PALETTE : P_ext_palette absolute VRAM_E;
+  VRAM_F_EXT_PALETTE : P_ext_palette absolute VRAM_F;
+  VRAM_G_EXT_PALETTE : P_ext_palette absolute VRAM_G;
+  VRAM_H_EXT_PALETTE : P_ext_palette absolute VRAM_H;
 
 function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external;
 procedure vramRestoreMainBanks(vramTemp: cuint32); cdecl; external;
@@ -375,8 +379,8 @@ const
   SUB_WIN_IN     : pcuint16 = pointer($04001048);
   SUB_WIN_OUT    : pcuint16 = pointer($0400104A);
 
-  MOSAIC_CR      : pcuint16 = pointer($0400004C);
-  SUB_MOSAIC_CR  : pcuint16 = pointer($0400104C);
+  REG_MOSAIC     : pcuint16 = pointer($0400004C);
+  REG_MOSAIC_SUB : pcuint16 = pointer($0400104C);
 
   REG_BLDCNT     : pcuint16 = pointer($04000050);
   REG_BLDY       : pcuint16 = pointer($04000054);

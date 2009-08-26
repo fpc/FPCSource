@@ -1,6 +1,6 @@
 program TextureQuad;
 {$L build/texture.bin.o}
-
+{$mode objfpc}
 uses
   ctypes, nds9;
 

@@ -75,7 +75,7 @@ const
 
 function inttof32(n: cint): cint32; inline;
 function f32toint(n: cint32): cint; inline;
-function floattof32(n: cfloat): cint32; inline;
+function floattof32(n: cfloat): cint32; inline;  //inlining it makes impossible to pass it to another function :/
 function f32tofloat(n: cint32): cfloat; inline;
 
 type
@@ -89,7 +89,7 @@ function TEXTURE_PACK(u, v: cint): cint; inline;
 //function TEXTURE_PACK(u, v: cshort): cuint; inline;
 
 type
-  v16 = cuint16; //cshort?       // vertex 4.12 fixed format
+  v16 = cshort;//cuint16?       // vertex 4.12 fixed format
 
 function inttov16(n: cint): cint{v16}; inline;
 function f32tov16(n: cint32): v16; inline; 
