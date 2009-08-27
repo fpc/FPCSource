@@ -43,6 +43,10 @@ uses
 // -------------------------------------------------------
 //   DOMException
 // -------------------------------------------------------
+{$ifndef fpc}
+type
+  tFpList = tList;
+{$endif}
 
 const
 
@@ -101,6 +105,8 @@ type
   TDOMAttrDef = class;
   PNodePool = ^TNodePool;
   TNodePool = class;
+  TTabNodePool = array[0..0] of TNodePool;
+  PTabNodePool = ^TTabNodePool;
 
 
 // -------------------------------------------------------
@@ -430,7 +436,7 @@ type
     FEmptyNode: TDOMElement;
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
-    FPools: PNodePool;
+    FPools: PTabNodePool;
     FDocumentURI: DOMString;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
@@ -3167,24 +3173,24 @@ var
   sz: Integer;
 begin
   ext := FCurrExtent;
-  ptr := Pointer(FCurrBlock) + FElementSize;
+  ptrInt(ptr) := ptrInt(FCurrBlock) + FElementSize;
   sz := FCurrExtentSize;
   while Assigned(ext) do
   begin
     // call destructors for everyone still there
-    ptr_end := Pointer(ext) + sizeof(TExtent) + (sz - 1) * FElementSize;
-    while ptr <= ptr_end do
+    ptrInt(ptr_end) := ptrInt(ext) + sizeof(TExtent) + (sz - 1) * FElementSize;
+    while ptrInt(ptr) <= ptrInt(ptr_end) do
     begin
       if TDOMNode(ptr).FPool = Self then
         TObject(ptr).Destroy;
-      Inc(ptr, FElementSize);
+      Inc(ptrInt(ptr), FElementSize);
     end;
     // dispose the extent and pass to the next one
     next := ext^.Next;
     FreeMem(ext);
     ext := next;
     sz := sz div 2;
-    ptr := Pointer(ext) + sizeof(TExtent);
+    ptrInt(ptr) := ptrInt(ext) + sizeof(TExtent);
   end;
   inherited Destroy;
 end;
@@ -3194,13 +3200,13 @@ var
   ext: PExtent;
 begin
   Assert((FCurrExtent = nil) or
-    (Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent)));
+    (ptrInt(FCurrBlock) = ptrInt(FCurrExtent) + sizeof(TExtent)));
   Assert(AElemCount > 0);
 
   GetMem(ext, sizeof(TExtent) + AElemCount * FElementSize);
   ext^.Next := FCurrExtent;
   // point to the beginning of the last block of extent
-  FCurrBlock := TDOMNode(Pointer(ext) + sizeof(TExtent) + (AElemCount - 1) * FElementSize);
+  FCurrBlock := TDOMNode(ptrInt(ext) + sizeof(TExtent) + (AElemCount - 1) * FElementSize);
   FCurrExtent := ext;
   FCurrExtentSize := AElemCount;
 end;
@@ -3214,7 +3220,7 @@ begin
   end
   else
   begin
-    if Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent) then
+    if ptrInt(FCurrBlock) = ptrInt(FCurrExtent) + sizeof(TExtent) then
       AddExtent(FCurrExtentSize * 2);
     Result := FCurrBlock;
     Dec(PChar(FCurrBlock), FElementSize);

@@ -17,8 +17,10 @@
 
 unit XMLWrite;
 
-{$MODE objfpc}
-{$H+}
+
+{$ifdef fpc}
+{$MODE objfpc}{$H+}
+{$endif}
 
 interface
 

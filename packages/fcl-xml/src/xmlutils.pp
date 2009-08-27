@@ -14,13 +14,19 @@
  **********************************************************************}
 unit xmlutils;
 
-{$mode objfpc}
-{$H+}
+{$ifdef fpc}
+{$MODE objfpc}{$H+}
+{$endif}
 
 interface
 
 uses
   SysUtils;
+
+ {$IFNDEF FPC}
+
+type   ptrint=integer;
+{$ENDIF} 
 
 function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
@@ -38,6 +44,7 @@ function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 { a simple hash table with WideString keys }
 
 type
+  PTabPHashItem = ^TTabPHashItem;
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
   THashItem = record
@@ -46,6 +53,7 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
+  TTabPHashItem = array[0..0] of pHashItem;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
 
@@ -53,7 +61,7 @@ type
   private
     FCount: LongWord;
     FBucketCount: LongWord;
-    FBucket: PPHashItem;
+    FBucket: PTabPHashItem;
     FOwnsObjects: Boolean;
     function Lookup(Key: PWideChar; KeyLength: Integer; var Found: Boolean; CanCreate: Boolean): PHashItem;
     procedure Resize(NewCapacity: LongWord);
@@ -82,12 +90,15 @@ type
     lname: PWideChar;
     lnameLen: Integer;
   end;
+  PTabExpHashEntry = ^TTabExpHashEntry;
+  tTabExpHashEntry = array[0..0] of   TExpHashEntry;
+
 
   TDblHashArray = class(TObject)
   private
     FSizeLog: Integer;
     FRevision: LongWord;
-    FData: PExpHashEntry;
+    FData: PTabExpHashEntry;
   public  
     procedure Init(NumSlots: Integer);
     function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
@@ -347,7 +358,11 @@ end;
 
 function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
+  {$IFDEF FPC}
   Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
+  {$ELSE}
+  Result := comparemem(Pointer(Key1),key2,key2len*2);
+  {$ENDIF}
 end;
 
 { THashTable }
@@ -461,7 +476,8 @@ end;
 
 procedure THashTable.Resize(NewCapacity: LongWord);
 var
-  p, chain: PPHashItem;
+  p    : PTabPHashItem;
+  chain: PPHashItem;
   i: Integer;
   e, n: PHashItem;
 begin
