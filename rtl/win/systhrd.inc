@@ -72,8 +72,8 @@ CONST
     const
       threadvarblocksize : dword = 0;
 
-    var
-      TLSKey : Dword;
+    const
+      TLSKey : DWord = $ffffffff;
 
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin
@@ -104,16 +104,17 @@ CONST
       var
         dataindex : pointer;
         errorsave : dword;
-      begin
-{$ifdef win32}
+      begin	    
+{$ifdef dummy}
+        { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
+          self referencing on this system (FK) }
         asm
           movl TLSKey,%edx
-          movl $0x2c,%eax
-          movl %fs:(%eax),%eax
+          movl %fs:(0x2c),%eax
           orl  %eax,%eax
           jnz  .LAddressInEAX
-          movl $0x18,%eax
-          movl %fs:(%eax),%eax
+		  { this works on Windows 7, but I don't know if it works on other OSes (FK) }
+          movl %fs:(0x18),%eax
           movl 0xe10(%eax,%edx,4),%eax
           jmp  .LToDataIndex
           .LAddressInEAX:
@@ -186,11 +187,12 @@ CONST
     procedure SysInitMultithreading;
       begin
         { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
-        if TLSKey = 0 then
+        if TLSKey=$ffffffff then
          begin
            { We're still running in single thread mode, setup the TLS }
            TLSKey:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
+		   { allocate the thread vars for the main thread }
            IsMultiThread:=true;
          end;
       end;
@@ -200,7 +202,7 @@ CONST
         if IsMultiThread then
          begin
            TlsFree(TLSKey);
-           TLSKey := 0;
+           TLSKey:=$ffffffff;
          end;
       end;
 
