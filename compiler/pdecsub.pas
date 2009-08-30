@@ -310,7 +310,8 @@ implementation
                  if is_open_string(vardef) then
                     MessagePos(fileinfo,parser_w_cdecl_no_openstring);
                  if not(po_external in pd.procoptions) and
-                    (pd.typ<>procvardef) then
+                    (pd.typ<>procvardef) and
+                    not is_objc_class_or_protocol(tprocdef(pd)._class) then
                    if is_array_of_const(vardef) then
                      MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
                    else
@@ -2376,7 +2377,19 @@ const
     procedure handle_calling_convention(pd:tabstractprocdef);
       begin
         { set the default calling convention if none provided }
-        if not(po_hascallingconvention in pd.procoptions) then
+        if (pd.typ=procdef) and
+           (is_objc_class_or_protocol(tprocdef(pd)._class) or
+            is_cppclass(tprocdef(pd)._class)) then
+          begin
+            { none of the explicit calling conventions should be allowed }
+            if (po_hascallingconvention in pd.procoptions) then
+              internalerror(2009032501);
+            if is_cppclass(tprocdef(pd)._class) then
+              pd.proccalloption:=pocall_cppdecl
+            else
+              pd.proccalloption:=pocall_cdecl;
+          end
+        else if not(po_hascallingconvention in pd.procoptions) then
           pd.proccalloption:=current_settings.defproccall
         else
           begin
@@ -2423,7 +2436,10 @@ const
               { if external is available, then cdecl must also be available,
                 procvars don't need external }
               if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef)) and
+                     (pd.typ=procvardef) or
+                     { for objcclasses this is checked later, because the entire
+                       class may be external.  }
+                     is_objc_class_or_protocol(tprocdef(pd)._class)) and
                  not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end

@@ -430,10 +430,6 @@ implementation
         begin
           if is_objc_class_or_protocol(pd._class) then
             begin
-              { none of the explicit calling conventions should be allowed }
-              if (po_hascallingconvention in pd.procoptions) then
-                internalerror(2009032501);
-              pd.proccalloption:=pocall_cdecl;
               include(pd.procoptions,po_objc);
             end;
         end;
@@ -443,7 +439,6 @@ implementation
         begin
            if is_cppclass(pd._class) then
             begin
-              pd.proccalloption:=pocall_cppdecl;
               pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
             end;
         end;

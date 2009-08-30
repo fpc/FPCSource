@@ -4381,16 +4381,33 @@ implementation
     procedure check_and_finish_msg(data: tobject; arg: pointer);
       var
         def: tdef absolute data;
+        pd: tprocdef absolute data;
+        i: longint;
       begin
-        if (def.typ = procdef) then
+        if (def.typ=procdef) then
           begin
             { we have to wait until now to set the mangled name because it
               depends on the (possibly external) class name, which is defined
               at the very end.  }
-            if (po_msgstr in tprocdef(def).procoptions) then
-              tprocdef(def).setmangledname(tprocdef(def).objcmangledname)
+            if (po_msgstr in pd.procoptions) then
+              pd.setmangledname(pd.objcmangledname)
             else
-              MessagePos(tprocdef(def).fileinfo,parser_e_objc_requires_msgstr)
+              MessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
+            if not(oo_is_external in pd._class.objectoptions) then
+              begin
+                if (po_varargs in pd.procoptions) then
+                  MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
+                else
+                  begin
+                    { check for "array of const" parameters }
+                    for i:=0 to pd.parast.symlist.count-1 do
+                      begin
+                        if (tsym(pd.parast.symlist[i]).typ=paravarsym) and
+                           is_array_of_const(tparavarsym(pd.parast.symlist[i]).vardef) then
+                          MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external);
+                      end;
+                  end;
+              end;
           end;
       end;
 
