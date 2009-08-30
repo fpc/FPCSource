@@ -61,6 +61,7 @@ end;
 procedure TObj.M1;
 begin
   Writeln('TObj.M1 called');
+  halt(1);
 end;
 
 {
