@@ -2071,7 +2071,7 @@ implementation
       begin
          result:=true;
       end;
-      
+
 
     procedure tclassrefdef.reset;
       begin
@@ -4397,7 +4397,7 @@ implementation
       begin
         result:=false;
         { interfaces being implemented through delegation are not mergable (FK) }
-        if (MergingIntf.IType<>etStandard) or not(assigned(ProcDefs)) then
+        if (IType<>etStandard) or (MergingIntf.IType<>etStandard) or not(assigned(ProcDefs)) then
           exit;
         weight:=0;
         { empty interface is mergeable }

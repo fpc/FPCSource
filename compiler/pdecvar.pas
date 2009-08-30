@@ -740,6 +740,7 @@ implementation
              if found then
                begin
                  ImplIntf.ImplementsGetter:=p;
+                 ImplIntf.VtblImplIntf:=ImplIntf;
                  case p.propaccesslist[palt_read].firstsym^.sym.typ of
                    procsym :
                      begin
@@ -749,7 +750,11 @@ implementation
                          ImplIntf.IType:=etStaticMethodResult;
                      end;
                    fieldvarsym :
-                     ImplIntf.IType:=etFieldValue;
+                     begin
+                       ImplIntf.IType:=etFieldValue;
+                       { this must be done more sophisticated, here is also probably the wrong place }
+                       ImplIntf.IOffset:=tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                     end
                    else
                      internalerror(200802161);
                  end;
