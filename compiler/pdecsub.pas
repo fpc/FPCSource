@@ -298,8 +298,12 @@ implementation
                begin
                  if is_open_string(vardef) then
                     MessagePos(fileinfo,parser_w_cdecl_no_openstring);
-                 if not (po_external in pd.procoptions) then
-                   MessagePos(fileinfo,parser_w_cdecl_has_no_high);
+                 if not(po_external in pd.procoptions) and
+                    (pd.typ<>procvardef) then
+                   if is_array_of_const(vardef) then
+                     MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
+                   else
+                     MessagePos(fileinfo,parser_w_cdecl_has_no_high);
                end;
               if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
                 begin
