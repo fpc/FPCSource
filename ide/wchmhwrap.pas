@@ -76,7 +76,7 @@ end;
 Constructor TChmWrapper.Create(name:string);
 
 begin
-  ffs:=Classes.TFileStream.create(name,fmOpenRead);
+  ffs:=Classes.TFileStream.create(name,fmOpenRead or fmsharedenynone);
   fchmr:=TChmReader.Create(ffs,True); // owns ffs
   findex:=nil;
   if not fchmr.isvalidfile then
@@ -235,8 +235,10 @@ begin
   freeandnil(ftopic);
   freeandnil(findex);
   freeandnil(fchmr);
+  {$ifdef wdebug}
+    debugmessageS({$i %file%},'TCHMWrapper: destroying ',{$i %line%},'1',0,0);
+  {$endif}
+
 end;
-// m:=r.getobject(r.indexfile);
-//  siteindex.loadfromStream(m);
 
 end.

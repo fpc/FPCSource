@@ -619,8 +619,8 @@
                 end;
               etFieldValue:
                 begin
-                  //writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
-                  Pointer(obj) := ppointer(Pbyte(Instance)+IEntry^.IOffset)^;
+                  // writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
+                  Pointer(obj) := PPointer(Pbyte(Instance)+IEntry^.IOffset)^;
                 end;
               etVirtualMethodResult:
                 begin

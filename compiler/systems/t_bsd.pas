@@ -152,7 +152,19 @@ begin
            end
          else
            begin
+{$ifndef cpu64bitaddr}
+             { Set the size of the page at address zero to 64kb, so nothing
+               is loaded below that address. This avoids problems with the
+               strange Windows-compatible resource handling that assumes
+               that addresses below 64kb do not exist.
+               
+               On 64bit systems, page zero is 4GB by default, so no problems
+               there.
+             }
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
+{$else ndef cpu64bitaddr}
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
+{$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
                DllCmd[1]:='libtool $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
