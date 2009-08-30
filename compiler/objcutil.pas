@@ -89,19 +89,14 @@ implementation
     type
       trecordinfostate = (ris_initial, ris_afterpointer, ris_dontprint);
 
-    function objcparasize(def: tdef; varspez: tvarspez): ptrint;
+    function objcparasize(vs: tparavarsym): ptrint;
       begin
-        if paramanager.push_addr_param(varspez,def,pocall_cdecl) then
-          result:=sizeof(pint)
-        else
-          begin
-            result:=def.size;
-            { In Objective-C, all ordinal types are widened to at least
-              the size of the C "int" type. Assume __LP64__/4 byte ints for now. }
-            if is_ordinal(def) and
-               (result<4) then
-              result:=4;
-          end;
+        result:=vs.paraloc[callerside].intsize;
+        { In Objective-C, all ordinal types are widened to at least the
+          size of the C "int" type. Assume __LP64__/4 byte ints for now. }
+        if is_ordinal(vs.vardef) and
+           (result<4) then
+          result:=4;
       end;
 
 
@@ -491,10 +486,26 @@ implementation
       begin
         result:='';
         totalsize:=0;
+        if not pd.has_paraloc_info then
+          begin
+            pd.requiredargarea:=paramanager.create_paraloc_info(pd,callerside);
+            pd.has_paraloc_info:=true;
+          end;
+{$if defined(powerpc) and defined(dummy)}
+        { Disabled, because neither Clang nor gcc does this, and the ObjC
+          runtime contains an explicit fix to detect this error.  }
+
+        { On ppc, the callee is responsible for removing the hidden function
+          result parameter from the stack, so it has to know. On i386, it's
+          the caller that does this.  }
+        if (pd.returndef<>voidtype) and
+            paramgr.ret_in_param(pd.returndef,pocall_cdecl) then
+          inc(totalsize,sizeof(pint));
+{$endif}
         for i:=0 to pd.parast.symlist.count-1 do
           begin
             vs:=tparavarsym(pd.parast.symlist[i]);
-            { addencodedtype always assumes a value/const parameter, so add
+            { addencodedtype always assumes a value parameter, so add
               a pointer indirection for var/out parameters.  }
             if not paramanager.push_addr_param(vs_value,vs.vardef,pocall_cdecl) and
                (vs.varspez in [vs_var,vs_out]) then
@@ -507,7 +518,7 @@ implementation
               (i.e., the "offset" of this parameter).  }
             result:=result+tostr(totalsize);
             { Update the total parameter size }
-            parasize:=objcparasize(vs.vardef,vs.varspez);
+            parasize:=objcparasize(vs);
             inc(totalsize,parasize);
           end;
         { Prepend the total parameter size.  }
