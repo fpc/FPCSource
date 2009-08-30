@@ -164,7 +164,7 @@ implementation
            is_objc_class_or_protocol(tprocdef(pd)._class) then
           begin
             { insert Objective-C self and selector parameters }
-            vs:=tparavarsym.create('$msgsel',paranr_vmt,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$_cmd',paranr_vmt,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
             pd.parast.insert(vs);
             vs:=tparavarsym.create('$self',paranr_self,vs_value,voidpointertype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
