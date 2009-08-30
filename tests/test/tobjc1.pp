@@ -21,4 +21,5 @@ begin
     halt(3);
   if (a.superclass<>nil) then
     halt(4);
+  a.release;
 end.

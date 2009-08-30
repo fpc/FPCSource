@@ -20,4 +20,5 @@ begin
       writeln('error: NSObject.Class <> NSObjectInstance.Class');
       halt(1);
     end;
+  a.release;
 end.
