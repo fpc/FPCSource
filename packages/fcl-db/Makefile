@@ -267,7 +267,7 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-db
 override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen  src/dbase
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen  src/dbase src/export
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -327,7 +327,7 @@ ifeq ($(FULL_TARGET),i386-symbian)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
@@ -351,7 +351,7 @@ ifeq ($(FULL_TARGET),m68k-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/paradox
@@ -372,7 +372,7 @@ ifeq ($(FULL_TARGET),powerpc-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/dbase src/sqlite src/paradox
@@ -384,7 +384,7 @@ ifeq ($(FULL_TARGET),sparc-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen  src/dbase
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen  src/dbase src/export
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen  src/dbase src/export
@@ -399,7 +399,7 @@ ifeq ($(FULL_TARGET),x86_64-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen  src/dbase
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen  src/dbase src/export
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -423,7 +423,7 @@ ifeq ($(FULL_TARGET),arm-symbian)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite
@@ -435,7 +435,7 @@ ifeq ($(FULL_TARGET),avr-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/export src/datadict src/codegen
+override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base  src/sqlite src/paradox src/datadict src/codegen
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 override TARGET_DIRS+=src/sdf src/memds src/sqldb src/base
@@ -2692,10 +2692,10 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 TARGET_DIRS_SRC/DBASE=1
+TARGET_DIRS_SRC/EXPORT=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 TARGET_DIRS_SRC/SDF=1
@@ -2859,7 +2859,6 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 endif
@@ -2922,7 +2921,6 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 endif
@@ -2973,7 +2971,6 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 endif
@@ -3006,10 +3003,10 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 TARGET_DIRS_SRC/DBASE=1
+TARGET_DIRS_SRC/EXPORT=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 TARGET_DIRS_SRC/SDF=1
@@ -3055,10 +3052,10 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 TARGET_DIRS_SRC/DBASE=1
+TARGET_DIRS_SRC/EXPORT=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 TARGET_DIRS_SRC/SDF=1
@@ -3117,7 +3114,6 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 endif
@@ -3147,7 +3143,6 @@ TARGET_DIRS_SRC/SQLDB=1
 TARGET_DIRS_SRC/BASE=1
 TARGET_DIRS_SRC/SQLITE=1
 TARGET_DIRS_SRC/PARADOX=1
-TARGET_DIRS_SRC/EXPORT=1
 TARGET_DIRS_SRC/DATADICT=1
 TARGET_DIRS_SRC/CODEGEN=1
 endif
@@ -3427,51 +3422,6 @@ src/paradox:
 	$(MAKE) -C src/paradox all
 .PHONY: src/paradox_all src/paradox_debug src/paradox_smart src/paradox_release src/paradox_units src/paradox_examples src/paradox_shared src/paradox_install src/paradox_sourceinstall src/paradox_exampleinstall src/paradox_distinstall src/paradox_zipinstall src/paradox_zipsourceinstall src/paradox_zipexampleinstall src/paradox_zipdistinstall src/paradox_clean src/paradox_distclean src/paradox_cleanall src/paradox_info src/paradox_makefiles src/paradox
 endif
-ifdef TARGET_DIRS_SRC/EXPORT
-src/export_all:
-	$(MAKE) -C src/export all
-src/export_debug:
-	$(MAKE) -C src/export debug
-src/export_smart:
-	$(MAKE) -C src/export smart
-src/export_release:
-	$(MAKE) -C src/export release
-src/export_units:
-	$(MAKE) -C src/export units
-src/export_examples:
-	$(MAKE) -C src/export examples
-src/export_shared:
-	$(MAKE) -C src/export shared
-src/export_install:
-	$(MAKE) -C src/export install
-src/export_sourceinstall:
-	$(MAKE) -C src/export sourceinstall
-src/export_exampleinstall:
-	$(MAKE) -C src/export exampleinstall
-src/export_distinstall:
-	$(MAKE) -C src/export distinstall
-src/export_zipinstall:
-	$(MAKE) -C src/export zipinstall
-src/export_zipsourceinstall:
-	$(MAKE) -C src/export zipsourceinstall
-src/export_zipexampleinstall:
-	$(MAKE) -C src/export zipexampleinstall
-src/export_zipdistinstall:
-	$(MAKE) -C src/export zipdistinstall
-src/export_clean:
-	$(MAKE) -C src/export clean
-src/export_distclean:
-	$(MAKE) -C src/export distclean
-src/export_cleanall:
-	$(MAKE) -C src/export cleanall
-src/export_info:
-	$(MAKE) -C src/export info
-src/export_makefiles:
-	$(MAKE) -C src/export makefiles
-src/export:
-	$(MAKE) -C src/export all
-.PHONY: src/export_all src/export_debug src/export_smart src/export_release src/export_units src/export_examples src/export_shared src/export_install src/export_sourceinstall src/export_exampleinstall src/export_distinstall src/export_zipinstall src/export_zipsourceinstall src/export_zipexampleinstall src/export_zipdistinstall src/export_clean src/export_distclean src/export_cleanall src/export_info src/export_makefiles src/export
-endif
 ifdef TARGET_DIRS_SRC/DATADICT
 src/datadict_all:
 	$(MAKE) -C src/datadict all
@@ -3606,6 +3556,51 @@ src/dbase_makefiles:
 src/dbase:
 	$(MAKE) -C src/dbase all
 .PHONY: src/dbase_all src/dbase_debug src/dbase_smart src/dbase_release src/dbase_units src/dbase_examples src/dbase_shared src/dbase_install src/dbase_sourceinstall src/dbase_exampleinstall src/dbase_distinstall src/dbase_zipinstall src/dbase_zipsourceinstall src/dbase_zipexampleinstall src/dbase_zipdistinstall src/dbase_clean src/dbase_distclean src/dbase_cleanall src/dbase_info src/dbase_makefiles src/dbase
+endif
+ifdef TARGET_DIRS_SRC/EXPORT
+src/export_all:
+	$(MAKE) -C src/export all
+src/export_debug:
+	$(MAKE) -C src/export debug
+src/export_smart:
+	$(MAKE) -C src/export smart
+src/export_release:
+	$(MAKE) -C src/export release
+src/export_units:
+	$(MAKE) -C src/export units
+src/export_examples:
+	$(MAKE) -C src/export examples
+src/export_shared:
+	$(MAKE) -C src/export shared
+src/export_install:
+	$(MAKE) -C src/export install
+src/export_sourceinstall:
+	$(MAKE) -C src/export sourceinstall
+src/export_exampleinstall:
+	$(MAKE) -C src/export exampleinstall
+src/export_distinstall:
+	$(MAKE) -C src/export distinstall
+src/export_zipinstall:
+	$(MAKE) -C src/export zipinstall
+src/export_zipsourceinstall:
+	$(MAKE) -C src/export zipsourceinstall
+src/export_zipexampleinstall:
+	$(MAKE) -C src/export zipexampleinstall
+src/export_zipdistinstall:
+	$(MAKE) -C src/export zipdistinstall
+src/export_clean:
+	$(MAKE) -C src/export clean
+src/export_distclean:
+	$(MAKE) -C src/export distclean
+src/export_cleanall:
+	$(MAKE) -C src/export cleanall
+src/export_info:
+	$(MAKE) -C src/export info
+src/export_makefiles:
+	$(MAKE) -C src/export makefiles
+src/export:
+	$(MAKE) -C src/export all
+.PHONY: src/export_all src/export_debug src/export_smart src/export_release src/export_units src/export_examples src/export_shared src/export_install src/export_sourceinstall src/export_exampleinstall src/export_distinstall src/export_zipinstall src/export_zipsourceinstall src/export_zipexampleinstall src/export_zipdistinstall src/export_clean src/export_distclean src/export_cleanall src/export_info src/export_makefiles src/export
 endif
 all: $(addsuffix _all,$(TARGET_DIRS))
 debug: $(addsuffix _debug,$(TARGET_DIRS))
