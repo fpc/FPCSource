@@ -389,7 +389,8 @@ implementation
                  if ((token=_CLASS) or
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE) or
-                     (token=_OBJCCLASS)) and
+                     (token=_OBJCCLASS) or
+                     (token=_OBJCPROTOCOL)) and
                     (assigned(ttypesym(sym).typedef)) and
                     is_class_or_interface_or_dispinterface_or_objc(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
