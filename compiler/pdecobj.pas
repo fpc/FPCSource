@@ -841,7 +841,8 @@ implementation
         { for implemented classes with a vmt check if there is a constructor }
         if (oo_has_vmt in current_objectdef.objectoptions) and
            not(oo_is_forward in current_objectdef.objectoptions) and
-           not(oo_has_constructor in current_objectdef.objectoptions) then
+           not(oo_has_constructor in current_objectdef.objectoptions) and
+           not is_objc_class_or_protocol(current_objectdef) then
           Message1(parser_w_virtual_without_constructor,current_objectdef.objrealname^);
 
         if is_interface(current_objectdef) or
