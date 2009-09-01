@@ -1,6 +1,10 @@
+{ %fail }
 { %cpu=i386 }
 
 { This test expects values on the stack, which is i386 only }
+
+{ This test should fail, because it can indeed only ever work on i386,
+  and even there the default typing by the compiler is wrong.  }
 
 { sixth simple array of const test
   for int64 values }
