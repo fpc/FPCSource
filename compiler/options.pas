@@ -120,6 +120,10 @@ const
                         + [system_i386_freebsd]
                         + [system_i386_netbsd]
                         + [system_i386_wdosx];
+                        
+  suppported_targets_x_smallr = system_linux
+                             + [system_i386_haiku]
+                             + [system_i386_beos];
 
 {****************************************************************************
                                  Defines
@@ -1617,9 +1621,14 @@ begin
                     'p' : ; { Ignore used by fpc.pp }
                     'r' :
                       begin
-                        rlinkpath:=Copy(more,2,length(More)-1);
-                        DefaultReplacements(rlinkpath);
-                        More:='';
+                        if (target_info.system in suppported_targets_x_smallr) then
+                          begin
+                            rlinkpath:=Copy(more,2,length(More)-1);
+                            DefaultReplacements(rlinkpath);
+                          end
+                        else
+                          UnsupportedPara('-Xr');
+                        more:='';
                       end;
                     'R' :
                       begin
