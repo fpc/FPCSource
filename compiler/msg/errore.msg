@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03262 is the last used one
+# 03263 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1229,7 +1229,10 @@ parser_e_objc_message_name_changed=03262_E_Message name "$1" in inherited class 
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-% \end{description}
+parser_e_no_objc_unique=03263_E_It is not yet possible to make unique copies of Objective-C types
+% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+%\end{description}
 
 #
 # Type Checking

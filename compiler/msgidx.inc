@@ -350,6 +350,7 @@ const
   parser_e_must_use_override_objc=03260;
   parser_h_should_use_override_objc=03261;
   parser_e_objc_message_name_changed=03262;
+  parser_e_no_objc_unique=03263;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -802,9 +803,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52739;
+  MsgTxtSize = 52813;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,263,90,65,51,108,22,202,62,
+    24,87,264,90,65,51,108,22,202,62,
     47,20,1,1,1,1,1,1,1,1
   );

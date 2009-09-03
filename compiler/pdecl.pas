@@ -443,10 +443,13 @@ implementation
                     istyperenaming:=true;
                   if isunique then
                     begin
+                      if is_objc_class_or_protocol(hdef) then
+                        Message(parser_e_no_objc_unique);
+
                       hdef:=tstoreddef(hdef).getcopy;
 
                       { fix name, it is used e.g. for tables }
-                      if is_class_or_interface_or_dispinterface_or_objc(hdef) then
+                      if is_class_or_interface_or_dispinterface(hdef) then
                         with tobjectdef(hdef) do
                           begin
                             stringdispose(objname);
@@ -525,7 +528,7 @@ implementation
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
                       during the protocol (interface) mapping. At the same time, set the
-                      mangled names.
+                      mangled names (these depend on the "external" name of the class).
                     }
                     if is_objc_class_or_protocol(hdef) then
                       tobjectdef(hdef).check_and_finish_messages;

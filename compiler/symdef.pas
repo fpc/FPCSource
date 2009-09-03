@@ -4390,7 +4390,15 @@ implementation
               depends on the (possibly external) class name, which is defined
               at the very end.  }
             if (po_msgstr in pd.procoptions) then
-              pd.setmangledname(pd.objcmangledname)
+              begin
+                { Mangled name is already set in case this is a copy of
+                  another type.  }
+                if not(po_has_mangledname in pd.procoptions) then
+                  pd.setmangledname(pd.objcmangledname)
+                else
+                  { all checks already done }
+                  exit;
+              end
             else
               MessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
             if not(oo_is_external in pd._class.objectoptions) then
