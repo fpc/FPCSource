@@ -4114,7 +4114,7 @@ implementation
      var
        vs: tfieldvarsym;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass] then
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
           exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
