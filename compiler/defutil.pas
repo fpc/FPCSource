@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,constexp,
+       globtype,globals,constexp,node,
        symconst,symbase,symtype,symdef,
        cgbase,cpubase;
 
@@ -42,6 +42,9 @@ interface
 
     {# Returns true, if definition defines an ordinal type }
     function is_ordinal(def : tdef) : boolean;
+
+    {# Returns true, if definition defines a string type }
+    function is_string(def : tdef): boolean;
 
     {# Returns the minimal integer value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
@@ -372,6 +375,12 @@ implementation
            else
              is_ordinal:=false;
          end;
+      end;
+
+    { true if p is a string }
+    function is_string(def : tdef) : boolean;
+      begin
+        is_string := (assigned(def) and (def.typ = stringdef));
       end;
 
 

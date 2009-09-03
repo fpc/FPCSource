@@ -191,6 +191,7 @@ interface
 
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
+    function get_string_value(p : tnode; is_wide : boolean = false) : TConstString;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -199,7 +200,7 @@ implementation
 
     uses
       cutils,
-      verbose,systems,
+      verbose,systems,sysutils,
       defutil,
       cpubase,cgbase,
       nld;
@@ -236,6 +237,73 @@ implementation
           Message(type_e_constant_expr_expected);
       end;
 
+    function get_string_value(p : tnode; is_wide : boolean) : TConstString;
+      var
+        pCharVal: pchar;
+        stringVal: string;
+        pWideStringVal: pcompilerwidestring;
+        ordValRecord: TConstExprInt;
+      begin
+        get_string_value := '';
+        if is_conststring_or_constcharnode(p) then
+          begin
+            if is_constcharnode(p) or is_constwidecharnode(p) then
+              begin
+                { if we have case like 'aa'..'b' the right part will never be ordinal }
+                { but in case 'a' it will go here }
+                ordValRecord := tordconstnode(p).value;
+                if (not is_wide) then
+                  begin
+                    if ordValRecord.signed then
+                      stringVal := char(ordValRecord.svalue) + ''#0
+                    else
+                      stringVal := char(ordValRecord.uvalue) + ''#0;
+                    getmem(pCharVal, length(stringVal));
+                    strpcopy(pCharVal, stringVal);
+                    get_string_value := pCharVal;
+                  end
+                else
+                  begin
+                    initwidestring(pWideStringVal);
+                    if ordValRecord.signed then
+                      concatwidestringchar(pWideStringVal, tcompilerwidechar(ordValRecord.svalue))
+                    else
+                      concatwidestringchar(pWideStringVal, tcompilerwidechar(ordValRecord.uvalue));
+                    get_string_value := TConstString(pWideStringVal);
+                  end;
+              end
+            else
+              begin
+                if is_wide then
+                  begin
+                    if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
+                      get_string_value := tstringconstnode(p).value_str
+                    else
+                      { if string must be wide, but actually was parsed as usual }
+                      begin
+                        initwidestring(pWideStringVal);
+                        ascii2unicode(tstringconstnode(p).value_str, tstringconstnode(p).len, pWideStringVal);
+                        get_string_value := TConstString(pWideStringVal);
+                      end;
+                  end
+                else
+                  begin
+                    if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
+                      { string is wide but it must be usual }
+                      begin
+                        getmem(pCharVal, pcompilerwidestring(tstringconstnode(p).value_str)^.len + 1);
+                        unicode2ascii(pcompilerwidestring(tstringconstnode(p).value_str), pCharVal);
+                        pCharVal[pcompilerwidestring(tstringconstnode(p).value_str)^.len] := #0;
+                        get_string_value := pCharVal;
+                      end
+                    else
+                      get_string_value := tstringconstnode(p).value_str;
+                  end;
+              end;
+          end
+        else
+          Message(type_e_string_expr_expected);
+      end;
 
     function is_constresourcestringnode(p : tnode) : boolean;
       begin

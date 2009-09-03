@@ -418,6 +418,8 @@ const
   type_e_expected_objc_method_but_got=04085;
   type_e_expected_objc_method=04086;
   type_e_no_type_info=04087;
+  type_e_ordinal_or_string_expr_expected=04088;
+  type_e_string_expr_expected=04089;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -789,9 +791,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 51588;
+  MsgTxtSize = 51669;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,253,88,65,50,108,22,202,62,
+    24,87,253,90,65,50,108,22,202,62,
     47,20,1,1,1,1,1,1,1,1
   );

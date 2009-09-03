@@ -42,7 +42,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       systems,
+       strings,systems,
        { aasm }
        cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
@@ -57,7 +57,9 @@ implementation
        { codegen }
        procinfo,cgbase,
        { assembler reader }
-       rabase
+       rabase,
+       { wide- and unicodestrings}
+       widestr
        ;
 
 
@@ -113,12 +115,17 @@ implementation
 
 
     function case_statement : tnode;
+      const
+        st2cst : array[tstringtype] of tconststringtype = (
+          cst_shortstring,cst_longstring,cst_ansistring,
+          cst_widestring,cst_unicodestring);
       var
          casedef : tdef;
          caseexpr,p : tnode;
          blockid : longint;
          hl1,hl2 : TConstExprInt;
-         casedeferror : boolean;
+         sl1,sl2 : TConstString;
+         casedeferror, caseofstring : boolean;
          casenode : tcasenode;
       begin
          consume(_CASE);
@@ -134,10 +141,16 @@ implementation
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
          casedeferror:=false;
          casedef:=caseexpr.resultdef;
+         { case of string must be rejected in delphi-, }
+         { tp7/bp7-, mac-compatibility modes.          }
+         caseofstring :=
+           ([m_delphi, m_mac, m_tp7] * current_settings.modeswitches = []) and
+           is_string(casedef);
+
          if (not assigned(casedef)) or
-            not(is_ordinal(casedef)) then
+            ( not(is_ordinal(casedef)) and (not caseofstring) ) then
           begin
-            CGMessage(type_e_ordinal_expr_expected);
+            CGMessage(type_e_ordinal_or_string_expr_expected);
             { create a correct tree }
             caseexpr.free;
             caseexpr:=cordconstnode.create(0,u32inttype,false);
@@ -168,14 +181,29 @@ implementation
                        do_typecheckpass(p);
                     end;
                end;
-
              hl1:=0;
              hl2:=0;
+             sl1:='';
+             sl2:='';
              if (p.nodetype=rangen) then
                begin
-                  { type checking for case statements }
-                  if is_subequal(casedef, trangenode(p).left.resultdef) and
-                     is_subequal(casedef, trangenode(p).right.resultdef) then
+                  { type check for string case statements }
+                  if caseofstring and
+                    is_conststring_or_constcharnode(trangenode(p).left) and
+                    is_conststring_or_constcharnode(trangenode(p).right) then
+                  begin
+                    sl1 := get_string_value(trangenode(p).left, is_wide_or_unicode_string(casedef));
+                    sl2 := get_string_value(trangenode(p).right, is_wide_or_unicode_string(casedef));
+                    if (
+                      (is_wide_or_unicode_string(casedef) and (
+                        comparewidestrings(pcompilerwidestring(sl1), pcompilerwidestring(sl2)) > 0)) or
+                      ((not is_wide_or_unicode_string(casedef)) and (strcomp(sl1, sl2) > 0))) then
+                      CGMessage(parser_e_case_lower_less_than_upper_bound);
+                  end
+                  { type checking for ordinal case statements }
+                  else if (not caseofstring) and
+                    is_subequal(casedef, trangenode(p).left.resultdef) and
+                    is_subequal(casedef, trangenode(p).right.resultdef) then
                     begin
                       hl1:=get_ordinal_value(trangenode(p).left);
                       hl2:=get_ordinal_value(trangenode(p).right);
@@ -189,17 +217,30 @@ implementation
                     end
                   else
                     CGMessage(parser_e_case_mismatch);
-                  casenode.addlabel(blockid,hl1,hl2);
+
+                  if caseofstring then
+                    casenode.addlabel(blockid,sl1,sl2,st2cst[tstringdef(casedef).stringtype])
+                  else
+                    casenode.addlabel(blockid,hl1,hl2);
                end
              else
-               begin
-                  { type checking for case statements }
-                  if not is_subequal(casedef, p.resultdef) then
+               begin                
+                  { type check for string case statements }
+                  if (caseofstring and (not is_conststring_or_constcharnode(p))) or
+                  { type checking for ordinal case statements }
+                    ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
                     CGMessage(parser_e_case_mismatch);
-                  hl1:=get_ordinal_value(p);
-                  if not casedeferror then
-                    testrange(casedef,hl1,false);
-                  casenode.addlabel(blockid,hl1,hl1);
+                  
+                  if caseofstring then begin
+                    sl1:=get_string_value(p, is_wide_or_unicode_string(casedef));
+                    casenode.addlabel(blockid,sl1,sl1,st2cst[tstringdef(casedef).stringtype]);
+                  end
+                  else begin
+                    hl1:=get_ordinal_value(p);
+                    if not casedeferror then
+                      testrange(casedef,hl1,false);
+                    casenode.addlabel(blockid,hl1,hl1);
+                  end;
                end;
              p.free;
              if token=_COMMA then

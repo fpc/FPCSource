@@ -473,6 +473,9 @@ interface
     function is_constenumnode(p : tnode) : boolean;
     function is_constwidecharnode(p : tnode) : boolean;
     function is_constpointernode(p : tnode) : boolean;
+    function is_conststringnode(p : tnode) : boolean;
+    function is_constwidestringnode(p : tnode) : boolean;
+    function is_conststring_or_constcharnode(p : tnode) : boolean;
 
 
 implementation
@@ -687,6 +690,25 @@ implementation
     function is_constpointernode(p : tnode) : boolean;
       begin
          is_constpointernode:=(p.nodetype=pointerconstn);
+      end;
+
+    function is_conststringnode(p : tnode) : boolean;
+      begin
+         is_conststringnode :=
+           (p.nodetype = stringconstn) and is_chararray(p.resultdef);
+      end;
+
+    function is_constwidestringnode(p : tnode) : boolean;
+      begin
+         is_constwidestringnode :=
+           (p.nodetype = stringconstn) and is_widechararray(p.resultdef);
+      end;
+
+    function is_conststring_or_constcharnode(p : tnode) : boolean;
+      begin
+        is_conststring_or_constcharnode :=
+          is_conststringnode(p) or is_constcharnode(p) or
+          is_constwidestringnode(p) or is_constwidecharnode(p);
       end;
 
 
