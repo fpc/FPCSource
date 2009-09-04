@@ -14,11 +14,11 @@ dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_beos=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
 dirs_haiku=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
 dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
