@@ -88,8 +88,14 @@ GDBVER:=GDB_V$(strip $(shell $(CURRDIR)gdbver$(EXEEXT) -n))
 gdbver.inc: gdbver$(EXEEXT)
         ./gdbver$(EXEEXT) -o gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
+# MingW?
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
 	@$(ECHO) Using GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
+        $(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
+else
+	@$(ECHO) Using GDB $(GDBVER) (MingW)
+	$(COMPILER) -d$(GDBVER) -dUSE_MINGW_GDB -Fisrc -Fusrc src/gdbint.pp
+endif
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 endif
 

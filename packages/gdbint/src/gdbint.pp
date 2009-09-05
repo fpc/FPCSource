@@ -226,6 +226,7 @@ interface
     {$LINKLIB libmingwex.a}
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
+    {$LINKLIB libdecnumber.a}
     {$undef GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
