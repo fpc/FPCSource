@@ -72,8 +72,8 @@ CONST
     const
       threadvarblocksize : dword = 0;
 
-    var
-      TLSKey : Dword;
+    const
+      TLSKey : DWord = $ffffffff;
 
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin
@@ -104,14 +104,22 @@ CONST
       var
         dataindex : pointer;
         errorsave : dword;
-      begin
+      begin	    
 {$ifdef dummy}
-        { I've no clue why this doesn't read dataindex, imo it should (FK) }
+        { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
+          self referencing on this system (FK) }
         asm
           movl TLSKey,%edx
-          movl $0x2c,%eax
-          movl %fs:(%eax),%eax
-          movl (%eax,%edx,4),%eax
+          movl %fs:(0x2c),%eax
+          orl  %eax,%eax
+          jnz  .LAddressInEAX
+		  { this works on Windows 7, but I don't know if it works on other OSes (FK) }
+          movl %fs:(0x18),%eax
+          movl 0xe10(%eax,%edx,4),%eax
+          jmp  .LToDataIndex
+          .LAddressInEAX:
+           movl (%eax,%edx,4),%eax
+          .LToDataIndex:
           movl %eax,dataindex
         end;
         if DataIndex=nil then
@@ -179,11 +187,14 @@ CONST
     procedure SysInitMultithreading;
       begin
         { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
-        if TLSKey = 0 then
+        
+        { the thread attach/detach code uses locks to avoid multiple calls of this }
+        if TLSKey=$ffffffff then
          begin
            { We're still running in single thread mode, setup the TLS }
            TLSKey:=TlsAlloc;
            InitThreadVars(@SysRelocateThreadvar);
+		   { allocate the thread vars for the main thread }
            IsMultiThread:=true;
          end;
       end;
@@ -191,10 +202,10 @@ CONST
     procedure SysFiniMultithreading;
       begin
         if IsMultiThread then
-         begin
-           TlsFree(TLSKey);
-           TLSKey := 0;
-         end;
+          begin
+            TlsFree(TLSKey);
+            TLSKey:=$ffffffff;
+          end;
       end;
 
     function SysBeginThread(sa : Pointer;stacksize : ptruint;
@@ -333,10 +344,10 @@ end;
 
 
 Const
-        wrSignaled = 0;
-        wrTimeout  = 1;
-        wrAbandoned= 2;
-        wrError    = 3;
+  wrSignaled = 0;
+  wrTimeout  = 1;
+  wrAbandoned= 2;
+  wrError    = 3;
 
 type Tbasiceventstate=record
                         fhandle    : THandle;
