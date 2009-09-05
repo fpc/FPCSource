@@ -3532,15 +3532,18 @@ implementation
           internalerror(2009030901);
         { we may very well need longer strings to handle these... }
         if ((255-length(tobjectdef(procsym.owner.defowner).objextname^)
-             -length('+[ ]')-length(messageinf.str^)) < 0) then
+             -length('+"[ ]"')-length(messageinf.str^)) < 0) then
           Message1(parser_e_objc_message_name_too_long,messageinf.str^);
         if not(po_classmethod in procoptions) then
-          result:='-['
+          result:='"-['
         else
-          result:='+[';
+          result:='"+[';
+        { quotes are necessary because the +/- otherwise confuse the assembler
+          into expecting a number
+        }
         result:=
-          result+tobjectdef(procsym.owner.defowner).objrealname^+' '+
-          messageinf.str^+']';
+          result+tobjectdef(procsym.owner.defowner).objextname^+' '+
+          messageinf.str^+']"';
       end;
 
 
