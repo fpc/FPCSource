@@ -24,6 +24,8 @@ Const
 Var
   DLLBuf : Jmp_buf;
   MainThreadIdWin32 : DWORD;
+  AttachingThread : TRTLCriticalSection;
+
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   var
@@ -37,6 +39,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
+           WinInitCriticalSection(AttachingThread);
            MainThreadIdWin32 := Win32GetCurrentThreadId;
            If SetJmp(DLLBuf) = 0 then
              begin
@@ -59,7 +62,8 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
        DLL_THREAD_ATTACH :
          begin
            inclocked(Thread_count);
-
+           
+           WinEnterCriticalSection(AttachingThread);
            if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
            begin
              { Set up TLS slot for the DLL }
@@ -73,14 +77,15 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
-         end;
+           WinLeaveCriticalSection(AttachingThread);
+        end;
        DLL_THREAD_DETACH :
          begin
            declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
+           if (Win32GetCurrentThreadId<>MainThreadIdWin32) then
              DoneThread; { Assume everything is idempotent there }
            Dll_entry:=true; { return value is ignored }
          end;
@@ -94,6 +99,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
 
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
+           WinDoneCriticalSection(AttachingThread);
          end;
      end;
   end;

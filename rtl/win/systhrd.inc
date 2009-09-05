@@ -187,6 +187,8 @@ CONST
     procedure SysInitMultithreading;
       begin
         { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
+        
+        { the thread attach/detach code uses locks to avoid multiple calls of this }
         if TLSKey=$ffffffff then
          begin
            { We're still running in single thread mode, setup the TLS }
@@ -200,10 +202,10 @@ CONST
     procedure SysFiniMultithreading;
       begin
         if IsMultiThread then
-         begin
-           TlsFree(TLSKey);
-           TLSKey:=$ffffffff;
-         end;
+          begin
+            TlsFree(TLSKey);
+            TLSKey:=$ffffffff;
+          end;
       end;
 
     function SysBeginThread(sa : Pointer;stacksize : ptruint;
@@ -342,10 +344,10 @@ end;
 
 
 Const
-        wrSignaled = 0;
-        wrTimeout  = 1;
-        wrAbandoned= 2;
-        wrError    = 3;
+  wrSignaled = 0;
+  wrTimeout  = 1;
+  wrAbandoned= 2;
+  wrError    = 3;
 
 type Tbasiceventstate=record
                         fhandle    : THandle;
