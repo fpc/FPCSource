@@ -166,7 +166,7 @@ begin
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='libtool $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
                DllCmd[1]:='ld $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
@@ -232,7 +232,10 @@ begin
             result:='/usr/lib/bundle1.o'
         end
       else
-        result:=''
+        begin
+          if not librarysearchpath.FindFile('dylib1.o',false,result) then
+            result:='/usr/lib/bundle1.o'
+        end;
     end;
 end;    
 
