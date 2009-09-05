@@ -1491,11 +1491,11 @@ type_e_no_type_info=04087_E_No type info available for this type
 % Type information is not generated for some types, such as enumerations with gaps
 % in their value range (this includes enumerations whose lower bound is different
 % from zero).
-% \end{description}
 type_e_ordinal_or_string_expr_expected=04088_E_Ordinal or string expression expected
 % The expression must be an ordinal or string type.
 type_e_string_expr_expected=04089_E_String expression expected
 % The expression must be a string type.
+% \end{description}
 #
 # Symtable
 #
