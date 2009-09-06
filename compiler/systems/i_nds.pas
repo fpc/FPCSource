@@ -1,5 +1,5 @@
 {
-    This unit implements support information structures for GameBoy Advance
+    This unit implements support information structures for Nintendo DS
 
     Copyright (c) 1998-2002 by Peter Vreman
 
@@ -34,8 +34,8 @@ unit i_nds;
             system       : system_arm_nds;
             name         : 'Nintendo DS';
             shortname    : 'nds';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
-                           ,tf_requires_proper_alignment,tf_smartlink_sections];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : '';
@@ -88,7 +88,7 @@ unit i_nds;
               );
             first_parm_offset : 8;
             stacksize    : $3CFF; //15615? or 16384?;
-            abi : abi_default
+            abi : abi_eabi
           );
 
   implementation
