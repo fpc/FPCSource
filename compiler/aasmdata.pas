@@ -65,6 +65,9 @@ interface
         al_resourcestrings,
         { Objective-C related sections }
         al_objc_data,
+        { keep pool data separate, so we can generate new pool entries
+          while emitting other data }
+        al_objc_pools,
         al_end
       );
 
@@ -79,8 +82,10 @@ interface
          sp_ansistr,
          sp_widestr,
          sp_unicodestr,
-         sp_objcselector,
-         sp_objcmetaclass
+         sp_objcmetaclass,
+         sp_objcvarnames,
+         sp_objcvartypes,
+         sp_objcclassnames
       );
       
     const
@@ -104,6 +109,7 @@ interface
         'al_picdata',
         'al_resourcestrings',
         'al_objc_data',
+        'al_objc_pools',
         'al_end'
       );
 

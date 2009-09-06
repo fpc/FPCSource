@@ -45,6 +45,7 @@ implementation
        link,assemble,import,export,gendef,ppu,comprsrc,dbgbase,
        cresstr,procinfo,
        pexports,
+       objcgutl,
        wpobase,
        scanner,pbase,pexpr,psystem,psub,pdecsub,ptype
        ,cpuinfo
@@ -233,21 +234,6 @@ implementation
             current_module.flags:=current_module.flags or uf_threadvars;
           end;
          ltvTable.Free;
-      end;
-
-
-    procedure MaybeGenerateObjectiveCImageInfo;
-      begin
-        if (m_objectivec1 in current_settings.modeswitches) then
-          begin
-            { first 4 bytes contain version information about this section (currently version 0),
-              next 4 bytes contain flags (currently only regarding whether the code in the object
-              file supports or requires garbage collection)
-            }
-            new_section(current_asmdata.asmlists[al_objc_data],sec_objc_image_info,'_OBJC_IMAGE_INFO',4);
-            current_asmdata.asmlists[al_objc_data].concat(Tai_symbol.Createname(target_asm.labelprefix+'_OBJC_IMAGE_INFO',AT_LABEL,8));
-            current_asmdata.asmlists[al_objc_data].concat(Tai_const.Create_64bit(0));
-          end;
       end;
 
 
@@ -1216,8 +1202,8 @@ implementation
             exit;
           end;
 
-         { if an Objective-C module, generate objc_image_info section }
-         MaybeGenerateObjectiveCImageInfo;
+         { if an Objective-C module, generate rtti and module info }
+         MaybeGenerateObjectiveCImageInfo(current_module.globalsymtable,current_module.localsymtable);
 
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
@@ -2154,9 +2140,6 @@ implementation
                 end;
           end;
 
-         { if an Objective-C module, generate objc_image_info section }
-         MaybeGenerateObjectiveCImageInfo;
-
          { do we need to add the variants unit? }
          maybeloadvariantsunit;
 
@@ -2185,6 +2168,9 @@ implementation
 
          { generate rtti/init tables }
          write_persistent_type_info(current_module.localsymtable);
+
+         { if an Objective-C module, generate rtti and module info }
+         MaybeGenerateObjectiveCImageInfo(nil,current_module.localsymtable);
 
          { generate wrappers for interfaces }
          gen_intf_wrappers(current_asmdata.asmlists[al_procedures],current_module.localsymtable);

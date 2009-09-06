@@ -61,9 +61,9 @@ procedure tcgobjcselectornode.pass_generate_code;
     name   : pshortstring;
     pc     : pchar;
   begin
-    if current_asmdata.ConstPools[sp_objcselector]=nil then
-      current_asmdata.ConstPools[sp_objcselector]:=THashSet.Create(64, True, False);
-    pool:=current_asmdata.ConstPools[sp_objcselector];
+    if current_asmdata.ConstPools[sp_objcvarnames]=nil then
+      current_asmdata.ConstPools[sp_objcvarnames]:=THashSet.Create(64, True, False);
+    pool:=current_asmdata.ConstPools[sp_objcvarnames];
 
     case left.nodetype of
       loadn:
