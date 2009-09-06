@@ -163,7 +163,7 @@ begin
              }
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
                DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
@@ -500,7 +500,7 @@ var
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
-  StripStr   : string[40];
+  StripStr   : string[63];
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
