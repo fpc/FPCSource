@@ -51,6 +51,7 @@ Type
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
     procedure UnsupportedPara(const opt:string);
+    procedure IgnoredPara(const opt:string);
     function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
@@ -448,6 +449,12 @@ procedure toption.UnsupportedPara(const opt: string);
 begin
   Message1(option_unsupported_target,opt);
   StopOptions(1);
+end;
+
+
+procedure toption.IgnoredPara(const opt: string);
+begin
+  Message1(option_ignored_target,opt);
 end;
 
 
@@ -1627,7 +1634,7 @@ begin
                             DefaultReplacements(rlinkpath);
                           end
                         else
-                          UnsupportedPara('-Xr');
+                          IgnoredPara('-Xr');
                         more:='';
                       end;
                     'R' :
