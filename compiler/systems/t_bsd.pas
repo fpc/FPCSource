@@ -234,7 +234,7 @@ begin
       else
         begin
           if not librarysearchpath.FindFile('dylib1.o',false,result) then
-            result:='/usr/lib/bundle1.o'
+            result:='/usr/lib/dylib1.o'
         end;
     end;
 end;    
