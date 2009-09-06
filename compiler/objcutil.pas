@@ -502,9 +502,9 @@ implementation
             paramgr.ret_in_param(pd.returndef,pocall_cdecl) then
           inc(totalsize,sizeof(pint));
 {$endif}
-        for i:=0 to pd.parast.symlist.count-1 do
+        for i:=0 to pd.paras.count-1 do
           begin
-            vs:=tparavarsym(pd.parast.symlist[i]);
+            vs:=tparavarsym(pd.paras[i]);
             { addencodedtype always assumes a value parameter, so add
               a pointer indirection for var/out parameters.  }
             if not paramanager.push_addr_param(vs_value,vs.vardef,pocall_cdecl) and
