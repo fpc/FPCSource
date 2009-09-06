@@ -43,6 +43,8 @@ Type
 
 function combinepaths(relpath,basepath:String):String;
 function CHMResolve( href: ansistring; var AFileId,ALinkId : longint):boolean;
+
+function stringreplace(const s:ansistring;const oldstr:ansistring; const newstr:ansistring):ansistring;
 implementation
 
 var CHMIndex : TStringList; // list to register open CHMs.
@@ -292,6 +294,11 @@ begin
     end
 end;
 
+function stringreplace(const s:ansistring;const oldstr:ansistring; const newstr:ansistring):ansistring;
+
+begin
+  result:=sysutils.stringreplace(s,oldstr,newstr,[rfreplaceall]);
+end;
 initialization
   ChmIndex:=TStringlist.create;
   ChmIndex.sorted:=true;

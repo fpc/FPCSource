@@ -1346,6 +1346,11 @@ end;
 
 Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
 begin
+ if copy(relative,1,6)='http:/' then // external links don't need to be fixed since we can't load them.
+   begin
+     CanonicalizeUrl:=relative;
+     exit;
+   end;
  if copy(relative,1,7)<>'ms-its:' then
    CanonicalizeUrl:=combinepaths(relative,base)
   else
@@ -1358,8 +1363,8 @@ begin
 {$IFDEF WDEBUG}
   DebugMessageS({$i %file%},' chmresolve "'+HRef+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
-
-  resolved:=false;
+  resolved:=false; AFileID:=0; ALinkID:=0;	
+  href:=stringreplace(href,'%20',' '); 
   if copy(href,1,7)='ms-its:' then
     resolved:=CHMResolve(Href,AFileId,ALinkID);
   if not resolved then
