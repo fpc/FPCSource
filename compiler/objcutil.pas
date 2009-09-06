@@ -505,6 +505,8 @@ implementation
         for i:=0 to pd.paras.count-1 do
           begin
             vs:=tparavarsym(pd.paras[i]);
+            if (vo_is_funcret in vs.varoptions) then
+              continue;
             { addencodedtype always assumes a value parameter, so add
               a pointer indirection for var/out parameters.  }
             if not paramanager.push_addr_param(vs_value,vs.vardef,pocall_cdecl) and
