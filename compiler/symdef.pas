@@ -4385,7 +4385,8 @@ implementation
       var
         def: tdef absolute data;
         pd: tprocdef absolute data;
-        i: longint;
+        i,
+        paracount: longint;
       begin
         if (def.typ=procdef) then
           begin
@@ -4397,7 +4398,21 @@ implementation
                 { Mangled name is already set in case this is a copy of
                   another type.  }
                 if not(po_has_mangledname in pd.procoptions) then
-                  pd.setmangledname(pd.objcmangledname)
+                  begin
+                    { check whether the number of formal parameters is correct }
+                    paracount:=0;
+                    for i:=1 to length(pd.messageinf.str^) do
+                      if pd.messageinf.str^[i]=':' then
+                        inc(paracount);
+                    for i:=0 to pd.paras.count-1 do
+                      if not(vo_is_hidden_para in tparavarsym(pd.paras[i]).varoptions) and
+                         not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
+                        dec(paracount);
+                    if (paracount<>0) then
+                      MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
+
+                    pd.setmangledname(pd.objcmangledname);
+                  end
                 else
                   { all checks already done }
                   exit;
