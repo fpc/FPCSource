@@ -89,7 +89,6 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
   var
     reflab : tasmlabel;
     strlab : tasmsymbol;
-    pc     : pchar;
   begin
     { have we already generated a reference for this string entry? }
     if not assigned(entry^.Data) then
@@ -100,10 +99,8 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         { and now finish the reference }
         current_asmdata.getlabel(reflab,alt_data);
         entry^.Data:=reflab;
-        getmem(pc,entry^.keylength+1);
-        move(entry^.key^,pc^,entry^.keylength);
-        pc[entry^.keylength]:=#0;
-        { add a pointer to the message name in the string references section }
+
+        { add a pointer to the string in the string references section }
         new_section(current_asmdata.asmlists[al_objc_pools],refsec,reflab.name,sizeof(pint));
         current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(reflab));
         current_asmdata.asmlists[al_objc_pools].concat(Tai_const.Create_sym(strlab));
