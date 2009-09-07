@@ -1719,6 +1719,13 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
+sym_e_objc_para_mismatch=05065_E_Mismatch between number of declared parameters and number of colons in message string.
+% In Objective-C, a message name automatically contains as many colons as parameters.
+% In order to prevent mistakes when specifying the message name in FPC, the compiler
+% checks whether this is also the case here. Note that in case of messages taking a
+% variable number of arguments translated to FPC via an \var{array of const} parameter,
+% this final \var{array of const} parameter is not counted. Neither are the hidden
+% \var{self} and \var{_cmd} parameters.
 % \end{description}
 #
 # Codegenerator
