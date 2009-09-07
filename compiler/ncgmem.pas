@@ -115,12 +115,12 @@ implementation
              else
                begin
                  { find/add necessary classref/classname pool entries }
-                 if current_asmdata.ConstPools[sp_objcmetaclass]=nil then
-                   current_asmdata.ConstPools[sp_objcmetaclass]:=THashSet.Create(64, True, False);
-                 pool:=current_asmdata.ConstPools[sp_objcmetaclass];
+                 if current_asmdata.ConstPools[sp_objcclassnamerefs]=nil then
+                   current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
+                 pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  typename:=left.resultdef.gettypename;
                  entry:=pool.FindOrAdd(@typename[1],length(typename));
-                 objcfinishstringrefpoolentry(entry,sec_objc_cls_refs,sec_objc_class_names);
+                 objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
                end;

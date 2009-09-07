@@ -82,10 +82,11 @@ interface
          sp_ansistr,
          sp_widestr,
          sp_unicodestr,
-         sp_objcmetaclass,
+         sp_objcclassnamerefs,
+         sp_varnamerefs,
+         sp_objcclassnames,
          sp_objcvarnames,
-         sp_objcvartypes,
-         sp_objcclassnames
+         sp_objcvartypes
       );
       
     const

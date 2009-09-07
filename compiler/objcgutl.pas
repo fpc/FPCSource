@@ -29,10 +29,10 @@ interface
 
   uses
     cclasses,
-    aasmbase,
+    aasmbase,aasmdata,
     symbase;
 
-  procedure objcfinishstringrefpoolentry(entry: phashsetitem; refsec, stringsec: tasmsectiontype);
+  procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
 
   procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
 
@@ -42,7 +42,7 @@ implementation
   uses
     globtype,globals,
     systems,
-    aasmdata,aasmtai,
+    aasmtai,
     cgbase,cgutils,
     objcutil,
     symconst,symtype,symsym,symdef,symtable,
@@ -53,38 +53,7 @@ implementation
                        String section helpers
 *******************************************************************}
 
-procedure objcfinishstringrefpoolentry(entry: phashsetitem; refsec, stringsec: tasmsectiontype);
-  var
-    reflab,
-    strlab : tasmlabel;
-    pc     : pchar;
-  begin
-    { have we already generated this selector? }
-    if not assigned(entry^.Data) then
-      begin
-        { create new one
-          (no getdatalabel, because these labels have to be local)
-        }
-        current_asmdata.getlabel(reflab,alt_data);
-        current_asmdata.getlabel(strlab,alt_data);
-        entry^.Data:=reflab;
-        getmem(pc,entry^.keylength+1);
-        move(entry^.key^,pc^,entry^.keylength);
-        pc[entry^.keylength]:=#0;
-        { add a pointer to the message name in the string references section }
-        new_section(current_asmdata.asmlists[al_objc_pools],refsec,reflab.name,sizeof(pint));
-        current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(reflab));
-        current_asmdata.asmlists[al_objc_pools].concat(Tai_const.Create_sym(strlab));
-
-        { and now add the message name to the associated strings section }
-        new_section(current_asmdata.asmlists[al_objc_pools],stringsec,strlab.name,sizeof(pint));
-        current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(strlab));
-        current_asmdata.asmlists[al_objc_pools].concat(Tai_string.Create_pchar(pc,entry^.keylength+1));
-    end;
-  end;
-
-
-function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype): TAsmSymbol;
+function objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconstpooltype; stringsec: tasmsectiontype): TAsmSymbol;
   var
     entry  : PHashSetItem;
     strlab : tasmlabel;
@@ -95,7 +64,7 @@ function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; str
        current_asmdata.ConstPools[pooltype]:=THashSet.Create(64, True, False);
     pool := current_asmdata.constpools[pooltype];
 
-    entry:=pool.FindOrAdd(@s[1],length(s));
+    entry:=pool.FindOrAdd(p,len);
     if not assigned(entry^.data) then
       begin
         { create new entry }
@@ -113,6 +82,39 @@ function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; str
       end
     else
       Result := TAsmLabel(Entry^.Data);
+  end;
+
+
+procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpooltype; refsec, stringsec: tasmsectiontype);
+  var
+    reflab : tasmlabel;
+    strlab : tasmsymbol;
+    pc     : pchar;
+  begin
+    { have we already generated a reference for this string entry? }
+    if not assigned(entry^.Data) then
+      begin
+        { no, add the string to the associated strings section }
+        strlab:=objcreatestringpoolentryintern(pchar(entry^.key),entry^.keylength,stringpool,stringsec);
+
+        { and now finish the reference }
+        current_asmdata.getlabel(reflab,alt_data);
+        entry^.Data:=reflab;
+        getmem(pc,entry^.keylength+1);
+        move(entry^.key^,pc^,entry^.keylength);
+        pc[entry^.keylength]:=#0;
+        { add a pointer to the message name in the string references section }
+        new_section(current_asmdata.asmlists[al_objc_pools],refsec,reflab.name,sizeof(pint));
+        current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(reflab));
+        current_asmdata.asmlists[al_objc_pools].concat(Tai_const.Create_sym(strlab));
+    end;
+  end;
+
+
+
+function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype): TAsmSymbol;
+  begin
+    result:=objcreatestringpoolentryintern(@s[1],length(s),pooltype,stringsec);
   end;
 
 

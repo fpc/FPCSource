@@ -61,9 +61,9 @@ procedure tcgobjcselectornode.pass_generate_code;
     name   : pshortstring;
     pc     : pchar;
   begin
-    if current_asmdata.ConstPools[sp_objcvarnames]=nil then
-      current_asmdata.ConstPools[sp_objcvarnames]:=THashSet.Create(64, True, False);
-    pool:=current_asmdata.ConstPools[sp_objcvarnames];
+    if current_asmdata.ConstPools[sp_varnamerefs]=nil then
+      current_asmdata.ConstPools[sp_varnamerefs]:=THashSet.Create(64, True, False);
+    pool:=current_asmdata.ConstPools[sp_varnamerefs];
 
     case left.nodetype of
       loadn:
@@ -83,7 +83,7 @@ procedure tcgobjcselectornode.pass_generate_code;
         internalerror(2009030701);
     end;
 
-    objcfinishstringrefpoolentry(entry,sec_objc_message_refs,sec_objc_meth_var_names);
+    objcfinishstringrefpoolentry(entry,sp_objcvarnames,sec_objc_message_refs,sec_objc_meth_var_names);
 
     location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),sizeof(pint));
     location.reference.symbol:=tasmlabel(entry^.Data);
