@@ -1358,18 +1358,16 @@ implementation
             { no known size, no known upper bound }
             if assigned(def.typesym) then
               append_entry(DW_TAG_array_type,true,[
-                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                elestrideattr,DW_FORM_udata,elesize
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
                 ])
             else
-              append_entry(DW_TAG_array_type,true,[
-                elestrideattr,DW_FORM_udata,elesize
-                ]);
+              append_entry(DW_TAG_array_type,true,[]);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
             { a missing upper bound means "unknown"/default }
             append_entry(DW_TAG_subrange_type,false,[
-              DW_AT_lower_bound,DW_FORM_sdata,def.lowrange
+              DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
+              elestrideattr,DW_FORM_udata,elesize
               ]);
           end
         else
@@ -1378,20 +1376,19 @@ implementation
             if assigned(def.typesym) then
               append_entry(DW_TAG_array_type,true,[
                 DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                DW_AT_byte_size,DW_FORM_udata,size,
-                elestrideattr,DW_FORM_udata,elesize
+                DW_AT_byte_size,DW_FORM_udata,size
                 ])
             else
               append_entry(DW_TAG_array_type,true,[
-                DW_AT_byte_size,DW_FORM_udata,size,
-                elestrideattr,DW_FORM_udata,elesize
+                DW_AT_byte_size,DW_FORM_udata,size
                 ]);
             append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
             { to simplify things, we don't write a multidimensional array here }
             append_entry(DW_TAG_subrange_type,false,[
               DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
-              DW_AT_upper_bound,DW_FORM_sdata,def.highrange
+              DW_AT_upper_bound,DW_FORM_sdata,def.highrange,
+              elestrideattr,DW_FORM_udata,elesize
               ]);
           end;
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
