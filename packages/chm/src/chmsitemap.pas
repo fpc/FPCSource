@@ -70,6 +70,7 @@ type
 
   TChmSiteMapItems = class(TPersistent)
   private
+    FInternalData: Dword;
     FList: TList;
     FOwner: TChmSiteMap;
     FParentItem: TChmSiteMapItem;
@@ -89,6 +90,7 @@ type
     property Count: Integer read GetCount;
     property ParentItem: TChmSiteMapItem read FParentItem;
     property Owner: TChmSiteMap read FOwner;
+    property InternalData: Dword read FInternalData write FInternalData;
   end;
   
 
@@ -194,14 +196,14 @@ begin
   //WriteLn('TAG:', AActualTag);
   TagName := GetTagName(ACaseInsensitiveTag);
 
-  if not (smtHTML in FSiteMapTags) then begin
-    if TagName = 'HTML' then Include(FSiteMapTags, smtHTML);
+{  if not (smtHTML in FSiteMapTags) then begin
+    if (TagName = 'HTML') or (TagName = '/HTML') then Include(FSiteMapTags, smtHTML);
   end
   else begin // looking for /HTML
     if TagName = '/HTML' then Exclude(FSiteMapTags, smtHTML);
-  end;
+  end;}
   
-  if (smtHTML in FSiteMapTags) then begin
+  //if (smtHTML in FSiteMapTags) then begin
      if not (smtBODY in FSiteMapTags) then begin
        if TagName = 'BODY' then Include(FSiteMapTags, smtBODY);
      end
@@ -263,7 +265,7 @@ begin
          end;
        end;
      end;
-  end
+  //end
 end;
 
 procedure TChmSiteMap.FoundText(AText: string);
@@ -460,6 +462,7 @@ begin
   FList := TList.Create;
   FParentItem := AParentItem;
   FOwner := AOwner;
+  FInternalData := maxLongint;
 end;
 
 destructor TChmSiteMapItems.Destroy;

@@ -22,7 +22,7 @@ unit chmwriter;
 {$MODE OBJFPC}{$H+}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer;
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap;
 
 type
 
@@ -39,6 +39,7 @@ type
   TChmWriter = class(TObject)
     FOnLastFile: TNotifyEvent;
   private
+    FHasBinaryTOC: Boolean;
   
     ForceExit: Boolean;
     
@@ -73,6 +74,7 @@ type
     FWindowSize: LongWord;
     FReadCompressedSize: QWord; // Current Size of Uncompressed data that went in Section1 (compressed)
     FIndexedFiles: TIndexedWordList;
+    FPostStreamActive: Boolean;
     // Linear order of file
     ITSFHeader: TITSFHeader;
     HeaderSection0Table: TITSFHeaderEntry;  // points to HeaderSection0
@@ -107,6 +109,7 @@ type
     function AddString(AString: String): LongWord;
     function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
+    function NextTopicIndex: Integer;
     // callbacks for lzxcomp
     function  AtEndOfData: Longbool;
     function  GetData(Count: LongInt; Buffer: PByte): LongInt;
@@ -118,6 +121,8 @@ type
     destructor Destroy; override;
     procedure Execute;
     procedure AppendTOC(AStream: TStream);
+    procedure AppendBinaryTOCFromSiteMap(ASiteMap: TChmSiteMap);
+    procedure AppendBinaryTOCStream(AStream: TStream);
     procedure AppendIndex(AStream: TStream);
     procedure AppendSearchDB(AName: String; AStream: TStream);
     procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
@@ -132,6 +137,7 @@ type
     property Title: String read FTitle write FTitle;
     property FullTextSearch: Boolean read FFullTextSearch write FFullTextSearch;
     property SearchTitlesOnly: Boolean read FSearchTitlesOnly write FSearchTitlesOnly;
+    property HasBinaryTOC: Boolean read FHasBinaryTOC write FHasBinaryTOC;
     property DefaultFont: String read FDefaultFont write FDefaultFont;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
@@ -517,6 +523,22 @@ begin
 // }
   Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
   FInternalFiles.AddEntry(Entry);
+
+  {// 7 Binary Index
+  if FHasBinaryIndex then
+  begin
+    FSection0.WriteWord(NToLE(Word(7)));
+    FSection0.WriteWord(NToLE(Word(4)));
+    FSection0.WriteDWord(DWord(0)); // what is this number to be?
+  end;}
+
+  // 11 Binary TOC
+  if FHasBinaryTOC then
+  begin
+    FSection0.WriteWord(NToLE(Word(11)));
+    FSection0.WriteWord(NToLE(Word(4)));
+    FSection0.WriteDWord(DWord(0)); // what is this number to be?
+  end;
 end;
 
 procedure TChmWriter.WriteITBITS;
@@ -815,10 +837,23 @@ begin
 end;
 
 function TChmWriter.AddString(AString: String): LongWord;
+var
+  NextBlock: DWord;
+  Pos: DWord;
 begin
   // #STRINGS starts with a null char
   if FStringsStream.Size = 0 then FStringsStream.WriteByte(0);
   // each entry is a null terminated string
+  Pos := DWord(FStringsStream.Position);
+
+  // Strings are contained in $1000 byte blocks and cannot cross blocks
+  NextBlock := ($0000F000 and Pos) + $00001000;
+  if Length(AString) + 1 > NextBlock then
+  begin
+    FStringsStream.Size:= NextBlock;
+    FStringsStream.Position := NextBlock;
+  end;
+
   Result := FStringsStream.Position;
   FStringsStream.WriteBuffer(AString[1], Length(AString));
   FStringsStream.WriteByte(0);
@@ -911,6 +946,7 @@ begin
     if (AtEndOfData)
     and (FCurrentStream <> FPostStream) then
     begin
+      FPostStreamActive := True;
       if Assigned(FOnLastFile) then
         FOnLastFile(Self);
       FCurrentStream.Free;
@@ -989,31 +1025,19 @@ begin
 end;
 
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
-type
-  TTopicEntry = record
-    TocOffset,
-    StringsOffset,
-    URLTableOffset: DWord;
-    InContents: Word;// 2 = in contents 6 = not in contents
-    Unknown: Word; // 0,2,4,8,10,12,16,32
-  end;
 
-  function GetNewTopicsIndex: Integer;
-  begin
-    Result := FTopicsStream.Size div 16;
-  end;
   var
     TopicEntry: TTopicEntry;
     ATitle: String;
 begin
   if Pos('.ht', AFileEntry.Name) > 0 then
   begin
-    ATitle := FIndexedFiles.IndexFile(AStream, GetNewTopicsIndex, FSearchTitlesOnly);
+    ATitle := FIndexedFiles.IndexFile(AStream, NextTopicIndex, FSearchTitlesOnly);
     if ATitle <> '' then
       TopicEntry.StringsOffset := AddString(ATitle)
     else
       TopicEntry.StringsOffset := $FFFFFFFF;
-    TopicEntry.URLTableOffset := AddURL(AFileEntry.Path+AFileEntry.Name, GetNewTopicsIndex);
+    TopicEntry.URLTableOffset := AddURL(AFileEntry.Path+AFileEntry.Name, NextTopicIndex);
     TopicEntry.InContents := 2;
     TopicEntry.Unknown := 0;
     TopicEntry.TocOffset := 0;
@@ -1023,6 +1047,11 @@ begin
     FTopicsStream.WriteWord(LEtoN(TopicEntry.InContents));
     FTopicsStream.WriteWord(LEtoN(TopicEntry.Unknown));
   end;
+end;
+
+function TChmWriter.NextTopicIndex: Integer;
+begin
+  Result := FTopicsStream.Size div 16;
 end;
 
 constructor TChmWriter.Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
@@ -1119,6 +1148,180 @@ begin
   PostAddStreamToArchive('default.hhc', '/', AStream, True);
 end;
 
+procedure TChmWriter.AppendBinaryTOCFromSiteMap(ASiteMap: TChmSiteMap);
+var
+  Header: TTOCIdxHeader;
+  Entry: TTocEntry;
+  EntryInfo: TTOCEntryPageBookInfo;
+
+
+  EntryInfoStream,
+  EntryTopicOffsetStream,
+  EntryStream: TMemoryStream;
+
+  TOCIDXStream: TMemoryStream;
+
+  NextLevelItems,
+  CurrentLevelItems: TFPList;
+  i,j: Integer;
+  MenuItem: TChmSiteMapItem;
+  MenuItems: TChmSiteMapItems;
+  TopicEntry: TTopicEntry;
+  EntryCount: DWord = $29A;
+  procedure FixParentBookFirstChildOffset(AChildOffset: DWord);
+  var
+    ParentEntry: TTOCEntryPageBookInfo;
+  begin
+    // read parent entry
+    EntryInfoStream.Position := MenuItems.InternalData;
+    EntryInfoStream.Read(ParentEntry, SizeOf(ParentEntry));
+    // update child offset
+    ParentEntry.FirstChildOffset:= NtoLE(DWord(4096 + AChildOffset));
+    // write back to stream
+    EntryInfoStream.Position := MenuItems.InternalData;
+    EntryInfoStream.Write(ParentEntry, SizeOf(ParentEntry));
+    // move to end of stream
+    EntryInfoStream.Position := AChildOffset;
+  end;
+
+begin
+  FillChar(Header, 4096, 0);
+  // create streams
+  TOCIDXStream := TMemoryStream.Create;
+  EntryInfoStream := TMemoryStream.Create;
+  EntryTopicOffsetStream := TMemoryStream.Create;
+  EntryStream := TMemoryStream.Create;
+
+  NextLevelItems := TFPList.Create;
+
+  NextLevelItems.Add(ASiteMap.Items);
+
+  if NextLevelItems.Count = 0 then
+      FreeAndNil(NextLevelItems);
+
+  while NextLevelItems <> nil do
+  begin  WriteLn('Loop');
+    CurrentLevelItems := NextLevelItems;
+    NextLevelItems := TFPList.Create;
+
+    for i := 0 to CurrentLevelItems.Count-1 do
+    begin
+      MenuItems := TChmSiteMapItems(CurrentLevelItems.Items[i]);
+
+      for j := 0 to MenuItems.Count-1 do
+      begin
+        MenuItem := MenuItems.Item[j];
+        // first figure out the props
+        EntryInfo.Props := 0;
+        if MenuItem.Children.Count > 0 then
+          EntryInfo.Props := EntryInfo.Props or TOC_ENTRY_HAS_CHILDREN;
+        if Length(MenuItem.Local) > 0 then
+          EntryInfo.Props := EntryInfo.Props or TOC_ENTRY_HAS_LOCAL;
+
+
+      if EntryInfo.Props and TOC_ENTRY_HAS_LOCAL > 0 then
+      begin
+        // Write #TOPICS entry
+        TopicEntry.TocOffset      := NtoLE(DWord(4096 + EntryInfoStream.Position));
+        TopicEntry.StringsOffset  := NtoLE(AddString(MenuItem.Text));
+        TopicEntry.URLTableOffset := NtoLE(AddURL(MenuItem.Local, NextTopicIndex));
+        TopicEntry.InContents     := NtoLE(Word( 2 ));
+        TopicEntry.Unknown        := 0;
+        EntryInfo.TopicsIndexOrStringsOffset := NtoLE(Dword(NextTopicIndex));;
+        FTopicsStream.Write(TopicEntry, SizeOf(TopicEntry));
+        EntryTopicOffsetStream.WriteDWord(EntryInfo.TopicsIndexOrStringsOffset);
+
+        // write TOCEntry
+        Entry.PageBookInfoOffset:= NtoLE(4096 + EntryInfoStream.Position);
+        Entry.IncrementedInt  := NtoLE(EntryCount);
+        EntryStream.Write(Entry, SizeOf(Entry));
+        Inc(EntryCount);
+
+      end
+      else
+      begin
+        EntryInfo.TopicsIndexOrStringsOffset := NtoLE(AddString(MenuItem.Text));
+      end;
+
+
+        // write TOCEntryInfo
+
+        EntryInfo.Unknown1 := 0;
+        EntryInfo.EntryIndex := NtoLE(Word(EntryCount - $29A)); //who knows how useful any of this is
+
+        if MenuItems.InternalData <> maxLongint then
+          EntryInfo.ParentPageBookInfoOffset := MenuItems.InternalData
+        else
+          EntryInfo.ParentPageBookInfoOffset := 0;
+
+        if j = MenuItems.Count-1 then
+          EntryInfo.NextPageBookOffset := 0
+        else if (EntryInfo.Props and TOC_ENTRY_HAS_CHILDREN) > 0 then
+          EntryInfo.NextPageBookOffset := 4096 + EntryInfoStream.Position + 28
+        else
+          EntryInfo.NextPageBookOffset := 4096 + EntryInfoStream.Position + 20;
+
+        // Only if TOC_ENTRY_HAS_CHILDREN is set are these written
+        EntryInfo.FirstChildOffset := 0; // we will update this when the child is written
+        // in fact lets update the *parent* of this item now if needed
+        if (j = 0) and (MenuItems.InternalData <> maxLongint) then
+          FixParentBookFirstChildOffset(EntryInfoStream.Position);
+
+        EntryInfo.Unknown3 := 0;
+
+        // fix endian order
+        EntryInfo.Props := NtoLE(EntryInfo.Props);
+        EntryInfo.ParentPageBookInfoOffset := NtoLE(EntryInfo.ParentPageBookInfoOffset);
+        EntryInfo.NextPageBookOffset := NtoLE(EntryInfo.NextPageBookOffset);
+
+        if MenuItem.Children.Count > 0 then
+        begin
+          NextLevelItems.Add(MenuItem.Children);
+          MenuItem.Children.InternalData := EntryInfoStream.Position;
+        end;
+
+        // write to stream
+        EntryInfoStream.Write(EntryInfo, PageBookInfoRecordSize(@EntryInfo));
+      end;
+    end;
+
+    FreeAndNil(CurrentLevelItems);
+    if NextLevelItems.Count = 0 then
+      FreeAndNil(NextLevelItems);
+  end;
+
+  // write all streams to TOCIdxStream and free everything
+  EntryInfoStream.Position:=0;
+  EntryTopicOffsetStream.Position:=0;
+  EntryStream.Position:=0;
+
+  Header.BlockSize := NtoLE(DWord(4096));
+  Header.EntriesCount := NtoLE(DWord(EntryCount - $29A));
+  Header.EntriesOffset := NtoLE(DWord(4096 + EntryInfoStream.Size + EntryTopicOffsetStream.Size));
+  Header.TopicsOffset := NtoLE(DWord(4096 + EntryInfoStream.Size));
+
+  TOCIDXStream.Write(Header, SizeOf(Header));
+
+  TOCIDXStream.CopyFrom(EntryInfoStream, EntryInfoStream.Size);
+  EntryInfoStream.Free;
+
+  TOCIDXStream.CopyFrom(EntryTopicOffsetStream, EntryTopicOffsetStream.Size);
+  EntryTopicOffsetStream.Free;
+
+  TOCIDXStream.CopyFrom(EntryStream, EntryStream.Size);
+  EntryStream.Free;
+
+  TOCIDXStream.Position := 0;
+  AppendBinaryTOCStream(TOCIDXStream);
+  TOCIDXStream.Free;
+
+end;
+
+procedure TChmWriter.AppendBinaryTOCStream(AStream: TStream);
+begin
+  AddStreamToArchive('#TOCIDX', '/', AStream, True);
+end;
+
 procedure TChmWriter.AppendIndex(AStream: TStream);
 begin
   FHasIndex := True;
@@ -1139,6 +1342,12 @@ var
   TargetStream: TStream;
   Entry: TFileEntryRec;
 begin
+  // in case AddStreamToArchive is used after we should be writing to the post stream
+  if FPostStreamActive then
+  begin
+    PostAddStreamToArchive(AFileName, APath, AStream, Compress);
+    Exit;
+  end;
   if AStream = nil then Exit;
   if Compress then
     TargetStream := FCurrentStream
