@@ -1042,7 +1042,10 @@ implementation
                          AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
-               AsmWriteLn(tai_symbol(hp).sym.name + ':');
+               if not(tai_symbol(hp).has_value) then
+                 AsmWriteLn(tai_symbol(hp).sym.name + ':')
+               else
+                 AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
 
            ait_symbol_end :

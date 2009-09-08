@@ -89,6 +89,7 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
   var
     reflab : tasmlabel;
     strlab : tasmsymbol;
+    classname: string;
   begin
     { have we already generated a reference for this string entry? }
     if not assigned(entry^.Data) then
@@ -104,7 +105,16 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         new_section(current_asmdata.asmlists[al_objc_pools],refsec,reflab.name,sizeof(pint));
         current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(reflab));
         current_asmdata.asmlists[al_objc_pools].concat(Tai_const.Create_sym(strlab));
-    end;
+
+        { in case of a class reference, also add a lazy symbol reference for
+          the class (the linker requires this). }
+        if (refsec=sec_objc_cls_refs) then
+          begin
+            setlength(classname,entry^.keylength);
+            move(entry^.key^,classname[1],entry^.keylength);
+            current_asmdata.asmlists[al_objc_pools].concat(tai_directive.Create(asd_lazy_reference,'.objc_class_name_'+classname));
+          end;
+      end;
   end;
 
 
@@ -387,7 +397,7 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
 
 { Generate the rtti sections for all obj-c classes defined in st, and return
   these classes in the classes list. }
-procedure gen_objc1_rtti_sections(list:TAsmList; st:TSymtable; var classes: tfpobjectlist);
+procedure gen_objc1_rtti_sections(list:TAsmList; st:TSymtable; var classsyms, classdefs: tfpobjectlist);
   var
     i: longint;
     def: tdef;
@@ -403,7 +413,8 @@ procedure gen_objc1_rtti_sections(list:TAsmList; st:TSymtable; var classes: tfpo
            not(oo_is_external in tobjectdef(def).objectoptions) then
           begin
             gen_objc1_classes_sections(list,tobjectdef(def),sym);
-            classes.add(sym);
+            classsyms.add(sym);
+            classdefs.add(def);
           end;
       end;
   end;
@@ -411,12 +422,14 @@ procedure gen_objc1_rtti_sections(list:TAsmList; st:TSymtable; var classes: tfpo
 
 { Generate the global information sections (objc_symbols and objc_module_info)
   for this module. }
-procedure gen_objc1_info_sections(list: tasmlist; classes: tfpobjectlist);
+procedure gen_objc1_info_sections(list: tasmlist; classsyms,classdefs: tfpobjectlist);
   var
     i: longint;
     sym : TAsmSymbol;
+    parent: tobjectdef;
+    superclasses: tfpobjectlist;
   begin
-    if (classes.count<>0) then
+    if (classsyms.count<>0) then
       begin
         new_section(list,sec_objc_symbols,'_OBJC_SYMBOLS',sizeof(pint));
         sym := current_asmdata.RefAsmSymbol(target_asm.labelprefix+'_OBJC_SYMBOLS');
@@ -428,12 +441,12 @@ procedure gen_objc1_info_sections(list: tasmlist; classes: tfpobjectlist);
         { ??? (From Clang: always 0, pointer to some selector) }
         list.Concat(Tai_const.Create_pint(0));
         { From Clang: number of defined classes }
-        list.Concat(Tai_const.Create_16bit(classes.count));
+        list.Concat(Tai_const.Create_16bit(classsyms.count));
         { From Clang: number of defined categories }
         list.Concat(Tai_const.Create_16bit(0));
         { first all classes }
-        for i:=0 to classes.count-1 do
-          list.Concat(Tai_const.Create_sym(tasmsymbol(classes[i])));
+        for i:=0 to classsyms.count-1 do
+          list.Concat(Tai_const.Create_sym(tasmsymbol(classsyms[i])));
         { then all categories }
      end
     else
@@ -451,12 +464,30 @@ procedure gen_objc1_info_sections(list: tasmlist; classes: tfpobjectlist);
       list.Concat(Tai_const.Create_sym(sym))
     else
       list.concat(tai_const.create_pint(0));
+
+    { Add lazy references to parent classes of all classes defined in this unit }
+    superclasses:=tfpobjectlist.create(false);
+    for i:=0 to classdefs.count-1 do
+      begin
+        parent:=tobjectdef(classdefs[i]).childof;
+        if assigned(parent) and
+           (superclasses.indexof(parent)=-1) then
+          begin
+            list.concat(tai_directive.create(asd_lazy_reference,'.objc_class_name_'+parent.objextname^));
+            superclasses.add(parent);
+          end;
+      end;
+    superclasses.free;
+    { reference symbols for all classes declaredin this unit }
+    for i:=0 to classdefs.count-1 do
+      list.concat(tai_symbol.Createname_global_value('.objc_class_name_'+tobjectdef(classdefs[i]).objextname^,AT_DATA,0,0));
   end;
 
 
 procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
   var
-    classes: tfpobjectlist;
+    classsyms,
+    classdefs: tfpobjectlist;
   begin
     if (m_objectivec1 in current_settings.modeswitches) then
       begin
@@ -470,11 +501,13 @@ procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
 
         { generate rtti for all obj-c classes, protocols (todo) and categories (todo)
           defined in this module. }
-        classes:=tfpobjectlist.create(false);
-        gen_objc1_rtti_sections(current_asmdata.asmlists[al_objc_data],globalst,classes);
-        gen_objc1_rtti_sections(current_asmdata.asmlists[al_objc_data],localst,classes);
-        gen_objc1_info_sections(current_asmdata.asmlists[al_objc_data],classes);
-        classes.free;
+        classsyms:=tfpobjectlist.create(false);
+        classdefs:=tfpobjectlist.create(false);
+        gen_objc1_rtti_sections(current_asmdata.asmlists[al_objc_data],globalst,classsyms,classdefs);
+        gen_objc1_rtti_sections(current_asmdata.asmlists[al_objc_data],localst,classsyms,classdefs);
+        gen_objc1_info_sections(current_asmdata.asmlists[al_objc_data],classsyms,classdefs);
+        classsyms.free;
+        classdefs.free;
       end;
   end;
 

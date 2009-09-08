@@ -895,6 +895,8 @@ interface
 
            ait_symbol :
              begin
+               if tai_symbol(hp).has_value then
+                 internalerror(2009090803);
                if tai_symbol(hp).is_global then
                 begin
                   AsmWrite(#9'GLOBAL ');
