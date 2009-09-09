@@ -33,7 +33,7 @@ interface
 
     { Generate a node loading the superclass structure necessary to call
       an inherited Objective-C method.  }
-    function objcsuperclassnode(def: tobjectdef): tnode;
+    function objcsuperclassnode(def: tdef): tnode;
 
     { The internals of Objective-C's @encode() functionality: encode a
       type into the internal format used by the run time. Returns false
@@ -58,27 +58,32 @@ implementation
       verbose,
       symtable,symconst,symsym,
       defutil,paramgr,
-      nbas,nmem,ncal,nld;
+      nbas,nmem,ncal,nld,ncon;
 
 
 {******************************************************************
                        objcsuperclassnode
 *******************************************************************}
 
-    function objcsuperclassnode(def: tobjectdef): tnode;
+    function objcsuperclassnode(def: tdef): tnode;
       var
-        block: tnode;
-        statements: tstatementnode;
         para: tcallparanode;
       begin
-        { only valid for Objective-C classes }
-        if not is_objcclass(def) then
-          internalerror(2009032904);
-        block:=internalstatements(statements);
-        para:=ccallparanode.create(cloadvmtaddrnode.create(ctypenode.create(def)),nil);
-        addstatement(statements,ccallnode.createinternfromunit('OBJC1','CLASS_GETSUPERCLASS',para));
-        typecheckpass(block);
-        result:=block;
+        { only valid for Objective-C classes and classrefs }
+        if not is_objcclass(def) and
+           not is_objcclassref(def) then
+          internalerror(2009090901);
+        { Can be done a lot more efficiently with direct symbol accesses, but
+          requires extra node types. Maybe later. }
+        if is_objcclassref(def) then
+          begin
+            para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^),nil);
+            para:=ccallparanode.create(ccallnode.createinternfromunit('OBJC1','OBJC_GETMETACLASS',para),nil);
+          end
+        else
+          para:=ccallparanode.create(cloadvmtaddrnode.create(ctypenode.create(def)),nil);
+        result:=ccallnode.createinternfromunit('OBJC1','CLASS_GETSUPERCLASS',para);
+        typecheckpass(result);
       end;
 
 

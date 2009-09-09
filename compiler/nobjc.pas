@@ -72,6 +72,7 @@ uses
   defutil,
   symtype,symtable,symdef,symconst,symsym,
   paramgr,
+  nutils,
   nbas,nld,ncnv,ncon,ncal,nmem,
   objcutil,
   cgbase;
@@ -231,7 +232,8 @@ function tobjcmessagesendnode.pass_1: tnode;
     msgsendname: string;
     newparas,
     para: tcallparanode;
-    block: tnode;
+    block,
+    selftree  : tnode;
     statements: tstatementnode;
     temp: ttempcreatenode;
     objcsupertype: tdef;
@@ -286,18 +288,8 @@ function tobjcmessagesendnode.pass_1: tnode;
     if not assigned(msgselpara) then
       internalerror(2009051802);
     { Handle self }
-    { 1) If we're calling a class method, use a class ref.  }
-    if (po_classmethod in tcallnode(left).procdefinition.procoptions) and
-       ((tcallnode(left).methodpointer.nodetype=typen) or
-        (tcallnode(left).methodpointer.resultdef.typ<>classrefdef)) then
-      begin
-        tcallnode(left).methodpointer:=cloadvmtaddrnode.create(tcallnode(left).methodpointer);
-        firstpass(tcallnode(left).methodpointer);
-      end;
-    { 2) convert parameter to id to match objc_MsgSend* signatures }
-    inserttypeconv_internal(tcallnode(left).methodpointer,objc_idtype);
-    { in case of sending a message to a superclass, self is a pointer to
-      an objc_super record
+    { 1) in case of sending a message to a superclass, self is a pointer to
+         an objc_super record
     }
     if (cnf_inherited in tcallnode(left).callnodeflags) then
       begin
@@ -308,31 +300,60 @@ function tobjcmessagesendnode.pass_1: tnode;
          { temp for the for the objc_super record }
          temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
          addstatement(statements,temp);
-         { initialize objc_super record: first the destination object instance }
+         { initialize objc_super record }
+         selftree:=load_self_node;
+
+         { we can call an inherited class static/method from a regular method
+           -> self node must change from instance pointer to vmt pointer)
+         }
+         if (po_classmethod in tcallnode(left).procdefinition.procoptions) and
+            (selftree.resultdef.typ<>classrefdef) then
+           begin
+             selftree:=cloadvmtaddrnode.create(selftree);
+             typecheckpass(selftree);
+           end;
          field:=tfieldvarsym(trecorddef(objcsupertype).symtable.find('RECEIVER'));
          if not assigned(field) then
            internalerror(2009032902);
+        { first the destination object/class instance }
          addstatement(statements,
            cassignmentnode.create(
              csubscriptnode.create(field,ctemprefnode.create(temp)),
-             tcallnode(left).methodpointer
+             selftree
            )
          );
-         { and secondly, the destination class type }
+         { and secondly, the class type in which the selector must be looked
+           up (the parent class in case of an instance method, the parent's
+           metaclass in case of a class method) }
          field:=tfieldvarsym(trecorddef(objcsupertype).symtable.find('_CLASS'));
          if not assigned(field) then
            internalerror(2009032903);
          addstatement(statements,
            cassignmentnode.create(
              csubscriptnode.create(field,ctemprefnode.create(temp)),
-             objcsuperclassnode(tobjectdef(tcallnode(left).methodpointer.resultdef))
+             objcsuperclassnode(selftree.resultdef)
            )
          );
          { result of this block is the address of this temp }
          addstatement(statements,caddrnode.create_internal(ctemprefnode.create(temp)));
          { replace the method pointer with the address of this temp }
+         tcallnode(left).methodpointer.free;
          tcallnode(left).methodpointer:=block;
          typecheckpass(block);
+      end
+    else
+    { 2) regular call (not inherited) }
+      begin
+        { a) If we're calling a class method, use a class ref.  }
+        if (po_classmethod in tcallnode(left).procdefinition.procoptions) and
+           ((tcallnode(left).methodpointer.nodetype=typen) or
+            (tcallnode(left).methodpointer.resultdef.typ<>classrefdef)) then
+          begin
+            tcallnode(left).methodpointer:=cloadvmtaddrnode.create(tcallnode(left).methodpointer);
+            firstpass(tcallnode(left).methodpointer);
+          end;
+        { b) convert methodpointer parameter to match objc_MsgSend* signatures }
+        inserttypeconv_internal(tcallnode(left).methodpointer,objc_idtype);
       end;
     { replace self parameter }
     selfpara.left.free;
