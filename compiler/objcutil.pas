@@ -73,7 +73,7 @@ implementation
       begin
         { only valid for Objective-C classes }
         if not is_objcclass(def) then
-          internalerror(2009032903);
+          internalerror(2009032904);
         block:=internalstatements(statements);
         para:=ccallparanode.create(cloadvmtaddrnode.create(ctypenode.create(def)),nil);
         addstatement(statements,ccallnode.createinternfromunit('OBJC1','CLASS_GETSUPERCLASS',para));
