@@ -290,6 +290,7 @@ interface
           procedure prepareguid;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
+          function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : string;
           procedure check_forwards;
           function  is_related(d : tdef) : boolean;override;
@@ -314,6 +315,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          function  rtti_mangledname(rt:trttitype):string;override;
           procedure register_created_object_type;override;
           procedure reset;override;
        end;
@@ -2093,6 +2095,15 @@ implementation
     function tclassrefdef.is_publishable : boolean;
       begin
          result:=true;
+      end;
+
+
+    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+      begin
+        if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
+          result:=inherited rtti_mangledname(rt)
+        else
+          result:=target_asm.labelprefix+'_OBJC_METACLASS_'+tobjectdef(pointeddef).objextname^;
       end;
 
 
@@ -4277,6 +4288,15 @@ implementation
             else
               internalerror(200108267);
          end;
+      end;
+
+
+    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+      begin
+        if (objecttype<>odt_objcclass) then
+          result:=inherited rtti_mangledname(rt)
+        else
+          result:=target_asm.labelprefix+'_OBJC_CLASS_'+objextname^;
       end;
 
 

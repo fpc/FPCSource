@@ -280,10 +280,11 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
     META_INST_SIZE = 40+8; // sizeof(objc_class) + 8
   var
     root          : tobjectdef;
-    lbl, metalbl  : TAsmLabel;
     superStrSym,
     classStrSym,
-    metaisaStrSym : TAsmSymbol;
+    metaisaStrSym,
+    metasym,
+    clssym        : TAsmSymbol;
     mthdlist,
     ivarslist     : TAsmLabel;
   begin
@@ -310,9 +311,9 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
     { class declaration section }
     new_section(list,sec_objc_meta_class,'_OBJC_META_CLASS',sizeof(pint));
 
-    { 1) meta-class declaration }
-    current_asmdata.getlabel(metalbl,alt_data);
-    list.Concat(tai_label.Create(metalbl));
+    { 1) meta-class declaration (warning: if name changed, also change tclassrefdef.rtti_mangledname) }
+    metasym:=current_asmdata.DefineAsmSymbol(target_asm.labelprefix+'_OBJC_METACLASS_'+objclss.objextname^,AB_LOCAL,AT_DATA);
+    list.Concat(tai_symbol.Create(metasym,0));
 
     list.Concat(Tai_const.Create_sym(metaisaStrSym));
     { pointer to the superclass name if any, otherwise nil }
@@ -354,11 +355,11 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
 
     new_section(list,sec_objc_class,'_OBJC_CLASS',sizeof(pint));
 
-    current_asmdata.getlabel(lbl,alt_data);
-    list.Concat(tai_label.Create(lbl));
+    clssym:=current_asmdata.DefineAsmSymbol(objclss.rtti_mangledname(fullrtti),AB_LOCAL,AT_DATA);
+    list.Concat(tai_symbol.Create(clssym,0));
 
     { for class declaration: the is points to the meta-class declaration }
-    list.Concat(Tai_const.Create_sym(metalbl));
+    list.Concat(Tai_const.Create_sym(metasym));
     { pointer to the super_class name if any, nil otherwise }
     if assigned(superStrSym) then
       list.Concat(Tai_const.Create_sym(superStrSym))
@@ -391,7 +392,7 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
     { TODO: From Clang: weak ivar_layout, necessary for garbage collection support }
     list.Concat(Tai_const.Create_32bit(0));
 
-    classlabel:=lbl;
+    classlabel:=clssym;
   end;
 
 
