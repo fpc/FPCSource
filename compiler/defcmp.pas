@@ -1081,6 +1081,16 @@ implementation
                            eq:=te_convert_l2
                          else
                            eq:=te_convert_l1;
+                       end
+                     { id = generic class instance. metaclasses are also
+                       class instances themselves.  }
+                     else if ((def_from=objc_idtype) or
+                              (def_to=objc_metaclasstype)) and
+                             ((def_to=objc_idtype) or
+                              (def_to=objc_metaclasstype)) then
+                       begin
+                         doconv:=tc_equal;
+                         eq:=te_convert_l2;
                        end;
                    end;
                  procvardef :
@@ -1122,8 +1132,14 @@ implementation
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
                        end
-                     else if is_objc_class_or_protocol(def_from) and
-                             (def_to=objc_idtype) then
+                     else if (is_objc_class_or_protocol(def_from) and
+                              (def_to=objc_idtype)) or
+                             { classrefs are also instances in Objective-C,
+                               hence they're also assignment-cpmpatible with
+                               id }
+                             (is_objcclassref(def_from) and
+                              ((def_to=objc_metaclasstype) or
+                               (def_to=objc_idtype))) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
