@@ -1,0 +1,154 @@
+{ Parsed from Appkit.framework NSCollectionView.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+
+{$ifdef HEADER}
+{$ifndef NSCOLLECTIONVIEW_PAS_H}
+{$define NSCOLLECTIONVIEW_PAS_H}
+type
+  NSCollectionViewItemPointer = Pointer;
+  NSCollectionViewPointer = Pointer;
+
+{$endif}
+{$endif}
+
+{$ifdef TYPES}
+{$ifndef NSCOLLECTIONVIEW_PAS_T}
+{$define NSCOLLECTIONVIEW_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSCOLLECTIONVIEW_PAS_R}
+{$define NSCOLLECTIONVIEW_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSCOLLECTIONVIEW_PAS_F}
+{$define NSCOLLECTIONVIEW_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSCOLLECTIONVIEW_PAS_T}
+{$define NSCOLLECTIONVIEW_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSCollectionViewItem = objcclass;
+  NSCollectionView = objcclass;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSCOLLECTIONVIEW_PAS_C}
+{$define NSCOLLECTIONVIEW_PAS_C}
+
+{ NSCollectionViewItem }
+  NSCollectionViewItem = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
+  private
+    __reserved: Pointer;
+    __archive: NSMutableData;
+    __ownerView: NSCollectionView;
+    __representedObject: id;
+    __view: NSView;
+    __itemFlags: bitpacked record
+        _selected: 0..1;
+        _removalNeeded: 0..1;
+        _suppressSelectionChangeNotification: 0..1;
+        _reservedAnimationContainer: 0..((1 shl 29)-1);
+      end;
+    __targetViewFrameRect: NSRect;
+    __appliedViewFrameRect: NSRect;
+    __containerReferenceCounter: culong;
+    
+  public
+    class function alloc: NSCollectionViewItem; message 'alloc';
+
+    function collectionView: NSCollectionView; message 'collectionView';
+    procedure setRepresentedObject(object_: id); message 'setRepresentedObject:';
+    function representedObject: id; message 'representedObject';
+    procedure setView(view_: NSView); message 'setView:';
+    function view: NSView; message 'view';
+    procedure setSelected(flag: Boolean); message 'setSelected:';
+    function isSelected: Boolean; message 'isSelected';
+  end; external;
+
+{ NSCollectionView }
+  NSCollectionView = objcclass(NSView)
+  private
+    __reserved: Pointer;
+    __backgroundLayers: NSMutableArray;
+    __content: NSArray;
+    __selectionIndexes: NSMutableIndexSet;
+    __itemPrototype: NSCollectionViewItem;
+    __minGridSize: NSSize;
+    __maxGridSize: NSSize;
+    __minGridRows: culong;
+    __maxGridRows: culong;
+    __minGridColumns: culong;
+    __maxGridColumns: culong;
+    __backgroundColors: NSArray;
+    __animationContainerFlags: bitpacked record
+        _ignoreFrameSizeChanges: 0..1;
+        _selectable: 0..1;
+        _allowsMultipleSelection: 0..1;
+        _avoidsEmptySelection: 0..1;
+        _superviewIsClipView: 0..1;
+        _gridParametersReadFromPrototype: 0..1;
+        _isFirstResponder: 0..1;
+        _reservedAnimationContainer: 0..((1 shl 25)-1);
+      end;
+    __targetFrameSize: NSSize;
+    __targetGridSize: NSSize;
+    __targetUnfilledViewSpace: NSSize;
+    __targetNumberOfGridRows: culong;
+    __targetNumberOfGridColumns: culong;
+    __targetItems: NSMutableArray;
+    __appliedFrameSize: NSSize;
+    __appliedGridSize: NSSize;
+    __appliedUnfilledViewSpace: NSSize;
+    __appliedNumberOfGridRows: culong;
+    __appliedNumberOfGridColumns: culong;
+    __appliedItems: NSMutableArray;
+    __appliedItemsAsSet: NSMutableSet;
+    __appliedRemovedItemsAsSet: NSMutableSet;
+    __animationDuration: NSTimeInterval;
+    __animation: NSViewAnimation;
+    __hideItems: NSMutableArray;
+    __showItems: NSMutableArray;
+    
+  public
+    class function alloc: NSCollectionView; message 'alloc';
+
+    function isFirstResponder: Boolean; message 'isFirstResponder';
+    procedure setContent(content_: NSArray); message 'setContent:';
+    function content: NSArray; message 'content';
+    procedure setSelectable(flag: Boolean); message 'setSelectable:';
+    function isSelectable: Boolean; message 'isSelectable';
+    procedure setAllowsMultipleSelection(flag: Boolean); message 'setAllowsMultipleSelection:';
+    function allowsMultipleSelection: Boolean; message 'allowsMultipleSelection';
+    procedure setSelectionIndexes(indexes: NSIndexSet); message 'setSelectionIndexes:';
+    function selectionIndexes: NSIndexSet; message 'selectionIndexes';
+    function newItemForRepresentedObject(object_: id): NSCollectionViewItem; message 'newItemForRepresentedObject:';
+    procedure setItemPrototype(prototype: NSCollectionViewItem); message 'setItemPrototype:';
+    function itemPrototype: NSCollectionViewItem; message 'itemPrototype';
+    procedure setMaxNumberOfRows(number: culong); message 'setMaxNumberOfRows:';
+    function maxNumberOfRows: culong; message 'maxNumberOfRows';
+    procedure setMaxNumberOfColumns(number: culong); message 'setMaxNumberOfColumns:';
+    function maxNumberOfColumns: culong; message 'maxNumberOfColumns';
+    procedure setMinItemSize(size: NSSize); message 'setMinItemSize:';
+    function minItemSize: NSSize; message 'minItemSize';
+    procedure setMaxItemSize(size: NSSize); message 'setMaxItemSize:';
+    function maxItemSize: NSSize; message 'maxItemSize';
+    procedure setBackgroundColors(colors: NSArray); message 'setBackgroundColors:';
+    function backgroundColors: NSArray; message 'backgroundColors';
+  end; external;
+
+{$endif}
+{$endif}

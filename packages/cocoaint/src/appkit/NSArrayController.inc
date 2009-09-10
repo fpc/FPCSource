@@ -1,0 +1,134 @@
+{ Parsed from Appkit.framework NSArrayController.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+
+{$ifdef HEADER}
+{$ifndef NSARRAYCONTROLLER_PAS_H}
+{$define NSARRAYCONTROLLER_PAS_H}
+type
+  NSArrayControllerPointer = Pointer;
+
+{$endif}
+{$endif}
+
+{$ifdef TYPES}
+{$ifndef NSARRAYCONTROLLER_PAS_T}
+{$define NSARRAYCONTROLLER_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSARRAYCONTROLLER_PAS_R}
+{$define NSARRAYCONTROLLER_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSARRAYCONTROLLER_PAS_F}
+{$define NSARRAYCONTROLLER_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSARRAYCONTROLLER_PAS_T}
+{$define NSARRAYCONTROLLER_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSArrayController = objcclass;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSARRAYCONTROLLER_PAS_C}
+{$define NSARRAYCONTROLLER_PAS_C}
+
+{ NSArrayController }
+  NSArrayController = objcclass(NSObjectController)
+  private
+    __reserved4: Pointer;
+    __rearrangementExtensions: id;
+    __temporaryWorkObjects: NSMutableArray;
+    __arrayControllerFlags: bitpacked record
+        _avoidsEmptySelection: 0..1;
+        _preservesSelection: 0..1;
+        _selectsInsertedObjects: 0..1;
+        _alwaysUsesMultipleValuesMarker: 0..1;
+        _refreshesAllModelObjects: 0..1;
+        _filterRestrictsInsertion: 0..1;
+        _overridesArrangeObjects: 0..1;
+        _overridesDidChangeArrangementCriteria: 0..1;
+        _explicitlyCannotInsert: 0..1;
+        _generatedEmptyArray: 0..1;
+        _isObservingKeyPathsThroughArrangedObjects: 0..1;
+        _arrangedObjectsIsMutable: 0..1;
+        _clearsFilterPredicateOnInsertion: 0..1;
+        _skipSortingAfterFetch: 0..1;
+        _automaticallyRearrangesObjects: 0..1;
+        _reservedArrayController: 0..((1 shl 17)-1);
+      end;
+    __observedIndexHint: culong;
+    __selectionIndexes: NSMutableIndexSet;
+    __objects: NSMutableArray;
+    __cachedSelectedIndexes: NSIndexSet;
+    __cachedSelectedObjects: NSArray;
+    __arrangedObjects: NSArray;
+    
+  public
+    class function alloc: NSArrayController; message 'alloc';
+
+    procedure rearrangeObjects; message 'rearrangeObjects';
+    procedure setAutomaticallyRearrangesObjects(flag: Boolean); message 'setAutomaticallyRearrangesObjects:';
+    function automaticallyRearrangesObjects: Boolean; message 'automaticallyRearrangesObjects';
+    function automaticRearrangementKeyPaths: NSArray; message 'automaticRearrangementKeyPaths';
+    procedure didChangeArrangementCriteria; message 'didChangeArrangementCriteria';
+    procedure setSortDescriptors(sortDescriptors_: NSArray); message 'setSortDescriptors:';
+    function sortDescriptors: NSArray; message 'sortDescriptors';
+    procedure setFilterPredicate(filterPredicate_: NSPredicate); message 'setFilterPredicate:';
+    function filterPredicate: NSPredicate; message 'filterPredicate';
+    procedure setClearsFilterPredicateOnInsertion(flag: Boolean); message 'setClearsFilterPredicateOnInsertion:';
+    function clearsFilterPredicateOnInsertion: Boolean; message 'clearsFilterPredicateOnInsertion';
+    function arrangeObjects(objects: NSArray): NSArray; message 'arrangeObjects:';
+    function arrangedObjects: id; message 'arrangedObjects';
+    procedure setAvoidsEmptySelection(flag: Boolean); message 'setAvoidsEmptySelection:';
+    function avoidsEmptySelection: Boolean; message 'avoidsEmptySelection';
+    procedure setPreservesSelection(flag: Boolean); message 'setPreservesSelection:';
+    function preservesSelection: Boolean; message 'preservesSelection';
+    procedure setSelectsInsertedObjects(flag: Boolean); message 'setSelectsInsertedObjects:';
+    function selectsInsertedObjects: Boolean; message 'selectsInsertedObjects';
+    procedure setAlwaysUsesMultipleValuesMarker(flag: Boolean); message 'setAlwaysUsesMultipleValuesMarker:';
+    function alwaysUsesMultipleValuesMarker: Boolean; message 'alwaysUsesMultipleValuesMarker';
+    function setSelectionIndexes(indexes: NSIndexSet): Boolean; message 'setSelectionIndexes:';
+    function selectionIndexes: NSIndexSet; message 'selectionIndexes';
+    function setSelectionIndex(index: culong): Boolean; message 'setSelectionIndex:';
+    function selectionIndex: culong; message 'selectionIndex';
+    function addSelectionIndexes(indexes: NSIndexSet): Boolean; message 'addSelectionIndexes:';
+    function removeSelectionIndexes(indexes: NSIndexSet): Boolean; message 'removeSelectionIndexes:';
+    function setSelectedObjects(objects: NSArray): Boolean; message 'setSelectedObjects:';
+    function selectedObjects: NSArray; message 'selectedObjects';
+    function addSelectedObjects(objects: NSArray): Boolean; message 'addSelectedObjects:';
+    function removeSelectedObjects(objects: NSArray): Boolean; message 'removeSelectedObjects:';
+    procedure add(sender: id); message 'add:';
+    procedure remove(sender: id); message 'remove:';
+    procedure insert(sender: id); message 'insert:';
+    function canInsert: Boolean; message 'canInsert';
+    procedure selectNext(sender: id); message 'selectNext:';
+    procedure selectPrevious(sender: id); message 'selectPrevious:';
+    function canSelectNext: Boolean; message 'canSelectNext';
+    function canSelectPrevious: Boolean; message 'canSelectPrevious';
+    procedure addObject(object_: id); message 'addObject:';
+    procedure addObjects(objects: NSArray); message 'addObjects:';
+    procedure insertObject_atArrangedObjectIndex(object_: id; index: culong); message 'insertObject:atArrangedObjectIndex:';
+    procedure insertObjects_atArrangedObjectIndexes(objects: NSArray; indexes: NSIndexSet); message 'insertObjects:atArrangedObjectIndexes:';
+    procedure removeObjectAtArrangedObjectIndex(index: culong); message 'removeObjectAtArrangedObjectIndex:';
+    procedure removeObjectsAtArrangedObjectIndexes(indexes: NSIndexSet); message 'removeObjectsAtArrangedObjectIndexes:';
+    procedure removeObject(object_: id); message 'removeObject:';
+    procedure removeObjects(objects: NSArray); message 'removeObjects:';
+  end; external;
+
+{$endif}
+{$endif}

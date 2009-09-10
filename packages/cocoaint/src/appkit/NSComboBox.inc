@@ -1,0 +1,103 @@
+{ Parsed from Appkit.framework NSComboBox.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+
+{$ifdef HEADER}
+{$ifndef NSCOMBOBOX_PAS_H}
+{$define NSCOMBOBOX_PAS_H}
+type
+  NSComboBoxPointer = Pointer;
+
+{$endif}
+{$endif}
+
+{$ifdef TYPES}
+{$ifndef NSCOMBOBOX_PAS_T}
+{$define NSCOMBOBOX_PAS_T}
+
+{ CFString constants }
+var
+  NSComboBoxWillPopUpNotification: CFStringRef; external name '_NSComboBoxWillPopUpNotification';
+  NSComboBoxWillDismissNotification: CFStringRef; external name '_NSComboBoxWillDismissNotification';
+  NSComboBoxSelectionDidChangeNotification: CFStringRef; external name '_NSComboBoxSelectionDidChangeNotification';
+  NSComboBoxSelectionIsChangingNotification: CFStringRef; external name '_NSComboBoxSelectionIsChangingNotification';
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSCOMBOBOX_PAS_R}
+{$define NSCOMBOBOX_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSCOMBOBOX_PAS_F}
+{$define NSCOMBOBOX_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSCOMBOBOX_PAS_T}
+{$define NSCOMBOBOX_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSComboBox = objcclass;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSCOMBOBOX_PAS_C}
+{$define NSCOMBOBOX_PAS_C}
+
+{ NSComboBox }
+  NSComboBox = objcclass(NSTextField)
+  private
+    __dataSource: id;
+    
+  public
+    class function alloc: NSComboBox; message 'alloc';
+
+    function hasVerticalScroller: Boolean; message 'hasVerticalScroller';
+    procedure setHasVerticalScroller(flag: Boolean); message 'setHasVerticalScroller:';
+    function intercellSpacing: NSSize; message 'intercellSpacing';
+    procedure setIntercellSpacing(aSize: NSSize); message 'setIntercellSpacing:';
+    function itemHeight: CGFloat; message 'itemHeight';
+    procedure setItemHeight(itemHeight_: CGFloat); message 'setItemHeight:';
+    function numberOfVisibleItems: clong; message 'numberOfVisibleItems';
+    procedure setNumberOfVisibleItems(visibleItems: clong); message 'setNumberOfVisibleItems:';
+    procedure setButtonBordered(flag: Boolean); message 'setButtonBordered:';
+    function isButtonBordered: Boolean; message 'isButtonBordered';
+    procedure reloadData; message 'reloadData';
+    procedure noteNumberOfItemsChanged; message 'noteNumberOfItemsChanged';
+    procedure setUsesDataSource(flag: Boolean); message 'setUsesDataSource:';
+    function usesDataSource: Boolean; message 'usesDataSource';
+    procedure scrollItemAtIndexToTop(index: clong); message 'scrollItemAtIndexToTop:';
+    procedure scrollItemAtIndexToVisible(index: clong); message 'scrollItemAtIndexToVisible:';
+    procedure selectItemAtIndex(index: clong); message 'selectItemAtIndex:';
+    procedure deselectItemAtIndex(index: clong); message 'deselectItemAtIndex:';
+    function indexOfSelectedItem: clong; message 'indexOfSelectedItem';
+    function numberOfItems: clong; message 'numberOfItems';
+    function completes: Boolean; message 'completes';
+    procedure setCompletes(completes_: Boolean); message 'setCompletes:';
+    function dataSource: id; message 'dataSource';
+    procedure setDataSource(aSource: id); message 'setDataSource:';
+    procedure addItemWithObjectValue(object_: id); message 'addItemWithObjectValue:';
+    procedure addItemsWithObjectValues(objects: NSArray); message 'addItemsWithObjectValues:';
+    procedure insertItemWithObjectValue_atIndex(object_: id; index: clong); message 'insertItemWithObjectValue:atIndex:';
+    procedure removeItemWithObjectValue(object_: id); message 'removeItemWithObjectValue:';
+    procedure removeItemAtIndex(index: clong); message 'removeItemAtIndex:';
+    procedure removeAllItems; message 'removeAllItems';
+    procedure selectItemWithObjectValue(object_: id); message 'selectItemWithObjectValue:';
+    function itemObjectValueAtIndex(index: clong): id; message 'itemObjectValueAtIndex:';
+    function objectValueOfSelectedItem: id; message 'objectValueOfSelectedItem';
+    function indexOfItemWithObjectValue(object_: id): clong; message 'indexOfItemWithObjectValue:';
+    function objectValues: NSArray; message 'objectValues';
+  end; external;
+
+{$endif}
+{$endif}

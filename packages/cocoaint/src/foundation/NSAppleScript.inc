@@ -1,0 +1,74 @@
+{ Parsed from Foundation.framework NSAppleScript.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+
+{$ifdef HEADER}
+{$ifndef NSAPPLESCRIPT_PAS_H}
+{$define NSAPPLESCRIPT_PAS_H}
+type
+  NSAppleScriptPointer = Pointer;
+
+{$endif}
+{$endif}
+
+{$ifdef TYPES}
+{$ifndef NSAPPLESCRIPT_PAS_T}
+{$define NSAPPLESCRIPT_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSAPPLESCRIPT_PAS_R}
+{$define NSAPPLESCRIPT_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSAPPLESCRIPT_PAS_F}
+{$define NSAPPLESCRIPT_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSAPPLESCRIPT_PAS_T}
+{$define NSAPPLESCRIPT_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSAppleScript = objcclass;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSAPPLESCRIPT_PAS_C}
+{$define NSAPPLESCRIPT_PAS_C}
+
+{ NSAppleScript }
+  NSAppleScript = objcclass(NSObject, NSCopyingProtocol)
+  private
+    __source: NSString;
+    __compiledScriptID: cuint;
+    __reserved1: Pointer;
+    __reserved2: Pointer;
+    
+  public
+    class function alloc: NSAppleScript; message 'alloc';
+
+    function initWithContentsOfURL_error(url: NSURL; var errorInfo: NSDictionary): id; message 'initWithContentsOfURL:error:';
+    function initWithSource(source_: NSString): id; message 'initWithSource:';
+    function source: NSString; message 'source';
+    function isCompiled: Boolean; message 'isCompiled';
+    function compileAndReturnError(var errorInfo: NSDictionary): Boolean; message 'compileAndReturnError:';
+    function executeAndReturnError(var errorInfo: NSDictionary): NSAppleEventDescriptor; message 'executeAndReturnError:';
+    function executeAppleEvent_error(event: NSAppleEventDescriptor; var errorInfo: NSDictionary): NSAppleEventDescriptor; message 'executeAppleEvent:error:';
+
+    { Category: NSExtensions }
+    function richTextSource: NSAttributedString; message 'richTextSource';
+  end; external;
+
+{$endif}
+{$endif}

@@ -1,0 +1,27 @@
+#
+#   Makefile.fpc for Apple Universal Interfaces for Free Pascal
+#
+
+[package]
+name=cocoaint
+version=2.5.1
+
+[target]
+units=CocoaAll
+
+[libs]
+libversion=2.5.1
+
+[install]
+fpcpackage=y
+
+[compiler]
+sourcedir=src
+
+[default]
+fpcdir=../..
+
+[require]
+packages=univint
+
+[rules]

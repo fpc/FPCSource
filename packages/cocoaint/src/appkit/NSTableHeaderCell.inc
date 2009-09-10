@@ -1,0 +1,61 @@
+{ Parsed from Appkit.framework NSTableHeaderCell.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+
+{$ifdef HEADER}
+{$ifndef NSTABLEHEADERCELL_PAS_H}
+{$define NSTABLEHEADERCELL_PAS_H}
+type
+  NSTableHeaderCellPointer = Pointer;
+
+{$endif}
+{$endif}
+
+{$ifdef TYPES}
+{$ifndef NSTABLEHEADERCELL_PAS_T}
+{$define NSTABLEHEADERCELL_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSTABLEHEADERCELL_PAS_R}
+{$define NSTABLEHEADERCELL_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSTABLEHEADERCELL_PAS_F}
+{$define NSTABLEHEADERCELL_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSTABLEHEADERCELL_PAS_T}
+{$define NSTABLEHEADERCELL_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSTableHeaderCell = objcclass;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSTABLEHEADERCELL_PAS_C}
+{$define NSTABLEHEADERCELL_PAS_C}
+
+{ NSTableHeaderCell }
+  NSTableHeaderCell = objcclass(NSTextFieldCell)
+    
+  public
+    class function alloc: NSTableHeaderCell; message 'alloc';
+
+    procedure drawSortIndicatorWithFrame_inView_ascending_priority(cellFrame: NSRect; controlView_: NSView; ascending: Boolean; priority: clong); message 'drawSortIndicatorWithFrame:inView:ascending:priority:';
+    function sortIndicatorRectForBounds(theRect: NSRect): NSRect; message 'sortIndicatorRectForBounds:';
+  end; external;
+
+{$endif}
+{$endif}
