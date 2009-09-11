@@ -77,6 +77,7 @@ implementation
        { pass 1 }
        fmodule,node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       objcutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,pdecl
@@ -1373,6 +1374,10 @@ begin
       if (tstringconstnode(pt).len>255) then
         Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
+      { check whether the selector name is valid in case of Objective-C }
+      if is_objc_class_or_protocol(tprocdef(pd)._class) and
+         not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
+        Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
     end
   else
    if is_constintnode(pt) and

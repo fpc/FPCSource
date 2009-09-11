@@ -1521,7 +1521,7 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid GUID.
-type_e_invalid_objc_selector_name=04084_E_Invalid selector name
+type_e_invalid_objc_selector_name=04084_E_Invalid selector name "$1"
 % An Objective-C selector cannot be empty, must be a valid identifier or a single colon,
 % and if it contains at least one colon it must also end in one.
 type_e_expected_objc_method_but_got=04085_E_Expected Objective-C method, but got $1

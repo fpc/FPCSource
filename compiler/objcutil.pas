@@ -31,6 +31,9 @@ interface
       node,
       symtype,symdef;
 
+    { Check whether a string contains a syntactically valid selector name.  }
+    function objcvalidselectorname(value_str: pchar; len: longint): boolean;
+
     { Generate a node loading the superclass structure necessary to call
       an inherited Objective-C method.  }
     function objcsuperclassnode(def: tdef): tnode;
@@ -60,6 +63,52 @@ implementation
       defutil,paramgr,
       nbas,nmem,ncal,nld,ncon;
 
+
+{******************************************************************
+                       validselectorname
+*******************************************************************}
+
+function objcvalidselectorname(value_str: pchar; len: longint): boolean;
+  var
+    i         : longint;
+    gotcolon  : boolean;
+begin
+  result:=false;
+  { empty name is not allowed }
+  if (len=0) then
+    exit;
+
+  gotcolon:=false;
+
+  { if the first character is a colon, all of them must be colons }
+  if (value_str[0] = ':') then
+    begin
+      for i:=1 to len-1 do
+        if (value_str[i]<>':') then
+          exit;
+    end
+  else
+    begin
+      { no special characters other than ':'
+        (already checked character 0, so start checking from 1)
+      }
+      for i:=1 to len-1 do
+        if (value_str[i] = ':') then
+          gotcolon:=true
+        else if not(value_str[i] in ['_','A'..'Z','a'..'z','0'..'9',':']) then
+          exit;
+
+      { if there is at least one colon, the final character must
+        also be a colon (in case it's only one character that is
+        a colon, this was already checked before the above loop)
+      }
+      if gotcolon and
+         (value_str[len-1] <> ':') then
+        exit;
+    end;
+
+  result:=true;
+end;
 
 {******************************************************************
                        objcsuperclassnode
