@@ -203,7 +203,11 @@ function tobjcmessagesendnode.pass_1: tnode;
     objcsupertype: tdef;
     field: tfieldvarsym;
     selfpara,
-    msgselpara: tcallparanode;
+    msgselpara,
+    respara,
+
+    prerespara,
+    prevpara: tcallparanode;
   begin
     { pass1 of left has already run, see constructor }
 
@@ -216,12 +220,57 @@ function tobjcmessagesendnode.pass_1: tnode;
       result type, and on whether or not it's an inherited call.
     }
 
+    newparas:=tcallparanode(tcallnode(left).left);
+    { Find the self and msgsel parameters.  }
+    para:=newparas;
+    selfpara:=nil;
+    msgselpara:=nil;
+    respara:=nil;
+    prevpara:=nil;
+    while assigned(para) do
+      begin
+        if (vo_is_self in para.parasym.varoptions) then
+          selfpara:=para
+        else if (vo_is_msgsel in para.parasym.varoptions) then
+          msgselpara:=para
+        else if (vo_is_funcret in para.parasym.varoptions) then
+          begin
+            prerespara:=prevpara;
+            respara:=para;
+          end;
+        prevpara:=para;
+        para:=tcallparanode(para.right);
+      end;
+    if not assigned(selfpara) then
+      internalerror(2009051801);
+    if not assigned(msgselpara) then
+      internalerror(2009051802);
+
     { record returned via implicit pointer }
     if paramanager.ret_in_param(left.resultdef,tcallnode(left).procdefinition.proccalloption) then
-      if not(cnf_inherited in tcallnode(left).callnodeflags) then
-        msgsendname:='OBJC_MSGSEND_STRET'
-      else
-        msgsendname:='OBJC_MSGSENDSUPER_STRET'
+      begin
+        if not assigned(respara) then
+          internalerror(2009091101);
+        { Since the result parameter is also hidden in the routine we'll
+          call now, it will be inserted again by the callnode. So we have to
+          remove the old one, otherwise we'll have two result parameters.
+        }
+        if (tcallparanode(respara).left.nodetype<>nothingn) then
+          internalerror(2009091102);
+        if assigned(prerespara) then
+          tcallparanode(prerespara).right:=tcallparanode(respara).right
+        else
+          begin
+            tcallnode(left).left:=tcallparanode(respara).right;
+            newparas:=tcallparanode(tcallnode(left).left);
+          end;
+        tcallparanode(respara).right:=nil;
+        respara.free;
+        if not(cnf_inherited in tcallnode(left).callnodeflags) then
+          msgsendname:='OBJC_MSGSEND_STRET'
+        else
+          msgsendname:='OBJC_MSGSENDSUPER_STRET'
+      end
 {$ifdef i386}
     { special case for fpu results on i386 for non-inherited calls }
     else if (left.resultdef.typ=floatdef) and
@@ -234,23 +283,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     else
       msgsendname:='OBJC_MSGSENDSUPER';
 
-    newparas:=tcallparanode(tcallnode(left).left);
-    { Find the self and msgsel parameters.  }
-    para:=newparas;
-    selfpara:=nil;
-    msgselpara:=nil;
-    while assigned(para) do
-      begin
-        if (vo_is_self in para.parasym.varoptions) then
-          selfpara:=para
-        else if (vo_is_msgsel in para.parasym.varoptions) then
-          msgselpara:=para;
-        para:=tcallparanode(para.right);
-      end;
-    if not assigned(selfpara) then
-      internalerror(2009051801);
-    if not assigned(msgselpara) then
-      internalerror(2009051802);
+
     { Handle self }
     { 1) in case of sending a message to a superclass, self is a pointer to
          an objc_super record
@@ -323,7 +356,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     selfpara.left.free;
     selfpara.left:=tcallnode(left).methodpointer;
     { replace selector parameter }
-    msgselpara.left.Free;
+    msgselpara.left.free;
     msgselpara.left:=
       cobjcselectornode.create(
        cstringconstnode.createstr(tprocdef(tcallnode(left).procdefinition).messageinf.str^)
@@ -334,6 +367,12 @@ function tobjcmessagesendnode.pass_1: tnode;
     tcallnode(left).methodpointer:=nil;
     { and now the call to the Objective-C rtl }
     result:=ccallnode.createinternresfromunit('OBJC1',msgsendname,newparas,left.resultdef);
+    { in case an explicit function result was specified, keep it }
+    tcallnode(result).funcretnode:=tcallnode(left).funcretnode;
+    tcallnode(left).funcretnode:=nil;
+    { keep variable paras }
+    tcallnode(result).varargsparas:=tcallnode(left).varargsparas;
+    tcallnode(left).varargsparas:=nil;
 
     if (cnf_inherited in tcallnode(left).callnodeflags) then
       begin

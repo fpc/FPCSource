@@ -165,9 +165,9 @@ implementation
            is_objc_class_or_protocol(tprocdef(pd)._class) then
           begin
             { insert Objective-C self and selector parameters }
-            vs:=tparavarsym.create('$_cmd',paranr_vmt,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
             pd.parast.insert(vs);
-            vs:=tparavarsym.create('$self',paranr_self,vs_value,objc_idtype,[vo_is_self,vo_is_hidden_para]);
+            vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,objc_idtype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
         else if (pd.typ=procvardef) and

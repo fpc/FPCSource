@@ -105,6 +105,11 @@ const
   paranr_self = 2;
   paranr_result = 3;
   paranr_vmt = 4;
+
+  { the implicit parameters for Objective-C methods need to come
+    after the hidden result parameter }
+  paranr_objc_self = 4;
+  paranr_objc_cmd = 5;
   { Required to support variations of syscalls on MorphOS }
   paranr_syscall_basesysv = 9;
   paranr_syscall_sysvbase = high(word)-4;
