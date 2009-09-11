@@ -13,7 +13,7 @@ type
   TMyTestClass = objcclass(NSObject)
     { should not give a hint, since we have 'override' }
     function hash: cuint; override;
-  end; external name 'NSZone';
+  end; external name 'NSObject';
 
 var
   a: id;
