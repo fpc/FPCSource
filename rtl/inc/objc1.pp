@@ -81,7 +81,7 @@ function  objc_msgSend_fpret (self: id; op: SEL): double; cdecl; varargs; extern
 
 function class_getSuperclass(cls: pobjc_class): pobjc_class; cdecl; external libname;
 function objc_getMetaClass(name: pchar): id; cdecl; external libname;
-function class_getName(cls: pobjc_class): pchar; cdecl; external 'libname';
+function class_getName(cls: pobjc_class): pchar; cdecl; external libname;
 
 implementation
 
