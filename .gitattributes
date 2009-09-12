@@ -8597,6 +8597,7 @@ tests/test/tobjc18.pp svneol=native#text/plain
 tests/test/tobjc19.pp svneol=native#text/plain
 tests/test/tobjc2.pp svneol=native#text/plain
 tests/test/tobjc20.pp svneol=native#text/plain
+tests/test/tobjc21.pp svneol=native#text/plain
 tests/test/tobjc3.pp svneol=native#text/plain
 tests/test/tobjc4.pp svneol=native#text/plain
 tests/test/tobjc4a.pp svneol=native#text/plain

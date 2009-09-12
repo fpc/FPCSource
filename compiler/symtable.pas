@@ -630,7 +630,10 @@ implementation
                   (tsym(sym).typ<>procsym) or
                   ((tsym(sym).owner.symtabletype=staticsymtable) and
                    not current_module.is_unit)
-                 ) then
+                 ) and
+                 { don't complain about alias for hidden _cmd parameter to
+                   obj-c methods }
+                 not (vo_is_msgsel in tabstractvarsym(sym).varoptions) then
                 MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).prettyname);
             end;
           end;

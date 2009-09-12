@@ -162,6 +162,8 @@ implementation
         vs       : tparavarsym;
         hdef     : tdef;
         vsp      : tvarspez;
+        aliasvs  : tabsolutevarsym;
+        sl       : tpropaccesslist;
       begin
         if (pd.typ=procdef) and
            is_objc_class_or_protocol(tprocdef(pd)._class) then
@@ -169,6 +171,13 @@ implementation
             { insert Objective-C self and selector parameters }
             vs:=tparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
             pd.parast.insert(vs);
+            { make accessible to code }
+            sl:=tpropaccesslist.create;
+            sl.addsym(sl_load,vs);
+            aliasvs:=tabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
+            include(aliasvs.varoptions,vo_is_msgsel);
+            tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
+
             vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,objc_idtype,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
