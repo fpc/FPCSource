@@ -27,8 +27,8 @@ dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc p
                users iconvenc
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc
-dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl
-dirs_powerpc_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib objcrtl
+dirs_i386_darwin=graph univint cocoaint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl
+dirs_powerpc_darwin=graph univint cocoaint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib objcrtl
 dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
 dirs_arm_darwin= httpd13 httpd20 httpd22 opengles objcrtl
@@ -94,6 +94,12 @@ fcl-base_debug: univint_debug
 fcl-base_smart: univint_smart
 fcl-base_release: univint_release
 fcl-base_shared: univint_shared
+
+cocoaint_all: univint_all
+cocoaint_debug: univint_debug
+cocoaint_smart: univint_smart
+cocoaint_release: univint_release
+cocoaint_shared: univint_shared
 endif
 
 fcl-xml_all: fcl-base_all
