@@ -29,7 +29,7 @@ unit paramgr;
 
     uses
        cclasses,globtype,
-       cpubase,cgbase,
+       cpubase,cgbase,cgutils,
        parabase,
        aasmtai,aasmdata,
        symconst,symtype,symsym,symdef;
@@ -96,6 +96,12 @@ unit paramgr;
           }
           function  create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;virtual;abstract;
 
+          { Returns the location of the function result if p had def as
+            function result instead of its actual result. Used if the compiler
+            forces the function result to something different than the real
+            result.  }
+          function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;virtual;abstract;
+
           { This is used to populate the location information on all parameters
             for the routine when it is being inlined. It returns
             the size allocated on the stack
@@ -124,7 +130,7 @@ implementation
 
     uses
        systems,
-       cgobj,tgobj,cgutils,
+       cgobj,tgobj,
        defutil,verbose;
 
     { true if the location in paraloc can be reused as localloc }
