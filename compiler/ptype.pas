@@ -113,7 +113,8 @@ implementation
                         inc(ttypesym(srsym).refs);
                         { we need a class type for classrefdef }
                         if (def.typ=classrefdef) and
-                           not(is_class(ttypesym(srsym).typedef)) then
+                           not(is_class(ttypesym(srsym).typedef)) and
+                           not(is_objcclass(ttypesym(srsym).typedef)) then
                           MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                       end
                      else
@@ -971,7 +972,8 @@ implementation
                   begin
                     consume(_OF);
                     single_type(hdef,(block_type=bt_type),false);
-                    if is_class(hdef) then
+                    if is_class(hdef) or
+                       is_objcclass(hdef) then
                       def:=tclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
@@ -980,7 +982,7 @@ implementation
                           current_module.checkforwarddefs.add(def);
                         end
                     else
-                      Message1(type_e_class_type_expected,hdef.typename);
+                      Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
                   end
                 else
                   def:=object_dec(odt_class,name,genericdef,genericlist,nil);

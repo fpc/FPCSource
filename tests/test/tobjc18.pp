@@ -14,8 +14,11 @@ type
     procedure release; override;
     class procedure testClassOverride; override;
   end;
+  tmyoverrideclass = class of myoverride;
 
 var
+  selfshouldbe: tmyoverrideclass;
+  selfshouldbetestinlinetypedefinition: class of myoverride2;
   overridescalled: longint;
 
 procedure MyOverride.release;
@@ -29,6 +32,9 @@ end;
 
 class procedure MyOverride.testClassOverride;
 begin
+  if (self<>selfshouldbe) then
+    halt(20);
+
   writeln('MyOverride.testClassOverride');
   if (overridescalled<>1) then
     halt(3);
@@ -47,6 +53,9 @@ end;
 
 class procedure MyOverride2.testClassOverride;
 begin
+  if (self<>selfshouldbe) then
+    halt(21);
+
   if (overridescalled<>0) then
     halt(5);
   writeln('MyOverride2.testClassOverride');
@@ -59,14 +68,17 @@ var
 begin
   a:=MyOverride2.alloc;
   a:=a.init;
+  selfshouldbe:=MyOverride2;
   MyOverride2.testClassOverride;
   if (overridescalled<>2) then
     halt(6);
   dec(overridescalled);
+  selfshouldbe:=MyOverride;
   MyOverride.testClassOverride;
   if (overridescalled<>2) then
     halt(7);
   overridescalled:=0;
+  selfshouldbe:=MyOverride2;
   a.testClassOverride;
   overridescalled:=1;
   a.release;
