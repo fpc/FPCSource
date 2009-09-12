@@ -28,7 +28,7 @@ interface
       cclasses,
       aasmtai,aasmdata,
       cpubase,cpuinfo,
-      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase;
+      symconst,symbase,symsym,symtype,symdef,paramgr,parabase,cgbase,cgutils;
 
     type
       TSparcParaManager=class(TParaManager)
@@ -41,6 +41,7 @@ interface
         procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara : TCGPara);override;
         function  create_paraloc_info(p : TAbstractProcDef; side: tcallercallee):longint;override;
         function  create_varargs_paraloc_info(p : TAbstractProcDef; varargspara:tvarargsparalist):longint;override;
+        function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;override;
       private
         procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
         procedure create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
@@ -52,7 +53,7 @@ implementation
     uses
       cutils,verbose,systems,
       defutil,
-      cgutils,cgobj;
+      cgobj;
 
     type
       tparasupregs = array[0..5] of tsuperregister;
@@ -139,6 +140,12 @@ implementation
 
 
     procedure tsparcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function tsparcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;
       var
         retcgsize  : tcgsize;
       begin
@@ -146,31 +153,31 @@ implementation
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.returndef);
+          retcgsize:=def_cgsize(def);
 
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
-        p.funcretloc[side].size:=retcgsize;
+        location_reset(result,LOC_INVALID,OS_NO);
+        result.size:=retcgsize;
         { void has no location }
-        if is_void(p.returndef) then
+        if is_void(def) then
           begin
-            p.funcretloc[side].loc:=LOC_VOID;
+            result.loc:=LOC_VOID;
             exit;
           end;
         { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        if ret_in_param(def,p.proccalloption) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            result.loc:=LOC_REFERENCE;
+            result.size:=retcgsize;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
-            p.funcretloc[side].loc:=LOC_FPUREGISTER;
-            p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+            result.loc:=LOC_FPUREGISTER;
+            result.register:=NR_FPU_RESULT_REG;
             if retcgsize=OS_F64 then
-              setsubreg(p.funcretloc[side].register,R_SUBFD);
-            p.funcretloc[side].size:=retcgsize;
+              setsubreg(result.register,R_SUBFD);
+            result.size:=retcgsize;
           end
         else
          { Return in register }
@@ -178,27 +185,27 @@ implementation
 {$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
-               p.funcretloc[side].loc:=LOC_REGISTER;
+               result.loc:=LOC_REGISTER;
                { high }
                if (side=callerside) or (po_inline in p.procoptions) then
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+                 result.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 result.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
                { low }
                if (side=callerside) or (po_inline in p.procoptions) then
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+                 result.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                 result.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
              end
             else
 {$endif not cpu64bitaddr}
              begin
-               p.funcretloc[side].loc:=LOC_REGISTER;
-               p.funcretloc[side].size:=retcgsize;
+               result.loc:=LOC_REGISTER;
+               result.size:=retcgsize;
                if (side=callerside) then
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                 result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                 result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
              end;
           end;
       end;
