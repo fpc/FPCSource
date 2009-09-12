@@ -14,11 +14,14 @@ type
    fss: shortstring;
    fsingle: single;
    fdouble: double;
+   fbool: boolean;
 
    function getss: shortstring ; message 'getss';
    function getsspara(l1,l2: longint): shortstring ; message 'getss:l1:';
    function getsingle(l1,l2: longint): single; message 'getsingle:l1:';
    function getdouble(l1,l2: longint): double; message 'getdouble:l1:';
+
+   function getbool: boolean; message 'getbool';
  end;
 
 function MyObject.getss: shortstring;
@@ -53,8 +56,14 @@ begin
   result:=fdouble;
 end;
 
+function MyObject.getbool: boolean;
+begin
+  result:=fbool;
+end;
+
 var
   m: MyObject;
+  b: boolean;
 begin
  m := MyObject.alloc;
  m:=m.init;
@@ -71,5 +80,16 @@ begin
    halt(6);
  if m.getdouble(1,2)<>9876.0625 then
    halt(7);
+
+ m.fbool:=true;
+ b:=m.getbool;
+ if ord(b)<>ord(true) then
+   halt(8);
+
+ m.fbool:=false;
+ b:=m.getbool;
+ if ord(b)<>ord(false) then
+   halt(9);
+
  m.release;
 end.
