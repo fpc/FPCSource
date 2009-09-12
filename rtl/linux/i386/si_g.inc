@@ -90,11 +90,23 @@ end;
 procedure _FPC_proc_gprof_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
 .Lhaltproc:
-{$if sizeof(ExitCode)=2}
+ {$ifdef FPC_PIC}
+  call    fpc_geteipasebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+ {$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%ebx
-{$else}
+ {$else}
   mov     ExitCode,%ebx
-{$endif}
+ {$endif}
+{$endif FPC_PIC}
+
   pushl   %ebx
   call    libc_exit     { call libc exit, this will  write the gmon.out }
   movl    syscall_nr_exit_group,%eax

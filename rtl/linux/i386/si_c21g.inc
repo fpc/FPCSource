@@ -33,116 +33,224 @@
          argc <--- esp
 }
 
-var
-  gmon_etext: longint; external name '_etext';
-  gmon_start: longint; external name '_start';
-  gmon_mcleanup: procedure; external name '_mcleanup';
-  libc21_fpc_ret, libc21_fpc_ret_ebx: ptrint; { return address to libc }
-  libc21_fpc_ret_esi, libc21_fpc_ret_edi: ptrint;
-  gmon_monstarted: longint = 0;
+{
+    This file is part of the Free Pascal run time library.
+    Copyright (c) 2005 by Michael Van Canneyt, Peter Vreman,
+    & Daniel Mantione, members of the Free Pascal development team.
 
-procedure gmon_monstartup; external name 'monstartup';
+    See the file COPYING.FPC, included in this distribution,
+    for details about the copyright.
 
-procedure libc_atexit; external name 'atexit';
-procedure libc_exit; external name '__libc_exit';
-procedure libc_init; external name '__libc_init';
-procedure libc_setfpucw; external name '__setfpucw';
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+ **********************************************************************}
+
+{
+ Linux ELF startup code for Free Pascal
+
+
+ Stack layout at program start:
+
+         nil
+         envn
+         ....
+         ....           ENVIRONMENT VARIABLES
+         env1
+         env0
+         nil
+         argn
+         ....
+         ....           COMMAND LINE OPTIONS
+         arg1
+         arg0
+         argc <--- esp
+}
+
+{$asmmode att}
+
+{ Some helpers }
+
+{$ifdef FPC_PIC}
+function fpc0geteipasebx : pointer; compilerproc; nostackframe; assembler; 
+asm  
+  movl (%esp),%ebx  
+  ret  
+end;
+{$endif FPC_PIC}
+
+procedure _init_fini_dummy; compilerproc; nostackframe; assembler;
+asm
+  ret
+end;
+
+procedure gmon_mcleanup; cdecl; external name '_mcleanup';
+procedure gmon_monstartup (main,etext : pointer);cdecl;external name 'monstartup';
+
 procedure libc_start_main; external name '__libc_start_main';
-
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
-{******************************************************************************
-                       glibc 2.1 lib + profiling start/halt
- ******************************************************************************}
-{$asmmode ATT}
+var
+  dlexitproc: pointer; { atexit from loader }
 
-procedure _FPC_libc21_gprof_gmon_start; assembler; nostackframe;
-asm
-  pushl   %ebp
-  movl    gmon_monstarted,%eax
-  leal    0x1(%eax),%edx
-  movl    %esp,%ebp
-  movl    %edx,gmon_monstarted
-  testl   %eax,%eax
-  jnz     .Lnomonstart
-  pushl   $gmon_start
-  pushl   $gmon_etext                  { Initialize gmon }
-  call    gmon_monstartup
-  addl    $8,%esp
-  pushl   $gmon_mcleanup
-  call    libc_atexit
-  addl    $4,%esp
-.Lnomonstart:
-  movl   %ebp,%esp
-  popl   %ebp
-  ret
+  gmon_start : record end;external name 'PASCALMAIN';
+  gmon_etext : record end;external name '_etext';
+
+  gmon_monstarted: longint = 0;
+
+{******************************************************************************
+                          Process start/halt
+ ******************************************************************************}
+
+procedure _FPC_libc21_gprof_gmon_start; public name '_FPC_libc21_gprof_gmon_start';
+begin
+  if gmon_monstarted=0 then
+  begin
+    inc(gmon_monstarted);
+    gmon_monstartup(@gmon_start,@gmon_etext);
+  end;
+  PASCALMAIN;
 end;
 
 procedure _FPC_libc21_gprof_start; assembler; nostackframe; public name '_start';
 asm
+  xorl    %ebp,%ebp
   { First locate the start of the environment variables }
-  popl    %esi
-  movl    %eax,%edi
 
-  movl    %esp,%ebx               { Points to the arguments }
-  movl    %esi,%eax
-  incl    %eax
-  shll    $2,%eax
-  addl    %esp,%eax
+  popl    %ecx                    { Get argc in ecx }
+
+  movl    %esp,%ebx               { Esp now points to the arguments }
+  leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+4 }
   andl    $0xfffffff8,%esp        { Align stack }
 
-  movl    %eax,operatingsystem_parameter_envp    { Move the environment pointer }
-  movl    %esi,operatingsystem_parameter_argc    { Move the argument counter    }
-  movl    %ebx,operatingsystem_parameter_argv    { Move the argument pointer    }
+  {$ifdef FPC_PIC}
+        pushl %edx
+        pushl %ebx
+        pushl %ecx
+	
+	call fpc0geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
-  movl    %edi,%eax
-  xorl    %ebp,%ebp
-  pushl   %eax
-  pushl   %esp
-  pushl   %edx
-  pushl   $.Lfini_dummy
-  pushl   $.Linit_dummy
-  pushl   %ebx
-  pushl   %esi
-  pushl   $.Lcmain
-  call    libc_start_main
-.Linit_dummy:
-.Lfini_dummy:
-  ret
+	movl  dlexitproc@GOT(%ebx),%ecx
+	movl  %edx,(%ecx)
 
-{ fake main routine which will be run from libc }
-.Lcmain:
-  { save return address }
-  popl    %eax
-  movl    %eax,libc21_fpc_ret
-  movl    %ebx,libc21_fpc_ret_ebx
-  movl    %esi,libc21_fpc_ret_esi
-  movl    %edi,libc21_fpc_ret_edi
-  pushl   %eax
+	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
+	movl  %eax,(%ecx)
 
-  call    _FPC_libc21_gprof_gmon_start
+	movl  operatingsystem_parameter_argc@GOT(%ebx),%edx
+	popl  %ecx
+	movl  %ecx,(%edx)
+
+	movl  operatingsystem_parameter_argv@GOT(%ebx),%edx
+	popl  %ebx
+	movl  %ebx,(%edx)
+	popl  %edx
+  {$else FPC_PIC}
+  	movl  %edx, dlexitproc
+  	movl  %eax,operatingsystem_parameter_envp
+  	movl  %ecx,operatingsystem_parameter_argc
+  	movl  %ebx,operatingsystem_parameter_argv
+  {$endif FPC_PIC}
 
   { Save initial stackpointer }
-  movl    %esp,initialstkptr
+  {$ifdef FPC_PIC}
+        pushl %ebx
+        call  fpc0geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+	movl  initialstkptr@GOT(%ebx),%ebx
+  	movl  %esp,(%ebx)
+	popl  %ebx
+  {$else FPC_PIC}
+  	movl    %esp,initialstkptr
+  {$endif FPC_PIC}
 
-  { start the program }
-  call    PASCALMAIN
-  hlt
+        { int __libc_start_main(
+		int *(main) (int, char * *, char * *), 
+		int argc, 
+		char * * ubp_av, 
+		void (*init) (void), 
+		void (*fini) (void), 
+		void (*rtld_fini) (void), 
+		void (* stack_end)); } 
+
+        pushl %ebp   			{ padding }
+        pushl %esp   			{ stack_end }
+        pushl %edx   			{ function to be registered with
+                      			  atexit(), passed by loader }
+        pushl $_init_fini_dummy
+        pushl $_init_fini_dummy
+        pushl %ebx                      { Push second argument: argv.  }
+        pushl %ecx                      { Push first argument: argc.  }
+
+        pushl $_FPC_libc21_gprof_gmon_start
+
+        call  libc_start_main
+	hlt
 end;
 
-procedure _FPC_libc21_gprof_haltproc; assembler; nostackframe; public name '_haltproc';
-asm
-{$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%eax
-{$else}
-  mov     ExitCode,%eax
-{$endif}
+procedure _FPC_libc21_gprof_haltproc(e:longint);cdecl;public name '_haltproc';
+begin
+  if gmon_monstarted=1 then
+  begin
+    dec(gmon_monstarted);
+    gmon_mcleanup;
+  end;
+  asm
+.Lhaltproc:
+  {$ifdef FPC_PIC}
+        call  fpc0geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  dlexitproc@GOT(%ebx),%eax
+        movl  (%eax),%eax
+  {$else FPC_PIC}
+        movl    dlexitproc,%eax
+  {$endif FPC_PIC}
+  testl   %eax,%eax
+  je      .Lnodlexitproc
+  call    *%eax
+.Lnodlexitproc:
+  movl    syscall_nr_exit_group,%eax
 
-  movl    libc21_fpc_ret,%edx         { return to libc }
-  movl    libc21_fpc_ret_ebx,%ebx
-  movl    libc21_fpc_ret_esi,%esi
-  movl    libc21_fpc_ret_edi,%edi
-  push    %edx
-  ret
+{$ifdef FPC_PIC}
+  call    fpc0geteipasebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+ {$if sizeof(ExitCode)=2}
+  movzwl  ExitCode,%ebx
+ {$else}
+  mov     ExitCode,%ebx
+ {$endif}
+{$endif FPC_PIC}
+
+  int     $0x80
+  movl    syscall_nr_exit,%eax
+
+{$ifdef FPC_PIC}
+  call    fpc0geteipasebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+
+ {$if sizeof(ExitCode)=2}
+  movzwl  ExitCode,%ebx
+ {$else}
+  mov     ExitCode,%ebx
+ {$endif}
+{$endif FPC_PIC}
+
+  int     $0x80
+  jmp     .Lhaltproc
+ end;
 end;
-
