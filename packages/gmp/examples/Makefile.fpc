@@ -1,0 +1,21 @@
+#
+#   Makefile.fpc for Free Pascal GTK 2.x.y Examples
+#
+
+[target]
+programs=gmp_accept_test gmp_testcase pidigits_example pidigits_example2 printf_example printf_example2 scanf_example scanf_example2
+
+[require]
+packages=gmp
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
+
+[rules]
+.NOTPARALLEL:
+
+
+

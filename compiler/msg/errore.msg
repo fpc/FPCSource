@@ -1237,7 +1237,7 @@ parser_e_no_objc_unique=03263_E_It is not yet possible to make unique copies of 
 #
 # Type Checking
 #
-# 04089 is the last used one
+# 04091 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1535,9 +1535,13 @@ type_e_no_type_info=04087_E_No type info available for this type
 % Type information is not generated for some types, such as enumerations with gaps
 % in their value range (this includes enumerations whose lower bound is different
 % from zero).
-type_e_protocol_type_expected=04088_E_Objective-C protocol type expected, but got "$1"
+type_e_ordinal_or_string_expr_expected=04088_E_Ordinal or string expression expected
+% The expression must be an ordinal or string type.
+type_e_string_expr_expected=04089_E_String expression expected
+% The expression must be a string type.
+type_e_protocol_type_expected=04090_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
-type_e_objc_type_unsupported=04089_E_The type "$1" is not supported for interaction with the Objective-C runtime.
+type_e_objc_type_unsupported=04091_E_The type "$1" is not supported for interaction with the Objective-C runtime.
 % Objective-C makes extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
@@ -2612,7 +2616,9 @@ option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not ye
 option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with smart linking on this target, switching to static linking
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
-
+option_ignored_target=11047_W_Option "$1" is ignored for the current target platform.
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is ignored for the currently selected target platform.
 %\end{description}
 # EndOfTeX
 

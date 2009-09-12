@@ -34,8 +34,8 @@ unit i_gba;
             system       : system_arm_gba;
             name         : 'GameBoy Advance';
             shortname    : 'gba';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
-	                          ,tf_smartlink_sections,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : '';
@@ -88,7 +88,7 @@ unit i_gba;
               );
             first_parm_offset : 8;
             stacksize    : 16384;
-            abi : abi_default
+            abi : abi_eabi
           );
 
   implementation

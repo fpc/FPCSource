@@ -1013,9 +1013,15 @@ const key_sequences:array[0..276] of key_sequence=(
        (char:0;scan:kbAltDown;st:#27#27'[B'),    {rxvt}
        (char:0;scan:kbAltLeft;st:#27#27'[D'),    {rxvt}
        (char:0;scan:kbAltRight;st:#27#27'[C'),   {rxvt}
+{$ifdef HAIKU}
+       (char:0;scan:kbAltUp;st:#27#27'OA'),
+       (char:0;scan:kbAltDown;st:#27#27'OB'),
+       (char:0;scan:kbAltRight;st:#27#27'OC'),
+{$else}
        (char:0;scan:kbAltUp;st:#27'OA'),
        (char:0;scan:kbAltDown;st:#27'OB'),
        (char:0;scan:kbAltRight;st:#27'OC'),
+{$endif}
        (char:0;scan:kbAltLeft;st:#27#27'OD'),
        (char:0;scan:kbAltPgUp;st:#27#27'[5~'),   {rxvt}
        (char:0;scan:kbAltPgDn;st:#27#27'[6~'),   {rxvt}

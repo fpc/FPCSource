@@ -161,14 +161,14 @@ begin
                On 64bit systems, page zero is 4GB by default, so no problems
                there.
              }
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$else ndef cpu64bitaddr}
-             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -no_dead_strip_inits_and_terms -multiply_defined suppress -L. -o $EXE `cat $RES`';
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='libtool $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT -no_dead_strip_inits_and_terms -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -232,7 +232,10 @@ begin
             result:='/usr/lib/bundle1.o'
         end
       else
-        result:=''
+        begin
+          if not librarysearchpath.FindFile('dylib1.o',false,result) then
+            result:='/usr/lib/dylib1.o'
+        end;
     end;
 end;    
 
@@ -497,7 +500,7 @@ var
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
-  StripStr   : string[40];
+  StripStr   : string[63];
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
@@ -528,7 +531,7 @@ begin
     if not(target_info.system in systems_darwin) then
       GCSectionsStr:='--gc-sections'
     else
-      GCSectionsStr:='-dead_strip';
+      GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
    if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or

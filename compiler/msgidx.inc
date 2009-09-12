@@ -429,8 +429,10 @@ const
   type_e_expected_objc_method_but_got=04085;
   type_e_expected_objc_method=04086;
   type_e_no_type_info=04087;
-  type_e_protocol_type_expected=04088;
-  type_e_objc_type_unsupported=04089;
+  type_e_ordinal_or_string_expr_expected=04088;
+  type_e_string_expr_expected=04089;
+  type_e_protocol_type_expected=04090;
+  type_e_objc_type_unsupported=04091;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -780,6 +782,7 @@ const
   option_unsupported_target=11044;
   option_unsupported_target_for_feature=11045;
   option_dwarf_smart_linking=11046;
+  option_ignored_target=11047;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -804,9 +807,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52913;
+  MsgTxtSize = 53058;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,264,90,66,51,108,22,202,62,
-    47,20,1,1,1,1,1,1,1,1
+    24,87,264,92,66,51,108,22,202,62,
+    48,20,1,1,1,1,1,1,1,1
   );

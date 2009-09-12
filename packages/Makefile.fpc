@@ -14,11 +14,11 @@ dirs_sparc_linux=graph
 dirs_arm_linux=graph
 dirs_m68k_linux=graph
 dirs_beos=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
 dirs_haiku=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-               gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib \
+               gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                iconvenc
 dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
@@ -157,14 +157,14 @@ fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sql
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
 fcl-db_smart: fcl-xml_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart
 fcl-db_release: fcl-xml_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release pxlib_release
-fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release pxlib_shared
+fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared sqlite_shared pxlib_shared
 else
 ifneq ($(findstring $(OS_TARGET),win64 wince solaris darwin),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug
 fcl-db_smart: fcl-xml_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart
 fcl-db_release: fcl-xml_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release
-fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release
+fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared sqlite_shared
 else
 fcl-db_all: fcl-xml_all
 fcl-db_debug: fcl-xml_debug

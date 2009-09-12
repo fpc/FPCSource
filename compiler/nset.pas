@@ -28,19 +28,32 @@ interface
     uses
        cclasses,constexp,
        node,globtype,globals,
-       aasmbase,aasmtai,aasmdata,symtype;
+       aasmbase,aasmtai,aasmdata,ncon,symtype,strings;
 
     type
+       TLabelType = (ltOrdinal, ltConstString);
+
        pcaselabel = ^tcaselabel;
        tcaselabel = record
-          { range }
-          _low,
-          _high   : TConstExprInt;
           { unique blockid }
           blockid : longint;
           { left and right tree node }
           less,
           greater : pcaselabel;
+
+          { range type }
+          case label_type : TLabelType of
+            ltOrdinal:
+            (
+              _low,
+              _high       : TConstExprInt;
+            );
+            ltConstString:
+            (
+              _low_str,
+              _high_str   : TConstString;
+              _str_type   : TConstStringType;
+            );
        end;
 
        pcaseblock = ^tcaseblock;
@@ -88,7 +101,8 @@ interface
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
-          procedure addlabel(blockid:longint;l,h : TConstExprInt);
+          procedure addlabel(blockid:longint;l,h : TConstExprInt); overload;
+          procedure addlabel(blockid:longint;l,h : TConstString; str_type : TConstStringType); overload;
           procedure addblock(blockid:longint;instr:tnode);
           procedure addelseblock(instr:tnode);
        end;
@@ -115,7 +129,8 @@ implementation
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,nld,nflw,cgobj,cgbase;
+      nadd,nbas,ncnv,nld,nflw,cgobj,cgbase,
+      widestr;
 
 
 {*****************************************************************************
@@ -353,8 +368,19 @@ implementation
 *****************************************************************************}
 
     constructor trangenode.create(l,r : tnode);
+      var
+        value: string;
 
       begin
+         { if right is char and left is string then }
+         { right should be treated as one-symbol string }
+         if is_conststringnode(l) and is_constcharnode(r) then
+           begin
+             value := char(tordconstnode(r).value.uvalue) + ''#0;
+             r.free;
+             r := cstringconstnode.createstr(value);
+             do_typecheckpass(r);
+           end;
          inherited create(rangen,l,r);
       end;
 
@@ -446,6 +472,19 @@ implementation
            deletecaselabels(p^.greater);
          if assigned(p^.less) then
            deletecaselabels(p^.less);
+         if (p^.label_type = ltConstString) then
+           begin
+             if (p^._str_type in [cst_widestring, cst_unicodestring]) then
+               begin
+                 donewidestring(pcompilerwidestring(p^._low_str));
+                 donewidestring(pcompilerwidestring(p^._high_str));
+               end
+             else
+               begin
+                 freemem(p^._low_str);
+                 freemem(p^._high_str);
+               end;
+           end;
          dispose(p);
       end;
 
@@ -457,6 +496,27 @@ implementation
       begin
          new(n);
          n^:=p^;
+         if (p^.label_type = ltConstString) then
+           begin
+             if (p^._str_type in [cst_widestring, cst_unicodestring]) then
+               begin
+                 initwidestring(pcompilerwidestring(n^._low_str));
+                 initwidestring(pcompilerwidestring(n^._high_str));
+                 copywidestring(
+                   pcompilerwidestring(p^._low_str), pcompilerwidestring(n^._low_str));
+                 copywidestring(
+                   pcompilerwidestring(p^._high_str), pcompilerwidestring(n^._high_str));
+               end
+             else
+               begin
+                 getmem(n^._low_str, strlen(p^._low_str) + 1);
+                 strcopy(n^._low_str, p^._low_str);
+                 n^._low_str[strlen(p^._low_str)] := #0;
+                 getmem(n^._high_str, strlen(p^._high_str) + 1);
+                 strcopy(n^._high_str, p^._high_str);
+                 n^._high_str[strlen(p^._high_str)] := #0;
+               end;
+           end;
          if assigned(p^.greater) then
            n^.greater:=copycaselabel(p^.greater);
          if assigned(p^.less) then
@@ -466,11 +526,42 @@ implementation
 
 
     procedure ppuwritecaselabel(ppufile:tcompilerppufile;p : pcaselabel);
+
+      procedure ppuwritestring(str_type : tconststringtype; value : pchar);
+
+        var
+          len : integer;
+        begin
+          if str_type in [cst_widestring, cst_unicodestring] then
+            begin
+              len := pcompilerwidestring(value)^.len;
+              ppufile.putlongint(len);
+              ppufile.putdata(pcompilerwidestring(value)^.data, len * sizeof(tcompilerwidechar));
+            end
+          else
+            begin
+              len := strlen(value);
+              ppufile.putlongint(len);
+              ppufile.putdata(value^, len);
+            end;
+        end;
+
       var
         b : byte;
       begin
-        ppufile.putexprint(p^._low);
-        ppufile.putexprint(p^._high);
+        ppufile.putbyte(byte(p^.label_type = ltConstString));
+        if (p^.label_type = ltConstString) then
+          begin
+            ppufile.putbyte(byte(p^._str_type));
+            ppuwritestring(p^._str_type, p^._low_str);
+            ppuwritestring(p^._str_type, p^._high_str);
+          end
+        else
+          begin
+            ppufile.putexprint(p^._low);
+            ppufile.putexprint(p^._high);
+          end;
+
         ppufile.putlongint(p^.blockid);
         b:=0;
         if assigned(p^.greater) then
@@ -486,13 +577,50 @@ implementation
 
 
     function ppuloadcaselabel(ppufile:tcompilerppufile):pcaselabel;
+
+      procedure ppuloadstring(str_type : tconststringtype; out value : pchar);
+
+        var
+          pw : pcompilerwidestring;
+          len : integer;
+        begin
+          len := ppufile.getlongint;
+          if str_type in [cst_widestring, cst_unicodestring] then
+            begin
+              initwidestring(pw);
+              setlengthwidestring(pw, len);
+              ppufile.getdata(pw^.data, pw^.len * sizeof(tcompilerwidechar));
+              pcompilerwidestring(value) := pw
+            end
+          else
+            begin
+              getmem(value, len + 1);
+              ppufile.getdata(value^, len);
+              value[len] := #0;
+            end;
+        end;
+
       var
         b : byte;
         p : pcaselabel;
       begin
         new(p);
-        p^._low:=ppufile.getexprint;
-        p^._high:=ppufile.getexprint;
+        if boolean(ppufile.getbyte) then
+          begin
+            p^.label_type := ltConstString;
+            p^._str_type := tconststringtype(ppufile.getbyte);
+
+            ppuloadstring(p^._str_type, p^._low_str);
+            ppuloadstring(p^._str_type, p^._high_str);
+          end
+        else
+          begin
+            p^.label_type := ltOrdinal;
+
+            p^._low:=ppufile.getexprint;
+            p^._high:=ppufile.getexprint;
+          end;
+
         p^.blockid:=ppufile.getlongint;
         b:=ppufile.getbyte;
         if (b and 1)=1 then
@@ -599,10 +727,90 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          i  : integer;
-         node_thenblock,node_elseblock : tnode;
+         node_thenblock,node_elseblock,if_node : tnode;
+         tempcaseexpr : ttempcreatenode;
+         if_block, init_block : tblocknode;
+         stmt : tstatementnode;
+
+      function makeifblock(const labtree : pcaselabel; prevconditblock : tnode): tnode;
+        var
+          condit : tnode;
+        begin
+          result := nil;
+          if assigned(labtree^.less) then
+            result := makeifblock(labtree^.less, prevconditblock)
+          else
+            result := prevconditblock;
+          prevconditblock := nil;
+
+          if (labtree^._str_type in [cst_widestring, cst_unicodestring]) then
+            begin
+              condit := caddnode.create(
+                equaln, left.getcopy,
+                cstringconstnode.createwstr(pcompilerwidestring(labtree^._low_str)));
+ 
+              if (
+                comparewidestrings(
+                  pcompilerwidestring(labtree^._low_str),
+                  pcompilerwidestring(labtree^._high_str)) <> 0) then
+                begin
+                  condit.nodetype := gten;
+                  condit := caddnode.create(
+                    andn, condit, caddnode.create(
+                      lten, left.getcopy, cstringconstnode.createwstr(
+                        pcompilerwidestring(labtree^._high_str))));
+                end;
+            end
+          else
+            begin
+              condit := caddnode.create(
+                equaln, left.getcopy, cstringconstnode.createstr(labtree^._low_str));
+
+              if (strcomp(labtree^._low_str, labtree^._high_str) <> 0) then
+                begin
+                  condit.nodetype := gten;
+                  condit := caddnode.create(
+                    andn, condit, caddnode.create(
+                      lten, left.getcopy, cstringconstnode.createstr(labtree^._high_str)));
+                end;
+            end;
+          
+          result :=
+            cifnode.create(
+              condit, pcaseblock(blocks[labtree^.blockid])^.statement, result);
+          pcaseblock(blocks[labtree^.blockid])^.statement := nil;
+
+          if assigned(labtree^.greater) then
+            result := makeifblock(labtree^.greater, result);
+
+          typecheckpass(result);
+        end;
+
       begin
          result:=nil;
+         init_block:=nil;
          expectloc:=LOC_VOID;
+
+         { Load caseexpr into temp var if complex. }
+         { No need to do this for ordinal, because }
+         { in that case caseexpr is generated once }
+         if (labels^.label_type = ltConstString) and (not valid_for_addr(left, false)) then
+           begin
+             init_block := internalstatements(stmt);
+             tempcaseexpr :=
+               ctempcreatenode.create(
+                 left.resultdef, left.resultdef.size, tt_persistent, true);
+             typecheckpass(tnode(tempcaseexpr));
+
+             addstatement(stmt, tempcaseexpr);
+             addstatement(
+               stmt, cassignmentnode.create(
+                 ctemprefnode.create(tempcaseexpr), left));
+
+             left := ctemprefnode.create(tempcaseexpr);
+             typecheckpass(left);
+           end;
+
          { evalutes the case expression }
          firstpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
@@ -632,6 +840,24 @@ implementation
                result:=cnothingnode.create;
                exit;
              end;
+
+         if (labels^.label_type = ltConstString) then
+           begin
+             if_node := makeifblock(labels, elseblock);
+             if assigned(init_block) then
+               begin
+                 firstpass(tnode(init_block));
+                 if_block := internalstatements(stmt);
+                 addstatement(stmt, init_block);
+                 addstatement(stmt, if_node);
+                 result := if_block;
+               end
+             else
+               result := if_node;
+             init_block := nil;
+             elseblock := nil;
+             exit;
+           end;
 
          if is_boolean(left.resultdef) then
            begin
@@ -712,7 +938,7 @@ implementation
                end;
            end
          else
-           n.labels:=nil;
+           n.blocks:=nil;
          dogetcopy:=n;
       end;
 
@@ -826,8 +1052,66 @@ implementation
         new(hcaselabel);
         fillchar(hcaselabel^,sizeof(tcaselabel),0);
         hcaselabel^.blockid:=blockid;
+        hcaselabel^.label_type:=ltOrdinal;
         hcaselabel^._low:=l;
         hcaselabel^._high:=h;
+        insertlabel(labels);
+      end;
+
+    procedure tcasenode.addlabel(blockid : longint; l, h : TConstString; str_type : TConstStringType);
+
+      function str_compare(l, h : TConstString) : longint;
+        begin
+          if (str_type in [cst_widestring, cst_unicodestring]) then
+            result := comparewidestrings(pcompilerwidestring(l), pcompilerwidestring(h))
+          else
+            result := strcomp(l, h);
+        end;
+
+      var
+        hcaselabel : pcaselabel;
+
+      function insertlabel(var p : pcaselabel) : pcaselabel;
+        begin
+          if not assigned(p) then
+            begin
+              p := hcaselabel;
+              result := p;
+            end
+          else
+            if (str_compare(p^._low_str, hcaselabel^._high_str) > 0) then
+              result := insertlabel(p^.less)
+          else
+            if (str_compare(p^._high_str, hcaselabel^._low_str) < 0) then
+              result := insertlabel(p^.greater)
+          else
+            Message(parser_e_double_caselabel);
+        end;
+
+      begin
+        new(hcaselabel);
+        fillchar(hcaselabel^, sizeof(tcaselabel), 0);
+        hcaselabel^.blockid := blockid;
+        hcaselabel^.label_type := ltConstString;
+
+        if (str_type in [cst_widestring, cst_unicodestring]) then
+          begin
+            initwidestring(pcompilerwidestring(hcaselabel^._low_str));
+            initwidestring(pcompilerwidestring(hcaselabel^._high_str));
+            copywidestring(pcompilerwidestring(l), pcompilerwidestring(hcaselabel^._low_str));
+            copywidestring(pcompilerwidestring(h), pcompilerwidestring(hcaselabel^._high_str));
+          end
+        else
+          begin
+            getmem(hcaselabel^._low_str, strlen(l) + 1);
+            getmem(hcaselabel^._high_str, strlen(h) + 1);
+            strcopy(hcaselabel^._low_str, l);
+            strcopy(hcaselabel^._high_str, h);
+            hcaselabel^._low_str[strlen(l)] := #0;
+            hcaselabel^._high_str[strlen(h)] := #0;
+          end;
+
+        hcaselabel^._str_type := str_type;
         insertlabel(labels);
       end;
 

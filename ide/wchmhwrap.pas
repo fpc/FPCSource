@@ -25,21 +25,30 @@ Type
 
      TChmWrapper = Class
                      private
-                       ffs   : Classes.TFileStream;
-                       fchmr : TChmReader;
-                       findex: TChmSiteMap;
-                       ftopic: TChmSiteMap;
-                       floaded  : boolean;
+                       ffs   	   : Classes.TFileStream;
+                       fchmr 	   : TChmReader;
+                       findex	   : TChmSiteMap;
+                       ftopic	   : TChmSiteMap;
+                       floaded     : boolean;
+                       fileid	   : integer;
+                       fshortname  : string;
+                       flongname   : string;
+                       fTopicLinks : PTopicLinkCollection;
                      public
-                      constructor Create(name:String);
+                      constructor Create(name:String;aid:integer;TopicLinks:PTopicLinkCollection);
                       function	  LoadIndex(id:integer;TopicLinks: PTopicLinkCollection;IndexEntries : PUnsortedIndexEntryCollection;helpfacility:PHelpFacility):boolean;
                       function    GetTopic(name:string):PMemoryTextFile;
                       destructor  Destroy;override;
                     end;
 
 function combinepaths(relpath,basepath:String):String;
+function CHMResolve( href: ansistring; var AFileId,ALinkId : longint):boolean;
 
+function stringreplace(const s:ansistring;const oldstr:ansistring; const newstr:ansistring):ansistring;
 implementation
+
+var CHMIndex : TStringList; // list to register open CHMs.
+
 
 function combinepaths(relpath,basepath:String):String;
 
@@ -72,27 +81,28 @@ begin
   result:=basepath+relpath;
 end;
 
-
-Constructor TChmWrapper.Create(name:string);
+Constructor TChmWrapper.Create(name:string;aid:integer;TopicLinks:PTopicLinkCollection);
 
 begin
   ffs:=Classes.TFileStream.create(name,fmOpenRead or fmsharedenynone);
   fchmr:=TChmReader.Create(ffs,True); // owns ffs
   findex:=nil;
+  FTopicLinks:=TopicLinks;
   if not fchmr.isvalidfile then
     begin
       freeandnil(fchmr);
       freeandnil(ffs);
       exit;
     end;
+  fileid:=aid;
+  flongname:=name;
+  fshortname:=lowercase(extractfilename(name)); // We assume ms-its: urls are case insensitive wrt filename.
+  chmindex.addobject(fshortname,self);
   {$ifdef wdebug}
-    debugmessageS({$i %file%},'TCHMWrapper: before sitemap creation ',{$i %line%},'1',0,0);
+    debugmessageS({$i %file%},'TCHMWrapper.Create: before sitemap creation '+fshortname+' id='+inttostr(aid),{$i %line%},'1',0,0);
   {$endif}
   findex:=TChmSiteMap.create(stindex);
   ftopic:=TChmSiteMap.create(sttoc);
-  {$ifdef wdebug}
-    debugmessageS({$i %file%},'TCHMWrapper: after sitemap creation ',{$i %line%},'1',0,0);
-  {$endif}
   floaded:=false;
 end;
 
@@ -113,8 +123,8 @@ var
     tli: integer;
 begin
  result:=false;
- if not assigned (fchmr) then exit;
  if floaded then exit;
+ if not assigned (fchmr) then exit;
  {$ifdef wdebug}
      debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0);
  {$endif}
@@ -228,10 +238,18 @@ begin
   end;
 end;
 
-
 destructor TChmWrapper.Destroy;
 
+var i : integer;
 begin
+  i:=chmindex.indexof(fshortname);
+  if i<>-1 then
+    begin
+      chmindex.delete(i);
+      {$ifdef wdebug}
+       debugmessageS({$i %file%},'TCHMWrapper: deregistering '+fshortname,{$i %line%},'1',0,0);
+      {$endif}
+    end;
   freeandnil(ftopic);
   freeandnil(findex);
   freeandnil(fchmr);
@@ -241,4 +259,49 @@ begin
 
 end;
 
+function CHMResolve( href: ansistring; var AFileId,ALinkId : longint):boolean;
+
+var filename, restlink : ansistring;
+    I :integer;
+    chmw: TCHMWrapper;
+begin
+  result:=false;
+  if copy(href,1,7)='ms-its:' then
+    begin
+      {$ifdef wdebug}
+              debugmessageS({$i %file%},'TCHMWrapper: resolving '+href,{$i %line%},'1',0,0);
+      {$endif}
+
+       delete(href,1,7);
+       i:=pos('::',href);
+       if i<>0 then
+         begin
+           filename:=lowercase(copy(href,1,i-1));
+           restlink:=lowercase(copy(href,i+2,length(href)-(I+2)+1));
+           i:=chmindex.indexof(filename);
+           if i<>-1 then
+             begin
+               {$ifdef wdebug}
+                 debugmessageS({$i %file%},'TCHMWrapper: resolving '+filename+' '+inttostr(i),{$i %line%},'1',0,0);
+                 debugmessageS({$i %file%},'TCHMWrapper: resolving '+restlink+' ',{$i %line%},'1',0,0);
+               {$endif}
+               chmw:=TCHMWrapper(chmindex.objects[i]);
+               Afileid:=chmw.fileid;
+               alinkid:=chmw.fTopicLinks.additem(restlink);
+               result:=true;
+            end;    
+         end;
+    end
+end;
+
+function stringreplace(const s:ansistring;const oldstr:ansistring; const newstr:ansistring):ansistring;
+
+begin
+  result:=sysutils.stringreplace(s,oldstr,newstr,[rfreplaceall]);
+end;
+initialization
+  ChmIndex:=TStringlist.create;
+  ChmIndex.sorted:=true;
+finalization
+  ChmIndex.Free;
 end.

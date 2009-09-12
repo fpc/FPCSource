@@ -45,6 +45,8 @@ type  Tconstexprint=record
             (svalue:int64);
       end;
 
+      Tconststring = type pchar;
+
       errorproc=procedure (i:longint);
 
 {"Uses verbose" gives a dependency on cpuinfo through globals. This leads

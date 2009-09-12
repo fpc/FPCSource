@@ -14,7 +14,7 @@
  **********************************************************************}
 unit xmlutils;
 
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
 
 interface
@@ -38,6 +38,10 @@ function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 { a simple hash table with WideString keys }
 
 type
+{$ifndef fpc}
+  PtrInt = LongInt;
+{$endif}  
+
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
   THashItem = record
@@ -46,6 +50,8 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
+  THashItemArray = array[0..0] of PHashItem;
+  PHashItemArray = ^THashItemArray;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
 
@@ -53,7 +59,7 @@ type
   private
     FCount: LongWord;
     FBucketCount: LongWord;
-    FBucket: PPHashItem;
+    FBucket: PHashItemArray;
     FOwnsObjects: Boolean;
     function Lookup(Key: PWideChar; KeyLength: Integer; out Found: Boolean; CanCreate: Boolean): PHashItem;
     procedure Resize(NewCapacity: LongWord);
@@ -73,7 +79,6 @@ type
 
 { another hash, for detecting duplicate namespaced attributes without memory allocations }
 
-  PExpHashEntry = ^TExpHashEntry;
   TExpHashEntry = record
     rev: LongWord;
     hash: LongWord;
@@ -81,12 +86,14 @@ type
     lname: PWideChar;
     lnameLen: Integer;
   end;
+  TExpHashEntryArray = array[0..0] of TExpHashEntry;
+  PExpHashEntryArray = ^TExpHashEntryArray;
 
   TDblHashArray = class(TObject)
   private
     FSizeLog: Integer;
     FRevision: LongWord;
-    FData: PExpHashEntry;
+    FData: PExpHashEntryArray;
   public  
     procedure Init(NumSlots: Integer);
     function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
@@ -128,7 +135,7 @@ begin
   Result := Xml11Pg;
 end;
 
-function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean;
+function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -139,7 +146,7 @@ begin
     Result := False;
 end;
 
-function IsXml11Char(const Value: WideString; var Index: Integer): Boolean;
+function IsXml11Char(const Value: WideString; var Index: Integer): Boolean; overload;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -346,7 +353,11 @@ end;
 
 function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
+{$IFDEF FPC}
   Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
+{$ELSE}
+  Result := (Length(Key1)=Key2Len) and CompareMem(Pointer(Key1), Key2, Key2Len*2);
+{$ENDIF}
 end;
 
 { THashTable }
@@ -377,7 +388,7 @@ var
 begin
   for I := 0 to FBucketCount-1 do
   begin
-    item := FBucket[I];
+    item := FBucket^[I];
     while Assigned(item) do
     begin
       next := item^.Next;
@@ -386,8 +397,8 @@ begin
       Dispose(item);
       item := next;
     end;
+    FBucket^[I] := nil;
   end;
-  FillChar(FBucket^, FBucketCount * sizeof(PHashItem), 0);
 end;
 
 function THashTable.Find(Key: PWideChar; KeyLen: Integer): PHashItem;
@@ -460,14 +471,15 @@ end;
 
 procedure THashTable.Resize(NewCapacity: LongWord);
 var
-  p, chain: PPHashItem;
+  p: PHashItemArray;
+  chain: PPHashItem;
   i: Integer;
   e, n: PHashItem;
 begin
   p := AllocMem(NewCapacity * sizeof(PHashItem));
   for i := 0 to FBucketCount-1 do
   begin
-    e := FBucket[i];
+    e := FBucket^[i];
     while Assigned(e) do
     begin
       chain := @p[e^.HashValue mod NewCapacity];
@@ -538,7 +550,7 @@ var
 begin
   for i := 0 to FBucketCount-1 do
   begin
-    e := FBucket[i];
+    e := FBucket^[i];
     while Assigned(e) do
     begin
       if not proc(e, arg) then
@@ -572,7 +584,7 @@ begin
   begin
     FRevision := $FFFFFFFF;
     for i := (1 shl FSizeLog)-1 downto 0 do
-      FData[i].rev := FRevision;
+      FData^[i].rev := FRevision;
   end;
   Dec(FRevision);
 end;
@@ -591,18 +603,18 @@ begin
   step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
   idx := HashValue and mask;
   result := True;
-  while FData[idx].rev = FRevision do
+  while FData^[idx].rev = FRevision do
   begin
-    if (HashValue = FData[idx].hash) and (FData[idx].uriPtr^ = uri^) and
-      (FData[idx].lnameLen = localLength) and
-       CompareMem(FData[idx].lname, localName, localLength * sizeof(WideChar)) then
+    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr^ = uri^) and
+      (FData^[idx].lnameLen = localLength) and
+       CompareMem(FData^[idx].lname, localName, localLength * sizeof(WideChar)) then
       Exit;
     if idx < step then
       Inc(idx, (1 shl FSizeLog) - step)
     else
       Dec(idx, step);
   end;
-  with FData[idx] do
+  with FData^[idx] do
   begin
     rev := FRevision;
     hash := HashValue;

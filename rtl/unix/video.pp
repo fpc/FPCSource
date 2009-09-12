@@ -41,7 +41,8 @@ type  Tencoding=(cp437,         {Codepage 437}
                  iso10,         {ISO 8859-10}
                  iso13,         {ISO 8859-13}
                  iso14,         {ISO 8859-14}
-                 iso15);        {ISO 8859-15}
+                 iso15,         {ISO 8859-15}
+                 utf8);         {UTF-8}
 
 const  {Contains all code pages that can be considered a normal vga font.
         Note: KOI8-R has line drawing characters in wrong place. Support
@@ -244,6 +245,9 @@ const
   ACSIn : string = '';
   ACSOut : string = '';
   in_ACS : boolean =false;
+
+  TerminalSupportsHighIntensityColors: boolean = false;
+  TerminalSupportsBold: boolean = true;
 
 function convert_vga_to_acs(ch:char):word;
 
@@ -453,16 +457,17 @@ begin
   OFg:=OAttr and $f;
   OBg:=OAttr shr 4;
   attr2ansi:=#27'[';
-  if fg and 8<>0 then
-    begin
-      {Enable bold if not yet on.}
-      if ofg and 8=0 then
-        attr2ansi:=attr2ansi+'1;';
-    end
-  else
-    {Disable bold if on.}
-    if ofg and 8<>0 then
-      attr2ansi:=attr2ansi+'22;';
+  if TerminalSupportsBold then
+    if fg and 8<>0 then
+      begin
+        {Enable bold if not yet on.}
+        if ofg and 8=0 then
+          attr2ansi:=attr2ansi+'1;';
+      end
+    else
+      {Disable bold if on.}
+      if ofg and 8<>0 then
+        attr2ansi:=attr2ansi+'22;';
   if bg and 8<>0 then
     begin
       {Enable bold if not yet on.}
@@ -474,8 +479,19 @@ begin
     if obg and 8<>0 then
       attr2ansi:=attr2ansi+'25;';
 
-  if fg and 7<>ofg and 7 then
-     attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+  if TerminalSupportsHighIntensityColors then
+  begin
+    if fg and 15<>ofg and 15 then
+      if fg and 8<>0 then
+        attr2ansi:=attr2ansi+'9'+ansitbl[fg and 7]+';'
+      else
+        attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+  end
+  else
+  begin
+    if fg and 7<>ofg and 7 then
+      attr2ansi:=attr2ansi+'3'+ansitbl[fg and 7]+';';
+  end;
   if bg and 7<>obg and 7 then
      attr2ansi:=attr2ansi+'4'+ansitbl[bg and 7]+';';
 
@@ -624,7 +640,7 @@ var
         case c of
           #0..#31:
             converted:=convert_lowascii_to_UTF8[c];
-          #128..#255:
+          #127..#255:
             converted:=convert_cp437_to_UTF8[c];
           else
           begin
@@ -942,6 +958,18 @@ begin
   TCSetAttr(1,TCSANOW,tio);
 end;
 
+function UTF8Enabled: Boolean;
+var
+  lang:string;
+begin
+  {$ifdef BEOS}
+  UTF8Enabled := true;
+  exit;
+  {$endif}
+  lang:=upcase(fpgetenv('LANG'));
+  UTF8Enabled := (Pos('.UTF-8', lang) > 0) or (Pos('.UTF8', lang) > 0);
+end;
+
 procedure decide_codepages;
 
 var s:string;
@@ -970,6 +998,11 @@ begin
       internal_codepage:=cp852;
     iso05:               {Cyrillic}
       internal_codepage:=cp866;
+    utf8:
+      begin
+        internal_codepage:=cp437;
+        convert:=cv_cp437_to_UTF8;
+      end;
     else
       if internal_codepage in vga_codepages then
         internal_codepage:=external_codepage
@@ -978,9 +1011,6 @@ begin
          437 in the hope that the actual font has similarity to codepage 437.}
         internal_codepage:=cp437;
   end;
-  {$ifdef BEOS}
-  convert := cv_cp437_to_UTF8;  
-  {$endif}
 end;
 
 
@@ -1045,6 +1075,8 @@ begin
      Console:=TTyNetwork;                 {Default: Network or other vtxxx tty}
      cur_term_strings:=@term_codes_vt100; {Default: vt100}
      external_codepage:=iso01;            {Default: ISO-8859-1}
+     if UTF8Enabled then
+       external_codepage:=utf8;
    {$ifdef linux}
      if vcs_device>=0 then
        begin
@@ -1082,6 +1114,16 @@ begin
      for i:=low(terminal_names) to high(terminal_names) do
        if copy(term,1,length(terminal_names[i]))=terminal_names[i] then
          cur_term_strings:=terminal_data[i];
+    if cur_term_strings=@term_codes_xterm then
+    begin
+      TerminalSupportsBold := false;
+      TerminalSupportsHighIntensityColors := true;
+    end
+    else
+    begin
+      TerminalSupportsBold := true;
+      TerminalSupportsHighIntensityColors := false;
+    end;
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
 {$ifdef linux}
@@ -1090,16 +1132,22 @@ begin
 {$endif}
         if cur_term_strings=@term_codes_linux then
           begin
-            {Executed in case ttylinux is false (i.e. no vcsa), but
-             TERM=linux.}
-            {Enable the VGA character set (codepage 437,850,....)}
-            fpwrite(stdoutputhandle,font_vga,sizeof(font_vga));
-            external_codepage:=cp437;  {Now default to codepage 437.}
+            if external_codepage<>utf8 then
+              begin
+                {Enable the VGA character set (codepage 437,850,....)}
+                fpwrite(stdoutputhandle,font_vga,sizeof(font_vga));
+                external_codepage:=cp437;  {Now default to codepage 437.}
+              end;
           end
         else
-          {No VGA font :( }
-          fpwrite(stdoutputhandle,font_lat1,sizeof(font_lat1));
-        { running on a remote terminal, no error with /dev/vcsa }
+          begin
+            if external_codepage<>utf8 then
+              begin
+                {No VGA font  :(  }
+                fpwrite(stdoutputhandle,font_lat1,sizeof(font_lat1));
+              end;
+            { running on a remote terminal, no error with /dev/vcsa }
+          end;
    {$ifdef linux}
       end;
    {$endif}

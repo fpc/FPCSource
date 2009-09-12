@@ -51,6 +51,7 @@ Type
     procedure WriteQuickInfo;
     procedure IllegalPara(const opt:string);
     procedure UnsupportedPara(const opt:string);
+    procedure IgnoredPara(const opt:string);
     function  Unsetbool(var Opts:TCmdStr; Pos: Longint):boolean;
     procedure interpret_option(const opt :string;ispara:boolean);
     procedure Interpret_envvar(const envname : string);
@@ -120,6 +121,10 @@ const
                         + [system_i386_freebsd]
                         + [system_i386_netbsd]
                         + [system_i386_wdosx];
+                        
+  suppported_targets_x_smallr = system_linux
+                             + [system_i386_haiku]
+                             + [system_i386_beos];
 
 {****************************************************************************
                                  Defines
@@ -444,6 +449,12 @@ procedure toption.UnsupportedPara(const opt: string);
 begin
   Message1(option_unsupported_target,opt);
   StopOptions(1);
+end;
+
+
+procedure toption.IgnoredPara(const opt: string);
+begin
+  Message1(option_ignored_target,opt);
 end;
 
 
@@ -1617,9 +1628,14 @@ begin
                     'p' : ; { Ignore used by fpc.pp }
                     'r' :
                       begin
-                        rlinkpath:=Copy(more,2,length(More)-1);
-                        DefaultReplacements(rlinkpath);
-                        More:='';
+                        if (target_info.system in suppported_targets_x_smallr) then
+                          begin
+                            rlinkpath:=Copy(more,2,length(More)-1);
+                            DefaultReplacements(rlinkpath);
+                          end
+                        else
+                          IgnoredPara('-Xr');
+                        more:='';
                       end;
                     'R' :
                       begin

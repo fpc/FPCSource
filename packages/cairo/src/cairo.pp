@@ -63,10 +63,15 @@ const
     {$endif}
   {$ENDIF}
 {$else}
-  {$ifdef UseCustomLibs}
-  LIB_CAIRO = '';
+  {$ifdef darwin}
+    LIB_CAIRO = 'cairo';
+    {$linklib cairo}
   {$else}
-  LIB_CAIRO = 'libcairo.so.2';
+    {$ifdef UseCustomLibs}
+    LIB_CAIRO = '';
+    {$else}
+    LIB_CAIRO = 'libcairo.so.2';
+    {$endif}
   {$endif}
 {$endif}
 

@@ -280,10 +280,10 @@ ifeq ($(FULL_TARGET),i386-freebsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib users iconvenc
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib iconvenc
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib iconvenc
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib iconvenc
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib iconvenc
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic  fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 gtk2 librsvg bfd aspell svgalib imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl gnome1 httpd13 httpd20 httpd22 pxlib numlib
@@ -1856,6 +1856,7 @@ TARGET_DIRS_TCL=1
 TARGET_DIRS_SYSLOG=1
 TARGET_DIRS_LIBCURL=1
 TARGET_DIRS_OPENGL=1
+TARGET_DIRS_CAIRO=1
 TARGET_DIRS_BFD=1
 TARGET_DIRS_ASPELL=1
 TARGET_DIRS_SVGALIB=1
@@ -1923,6 +1924,7 @@ TARGET_DIRS_TCL=1
 TARGET_DIRS_SYSLOG=1
 TARGET_DIRS_LIBCURL=1
 TARGET_DIRS_OPENGL=1
+TARGET_DIRS_CAIRO=1
 TARGET_DIRS_BFD=1
 TARGET_DIRS_ASPELL=1
 TARGET_DIRS_SVGALIB=1
@@ -8553,14 +8555,14 @@ fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sql
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug pxlib_debug
 fcl-db_smart: fcl-xml_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart pxlib_smart
 fcl-db_release: fcl-xml_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release pxlib_release
-fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release pxlib_shared
+fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared sqlite_shared pxlib_shared
 else
 ifneq ($(findstring $(OS_TARGET),win64 wince solaris darwin),)
 fcl-db_all: fcl-xml_all mysql_all ibase_all oracle_all odbc_all postgres_all sqlite_all
 fcl-db_debug: fcl-xml_debug mysql_debug ibase_debug oracle_debug odbc_debug postgres_debug sqlite_debug
 fcl-db_smart: fcl-xml_smart mysql_smart ibase_smart oracle_smart odbc_smart postgres_smart sqlite_smart
 fcl-db_release: fcl-xml_release mysql_release ibase_release oracle_release odbc_release postgres_release sqlite_release
-fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared postgres_release
+fcl-db_shared: fcl-xml_shared mysql_shared ibase_shared oracle_shared odbc_shared postgres_shared sqlite_shared
 else
 fcl-db_all: fcl-xml_all
 fcl-db_debug: fcl-xml_debug
