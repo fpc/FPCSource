@@ -1548,6 +1548,10 @@ type_e_objc_type_unsupported=04091_E_The type "$1" is not supported for interact
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
 % directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
+type_e_class_or_objcclass_type_expected=04092_E_Class or objcclass type expected, but got "$1"
+% It is only possible to create class reference types of \var{class} and
+% \var{objcclass} types
+%
 % \end{description}
 #
 # Symtable
