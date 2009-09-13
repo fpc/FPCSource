@@ -140,8 +140,10 @@ type
   function objc_lookUpClass(name:pchar):id; cdecl; external libname;
   function objc_getClassList(buffer:pClass; bufferCount:cint):cint; cdecl; external libname;
 
+{$ifdef FPC_HAS_FEATURE_OBJECTIVEC1}
   function objc_getProtocol(name:pchar): pobjc_protocol; cdecl; weakexternal libname;
   function objc_copyProtocolList(outCount:pdword):ppobjc_protocol; cdecl; weakexternal libname;
+{$endif}
 
   function class_getName(cls:pobjc_class):PChar; cdecl; inline;
   function class_isMetaClass(cls:pobjc_class):BOOL; cdecl;
