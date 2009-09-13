@@ -681,18 +681,9 @@ implementation
                { write parameter info. The parameters must be written in reverse order
                  if this method uses right to left parameter pushing! }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
-{$ifdef i386}
-               if def.proccalloption in pushleftright_pocalls then
-                 begin
-                   for i:=0 to def.paras.count-1 do
-                     write_para(tparavarsym(def.paras[i]));
-                 end
-               else
-{$endif}
-                 begin
-                   for i:=def.paras.count-1 downto 0 do
-                     write_para(tparavarsym(def.paras[i]));
-                 end;
+
+               for i:=0 to def.paras.count-1 do
+                 write_para(tparavarsym(def.paras[i]));
 
                { write name of result type }
                write_rtti_name(def.returndef);
