@@ -136,7 +136,7 @@ strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
 
-objc1$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/objc1.pp
+objc1$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) ctypes$(PPUEXT) unixtype$(PPUEXT) $(INC)/objc1.pp
 
 objcbase$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/objcbase.pp objc1$(PPUEXT)
 
