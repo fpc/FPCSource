@@ -277,7 +277,11 @@ implementation
                 if is_wide then
                   begin
                     if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
-                      get_string_value := tstringconstnode(p).value_str
+                      begin
+                        initwidestring(pWideStringVal);
+                        copywidestring(pcompilerwidestring(tstringconstnode(p).value_str), pWideStringVal);
+                        get_string_value := TConstString(pWideStringVal);
+                      end
                     else
                       { if string must be wide, but actually was parsed as usual }
                       begin
@@ -297,7 +301,12 @@ implementation
                         get_string_value := pCharVal;
                       end
                     else
-                      get_string_value := tstringconstnode(p).value_str;
+                      begin
+                        getmem(pCharVal, tstringconstnode(p).len + 1);
+                        strcopy(pCharVal, tstringconstnode(p).value_str);
+                        pCharVal[tstringconstnode(p).len] := #0;
+                        get_string_value := pCharVal;
+                      end;
                   end;
               end;
           end
