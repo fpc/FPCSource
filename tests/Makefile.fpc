@@ -296,7 +296,7 @@ vpath %.elg $(TEST_OUTPUTDIR)
 	$(call QECHO,"  EXECUTE $<")
 ifdef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
-endif SINGLEDOTESTRUNS
+endif
 
 ################################
 # Compile tests

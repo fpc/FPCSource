@@ -4,6 +4,8 @@
 [require]
 packages=fcl-image
 #packages_win32=
+packages_beos=x11
+packages_haiku=x11
 packages_linux=x11
 packages_freebsd=x11
 packages_netbsd=x11
@@ -18,6 +20,8 @@ version=2.2.2
 [target]
 units=cairo cairoft
 units_win32=cairowin32
+units_beos=cairoxlib
+units_haiku=cairoxlib
 units_linux=cairoxlib
 units_freebsd=cairoxlib
 units_netbsd=cairoxlib

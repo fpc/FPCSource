@@ -654,7 +654,7 @@ end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  { no write reordering on intel CPUs (yet) }
+  sfence
 end;
 
 {$endif}

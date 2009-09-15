@@ -330,11 +330,28 @@ begin
   fpChOwn:=do_syscall(syscall_nr_chown,TSysParam(path),TSysParam(owner),TSysParam(group));
 end;
 
+{$ifndef NO_SYSCALL_UTIME}
+
 Function fpUtime(path:pchar;times:putimbuf):cint;
 
 begin
- fputime:=do_syscall(syscall_nr_utime,TSysParam(path),TSysParam(times));
+  fputime:=do_syscall(syscall_nr_utime,TSysParam(path),TSysParam(times));
 end;
+
+{$else}
+
+Function fpUtime(path:pchar;times:putimbuf):cint;
+var
+  tva: Array[0..1] of timeval;
+begin
+  tva[0].tv_sec := times^.actime;
+  tva[0].tv_usec := 0;
+  tva[1].tv_sec := times^.modtime;
+  tva[1].tv_usec := 0;
+  fputime:=do_syscall(syscall_nr_utimes,TSysParam(path),TSysParam(@tva));
+end;
+
+{$endif}
 
 
 {$ifndef FPC_BASEUNIX_HAS_FPPIPE}

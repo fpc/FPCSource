@@ -156,6 +156,7 @@ uses
         namelab,
         valuelab : tasmlabel;
         resstrlab : tasmsymbol;
+        endsymlab : tasmsymbol;
         R : TResourceStringItem;
       begin
         { Put resourcestrings in a new objectfile. Putting it in multiple files
@@ -213,16 +214,19 @@ uses
             R:=TResourceStringItem(R.Next);
           end;
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
-        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'END'),AT_DATA,0));
+        endsymlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',current_module.localsymtable,'END'),AB_GLOBAL,AT_DATA);
+        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.create_global(endsymlab,0));
         { The darwin/ppc64 assembler or linker seems to have trouble       }
         { if a section ends with a global label without any data after it. }
         { So for safety, just put a dummy value here.                      }
         { Further, the regular linker also kills this symbol when turning  }
         { on smart linking in case no value appears after it, so put the   }
         { dummy byte there always                                          }
+        { Update: the Mac OS X 10.6 linker orders data that needs to be    }
+        { relocated before all other data, so make this data relocatable,  }
+        { otherwise the end label won't be moved with the rest             }
         if (target_info.system in systems_darwin) then   
-          current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_8bit(0));
+          current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_sym(endsymlab));
       end;
 
 

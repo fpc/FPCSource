@@ -14,6 +14,8 @@ units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer \ 
       extinterpolation fpreadgif fpreadpsd xwdfile fpreadxwd
 units_win32=freetypeh freetype ftfont
+units_beos=freetypeh freetype ftfont
+units_haiku=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont

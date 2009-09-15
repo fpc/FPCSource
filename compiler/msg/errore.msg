@@ -2547,7 +2547,9 @@ option_unsupported_target_for_feature=11045_F_The feature "$1" is not, or not ye
 option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with smart linking on this target, switching to static linking
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
-
+option_ignored_target=11047_W_Option "$1" is ignored for the current target platform.
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is ignored for the currently selected target platform.
 %\end{description}
 # EndOfTeX
 

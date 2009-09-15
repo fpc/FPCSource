@@ -23,6 +23,8 @@ Uses
 {$endif}
   BaseUnix,UnixType;
 
+{$i osdefs.inc}       { Compile time defines }
+
 { ----------------------------------------------------------------------
   General IPC stuff
   ----------------------------------------------------------------------}
@@ -517,7 +519,7 @@ uses Syscall;
 
 {$ifndef FPC_USE_LIBC}
  {$ifdef Linux}
-  {$ifdef cpux86_64}
+  {$if defined(cpux86_64) or defined(NO_SYSCALL_IPC)}
     {$i ipcsys.inc}
   {$else}
     {$i ipccall.inc}
