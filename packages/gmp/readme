@@ -81,3 +81,11 @@ Readme for libgmp.tar.bz2 2009-09-06
   - FPC developers, you can do anything you see appropriate with the sources.
     Review, refactor and/or reject :-)
 
+= Windows
+
+I got the examples running under win32 by getting the mingw-dynamic package
+on
+
+http://cs.nyu.edu/exact/core/gmp/
+
+and then renaming it to gmp.dll
