@@ -24,6 +24,9 @@ uses
 {$ifdef Unix}
   baseunix,
   termio,
+{$ifdef linux}
+  linuxvcs,
+{$endif}
 {$endif}
   video,Objects;
 
@@ -755,10 +758,17 @@ begin
           Case ThisTTY[9] of
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
+{$ifdef linux}
                 FName:='/dev/vcsa' + ThisTTY[9];
                 TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
+                if TTYFd = -1 then
+                begin
+                  if try_grab_vcsa then
+                    TTYFd:=fpOpen(FName, &666, O_RdWr); { try again }
+                end;
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
+{$endif}
               end;
          'v'  :  { check for (Free?)BSD native}
                 If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
