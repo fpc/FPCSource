@@ -29,10 +29,13 @@ begin
     T:=P.Targets.AddUnit('src/sha1.pp');
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
+    T:=P.Targets.AddUnit('src/sha1.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
     T:=P.Targets.AddUnit('src/unixcrypt.pas');
       T.OSes:=[Linux];
     T:=P.Targets.AddExampleunit('examples/mdtest.pas');
+    T:=P.Targets.AddExampleunit('examples/crctest.pas');
+    T:=P.Targets.AddExampleunit('examples/sha1test.pas');
     // md5.ref
 {$ifndef ALLPACKAGES}
     Run;
