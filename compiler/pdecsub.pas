@@ -178,7 +178,13 @@ implementation
             include(aliasvs.varoptions,vo_is_msgsel);
             tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
 
-            vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,objc_idtype,[vo_is_self,vo_is_hidden_para]);
+            if (po_classmethod in pd.procoptions) then
+              { compatible with what gcc does }
+              hdef:=objc_idtype
+            else
+              hdef:=tprocdef(pd)._class;
+
+            vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
             pd.parast.insert(vs);
           end
         else if (pd.typ=procvardef) and
