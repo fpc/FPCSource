@@ -175,8 +175,9 @@ constructor tobjcmessagesendnode.create(forcall: tnode);
   begin
     if (forcall.nodetype<>calln) then
       internalerror(2009032502);
-    { typecheck pass (and pass1) must already have run on the call node,
-      because pass1 of the callnode creates this node
+    { typecheck pass must already have run on the call node,
+      because pass1 of the callnode creates this node right
+      at the beginning
     }
     inherited create(objcmessagesendn,forcall);
   end;
@@ -199,7 +200,8 @@ function tobjcmessagesendnode.pass_1: tnode;
     block,
     selftree  : tnode;
     statements: tstatementnode;
-    temp: ttempcreatenode;
+    temp,
+    tempresult: ttempcreatenode;
     objcsupertype: tdef;
     field: tfieldvarsym;
     selfpara,
@@ -209,7 +211,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     prerespara,
     prevpara: tcallparanode;
   begin
-    { pass1 of left has already run, see constructor }
+    { typecheckpass of left has already run, see constructor }
 
     { default behaviour: call objc_msgSend and friends;
       ppc64 and x86_64 for Mac OS X have to override this as they
@@ -220,6 +222,7 @@ function tobjcmessagesendnode.pass_1: tnode;
       result type, and on whether or not it's an inherited call.
     }
 
+    tempresult:=nil;
     newparas:=tcallparanode(tcallnode(left).left);
     { Find the self and msgsel parameters.  }
     para:=newparas;
@@ -367,6 +370,11 @@ function tobjcmessagesendnode.pass_1: tnode;
     tcallnode(left).methodpointer:=nil;
     { and now the call to the Objective-C rtl }
     result:=ccallnode.createinternresfromunit('OBJC1',msgsendname,newparas,left.resultdef);
+    { record whether or not the function result is used (remains
+      the same for the new call).
+    }
+    if not(cnf_return_value_used in tcallnode(left).callnodeflags) then
+      exclude(tcallnode(result).callnodeflags,cnf_return_value_used);
     { in case an explicit function result was specified, keep it }
     tcallnode(result).funcretnode:=tcallnode(left).funcretnode;
     tcallnode(left).funcretnode:=nil;
@@ -376,14 +384,34 @@ function tobjcmessagesendnode.pass_1: tnode;
 
     if (cnf_inherited in tcallnode(left).callnodeflags) then
       begin
-        { free the objc_super temp after the call. We cannout use
+        block:=internalstatements(statements);
+        { temp for the result of the inherited call }
+        if not is_void(left.resultdef) and
+           (cnf_return_value_used in tcallnode(left).callnodeflags) then
+           begin
+             tempresult:=ctempcreatenode.create(left.resultdef,left.resultdef.size,tt_persistent,true);
+             addstatement(statements,tempresult);
+           end;
+
+        { make sure we return the result, if any }
+        if not assigned(tempresult) then
+          addstatement(statements,result)
+        else
+          addstatement(statements,
+            cassignmentnode.create(ctemprefnode.create(tempresult),result));
+        { free the objc_super temp after the call. We cannot use
           ctempdeletenode.create_normal_temp before the call, because then
           the temp will be released while evaluating the parameters, and thus
           may be reused while evaluating another parameter
         }
-        block:=internalstatements(statements);
-        addstatement(statements,result);
         addstatement(statements,ctempdeletenode.create(temp));
+        if assigned(tempresult) then
+          begin
+            { mark the result temp as "free after next use" and return it }
+            addstatement(statements,
+              ctempdeletenode.create_normal_temp(tempresult));
+            addstatement(statements,ctemprefnode.create(tempresult));
+          end;
         typecheckpass(block);
         result:=block;
      end;
