@@ -65,7 +65,14 @@ end;
 
 var
   a: MyOverride;
+  b: id;
 begin
+  { test type compatibility conversions between id and class ref }
+  b:=MyOverride2;
+  selfshouldbetestinlinetypedefinition:=b;
+  b:=selfshouldbetestinlinetypedefinition;
+
+  { tested calling class methods and inherited class methods }
   a:=MyOverride2.alloc;
   a:=a.init;
   selfshouldbe:=MyOverride2;

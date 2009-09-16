@@ -1084,10 +1084,10 @@ implementation
                        end
                      { id = generic class instance. metaclasses are also
                        class instances themselves.  }
-                     else if ((def_from=objc_idtype) or
-                              (def_to=objc_metaclasstype)) and
-                             ((def_to=objc_idtype) or
-                              (def_to=objc_metaclasstype)) then
+                     else if ((def_from=objc_idtype) and
+                              (def_to=objc_metaclasstype)) or
+                             ((def_to=objc_idtype) and
+                              (def_from=objc_metaclasstype)) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
@@ -1361,7 +1361,14 @@ implementation
                  begin
                    doconv:=tc_equal;
                    eq:=te_convert_l1;
-                 end;
+                 end
+               else
+                 { id is compatible with all classref types }
+                 if (def_from=objc_idtype) then
+                   begin
+                     doconv:=tc_equal;
+                     eq:=te_convert_l1;
+                   end;
              end;
 
            filedef :
