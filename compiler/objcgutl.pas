@@ -148,6 +148,7 @@ procedure gen_objc1_methods(list: tasmlist; objccls: tobjectdef; out methodslabe
     def   : tprocdef;
     defs  : array of method_data;
     mcnt  : integer;
+    sym   : tasmsymbol;
   begin
     methodslabel:=nil;
     mcnt:=0;
@@ -187,8 +188,10 @@ procedure gen_objc1_methods(list: tasmlist; objccls: tobjectdef; out methodslabe
         { reference to the obj-c encoded function parameters (signature) }
         list.Concat(tai_const.Create_sym(defs[i].encsym));
         { mangled name of the method }
-        list.Concat(tai_const.Create_sym(
-          current_asmdata.GetAsmSymbol(defs[i].def.objcmangledname)));
+        sym:=current_asmdata.GetAsmSymbol(defs[i].def.mangledname);
+        if not assigned(sym) then
+          internalerror(2009091601);
+        list.Concat(tai_const.Create_sym(sym));
       end;
   end;
 
