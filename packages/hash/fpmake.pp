@@ -26,6 +26,7 @@ begin
 
     P.Version:='2.2.2-0';
     T:=P.Targets.AddUnit('src/md5.pp');
+    T:=P.Targets.AddUnit('src/sha1.pp');
     T:=P.Targets.AddUnit('src/crc.pas');
     T:=P.Targets.AddUnit('src/ntlm.pas');
     T:=P.Targets.AddUnit('src/uuid.pas');
