@@ -302,7 +302,7 @@ implementation
                     else
                       begin
                         getmem(pCharVal, tstringconstnode(p).len + 1);
-                        move(pCharVal^, tstringconstnode(p).value_str^, tstringconstnode(p).len);
+                        move(tstringconstnode(p).value_str^, pCharVal^, tstringconstnode(p).len);
                         pCharVal[tstringconstnode(p).len] := #0;
                         get_string_value := pCharVal;
                       end;
