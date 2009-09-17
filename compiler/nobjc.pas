@@ -162,8 +162,11 @@ function tobjcprotocolnode.pass_typecheck: tnode;
 
 function tobjcprotocolnode.pass_1: tnode;
   begin
-    result:=nil;
-    expectloc:=LOC_CREFERENCE;
+    result:=ccallnode.createinternresfromunit('OBJC1','OBJC_GETPROTOCOL',
+      ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^),nil),
+      resultdef
+    );
+    typecheckpass(result);
   end;
 
 
