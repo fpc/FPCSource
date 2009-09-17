@@ -925,17 +925,18 @@ end;
 
 function TXMLDecodingSource.Reload: Boolean;
 var
+  Remainder: PtrInt;
   r, inLeft: Cardinal;
   rslt: Integer;
 begin
   if DTDSubsetType = dsInternal then
     FReader.DTDReloadHook;
-  r := FBufEnd - FBuf;
-  if r > 0 then
-    Move(FBuf^, FBufStart^, r * sizeof(WideChar));
+  Remainder := FBufEnd - FBuf;
+  if Remainder > 0 then
+    Move(FBuf^, FBufStart^, Remainder * sizeof(WideChar));
   Dec(LFPos, FBuf-FBufStart);
   FBuf := FBufStart;
-  FBufEnd := FBufStart + r;
+  FBufEnd := FBufStart + Remainder;
 
   repeat
     inLeft := FCharBufEnd - FCharBuf;
@@ -2724,7 +2725,7 @@ begin
               Inc(IgnoreLevel)
             else if FSource.Matches(']]>') then
               Dec(IgnoreLevel)
-            else
+            else if wc <> #0 then
               FSource.NextChar;
           until (IgnoreLevel=0) or (wc = #0);
 // Since PE's are not recognized in ignore sections, reaching EOF is fatal.

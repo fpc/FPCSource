@@ -14,6 +14,7 @@ uses
   ctypes, nds9;
 
 {$linklib filesystem}
+{$linklib fat}
 {$linklib nds9}
 
 {$linklib c}

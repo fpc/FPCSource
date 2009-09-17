@@ -1,4 +1,4 @@
-﻿{$M+}
+{$M+}
 program RTTI132;
 
 {$IFDEF FPC}
@@ -357,11 +357,11 @@ end;
 const
   expectedresults: array[0..6] of ansistring = (
     '',
-    'function (out Out1: Int64; const P: Pointer; var array of reference ?Array1: AnsiString): Int64 of object;',
-    'procedure (const adresse ?Component4: TComponent; adresse ?out Component3: TComponent; var adresse ?Component2: TComponent; adresse ?Component1: TComponent) of object;',
-    'function (array of reference ?out D: Byte; var array of reference ?C: Byte; const array of reference ?B: Byte; array of reference ?A: Byte): TComponent of object;',
-    'function (const A: LongInt; var S: AnsiString): Int64 of object;',
-    'function (Six: LongInt; array of reference ?Five: Byte; Four: PInteger; adresse ?out Three: TMyObject; var Two: LongInt; const A: AnsiString): AnsiString of object;',
+    'function (var array of reference ?Array1: AnsiString; const P: Pointer; out Out1: Int64): Int64 of object;',
+    'procedure (adresse ?Component1: TComponent; var adresse ?Component2: TComponent; adresse ?out Component3: TComponent; const adresse ?Component4: TComponent) of object;',
+    'function (array of reference ?A: Byte; const array of reference ?B: Byte; var array of reference ?C: Byte; array of reference ?out D: Byte): TComponent of object;',
+    'function (var S: AnsiString; const A: LongInt): Int64 of object;',
+    'function (const A: AnsiString; var Two: LongInt; adresse ?out Three: TMyObject; Four: PInteger; array of reference ?Five: Byte; Six: LongInt): AnsiString of object;',
     'procedure (var S: AnsiString) of object;'
     );
 begin
