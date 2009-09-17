@@ -24,7 +24,11 @@ the following files:
 1) testgen.pp  - an utility for generating Pascal source from XML descriptions.
 2) api.xml     - database used by testgen.
 3) domunit.pp  - FPCUnit extensions required at runtime.
-4) README_DOM.txt - this file.
+4) extras.pp   - Additional tests, not present in w3.org testsuite.
+5) extras2.pp  - Some tests that are present in the testsuite, but converted/modified
+                 by hand because automatic conversion is not yet possible.
+6) README_DOM.txt - this file.
+
 
 To test the FCL DOM implementation, follow these steps:
 
@@ -73,9 +77,10 @@ other elements not yet known to testgen, will be skipped. The conversion may be 
 by using -f commandline switch, but in this case the resulting Pascal unit will likely
 fail to compile.
  
-4) Now, pick up your preferred fpcunit test runner, include the generated units into
-its uses clause, and compile. During compilation, path to 'domunit.pp' should be added
-to the unit search paths.
+4) Now, pick up your preferred fpcunit test runner, add the generated units to its
+uses clause, and compile. You may as well add the suppied 'extras.pp' and 'extras2.pp'
+units. During compilation, path to 'domunit.pp' should be added to the unit search
+paths.
 
 5) During runtime, tests must be able to read test files which are located
 within CVS source tree ('files' subdirectory of each module directory). For this purpose,
