@@ -48,6 +48,36 @@ implementation
     symconst,symtype,symsym,symdef,symtable,
     verbose;
 
+{******************************************************************
+                    Protocol declaration helpers
+*******************************************************************}
+
+function objcfindprotocolentry(const p: shortstring): TAsmSymbol;
+  var
+    item  : PHashSetItem;
+  begin
+    result:=nil;
+    if not assigned(current_asmdata.ConstPools[sp_objcprotocolrefs]) then
+      exit;
+    item:=current_asmdata.constpools[sp_objcprotocolrefs].Find(@p[1], length(p));
+    if not assigned(item) then
+      exit;
+    result:=TAsmSymbol(item^.Data);
+  end;
+
+
+function objcaddprotocolentry(const p: shortstring; ref: TAsmSymbol): Boolean;
+  var
+    item  : PHashSetItem;
+  begin
+    if current_asmdata.ConstPools[sp_objcprotocolrefs]=nil then
+      current_asmdata.ConstPools[sp_objcprotocolrefs]:=THashSet.Create(64, True, False);
+
+    item:=current_asmdata.constpools[sp_objcprotocolrefs].FindOrAdd(@p[1], length(p));
+    Result:=(item^.Data=nil);
+    if Result then
+      item^.Data:=ref;
+  end;
 
 {******************************************************************
                        String section helpers
@@ -118,7 +148,6 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
   end;
 
 
-
 function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; stringsec: tasmsectiontype): TAsmSymbol;
   begin
     result:=objcreatestringpoolentryintern(@s[1],length(s),pooltype,stringsec);
@@ -128,6 +157,15 @@ function objcreatestringpoolentry(const s: string; pooltype: tconstpooltype; str
 {******************************************************************
                         RTTI generation
 *******************************************************************}
+
+procedure ConcatSymOrNil(list: tasmlist; sym: TAsmSymbol); inline;
+begin
+  if Assigned(sym) then
+    list.Concat(tai_const.Create_sym(sym))
+  else
+    list.Concat(tai_const.Create_pint(0));
+end;
+
 
 { generate a method list, either of class methods or of instance methods,
   and both for obj-c classes and categories. }
@@ -181,7 +219,7 @@ procedure gen_objc1_methods(list: tasmlist; objccls: tobjectdef; out methodslabe
     list.Concat(tai_const.Create_32bit(0));
     { number of objc_method entries in the method_list array }
     list.Concat(tai_const.Create_32bit(mcnt));
-    for i := 0 to mcnt - 1 do
+    for i:=0 to mcnt-1 do
       begin
         { reference to the selector name }
         list.Concat(tai_const.Create_sym(defs[i].selsym));
@@ -255,6 +293,151 @@ procedure gen_objc1_ivars(list: TAsmList; objccls: tobjectdef; out ivarslabel: T
   end;
 
 
+{ Generate rtti for an Objective-C methods (methods without implementation) }
+{ items : TFPObjectList of Tprocdef }
+procedure gen_objc1_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;
+  const sectname: string; out listsym: TAsmLabel);
+var
+  i   : integer;
+  m   : tprocdef;
+begin
+  if not assigned(items) or
+     (items.count=0) then
+    exit;
+
+  new_section(list, section, sectname, sizeof(pint));
+  current_asmdata.getlabel(listsym,alt_data);
+  list.Concat(tai_label.Create(listsym));
+  list.Concat(Tai_const.Create_32bit(items.count));
+  for i:=0 to items.Count-1 do
+    begin
+      m:=tprocdef(items[i]);
+      list.Concat(Tai_const.Create_sym(
+        objcreatestringpoolentry(m.messageinf.str^,sp_objcvarnames,sec_objc_meth_var_names)));
+      list.Concat(Tai_const.Create_sym(
+        objcreatestringpoolentry(objcencodemethod(m),sp_objcvartypes,sec_objc_meth_var_types)));
+    end;
+end;
+
+procedure gen_objc1_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel); forward;
+
+{ Generate rtti for an Objective-C protocol  }
+procedure gen_objc1_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);
+  var
+    namesym,
+    instlistsym,
+    clslistsym  : TAsmSymbol;
+    i           : Integer;
+    protolist   : TAsmLabel;
+    proc        : tprocdef;
+    instmlist,
+    clsmlist    : TFPObjectList;
+    instsym,
+    clssym,
+    lbl          : TAsmLabel;
+  begin
+    instmlist:=TFPObjectList.Create(false);
+    clsmlist:=TFPObjectList.Create(false);
+    for i:=0 to protocol.vmtentries.Count-1 do
+      begin
+        proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
+        if (po_classmethod in proc.procoptions) then
+          clsmlist.Add(proc)
+        else
+          instmlist.Add(proc);
+      end;
+      if instmlist.Count > 0 then
+        gen_objc1_cat_methods(list,instmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',instsym)
+      else
+        instsym:=nil;
+
+      if clsmlist.Count>0 then
+        gen_objc1_cat_methods(list,clsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',clssym)
+      else
+        clssym:=nil;
+
+    instmlist.Free;
+    clsmlist.Free;
+
+    gen_objc1_protocol_list(list,protocol.ImplementedInterfaces,protolist);
+
+    new_section(list, sec_objc_protocol,'_OBJC_PROTOCOL',sizeof(pint));
+    current_asmdata.getlabel(lbl,alt_data);
+    list.Concat(tai_label.Create(lbl));
+    protocollabel:=lbl;
+
+    { protocol's isa - always nil }
+    list.Concat(Tai_const.Create_pint(0));
+    { name }
+    namesym:=objcreatestringpoolentry(protocol.objextname^,sp_objcclassnames,sec_objc_class_names);
+    list.Concat(Tai_const.Create_sym(namesym));
+    { protocol's list }
+    ConcatSymOrNil(list,protolist);
+    { instance methods, in __cat_inst_meth }
+    ConcatSymOrNil(list,instsym);
+    { class methods, in __cat_cls_meth }
+    ConcatSymOrNil(list,clssym);
+  end;
+
+(*
+From CLang:
+
+  struct objc_protocol_list
+  {
+      struct objc_protocol_list *next;
+      int count;
+      Protocol *list[1];
+  };
+*)
+procedure gen_objc1_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel);
+  var
+    i         : Integer;
+    protosym  : TAsmSymbol;
+    protodef  : tobjectdef;
+  begin
+    if not Assigned(protolist) or
+       (protolist.Count=0) then
+      begin
+        protolistsym:=nil;
+        Exit;
+      end;
+
+    for i:=0 to protolist.Count-1 do
+      begin
+        protodef:=TImplementedInterface(protolist[i]).IntfDef;
+        protosym:=objcfindprotocolentry(protodef.objextname^);
+        if not assigned(protosym) then
+          begin
+            gen_objc1_protocol(list,protodef,protosym);
+            objcaddprotocolentry(protodef.objextname^,protosym);
+          end;
+      end;
+
+    { protocol lists are stored in .objc_cat_cls_meth section }
+    new_section(list,sec_objc_cat_cls_meth,'_OBJC_PROTOCOLLIST',sizeof(pint));
+    current_asmdata.getlabel(protolistsym, alt_data);
+    list.Concat(tai_label.Create(protolistsym));
+
+    { From Clang: next, always nil}
+    list.Concat(tai_const.Create_pint(0));
+    { From Clang: protocols count}
+    list.Concat(Tai_const.Create_32bit(protolist.Count));
+    for i:=0 to protolist.Count-1 do
+      begin
+        protodef:=(protolist[i] as TImplementedInterface).IntfDef;
+        protosym:=objcfindprotocolentry(protodef.objextname^);
+        if not Assigned(protosym) then
+          begin
+            { For some reason protosym is not declared, though must be!
+              Probably gen_obcj1_protocl returned wrong protosym
+            }
+            InternalError(2009091602);
+          end;
+        list.Concat(tai_const.Create_sym(protosym));
+      end;
+  end;
+
+
 (*
 From Clang:
 
@@ -289,10 +472,14 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
     metasym,
     clssym        : TAsmSymbol;
     mthdlist,
-    ivarslist     : TAsmLabel;
+    ivarslist,
+    protolistsym  : TAsmLabel;
   begin
     { generate the class methods list }
     gen_objc1_methods(list,objclss,mthdlist,true,false);
+
+    { generate implemented protocols list }
+    gen_objc1_protocol_list(list,objclss.ImplementedInterfaces,protolistsym);
 
     { register necessary names }
     { 1) the superclass }
@@ -342,8 +529,8 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
       list.Concat(Tai_const.Create_32bit(0));
     { From Clang: cache is always nil }
     list.Concat(Tai_const.Create_32bit(0));
-    { TODO: protocols }
-    list.Concat(Tai_const.Create_32bit(0));
+    { protocols }
+    ConcatSymOrNil(list, protolistsym);
     { From Clang: ivar_layout for meta-class is always NULL. }
     list.Concat(Tai_const.Create_32bit(0));
     { From Clang: The class extension is always unused for meta-classes. }
@@ -388,8 +575,8 @@ procedure gen_objc1_classes_sections(list:TAsmList; objclss: tobjectdef; out cla
       list.Concat(Tai_const.Create_32bit(0));
     { From Clang: cache is always NULL }
     list.Concat(Tai_const.Create_32bit(0));
-    { TODO: protocols }
-    list.Concat(Tai_const.Create_32bit(0));
+    { protocols, protolistsym has been created for meta-class, no need to create another one}
+    ConcatSymOrNil(list, protolistsym);
     { TODO: From Clang: strong ivar_layout, necessary for garbage collection support }
     list.Concat(Tai_const.Create_32bit(0));
     { TODO: From Clang: weak ivar_layout, necessary for garbage collection support }
@@ -514,6 +701,5 @@ procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
         classdefs.free;
       end;
   end;
-
 
 end.

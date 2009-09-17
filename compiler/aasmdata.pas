@@ -86,7 +86,8 @@ interface
          sp_varnamerefs,
          sp_objcclassnames,
          sp_objcvarnames,
-         sp_objcvartypes
+         sp_objcvartypes,
+         sp_objcprotocolrefs
       );
       
     const
