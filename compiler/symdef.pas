@@ -4423,6 +4423,11 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
+        {$warning: this is completely wrong on so many levels...}
+        { 1) the procdefs list will be freed once for each copy
+          2) since the procdefs list owns its elements, those will also be freed for each copy
+          3) idem for the name mappings
+        }
         Move(pointer(self)^,pointer(result)^,InstanceSize);
       end;
 
