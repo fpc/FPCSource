@@ -76,8 +76,8 @@ type
   TASCII85EncoderStream = class(TOwnerStream)
   private
     FPos,
-    FCount,
     FTuple : Cardinal;
+    FCount,
     FWidth : Integer;
     FBoundary : Boolean;
   protected  

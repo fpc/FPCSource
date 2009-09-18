@@ -523,8 +523,11 @@ var
   Code: Integer;
 begin
   Val(s, Result, Code);
+{$push}
+{$r-}
   if Code <> 0 then
     Result := NaN;
+{$pop}
 end;
 
 procedure TranslateWideString(var S: DOMString; const SrcPat, DstPat: DOMString);
@@ -758,7 +761,10 @@ begin
         opDivide:
           NumberResult := Op1 / Op2;
         opMod: if IsNan(Op1) or IsNan(Op2) then
+{$push}
+{$r-}
           NumberResult := NaN
+{$pop}
         else
           NumberResult := Trunc(Op1) mod Trunc(Op2);
       end;
