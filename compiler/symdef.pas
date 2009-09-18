@@ -3740,7 +3740,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_interfacecorba,odt_objcclass] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -3794,7 +3794,7 @@ implementation
            end;
 
          { load implemented interfaces }
-         if objecttype in [odt_class,odt_interfacecorba,odt_objcclass] then
+         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
            begin
              ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;
@@ -4168,11 +4168,36 @@ implementation
      end;
 
 
+   { true if prot implements d (or if they are equal) }
+   function is_related_protocol(prot: tobjectdef; d : tdef) : boolean;
+     var
+       i  : longint;
+     begin
+       { objcprotocols have multiple inheritance, all protocols from which
+         the current protocol inherits are stored in implementedinterfaces }
+       result:=prot=d;
+       if result then
+         exit;
+
+       for i:=0 to prot.ImplementedInterfaces.count-1 do
+         begin
+           result:=is_related_protocol(tobjectdef(prot.ImplementedInterfaces[i]),d);
+           if result then
+             exit;
+         end;
+     end;
+
+
    { true, if self inherits from d (or if they are equal) }
    function tobjectdef.is_related(d : tdef) : boolean;
      var
         hp : tobjectdef;
      begin
+        if (objecttype=odt_objcprotocol) then
+          begin
+            is_related:=is_related_protocol(self,d);
+            exit
+          end;
         hp:=self;
         while assigned(hp) do
           begin

@@ -1,3 +1,6 @@
+{ %target=darwin }
+{ %cpu=powerpc,i386 }
+
 program protocoltest;
 
 {$mode objfpc}{$H+}
@@ -5,44 +8,48 @@ program protocoltest;
 
 type
   MyProtocolA = objcprotocol
-    procedure newMethod; message 'newMethod';
+    function newMethod: longint; message 'newMethod';
   end;
 
   MyProtocolB = objcprotocol(MyProtocolA)
-    class procedure newClassMethod; message 'newClassMethod';
+    class function newClassMethod: longint; message 'newClassMethod';
   end;
 
 
   { TMyObject }
 
-  TMyObjectA = objcclass(NSObject, MyProtocolA, MyProtocolB)
-    procedure newMethod;
-    class procedure newClassMethod;
+  TMyObjectA = objcclass(NSObject, MyProtocolB)
+    function newMethod: longint;
+    class function newClassMethod: longint;
   end;
 
   TMyObjectB = objcclass(NSObject,MyProtocolA)
-    procedure newMethod; message 'newMethod';
-    class procedure newClassMethod; message 'newClassMethod';
+    function newMethod: longint; message 'newMethod';
+    class function newClassMethod: longint; message 'newClassMethod';
   end;
 
 { TMyObjectA }
 
-procedure TMyObjectA.newMethod;
+function TMyObjectA.newMethod: longint;
 begin
+  result:=1;
 end;
 
-class procedure TMyObjectA.newClassMethod;
+class function TMyObjectA.newClassMethod: longint;
 begin
+  result:=2;
 end;
 
 { TMyObjectB }
 
-procedure TMyObjectB.newMethod;
+function TMyObjectB.newMethod: longint;
 begin
+  result:=3;
 end;
 
-class procedure TMyObjectB.newClassMethod;
+class function TMyObjectB.newClassMethod: longint;
 begin
+  result:=4;
 end;
 
 
@@ -72,6 +79,11 @@ begin
   if TMyObjectA.classconformsToProtocol_(pNSProxy) then
     halt(5);
 
+  if TMyObjectA.newClassMethod<>2 then
+    halt(11);
+  if TMyObjectB.newClassMethod<>4 then
+    halt(12);
+
   a := TMyObjectA.alloc;
   writeln('TMyObjectA instance conforms to MyProtocolA protocol: ',  a.classconformsToProtocol_(pMyProtocolA)); {true}
   if not a.classconformsToProtocol_(pMyProtocolA) then
@@ -82,6 +94,8 @@ begin
   writeln('TMyObjectA instance conforms to NSProxy protocol:     ',  a.classconformsToProtocol_(pNSProxy));     {false}
   if a.classconformsToProtocol_(pNSProxy) then
     halt(8);
+  if a.newMethod<>1 then
+    halt(21);
   a.Release;
 
   b := TMyObjectB.alloc;
@@ -91,6 +105,8 @@ begin
   writeln('TMyObjectB instance conforms to MyProtocolB protocol: ',  b.conformsToProtocol_(pMyProtocolB)); {false}
   if b.conformsToProtocol_(pMyProtocolB) then
     halt(7);
+  if b.newMethod<>3 then
+    halt(31);
   b.Release;
 end.
 

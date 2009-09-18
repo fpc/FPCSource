@@ -37,12 +37,14 @@ interface
       TVMTBuilder=class
       private
         _Class : tobjectdef;
+        handledprotocols: tfpobjectlist;
         function  is_new_vmt_entry(pd:tprocdef):boolean;
         procedure add_new_vmt_entry(pd:tprocdef);
         function  check_msg_str(vmtpd, pd: tprocdef):boolean;
         function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
         procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
         procedure intf_get_procdefs_recursive(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
+        procedure prot_get_procdefs_recursive(ImplProt:TImplementedInterface;ProtDef:TObjectDef);
         procedure intf_optimize_vtbls;
         procedure intf_allocate_vtbls;
       public
@@ -497,6 +499,20 @@ implementation
       end;
 
 
+    procedure TVMTBuilder.prot_get_procdefs_recursive(ImplProt:TImplementedInterface;ProtDef:TObjectDef);
+      var
+        i: longint;
+      begin
+        { don't check the same protocol twice }
+        if handledprotocols.IndexOf(ProtDef)<>-1 then
+          exit;
+        handledprotocols.add(ProtDef);
+        for i:=0 to ProtDef.ImplementedInterfaces.count-1 do
+          prot_get_procdefs_recursive(ImplProt,TImplementedInterface(ProtDef.ImplementedInterfaces[i]).intfdef);
+        intf_get_procdefs(ImplProt,ProtDef);
+      end;
+
+
     procedure TVMTBuilder.intf_optimize_vtbls;
       type
         tcompintfentry = record
@@ -687,14 +703,35 @@ implementation
         i: longint;
       begin
         { Find Procdefs implementing the interfaces }
-        if assigned(_class.ImplementedInterfaces) then
+        if assigned(_class.ImplementedInterfaces) and
+           (_class.objecttype<>odt_objcprotocol) then
           begin
             { Collect implementor functions into the tImplementedInterface.procdefs }
-            for i:=0 to _class.ImplementedInterfaces.count-1 do
-              begin
-                ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-                intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
-              end;
+            case _class.objecttype of
+              odt_class:
+                begin
+                  for i:=0 to _class.ImplementedInterfaces.count-1 do
+                    begin
+                      ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                      intf_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef)
+                    end;
+                end;
+              odt_objcclass:
+                begin
+                  { Object Pascal interfaces are afterwards optimized via the
+                    intf_optimize_vtbls() method, but we can't do this for
+                    protocols -> check for duplicates here already. }
+                  handledprotocols:=tfpobjectlist.create(false);
+                  for i:=0 to _class.ImplementedInterfaces.count-1 do
+                    begin
+                      ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
+                      prot_get_procdefs_recursive(ImplIntf,ImplIntf.IntfDef);
+                    end;
+                  handledprotocols.free;
+                end
+              else
+                internalerror(2009091801);
+            end
           end;
       end;
 

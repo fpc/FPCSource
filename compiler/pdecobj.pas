@@ -324,8 +324,12 @@ implementation
                            Message(parser_e_mix_of_classes_and_objects);
                        end;
                    odt_objcprotocol:
-                     if not(is_objcprotocol(childof)) then
-                       Message(parser_e_mix_of_classes_and_objects);
+                     begin
+                       if not(is_objcprotocol(childof)) then
+                         Message(parser_e_mix_of_classes_and_objects);
+                       intfchildof:=childof;
+                       childof:=nil;
+                     end;
                    odt_object:
                      if not(is_object(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
@@ -376,7 +380,7 @@ implementation
 
         if hasparentdefined then
           begin
-            if current_objectdef.objecttype in [odt_class,odt_objcclass] then
+            if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
               begin
                 if assigned(intfchildof) then
                   if current_objectdef.objecttype=odt_class then
