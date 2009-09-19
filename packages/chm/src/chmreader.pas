@@ -1081,7 +1081,7 @@ begin
       Exit;
     end;
     // if FirstBlock is odd (1,3,5,7 etc) we have to read the even block before it first.
-    if (FirstBlock <> 0) and (FirstBlock mod 2 > 0) then begin
+    if FirstBlock and 1 = 1 then begin
       fStream.Position := fHeaderSuffix.Offset + fCachedEntry.ContentOffset + (ResetTable[FirstBLock-1]);
       ReadCount := ResetTable[FirstBlock] - ResetTable[FirstBlock-1];
       BlockWriteLength:=BlockSize;
@@ -1131,7 +1131,7 @@ begin
       end;
       
       // if the next block is an even numbered block we have to reset the decompressor state
-      if (X < LastBlock) and (X mod 2 > 0) then LZXreset(LZXState);
+      if (X < LastBlock) and (X and 1 = 1) then LZXreset(LZXState);
 
     end;
     FreeMem(OutBuf);
@@ -1238,7 +1238,7 @@ AChm: TChmReader;
 AIndex: Integer;
 begin
   if not FileExists(AFileName) then exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead);
+  AStream := TFileStream.Create(AFileName, fmOpenRead, fmShareDenyWrite);
   AChm := TChmReader.Create(AStream, True);
   AIndex := AddObject(AFileName, AChm);
   fLastChm := AChm;
