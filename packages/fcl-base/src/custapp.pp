@@ -80,6 +80,8 @@ Type
     Property StopOnException : Boolean Read FStopOnException Write FStopOnException;
   end;
 
+var CustomApplication : TCustomApplication = nil;
+
 Implementation
 
 {$if defined(darwin) and (defined(cpu386) or defined(cpupowerpc32))}
