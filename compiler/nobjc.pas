@@ -227,7 +227,9 @@ function tobjcmessagesendnode.pass_1: tnode;
 
     tempresult:=nil;
     newparas:=tcallparanode(tcallnode(left).left);
-    { Find the self and msgsel parameters.  }
+    { Find the self and msgsel parameters, and if we have var/out parameters
+      that normally aren't passed by reference in C, add addrnodes
+    }
     para:=newparas;
     selfpara:=nil;
     msgselpara:=nil;
@@ -243,7 +245,12 @@ function tobjcmessagesendnode.pass_1: tnode;
           begin
             prerespara:=prevpara;
             respara:=para;
-          end;
+          end
+        { All parameters will be passed as varargs to objc_msg*, so make
+          sure that in case of var/out parameters, the address is passed. }
+        else if (para.parasym.varspez in [vs_var,vs_out]) and
+                not paramanager.push_addr_param(vs_value,para.parasym.vardef,pocall_cdecl) then
+          para.left:=caddrnode.create(para.left);
         prevpara:=para;
         para:=tcallparanode(para.right);
       end;
