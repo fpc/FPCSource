@@ -125,3 +125,8 @@ begin
   result.width := aSize.width;
   result.height := aSize.height;
 end;
+
+function NSSTR (inString: PChar): NSString;
+begin
+  Result := NSString(CFSTR(inString));
+end;
