@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSBundle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBUNDLE_PAS_H}
@@ -22,11 +22,6 @@ const
   NSBundleExecutableArchitectureX86_64 = $01000007;
   NSBundleExecutableArchitecturePPC64 = $01000012;
 
-{ CFString constants }
-var
-  NSBundleDidLoadNotification: CFStringRef; external name '_NSBundleDidLoadNotification';
-  NSLoadedClasses: CFStringRef; external name '_NSLoadedClasses';
-
 {$endif}
 {$endif}
 
@@ -48,6 +43,11 @@ var
 {$ifndef NSBUNDLE_PAS_T}
 {$define NSBUNDLE_PAS_T}
 
+{ External string constants }
+var
+  NSBundleDidLoadNotification: NSString; external name '_NSBundleDidLoadNotification';
+  NSLoadedClasses: NSString; external name '_NSLoadedClasses';
+
 {$endif}
 {$endif}
 
@@ -63,9 +63,9 @@ var
 { NSBundle }
   NSBundle = objcclass(NSObject)
   private
-    __flags: culong;
+    __flags: NSUInteger;
     __cfBundle: id;
-    __refCount: culong;
+    __refCount: NSUInteger;
     __principalClass: Pobjc_class;
     __tmp1: id;
     __tmp2: id;
@@ -85,8 +85,8 @@ var
     function load: Boolean; message 'load';
     function isLoaded: Boolean; message 'isLoaded';
     function unload: Boolean; message 'unload';
-    function preflightAndReturnError(var error: NSError): Boolean; message 'preflightAndReturnError:';
-    function loadAndReturnError(var error: NSError): Boolean; message 'loadAndReturnError:';
+    function preflightAndReturnError(error: NSErrorPointer): Boolean; message 'preflightAndReturnError:';
+    function loadAndReturnError(error: NSErrorPointer): Boolean; message 'loadAndReturnError:';
     function bundlePath: NSString; message 'bundlePath';
     function resourcePath: NSString; message 'resourcePath';
     function executablePath: NSString; message 'executablePath';
@@ -121,7 +121,7 @@ var
     function pathForImageResource(name: NSString): NSString; message 'pathForImageResource:';
 
     { Category: NSNibLoading }
-    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; var zone_: NSZone): Boolean; message 'loadNibFile:externalNameTable:withZone:';
+    class function loadNibFile_externalNameTable_withZone(fileName: NSString; context: NSDictionary; zone_: NSZonePointer): Boolean; message 'loadNibFile:externalNameTable:withZone:';
     class function loadNibNamed_owner(nibName: NSString; owner: id): Boolean; message 'loadNibNamed:owner:';
 
     { Category: NSBundleSoundExtensions }

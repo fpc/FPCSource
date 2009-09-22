@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCredential.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLCREDENTIAL_PAS_H}
@@ -23,7 +23,7 @@ const
 
 { Types }
 type
-  NSURLCredentialPersistence = culong;
+  NSURLCredentialPersistence = NSUInteger;
 
 {$endif}
 {$endif}

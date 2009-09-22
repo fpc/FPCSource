@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableHeaderView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTABLEHEADERVIEW_PAS_H}
@@ -51,9 +51,9 @@ type
   NSTableHeaderView = objcclass(NSView)
   private
     __tableView: NSTableView;
-    __resizedColumn: clong;
-    __draggedColumn: clong;
-    __pressedColumn: clong;
+    __resizedColumn: NSInteger;
+    __draggedColumn: NSInteger;
+    __pressedColumn: NSInteger;
     __headerDragImage: NSImage;
     __draggedDistance: CGFloat;
     __isColumnResizing: Boolean;
@@ -68,11 +68,11 @@ type
 
     procedure setTableView(tableView_: NSTableView); message 'setTableView:';
     function tableView: NSTableView; message 'tableView';
-    function draggedColumn: clong; message 'draggedColumn';
+    function draggedColumn: NSInteger; message 'draggedColumn';
     function draggedDistance: CGFloat; message 'draggedDistance';
-    function resizedColumn: clong; message 'resizedColumn';
-    function headerRectOfColumn(column: clong): NSRect; message 'headerRectOfColumn:';
-    function columnAtPoint(point: NSPoint): clong; message 'columnAtPoint:';
+    function resizedColumn: NSInteger; message 'resizedColumn';
+    function headerRectOfColumn(column: NSInteger): NSRect; message 'headerRectOfColumn:';
+    function columnAtPoint(point: NSPoint): NSInteger; message 'columnAtPoint:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorPicking.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -41,7 +41,7 @@
   
 { NSColorPickingDefault Protocol }
   NSColorPickingDefaultProtocol = objcprotocol
-    function initWithPickerMask_colorPanel(mask: culong; owningColorPanel: NSColorPanel): id; message 'initWithPickerMask:colorPanel:';
+    function initWithPickerMask_colorPanel(mask: NSUInteger; owningColorPanel: NSColorPanel): id; message 'initWithPickerMask:colorPanel:';
     function provideNewButtonImage: NSImage; message 'provideNewButtonImage';
     procedure insertNewButtonImage_in(newButtonImage: NSImage; buttonCell: NSButtonCell); message 'insertNewButtonImage:in:';
     procedure viewSizeChanged(sender: id); message 'viewSizeChanged:';

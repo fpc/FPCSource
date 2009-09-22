@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPRINTPANEL_PAS_H}
@@ -27,7 +27,7 @@ const
 
 { Types }
 type
-  NSPrintPanelOptions = clong;
+  NSPrintPanelOptions = NSInteger;
 
 {$endif}
 {$endif}
@@ -69,7 +69,7 @@ type
     __accessoryControllers: NSMutableArray;
     __previewController: id;
     __thumbnailView: NSView;
-    __options: clong;
+    __options: NSInteger;
     __defaultButtonTitle: NSString;
     __helpAnchor: NSString;
     __jobStyleHint: NSString;
@@ -80,9 +80,9 @@ type
     __presentedPrintInfo: NSPrintInfo;
     __windowController: NSWindowController;
     {$ifdef cpu64}
-    __reserved: id;
+        _reserved: array[0..1] of id;
     {$else}
-    __compatibilityPadding: char;
+        _compatibilityPadding: array[0..191] of char;
     {$endif}
     
   public
@@ -101,8 +101,8 @@ type
     procedure setJobStyleHint(hint: NSString); message 'setJobStyleHint:';
     function jobStyleHint: NSString; message 'jobStyleHint';
     procedure beginSheetWithPrintInfo_modalForWindow_delegate_didEndSelector_contextInfo(printInfo_: NSPrintInfo; docWindow: NSWindow; delegate: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetWithPrintInfo:modalForWindow:delegate:didEndSelector:contextInfo:';
-    function runModalWithPrintInfo(printInfo_: NSPrintInfo): clong; message 'runModalWithPrintInfo:';
-    function runModal: clong; message 'runModal';
+    function runModalWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalWithPrintInfo:';
+    function runModal: NSInteger; message 'runModal';
     function printInfo: NSPrintInfo; message 'printInfo';
 
     { Category: NSDeprecated }

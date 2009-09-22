@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDictionary.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDICTIONARY_PAS_H}
@@ -55,7 +55,7 @@ type
   public
     class function alloc: NSDictionary; message 'alloc';
 
-    function count: culong; message 'count';
+    function count: NSUInteger; message 'count';
     function objectForKey(aKey: id): id; message 'objectForKey:';
     function keyEnumerator: NSEnumerator; message 'keyEnumerator';
 
@@ -66,7 +66,7 @@ type
     function description: NSString; message 'description';
     function descriptionInStringsFileFormat: NSString; message 'descriptionInStringsFileFormat';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
-    function descriptionWithLocale_indent(locale: id; level: culong): NSString; message 'descriptionWithLocale:indent:';
+    function descriptionWithLocale_indent(locale: id; level: NSUInteger): NSString; message 'descriptionWithLocale:indent:';
     function isEqualToDictionary(otherDictionary: NSDictionary): Boolean; message 'isEqualToDictionary:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     function objectsForKeys_notFoundMarker(keys: NSArray; marker: id): NSArray; message 'objectsForKeys:notFoundMarker:';
@@ -78,12 +78,12 @@ type
     { Category: NSDictionaryCreation }
     class function dictionary: id; message 'dictionary';
     class function dictionaryWithObject_forKey(object_: id; key: id): id; message 'dictionaryWithObject:forKey:';
-    class function dictionaryWithObjects_forKeys_count(objects: id; keys: id; cnt: culong): id; message 'dictionaryWithObjects:forKeys:count:';
-    class function dictionaryWithObjectsAndKeys(firstObject: id; objParams: array of const): id; message 'dictionaryWithObjectsAndKeys:';
+    class function dictionaryWithObjects_forKeys_count(objects: id; keys: id; cnt: NSUInteger): id; message 'dictionaryWithObjects:forKeys:count:';
+    class function dictionaryWithObjectsAndKeys(firstObject: id): id; varargs; message 'dictionaryWithObjectsAndKeys:';
     class function dictionaryWithDictionary(dict: NSDictionary): id; message 'dictionaryWithDictionary:';
     class function dictionaryWithObjects_forKeys(objects: NSArray; keys: NSArray): id; message 'dictionaryWithObjects:forKeys:';
-    function initWithObjects_forKeys_count(objects: id; keys: id; cnt: culong): id; message 'initWithObjects:forKeys:count:';
-    function initWithObjectsAndKeys(firstObject: id; objParams: array of const): id; message 'initWithObjectsAndKeys:';
+    function initWithObjects_forKeys_count(objects: id; keys: id; cnt: NSUInteger): id; message 'initWithObjects:forKeys:count:';
+    function initWithObjectsAndKeys(firstObject: id): id; varargs; message 'initWithObjectsAndKeys:';
     function initWithDictionary(otherDictionary: NSDictionary): id; message 'initWithDictionary:';
     function initWithDictionary_copyItems(otherDictionary: NSDictionary; flag: Boolean): id; message 'initWithDictionary:copyItems:';
     function initWithObjects_forKeys(objects: NSArray; keys: NSArray): id; message 'initWithObjects:forKeys:';
@@ -96,11 +96,11 @@ type
     function fileSize: culonglong; message 'fileSize';
     function fileModificationDate: NSDate; message 'fileModificationDate';
     function fileType: NSString; message 'fileType';
-    function filePosixPermissions: culong; message 'filePosixPermissions';
+    function filePosixPermissions: NSUInteger; message 'filePosixPermissions';
     function fileOwnerAccountName: NSString; message 'fileOwnerAccountName';
     function fileGroupOwnerAccountName: NSString; message 'fileGroupOwnerAccountName';
-    function fileSystemNumber: clong; message 'fileSystemNumber';
-    function fileSystemFileNumber: culong; message 'fileSystemFileNumber';
+    function fileSystemNumber: NSInteger; message 'fileSystemNumber';
+    function fileSystemFileNumber: NSUInteger; message 'fileSystemFileNumber';
     function fileExtensionHidden: Boolean; message 'fileExtensionHidden';
     function fileHFSCreatorCode: OSType; message 'fileHFSCreatorCode';
     function fileHFSTypeCode: OSType; message 'fileHFSTypeCode';
@@ -130,8 +130,8 @@ type
     procedure setDictionary(otherDictionary: NSDictionary); message 'setDictionary:';
 
     { Category: NSMutableDictionaryCreation }
-    class function dictionaryWithCapacity(numItems: culong): id; message 'dictionaryWithCapacity:';
-    function initWithCapacity(numItems: culong): id; message 'initWithCapacity:';
+    class function dictionaryWithCapacity(numItems: NSUInteger): id; message 'dictionaryWithCapacity:';
+    function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
 
     { Category: NSKeyValueCoding }
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';

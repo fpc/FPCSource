@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGL.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOPENGL_PAS_H}
@@ -115,18 +115,18 @@ type
   private
     __pixelFormatAuxiliary: NSOpenGLPixelFormatAuxiliary;
     __pixelAttributes: NSData;
-    __reserved1: clong;
-    __reserved2: clong;
-    __reserved3: clong;
+    __reserved1: NSInteger;
+    __reserved2: NSInteger;
+    __reserved3: NSInteger;
     
   public
     class function alloc: NSOpenGLPixelFormat; message 'alloc';
 
-    function initWithAttributes(var attribs: NSOpenGLPixelFormatAttribute): id; message 'initWithAttributes:';
+    function initWithAttributes(attribs: NSOpenGLPixelFormatAttributePointer): id; message 'initWithAttributes:';
     function initWithData(attribs: NSData): id; message 'initWithData:';
     function attributes: NSData; message 'attributes';
     procedure setAttributes(attribs: NSData); message 'setAttributes:';
-    procedure getValues_forAttribute_forVirtualScreen(var vals: GLint; attrib: NSOpenGLPixelFormatAttribute; screen: GLint); message 'getValues:forAttribute:forVirtualScreen:';
+    procedure getValues_forAttribute_forVirtualScreen(vals: GLintPointer; attrib: NSOpenGLPixelFormatAttribute; screen: GLint); message 'getValues:forAttribute:forVirtualScreen:';
     function numberOfVirtualScreens: GLint; message 'numberOfVirtualScreens';
     function CGLPixelFormatObj: Pointer; message 'CGLPixelFormatObj';
   end; external;
@@ -170,8 +170,8 @@ type
     class procedure clearCurrentContext; message 'clearCurrentContext';
     class function currentContext: NSOpenGLContext; message 'currentContext';
     procedure copyAttributesFromContext_withMask(context: NSOpenGLContext; mask: GLbitfield); message 'copyAttributesFromContext:withMask:';
-    procedure setValues_forParameter(var vals: GLint; param: NSOpenGLContextParameter); message 'setValues:forParameter:';
-    procedure getValues_forParameter(var vals: GLint; param: NSOpenGLContextParameter); message 'getValues:forParameter:';
+    procedure setValues_forParameter(vals: GLintPointer; param: NSOpenGLContextParameter); message 'setValues:forParameter:';
+    procedure getValues_forParameter(vals: GLintPointer; param: NSOpenGLContextParameter); message 'getValues:forParameter:';
     procedure setCurrentVirtualScreen(screen: GLint); message 'setCurrentVirtualScreen:';
     function currentVirtualScreen: GLint; message 'currentVirtualScreen';
     procedure createTexture_fromView_internalFormat(target: GLenum; view_: NSView; format: GLenum); message 'createTexture:fromView:internalFormat:';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSIndexPath.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSINDEXPATH_PAS_H}
@@ -50,23 +50,23 @@ type
 { NSIndexPath }
   NSIndexPath = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __indexes: culong;
-    __hash: culong;
-    __length: culong;
+    __indexes: NSUInteger;
+    __hash: NSUInteger;
+    __length: NSUInteger;
     __reserved: Pointer;
     
   public
     class function alloc: NSIndexPath; message 'alloc';
 
-    class function indexPathWithIndex(index: culong): id; message 'indexPathWithIndex:';
-    class function indexPathWithIndexes_length(var indexes: culong; length_: culong): id; message 'indexPathWithIndexes:length:';
-    function initWithIndex(index: culong): id; message 'initWithIndex:';
-    function initWithIndexes_length(var indexes: culong; length_: culong): id; message 'initWithIndexes:length:';
-    function indexPathByAddingIndex(index: culong): NSIndexPath; message 'indexPathByAddingIndex:';
+    class function indexPathWithIndex(index: NSUInteger): id; message 'indexPathWithIndex:';
+    class function indexPathWithIndexes_length(indexes: NSUIntegerPointer; length_: NSUInteger): id; message 'indexPathWithIndexes:length:';
+    function initWithIndex(index: NSUInteger): id; message 'initWithIndex:';
+    function initWithIndexes_length(indexes: NSUIntegerPointer; length_: NSUInteger): id; message 'initWithIndexes:length:';
+    function indexPathByAddingIndex(index: NSUInteger): NSIndexPath; message 'indexPathByAddingIndex:';
     function indexPathByRemovingLastIndex: NSIndexPath; message 'indexPathByRemovingLastIndex';
-    function indexAtPosition(position: culong): culong; message 'indexAtPosition:';
-    function length: culong; message 'length';
-    procedure getIndexes(var indexes: culong); message 'getIndexes:';
+    function indexAtPosition(position: NSUInteger): NSUInteger; message 'indexAtPosition:';
+    function length: NSUInteger; message 'length';
+    procedure getIndexes(indexes: NSUIntegerPointer); message 'getIndexes:';
     function compare(otherObject: NSIndexPath): NSComparisonResult; message 'compare:';
   end; external;
 

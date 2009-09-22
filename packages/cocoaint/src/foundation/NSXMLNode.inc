@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSXMLNODE_PAS_H}
@@ -33,7 +33,7 @@ const
 
 { Types }
 type
-  NSXMLNodeKind = culong;
+  NSXMLNodeKind = NSUInteger;
 
 {$endif}
 {$endif}
@@ -73,14 +73,14 @@ type
   private
     __kind: NSXMLNodeKind;
     __parent: NSXMLNode;
-    __index: culong;
+    __index: NSUInteger;
     __objectValue: id;
     
   public
     class function alloc: NSXMLNode; message 'alloc';
 
     function initWithKind(kind_: NSXMLNodeKind): id; message 'initWithKind:';
-    function initWithKind_options(kind_: NSXMLNodeKind; options: culong): id; message 'initWithKind:options:';
+    function initWithKind_options(kind_: NSXMLNodeKind; options: NSUInteger): id; message 'initWithKind:options:';
     class function document: id; message 'document';
     class function documentWithRootElement(element: NSXMLElement): id; message 'documentWithRootElement:';
     class function elementWithName(name_: NSString): id; message 'elementWithName:';
@@ -102,13 +102,13 @@ type
     procedure setStringValue(string_: NSString); message 'setStringValue:';
     procedure setStringValue_resolvingEntities(string_: NSString; resolve: Boolean); message 'setStringValue:resolvingEntities:';
     function stringValue: NSString; message 'stringValue';
-    function index: culong; message 'index';
-    function level: culong; message 'level';
+    function index: NSUInteger; message 'index';
+    function level: NSUInteger; message 'level';
     function rootDocument: NSXMLDocument; message 'rootDocument';
     function parent: NSXMLNode; message 'parent';
-    function childCount: culong; message 'childCount';
+    function childCount: NSUInteger; message 'childCount';
     function children: NSArray; message 'children';
-    function childAtIndex(index_: culong): NSXMLNode; message 'childAtIndex:';
+    function childAtIndex(index_: NSUInteger): NSXMLNode; message 'childAtIndex:';
     function previousSibling: NSXMLNode; message 'previousSibling';
     function nextSibling: NSXMLNode; message 'nextSibling';
     function previousNode: NSXMLNode; message 'previousNode';
@@ -124,11 +124,11 @@ type
     class function predefinedNamespaceForPrefix(name_: NSString): NSXMLNode; message 'predefinedNamespaceForPrefix:';
     function description: NSString; message 'description';
     function XMLString: NSString; message 'XMLString';
-    function XMLStringWithOptions(options: culong): NSString; message 'XMLStringWithOptions:';
+    function XMLStringWithOptions(options: NSUInteger): NSString; message 'XMLStringWithOptions:';
     function canonicalXMLStringPreservingComments(comments: Boolean): NSString; message 'canonicalXMLStringPreservingComments:';
-    function nodesForXPath_error(XPath_: NSString; var error: NSError): NSArray; message 'nodesForXPath:error:';
-    function objectsForXQuery_constants_error(xquery: NSString; constants: NSDictionary; var error: NSError): NSArray; message 'objectsForXQuery:constants:error:';
-    function objectsForXQuery_error(xquery: NSString; var error: NSError): NSArray; message 'objectsForXQuery:error:';
+    function nodesForXPath_error(XPath_: NSString; error: NSErrorPointer): NSArray; message 'nodesForXPath:error:';
+    function objectsForXQuery_constants_error(xquery: NSString; constants: NSDictionary; error: NSErrorPointer): NSArray; message 'objectsForXQuery:constants:error:';
+    function objectsForXQuery_error(xquery: NSString; error: NSErrorPointer): NSArray; message 'objectsForXQuery:error:';
   end; external;
 
 {$endif}

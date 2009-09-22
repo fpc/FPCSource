@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPopUpButtonCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPOPUPBUTTONCELL_PAS_H}
@@ -23,11 +23,7 @@ const
 
 { Types }
 type
-  NSPopUpArrowPosition = culong;
-
-{ CFString constants }
-var
-  NSPopUpButtonCellWillPopUpNotification: CFStringRef; external name '_NSPopUpButtonCellWillPopUpNotification';
+  NSPopUpArrowPosition = NSUInteger;
 
 {$endif}
 {$endif}
@@ -49,6 +45,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSPOPUPBUTTONCELL_PAS_T}
 {$define NSPOPUPBUTTONCELL_PAS_T}
+
+{ External string constants }
+var
+  NSPopUpButtonCellWillPopUpNotification: NSString; external name '_NSPopUpButtonCellWillPopUpNotification';
 
 {$endif}
 {$endif}
@@ -101,29 +101,29 @@ var
     function altersStateOfSelectedItem: Boolean; message 'altersStateOfSelectedItem';
     procedure addItemWithTitle(title_: NSString); message 'addItemWithTitle:';
     procedure addItemsWithTitles(itemTitles_: NSArray); message 'addItemsWithTitles:';
-    procedure insertItemWithTitle_atIndex(title_: NSString; index: clong); message 'insertItemWithTitle:atIndex:';
+    procedure insertItemWithTitle_atIndex(title_: NSString; index: NSInteger); message 'insertItemWithTitle:atIndex:';
     procedure removeItemWithTitle(title_: NSString); message 'removeItemWithTitle:';
-    procedure removeItemAtIndex(index: clong); message 'removeItemAtIndex:';
+    procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
     procedure removeAllItems; message 'removeAllItems';
     function itemArray: NSArray; message 'itemArray';
-    function numberOfItems: clong; message 'numberOfItems';
-    function indexOfItem(item: NSMenuItem): clong; message 'indexOfItem:';
-    function indexOfItemWithTitle(title_: NSString): clong; message 'indexOfItemWithTitle:';
-    function indexOfItemWithTag(tag_: clong): clong; message 'indexOfItemWithTag:';
-    function indexOfItemWithRepresentedObject(obj: id): clong; message 'indexOfItemWithRepresentedObject:';
-    function indexOfItemWithTarget_andAction(target_: id; actionSelector: SEL): clong; message 'indexOfItemWithTarget:andAction:';
-    function itemAtIndex(index: clong): NSMenuItem; message 'itemAtIndex:';
+    function numberOfItems: NSInteger; message 'numberOfItems';
+    function indexOfItem(item: NSMenuItem): NSInteger; message 'indexOfItem:';
+    function indexOfItemWithTitle(title_: NSString): NSInteger; message 'indexOfItemWithTitle:';
+    function indexOfItemWithTag(tag_: NSInteger): NSInteger; message 'indexOfItemWithTag:';
+    function indexOfItemWithRepresentedObject(obj: id): NSInteger; message 'indexOfItemWithRepresentedObject:';
+    function indexOfItemWithTarget_andAction(target_: id; actionSelector: SEL): NSInteger; message 'indexOfItemWithTarget:andAction:';
+    function itemAtIndex(index: NSInteger): NSMenuItem; message 'itemAtIndex:';
     function itemWithTitle(title_: NSString): NSMenuItem; message 'itemWithTitle:';
     function lastItem: NSMenuItem; message 'lastItem';
     procedure selectItem(item: NSMenuItem); message 'selectItem:';
-    procedure selectItemAtIndex(index: clong); message 'selectItemAtIndex:';
+    procedure selectItemAtIndex(index: NSInteger); message 'selectItemAtIndex:';
     procedure selectItemWithTitle(title_: NSString); message 'selectItemWithTitle:';
-    function selectItemWithTag(tag_: clong): Boolean; message 'selectItemWithTag:';
+    function selectItemWithTag(tag_: NSInteger): Boolean; message 'selectItemWithTag:';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function selectedItem: NSMenuItem; message 'selectedItem';
-    function indexOfSelectedItem: clong; message 'indexOfSelectedItem';
+    function indexOfSelectedItem: NSInteger; message 'indexOfSelectedItem';
     procedure synchronizeTitleAndSelectedItem; message 'synchronizeTitleAndSelectedItem';
-    function itemTitleAtIndex(index: clong): NSString; message 'itemTitleAtIndex:';
+    function itemTitleAtIndex(index: NSInteger): NSString; message 'itemTitleAtIndex:';
     function itemTitles: NSArray; message 'itemTitles';
     function titleOfSelectedItem: NSString; message 'titleOfSelectedItem';
     procedure attachPopUpWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'attachPopUpWithFrame:inView:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocumentController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDOCUMENTCONTROLLER_PAS_H}
@@ -69,15 +69,15 @@ type
     procedure addDocument(document: NSDocument); message 'addDocument:';
     procedure removeDocument(document: NSDocument); message 'removeDocument:';
     procedure newDocument(sender: id); message 'newDocument:';
-    function openUntitledDocumentAndDisplay_error(displayDocument: Boolean; var outError: NSError): id; message 'openUntitledDocumentAndDisplay:error:';
-    function makeUntitledDocumentOfType_error(typeName: NSString; var outError: NSError): id; message 'makeUntitledDocumentOfType:error:';
+    function openUntitledDocumentAndDisplay_error(displayDocument: Boolean; outError: NSErrorPointer): id; message 'openUntitledDocumentAndDisplay:error:';
+    function makeUntitledDocumentOfType_error(typeName: NSString; outError: NSErrorPointer): id; message 'makeUntitledDocumentOfType:error:';
     procedure openDocument(sender: id); message 'openDocument:';
     function URLsFromRunningOpenPanel: NSArray; message 'URLsFromRunningOpenPanel';
-    function runModalOpenPanel_forTypes(openPanel: NSOpenPanel; types: NSArray): clong; message 'runModalOpenPanel:forTypes:';
-    function openDocumentWithContentsOfURL_display_error(absoluteURL: NSURL; displayDocument: Boolean; var outError: NSError): id; message 'openDocumentWithContentsOfURL:display:error:';
-    function makeDocumentWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; var outError: NSError): id; message 'makeDocumentWithContentsOfURL:ofType:error:';
-    function reopenDocumentForURL_withContentsOfURL_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; var outError: NSError): Boolean; message 'reopenDocumentForURL:withContentsOfURL:error:';
-    function makeDocumentForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; var outError: NSError): id; message 'makeDocumentForURL:withContentsOfURL:ofType:error:';
+    function runModalOpenPanel_forTypes(openPanel: NSOpenPanel; types: NSArray): NSInteger; message 'runModalOpenPanel:forTypes:';
+    function openDocumentWithContentsOfURL_display_error(absoluteURL: NSURL; displayDocument: Boolean; outError: NSErrorPointer): id; message 'openDocumentWithContentsOfURL:display:error:';
+    function makeDocumentWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentWithContentsOfURL:ofType:error:';
+    function reopenDocumentForURL_withContentsOfURL_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; outError: NSErrorPointer): Boolean; message 'reopenDocumentForURL:withContentsOfURL:error:';
+    function makeDocumentForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'makeDocumentForURL:withContentsOfURL:ofType:error:';
     procedure setAutosavingDelay(autosavingDelay_: NSTimeInterval); message 'setAutosavingDelay:';
     function autosavingDelay: NSTimeInterval; message 'autosavingDelay';
     procedure saveAllDocuments(sender: id); message 'saveAllDocuments:';
@@ -87,13 +87,13 @@ type
     procedure presentError_modalForWindow_delegate_didPresentSelector_contextInfo(error: NSError; window: NSWindow; delegate: id; didPresentSelector: SEL; contextInfo: Pointer); message 'presentError:modalForWindow:delegate:didPresentSelector:contextInfo:';
     function presentError(error: NSError): Boolean; message 'presentError:';
     function willPresentError(error: NSError): NSError; message 'willPresentError:';
-    function maximumRecentDocumentCount: culong; message 'maximumRecentDocumentCount';
+    function maximumRecentDocumentCount: NSUInteger; message 'maximumRecentDocumentCount';
     procedure clearRecentDocuments(sender: id); message 'clearRecentDocuments:';
     procedure noteNewRecentDocument(document: NSDocument); message 'noteNewRecentDocument:';
     procedure noteNewRecentDocumentURL(absoluteURL: NSURL); message 'noteNewRecentDocumentURL:';
     function recentDocumentURLs: NSArray; message 'recentDocumentURLs';
     function defaultType: NSString; message 'defaultType';
-    function typeForContentsOfURL_error(inAbsoluteURL: NSURL; var outError: NSError): NSString; message 'typeForContentsOfURL:error:';
+    function typeForContentsOfURL_error(inAbsoluteURL: NSURL; outError: NSErrorPointer): NSString; message 'typeForContentsOfURL:error:';
     function documentClassNames: NSArray; message 'documentClassNames';
     function documentClassForType(typeName: NSString): Pobjc_class; message 'documentClassForType:';
     function displayNameForType(typeName: NSString): NSString; message 'displayNameForType:';

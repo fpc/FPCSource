@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAnimation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSANIMATION_PAS_H}
@@ -29,8 +29,8 @@ const
 
 { Types }
 type
-  NSAnimationCurve = culong;
-  NSAnimationBlockingMode = culong;
+  NSAnimationCurve = NSUInteger;
+  NSAnimationBlockingMode = NSUInteger;
   NSAnimationProgress = single;
 
 {$endif}
@@ -96,10 +96,10 @@ type
         animationBlockingMode: 0..((1 shl 2)-1);
         reserved: 0..((1 shl 22)-1);
       end;
-    __reserved1: clong;
-    __reserved2: clong;
-    __reserved3: clong;
-    __reserved4: clong;
+    __reserved1: NSInteger;
+    __reserved2: NSInteger;
+    __reserved3: NSInteger;
+    __reserved4: NSInteger;
     
   public
     class function alloc: NSAnimation; message 'alloc';
@@ -138,16 +138,16 @@ type
     __viewAnimations: NSArray;
     __viewAnimationInfo: CFMutableDictionaryRef;
     __windowAnimationInfo: CFMutableDictionaryRef;
-    __reserved4a: culong;
-    __reserved4b: culong;
-    __reserved4c: culong;
+    __reserved4a: NSUInteger;
+    __reserved4b: NSUInteger;
+    __reserved4c: NSUInteger;
     __vaFlags: bitpacked record
         reserved: 0..((1 shl 32)-1);
       end;
-    __reserved5: culong;
-    __reserved6: culong;
-    __reserved7: culong;
-    __reserved8: culong;
+    __reserved5: NSUInteger;
+    __reserved6: NSUInteger;
+    __reserved7: NSUInteger;
+    __reserved8: NSUInteger;
     
   public
     class function alloc: NSViewAnimation; message 'alloc';

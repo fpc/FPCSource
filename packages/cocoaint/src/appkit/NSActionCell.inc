@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSActionCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSACTIONCELL_PAS_H}
@@ -50,7 +50,7 @@ type
 { NSActionCell }
   NSActionCell = objcclass(NSCell)
   private
-    __tag: clong;
+    __tag: NSInteger;
     __target: id;
     __action: SEL;
     __controlView: id;
@@ -65,20 +65,20 @@ type
     procedure setBordered(flag: Boolean); message 'setBordered:';
     procedure setBezeled(flag: Boolean); message 'setBezeled:';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
-    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: culong; rightDigits: culong); message 'setFloatingPointFormat:left:right:';
+    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:';
     procedure setImage(image_: NSImage); message 'setImage:';
     function target: id; message 'target';
     procedure setTarget(anObject: id); message 'setTarget:';
     function action: SEL; message 'action';
     procedure setAction(aSelector: SEL); message 'setAction:';
-    function tag: clong; message 'tag';
-    procedure setTag(anInt: clong); message 'setTag:';
+    function tag: NSInteger; message 'tag';
+    procedure setTag(anInt: NSInteger); message 'setTag:';
     function stringValue: NSString; message 'stringValue';
     function intValue: cint; message 'intValue';
     function floatValue: single; message 'floatValue';
     function doubleValue: double; message 'doubleValue';
     procedure setObjectValue(obj: id); message 'setObjectValue:';
-    function integerValue: clong; message 'integerValue';
+    function integerValue: NSInteger; message 'integerValue';
   end; external;
 
 {$endif}

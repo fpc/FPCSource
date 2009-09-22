@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSGLYPHINFO_PAS_H}
@@ -16,7 +16,7 @@ type
 
 { Types }
 type
-  NSCharacterCollection = culong;
+  NSCharacterCollection = NSUInteger;
 
 {$endif}
 {$endif}
@@ -61,9 +61,9 @@ type
 
     class function glyphInfoWithGlyphName_forFont_baseString(glyphName_: NSString; font: NSFont; theString: NSString): NSGlyphInfo; message 'glyphInfoWithGlyphName:forFont:baseString:';
     class function glyphInfoWithGlyph_forFont_baseString(glyph: NSGlyph; font: NSFont; theString: NSString): NSGlyphInfo; message 'glyphInfoWithGlyph:forFont:baseString:';
-    class function glyphInfoWithCharacterIdentifier_collection_baseString(cid: culong; characterCollection_: NSCharacterCollection; theString: NSString): NSGlyphInfo; message 'glyphInfoWithCharacterIdentifier:collection:baseString:';
+    class function glyphInfoWithCharacterIdentifier_collection_baseString(cid: NSUInteger; characterCollection_: NSCharacterCollection; theString: NSString): NSGlyphInfo; message 'glyphInfoWithCharacterIdentifier:collection:baseString:';
     function glyphName: NSString; message 'glyphName';
-    function characterIdentifier: culong; message 'characterIdentifier';
+    function characterIdentifier: NSUInteger; message 'characterIdentifier';
     function characterCollection: NSCharacterCollection; message 'characterCollection';
   end; external;
 

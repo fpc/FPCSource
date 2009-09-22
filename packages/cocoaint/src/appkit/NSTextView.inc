@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTVIEW_PAS_H}
@@ -45,15 +45,10 @@ const
 
 { Types }
 type
-  NSSelectionGranularity = culong;
-  NSSelectionAffinity = culong;
-  NSFindPanelAction = culong;
-  NSFindPanelSubstringMatchType = culong;
-
-{ CFString constants }
-var
-  NSTextViewWillChangeNotifyingTextViewNotification: CFStringRef; external name '_NSTextViewWillChangeNotifyingTextViewNotification';
-  NSTextViewDidChangeSelectionNotification: CFStringRef; external name '_NSTextViewDidChangeSelectionNotification';
+  NSSelectionGranularity = NSUInteger;
+  NSSelectionAffinity = NSUInteger;
+  NSFindPanelAction = NSUInteger;
+  NSFindPanelSubstringMatchType = NSUInteger;
 
 {$endif}
 {$endif}
@@ -75,6 +70,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTEXTVIEW_PAS_T}
 {$define NSTEXTVIEW_PAS_T}
+
+{ External string constants }
+var
+  NSTextViewWillChangeNotifyingTextViewNotification: NSString; external name '_NSTextViewWillChangeNotifyingTextViewNotification';
+  NSTextViewDidChangeSelectionNotification: NSString; external name '_NSTextViewDidChangeSelectionNotification';
 
 {$endif}
 {$endif}
@@ -147,16 +147,16 @@ var
     procedure updateFontPanel; message 'updateFontPanel';
     procedure updateDragTypeRegistration; message 'updateDragTypeRegistration';
     function selectionRangeForProposedRange_granularity(proposedCharRange: NSRange; granularity: NSSelectionGranularity): NSRange; message 'selectionRangeForProposedRange:granularity:';
-    procedure clickedOnLink_atIndex(link: id; charIndex: culong); message 'clickedOnLink:atIndex:';
+    procedure clickedOnLink_atIndex(link: id; charIndex: NSUInteger); message 'clickedOnLink:atIndex:';
     procedure startSpeaking(sender: id); message 'startSpeaking:';
     procedure stopSpeaking(sender: id); message 'stopSpeaking:';
-    function characterIndexForInsertionAtPoint(point: NSPoint): culong; message 'characterIndexForInsertionAtPoint:';
+    function characterIndexForInsertionAtPoint(point: NSPoint): NSUInteger; message 'characterIndexForInsertionAtPoint:';
 
     { Category: NSCompletion }
     procedure complete(sender: id); message 'complete:';
     function rangeForUserCompletion: NSRange; message 'rangeForUserCompletion';
-    function completionsForPartialWordRange_indexOfSelectedItem(charRange: NSRange; var index: clong): NSArray; message 'completionsForPartialWordRange:indexOfSelectedItem:';
-    procedure insertCompletion_forPartialWordRange_movement_isFinal(word: NSString; charRange: NSRange; movement: clong; flag: Boolean); message 'insertCompletion:forPartialWordRange:movement:isFinal:';
+    function completionsForPartialWordRange_indexOfSelectedItem(charRange: NSRange; index: NSIntegerPointer): NSArray; message 'completionsForPartialWordRange:indexOfSelectedItem:';
+    procedure insertCompletion_forPartialWordRange_movement_isFinal(word: NSString; charRange: NSRange; movement: NSInteger; flag: Boolean); message 'insertCompletion:forPartialWordRange:movement:isFinal:';
 
     { Category: NSPasteboard }
     function writablePasteboardTypes: NSArray; message 'writablePasteboardTypes';
@@ -205,11 +205,11 @@ var
     procedure setContinuousSpellCheckingEnabled(flag: Boolean); message 'setContinuousSpellCheckingEnabled:';
     function isContinuousSpellCheckingEnabled: Boolean; message 'isContinuousSpellCheckingEnabled';
     procedure toggleContinuousSpellChecking(sender: id); message 'toggleContinuousSpellChecking:';
-    function spellCheckerDocumentTag: clong; message 'spellCheckerDocumentTag';
+    function spellCheckerDocumentTag: NSInteger; message 'spellCheckerDocumentTag';
     procedure setGrammarCheckingEnabled(flag: Boolean); message 'setGrammarCheckingEnabled:';
     function isGrammarCheckingEnabled: Boolean; message 'isGrammarCheckingEnabled';
     procedure toggleGrammarChecking(sender: id); message 'toggleGrammarChecking:';
-    procedure setSpellingState_range(value: clong; charRange: NSRange); message 'setSpellingState:range:';
+    procedure setSpellingState_range(value: NSInteger; charRange: NSRange); message 'setSpellingState:range:';
     function typingAttributes: NSDictionary; message 'typingAttributes';
     procedure setTypingAttributes(attrs: NSDictionary); message 'setTypingAttributes:';
     function shouldChangeTextInRanges_replacementStrings(affectedRanges: NSArray; replacementStrings: NSArray): Boolean; message 'shouldChangeTextInRanges:replacementStrings:';
@@ -257,7 +257,7 @@ var
     procedure setSmartInsertDeleteEnabled(flag: Boolean); message 'setSmartInsertDeleteEnabled:';
     function smartDeleteRangeForProposedRange(proposedCharRange: NSRange): NSRange; message 'smartDeleteRangeForProposedRange:';
     procedure toggleSmartInsertDelete(sender: id); message 'toggleSmartInsertDelete:';
-    procedure smartInsertForString_replacingRange_beforeString_afterString(pasteString: NSString; charRangeToReplace: NSRange; var beforeString: NSString; var afterString: NSString); message 'smartInsertForString:replacingRange:beforeString:afterString:';
+    procedure smartInsertForString_replacingRange_beforeString_afterString(pasteString: NSString; charRangeToReplace: NSRange; beforeString: NSStringPointer; afterString: NSStringPointer); message 'smartInsertForString:replacingRange:beforeString:afterString:';
     function smartInsertBeforeStringForString_replacingRange(pasteString: NSString; charRangeToReplace: NSRange): NSString; message 'smartInsertBeforeStringForString:replacingRange:';
     function smartInsertAfterStringForString_replacingRange(pasteString: NSString; charRangeToReplace: NSRange): NSString; message 'smartInsertAfterStringForString:replacingRange:';
     procedure setAutomaticQuoteSubstitutionEnabled(flag: Boolean); message 'setAutomaticQuoteSubstitutionEnabled:';

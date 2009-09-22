@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInputManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSINPUTMANAGER_PAS_H}
@@ -99,12 +99,12 @@ type
     procedure setMarkedText_selectedRange(aString: id; selRange: NSRange); message 'setMarkedText:selectedRange:';
     procedure unmarkText; message 'unmarkText';
     function hasMarkedText: Boolean; message 'hasMarkedText';
-    function conversationIdentifier: clong; message 'conversationIdentifier';
+    function conversationIdentifier: NSInteger; message 'conversationIdentifier';
     function attributedSubstringFromRange(theRange: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
     function markedRange: NSRange; message 'markedRange';
     function selectedRange: NSRange; message 'selectedRange';
     function firstRectForCharacterRange(theRange: NSRange): NSRect; message 'firstRectForCharacterRange:';
-    function characterIndexForPoint(thePoint: NSPoint): culong; message 'characterIndexForPoint:';
+    function characterIndexForPoint(thePoint: NSPoint): NSUInteger; message 'characterIndexForPoint:';
     function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText';
   end; external name 'NSTextInput';
 {$endif}

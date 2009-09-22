@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptCommandDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSCRIPTCOMMANDDESCRIPTION_PAS_H}
@@ -75,7 +75,7 @@ type
     function appleEventCodeForArgumentWithName(argumentName: NSString): FourCharCode; message 'appleEventCodeForArgumentWithName:';
     function isOptionalArgumentWithName(argumentName: NSString): Boolean; message 'isOptionalArgumentWithName:';
     function createCommandInstance: NSScriptCommand; message 'createCommandInstance';
-    function createCommandInstanceWithZone(var zone_: NSZone): NSScriptCommand; message 'createCommandInstanceWithZone:';
+    function createCommandInstanceWithZone(zone_: NSZonePointer): NSScriptCommand; message 'createCommandInstanceWithZone:';
   end; external;
 
 {$endif}

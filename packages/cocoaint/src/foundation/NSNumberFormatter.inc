@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNumberFormatter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSNUMBERFORMATTER_PAS_H}
@@ -46,10 +46,10 @@ const
 
 { Types }
 type
-  NSNumberFormatterStyle = culong;
-  NSNumberFormatterBehavior = culong;
-  NSNumberFormatterPadPosition = culong;
-  NSNumberFormatterRoundingMode = culong;
+  NSNumberFormatterStyle = NSUInteger;
+  NSNumberFormatterBehavior = NSUInteger;
+  NSNumberFormatterPadPosition = NSUInteger;
+  NSNumberFormatterRoundingMode = NSUInteger;
 
 {$endif}
 {$endif}
@@ -89,14 +89,14 @@ type
   private
     __attributes: NSMutableDictionary;
     __formatter: CFNumberFormatterRef; {garbage collector: __strong }
-    __counter: culong;
-    __reserved: Pointer;
+    __counter: NSUInteger;
+        _reserved: array[0..11] of Pointer;
     
   public
     class function alloc: NSNumberFormatter; message 'alloc';
 
     function init: id; message 'init';
-    function getObjectValue_forString_range_error(obj: id; string_: NSString; var rangep: NSRange; var error: NSError): Boolean; message 'getObjectValue:forString:range:error:';
+    function getObjectValue_forString_range_error(obj: id; string_: NSString; rangep: NSRangePointer; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
     function stringFromNumber(number: NSNumber): NSString; message 'stringFromNumber:';
     function numberFromString(string_: NSString): NSNumber; message 'numberFromString:';
     function numberStyle: NSNumberFormatterStyle; message 'numberStyle';
@@ -173,14 +173,14 @@ type
     procedure setPlusSign(string_: NSString); message 'setPlusSign:';
     function exponentSymbol: NSString; message 'exponentSymbol';
     procedure setExponentSymbol(string_: NSString); message 'setExponentSymbol:';
-    function groupingSize: culong; message 'groupingSize';
-    procedure setGroupingSize(number: culong); message 'setGroupingSize:';
-    function secondaryGroupingSize: culong; message 'secondaryGroupingSize';
-    procedure setSecondaryGroupingSize(number: culong); message 'setSecondaryGroupingSize:';
+    function groupingSize: NSUInteger; message 'groupingSize';
+    procedure setGroupingSize(number: NSUInteger); message 'setGroupingSize:';
+    function secondaryGroupingSize: NSUInteger; message 'secondaryGroupingSize';
+    procedure setSecondaryGroupingSize(number: NSUInteger); message 'setSecondaryGroupingSize:';
     function multiplier: NSNumber; message 'multiplier';
     procedure setMultiplier(number: NSNumber); message 'setMultiplier:';
-    function formatWidth: culong; message 'formatWidth';
-    procedure setFormatWidth(number: culong); message 'setFormatWidth:';
+    function formatWidth: NSUInteger; message 'formatWidth';
+    procedure setFormatWidth(number: NSUInteger); message 'setFormatWidth:';
     function paddingCharacter: NSString; message 'paddingCharacter';
     procedure setPaddingCharacter(string_: NSString); message 'setPaddingCharacter:';
     function paddingPosition: NSNumberFormatterPadPosition; message 'paddingPosition';
@@ -189,14 +189,14 @@ type
     procedure setRoundingMode(mode: NSNumberFormatterRoundingMode); message 'setRoundingMode:';
     function roundingIncrement: NSNumber; message 'roundingIncrement';
     procedure setRoundingIncrement(number: NSNumber); message 'setRoundingIncrement:';
-    function minimumIntegerDigits: culong; message 'minimumIntegerDigits';
-    procedure setMinimumIntegerDigits(number: culong); message 'setMinimumIntegerDigits:';
-    function maximumIntegerDigits: culong; message 'maximumIntegerDigits';
-    procedure setMaximumIntegerDigits(number: culong); message 'setMaximumIntegerDigits:';
-    function minimumFractionDigits: culong; message 'minimumFractionDigits';
-    procedure setMinimumFractionDigits(number: culong); message 'setMinimumFractionDigits:';
-    function maximumFractionDigits: culong; message 'maximumFractionDigits';
-    procedure setMaximumFractionDigits(number: culong); message 'setMaximumFractionDigits:';
+    function minimumIntegerDigits: NSUInteger; message 'minimumIntegerDigits';
+    procedure setMinimumIntegerDigits(number: NSUInteger); message 'setMinimumIntegerDigits:';
+    function maximumIntegerDigits: NSUInteger; message 'maximumIntegerDigits';
+    procedure setMaximumIntegerDigits(number: NSUInteger); message 'setMaximumIntegerDigits:';
+    function minimumFractionDigits: NSUInteger; message 'minimumFractionDigits';
+    procedure setMinimumFractionDigits(number: NSUInteger); message 'setMinimumFractionDigits:';
+    function maximumFractionDigits: NSUInteger; message 'maximumFractionDigits';
+    procedure setMaximumFractionDigits(number: NSUInteger); message 'setMaximumFractionDigits:';
     function minimum: NSNumber; message 'minimum';
     procedure setMinimum(number: NSNumber); message 'setMinimum:';
     function maximum: NSNumber; message 'maximum';
@@ -204,8 +204,8 @@ type
     procedure setCurrencyGroupingSeparator(string_: NSString); message 'setCurrencyGroupingSeparator:';
     procedure setLenient(b: Boolean); message 'setLenient:';
     procedure setUsesSignificantDigits(b: Boolean); message 'setUsesSignificantDigits:';
-    procedure setMinimumSignificantDigits(number: culong); message 'setMinimumSignificantDigits:';
-    procedure setMaximumSignificantDigits(number: culong); message 'setMaximumSignificantDigits:';
+    procedure setMinimumSignificantDigits(number: NSUInteger); message 'setMinimumSignificantDigits:';
+    procedure setMaximumSignificantDigits(number: NSUInteger); message 'setMaximumSignificantDigits:';
     procedure setPartialStringValidationEnabled(b: Boolean); message 'setPartialStringValidationEnabled:';
 
     { Category: NSNumberFormatterCompatibility }

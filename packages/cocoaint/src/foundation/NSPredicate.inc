@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPredicate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPREDICATE_PAS_H}
@@ -56,7 +56,7 @@ type
     class function alloc: NSPredicate; message 'alloc';
 
     class function predicateWithFormat_argumentArray(predicateFormat_: NSString; arguments: NSArray): NSPredicate; message 'predicateWithFormat:argumentArray:';
-    class function predicateWithFormat(predicateFormat_: NSString): NSPredicate; message 'predicateWithFormat:';
+    class function predicateWithFormat(predicateFormat_: NSString): NSPredicate; varargs; message 'predicateWithFormat:';
     class function predicateWithFormat_arguments(predicateFormat_: NSString; argList: va_list): NSPredicate; message 'predicateWithFormat:arguments:';
     class function predicateWithValue(value: Boolean): NSPredicate; message 'predicateWithValue:';
     function predicateFormat: NSString; message 'predicateFormat';

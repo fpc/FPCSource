@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBitmapImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBITMAPIMAGEREP_PAS_H}
@@ -41,10 +41,10 @@ const
 
 { Types }
 type
-  NSTIFFCompression = culong;
-  NSBitmapImageFileType = culong;
-  NSImageRepLoadStatus = clong;
-  NSBitmapFormat = culong;
+  NSTIFFCompression = NSUInteger;
+  NSBitmapImageFileType = NSUInteger;
+  NSImageRepLoadStatus = NSInteger;
+  NSBitmapFormat = NSUInteger;
 
 {$endif}
 {$endif}
@@ -105,38 +105,38 @@ type
     class function alloc: NSBitmapImageRep; message 'alloc';
 
     function initWithFocusedViewRect(rect: NSRect): id; message 'initWithFocusedViewRect:';
-    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel(var planes: char; width: clong; height: clong; bps: clong; spp: clong; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; rBytes: clong; pBits: clong): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bytesPerRow:bitsPerPixel:';
-    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bitmapFormat_bytesPerRow_bitsPerPixel(var planes: char; width: clong; height: clong; bps: clong; spp: clong; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; bitmapFormat_: NSBitmapFormat; rBytes: clong; pBits: clong): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:';
+    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel(planes: pchar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; rBytes: NSInteger; pBits: NSInteger): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bytesPerRow:bitsPerPixel:';
+    function initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bitmapFormat_bytesPerRow_bitsPerPixel(planes: pchar; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; alpha: Boolean; isPlanar_: Boolean; colorSpaceName_: NSString; bitmapFormat_: NSBitmapFormat; rBytes: NSInteger; pBits: NSInteger): id; message 'initWithBitmapDataPlanes:pixelsWide:pixelsHigh:bitsPerSample:samplesPerPixel:hasAlpha:isPlanar:colorSpaceName:bitmapFormat:bytesPerRow:bitsPerPixel:';
     function initWithCGImage(CGImage_: CGImageRef): id; message 'initWithCGImage:';
-    function initWithCIImage(var ciImage: CIImage): id; message 'initWithCIImage:';
+    function initWithCIImage(ciImage: CIImagePointer): id; message 'initWithCIImage:';
     class function imageRepsWithData(data: NSData): NSArray; message 'imageRepsWithData:';
     class function imageRepWithData_initWithData(data: NSData): id; message 'imageRepWithData:';
     function initWithData(data: NSData): id; message 'initWithData:';
     function bitmapData: Pointer; message 'bitmapData';
-    procedure getBitmapDataPlanes(var data: char); message 'getBitmapDataPlanes:';
+    procedure getBitmapDataPlanes(data: pchar); message 'getBitmapDataPlanes:';
     function isPlanar: Boolean; message 'isPlanar';
-    function samplesPerPixel: clong; message 'samplesPerPixel';
-    function bitsPerPixel: clong; message 'bitsPerPixel';
-    function bytesPerRow: clong; message 'bytesPerRow';
-    function bytesPerPlane: clong; message 'bytesPerPlane';
-    function numberOfPlanes: clong; message 'numberOfPlanes';
+    function samplesPerPixel: NSInteger; message 'samplesPerPixel';
+    function bitsPerPixel: NSInteger; message 'bitsPerPixel';
+    function bytesPerRow: NSInteger; message 'bytesPerRow';
+    function bytesPerPlane: NSInteger; message 'bytesPerPlane';
+    function numberOfPlanes: NSInteger; message 'numberOfPlanes';
     function bitmapFormat: NSBitmapFormat; message 'bitmapFormat';
-    procedure getCompression_factor(var compression: NSTIFFCompression; var factor: single); message 'getCompression:factor:';
+    procedure getCompression_factor(compression: NSTIFFCompressionPointer; factor: psingle); message 'getCompression:factor:';
     procedure setCompression_factor(compression: NSTIFFCompression; factor: single); message 'setCompression:factor:';
     function TIFFRepresentation: NSData; message 'TIFFRepresentation';
     function TIFFRepresentationUsingCompression_factor(comp: NSTIFFCompression; factor: single): NSData; message 'TIFFRepresentationUsingCompression:factor:';
     class function TIFFRepresentationOfImageRepsInArray(array_: NSArray): NSData; message 'TIFFRepresentationOfImageRepsInArray:';
     class function TIFFRepresentationOfImageRepsInArray_usingCompression_factor(array_: NSArray; comp: NSTIFFCompression; factor: single): NSData; message 'TIFFRepresentationOfImageRepsInArray:usingCompression:factor:';
-    class procedure getTIFFCompressionTypes_count(var list: NSTIFFCompression; var numTypes: clong); message 'getTIFFCompressionTypes:count:';
+    class procedure getTIFFCompressionTypes_count(list: NSTIFFCompressionPointer; numTypes: NSIntegerPointer); message 'getTIFFCompressionTypes:count:';
     class function localizedNameForTIFFCompressionType(compression: NSTIFFCompression): NSString; message 'localizedNameForTIFFCompressionType:';
     function canBeCompressedUsing(compression: NSTIFFCompression): Boolean; message 'canBeCompressedUsing:';
     procedure colorizeByMappingGray_toColor_blackMapping_whiteMapping(midPoint: CGFloat; midPointColor: NSColor; shadowColor: NSColor; lightColor: NSColor); message 'colorizeByMappingGray:toColor:blackMapping:whiteMapping:';
     function initForIncrementalLoad: id; message 'initForIncrementalLoad';
-    function incrementalLoadFromData_complete(data: NSData; complete: Boolean): clong; message 'incrementalLoadFromData:complete:';
-    procedure setColor_atX_y(color: NSColor; x: clong; y: clong); message 'setColor:atX:y:';
-    function colorAtX_y(x: clong; y: clong): NSColor; message 'colorAtX:y:';
-    procedure getPixel_atX_y(p: culong; x: clong; y: clong); message 'getPixel:atX:y:';
-    procedure setPixel_atX_y(p: culong; x: clong; y: clong); message 'setPixel:atX:y:';
+    function incrementalLoadFromData_complete(data: NSData; complete: Boolean): NSInteger; message 'incrementalLoadFromData:complete:';
+    procedure setColor_atX_y(color: NSColor; x: NSInteger; y: NSInteger); message 'setColor:atX:y:';
+    function colorAtX_y(x: NSInteger; y: NSInteger): NSColor; message 'colorAtX:y:';
+    procedure getPixel_atX_y(p: NSUInteger; x: NSInteger; y: NSInteger); message 'getPixel:atX:y:';
+    procedure setPixel_atX_y(p: NSUInteger; x: NSInteger; y: NSInteger); message 'setPixel:atX:y:';
     function CGImage: CGImageRef; message 'CGImage';
 
     { Category: NSBitmapImageFileTypeExtensions }

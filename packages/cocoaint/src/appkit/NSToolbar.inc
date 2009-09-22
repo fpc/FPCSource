@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbar.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOOLBAR_PAS_H}
@@ -16,13 +16,8 @@ type
 
 { Types }
 type
-  NSToolbarDisplayMode = culong;
-  NSToolbarSizeMode = culong;
-
-{ CFString constants }
-var
-  NSToolbarWillAddItemNotification: CFStringRef; external name '_NSToolbarWillAddItemNotification';
-  NSToolbarDidRemoveItemNotification: CFStringRef; external name '_NSToolbarDidRemoveItemNotification';
+  NSToolbarDisplayMode = NSUInteger;
+  NSToolbarSizeMode = NSUInteger;
 
 {$endif}
 {$endif}
@@ -44,6 +39,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTOOLBAR_PAS_T}
 {$define NSTOOLBAR_PAS_T}
+
+{ External string constants }
+var
+  NSToolbarWillAddItemNotification: NSString; external name '_NSToolbarWillAddItemNotification';
+  NSToolbarDidRemoveItemNotification: NSString; external name '_NSToolbarDidRemoveItemNotification';
 
 {$endif}
 {$endif}
@@ -71,7 +71,7 @@ var
     __window: NSWindow;
     __configPalette: id;
     __toolbarView: id;
-    __syncPostEnabledCount: clong;
+    __syncPostEnabledCount: NSInteger;
     __tbFlags: bitpacked record
         allowsUserCustomization: 0..1;
         autosavesUsingIdentifier: 0..1;
@@ -99,15 +99,15 @@ var
         inAutovalidation: 0..1;
         loadedMetrics: 0..1;
       end;
-    __customizationSheetWidth: clong;
+    __customizationSheetWidth: NSInteger;
     __tbReserved: id;
     
   public
     class function alloc: NSToolbar; message 'alloc';
 
     function initWithIdentifier(identifier_: NSString): id; message 'initWithIdentifier:';
-    procedure insertItemWithItemIdentifier_atIndex(itemIdentifier: NSString; index: clong); message 'insertItemWithItemIdentifier:atIndex:';
-    procedure removeItemAtIndex(index: clong); message 'removeItemAtIndex:';
+    procedure insertItemWithItemIdentifier_atIndex(itemIdentifier: NSString; index: NSInteger); message 'insertItemWithItemIdentifier:atIndex:';
+    procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
     procedure setDelegate(delegate_: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setVisible(shown: Boolean); message 'setVisible:';

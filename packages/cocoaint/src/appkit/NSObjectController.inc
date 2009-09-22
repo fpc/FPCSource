@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSObjectController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOBJECTCONTROLLER_PAS_H}
@@ -95,12 +95,12 @@ type
 
     { Category: NSManagedController }
     function managedObjectContext: NSManagedObjectContext; message 'managedObjectContext';
-    procedure setManagedObjectContext(var managedObjectContext_: NSManagedObjectContext); message 'setManagedObjectContext:';
+    procedure setManagedObjectContext(managedObjectContext_: NSManagedObjectContextPointer); message 'setManagedObjectContext:';
     function entityName: NSString; message 'entityName';
     procedure setEntityName(entityName_: NSString); message 'setEntityName:';
     function fetchPredicate: NSPredicate; message 'fetchPredicate';
     procedure setFetchPredicate(predicate: NSPredicate); message 'setFetchPredicate:';
-    function fetchWithRequest_merge_error(var fetchRequest: NSFetchRequest; merge: Boolean; var error: NSError): Boolean; message 'fetchWithRequest:merge:error:';
+    function fetchWithRequest_merge_error(fetchRequest: NSFetchRequestPointer; merge: Boolean; error: NSErrorPointer): Boolean; message 'fetchWithRequest:merge:error:';
     procedure fetch(sender: id); message 'fetch:';
     procedure setUsesLazyFetching(enabled: Boolean); message 'setUsesLazyFetching:';
     function usesLazyFetching: Boolean; message 'usesLazyFetching';

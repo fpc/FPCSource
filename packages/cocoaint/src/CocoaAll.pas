@@ -57,9 +57,13 @@ type
 {$include appkit/AppKit.inc}
 {$undef EXTERNAL_SYMBOLS}
 
+{define IBOutlet := }
+{define IBAction := }
+
 {$notes on}
 
 { Inline functions }
+function NSSTR (inString: PChar): NSString;
 function NSMakeRange (loc: NSUInteger; len: NSUInteger): NSRange;
 function NSMaxRange (range: NSRange): NSUInteger;
 function NSLocationInRange (loc: NSUInteger; range: NSRange): boolean;

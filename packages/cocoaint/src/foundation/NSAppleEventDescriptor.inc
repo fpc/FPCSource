@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventDescriptor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSAPPLEEVENTDESCRIPTOR_PAS_H}
@@ -52,13 +52,13 @@ type
   private
     __desc: AEDesc;
     __hasValidDesc: Boolean;
-    __padding: char;
+        _padding: array[0..2] of char;
     
   public
     class function alloc: NSAppleEventDescriptor; message 'alloc';
 
     class function nullDescriptor: NSAppleEventDescriptor; message 'nullDescriptor';
-    class function descriptorWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: culong): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';
+    class function descriptorWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:bytes:length:';
     class function descriptorWithDescriptorType_data(descriptorType_: DescType; data_: NSData): NSAppleEventDescriptor; message 'descriptorWithDescriptorType:data:';
     class function descriptorWithBoolean(boolean: Boolean): NSAppleEventDescriptor; message 'descriptorWithBoolean:';
     class function descriptorWithEnumCode(enumerator: OSType): NSAppleEventDescriptor; message 'descriptorWithEnumCode:';
@@ -68,13 +68,13 @@ type
     class function appleEventWithEventClass_eventID_targetDescriptor_returnID_transactionID(eventClass_: AEEventClass; eventID_: AEEventID; targetDescriptor: NSAppleEventDescriptor; returnID_: AEReturnID; transactionID_: AETransactionID): NSAppleEventDescriptor; message 'appleEventWithEventClass:eventID:targetDescriptor:returnID:transactionID:';
     class function listDescriptor: NSAppleEventDescriptor; message 'listDescriptor';
     class function recordDescriptor: NSAppleEventDescriptor; message 'recordDescriptor';
-    function initWithAEDescNoCopy(var aeDesc_: aeDesc_): id; message 'initWithAEDescNoCopy:';
-    function initWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: culong): id; message 'initWithDescriptorType:bytes:length:';
+    function initWithAEDescNoCopy(aeDesc_: aeDesc_Pointer): id; message 'initWithAEDescNoCopy:';
+    function initWithDescriptorType_bytes_length(descriptorType_: DescType; bytes: Pointer; byteCount: NSUInteger): id; message 'initWithDescriptorType:bytes:length:';
     function initWithDescriptorType_data(descriptorType_: DescType; data_: NSData): id; message 'initWithDescriptorType:data:';
     function initWithEventClass_eventID_targetDescriptor_returnID_transactionID(eventClass_: AEEventClass; eventID_: AEEventID; targetDescriptor: NSAppleEventDescriptor; returnID_: AEReturnID; transactionID_: AETransactionID): id; message 'initWithEventClass:eventID:targetDescriptor:returnID:transactionID:';
     function initListDescriptor: id; message 'initListDescriptor';
     function initRecordDescriptor: id; message 'initRecordDescriptor';
-    function aeDesc: aeDesc_; message 'aeDesc';
+    function aeDesc: AEDesc; message 'aeDesc';
     function descriptorType: DescType; message 'descriptorType';
     function data: NSData; message 'data';
     function booleanValue: Boolean; message 'booleanValue';
@@ -91,15 +91,15 @@ type
     procedure removeParamDescriptorWithKeyword(keyword: AEKeyword); message 'removeParamDescriptorWithKeyword:';
     procedure setAttributeDescriptor_forKeyword(descriptor: NSAppleEventDescriptor; keyword: AEKeyword); message 'setAttributeDescriptor:forKeyword:';
     function attributeDescriptorForKeyword(keyword: AEKeyword): NSAppleEventDescriptor; message 'attributeDescriptorForKeyword:';
-    function numberOfItems: clong; message 'numberOfItems';
-    procedure insertDescriptor_atIndex(descriptor: NSAppleEventDescriptor; index: clong); message 'insertDescriptor:atIndex:';
-    function descriptorAtIndex(index: clong): NSAppleEventDescriptor; message 'descriptorAtIndex:';
-    procedure removeDescriptorAtIndex(index: clong); message 'removeDescriptorAtIndex:';
-    procedure removeDecriptorAtIndex(index: clong); message 'removeDecriptorAtIndex:';
+    function numberOfItems: NSInteger; message 'numberOfItems';
+    procedure insertDescriptor_atIndex(descriptor: NSAppleEventDescriptor; index: NSInteger); message 'insertDescriptor:atIndex:';
+    function descriptorAtIndex(index: NSInteger): NSAppleEventDescriptor; message 'descriptorAtIndex:';
+    procedure removeDescriptorAtIndex(index: NSInteger); message 'removeDescriptorAtIndex:';
+    procedure removeDecriptorAtIndex(index: NSInteger); message 'removeDecriptorAtIndex:';
     procedure setDescriptor_forKeyword(descriptor: NSAppleEventDescriptor; keyword: AEKeyword); message 'setDescriptor:forKeyword:';
     function descriptorForKeyword(keyword: AEKeyword): NSAppleEventDescriptor; message 'descriptorForKeyword:';
     procedure removeDescriptorWithKeyword(keyword: AEKeyword); message 'removeDescriptorWithKeyword:';
-    function keywordForDescriptorAtIndex(index: clong): AEKeyword; message 'keywordForDescriptorAtIndex:';
+    function keywordForDescriptorAtIndex(index: NSInteger): AEKeyword; message 'keywordForDescriptorAtIndex:';
     function coerceToDescriptorType(descriptorType_: DescType): NSAppleEventDescriptor; message 'coerceToDescriptorType:';
   end; external;
 

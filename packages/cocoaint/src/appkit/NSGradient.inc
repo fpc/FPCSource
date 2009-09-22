@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGradient.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSGRADIENT_PAS_H}
@@ -16,7 +16,7 @@ type
 
 { Types }
 type
-  NSGradientDrawingOptions = culong;
+  NSGradientDrawingOptions = NSUInteger;
 
 { Constants }
 
@@ -73,8 +73,8 @@ const
 
     function initWithStartingColor_endingColor(startingColor: NSColor; endingColor: NSColor): id; message 'initWithStartingColor:endingColor:';
     function initWithColors(colorArray: NSArray): id; message 'initWithColors:';
-    function initWithColorsAndLocations(firstColor: NSColor): id; message 'initWithColorsAndLocations:';
-    function initWithColors_atLocations_colorSpace(colorArray: NSArray; var locations: CGFloat; colorSpace_: NSColorSpace): id; message 'initWithColors:atLocations:colorSpace:';
+    function initWithColorsAndLocations(firstColor: NSColor): id; varargs; message 'initWithColorsAndLocations:';
+    function initWithColors_atLocations_colorSpace(colorArray: NSArray; locations: psingle; colorSpace_: NSColorSpace): id; message 'initWithColors:atLocations:colorSpace:';
     procedure drawFromPoint_toPoint_options(startingPoint: NSPoint; endingPoint: NSPoint; options: NSGradientDrawingOptions); message 'drawFromPoint:toPoint:options:';
     procedure drawInRect_angle(rect: NSRect; angle: CGFloat); message 'drawInRect:angle:';
     procedure drawInBezierPath_angle(path: NSBezierPath; angle: CGFloat); message 'drawInBezierPath:angle:';
@@ -82,8 +82,8 @@ const
     procedure drawInRect_relativeCenterPosition(rect: NSRect; relativeCenterPosition: NSPoint); message 'drawInRect:relativeCenterPosition:';
     procedure drawInBezierPath_relativeCenterPosition(path: NSBezierPath; relativeCenterPosition: NSPoint); message 'drawInBezierPath:relativeCenterPosition:';
     function colorSpace: NSColorSpace; message 'colorSpace';
-    function numberOfColorStops: clong; message 'numberOfColorStops';
-    procedure getColor_location_atIndex(var color: NSColor; var location: CGFloat; index: clong); message 'getColor:location:atIndex:';
+    function numberOfColorStops: NSInteger; message 'numberOfColorStops';
+    procedure getColor_location_atIndex(color: NSColorPointer; location: psingle; index: NSInteger); message 'getColor:location:atIndex:';
     function interpolatedColorAtLocation(location: CGFloat): NSColor; message 'interpolatedColorAtLocation:';
   end; external;
 

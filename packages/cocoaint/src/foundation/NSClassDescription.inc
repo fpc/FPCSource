@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSClassDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCLASSDESCRIPTION_PAS_H}
@@ -13,10 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSCLASSDESCRIPTION_PAS_T}
 {$define NSCLASSDESCRIPTION_PAS_T}
-
-{ CFString constants }
-var
-  NSClassDescriptionNeededForClassNotification: CFStringRef; external name '_NSClassDescriptionNeededForClassNotification';
 
 {$endif}
 {$endif}
@@ -38,6 +34,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCLASSDESCRIPTION_PAS_T}
 {$define NSCLASSDESCRIPTION_PAS_T}
+
+{ External string constants }
+var
+  NSClassDescriptionNeededForClassNotification: NSString; external name '_NSClassDescriptionNeededForClassNotification';
 
 {$endif}
 {$endif}

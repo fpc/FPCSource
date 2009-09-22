@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOKENFIELDCELL_PAS_H}
@@ -16,7 +16,7 @@ type
 
 { Types }
 type
-  NSTokenStyle = culong;
+  NSTokenStyle = NSUInteger;
 
 {$endif}
 {$endif}
@@ -62,7 +62,7 @@ type
     __trackingArea: id;
     __lastCell: id;
     __lastCellFrame: NSRect;
-    __reserved: id;
+        _reserved: array[0..6] of id;
     __tfcFlags: bitpacked record
         _style: 0..((1 shl 4)-1);
         

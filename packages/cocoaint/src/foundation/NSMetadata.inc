@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMETADATA_PAS_H}
@@ -56,9 +56,9 @@ type
 { NSMetadataQuery }
   NSMetadataQuery = objcclass(NSObject)
   private
-    __flags: culong;
+    __flags: NSUInteger;
     __interval: NSTimeInterval;
-    __private: id;
+        _private: array[0..10] of id;
     __reserved: Pointer;
     
   public
@@ -86,13 +86,13 @@ type
     function isStopped: Boolean; message 'isStopped';
     procedure disableUpdates; message 'disableUpdates';
     procedure enableUpdates; message 'enableUpdates';
-    function resultCount: culong; message 'resultCount';
-    function resultAtIndex(idx: culong): id; message 'resultAtIndex:';
+    function resultCount: NSUInteger; message 'resultCount';
+    function resultAtIndex(idx: NSUInteger): id; message 'resultAtIndex:';
     function results: NSArray; message 'results';
-    function indexOfResult(result_: id): culong; message 'indexOfResult:';
+    function indexOfResult(result_: id): NSUInteger; message 'indexOfResult:';
     function valueLists: NSDictionary; message 'valueLists';
     function groupedResults: NSArray; message 'groupedResults';
-    function valueOfAttribute_forResultAtIndex(attrName: NSString; idx: culong): id; message 'valueOfAttribute:forResultAtIndex:';
+    function valueOfAttribute_forResultAtIndex(attrName: NSString; idx: NSUInteger): id; message 'valueOfAttribute:forResultAtIndex:';
   end; external;
 
 { NSMetadataItem }
@@ -114,7 +114,7 @@ type
   private
     __attr: id;
     __value: id;
-    __count: culong;
+    __count: NSUInteger;
     __reserved: Pointer;
     
   public
@@ -122,14 +122,14 @@ type
 
     function attribute: NSString; message 'attribute';
     function value: id; message 'value';
-    function count: culong; message 'count';
+    function count: NSUInteger; message 'count';
   end; external;
 
 { NSMetadataQueryResultGroup }
   NSMetadataQueryResultGroup = objcclass(NSObject)
   private
-    __private: id;
-    __private2: culong;
+        _private: array[0..8] of id;
+    __private2: NSUInteger;
     __reserved: Pointer;
     
   public
@@ -138,8 +138,8 @@ type
     function attribute: NSString; message 'attribute';
     function value: id; message 'value';
     function subgroups: NSArray; message 'subgroups';
-    function resultCount: culong; message 'resultCount';
-    function resultAtIndex(idx: culong): id; message 'resultAtIndex:';
+    function resultCount: NSUInteger; message 'resultCount';
+    function resultAtIndex(idx: NSUInteger): id; message 'resultAtIndex:';
     function results: NSArray; message 'results';
   end; external;
 

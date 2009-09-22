@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSearchFieldCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSEARCHFIELDCELL_PAS_H}
@@ -98,8 +98,8 @@ const
     function searchMenuTemplate: NSMenu; message 'searchMenuTemplate';
     procedure setSendsWholeSearchString(flag: Boolean); message 'setSendsWholeSearchString:';
     function sendsWholeSearchString: Boolean; message 'sendsWholeSearchString';
-    procedure setMaximumRecents(maxRecents: clong); message 'setMaximumRecents:';
-    function maximumRecents: clong; message 'maximumRecents';
+    procedure setMaximumRecents(maxRecents: NSInteger); message 'setMaximumRecents:';
+    function maximumRecents: NSInteger; message 'maximumRecents';
     procedure setRecentSearches(searches: NSArray); message 'setRecentSearches:';
     function recentSearches: NSArray; message 'recentSearches';
     procedure setRecentsAutosaveName(string_: NSString); message 'setRecentsAutosaveName:';

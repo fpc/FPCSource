@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDecimalNumber.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDECIMALNUMBER_PAS_H}
@@ -14,13 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSDECIMALNUMBER_PAS_T}
 {$define NSDECIMALNUMBER_PAS_T}
-
-{ CFString constants }
-var
-  NSDecimalNumberExactnessException: CFStringRef; external name '_NSDecimalNumberExactnessException';
-  NSDecimalNumberOverflowException: CFStringRef; external name '_NSDecimalNumberOverflowException';
-  NSDecimalNumberUnderflowException: CFStringRef; external name '_NSDecimalNumberUnderflowException';
-  NSDecimalNumberDivideByZeroException: CFStringRef; external name '_NSDecimalNumberDivideByZeroException';
 
 {$endif}
 {$endif}
@@ -42,6 +35,13 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSDECIMALNUMBER_PAS_T}
 {$define NSDECIMALNUMBER_PAS_T}
+
+{ External string constants }
+var
+  NSDecimalNumberExactnessException: NSString; external name '_NSDecimalNumberExactnessException';
+  NSDecimalNumberOverflowException: NSString; external name '_NSDecimalNumberOverflowException';
+  NSDecimalNumberUnderflowException: NSString; external name '_NSDecimalNumberUnderflowException';
+  NSDecimalNumberDivideByZeroException: NSString; external name '_NSDecimalNumberDivideByZeroException';
 
 {$endif}
 {$endif}
@@ -95,15 +95,15 @@ var
     function decimalNumberByMultiplyingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberByMultiplyingBy:withBehavior:';
     function decimalNumberByDividingBy(decimalNumber: NSDecimalNumber): NSDecimalNumber; message 'decimalNumberByDividingBy:';
     function decimalNumberByDividingBy_withBehavior(decimalNumber: NSDecimalNumber; behavior: id): NSDecimalNumber; message 'decimalNumberByDividingBy:withBehavior:';
-    function decimalNumberByRaisingToPower(power: culong): NSDecimalNumber; message 'decimalNumberByRaisingToPower:';
-    function decimalNumberByRaisingToPower_withBehavior(power: culong; behavior: id): NSDecimalNumber; message 'decimalNumberByRaisingToPower:withBehavior:';
+    function decimalNumberByRaisingToPower(power: NSUInteger): NSDecimalNumber; message 'decimalNumberByRaisingToPower:';
+    function decimalNumberByRaisingToPower_withBehavior(power: NSUInteger; behavior: id): NSDecimalNumber; message 'decimalNumberByRaisingToPower:withBehavior:';
     function decimalNumberByMultiplyingByPowerOf10(power: cshort): NSDecimalNumber; message 'decimalNumberByMultiplyingByPowerOf10:';
     function decimalNumberByMultiplyingByPowerOf10_withBehavior(power: cshort; behavior: id): NSDecimalNumber; message 'decimalNumberByMultiplyingByPowerOf10:withBehavior:';
     function decimalNumberByRoundingAccordingToBehavior(behavior: id): NSDecimalNumber; message 'decimalNumberByRoundingAccordingToBehavior:';
     function compare(decimalNumber: NSNumber): NSComparisonResult; message 'compare:';
     class procedure setDefaultBehavior(behavior: id); message 'setDefaultBehavior:';
     class function defaultBehavior: id; message 'defaultBehavior';
-    function objCType: char; message 'objCType';
+    function objCType: PChar; message 'objCType';
     function doubleValue: double; message 'doubleValue';
   end; external;
 

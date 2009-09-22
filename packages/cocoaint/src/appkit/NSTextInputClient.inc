@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextInputClient.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -49,11 +49,11 @@
     function attributedSubstringForProposedRange_actualRange(aRange: NSRange; actualRange: NSRangePointer): NSAttributedString; message 'attributedSubstringForProposedRange:actualRange:';
     function validAttributesForMarkedText: NSArray; message 'validAttributesForMarkedText';
     function firstRectForCharacterRange_actualRange(aRange: NSRange; actualRange: NSRangePointer): NSRect; message 'firstRectForCharacterRange:actualRange:';
-    function characterIndexForPoint(aPoint: NSPoint): culong; message 'characterIndexForPoint:';
+    function characterIndexForPoint(aPoint: NSPoint): NSUInteger; message 'characterIndexForPoint:';
     function attributedString: NSAttributedString; message 'attributedString';
     function fractionOfDistanceThroughGlyphForPoint(aPoint: NSPoint): CGFloat; message 'fractionOfDistanceThroughGlyphForPoint:';
-    function baselineDeltaForCharacterAtIndex(anIndex: culong): CGFloat; message 'baselineDeltaForCharacterAtIndex:';
-    function windowLevel: clong; message 'windowLevel';
+    function baselineDeltaForCharacterAtIndex(anIndex: NSUInteger): CGFloat; message 'baselineDeltaForCharacterAtIndex:';
+    function windowLevel: NSInteger; message 'windowLevel';
   end; external name 'NSTextInputClient';
 {$endif}
 {$endif}

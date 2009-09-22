@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBezierPath.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBEZIERPATH_PAS_H}
@@ -38,10 +38,10 @@ const
 
 { Types }
 type
-  NSLineCapStyle = culong;
-  NSLineJoinStyle = culong;
-  NSWindingRule = culong;
-  NSBezierPathElement = culong;
+  NSLineCapStyle = NSUInteger;
+  NSLineJoinStyle = NSUInteger;
+  NSWindingRule = NSUInteger;
+  NSBezierPathElement = NSUInteger;
 
 {$endif}
 {$endif}
@@ -79,20 +79,20 @@ type
 { NSBezierPath }
   NSBezierPath = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __segmentCount: clong;
-    __segmentMax: clong;
+    __segmentCount: NSInteger;
+    __segmentMax: NSInteger;
     __head: PATHSEGMENT;
-    __lastSubpathIndex: clong;
-    __elementCount: clong;
+    __lastSubpathIndex: NSInteger;
+    __elementCount: NSInteger;
     __lineWidth: CGFloat;
     __controlPointBounds: NSRect;
     __miterLimit: CGFloat;
     __flatness: CGFloat;
     __dashedLinePattern: CGFloat;
-    __dashedLineCount: culong;
+    __dashedLineCount: NSUInteger;
     __dashedLinePhase: CGFloat;
     __path: Pointer;
-    __private: id;
+        _private: array[0..3] of id;
     __bpFlags: bitpacked record
         _flags: 0..((1 shl 8)-1);
         _pathState: 0..((1 shl 2)-1);
@@ -142,8 +142,8 @@ type
     procedure setMiterLimit(miterLimit_: CGFloat); message 'setMiterLimit:';
     function flatness: CGFloat; message 'flatness';
     procedure setFlatness(flatness_: CGFloat); message 'setFlatness:';
-    procedure getLineDash_count_phase(var pattern: CGFloat; var count: clong; var phase: CGFloat); message 'getLineDash:count:phase:';
-    procedure setLineDash_count_phase(var pattern: CGFloat; count: clong; phase: CGFloat); message 'setLineDash:count:phase:';
+    procedure getLineDash_count_phase(pattern: psingle; count: NSIntegerPointer; phase: psingle); message 'getLineDash:count:phase:';
+    procedure setLineDash_count_phase(pattern: psingle; count: NSInteger; phase: CGFloat); message 'setLineDash:count:phase:';
     procedure stroke; message 'stroke';
     procedure fill; message 'fill';
     procedure addClip; message 'addClip';
@@ -155,12 +155,12 @@ type
     function currentPoint: NSPoint; message 'currentPoint';
     function controlPointBounds: NSRect; message 'controlPointBounds';
     function bounds: NSRect; message 'bounds';
-    function elementCount: clong; message 'elementCount';
-    function elementAtIndex(index: clong): NSBezierPathElement; message 'elementAtIndex:';
-    procedure setAssociatedPoints_atIndex(points: NSPointArray; index: clong); message 'setAssociatedPoints:atIndex:';
+    function elementCount: NSInteger; message 'elementCount';
+    function elementAtIndex(index: NSInteger): NSBezierPathElement; message 'elementAtIndex:';
+    procedure setAssociatedPoints_atIndex(points: NSPointArray; index: NSInteger); message 'setAssociatedPoints:atIndex:';
     procedure appendBezierPath(path: NSBezierPath); message 'appendBezierPath:';
     procedure appendBezierPathWithRect(rect: NSRect); message 'appendBezierPathWithRect:';
-    procedure appendBezierPathWithPoints_count(points: NSPointArray; count: clong); message 'appendBezierPathWithPoints:count:';
+    procedure appendBezierPathWithPoints_count(points: NSPointArray; count: NSInteger); message 'appendBezierPathWithPoints:count:';
     procedure appendBezierPathWithOvalInRect(rect: NSRect); message 'appendBezierPathWithOvalInRect:';
     procedure appendBezierPathWithGlyph_inFont(glyph: NSGlyph; font: NSFont); message 'appendBezierPathWithGlyph:inFont:';
     procedure appendBezierPathWithPackedGlyphs(packedGlyphs: PChar); message 'appendBezierPathWithPackedGlyphs:';

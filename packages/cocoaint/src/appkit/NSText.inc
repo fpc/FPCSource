@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSText.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXT_PAS_H}
@@ -42,14 +42,8 @@ const
 
 { Types }
 type
-  NSTextAlignment = culong;
-  NSWritingDirection = clong;
-
-{ CFString constants }
-var
-  NSTextDidBeginEditingNotification: CFStringRef; external name '_NSTextDidBeginEditingNotification';
-  NSTextDidEndEditingNotification: CFStringRef; external name '_NSTextDidEndEditingNotification';
-  NSTextDidChangeNotification: CFStringRef; external name '_NSTextDidChangeNotification';
+  NSTextAlignment = NSUInteger;
+  NSWritingDirection = NSInteger;
 
 {$endif}
 {$endif}
@@ -71,6 +65,12 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTEXT_PAS_T}
 {$define NSTEXT_PAS_T}
+
+{ External string constants }
+var
+  NSTextDidBeginEditingNotification: NSString; external name '_NSTextDidBeginEditingNotification';
+  NSTextDidEndEditingNotification: NSString; external name '_NSTextDidEndEditingNotification';
+  NSTextDidChangeNotification: NSString; external name '_NSTextDidChangeNotification';
 
 {$endif}
 {$endif}

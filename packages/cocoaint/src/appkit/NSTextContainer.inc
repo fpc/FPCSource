@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextContainer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTCONTAINER_PAS_H}
@@ -31,8 +31,8 @@ const
 
 { Types }
 type
-  NSLineSweepDirection = culong;
-  NSLineMovementDirection = culong;
+  NSLineSweepDirection = NSUInteger;
+  NSLineMovementDirection = NSUInteger;
 
 {$endif}
 {$endif}

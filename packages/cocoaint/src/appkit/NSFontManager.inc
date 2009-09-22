@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFontManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSFONTMANAGER_PAS_H}
@@ -16,8 +16,8 @@ type
 
 { Types }
 type
-  NSFontTraitMask = culong;
-  NSFontAction = culong;
+  NSFontTraitMask = NSUInteger;
+  NSFontAction = NSUInteger;
 
 { Constants }
 
@@ -100,7 +100,7 @@ const
     __delegate: id;
     __collections: id;
     __hiddenCollections: id;
-    __fmReserved4: culong;
+    __fmReserved4: NSUInteger;
     
   public
     class function alloc: NSFontManager; message 'alloc';
@@ -114,9 +114,9 @@ const
     procedure setFontMenu(newMenu: NSMenu); message 'setFontMenu:';
     function fontMenu(create_: Boolean): NSMenu; message 'fontMenu:';
     function fontPanel(create_: Boolean): NSFontPanel; message 'fontPanel:';
-    function fontWithFamily_traits_weight_size(family: NSString; traits: NSFontTraitMask; weight: clong; size: CGFloat): NSFont; message 'fontWithFamily:traits:weight:size:';
+    function fontWithFamily_traits_weight_size(family: NSString; traits: NSFontTraitMask; weight: NSInteger; size: CGFloat): NSFont; message 'fontWithFamily:traits:weight:size:';
     function traitsOfFont(fontObj: NSFont): NSFontTraitMask; message 'traitsOfFont:';
-    function weightOfFont(fontObj: NSFont): clong; message 'weightOfFont:';
+    function weightOfFont(fontObj: NSFont): NSInteger; message 'weightOfFont:';
     function availableFonts: NSArray; message 'availableFonts';
     function availableFontFamilies: NSArray; message 'availableFontFamilies';
     function availableMembersOfFontFamily(fam: NSString): NSArray; message 'availableMembersOfFontFamily:';
@@ -140,7 +140,7 @@ const
     function availableFontNamesMatchingFontDescriptor(descriptor: NSFontDescriptor): NSArray; message 'availableFontNamesMatchingFontDescriptor:';
     function collectionNames: NSArray; message 'collectionNames';
     function fontDescriptorsInCollection(collectionNames_: NSString): NSArray; message 'fontDescriptorsInCollection:';
-    function addCollection_options(collectionName: NSString; collectionOptions: clong): Boolean; message 'addCollection:options:';
+    function addCollection_options(collectionName: NSString; collectionOptions: NSInteger): Boolean; message 'addCollection:options:';
     function removeCollection(collectionName: NSString): Boolean; message 'removeCollection:';
     procedure addFontDescriptors_toCollection(descriptors: NSArray; collectionName: NSString); message 'addFontDescriptors:toCollection:';
     procedure removeFontDescriptor_fromCollection(descriptor: NSFontDescriptor; collection: NSString); message 'removeFontDescriptor:fromCollection:';

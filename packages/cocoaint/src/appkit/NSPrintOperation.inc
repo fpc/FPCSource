@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrintOperation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPRINTOPERATION_PAS_H}
@@ -22,11 +22,7 @@ const
 
 { Types }
 type
-  NSPrintingPageOrder = clong;
-
-{ CFString constants }
-var
-  NSPrintOperationExistsException: CFStringRef; external name '_NSPrintOperationExistsException';
+  NSPrintingPageOrder = NSInteger;
 
 {$endif}
 {$endif}
@@ -48,6 +44,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSPRINTOPERATION_PAS_T}
 {$define NSPRINTOPERATION_PAS_T}
+
+{ External string constants }
+var
+  NSPrintOperationExistsException: NSString; external name '_NSPrintOperationExistsException';
 
 {$endif}
 {$endif}
@@ -97,7 +97,7 @@ var
     procedure setPrintInfo(printInfo_: NSPrintInfo); message 'setPrintInfo:';
     function context: NSGraphicsContext; message 'context';
     function pageRange: NSRange; message 'pageRange';
-    function currentPage: clong; message 'currentPage';
+    function currentPage: NSInteger; message 'currentPage';
     function createContext: NSGraphicsContext; message 'createContext';
     procedure destroyContext; message 'destroyContext';
     function deliverResult: Boolean; message 'deliverResult';

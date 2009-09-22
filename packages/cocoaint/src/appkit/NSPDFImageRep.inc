@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPDFImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPDFIMAGEREP_PAS_H}
@@ -62,9 +62,9 @@ type
     function initWithData(pdfData: NSData): id; message 'initWithData:';
     function PDFRepresentation: NSData; message 'PDFRepresentation';
     function bounds: NSRect; message 'bounds';
-    procedure setCurrentPage(page: clong); message 'setCurrentPage:';
-    function currentPage: clong; message 'currentPage';
-    function pageCount: clong; message 'pageCount';
+    procedure setCurrentPage(page: NSInteger); message 'setCurrentPage:';
+    function currentPage: NSInteger; message 'currentPage';
+    function pageCount: NSInteger; message 'pageCount';
   end; external;
 
 {$endif}

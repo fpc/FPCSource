@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSplitView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSPLITVIEW_PAS_H}
@@ -22,12 +22,7 @@ const
 
 { Types }
 type
-  NSSplitViewDividerStyle = clong;
-
-{ CFString constants }
-var
-  NSSplitViewWillResizeSubviewsNotification: CFStringRef; external name '_NSSplitViewWillResizeSubviewsNotification';
-  NSSplitViewDidResizeSubviewsNotification: CFStringRef; external name '_NSSplitViewDidResizeSubviewsNotification';
+  NSSplitViewDividerStyle = NSInteger;
 
 {$endif}
 {$endif}
@@ -49,6 +44,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSSPLITVIEW_PAS_T}
 {$define NSSPLITVIEW_PAS_T}
+
+{ External string constants }
+var
+  NSSplitViewWillResizeSubviewsNotification: NSString; external name '_NSSplitViewWillResizeSubviewsNotification';
+  NSSplitViewDidResizeSubviewsNotification: NSString; external name '_NSSplitViewDidResizeSubviewsNotification';
 
 {$endif}
 {$endif}
@@ -83,9 +83,9 @@ var
     function dividerThickness: CGFloat; message 'dividerThickness';
     procedure adjustSubviews; message 'adjustSubviews';
     function isSubviewCollapsed(subview: NSView): Boolean; message 'isSubviewCollapsed:';
-    function minPossiblePositionOfDividerAtIndex(dividerIndex: clong): CGFloat; message 'minPossiblePositionOfDividerAtIndex:';
-    function maxPossiblePositionOfDividerAtIndex(dividerIndex: clong): CGFloat; message 'maxPossiblePositionOfDividerAtIndex:';
-    procedure setPosition_ofDividerAtIndex(position: CGFloat; dividerIndex: clong); message 'setPosition:ofDividerAtIndex:';
+    function minPossiblePositionOfDividerAtIndex(dividerIndex: NSInteger): CGFloat; message 'minPossiblePositionOfDividerAtIndex:';
+    function maxPossiblePositionOfDividerAtIndex(dividerIndex: NSInteger): CGFloat; message 'maxPossiblePositionOfDividerAtIndex:';
+    procedure setPosition_ofDividerAtIndex(position: CGFloat; dividerIndex: NSInteger); message 'setPosition:ofDividerAtIndex:';
     procedure setIsPaneSplitter(flag: Boolean); message 'setIsPaneSplitter:';
     function isPaneSplitter: Boolean; message 'isPaneSplitter';
   end; external;

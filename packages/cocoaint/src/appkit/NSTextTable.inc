@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTTABLE_PAS_H}
@@ -18,11 +18,11 @@ type
 
 { Types }
 type
-  NSTextBlockValueType = culong;
-  NSTextBlockDimension = culong;
-  NSTextBlockLayer = clong;
-  NSTextBlockVerticalAlignment = culong;
-  NSTextTableLayoutAlgorithm = culong;
+  NSTextBlockValueType = NSUInteger;
+  NSTextBlockDimension = NSUInteger;
+  NSTextBlockLayer = NSInteger;
+  NSTextBlockVerticalAlignment = NSUInteger;
+  NSTextTableLayoutAlgorithm = NSUInteger;
 
 { Constants }
 
@@ -88,8 +88,8 @@ const
   NSTextBlock = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     __propVals: Pointer;
-    __propMask: culong;
-    __typeMask: culong;
+    __propMask: NSUInteger;
+    __typeMask: NSUInteger;
     __primParamVal: id;
     __otherParamVals: id;
     __blockPrimary: Pointer;
@@ -125,29 +125,29 @@ const
   NSTextTableBlock = objcclass(NSTextBlock)
   private
     __table: NSTextTable;
-    __rowNum: clong;
-    __colNum: clong;
-    __rowSpan: clong;
-    __colSpan: clong;
+    __rowNum: NSInteger;
+    __colNum: NSInteger;
+    __rowSpan: NSInteger;
+    __colSpan: NSInteger;
     __tableBlockPrimary: Pointer;
     __tableBlockSecondary: Pointer;
     
   public
     class function alloc: NSTextTableBlock; message 'alloc';
 
-    function initWithTable_startingRow_rowSpan_startingColumn_columnSpan(table_: NSTextTable; row: clong; rowSpan_: clong; col: clong; colSpan: clong): id; message 'initWithTable:startingRow:rowSpan:startingColumn:columnSpan:';
+    function initWithTable_startingRow_rowSpan_startingColumn_columnSpan(table_: NSTextTable; row: NSInteger; rowSpan_: NSInteger; col: NSInteger; colSpan: NSInteger): id; message 'initWithTable:startingRow:rowSpan:startingColumn:columnSpan:';
     function table: NSTextTable; message 'table';
-    function startingRow: clong; message 'startingRow';
-    function rowSpan: clong; message 'rowSpan';
-    function startingColumn: clong; message 'startingColumn';
-    function columnSpan: clong; message 'columnSpan';
+    function startingRow: NSInteger; message 'startingRow';
+    function rowSpan: NSInteger; message 'rowSpan';
+    function startingColumn: NSInteger; message 'startingColumn';
+    function columnSpan: NSInteger; message 'columnSpan';
   end; external;
 
 { NSTextTable }
   NSTextTable = objcclass(NSTextBlock)
   private
-    __numCols: culong;
-    __tableFlags: culong;
+    __numCols: NSUInteger;
+    __tableFlags: NSUInteger;
     __lcache: id;
     __tablePrimary: Pointer;
     __tableSecondary: Pointer;
@@ -155,8 +155,8 @@ const
   public
     class function alloc: NSTextTable; message 'alloc';
 
-    function numberOfColumns: culong; message 'numberOfColumns';
-    procedure setNumberOfColumns(numCols: culong); message 'setNumberOfColumns:';
+    function numberOfColumns: NSUInteger; message 'numberOfColumns';
+    procedure setNumberOfColumns(numCols: NSUInteger); message 'setNumberOfColumns:';
     function layoutAlgorithm: NSTextTableLayoutAlgorithm; message 'layoutAlgorithm';
     procedure setLayoutAlgorithm(algorithm: NSTextTableLayoutAlgorithm); message 'setLayoutAlgorithm:';
     function collapsesBorders: Boolean; message 'collapsesBorders';

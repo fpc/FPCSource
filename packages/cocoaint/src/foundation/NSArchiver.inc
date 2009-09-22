@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSArchiver.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSARCHIVER_PAS_H}
@@ -14,10 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSARCHIVER_PAS_T}
 {$define NSARCHIVER_PAS_T}
-
-{ CFString constants }
-var
-  NSInconsistentArchiveException: CFStringRef; external name '_NSInconsistentArchiveException';
 
 {$endif}
 {$endif}
@@ -39,6 +35,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSARCHIVER_PAS_T}
 {$define NSARCHIVER_PAS_T}
+
+{ External string constants }
+var
+  NSInconsistentArchiveException: NSString; external name '_NSInconsistentArchiveException';
 
 {$endif}
 {$endif}
@@ -82,9 +82,9 @@ var
   NSUnarchiver = objcclass(NSCoder)
   private
     _datax: Pointer;
-    _cursor: culong;
+    _cursor: NSUInteger;
     _objectZone: NSZone;
-    _systemVersion: culong;
+    _systemVersion: NSUInteger;
     _streamerVersion: char;
     _swap: char;
     _unused1: char;
@@ -92,7 +92,7 @@ var
     _pointerTable: Pointer;
     _stringTable: Pointer;
     _classVersions: id;
-    _lastLabel: clong;
+    _lastLabel: NSInteger;
     _map: Pointer;
     _allUnarchivedObjects: Pointer;
     _reserved: id;
@@ -101,7 +101,7 @@ var
     class function alloc: NSUnarchiver; message 'alloc';
 
     function initForReadingWithData(data: NSData): id; message 'initForReadingWithData:';
-    procedure setObjectZone(var zone_: NSZone); message 'setObjectZone:';
+    procedure setObjectZone(zone_: NSZonePointer); message 'setObjectZone:';
     function objectZone: NSZone; message 'objectZone';
     function isAtEnd: Boolean; message 'isAtEnd';
     function systemVersion: cuint; message 'systemVersion';

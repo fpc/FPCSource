@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAttributedString.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSATTRIBUTEDSTRING_PAS_H}
@@ -14,27 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSATTRIBUTEDSTRING_PAS_T}
 {$define NSATTRIBUTEDSTRING_PAS_T}
-
-{ CFString constants }
-var
-  NSFontAttributeName: CFStringRef; external name '_NSFontAttributeName';
-  NSParagraphStyleAttributeName: CFStringRef; external name '_NSParagraphStyleAttributeName';
-  NSForegroundColorAttributeName: CFStringRef; external name '_NSForegroundColorAttributeName';
-  NSUnderlineStyleAttributeName: CFStringRef; external name '_NSUnderlineStyleAttributeName';
-  NSSuperscriptAttributeName: CFStringRef; external name '_NSSuperscriptAttributeName';
-  NSBackgroundColorAttributeName: CFStringRef; external name '_NSBackgroundColorAttributeName';
-  NSAttachmentAttributeName: CFStringRef; external name '_NSAttachmentAttributeName';
-  NSLigatureAttributeName: CFStringRef; external name '_NSLigatureAttributeName';
-  NSBaselineOffsetAttributeName: CFStringRef; external name '_NSBaselineOffsetAttributeName';
-  NSKernAttributeName: CFStringRef; external name '_NSKernAttributeName';
-  NSLinkAttributeName: CFStringRef; external name '_NSLinkAttributeName';
-  NSCharacterShapeAttributeName: CFStringRef; external name '_NSCharacterShapeAttributeName';
-  NSGlyphInfoAttributeName: CFStringRef; external name '_NSGlyphInfoAttributeName';
-  NSPlainTextDocumentType: CFStringRef; external name '_NSPlainTextDocumentType';
-  NSRTFTextDocumentType: CFStringRef; external name '_NSRTFTextDocumentType';
-  NSRTFDTextDocumentType: CFStringRef; external name '_NSRTFDTextDocumentType';
-  NSMacSimpleTextDocumentType: CFStringRef; external name '_NSMacSimpleTextDocumentType';
-  NSHTMLTextDocumentType: CFStringRef; external name '_NSHTMLTextDocumentType';
 
 { Constants }
 
@@ -80,6 +59,27 @@ const
 {$ifndef NSATTRIBUTEDSTRING_PAS_T}
 {$define NSATTRIBUTEDSTRING_PAS_T}
 
+{ External string constants }
+var
+  NSFontAttributeName: NSString; external name '_NSFontAttributeName';
+  NSParagraphStyleAttributeName: NSString; external name '_NSParagraphStyleAttributeName';
+  NSForegroundColorAttributeName: NSString; external name '_NSForegroundColorAttributeName';
+  NSUnderlineStyleAttributeName: NSString; external name '_NSUnderlineStyleAttributeName';
+  NSSuperscriptAttributeName: NSString; external name '_NSSuperscriptAttributeName';
+  NSBackgroundColorAttributeName: NSString; external name '_NSBackgroundColorAttributeName';
+  NSAttachmentAttributeName: NSString; external name '_NSAttachmentAttributeName';
+  NSLigatureAttributeName: NSString; external name '_NSLigatureAttributeName';
+  NSBaselineOffsetAttributeName: NSString; external name '_NSBaselineOffsetAttributeName';
+  NSKernAttributeName: NSString; external name '_NSKernAttributeName';
+  NSLinkAttributeName: NSString; external name '_NSLinkAttributeName';
+  NSCharacterShapeAttributeName: NSString; external name '_NSCharacterShapeAttributeName';
+  NSGlyphInfoAttributeName: NSString; external name '_NSGlyphInfoAttributeName';
+  NSPlainTextDocumentType: NSString; external name '_NSPlainTextDocumentType';
+  NSRTFTextDocumentType: NSString; external name '_NSRTFTextDocumentType';
+  NSRTFDTextDocumentType: NSString; external name '_NSRTFDTextDocumentType';
+  NSMacSimpleTextDocumentType: NSString; external name '_NSMacSimpleTextDocumentType';
+  NSHTMLTextDocumentType: NSString; external name '_NSHTMLTextDocumentType';
+
 { External symbols }
 var
   NSUnderlineByWordMask: NSUInteger; external name '_NSUnderlineByWordMask';
@@ -105,14 +105,14 @@ var
     class function alloc: NSAttributedString; message 'alloc';
 
     function string_: NSString; message 'string';
-    function attributesAtIndex_effectiveRange(location: culong; range: NSRangePointer): NSDictionary; message 'attributesAtIndex:effectiveRange:';
+    function attributesAtIndex_effectiveRange(location: NSUInteger; range: NSRangePointer): NSDictionary; message 'attributesAtIndex:effectiveRange:';
 
     { Category: NSExtendedAttributedString }
-    function length: culong; message 'length';
-    function attribute_atIndex_effectiveRange(attrName: NSString; location: culong; range: NSRangePointer): id; message 'attribute:atIndex:effectiveRange:';
+    function length: NSUInteger; message 'length';
+    function attribute_atIndex_effectiveRange(attrName: NSString; location: NSUInteger; range: NSRangePointer): id; message 'attribute:atIndex:effectiveRange:';
     function attributedSubstringFromRange(range: NSRange): NSAttributedString; message 'attributedSubstringFromRange:';
-    function attributesAtIndex_longestEffectiveRange_inRange(location: culong; range: NSRangePointer; rangeLimit: NSRange): NSDictionary; message 'attributesAtIndex:longestEffectiveRange:inRange:';
-    function attribute_atIndex_longestEffectiveRange_inRange(attrName: NSString; location: culong; range: NSRangePointer; rangeLimit: NSRange): id; message 'attribute:atIndex:longestEffectiveRange:inRange:';
+    function attributesAtIndex_longestEffectiveRange_inRange(location: NSUInteger; range: NSRangePointer; rangeLimit: NSRange): NSDictionary; message 'attributesAtIndex:longestEffectiveRange:inRange:';
+    function attribute_atIndex_longestEffectiveRange_inRange(attrName: NSString; location: NSUInteger; range: NSRangePointer; rangeLimit: NSRange): id; message 'attribute:atIndex:longestEffectiveRange:inRange:';
     function isEqualToAttributedString(other: NSAttributedString): Boolean; message 'isEqualToAttributedString:';
     function initWithString(str: NSString): id; message 'initWithString:';
     function initWithString_attributes(str: NSString; attrs: NSDictionary): id; message 'initWithString:attributes:';
@@ -122,30 +122,30 @@ var
     function fontAttributesInRange(range: NSRange): NSDictionary; message 'fontAttributesInRange:';
     function rulerAttributesInRange(range: NSRange): NSDictionary; message 'rulerAttributesInRange:';
     function containsAttachments: Boolean; message 'containsAttachments';
-    function lineBreakBeforeIndex_withinRange(location: culong; aRange: NSRange): culong; message 'lineBreakBeforeIndex:withinRange:';
-    function lineBreakByHyphenatingBeforeIndex_withinRange(location: culong; aRange: NSRange): culong; message 'lineBreakByHyphenatingBeforeIndex:withinRange:';
-    function doubleClickAtIndex(location: culong): NSRange; message 'doubleClickAtIndex:';
-    function nextWordFromIndex_forward(location: culong; isForward: Boolean): culong; message 'nextWordFromIndex:forward:';
-    function URLAtIndex_effectiveRange(location: culong; effectiveRange: NSRangePointer): NSURL; message 'URLAtIndex:effectiveRange:';
+    function lineBreakBeforeIndex_withinRange(location: NSUInteger; aRange: NSRange): NSUInteger; message 'lineBreakBeforeIndex:withinRange:';
+    function lineBreakByHyphenatingBeforeIndex_withinRange(location: NSUInteger; aRange: NSRange): NSUInteger; message 'lineBreakByHyphenatingBeforeIndex:withinRange:';
+    function doubleClickAtIndex(location: NSUInteger): NSRange; message 'doubleClickAtIndex:';
+    function nextWordFromIndex_forward(location: NSUInteger; isForward: Boolean): NSUInteger; message 'nextWordFromIndex:forward:';
+    function URLAtIndex_effectiveRange(location: NSUInteger; effectiveRange: NSRangePointer): NSURL; message 'URLAtIndex:effectiveRange:';
     class function textTypes: NSArray; message 'textTypes';
     class function textUnfilteredTypes: NSArray; message 'textUnfilteredTypes';
-    function rangeOfTextBlock_atIndex(block: NSTextBlock; location: culong): NSRange; message 'rangeOfTextBlock:atIndex:';
-    function rangeOfTextTable_atIndex(table: NSTextTable; location: culong): NSRange; message 'rangeOfTextTable:atIndex:';
-    function rangeOfTextList_atIndex(list: NSTextList; location: culong): NSRange; message 'rangeOfTextList:atIndex:';
-    function itemNumberInTextList_atIndex(list: NSTextList; location: culong): clong; message 'itemNumberInTextList:atIndex:';
-    function initWithURL_options_documentAttributes_error(url: NSURL; options: NSDictionary; var dict: NSDictionary; var error: NSError): id; message 'initWithURL:options:documentAttributes:error:';
-    function initWithData_options_documentAttributes_error(data: NSData; options: NSDictionary; var dict: NSDictionary; var error: NSError): id; message 'initWithData:options:documentAttributes:error:';
-    function initWithPath_documentAttributes(path: NSString; var dict: NSDictionary): id; message 'initWithPath:documentAttributes:';
-    function initWithURL_documentAttributes(url: NSURL; var dict: NSDictionary): id; message 'initWithURL:documentAttributes:';
-    function initWithRTF_documentAttributes(data: NSData; var dict: NSDictionary): id; message 'initWithRTF:documentAttributes:';
-    function initWithRTFD_documentAttributes(data: NSData; var dict: NSDictionary): id; message 'initWithRTFD:documentAttributes:';
-    function initWithHTML_documentAttributes(data: NSData; var dict: NSDictionary): id; message 'initWithHTML:documentAttributes:';
-    function initWithHTML_baseURL_documentAttributes(data: NSData; base: NSURL; var dict: NSDictionary): id; message 'initWithHTML:baseURL:documentAttributes:';
-    function initWithDocFormat_documentAttributes(data: NSData; var dict: NSDictionary): id; message 'initWithDocFormat:documentAttributes:';
-    function initWithHTML_options_documentAttributes(data: NSData; options: NSDictionary; var dict: NSDictionary): id; message 'initWithHTML:options:documentAttributes:';
-    function initWithRTFDFileWrapper_documentAttributes(wrapper: NSFileWrapper; var dict: NSDictionary): id; message 'initWithRTFDFileWrapper:documentAttributes:';
-    function dataFromRange_documentAttributes_error(range: NSRange; dict: NSDictionary; var error: NSError): NSData; message 'dataFromRange:documentAttributes:error:';
-    function fileWrapperFromRange_documentAttributes_error(range: NSRange; dict: NSDictionary; var error: NSError): NSFileWrapper; message 'fileWrapperFromRange:documentAttributes:error:';
+    function rangeOfTextBlock_atIndex(block: NSTextBlock; location: NSUInteger): NSRange; message 'rangeOfTextBlock:atIndex:';
+    function rangeOfTextTable_atIndex(table: NSTextTable; location: NSUInteger): NSRange; message 'rangeOfTextTable:atIndex:';
+    function rangeOfTextList_atIndex(list: NSTextList; location: NSUInteger): NSRange; message 'rangeOfTextList:atIndex:';
+    function itemNumberInTextList_atIndex(list: NSTextList; location: NSUInteger): NSInteger; message 'itemNumberInTextList:atIndex:';
+    function initWithURL_options_documentAttributes_error(url: NSURL; options: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): id; message 'initWithURL:options:documentAttributes:error:';
+    function initWithData_options_documentAttributes_error(data: NSData; options: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): id; message 'initWithData:options:documentAttributes:error:';
+    function initWithPath_documentAttributes(path: NSString; dict: NSDictionaryPointer): id; message 'initWithPath:documentAttributes:';
+    function initWithURL_documentAttributes(url: NSURL; dict: NSDictionaryPointer): id; message 'initWithURL:documentAttributes:';
+    function initWithRTF_documentAttributes(data: NSData; dict: NSDictionaryPointer): id; message 'initWithRTF:documentAttributes:';
+    function initWithRTFD_documentAttributes(data: NSData; dict: NSDictionaryPointer): id; message 'initWithRTFD:documentAttributes:';
+    function initWithHTML_documentAttributes(data: NSData; dict: NSDictionaryPointer): id; message 'initWithHTML:documentAttributes:';
+    function initWithHTML_baseURL_documentAttributes(data: NSData; base: NSURL; dict: NSDictionaryPointer): id; message 'initWithHTML:baseURL:documentAttributes:';
+    function initWithDocFormat_documentAttributes(data: NSData; dict: NSDictionaryPointer): id; message 'initWithDocFormat:documentAttributes:';
+    function initWithHTML_options_documentAttributes(data: NSData; options: NSDictionary; dict: NSDictionaryPointer): id; message 'initWithHTML:options:documentAttributes:';
+    function initWithRTFDFileWrapper_documentAttributes(wrapper: NSFileWrapper; dict: NSDictionaryPointer): id; message 'initWithRTFDFileWrapper:documentAttributes:';
+    function dataFromRange_documentAttributes_error(range: NSRange; dict: NSDictionary; error: NSErrorPointer): NSData; message 'dataFromRange:documentAttributes:error:';
+    function fileWrapperFromRange_documentAttributes_error(range: NSRange; dict: NSDictionary; error: NSErrorPointer): NSFileWrapper; message 'fileWrapperFromRange:documentAttributes:error:';
     function RTFFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSData; message 'RTFFromRange:documentAttributes:';
     function RTFDFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSData; message 'RTFDFromRange:documentAttributes:';
     function RTFDFileWrapperFromRange_documentAttributes(range: NSRange; dict: NSDictionary): NSFileWrapper; message 'RTFDFileWrapperFromRange:documentAttributes:';
@@ -185,7 +185,7 @@ var
     procedure addAttributes_range(attrs: NSDictionary; range: NSRange); message 'addAttributes:range:';
     procedure removeAttribute_range(name: NSString; range: NSRange); message 'removeAttribute:range:';
     procedure replaceCharactersInRange_withAttributedString(range: NSRange; attrString: NSAttributedString); message 'replaceCharactersInRange:withAttributedString:';
-    procedure insertAttributedString_atIndex(attrString: NSAttributedString; loc: culong); message 'insertAttributedString:atIndex:';
+    procedure insertAttributedString_atIndex(attrString: NSAttributedString; loc: NSUInteger); message 'insertAttributedString:atIndex:';
     procedure appendAttributedString(attrString: NSAttributedString); message 'appendAttributedString:';
     procedure deleteCharactersInRange(range: NSRange); message 'deleteCharactersInRange:';
     procedure setAttributedString(attrString: NSAttributedString); message 'setAttributedString:';
@@ -193,10 +193,10 @@ var
     procedure endEditing; message 'endEditing';
 
     { Category: NSMutableAttributedStringKitAdditions }
-    function readFromURL_options_documentAttributes_error(url: NSURL; opts: NSDictionary; var dict: NSDictionary; var error: NSError): Boolean; message 'readFromURL:options:documentAttributes:error:';
-    function readFromData_options_documentAttributes_error(data: NSData; opts: NSDictionary; var dict: NSDictionary; var error: NSError): Boolean; message 'readFromData:options:documentAttributes:error:';
-    function readFromURL_options_documentAttributes(url: NSURL; options: NSDictionary; var dict: NSDictionary): Boolean; message 'readFromURL:options:documentAttributes:';
-    function readFromData_options_documentAttributes(data: NSData; options: NSDictionary; var dict: NSDictionary): Boolean; message 'readFromData:options:documentAttributes:';
+    function readFromURL_options_documentAttributes_error(url: NSURL; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): Boolean; message 'readFromURL:options:documentAttributes:error:';
+    function readFromData_options_documentAttributes_error(data: NSData; opts: NSDictionary; dict: NSDictionaryPointer; error: NSErrorPointer): Boolean; message 'readFromData:options:documentAttributes:error:';
+    function readFromURL_options_documentAttributes(url: NSURL; options: NSDictionary; dict: NSDictionaryPointer): Boolean; message 'readFromURL:options:documentAttributes:';
+    function readFromData_options_documentAttributes(data: NSData; options: NSDictionary; dict: NSDictionaryPointer): Boolean; message 'readFromData:options:documentAttributes:';
     procedure superscriptRange(range: NSRange); message 'superscriptRange:';
     procedure subscriptRange(range: NSRange); message 'subscriptRange:';
     procedure unscriptRange(range: NSRange); message 'unscriptRange:';

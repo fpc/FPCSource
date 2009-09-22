@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSScrollView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSCROLLVIEW_PAS_H}
@@ -23,45 +23,45 @@ type
 
 { Records }
 type
-  __SFlags = record
+  __SFlags = bitpacked record
 {$ifdef fpc_big_endian}
-    vScrollerRequired: cuint;
-    hScrollerRequired: cuint;
-    vScrollerStatus: cuint;
-    hScrollerStatus: cuint;
-    noDynamicScrolling: cuint;
-    borderType: NSBorderType;
-    oldRulerInstalled: cuint;
-    showRulers: cuint;
-    hasHorizontalRuler: cuint;
-    hasVerticalRuler: cuint;
-    needsTile: cuint;
-    doesNotDrawBackground: cuint;
-    skipRemoveSuperviewCheck: cuint;
-    focusRingNeedsRedisplay: cuint;
-    hasCustomLineBorderColor: cuint;
-    autohidesScrollers: cuint;
-    autoforwardsScrollWheelEvents: cuint;
-    RESERVED: cuint;
+    vScrollerRequired: 0..1;
+    hScrollerRequired: 0..1;
+    vScrollerStatus: 0..1;
+    hScrollerStatus: 0..1;
+    noDynamicScrolling: 0..1;
+    borderType: 0..((1 shl 2)-1);
+    oldRulerInstalled: 0..1;
+    showRulers: 0..1;
+    hasHorizontalRuler: 0..1;
+    hasVerticalRuler: 0..1;
+    needsTile: 0..1;
+    doesNotDrawBackground: 0..1;
+    skipRemoveSuperviewCheck: 0..1;
+    focusRingNeedsRedisplay: 0..1;
+    hasCustomLineBorderColor: 0..1;
+    autohidesScrollers: 0..1;
+    autoforwardsScrollWheelEvents: 0..1;
+    RESERVED: 0..((1 shl 14)-1);
 {$else}
-    RESERVED: cuint;
-    autoforwardsScrollWheelEvents: cuint;
-    autohidesScrollers: cuint;
-    hasCustomLineBorderColor: cuint;
-    focusRingNeedsRedisplay: cuint;
-    skipRemoveSuperviewCheck: cuint;
-    doesNotDrawBackground: cuint;
-    needsTile: cuint;
-    hasVerticalRuler: cuint;
-    hasHorizontalRuler: cuint;
-    showRulers: cuint;
-    oldRulerInstalled: cuint;
-    borderType: NSBorderType;
-    noDynamicScrolling: cuint;
-    hScrollerStatus: cuint;
-    vScrollerStatus: cuint;
-    hScrollerRequired: cuint;
-    vScrollerRequired: cuint;
+    RESERVED: 0..((1 shl 14)-1);
+    autoforwardsScrollWheelEvents: 0..1;
+    autohidesScrollers: 0..1;
+    hasCustomLineBorderColor: 0..1;
+    focusRingNeedsRedisplay: 0..1;
+    skipRemoveSuperviewCheck: 0..1;
+    doesNotDrawBackground: 0..1;
+    needsTile: 0..1;
+    hasVerticalRuler: 0..1;
+    hasHorizontalRuler: 0..1;
+    showRulers: 0..1;
+    oldRulerInstalled: 0..1;
+    borderType: 0..((1 shl 2)-1);
+    noDynamicScrolling: 0..1;
+    hScrollerStatus: 0..1;
+    vScrollerStatus: 0..1;
+    hScrollerRequired: 0..1;
+    vScrollerRequired: 0..1;
 {$endif}
   end;
 _SFlags = __SFlags;

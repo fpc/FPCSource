@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMENUVIEW_PAS_H}
@@ -100,19 +100,19 @@ type
     procedure setFont(font_: NSFont); message 'setFont:';
     function font: NSFont; message 'font';
     function innerRect: NSRect; message 'innerRect';
-    function rectOfItemAtIndex(index: clong): NSRect; message 'rectOfItemAtIndex:';
-    function indexOfItemAtPoint(point: NSPoint): clong; message 'indexOfItemAtPoint:';
-    procedure setNeedsDisplayForItemAtIndex(index: clong); message 'setNeedsDisplayForItemAtIndex:';
-    procedure setHighlightedItemIndex(index: clong); message 'setHighlightedItemIndex:';
-    function highlightedItemIndex: clong; message 'highlightedItemIndex';
+    function rectOfItemAtIndex(index: NSInteger): NSRect; message 'rectOfItemAtIndex:';
+    function indexOfItemAtPoint(point: NSPoint): NSInteger; message 'indexOfItemAtPoint:';
+    procedure setNeedsDisplayForItemAtIndex(index: NSInteger); message 'setNeedsDisplayForItemAtIndex:';
+    procedure setHighlightedItemIndex(index: NSInteger); message 'setHighlightedItemIndex:';
+    function highlightedItemIndex: NSInteger; message 'highlightedItemIndex';
     function stateImageOffset: CGFloat; message 'stateImageOffset';
     function stateImageWidth: CGFloat; message 'stateImageWidth';
     function imageAndTitleOffset: CGFloat; message 'imageAndTitleOffset';
     function imageAndTitleWidth: CGFloat; message 'imageAndTitleWidth';
     function keyEquivalentOffset: CGFloat; message 'keyEquivalentOffset';
     function keyEquivalentWidth: CGFloat; message 'keyEquivalentWidth';
-    procedure setMenuItemCell_forItemAtIndex(cell: NSMenuItemCell; index: clong); message 'setMenuItemCell:forItemAtIndex:';
-    function menuItemCellForItemAtIndex(index: clong): NSMenuItemCell; message 'menuItemCellForItemAtIndex:';
+    procedure setMenuItemCell_forItemAtIndex(cell: NSMenuItemCell; index: NSInteger); message 'setMenuItemCell:forItemAtIndex:';
+    function menuItemCellForItemAtIndex(index: NSInteger): NSMenuItemCell; message 'menuItemCellForItemAtIndex:';
     function attachedMenuView: NSMenuView; message 'attachedMenuView';
     procedure setNeedsSizing(flag: Boolean); message 'setNeedsSizing:';
     function needsSizing: Boolean; message 'needsSizing';
@@ -121,10 +121,10 @@ type
     function isAttached: Boolean; message 'isAttached';
     function isTornOff: Boolean; message 'isTornOff';
     function locationForSubmenu(aSubmenu: NSMenu): NSPoint; message 'locationForSubmenu:';
-    procedure setWindowFrameForAttachingToRect_onScreen_preferredEdge_popUpSelectedItem(screenRect: NSRect; screen: NSScreen; edge: NSRectEdge; selectedItemIndex: clong); message 'setWindowFrameForAttachingToRect:onScreen:preferredEdge:popUpSelectedItem:';
+    procedure setWindowFrameForAttachingToRect_onScreen_preferredEdge_popUpSelectedItem(screenRect: NSRect; screen: NSScreen; edge: NSRectEdge; selectedItemIndex: NSInteger); message 'setWindowFrameForAttachingToRect:onScreen:preferredEdge:popUpSelectedItem:';
     procedure detachSubmenu; message 'detachSubmenu';
-    procedure attachSubmenuForItemAtIndex(index: clong); message 'attachSubmenuForItemAtIndex:';
-    procedure performActionWithHighlightingForItemAtIndex(index: clong); message 'performActionWithHighlightingForItemAtIndex:';
+    procedure attachSubmenuForItemAtIndex(index: NSInteger); message 'attachSubmenuForItemAtIndex:';
+    procedure performActionWithHighlightingForItemAtIndex(index: NSInteger); message 'performActionWithHighlightingForItemAtIndex:';
     function trackWithEvent(event: NSEvent): Boolean; message 'trackWithEvent:';
     function horizontalEdgePadding: CGFloat; message 'horizontalEdgePadding';
     procedure setHorizontalEdgePadding(pad: CGFloat); message 'setHorizontalEdgePadding:';

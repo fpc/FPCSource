@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSButton.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBUTTON_PAS_H}
@@ -64,18 +64,18 @@ type
     function imagePosition: NSCellImagePosition; message 'imagePosition';
     procedure setImagePosition(aPosition: NSCellImagePosition); message 'setImagePosition:';
     procedure setButtonType(aType: NSButtonType); message 'setButtonType:';
-    function state: clong; message 'state';
-    procedure setState(value: clong); message 'setState:';
+    function state: NSInteger; message 'state';
+    procedure setState(value: NSInteger); message 'setState:';
     function isBordered: Boolean; message 'isBordered';
     procedure setBordered(flag: Boolean); message 'setBordered:';
     function isTransparent: Boolean; message 'isTransparent';
     procedure setTransparent(flag: Boolean); message 'setTransparent:';
     procedure setPeriodicDelay_interval(delay: single; interval: single); message 'setPeriodicDelay:interval:';
-    procedure getPeriodicDelay_interval(var delay: single; var interval: single); message 'getPeriodicDelay:interval:';
+    procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setKeyEquivalent(charCode: NSString); message 'setKeyEquivalent:';
-    function keyEquivalentModifierMask: culong; message 'keyEquivalentModifierMask';
-    procedure setKeyEquivalentModifierMask(mask: culong); message 'setKeyEquivalentModifierMask:';
+    function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
+    procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
     procedure highlight(flag: Boolean); message 'highlight:';
     function performKeyEquivalent(key: NSEvent): Boolean; message 'performKeyEquivalent:';
 

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSUndoManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSUNDOMANAGER_PAS_H}
@@ -18,16 +18,6 @@ type
 
 const
   NSUndoCloseGroupingRunLoopOrdering = 350000;
-
-{ CFString constants }
-var
-  NSUndoManagerCheckpointNotification: CFStringRef; external name '_NSUndoManagerCheckpointNotification';
-  NSUndoManagerWillUndoChangeNotification: CFStringRef; external name '_NSUndoManagerWillUndoChangeNotification';
-  NSUndoManagerWillRedoChangeNotification: CFStringRef; external name '_NSUndoManagerWillRedoChangeNotification';
-  NSUndoManagerDidUndoChangeNotification: CFStringRef; external name '_NSUndoManagerDidUndoChangeNotification';
-  NSUndoManagerDidRedoChangeNotification: CFStringRef; external name '_NSUndoManagerDidRedoChangeNotification';
-  NSUndoManagerDidOpenUndoGroupNotification: CFStringRef; external name '_NSUndoManagerDidOpenUndoGroupNotification';
-  NSUndoManagerWillCloseUndoGroupNotification: CFStringRef; external name '_NSUndoManagerWillCloseUndoGroupNotification';
 
 {$endif}
 {$endif}
@@ -50,6 +40,16 @@ var
 {$ifndef NSUNDOMANAGER_PAS_T}
 {$define NSUNDOMANAGER_PAS_T}
 
+{ External string constants }
+var
+  NSUndoManagerCheckpointNotification: NSString; external name '_NSUndoManagerCheckpointNotification';
+  NSUndoManagerWillUndoChangeNotification: NSString; external name '_NSUndoManagerWillUndoChangeNotification';
+  NSUndoManagerWillRedoChangeNotification: NSString; external name '_NSUndoManagerWillRedoChangeNotification';
+  NSUndoManagerDidUndoChangeNotification: NSString; external name '_NSUndoManagerDidUndoChangeNotification';
+  NSUndoManagerDidRedoChangeNotification: NSString; external name '_NSUndoManagerDidRedoChangeNotification';
+  NSUndoManagerDidOpenUndoGroupNotification: NSString; external name '_NSUndoManagerDidOpenUndoGroupNotification';
+  NSUndoManagerWillCloseUndoGroupNotification: NSString; external name '_NSUndoManagerWillCloseUndoGroupNotification';
+
 {$endif}
 {$endif}
 
@@ -68,7 +68,7 @@ var
     __undoStack: id;
     __redoStack: id;
     __runLoopModes: NSArray;
-    __disabled: clong;
+    __disabled: NSInteger;
     __flags: bitpacked record
         undoing: 0..1;
         redoing: 0..1;
@@ -87,14 +87,14 @@ var
 
     procedure beginUndoGrouping; message 'beginUndoGrouping';
     procedure endUndoGrouping; message 'endUndoGrouping';
-    function groupingLevel: clong; message 'groupingLevel';
+    function groupingLevel: NSInteger; message 'groupingLevel';
     procedure disableUndoRegistration; message 'disableUndoRegistration';
     procedure enableUndoRegistration; message 'enableUndoRegistration';
     function isUndoRegistrationEnabled: Boolean; message 'isUndoRegistrationEnabled';
     function groupsByEvent: Boolean; message 'groupsByEvent';
     procedure setGroupsByEvent(groupsByEvent_: Boolean); message 'setGroupsByEvent:';
-    procedure setLevelsOfUndo(levels: culong); message 'setLevelsOfUndo:';
-    function levelsOfUndo: culong; message 'levelsOfUndo';
+    procedure setLevelsOfUndo(levels: NSUInteger); message 'setLevelsOfUndo:';
+    function levelsOfUndo: NSUInteger; message 'levelsOfUndo';
     procedure setRunLoopModes(runLoopModes_: NSArray); message 'setRunLoopModes:';
     function runLoopModes: NSArray; message 'runLoopModes';
     procedure undo; message 'undo';

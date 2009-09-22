@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSThread.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTHREAD_PAS_H}
@@ -13,12 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSTHREAD_PAS_T}
 {$define NSTHREAD_PAS_T}
-
-{ CFString constants }
-var
-  NSWillBecomeMultiThreadedNotification: CFStringRef; external name '_NSWillBecomeMultiThreadedNotification';
-  NSDidBecomeSingleThreadedNotification: CFStringRef; external name '_NSDidBecomeSingleThreadedNotification';
-  NSThreadWillExitNotification: CFStringRef; external name '_NSThreadWillExitNotification';
 
 {$endif}
 {$endif}
@@ -41,6 +35,12 @@ var
 {$ifndef NSTHREAD_PAS_T}
 {$define NSTHREAD_PAS_T}
 
+{ External string constants }
+var
+  NSWillBecomeMultiThreadedNotification: NSString; external name '_NSWillBecomeMultiThreadedNotification';
+  NSDidBecomeSingleThreadedNotification: NSString; external name '_NSDidBecomeSingleThreadedNotification';
+  NSThreadWillExitNotification: NSString; external name '_NSThreadWillExitNotification';
+
 {$endif}
 {$endif}
 
@@ -57,7 +57,7 @@ var
   NSThread = objcclass(NSObject)
   private
     __private: id;
-    __bytes: byte;
+        _bytes: array[0..43] of byte;
     
   public
     class function alloc: NSThread; message 'alloc';
@@ -74,8 +74,8 @@ var
     class function callStackReturnAddresses: NSArray; message 'callStackReturnAddresses';
     procedure setName(n: NSString); message 'setName:';
     function name: NSString; message 'name';
-    function stackSize: culong; message 'stackSize';
-    procedure setStackSize(s: culong); message 'setStackSize:';
+    function stackSize: NSUInteger; message 'stackSize';
+    procedure setStackSize(s: NSUInteger); message 'setStackSize:';
     function isMainThread: Boolean; message 'isMainThread';
     class function mainThread: NSThread; message 'mainThread';
     function init: id; message 'init';

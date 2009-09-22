@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDateFormatter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDATEFORMATTER_PAS_H}
@@ -30,8 +30,8 @@ const
 
 { Types }
 type
-  NSDateFormatterStyle = culong;
-  NSDateFormatterBehavior = culong;
+  NSDateFormatterStyle = NSUInteger;
+  NSDateFormatterBehavior = NSUInteger;
 
 {$endif}
 {$endif}
@@ -71,13 +71,13 @@ type
   private
     __attributes: NSMutableDictionary;
     __formatter: CFDateFormatterRef; {garbage collector: __strong }
-    __counter: culong;
+    __counter: NSUInteger;
     
   public
     class function alloc: NSDateFormatter; message 'alloc';
 
     function init: id; message 'init';
-    function getObjectValue_forString_range_error(obj: id; string_: NSString; var rangep: NSRange; var error: NSError): Boolean; message 'getObjectValue:forString:range:error:';
+    function getObjectValue_forString_range_error(obj: id; string_: NSString; rangep: NSRangePointer; error: NSErrorPointer): Boolean; message 'getObjectValue:forString:range:error:';
     function stringFromDate(date: NSDate): NSString; message 'stringFromDate:';
     function dateFromString(string_: NSString): NSDate; message 'dateFromString:';
     function dateFormat: NSString; message 'dateFormat';

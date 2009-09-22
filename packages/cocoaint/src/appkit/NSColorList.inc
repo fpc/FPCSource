@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorList.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLORLIST_PAS_H}
@@ -13,10 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSCOLORLIST_PAS_T}
 {$define NSCOLORLIST_PAS_T}
-
-{ CFString constants }
-var
-  NSColorListDidChangeNotification: CFStringRef; external name '_NSColorListDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -38,6 +34,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCOLORLIST_PAS_T}
 {$define NSCOLORLIST_PAS_T}
+
+{ External string constants }
+var
+  NSColorListDidChangeNotification: NSString; external name '_NSColorListDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -85,7 +85,7 @@ var
     function initWithName_fromFile(name_: NSString; path: NSString): id; message 'initWithName:fromFile:';
     function name: NSString; message 'name';
     procedure setColor_forKey(color: NSColor; key: NSString); message 'setColor:forKey:';
-    procedure insertColor_key_atIndex(color: NSColor; key: NSString; loc: culong); message 'insertColor:key:atIndex:';
+    procedure insertColor_key_atIndex(color: NSColor; key: NSString; loc: NSUInteger); message 'insertColor:key:atIndex:';
     procedure removeColorWithKey(key: NSString); message 'removeColorWithKey:';
     function colorWithKey(key: NSString): NSColor; message 'colorWithKey:';
     function allKeys: NSArray; message 'allKeys';

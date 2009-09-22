@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDOCUMENT_PAS_H}
@@ -32,8 +32,8 @@ const
 
 { Types }
 type
-  NSDocumentChangeType = culong;
-  NSSaveOperationType = culong;
+  NSDocumentChangeType = NSUInteger;
+  NSSaveOperationType = NSUInteger;
 
 {$endif}
 {$endif}
@@ -99,9 +99,9 @@ type
     class function alloc: NSDocument; message 'alloc';
 
     function init: id; message 'init';
-    function initWithType_error(typeName: NSString; var outError: NSError): id; message 'initWithType:error:';
-    function initWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; var outError: NSError): id; message 'initWithContentsOfURL:ofType:error:';
-    function initForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; var outError: NSError): id; message 'initForURL:withContentsOfURL:ofType:error:';
+    function initWithType_error(typeName: NSString; outError: NSErrorPointer): id; message 'initWithType:error:';
+    function initWithContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'initWithContentsOfURL:ofType:error:';
+    function initForURL_withContentsOfURL_ofType_error(absoluteDocumentURL: NSURL; absoluteDocumentContentsURL: NSURL; typeName: NSString; outError: NSErrorPointer): id; message 'initForURL:withContentsOfURL:ofType:error:';
     procedure setFileType(typeName: NSString); message 'setFileType:';
     function fileType: NSString; message 'fileType';
     procedure setFileURL(absoluteURL: NSURL); message 'setFileURL:';
@@ -109,16 +109,16 @@ type
     procedure setFileModificationDate(modificationDate: NSDate); message 'setFileModificationDate:';
     function fileModificationDate: NSDate; message 'fileModificationDate';
     procedure revertDocumentToSaved(sender: id); message 'revertDocumentToSaved:';
-    function revertToContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; var outError: NSError): Boolean; message 'revertToContentsOfURL:ofType:error:';
-    function readFromURL_ofType_error(absoluteURL: NSURL; typeName: NSString; var outError: NSError): Boolean; message 'readFromURL:ofType:error:';
-    function readFromFileWrapper_ofType_error(fileWrapper: NSFileWrapper; typeName: NSString; var outError: NSError): Boolean; message 'readFromFileWrapper:ofType:error:';
-    function readFromData_ofType_error(data: NSData; typeName: NSString; var outError: NSError): Boolean; message 'readFromData:ofType:error:';
-    function writeToURL_ofType_error(absoluteURL: NSURL; typeName: NSString; var outError: NSError): Boolean; message 'writeToURL:ofType:error:';
-    function fileWrapperOfType_error(typeName: NSString; var outError: NSError): NSFileWrapper; message 'fileWrapperOfType:error:';
-    function dataOfType_error(typeName: NSString; var outError: NSError): NSData; message 'dataOfType:error:';
-    function writeSafelyToURL_ofType_forSaveOperation_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; var outError: NSError): Boolean; message 'writeSafelyToURL:ofType:forSaveOperation:error:';
-    function writeToURL_ofType_forSaveOperation_originalContentsURL_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; absoluteOriginalContentsURL: NSURL; var outError: NSError): Boolean; message 'writeToURL:ofType:forSaveOperation:originalContentsURL:error:';
-    function fileAttributesToWriteToURL_ofType_forSaveOperation_originalContentsURL_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; absoluteOriginalContentsURL: NSURL; var outError: NSError): NSDictionary; message 'fileAttributesToWriteToURL:ofType:forSaveOperation:originalContentsURL:error:';
+    function revertToContentsOfURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): Boolean; message 'revertToContentsOfURL:ofType:error:';
+    function readFromURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): Boolean; message 'readFromURL:ofType:error:';
+    function readFromFileWrapper_ofType_error(fileWrapper: NSFileWrapper; typeName: NSString; outError: NSErrorPointer): Boolean; message 'readFromFileWrapper:ofType:error:';
+    function readFromData_ofType_error(data: NSData; typeName: NSString; outError: NSErrorPointer): Boolean; message 'readFromData:ofType:error:';
+    function writeToURL_ofType_error(absoluteURL: NSURL; typeName: NSString; outError: NSErrorPointer): Boolean; message 'writeToURL:ofType:error:';
+    function fileWrapperOfType_error(typeName: NSString; outError: NSErrorPointer): NSFileWrapper; message 'fileWrapperOfType:error:';
+    function dataOfType_error(typeName: NSString; outError: NSErrorPointer): NSData; message 'dataOfType:error:';
+    function writeSafelyToURL_ofType_forSaveOperation_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; outError: NSErrorPointer): Boolean; message 'writeSafelyToURL:ofType:forSaveOperation:error:';
+    function writeToURL_ofType_forSaveOperation_originalContentsURL_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; absoluteOriginalContentsURL: NSURL; outError: NSErrorPointer): Boolean; message 'writeToURL:ofType:forSaveOperation:originalContentsURL:error:';
+    function fileAttributesToWriteToURL_ofType_forSaveOperation_originalContentsURL_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; absoluteOriginalContentsURL: NSURL; outError: NSErrorPointer): NSDictionary; message 'fileAttributesToWriteToURL:ofType:forSaveOperation:originalContentsURL:error:';
     function keepBackupFile: Boolean; message 'keepBackupFile';
     procedure saveDocument(sender: id); message 'saveDocument:';
     procedure saveDocumentAs(sender: id); message 'saveDocumentAs:';
@@ -130,7 +130,7 @@ type
     function fileNameExtensionWasHiddenInLastRunSavePanel: Boolean; message 'fileNameExtensionWasHiddenInLastRunSavePanel';
     function fileTypeFromLastRunSavePanel: NSString; message 'fileTypeFromLastRunSavePanel';
     procedure saveToURL_ofType_forSaveOperation_delegate_didSaveSelector_contextInfo(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; delegate: id; didSaveSelector: SEL; contextInfo: Pointer); message 'saveToURL:ofType:forSaveOperation:delegate:didSaveSelector:contextInfo:';
-    function saveToURL_ofType_forSaveOperation_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; var outError: NSError): Boolean; message 'saveToURL:ofType:forSaveOperation:error:';
+    function saveToURL_ofType_forSaveOperation_error(absoluteURL: NSURL; typeName: NSString; saveOperation: NSSaveOperationType; outError: NSErrorPointer): Boolean; message 'saveToURL:ofType:forSaveOperation:error:';
     function hasUnautosavedChanges: Boolean; message 'hasUnautosavedChanges';
     procedure autosaveDocumentWithDelegate_didAutosaveSelector_contextInfo(delegate: id; didAutosaveSelector: SEL; contextInfo: Pointer); message 'autosaveDocumentWithDelegate:didAutosaveSelector:contextInfo:';
     function autosavingFileType: NSString; message 'autosavingFileType';
@@ -146,7 +146,7 @@ type
     function printInfo: NSPrintInfo; message 'printInfo';
     procedure printDocument(sender: id); message 'printDocument:';
     procedure printDocumentWithSettings_showPrintPanel_delegate_didPrintSelector_contextInfo(printSettings: NSDictionary; showPrintPanel: Boolean; delegate: id; didPrintSelector: SEL; contextInfo: Pointer); message 'printDocumentWithSettings:showPrintPanel:delegate:didPrintSelector:contextInfo:';
-    function printOperationWithSettings_error(printSettings: NSDictionary; var outError: NSError): NSPrintOperation; message 'printOperationWithSettings:error:';
+    function printOperationWithSettings_error(printSettings: NSDictionary; outError: NSErrorPointer): NSPrintOperation; message 'printOperationWithSettings:error:';
     procedure runModalPrintOperation_delegate_didRunSelector_contextInfo(printOperation: NSPrintOperation; delegate: id; didRunSelector: SEL; contextInfo: Pointer); message 'runModalPrintOperation:delegate:didRunSelector:contextInfo:';
     function isDocumentEdited: Boolean; message 'isDocumentEdited';
     procedure updateChangeCount(change: NSDocumentChangeType); message 'updateChangeCount:';
@@ -190,7 +190,7 @@ type
     function readFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'readFromURL:ofType:';
     function revertToSavedFromFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'revertToSavedFromFile:ofType:';
     function revertToSavedFromURL_ofType(url: NSURL; type_: NSString): Boolean; message 'revertToSavedFromURL:ofType:';
-    function runModalPageLayoutWithPrintInfo(printInfo_: NSPrintInfo): clong; message 'runModalPageLayoutWithPrintInfo:';
+    function runModalPageLayoutWithPrintInfo(printInfo_: NSPrintInfo): NSInteger; message 'runModalPageLayoutWithPrintInfo:';
     procedure saveToFile_saveOperation_delegate_didSaveSelector_contextInfo(fileName_: NSString; saveOperation: NSSaveOperationType; delegate: id; didSaveSelector: SEL; contextInfo: Pointer); message 'saveToFile:saveOperation:delegate:didSaveSelector:contextInfo:';
     procedure setFileName(fileName_: NSString); message 'setFileName:';
     function writeToFile_ofType(fileName_: NSString; type_: NSString): Boolean; message 'writeToFile:ofType:';

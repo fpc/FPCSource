@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInterfaceStyle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -15,11 +15,7 @@ const
 
 { Types }
 type
-  NSInterfaceStyle = culong;
-
-{ CFString constants }
-var
-  NSInterfaceStyleDefault: CFStringRef; external name '_NSInterfaceStyleDefault';
+  NSInterfaceStyle = NSUInteger;
 
 {$endif}
 {$endif}
@@ -36,7 +32,7 @@ var
 {$define NSINTERFACESTYLE_PAS_F}
 
 { Functions }
-function NSInterfaceStyleForKey(var key: NSString; var responder: NSResponder): NSInterfaceStyle; cdecl; external name 'NSInterfaceStyleForKey';
+function NSInterfaceStyleForKey(keyPointer: NSString; responderPointer: NSResponder): NSInterfaceStyle; cdecl; external name 'NSInterfaceStyleForKey';
 
 {$endif}
 {$endif}
@@ -44,6 +40,10 @@ function NSInterfaceStyleForKey(var key: NSString; var responder: NSResponder): 
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSINTERFACESTYLE_PAS_T}
 {$define NSINTERFACESTYLE_PAS_T}
+
+{ External string constants }
+var
+  NSInterfaceStyleDefault: NSString; external name '_NSInterfaceStyleDefault';
 
 {$endif}
 {$endif}

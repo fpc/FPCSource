@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyedArchiver.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSKEYEDARCHIVER_PAS_H}
@@ -14,11 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSKEYEDARCHIVER_PAS_T}
 {$define NSKEYEDARCHIVER_PAS_T}
-
-{ CFString constants }
-var
-  NSInvalidArchiveOperationException: CFStringRef; external name '_NSInvalidArchiveOperationException';
-  NSInvalidUnarchiveOperationException: CFStringRef; external name '_NSInvalidUnarchiveOperationException';
 
 {$endif}
 {$endif}
@@ -41,6 +36,11 @@ var
 {$ifndef NSKEYEDARCHIVER_PAS_T}
 {$define NSKEYEDARCHIVER_PAS_T}
 
+{ External string constants }
+var
+  NSInvalidArchiveOperationException: NSString; external name '_NSInvalidArchiveOperationException';
+  NSInvalidUnarchiveOperationException: NSString; external name '_NSInvalidUnarchiveOperationException';
+
 {$endif}
 {$endif}
 
@@ -58,7 +58,7 @@ var
   NSKeyedArchiver = objcclass(NSCoder)
   private
     __stream: Pointer;
-    __flags: culong;
+    __flags: NSUInteger;
     __delegate: id;
     __containers: id;
     __objects: id;
@@ -67,9 +67,9 @@ var
     __classNameMap: id;
     __conditionals: id;
     __classes: id;
-    __genericKey: culong;
+    __genericKey: NSUInteger;
     __cache: Pointer;
-    __cacheSize: culong;
+    __cacheSize: NSUInteger;
     __reserved3: Pointer;
     __reserved2: Pointer;
     __reserved1: Pointer;
@@ -96,7 +96,7 @@ var
     procedure encodeInt64_forKey(intv: clonglong; key: NSString); message 'encodeInt64:forKey:';
     procedure encodeFloat_forKey(realv: single; key: NSString); message 'encodeFloat:forKey:';
     procedure encodeDouble_forKey(realv: double; key: NSString); message 'encodeDouble:forKey:';
-    procedure encodeBytes_length_forKey(var bytesp: byte; lenv: culong; key: NSString); message 'encodeBytes:length:forKey:';
+    procedure encodeBytes_length_forKey(bytesp: pbyte; lenv: NSUInteger; key: NSString); message 'encodeBytes:length:forKey:';
   end; external;
 
 { NSKeyedUnarchiver }
@@ -138,7 +138,7 @@ var
     function decodeInt64ForKey(key: NSString): clonglong; message 'decodeInt64ForKey:';
     function decodeFloatForKey(key: NSString): single; message 'decodeFloatForKey:';
     function decodeDoubleForKey(key: NSString): double; message 'decodeDoubleForKey:';
-    function decodeBytesForKey_returnedLength(key: NSString; var lengthp: culong): byte; message 'decodeBytesForKey:returnedLength:';
+    function decodeBytesForKey_returnedLength(key: NSString; lengthp: NSUIntegerPointer): byte; message 'decodeBytesForKey:returnedLength:';
   end; external;
 
 {$endif}

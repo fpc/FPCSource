@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTABLECOLUMN_PAS_H}
@@ -87,14 +87,14 @@ type
     function headerCell: id; message 'headerCell';
     procedure setDataCell(cell: NSCell); message 'setDataCell:';
     function dataCell: id; message 'dataCell';
-    function dataCellForRow(row: clong): id; message 'dataCellForRow:';
+    function dataCellForRow(row: NSInteger): id; message 'dataCellForRow:';
     procedure setEditable(flag: Boolean); message 'setEditable:';
     function isEditable: Boolean; message 'isEditable';
     procedure sizeToFit; message 'sizeToFit';
     procedure setSortDescriptorPrototype(sortDescriptor: NSSortDescriptor); message 'setSortDescriptorPrototype:';
     function sortDescriptorPrototype: NSSortDescriptor; message 'sortDescriptorPrototype';
-    procedure setResizingMask(resizingMask_: culong); message 'setResizingMask:';
-    function resizingMask: culong; message 'resizingMask';
+    procedure setResizingMask(resizingMask_: NSUInteger); message 'setResizingMask:';
+    function resizingMask: NSUInteger; message 'resizingMask';
     procedure setHeaderToolTip(string_: NSString); message 'setHeaderToolTip:';
     function headerToolTip: NSString; message 'headerToolTip';
     function isHidden: Boolean; message 'isHidden';

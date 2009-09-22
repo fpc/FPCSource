@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSUserDefaults.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSUSERDEFAULTS_PAS_H}
@@ -13,13 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSUSERDEFAULTS_PAS_T}
 {$define NSUSERDEFAULTS_PAS_T}
-
-{ CFString constants }
-var
-  NSGlobalDomain: CFStringRef; external name '_NSGlobalDomain';
-  NSArgumentDomain: CFStringRef; external name '_NSArgumentDomain';
-  NSRegistrationDomain: CFStringRef; external name '_NSRegistrationDomain';
-  NSUserDefaultsDidChangeNotification: CFStringRef; external name '_NSUserDefaultsDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -42,6 +35,13 @@ var
 {$ifndef NSUSERDEFAULTS_PAS_T}
 {$define NSUSERDEFAULTS_PAS_T}
 
+{ External string constants }
+var
+  NSGlobalDomain: NSString; external name '_NSGlobalDomain';
+  NSArgumentDomain: NSString; external name '_NSArgumentDomain';
+  NSRegistrationDomain: NSString; external name '_NSRegistrationDomain';
+  NSUserDefaultsDidChangeNotification: NSString; external name '_NSUserDefaultsDidChangeNotification';
+
 {$endif}
 {$endif}
 
@@ -58,7 +58,7 @@ var
   NSUserDefaults = objcclass(NSObject)
   private
     __private: id;
-    __reserved: Pointer;
+        _reserved: array[0..3] of Pointer;
     
   public
     class function alloc: NSUserDefaults; message 'alloc';
@@ -75,11 +75,11 @@ var
     function dictionaryForKey(defaultName: NSString): NSDictionary; message 'dictionaryForKey:';
     function dataForKey(defaultName: NSString): NSData; message 'dataForKey:';
     function stringArrayForKey(defaultName: NSString): NSArray; message 'stringArrayForKey:';
-    function integerForKey(defaultName: NSString): clong; message 'integerForKey:';
+    function integerForKey(defaultName: NSString): NSInteger; message 'integerForKey:';
     function floatForKey(defaultName: NSString): single; message 'floatForKey:';
     function doubleForKey(defaultName: NSString): double; message 'doubleForKey:';
     function boolForKey(defaultName: NSString): Boolean; message 'boolForKey:';
-    procedure setInteger_forKey(value: clong; defaultName: NSString); message 'setInteger:forKey:';
+    procedure setInteger_forKey(value: NSInteger; defaultName: NSString); message 'setInteger:forKey:';
     procedure setFloat_forKey(value: single; defaultName: NSString); message 'setFloat:forKey:';
     procedure setDouble_forKey(value: double; defaultName: NSString); message 'setDouble:forKey:';
     procedure setBool_forKey(value: Boolean; defaultName: NSString); message 'setBool:forKey:';

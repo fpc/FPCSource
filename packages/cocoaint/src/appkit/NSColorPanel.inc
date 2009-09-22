@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLORPANEL_PAS_H}
@@ -16,7 +16,7 @@ type
 
 { Types }
 type
-  NSColorPanelMode = clong;
+  NSColorPanelMode = NSInteger;
 
 { Constants }
 
@@ -42,10 +42,6 @@ const
   NSColorPanelCrayonModeMask = $00000080;
   NSColorPanelAllModesMask = $0000ffff;
 
-{ CFString constants }
-var
-  NSColorPanelColorDidChangeNotification: CFStringRef; external name '_NSColorPanelColorDidChangeNotification';
-
 {$endif}
 {$endif}
 
@@ -66,6 +62,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCOLORPANEL_PAS_T}
 {$define NSCOLORPANEL_PAS_T}
+
+{ External string constants }
+var
+  NSColorPanelColorDidChangeNotification: NSString; external name '_NSColorPanelColorDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -120,7 +120,7 @@ var
     class function sharedColorPanel: NSColorPanel; message 'sharedColorPanel';
     class function sharedColorPanelExists: Boolean; message 'sharedColorPanelExists';
     class function dragColor_withEvent_fromView(color_: NSColor; theEvent: NSEvent; sourceView: NSView): Boolean; message 'dragColor:withEvent:fromView:';
-    class procedure setPickerMask(mask: culong); message 'setPickerMask:';
+    class procedure setPickerMask(mask: NSUInteger); message 'setPickerMask:';
     class procedure setPickerMode(mode_: NSColorPanelMode); message 'setPickerMode:';
     procedure setAccessoryView(aView: NSView); message 'setAccessoryView:';
     function accessoryView: NSView; message 'accessoryView';

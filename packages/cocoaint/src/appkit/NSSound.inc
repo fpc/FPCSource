@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSound.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSOUND_PAS_H}
@@ -13,10 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSSOUND_PAS_T}
 {$define NSSOUND_PAS_T}
-
-{ CFString constants }
-var
-  NSSoundPboardType: CFStringRef; external name '_NSSoundPboardType';
 
 {$endif}
 {$endif}
@@ -39,6 +35,10 @@ var
 {$ifndef NSSOUND_PAS_T}
 {$define NSSOUND_PAS_T}
 
+{ External string constants }
+var
+  NSSoundPboardType: NSString; external name '_NSSoundPboardType';
+
 {$endif}
 {$endif}
 
@@ -56,8 +56,8 @@ var
   private
     __delegate: id;
     __info: id;
-    __reserved: id;
-    __sFlags: culong;
+        _reserved: array[0..5] of id;
+    __sFlags: NSUInteger;
     
   public
     class function alloc: NSSound; message 'alloc';

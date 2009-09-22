@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPredicateEditor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPREDICATEEDITOR_PAS_H}
@@ -59,7 +59,7 @@ type
         settingValue: 0..1;
         reserved: 0..((1 shl 31)-1);
       end;
-    __predicateEditorReserved: id;
+        _predicateEditorReserved: array[0..2] of id;
     
   public
     class function alloc: NSPredicateEditor; message 'alloc';

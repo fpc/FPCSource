@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPasteboard.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPASTEBOARD_PAS_H}
@@ -13,29 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSPASTEBOARD_PAS_T}
 {$define NSPASTEBOARD_PAS_T}
-
-{ CFString constants }
-var
-  NSStringPboardType: CFStringRef; external name '_NSStringPboardType';
-  NSFilenamesPboardType: CFStringRef; external name '_NSFilenamesPboardType';
-  NSPostScriptPboardType: CFStringRef; external name '_NSPostScriptPboardType';
-  NSTIFFPboardType: CFStringRef; external name '_NSTIFFPboardType';
-  NSRTFPboardType: CFStringRef; external name '_NSRTFPboardType';
-  NSTabularTextPboardType: CFStringRef; external name '_NSTabularTextPboardType';
-  NSFontPboardType: CFStringRef; external name '_NSFontPboardType';
-  NSRulerPboardType: CFStringRef; external name '_NSRulerPboardType';
-  NSFileContentsPboardType: CFStringRef; external name '_NSFileContentsPboardType';
-  NSColorPboardType: CFStringRef; external name '_NSColorPboardType';
-  NSRTFDPboardType: CFStringRef; external name '_NSRTFDPboardType';
-  NSHTMLPboardType: CFStringRef; external name '_NSHTMLPboardType';
-  NSPICTPboardType: CFStringRef; external name '_NSPICTPboardType';
-  NSURLPboardType: CFStringRef; external name '_NSURLPboardType';
-  NSPDFPboardType: CFStringRef; external name '_NSPDFPboardType';
-  NSGeneralPboard: CFStringRef; external name '_NSGeneralPboard';
-  NSFontPboard: CFStringRef; external name '_NSFontPboard';
-  NSRulerPboard: CFStringRef; external name '_NSRulerPboard';
-  NSFindPboard: CFStringRef; external name '_NSFindPboard';
-  NSDragPboard: CFStringRef; external name '_NSDragPboard';
 
 {$endif}
 {$endif}
@@ -52,10 +29,10 @@ var
 {$define NSPASTEBOARD_PAS_F}
 
 { Functions }
-function NSCreateFilenamePboardType(var fileType: NSString): NSString; cdecl; external name 'NSCreateFilenamePboardType';
-function NSCreateFileContentsPboardType(var fileType: NSString): NSString; cdecl; external name 'NSCreateFileContentsPboardType';
-function NSGetFileType(var pboardType: NSString): NSString; cdecl; external name 'NSGetFileType';
-function NSGetFileTypes(var pboardTypes: NSArray): NSArray; cdecl; external name 'NSGetFileTypes';
+function NSCreateFilenamePboardType(fileTypePointer: NSString): NSString; cdecl; external name 'NSCreateFilenamePboardType';
+function NSCreateFileContentsPboardType(fileTypePointer: NSString): NSString; cdecl; external name 'NSCreateFileContentsPboardType';
+function NSGetFileType(pboardTypePointer: NSString): NSString; cdecl; external name 'NSGetFileType';
+function NSGetFileTypes(pboardTypesPointer: NSArray): NSArray; cdecl; external name 'NSGetFileTypes';
 
 {$endif}
 {$endif}
@@ -63,6 +40,29 @@ function NSGetFileTypes(var pboardTypes: NSArray): NSArray; cdecl; external name
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSPASTEBOARD_PAS_T}
 {$define NSPASTEBOARD_PAS_T}
+
+{ External string constants }
+var
+  NSStringPboardType: NSString; external name '_NSStringPboardType';
+  NSFilenamesPboardType: NSString; external name '_NSFilenamesPboardType';
+  NSPostScriptPboardType: NSString; external name '_NSPostScriptPboardType';
+  NSTIFFPboardType: NSString; external name '_NSTIFFPboardType';
+  NSRTFPboardType: NSString; external name '_NSRTFPboardType';
+  NSTabularTextPboardType: NSString; external name '_NSTabularTextPboardType';
+  NSFontPboardType: NSString; external name '_NSFontPboardType';
+  NSRulerPboardType: NSString; external name '_NSRulerPboardType';
+  NSFileContentsPboardType: NSString; external name '_NSFileContentsPboardType';
+  NSColorPboardType: NSString; external name '_NSColorPboardType';
+  NSRTFDPboardType: NSString; external name '_NSRTFDPboardType';
+  NSHTMLPboardType: NSString; external name '_NSHTMLPboardType';
+  NSPICTPboardType: NSString; external name '_NSPICTPboardType';
+  NSURLPboardType: NSString; external name '_NSURLPboardType';
+  NSPDFPboardType: NSString; external name '_NSPDFPboardType';
+  NSGeneralPboard: NSString; external name '_NSGeneralPboard';
+  NSFontPboard: NSString; external name '_NSFontPboard';
+  NSRulerPboard: NSString; external name '_NSRulerPboard';
+  NSFindPboard: NSString; external name '_NSFindPboard';
+  NSDragPboard: NSString; external name '_NSDragPboard';
 
 {$endif}
 {$endif}
@@ -86,7 +86,7 @@ function NSGetFileTypes(var pboardTypes: NSArray): NSArray; cdecl; external name
     __cachedTypeNames: NSArray;
     __promiseTypeNamesByIdentifier: NSMutableDictionary;
     __support: id;
-    __reserved: Pointer;
+        _reserved: array[0..3] of Pointer;
     
   public
     class function alloc: NSPasteboard; message 'alloc';
@@ -100,9 +100,9 @@ function NSGetFileTypes(var pboardTypes: NSArray): NSArray; cdecl; external name
     class function pasteboardByFilteringTypesInPasteboard(pboard: NSPasteboard): NSPasteboard; message 'pasteboardByFilteringTypesInPasteboard:';
     function name: NSString; message 'name';
     procedure releaseGlobally; message 'releaseGlobally';
-    function declareTypes_owner(newTypes: NSArray; newOwner: id): clong; message 'declareTypes:owner:';
-    function addTypes_owner(newTypes: NSArray; newOwner: id): clong; message 'addTypes:owner:';
-    function changeCount: clong; message 'changeCount';
+    function declareTypes_owner(newTypes: NSArray; newOwner: id): NSInteger; message 'declareTypes:owner:';
+    function addTypes_owner(newTypes: NSArray; newOwner: id): NSInteger; message 'addTypes:owner:';
+    function changeCount: NSInteger; message 'changeCount';
     function types: NSArray; message 'types';
     function availableTypeFromArray(types_: NSArray): NSString; message 'availableTypeFromArray:';
     function setData_forType(data: NSData; dataType: NSString): Boolean; message 'setData:forType:';

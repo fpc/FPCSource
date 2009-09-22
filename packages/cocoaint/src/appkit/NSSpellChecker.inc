@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpellChecker.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSPELLCHECKER_PAS_H}
@@ -86,22 +86,22 @@ type
 
     class function sharedSpellChecker: NSSpellChecker; message 'sharedSpellChecker';
     class function sharedSpellCheckerExists: Boolean; message 'sharedSpellCheckerExists';
-    class function uniqueSpellDocumentTag: clong; message 'uniqueSpellDocumentTag';
-    function checkSpellingOfString_startingAt_language_wrap_inSpellDocumentWithTag_wordCount(stringToCheck: NSString; startingOffset: clong; language_: NSString; wrapFlag: Boolean; tag: clong; var wordCount: clong): NSRange; message 'checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:';
-    function checkSpellingOfString_startingAt(stringToCheck: NSString; startingOffset: clong): NSRange; message 'checkSpellingOfString:startingAt:';
-    function countWordsInString_language(stringToCount: NSString; language_: NSString): clong; message 'countWordsInString:language:';
-    function checkGrammarOfString_startingAt_language_wrap_inSpellDocumentWithTag_details(stringToCheck: NSString; startingOffset: clong; language_: NSString; wrapFlag: Boolean; tag: clong; var details: NSArray): NSRange; message 'checkGrammarOfString:startingAt:language:wrap:inSpellDocumentWithTag:details:';
+    class function uniqueSpellDocumentTag: NSInteger; message 'uniqueSpellDocumentTag';
+    function checkSpellingOfString_startingAt_language_wrap_inSpellDocumentWithTag_wordCount(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: Boolean; tag: NSInteger; wordCount: NSIntegerPointer): NSRange; message 'checkSpellingOfString:startingAt:language:wrap:inSpellDocumentWithTag:wordCount:';
+    function checkSpellingOfString_startingAt(stringToCheck: NSString; startingOffset: NSInteger): NSRange; message 'checkSpellingOfString:startingAt:';
+    function countWordsInString_language(stringToCount: NSString; language_: NSString): NSInteger; message 'countWordsInString:language:';
+    function checkGrammarOfString_startingAt_language_wrap_inSpellDocumentWithTag_details(stringToCheck: NSString; startingOffset: NSInteger; language_: NSString; wrapFlag: Boolean; tag: NSInteger; details: NSArrayPointer): NSRange; message 'checkGrammarOfString:startingAt:language:wrap:inSpellDocumentWithTag:details:';
     procedure updateSpellingPanelWithMisspelledWord(word: NSString); message 'updateSpellingPanelWithMisspelledWord:';
     procedure updateSpellingPanelWithGrammarString_detail(string_: NSString; detail: NSDictionary); message 'updateSpellingPanelWithGrammarString:detail:';
     function spellingPanel: NSPanel; message 'spellingPanel';
     function accessoryView: NSView; message 'accessoryView';
     procedure setAccessoryView(aView: NSView); message 'setAccessoryView:';
-    procedure ignoreWord_inSpellDocumentWithTag(wordToIgnore: NSString; tag: clong); message 'ignoreWord:inSpellDocumentWithTag:';
-    function ignoredWordsInSpellDocumentWithTag(tag: clong): NSArray; message 'ignoredWordsInSpellDocumentWithTag:';
-    procedure setIgnoredWords_inSpellDocumentWithTag(words: NSArray; tag: clong); message 'setIgnoredWords:inSpellDocumentWithTag:';
+    procedure ignoreWord_inSpellDocumentWithTag(wordToIgnore: NSString; tag: NSInteger); message 'ignoreWord:inSpellDocumentWithTag:';
+    function ignoredWordsInSpellDocumentWithTag(tag: NSInteger): NSArray; message 'ignoredWordsInSpellDocumentWithTag:';
+    procedure setIgnoredWords_inSpellDocumentWithTag(words: NSArray; tag: NSInteger); message 'setIgnoredWords:inSpellDocumentWithTag:';
     function guessesForWord(word: NSString): NSArray; message 'guessesForWord:';
-    function completionsForPartialWordRange_inString_language_inSpellDocumentWithTag(range: NSRange; string_: NSString; language_: NSString; tag: clong): NSArray; message 'completionsForPartialWordRange:inString:language:inSpellDocumentWithTag:';
-    procedure closeSpellDocumentWithTag(tag: clong); message 'closeSpellDocumentWithTag:';
+    function completionsForPartialWordRange_inString_language_inSpellDocumentWithTag(range: NSRange; string_: NSString; language_: NSString; tag: NSInteger): NSArray; message 'completionsForPartialWordRange:inString:language:inSpellDocumentWithTag:';
+    procedure closeSpellDocumentWithTag(tag: NSInteger); message 'closeSpellDocumentWithTag:';
     function language: NSString; message 'language';
     function setLanguage(language_: NSString): Boolean; message 'setLanguage:';
     function availableLanguages: NSArray; message 'availableLanguages';

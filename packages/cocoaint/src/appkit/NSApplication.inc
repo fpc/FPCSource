@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSApplication.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSAPPLICATION_PAS_H}
@@ -27,25 +27,6 @@ const
   NSAppKitVersionNumber10_3_7 = 743.33;
   NSAppKitVersionNumber10_3_9 = 743.36;
   NSAppKitVersionNumber10_4 = 824;
-
-{ CFString constants }
-var
-  NSModalPanelRunLoopMode: CFStringRef; external name '_NSModalPanelRunLoopMode';
-  NSEventTrackingRunLoopMode: CFStringRef; external name '_NSEventTrackingRunLoopMode';
-  NSApplicationDidBecomeActiveNotification: CFStringRef; external name '_NSApplicationDidBecomeActiveNotification';
-  NSApplicationDidHideNotification: CFStringRef; external name '_NSApplicationDidHideNotification';
-  NSApplicationDidFinishLaunchingNotification: CFStringRef; external name '_NSApplicationDidFinishLaunchingNotification';
-  NSApplicationDidResignActiveNotification: CFStringRef; external name '_NSApplicationDidResignActiveNotification';
-  NSApplicationDidUnhideNotification: CFStringRef; external name '_NSApplicationDidUnhideNotification';
-  NSApplicationDidUpdateNotification: CFStringRef; external name '_NSApplicationDidUpdateNotification';
-  NSApplicationWillBecomeActiveNotification: CFStringRef; external name '_NSApplicationWillBecomeActiveNotification';
-  NSApplicationWillHideNotification: CFStringRef; external name '_NSApplicationWillHideNotification';
-  NSApplicationWillFinishLaunchingNotification: CFStringRef; external name '_NSApplicationWillFinishLaunchingNotification';
-  NSApplicationWillResignActiveNotification: CFStringRef; external name '_NSApplicationWillResignActiveNotification';
-  NSApplicationWillUnhideNotification: CFStringRef; external name '_NSApplicationWillUnhideNotification';
-  NSApplicationWillUpdateNotification: CFStringRef; external name '_NSApplicationWillUpdateNotification';
-  NSApplicationWillTerminateNotification: CFStringRef; external name '_NSApplicationWillTerminateNotification';
-  NSApplicationDidChangeScreenParametersNotification: CFStringRef; external name '_NSApplicationDidChangeScreenParametersNotification';
 
 { Constants }
 
@@ -77,10 +58,10 @@ type
   NSModalSession = Pointer;
   NSThreadPrivate = Pointer;
   _NSThreadPrivate = NSThreadPrivate;
-  NSRequestUserAttentionType = culong;
-  NSApplicationDelegateReply = culong;
-  NSApplicationTerminateReply = culong;
-  NSApplicationPrintReply = culong;
+  NSRequestUserAttentionType = NSUInteger;
+  NSApplicationDelegateReply = NSUInteger;
+  NSApplicationTerminateReply = NSUInteger;
+  NSApplicationPrintReply = NSUInteger;
 
 {$endif}
 {$endif}
@@ -97,14 +78,14 @@ type
 {$define NSAPPLICATION_PAS_F}
 
 { Functions }
-function NSApplicationMain(argc: cint; var argv: Pointer {array of char}): cint; cdecl; external name 'NSApplicationMain';
+function NSApplicationMain(argc: cint; argvPointer: Pointer {array of char}): cint; cdecl; external name 'NSApplicationMain';
 function NSApplicationLoad: Boolean; cdecl; external name 'NSApplicationLoad';
-function NSShowsServicesMenuItem(var_: NSString): Boolean; cdecl; external name 'NSShowsServicesMenuItem';
-function NSSetShowsServicesMenuItem(var_: NSString; enabled: Boolean): clong; cdecl; external name 'NSSetShowsServicesMenuItem';
+function NSShowsServicesMenuItem(Pointer_: NSString): Boolean; cdecl; external name 'NSShowsServicesMenuItem';
+function NSSetShowsServicesMenuItem(Pointer_: NSString; enabled: Boolean): NSInteger; cdecl; external name 'NSSetShowsServicesMenuItem';
 procedure NSUpdateDynamicServices; cdecl; external name 'NSUpdateDynamicServices';
-function NSPerformService(var itemName: NSString; var pboard: NSPasteboard): Boolean; cdecl; external name 'NSPerformService';
-procedure NSRegisterServicesProvider(provider: id; var name: NSString); cdecl; external name 'NSRegisterServicesProvider';
-procedure NSUnregisterServicesProvider(var name: NSString); cdecl; external name 'NSUnregisterServicesProvider';
+function NSPerformService(itemNamePointer: NSString; pboardPointer: NSPasteboard): Boolean; cdecl; external name 'NSPerformService';
+procedure NSRegisterServicesProvider(provider: id; namePointer: NSString); cdecl; external name 'NSRegisterServicesProvider';
+procedure NSUnregisterServicesProvider(namePointer: NSString); cdecl; external name 'NSUnregisterServicesProvider';
 
 {$endif}
 {$endif}
@@ -116,6 +97,25 @@ procedure NSUnregisterServicesProvider(var name: NSString); cdecl; external name
 { External symbols }
 var
   NSAppKitVersionNumber: double; external name '_NSAppKitVersionNumber';
+
+{ External string constants }
+var
+  NSModalPanelRunLoopMode: NSString; external name '_NSModalPanelRunLoopMode';
+  NSEventTrackingRunLoopMode: NSString; external name '_NSEventTrackingRunLoopMode';
+  NSApplicationDidBecomeActiveNotification: NSString; external name '_NSApplicationDidBecomeActiveNotification';
+  NSApplicationDidHideNotification: NSString; external name '_NSApplicationDidHideNotification';
+  NSApplicationDidFinishLaunchingNotification: NSString; external name '_NSApplicationDidFinishLaunchingNotification';
+  NSApplicationDidResignActiveNotification: NSString; external name '_NSApplicationDidResignActiveNotification';
+  NSApplicationDidUnhideNotification: NSString; external name '_NSApplicationDidUnhideNotification';
+  NSApplicationDidUpdateNotification: NSString; external name '_NSApplicationDidUpdateNotification';
+  NSApplicationWillBecomeActiveNotification: NSString; external name '_NSApplicationWillBecomeActiveNotification';
+  NSApplicationWillHideNotification: NSString; external name '_NSApplicationWillHideNotification';
+  NSApplicationWillFinishLaunchingNotification: NSString; external name '_NSApplicationWillFinishLaunchingNotification';
+  NSApplicationWillResignActiveNotification: NSString; external name '_NSApplicationWillResignActiveNotification';
+  NSApplicationWillUnhideNotification: NSString; external name '_NSApplicationWillUnhideNotification';
+  NSApplicationWillUpdateNotification: NSString; external name '_NSApplicationWillUpdateNotification';
+  NSApplicationWillTerminateNotification: NSString; external name '_NSApplicationWillTerminateNotification';
+  NSApplicationDidChangeScreenParametersNotification: NSString; external name '_NSApplicationDidChangeScreenParametersNotification';
 
 {$endif}
 {$endif}
@@ -139,7 +139,7 @@ var
     __delegate: id;
     __hiddenList: id;
     __hiddenCount: cint;
-    __context: clong;
+    __context: NSInteger;
     __appleEventSuspensionID: Pointer;
     __previousKeyWindow: id; {garbage collector: __weak }
     __unusedApp: cshort;
@@ -188,7 +188,7 @@ var
     procedure hide(sender: id); message 'hide:';
     procedure unhide(sender: id); message 'unhide:';
     procedure unhideWithoutActivation; message 'unhideWithoutActivation';
-    function windowWithWindowNumber(windowNum: clong): NSWindow; message 'windowWithWindowNumber:';
+    function windowWithWindowNumber(windowNum: NSInteger): NSWindow; message 'windowWithWindowNumber:';
     function mainWindow: NSWindow; message 'mainWindow';
     function keyWindow: NSWindow; message 'keyWindow';
     function isActive: Boolean; message 'isActive';
@@ -200,25 +200,25 @@ var
     procedure unhideAllApplications(sender: id); message 'unhideAllApplications:';
     procedure finishLaunching; message 'finishLaunching';
     procedure run; message 'run';
-    function runModalForWindow(theWindow: NSWindow): clong; message 'runModalForWindow:';
+    function runModalForWindow(theWindow: NSWindow): NSInteger; message 'runModalForWindow:';
     procedure stop(sender: id); message 'stop:';
     procedure stopModal; message 'stopModal';
-    procedure stopModalWithCode(returnCode: clong); message 'stopModalWithCode:';
+    procedure stopModalWithCode(returnCode: NSInteger); message 'stopModalWithCode:';
     procedure abortModal; message 'abortModal';
     function modalWindow: NSWindow; message 'modalWindow';
     function beginModalSessionForWindow(theWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:';
-    function runModalSession(session: NSModalSession): clong; message 'runModalSession:';
+    function runModalSession(session: NSModalSession): NSInteger; message 'runModalSession:';
     procedure endModalSession(session: NSModalSession); message 'endModalSession:';
     procedure terminate(sender: id); message 'terminate:';
-    function requestUserAttention(requestType: NSRequestUserAttentionType): clong; message 'requestUserAttention:';
-    procedure cancelUserAttentionRequest(request: clong); message 'cancelUserAttentionRequest:';
+    function requestUserAttention(requestType: NSRequestUserAttentionType): NSInteger; message 'requestUserAttention:';
+    procedure cancelUserAttentionRequest(request: NSInteger); message 'cancelUserAttentionRequest:';
     procedure beginSheet_modalForWindow_modalDelegate_didEndSelector_contextInfo(sheet: NSWindow; docWindow: NSWindow; modalDelegate: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheet:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure endSheet(sheet: NSWindow); message 'endSheet:';
-    procedure endSheet_returnCode(sheet: NSWindow; returnCode: clong); message 'endSheet:returnCode:';
-    function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): clong; message 'runModalForWindow:relativeToWindow:';
+    procedure endSheet_returnCode(sheet: NSWindow; returnCode: NSInteger); message 'endSheet:returnCode:';
+    function runModalForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSInteger; message 'runModalForWindow:relativeToWindow:';
     function beginModalSessionForWindow_relativeToWindow(theWindow: NSWindow; docWindow: NSWindow): NSModalSession; message 'beginModalSessionForWindow:relativeToWindow:';
-    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: culong; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
-    procedure discardEventsMatchingMask_beforeEvent(mask: culong; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
+    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: NSUInteger; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
+    procedure discardEventsMatchingMask_beforeEvent(mask: NSUInteger; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
     procedure postEvent_atStart(event: NSEvent; flag: Boolean); message 'postEvent:atStart:';
     function currentEvent: NSEvent; message 'currentEvent';
     procedure sendEvent(theEvent: NSEvent); message 'sendEvent:';

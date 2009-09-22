@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSIndexSet.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSINDEXSET_PAS_H}
@@ -72,23 +72,23 @@ type
     class function alloc: NSIndexSet; message 'alloc';
 
     class function indexSet: id; message 'indexSet';
-    class function indexSetWithIndex(value: culong): id; message 'indexSetWithIndex:';
+    class function indexSetWithIndex(value: NSUInteger): id; message 'indexSetWithIndex:';
     class function indexSetWithIndexesInRange(range: NSRange): id; message 'indexSetWithIndexesInRange:';
     function init: id; message 'init';
-    function initWithIndex(value: culong): id; message 'initWithIndex:';
+    function initWithIndex(value: NSUInteger): id; message 'initWithIndex:';
     function initWithIndexesInRange(range: NSRange): id; message 'initWithIndexesInRange:';
     function initWithIndexSet(indexSet_: NSIndexSet): id; message 'initWithIndexSet:';
     function isEqualToIndexSet(indexSet_: NSIndexSet): Boolean; message 'isEqualToIndexSet:';
-    function count: culong; message 'count';
-    function firstIndex: culong; message 'firstIndex';
-    function lastIndex: culong; message 'lastIndex';
-    function indexGreaterThanIndex(value: culong): culong; message 'indexGreaterThanIndex:';
-    function indexLessThanIndex(value: culong): culong; message 'indexLessThanIndex:';
-    function indexGreaterThanOrEqualToIndex(value: culong): culong; message 'indexGreaterThanOrEqualToIndex:';
-    function indexLessThanOrEqualToIndex(value: culong): culong; message 'indexLessThanOrEqualToIndex:';
-    function getIndexes_maxCount_inIndexRange(var indexBuffer: culong; bufferSize: culong; range: NSRangePointer): culong; message 'getIndexes:maxCount:inIndexRange:';
-    function countOfIndexesInRange(range: NSRange): culong; message 'countOfIndexesInRange:';
-    function containsIndex(value: culong): Boolean; message 'containsIndex:';
+    function count: NSUInteger; message 'count';
+    function firstIndex: NSUInteger; message 'firstIndex';
+    function lastIndex: NSUInteger; message 'lastIndex';
+    function indexGreaterThanIndex(value: NSUInteger): NSUInteger; message 'indexGreaterThanIndex:';
+    function indexLessThanIndex(value: NSUInteger): NSUInteger; message 'indexLessThanIndex:';
+    function indexGreaterThanOrEqualToIndex(value: NSUInteger): NSUInteger; message 'indexGreaterThanOrEqualToIndex:';
+    function indexLessThanOrEqualToIndex(value: NSUInteger): NSUInteger; message 'indexLessThanOrEqualToIndex:';
+    function getIndexes_maxCount_inIndexRange(indexBuffer: NSUIntegerPointer; bufferSize: NSUInteger; range: NSRangePointer): NSUInteger; message 'getIndexes:maxCount:inIndexRange:';
+    function countOfIndexesInRange(range: NSRange): NSUInteger; message 'countOfIndexesInRange:';
+    function containsIndex(value: NSUInteger): Boolean; message 'containsIndex:';
     function containsIndexesInRange(range: NSRange): Boolean; message 'containsIndexesInRange:';
     function containsIndexes(indexSet_: NSIndexSet): Boolean; message 'containsIndexes:';
     function intersectsIndexesInRange(range: NSRange): Boolean; message 'intersectsIndexesInRange:';
@@ -105,11 +105,11 @@ type
     procedure addIndexes(indexSet_: NSIndexSet); message 'addIndexes:';
     procedure removeIndexes(indexSet_: NSIndexSet); message 'removeIndexes:';
     procedure removeAllIndexes; message 'removeAllIndexes';
-    procedure addIndex(value: culong); message 'addIndex:';
-    procedure removeIndex(value: culong); message 'removeIndex:';
+    procedure addIndex(value: NSUInteger); message 'addIndex:';
+    procedure removeIndex(value: NSUInteger); message 'removeIndex:';
     procedure addIndexesInRange(range: NSRange); message 'addIndexesInRange:';
     procedure removeIndexesInRange(range: NSRange); message 'removeIndexesInRange:';
-    procedure shiftIndexesStartingAtIndex_by(index: culong; delta: clong); message 'shiftIndexesStartingAtIndex:by:';
+    procedure shiftIndexesStartingAtIndex_by(index: NSUInteger; delta: NSInteger); message 'shiftIndexesStartingAtIndex:by:';
   end; external;
 
 {$endif}

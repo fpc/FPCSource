@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPort.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPORT_PAS_H}
@@ -20,10 +20,6 @@ type
 { Types }
 type
   NSSocketNativeHandle = cint;
-
-{ CFString constants }
-var
-  NSPortDidBecomeInvalidNotification: CFStringRef; external name '_NSPortDidBecomeInvalidNotification';
 
 { Constants }
 
@@ -53,6 +49,10 @@ const
 {$ifndef NSPORT_PAS_T}
 {$define NSPORT_PAS_T}
 
+{ External string constants }
+var
+  NSPortDidBecomeInvalidNotification: NSString; external name '_NSPortDidBecomeInvalidNotification';
+
 {$endif}
 {$endif}
 
@@ -74,7 +74,7 @@ const
   public
     class function alloc: NSPort; message 'alloc';
 
-    class function allocWithZone(var zone_: NSZone): id; message 'allocWithZone:';
+    class function allocWithZone(zone_: NSZonePointer): id; message 'allocWithZone:';
     class function port: NSPort; message 'port';
     procedure invalidate; message 'invalidate';
     function isValid: Boolean; message 'isValid';
@@ -82,9 +82,9 @@ const
     function delegate: id; message 'delegate';
     procedure scheduleInRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
-    function reservedSpaceLength: culong; message 'reservedSpaceLength';
-    function sendBeforeDate_components_from_reserved(limitDate: NSDate; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: culong): Boolean; message 'sendBeforeDate:components:from:reserved:';
-    function sendBeforeDate_msgid_components_from_reserved(limitDate: NSDate; msgID: culong; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: culong): Boolean; message 'sendBeforeDate:msgid:components:from:reserved:';
+    function reservedSpaceLength: NSUInteger; message 'reservedSpaceLength';
+    function sendBeforeDate_components_from_reserved(limitDate: NSDate; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): Boolean; message 'sendBeforeDate:components:from:reserved:';
+    function sendBeforeDate_msgid_components_from_reserved(limitDate: NSDate; msgID: NSUInteger; components: NSMutableArray; receivePort: NSPort; headerSpaceReserved: NSUInteger): Boolean; message 'sendBeforeDate:msgid:components:from:reserved:';
     procedure addConnection_toRunLoop_forMode(conn: NSConnection; runLoop: NSRunLoop; mode: NSString); message 'addConnection:toRunLoop:forMode:';
     procedure removeConnection_fromRunLoop_forMode(conn: NSConnection; runLoop: NSRunLoop; mode: NSString); message 'removeConnection:fromRunLoop:forMode:';
   end; external;
@@ -93,17 +93,17 @@ const
   NSMachPort = objcclass(NSPort)
   private
     __delegate: id;
-    __flags: culong;
+    __flags: NSUInteger;
     __machPort: cardinal;
-    __reserved: culong;
+    __reserved: NSUInteger;
     
   public
     class function alloc: NSMachPort; message 'alloc';
 
     class function portWithMachPort(machPort_: cardinal): NSPort; message 'portWithMachPort:';
     function initWithMachPort(machPort_: cardinal): id; message 'initWithMachPort:';
-    class function portWithMachPort_options(machPort_: cardinal; f: culong): NSPort; message 'portWithMachPort:options:';
-    function initWithMachPort_options(machPort_: cardinal; f: culong): id; message 'initWithMachPort:options:';
+    class function portWithMachPort_options(machPort_: cardinal; f: NSUInteger): NSPort; message 'portWithMachPort:options:';
+    function initWithMachPort_options(machPort_: cardinal; f: NSUInteger): id; message 'initWithMachPort:options:';
     function machPort: cardinal; message 'machPort';
     procedure scheduleInRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'scheduleInRunLoop:forMode:';
     procedure removeFromRunLoop_forMode(runLoop: NSRunLoop; mode: NSString); message 'removeFromRunLoop:forMode:';
@@ -129,9 +129,9 @@ const
     __signature: id;
     __delegate: id;
     __lock: id;
-    __maxSize: culong;
-    __maxSockets: culong;
-    __reserved: culong;
+    __maxSize: NSUInteger;
+    __maxSockets: NSUInteger;
+    __reserved: NSUInteger;
     
   public
     class function alloc: NSSocketPort; message 'alloc';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNotification.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSNOTIFICATION_PAS_H}
@@ -68,8 +68,8 @@ type
   NSNotificationCenter = objcclass(NSObject)
   private
     __impl: Pointer; {garbage collector: __strong }
-    __callback_block: Pointer;
-    __pad: Pointer;
+        _callback_block: array[0..3] of Pointer;
+        _pad: array[0..7] of Pointer;
     
   public
     class function alloc: NSNotificationCenter; message 'alloc';

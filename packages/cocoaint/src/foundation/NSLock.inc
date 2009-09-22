@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSLock.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSLOCK_PAS_H}
@@ -75,14 +75,14 @@ type
   public
     class function alloc: NSConditionLock; message 'alloc';
 
-    function initWithCondition(condition_: clong): id; message 'initWithCondition:';
-    function condition: clong; message 'condition';
-    procedure lockWhenCondition(condition_: clong); message 'lockWhenCondition:';
+    function initWithCondition(condition_: NSInteger): id; message 'initWithCondition:';
+    function condition: NSInteger; message 'condition';
+    procedure lockWhenCondition(condition_: NSInteger); message 'lockWhenCondition:';
     function tryLock: Boolean; message 'tryLock';
-    function tryLockWhenCondition(condition_: clong): Boolean; message 'tryLockWhenCondition:';
-    procedure unlockWithCondition(condition_: clong); message 'unlockWithCondition:';
+    function tryLockWhenCondition(condition_: NSInteger): Boolean; message 'tryLockWhenCondition:';
+    procedure unlockWithCondition(condition_: NSInteger); message 'unlockWithCondition:';
     function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
-    function lockWhenCondition_beforeDate(condition_: clong; limit: NSDate): Boolean; message 'lockWhenCondition:beforeDate:';
+    function lockWhenCondition_beforeDate(condition_: NSInteger; limit: NSDate): Boolean; message 'lockWhenCondition:beforeDate:';
     procedure setName(n: NSString); message 'setName:';
   end; external;
 

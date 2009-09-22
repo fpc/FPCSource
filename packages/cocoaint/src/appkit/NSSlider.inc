@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSlider.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSLIDER_PAS_H}
@@ -71,19 +71,19 @@ type
     function knobThickness: CGFloat; message 'knobThickness';
     procedure setImage(backgroundImage: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
-    function isVertical: clong; message 'isVertical';
+    function isVertical: NSInteger; message 'isVertical';
     function acceptsFirstMouse(theEvent: NSEvent): Boolean; message 'acceptsFirstMouse:';
 
     { Category: NSTickMarkSupport }
-    procedure setNumberOfTickMarks(count: clong); message 'setNumberOfTickMarks:';
-    function numberOfTickMarks: clong; message 'numberOfTickMarks';
+    procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
+    function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
     procedure setAllowsTickMarkValuesOnly(yorn: Boolean); message 'setAllowsTickMarkValuesOnly:';
     function allowsTickMarkValuesOnly: Boolean; message 'allowsTickMarkValuesOnly';
-    function tickMarkValueAtIndex(index: clong): double; message 'tickMarkValueAtIndex:';
-    function rectOfTickMarkAtIndex(index: clong): NSRect; message 'rectOfTickMarkAtIndex:';
-    function indexOfTickMarkAtPoint(point: NSPoint): clong; message 'indexOfTickMarkAtPoint:';
+    function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
+    function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
+    function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
     function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
   end; external;
 

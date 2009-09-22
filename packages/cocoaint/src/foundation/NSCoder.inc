@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCoder.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCODER_PAS_H}
@@ -29,7 +29,7 @@ type
 {$define NSCODER_PAS_F}
 
 { Functions }
-function NXReadNSObjectFromCoder(var decoder: NSCoder): NSObject; cdecl; external name 'NXReadNSObjectFromCoder';
+function NXReadNSObjectFromCoder(decoderPointer: NSCoder): NSObject; cdecl; external name 'NXReadNSObjectFromCoder';
 
 {$endif}
 {$endif}
@@ -60,7 +60,7 @@ function NXReadNSObjectFromCoder(var decoder: NSCoder): NSObject; cdecl; externa
     procedure encodeDataObject(data: NSData); message 'encodeDataObject:';
     procedure decodeValueOfObjCType_at(type_: PChar; data: Pointer); message 'decodeValueOfObjCType:at:';
     function decodeDataObject: NSData; message 'decodeDataObject';
-    function versionForClassName(className_: NSString): clong; message 'versionForClassName:';
+    function versionForClassName(className_: NSString): NSInteger; message 'versionForClassName:';
 
     { Category: NSExtendedCoder }
     procedure encodeObject(object_: id); message 'encodeObject:';
@@ -70,14 +70,14 @@ function NXReadNSObjectFromCoder(var decoder: NSCoder): NSObject; cdecl; externa
     procedure encodeByrefObject(anObject: id); message 'encodeByrefObject:';
     procedure encodeConditionalObject(object_: id); message 'encodeConditionalObject:';
     procedure encodeValuesOfObjCTypes(types: PChar); message 'encodeValuesOfObjCTypes:';
-    procedure encodeArrayOfObjCType_count_at(type_: PChar; count: culong; array_: Pointer); message 'encodeArrayOfObjCType:count:at:';
-    procedure encodeBytes_length(byteaddr: Pointer; length: culong); message 'encodeBytes:length:';
+    procedure encodeArrayOfObjCType_count_at(type_: PChar; count: NSUInteger; array_: Pointer); message 'encodeArrayOfObjCType:count:at:';
+    procedure encodeBytes_length(byteaddr: Pointer; length: NSUInteger); message 'encodeBytes:length:';
     function decodeObject: id; message 'decodeObject';
     function decodePropertyList: id; message 'decodePropertyList';
     procedure decodeValuesOfObjCTypes(types: PChar); message 'decodeValuesOfObjCTypes:';
-    procedure decodeArrayOfObjCType_count_at(itemType: PChar; count: culong; array_: Pointer); message 'decodeArrayOfObjCType:count:at:';
-    function decodeBytesWithReturnedLength(var lengthp: culong): Pointer; message 'decodeBytesWithReturnedLength:';
-    procedure setObjectZone(var zone_: NSZone); message 'setObjectZone:';
+    procedure decodeArrayOfObjCType_count_at(itemType: PChar; count: NSUInteger; array_: Pointer); message 'decodeArrayOfObjCType:count:at:';
+    function decodeBytesWithReturnedLength(lengthp: NSUIntegerPointer): Pointer; message 'decodeBytesWithReturnedLength:';
+    procedure setObjectZone(zone_: NSZonePointer); message 'setObjectZone:';
     function objectZone: NSZone; message 'objectZone';
     function systemVersion: cuint; message 'systemVersion';
     function allowsKeyedCoding: Boolean; message 'allowsKeyedCoding';
@@ -89,7 +89,7 @@ function NXReadNSObjectFromCoder(var decoder: NSCoder): NSObject; cdecl; externa
     procedure encodeInt64_forKey(intv: clonglong; key: NSString); message 'encodeInt64:forKey:';
     procedure encodeFloat_forKey(realv: single; key: NSString); message 'encodeFloat:forKey:';
     procedure encodeDouble_forKey(realv: double; key: NSString); message 'encodeDouble:forKey:';
-    procedure encodeBytes_length_forKey(var bytesp: byte; lenv: culong; key: NSString); message 'encodeBytes:length:forKey:';
+    procedure encodeBytes_length_forKey(bytesp: pbyte; lenv: NSUInteger; key: NSString); message 'encodeBytes:length:forKey:';
     function containsValueForKey(key: NSString): Boolean; message 'containsValueForKey:';
     function decodeObjectForKey(key: NSString): id; message 'decodeObjectForKey:';
     function decodeBoolForKey(key: NSString): Boolean; message 'decodeBoolForKey:';
@@ -98,9 +98,9 @@ function NXReadNSObjectFromCoder(var decoder: NSCoder): NSObject; cdecl; externa
     function decodeInt64ForKey(key: NSString): clonglong; message 'decodeInt64ForKey:';
     function decodeFloatForKey(key: NSString): single; message 'decodeFloatForKey:';
     function decodeDoubleForKey(key: NSString): double; message 'decodeDoubleForKey:';
-    function decodeBytesForKey_returnedLength(key: NSString; var lengthp: culong): byte; message 'decodeBytesForKey:returnedLength:';
-    procedure encodeInteger_forKey(intv: clong; key: NSString); message 'encodeInteger:forKey:';
-    function decodeIntegerForKey(key: NSString): clong; message 'decodeIntegerForKey:';
+    function decodeBytesForKey_returnedLength(key: NSString; lengthp: NSUIntegerPointer): byte; message 'decodeBytesForKey:returnedLength:';
+    procedure encodeInteger_forKey(intv: NSInteger; key: NSString); message 'encodeInteger:forKey:';
+    function decodeIntegerForKey(key: NSString): NSInteger; message 'decodeIntegerForKey:';
 
     { Category: NSTypedstreamCompatibility }
     procedure encodeNXObject(object_: id); message 'encodeNXObject:';

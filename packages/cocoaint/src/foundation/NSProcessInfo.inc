@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProcessInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPROCESSINFO_PAS_H}
@@ -78,11 +78,11 @@ const
     function processIdentifier: cint; message 'processIdentifier';
     procedure setProcessName(newName: NSString); message 'setProcessName:';
     function globallyUniqueString: NSString; message 'globallyUniqueString';
-    function operatingSystem: culong; message 'operatingSystem';
+    function operatingSystem: NSUInteger; message 'operatingSystem';
     function operatingSystemName: NSString; message 'operatingSystemName';
     function operatingSystemVersionString: NSString; message 'operatingSystemVersionString';
-    function processorCount: culong; message 'processorCount';
-    function activeProcessorCount: culong; message 'activeProcessorCount';
+    function processorCount: NSUInteger; message 'processorCount';
+    function activeProcessorCount: NSUInteger; message 'activeProcessorCount';
     function physicalMemory: culonglong; message 'physicalMemory';
   end; external;
 

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItemCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMENUITEMCELL_PAS_H}
@@ -89,7 +89,7 @@ type
     procedure drawTitleWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawTitleWithFrame:inView:';
     procedure drawKeyEquivalentWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawKeyEquivalentWithFrame:inView:';
     procedure drawBorderAndBackgroundWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawBorderAndBackgroundWithFrame:inView:';
-    function tag: clong; message 'tag';
+    function tag: NSInteger; message 'tag';
   end; external;
 
 {$endif}

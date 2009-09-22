@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSHelpManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSHELPMANAGER_PAS_H}
@@ -13,11 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSHELPMANAGER_PAS_T}
 {$define NSHELPMANAGER_PAS_T}
-
-{ CFString constants }
-var
-  NSContextHelpModeDidActivateNotification: CFStringRef; external name '_NSContextHelpModeDidActivateNotification';
-  NSContextHelpModeDidDeactivateNotification: CFStringRef; external name '_NSContextHelpModeDidDeactivateNotification';
 
 {$endif}
 {$endif}
@@ -39,6 +34,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSHELPMANAGER_PAS_T}
 {$define NSHELPMANAGER_PAS_T}
+
+{ External string constants }
+var
+  NSContextHelpModeDidActivateNotification: NSString; external name '_NSContextHelpModeDidActivateNotification';
+  NSContextHelpModeDidDeactivateNotification: NSString; external name '_NSContextHelpModeDidDeactivateNotification';
 
 {$endif}
 {$endif}

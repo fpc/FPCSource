@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCollectionView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLLECTIONVIEW_PAS_H}
@@ -52,7 +52,7 @@ type
 { NSCollectionViewItem }
   NSCollectionViewItem = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __reserved: Pointer;
+        _reserved: array[0..1] of Pointer;
     __archive: NSMutableData;
     __ownerView: NSCollectionView;
     __representedObject: id;
@@ -65,7 +65,7 @@ type
       end;
     __targetViewFrameRect: NSRect;
     __appliedViewFrameRect: NSRect;
-    __containerReferenceCounter: culong;
+    __containerReferenceCounter: NSUInteger;
     
   public
     class function alloc: NSCollectionViewItem; message 'alloc';
@@ -82,17 +82,17 @@ type
 { NSCollectionView }
   NSCollectionView = objcclass(NSView)
   private
-    __reserved: Pointer;
+        _reserved: array[0..8] of Pointer;
     __backgroundLayers: NSMutableArray;
     __content: NSArray;
     __selectionIndexes: NSMutableIndexSet;
     __itemPrototype: NSCollectionViewItem;
     __minGridSize: NSSize;
     __maxGridSize: NSSize;
-    __minGridRows: culong;
-    __maxGridRows: culong;
-    __minGridColumns: culong;
-    __maxGridColumns: culong;
+    __minGridRows: NSUInteger;
+    __maxGridRows: NSUInteger;
+    __minGridColumns: NSUInteger;
+    __maxGridColumns: NSUInteger;
     __backgroundColors: NSArray;
     __animationContainerFlags: bitpacked record
         _ignoreFrameSizeChanges: 0..1;
@@ -107,14 +107,14 @@ type
     __targetFrameSize: NSSize;
     __targetGridSize: NSSize;
     __targetUnfilledViewSpace: NSSize;
-    __targetNumberOfGridRows: culong;
-    __targetNumberOfGridColumns: culong;
+    __targetNumberOfGridRows: NSUInteger;
+    __targetNumberOfGridColumns: NSUInteger;
     __targetItems: NSMutableArray;
     __appliedFrameSize: NSSize;
     __appliedGridSize: NSSize;
     __appliedUnfilledViewSpace: NSSize;
-    __appliedNumberOfGridRows: culong;
-    __appliedNumberOfGridColumns: culong;
+    __appliedNumberOfGridRows: NSUInteger;
+    __appliedNumberOfGridColumns: NSUInteger;
     __appliedItems: NSMutableArray;
     __appliedItemsAsSet: NSMutableSet;
     __appliedRemovedItemsAsSet: NSMutableSet;
@@ -138,10 +138,10 @@ type
     function newItemForRepresentedObject(object_: id): NSCollectionViewItem; message 'newItemForRepresentedObject:';
     procedure setItemPrototype(prototype: NSCollectionViewItem); message 'setItemPrototype:';
     function itemPrototype: NSCollectionViewItem; message 'itemPrototype';
-    procedure setMaxNumberOfRows(number: culong); message 'setMaxNumberOfRows:';
-    function maxNumberOfRows: culong; message 'maxNumberOfRows';
-    procedure setMaxNumberOfColumns(number: culong); message 'setMaxNumberOfColumns:';
-    function maxNumberOfColumns: culong; message 'maxNumberOfColumns';
+    procedure setMaxNumberOfRows(number: NSUInteger); message 'setMaxNumberOfRows:';
+    function maxNumberOfRows: NSUInteger; message 'maxNumberOfRows';
+    procedure setMaxNumberOfColumns(number: NSUInteger); message 'setMaxNumberOfColumns:';
+    function maxNumberOfColumns: NSUInteger; message 'maxNumberOfColumns';
     procedure setMinItemSize(size: NSSize); message 'setMinItemSize:';
     function minItemSize: NSSize; message 'minItemSize';
     procedure setMaxItemSize(size: NSSize); message 'setMaxItemSize:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOPENPANEL_PAS_H}
@@ -50,7 +50,7 @@ type
 { NSOpenPanel }
   NSOpenPanel = objcclass(NSSavePanel)
   private
-    __reservedOpenPanel: char;
+        _reservedOpenPanel: array[0..3] of char;
     __privateOpenPanel: Pointer;
     
   public
@@ -71,8 +71,8 @@ type
     { Category: NSOpenPanelRuntime }
     procedure beginSheetForDirectory_file_types_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:types:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
     procedure beginForDirectory_file_types_modelessDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; fileTypes: NSArray; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginForDirectory:file:types:modelessDelegate:didEndSelector:contextInfo:';
-    function runModalForDirectory_file_types(path: NSString; name: NSString; fileTypes: NSArray): clong; message 'runModalForDirectory:file:types:';
-    function runModalForTypes(fileTypes: NSArray): clong; message 'runModalForTypes:';
+    function runModalForDirectory_file_types(path: NSString; name: NSString; fileTypes: NSArray): NSInteger; message 'runModalForDirectory:file:types:';
+    function runModalForTypes(fileTypes: NSArray): NSInteger; message 'runModalForTypes:';
   end; external;
 
 {$endif}

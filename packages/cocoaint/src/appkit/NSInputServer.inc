@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInputServer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSINPUTSERVER_PAS_H}
@@ -80,15 +80,15 @@ type
     procedure inputClientResignActive(sender: id); message 'inputClientResignActive:';
     procedure inputClientEnabled(sender: id); message 'inputClientEnabled:';
     procedure inputClientDisabled(sender: id); message 'inputClientDisabled:';
-    procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: clong); message 'activeConversationWillChange:fromOldConversation:';
-    procedure activeConversationChanged_toNewConversation(sender: id; newConversation: clong); message 'activeConversationChanged:toNewConversation:';
+    procedure activeConversationWillChange_fromOldConversation(sender: id; oldConversation: NSInteger); message 'activeConversationWillChange:fromOldConversation:';
+    procedure activeConversationChanged_toNewConversation(sender: id; newConversation: NSInteger); message 'activeConversationChanged:toNewConversation:';
   end; external name 'NSInputServiceProvider';
   
 { NSInputServerMouseTracker Protocol }
   NSInputServerMouseTrackerProtocol = objcprotocol
-    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: culong; thePoint: NSPoint; theFlags: culong; sender: id): Boolean; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:';
-    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: culong; thePoint: NSPoint; theFlags: culong; sender: id): Boolean; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:';
-    procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: culong; thePoint: NSPoint; theFlags: culong; sender: id); message 'mouseUpOnCharacterIndex:atCoordinate:withModifier:client:';
+    function mouseDownOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDownOnCharacterIndex:atCoordinate:withModifier:client:';
+    function mouseDraggedOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id): Boolean; message 'mouseDraggedOnCharacterIndex:atCoordinate:withModifier:client:';
+    procedure mouseUpOnCharacterIndex_atCoordinate_withModifier_client(theIndex: NSUInteger; thePoint: NSPoint; theFlags: NSUInteger; sender: id); message 'mouseUpOnCharacterIndex:atCoordinate:withModifier:client:';
   end; external name 'NSInputServerMouseTracker';
 {$endif}
 {$endif}

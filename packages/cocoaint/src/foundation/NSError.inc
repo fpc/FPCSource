@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSError.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSERROR_PAS_H}
@@ -51,17 +51,17 @@ type
   NSError = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
     __reserved: Pointer;
-    __code: clong;
+    __code: NSInteger;
     __domain: NSString;
     __userInfo: NSDictionary;
     
   public
     class function alloc: NSError; message 'alloc';
 
-    function initWithDomain_code_userInfo(domain_: NSString; code_: clong; dict: NSDictionary): id; message 'initWithDomain:code:userInfo:';
-    class function errorWithDomain_code_userInfo(domain_: NSString; code_: clong; dict: NSDictionary): id; message 'errorWithDomain:code:userInfo:';
+    function initWithDomain_code_userInfo(domain_: NSString; code_: NSInteger; dict: NSDictionary): id; message 'initWithDomain:code:userInfo:';
+    class function errorWithDomain_code_userInfo(domain_: NSString; code_: NSInteger; dict: NSDictionary): id; message 'errorWithDomain:code:userInfo:';
     function domain: NSString; message 'domain';
-    function code: clong; message 'code';
+    function code: NSInteger; message 'code';
     function userInfo: NSDictionary; message 'userInfo';
     function localizedDescription: NSString; message 'localizedDescription';
     function localizedFailureReason: NSString; message 'localizedFailureReason';

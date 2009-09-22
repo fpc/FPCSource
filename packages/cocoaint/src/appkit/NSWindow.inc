@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSWINDOW_PAS_H}
@@ -59,30 +59,11 @@ const
 
 { Types }
 type
-  NSWindowSharingType = culong;
-  NSWindowBackingLocation = culong;
-  NSWindowCollectionBehavior = culong;
-  NSSelectionDirection = culong;
-  NSWindowButton = culong;
-
-{ CFString constants }
-var
-  NSWindowDidBecomeKeyNotification: CFStringRef; external name '_NSWindowDidBecomeKeyNotification';
-  NSWindowDidBecomeMainNotification: CFStringRef; external name '_NSWindowDidBecomeMainNotification';
-  NSWindowDidChangeScreenNotification: CFStringRef; external name '_NSWindowDidChangeScreenNotification';
-  NSWindowDidDeminiaturizeNotification: CFStringRef; external name '_NSWindowDidDeminiaturizeNotification';
-  NSWindowDidExposeNotification: CFStringRef; external name '_NSWindowDidExposeNotification';
-  NSWindowDidMiniaturizeNotification: CFStringRef; external name '_NSWindowDidMiniaturizeNotification';
-  NSWindowDidMoveNotification: CFStringRef; external name '_NSWindowDidMoveNotification';
-  NSWindowDidResignKeyNotification: CFStringRef; external name '_NSWindowDidResignKeyNotification';
-  NSWindowDidResignMainNotification: CFStringRef; external name '_NSWindowDidResignMainNotification';
-  NSWindowDidResizeNotification: CFStringRef; external name '_NSWindowDidResizeNotification';
-  NSWindowDidUpdateNotification: CFStringRef; external name '_NSWindowDidUpdateNotification';
-  NSWindowWillCloseNotification: CFStringRef; external name '_NSWindowWillCloseNotification';
-  NSWindowWillMiniaturizeNotification: CFStringRef; external name '_NSWindowWillMiniaturizeNotification';
-  NSWindowWillMoveNotification: CFStringRef; external name '_NSWindowWillMoveNotification';
-  NSWindowWillBeginSheetNotification: CFStringRef; external name '_NSWindowWillBeginSheetNotification';
-  NSWindowDidEndSheetNotification: CFStringRef; external name '_NSWindowDidEndSheetNotification';
+  NSWindowSharingType = NSUInteger;
+  NSWindowBackingLocation = NSUInteger;
+  NSWindowCollectionBehavior = NSUInteger;
+  NSSelectionDirection = NSUInteger;
+  NSWindowButton = NSUInteger;
 
 {$endif}
 {$endif}
@@ -104,6 +85,25 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSWINDOW_PAS_T}
 {$define NSWINDOW_PAS_T}
+
+{ External string constants }
+var
+  NSWindowDidBecomeKeyNotification: NSString; external name '_NSWindowDidBecomeKeyNotification';
+  NSWindowDidBecomeMainNotification: NSString; external name '_NSWindowDidBecomeMainNotification';
+  NSWindowDidChangeScreenNotification: NSString; external name '_NSWindowDidChangeScreenNotification';
+  NSWindowDidDeminiaturizeNotification: NSString; external name '_NSWindowDidDeminiaturizeNotification';
+  NSWindowDidExposeNotification: NSString; external name '_NSWindowDidExposeNotification';
+  NSWindowDidMiniaturizeNotification: NSString; external name '_NSWindowDidMiniaturizeNotification';
+  NSWindowDidMoveNotification: NSString; external name '_NSWindowDidMoveNotification';
+  NSWindowDidResignKeyNotification: NSString; external name '_NSWindowDidResignKeyNotification';
+  NSWindowDidResignMainNotification: NSString; external name '_NSWindowDidResignMainNotification';
+  NSWindowDidResizeNotification: NSString; external name '_NSWindowDidResizeNotification';
+  NSWindowDidUpdateNotification: NSString; external name '_NSWindowDidUpdateNotification';
+  NSWindowWillCloseNotification: NSString; external name '_NSWindowWillCloseNotification';
+  NSWindowWillMiniaturizeNotification: NSString; external name '_NSWindowWillMiniaturizeNotification';
+  NSWindowWillMoveNotification: NSString; external name '_NSWindowWillMoveNotification';
+  NSWindowWillBeginSheetNotification: NSString; external name '_NSWindowWillBeginSheetNotification';
+  NSWindowDidEndSheetNotification: NSString; external name '_NSWindowDidEndSheetNotification';
 
 {$endif}
 {$endif}
@@ -129,7 +129,7 @@ var
     __counterpart: id;
     __fieldEditor: id;
     __winEventMask: cint;
-    __windowNum: clong;
+    __windowNum: NSInteger;
     __level: cint;
     __backgroundColor: NSColor;
     __borderView: id;
@@ -212,14 +212,14 @@ var
   public
     class function alloc: NSWindow; message 'alloc';
 
-    class function frameRectForContentRect_styleMask(cRect: NSRect; aStyle: culong): NSRect; message 'frameRectForContentRect:styleMask:';
-    class function contentRectForFrameRect_styleMask(fRect: NSRect; aStyle: culong): NSRect; message 'contentRectForFrameRect:styleMask:';
-    class function minFrameWidthWithTitle_styleMask(aTitle: NSString; aStyle: culong): CGFloat; message 'minFrameWidthWithTitle:styleMask:';
+    class function frameRectForContentRect_styleMask(cRect: NSRect; aStyle: NSUInteger): NSRect; message 'frameRectForContentRect:styleMask:';
+    class function contentRectForFrameRect_styleMask(fRect: NSRect; aStyle: NSUInteger): NSRect; message 'contentRectForFrameRect:styleMask:';
+    class function minFrameWidthWithTitle_styleMask(aTitle: NSString; aStyle: NSUInteger): CGFloat; message 'minFrameWidthWithTitle:styleMask:';
     class function defaultDepthLimit: NSWindowDepth; message 'defaultDepthLimit';
     function frameRectForContentRect(contentRect: NSRect): NSRect; message 'frameRectForContentRect:';
     function contentRectForFrameRect(frameRect: NSRect): NSRect; message 'contentRectForFrameRect:';
-    function initWithContentRect_styleMask_backing_defer(contentRect: NSRect; aStyle: culong; bufferingType: NSBackingStoreType; flag: Boolean): id; message 'initWithContentRect:styleMask:backing:defer:';
-    function initWithContentRect_styleMask_backing_defer_screen(contentRect: NSRect; aStyle: culong; bufferingType: NSBackingStoreType; flag: Boolean; screen_: NSScreen): id; message 'initWithContentRect:styleMask:backing:defer:screen:';
+    function initWithContentRect_styleMask_backing_defer(contentRect: NSRect; aStyle: NSUInteger; bufferingType: NSBackingStoreType; flag: Boolean): id; message 'initWithContentRect:styleMask:backing:defer:';
+    function initWithContentRect_styleMask_backing_defer_screen(contentRect: NSRect; aStyle: NSUInteger; bufferingType: NSBackingStoreType; flag: Boolean; screen_: NSScreen): id; message 'initWithContentRect:styleMask:backing:defer:screen:';
     function title: NSString; message 'title';
     procedure setTitle(aString: NSString); message 'setTitle:';
     procedure setRepresentedURL(url: NSURL); message 'setRepresentedURL:';
@@ -233,8 +233,8 @@ var
     function contentView: id; message 'contentView';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
-    function windowNumber: clong; message 'windowNumber';
-    function styleMask: culong; message 'styleMask';
+    function windowNumber: NSInteger; message 'windowNumber';
+    function styleMask: NSUInteger; message 'styleMask';
     function fieldEditor_forObject(createFlag: Boolean; anObject: id): NSText; message 'fieldEditor:forObject:';
     procedure endEditingFor(anObject: id); message 'endEditingFor:';
     function constrainFrameRect_toScreen(frameRect: NSRect; screen_: NSScreen): NSRect; message 'constrainFrameRect:toScreen:';
@@ -273,7 +273,7 @@ var
     procedure update; message 'update';
     function makeFirstResponder(aResponder: NSResponder): Boolean; message 'makeFirstResponder:';
     function firstResponder: NSResponder; message 'firstResponder';
-    function resizeFlags: clong; message 'resizeFlags';
+    function resizeFlags: NSInteger; message 'resizeFlags';
     procedure keyDown(theEvent: NSEvent); message 'keyDown:';
     procedure close; message 'close';
     procedure setReleasedWhenClosed(flag: Boolean); message 'setReleasedWhenClosed:';
@@ -302,7 +302,7 @@ var
     procedure orderFront(sender: id); message 'orderFront:';
     procedure orderBack(sender: id); message 'orderBack:';
     procedure orderOut(sender: id); message 'orderOut:';
-    procedure orderWindow_relativeTo(place: NSWindowOrderingMode; otherWin: clong); message 'orderWindow:relativeTo:';
+    procedure orderWindow_relativeTo(place: NSWindowOrderingMode; otherWin: NSInteger); message 'orderWindow:relativeTo:';
     procedure orderFrontRegardless; message 'orderFrontRegardless';
     procedure setMiniwindowImage(image: NSImage); message 'setMiniwindowImage:';
     procedure setMiniwindowTitle(title_: NSString); message 'setMiniwindowTitle:';
@@ -328,7 +328,7 @@ var
     procedure performClose(sender: id); message 'performClose:';
     procedure performMiniaturize(sender: id); message 'performMiniaturize:';
     procedure performZoom(sender: id); message 'performZoom:';
-    function gState: clong; message 'gState';
+    function gState: NSInteger; message 'gState';
     procedure setOneShot(flag: Boolean); message 'setOneShot:';
     function isOneShot: Boolean; message 'isOneShot';
     function dataWithEPSInsideRect(rect: NSRect): NSData; message 'dataWithEPSInsideRect:';
@@ -344,8 +344,8 @@ var
     function allowsToolTipsWhenApplicationIsInactive: Boolean; message 'allowsToolTipsWhenApplicationIsInactive';
     procedure setBackingType(bufferingType: NSBackingStoreType); message 'setBackingType:';
     function backingType: NSBackingStoreType; message 'backingType';
-    procedure setLevel(newLevel: clong); message 'setLevel:';
-    function level: clong; message 'level';
+    procedure setLevel(newLevel: NSInteger); message 'setLevel:';
+    function level: NSInteger; message 'level';
     procedure setDepthLimit(limit: NSWindowDepth); message 'setDepthLimit:';
     function depthLimit: NSWindowDepth; message 'depthLimit';
     procedure setDynamicDepthLimit(flag: Boolean); message 'setDynamicDepthLimit:';
@@ -392,9 +392,9 @@ var
     function contentMaxSize: NSSize; message 'contentMaxSize';
     procedure setContentMinSize(size: NSSize); message 'setContentMinSize:';
     procedure setContentMaxSize(size: NSSize); message 'setContentMaxSize:';
-    function nextEventMatchingMask(mask: culong): NSEvent; message 'nextEventMatchingMask:';
-    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: culong; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
-    procedure discardEventsMatchingMask_beforeEvent(mask: culong; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
+    function nextEventMatchingMask(mask: NSUInteger): NSEvent; message 'nextEventMatchingMask:';
+    function nextEventMatchingMask_untilDate_inMode_dequeue(mask: NSUInteger; expiration: NSDate; mode: NSString; deqFlag: Boolean): NSEvent; message 'nextEventMatchingMask:untilDate:inMode:dequeue:';
+    procedure discardEventsMatchingMask_beforeEvent(mask: NSUInteger; lastEvent: NSEvent); message 'discardEventsMatchingMask:beforeEvent:';
     procedure postEvent_atStart(event: NSEvent; flag: Boolean); message 'postEvent:atStart:';
     function currentEvent: NSEvent; message 'currentEvent';
     procedure setAcceptsMouseMovedEvents(flag: Boolean); message 'setAcceptsMouseMovedEvents:';
@@ -409,7 +409,7 @@ var
     procedure setWindowController(windowController_: NSWindowController); message 'setWindowController:';
     function isSheet: Boolean; message 'isSheet';
     function attachedSheet: NSWindow; message 'attachedSheet';
-    class function standardWindowButton_forStyleMask(b: NSWindowButton; styleMask_: culong): NSButton; message 'standardWindowButton:forStyleMask:';
+    class function standardWindowButton_forStyleMask(b: NSWindowButton; styleMask_: NSUInteger): NSButton; message 'standardWindowButton:forStyleMask:';
     function standardWindowButton(b: NSWindowButton): NSButton; message 'standardWindowButton:';
     procedure addChildWindow_ordered(childWin: NSWindow; place: NSWindowOrderingMode); message 'addChildWindow:ordered:';
     procedure removeChildWindow(childWin: NSWindow); message 'removeChildWindow:';
@@ -463,11 +463,11 @@ var
     function isModalPanel: Boolean; message 'isModalPanel';
     function isResizable: Boolean; message 'isResizable';
     function isZoomable: Boolean; message 'isZoomable';
-    function orderedIndex: clong; message 'orderedIndex';
+    function orderedIndex: NSInteger; message 'orderedIndex';
     procedure setIsMiniaturized(flag: Boolean); message 'setIsMiniaturized:';
     procedure setIsVisible(flag: Boolean); message 'setIsVisible:';
     procedure setIsZoomed(flag: Boolean); message 'setIsZoomed:';
-    procedure setOrderedIndex(index: clong); message 'setOrderedIndex:';
+    procedure setOrderedIndex(index: NSInteger); message 'setOrderedIndex:';
     function handleCloseScriptCommand(command: NSCloseCommand): id; message 'handleCloseScriptCommand:';
     function handlePrintScriptCommand(command: NSScriptCommand): id; message 'handlePrintScriptCommand:';
     function handleSaveScriptCommand(command: NSScriptCommand): id; message 'handleSaveScriptCommand:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSViewController.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSVIEWCONTROLLER_PAS_H}
@@ -58,7 +58,7 @@ type
     __topLevelObjects: NSArray;
     __editors: NSPointerArray;
     __autounbinder: id;
-    __reserved: id;
+        _reserved: array[0..2] of id;
     
   public
     class function alloc: NSViewController; message 'alloc';

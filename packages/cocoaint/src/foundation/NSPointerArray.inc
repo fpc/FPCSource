@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPointerArray.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPOINTERARRAY_PAS_H}
@@ -54,14 +54,14 @@ type
     class function alloc: NSPointerArray; message 'alloc';
 
     function pointerFunctions: NSPointerFunctions; message 'pointerFunctions';
-    function pointerAtIndex(index: culong): Pointer; message 'pointerAtIndex:';
+    function pointerAtIndex(index: NSUInteger): Pointer; message 'pointerAtIndex:';
     procedure addPointer(pointer_: Pointer); message 'addPointer:';
-    procedure removePointerAtIndex(index: culong); message 'removePointerAtIndex:';
-    procedure insertPointer_atIndex(item: Pointer; index: culong); message 'insertPointer:atIndex:';
-    procedure replacePointerAtIndex_withPointer(index: culong; item: Pointer); message 'replacePointerAtIndex:withPointer:';
+    procedure removePointerAtIndex(index: NSUInteger); message 'removePointerAtIndex:';
+    procedure insertPointer_atIndex(item: Pointer; index: NSUInteger); message 'insertPointer:atIndex:';
+    procedure replacePointerAtIndex_withPointer(index: NSUInteger; item: Pointer); message 'replacePointerAtIndex:withPointer:';
     procedure compact; message 'compact';
-    function count: culong; message 'count';
-    procedure setCount(count_: culong); message 'setCount:';
+    function count: NSUInteger; message 'count';
+    procedure setCount(count_: NSUInteger); message 'setCount:';
 
     { Category: NSArrayConveniences }
     function allObjects: NSArray; message 'allObjects';

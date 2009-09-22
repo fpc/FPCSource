@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSShadow.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSHADOW_PAS_H}
@@ -50,11 +50,11 @@ type
 { NSShadow }
   NSShadow = objcclass(NSObject, NSCopyingProtocol, NSCodingProtocol)
   private
-    __shadowFlags: culong;
+    __shadowFlags: NSUInteger;
     __shadowOffset: NSSize;
     __shadowBlurRadius: CGFloat;
     __shadowColor: NSColor;
-    __reservedFloat: CGFloat;
+        _reservedFloat: array[0..2] of CGFloat;
     __reserved: Pointer;
     
   public

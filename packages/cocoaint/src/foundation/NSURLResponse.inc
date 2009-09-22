@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLResponse.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLRESPONSE_PAS_H}
@@ -57,7 +57,7 @@ type
   public
     class function alloc: NSURLResponse; message 'alloc';
 
-    function initWithURL_MIMEType_expectedContentLength_textEncodingName(URL_: NSURL; MIMEType_: NSString; length: clong; name: NSString): id; message 'initWithURL:MIMEType:expectedContentLength:textEncodingName:';
+    function initWithURL_MIMEType_expectedContentLength_textEncodingName(URL_: NSURL; MIMEType_: NSString; length: NSInteger; name: NSString): id; message 'initWithURL:MIMEType:expectedContentLength:textEncodingName:';
     function URL: NSURL; message 'URL';
     function MIMEType: NSString; message 'MIMEType';
     function expectedContentLength: clonglong; message 'expectedContentLength';
@@ -73,9 +73,9 @@ type
   public
     class function alloc: NSHTTPURLResponse; message 'alloc';
 
-    function statusCode: clong; message 'statusCode';
+    function statusCode: NSInteger; message 'statusCode';
     function allHeaderFields: NSDictionary; message 'allHeaderFields';
-    class function localizedStringForStatusCode(statusCode_: clong): NSString; message 'localizedStringForStatusCode:';
+    class function localizedStringForStatusCode(statusCode_: NSInteger): NSString; message 'localizedStringForStatusCode:';
   end; external;
 
 {$endif}

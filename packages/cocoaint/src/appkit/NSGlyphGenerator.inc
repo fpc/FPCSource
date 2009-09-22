@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphGenerator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSGLYPHGENERATOR_PAS_H}
@@ -61,7 +61,7 @@ const
   public
     class function alloc: NSGlyphGenerator; message 'alloc';
 
-    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: culong; var glyphIndex: culong; var charIndex: culong); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
+    procedure generateGlyphsForGlyphStorage_desiredNumberOfCharacters_glyphIndex_characterIndex(glyphStorage: id; nChars: NSUInteger; glyphIndex: NSUIntegerPointer; charIndex: NSUIntegerPointer); message 'generateGlyphsForGlyphStorage:desiredNumberOfCharacters:glyphIndex:characterIndex:';
     class function sharedGlyphGenerator: id; message 'sharedGlyphGenerator';
   end; external;
 
@@ -73,10 +73,10 @@ const
   
 { NSGlyphStorage Protocol }
   NSGlyphStorageProtocol = objcprotocol
-    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(var glyphs: NSGlyph; length: culong; glyphIndex: culong; charIndex: culong); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
-    procedure setIntAttribute_value_forGlyphAtIndex(attributeTag: clong; val: clong; glyphIndex: culong); message 'setIntAttribute:value:forGlyphAtIndex:';
+    procedure insertGlyphs_length_forStartingGlyphAtIndex_characterIndex(glyphs: NSGlyphPointer; length: NSUInteger; glyphIndex: NSUInteger; charIndex: NSUInteger); message 'insertGlyphs:length:forStartingGlyphAtIndex:characterIndex:';
+    procedure setIntAttribute_value_forGlyphAtIndex(attributeTag: NSInteger; val: NSInteger; glyphIndex: NSUInteger); message 'setIntAttribute:value:forGlyphAtIndex:';
     function attributedString: NSAttributedString; message 'attributedString';
-    function layoutOptions: culong; message 'layoutOptions';
+    function layoutOptions: NSUInteger; message 'layoutOptions';
   end; external name 'NSGlyphStorage';
 {$endif}
 {$endif}

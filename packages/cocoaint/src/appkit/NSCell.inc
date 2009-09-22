@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCELL_PAS_H}
@@ -87,18 +87,14 @@ const
 
 { Types }
 type
-  NSCellType = culong;
-  NSCellAttribute = culong;
-  NSCellImagePosition = culong;
-  NSImageScaling = culong;
-  NSCellStateValue = clong;
-  NSControlTint = culong;
-  NSControlSize = culong;
-  NSBackgroundStyle = clong;
-
-{ CFString constants }
-var
-  NSControlTintDidChangeNotification: CFStringRef; external name '_NSControlTintDidChangeNotification';
+  NSCellType = NSUInteger;
+  NSCellAttribute = NSUInteger;
+  NSCellImagePosition = NSUInteger;
+  NSImageScaling = NSUInteger;
+  NSCellStateValue = NSInteger;
+  NSControlTint = NSUInteger;
+  NSControlSize = NSUInteger;
+  NSBackgroundStyle = NSInteger;
 
 {$endif}
 {$endif}
@@ -109,54 +105,54 @@ var
 
 { Records }
 type
-  __CFlags = record
-    state: cuint;
-    highlighted: cuint;
-    disabled: cuint;
-    editable: cuint;
-    type_: NSCellType;
-    vCentered: cuint;
-    hCentered: cuint;
-    bordered: cuint;
-    bezeled: cuint;
-    selectable: cuint;
-    scrollable: cuint;
-    continuous: cuint;
-    actOnMouseDown: cuint;
-    isLeaf: cuint;
-    invalidObjectValue: cuint;
-    invalidFont: cuint;
-    lineBreakMode: NSLineBreakMode;
-    backgroundStyle: cuint;
-    reserved1: cuint;
-    actOnMouseDragged: cuint;
-    isLoaded: cuint;
-    truncateLastLine: cuint;
-    dontActOnMouseUp: cuint;
-    isWhite: cuint;
-    useUserKeyEquivalent: cuint;
-    showsFirstResponder: cuint;
-    focusRingType: cuint;
-    wasSelectable: cuint;
-    hasInvalidObject: cuint;
-    allowsEditingTextAttributes: cuint;
-    importsGraphics: cuint;
-    alignment: NSTextAlignment;
-    reserved: cuint;
-    refusesFirstResponder: cuint;
-    needsHighlightedText: cuint;
-    dontAllowsUndo: cuint;
-    currentlyEditing: cuint;
-    allowsMixedState: cuint;
-    inMixedState: cuint;
-    sendsActionOnEndEditing: cuint;
-    inSendAction: cuint;
-    menuWasSet: cuint;
-    controlTint: cuint;
-    controlSize: cuint;
-    branchImageDisabled: cuint;
-    drawingInRevealover: cuint;
-    needsHighlightedTextHint: cuint;
+  __CFlags = bitpacked record
+    state: 0..1;
+    highlighted: 0..1;
+    disabled: 0..1;
+    editable: 0..1;
+    type_: 0..((1 shl 2)-1);
+    vCentered: 0..1;
+    hCentered: 0..1;
+    bordered: 0..1;
+    bezeled: 0..1;
+    selectable: 0..1;
+    scrollable: 0..1;
+    continuous: 0..1;
+    actOnMouseDown: 0..1;
+    isLeaf: 0..1;
+    invalidObjectValue: 0..1;
+    invalidFont: 0..1;
+    lineBreakMode: 0..((1 shl 3)-1);
+    backgroundStyle: 0..((1 shl 2)-1);
+    reserved1: 0..1;
+    actOnMouseDragged: 0..1;
+    isLoaded: 0..1;
+    truncateLastLine: 0..1;
+    dontActOnMouseUp: 0..1;
+    isWhite: 0..1;
+    useUserKeyEquivalent: 0..1;
+    showsFirstResponder: 0..1;
+    focusRingType: 0..((1 shl 2)-1);
+    wasSelectable: 0..1;
+    hasInvalidObject: 0..1;
+    allowsEditingTextAttributes: 0..1;
+    importsGraphics: 0..1;
+    alignment: 0..((1 shl 3)-1);
+    reserved: 0..((1 shl 8)-1);
+    refusesFirstResponder: 0..1;
+    needsHighlightedText: 0..1;
+    dontAllowsUndo: 0..1;
+    currentlyEditing: 0..1;
+    allowsMixedState: 0..1;
+    inMixedState: 0..1;
+    sendsActionOnEndEditing: 0..1;
+    inSendAction: 0..1;
+    menuWasSet: 0..1;
+    controlTint: 0..((1 shl 3)-1);
+    controlSize: 0..((1 shl 2)-1);
+    branchImageDisabled: 0..1;
+    drawingInRevealover: 0..1;
+    needsHighlightedTextHint: 0..1;
   end;
 _CFlags = __CFlags;
 
@@ -169,8 +165,8 @@ _CFlags = __CFlags;
 {$define NSCELL_PAS_F}
 
 { Functions }
-procedure NSDrawThreePartImage(frame: NSRect; var startCap: NSImage; var centerFill: NSImage; var endCap: NSImage; vertical: Boolean; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: Boolean); cdecl; external name 'NSDrawThreePartImage';
-procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var topEdgeFill: NSImage; var topRightCorner: NSImage; var leftEdgeFill: NSImage; var centerFill: NSImage; var rightEdgeFill: NSImage; var bottomLeftCorner: NSImage; var bottomEdgeFill: NSImage; var bottomRightCorner: NSImage; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: Boolean); cdecl; external name 'NSDrawNinePartImage';
+procedure NSDrawThreePartImage(frame: NSRect; startCapPointer: NSImage; centerFillPointer: NSImage; endCapPointer: NSImage; vertical: Boolean; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: Boolean); cdecl; external name 'NSDrawThreePartImage';
+procedure NSDrawNinePartImage(frame: NSRect; topLeftCornerPointer: NSImage; topEdgeFillPointer: NSImage; topRightCornerPointer: NSImage; leftEdgeFillPointer: NSImage; centerFillPointer: NSImage; rightEdgeFillPointer: NSImage; bottomLeftCornerPointer: NSImage; bottomEdgeFillPointer: NSImage; bottomRightCornerPointer: NSImage; op: NSCompositingOperation; alphaFraction: CGFloat; flipped: Boolean); cdecl; external name 'NSDrawNinePartImage';
 
 {$endif}
 {$endif}
@@ -178,6 +174,10 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCELL_PAS_T}
 {$define NSCELL_PAS_T}
+
+{ External string constants }
+var
+  NSControlTintDidChangeNotification: NSString; external name '_NSControlTintDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -208,20 +208,20 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     procedure setControlView(view: NSView); message 'setControlView:';
     function type_: NSCellType; message 'type';
     procedure setType(aType: NSCellType); message 'setType:';
-    function state: clong; message 'state';
-    procedure setState(value: clong); message 'setState:';
+    function state: NSInteger; message 'state';
+    procedure setState(value: NSInteger); message 'setState:';
     function target: id; message 'target';
     procedure setTarget(anObject: id); message 'setTarget:';
     function action: SEL; message 'action';
     procedure setAction(aSelector: SEL); message 'setAction:';
-    function tag: clong; message 'tag';
-    procedure setTag(anInt: clong); message 'setTag:';
+    function tag: NSInteger; message 'tag';
+    procedure setTag(anInt: NSInteger); message 'setTag:';
     function title: NSString; message 'title';
     procedure setTitle(aString: NSString); message 'setTitle:';
     function isOpaque: Boolean; message 'isOpaque';
     function isEnabled: Boolean; message 'isEnabled';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
-    function sendActionOn(mask: clong): clong; message 'sendActionOn:';
+    function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
     function isContinuous: Boolean; message 'isContinuous';
     procedure setContinuous(flag: Boolean); message 'setContinuous:';
     function isEditable: Boolean; message 'isEditable';
@@ -242,10 +242,10 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     procedure setWraps(flag: Boolean); message 'setWraps:';
     function font: NSFont; message 'font';
     procedure setFont(fontObj: NSFont); message 'setFont:';
-    function entryType: clong; message 'entryType';
-    procedure setEntryType(aType: clong); message 'setEntryType:';
+    function entryType: NSInteger; message 'entryType';
+    procedure setEntryType(aType: NSInteger); message 'setEntryType:';
     function isEntryAcceptable(aString: NSString): Boolean; message 'isEntryAcceptable:';
-    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: culong; rightDigits: culong); message 'setFloatingPointFormat:left:right:';
+    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setFormatter(newFormatter: NSFormatter); message 'setFormatter:';
     function formatter: id; message 'formatter';
@@ -274,8 +274,8 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     function controlSize: NSControlSize; message 'controlSize';
     function representedObject: id; message 'representedObject';
     procedure setRepresentedObject(anObject: id); message 'setRepresentedObject:';
-    function cellAttribute(aParameter: NSCellAttribute): clong; message 'cellAttribute:';
-    procedure setCellAttribute_to(aParameter: NSCellAttribute; value: clong); message 'setCellAttribute:to:';
+    function cellAttribute(aParameter: NSCellAttribute): NSInteger; message 'cellAttribute:';
+    procedure setCellAttribute_to(aParameter: NSCellAttribute; value: NSInteger); message 'setCellAttribute:to:';
     function imageRectForBounds(theRect: NSRect): NSRect; message 'imageRectForBounds:';
     function titleRectForBounds(theRect: NSRect): NSRect; message 'titleRectForBounds:';
     function drawingRectForBounds(theRect: NSRect): NSRect; message 'drawingRectForBounds:';
@@ -287,14 +287,14 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     procedure drawInteriorWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawInteriorWithFrame:inView:';
     procedure drawWithFrame_inView(cellFrame: NSRect; controlView_: NSView); message 'drawWithFrame:inView:';
     procedure highlight_withFrame_inView(flag: Boolean; cellFrame: NSRect; controlView_: NSView); message 'highlight:withFrame:inView:';
-    function mouseDownFlags: clong; message 'mouseDownFlags';
-    procedure getPeriodicDelay_interval(var delay: single; var interval: single); message 'getPeriodicDelay:interval:';
+    function mouseDownFlags: NSInteger; message 'mouseDownFlags';
+    procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
     function startTrackingAt_inView(startPoint: NSPoint; controlView_: NSView): Boolean; message 'startTrackingAt:inView:';
     function continueTracking_at_inView(lastPoint: NSPoint; currentPoint: NSPoint; controlView_: NSView): Boolean; message 'continueTracking:at:inView:';
     procedure stopTracking_at_inView_mouseIsUp(lastPoint: NSPoint; stopPoint: NSPoint; controlView_: NSView; flag: Boolean); message 'stopTracking:at:inView:mouseIsUp:';
     function trackMouse_inRect_ofView_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView_: NSView; flag: Boolean): Boolean; message 'trackMouse:inRect:ofView:untilMouseUp:';
     procedure editWithFrame_inView_editor_delegate_event(aRect: NSRect; controlView_: NSView; textObj: NSText; anObject: id; theEvent: NSEvent); message 'editWithFrame:inView:editor:delegate:event:';
-    procedure selectWithFrame_inView_editor_delegate_start_length(aRect: NSRect; controlView_: NSView; textObj: NSText; anObject: id; selStart: clong; selLength: clong); message 'selectWithFrame:inView:editor:delegate:start:length:';
+    procedure selectWithFrame_inView_editor_delegate_start_length(aRect: NSRect; controlView_: NSView; textObj: NSText; anObject: id; selStart: NSInteger; selLength: NSInteger); message 'selectWithFrame:inView:editor:delegate:start:length:';
     procedure endEditing(textObj: NSText); message 'endEditing:';
     procedure resetCursorRect_inView(cellFrame: NSRect; controlView_: NSView); message 'resetCursorRect:inView:';
     procedure setMenu(aMenu: NSMenu); message 'setMenu:';
@@ -309,8 +309,8 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     function lineBreakMode: NSLineBreakMode; message 'lineBreakMode';
     procedure setAllowsUndo(allowsUndo_: Boolean); message 'setAllowsUndo:';
     function allowsUndo: Boolean; message 'allowsUndo';
-    function integerValue: clong; message 'integerValue';
-    procedure setIntegerValue(anInteger: clong); message 'setIntegerValue:';
+    function integerValue: NSInteger; message 'integerValue';
+    procedure setIntegerValue(anInteger: NSInteger); message 'setIntegerValue:';
     procedure takeIntegerValueFrom(sender: id); message 'takeIntegerValueFrom:';
     procedure setTruncatesLastVisibleLine(flag: Boolean); message 'setTruncatesLastVisibleLine:';
 
@@ -320,8 +320,8 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     function acceptsFirstResponder: Boolean; message 'acceptsFirstResponder';
     procedure setShowsFirstResponder(showFR: Boolean); message 'setShowsFirstResponder:';
     function showsFirstResponder: Boolean; message 'showsFirstResponder';
-    procedure setMnemonicLocation(location: culong); message 'setMnemonicLocation:';
-    function mnemonicLocation: culong; message 'mnemonicLocation';
+    procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:';
+    function mnemonicLocation: NSUInteger; message 'mnemonicLocation';
     function mnemonic: NSString; message 'mnemonic';
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
     procedure performClick(sender: id); message 'performClick:';
@@ -341,11 +341,11 @@ procedure NSDrawNinePartImage(frame: NSRect; var topLeftCorner: NSImage; var top
     { Category: NSCellMixedState }
     procedure setAllowsMixedState(flag: Boolean); message 'setAllowsMixedState:';
     function allowsMixedState: Boolean; message 'allowsMixedState';
-    function nextState: clong; message 'nextState';
+    function nextState: NSInteger; message 'nextState';
     procedure setNextState; message 'setNextState';
 
     { Category: NSCellHitTest }
-    function hitTestForEvent_inRect_ofView(event: NSEvent; cellFrame: NSRect; controlView_: NSView): culong; message 'hitTestForEvent:inRect:ofView:';
+    function hitTestForEvent_inRect_ofView(event: NSEvent; cellFrame: NSRect; controlView_: NSView): NSUInteger; message 'hitTestForEvent:inRect:ofView:';
 
     { Category: NSCellExpansion }
     function expansionFrameWithFrame_inView(cellFrame: NSRect; view: NSView): NSRect; message 'expansionFrameWithFrame:inView:';

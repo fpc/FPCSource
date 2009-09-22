@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSFont.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSFONT_PAS_H}
@@ -17,9 +17,9 @@ type
 { Types }
 type
   NSGlyph = cuint;
-  NSMultibyteGlyphPacking = culong;
-  NSFontRenderingMode = culong;
-  NSGlyphRelation = culong;
+  NSMultibyteGlyphPacking = NSUInteger;
+  NSFontRenderingMode = NSUInteger;
+  NSGlyphRelation = NSUInteger;
 
 { Constants }
 
@@ -52,7 +52,7 @@ const
 {$define NSFONT_PAS_F}
 
 { Functions }
-function NSConvertGlyphsToPackedGlyphs(var glBuf: NSGlyph; count: clong; packing: NSMultibyteGlyphPacking; var packedGlyphs: char): clong; cdecl; external name 'NSConvertGlyphsToPackedGlyphs';
+function NSConvertGlyphsToPackedGlyphs(glBufPointer: NSGlyph; count: NSInteger; packing: NSMultibyteGlyphPacking; packedGlyphsPointer: char): NSInteger; cdecl; external name 'NSConvertGlyphsToPackedGlyphs';
 
 {$endif}
 {$endif}
@@ -93,7 +93,7 @@ function NSConvertGlyphsToPackedGlyphs(var glBuf: NSGlyph; count: clong; packing
     class function alloc: NSFont; message 'alloc';
 
     class function fontWithName_size(fontName_: NSString; fontSize: CGFloat): NSFont; message 'fontWithName:size:';
-    class function fontWithName_matrix(fontName_: NSString; var fontMatrix: CGFloat): NSFont; message 'fontWithName:matrix:';
+    class function fontWithName_matrix(fontName_: NSString; fontMatrix: psingle): NSFont; message 'fontWithName:matrix:';
     class function fontWithDescriptor_size(fontDescriptor_: NSFontDescriptor; fontSize: CGFloat): NSFont; message 'fontWithDescriptor:size:';
     class function fontWithDescriptor_textTransform(fontDescriptor_: NSFontDescriptor; textTransform_: NSAffineTransform): NSFont; message 'fontWithDescriptor:textTransform:';
     class function userFontOfSize(fontSize: CGFloat): NSFont; message 'userFontOfSize:';
@@ -121,7 +121,7 @@ function NSConvertGlyphsToPackedGlyphs(var glBuf: NSGlyph; count: clong; packing
     function displayName: NSString; message 'displayName';
     function fontDescriptor: NSFontDescriptor; message 'fontDescriptor';
     function textTransform: NSAffineTransform; message 'textTransform';
-    function numberOfGlyphs: culong; message 'numberOfGlyphs';
+    function numberOfGlyphs: NSUInteger; message 'numberOfGlyphs';
     function mostCompatibleStringEncoding: NSStringEncoding; message 'mostCompatibleStringEncoding';
     function glyphWithName(aName: NSString): NSGlyph; message 'glyphWithName:';
     function coveredCharacterSet: NSCharacterSet; message 'coveredCharacterSet';
@@ -138,9 +138,9 @@ function NSConvertGlyphsToPackedGlyphs(var glBuf: NSGlyph; count: clong; packing
     function isFixedPitch: Boolean; message 'isFixedPitch';
     function boundingRectForGlyph(aGlyph: NSGlyph): NSRect; message 'boundingRectForGlyph:';
     function advancementForGlyph(ag: NSGlyph): NSSize; message 'advancementForGlyph:';
-    procedure getBoundingRects_forGlyphs_count(bounds: NSRectArray; var glyphs: NSGlyph; glyphCount: culong); message 'getBoundingRects:forGlyphs:count:';
-    procedure getAdvancements_forGlyphs_count(advancements: NSSizeArray; var glyphs: NSGlyph; glyphCount: culong); message 'getAdvancements:forGlyphs:count:';
-    procedure getAdvancements_forPackedGlyphs_length(advancements: NSSizeArray; packedGlyphs: Pointer; length: culong); message 'getAdvancements:forPackedGlyphs:length:';
+    procedure getBoundingRects_forGlyphs_count(bounds: NSRectArray; glyphs: NSGlyphPointer; glyphCount: NSUInteger); message 'getBoundingRects:forGlyphs:count:';
+    procedure getAdvancements_forGlyphs_count(advancements: NSSizeArray; glyphs: NSGlyphPointer; glyphCount: NSUInteger); message 'getAdvancements:forGlyphs:count:';
+    procedure getAdvancements_forPackedGlyphs_length(advancements: NSSizeArray; packedGlyphs: Pointer; length: NSUInteger); message 'getAdvancements:forPackedGlyphs:length:';
     procedure set_; message 'set';
     procedure setInContext(graphicsContext: NSGraphicsContext); message 'setInContext:';
     function printerFont: NSFont; message 'printerFont';
@@ -153,12 +153,12 @@ function NSConvertGlyphsToPackedGlyphs(var glBuf: NSGlyph; count: clong; packing
     function widthOfString(string_: NSString): CGFloat; message 'widthOfString:';
     function glyphIsEncoded(aGlyph: NSGlyph): Boolean; message 'glyphIsEncoded:';
     class procedure setPreferredFontNames(fontNameArray: NSArray); message 'setPreferredFontNames:';
-    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; var nominal: Boolean): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:';
-    function positionsForCompositeSequence_numberOfGlyphs_pointArray(var someGlyphs: NSGlyph; numGlyphs: clong; points: NSPointArray): clong; message 'positionsForCompositeSequence:numberOfGlyphs:pointArray:';
-    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; var exist: Boolean): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:';
-    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; var exist: Boolean): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:';
+    function positionOfGlyph_precededByGlyph_isNominal(curGlyph: NSGlyph; prevGlyph: NSGlyph; nominal: pboolean): NSPoint; message 'positionOfGlyph:precededByGlyph:isNominal:';
+    function positionsForCompositeSequence_numberOfGlyphs_pointArray(someGlyphs: NSGlyphPointer; numGlyphs: NSInteger; points: NSPointArray): NSInteger; message 'positionsForCompositeSequence:numberOfGlyphs:pointArray:';
+    function positionOfGlyph_struckOverGlyph_metricsExist(curGlyph: NSGlyph; prevGlyph: NSGlyph; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverGlyph:metricsExist:';
+    function positionOfGlyph_struckOverRect_metricsExist(aGlyph: NSGlyph; aRect: NSRect; exist: pboolean): NSPoint; message 'positionOfGlyph:struckOverRect:metricsExist:';
     function positionOfGlyph_forCharacter_struckOverRect(aGlyph: NSGlyph; aChar: unichar; aRect: NSRect): NSPoint; message 'positionOfGlyph:forCharacter:struckOverRect:';
-    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; var exist: Boolean): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:';
+    function positionOfGlyph_withRelation_toBaseGlyph_totalAdvancement_metricsExist(thisGlyph: NSGlyph; rel: NSGlyphRelation; baseGlyph: NSGlyph; adv: NSSizePointer; exist: pboolean): NSPoint; message 'positionOfGlyph:withRelation:toBaseGlyph:totalAdvancement:metricsExist:';
   end; external;
 
 {$endif}

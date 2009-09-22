@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLDTD.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSXMLDTD_PAS_H}
@@ -55,30 +55,30 @@ type
     __systemID: NSString;
     __children: NSArray;
     __childrenHaveMutated: Boolean;
-    __padding3: byte;
+        _padding3: array[0..2] of byte;
     __entities: NSMutableDictionary;
     __elements: NSMutableDictionary;
     __notations: NSMutableDictionary;
     __attributes: NSMutableDictionary;
     __original: NSString;
     __modified: Boolean;
-    __padding2: byte;
+        _padding2: array[0..2] of byte;
     
   public
     class function alloc: NSXMLDTD; message 'alloc';
 
-    function initWithContentsOfURL_options_error(url: NSURL; mask: culong; var error: NSError): id; message 'initWithContentsOfURL:options:error:';
-    function initWithData_options_error(data: NSData; mask: culong; var error: NSError): id; message 'initWithData:options:error:';
+    function initWithContentsOfURL_options_error(url: NSURL; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithContentsOfURL:options:error:';
+    function initWithData_options_error(data: NSData; mask: NSUInteger; error: NSErrorPointer): id; message 'initWithData:options:error:';
     procedure setPublicID(publicID_: NSString); message 'setPublicID:';
     function publicID: NSString; message 'publicID';
     procedure setSystemID(systemID_: NSString); message 'setSystemID:';
     function systemID: NSString; message 'systemID';
-    procedure insertChild_atIndex(child: NSXMLNode; index_: culong); message 'insertChild:atIndex:';
-    procedure insertChildren_atIndex(children_: NSArray; index_: culong); message 'insertChildren:atIndex:';
-    procedure removeChildAtIndex(index_: culong); message 'removeChildAtIndex:';
+    procedure insertChild_atIndex(child: NSXMLNode; index_: NSUInteger); message 'insertChild:atIndex:';
+    procedure insertChildren_atIndex(children_: NSArray; index_: NSUInteger); message 'insertChildren:atIndex:';
+    procedure removeChildAtIndex(index_: NSUInteger); message 'removeChildAtIndex:';
     procedure setChildren(children_: NSArray); message 'setChildren:';
     procedure addChild(child: NSXMLNode); message 'addChild:';
-    procedure replaceChildAtIndex_withNode(index_: culong; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
+    procedure replaceChildAtIndex_withNode(index_: NSUInteger; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
     function entityDeclarationForName(name_: NSString): NSXMLDTDNode; message 'entityDeclarationForName:';
     function notationDeclarationForName(name_: NSString): NSXMLDTDNode; message 'notationDeclarationForName:';
     function elementDeclarationForName(name_: NSString): NSXMLDTDNode; message 'elementDeclarationForName:';

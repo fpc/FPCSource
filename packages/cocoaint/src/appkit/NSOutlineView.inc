@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOutlineView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOUTLINEVIEW_PAS_H}
@@ -14,17 +14,6 @@ type
 {$ifndef NSOUTLINEVIEW_PAS_T}
 {$define NSOUTLINEVIEW_PAS_T}
 
-{ CFString constants }
-var
-  NSOutlineViewSelectionDidChangeNotification: CFStringRef; external name '_NSOutlineViewSelectionDidChangeNotification';
-  NSOutlineViewColumnDidMoveNotification: CFStringRef; external name '_NSOutlineViewColumnDidMoveNotification';
-  NSOutlineViewColumnDidResizeNotification: CFStringRef; external name '_NSOutlineViewColumnDidResizeNotification';
-  NSOutlineViewSelectionIsChangingNotification: CFStringRef; external name '_NSOutlineViewSelectionIsChangingNotification';
-  NSOutlineViewItemWillExpandNotification: CFStringRef; external name '_NSOutlineViewItemWillExpandNotification';
-  NSOutlineViewItemDidExpandNotification: CFStringRef; external name '_NSOutlineViewItemDidExpandNotification';
-  NSOutlineViewItemWillCollapseNotification: CFStringRef; external name '_NSOutlineViewItemWillCollapseNotification';
-  NSOutlineViewItemDidCollapseNotification: CFStringRef; external name '_NSOutlineViewItemDidCollapseNotification';
-
 {$endif}
 {$endif}
 
@@ -34,51 +23,51 @@ var
 
 { Records }
 type
-  __OvFlags = record
+  __OvFlags = bitpacked record
 {$ifdef fpc_big_endian}
-    delegateWillDisplayCell: cuint;
-    delegateShouldEditTableColumn: cuint;
-    delegateShouldSelectItem: cuint;
-    delegateShouldSelectTableColumn: cuint;
-    delegateSelectionShouldChangeInOutlineView: cuint;
-    delegateShouldCollapseItem: cuint;
-    delegateShouldExpandItem: cuint;
-    autoresizesOutlineColumn: cuint;
-    autoSaveExpandItems: cuint;
-    enableExpandNotifications: cuint;
-    delegateWillDisplayOutlineCell: cuint;
-    removeChildInProgress: cuint;
-    selectionAdjustmentDisabled: cuint;
-    autoExpandFlashState: cuint;
-    compatCollapseForceClearsExpandState: cuint;
-    delegateHeightOfRowByItem: cuint;
-    delayRowEntryFreeDisabled: cuint;
-    numberOfRowsDataExpandEntered: cuint;
-    validDataSourceMethods: cuint;
-    reloadingData: cuint;
-    _reserved: cuint;
+    delegateWillDisplayCell: 0..1;
+    delegateShouldEditTableColumn: 0..1;
+    delegateShouldSelectItem: 0..1;
+    delegateShouldSelectTableColumn: 0..1;
+    delegateSelectionShouldChangeInOutlineView: 0..1;
+    delegateShouldCollapseItem: 0..1;
+    delegateShouldExpandItem: 0..1;
+    autoresizesOutlineColumn: 0..1;
+    autoSaveExpandItems: 0..1;
+    enableExpandNotifications: 0..1;
+    delegateWillDisplayOutlineCell: 0..1;
+    removeChildInProgress: 0..1;
+    selectionAdjustmentDisabled: 0..1;
+    autoExpandFlashState: 0..1;
+    compatCollapseForceClearsExpandState: 0..1;
+    delegateHeightOfRowByItem: 0..1;
+    delayRowEntryFreeDisabled: 0..1;
+    numberOfRowsDataExpandEntered: 0..1;
+    validDataSourceMethods: 0..1;
+    reloadingData: 0..1;
+    _reserved: 0..((1 shl 12)-1);
 {$else}
-    _reserved: cuint;
-    reloadingData: cuint;
-    validDataSourceMethods: cuint;
-    numberOfRowsDataExpandEntered: cuint;
-    delayRowEntryFreeDisabled: cuint;
-    delegateHeightOfRowByItem: cuint;
-    compatCollapseForceClearsExpandState: cuint;
-    autoExpandFlashState: cuint;
-    selectionAdjustmentDisabled: cuint;
-    removeChildInProgress: cuint;
-    delegateWillDisplayOutlineCell: cuint;
-    enableExpandNotifications: cuint;
-    autoSaveExpandItems: cuint;
-    autoresizesOutlineColumn: cuint;
-    delegateShouldExpandItem: cuint;
-    delegateShouldCollapseItem: cuint;
-    delegateSelectionShouldChangeInOutlineView: cuint;
-    delegateShouldSelectTableColumn: cuint;
-    delegateShouldSelectItem: cuint;
-    delegateShouldEditTableColumn: cuint;
-    delegateWillDisplayCell: cuint;
+    _reserved: 0..((1 shl 12)-1);
+    reloadingData: 0..1;
+    validDataSourceMethods: 0..1;
+    numberOfRowsDataExpandEntered: 0..1;
+    delayRowEntryFreeDisabled: 0..1;
+    delegateHeightOfRowByItem: 0..1;
+    compatCollapseForceClearsExpandState: 0..1;
+    autoExpandFlashState: 0..1;
+    selectionAdjustmentDisabled: 0..1;
+    removeChildInProgress: 0..1;
+    delegateWillDisplayOutlineCell: 0..1;
+    enableExpandNotifications: 0..1;
+    autoSaveExpandItems: 0..1;
+    autoresizesOutlineColumn: 0..1;
+    delegateShouldExpandItem: 0..1;
+    delegateShouldCollapseItem: 0..1;
+    delegateSelectionShouldChangeInOutlineView: 0..1;
+    delegateShouldSelectTableColumn: 0..1;
+    delegateShouldSelectItem: 0..1;
+    delegateShouldEditTableColumn: 0..1;
+    delegateWillDisplayCell: 0..1;
 {$endif}
   end;
 _OVFlags = __OvFlags;
@@ -98,6 +87,17 @@ _OVFlags = __OvFlags;
 {$ifndef NSOUTLINEVIEW_PAS_T}
 {$define NSOUTLINEVIEW_PAS_T}
 
+{ External string constants }
+var
+  NSOutlineViewSelectionDidChangeNotification: NSString; external name '_NSOutlineViewSelectionDidChangeNotification';
+  NSOutlineViewColumnDidMoveNotification: NSString; external name '_NSOutlineViewColumnDidMoveNotification';
+  NSOutlineViewColumnDidResizeNotification: NSString; external name '_NSOutlineViewColumnDidResizeNotification';
+  NSOutlineViewSelectionIsChangingNotification: NSString; external name '_NSOutlineViewSelectionIsChangingNotification';
+  NSOutlineViewItemWillExpandNotification: NSString; external name '_NSOutlineViewItemWillExpandNotification';
+  NSOutlineViewItemDidExpandNotification: NSString; external name '_NSOutlineViewItemDidExpandNotification';
+  NSOutlineViewItemWillCollapseNotification: NSString; external name '_NSOutlineViewItemWillCollapseNotification';
+  NSOutlineViewItemDidCollapseNotification: NSString; external name '_NSOutlineViewItemDidCollapseNotification';
+
 {$endif}
 {$endif}
 
@@ -113,16 +113,16 @@ _OVFlags = __OvFlags;
 { NSOutlineView }
   NSOutlineView = objcclass(NSTableView)
   private
-    __numberOfRows: clong;
+    __numberOfRows: NSInteger;
     __rowEntryTree: __NSOVRowEntry;
     __itemToEntryMap: CFMutableDictionaryRef;
-    __unused2: clong;
-    __unused3: clong;
-    __unused1: clong;
+    __unused2: NSInteger;
+    __unused3: NSInteger;
+    __unused1: NSInteger;
     __outlineTableColumn: NSTableColumn;
     __initedRows: Boolean;
     __indentationMarkerInCell: Boolean;
-    __indentationPerLevel: clong;
+    __indentationPerLevel: NSInteger;
     __outlineCell: NSButtonCell;
     __trackingOutlineFrame: NSRect;
     __tracker: NSMouseTracker;
@@ -135,7 +135,7 @@ _OVFlags = __OvFlags;
     __expandSetToExpandItemsInto: id;
     __indentArraySize: clong;
     __trackingOutlineCell: NSButtonCell;
-    __trackingRow: clong;
+    __trackingRow: NSInteger;
     __ovReserved: id;
     
   public
@@ -151,10 +151,10 @@ _OVFlags = __OvFlags;
     procedure reloadItem_reloadChildren(item: id; reloadChildren: Boolean); message 'reloadItem:reloadChildren:';
     procedure reloadItem(item: id); message 'reloadItem:';
     function parentForItem(item: id): id; message 'parentForItem:';
-    function itemAtRow(row: clong): id; message 'itemAtRow:';
-    function rowForItem(item: id): clong; message 'rowForItem:';
-    function levelForItem(item: id): clong; message 'levelForItem:';
-    function levelForRow(row: clong): clong; message 'levelForRow:';
+    function itemAtRow(row: NSInteger): id; message 'itemAtRow:';
+    function rowForItem(item: id): NSInteger; message 'rowForItem:';
+    function levelForItem(item: id): NSInteger; message 'levelForItem:';
+    function levelForRow(row: NSInteger): NSInteger; message 'levelForRow:';
     function isItemExpanded(item: id): Boolean; message 'isItemExpanded:';
     procedure setIndentationPerLevel(indentationPerLevel_: CGFloat); message 'setIndentationPerLevel:';
     function indentationPerLevel: CGFloat; message 'indentationPerLevel';
@@ -162,8 +162,8 @@ _OVFlags = __OvFlags;
     function indentationMarkerFollowsCell: Boolean; message 'indentationMarkerFollowsCell';
     procedure setAutoresizesOutlineColumn(resize: Boolean); message 'setAutoresizesOutlineColumn:';
     function autoresizesOutlineColumn: Boolean; message 'autoresizesOutlineColumn';
-    function frameOfOutlineCellAtRow(row: clong): NSRect; message 'frameOfOutlineCellAtRow:';
-    procedure setDropItem_dropChildIndex(item: id; index: clong); message 'setDropItem:dropChildIndex:';
+    function frameOfOutlineCellAtRow(row: NSInteger): NSRect; message 'frameOfOutlineCellAtRow:';
+    procedure setDropItem_dropChildIndex(item: id; index: NSInteger); message 'setDropItem:dropChildIndex:';
     function shouldCollapseAutoExpandedItemsForDeposited(deposited: Boolean): Boolean; message 'shouldCollapseAutoExpandedItemsForDeposited:';
     function autosaveExpandedItems: Boolean; message 'autosaveExpandedItems';
     procedure setAutosaveExpandedItems(save: Boolean); message 'setAutosaveExpandedItems:';

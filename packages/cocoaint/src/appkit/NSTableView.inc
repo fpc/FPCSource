@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTABLEVIEW_PAS_H}
@@ -16,9 +16,9 @@ type
 
 { Types }
 type
-  NSTableViewDropOperation = culong;
-  NSTableViewColumnAutoresizingStyle = culong;
-  NSTableViewSelectionHighlightStyle = clong;
+  NSTableViewDropOperation = NSUInteger;
+  NSTableViewColumnAutoresizingStyle = NSUInteger;
+  NSTableViewSelectionHighlightStyle = NSInteger;
 
 { Constants }
 
@@ -37,13 +37,6 @@ const
   NSTableViewSelectionHighlightStyleRegular = 0;
   NSTableViewSelectionHighlightStyleSourceList = 1;
 
-{ CFString constants }
-var
-  NSTableViewSelectionDidChangeNotification: CFStringRef; external name '_NSTableViewSelectionDidChangeNotification';
-  NSTableViewColumnDidMoveNotification: CFStringRef; external name '_NSTableViewColumnDidMoveNotification';
-  NSTableViewColumnDidResizeNotification: CFStringRef; external name '_NSTableViewColumnDidResizeNotification';
-  NSTableViewSelectionIsChangingNotification: CFStringRef; external name '_NSTableViewSelectionIsChangingNotification';
-
 {$endif}
 {$endif}
 
@@ -53,47 +46,47 @@ var
 
 { Records }
 type
-  __TvFlags = record
+  __TvFlags = bitpacked record
 {$ifdef fpc_big_endian}
-    allowsColumnReordering: cuint;
-    allowsColumnResizing: cuint;
-    oldDrawsGridFlag: cuint;
-    allowsEmptySelection: cuint;
-    allowsMultipleSelection: cuint;
-    allowsColumnSelection: cuint;
-    selectionType: cuint;
+    allowsColumnReordering: 0..1;
+    allowsColumnResizing: 0..1;
+    oldDrawsGridFlag: 0..1;
+    allowsEmptySelection: 0..1;
+    allowsMultipleSelection: 0..1;
+    allowsColumnSelection: 0..1;
+    selectionType: 0..((1 shl 2)-1);
     changingLayout: cuint;
-    compareWidthWithSuperview: cuint;
-    delegateWillDisplayCell: cuint;
-    delegateShouldEditTableColumn: cuint;
-    delegateShouldSelectRow: cuint;
-    delegateShouldSelectTableColumn: cuint;
-    delegateSelectionShouldChangeInTableView: cuint;
-    oldAutoresizesAllColumnsToFit: cuint;
-    dataSourceSetObjectValue: cuint;
-    selectionPostingDisableCount: cuint;
-    movedPostingDisableCount: cuint;
-    refusesFirstResponder: cuint;
+    compareWidthWithSuperview: 0..((1 shl 2)-1);
+    delegateWillDisplayCell: 0..1;
+    delegateShouldEditTableColumn: 0..1;
+    delegateShouldSelectRow: 0..1;
+    delegateShouldSelectTableColumn: 0..1;
+    delegateSelectionShouldChangeInTableView: 0..1;
+    oldAutoresizesAllColumnsToFit: 0..1;
+    dataSourceSetObjectValue: 0..1;
+    selectionPostingDisableCount: 0..((1 shl 7)-1);
+    movedPostingDisableCount: 0..((1 shl 6)-1);
+    refusesFirstResponder: 0..1;
 {$else}
-    refusesFirstResponder: cuint;
-    movedPostingDisableCount: cuint;
-    selectionPostingDisableCount: cuint;
-    dataSourceSetObjectValue: cuint;
-    oldAutoresizesAllColumnsToFit: cuint;
-    delegateSelectionShouldChangeInTableView: cuint;
-    delegateShouldSelectTableColumn: cuint;
-    delegateShouldSelectRow: cuint;
-    delegateShouldEditTableColumn: cuint;
-    delegateWillDisplayCell: cuint;
-    compareWidthWithSuperview: cuint;
+    refusesFirstResponder: 0..1;
+    movedPostingDisableCount: 0..((1 shl 6)-1);
+    selectionPostingDisableCount: 0..((1 shl 7)-1);
+    dataSourceSetObjectValue: 0..1;
+    oldAutoresizesAllColumnsToFit: 0..1;
+    delegateSelectionShouldChangeInTableView: 0..1;
+    delegateShouldSelectTableColumn: 0..1;
+    delegateShouldSelectRow: 0..1;
+    delegateShouldEditTableColumn: 0..1;
+    delegateWillDisplayCell: 0..1;
+    compareWidthWithSuperview: 0..((1 shl 2)-1);
     changingLayout: cuint;
-    selectionType: cuint;
-    allowsColumnSelection: cuint;
-    allowsMultipleSelection: cuint;
-    allowsEmptySelection: cuint;
-    oldDrawsGridFlag: cuint;
-    allowsColumnResizing: cuint;
-    allowsColumnReordering: cuint;
+    selectionType: 0..((1 shl 2)-1);
+    allowsColumnSelection: 0..1;
+    allowsMultipleSelection: 0..1;
+    allowsEmptySelection: 0..1;
+    oldDrawsGridFlag: 0..1;
+    allowsColumnResizing: 0..1;
+    allowsColumnReordering: 0..1;
 {$endif}
   end;
 _TvFlags = __TvFlags;
@@ -112,6 +105,13 @@ _TvFlags = __TvFlags;
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTABLEVIEW_PAS_T}
 {$define NSTABLEVIEW_PAS_T}
+
+{ External string constants }
+var
+  NSTableViewSelectionDidChangeNotification: NSString; external name '_NSTableViewSelectionDidChangeNotification';
+  NSTableViewColumnDidMoveNotification: NSString; external name '_NSTableViewColumnDidMoveNotification';
+  NSTableViewColumnDidResizeNotification: NSString; external name '_NSTableViewColumnDidResizeNotification';
+  NSTableViewSelectionIsChangingNotification: NSString; external name '_NSTableViewSelectionIsChangingNotification';
 
 {$endif}
 {$endif}
@@ -136,10 +136,10 @@ _TvFlags = __TvFlags;
     __dataSource: id;
     __intercellSpacing: NSSize;
     __rowHeight: CGFloat;
-    __lastSelectedColumn: clong;
-    __lastSelectedRow: clong;
-    __editingRow: clong;
-    __editingColumn: clong;
+    __lastSelectedColumn: NSInteger;
+    __lastSelectedRow: NSInteger;
+    __editingRow: NSInteger;
+    __editingColumn: NSInteger;
     __selectedColumns: NSMutableIndexSet;
     __selectedRows: NSMutableIndexSet;
     __bodyDragImage: NSImage;
@@ -150,9 +150,9 @@ _TvFlags = __TvFlags;
     __action: SEL;
     __doubleAction: SEL;
     __rectOfLastColumn: NSRect;
-    __lastCachedRectColumn: clong;
+    __lastCachedRectColumn: NSInteger;
     __rectOfLastRow: NSRect;
-    __lastCachedRectRow: clong;
+    __lastCachedRectRow: NSInteger;
     __tvFlags: _TvFlags;
     __reserved: id;
     
@@ -173,8 +173,8 @@ _TvFlags = __TvFlags;
     function allowsColumnResizing: Boolean; message 'allowsColumnResizing';
     procedure setColumnAutoresizingStyle(style: NSTableViewColumnAutoresizingStyle); message 'setColumnAutoresizingStyle:';
     function columnAutoresizingStyle: NSTableViewColumnAutoresizingStyle; message 'columnAutoresizingStyle';
-    procedure setGridStyleMask(gridType: culong); message 'setGridStyleMask:';
-    function gridStyleMask: culong; message 'gridStyleMask';
+    procedure setGridStyleMask(gridType: NSUInteger); message 'setGridStyleMask:';
+    function gridStyleMask: NSUInteger; message 'gridStyleMask';
     procedure setIntercellSpacing(aSize: NSSize); message 'setIntercellSpacing:';
     function intercellSpacing: NSSize; message 'intercellSpacing';
     procedure setUsesAlternatingRowBackgroundColors(useAlternatingRowColors: Boolean); message 'setUsesAlternatingRowBackgroundColors:';
@@ -187,24 +187,24 @@ _TvFlags = __TvFlags;
     function rowHeight: CGFloat; message 'rowHeight';
     procedure noteHeightOfRowsWithIndexesChanged(indexSet: NSIndexSet); message 'noteHeightOfRowsWithIndexesChanged:';
     function tableColumns: NSArray; message 'tableColumns';
-    function numberOfColumns: clong; message 'numberOfColumns';
-    function numberOfRows: clong; message 'numberOfRows';
+    function numberOfColumns: NSInteger; message 'numberOfColumns';
+    function numberOfRows: NSInteger; message 'numberOfRows';
     procedure addTableColumn(column: NSTableColumn); message 'addTableColumn:';
     procedure removeTableColumn(column: NSTableColumn); message 'removeTableColumn:';
-    function columnWithIdentifier(identifier: id): clong; message 'columnWithIdentifier:';
+    function columnWithIdentifier(identifier: id): NSInteger; message 'columnWithIdentifier:';
     function tableColumnWithIdentifier(identifier: id): NSTableColumn; message 'tableColumnWithIdentifier:';
     procedure tile; message 'tile';
     procedure sizeToFit; message 'sizeToFit';
     procedure sizeLastColumnToFit; message 'sizeLastColumnToFit';
-    procedure scrollRowToVisible(row: clong); message 'scrollRowToVisible:';
-    procedure scrollColumnToVisible(column: clong); message 'scrollColumnToVisible:';
-    procedure moveColumn_toColumn(column: clong; newIndex: clong); message 'moveColumn:toColumn:';
+    procedure scrollRowToVisible(row: NSInteger); message 'scrollRowToVisible:';
+    procedure scrollColumnToVisible(column: NSInteger); message 'scrollColumnToVisible:';
+    procedure moveColumn_toColumn(column: NSInteger; newIndex: NSInteger); message 'moveColumn:toColumn:';
     procedure reloadData; message 'reloadData';
     procedure noteNumberOfRowsChanged; message 'noteNumberOfRowsChanged';
-    function editedColumn: clong; message 'editedColumn';
-    function editedRow: clong; message 'editedRow';
-    function clickedColumn: clong; message 'clickedColumn';
-    function clickedRow: clong; message 'clickedRow';
+    function editedColumn: NSInteger; message 'editedColumn';
+    function editedRow: NSInteger; message 'editedRow';
+    function clickedColumn: NSInteger; message 'clickedColumn';
+    function clickedRow: NSInteger; message 'clickedRow';
     procedure setDoubleAction(aSelector: SEL); message 'setDoubleAction:';
     function doubleAction: SEL; message 'doubleAction';
     procedure setSortDescriptors(array_: NSArray); message 'setSortDescriptors:';
@@ -218,7 +218,7 @@ _TvFlags = __TvFlags;
     function canDragRowsWithIndexes_atPoint(rowIndexes: NSIndexSet; mouseDownPoint: NSPoint): Boolean; message 'canDragRowsWithIndexes:atPoint:';
     function dragImageForRowsWithIndexes_tableColumns_event_offset(dragRows: NSIndexSet; tableColumns_: NSArray; dragEvent: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'dragImageForRowsWithIndexes:tableColumns:event:offset:';
     procedure setDraggingSourceOperationMask_forLocal(mask: NSDragOperation; isLocal: Boolean); message 'setDraggingSourceOperationMask:forLocal:';
-    procedure setDropRow_dropOperation(row: clong; op: NSTableViewDropOperation); message 'setDropRow:dropOperation:';
+    procedure setDropRow_dropOperation(row: NSInteger; op: NSTableViewDropOperation); message 'setDropRow:dropOperation:';
     procedure setAllowsMultipleSelection(flag: Boolean); message 'setAllowsMultipleSelection:';
     function allowsMultipleSelection: Boolean; message 'allowsMultipleSelection';
     procedure setAllowsEmptySelection(flag: Boolean); message 'setAllowsEmptySelection:';
@@ -231,26 +231,26 @@ _TvFlags = __TvFlags;
     procedure selectRowIndexes_byExtendingSelection(indexes: NSIndexSet; extend: Boolean); message 'selectRowIndexes:byExtendingSelection:';
     function selectedColumnIndexes: NSIndexSet; message 'selectedColumnIndexes';
     function selectedRowIndexes: NSIndexSet; message 'selectedRowIndexes';
-    procedure deselectColumn(column: clong); message 'deselectColumn:';
-    procedure deselectRow(row: clong); message 'deselectRow:';
-    function selectedColumn: clong; message 'selectedColumn';
-    function selectedRow: clong; message 'selectedRow';
-    function isColumnSelected(column: clong): Boolean; message 'isColumnSelected:';
-    function isRowSelected(row: clong): Boolean; message 'isRowSelected:';
-    function numberOfSelectedColumns: clong; message 'numberOfSelectedColumns';
-    function numberOfSelectedRows: clong; message 'numberOfSelectedRows';
+    procedure deselectColumn(column: NSInteger); message 'deselectColumn:';
+    procedure deselectRow(row: NSInteger); message 'deselectRow:';
+    function selectedColumn: NSInteger; message 'selectedColumn';
+    function selectedRow: NSInteger; message 'selectedRow';
+    function isColumnSelected(column: NSInteger): Boolean; message 'isColumnSelected:';
+    function isRowSelected(row: NSInteger): Boolean; message 'isRowSelected:';
+    function numberOfSelectedColumns: NSInteger; message 'numberOfSelectedColumns';
+    function numberOfSelectedRows: NSInteger; message 'numberOfSelectedRows';
     function allowsTypeSelect: Boolean; message 'allowsTypeSelect';
     procedure setAllowsTypeSelect(value: Boolean); message 'setAllowsTypeSelect:';
     function selectionHighlightStyle: NSTableViewSelectionHighlightStyle; message 'selectionHighlightStyle';
     procedure setSelectionHighlightStyle(selectionHighlightStyle_: NSTableViewSelectionHighlightStyle); message 'setSelectionHighlightStyle:';
-    function rectOfColumn(column: clong): NSRect; message 'rectOfColumn:';
-    function rectOfRow(row: clong): NSRect; message 'rectOfRow:';
+    function rectOfColumn(column: NSInteger): NSRect; message 'rectOfColumn:';
+    function rectOfRow(row: NSInteger): NSRect; message 'rectOfRow:';
     function columnIndexesInRect(rect: NSRect): NSIndexSet; message 'columnIndexesInRect:';
     function rowsInRect(rect: NSRect): NSRange; message 'rowsInRect:';
-    function columnAtPoint(point: NSPoint): clong; message 'columnAtPoint:';
-    function rowAtPoint(point: NSPoint): clong; message 'rowAtPoint:';
-    function frameOfCellAtColumn_row(column: clong; row: clong): NSRect; message 'frameOfCellAtColumn:row:';
-    function preparedCellAtColumn_row(column: clong; row: clong): NSCell; message 'preparedCellAtColumn:row:';
+    function columnAtPoint(point: NSPoint): NSInteger; message 'columnAtPoint:';
+    function rowAtPoint(point: NSPoint): NSInteger; message 'rowAtPoint:';
+    function frameOfCellAtColumn_row(column: NSInteger; row: NSInteger): NSRect; message 'frameOfCellAtColumn:row:';
+    function preparedCellAtColumn_row(column: NSInteger; row: NSInteger): NSCell; message 'preparedCellAtColumn:row:';
     function textShouldBeginEditing(textObject: NSText): Boolean; message 'textShouldBeginEditing:';
     function textShouldEndEditing(textObject: NSText): Boolean; message 'textShouldEndEditing:';
     procedure textDidBeginEditing(notification: NSNotification); message 'textDidBeginEditing:';
@@ -260,8 +260,8 @@ _TvFlags = __TvFlags;
     function autosaveName: NSString; message 'autosaveName';
     procedure setAutosaveTableColumns(save: Boolean); message 'setAutosaveTableColumns:';
     function autosaveTableColumns: Boolean; message 'autosaveTableColumns';
-    procedure editColumn_row_withEvent_select(column: clong; row: clong; theEvent: NSEvent; select: Boolean); message 'editColumn:row:withEvent:select:';
-    procedure drawRow_clipRect(row: clong; clipRect: NSRect); message 'drawRow:clipRect:';
+    procedure editColumn_row_withEvent_select(column: NSInteger; row: NSInteger; theEvent: NSEvent; select: Boolean); message 'editColumn:row:withEvent:select:';
+    procedure drawRow_clipRect(row: NSInteger; clipRect: NSRect); message 'drawRow:clipRect:';
     procedure highlightSelectionInClipRect(clipRect: NSRect); message 'highlightSelectionInClipRect:';
     procedure drawGridInClipRect(clipRect: NSRect); message 'drawGridInClipRect:';
     procedure drawBackgroundInClipRect(clipRect: NSRect); message 'drawBackgroundInClipRect:';
@@ -269,8 +269,8 @@ _TvFlags = __TvFlags;
     { Category: NSDeprecated }
     procedure setDrawsGrid(flag: Boolean); message 'setDrawsGrid:';
     function drawsGrid: Boolean; message 'drawsGrid';
-    procedure selectColumn_byExtendingSelection(column: clong; extend: Boolean); message 'selectColumn:byExtendingSelection:';
-    procedure selectRow_byExtendingSelection(row: clong; extend: Boolean); message 'selectRow:byExtendingSelection:';
+    procedure selectColumn_byExtendingSelection(column: NSInteger; extend: Boolean); message 'selectColumn:byExtendingSelection:';
+    procedure selectRow_byExtendingSelection(row: NSInteger; extend: Boolean); message 'selectRow:byExtendingSelection:';
     function selectedColumnEnumerator: NSEnumerator; message 'selectedColumnEnumerator';
     function selectedRowEnumerator: NSEnumerator; message 'selectedRowEnumerator';
     function dragImageForRows_event_dragImageOffset(dragRows: NSArray; dragEvent: NSEvent; dragImageOffset: NSPointPointer): NSImage; message 'dragImageForRows:event:dragImageOffset:';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSButtonCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBUTTONCELL_PAS_H}
@@ -52,9 +52,9 @@ const
 
 { Types }
 type
-  NSButtonType = culong;
-  NSBezelStyle = culong;
-  NSGradientType = culong;
+  NSButtonType = NSUInteger;
+  NSBezelStyle = NSUInteger;
+  NSGradientType = NSUInteger;
 
 {$endif}
 {$endif}
@@ -65,73 +65,73 @@ type
 
 { Records }
 type
-  __BCFlags = record
+  __BCFlags = bitpacked record
 {$ifdef fpc_big_endian}
-    pushIn: cuint;
-    changeContents: cuint;
-    changeBackground: cuint;
-    changeGray: cuint;
-    lightByContents: cuint;
-    lightByBackground: cuint;
-    lightByGray: cuint;
-    drawing: cuint;
-    bordered: cuint;
-    imageOverlaps: cuint;
-    horizontal: cuint;
-    bottomOrLeft: cuint;
-    imageAndText: cuint;
-    imageSizeDiff: cuint;
-    hasKeyEquivalentInsteadOfImage: cuint;
-    lastState: cuint;
-    transparent: cuint;
-    inset: cuint;
-    doesNotDimImage: cuint;
-    gradientType: cuint;
-    useButtonImageSource: cuint;
-    alternateMnemonicLocation: cuint;
+    pushIn: 0..1;
+    changeContents: 0..1;
+    changeBackground: 0..1;
+    changeGray: 0..1;
+    lightByContents: 0..1;
+    lightByBackground: 0..1;
+    lightByGray: 0..1;
+    drawing: 0..1;
+    bordered: 0..1;
+    imageOverlaps: 0..1;
+    horizontal: 0..1;
+    bottomOrLeft: 0..1;
+    imageAndText: 0..1;
+    imageSizeDiff: 0..1;
+    hasKeyEquivalentInsteadOfImage: 0..1;
+    lastState: 0..1;
+    transparent: 0..1;
+    inset: 0..((1 shl 2)-1);
+    doesNotDimImage: 0..1;
+    gradientType: 0..((1 shl 3)-1);
+    useButtonImageSource: 0..1;
+    alternateMnemonicLocation: 0..((1 shl 8)-1);
 {$else}
-    alternateMnemonicLocation: cuint;
-    useButtonImageSource: cuint;
-    gradientType: cuint;
-    doesNotDimImage: cuint;
-    inset: cuint;
-    transparent: cuint;
-    lastState: cuint;
-    hasKeyEquivalentInsteadOfImage: cuint;
-    imageSizeDiff: cuint;
-    imageAndText: cuint;
-    bottomOrLeft: cuint;
-    horizontal: cuint;
-    imageOverlaps: cuint;
-    bordered: cuint;
-    drawing: cuint;
-    lightByGray: cuint;
-    lightByBackground: cuint;
-    lightByContents: cuint;
-    changeGray: cuint;
-    changeBackground: cuint;
-    changeContents: cuint;
-    pushIn: cuint;
+    alternateMnemonicLocation: 0..((1 shl 8)-1);
+    useButtonImageSource: 0..1;
+    gradientType: 0..((1 shl 3)-1);
+    doesNotDimImage: 0..1;
+    inset: 0..((1 shl 2)-1);
+    transparent: 0..1;
+    lastState: 0..1;
+    hasKeyEquivalentInsteadOfImage: 0..1;
+    imageSizeDiff: 0..1;
+    imageAndText: 0..1;
+    bottomOrLeft: 0..1;
+    horizontal: 0..1;
+    imageOverlaps: 0..1;
+    bordered: 0..1;
+    drawing: 0..1;
+    lightByGray: 0..1;
+    lightByBackground: 0..1;
+    lightByContents: 0..1;
+    changeGray: 0..1;
+    changeBackground: 0..1;
+    changeContents: 0..1;
+    pushIn: 0..1;
 {$endif}
   end;
 _BCFlags = __BCFlags;
 
 type
-  __BCFlags2 = record
+  __BCFlags2 = bitpacked record
 {$ifdef fpc_big_endian}
-    keyEquivalentModifierMask: cuint;
-    imageScaling: cuint;
-    bezelStyle2: cuint;
-    mouseInside: cuint;
-    showsBorderOnlyWhileMouseInside: cuint;
-    bezelStyle: cuint;
+    keyEquivalentModifierMask: 0..((1 shl 24)-1);
+    imageScaling: 0..((1 shl 2)-1);
+    bezelStyle2: 0..1;
+    mouseInside: 0..1;
+    showsBorderOnlyWhileMouseInside: 0..1;
+    bezelStyle: 0..((1 shl 3)-1);
 {$else}
-    bezelStyle: cuint;
-    showsBorderOnlyWhileMouseInside: cuint;
-    mouseInside: cuint;
-    bezelStyle2: cuint;
-    imageScaling: cuint;
-    keyEquivalentModifierMask: cuint;
+    bezelStyle: 0..((1 shl 3)-1);
+    showsBorderOnlyWhileMouseInside: 0..1;
+    mouseInside: 0..1;
+    bezelStyle2: 0..1;
+    imageScaling: 0..((1 shl 2)-1);
+    keyEquivalentModifierMask: 0..((1 shl 24)-1);
 {$endif}
   end;
 _BCFlags2 = __BCFlags2;
@@ -189,21 +189,21 @@ _BCFlags2 = __BCFlags2;
     procedure setImagePosition(aPosition: NSCellImagePosition); message 'setImagePosition:';
     function imageScaling: NSImageScaling; message 'imageScaling';
     procedure setImageScaling(scaling: NSImageScaling); message 'setImageScaling:';
-    function highlightsBy: clong; message 'highlightsBy';
-    procedure setHighlightsBy(aType: clong); message 'setHighlightsBy:';
-    function showsStateBy: clong; message 'showsStateBy';
-    procedure setShowsStateBy(aType: clong); message 'setShowsStateBy:';
+    function highlightsBy: NSInteger; message 'highlightsBy';
+    procedure setHighlightsBy(aType: NSInteger); message 'setHighlightsBy:';
+    function showsStateBy: NSInteger; message 'showsStateBy';
+    procedure setShowsStateBy(aType: NSInteger); message 'setShowsStateBy:';
     procedure setButtonType(aType: NSButtonType); message 'setButtonType:';
     function isOpaque: Boolean; message 'isOpaque';
     procedure setFont(fontObj: NSFont); message 'setFont:';
     function isTransparent: Boolean; message 'isTransparent';
     procedure setTransparent(flag: Boolean); message 'setTransparent:';
     procedure setPeriodicDelay_interval(delay: single; interval: single); message 'setPeriodicDelay:interval:';
-    procedure getPeriodicDelay_interval(var delay: single; var interval: single); message 'getPeriodicDelay:interval:';
+    procedure getPeriodicDelay_interval(delay: psingle; interval: psingle); message 'getPeriodicDelay:interval:';
     function keyEquivalent: NSString; message 'keyEquivalent';
     procedure setKeyEquivalent(aKeyEquivalent: NSString); message 'setKeyEquivalent:';
-    function keyEquivalentModifierMask: culong; message 'keyEquivalentModifierMask';
-    procedure setKeyEquivalentModifierMask(mask: culong); message 'setKeyEquivalentModifierMask:';
+    function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
+    procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
     function keyEquivalentFont: NSFont; message 'keyEquivalentFont';
     procedure setKeyEquivalentFont(fontObj: NSFont); message 'setKeyEquivalentFont:';
     procedure setKeyEquivalentFont_size(fontName: NSString; fontSize: CGFloat); message 'setKeyEquivalentFont:size:';
@@ -215,8 +215,8 @@ _BCFlags2 = __BCFlags2;
     { Category: NSKeyboardUI }
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
     procedure setAlternateTitleWithMnemonic(stringWithAmpersand: NSString); message 'setAlternateTitleWithMnemonic:';
-    procedure setAlternateMnemonicLocation(location: culong); message 'setAlternateMnemonicLocation:';
-    function alternateMnemonicLocation: culong; message 'alternateMnemonicLocation';
+    procedure setAlternateMnemonicLocation(location: NSUInteger); message 'setAlternateMnemonicLocation:';
+    function alternateMnemonicLocation: NSUInteger; message 'alternateMnemonicLocation';
     function alternateMnemonic: NSString; message 'alternateMnemonic';
 
     { Category: NSButtonCellExtensions }

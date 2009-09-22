@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSRunLoop.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSRUNLOOP_PAS_H}
@@ -13,10 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSRUNLOOP_PAS_T}
 {$define NSRUNLOOP_PAS_T}
-
-{ CFString constants }
-var
-  NSDefaultRunLoopMode: CFStringRef; external name '_NSDefaultRunLoopMode';
 
 {$endif}
 {$endif}
@@ -39,6 +35,10 @@ var
 {$ifndef NSRUNLOOP_PAS_T}
 {$define NSRUNLOOP_PAS_T}
 
+{ External string constants }
+var
+  NSDefaultRunLoopMode: NSString; external name '_NSDefaultRunLoopMode';
+
 {$endif}
 {$endif}
 
@@ -57,7 +57,7 @@ var
     __rl: id;
     __dperf: id;
     __perft: id;
-    __reserved: Pointer;
+        _reserved: array[0..7] of Pointer;
     
   public
     class function alloc: NSRunLoop; message 'alloc';
@@ -77,7 +77,7 @@ var
     function runMode_beforeDate(mode: NSString; limitDate: NSDate): Boolean; message 'runMode:beforeDate:';
 
     { Category: NSOrderedPerform }
-    procedure performSelector_target_argument_order_modes(aSelector: SEL; target: id; arg: id; order: culong; modes: NSArray); message 'performSelector:target:argument:order:modes:';
+    procedure performSelector_target_argument_order_modes(aSelector: SEL; target: id; arg: id; order: NSUInteger; modes: NSArray); message 'performSelector:target:argument:order:modes:';
     procedure cancelPerformSelector_target_argument(aSelector: SEL; target: id; arg: id); message 'cancelPerformSelector:target:argument:';
     procedure cancelPerformSelectorsWithTarget(target: id); message 'cancelPerformSelectorsWithTarget:';
   end; external;

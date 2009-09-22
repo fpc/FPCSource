@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLHandle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLHANDLE_PAS_H}
@@ -24,7 +24,7 @@ const
 
 { Types }
 type
-  NSURLHandleStatus = culong;
+  NSURLHandleStatus = NSUInteger;
 
 {$endif}
 {$endif}
@@ -66,7 +66,7 @@ type
     __clients: NSMutableArray;
     __data: id;
     __status: NSURLHandleStatus;
-    __reserved: clong;
+    __reserved: NSInteger;
     
   public
     class function alloc: NSURLHandle; message 'alloc';

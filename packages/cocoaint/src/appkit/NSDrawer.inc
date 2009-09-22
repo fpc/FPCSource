@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDrawer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDRAWER_PAS_H}
@@ -24,14 +24,7 @@ const
 
 { Types }
 type
-  NSDrawerState = culong;
-
-{ CFString constants }
-var
-  NSDrawerWillOpenNotification: CFStringRef; external name '_NSDrawerWillOpenNotification';
-  NSDrawerDidOpenNotification: CFStringRef; external name '_NSDrawerDidOpenNotification';
-  NSDrawerWillCloseNotification: CFStringRef; external name '_NSDrawerWillCloseNotification';
-  NSDrawerDidCloseNotification: CFStringRef; external name '_NSDrawerDidCloseNotification';
+  NSDrawerState = NSUInteger;
 
 {$endif}
 {$endif}
@@ -53,6 +46,13 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSDRAWER_PAS_T}
 {$define NSDRAWER_PAS_T}
+
+{ External string constants }
+var
+  NSDrawerWillOpenNotification: NSString; external name '_NSDrawerWillOpenNotification';
+  NSDrawerDidOpenNotification: NSString; external name '_NSDrawerDidOpenNotification';
+  NSDrawerWillCloseNotification: NSString; external name '_NSDrawerWillCloseNotification';
+  NSDrawerDidCloseNotification: NSString; external name '_NSDrawerDidCloseNotification';
 
 {$endif}
 {$endif}
@@ -107,7 +107,7 @@ var
     procedure openOnEdge(edge_: NSRectEdge); message 'openOnEdge:';
     procedure close; message 'close';
     procedure toggle(sender: id); message 'toggle:';
-    function state: clong; message 'state';
+    function state: NSInteger; message 'state';
     function edge: NSRectEdge; message 'edge';
     procedure setContentSize(size: NSSize); message 'setContentSize:';
     function contentSize: NSSize; message 'contentSize';

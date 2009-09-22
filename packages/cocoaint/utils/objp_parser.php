@@ -5,8 +5,12 @@ class TObjPParser extends TPasCocoaParser {
 	var $objc_id = "id";							// Default type for generic objects
 	var $objc_id_real = "id";						// The real type of generic objects (id)
 	var $sel_string = "SEL";						
-	var $pointer_type_suffx = "";
 	var $trailing_underscore = true;
+	var $print_header_references = false;
+	
+	// ignore these classes when testing for ivar size
+	var $ignore_class_ivar_comparison = array(	"NSNibOutletConnector", "NSNibConnector", "NSNibControlConnector", "NSPredicateEditorRowTemplate", "NSSegmentedCell",
+												"NSSimpleHorizontalTypesetter", "NSInvocation", "NSPointerFunctions", "NSConstantString");
 	
 	var $reserved_keywords = array(	"const", "object", "string", "array", "var", "set", "interface", "classname", "unit",
 									"self", "type", "raise", "property", "to", "for", "with", "function", "procedure", "result",
@@ -15,24 +19,30 @@ class TObjPParser extends TPasCocoaParser {
 									// identifiers from NSObject
 									"zone", 
 									);
-	
+
 	var $replace_types = array(	"void"=>"Pointer", "BOOL"=>"Boolean", "long"=>"clong", "int"=>"cint",
 								"unsigned long"=>"culong", "unsigned short"=>"cushort", "void *"=>"Pointer", "unsigned int"=>"cuint",
-								"NSUInteger"=>"culong", "NSInteger"=>"clong", "Class"=>"Pobjc_class", "uint"=>"cuint",
+								"Class"=>"Pobjc_class", "uint"=>"cuint",
 								"uint8_t"=>"byte", "signed int"=>"cint", "const char"=>"char", "const void"=>"Pointer",
 								"const uint8_t"=>"byte", "unsigned"=>"cuint", "int32_t"=>"longint", "float"=>"single",
 								"unsigned long long"=>"culonglong", "int64_t"=>"clonglong", "uint32_t"=>"cardinal", "uint16_t"=>"word",
 								"unsigned char"=>"char", "short"=>"cshort", "double"=>"double", "long long"=>"clonglong",
 								
+								// ??? new in instance var parser: (add to main section eventually)
+								"signed char"=>"char", "uint64_t"=>"clonglong", 
+								
+								// work-arounds - the type replacement needs regex to handle with spaces I guess
+								"void*"=>"Pointer",
+								
 								// macros
-								"IBAction"=>"void", 
+								"IBAction"=>"void", "IBOutlet"=>"",
 								
 								// special pointers
 								"const id *"=>"NSObjectArrayOfObjectsPtr", "Protocol *"=>"objc_protocol", "NSObject *"=>"NSObject",
 								"const char *"=>"PChar", "const void *"=>"Pointer", "unsigned char *"=>"Pointer", "char *"=>"Pointer",
-								"unsigned *"=>"Pointer", 
+								"unsigned *"=>"Pointer", "unichar *"=>"PChar", "const unichar *"=>"PChar", 
 								);
-	
+		
 	// These methods require that the last parameter append a trailing underscore (if $trailing_underscore is on)
 	var $trailing_underscore_methods = array("- (void)copy:(id)sender;", "- (void)setNeedsDisplay:(BOOL)flag;");
 
@@ -71,7 +81,7 @@ class TObjPParser extends TPasCocoaParser {
 
 	// Converts an Objective-C method to Pascal format 
 	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params) {
-
+		
 	// replace "hinted" params comment with hinted type
 	if ($this->replace_hinted_params) {
 
@@ -115,7 +125,7 @@ class TObjPParser extends TPasCocoaParser {
 		// merge default protected keywords for the class/category
 		if ($this->default_protected[$class]) $protected_keywords = array_merge($this->default_protected[$class], $protected_keywords);
 
-		$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords);
+		$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords, $variable_arguments);
 		$params = "(".$param_array["string"].")";
 		$params_with_modifiers = "(".$param_array["string_with_modifiers"].")";
 	} else {
@@ -123,6 +133,7 @@ class TObjPParser extends TPasCocoaParser {
 		$params_with_modifiers = "";
 		$name = $parts[3];
 		$param_array = null;
+		$variable_arguments = false;
 	}
 
 	//print("$params_with_modifiers\n");
@@ -130,10 +141,21 @@ class TObjPParser extends TPasCocoaParser {
 	// protect method name from keywords
 	if ($this->IsKeywordReserved($name)) $name .= "_";
 
-	// clean return type
-	$return_type = trim($parts[2], "* ");
+	// replace objc type
+	$return_type = $this->ConvertReturnType($return_type_clean);
+	/*
+	$return_type = $this->ReplaceObjcType($return_type_clean);
+	
+	// if the type was not converted remove the * and process further
+	$return_type = trim($return_type, "* ");
 	$return_type = $this->ReplaceObjcType($return_type);
 	$return_type = $this->ReplaceTollFreeBridgeType($return_type);
+	
+	// format the return type again to make sure it's clean
+	$return_type = $this->FormatObjcType($return_type, $null_modifier);
+	*/
+	// add varargs keyword to the return type
+	if ($variable_arguments) $return_type = "$return_type; varargs";
 
 	$virtual = "";
 	$class_prefix = "";
@@ -189,6 +211,7 @@ class TObjPParser extends TPasCocoaParser {
 	//$struct["def_objc"] = eregi("(.*);", $source, $captures[1]);
 	if ($return_type == "void") $return_type = "";
 	$struct["return"] = $return_type;
+	
 	if (in_array($return_type, $this->cocoa_classes)) $struct["returns_wrapper"] = true;
 	$struct["param_string_clean"] = trim($params, "()");
 	$struct["param_string_clean_with_modifiers"] = trim($params_with_modifiers, "()");
@@ -215,7 +238,7 @@ class TObjPParser extends TPasCocoaParser {
 	// Prints all classes from the header in Objective-P FPC format
 	function PrintHeader ($header) {
 		global $version;
-
+		
 		$this->output = fopen($header["path"], "w+");
 
 		$this->PrintOutput(0, "{ Parsed from ".ucfirst($header["framework"]).".framework ".$header["name"]." }");
@@ -256,7 +279,33 @@ class TObjPParser extends TPasCocoaParser {
 		$this->PrintOutput(0, "{\$ifdef RECORDS}");
 		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_R}");
 		$this->PrintOutput(0, "{\$define $macro"."_PAS_R}");
+		
+
+		// Records from instance variables
+		// NOTE: These are inline records now
+		/*
+		foreach ($header["classes"] as $class) {
+			if ($class["ivars_structs"]) {
+				foreach ($class["ivars_structs"] as $ivar_struct) {
+					//print_r($ivar_struct);
+					
+					$this->PrintOutput(1, "type");
+					$this->PrintOutput(2, $class["name"]."_".$ivar_struct["name"]." = record");
+
+					// print fields
+					if ($ivar_struct["fields"]) {
+						foreach ($ivar_struct["fields"] as $field) $this->PrintOutput(3, $field);
+					}
+
+					$this->PrintOutput(2, "end;");
+				}
+			}
+		}
+		*/
+		
+		// Records from types
 		$this->PrintRecords($header);
+		
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$endif}");
 		$this->PrintOutput(0, "{\$endif}");
@@ -337,7 +386,6 @@ class TObjPParser extends TPasCocoaParser {
 		}
 	}
 	
-	
 	function PrintClass ($class) {
 
 		$this->PrintOutput(0, "");
@@ -350,9 +398,19 @@ class TObjPParser extends TPasCocoaParser {
 			$this->PrintOutput(1, $class["name"]." = objcclass(".$class["super"].")");
 		}
 
-		// print alloc method for the class
-		$this->PrintOutput(2, "class function alloc: ".$class["name"]."; message 'alloc';");
+		// print instance variables
+		if ($class["ivars"]) {
+			$this->PrintOutput(1, "private");
+			foreach ($class["ivars"] as $ivar) {
+				$this->PrintOutput(2, $ivar);
+			}
+		}
 
+		// print alloc method for the class
+		$this->PrintOutput(2, "");
+		$this->PrintOutput(1, "public");
+		$this->PrintOutput(2, "class function alloc: ".$class["name"]."; message 'alloc';");
+		
 		// print class-level methods
 		if ($class["methods"]) {
 			$this->PrintOutput(0, "");
@@ -376,6 +434,125 @@ class TObjPParser extends TPasCocoaParser {
 		}
 
 		$this->PrintOutput(1, "end; external;");
+	}
+
+	function PrintDelegateReference ($valid_categories) {
+		global $version;
+
+		$date = date("D M j G:i:s T Y");
+		$this->PrintOutput(0, "{ Version $version - $date }");
+		$this->PrintOutput(0, "");
+
+		ksort($this->delegate_methods);
+		
+		$this->PrintOutput(0, "unit $this->master_delegate_file;");
+		$this->PrintOutput(0, "interface");
+		
+		$this->PrintOutput(0, "");
+		$this->PrintOutput(0, "{ Copy and paste these delegate methods into your real classes. }");
+		
+		
+		// implemented methods
+		foreach ($this->delegate_methods as $category => $selectors) {
+			if (in_array($category, $this->ignore_categories)) continue;
+			
+			// make sure the category is valid
+			$valid = false;
+			foreach ($valid_categories as $pattern) {
+				if (eregi($pattern, $category)) {
+					$valid = true;
+					break;
+				}
+			}
+			if (!$valid) continue;
+			
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "type");
+			$this->PrintOutput(1, "$category = objccategory (NSObject)");
+			//$this->PrintOutput(1, "public");
+			
+			foreach ($selectors as $selector) {
+				
+				// FPC long name bug work-around
+				if (strlen($selector["name_pascal"]) > $this->maximum_method_length) continue;
+				
+				if ($selector["kind"] == "procedure") {
+					$this->PrintOutput(2, $selector["kind"]." ".$selector["name_pascal"].$selector["param_string"].";"." message '".$selector["name"]."';");
+				} else {
+					$this->PrintOutput(2, $selector["kind"]." ".$selector["name_pascal"].$selector["param_string"].": ".$selector["method"]["return"].";"." message '".$selector["name"]."';");
+				}
+			}
+			
+			$this->PrintOutput(1, "end;");
+		}
+		
+	}
+
+	function PrintIvarSizeComparison ($path) {
+		$count = 0;
+		$block = true;
+		$block_count = 1;
+		$limit = 2000;
+		
+		$handle = fopen($path, "w+");
+		if (!$handle) die("Bad path to size comparison output program!");
+		
+		fwrite($handle, "{\$mode objfpc}\n");
+		fwrite($handle, "{\$modeswitch objectivec1}\n");
+
+		fwrite($handle, "program IvarSize;\n");
+		fwrite($handle, "uses\n");
+		fwrite($handle, " objp,objcrtl,objcrtlmacosx;\n");
+		
+		// print derived classes
+		foreach ($this->cocoa_classes as $class) {
+			if (in_array($class, $this->ignore_class_ivar_comparison)) continue;
+			if ($previous == $class) continue;
+			
+			fwrite($handle, "type\n");
+			fwrite($handle, " TDerived$class = objcclass ($class)\n");
+			fwrite($handle, " extrabyte: byte;\n");
+			fwrite($handle, "end;\n");
+			
+			$previous = $class;
+		}
+		
+		// print procedures
+		foreach ($this->cocoa_classes as $class) {
+			if (in_array($class, $this->ignore_class_ivar_comparison)) continue;
+			if ($previous == $class) continue;
+			
+			if ($count == 0) {
+				fwrite($handle, "\n");
+				fwrite($handle, "procedure PrintGlue$block_count;\n");
+				fwrite($handle, "begin\n");
+				
+				$block_count ++;
+			}
+			
+			$count ++;
+			
+		 	fwrite($handle, " if class_getInstanceSize(TDerived$class) <> (class_getInstanceSize($class)+1) then\n");
+		    fwrite($handle, " writeln('size of $class is wrong: ',class_getInstanceSize(TDerived$class),' <> ',class_getInstanceSize($class)+1);\n");
+			
+			if ($count == $limit) {
+				fwrite($handle, "end;\n");
+				$count = 0;
+			}
+			
+			$previous = $class;
+		}
+		
+		if ($count < $limit) {
+			fwrite($handle, "end;\n");
+			$block_count --;
+		}
+		
+		fwrite($handle, "begin\n");
+		for ($i=1; $i < $block_count + 1; $i++) { 
+			fwrite($handle, " PrintGlue$i;\n");
+		}
+		fwrite($handle, "end.\n");
 	}
 
 }

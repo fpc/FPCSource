@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyValueObserving.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -28,9 +28,9 @@ const
 
 { Types }
 type
-  NSKeyValueObservingOptions = culong;
-  NSKeyValueChange = culong;
-  NSKeyValueSetMutationKind = culong;
+  NSKeyValueObservingOptions = NSUInteger;
+  NSKeyValueChange = NSUInteger;
+  NSKeyValueSetMutationKind = NSUInteger;
 
 {$endif}
 {$endif}

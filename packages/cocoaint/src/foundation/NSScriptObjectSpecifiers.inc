@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptObjectSpecifiers.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_H}
@@ -48,9 +48,9 @@ const
 
 { Types }
 type
-  NSInsertionPosition = culong;
-  NSRelativePosition = culong;
-  NSWhoseSubelementIdentifier = culong;
+  NSInsertionPosition = NSUInteger;
+  NSRelativePosition = NSUInteger;
+  NSWhoseSubelementIdentifier = NSUInteger;
 
 {$endif}
 {$endif}
@@ -104,9 +104,9 @@ type
     __containerClassDescription: NSScriptClassDescription;
     __containerIsObjectBeingTested: Boolean;
     __containerIsRangeContainerObject: Boolean;
-    __padding: char;
+        _padding: array[0..1] of char;
     __descriptor: NSAppleEventDescriptor;
-    __error: clong;
+    __error: NSInteger;
     
   public
     class function alloc: NSScriptObjectSpecifier; message 'alloc';
@@ -127,11 +127,11 @@ type
     function containerClassDescription: NSScriptClassDescription; message 'containerClassDescription';
     procedure setContainerClassDescription(classDesc: NSScriptClassDescription); message 'setContainerClassDescription:';
     function keyClassDescription: NSScriptClassDescription; message 'keyClassDescription';
-    function indicesOfObjectsByEvaluatingWithContainer_count(container: id; var count: clong): clong; message 'indicesOfObjectsByEvaluatingWithContainer:count:';
+    function indicesOfObjectsByEvaluatingWithContainer_count(container: id; count: NSIntegerPointer): NSInteger; message 'indicesOfObjectsByEvaluatingWithContainer:count:';
     function objectsByEvaluatingWithContainers(containers: id): id; message 'objectsByEvaluatingWithContainers:';
     function objectsByEvaluatingSpecifier: id; message 'objectsByEvaluatingSpecifier';
-    function evaluationErrorNumber: clong; message 'evaluationErrorNumber';
-    procedure setEvaluationErrorNumber(error: clong); message 'setEvaluationErrorNumber:';
+    function evaluationErrorNumber: NSInteger; message 'evaluationErrorNumber';
+    procedure setEvaluationErrorNumber(error: NSInteger); message 'setEvaluationErrorNumber:';
     function evaluationErrorSpecifier: NSScriptObjectSpecifier; message 'evaluationErrorSpecifier';
     function descriptor: NSAppleEventDescriptor; message 'descriptor';
   end; external;
@@ -139,14 +139,14 @@ type
 { NSIndexSpecifier }
   NSIndexSpecifier = objcclass(NSScriptObjectSpecifier)
   private
-    __index: clong;
+    __index: NSInteger;
     
   public
     class function alloc: NSIndexSpecifier; message 'alloc';
 
-    function initWithContainerClassDescription_containerSpecifier_key_index(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; index_: clong): id; message 'initWithContainerClassDescription:containerSpecifier:key:index:';
-    function index: clong; message 'index';
-    procedure setIndex(index_: clong); message 'setIndex:';
+    function initWithContainerClassDescription_containerSpecifier_key_index(classDesc: NSScriptClassDescription; container: NSScriptObjectSpecifier; property_: NSString; index_: NSInteger): id; message 'initWithContainerClassDescription:containerSpecifier:key:index:';
+    function index: NSInteger; message 'index';
+    procedure setIndex(index_: NSInteger); message 'setIndex:';
   end; external;
 
 { NSMiddleSpecifier }
@@ -188,7 +188,7 @@ type
     procedure evaluate; message 'evaluate';
     function insertionContainer: id; message 'insertionContainer';
     function insertionKey: NSString; message 'insertionKey';
-    function insertionIndex: clong; message 'insertionIndex';
+    function insertionIndex: NSInteger; message 'insertionIndex';
     function insertionReplaces: Boolean; message 'insertionReplaces';
   end; external;
 
@@ -256,9 +256,9 @@ type
   private
     __test: NSScriptWhoseTest;
     __startSubelementIdentifier: NSWhoseSubelementIdentifier;
-    __startSubelementIndex: clong;
+    __startSubelementIndex: NSInteger;
     __endSubelementIdentifier: NSWhoseSubelementIdentifier;
-    __endSubelementIndex: clong;
+    __endSubelementIndex: NSInteger;
     
   public
     class function alloc: NSWhoseSpecifier; message 'alloc';
@@ -268,12 +268,12 @@ type
     procedure setTest(test_: NSScriptWhoseTest); message 'setTest:';
     function startSubelementIdentifier: NSWhoseSubelementIdentifier; message 'startSubelementIdentifier';
     procedure setStartSubelementIdentifier(subelement: NSWhoseSubelementIdentifier); message 'setStartSubelementIdentifier:';
-    function startSubelementIndex: clong; message 'startSubelementIndex';
-    procedure setStartSubelementIndex(index: clong); message 'setStartSubelementIndex:';
+    function startSubelementIndex: NSInteger; message 'startSubelementIndex';
+    procedure setStartSubelementIndex(index: NSInteger); message 'setStartSubelementIndex:';
     function endSubelementIdentifier: NSWhoseSubelementIdentifier; message 'endSubelementIdentifier';
     procedure setEndSubelementIdentifier(subelement: NSWhoseSubelementIdentifier); message 'setEndSubelementIdentifier:';
-    function endSubelementIndex: clong; message 'endSubelementIndex';
-    procedure setEndSubelementIndex(index: clong); message 'setEndSubelementIndex:';
+    function endSubelementIndex: NSInteger; message 'endSubelementIndex';
+    procedure setEndSubelementIndex(index: NSInteger); message 'setEndSubelementIndex:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSZone.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -33,23 +33,25 @@ const
 
 { Functions }
 function NSDefaultMallocZone: NSZone; cdecl; external name 'NSDefaultMallocZone';
-function NSCreateZone(startSize: culong; granularity: culong; canFree: Boolean): NSZone; cdecl; external name 'NSCreateZone';
-procedure NSRecycleZone(var zone: NSZone); cdecl; external name 'NSRecycleZone';
-procedure NSSetZoneName(var zone: NSZone; var name: NSString); cdecl; external name 'NSSetZoneName';
-function NSZoneName(var zone: NSZone): NSString; cdecl; external name 'NSZoneName';
-function NSZoneFromPointer(var ptr: Pointer): NSZone; cdecl; external name 'NSZoneFromPointer';
-procedure NSZoneMalloc(var zone: NSZone; size: culong); cdecl; external name 'NSZoneMalloc';
-procedure NSZoneCalloc(var zone: NSZone; numElems: culong; byteSize: culong); cdecl; external name 'NSZoneCalloc';
-procedure NSZoneRealloc(var zone: NSZone; var ptr: Pointer; size: culong); cdecl; external name 'NSZoneRealloc';
-procedure NSZoneFree(var zone: NSZone; var ptr: Pointer); cdecl; external name 'NSZoneFree';
-function NSPageSize: culong; cdecl; external name 'NSPageSize';
-function NSLogPageSize: culong; cdecl; external name 'NSLogPageSize';
-function NSRoundUpToMultipleOfPageSize(bytes: culong): culong; cdecl; external name 'NSRoundUpToMultipleOfPageSize';
-function NSRoundDownToMultipleOfPageSize(bytes: culong): culong; cdecl; external name 'NSRoundDownToMultipleOfPageSize';
-procedure NSAllocateMemoryPages(bytes: culong); cdecl; external name 'NSAllocateMemoryPages';
-procedure NSDeallocateMemoryPages(var ptr: Pointer; bytes: culong); cdecl; external name 'NSDeallocateMemoryPages';
-procedure NSCopyMemoryPages(var source: Pointer; var dest: Pointer; bytes: culong); cdecl; external name 'NSCopyMemoryPages';
-function NSRealMemoryAvailable: culong; cdecl; external name 'NSRealMemoryAvailable';
+function NSCreateZone(startSize: NSUInteger; granularity: NSUInteger; canFree: Boolean): NSZone; cdecl; external name 'NSCreateZone';
+procedure NSRecycleZone(zonePointer: NSZone); cdecl; external name 'NSRecycleZone';
+procedure NSSetZoneName(zonePointer: NSZone; namePointer: NSString); cdecl; external name 'NSSetZoneName';
+function NSZoneName(zonePointer: NSZone): NSString; cdecl; external name 'NSZoneName';
+function NSZoneFromPointer(ptrPointer: Pointer): NSZone; cdecl; external name 'NSZoneFromPointer';
+procedure NSZoneMalloc(zonePointer: NSZone; size: NSUInteger); cdecl; external name 'NSZoneMalloc';
+procedure NSZoneCalloc(zonePointer: NSZone; numElems: NSUInteger; byteSize: NSUInteger); cdecl; external name 'NSZoneCalloc';
+procedure NSZoneRealloc(zonePointer: NSZone; ptrPointer: Pointer; size: NSUInteger); cdecl; external name 'NSZoneRealloc';
+procedure NSZoneFree(zonePointer: NSZone; ptrPointer: Pointer); cdecl; external name 'NSZoneFree';
+function NSAllocateCollectable(size: NSUInteger; options: NSUInteger): Pointer; cdecl; external name 'NSAllocateCollectable';
+function NSReallocateCollectable(ptrPointer: Pointer; size: NSUInteger; options: NSUInteger): Pointer; cdecl; external name 'NSReallocateCollectable';
+function NSPageSize: NSUInteger; cdecl; external name 'NSPageSize';
+function NSLogPageSize: NSUInteger; cdecl; external name 'NSLogPageSize';
+function NSRoundUpToMultipleOfPageSize(bytes: NSUInteger): NSUInteger; cdecl; external name 'NSRoundUpToMultipleOfPageSize';
+function NSRoundDownToMultipleOfPageSize(bytes: NSUInteger): NSUInteger; cdecl; external name 'NSRoundDownToMultipleOfPageSize';
+procedure NSAllocateMemoryPages(bytes: NSUInteger); cdecl; external name 'NSAllocateMemoryPages';
+procedure NSDeallocateMemoryPages(ptrPointer: Pointer; bytes: NSUInteger); cdecl; external name 'NSDeallocateMemoryPages';
+procedure NSCopyMemoryPages(sourcePointer: Pointer; destPointer: Pointer; bytes: NSUInteger); cdecl; external name 'NSCopyMemoryPages';
+function NSRealMemoryAvailable: NSUInteger; cdecl; external name 'NSRealMemoryAvailable';
 
 {$endif}
 {$endif}

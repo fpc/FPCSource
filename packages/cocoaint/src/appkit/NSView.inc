@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSVIEW_PAS_H}
@@ -37,19 +37,9 @@ const
 
 { Types }
 type
-  NSBorderType = culong;
-  NSTrackingRectTag = clong;
-  NSToolTipTag = clong;
-
-{ CFString constants }
-var
-  NSFullScreenModeAllScreens: CFStringRef; external name '_NSFullScreenModeAllScreens';
-  NSFullScreenModeSetting: CFStringRef; external name '_NSFullScreenModeSetting';
-  NSFullScreenModeWindowLevel: CFStringRef; external name '_NSFullScreenModeWindowLevel';
-  NSViewFrameDidChangeNotification: CFStringRef; external name '_NSViewFrameDidChangeNotification';
-  NSViewFocusDidChangeNotification: CFStringRef; external name '_NSViewFocusDidChangeNotification';
-  NSViewBoundsDidChangeNotification: CFStringRef; external name '_NSViewBoundsDidChangeNotification';
-  NSViewGlobalFrameDidChangeNotification: CFStringRef; external name '_NSViewGlobalFrameDidChangeNotification';
+  NSBorderType = NSUInteger;
+  NSTrackingRectTag = NSInteger;
+  NSToolTipTag = NSInteger;
 
 {$endif}
 {$endif}
@@ -60,53 +50,53 @@ var
 
 { Records }
 type
-  __VFlags = record
+  __VFlags = bitpacked record
 {$ifdef fpc_big_endian}
-    rotatedFromBase: cuint;
-    rotatedOrScaledFromBase: cuint;
-    autosizing: cuint;
-    autoresizeSubviews: cuint;
-    wantsGState: cuint;
-    needsDisplay: cuint;
-    validGState: cuint;
-    newGState: cuint;
-    noVerticalAutosizing: cuint;
-    frameChangeNotesSuspended: cuint;
-    needsFrameChangeNote: cuint;
-    focusChangeNotesSuspended: cuint;
-    boundsChangeNotesSuspended: cuint;
-    needsBoundsChangeNote: cuint;
-    removingWithoutInvalidation: cuint;
-    interfaceStyle0: cuint;
-    needsDisplayForBounds: cuint;
-    specialArchiving: cuint;
-    interfaceStyle1: cuint;
-    retainCount: cuint;
-    retainCountOverMax: cuint;
-    aboutToResize: cuint;
+    rotatedFromBase: 0..1;
+    rotatedOrScaledFromBase: 0..1;
+    autosizing: 0..((1 shl 6)-1);
+    autoresizeSubviews: 0..1;
+    wantsGState: 0..1;
+    needsDisplay: 0..1;
+    validGState: 0..1;
+    newGState: 0..1;
+    noVerticalAutosizing: 0..1;
+    frameChangeNotesSuspended: 0..1;
+    needsFrameChangeNote: 0..1;
+    focusChangeNotesSuspended: 0..1;
+    boundsChangeNotesSuspended: 0..1;
+    needsBoundsChangeNote: 0..1;
+    removingWithoutInvalidation: 0..1;
+    interfaceStyle0: 0..1;
+    needsDisplayForBounds: 0..1;
+    specialArchiving: 0..1;
+    interfaceStyle1: 0..1;
+    retainCount: 0..((1 shl 6)-1);
+    retainCountOverMax: 0..1;
+    aboutToResize: 0..1;
 {$else}
-    aboutToResize: cuint;
-    retainCountOverMax: cuint;
-    retainCount: cuint;
-    interfaceStyle1: cuint;
-    specialArchiving: cuint;
-    needsDisplayForBounds: cuint;
-    interfaceStyle0: cuint;
-    removingWithoutInvalidation: cuint;
-    needsBoundsChangeNote: cuint;
-    boundsChangeNotesSuspended: cuint;
-    focusChangeNotesSuspended: cuint;
-    needsFrameChangeNote: cuint;
-    frameChangeNotesSuspended: cuint;
-    noVerticalAutosizing: cuint;
-    newGState: cuint;
-    validGState: cuint;
-    needsDisplay: cuint;
-    wantsGState: cuint;
-    autoresizeSubviews: cuint;
-    autosizing: cuint;
-    rotatedOrScaledFromBase: cuint;
-    rotatedFromBase: cuint;
+    aboutToResize: 0..1;
+    retainCountOverMax: 0..1;
+    retainCount: 0..((1 shl 6)-1);
+    interfaceStyle1: 0..1;
+    specialArchiving: 0..1;
+    needsDisplayForBounds: 0..1;
+    interfaceStyle0: 0..1;
+    removingWithoutInvalidation: 0..1;
+    needsBoundsChangeNote: 0..1;
+    boundsChangeNotesSuspended: 0..1;
+    focusChangeNotesSuspended: 0..1;
+    needsFrameChangeNote: 0..1;
+    frameChangeNotesSuspended: 0..1;
+    noVerticalAutosizing: 0..1;
+    newGState: 0..1;
+    validGState: 0..1;
+    needsDisplay: 0..1;
+    wantsGState: 0..1;
+    autoresizeSubviews: 0..1;
+    autosizing: 0..((1 shl 6)-1);
+    rotatedOrScaledFromBase: 0..1;
+    rotatedFromBase: 0..1;
 {$endif}
   end;
 _VFlags = __VFlags;
@@ -125,6 +115,16 @@ _VFlags = __VFlags;
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSVIEW_PAS_T}
 {$define NSVIEW_PAS_T}
+
+{ External string constants }
+var
+  NSFullScreenModeAllScreens: NSString; external name '_NSFullScreenModeAllScreens';
+  NSFullScreenModeSetting: NSString; external name '_NSFullScreenModeSetting';
+  NSFullScreenModeWindowLevel: NSString; external name '_NSFullScreenModeWindowLevel';
+  NSViewFrameDidChangeNotification: NSString; external name '_NSViewFrameDidChangeNotification';
+  NSViewFocusDidChangeNotification: NSString; external name '_NSViewFocusDidChangeNotification';
+  NSViewBoundsDidChangeNotification: NSString; external name '_NSViewBoundsDidChangeNotification';
+  NSViewGlobalFrameDidChangeNotification: NSString; external name '_NSViewGlobalFrameDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -174,7 +174,7 @@ _VFlags = __VFlags;
     procedure setHidden(flag: Boolean); message 'setHidden:';
     function isHidden: Boolean; message 'isHidden';
     function isHiddenOrHasHiddenAncestor: Boolean; message 'isHiddenOrHasHiddenAncestor';
-    procedure getRectsBeingDrawn_count(var rects: NSRect; var count: clong); message 'getRectsBeingDrawn:count:';
+    procedure getRectsBeingDrawn_count(rects: NSRectPointer; count: NSIntegerPointer); message 'getRectsBeingDrawn:count:';
     function needsToDrawRect(aRect: NSRect): Boolean; message 'needsToDrawRect:';
     function wantsDefaultClipping: Boolean; message 'wantsDefaultClipping';
     procedure viewDidHide; message 'viewDidHide';
@@ -198,8 +198,8 @@ _VFlags = __VFlags;
     procedure resizeWithOldSuperviewSize(oldSize: NSSize); message 'resizeWithOldSuperviewSize:';
     procedure setAutoresizesSubviews(flag: Boolean); message 'setAutoresizesSubviews:';
     function autoresizesSubviews: Boolean; message 'autoresizesSubviews';
-    procedure setAutoresizingMask(mask: culong); message 'setAutoresizingMask:';
-    function autoresizingMask: culong; message 'autoresizingMask';
+    procedure setAutoresizingMask(mask: NSUInteger); message 'setAutoresizingMask:';
+    function autoresizingMask: NSUInteger; message 'autoresizingMask';
     procedure setFrameOrigin(newOrigin: NSPoint); message 'setFrameOrigin:';
     procedure setFrameSize(newSize: NSSize); message 'setFrameSize:';
     procedure setFrame(frameRect: NSRect); message 'setFrame:';
@@ -256,7 +256,7 @@ _VFlags = __VFlags;
     function bitmapImageRepForCachingDisplayInRect(rect: NSRect): NSBitmapImageRep; message 'bitmapImageRepForCachingDisplayInRect:';
     procedure cacheDisplayInRect_toBitmapImageRep(rect: NSRect; bitmapImageRep: NSBitmapImageRep); message 'cacheDisplayInRect:toBitmapImageRep:';
     procedure viewWillDraw; message 'viewWillDraw';
-    function gState: clong; message 'gState';
+    function gState: NSInteger; message 'gState';
     procedure allocateGState; message 'allocateGState';
     procedure releaseGState; message 'releaseGState';
     procedure setUpGState; message 'setUpGState';
@@ -269,8 +269,8 @@ _VFlags = __VFlags;
     procedure translateRectsNeedingDisplayInRect_by(clipRect: NSRect; delta: NSSize); message 'translateRectsNeedingDisplayInRect:by:';
     function hitTest(aPoint: NSPoint): NSView; message 'hitTest:';
     function mouse_inRect(aPoint: NSPoint; aRect: NSRect): Boolean; message 'mouse:inRect:';
-    function viewWithTag(aTag: clong): id; message 'viewWithTag:';
-    function tag: clong; message 'tag';
+    function viewWithTag(aTag: NSInteger): id; message 'viewWithTag:';
+    function tag: NSInteger; message 'tag';
     function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
     function acceptsFirstMouse(theEvent: NSEvent): Boolean; message 'acceptsFirstMouse:';
     function shouldDelayWindowOrderingForEvent(theEvent: NSEvent): Boolean; message 'shouldDelayWindowOrderingForEvent:';
@@ -284,13 +284,13 @@ _VFlags = __VFlags;
     procedure removeTrackingRect(tag_: NSTrackingRectTag); message 'removeTrackingRect:';
     procedure setWantsLayer(flag: Boolean); message 'setWantsLayer:';
     function wantsLayer: Boolean; message 'wantsLayer';
-    procedure setLayer(var newLayer: CALayer); message 'setLayer:';
+    procedure setLayer(newLayer: CALayerPointer); message 'setLayer:';
     function layer: CALayer; message 'layer';
     procedure setAlphaValue(viewAlpha: CGFloat); message 'setAlphaValue:';
     function alphaValue: CGFloat; message 'alphaValue';
     procedure setBackgroundFilters(filters: NSArray); message 'setBackgroundFilters:';
     function backgroundFilters: NSArray; message 'backgroundFilters';
-    procedure setCompositingFilter(var filter: CIFilter); message 'setCompositingFilter:';
+    procedure setCompositingFilter(filter: CIFilterPointer); message 'setCompositingFilter:';
     function compositingFilter: CIFilter; message 'compositingFilter';
     procedure setContentFilters(filters: NSArray); message 'setContentFilters:';
     function contentFilters: NSArray; message 'contentFilters';
@@ -316,7 +316,7 @@ _VFlags = __VFlags;
     function inLiveResize: Boolean; message 'inLiveResize';
     function preservesContentDuringLiveResize: Boolean; message 'preservesContentDuringLiveResize';
     function rectPreservedDuringLiveResize: NSRect; message 'rectPreservedDuringLiveResize';
-    procedure getRectsExposedDuringLiveResize_count(exposedRects: NSRect; var count: clong); message 'getRectsExposedDuringLiveResize:count:';
+    procedure getRectsExposedDuringLiveResize_count(exposedRects: NSRect; count: NSIntegerPointer); message 'getRectsExposedDuringLiveResize:count:';
 
     { Category: NSKeyboardUI }
     function performMnemonic(theString: NSString): Boolean; message 'performMnemonic:';
@@ -340,9 +340,9 @@ _VFlags = __VFlags;
     function knowsPageRange(range: NSRangePointer): Boolean; message 'knowsPageRange:';
     function heightAdjustLimit: CGFloat; message 'heightAdjustLimit';
     function widthAdjustLimit: CGFloat; message 'widthAdjustLimit';
-    procedure adjustPageWidthNew_left_right_limit(var newRight: CGFloat; oldLeft: CGFloat; oldRight: CGFloat; rightLimit: CGFloat); message 'adjustPageWidthNew:left:right:limit:';
-    procedure adjustPageHeightNew_top_bottom_limit(var newBottom: CGFloat; oldTop: CGFloat; oldBottom: CGFloat; bottomLimit: CGFloat); message 'adjustPageHeightNew:top:bottom:limit:';
-    function rectForPage(page: clong): NSRect; message 'rectForPage:';
+    procedure adjustPageWidthNew_left_right_limit(newRight: psingle; oldLeft: CGFloat; oldRight: CGFloat; rightLimit: CGFloat); message 'adjustPageWidthNew:left:right:limit:';
+    procedure adjustPageHeightNew_top_bottom_limit(newBottom: psingle; oldTop: CGFloat; oldBottom: CGFloat; bottomLimit: CGFloat); message 'adjustPageHeightNew:top:bottom:limit:';
+    function rectForPage(page: NSInteger): NSRect; message 'rectForPage:';
     function locationOfPrintRect(aRect: NSRect): NSPoint; message 'locationOfPrintRect:';
     procedure drawPageBorderWithSize(borderSize: NSSize); message 'drawPageBorderWithSize:';
     function pageHeader: NSAttributedString; message 'pageHeader';

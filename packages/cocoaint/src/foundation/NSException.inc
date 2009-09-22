@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSEXCEPTION_PAS_H}
@@ -14,23 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSEXCEPTION_PAS_T}
 {$define NSEXCEPTION_PAS_T}
-
-{ CFString constants }
-var
-  NSGenericException: CFStringRef; external name '_NSGenericException';
-  NSRangeException: CFStringRef; external name '_NSRangeException';
-  NSInvalidArgumentException: CFStringRef; external name '_NSInvalidArgumentException';
-  NSInternalInconsistencyException: CFStringRef; external name '_NSInternalInconsistencyException';
-  NSMallocException: CFStringRef; external name '_NSMallocException';
-  NSObjectInaccessibleException: CFStringRef; external name '_NSObjectInaccessibleException';
-  NSObjectNotAvailableException: CFStringRef; external name '_NSObjectNotAvailableException';
-  NSDestinationInvalidException: CFStringRef; external name '_NSDestinationInvalidException';
-  NSPortTimeoutException: CFStringRef; external name '_NSPortTimeoutException';
-  NSInvalidSendPortException: CFStringRef; external name '_NSInvalidSendPortException';
-  NSInvalidReceivePortException: CFStringRef; external name '_NSInvalidReceivePortException';
-  NSPortSendException: CFStringRef; external name '_NSPortSendException';
-  NSPortReceiveException: CFStringRef; external name '_NSPortReceiveException';
-  NSOldStyleException: CFStringRef; external name '_NSOldStyleException';
 
 {$endif}
 {$endif}
@@ -48,7 +31,7 @@ var
 
 { Functions }
 function NSGetUncaughtExceptionHandler: NSUncaughtExceptionHandler; cdecl; external name 'NSGetUncaughtExceptionHandler';
-procedure NSSetUncaughtExceptionHandler(var_: NSUncaughtExceptionHandler); cdecl; external name 'NSSetUncaughtExceptionHandler';
+procedure NSSetUncaughtExceptionHandler(Pointer_: NSUncaughtExceptionHandler); cdecl; external name 'NSSetUncaughtExceptionHandler';
 
 {$endif}
 {$endif}
@@ -56,6 +39,23 @@ procedure NSSetUncaughtExceptionHandler(var_: NSUncaughtExceptionHandler); cdecl
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSEXCEPTION_PAS_T}
 {$define NSEXCEPTION_PAS_T}
+
+{ External string constants }
+var
+  NSGenericException: NSString; external name '_NSGenericException';
+  NSRangeException: NSString; external name '_NSRangeException';
+  NSInvalidArgumentException: NSString; external name '_NSInvalidArgumentException';
+  NSInternalInconsistencyException: NSString; external name '_NSInternalInconsistencyException';
+  NSMallocException: NSString; external name '_NSMallocException';
+  NSObjectInaccessibleException: NSString; external name '_NSObjectInaccessibleException';
+  NSObjectNotAvailableException: NSString; external name '_NSObjectNotAvailableException';
+  NSDestinationInvalidException: NSString; external name '_NSDestinationInvalidException';
+  NSPortTimeoutException: NSString; external name '_NSPortTimeoutException';
+  NSInvalidSendPortException: NSString; external name '_NSInvalidSendPortException';
+  NSInvalidReceivePortException: NSString; external name '_NSInvalidReceivePortException';
+  NSPortSendException: NSString; external name '_NSPortSendException';
+  NSPortReceiveException: NSString; external name '_NSPortReceiveException';
+  NSOldStyleException: NSString; external name '_NSOldStyleException';
 
 {$endif}
 {$endif}
@@ -102,8 +102,8 @@ procedure NSSetUncaughtExceptionHandler(var_: NSUncaughtExceptionHandler); cdecl
     class function alloc: NSAssertionHandler; message 'alloc';
 
     class function currentHandler: NSAssertionHandler; message 'currentHandler';
-    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: clong; format: NSString); message 'handleFailureInMethod:object:file:lineNumber:description:';
-    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: clong; format: NSString); message 'handleFailureInFunction:file:lineNumber:description:';
+    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; format: NSString); message 'handleFailureInMethod:object:file:lineNumber:description:';
+    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; format: NSString); message 'handleFailureInFunction:file:lineNumber:description:';
   end; external;
 
 {$endif}

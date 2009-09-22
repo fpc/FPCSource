@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSavePanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSAVEPANEL_PAS_H}
@@ -29,13 +29,13 @@ const
 
 { Records }
 type
-  __SPFlags = record
-    saveMode: cuint;
-    isExpanded: cuint;
-    allowsOtherFileTypes: cuint;
-    canCreateDirectories: cuint;
-    canSelectedHiddenExtension: cuint;
-    reserved: cuint;
+  __SPFlags = bitpacked record
+    saveMode: 0..1;
+    isExpanded: 0..1;
+    allowsOtherFileTypes: 0..1;
+    canCreateDirectories: 0..1;
+    canSelectedHiddenExtension: 0..1;
+    reserved: 0..((1 shl 27)-1);
   end;
 _SPFlags = __SPFlags;
 
@@ -95,7 +95,7 @@ _SPFlags = __SPFlags;
     __newFolderController: id;
     __spFlags: _SPFlags;
     __spAuxiliaryStorage: NSSavePanelAuxiliary;
-    __reserved: char;
+        _reserved: array[0..4] of char;
     __private: Pointer;
     
   public
@@ -140,8 +140,8 @@ _SPFlags = __SPFlags;
     procedure ok(sender: id); message 'ok:';
     procedure cancel(sender: id); message 'cancel:';
     procedure beginSheetForDirectory_file_modalForWindow_modalDelegate_didEndSelector_contextInfo(path: NSString; name: NSString; docWindow: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetForDirectory:file:modalForWindow:modalDelegate:didEndSelector:contextInfo:';
-    function runModalForDirectory_file(path: NSString; name: NSString): clong; message 'runModalForDirectory:file:';
-    function runModal: clong; message 'runModal';
+    function runModalForDirectory_file(path: NSString; name: NSString): NSInteger; message 'runModalForDirectory:file:';
+    function runModal: NSInteger; message 'runModal';
   end; external;
 
 {$endif}

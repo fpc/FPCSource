@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLCache.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLCACHE_PAS_H}
@@ -17,7 +17,7 @@ type
 
 { Types }
 type
-  NSURLCacheStoragePolicy = culong;
+  NSURLCacheStoragePolicy = NSUInteger;
 
 {$endif}
 {$endif}
@@ -79,17 +79,17 @@ type
 
     class function sharedURLCache: NSURLCache; message 'sharedURLCache';
     class procedure setSharedURLCache(cache: NSURLCache); message 'setSharedURLCache:';
-    function initWithMemoryCapacity_diskCapacity_diskPath(memoryCapacity_: culong; diskCapacity_: culong; path: NSString): id; message 'initWithMemoryCapacity:diskCapacity:diskPath:';
+    function initWithMemoryCapacity_diskCapacity_diskPath(memoryCapacity_: NSUInteger; diskCapacity_: NSUInteger; path: NSString): id; message 'initWithMemoryCapacity:diskCapacity:diskPath:';
     function cachedResponseForRequest(request: NSURLRequest): NSCachedURLResponse; message 'cachedResponseForRequest:';
     procedure storeCachedResponse_forRequest(cachedResponse: NSCachedURLResponse; request: NSURLRequest); message 'storeCachedResponse:forRequest:';
     procedure removeCachedResponseForRequest(request: NSURLRequest); message 'removeCachedResponseForRequest:';
     procedure removeAllCachedResponses; message 'removeAllCachedResponses';
-    function memoryCapacity: culong; message 'memoryCapacity';
-    function diskCapacity: culong; message 'diskCapacity';
-    procedure setMemoryCapacity(memoryCapacity_: culong); message 'setMemoryCapacity:';
-    procedure setDiskCapacity(diskCapacity_: culong); message 'setDiskCapacity:';
-    function currentMemoryUsage: culong; message 'currentMemoryUsage';
-    function currentDiskUsage: culong; message 'currentDiskUsage';
+    function memoryCapacity: NSUInteger; message 'memoryCapacity';
+    function diskCapacity: NSUInteger; message 'diskCapacity';
+    procedure setMemoryCapacity(memoryCapacity_: NSUInteger); message 'setMemoryCapacity:';
+    procedure setDiskCapacity(diskCapacity_: NSUInteger); message 'setDiskCapacity:';
+    function currentMemoryUsage: NSUInteger; message 'currentMemoryUsage';
+    function currentDiskUsage: NSUInteger; message 'currentDiskUsage';
   end; external;
 
 {$endif}

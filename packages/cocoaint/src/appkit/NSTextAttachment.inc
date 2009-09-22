@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextAttachment.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTATTACHMENT_PAS_H}
@@ -100,11 +100,11 @@ const
     function cellBaselineOffset: NSPoint; message 'cellBaselineOffset';
     procedure setAttachment(anObject: NSTextAttachment); message 'setAttachment:';
     function attachment: NSTextAttachment; message 'attachment';
-    procedure drawWithFrame_inView_characterIndex(cellFrame: NSRect; controlView: NSView; charIndex: culong); message 'drawWithFrame:inView:characterIndex:';
-    procedure drawWithFrame_inView_characterIndex_layoutManager(cellFrame: NSRect; controlView: NSView; charIndex: culong; layoutManager: NSLayoutManager); message 'drawWithFrame:inView:characterIndex:layoutManager:';
-    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: culong): Boolean; message 'wantsToTrackMouseForEvent:inRect:ofView:atCharacterIndex:';
-    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: culong; flag: Boolean): Boolean; message 'trackMouse:inRect:ofView:atCharacterIndex:untilMouseUp:';
-    function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: culong): NSRect; message 'cellFrameForTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
+    procedure drawWithFrame_inView_characterIndex(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger); message 'drawWithFrame:inView:characterIndex:';
+    procedure drawWithFrame_inView_characterIndex_layoutManager(cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; layoutManager: NSLayoutManager); message 'drawWithFrame:inView:characterIndex:layoutManager:';
+    function wantsToTrackMouseForEvent_inRect_ofView_atCharacterIndex(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger): Boolean; message 'wantsToTrackMouseForEvent:inRect:ofView:atCharacterIndex:';
+    function trackMouse_inRect_ofView_atCharacterIndex_untilMouseUp(theEvent: NSEvent; cellFrame: NSRect; controlView: NSView; charIndex: NSUInteger; flag: Boolean): Boolean; message 'trackMouse:inRect:ofView:atCharacterIndex:untilMouseUp:';
+    function cellFrameForTextContainer_proposedLineFragment_glyphPosition_characterIndex(textContainer: NSTextContainer; lineFrag: NSRect; position: NSPoint; charIndex: NSUInteger): NSRect; message 'cellFrameForTextContainer:proposedLineFragment:glyphPosition:characterIndex:';
   end; external name 'NSTextAttachmentCell';
 {$endif}
 {$endif}

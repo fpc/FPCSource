@@ -1,6 +1,6 @@
 <?php
 
-$version = "FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.1";
+$version = "FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4";
 
 require("pascocoa_parser.php");
 require("objp_parser.php");
@@ -13,6 +13,15 @@ require("objp_parser.php");
 
 /* VERSION HISTORY
 
+• Objective-P:
+0.4		- Support for UIKit has been added
+		- Objective-C 2.0 properties are parsed
+		- NSString constants with AVAILABLE_MAC_OS_X_VERSION macros are parsed correctly
+0.3		- Pass by reference arguments are translated as pointers instead of var
+		- Variable length arguments are parsed with the varargs keyword instead of array of const
+0.2		- Support for parsing instance variables is added
+
+• PasCocoaKit
 1.3		- The parser is broken into subclasses in order to support the new FPC syntax.
 		
 1.2		- struct_register_types makes a new wrapper that sends structs based on CPU architecture
@@ -105,54 +114,19 @@ $options = array();
 
 function HandleCommandLineOptions ($argv) {
 	global $options;
-	global $output_directory;
 	global $root_path;
 	global $ignore_headers;
 	global $only_files;
 	
+	// defaults
+	$options["framework_path"] = "/System/Library/Frameworks";
+
 	foreach ($argv as $option) {
 		$pair = explode("=", $option);
 		$key = trim($pair[0], "-");
 		$value = $pair[1];
 		
 		switch ($key) {
-			
-			case 'all':
-				$options[$key] = true;
-				break;
-				
-			case 'objp':
-				$options[$key] = true;
-				break;
-					
-			case 'encodings':
-				$options[$key] = true;
-				break;
-				
-			case 'delegates':
-				$options[$key] = true;
-				break;
-				
-			case 'noprint':
-				$options[$key] = true;
-				break;
-			
-			case 'show':
-				$options[$key] = true;
-				break;
-			
-			case 'ignore':
-				$ignore_headers = explode(",", trim($value, "\""));
-				break;
-				
-			case 'only':
-				$only_files = explode(",", trim($value, "\""));
-				break;
-			
-			case 'out':
-				$output_directory = $value;
-				$options[$key] = true;
-				break;
 			
 			case 'root':
 				$root_path = trim($value, "\"");
@@ -163,7 +137,59 @@ function HandleCommandLineOptions ($argv) {
 				$options[$key]["framework"] = ucfirst($where[0]);
 				$options[$key]["name"] = $where[1];
 				break;
+				
+			case 'framework_path':
+				$options["framework_path"] = trim($value, "\"");
+				break;
+				
+			case 'all':
+				$options[$key] = true;
+				break;
+
+			case 'objp':
+				$options[$key] = true;
+				break;
+
+			case 'encodings':
+				$options[$key] = true;
+				break;
+
+			case 'delegates':
+				$options[$key] = true;
+				break;
+
+			case 'noprint':
+				$options[$key] = true;
+				break;
+
+			case 'show':
+				$options[$key] = true;
+				break;
+				
+			case 'reference':
+				$options[$key] = true;
+				break;
 			
+			case 'iphone':
+				$options[$key] = true;
+				break;
+				
+			case 'cocoa':
+				$options[$key] = true;
+				break;
+
+			case 'ignore':
+				$ignore_headers = explode(",", trim($value, "\""));
+				break;
+
+			case 'only':
+				$only_files = explode(",", trim($value, "\""));
+				break;
+				
+			case 'frameworks':
+				$options[$key] = explode(",", trim($value, "\""));
+				break;
+				
 			default:
 				//print("unknown switch $key\n");
 				break;
@@ -172,21 +198,25 @@ function HandleCommandLineOptions ($argv) {
 }
 
 // ??? TESTING
-$testing = false;
+$testing = true;
 
 if ($testing) {
-	$GLOBALS["root"][] = "/Developer/pascocoa";
-	//$GLOBALS["argv"][] = "-all";
-	//$GLOBALS["argv"][] = "-noprint";
-	//$GLOBALS["argv"][] = "-only=\"NSHashTable.h\"";
-
-	$GLOBALS["argv"][] = "-header=\"foundation/NSDate.h\"";
-	//$GLOBALS["argv"][] = "-header=\"appkit/NSView.h\"";
-
-	// PasCocoaKit
-	//$GLOBALS["argv"][] = "-out=/dev";
-	//$GLOBALS["argv"][] = "-ignore=\"NSObject.h,NSHashTable.h,NSGeometry\"";
+	$GLOBALS["argv"][] = "-root=/Developer/pascocoa/objp";
 	//$GLOBALS["argv"][] = "-delegates";
+	//$GLOBALS["argv"][] = "-reference";
+	$GLOBALS["argv"][] = "-all";
+	//$GLOBALS["argv"][] = "-noprint";
+	//$GLOBALS["argv"][] = "-only=\"UIWindow.h\"";
+	$GLOBALS["argv"][] = "-frameworks=\"appkit,foundation\"";
+
+	//$GLOBALS["argv"][] = "-framework_path=\"/Users/ryanjoseph/Desktop/iphone\"";
+	//$GLOBALS["argv"][] = "-header=\"uikit/UIImage.h\"";
+	
+	$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
+	//$GLOBALS["argv"][] = "-header=\"foundation/NSKeyValueObserving.h\"";
+	$GLOBALS["argv"][] = "-header=\"appkit/NSBrowser.h\"";
+	$GLOBALS["argv"][] = "-ignore=\"NSGeometry.h,NSRange.h\"";
+	$GLOBALS["argv"][] = "-objp";
 
 	// Objective-P
 	/* Notes for master compile (-all):
@@ -195,31 +225,58 @@ if ($testing) {
 	1) NSWorkspace.h has a duplicate NSWorkspaceLaunchAllowingClassicStartup constant
 	2) NSObjcRuntime.h contains a bad external function:
 		function __attribute__(: (format(__NSString__; : 1; : 2))): void NSLog(NSStringRef *format, ...); cdecl; external name '__attribute__';
-	3) NSZone.h contains 2 function parser errors:
-		function NSAllocateCollectable(size: culong; options: culong): void *__strong; cdecl; external name 'NSAllocateCollectable';
-		function NSReallocateCollectable(var ptr: Pointer; size: culong; options: culong): void *__strong; cdecl; external name 'NSReallocateCollectable';
-	4) NSATSTypesetter.h needs to use NSObject for the super class until the internal error can be fixed or the class NSTypesetter parsed
-
+	3) NSMenuItemCell.h has a duplicate (case sensitive name not allowed in Pascal) field that must be changed by hand.
+    
+	- Extra hand parsing. These units parse but contain unions which need to be fixed by hand.
+	
+	• NSEvent.h
+	• NSIndexSet.h:
+	
+	_internal: record
+	 case byte of
+	   0: (_singleRange:
+	         record
+	           _range: NSRange;
+	         end;
+	      );
+	   1: (_multipleRanges:
+	         record
+	           _data: pointer;
+	           _reserved: pointer;
+	         end;
+	      );
+	end;
+	4) These methods have problems in the params. This is a Objc convention where an absent type is always "id"
+		- (void)performClick:sender;
+		- (void)setDelegate:delegate;
+		NSControl.inc(136,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+		NSRuleEditor.inc(124,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+	6) NSInteger types are wrong in NSObjcRuntime (should be long)
+	  NSInteger = clong;
+	  NSUInteger = culong;
+	
+	- NEW:
+	
+		NSXMLNodeOptions has duplicate enums from nested enum
+	
 	- General notes:
 	1) NSObject.h is parsed for the merged category methods that should be inserted manually into the real root class
 	2) NSRange.h was ignored because it contains custom code and can be maintained by hand very easily
 	3) NSGeometry.h was ignored because it contains many parsing errors and custom code, do this by hand for now.
+	4) All instance variables are placed into "private" for now. There are a very small number of classes that have public ivar's.
 	*/
-	$GLOBALS["argv"][] = "-out=/objp";
-	$GLOBALS["argv"][] = "-ignore=\"NSGeometry.h,NSRange.h\""; //NSMapTable.h,NSHashTable.h
-	$GLOBALS["argv"][] = "-objp";
-
+	
 	//$GLOBALS["argv"][] = "-show";
 }
 
 if (count($GLOBALS["argv"]) == 1) {
 	print("Cocoa Framework Parser ($version) usage:\n");
-	print("php framework_parser.php [switches]\n\n");
+	print("php parser.php [switches]\n\n");
 	print("switches:\n\n");
 	print("  -all           print all headers (.h) from AppKit/Foundation frameworks\n");
 	print("  -header=\"foundation/NSObject.h\"    prints a single header from system frameworks\n");
 	print("  -root          sets the root path of the pascocoa directory\n");
-	print("  -out           defines an output directory in the root directory for printing, use for testing\n");
+	print("  -framework_path	sets the root path of the frameworks directory (defaults to /System/Library/Frameworks)\n");
 	print("  -show     	    prints output to screen instead of file\n");
 	print("  -ignore=\"NSObject.h,NSArray.h\"     ignores the list of headers during parsing (-all only, no spaces)\n");
 	print("  -only=\"NSObject.h,NSArray.h\"       only prints these files (-all only, no spaces)\n");
@@ -227,40 +284,63 @@ if (count($GLOBALS["argv"]) == 1) {
 	print("  -encodings     prints Pascal type encoding glue for GenerateTypeEncodings.p (-all only)\n");
 	print("  -delegates     prints NSDelegateController.inc to foundation (-all only)\n");
 	print("  -objp     		prints classes in FPC Objective-P dialect\n");
+	print("  -iphone     	one-time parse for iPhone headers\n");
+	print("  -cocoa     	one-time parse for Cocoa (AppKit/Foundation) headers\n");
+	print("  -frameworks=\"appkit,foundation\"    list of supported frameworks to parse\n");
 	print("\n\n");
 }
 
 // get the command line options
 if (count($GLOBALS["argv"]) > 1) {
 	HandleCommandLineOptions($GLOBALS["argv"]);
-	//print_r($options);
+	print_r($options);
 }
 
 // Make the output directory
 if ($options["out"]) {
-	@mkdir($root_path.$output_directory, 0777);
-	@mkdir($root_path.$output_directory."/foundation", 0777);
-	@mkdir($root_path.$output_directory."/appkit", 0777);
-	@mkdir($root_path.$output_directory."/webkit", 0777);
-	@mkdir($root_path.$output_directory."/reference", 0777);
+	@mkdir($root_path, 0777);
+	@mkdir($root_path."/foundation", 0777);
+	@mkdir($root_path."/appkit", 0777);
+//	@mkdir($root_path."/webkit", 0777);
+	@mkdir($root_path."/uikit", 0777);
+//	@mkdir($root_path."/reference", 0777);
+}
+
+// setup -iphone options
+if ($options["iphone"]) {
+	if (!$root_path) $root_path .= "/units/i386-darwin/cocoaint/src";
+	$options["all"] = true;
+	$options["objp"] = true;
+	$options["frameworks"] = array("uikit");
+}
+
+// setup -cocoa options
+if ($options["cocoa"]) {
+	$options["all"] = true;
+	$options["objp"] = true;
+	$options["frameworks"] = array("appkit","foundation");
+	$ignore_headers = array("NSGeometry.h","NSRange.h");
 }
 
 // create the parser instance
 if ($options["objp"]) {
-	$parser = new TObjPParser ($root_path, $output_directory, $options["show"]);
+	$parser = new TObjPParser ($root_path, "", $options["frameworks"], $options["show"]);
 } else {
-	$parser = new TPasCocoaParser ($root_path, $output_directory, $options["show"]);
+	$parser = new TPasCocoaParser ($root_path, "", $options["frameworks"], $options["show"]);
 }
 
 // Process single headers
-if ($options["header"]) {
-	$parser->ProcessFile("/System/Library/Frameworks/".$options["header"]["framework"].".framework/Headers/".$options["header"]["name"], true);
+if ($options["header"] && !$options["all"]) {
+	$parser->ProcessFile($options["framework_path"]."/".$options["header"]["framework"].".framework/Headers/".$options["header"]["name"], true);
 }
+
+//$parser->PrintIvarSizeComparison("/Users/ryanjoseph/Desktop/objp/IvarSize.p");
+//exit;
 
 // Process all headers
 if ($options["all"]) {
 	$parser->ParseCocoaFrameworks($ignore_headers, null);
-	if (!$options["noprint"]) $parser->PrintAllHeaders("", $duplicate_headers, $only_files);
+	if (!$options["noprint"]) $parser->PrintAllHeaders("", $duplicate_headers, $only_files, $options["reference"]);
 	if ($options["delegates"]) $parser->ParseDelegateClasses();
 	if ($options["encodings"]) $parser->PrintTypeEncodingGlue();
 }

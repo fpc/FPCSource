@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHashTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSHASHTABLE_PAS_H}
@@ -23,7 +23,7 @@ const
 
 { Types }
 type
-  NSHashTableOptions = culong;
+  NSHashTableOptions = NSUInteger;
 
 {$endif}
 {$endif}
@@ -35,7 +35,7 @@ type
 { Records }
 type
   NSHashTableCallBacks = record
-    hash: function (context: Pointer {bad params!!}): culong; cdecl;
+    hash: function (context: Pointer {bad params!!}): NSUInteger; cdecl;
     isEqual: function (context: Pointer {bad params!!}): Boolean; cdecl;
     retain: procedure (context: Pointer {bad params!!}); cdecl;
     release: procedure (context: Pointer {bad params!!}); cdecl;
@@ -51,23 +51,23 @@ type
 {$define NSHASHTABLE_PAS_F}
 
 { Functions }
-procedure NSFreeHashTable(var table: NSHashTable); cdecl; external name 'NSFreeHashTable';
-procedure NSResetHashTable(var table: NSHashTable); cdecl; external name 'NSResetHashTable';
-function NSCompareHashTables(var table1: NSHashTable; var table2: NSHashTable): Boolean; cdecl; external name 'NSCompareHashTables';
-function NSCopyHashTableWithZone(var table: NSHashTable; var zone: NSZone): NSHashTable; cdecl; external name 'NSCopyHashTableWithZone';
-procedure NSHashGet(var table: NSHashTable; var pointer: Pointer); cdecl; external name 'NSHashGet';
-procedure NSHashInsert(var table: NSHashTable; var pointer: Pointer); cdecl; external name 'NSHashInsert';
-procedure NSHashInsertKnownAbsent(var table: NSHashTable; var pointer: Pointer); cdecl; external name 'NSHashInsertKnownAbsent';
-procedure NSHashInsertIfAbsent(var table: NSHashTable; var pointer: Pointer); cdecl; external name 'NSHashInsertIfAbsent';
-procedure NSHashRemove(var table: NSHashTable; var pointer: Pointer); cdecl; external name 'NSHashRemove';
-function NSEnumerateHashTable(var table: NSHashTable): NSHashEnumerator; cdecl; external name 'NSEnumerateHashTable';
-procedure NSNextHashEnumeratorItem(var enumerator: NSHashEnumerator); cdecl; external name 'NSNextHashEnumeratorItem';
-procedure NSEndHashTableEnumeration(var enumerator: NSHashEnumerator); cdecl; external name 'NSEndHashTableEnumeration';
-function NSCountHashTable(var table: NSHashTable): culong; cdecl; external name 'NSCountHashTable';
-function NSStringFromHashTable(var table: NSHashTable): NSString; cdecl; external name 'NSStringFromHashTable';
-function NSAllHashTableObjects(var table: NSHashTable): NSArray; cdecl; external name 'NSAllHashTableObjects';
-function NSCreateHashTableWithZone(callBacks: NSHashTableCallBacks; capacity: culong; var zone: NSZone): NSHashTable; cdecl; external name 'NSCreateHashTableWithZone';
-function NSCreateHashTable(callBacks: NSHashTableCallBacks; capacity: culong): NSHashTable; cdecl; external name 'NSCreateHashTable';
+procedure NSFreeHashTable(tablePointer: NSHashTable); cdecl; external name 'NSFreeHashTable';
+procedure NSResetHashTable(tablePointer: NSHashTable); cdecl; external name 'NSResetHashTable';
+function NSCompareHashTables(table1Pointer: NSHashTable; table2Pointer: NSHashTable): Boolean; cdecl; external name 'NSCompareHashTables';
+function NSCopyHashTableWithZone(tablePointer: NSHashTable; zonePointer: NSZone): NSHashTable; cdecl; external name 'NSCopyHashTableWithZone';
+procedure NSHashGet(tablePointer: NSHashTable; pointerPointer: Pointer); cdecl; external name 'NSHashGet';
+procedure NSHashInsert(tablePointer: NSHashTable; pointerPointer: Pointer); cdecl; external name 'NSHashInsert';
+procedure NSHashInsertKnownAbsent(tablePointer: NSHashTable; pointerPointer: Pointer); cdecl; external name 'NSHashInsertKnownAbsent';
+procedure NSHashInsertIfAbsent(tablePointer: NSHashTable; pointerPointer: Pointer); cdecl; external name 'NSHashInsertIfAbsent';
+procedure NSHashRemove(tablePointer: NSHashTable; pointerPointer: Pointer); cdecl; external name 'NSHashRemove';
+function NSEnumerateHashTable(tablePointer: NSHashTable): NSHashEnumerator; cdecl; external name 'NSEnumerateHashTable';
+procedure NSNextHashEnumeratorItem(enumeratorPointer: NSHashEnumerator); cdecl; external name 'NSNextHashEnumeratorItem';
+procedure NSEndHashTableEnumeration(enumeratorPointer: NSHashEnumerator); cdecl; external name 'NSEndHashTableEnumeration';
+function NSCountHashTable(tablePointer: NSHashTable): NSUInteger; cdecl; external name 'NSCountHashTable';
+function NSStringFromHashTable(tablePointer: NSHashTable): NSString; cdecl; external name 'NSStringFromHashTable';
+function NSAllHashTableObjects(tablePointer: NSHashTable): NSArray; cdecl; external name 'NSAllHashTableObjects';
+function NSCreateHashTableWithZone(callBacks: NSHashTableCallBacks; capacity: NSUInteger; zonePointer: NSZone): NSHashTable; cdecl; external name 'NSCreateHashTableWithZone';
+function NSCreateHashTable(callBacks: NSHashTableCallBacks; capacity: NSUInteger): NSHashTable; cdecl; external name 'NSCreateHashTable';
 
 {$endif}
 {$endif}
@@ -103,12 +103,12 @@ var
   public
     class function alloc: NSHashTable; message 'alloc';
 
-    function initWithOptions_capacity(options: NSPointerFunctionsOptions; initialCapacity: culong): id; message 'initWithOptions:capacity:';
-    function initWithPointerFunctions_capacity(functions: NSPointerFunctions; initialCapacity: culong): id; message 'initWithPointerFunctions:capacity:';
+    function initWithOptions_capacity(options: NSPointerFunctionsOptions; initialCapacity: NSUInteger): id; message 'initWithOptions:capacity:';
+    function initWithPointerFunctions_capacity(functions: NSPointerFunctions; initialCapacity: NSUInteger): id; message 'initWithPointerFunctions:capacity:';
     class function hashTableWithOptions(options: NSPointerFunctionsOptions): id; message 'hashTableWithOptions:';
     class function hashTableWithWeakObjects: id; message 'hashTableWithWeakObjects';
     function pointerFunctions: NSPointerFunctions; message 'pointerFunctions';
-    function count: culong; message 'count';
+    function count: NSUInteger; message 'count';
     function member(object_: id): id; message 'member:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     procedure addObject(object_: id); message 'addObject:';

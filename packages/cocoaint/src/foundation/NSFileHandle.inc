@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFileHandle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSFILEHANDLE_PAS_H}
@@ -14,17 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSFILEHANDLE_PAS_T}
 {$define NSFILEHANDLE_PAS_T}
-
-{ CFString constants }
-var
-  NSFileHandleOperationException: CFStringRef; external name '_NSFileHandleOperationException';
-  NSFileHandleReadCompletionNotification: CFStringRef; external name '_NSFileHandleReadCompletionNotification';
-  NSFileHandleReadToEndOfFileCompletionNotification: CFStringRef; external name '_NSFileHandleReadToEndOfFileCompletionNotification';
-  NSFileHandleConnectionAcceptedNotification: CFStringRef; external name '_NSFileHandleConnectionAcceptedNotification';
-  NSFileHandleDataAvailableNotification: CFStringRef; external name '_NSFileHandleDataAvailableNotification';
-  NSFileHandleNotificationDataItem: CFStringRef; external name '_NSFileHandleNotificationDataItem';
-  NSFileHandleNotificationFileHandleItem: CFStringRef; external name '_NSFileHandleNotificationFileHandleItem';
-  NSFileHandleNotificationMonitorModes: CFStringRef; external name '_NSFileHandleNotificationMonitorModes';
 
 {$endif}
 {$endif}
@@ -47,6 +36,17 @@ var
 {$ifndef NSFILEHANDLE_PAS_T}
 {$define NSFILEHANDLE_PAS_T}
 
+{ External string constants }
+var
+  NSFileHandleOperationException: NSString; external name '_NSFileHandleOperationException';
+  NSFileHandleReadCompletionNotification: NSString; external name '_NSFileHandleReadCompletionNotification';
+  NSFileHandleReadToEndOfFileCompletionNotification: NSString; external name '_NSFileHandleReadToEndOfFileCompletionNotification';
+  NSFileHandleConnectionAcceptedNotification: NSString; external name '_NSFileHandleConnectionAcceptedNotification';
+  NSFileHandleDataAvailableNotification: NSString; external name '_NSFileHandleDataAvailableNotification';
+  NSFileHandleNotificationDataItem: NSString; external name '_NSFileHandleNotificationDataItem';
+  NSFileHandleNotificationFileHandleItem: NSString; external name '_NSFileHandleNotificationFileHandleItem';
+  NSFileHandleNotificationMonitorModes: NSString; external name '_NSFileHandleNotificationMonitorModes';
+
 {$endif}
 {$endif}
 
@@ -68,7 +68,7 @@ var
 
     function availableData: NSData; message 'availableData';
     function readDataToEndOfFile: NSData; message 'readDataToEndOfFile';
-    function readDataOfLength(length: culong): NSData; message 'readDataOfLength:';
+    function readDataOfLength(length: NSUInteger): NSData; message 'readDataOfLength:';
     procedure writeData(data: NSData); message 'writeData:';
     function offsetInFile: culonglong; message 'offsetInFile';
     function seekToEndOfFile: culonglong; message 'seekToEndOfFile';

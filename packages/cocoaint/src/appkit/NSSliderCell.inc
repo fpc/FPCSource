@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSliderCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSLIDERCELL_PAS_H}
@@ -28,8 +28,8 @@ const
 
 { Types }
 type
-  NSTickMarkPosition = culong;
-  NSSliderType = culong;
+  NSTickMarkPosition = NSUInteger;
+  NSSliderType = NSUInteger;
 
 {$endif}
 {$endif}
@@ -67,7 +67,7 @@ type
 { NSSliderCell }
   NSSliderCell = objcclass(NSActionCell)
   private
-    __reserved: cint;
+        _reserved: array[0..2] of cint;
     __numberOfTickMarks: cint;
     __altIncValue: double;
     __value: double;
@@ -96,7 +96,7 @@ type
     procedure setMaxValue(aDouble: double); message 'setMaxValue:';
     procedure setAltIncrementValue(incValue: double); message 'setAltIncrementValue:';
     function altIncrementValue: double; message 'altIncrementValue';
-    function isVertical: clong; message 'isVertical';
+    function isVertical: NSInteger; message 'isVertical';
     procedure setTitleColor(newColor: NSColor); message 'setTitleColor:';
     function titleColor: NSColor; message 'titleColor';
     procedure setTitleFont(fontObj: NSFont); message 'setTitleFont:';
@@ -115,15 +115,15 @@ type
     function sliderType: NSSliderType; message 'sliderType';
 
     { Category: NSTickMarkSupport }
-    procedure setNumberOfTickMarks(count: clong); message 'setNumberOfTickMarks:';
-    function numberOfTickMarks: clong; message 'numberOfTickMarks';
+    procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
+    function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
     procedure setAllowsTickMarkValuesOnly(yorn: Boolean); message 'setAllowsTickMarkValuesOnly:';
     function allowsTickMarkValuesOnly: Boolean; message 'allowsTickMarkValuesOnly';
-    function tickMarkValueAtIndex(index: clong): double; message 'tickMarkValueAtIndex:';
-    function rectOfTickMarkAtIndex(index: clong): NSRect; message 'rectOfTickMarkAtIndex:';
-    function indexOfTickMarkAtPoint(point: NSPoint): clong; message 'indexOfTickMarkAtPoint:';
+    function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
+    function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
+    function indexOfTickMarkAtPoint(point: NSPoint): NSInteger; message 'indexOfTickMarkAtPoint:';
     function closestTickMarkValueToValue(value: double): double; message 'closestTickMarkValueToValue:';
   end; external;
 

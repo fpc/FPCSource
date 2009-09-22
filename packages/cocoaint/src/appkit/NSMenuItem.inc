@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenuItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMENUITEM_PAS_H}
@@ -53,16 +53,16 @@ type
     __menu: NSMenu;
     __title: NSString;
     __keyEquivalent: NSString;
-    __keyEquivalentModifierMask: culong;
-    __mnemonicLocation: clong;
-    __state: clong;
+    __keyEquivalentModifierMask: NSUInteger;
+    __mnemonicLocation: NSInteger;
+    __state: NSInteger;
     __image: NSImage;
     __onStateImage: NSImage;
     __offStateImage: NSImage;
     __mixedStateImage: NSImage;
     __target: id;
     __action: SEL;
-    __tag: clong;
+    __tag: NSInteger;
     __extraData: id;
     __miFlags: bitpacked record
         disabled: 0..1;
@@ -95,17 +95,17 @@ type
     function isSeparatorItem: Boolean; message 'isSeparatorItem';
     procedure setKeyEquivalent(aKeyEquivalent: NSString); message 'setKeyEquivalent:';
     function keyEquivalent: NSString; message 'keyEquivalent';
-    procedure setKeyEquivalentModifierMask(mask: culong); message 'setKeyEquivalentModifierMask:';
-    function keyEquivalentModifierMask: culong; message 'keyEquivalentModifierMask';
+    procedure setKeyEquivalentModifierMask(mask: NSUInteger); message 'setKeyEquivalentModifierMask:';
+    function keyEquivalentModifierMask: NSUInteger; message 'keyEquivalentModifierMask';
     function userKeyEquivalent: NSString; message 'userKeyEquivalent';
-    procedure setMnemonicLocation(location: culong); message 'setMnemonicLocation:';
-    function mnemonicLocation: culong; message 'mnemonicLocation';
+    procedure setMnemonicLocation(location: NSUInteger); message 'setMnemonicLocation:';
+    function mnemonicLocation: NSUInteger; message 'mnemonicLocation';
     function mnemonic: NSString; message 'mnemonic';
     procedure setTitleWithMnemonic(stringWithAmpersand: NSString); message 'setTitleWithMnemonic:';
     procedure setImage(menuImage: NSImage); message 'setImage:';
     function image: NSImage; message 'image';
-    procedure setState(state_: clong); message 'setState:';
-    function state: clong; message 'state';
+    procedure setState(state_: NSInteger); message 'setState:';
+    function state: NSInteger; message 'state';
     procedure setOnStateImage(image_: NSImage); message 'setOnStateImage:';
     function onStateImage: NSImage; message 'onStateImage';
     procedure setOffStateImage(image_: NSImage); message 'setOffStateImage:';
@@ -116,14 +116,14 @@ type
     function isEnabled: Boolean; message 'isEnabled';
     procedure setAlternate(isAlternate_: Boolean); message 'setAlternate:';
     function isAlternate: Boolean; message 'isAlternate';
-    procedure setIndentationLevel(indentationLevel_: clong); message 'setIndentationLevel:';
-    function indentationLevel: clong; message 'indentationLevel';
+    procedure setIndentationLevel(indentationLevel_: NSInteger); message 'setIndentationLevel:';
+    function indentationLevel: NSInteger; message 'indentationLevel';
     procedure setTarget(anObject: id); message 'setTarget:';
     function target: id; message 'target';
     procedure setAction(aSelector: SEL); message 'setAction:';
     function action: SEL; message 'action';
-    procedure setTag(anInt: clong); message 'setTag:';
-    function tag: clong; message 'tag';
+    procedure setTag(anInt: NSInteger); message 'setTag:';
+    function tag: NSInteger; message 'tag';
     procedure setRepresentedObject(anObject: id); message 'setRepresentedObject:';
     function representedObject: id; message 'representedObject';
     procedure setView(view_: NSView); message 'setView:';

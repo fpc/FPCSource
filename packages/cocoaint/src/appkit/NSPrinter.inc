@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPrinter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPRINTER_PAS_H}
@@ -23,7 +23,7 @@ const
 
 { Types }
 type
-  NSPrinterTableStatus = culong;
+  NSPrinterTableStatus = NSUInteger;
 
 {$endif}
 {$endif}
@@ -68,9 +68,9 @@ type
     __ppdNodes: Pointer;
     __ppdPriv: Pointer;
     {$ifdef cpu64}
-    __reserved: id;
+        _reserved: array[0..2] of id;
     {$else}
-    __compatibilityPadding: char;
+        _compatibilityPadding: array[0..19] of char;
     {$endif}
     
   public
@@ -82,7 +82,7 @@ type
     class function printerWithType(type__: NSString): NSPrinter; message 'printerWithType:';
     function name: NSString; message 'name';
     function type_: NSString; message 'type';
-    function languageLevel: clong; message 'languageLevel';
+    function languageLevel: NSInteger; message 'languageLevel';
     function pageSizeForPaper(paperName: NSString): NSSize; message 'pageSizeForPaper:';
     function statusForTable(tableName: NSString): NSPrinterTableStatus; message 'statusForTable:';
     function isKey_inTable(key: NSString; table: NSString): Boolean; message 'isKey:inTable:';

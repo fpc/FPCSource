@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbarItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOOLBARITEM_PAS_H}
@@ -13,16 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSTOOLBARITEM_PAS_T}
 {$define NSTOOLBARITEM_PAS_T}
-
-{ CFString constants }
-var
-  NSToolbarSeparatorItemIdentifier: CFStringRef; external name '_NSToolbarSeparatorItemIdentifier';
-  NSToolbarSpaceItemIdentifier: CFStringRef; external name '_NSToolbarSpaceItemIdentifier';
-  NSToolbarFlexibleSpaceItemIdentifier: CFStringRef; external name '_NSToolbarFlexibleSpaceItemIdentifier';
-  NSToolbarShowColorsItemIdentifier: CFStringRef; external name '_NSToolbarShowColorsItemIdentifier';
-  NSToolbarShowFontsItemIdentifier: CFStringRef; external name '_NSToolbarShowFontsItemIdentifier';
-  NSToolbarCustomizeToolbarItemIdentifier: CFStringRef; external name '_NSToolbarCustomizeToolbarItemIdentifier';
-  NSToolbarPrintItemIdentifier: CFStringRef; external name '_NSToolbarPrintItemIdentifier';
 
 {$endif}
 {$endif}
@@ -44,6 +34,16 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTOOLBARITEM_PAS_T}
 {$define NSTOOLBARITEM_PAS_T}
+
+{ External string constants }
+var
+  NSToolbarSeparatorItemIdentifier: NSString; external name '_NSToolbarSeparatorItemIdentifier';
+  NSToolbarSpaceItemIdentifier: NSString; external name '_NSToolbarSpaceItemIdentifier';
+  NSToolbarFlexibleSpaceItemIdentifier: NSString; external name '_NSToolbarFlexibleSpaceItemIdentifier';
+  NSToolbarShowColorsItemIdentifier: NSString; external name '_NSToolbarShowColorsItemIdentifier';
+  NSToolbarShowFontsItemIdentifier: NSString; external name '_NSToolbarShowFontsItemIdentifier';
+  NSToolbarCustomizeToolbarItemIdentifier: NSString; external name '_NSToolbarCustomizeToolbarItemIdentifier';
+  NSToolbarPrintItemIdentifier: NSString; external name '_NSToolbarPrintItemIdentifier';
 
 {$endif}
 {$endif}
@@ -68,7 +68,7 @@ var
     __paletteLabel: NSString;
     __toolTip: NSString;
     __menuItemRep: NSMenuItem;
-    __tag: clong;
+    __tag: NSInteger;
     __tbiFlags: bitpacked record
         viewRespondsToIsEnabled: 0..1;
         viewRespondsToSetEnabled: 0..1;
@@ -119,8 +119,8 @@ var
     function toolTip: NSString; message 'toolTip';
     procedure setMenuFormRepresentation(menuItem: NSMenuItem); message 'setMenuFormRepresentation:';
     function menuFormRepresentation: NSMenuItem; message 'menuFormRepresentation';
-    procedure setTag(tag_: clong); message 'setTag:';
-    function tag: clong; message 'tag';
+    procedure setTag(tag_: NSInteger); message 'setTag:';
+    function tag: NSInteger; message 'tag';
     procedure setTarget(target_: id); message 'setTarget:';
     function target: id; message 'target';
     procedure setAction(action_: SEL); message 'setAction:';
@@ -135,8 +135,8 @@ var
     function minSize: NSSize; message 'minSize';
     procedure setMaxSize(size: NSSize); message 'setMaxSize:';
     function maxSize: NSSize; message 'maxSize';
-    procedure setVisibilityPriority(visibilityPriority_: clong); message 'setVisibilityPriority:';
-    function visibilityPriority: clong; message 'visibilityPriority';
+    procedure setVisibilityPriority(visibilityPriority_: NSInteger); message 'setVisibilityPriority:';
+    function visibilityPriority: NSInteger; message 'visibilityPriority';
     procedure validate; message 'validate';
     procedure setAutovalidates(resistance: Boolean); message 'setAutovalidates:';
     function autovalidates: Boolean; message 'autovalidates';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLOR_PAS_H}
@@ -17,10 +17,6 @@ type
 { Defines }
 const
   NSAppKitVersionNumberWithPatternColorLeakFix = 641.0;
-
-{ CFString constants }
-var
-  NSSystemColorsDidChangeNotification: CFStringRef; external name '_NSSystemColorsDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -42,6 +38,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCOLOR_PAS_T}
 {$define NSCOLOR_PAS_T}
+
+{ External string constants }
+var
+  NSSystemColorsDidChangeNotification: NSString; external name '_NSSystemColorsDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -69,7 +69,7 @@ var
     class function colorWithDeviceRed_green_blue_alpha(red: CGFloat; green: CGFloat; blue: CGFloat; alpha: CGFloat): NSColor; message 'colorWithDeviceRed:green:blue:alpha:';
     class function colorWithDeviceCyan_magenta_yellow_black_alpha(cyan: CGFloat; magenta: CGFloat; yellow: CGFloat; black: CGFloat; alpha: CGFloat): NSColor; message 'colorWithDeviceCyan:magenta:yellow:black:alpha:';
     class function colorWithCatalogName_colorName(listName: NSString; colorName: NSString): NSColor; message 'colorWithCatalogName:colorName:';
-    class function colorWithColorSpace_components_count(space: NSColorSpace; var components: CGFloat; numberOfComponents_: clong): NSColor; message 'colorWithColorSpace:components:count:';
+    class function colorWithColorSpace_components_count(space: NSColorSpace; components: psingle; numberOfComponents_: NSInteger): NSColor; message 'colorWithColorSpace:components:count:';
     class function blackColor: NSColor; message 'blackColor';
     class function darkGrayColor: NSColor; message 'darkGrayColor';
     class function lightGrayColor: NSColor; message 'lightGrayColor';
@@ -137,21 +137,21 @@ var
     function redComponent: CGFloat; message 'redComponent';
     function greenComponent: CGFloat; message 'greenComponent';
     function blueComponent: CGFloat; message 'blueComponent';
-    procedure getRed_green_blue_alpha(var red: CGFloat; var green: CGFloat; var blue: CGFloat; var alpha: CGFloat); message 'getRed:green:blue:alpha:';
+    procedure getRed_green_blue_alpha(red: psingle; green: psingle; blue: psingle; alpha: psingle); message 'getRed:green:blue:alpha:';
     function hueComponent: CGFloat; message 'hueComponent';
     function saturationComponent: CGFloat; message 'saturationComponent';
     function brightnessComponent: CGFloat; message 'brightnessComponent';
-    procedure getHue_saturation_brightness_alpha(var hue: CGFloat; var saturation: CGFloat; var brightness: CGFloat; var alpha: CGFloat); message 'getHue:saturation:brightness:alpha:';
+    procedure getHue_saturation_brightness_alpha(hue: psingle; saturation: psingle; brightness: psingle; alpha: psingle); message 'getHue:saturation:brightness:alpha:';
     function whiteComponent: CGFloat; message 'whiteComponent';
-    procedure getWhite_alpha(var white: CGFloat; var alpha: CGFloat); message 'getWhite:alpha:';
+    procedure getWhite_alpha(white: psingle; alpha: psingle); message 'getWhite:alpha:';
     function cyanComponent: CGFloat; message 'cyanComponent';
     function magentaComponent: CGFloat; message 'magentaComponent';
     function yellowComponent: CGFloat; message 'yellowComponent';
     function blackComponent: CGFloat; message 'blackComponent';
-    procedure getCyan_magenta_yellow_black_alpha(var cyan: CGFloat; var magenta: CGFloat; var yellow: CGFloat; var black: CGFloat; var alpha: CGFloat); message 'getCyan:magenta:yellow:black:alpha:';
+    procedure getCyan_magenta_yellow_black_alpha(cyan: psingle; magenta: psingle; yellow: psingle; black: psingle; alpha: psingle); message 'getCyan:magenta:yellow:black:alpha:';
     function colorSpace: NSColorSpace; message 'colorSpace';
-    function numberOfComponents: clong; message 'numberOfComponents';
-    procedure getComponents(var components: CGFloat); message 'getComponents:';
+    function numberOfComponents: NSInteger; message 'numberOfComponents';
+    procedure getComponents(components: psingle); message 'getComponents:';
     function alphaComponent: CGFloat; message 'alphaComponent';
     class function colorFromPasteboard(pasteBoard: NSPasteboard): NSColor; message 'colorFromPasteboard:';
     procedure writeToPasteboard(pasteBoard: NSPasteboard); message 'writeToPasteboard:';
@@ -162,7 +162,7 @@ var
     class function ignoresAlpha: Boolean; message 'ignoresAlpha';
 
     { Category: NSQuartzCoreAdditions }
-    class function colorWithCIColor(var color: CIColor): NSColor; message 'colorWithCIColor:';
+    class function colorWithCIColor(color: CIColorPointer): NSColor; message 'colorWithCIColor:';
   end; external;
 
 {$endif}

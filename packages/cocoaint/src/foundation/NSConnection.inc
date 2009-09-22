@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCONNECTION_PAS_H}
@@ -14,13 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSCONNECTION_PAS_T}
 {$define NSCONNECTION_PAS_T}
-
-{ CFString constants }
-var
-  NSConnectionReplyMode: CFStringRef; external name '_NSConnectionReplyMode';
-  NSConnectionDidDieNotification: CFStringRef; external name '_NSConnectionDidDieNotification';
-  NSFailedAuthenticationException: CFStringRef; external name '_NSFailedAuthenticationException';
-  NSConnectionDidInitializeNotification: CFStringRef; external name '_NSConnectionDidInitializeNotification';
 
 {$endif}
 {$endif}
@@ -42,6 +35,13 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSCONNECTION_PAS_T}
 {$define NSCONNECTION_PAS_T}
+
+{ External string constants }
+var
+  NSConnectionReplyMode: NSString; external name '_NSConnectionReplyMode';
+  NSConnectionDidDieNotification: NSString; external name '_NSConnectionDidDieNotification';
+  NSFailedAuthenticationException: NSString; external name '_NSFailedAuthenticationException';
+  NSConnectionDidInitializeNotification: NSString; external name '_NSConnectionDidInitializeNotification';
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCIImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCIIMAGEREP_PAS_H}
@@ -55,9 +55,9 @@ type
   public
     class function alloc: NSCIImageRep; message 'alloc';
 
-    class function imageRepWithCIImage(var image: CIImage_): id; message 'imageRepWithCIImage:';
-    function initWithCIImage(var image: CIImage_): id; message 'initWithCIImage:';
-    function CIImage: CIImage_; message 'CIImage';
+    class function imageRepWithCIImage(image: CIImage_Pointer): id; message 'imageRepWithCIImage:';
+    function initWithCIImage(image: CIImage_Pointer): id; message 'initWithCIImage:';
+    function CIImage: CIImage; message 'CIImage';
   end; external;
 
 {$endif}

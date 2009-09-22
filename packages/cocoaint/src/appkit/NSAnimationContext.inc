@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAnimationContext.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSANIMATIONCONTEXT_PAS_H}
@@ -51,7 +51,7 @@ type
   NSAnimationContext = objcclass(NSObject)
   private
     __duration: NSTimeInterval;
-    __reserved: id;
+        _reserved: array[0..4] of id;
     
   public
     class function alloc: NSAnimationContext; message 'alloc';

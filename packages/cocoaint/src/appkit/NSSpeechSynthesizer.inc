@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSSpeechSynthesizer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSPEECHSYNTHESIZER_PAS_H}
@@ -23,7 +23,7 @@ const
 
 { Types }
 type
-  NSSpeechBoundary = culong;
+  NSSpeechBoundary = NSUInteger;
 
 {$endif}
 {$endif}
@@ -86,8 +86,8 @@ type
     procedure setUsesFeedbackWindow(flag: Boolean); message 'setUsesFeedbackWindow:';
     procedure addSpeechDictionary(speechDictionary: NSDictionary); message 'addSpeechDictionary:';
     function phonemesFromText(text: NSString): NSString; message 'phonemesFromText:';
-    function objectForProperty_error(property_: NSString; var outError: NSError): id; message 'objectForProperty:error:';
-    function setObject_forProperty_error(object_: id; property_: NSString; var outError: NSError): Boolean; message 'setObject:forProperty:error:';
+    function objectForProperty_error(property_: NSString; outError: NSErrorPointer): id; message 'objectForProperty:error:';
+    function setObject_forProperty_error(object_: id; property_: NSString; outError: NSErrorPointer): Boolean; message 'setObject:forProperty:error:';
     class function isAnyApplicationSpeaking: Boolean; message 'isAnyApplicationSpeaking';
     class function defaultVoice: NSString; message 'defaultVoice';
     class function availableVoices: NSArray; message 'availableVoices';

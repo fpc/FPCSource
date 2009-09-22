@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSIMAGEREP_PAS_H}
@@ -18,10 +18,6 @@ type
 
 const
   NSImageRepMatchesDevice = 0;
-
-{ CFString constants }
-var
-  NSImageRepRegistryDidChangeNotification: CFStringRef; external name '_NSImageRepRegistryDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -43,6 +39,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSIMAGEREP_PAS_T}
 {$define NSIMAGEREP_PAS_T}
+
+{ External string constants }
+var
+  NSImageRepRegistryDidChangeNotification: NSString; external name '_NSImageRepRegistryDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -89,12 +89,12 @@ var
     function isOpaque: Boolean; message 'isOpaque';
     procedure setColorSpaceName(string_: NSString); message 'setColorSpaceName:';
     function colorSpaceName: NSString; message 'colorSpaceName';
-    procedure setBitsPerSample(anInt: clong); message 'setBitsPerSample:';
-    function bitsPerSample: clong; message 'bitsPerSample';
-    procedure setPixelsWide(anInt: clong); message 'setPixelsWide:';
-    function pixelsWide: clong; message 'pixelsWide';
-    procedure setPixelsHigh(anInt: clong); message 'setPixelsHigh:';
-    function pixelsHigh: clong; message 'pixelsHigh';
+    procedure setBitsPerSample(anInt: NSInteger); message 'setBitsPerSample:';
+    function bitsPerSample: NSInteger; message 'bitsPerSample';
+    procedure setPixelsWide(anInt: NSInteger); message 'setPixelsWide:';
+    function pixelsWide: NSInteger; message 'pixelsWide';
+    procedure setPixelsHigh(anInt: NSInteger); message 'setPixelsHigh:';
+    function pixelsHigh: NSInteger; message 'pixelsHigh';
     class procedure registerImageRepClass(imageRepClass: Pobjc_class); message 'registerImageRepClass:';
     class procedure unregisterImageRepClass(imageRepClass: Pobjc_class); message 'unregisterImageRepClass:';
     class function registeredImageRepClasses: NSArray; message 'registeredImageRepClasses';

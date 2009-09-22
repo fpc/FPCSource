@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAlert.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSALERT_PAS_H}
@@ -28,7 +28,7 @@ const
 
 { Types }
 type
-  NSAlertStyle = culong;
+  NSAlertStyle = NSUInteger;
 
 {$endif}
 {$endif}
@@ -101,7 +101,7 @@ type
     class function alloc: NSAlert; message 'alloc';
 
     class function alertWithError(error: NSError): NSAlert; message 'alertWithError:';
-    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; format: NSString): NSAlert; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
+    class function alertWithMessageText_defaultButton_alternateButton_otherButton_informativeTextWithFormat(message: NSString; defaultButton: NSString; alternateButton: NSString; otherButton: NSString; format: NSString): NSAlert; varargs; message 'alertWithMessageText:defaultButton:alternateButton:otherButton:informativeTextWithFormat:';
     procedure setMessageText(messageText_: NSString); message 'setMessageText:';
     procedure setInformativeText(informativeText_: NSString); message 'setInformativeText:';
     function messageText: NSString; message 'messageText';
@@ -124,7 +124,7 @@ type
     procedure setAccessoryView(view: NSView); message 'setAccessoryView:';
     function accessoryView: NSView; message 'accessoryView';
     procedure layout; message 'layout';
-    function runModal: clong; message 'runModal';
+    function runModal: NSInteger; message 'runModal';
     procedure beginSheetModalForWindow_modalDelegate_didEndSelector_contextInfo(window_: NSWindow; delegate_: id; didEndSelector: SEL; contextInfo: Pointer); message 'beginSheetModalForWindow:modalDelegate:didEndSelector:contextInfo:';
     function window: id; message 'window';
   end; external;

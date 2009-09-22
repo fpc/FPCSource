@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSParagraphStyle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPARAGRAPHSTYLE_PAS_H}
@@ -30,8 +30,8 @@ const
 
 { Types }
 type
-  NSTextTabType = culong;
-  NSLineBreakMode = culong;
+  NSTextTabType = NSUInteger;
+  NSLineBreakMode = NSUInteger;
 
 {$endif}
 {$endif}
@@ -142,7 +142,7 @@ type
     function textLists: NSArray; message 'textLists';
     function hyphenationFactor: single; message 'hyphenationFactor';
     function tighteningFactorForTruncation: single; message 'tighteningFactorForTruncation';
-    function headerLevel: clong; message 'headerLevel';
+    function headerLevel: NSInteger; message 'headerLevel';
   end; external;
 
 { NSMutableParagraphStyle }
@@ -172,7 +172,7 @@ type
     procedure setTextLists(array_: NSArray); message 'setTextLists:';
     procedure setHyphenationFactor(aFactor: single); message 'setHyphenationFactor:';
     procedure setTighteningFactorForTruncation(aFactor: single); message 'setTighteningFactorForTruncation:';
-    procedure setHeaderLevel(level: clong); message 'setHeaderLevel:';
+    procedure setHeaderLevel(level: NSInteger); message 'setHeaderLevel:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLevelIndicator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSLEVELINDICATOR_PAS_H}
@@ -63,12 +63,12 @@ type
     procedure setCriticalValue(criticalValue_: double); message 'setCriticalValue:';
     function tickMarkPosition: NSTickMarkPosition; message 'tickMarkPosition';
     procedure setTickMarkPosition(position: NSTickMarkPosition); message 'setTickMarkPosition:';
-    function numberOfTickMarks: clong; message 'numberOfTickMarks';
-    procedure setNumberOfTickMarks(count: clong); message 'setNumberOfTickMarks:';
-    function numberOfMajorTickMarks: clong; message 'numberOfMajorTickMarks';
-    procedure setNumberOfMajorTickMarks(count: clong); message 'setNumberOfMajorTickMarks:';
-    function tickMarkValueAtIndex(index: clong): double; message 'tickMarkValueAtIndex:';
-    function rectOfTickMarkAtIndex(index: clong): NSRect; message 'rectOfTickMarkAtIndex:';
+    function numberOfTickMarks: NSInteger; message 'numberOfTickMarks';
+    procedure setNumberOfTickMarks(count: NSInteger); message 'setNumberOfTickMarks:';
+    function numberOfMajorTickMarks: NSInteger; message 'numberOfMajorTickMarks';
+    procedure setNumberOfMajorTickMarks(count: NSInteger); message 'setNumberOfMajorTickMarks:';
+    function tickMarkValueAtIndex(index: NSInteger): double; message 'tickMarkValueAtIndex:';
+    function rectOfTickMarkAtIndex(index: NSInteger): NSRect; message 'rectOfTickMarkAtIndex:';
   end; external;
 
 {$endif}

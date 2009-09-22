@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSControl.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCONTROL_PAS_H}
@@ -13,12 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSCONTROL_PAS_T}
 {$define NSCONTROL_PAS_T}
-
-{ CFString constants }
-var
-  NSControlTextDidBeginEditingNotification: CFStringRef; external name '_NSControlTextDidBeginEditingNotification';
-  NSControlTextDidEndEditingNotification: CFStringRef; external name '_NSControlTextDidEndEditingNotification';
-  NSControlTextDidChangeNotification: CFStringRef; external name '_NSControlTextDidChangeNotification';
 
 {$endif}
 {$endif}
@@ -41,6 +35,12 @@ var
 {$ifndef NSCONTROL_PAS_T}
 {$define NSCONTROL_PAS_T}
 
+{ External string constants }
+var
+  NSControlTextDidBeginEditingNotification: NSString; external name '_NSControlTextDidBeginEditingNotification';
+  NSControlTextDidEndEditingNotification: NSString; external name '_NSControlTextDidEndEditingNotification';
+  NSControlTextDidChangeNotification: NSString; external name '_NSControlTextDidChangeNotification';
+
 {$endif}
 {$endif}
 
@@ -56,7 +56,7 @@ var
 { NSControl }
   NSControl = objcclass(NSView)
   private
-    __tag: clong;
+    __tag: NSInteger;
     __cell: id;
     __conFlags: bitpacked record
         enabled: 0..1;
@@ -83,17 +83,17 @@ var
     procedure setTarget(anObject: id); message 'setTarget:';
     function action: SEL; message 'action';
     procedure setAction(aSelector: SEL); message 'setAction:';
-    function tag: clong; message 'tag';
-    procedure setTag(anInt: clong); message 'setTag:';
-    function selectedTag: clong; message 'selectedTag';
+    function tag: NSInteger; message 'tag';
+    procedure setTag(anInt: NSInteger); message 'setTag:';
+    function selectedTag: NSInteger; message 'selectedTag';
     procedure setIgnoresMultiClick(flag: Boolean); message 'setIgnoresMultiClick:';
     function ignoresMultiClick: Boolean; message 'ignoresMultiClick';
-    function sendActionOn(mask: clong): clong; message 'sendActionOn:';
+    function sendActionOn(mask: NSInteger): NSInteger; message 'sendActionOn:';
     function isContinuous: Boolean; message 'isContinuous';
     procedure setContinuous(flag: Boolean); message 'setContinuous:';
     function isEnabled: Boolean; message 'isEnabled';
     procedure setEnabled(flag: Boolean); message 'setEnabled:';
-    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: culong; rightDigits: culong); message 'setFloatingPointFormat:left:right:';
+    procedure setFloatingPointFormat_left_right(autoRange: Boolean; leftDigits: NSUInteger; rightDigits: NSUInteger); message 'setFloatingPointFormat:left:right:';
     function alignment: NSTextAlignment; message 'alignment';
     procedure setAlignment(mode: NSTextAlignment); message 'setAlignment:';
     function font: NSFont; message 'font';
@@ -128,8 +128,8 @@ var
     procedure mouseDown(theEvent: NSEvent); message 'mouseDown:';
     function baseWritingDirection: NSWritingDirection; message 'baseWritingDirection';
     procedure setBaseWritingDirection(writingDirection: NSWritingDirection); message 'setBaseWritingDirection:';
-    function integerValue: clong; message 'integerValue';
-    procedure setIntegerValue(anInteger: clong); message 'setIntegerValue:';
+    function integerValue: NSInteger; message 'integerValue';
+    procedure setIntegerValue(anInteger: NSInteger); message 'setIntegerValue:';
     procedure takeIntegerValueFrom(sender: id); message 'takeIntegerValueFrom:';
 
     { Category: NSKeyboardUI }

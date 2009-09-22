@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPathUtilities.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -8,8 +8,8 @@
 
 { Types }
 type
-  NSSearchPathDirectory = culong;
-  NSSearchPathDomainMask = culong;
+  NSSearchPathDirectory = NSUInteger;
+  NSSearchPathDomainMask = NSUInteger;
 
 { Constants }
 
@@ -34,7 +34,7 @@ const
 function NSUserName: NSString; cdecl; external name 'NSUserName';
 function NSFullUserName: NSString; cdecl; external name 'NSFullUserName';
 function NSHomeDirectory: NSString; cdecl; external name 'NSHomeDirectory';
-function NSHomeDirectoryForUser(var userName: NSString): NSString; cdecl; external name 'NSHomeDirectoryForUser';
+function NSHomeDirectoryForUser(userNamePointer: NSString): NSString; cdecl; external name 'NSHomeDirectoryForUser';
 function NSTemporaryDirectory: NSString; cdecl; external name 'NSTemporaryDirectory';
 function NSOpenStepRootDirectory: NSString; cdecl; external name 'NSOpenStepRootDirectory';
 function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; domainMask: NSSearchPathDomainMask; expandTilde: Boolean): NSArray; cdecl; external name 'NSSearchPathForDirectoriesInDomains';

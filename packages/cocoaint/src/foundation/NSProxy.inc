@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSProxy.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPROXY_PAS_H}
@@ -56,7 +56,7 @@ type
     class function alloc: NSProxy; message 'alloc';
 
     class function alloc: id; message 'alloc';
-    class function allocWithZone(var zone_: NSZone): id; message 'allocWithZone:';
+    class function allocWithZone(zone_: NSZonePointer): id; message 'allocWithZone:';
     class function class_: Pobjc_class; message 'class';
     procedure forwardInvocation(invocation: NSInvocation); message 'forwardInvocation:';
     function methodSignatureForSelector(sel: SEL): NSMethodSignature; message 'methodSignatureForSelector:';

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSOperation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOPERATION_PAS_H}
@@ -30,12 +30,7 @@ const
 
 { Types }
 type
-  NSOperationQueuePriority = clong;
-
-{ CFString constants }
-var
-  NSInvocationOperationVoidResultException: CFStringRef; external name '_NSInvocationOperationVoidResultException';
-  NSInvocationOperationCancelledException: CFStringRef; external name '_NSInvocationOperationCancelledException';
+  NSOperationQueuePriority = NSInteger;
 
 {$endif}
 {$endif}
@@ -57,6 +52,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSOPERATION_PAS_T}
 {$define NSOPERATION_PAS_T}
+
+{ External string constants }
+var
+  NSInvocationOperationVoidResultException: NSString; external name '_NSInvocationOperationVoidResultException';
+  NSInvocationOperationCancelledException: NSString; external name '_NSInvocationOperationCancelledException';
 
 {$endif}
 {$endif}
@@ -124,8 +124,8 @@ var
 
     procedure addOperation(op: NSOperation); message 'addOperation:';
     function operations: NSArray; message 'operations';
-    function maxConcurrentOperationCount: clong; message 'maxConcurrentOperationCount';
-    procedure setMaxConcurrentOperationCount(cnt: clong); message 'setMaxConcurrentOperationCount:';
+    function maxConcurrentOperationCount: NSInteger; message 'maxConcurrentOperationCount';
+    procedure setMaxConcurrentOperationCount(cnt: NSInteger); message 'setMaxConcurrentOperationCount:';
     procedure setSuspended(b: Boolean); message 'setSuspended:';
     function isSuspended: Boolean; message 'isSuspended';
     procedure cancelAllOperations; message 'cancelAllOperations';

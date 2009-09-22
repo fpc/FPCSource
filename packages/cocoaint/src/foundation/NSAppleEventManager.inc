@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSAPPLEEVENTMANAGER_PAS_H}
@@ -16,7 +16,7 @@ type
 
 { Types }
 type
-  NSAppleEventManagerSuspensionID = __NSAppleEventManagerSuspension;
+  NSAppleEventManagerSuspensionID = __NSAppleEventManagerSuspensionPointer;
 
 {$endif}
 {$endif}
@@ -55,7 +55,7 @@ type
   NSAppleEventManager = objcclass(NSObject)
   private
     __isPreparedForDispatch: Boolean;
-    __padding: char;
+        _padding: array[0..2] of char;
     
   public
     class function alloc: NSAppleEventManager; message 'alloc';
@@ -63,7 +63,7 @@ type
     class function sharedAppleEventManager: NSAppleEventManager; message 'sharedAppleEventManager';
     procedure setEventHandler_andSelector_forEventClass_andEventID(handler: id; handleEventSelector: SEL; eventClass: AEEventClass; eventID: AEEventID); message 'setEventHandler:andSelector:forEventClass:andEventID:';
     procedure removeEventHandlerForEventClass_andEventID(eventClass: AEEventClass; eventID: AEEventID); message 'removeEventHandlerForEventClass:andEventID:';
-    function dispatchRawAppleEvent_withRawReply_handlerRefCon(var theAppleEvent: AppleEvent; var theReply: AppleEvent; handlerRefCon: SRefCon): OSErr; message 'dispatchRawAppleEvent:withRawReply:handlerRefCon:';
+    function dispatchRawAppleEvent_withRawReply_handlerRefCon(theAppleEvent: AppleEventPointer; theReply: AppleEventPointer; handlerRefCon: SRefCon): OSErr; message 'dispatchRawAppleEvent:withRawReply:handlerRefCon:';
     function currentAppleEvent: NSAppleEventDescriptor; message 'currentAppleEvent';
     function currentReplyAppleEvent: NSAppleEventDescriptor; message 'currentReplyAppleEvent';
     function suspendCurrentAppleEvent: NSAppleEventManagerSuspensionID; message 'suspendCurrentAppleEvent';

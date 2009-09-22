@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLConnection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLCONNECTION_PAS_H}
@@ -64,7 +64,7 @@ type
     procedure unscheduleFromRunLoop_forMode(aRunLoop: NSRunLoop; mode: NSString); message 'unscheduleFromRunLoop:forMode:';
 
     { Category: NSURLConnectionSynchronousLoading }
-    class function sendSynchronousRequest_returningResponse_error(request: NSURLRequest; var response: NSURLResponse; var error: NSError): NSData; message 'sendSynchronousRequest:returningResponse:error:';
+    class function sendSynchronousRequest_returningResponse_error(request: NSURLRequest; response: NSURLResponsePointer; error: NSErrorPointer): NSData; message 'sendSynchronousRequest:returningResponse:error:';
   end; external;
 
 {$endif}

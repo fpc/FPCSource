@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSet.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSET_PAS_H}
@@ -57,7 +57,7 @@ type
   public
     class function alloc: NSSet; message 'alloc';
 
-    function count: culong; message 'count';
+    function count: NSUInteger; message 'count';
     function member(object_: id): id; message 'member:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
 
@@ -79,12 +79,12 @@ type
     { Category: NSSetCreation }
     class function set_: id; message 'set';
     class function setWithObject(object_: id): id; message 'setWithObject:';
-    class function setWithObjects_count(objects: id; cnt: culong): id; message 'setWithObjects:count:';
-    class function setWithObjects(firstObj: id; objParams: array of const): id; message 'setWithObjects:';
+    class function setWithObjects_count(objects: id; cnt: NSUInteger): id; message 'setWithObjects:count:';
+    class function setWithObjects(firstObj: id): id; varargs; message 'setWithObjects:';
     class function setWithSet(set__: NSSet): id; message 'setWithSet:';
     class function setWithArray(array_: NSArray): id; message 'setWithArray:';
-    function initWithObjects_count(objects: id; cnt: culong): id; message 'initWithObjects:count:';
-    function initWithObjects(firstObj: id; objParams: array of const): id; message 'initWithObjects:';
+    function initWithObjects_count(objects: id; cnt: NSUInteger): id; message 'initWithObjects:count:';
+    function initWithObjects(firstObj: id): id; varargs; message 'initWithObjects:';
     function initWithSet(set__: NSSet): id; message 'initWithSet:';
     function initWithSet_copyItems(set__: NSSet; flag: Boolean): id; message 'initWithSet:copyItems:';
     function initWithArray(array_: NSArray): id; message 'initWithArray:';
@@ -119,8 +119,8 @@ type
     procedure setSet(otherSet: NSSet); message 'setSet:';
 
     { Category: NSMutableSetCreation }
-    class function setWithCapacity(numItems: culong): id; message 'setWithCapacity:';
-    function initWithCapacity(numItems: culong): id; message 'initWithCapacity:';
+    class function setWithCapacity(numItems: NSUInteger): id; message 'setWithCapacity:';
+    function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
 
     { Category: NSPredicateSupport }
     procedure filterUsingPredicate(predicate: NSPredicate); message 'filterUsingPredicate:';
@@ -135,10 +135,10 @@ type
   public
     class function alloc: NSCountedSet; message 'alloc';
 
-    function initWithCapacity(numItems: culong): id; message 'initWithCapacity:';
+    function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
     function initWithArray(array_: NSArray): id; message 'initWithArray:';
     function initWithSet(set__: NSSet): id; message 'initWithSet:';
-    function countForObject(object_: id): culong; message 'countForObject:';
+    function countForObject(object_: id): NSUInteger; message 'countForObject:';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
     procedure addObject(object_: id); message 'addObject:';
     procedure removeObject(object_: id); message 'removeObject:';

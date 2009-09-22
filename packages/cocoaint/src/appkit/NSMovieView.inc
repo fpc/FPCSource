@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMovieView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMOVIEVIEW_PAS_H}
@@ -23,7 +23,7 @@ const
 
 { Types }
 type
-  NSQTMovieLoopMode = culong;
+  NSQTMovieLoopMode = NSUInteger;
 
 {$endif}
 {$endif}
@@ -34,13 +34,13 @@ type
 
 { Records }
 type
-  __MVFlags = record
-    editable: cuint;
-    loopMode: NSQTMovieLoopMode;
-    playsEveryFrame: cuint;
-    playsSelectionOnly: cuint;
-    controllerVisible: cuint;
-    reserved: cuint;
+  __MVFlags = bitpacked record
+    editable: 0..1;
+    loopMode: 0..((1 shl 3)-1);
+    playsEveryFrame: 0..1;
+    playsSelectionOnly: 0..1;
+    controllerVisible: 0..1;
+    reserved: 0..((1 shl 25)-1);
   end;
 _MVFlags = __MVFlags;
 

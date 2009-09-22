@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSEVENT_PAS_H}
@@ -158,8 +158,8 @@ const
 
 { Types }
 type
-  NSEventType = culong;
-  NSPointingDeviceType = culong;
+  NSEventType = NSUInteger;
+  NSPointingDeviceType = NSUInteger;
 
 {$endif}
 {$endif}
@@ -200,9 +200,9 @@ type
     __type: NSEventType;
     __location: NSPoint;
     __modifierFlags: cuint;
-    __WSTimestamp: clong;
+    __WSTimestamp: NSInteger;
     __timestamp: NSTimeInterval;
-    __windowNumber: clong;
+    __windowNumber: NSInteger;
     __window: NSWindow;
     __context: NSGraphicsContext;
     _mouse: record
@@ -215,7 +215,7 @@ type
         subtype: cint;
         buttonNumber: cshort;
         reserved1: cshort;
-        reserved2: cint;
+            reserved2: array[0..2] of cint;
         {$endif}
       end;
     _key: record
@@ -224,15 +224,15 @@ type
         keyCode: cushort;
         isARepeat: Boolean;
         {$ifdef cpu64}
-        reserved: cint;
+            reserved: array[0..5] of cint;
         {$endif}
       end;
     _tracking: record
         eventNumber: cint;
-        trackingNumber: clong;
+        trackingNumber: NSInteger;
         userData: Pointer;
         {$ifdef cpu64}
-        reserved: cint;
+            reserved: array[0..5] of cint;
         {$endif}
       end;
     _scrollWheel: record
@@ -242,20 +242,20 @@ type
         {$ifdef cpu64}
         subtype: cshort;
         reserved1: cshort;
-        reserved2: cint;
+            reserved2: array[0..5] of cint;
         {$endif}
       end;
     _misc: record
         subtype: cint;
-        data1: clong;
-        data2: clong;
+        data1: NSInteger;
+        data2: NSInteger;
         {$ifdef cpu64}
-        reserved: cint;
+            reserved: array[0..5] of cint;
         {$endif}
       end;
     {$ifdef cpu64}
-    _tabletPointData: cint;
-    _tabletProximityData: cint;
+        tabletPointData: array[0..13] of cint;
+        tabletProximityData: array[0..13] of cint;
     {$endif}
     __data: record
       end;
@@ -269,14 +269,14 @@ type
     class function alloc: NSEvent; message 'alloc';
 
     function type_: NSEventType; message 'type';
-    function modifierFlags: culong; message 'modifierFlags';
+    function modifierFlags: NSUInteger; message 'modifierFlags';
     function timestamp: NSTimeInterval; message 'timestamp';
     function window: NSWindow; message 'window';
-    function windowNumber: clong; message 'windowNumber';
+    function windowNumber: NSInteger; message 'windowNumber';
     function context: NSGraphicsContext; message 'context';
-    function clickCount: clong; message 'clickCount';
-    function buttonNumber: clong; message 'buttonNumber';
-    function eventNumber: clong; message 'eventNumber';
+    function clickCount: NSInteger; message 'clickCount';
+    function buttonNumber: NSInteger; message 'buttonNumber';
+    function eventNumber: NSInteger; message 'eventNumber';
     function pressure: single; message 'pressure';
     function locationInWindow: NSPoint; message 'locationInWindow';
     function deltaX: CGFloat; message 'deltaX';
@@ -286,43 +286,43 @@ type
     function charactersIgnoringModifiers: NSString; message 'charactersIgnoringModifiers';
     function isARepeat: Boolean; message 'isARepeat';
     function keyCode: cushort; message 'keyCode';
-    function trackingNumber: clong; message 'trackingNumber';
+    function trackingNumber: NSInteger; message 'trackingNumber';
     function userData: Pointer; message 'userData';
     function trackingArea: NSTrackingArea; message 'trackingArea';
     function subtype: cshort; message 'subtype';
-    function data1: clong; message 'data1';
-    function data2: clong; message 'data2';
+    function data1: NSInteger; message 'data1';
+    function data2: NSInteger; message 'data2';
     function eventRef: Pointer; message 'eventRef';
     class function eventWithEventRef(eventRef_: Pointer): NSEvent; message 'eventWithEventRef:';
     function CGEvent: CGEventRef; message 'CGEvent';
     class function eventWithCGEvent(CGEvent_: CGEventRef): NSEvent; message 'eventWithCGEvent:';
     class procedure setMouseCoalescingEnabled(flag: Boolean); message 'setMouseCoalescingEnabled:';
     class function isMouseCoalescingEnabled: Boolean; message 'isMouseCoalescingEnabled';
-    function deviceID: culong; message 'deviceID';
-    function absoluteX: clong; message 'absoluteX';
-    function absoluteY: clong; message 'absoluteY';
-    function absoluteZ: clong; message 'absoluteZ';
-    function buttonMask: culong; message 'buttonMask';
+    function deviceID: NSUInteger; message 'deviceID';
+    function absoluteX: NSInteger; message 'absoluteX';
+    function absoluteY: NSInteger; message 'absoluteY';
+    function absoluteZ: NSInteger; message 'absoluteZ';
+    function buttonMask: NSUInteger; message 'buttonMask';
     function tilt: NSPoint; message 'tilt';
     function rotation: single; message 'rotation';
     function tangentialPressure: single; message 'tangentialPressure';
     function vendorDefined: id; message 'vendorDefined';
-    function vendorID: culong; message 'vendorID';
-    function tabletID: culong; message 'tabletID';
-    function pointingDeviceID: culong; message 'pointingDeviceID';
-    function systemTabletID: culong; message 'systemTabletID';
-    function vendorPointingDeviceType: culong; message 'vendorPointingDeviceType';
-    function pointingDeviceSerialNumber: culong; message 'pointingDeviceSerialNumber';
+    function vendorID: NSUInteger; message 'vendorID';
+    function tabletID: NSUInteger; message 'tabletID';
+    function pointingDeviceID: NSUInteger; message 'pointingDeviceID';
+    function systemTabletID: NSUInteger; message 'systemTabletID';
+    function vendorPointingDeviceType: NSUInteger; message 'vendorPointingDeviceType';
+    function pointingDeviceSerialNumber: NSUInteger; message 'pointingDeviceSerialNumber';
     function uniqueID: culonglong; message 'uniqueID';
-    function capabilityMask: culong; message 'capabilityMask';
+    function capabilityMask: NSUInteger; message 'capabilityMask';
     function pointingDeviceType: NSPointingDeviceType; message 'pointingDeviceType';
     function isEnteringProximity: Boolean; message 'isEnteringProximity';
     class procedure startPeriodicEventsAfterDelay_withPeriod(delay: NSTimeInterval; period: NSTimeInterval); message 'startPeriodicEventsAfterDelay:withPeriod:';
     class procedure stopPeriodicEvents; message 'stopPeriodicEvents';
-    class function mouseEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_clickCount_pressure(type__: NSEventType; location: NSPoint; flags: culong; time: NSTimeInterval; wNum: clong; context_: NSGraphicsContext; eNum: clong; cNum: clong; pressure_: single): NSEvent; message 'mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:';
-    class function keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode(type__: NSEventType; location: NSPoint; flags: culong; time: NSTimeInterval; wNum: clong; context_: NSGraphicsContext; keys: NSString; ukeys: NSString; flag: Boolean; code: cushort): NSEvent; message 'keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:';
-    class function enterExitEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_trackingNumber_userData(type__: NSEventType; location: NSPoint; flags: culong; time: NSTimeInterval; wNum: clong; context_: NSGraphicsContext; eNum: clong; tNum: clong; data: Pointer): NSEvent; message 'enterExitEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:trackingNumber:userData:';
-    class function otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2(type__: NSEventType; location: NSPoint; flags: culong; time: NSTimeInterval; wNum: clong; context_: NSGraphicsContext; subtype_: cshort; d: clong; d1: clong): NSEvent; message 'otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:';
+    class function mouseEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_clickCount_pressure(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; cNum: NSInteger; pressure_: single): NSEvent; message 'mouseEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:clickCount:pressure:';
+    class function keyEventWithType_location_modifierFlags_timestamp_windowNumber_context_characters_charactersIgnoringModifiers_isARepeat_keyCode(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; keys: NSString; ukeys: NSString; flag: Boolean; code: cushort): NSEvent; message 'keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:';
+    class function enterExitEventWithType_location_modifierFlags_timestamp_windowNumber_context_eventNumber_trackingNumber_userData(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; eNum: NSInteger; tNum: NSInteger; data: Pointer): NSEvent; message 'enterExitEventWithType:location:modifierFlags:timestamp:windowNumber:context:eventNumber:trackingNumber:userData:';
+    class function otherEventWithType_location_modifierFlags_timestamp_windowNumber_context_subtype_data1_data2(type__: NSEventType; location: NSPoint; flags: NSUInteger; time: NSTimeInterval; wNum: NSInteger; context_: NSGraphicsContext; subtype_: cshort; d: NSInteger; d1: NSInteger): NSEvent; message 'otherEventWithType:location:modifierFlags:timestamp:windowNumber:context:subtype:data1:data2:';
     class function mouseLocation: NSPoint; message 'mouseLocation';
   end; external;
 

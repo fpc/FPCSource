@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenu.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMENU_PAS_H}
@@ -13,14 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSMENU_PAS_T}
 {$define NSMENU_PAS_T}
-
-{ CFString constants }
-var
-  NSMenuWillSendActionNotification: CFStringRef; external name '_NSMenuWillSendActionNotification';
-  NSMenuDidSendActionNotification: CFStringRef; external name '_NSMenuDidSendActionNotification';
-  NSMenuDidAddItemNotification: CFStringRef; external name '_NSMenuDidAddItemNotification';
-  NSMenuDidRemoveItemNotification: CFStringRef; external name '_NSMenuDidRemoveItemNotification';
-  NSMenuDidChangeItemNotification: CFStringRef; external name '_NSMenuDidChangeItemNotification';
 
 {$endif}
 {$endif}
@@ -42,6 +34,14 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSMENU_PAS_T}
 {$define NSMENU_PAS_T}
+
+{ External string constants }
+var
+  NSMenuWillSendActionNotification: NSString; external name '_NSMenuWillSendActionNotification';
+  NSMenuDidSendActionNotification: NSString; external name '_NSMenuDidSendActionNotification';
+  NSMenuDidAddItemNotification: NSString; external name '_NSMenuDidAddItemNotification';
+  NSMenuDidRemoveItemNotification: NSString; external name '_NSMenuDidRemoveItemNotification';
+  NSMenuDidChangeItemNotification: NSString; external name '_NSMenuDidChangeItemNotification';
 
 {$endif}
 {$endif}
@@ -84,7 +84,7 @@ var
   public
     class function alloc: NSMenu; message 'alloc';
 
-    class procedure setMenuZone(var aZone: NSZone); message 'setMenuZone:';
+    class procedure setMenuZone(aZone: NSZonePointer); message 'setMenuZone:';
     class function menuZone: NSZone; message 'menuZone';
     class procedure popUpContextMenu_withEvent_forView(menu: NSMenu; event: NSEvent; view: NSView); message 'popUpContextMenu:withEvent:forView:';
     class procedure popUpContextMenu_withEvent_forView_withFont(menu: NSMenu; event: NSEvent; view: NSView; font: NSFont); message 'popUpContextMenu:withEvent:forView:withFont:';
@@ -95,24 +95,24 @@ var
     function title: NSString; message 'title';
     procedure setSupermenu(supermenu_: NSMenu); message 'setSupermenu:';
     function supermenu: NSMenu; message 'supermenu';
-    procedure insertItem_atIndex(newItem: NSMenuItem; index: clong); message 'insertItem:atIndex:';
+    procedure insertItem_atIndex(newItem: NSMenuItem; index: NSInteger); message 'insertItem:atIndex:';
     procedure addItem(newItem: NSMenuItem); message 'addItem:';
-    function insertItemWithTitle_action_keyEquivalent_atIndex(aString: NSString; aSelector: SEL; charCode: NSString; index: clong): NSMenuItem; message 'insertItemWithTitle:action:keyEquivalent:atIndex:';
+    function insertItemWithTitle_action_keyEquivalent_atIndex(aString: NSString; aSelector: SEL; charCode: NSString; index: NSInteger): NSMenuItem; message 'insertItemWithTitle:action:keyEquivalent:atIndex:';
     function addItemWithTitle_action_keyEquivalent(aString: NSString; aSelector: SEL; charCode: NSString): NSMenuItem; message 'addItemWithTitle:action:keyEquivalent:';
-    procedure removeItemAtIndex(index: clong); message 'removeItemAtIndex:';
+    procedure removeItemAtIndex(index: NSInteger); message 'removeItemAtIndex:';
     procedure removeItem(item: NSMenuItem); message 'removeItem:';
     procedure setSubmenu_forItem(aMenu: NSMenu; anItem: NSMenuItem); message 'setSubmenu:forItem:';
     function itemArray: NSArray; message 'itemArray';
-    function numberOfItems: clong; message 'numberOfItems';
-    function indexOfItem(index: NSMenuItem): clong; message 'indexOfItem:';
-    function indexOfItemWithTitle(aTitle: NSString): clong; message 'indexOfItemWithTitle:';
-    function indexOfItemWithTag(aTag: clong): clong; message 'indexOfItemWithTag:';
-    function indexOfItemWithRepresentedObject(object_: id): clong; message 'indexOfItemWithRepresentedObject:';
-    function indexOfItemWithSubmenu(submenu: NSMenu): clong; message 'indexOfItemWithSubmenu:';
-    function indexOfItemWithTarget_andAction(target: id; actionSelector: SEL): clong; message 'indexOfItemWithTarget:andAction:';
-    function itemAtIndex(index: clong): NSMenuItem; message 'itemAtIndex:';
+    function numberOfItems: NSInteger; message 'numberOfItems';
+    function indexOfItem(index: NSMenuItem): NSInteger; message 'indexOfItem:';
+    function indexOfItemWithTitle(aTitle: NSString): NSInteger; message 'indexOfItemWithTitle:';
+    function indexOfItemWithTag(aTag: NSInteger): NSInteger; message 'indexOfItemWithTag:';
+    function indexOfItemWithRepresentedObject(object_: id): NSInteger; message 'indexOfItemWithRepresentedObject:';
+    function indexOfItemWithSubmenu(submenu: NSMenu): NSInteger; message 'indexOfItemWithSubmenu:';
+    function indexOfItemWithTarget_andAction(target: id; actionSelector: SEL): NSInteger; message 'indexOfItemWithTarget:andAction:';
+    function itemAtIndex(index: NSInteger): NSMenuItem; message 'itemAtIndex:';
     function itemWithTitle(aTitle: NSString): NSMenuItem; message 'itemWithTitle:';
-    function itemWithTag(tag: clong): NSMenuItem; message 'itemWithTag:';
+    function itemWithTag(tag: NSInteger): NSMenuItem; message 'itemWithTag:';
     procedure setAutoenablesItems(flag: Boolean); message 'setAutoenablesItems:';
     function autoenablesItems: Boolean; message 'autoenablesItems';
     function performKeyEquivalent(theEvent: NSEvent): Boolean; message 'performKeyEquivalent:';
@@ -132,7 +132,7 @@ var
     function isAttached: Boolean; message 'isAttached';
     procedure sizeToFit; message 'sizeToFit';
     function locationForSubmenu(aSubmenu: NSMenu): NSPoint; message 'locationForSubmenu:';
-    procedure performActionForItemAtIndex(index: clong); message 'performActionForItemAtIndex:';
+    procedure performActionForItemAtIndex(index: NSInteger); message 'performActionForItemAtIndex:';
     procedure setDelegate(anObject: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     function menuBarHeight: CGFloat; message 'menuBarHeight';

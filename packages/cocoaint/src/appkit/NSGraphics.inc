@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGraphics.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,32 +50,13 @@ const
 
 { Types }
 type
-  NSCompositingOperation = culong;
-  NSBackingStoreType = culong;
-  NSWindowOrderingMode = clong;
-  NSFocusRingPlacement = culong;
-  NSFocusRingType = culong;
+  NSCompositingOperation = NSUInteger;
+  NSBackingStoreType = NSUInteger;
+  NSWindowOrderingMode = NSInteger;
+  NSFocusRingPlacement = NSUInteger;
+  NSFocusRingType = NSUInteger;
   NSWindowDepth = cint;
-  NSAnimationEffect = culong;
-
-{ CFString constants }
-var
-  NSCalibratedWhiteColorSpace: CFStringRef; external name '_NSCalibratedWhiteColorSpace';
-  NSCalibratedBlackColorSpace: CFStringRef; external name '_NSCalibratedBlackColorSpace';
-  NSCalibratedRGBColorSpace: CFStringRef; external name '_NSCalibratedRGBColorSpace';
-  NSDeviceWhiteColorSpace: CFStringRef; external name '_NSDeviceWhiteColorSpace';
-  NSDeviceBlackColorSpace: CFStringRef; external name '_NSDeviceBlackColorSpace';
-  NSDeviceRGBColorSpace: CFStringRef; external name '_NSDeviceRGBColorSpace';
-  NSDeviceCMYKColorSpace: CFStringRef; external name '_NSDeviceCMYKColorSpace';
-  NSNamedColorSpace: CFStringRef; external name '_NSNamedColorSpace';
-  NSPatternColorSpace: CFStringRef; external name '_NSPatternColorSpace';
-  NSCustomColorSpace: CFStringRef; external name '_NSCustomColorSpace';
-  NSDeviceResolution: CFStringRef; external name '_NSDeviceResolution';
-  NSDeviceColorSpaceName: CFStringRef; external name '_NSDeviceColorSpaceName';
-  NSDeviceBitsPerSample: CFStringRef; external name '_NSDeviceBitsPerSample';
-  NSDeviceIsScreen: CFStringRef; external name '_NSDeviceIsScreen';
-  NSDeviceIsPrinter: CFStringRef; external name '_NSDeviceIsPrinter';
-  NSDeviceSize: CFStringRef; external name '_NSDeviceSize';
+  NSAnimationEffect = NSUInteger;
 
 {$endif}
 {$endif}
@@ -92,38 +73,38 @@ var
 {$define NSGRAPHICS_PAS_F}
 
 { Functions }
-function NSBitsPerSampleFromDepth(depth: NSWindowDepth): clong; cdecl; external name 'NSBitsPerSampleFromDepth';
-function NSBitsPerPixelFromDepth(depth: NSWindowDepth): clong; cdecl; external name 'NSBitsPerPixelFromDepth';
-function NSNumberOfColorComponents(var colorSpaceName: NSString): clong; cdecl; external name 'NSNumberOfColorComponents';
+function NSBitsPerSampleFromDepth(depth: NSWindowDepth): NSInteger; cdecl; external name 'NSBitsPerSampleFromDepth';
+function NSBitsPerPixelFromDepth(depth: NSWindowDepth): NSInteger; cdecl; external name 'NSBitsPerPixelFromDepth';
+function NSNumberOfColorComponents(colorSpaceNamePointer: NSString): NSInteger; cdecl; external name 'NSNumberOfColorComponents';
 procedure NSRectFill(aRect: NSRect); cdecl; external name 'NSRectFill';
-procedure NSRectFillList(var rects: NSRect; count: clong); cdecl; external name 'NSRectFillList';
-procedure NSRectFillListWithGrays(var rects: NSRect; var grays: CGFloat; num: clong); cdecl; external name 'NSRectFillListWithGrays';
-procedure NSRectFillListWithColors(var rects: NSRect; colors: Pointer {NSColor}; num: clong); cdecl; external name 'NSRectFillListWithColors';
+procedure NSRectFillList(rectsPointer: NSRect; count: NSInteger); cdecl; external name 'NSRectFillList';
+procedure NSRectFillListWithGrays(rectsPointer: NSRect; graysPointer: CGFloat; num: NSInteger); cdecl; external name 'NSRectFillListWithGrays';
+procedure NSRectFillListWithColors(rectsPointer: NSRect; colors: Pointer {NSColor}; num: NSInteger); cdecl; external name 'NSRectFillListWithColors';
 procedure NSRectFillUsingOperation(aRect: NSRect; op: NSCompositingOperation); cdecl; external name 'NSRectFillUsingOperation';
-procedure NSRectFillListUsingOperation(var rects: NSRect; count: clong; op: NSCompositingOperation); cdecl; external name 'NSRectFillListUsingOperation';
-procedure NSRectFillListWithColorsUsingOperation(var rects: NSRect; colors: Pointer {NSColor}; num: clong; op: NSCompositingOperation); cdecl; external name 'NSRectFillListWithColorsUsingOperation';
+procedure NSRectFillListUsingOperation(rectsPointer: NSRect; count: NSInteger; op: NSCompositingOperation); cdecl; external name 'NSRectFillListUsingOperation';
+procedure NSRectFillListWithColorsUsingOperation(rectsPointer: NSRect; colors: Pointer {NSColor}; num: NSInteger; op: NSCompositingOperation); cdecl; external name 'NSRectFillListWithColorsUsingOperation';
 procedure NSFrameRect(aRect: NSRect); cdecl; external name 'NSFrameRect';
 procedure NSFrameRectWithWidth(aRect: NSRect; frameWidth: CGFloat); cdecl; external name 'NSFrameRectWithWidth';
 procedure NSFrameRectWithWidthUsingOperation(aRect: NSRect; frameWidth: CGFloat; op: NSCompositingOperation); cdecl; external name 'NSFrameRectWithWidthUsingOperation';
 procedure NSRectClip(aRect: NSRect); cdecl; external name 'NSRectClip';
-procedure NSRectClipList(var rects: NSRect; count: clong); cdecl; external name 'NSRectClipList';
-function NSDrawTiledRects(boundsRect: NSRect; clipRect: NSRect; var sides: NSRectEdge; var grays: CGFloat; count: clong): NSRect; cdecl; external name 'NSDrawTiledRects';
+procedure NSRectClipList(rectsPointer: NSRect; count: NSInteger); cdecl; external name 'NSRectClipList';
+function NSDrawTiledRects(boundsRect: NSRect; clipRect: NSRect; sidesPointer: NSRectEdge; graysPointer: CGFloat; count: NSInteger): NSRect; cdecl; external name 'NSDrawTiledRects';
 procedure NSDrawGrayBezel(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawGrayBezel';
 procedure NSDrawGroove(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawGroove';
 procedure NSDrawWhiteBezel(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawWhiteBezel';
 procedure NSDrawButton(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawButton';
 procedure NSEraseRect(aRect: NSRect); cdecl; external name 'NSEraseRect';
 function NSReadPixel(passedPoint: NSPoint): NSColor; cdecl; external name 'NSReadPixel';
-procedure NSDrawBitmap(rect: NSRect; width: clong; height: clong; bps: clong; spp: clong; bpp: clong; bpr: clong; isPlanar: Boolean; hasAlpha: Boolean; var colorSpaceName: NSString; char_: cuint); cdecl; external name 'NSDrawBitmap';
-procedure NSCopyBits(srcGState: clong; srcRect: NSRect; destPoint: NSPoint); cdecl; external name 'NSCopyBits';
+procedure NSDrawBitmap(rect: NSRect; width: NSInteger; height: NSInteger; bps: NSInteger; spp: NSInteger; bpp: NSInteger; bpr: NSInteger; isPlanar: Boolean; hasAlpha: Boolean; colorSpaceNamePointer: NSString; char_: cuint); cdecl; external name 'NSDrawBitmap';
+procedure NSCopyBits(srcGState: NSInteger; srcRect: NSRect; destPoint: NSPoint); cdecl; external name 'NSCopyBits';
 procedure NSHighlightRect(aRect: NSRect); cdecl; external name 'NSHighlightRect';
 procedure NSBeep; cdecl; external name 'NSBeep';
-procedure NSCountWindows(var count: clong); cdecl; external name 'NSCountWindows';
-procedure NSWindowList(size: clong; list: Pointer {array of clong}); cdecl; external name 'NSWindowList';
-procedure NSCountWindowsForContext(context: clong; var count: clong); cdecl; external name 'NSCountWindowsForContext';
-procedure NSWindowListForContext(context: clong; size: clong; list: Pointer {array of clong}); cdecl; external name 'NSWindowListForContext';
-function NSGetWindowServerMemory(context: clong; var virtualMemory: clong; var windowBackingMemory: clong; windowDumpString: Pointer {NSString}): clong; cdecl; external name 'NSGetWindowServerMemory';
-function NSDrawColorTiledRects(boundsRect: NSRect; clipRect: NSRect; var sides: NSRectEdge; colors: Pointer {NSColor}; count: clong): NSRect; cdecl; external name 'NSDrawColorTiledRects';
+procedure NSCountWindows(countPointer: NSInteger); cdecl; external name 'NSCountWindows';
+procedure NSWindowList(size: NSInteger; list: Pointer {array of NSInteger}); cdecl; external name 'NSWindowList';
+procedure NSCountWindowsForContext(context: NSInteger; countPointer: NSInteger); cdecl; external name 'NSCountWindowsForContext';
+procedure NSWindowListForContext(context: NSInteger; size: NSInteger; list: Pointer {array of NSInteger}); cdecl; external name 'NSWindowListForContext';
+function NSGetWindowServerMemory(context: NSInteger; virtualMemoryPointer: NSInteger; windowBackingMemoryPointer: NSInteger; windowDumpString: Pointer {NSString}): NSInteger; cdecl; external name 'NSGetWindowServerMemory';
+function NSDrawColorTiledRects(boundsRect: NSRect; clipRect: NSRect; sidesPointer: NSRectEdge; colors: Pointer {NSColor}; count: NSInteger): NSRect; cdecl; external name 'NSDrawColorTiledRects';
 procedure NSDrawDarkBezel(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawDarkBezel';
 procedure NSDrawLightBezel(aRect: NSRect; clipRect: NSRect); cdecl; external name 'NSDrawLightBezel';
 procedure NSDottedFrameRect(aRect: NSRect); cdecl; external name 'NSDottedFrameRect';
@@ -131,7 +112,7 @@ procedure NSDrawWindowBackground(aRect: NSRect); cdecl; external name 'NSDrawWin
 procedure NSSetFocusRingStyle(placement: NSFocusRingPlacement); cdecl; external name 'NSSetFocusRingStyle';
 procedure NSDisableScreenUpdates; cdecl; external name 'NSDisableScreenUpdates';
 procedure NSEnableScreenUpdates; cdecl; external name 'NSEnableScreenUpdates';
-procedure NSShowAnimationEffect(animationEffect: NSAnimationEffect; centerLocation: NSPoint; size: NSSize; animationDelegate: id; didEndSelector: SEL; var contextInfo: Pointer); cdecl; external name 'NSShowAnimationEffect';
+procedure NSShowAnimationEffect(animationEffect: NSAnimationEffect; centerLocation: NSPoint; size: NSSize; animationDelegate: id; didEndSelector: SEL; contextInfoPointer: Pointer); cdecl; external name 'NSShowAnimationEffect';
 
 {$endif}
 {$endif}
@@ -139,6 +120,25 @@ procedure NSShowAnimationEffect(animationEffect: NSAnimationEffect; centerLocati
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSGRAPHICS_PAS_T}
 {$define NSGRAPHICS_PAS_T}
+
+{ External string constants }
+var
+  NSCalibratedWhiteColorSpace: NSString; external name '_NSCalibratedWhiteColorSpace';
+  NSCalibratedBlackColorSpace: NSString; external name '_NSCalibratedBlackColorSpace';
+  NSCalibratedRGBColorSpace: NSString; external name '_NSCalibratedRGBColorSpace';
+  NSDeviceWhiteColorSpace: NSString; external name '_NSDeviceWhiteColorSpace';
+  NSDeviceBlackColorSpace: NSString; external name '_NSDeviceBlackColorSpace';
+  NSDeviceRGBColorSpace: NSString; external name '_NSDeviceRGBColorSpace';
+  NSDeviceCMYKColorSpace: NSString; external name '_NSDeviceCMYKColorSpace';
+  NSNamedColorSpace: NSString; external name '_NSNamedColorSpace';
+  NSPatternColorSpace: NSString; external name '_NSPatternColorSpace';
+  NSCustomColorSpace: NSString; external name '_NSCustomColorSpace';
+  NSDeviceResolution: NSString; external name '_NSDeviceResolution';
+  NSDeviceColorSpaceName: NSString; external name '_NSDeviceColorSpaceName';
+  NSDeviceBitsPerSample: NSString; external name '_NSDeviceBitsPerSample';
+  NSDeviceIsScreen: NSString; external name '_NSDeviceIsScreen';
+  NSDeviceIsPrinter: NSString; external name '_NSDeviceIsPrinter';
+  NSDeviceSize: NSString; external name '_NSDeviceSize';
 
 { External symbols }
 var

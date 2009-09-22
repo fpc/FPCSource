@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSSpellServer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSPELLSERVER_PAS_H}
@@ -13,12 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSSPELLSERVER_PAS_T}
 {$define NSSPELLSERVER_PAS_T}
-
-{ CFString constants }
-var
-  NSGrammarRange: CFStringRef; external name '_NSGrammarRange';
-  NSGrammarUserDescription: CFStringRef; external name '_NSGrammarUserDescription';
-  NSGrammarCorrections: CFStringRef; external name '_NSGrammarCorrections';
 
 {$endif}
 {$endif}
@@ -41,6 +35,12 @@ var
 {$ifndef NSSPELLSERVER_PAS_T}
 {$define NSSPELLSERVER_PAS_T}
 
+{ External string constants }
+var
+  NSGrammarRange: NSString; external name '_NSGrammarRange';
+  NSGrammarUserDescription: NSString; external name '_NSGrammarUserDescription';
+  NSGrammarCorrections: NSString; external name '_NSGrammarCorrections';
+
 {$endif}
 {$endif}
 
@@ -57,7 +57,7 @@ var
   NSSpellServer = objcclass(NSObject)
   private
     __delegate: id;
-    __caseSensitive: clong;
+    __caseSensitive: NSInteger;
     __spellServerConnection: id;
     __dictionaries: id;
     __learnedDictionaries: NSArray;

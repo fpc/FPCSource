@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSXMLELEMENT_PAS_H}
@@ -55,9 +55,9 @@ type
     __namespaces: NSMutableArray;
     __children: NSArray;
     __childrenHaveMutated: Boolean;
-    __padding3: byte;
+        _padding3: array[0..2] of byte;
     __URI: NSString;
-    __prefixIndex: clong;
+    __prefixIndex: NSInteger;
     
   public
     class function alloc: NSXMLElement; message 'alloc';
@@ -65,7 +65,7 @@ type
     function initWithName(name_: NSString): id; message 'initWithName:';
     function initWithName_URI(name_: NSString; URI_: NSString): id; message 'initWithName:URI:';
     function initWithName_stringValue(name_: NSString; string_: NSString): id; message 'initWithName:stringValue:';
-    function initWithXMLString_error(string_: NSString; var error: NSError): id; message 'initWithXMLString:error:';
+    function initWithXMLString_error(string_: NSString; error: NSErrorPointer): id; message 'initWithXMLString:error:';
     function elementsForName(name_: NSString): NSArray; message 'elementsForName:';
     function elementsForLocalName_URI(localName_: NSString; URI_: NSString): NSArray; message 'elementsForLocalName:URI:';
     procedure addAttribute(attribute: NSXMLNode); message 'addAttribute:';
@@ -82,12 +82,12 @@ type
     function namespaceForPrefix(name_: NSString): NSXMLNode; message 'namespaceForPrefix:';
     function resolveNamespaceForName(name_: NSString): NSXMLNode; message 'resolveNamespaceForName:';
     function resolvePrefixForNamespaceURI(namespaceURI: NSString): NSString; message 'resolvePrefixForNamespaceURI:';
-    procedure insertChild_atIndex(child: NSXMLNode; index_: culong); message 'insertChild:atIndex:';
-    procedure insertChildren_atIndex(children_: NSArray; index_: culong); message 'insertChildren:atIndex:';
-    procedure removeChildAtIndex(index_: culong); message 'removeChildAtIndex:';
+    procedure insertChild_atIndex(child: NSXMLNode; index_: NSUInteger); message 'insertChild:atIndex:';
+    procedure insertChildren_atIndex(children_: NSArray; index_: NSUInteger); message 'insertChildren:atIndex:';
+    procedure removeChildAtIndex(index_: NSUInteger); message 'removeChildAtIndex:';
     procedure setChildren(children_: NSArray); message 'setChildren:';
     procedure addChild(child: NSXMLNode); message 'addChild:';
-    procedure replaceChildAtIndex_withNode(index_: culong; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
+    procedure replaceChildAtIndex_withNode(index_: NSUInteger; node: NSXMLNode); message 'replaceChildAtIndex:withNode:';
     procedure normalizeAdjacentTextNodesPreservingCDATA(preserve: Boolean); message 'normalizeAdjacentTextNodesPreservingCDATA:';
   end; external;
 

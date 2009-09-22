@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColorSpace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLORSPACE_PAS_H}
@@ -28,7 +28,7 @@ const
 
 { Types }
 type
-  NSColorSpaceModel = clong;
+  NSColorSpaceModel = NSInteger;
 
 {$endif}
 {$endif}
@@ -77,7 +77,7 @@ type
         {$endif}
       end;
     ___cgColorSpace: Pointer;
-    __reserved: Pointer;
+        _reserved: array[0..4] of Pointer;
     
   public
     class function alloc: NSColorSpace; message 'alloc';
@@ -88,7 +88,7 @@ type
     function colorSyncProfile: Pointer; message 'colorSyncProfile';
     function initWithCGColorSpace(CGColorSpace_: CGColorSpaceRef): id; message 'initWithCGColorSpace:';
     function CGColorSpace: CGColorSpaceRef; message 'CGColorSpace';
-    function numberOfColorComponents: clong; message 'numberOfColorComponents';
+    function numberOfColorComponents: NSInteger; message 'numberOfColorComponents';
     function colorSpaceModel: NSColorSpaceModel; message 'colorSpaceModel';
     function localizedName: NSString; message 'localizedName';
     class function genericRGBColorSpace: NSColorSpace; message 'genericRGBColorSpace';

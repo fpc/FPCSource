@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPropertyList.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPROPERTYLIST_PAS_H}
@@ -26,8 +26,8 @@ const
 
 { Types }
 type
-  NSPropertyListMutabilityOptions = culong;
-  NSPropertyListFormat = culong;
+  NSPropertyListMutabilityOptions = NSUInteger;
+  NSPropertyListFormat = NSUInteger;
 
 {$endif}
 {$endif}
@@ -65,14 +65,14 @@ type
 { NSPropertyListSerialization }
   NSPropertyListSerialization = objcclass(NSObject)
   private
-    _reserved: Pointer;
+        reserved: array[0..5] of Pointer;
     
   public
     class function alloc: NSPropertyListSerialization; message 'alloc';
 
     class function propertyList_isValidForFormat(plist: id; format: NSPropertyListFormat): Boolean; message 'propertyList:isValidForFormat:';
-    class function dataFromPropertyList_format_errorDescription(plist: id; format: NSPropertyListFormat; var errorString: NSString): NSData; message 'dataFromPropertyList:format:errorDescription:';
-    class function propertyListFromData_mutabilityOption_format_errorDescription(data: NSData; opt: NSPropertyListMutabilityOptions; var format: NSPropertyListFormat; var errorString: NSString): id; message 'propertyListFromData:mutabilityOption:format:errorDescription:';
+    class function dataFromPropertyList_format_errorDescription(plist: id; format: NSPropertyListFormat; errorString: NSStringPointer): NSData; message 'dataFromPropertyList:format:errorDescription:';
+    class function propertyListFromData_mutabilityOption_format_errorDescription(data: NSData; opt: NSPropertyListMutabilityOptions; format: NSPropertyListFormatPointer; errorString: NSStringPointer): id; message 'propertyListFromData:mutabilityOption:format:errorDescription:';
   end; external;
 
 {$endif}

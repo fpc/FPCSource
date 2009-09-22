@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSURLProtectionSpace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSURLPROTECTIONSPACE_PAS_H}
@@ -55,13 +55,13 @@ type
   public
     class function alloc: NSURLProtectionSpace; message 'alloc';
 
-    function initWithHost_port_protocol_realm_authenticationMethod(host_: NSString; port_: clong; protocol_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithHost:port:protocol:realm:authenticationMethod:';
-    function initWithProxyHost_port_type_realm_authenticationMethod(host_: NSString; port_: clong; type_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
+    function initWithHost_port_protocol_realm_authenticationMethod(host_: NSString; port_: NSInteger; protocol_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithHost:port:protocol:realm:authenticationMethod:';
+    function initWithProxyHost_port_type_realm_authenticationMethod(host_: NSString; port_: NSInteger; type_: NSString; realm_: NSString; authenticationMethod_: NSString): id; message 'initWithProxyHost:port:type:realm:authenticationMethod:';
     function realm: NSString; message 'realm';
     function receivesCredentialSecurely: Boolean; message 'receivesCredentialSecurely';
     function isProxy: Boolean; message 'isProxy';
     function host: NSString; message 'host';
-    function port: clong; message 'port';
+    function port: NSInteger; message 'port';
     function proxyType: NSString; message 'proxyType';
     function protocol: NSString; message 'protocol';
     function authenticationMethod: NSString; message 'authenticationMethod';

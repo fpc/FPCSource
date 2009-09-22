@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMethodSignature.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMETHODSIGNATURE_PAS_H}
@@ -51,18 +51,18 @@ type
   NSMethodSignature = objcclass(NSObject)
   private
     __private: Pointer;
-    __reserved: Pointer;
+        _reserved: array[0..5] of Pointer;
     
   public
     class function alloc: NSMethodSignature; message 'alloc';
 
     class function signatureWithObjCTypes(types: PChar): NSMethodSignature; message 'signatureWithObjCTypes:';
-    function numberOfArguments: culong; message 'numberOfArguments';
-    function getArgumentTypeAtIndex(idx: culong): char; message 'getArgumentTypeAtIndex:';
-    function frameLength: culong; message 'frameLength';
+    function numberOfArguments: NSUInteger; message 'numberOfArguments';
+    function getArgumentTypeAtIndex(idx: NSUInteger): PChar; message 'getArgumentTypeAtIndex:';
+    function frameLength: NSUInteger; message 'frameLength';
     function isOneway: Boolean; message 'isOneway';
-    function methodReturnType: char; message 'methodReturnType';
-    function methodReturnLength: culong; message 'methodReturnLength';
+    function methodReturnType: PChar; message 'methodReturnType';
+    function methodReturnLength: NSUInteger; message 'methodReturnLength';
   end; external;
 
 {$endif}

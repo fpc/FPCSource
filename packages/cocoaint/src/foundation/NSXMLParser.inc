@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSXMLParser.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSXMLPARSER_PAS_H}
@@ -113,7 +113,7 @@ const
 
 { Types }
 type
-  NSXMLParserError = clong;
+  NSXMLParserError = NSInteger;
 
 {$endif}
 {$endif}
@@ -177,8 +177,8 @@ type
     { Category: NSXMLParserLocatorAdditions }
     function publicID: NSString; message 'publicID';
     function systemID: NSString; message 'systemID';
-    function lineNumber: clong; message 'lineNumber';
-    function columnNumber: clong; message 'columnNumber';
+    function lineNumber: NSInteger; message 'lineNumber';
+    function columnNumber: NSInteger; message 'columnNumber';
   end; external;
 
 {$endif}

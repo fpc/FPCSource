@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTask.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTASK_PAS_H}
@@ -13,10 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSTASK_PAS_T}
 {$define NSTASK_PAS_T}
-
-{ CFString constants }
-var
-  NSTaskDidTerminateNotification: CFStringRef; external name '_NSTaskDidTerminateNotification';
 
 {$endif}
 {$endif}
@@ -38,6 +34,10 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSTASK_PAS_T}
 {$define NSTASK_PAS_T}
+
+{ External string constants }
+var
+  NSTaskDidTerminateNotification: NSString; external name '_NSTaskDidTerminateNotification';
 
 {$endif}
 {$endif}

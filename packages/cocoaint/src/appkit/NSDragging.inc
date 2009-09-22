@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSDragging.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -8,7 +8,7 @@
 
 { Types }
 type
-  NSDragOperation = culong;
+  NSDragOperation = NSUInteger;
 
 { Constants }
 
@@ -64,7 +64,7 @@ const
     function draggedImage: NSImage; message 'draggedImage';
     function draggingPasteboard: NSPasteboard; message 'draggingPasteboard';
     function draggingSource: id; message 'draggingSource';
-    function draggingSequenceNumber: clong; message 'draggingSequenceNumber';
+    function draggingSequenceNumber: NSInteger; message 'draggingSequenceNumber';
     procedure slideDraggedImageTo(screenPoint: NSPoint); message 'slideDraggedImageTo:';
     function namesOfPromisedFilesDroppedAtDestination(dropDestination: NSURL): NSArray; message 'namesOfPromisedFilesDroppedAtDestination:';
   end; external name 'NSDraggingInfo';

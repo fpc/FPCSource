@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextList.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTLIST_PAS_H}
@@ -56,17 +56,17 @@ const
   NSTextList = objcclass(NSObject, NSCodingProtocol, NSCopyingProtocol)
   private
     __markerFormat: NSString;
-    __listFlags: culong;
+    __listFlags: NSUInteger;
     __listPrimary: Pointer;
     __listSecondary: Pointer;
     
   public
     class function alloc: NSTextList; message 'alloc';
 
-    function initWithMarkerFormat_options(format: NSString; mask: culong): id; message 'initWithMarkerFormat:options:';
+    function initWithMarkerFormat_options(format: NSString; mask: NSUInteger): id; message 'initWithMarkerFormat:options:';
     function markerFormat: NSString; message 'markerFormat';
-    function listOptions: culong; message 'listOptions';
-    function markerForItemNumber(itemNum: clong): NSString; message 'markerForItemNumber:';
+    function listOptions: NSUInteger; message 'listOptions';
+    function markerForItemNumber(itemNum: NSInteger): NSString; message 'markerForItemNumber:';
   end; external;
 
 {$endif}

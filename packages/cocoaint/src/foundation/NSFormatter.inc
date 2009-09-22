@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFormatter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSFORMATTER_PAS_H}
@@ -56,9 +56,9 @@ type
     function stringForObjectValue(obj: id): NSString; message 'stringForObjectValue:';
     function attributedStringForObjectValue_withDefaultAttributes(obj: id; attrs: NSDictionary): NSAttributedString; message 'attributedStringForObjectValue:withDefaultAttributes:';
     function editingStringForObjectValue(obj: id): NSString; message 'editingStringForObjectValue:';
-    function getObjectValue_forString_errorDescription(obj: id; string_: NSString; var error: NSString): Boolean; message 'getObjectValue:forString:errorDescription:';
-    function isPartialStringValid_newEditingString_errorDescription(partialString: NSString; var newString: NSString; var error: NSString): Boolean; message 'isPartialStringValid:newEditingString:errorDescription:';
-    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription(partialStringPtr: NSStringPointer; proposedSelRangePtr: NSRangePointerPointer; origString: NSString; origSelRange: NSRange; var error: NSString): Boolean; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
+    function getObjectValue_forString_errorDescription(obj: id; string_: NSString; error: NSStringPointer): Boolean; message 'getObjectValue:forString:errorDescription:';
+    function isPartialStringValid_newEditingString_errorDescription(partialString: NSString; newString: NSStringPointer; error: NSStringPointer): Boolean; message 'isPartialStringValid:newEditingString:errorDescription:';
+    function isPartialStringValid_proposedSelectedRange_originalString_originalSelectedRange_errorDescription(partialStringPtr: NSStringPointer; proposedSelRangePtr: NSRangePointerPointer; origString: NSString; origSelRange: NSRange; error: NSStringPointer): Boolean; message 'isPartialStringValid:proposedSelectedRange:originalString:originalSelectedRange:errorDescription:';
   end; external;
 
 {$endif}

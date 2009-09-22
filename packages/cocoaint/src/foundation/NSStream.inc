@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSStream.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSTREAM_PAS_H}
@@ -38,8 +38,8 @@ const
 
 { Types }
 type
-  NSStreamStatus = culong;
-  NSStreamEvent = culong;
+  NSStreamStatus = NSUInteger;
+  NSStreamEvent = NSUInteger;
 
 {$endif}
 {$endif}
@@ -94,7 +94,7 @@ type
     function streamError: NSError; message 'streamError';
 
     { Category: NSSocketStreamCreationExtensions }
-    class procedure getStreamsToHost_port_inputStream_outputStream(host: NSHost; port: clong; var inputStream: NSInputStream; var outputStream: NSOutputStream); message 'getStreamsToHost:port:inputStream:outputStream:';
+    class procedure getStreamsToHost_port_inputStream_outputStream(host: NSHost; port: NSInteger; inputStream: NSInputStreamPointer; outputStream: NSOutputStreamPointer); message 'getStreamsToHost:port:inputStream:outputStream:';
   end; external;
 
 { NSInputStream }
@@ -103,8 +103,8 @@ type
   public
     class function alloc: NSInputStream; message 'alloc';
 
-    function read_maxLength(var buffer: byte; len: culong): clong; message 'read:maxLength:';
-    function getBuffer_length(var buffer: byte; var len: culong): Boolean; message 'getBuffer:length:';
+    function read_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'read:maxLength:';
+    function getBuffer_length(buffer: pbyte; len: NSUIntegerPointer): Boolean; message 'getBuffer:length:';
     function hasBytesAvailable: Boolean; message 'hasBytesAvailable';
 
     { Category: NSInputStreamExtensions }
@@ -120,15 +120,15 @@ type
   public
     class function alloc: NSOutputStream; message 'alloc';
 
-    function write_maxLength(var buffer: byte; len: culong): clong; message 'write:maxLength:';
+    function write_maxLength(buffer: pbyte; len: NSUInteger): NSInteger; message 'write:maxLength:';
     function hasSpaceAvailable: Boolean; message 'hasSpaceAvailable';
 
     { Category: NSOutputStreamExtensions }
     function initToMemory: id; message 'initToMemory';
-    function initToBuffer_capacity(var buffer: byte; capacity: culong): id; message 'initToBuffer:capacity:';
+    function initToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'initToBuffer:capacity:';
     function initToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'initToFileAtPath:append:';
     class function outputStreamToMemory: id; message 'outputStreamToMemory';
-    class function outputStreamToBuffer_capacity(var buffer: byte; capacity: culong): id; message 'outputStreamToBuffer:capacity:';
+    class function outputStreamToBuffer_capacity(buffer: pbyte; capacity: NSUInteger): id; message 'outputStreamToBuffer:capacity:';
     class function outputStreamToFileAtPath_append(path: NSString; shouldAppend: Boolean): id; message 'outputStreamToFileAtPath:append:';
   end; external;
 

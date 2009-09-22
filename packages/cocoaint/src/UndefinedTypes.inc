@@ -2,7 +2,6 @@ type
   __NSAppleEventManagerSuspension = Pointer;
   CGFloat = Float32;
   UTF = UInt32;
-  va_list = Pointer; //typedef __darwin_va_list	va_list;
   NSPointerFunctionsOptions = UInt16;
   URefCon = UInt32;
   SRefCon = SInt32;
@@ -17,7 +16,13 @@ type
   GLsizei = integer;
   GLbitfield = integer;
   objc_protocol = protocol;
-  
+
+{ Variable argument list - disabled for Pascal }
+type
+ va_list_rec=record
+ end;
+ va_list = ^va_list_rec;
+
 { Private instance variable types }
 type
  _NSImageCellAnimationState = Pointer;
@@ -25,11 +30,13 @@ type
  PATHSEGMENT = Pointer;		{from NSBezierPath.h what is this???}
  
 { Pointer C-Types }
-{ Note: the parser appends "Pointer" by default but these may have preferred names in ctypes. }
 type
- culongPointer = ^culong;
- UInt32Pointer = Pointer;
- 
+ NSIntegerPointer = pclong;
+ NSUIntegerPointer = pculong;
+ NSZonePointer = ^NSZone;
+ NSTimeIntervalPointer = ^Float32;
+
+
 { An array of objects }
 type
   NSObjectArrayOfObjects = array[0..(high(longint) div sizeof(id))-1] of id;
@@ -66,7 +73,30 @@ type
   CIContext_ = id;
   CIImage_ = id;
   NSRangePointerPointer = Pointer;
-
+  aeDesc_Pointer = Pointer;
+  __NSAppleEventManagerSuspensionPointer = Pointer;
+  
+{ Extra pointers for pass by reference arguments }
+{ NOTE: many of these were from records parsed that do not contain a pointer pair. Fix this later instead of declaring them here. }
+type
+ NSPropertyListFormatPointer = Pointer;
+ NSStringEncodingPointer = Pointer;
+ AppleEventPointer = ^AppleEvent;
+ NSGlyphPointer = Pointer;
+ CIColorPointer = Pointer;
+ NSDecimalPointer = Pointer;
+ CIImagePointer = Pointer;
+ NSTIFFCompressionPointer = Pointer;
+ CIImage_Pointer = Pointer;
+ CALayerPointer = Pointer;
+ CIFilterPointer = Pointer;
+ NSGlyphInscriptionPointer = Pointer;
+ NSOpenGLPixelFormatAttributePointer = Pointer;
+ GLintPointer = Pointer;
+ NSManagedObjectContextPointer = Pointer;
+ NSFetchRequestPointer = Pointer;
+ NSFastEnumerationStatePointer = Pointer;
+ 
 { Parse bugs - these should have been parsed but were not due to errors }
 type
   NSHashEnumerator = Pointer; {struct}

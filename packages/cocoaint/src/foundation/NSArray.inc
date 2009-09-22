@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSArray.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSARRAY_PAS_H}
@@ -59,8 +59,8 @@ type
   public
     class function alloc: NSArray; message 'alloc';
 
-    function count: culong; message 'count';
-    function objectAtIndex(index: culong): id; message 'objectAtIndex:';
+    function count: NSUInteger; message 'count';
+    function objectAtIndex(index: NSUInteger): id; message 'objectAtIndex:';
 
     { Category: NSExtendedArray }
     function arrayByAddingObject(anObject: id): NSArray; message 'arrayByAddingObject:';
@@ -69,14 +69,14 @@ type
     function containsObject(anObject: id): Boolean; message 'containsObject:';
     function description: NSString; message 'description';
     function descriptionWithLocale(locale: id): NSString; message 'descriptionWithLocale:';
-    function descriptionWithLocale_indent(locale: id; level: culong): NSString; message 'descriptionWithLocale:indent:';
+    function descriptionWithLocale_indent(locale: id; level: NSUInteger): NSString; message 'descriptionWithLocale:indent:';
     function firstObjectCommonWithArray(otherArray: NSArray): id; message 'firstObjectCommonWithArray:';
     procedure getObjects(objects: id); message 'getObjects:';
     procedure getObjects_range(objects: id; range: NSRange); message 'getObjects:range:';
-    function indexOfObject(anObject: id): culong; message 'indexOfObject:';
-    function indexOfObject_inRange(anObject: id; range: NSRange): culong; message 'indexOfObject:inRange:';
-    function indexOfObjectIdenticalTo(anObject: id): culong; message 'indexOfObjectIdenticalTo:';
-    function indexOfObjectIdenticalTo_inRange(anObject: id; range: NSRange): culong; message 'indexOfObjectIdenticalTo:inRange:';
+    function indexOfObject(anObject: id): NSUInteger; message 'indexOfObject:';
+    function indexOfObject_inRange(anObject: id; range: NSRange): NSUInteger; message 'indexOfObject:inRange:';
+    function indexOfObjectIdenticalTo(anObject: id): NSUInteger; message 'indexOfObjectIdenticalTo:';
+    function indexOfObjectIdenticalTo_inRange(anObject: id; range: NSRange): NSUInteger; message 'indexOfObjectIdenticalTo:inRange:';
     function isEqualToArray(otherArray: NSArray): Boolean; message 'isEqualToArray:';
     function lastObject: id; message 'lastObject';
     function objectEnumerator: NSEnumerator; message 'objectEnumerator';
@@ -95,11 +95,11 @@ type
     { Category: NSArrayCreation }
     class function array_: id; message 'array';
     class function arrayWithObject(anObject: id): id; message 'arrayWithObject:';
-    class function arrayWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: culong): id; message 'arrayWithObjects:count:';
-    class function arrayWithObjects(firstObj: id; objParams: array of const): id; message 'arrayWithObjects:';
+    class function arrayWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: NSUInteger): id; message 'arrayWithObjects:count:';
+    class function arrayWithObjects(firstObj: id): id; varargs; message 'arrayWithObjects:';
     class function arrayWithArray(array__: NSArray): id; message 'arrayWithArray:';
-    function initWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: culong): id; message 'initWithObjects:count:';
-    function initWithObjects(firstObj: id; objParams: array of const): id; message 'initWithObjects:';
+    function initWithObjects_count(objects: NSObjectArrayOfObjectsPtr; cnt: NSUInteger): id; message 'initWithObjects:count:';
+    function initWithObjects(firstObj: id): id; varargs; message 'initWithObjects:';
     function initWithArray(array__: NSArray): id; message 'initWithArray:';
     function initWithArray_copyItems(array__: NSArray; flag: Boolean): id; message 'initWithArray:copyItems:';
     class function arrayWithContentsOfFile(path: NSString): id; message 'arrayWithContentsOfFile:';
@@ -134,20 +134,20 @@ type
     class function alloc: NSMutableArray; message 'alloc';
 
     procedure addObject(anObject: id); message 'addObject:';
-    procedure insertObject_atIndex(anObject: id; index: culong); message 'insertObject:atIndex:';
+    procedure insertObject_atIndex(anObject: id; index: NSUInteger); message 'insertObject:atIndex:';
     procedure removeLastObject; message 'removeLastObject';
-    procedure removeObjectAtIndex(index: culong); message 'removeObjectAtIndex:';
-    procedure replaceObjectAtIndex_withObject(index: culong; anObject: id); message 'replaceObjectAtIndex:withObject:';
+    procedure removeObjectAtIndex(index: NSUInteger); message 'removeObjectAtIndex:';
+    procedure replaceObjectAtIndex_withObject(index: NSUInteger; anObject: id); message 'replaceObjectAtIndex:withObject:';
 
     { Category: NSExtendedMutableArray }
     procedure addObjectsFromArray(otherArray: NSArray); message 'addObjectsFromArray:';
-    procedure exchangeObjectAtIndex_withObjectAtIndex(idx: culong; idx1: culong); message 'exchangeObjectAtIndex:withObjectAtIndex:';
+    procedure exchangeObjectAtIndex_withObjectAtIndex(idx: NSUInteger; idx1: NSUInteger); message 'exchangeObjectAtIndex:withObjectAtIndex:';
     procedure removeAllObjects; message 'removeAllObjects';
     procedure removeObject_inRange(anObject: id; range: NSRange); message 'removeObject:inRange:';
     procedure removeObject(anObject: id); message 'removeObject:';
     procedure removeObjectIdenticalTo_inRange(anObject: id; range: NSRange); message 'removeObjectIdenticalTo:inRange:';
     procedure removeObjectIdenticalTo(anObject: id); message 'removeObjectIdenticalTo:';
-    procedure removeObjectsFromIndices_numIndices(var indices: culong; cnt: culong); message 'removeObjectsFromIndices:numIndices:';
+    procedure removeObjectsFromIndices_numIndices(indices: NSUIntegerPointer; cnt: NSUInteger); message 'removeObjectsFromIndices:numIndices:';
     procedure removeObjectsInArray(otherArray: NSArray); message 'removeObjectsInArray:';
     procedure removeObjectsInRange(range: NSRange); message 'removeObjectsInRange:';
     procedure replaceObjectsInRange_withObjectsFromArray_range(range: NSRange; otherArray: NSArray; otherRange: NSRange); message 'replaceObjectsInRange:withObjectsFromArray:range:';
@@ -160,8 +160,8 @@ type
     procedure replaceObjectsAtIndexes_withObjects(indexes: NSIndexSet; objects: NSArray); message 'replaceObjectsAtIndexes:withObjects:';
 
     { Category: NSMutableArrayCreation }
-    class function arrayWithCapacity(numItems: culong): id; message 'arrayWithCapacity:';
-    function initWithCapacity(numItems: culong): id; message 'initWithCapacity:';
+    class function arrayWithCapacity(numItems: NSUInteger): id; message 'arrayWithCapacity:';
+    function initWithCapacity(numItems: NSUInteger): id; message 'initWithCapacity:';
 
     { Category: NSSortDescriptorSorting }
     procedure sortUsingDescriptors(sortDescriptors: NSArray); message 'sortUsingDescriptors:';

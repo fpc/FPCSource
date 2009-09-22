@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSTimeZone.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTIMEZONE_PAS_H}
@@ -24,7 +24,7 @@ const
 
 { Types }
 type
-  NSTimeZoneNameStyle = clong;
+  NSTimeZoneNameStyle = NSInteger;
 
 {$endif}
 {$endif}
@@ -67,7 +67,7 @@ type
 
     function name: NSString; message 'name';
     function data: NSData; message 'data';
-    function secondsFromGMTForDate(aDate: NSDate): clong; message 'secondsFromGMTForDate:';
+    function secondsFromGMTForDate(aDate: NSDate): NSInteger; message 'secondsFromGMTForDate:';
     function abbreviationForDate(aDate: NSDate): NSString; message 'abbreviationForDate:';
     function isDaylightSavingTimeForDate(aDate: NSDate): Boolean; message 'isDaylightSavingTimeForDate:';
     function daylightSavingTimeOffsetForDate(aDate: NSDate): NSTimeInterval; message 'daylightSavingTimeOffsetForDate:';
@@ -81,7 +81,7 @@ type
     class function localTimeZone: NSTimeZone; message 'localTimeZone';
     class function knownTimeZoneNames: NSArray; message 'knownTimeZoneNames';
     class function abbreviationDictionary: NSDictionary; message 'abbreviationDictionary';
-    function secondsFromGMT: clong; message 'secondsFromGMT';
+    function secondsFromGMT: NSInteger; message 'secondsFromGMT';
     function abbreviation: NSString; message 'abbreviation';
     function isDaylightSavingTime: Boolean; message 'isDaylightSavingTime';
     function description: NSString; message 'description';
@@ -93,7 +93,7 @@ type
     class function timeZoneWithName_data(tzName: NSString; aData: NSData): id; message 'timeZoneWithName:data:';
     function initWithName(tzName: NSString): id; message 'initWithName:';
     function initWithName_data(tzName: NSString; aData: NSData): id; message 'initWithName:data:';
-    class function timeZoneForSecondsFromGMT(seconds: clong): id; message 'timeZoneForSecondsFromGMT:';
+    class function timeZoneForSecondsFromGMT(seconds: NSInteger): id; message 'timeZoneForSecondsFromGMT:';
     class function timeZoneWithAbbreviation(abbreviation_: NSString): id; message 'timeZoneWithAbbreviation:';
   end; external;
 

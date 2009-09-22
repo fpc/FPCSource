@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOBJECT_PAS_H}
@@ -29,13 +29,13 @@ type
 {$define NSOBJECT_PAS_F}
 
 { Functions }
-function NSAllocateObject(aClass: Pobjc_class; extraBytes: culong; var zone: NSZone): id; cdecl; external name 'NSAllocateObject';
+function NSAllocateObject(aClass: Pobjc_class; extraBytes: NSUInteger; zonePointer: NSZone): id; cdecl; external name 'NSAllocateObject';
 procedure NSDeallocateObject(object_: id); cdecl; external name 'NSDeallocateObject';
-function NSCopyObject(object_: id; extraBytes: culong; var zone: NSZone): id; cdecl; external name 'NSCopyObject';
-function NSShouldRetainWithZone(anObject: id; var requestedZone: NSZone): Boolean; cdecl; external name 'NSShouldRetainWithZone';
+function NSCopyObject(object_: id; extraBytes: NSUInteger; zonePointer: NSZone): id; cdecl; external name 'NSCopyObject';
+function NSShouldRetainWithZone(anObject: id; requestedZonePointer: NSZone): Boolean; cdecl; external name 'NSShouldRetainWithZone';
 procedure NSIncrementExtraRefCount(object_: id); cdecl; external name 'NSIncrementExtraRefCount';
 function NSDecrementExtraRefCountWasZero(object_: id): Boolean; cdecl; external name 'NSDecrementExtraRefCountWasZero';
-function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefCount';
+function NSExtraRefCount(object_: id): NSUInteger; cdecl; external name 'NSExtraRefCount';
 
 {$endif}
 {$endif}
@@ -72,13 +72,13 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
     class procedure initialize; message 'initialize';
     function init: id; message 'init';
     class function new_: id; message 'new';
-    class function allocWithZone(var zone_: NSZone): id; message 'allocWithZone:';
+    class function allocWithZone(zone_: NSZonePointer): id; message 'allocWithZone:';
     class function alloc: id; message 'alloc';
     procedure dealloc; message 'dealloc';
     function copy: id; message 'copy';
     function mutableCopy: id; message 'mutableCopy';
-    class function copyWithZone(var zone_: NSZone): id; message 'copyWithZone:';
-    class function mutableCopyWithZone(var zone_: NSZone): id; message 'mutableCopyWithZone:';
+    class function copyWithZone(zone_: NSZonePointer): id; message 'copyWithZone:';
+    class function mutableCopyWithZone(zone_: NSZonePointer): id; message 'mutableCopyWithZone:';
     class function superclass: Pobjc_class; message 'superclass';
     class function class_: Pobjc_class; message 'class';
     class function instancesRespondToSelector(aSelector: SEL): Boolean; message 'instancesRespondToSelector:';
@@ -95,8 +95,8 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
     class function resolveInstanceMethod(sel: SEL): Boolean; message 'resolveInstanceMethod:';
 
     { Category: NSCoderMethods }
-    class function version: clong; message 'version';
-    class procedure setVersion(aVersion: clong); message 'setVersion:';
+    class function version: NSInteger; message 'version';
+    class procedure setVersion(aVersion: NSInteger); message 'setVersion:';
     function classForCoder: Pobjc_class; message 'classForCoder';
     function replacementObjectForCoder(aCoder: NSCoder): id; message 'replacementObjectForCoder:';
     function awakeAfterUsingCoder(aDecoder: NSCoder): id; message 'awakeAfterUsingCoder:';
@@ -116,19 +116,19 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
     function replacementObjectForArchiver(archiver: NSArchiver): id; message 'replacementObjectForArchiver:';
 
     { Category: NSErrorRecoveryAttempting }
-    procedure attemptRecoveryFromError_optionIndex_delegate_didRecoverSelector_contextInfo(error: NSError; recoveryOptionIndex: culong; delegate: id; didRecoverSelector: SEL; contextInfo: Pointer); message 'attemptRecoveryFromError:optionIndex:delegate:didRecoverSelector:contextInfo:';
-    function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: culong): Boolean; message 'attemptRecoveryFromError:optionIndex:';
+    procedure attemptRecoveryFromError_optionIndex_delegate_didRecoverSelector_contextInfo(error: NSError; recoveryOptionIndex: NSUInteger; delegate: id; didRecoverSelector: SEL; contextInfo: Pointer); message 'attemptRecoveryFromError:optionIndex:delegate:didRecoverSelector:contextInfo:';
+    function attemptRecoveryFromError_optionIndex(error: NSError; recoveryOptionIndex: NSUInteger): Boolean; message 'attemptRecoveryFromError:optionIndex:';
 
     { Category: NSKeyValueCoding }
     class function accessInstanceVariablesDirectly: Boolean; message 'accessInstanceVariablesDirectly';
     function valueForKey(key: NSString): id; message 'valueForKey:';
     procedure setValue_forKey(value: id; key: NSString); message 'setValue:forKey:';
-    function validateValue_forKey_error(ioValue: id; inKey: NSString; var outError: NSError): Boolean; message 'validateValue:forKey:error:';
+    function validateValue_forKey_error(ioValue: id; inKey: NSString; outError: NSErrorPointer): Boolean; message 'validateValue:forKey:error:';
     function mutableArrayValueForKey(key: NSString): NSMutableArray; message 'mutableArrayValueForKey:';
     function mutableSetValueForKey(key: NSString): NSMutableSet; message 'mutableSetValueForKey:';
     function valueForKeyPath(keyPath: NSString): id; message 'valueForKeyPath:';
     procedure setValue_forKeyPath(value: id; keyPath: NSString); message 'setValue:forKeyPath:';
-    function validateValue_forKeyPath_error(ioValue: id; inKeyPath: NSString; var outError: NSError): Boolean; message 'validateValue:forKeyPath:error:';
+    function validateValue_forKeyPath_error(ioValue: id; inKeyPath: NSString; outError: NSErrorPointer): Boolean; message 'validateValue:forKeyPath:error:';
     function mutableArrayValueForKeyPath(keyPath: NSString): NSMutableArray; message 'mutableArrayValueForKeyPath:';
     function mutableSetValueForKeyPath(keyPath: NSString): NSMutableSet; message 'mutableSetValueForKeyPath:';
     function valueForUndefinedKey(key: NSString): id; message 'valueForUndefinedKey:';
@@ -190,12 +190,12 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
     procedure performSelectorInBackground_withObject(aSelector: SEL; arg: id); message 'performSelectorInBackground:withObject:';
 
     { Category: NSScriptKeyValueCoding }
-    function valueAtIndex_inPropertyWithKey(index: culong; key: NSString): id; message 'valueAtIndex:inPropertyWithKey:';
+    function valueAtIndex_inPropertyWithKey(index: NSUInteger; key: NSString): id; message 'valueAtIndex:inPropertyWithKey:';
     function valueWithName_inPropertyWithKey(name: NSString; key: NSString): id; message 'valueWithName:inPropertyWithKey:';
     function valueWithUniqueID_inPropertyWithKey(uniqueID: id; key: NSString): id; message 'valueWithUniqueID:inPropertyWithKey:';
-    procedure insertValue_atIndex_inPropertyWithKey(value: id; index: culong; key: NSString); message 'insertValue:atIndex:inPropertyWithKey:';
-    procedure removeValueAtIndex_fromPropertyWithKey(index: culong; key: NSString); message 'removeValueAtIndex:fromPropertyWithKey:';
-    procedure replaceValueAtIndex_inPropertyWithKey_withValue(index: culong; key: NSString; value: id); message 'replaceValueAtIndex:inPropertyWithKey:withValue:';
+    procedure insertValue_atIndex_inPropertyWithKey(value: id; index: NSUInteger; key: NSString); message 'insertValue:atIndex:inPropertyWithKey:';
+    procedure removeValueAtIndex_fromPropertyWithKey(index: NSUInteger; key: NSString); message 'removeValueAtIndex:fromPropertyWithKey:';
+    procedure replaceValueAtIndex_inPropertyWithKey_withValue(index: NSUInteger; key: NSString; value: id); message 'replaceValueAtIndex:inPropertyWithKey:withValue:';
     procedure insertValue_inPropertyWithKey(value: id; key: NSString); message 'insertValue:inPropertyWithKey:';
     function coerceValue_forKey(value: id; key: NSString): id; message 'coerceValue:forKey:';
 
@@ -254,7 +254,7 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
 { NSObject Protocol }
   NSObjectProtocol = objcprotocol
     function isEqual(object_: id): Boolean; message 'isEqual:';
-    function hash: culong; message 'hash';
+    function hash: NSUInteger; message 'hash';
     function superclass: Pobjc_class; message 'superclass';
     function class_: Pobjc_class; message 'class';
     function self_: id; message 'self';
@@ -270,18 +270,18 @@ function NSExtraRefCount(object_: id): culong; cdecl; external name 'NSExtraRefC
     function retain: id; message 'retain';
     function release: oneway void; message 'release';
     function autorelease: id; message 'autorelease';
-    function retainCount: culong; message 'retainCount';
+    function retainCount: NSUInteger; message 'retainCount';
     function description: NSString; message 'description';
   end; external name 'NSObject';
   
 { NSCopying Protocol }
   NSCopyingProtocol = objcprotocol
-    function copyWithZone(var zone_: NSZone): id; message 'copyWithZone:';
+    function copyWithZone(zone_: NSZonePointer): id; message 'copyWithZone:';
   end; external name 'NSCopying';
   
 { NSMutableCopying Protocol }
   NSMutableCopyingProtocol = objcprotocol
-    function mutableCopyWithZone(var zone_: NSZone): id; message 'mutableCopyWithZone:';
+    function mutableCopyWithZone(zone_: NSZonePointer): id; message 'mutableCopyWithZone:';
   end; external name 'NSMutableCopying';
   
 { NSCoding Protocol }

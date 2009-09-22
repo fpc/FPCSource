@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGraphicsContext.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSGRAPHICSCONTEXT_PAS_H}
@@ -13,13 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSGRAPHICSCONTEXT_PAS_T}
 {$define NSGRAPHICSCONTEXT_PAS_T}
-
-{ CFString constants }
-var
-  NSGraphicsContextDestinationAttributeName: CFStringRef; external name '_NSGraphicsContextDestinationAttributeName';
-  NSGraphicsContextRepresentationFormatAttributeName: CFStringRef; external name '_NSGraphicsContextRepresentationFormatAttributeName';
-  NSGraphicsContextPSFormat: CFStringRef; external name '_NSGraphicsContextPSFormat';
-  NSGraphicsContextPDFFormat: CFStringRef; external name '_NSGraphicsContextPDFFormat';
 
 { Constants }
 
@@ -38,8 +31,8 @@ const
 
 { Types }
 type
-  NSImageInterpolation = culong;
-  NSColorRenderingIntent = clong;
+  NSImageInterpolation = NSUInteger;
+  NSColorRenderingIntent = NSInteger;
 
 {$endif}
 {$endif}
@@ -61,6 +54,13 @@ type
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSGRAPHICSCONTEXT_PAS_T}
 {$define NSGRAPHICSCONTEXT_PAS_T}
+
+{ External string constants }
+var
+  NSGraphicsContextDestinationAttributeName: NSString; external name '_NSGraphicsContextDestinationAttributeName';
+  NSGraphicsContextRepresentationFormatAttributeName: NSString; external name '_NSGraphicsContextRepresentationFormatAttributeName';
+  NSGraphicsContextPSFormat: NSString; external name '_NSGraphicsContextPSFormat';
+  NSGraphicsContextPDFFormat: NSString; external name '_NSGraphicsContextPDFFormat';
 
 {$endif}
 {$endif}
@@ -89,7 +89,7 @@ type
     class function currentContextDrawingToScreen: Boolean; message 'currentContextDrawingToScreen';
     class procedure saveGraphicsState; message 'saveGraphicsState';
     class procedure restoreGraphicsState; message 'restoreGraphicsState';
-    class procedure setGraphicsState(gState: clong); message 'setGraphicsState:';
+    class procedure setGraphicsState(gState: NSInteger); message 'setGraphicsState:';
     function attributes: NSDictionary; message 'attributes';
     function isDrawingToScreen: Boolean; message 'isDrawingToScreen';
     procedure flushGraphics; message 'flushGraphics';
@@ -99,7 +99,7 @@ type
     function isFlipped: Boolean; message 'isFlipped';
 
     { Category: NSQuartzCoreAdditions }
-    function CIContext: CIContext_; message 'CIContext';
+    function CIContext: CIContext; message 'CIContext';
   end; external;
 
 {$endif}

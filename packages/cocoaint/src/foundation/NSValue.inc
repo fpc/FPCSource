@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSValue.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSVALUE_PAS_H}
@@ -56,7 +56,7 @@ type
     class function alloc: NSValue; message 'alloc';
 
     procedure getValue(value: Pointer); message 'getValue:';
-    function objCType: char; message 'objCType';
+    function objCType: PChar; message 'objCType';
 
     { Category: NSValueCreation }
     function initWithBytes_objCType(value: Pointer; type_: PChar): id; message 'initWithBytes:objCType:';
@@ -90,8 +90,8 @@ type
     function floatValue: single; message 'floatValue';
     function doubleValue: double; message 'doubleValue';
     function boolValue: Boolean; message 'boolValue';
-    function integerValue: clong; message 'integerValue';
-    function unsignedIntegerValue: culong; message 'unsignedIntegerValue';
+    function integerValue: NSInteger; message 'integerValue';
+    function unsignedIntegerValue: NSUInteger; message 'unsignedIntegerValue';
     function stringValue: NSString; message 'stringValue';
     function compare(otherNumber: NSNumber): NSComparisonResult; message 'compare:';
     function isEqualToNumber(number: NSNumber): Boolean; message 'isEqualToNumber:';
@@ -111,8 +111,8 @@ type
     function initWithFloat(value: single): id; message 'initWithFloat:';
     function initWithDouble(value: double): id; message 'initWithDouble:';
     function initWithBool(value: Boolean): id; message 'initWithBool:';
-    function initWithInteger(value: clong): id; message 'initWithInteger:';
-    function initWithUnsignedInteger(value: culong): id; message 'initWithUnsignedInteger:';
+    function initWithInteger(value: NSInteger): id; message 'initWithInteger:';
+    function initWithUnsignedInteger(value: NSUInteger): id; message 'initWithUnsignedInteger:';
     class function numberWithChar(value: char_): NSNumber; message 'numberWithChar:';
     class function numberWithUnsignedChar(value: char_): NSNumber; message 'numberWithUnsignedChar:';
     class function numberWithShort(value: cshort): NSNumber; message 'numberWithShort:';
@@ -126,8 +126,8 @@ type
     class function numberWithFloat(value: single): NSNumber; message 'numberWithFloat:';
     class function numberWithDouble(value: double): NSNumber; message 'numberWithDouble:';
     class function numberWithBool(value: Boolean): NSNumber; message 'numberWithBool:';
-    class function numberWithInteger(value: clong): NSNumber; message 'numberWithInteger:';
-    class function numberWithUnsignedInteger(value: culong): NSNumber; message 'numberWithUnsignedInteger:';
+    class function numberWithInteger(value: NSInteger): NSNumber; message 'numberWithInteger:';
+    class function numberWithUnsignedInteger(value: NSUInteger): NSNumber; message 'numberWithUnsignedInteger:';
 
     { Category: NSDecimalNumberExtensions }
     function decimalValue: NSDecimal; message 'decimalValue';

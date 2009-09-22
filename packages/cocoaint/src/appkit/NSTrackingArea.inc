@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTrackingArea.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTRACKINGAREA_PAS_H}
@@ -34,7 +34,7 @@ const
 
 { Types }
 type
-  NSTrackingAreaOptions = culong;
+  NSTrackingAreaOptions = NSUInteger;
 
 {$endif}
 {$endif}
@@ -76,7 +76,7 @@ type
     __owner: id; {garbage collector: __weak }
     __userInfo: NSDictionary;
     __options: NSTrackingAreaOptions;
-    __privateFlags: clong;
+    __privateFlags: NSInteger;
     __reserved: Pointer;
     
   public

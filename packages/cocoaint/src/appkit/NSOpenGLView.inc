@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGLView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:02 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOPENGLVIEW_PAS_H}
@@ -52,9 +52,9 @@ type
   private
     __openGLContext: NSOpenGLContext;
     __pixelFormat: NSOpenGLPixelFormat;
-    __reserved1: clong;
-    __reserved2: clong;
-    __reserved3: clong;
+    __reserved1: NSInteger;
+    __reserved2: NSInteger;
+    __reserved3: NSInteger;
     
   public
     class function alloc: NSOpenGLView; message 'alloc';

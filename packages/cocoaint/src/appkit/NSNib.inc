@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSNib.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:01 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSNIB_PAS_H}
@@ -13,11 +13,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSNIB_PAS_T}
 {$define NSNIB_PAS_T}
-
-{ CFString constants }
-var
-  NSNibOwner: CFStringRef; external name '_NSNibOwner';
-  NSNibTopLevelObjects: CFStringRef; external name '_NSNibTopLevelObjects';
 
 {$endif}
 {$endif}
@@ -39,6 +34,11 @@ var
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSNIB_PAS_T}
 {$define NSNIB_PAS_T}
+
+{ External string constants }
+var
+  NSNibOwner: NSString; external name '_NSNibOwner';
+  NSNibTopLevelObjects: NSString; external name '_NSNibTopLevelObjects';
 
 {$endif}
 {$endif}
@@ -72,7 +72,7 @@ var
     function initWithContentsOfURL(nibFileURL: NSURL): id; message 'initWithContentsOfURL:';
     function initWithNibNamed_bundle(nibName: NSString; bundle: NSBundle): id; message 'initWithNibNamed:bundle:';
     function instantiateNibWithExternalNameTable(externalNameTable: NSDictionary): Boolean; message 'instantiateNibWithExternalNameTable:';
-    function instantiateNibWithOwner_topLevelObjects(owner: id; var topLevelObjects: NSArray): Boolean; message 'instantiateNibWithOwner:topLevelObjects:';
+    function instantiateNibWithOwner_topLevelObjects(owner: id; topLevelObjects: NSArrayPointer): Boolean; message 'instantiateNibWithOwner:topLevelObjects:';
   end; external;
 
 {$endif}

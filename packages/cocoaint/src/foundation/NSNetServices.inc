@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSNetServices.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSNETSERVICES_PAS_H}
@@ -14,11 +14,6 @@ type
 {$ifdef TYPES}
 {$ifndef NSNETSERVICES_PAS_T}
 {$define NSNETSERVICES_PAS_T}
-
-{ CFString constants }
-var
-  NSNetServicesErrorCode: CFStringRef; external name '_NSNetServicesErrorCode';
-  NSNetServicesErrorDomain: CFStringRef; external name '_NSNetServicesErrorDomain';
 
 { Constants }
 
@@ -37,8 +32,8 @@ const
 
 { Types }
 type
-  NSNetServicesError = clong;
-  NSNetServiceOptions = culong;
+  NSNetServicesError = NSInteger;
+  NSNetServiceOptions = NSUInteger;
 
 {$endif}
 {$endif}
@@ -60,6 +55,11 @@ type
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef NSNETSERVICES_PAS_T}
 {$define NSNETSERVICES_PAS_T}
+
+{ External string constants }
+var
+  NSNetServicesErrorCode: NSString; external name '_NSNetServicesErrorCode';
+  NSNetServicesErrorDomain: NSString; external name '_NSNetServicesErrorDomain';
 
 {$endif}
 {$endif}
@@ -94,7 +94,7 @@ type
     function type_: NSString; message 'type';
     function name: NSString; message 'name';
     function addresses: NSArray; message 'addresses';
-    function port: clong; message 'port';
+    function port: NSInteger; message 'port';
     procedure publish; message 'publish';
     procedure publishWithOptions(options: NSNetServiceOptions); message 'publishWithOptions:';
     procedure resolve; message 'resolve';
@@ -103,7 +103,7 @@ type
     class function dataFromTXTRecordDictionary(txtDictionary: NSDictionary): NSData; message 'dataFromTXTRecordDictionary:';
     function hostName: NSString; message 'hostName';
     procedure resolveWithTimeout(timeout: NSTimeInterval); message 'resolveWithTimeout:';
-    function getInputStream_outputStream(var inputStream: NSInputStream; var outputStream: NSOutputStream): Boolean; message 'getInputStream:outputStream:';
+    function getInputStream_outputStream(inputStream: NSInputStreamPointer; outputStream: NSOutputStreamPointer): Boolean; message 'getInputStream:outputStream:';
     function setTXTRecordData(recordData: NSData): Boolean; message 'setTXTRecordData:';
     function TXTRecordData: NSData; message 'TXTRecordData';
     procedure startMonitoring; message 'startMonitoring';

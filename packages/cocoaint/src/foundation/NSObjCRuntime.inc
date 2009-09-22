@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:30:59 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,9 +50,9 @@ const
 
 { Types }
 type
-  NSInteger = cint;
-  NSUInteger = cuint;
-  NSComparisonResult = clong;
+  NSInteger = clong;
+  NSUInteger = culong;
+  NSComparisonResult = NSInteger;
 
 {$endif}
 {$endif}
@@ -70,13 +70,13 @@ type
 
 { Functions }
 function NSStringFromSelector(aSelector: SEL): NSString; cdecl; external name 'NSStringFromSelector';
-function NSSelectorFromString(var aSelectorName: NSString): SEL; cdecl; external name 'NSSelectorFromString';
+function NSSelectorFromString(aSelectorNamePointer: NSString): SEL; cdecl; external name 'NSSelectorFromString';
 function NSStringFromClass(aClass: Pobjc_class): NSString; cdecl; external name 'NSStringFromClass';
-function NSClassFromString(var aClassName: NSString): Pobjc_class; cdecl; external name 'NSClassFromString';
-function NSStringFromProtocol(var proto: Protocol): NSString; cdecl; external name 'NSStringFromProtocol';
-function NSProtocolFromString(var namestr: NSString): Protocol; cdecl; external name 'NSProtocolFromString';
-function NSGetSizeAndAlignment(var typePtr: char; var sizep: culong; var alignp: culong): char; cdecl; external name 'NSGetSizeAndAlignment';
-procedure NSLogv(var format: NSString; args: va_list); cdecl; external name 'NSLogv';
+function NSClassFromString(aClassNamePointer: NSString): Pobjc_class; cdecl; external name 'NSClassFromString';
+function NSStringFromProtocol(protoPointer: Protocol): NSString; cdecl; external name 'NSStringFromProtocol';
+function NSProtocolFromString(namestrPointer: NSString): Protocol; cdecl; external name 'NSProtocolFromString';
+function NSGetSizeAndAlignment(typePtrPointer: char; sizepPointer: NSUInteger; alignpPointer: NSUInteger): char; cdecl; external name 'NSGetSizeAndAlignment';
+procedure NSLogv(formatPointer: NSString; args: va_list); cdecl; external name 'NSLogv';
 
 {$endif}
 {$endif}

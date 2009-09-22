@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDistantObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Tue Sep 8 15:31:00 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDISTANTOBJECT_PAS_H}
@@ -51,8 +51,8 @@ type
   NSDistantObject = objcclass(NSProxy, NSCodingProtocol)
   private
     __knownSelectors: id;
-    __wireCount: culong;
-    __refCount: culong;
+    __wireCount: NSUInteger;
+    __refCount: NSUInteger;
     __proto: id;
     ____2: word;
     ____1: byte;
