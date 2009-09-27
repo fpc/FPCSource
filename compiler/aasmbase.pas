@@ -354,11 +354,18 @@ implementation
 *****************************************************************************}
 
     constructor TAsmLabel.Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
+      var
+        asmtyp: TAsmsymtype;
       begin
-        if ltyp=alt_addr then
-          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_ADDR)
-        else
-          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
+        case ltyp of
+          alt_addr:
+            asmtyp:=AT_ADDR;
+          alt_data:
+            asmtyp:=AT_DATA;
+          else
+            asmtyp:=AT_LABEL;
+        end;
+        inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,asmtyp);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;

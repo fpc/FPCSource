@@ -68,7 +68,8 @@ interface
        trefaddr = (
          addr_no,
          addr_full,
-         addr_pic
+         addr_pic,
+         addr_pic_no_got
          {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC)}
          ,
          addr_low,         // bits 48-63
