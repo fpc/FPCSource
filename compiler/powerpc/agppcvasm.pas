@@ -66,13 +66,13 @@ unit agppcvasm;
 
 {$ifdef cpu64bitaddr}
     const
-      refaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
+      refaddr2str: array[trefaddr] of string[9] = ('', '', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
       verbose_refaddrs = [addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta];
-      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16', 'hi16', '@err', '@err', 'ha16', '@err', '@err');
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','','lo16', 'hi16', '@err', '@err', 'ha16', '@err', '@err');
 {$else cpu64bitaddr}
     const
-      refaddr2str: array[trefaddr] of string[3] = ('','','','@l','@h','@ha');
-      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16','hi16','ha16');
+      refaddr2str: array[trefaddr] of string[3] = ('','','','','@l','@h','@ha');
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','','lo16','hi16','ha16');
       verbose_refaddrs = [addr_low,addr_high,addr_higha];
 {$endif cpu64bitaddr}
 
