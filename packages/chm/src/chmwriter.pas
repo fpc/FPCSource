@@ -22,7 +22,7 @@ unit chmwriter;
 {$MODE OBJFPC}{$H+}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap;
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, Avl_Tree;
 
 type
 
@@ -33,6 +33,15 @@ type
   //  FileName :  /home/user/helpstuff/index.html > index.html
   //  Stream   :  the file opened with DataName should be written to this stream
 
+Type
+   TStringIndex = Class    // AVLTree needs wrapping in non automated reference type
+                      TheString : String;
+                      StrId     : Integer;
+                    end;
+   TUrlStrIndex = Class
+                      UrlStr    : String;
+                      UrlStrId  : Integer;
+                    end;
 
   { TChmWriter }
 
@@ -40,9 +49,9 @@ type
     FOnLastFile: TNotifyEvent;
   private
     FHasBinaryTOC: Boolean;
-  
+    FHasBinaryIndex: Boolean;
     ForceExit: Boolean;
-    
+
     FDefaultFont: String;
     FDefaultPage: String;
     FFullTextSearch: Boolean;
@@ -82,6 +91,10 @@ type
     HeaderSuffix: TITSFHeaderSuffix; //contains the offset of CONTENTSection0 from zero
     HeaderSection0: TITSPHeaderPrefix;
     HeaderSection1: TITSPHeader; // DirectoryListings header
+    FAvlStrings   : TAVLTree;    // dedupe strings
+    FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
+    SpareString   : TStringIndex;
+    SpareUrlStr   : TUrlStrIndex;
     // DirectoryListings
     // CONTENT Section 0 (section 1 is contained in section 0)
     // EOF
@@ -138,7 +151,8 @@ type
     property FullTextSearch: Boolean read FFullTextSearch write FFullTextSearch;
     property SearchTitlesOnly: Boolean read FSearchTitlesOnly write FSearchTitlesOnly;
     property HasBinaryTOC: Boolean read FHasBinaryTOC write FHasBinaryTOC;
-    property DefaultFont: String read FDefaultFont write FDefaultFont;
+   property HasBinaryIndex: Boolean read FHasBinaryIndex write FHasBinaryIndex;
+   property DefaultFont: String read FDefaultFont write FDefaultFont;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
     property TempRawStream: TStream read FTempStream write SetTempRawStream;
     //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
@@ -148,11 +162,30 @@ implementation
 uses dateutils, sysutils, paslzxcomp, chmFiftiMain;
 
 const
-
   LZX_WINDOW_SIZE = 16; // 16 = 2 frames = 1 shl 16
   LZX_FRAME_SIZE = $8000;
 
 {$I chmobjinstconst.inc}
+
+
+Function CompareStrings(Node1, Node2: Pointer): integer;
+var n1,n2 : TStringIndex;
+begin
+  n1:=TStringIndex(Node1); n2:=TStringIndex(Node2);
+  Result := CompareText(n1.TheString, n2.TheString);
+  if Result < 0 then Result := -1
+  else if Result > 0 then Result := 1;
+end;
+
+
+Function CompareUrlStrs(Node1, Node2: Pointer): integer;
+var n1,n2 : TUrlStrIndex;
+begin
+  n1:=TUrlStrIndex(Node1); n2:=TUrlStrIndex(Node2);
+  Result := CompareText(n1.UrlStr, n2.UrlStr);
+  if Result < 0 then Result := -1
+  else if Result > 0 then Result := 1;
+end;
 
 { TChmWriter }
 
@@ -179,10 +212,10 @@ begin
   // header section 1
   HeaderSection1Table.PosFromZero := HeaderSection0Table.PosFromZero + HeaderSection0Table.Length;
   HeaderSection1Table.Length := SizeOf(TITSPHeader)+FDirectoryListings.Size;
-  
+
   //contains the offset of CONTENT Section0 from zero
   HeaderSuffix.Offset := HeaderSection1Table.PosFromZero + HeaderSection1Table.Length;
-  
+
   // now fix endian stuff
   HeaderSection0Table.PosFromZero := NToLE(HeaderSection0Table.PosFromZero);
   HeaderSection0Table.Length := NToLE(HeaderSection0Table.Length);
@@ -209,7 +242,7 @@ begin
     //IndexOfRootChunk := -1;// if no root chunk
     //FirstPMGLChunkIndex,
     //LastPMGLChunkIndex: LongWord;
-    
+
     Unknown2 := NToLE(Longint(-1));
     //DirectoryChunkCount: LongWord;
     LanguageID := NToLE(DWord($0409));
@@ -219,7 +252,7 @@ begin
     Unknown4 := NToLE(Longint(-1));
     Unknown5 := NToLE(Longint(-1));
   end;
-  
+
   // more endian stuff
   HeaderSuffix.Offset := NToLE(HeaderSuffix.Offset);
 end;
@@ -289,7 +322,7 @@ const
     ParentIndex,
     TmpIndex: TPMGIDirectoryChunk;
   begin
-    with IndexHeader do 
+    with IndexHeader do
     begin
       PMGIsig := PMGI;
       UnusedSpace := NToLE(IndexBlock.FreeSpace);
@@ -298,11 +331,11 @@ const
     IndexBlock.WriteChunkToStream(FDirectoryListings, ChunkIndex, ShouldFinish);
     IndexBlock.Clear;
     if HeaderSection1.IndexOfRootChunk < 0 then HeaderSection1.IndexOfRootChunk := ChunkIndex;
-    if ShouldFinish then 
+    if ShouldFinish then
     begin
       HeaderSection1.IndexTreeDepth := 2;
       ParentIndex := IndexBlock.ParentChunk;
-      if ParentIndex <> nil then 
+      if ParentIndex <> nil then
       repeat // the parent index is notified by our child index when to write
         HeaderSection1.IndexOfRootChunk := ChunkIndex;
         TmpIndex := ParentIndex;
@@ -344,7 +377,7 @@ begin
   FInternalFiles.Sort;
   HeaderSection1.IndexTreeDepth := 1;
   HeaderSection1.IndexOfRootChunk := -1;
-  
+
   ChunkIndex := 0;
 
   IndexBlock := TPMGIDirectoryChunk.Create(SizeOf(TPMGIIndexChunk));
@@ -375,9 +408,9 @@ begin
 
     if not ListingBlock.CanHold(Size) then
       WriteListChunk;
-    
+
     ListingBlock.WriteEntry(Size, @Buffer[0]);
-    
+
     if ListingBlock.ItemCount = 1 then begin // add the first list item to the index
       Move(Buffer[0], FirstListEntry.Entry[0], FESize);
       FirstListEntry.Size := FESize + WriteCompressedInteger(@FirstListEntry.Entry[FESize], ChunkIndex);
@@ -395,7 +428,7 @@ begin
 
   IndexBlock.Free;
   ListingBlock.Free;
-  
+
   //now fix some endian stuff
   HeaderSection1.IndexOfRootChunk := NToLE(HeaderSection1.IndexOfRootChunk);
   HeaderSection1.IndexTreeDepth := NtoLE(HeaderSection1.IndexTreeDepth);
@@ -463,13 +496,13 @@ begin
   // two for a QWord
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
-  
+
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
 
-  
 
-  
+
+
   ////////////////////////<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
   // 2  default page to load
   if FDefaultPage <> '' then begin
@@ -493,14 +526,14 @@ begin
     FSection0.Write(FDefaultFont[1], Length(FDefaultFont));
     FSection0.WriteByte(0);
   end;
-  
+
   // 6
   // unneeded. if output file is :  /somepath/OutFile.chm the value here is outfile(lowercase)
   {FSection0.WriteWord(6);
   FSection0.WriteWord(Length('test1')+1);
   Fsection0.Write('test1', 5);
   FSection0.WriteByte(0);}
-  
+
   // 0 Table of contents filename
   if FHasTOC then begin
     TmpStr := 'default.hhc';
@@ -524,13 +557,13 @@ begin
   Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
   FInternalFiles.AddEntry(Entry);
 
-  {// 7 Binary Index
+  // 7 Binary Index
   if FHasBinaryIndex then
   begin
     FSection0.WriteWord(NToLE(Word(7)));
     FSection0.WriteWord(NToLE(Word(4)));
     FSection0.WriteDWord(DWord(0)); // what is this number to be?
-  end;}
+  end;
 
   // 11 Binary TOC
   if FHasBinaryTOC then
@@ -551,7 +584,7 @@ begin
   Entry.Compressed := False;
   Entry.DecompressedOffset :=0;// FSection0.Position;
   Entry.DecompressedSize := 0;
-  
+
   FInternalFiles.AddEntry(Entry);
 end;
 
@@ -569,14 +602,13 @@ begin
   cnt:=pinteger(state)^;
   for i := 0 to AWord.DocumentCount-1 do
     Inc(cnt, AWord.GetLogicalDocument(i).NumberOfIndexEntries);
-          // was commented in original procedure, seems to list index entries per doc. 
+          // was commented in original procedure, seems to list index entries per doc.
             //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' h
   pinteger(state)^:=cnt;
-end;  
+end;
 
 procedure TChmWriter.WriteTOPICS;
 var
-  AWord: TIndexedWord;
   FHits: Integer;
   i: Integer;
 begin
@@ -584,7 +616,7 @@ begin
     Exit;
   FTopicsStream.Position := 0;
   PostAddStreamToArchive('#TOPICS', '/', FTopicsStream);
- // I commented the code below since the result seemed unused 
+ // I commented the code below since the result seemed unused
  // FHits:=0;
  //   FIndexedFiles.ForEach(@IterateWord,FHits);
 end;
@@ -596,7 +628,7 @@ begin
   FContextStream.Position := 0;
   // the size of all the entries
   FContextStream.WriteDWord(NToLE(DWord(FContextStream.Size-SizeOf(dword))));
-  
+
   FContextStream.Position := 0;
   AddStreamToArchive('#IVB', '/', FContextStream);
 end;
@@ -802,7 +834,7 @@ begin
   Entry.Path := '::DataSpace/Storage/MSCompressed/';
   Entry.Name := 'ControlData';
   FInternalFiles.AddEntry(Entry, False);
-  
+
   //  ::DataSpace/Storage/MSCompressed/SpanInfo
   Entry.DecompressedOffset := FSection0.Position;
   Entry.DecompressedSize := WriteSpanInfoToStream(FSection0, FReadCompressedSize);
@@ -833,16 +865,24 @@ begin
   Entry.Name := 'Content';
   FInternalFiles.AddEntry(Entry, False);
 
-  
+
 end;
 
 function TChmWriter.AddString(AString: String): LongWord;
 var
   NextBlock: DWord;
   Pos: DWord;
+  n  : TAVLTreeNode;
+  StrRec : TStringIndex;
 begin
   // #STRINGS starts with a null char
   if FStringsStream.Size = 0 then FStringsStream.WriteByte(0);
+
+  SpareString.TheString:=AString;
+  n:=fAvlStrings.FindKey(SpareString,@CompareStrings);
+  if assigned(n) then
+   exit(TStringIndex(n.data).strid);
+
   // each entry is a null terminated string
   Pos := DWord(FStringsStream.Position);
 
@@ -857,11 +897,16 @@ begin
   Result := FStringsStream.Position;
   FStringsStream.WriteBuffer(AString[1], Length(AString));
   FStringsStream.WriteByte(0);
+
+  StrRec:=TStringIndex.Create;
+  StrRec.TheString:=AString;
+  StrRec.Strid    :=Result;
+  fAvlStrings.Add(StrRec);
 end;
 
 function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
 
-  procedure CheckURLStrBlockCanHold(AString: String);
+  procedure CheckURLStrBlockCanHold(Const AString: String);
   var
     Rem: LongWord;
     Len: LongWord;
@@ -876,26 +921,48 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
       end;
   end;
 
-  function AddURLString(AString: String): DWord;
+  function AddURLString(Const AString: String): DWord;
+  var urlstrrec : TUrlStrIndex;
   begin
     CheckURLStrBlockCanHold(AString);
     if FURLSTRStream.Size mod $4000 = 0 then
       FURLSTRStream.WriteByte(0);
       Result := FURLSTRStream.Position;
+      UrlStrRec:=TUrlStrIndex.Create;
+      UrlStrRec.UrlStr:=AString;
+      UrlStrRec.UrlStrid:=result;
+      FAvlUrlStr.Add(UrlStrRec);
       FURLSTRStream.WriteDWord(NToLE(DWord(0))); // URL Offset for topic after the the "Local" value
       FURLSTRStream.WriteDWord(NToLE(DWord(0))); // Offset of FrameName??
       FURLSTRStream.Write(AString[1], Length(AString));
       FURLSTRStream.WriteByte(0); //NT
   end;
+
+  function LookupUrlString(const AUrl : String):DWord;
+  var n :TAvlTreeNode;
+  begin
+    SpareUrlStr.UrlStr:=AUrl;
+    n:=FAvlUrlStr.FindKey(SpareUrlStr,@CompareUrlStrs);
+    if assigned(n) Then
+      result:=TUrlStrIndex(n.data).UrlStrId
+    else
+      result:=AddUrlString(AUrl);
+  end;
+
+
+var UrlIndex : Integer;
+
 begin
   if AURL[1] = '/' then Delete(AURL,1,1);
+  UrlIndex:=LookupUrlString(AUrl);
+
   //if $1000 - (FURLTBLStream.Size mod $1000) = 4 then // we are at 4092
   if FURLTBLStream.Size and $FFC = $FFC then // faster :)
     FURLTBLStream.WriteDWord(0);
   Result := FURLTBLStream.Position;
   FURLTBLStream.WriteDWord(0);//($231e9f5c); //unknown
   FURLTBLStream.WriteDWord(NtoLE(TopicsIndex)); // Index of topic in #TOPICS
-  FURLTBLStream.WriteDWord(NtoLE(AddURLString(AURL)));
+  FURLTBLStream.WriteDWord(NtoLE(UrlIndex));
 end;
 
 function _AtEndOfData(arg: pointer): LongBool; cdecl;
@@ -931,7 +998,7 @@ begin
       FileEntry.DecompressedSize := FCurrentStream.Size;
       FileEntry.DecompressedOffset := FReadCompressedSize; //269047723;//to test writing really large numbers
       FileEntry.Compressed := True;
-      
+
       if FullTextSearch then
         CheckFileMakeSearchable(FCurrentStream, FileEntry);
 
@@ -1074,6 +1141,11 @@ begin
   FDestroyStream := FreeStreamOnDestroy;
   FFileNames := TStringList.Create;
   FIndexedFiles := TIndexedWordList.Create;
+  FAvlStrings   := TAVLTree.Create(@CompareStrings);    // dedupe strings
+  FAvlURLStr    := TAVLTree.Create(@CompareUrlStrs);    // dedupe urltbl + binindex must resolve URL to topicid
+  SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
+  SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
+                                                        //    for searching purposes
 end;
 
 destructor TChmWriter.Destroy;
@@ -1093,6 +1165,12 @@ begin
   FDirectoryListings.Free;
   FFileNames.Free;
   FIndexedFiles.Free;
+  SpareString.free;
+  SpareUrlStr.free;
+  FAvlUrlStr.FreeAndClear;
+  FAvlUrlStr.Free;
+  FAvlStrings.FreeAndClear;
+  FAvlStrings.Free;
   inherited Destroy;
 end;
 
@@ -1104,12 +1182,12 @@ begin
 
   // write any internal files to FCurrentStream that we want in the compressed section
   WriteIVB;
-  
+
   // written to Section0 (uncompressed)
   WriteREADMEFile;
 
   WriteOBJINST;
-  
+
   // move back to zero so that we can start reading from zero :)
   FReadCompressedSize := FCurrentStream.Size;
   FCurrentStream.Position := 0;  // when compressing happens, first the FCurrentStream is read
@@ -1128,7 +1206,7 @@ begin
 
   //this creates all special files in the archive that start with ::DataSpace
   WriteDataSpaceFiles(FSection0);
-  
+
   // creates all directory listings including header
   CreateDirectoryListings;
 
@@ -1200,7 +1278,7 @@ begin
       FreeAndNil(NextLevelItems);
 
   while NextLevelItems <> nil do
-  begin  
+  begin
     CurrentLevelItems := NextLevelItems;
     NextLevelItems := TFPList.Create;
 
@@ -1314,7 +1392,6 @@ begin
   TOCIDXStream.Position := 0;
   AppendBinaryTOCStream(TOCIDXStream);
   TOCIDXStream.Free;
-
 end;
 
 procedure TChmWriter.AppendBinaryTOCStream(AStream: TStream);

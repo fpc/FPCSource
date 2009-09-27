@@ -26,10 +26,10 @@ interface
 
 uses
   Classes, SysUtils, chmwriter;
-  
+
 type
   TChmProject = class;
-  
+
   TChmProgressCB = procedure (Project: TChmProject; CurrentFile: String) of object;
 
   { TChmProject }
@@ -42,6 +42,7 @@ type
     FFiles: TStrings;
     FIndexFileName: String;
     FMakeBinaryTOC: Boolean;
+    FMakeBinaryIndex: Boolean;
     FMakeSearchable: Boolean;
     FFileName: String;
     FOnProgress: TChmProgressCB;
@@ -66,12 +67,13 @@ type
     property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks;
     property TableOfContentsFileName: String read FTableOfContentsFileName write FTableOfContentsFileName;
     property MakeBinaryTOC: Boolean read FMakeBinaryTOC write FMakeBinaryTOC;
+    property MakeBinaryIndex: Boolean read FMakeBinaryIndex write FMakeBinaryIndex;
     property Title: String read FTitle write FTitle;
     property IndexFileName: String read FIndexFileName write FIndexFileName;
     property MakeSearchable: Boolean read FMakeSearchable write FMakeSearchable;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
     property DefaultFont: String read FDefaultFont write FDefaultFont;
-    
+
     property OnProgress: TChmProgressCB read FOnProgress write FOnProgress;
   end;
 
@@ -90,7 +92,7 @@ begin
   // clean up the filename
   FileName := StringReplace(ExtractFileName(DataName), '\', '/', [rfReplaceAll]);
   FileName := StringReplace(FileName, '//', '/', [rfReplaceAll]);
-  
+
   PathInChm := '/'+ExtractFilePath(DataName);
   if Assigned(FOnProgress) then FOnProgress(Self, DataName);
 end;
@@ -145,7 +147,7 @@ begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.Filename := AFileName;
   FileName := AFileName;
-  
+
   Files.Clear;
   FileCount := Cfg.GetValue('Files/Count/Value', 0);
   for I := 0 to FileCount-1 do begin
@@ -153,8 +155,9 @@ begin
   end;
   IndexFileName := Cfg.GetValue('Files/IndexFile/Value','');
   TableOfContentsFileName := Cfg.GetValue('Files/TOCFile/Value','');
+  // For chm file merging, bintoc must be false and binindex true. Change defaults in time?
   MakeBinaryTOC := Cfg.GetValue('Files/MakeBinaryTOC/Value', True);
-  
+  MakeBinaryIndex:= Cfg.GetValue('Files/MakeBinaryIndex/Value', False);
   AutoFollowLinks := Cfg.GetValue('Settings/AutoFollowLinks/Value', False);
   MakeSearchable := Cfg.GetValue('Settings/MakeSearchable/Value', False);
   DefaultPage := Cfg.GetValue('Settings/DefaultPage/Value', '');
@@ -181,7 +184,7 @@ begin
   Cfg.SetValue('Files/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Files/TOCFile/Value', TableOfContentsFileName);
   Cfg.SetValue('Files/MakeBinaryTOC/Value',MakeBinaryTOC);
-
+  Cfg.SetValue('Files/MakeBinaryIndex/Value',MakeBinaryIndex);
   Cfg.SetValue('Settings/AutoFollowLinks/Value', AutoFollowLinks);
   Cfg.SetValue('Settings/MakeSearchable/Value', MakeSearchable);
   Cfg.SetValue('Settings/DefaultPage/Value', DefaultPage);
@@ -212,7 +215,7 @@ begin
   // our callback to get data
   Writer.OnGetFileData := @GetData;
   Writer.OnLastFile    := @LastFileAdded;
-  
+
   // give it the list of files
   Writer.FilesToCompress.AddStrings(Files);
 
@@ -222,10 +225,11 @@ begin
   Writer.DefaultFont := DefaultFont;
   Writer.FullTextSearch := MakeSearchable;
   Writer.HasBinaryTOC := MakeBinaryTOC;
-  
+  Writer.HasBinaryIndex := MakeBinaryIndex;
+
   // and write!
   Writer.Execute;
-  
+
   if Assigned(TOCStream) then TOCStream.Free;
   if Assigned(IndexStream) then IndexStream.Free;
 end;
