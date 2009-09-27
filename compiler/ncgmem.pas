@@ -114,12 +114,20 @@ implementation
                end
              else
                begin
-                 { find/add necessary classref/classname pool entries }
                  if current_asmdata.ConstPools[sp_objcclassnamerefs]=nil then
                    current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
                  pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
-                 objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
+                 if (target_info.system in system_objc_nfabi) then
+                   begin
+                     { find/add necessary classref/classname pool entries }
+                     objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
+                   end
+                 else
+                   begin
+                     { find/add necessary classref/classname pool entries }
+                     objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
+                   end;
                  reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
                  cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
                end;
@@ -265,7 +273,10 @@ implementation
 
     procedure tcgsubscriptnode.pass_generate_code;
       var
+        sym: tasmsymbol;
         paraloc1 : tcgpara;
+        hreg  : tregister;
+        tmpref: treference;
         sref: tsubsetreference;
       begin
          secondpass(left);
@@ -298,6 +309,8 @@ implementation
                      location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
                   end;
+                else
+                  internalerror(2009092401);
              end;
              { implicit deferencing }
              if (cs_use_heaptrc in current_settings.globalswitches) and
@@ -399,7 +412,38 @@ implementation
              end;
            end;
 
-         if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         if is_objc_class_or_protocol(left.resultdef) and
+            (target_info.system in system_objc_nfabi) then
+           begin
+             if (location.loc<>LOC_REFERENCE) or
+                (location.reference.index<>NR_NO) then
+               internalerror(2009092402);
+             { the actual field offset is stored in memory (to solve the
+               "fragile base class" problem: this way the layout of base
+               classes can be changed without breaking programs compiled against
+               earlier versions)
+             }
+             hreg:=cg.g_indirect_sym_load(current_asmdata.CurrAsmList,vs.mangledname,false);
+             { TODO: clean up. g_indirect_sym_load cannot perform
+                 a plain load for targets that don't need an indirect load
+                 because it's also used in ncgld, but this is not very nice...
+             }
+             if (hreg=NR_NO) then
+               begin
+                 sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+                 reference_reset_symbol(tmpref,sym,0,sizeof(pint));
+                 location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
+               end
+             else
+               begin
+                 reference_reset_base(tmpref,hreg,0,sizeof(pint));
+                 location.reference.index:=hreg;
+               end;
+             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
+             { always packrecords C -> natural alignment }
+             location.reference.alignment:=vs.vardef.alignment;
+           end
+         else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin
              if not is_packed_record_or_object(left.resultdef) then
                begin

@@ -26,7 +26,7 @@
         <LaunchingApplication PathPlusParams="\usr\X11R6\bin\xterm -T 'Lazarus Run Output' -e $(LazarusDir)\tools\runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="2">
+    <Units Count="3">
       <Unit0>
         <Filename Value="pp.pas"/>
         <IsPartOfProject Value="True"/>
@@ -37,6 +37,11 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="aasmcpu"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="i386\cpupara.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cpupara"/>
+      </Unit2>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

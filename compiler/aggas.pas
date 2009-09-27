@@ -247,7 +247,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
@@ -304,9 +304,18 @@ implementation
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -348,7 +357,16 @@ implementation
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA, __objc_data',
+          '__DATA, __objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep     : string[3];
@@ -422,7 +440,7 @@ implementation
          system_x86_64_darwin,
          system_arm_darwin:
            begin
-             if (atype = sec_stub) then
+             if (atype in [sec_stub,sec_objc_data,sec_objc_const,sec_data_coalesced]) then
                AsmWrite('.section ');
            end
          else
@@ -990,7 +1008,12 @@ implementation
              begin
                if (tai_label(hp).labsym.is_used) then
                 begin
-                  if tai_label(hp).labsym.bind=AB_GLOBAL then
+                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
+                    begin
+                      AsmWrite(#9'.private_extern ');
+                      AsmWriteln(tai_label(hp).labsym.name);
+                    end;
+                  if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
                      AsmWrite('.globl'#9);
                      AsmWriteLn(tai_label(hp).labsym.name);
@@ -1002,6 +1025,11 @@ implementation
 
            ait_symbol :
              begin
+               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                 begin
+                   AsmWrite(#9'.private_extern ');
+                   AsmWriteln(tai_symbol(hp).sym.name);
+                 end;
                if (target_info.system = system_powerpc64_linux) and
                  (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in current_settings.moduleswitches) then
                  begin
@@ -1294,6 +1322,81 @@ implementation
                 result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
                 exit;
               end;
+            sec_objc_message_refs:
+              begin
+                if (target_info.system in system_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_cls_refs:
+              begin
+                if (target_info.system in system_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_meth_var_names,
+            sec_objc_class_names:
+              begin
+                if (target_info.system in system_objc_nfabi) then
+                  begin
+                    result:='.cstring';
+                    exit
+                  end;
+              end;
+            sec_objc_inst_meth,
+            sec_objc_cls_meth,
+            sec_objc_cat_inst_meth,
+            sec_objc_cat_cls_meth:
+              begin
+                if (target_info.system in system_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_const';
+                    exit;
+                  end;
+              end;
+            sec_objc_meta_class,
+            sec_objc_class:
+              begin
+                if (target_info.system in system_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_data';
+                    exit;
+                  end;
+              end;
+            sec_objc_sup_refs:
+              begin
+                result:='.section __DATA, __objc_superrefs, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_classlist:
+              begin
+                result:='.section __DATA, __objc_classlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlclasslist:
+              begin
+                result:='.section __DATA, __objc_nlclasslist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_catlist:
+              begin
+                result:='.section __DATA, __objc_catlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlcatlist:
+              begin
+                result:='.section __DATA, __objc_nlcatlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_protolist:
+              begin
+                result:='.section __DATA, __objc_protolist, coalesced, no_dead_strip';
+                exit;
+              end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
@@ -1370,7 +1473,16 @@ implementation
          sec_none (* sec_objc_property *),
          sec_none (* sec_objc_image_info *),
          sec_none (* sec_objc_cstring_object *),
-         sec_none (* sec_objc_sel_fixup *)
+         sec_none (* sec_objc_sel_fixup *),
+         sec_none (* sec_objc_data *),
+         sec_none (* sec_objc_const *),
+         sec_none (* sec_objc_sup_refs *),
+         sec_none (* sec_data_coalesced *),
+         sec_none (* sec_objc_classlist *),
+         sec_none (* sec_objc_nlclasslist *),
+         sec_none (* sec_objc_catlist *),
+         sec_none (* sec_objc_nlcatlist *),
+         sec_none (* sec_objc_protlist *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

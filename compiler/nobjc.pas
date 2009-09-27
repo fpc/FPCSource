@@ -67,7 +67,7 @@ implementation
 
 uses
   sysutils,
-  globtype,cclasses,
+  globtype,cclasses,systems,
   verbose,pass_1,
   defutil,
   symtype,symtable,symdef,symconst,symsym,
@@ -162,7 +162,7 @@ function tobjcprotocolnode.pass_typecheck: tnode;
 
 function tobjcprotocolnode.pass_1: tnode;
   begin
-    result:=ccallnode.createinternresfromunit('OBJC1','OBJC_GETPROTOCOL',
+    result:=ccallnode.createinternresfromunit('OBJC','OBJC_GETPROTOCOL',
       ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^),nil),
       resultdef
     );
@@ -281,6 +281,10 @@ function tobjcmessagesendnode.pass_1: tnode;
         respara.free;
         if not(cnf_inherited in tcallnode(left).callnodeflags) then
           msgsendname:='OBJC_MSGSEND_STRET'
+{$if defined(onlymacosx10_6) or defined(arm) }
+        else if (target_info.system in system_objc_nfabi) then
+          msgsendname:='OBJC_MSGSENDSUPER2_STRET'
+{$endif onlymacosx10_6 or arm}
         else
           msgsendname:='OBJC_MSGSENDSUPER_STRET'
       end
@@ -293,6 +297,10 @@ function tobjcmessagesendnode.pass_1: tnode;
     { default }
     else if not(cnf_inherited in tcallnode(left).callnodeflags) then
       msgsendname:='OBJC_MSGSEND'
+{$if defined(onlymacosx10_6) or defined(arm) }
+    else if (target_info.system in system_objc_nfabi) then
+      msgsendname:='OBJC_MSGSENDSUPER2'
+{$endif onlymacosx10_6 or arm}
     else
       msgsendname:='OBJC_MSGSENDSUPER';
 
@@ -304,7 +312,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     if (cnf_inherited in tcallnode(left).callnodeflags) then
       begin
          block:=internalstatements(statements);
-         objcsupertype:=search_named_unit_globaltype('OBJC1','OBJC_SUPER').typedef;
+         objcsupertype:=search_named_unit_globaltype('OBJC','OBJC_SUPER').typedef;
          if (objcsupertype.typ<>recorddef) then
            internalerror(2009032901);
          { temp for the for the objc_super record }
@@ -379,7 +387,7 @@ function tobjcmessagesendnode.pass_1: tnode;
     { methodpointer is also reused }
     tcallnode(left).methodpointer:=nil;
     { and now the call to the Objective-C rtl }
-    result:=ccallnode.createinternresfromunit('OBJC1',msgsendname,newparas,left.resultdef);
+    result:=ccallnode.createinternresfromunit('OBJC',msgsendname,newparas,left.resultdef);
     { record whether or not the function result is used (remains
       the same for the new call).
     }

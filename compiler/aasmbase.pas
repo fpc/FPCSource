@@ -37,7 +37,10 @@ interface
        ;
 
     type
-       TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL);
+       TAsmsymbind=(
+         AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
+         { global in the current program/library, but not visible outside it }
+         AB_PRIVATE_EXTERN);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -92,6 +95,7 @@ interface
          sec_toc,
          sec_init,
          sec_fini,
+         {Objective-C common and fragile ABI }
          sec_objc_class,
          sec_objc_meta_class,
          sec_objc_cat_cls_meth,
@@ -116,7 +120,17 @@ interface
          sec_objc_property,
          sec_objc_image_info,
          sec_objc_cstring_object,
-         sec_objc_sel_fixup
+         sec_objc_sel_fixup,
+         { Objective-C non-fragile ABI }
+         sec_objc_data,
+         sec_objc_const,
+         sec_objc_sup_refs,
+         sec_data_coalesced,
+         sec_objc_classlist,
+         sec_objc_nlclasslist,
+         sec_objc_catlist,
+         sec_objc_nlcatlist,
+         sec_objc_protolist
        );
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
@@ -390,7 +404,8 @@ implementation
         TAsmLabel(result).labeltype:=labeltype;
         TAsmLabel(result).is_set:=false;
         case bind of
-          AB_GLOBAL:
+          AB_GLOBAL,
+          AB_PRIVATE_EXTERN:
             result.increfs;
           AB_LOCAL:
             ;

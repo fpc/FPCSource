@@ -1,7 +1,7 @@
 { %fail }
 { %opt=-vh -Seh }
 { %target=darwin }
-{ %cpu=powerpc,i386 }
+{ %cpu=powerpc,powerpc64,i386,x86_64,arm }
 
 {$modeswitch objectivec1}
 

@@ -254,7 +254,8 @@ interface
       TAsmDirective=(
         asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
         asd_extern,asd_nasm_import, asd_toc_entry, asd_mod_init_func, asd_mod_term_func,
-        asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference
+        asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference,
+        asd_weak_definition
       );
 
     const
@@ -264,7 +265,7 @@ interface
       directivestr : array[TAsmDirective] of string[23]=(
         'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
         'extern','nasm_import', 'tc', 'mod_init_func', 'mod_term_func', 'reference',
-        'no_dead_strip','weak_reference','lazy_reference'
+        'no_dead_strip','weak_reference','lazy_reference','weak_definition'
       );
 
     type
@@ -924,7 +925,9 @@ implementation
          typ:=ait_symbol;
          sym:=_sym;
          size:=siz;
-         sym.bind:=AB_GLOBAL;
+         { don't override PRIVATE_EXTERN with GLOBAL }
+         if not(sym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN]) then
+           sym.bind:=AB_GLOBAL;
          is_global:=true;
       end;
 
@@ -1518,7 +1521,7 @@ implementation
         typ:=ait_label;
         labsym:=_labsym;
         labsym.is_set:=true;
-        is_global:=(labsym.bind=AB_GLOBAL);
+        is_global:=(labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN]);
       end;
 
 

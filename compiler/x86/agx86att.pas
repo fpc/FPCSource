@@ -117,7 +117,14 @@ interface
              owner.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
 {$ifdef x86_64}
-             owner.AsmWrite('@GOTPCREL');
+             begin
+               { local symbols don't have to (and in case of Mac OS X: cannot)
+                 be accessed via the GOT
+               }
+               if not assigned(ref.symbol) or
+                  (ref.symbol.bind<>AB_LOCAL) then
+                 owner.AsmWrite('@GOTPCREL');
+             end;
 {$else x86_64}
              owner.AsmWrite('@GOT');
 {$endif x86_64}

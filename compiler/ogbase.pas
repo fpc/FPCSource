@@ -811,7 +811,7 @@ implementation
 
     function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('objc_meth_var_names')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           'code',
           'Data',
           'Data',
@@ -852,7 +852,16 @@ implementation
           'objc_property',
           'objc_image_info',
           'objc_cstring_object',
-          'objc_sel_fixup'
+          'objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep : string[3];
@@ -928,7 +937,16 @@ implementation
           {objc_property} [oso_data,oso_load],
           {objc_image_info} [oso_data,oso_load],
           {objc_cstring_object} [oso_data,oso_load],
-          {objc_sel_fixup} [oso_data,oso_load]
+          {objc_sel_fixup} [oso_data,oso_load],
+          {sec_objc_data} [oso_data,oso_load],
+          {sec_objc_const} [oso_data,oso_load],
+          {sec_objc_sup_refs} [oso_data,oso_load],
+          {sec_data_coalesced} [oso_data,oso_load],
+          {sec_objc_classlist} [oso_data,oso_load],
+          {sec_objc_nlclasslist} [oso_data,oso_load],
+          {sec_objc_catlist} [oso_data,oso_load],
+          {sec_objc_nlcatlist} [oso_data,oso_load],
+          {sec_objc_protolist'} [oso_data,oso_load]
         );
       begin
         result:=secoptions[atype];

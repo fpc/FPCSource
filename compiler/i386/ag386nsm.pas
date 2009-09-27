@@ -446,7 +446,7 @@ interface
 
     procedure T386NasmAssembler.WriteSection(atype:TAsmSectiontype;const aname:string);
       const
-        secnames : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data',
           '.data',
@@ -488,7 +488,16 @@ interface
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       begin
         AsmLn;

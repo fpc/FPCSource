@@ -1,4 +1,5 @@
 { %OPT=-Sew -vw }
+{ %cpu=powerpc,powerpc64,i386,x86_64,arm }
 { %norun }
 
 {$mode objfpc}

@@ -2103,7 +2103,7 @@ implementation
         if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
           result:=inherited rtti_mangledname(rt)
         else
-          result:=target_asm.labelprefix+'_OBJC_METACLASS_'+tobjectdef(pointeddef).objextname^;
+          result:=tobjectdef(pointeddef).rtti_mangledname(objcmetartti);
       end;
 
 
@@ -4318,10 +4318,63 @@ implementation
 
     function tobjectdef.rtti_mangledname(rt: trttitype): string;
       begin
-        if (objecttype<>odt_objcclass) then
+        if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
           result:=inherited rtti_mangledname(rt)
         else
-          result:=target_asm.labelprefix+'_OBJC_CLASS_'+objextname^;
+          begin
+            if not(target_info.system in system_objc_nfabi) then
+              begin
+                result:=target_asm.labelprefix;
+                case objecttype of
+                  odt_objcclass:
+                    begin
+                      case rt of
+                        objcclassrtti:
+                          result:=result+'_OBJC_CLASS_';
+                        objcmetartti:
+                          result:=result+'_OBJC_METACLASS_';
+                        else
+                         internalerror(2009092302);
+                      end;
+                    end;
+                  odt_objcprotocol:
+                    result:=result+'_OBJC_PROTOCOL_';
+                end;
+              end
+            else
+              begin
+                case objecttype of
+                  odt_objcclass:
+                    begin
+                      case rt of
+                        objcclassrtti:
+                          result:='_OBJC_CLASS_$_';
+                        objcmetartti:
+                          result:='_OBJC_METACLASS_$_';
+                        objcclassrortti:
+                          result:=lower(target_asm.labelprefix)+'_OBJC_CLASS_RO_$_';
+                        objcmetarortti:
+                          result:=lower(target_asm.labelprefix)+'_OBJC_METACLASS_RO_$_';
+                        else
+                         internalerror(2009092303);
+                      end;
+                    end;
+                  odt_objcprotocol:
+                    begin
+                      result:=lower(target_asm.labelprefix);
+                      case rt of
+                        objcclassrtti:
+                          result:=result+'_OBJC_PROTOCOL_$_';
+                        objcmetartti:
+                          result:=result+'_OBJC_LABEL_PROTOCOL_$_';
+                        else
+                          internalerror(2009092501);
+                      end;
+                    end;
+                end;
+              end;
+            result:=result+objextname^;
+          end;
       end;
 
 
@@ -4616,11 +4669,6 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
-        {$warning: this is completely wrong on so many levels...}
-        { 1) the procdefs list will be freed once for each copy
-          2) since the procdefs list owns its elements, those will also be freed for each copy
-          3) idem for the name mappings
-        }
         Move(pointer(self)^,pointer(result)^,InstanceSize);
       end;
 
@@ -4857,10 +4905,10 @@ implementation
 
     procedure loadobjctypes;
       begin
-        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC1','POBJC_CLASS').typedef);
-        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC1','POBJC_SUPER').typedef);
-        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC1','ID').typedef);
-        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC1','SEL').typedef);
+        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS').typedef);
+        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER').typedef);
+        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID').typedef);
+        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL').typedef);
       end;
 
 

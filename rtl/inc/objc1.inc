@@ -14,8 +14,6 @@
 
  **********************************************************************}
 
-unit objc1;
-
 interface
 
 {$inline on}
@@ -32,7 +30,7 @@ uses
 {$ifdef darwin}
 const
   libname = 'objc';
-  {$linkframework Cocoa}
+  {$linkframework Foundation}
   {$define targetok}
 {$endif}
 

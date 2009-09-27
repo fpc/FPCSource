@@ -452,7 +452,10 @@ type
 
   { RTTI information to store }
   trttitype = (
-    fullrtti,initrtti
+    fullrtti,initrtti,
+    { Objective-C }
+    objcmetartti,objcmetarortti,
+    objcclassrtti,objcclassrortti
   );
 
   { The order is from low priority to high priority,

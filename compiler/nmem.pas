@@ -167,11 +167,30 @@ implementation
 
 
     function tloadvmtaddrnode.pass_1 : tnode;
+      var
+        vs: tsym;
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
-           firstpass(left)
+           begin
+             { make sure that the isa field is loaded correctly in case
+               of the non-fragile ABI }
+             if is_objcclass(left.resultdef) and
+                (left.nodetype<>typen) then
+               begin
+                 vs:=search_class_member(tobjectdef(left.resultdef),'ISA');
+                 if not assigned(vs) or
+                    (tsym(vs).typ<>fieldvarsym) then
+                   internalerror(2009092502);
+                 result:=csubscriptnode.create(tfieldvarsym(vs),left);
+                 inserttypeconv_internal(result,resultdef);
+                 { reused }
+                 left:=nil;
+               end
+             else
+               firstpass(left)
+           end
          else if not is_objcclass(left.resultdef) and
                  not is_objcclassref(left.resultdef) then
            begin

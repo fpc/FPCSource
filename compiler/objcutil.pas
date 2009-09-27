@@ -58,10 +58,11 @@ implementation
       globtype,
       cutils,cclasses,
       pass_1,
-      verbose,
+      verbose,systems,
       symtable,symconst,symsym,
       defutil,paramgr,
-      nbas,nmem,ncal,nld,ncon;
+      nbas,nmem,ncal,nld,ncon,
+      export;
 
 
 {******************************************************************
@@ -127,11 +128,23 @@ end;
         if is_objcclassref(def) then
           begin
             para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^),nil);
-            para:=ccallparanode.create(ccallnode.createinternfromunit('OBJC1','OBJC_GETMETACLASS',para),nil);
+            result:=ccallnode.createinternfromunit('OBJC','OBJC_GETMETACLASS',para);
           end
         else
-          para:=ccallparanode.create(cloadvmtaddrnode.create(ctypenode.create(def)),nil);
-        result:=ccallnode.createinternfromunit('OBJC1','CLASS_GETSUPERCLASS',para);
+          result:=cloadvmtaddrnode.create(ctypenode.create(def));
+
+{$if defined(onlymacosx10_6) or defined(arm) }
+        { For the non-fragile ABI, the superclass send2 method itself loads the
+          superclass. For the fragile ABI, we have to do this ourselves. 
+
+          NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
+            (but on also all iPhone SDK revisions we support) }
+        if not(target_info.system in system_objc_nfabi) then
+{$endif onlymacosx10_6 or arm}
+          begin
+            para:=ccallparanode.create(result,nil);
+            result:=ccallnode.createinternfromunit('OBJC','CLASS_GETSUPERCLASS',para);
+          end;
         typecheckpass(result);
       end;
 

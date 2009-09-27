@@ -590,7 +590,7 @@ implementation
         if (m_objectivec1 in current_settings.modeswitches) then
           begin
             { interface to Objective-C run time }
-            AddUnit('objc1');
+            AddUnit('objc');
             loadobjctypes;
             { NSObject }
             if not(current_module.is_unit) or

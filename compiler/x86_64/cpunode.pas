@@ -42,6 +42,7 @@ unit cpunode;
        ncgcal,
        ncgset,
        ncgopt,
+       ncgobjc,
        // n386con,n386flw,n386mat,n386mem,
        // n386set,n386inl,n386opt,
        { the cpu specific node units must be used after the generic ones to

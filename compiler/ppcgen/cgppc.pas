@@ -785,7 +785,7 @@ unit cgppc;
           begin
             if (ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                ((cs_create_pic in current_settings.moduleswitches) and
-                (ref.symbol.bind in [AB_COMMON,AB_GLOBAL])) then
+                (ref.symbol.bind in [AB_COMMON,AB_GLOBAL,AB_PRIVATE_EXTERN])) then
               begin
                 tmpreg := g_indirect_sym_load(list,ref.symbol.name,ref.symbol.bind=AB_WEAK_EXTERNAL);
                 ref.symbol:=nil;
