@@ -8944,6 +8944,7 @@ tests/test/units/sysutils/tfloattostr.pp svneol=native#text/plain
 tests/test/units/sysutils/tlocale.pp svneol=native#text/plain
 tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrtobool.pp svneol=native#text/plain
+tests/test/uobjc7.pp svneol=native#text/plain
 tests/test/uobjcl1.pp svneol=native#text/plain
 tests/test/uprec6.pp svneol=native#text/plain
 tests/test/uprec7.pp svneol=native#text/plain
