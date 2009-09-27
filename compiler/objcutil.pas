@@ -52,6 +52,9 @@ interface
       signature or field declaration.  }
     function objcchecktype(def: tdef; out founderror: tdef): boolean;
 
+    { Exports all assembler symbols related to the obj-c class }
+    procedure exportobjcclass(def: tobjectdef);
+
 implementation
 
     uses
@@ -805,5 +808,45 @@ end;
         result:=objcdochecktype(def,ris_initial,founderror);
       end;
 
+
+{******************************************************************
+                    ObjC class exporting
+*******************************************************************}
+
+    procedure exportobjcclassfields(objccls: tobjectdef);
+    var
+      i: longint;
+      vf: tfieldvarsym;
+      prefix: string;
+    begin
+      prefix:=target_info.cprefix+'OBJC_IVAR_$_'+objccls.objextname^+'.';
+      for i:=0 to objccls.symtable.SymList.Count-1 do
+        if tsym(objccls.symtable.SymList[i]).typ=fieldvarsym then
+          begin
+            vf:=tfieldvarsym(objccls.symtable.SymList[i]);
+            { TODO: package visibility (private_extern) -- must not be exported
+               either}
+            if (vf.visibility<>vis_private) then
+              exportname(prefix+vf.RealName,0);
+          end;
+    end;
+
+
+    procedure exportobjcclass(def: tobjectdef);
+      begin
+        if (target_info.system in system_objc_nfabi) then
+          begin
+            { export class and metaclass symbols }
+            exportname(def.rtti_mangledname(objcclassrtti),0);
+            exportname(def.rtti_mangledname(objcmetartti),0);
+            { export public/protected instance variable offset symbols }
+            exportobjcclassfields(def);
+          end
+        else
+          begin
+             { export the class symbol }
+             exportname('.objc_class_name_'+def.objextname^,0);
+          end;
+      end;
 
 end.

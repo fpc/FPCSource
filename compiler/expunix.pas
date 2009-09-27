@@ -172,7 +172,8 @@ begin
       end
      else
        begin
-         if (hp2.name^<>hp2.sym.mangledname) then
+         if assigned(hp2.sym) and
+            (hp2.name^<>hp2.sym.mangledname) then
            Message2(parser_e_cant_export_var_different_name,hp2.sym.realname,hp2.sym.mangledname)
          else
            exportedsymnames.insert(hp2.name^);
