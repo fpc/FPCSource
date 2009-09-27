@@ -528,10 +528,12 @@ implementation
                     { In case of an objcclass, verify that all methods have a message
                       name set. We only check this now, because message names can be set
                       during the protocol (interface) mapping. At the same time, set the
-                      mangled names (these depend on the "external" name of the class).
+                      mangled names (these depend on the "external" name of the class),
+                      and mark private fields of external classes as "used" (to avoid
+                      bogus notes about them being unused)
                     }
                     if is_objc_class_or_protocol(hdef) then
-                      tobjectdef(hdef).check_and_finish_messages;
+                      tobjectdef(hdef).finish_objc_data;
 
                   end;
                 recorddef :

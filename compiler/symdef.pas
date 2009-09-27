@@ -306,7 +306,7 @@ interface
           procedure register_vmt_call(index:longint);
           { ObjC }
           procedure make_all_methods_external;
-          procedure check_and_finish_messages;
+          procedure finish_objc_data;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -4536,9 +4536,21 @@ implementation
       end;
 
 
-    procedure tobjectdef.check_and_finish_messages;
+    procedure mark_private_fields_used(data: tobject; arg: pointer);
+      var
+        sym: tsym absolute data;
+      begin
+        if (sym.typ=fieldvarsym) and
+           (tfieldvarsym(sym).visibility in [vis_private,vis_strictprivate]) then
+          sym.IncRefCount;
+      end;
+
+
+    procedure tobjectdef.finish_objc_data;
       begin
         self.symtable.DefList.foreachcall(@check_and_finish_msg,nil);
+        if (oo_is_external in objectoptions) then
+          self.symtable.SymList.ForEachCall(@mark_private_fields_used,nil);
       end;
 
 
