@@ -1200,7 +1200,7 @@ begin
       FreeAndNil(NextLevelItems);
 
   while NextLevelItems <> nil do
-  begin  WriteLn('Loop');
+  begin  
     CurrentLevelItems := NextLevelItems;
     NextLevelItems := TFPList.Create;
 

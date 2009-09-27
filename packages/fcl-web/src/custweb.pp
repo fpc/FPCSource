@@ -98,7 +98,8 @@ Type
     Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
     Procedure Initialize; override;
     Procedure ShowException(E: Exception);override;
-    Procedure handleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
+    Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
+    Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
@@ -134,12 +135,7 @@ begin
   while not Terminated do
     begin
     if WaitForRequest(ARequest,AResponse) then
-      begin
-      HandleRequest(ARequest,AResponse);
-      If Not AResponse.ContentSent then
-        AResponse.SendContent;
-      EndRequest(ARequest,AResponse);
-      end;
+      DoHandleRequest(ARequest,AResponse);
     end;
 end;
 
@@ -296,6 +292,14 @@ begin
     Result:=Components[i] as TCustomHTTPModule
   else
     Result:=Nil;
+end;
+
+procedure TCustomWebApplication.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
+begin
+  HandleRequest(ARequest,AResponse);
+  If Not AResponse.ContentSent then
+    AResponse.SendContent;
+  EndRequest(ARequest,AResponse);
 end;
 
 constructor TCustomWebApplication.Create(AOwner: TComponent);

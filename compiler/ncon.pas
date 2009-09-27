@@ -244,7 +244,6 @@ implementation
         pWideStringVal: pcompilerwidestring;
         ordValRecord: TConstExprInt;
       begin
-        get_string_value := '';
         if is_conststring_or_constcharnode(p) then
           begin
             if is_constcharnode(p) or is_constwidecharnode(p) then
@@ -277,7 +276,11 @@ implementation
                 if is_wide then
                   begin
                     if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
-                      get_string_value := tstringconstnode(p).value_str
+                      begin
+                        initwidestring(pWideStringVal);
+                        copywidestring(pcompilerwidestring(tstringconstnode(p).value_str), pWideStringVal);
+                        get_string_value := TConstString(pWideStringVal);
+                      end
                     else
                       { if string must be wide, but actually was parsed as usual }
                       begin
@@ -297,12 +300,21 @@ implementation
                         get_string_value := pCharVal;
                       end
                     else
-                      get_string_value := tstringconstnode(p).value_str;
+                      begin
+                        getmem(pCharVal, tstringconstnode(p).len + 1);
+                        move(tstringconstnode(p).value_str^, pCharVal^, tstringconstnode(p).len);
+                        pCharVal[tstringconstnode(p).len] := #0;
+                        get_string_value := pCharVal;
+                      end;
                   end;
               end;
           end
         else
-          Message(type_e_string_expr_expected);
+          begin
+            Message(type_e_string_expr_expected);
+            getmem(get_string_value, 1);
+            get_string_value[0] := #0;
+          end;
       end;
 
     function is_constresourcestringnode(p : tnode) : boolean;

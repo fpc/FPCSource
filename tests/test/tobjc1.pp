@@ -9,6 +9,7 @@ var
 begin
   a:=NSObject(NSObject(NSObject.alloc).init);
   if a.respondstoselector_(objcselector('isKindOfClass:')) then
+
     writeln('ok string selector!')
   else
     halt(1);

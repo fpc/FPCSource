@@ -107,7 +107,8 @@ CONST
       begin	    
 {$ifdef dummy}
         { it least in the on windows 7 x64, this still doesn't not work, fs:(0x2c) is
-          self referencing on this system (FK) }
+          self referencing on this system (FK) 
+          MVC: It also does not work on Windows Vista 32-bit, Home Premium, SP 1. Results in a crash}
         asm
           movl TLSKey,%edx
           movl %fs:(0x2c),%eax

@@ -7,7 +7,7 @@ name=hash
 version=2.5.1
 
 [target]
-units=md5 crc ntlm uuid
+units=md5 crc ntlm uuid sha1
 units_linux=unixcrypt
 exampledirs=examples
 

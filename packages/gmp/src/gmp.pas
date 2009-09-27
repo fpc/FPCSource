@@ -23,6 +23,9 @@ unit gmp;
 {$define NO_GMP_GLOBVARS}
 {$endif}
 
+{$ifdef darwin}
+  {$linklib gmp.3}
+{$endif}
 { Unused symbols exported from GMP:
 
   Marked preliminary in GMP manual

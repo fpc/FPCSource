@@ -1078,7 +1078,7 @@ begin
      if UTF8Enabled then
        external_codepage:=utf8;
    {$ifdef linux}
-     if vcs_device>=0 then
+     if (vcs_device>=0) and (external_codepage<>utf8) then
        begin
          str(vcs_device,s);
          fname:='/dev/vcsa'+s;
@@ -1116,14 +1116,24 @@ begin
          cur_term_strings:=terminal_data[i];
     if cur_term_strings=@term_codes_xterm then
     begin
+      {$ifdef haiku}
+      TerminalSupportsBold := true;
+      TerminalSupportsHighIntensityColors := false;
+      {$else}
       TerminalSupportsBold := false;
       TerminalSupportsHighIntensityColors := true;
+      {$endif}
     end
     else
     begin
       TerminalSupportsBold := true;
       TerminalSupportsHighIntensityColors := false;
     end;
+    if cur_term_strings=@term_codes_beos then
+    begin
+      TerminalSupportsBold := false;
+      TerminalSupportsHighIntensityColors := false;      
+    end;  
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
 {$ifdef linux}
@@ -1231,8 +1241,14 @@ begin
        begin
          {Executed in case ttylinux is false (i.e. no vcsa), but
           TERM=linux.}
-         {Enable the character set set through setfont}
-         fpwrite(stdoutputhandle,font_custom,3);
+
+         { if we're in utf8 mode, we didn't change the font, so
+           no need to restore anything }
+         if external_codepage<>utf8 then
+         begin
+           {Enable the character set set through setfont}
+           fpwrite(stdoutputhandle,font_custom,3);
+         end;
        end;
 {$ifdef linux}
    end;

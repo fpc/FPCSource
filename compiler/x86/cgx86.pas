@@ -386,13 +386,41 @@ unit cgx86;
           begin
             if cs_create_pic in current_settings.moduleswitches then
               begin
-                reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
-                hreg:=getaddressregister(list);
-                href.refaddr:=addr_pic;
-                href.base:=NR_RIP;
-                list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
+                if (ref.symbol.bind=AB_LOCAL) and
+                   (ref.symbol.typ=AT_DATA) then
+                  begin
+                    { Local data symbols don't have to go via the GOT (and in
+                      case of darwin must not in some cases), but they still
+                      have to be addressed using PIC (RIP-relative).
+                    }
+                    { unfortunately, RIP-based addresses don't support an index }
+                    if (ref.base<>NR_NO) or
+                       (ref.index<>NR_NO) then
+                      begin
+                        reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                        hreg:=getaddressregister(list);
+                        href.refaddr:=addr_pic_no_got;
+                        href.base:=NR_RIP;
+                        list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
+                        ref.symbol:=nil;
+                      end
+                    else
+                      begin
+                        ref.refaddr:=addr_pic_no_got;
+                        hreg:=NR_NO;
+                        ref.base:=NR_RIP;
+                      end;
+                  end
+                else
+                  begin
+                    reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                    hreg:=getaddressregister(list);
+                    href.refaddr:=addr_pic;
+                    href.base:=NR_RIP;
+                    list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,hreg));
 
-                ref.symbol:=nil;
+                    ref.symbol:=nil;
+                  end;
 
                 if ref.base=NR_NO then
                   ref.base:=hreg
@@ -408,17 +436,21 @@ unit cgx86;
                   end;
               end
             else
-              { Always use RIP relative symbol addressing for Windows targets. }
-              if (target_info.system in system_all_windows) and (ref.base<>NR_RIP) then
+              { Always use RIP relative symbol addressing for Windows and Darwin targets. }
+              if (target_info.system in (system_all_windows+[system_x86_64_darwin])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
-                    { Set RIP relative addressing for simple symbol references }
-                    ref.base:=NR_RIP
+                    begin
+                      { Set RIP relative addressing for simple symbol references }
+                      ref.base:=NR_RIP;
+                      ref.refaddr:=addr_pic_no_got
+                    end
                   else
                     begin
                       { Use temp register to load calculated 64-bit symbol address for complex references }
                       reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
                       href.base:=NR_RIP;
+                      href.refaddr:=addr_pic_no_got;
                       hreg:=GetAddressRegister(list);
                       list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
                       ref.symbol:=nil;
@@ -874,7 +906,11 @@ unit cgx86;
                            list.concat(Taicpu.op_ref_reg(A_LEA,tcgsize2opsize[OS_ADDR],tmpref,r));
                          end;
                       end
-                    else if (cs_create_pic in current_settings.moduleswitches) then
+                    else if (cs_create_pic in current_settings.moduleswitches)
+{$ifdef x86_64}
+                             and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ=AT_DATA))
+{$endif x86_64}
+                            then
                       begin
 {$ifdef x86_64}
                         reference_reset_symbol(tmpref,ref.symbol,0,ref.alignment);
@@ -891,6 +927,16 @@ unit cgx86;
                         if offset<>0 then
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
+{$ifdef x86_64}
+                    else if (target_info.system in (system_all_windows+[system_x86_64_darwin])) then
+                      begin
+                        { Win64 and Darwin/x86_64 always require RIP-relative addressing }
+                        tmpref:=ref;
+                        tmpref.base:=NR_RIP;
+                        tmpref.refaddr:=addr_pic_no_got;
+                        list.concat(Taicpu.op_ref_reg(A_LEA,S_Q,tmpref,r));
+                      end
+{$endif x86_64}
                     else
                       begin
                         tmpref:=ref;

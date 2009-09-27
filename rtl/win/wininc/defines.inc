@@ -2830,7 +2830,7 @@ Type
      TPM_VERTICAL    = $40;
      TPM_TOPALIGN    = 0;
      TPM_VCENTERALIGN= $10;
-     TPM_BOOTOMALIGN = $20;
+     TPM_BOTTOMALIGN = $20;
      TPM_NONOTIFY    = $80;
      TPM_RETURNCMD   = $100;
      TPM_RECURSE         = $0001;

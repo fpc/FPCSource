@@ -119,6 +119,12 @@ begin
       TDBTransaction(FTransactions[i]).Database:=Nil;
 end;
 
+procedure TDatabase.SetParams(AValue: TStrings);
+begin
+  if AValue<>nil then
+    FParams.Assign(AValue);
+end;
+
 Function TDatabase.GetDataSetCount : Longint;
 
 begin

@@ -1621,6 +1621,7 @@ type
     procedure UnRegisterTransaction(TA : TDBTransaction);
     procedure RemoveDataSets;
     procedure RemoveTransactions;
+    procedure SetParams(AValue: TStrings);
   protected
     Procedure CheckConnected;
     Procedure CheckDisConnected;
@@ -1647,7 +1648,7 @@ type
     property Connected: Boolean read FConnected write SetConnected;
     property DatabaseName: string read FDatabaseName write FDatabaseName;
     property KeepConnection: Boolean read FKeepConnection write FKeepConnection;
-    property Params : TStrings read FParams Write FParams;
+    property Params : TStrings read FParams Write SetParams;
   end;
 
 

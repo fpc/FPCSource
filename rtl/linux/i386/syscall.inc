@@ -77,17 +77,34 @@ end;
 
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
-function FpSysCall(sysnr:TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL0'];
+function FpSysCall(sysnr:TSysParam):TSysResult; assembler; register;  [public,alias:'FPC_SYSCALL0'];
 { Var sysnr located in register eax }
 asm
-//      movl  sysnr,%eax
-        cmp  $0, sysenter_supported
-        jne  .LSysEnter
-        int $0x80
+        push  %ebx
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
+        cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
+        jne   .LSysEnter
+        int   $0x80
         jmp   .LTail
   .LSysEnter:
-        call psysinfo
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+	call  *%ecx
+  {$else FPC_PIC}
+        call  psysinfo
+  {$endif FPC_PIC}
   .LTail:
+	pop   %ecx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -96,21 +113,40 @@ asm
   .LSyscOK:
 end;
 
+
 function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; register; [public,alias:'FPC_SYSCALL1'];
 { Var sysnr located in register eax
   Var param1 located in register edx }
 asm
-        movl  %ebx,%ecx
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
+        push  %ebx
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
+
         jne   .LSysEnter
+        movl  %edx,%ebx		// param1
         int   $0x80
         jmp   .LTail
   .LSysEnter:
-        call psysinfo
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        movl  %edx,%ebx		// param1
+	call  *%ecx
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+        call  psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        movl  %ecx,%ebx
+	pop   %ecx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -125,17 +161,37 @@ function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; regis
   Var param2 located in register ecx }
 asm
         push  %ebx
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
-//      movl  param2,%ecx
+        push  %edx
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
         jne   .LSysEnter
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
         int   $0x80
         jmp   .LTail
   .LSysEnter:
-        call psysinfo
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  %edx,%ebx		// param1
+        movl  (%ecx),%edx
+	pop   %ecx		// param2
+	call  *%edx
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        call  psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        pop   %ebx
+	pop   %edx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -149,20 +205,45 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; 
   Var param1 located in register edx
   Var param2 located in register ecx
   Var param3 located at ebp+20 }
+var
+  _psysinfo: LongWord;
 asm
         push  %ebx
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
-//      movl  param2,%ecx
-        movl  param3,%edx
+        push  %edx
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
         jne   .LSysEnter
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
         int   $0x80
         jmp   .LTail
   .LSysEnter:
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        movl  %ecx,_psysinfo
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        call  _psysinfo 
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
         call psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        pop   %ebx
+	pop   %edx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -177,23 +258,48 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
   Var param2 located in register ecx
   Var param3 located at ebp+20
   Var param4 located at ebp+16 }
+var
+  _psysinfo: LongWord;
 asm
         push  %ebx
         push  %esi
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
-//      movl  param2,%ecx
-        movl  param3,%edx
-        movl  param4,%esi
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
-        jne   .LSysEnter
+  {$endif FPC_PIC}
+        jne  .LSysEnter
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
         int   $0x80
-        jmp  .LTail
+        jmp   .LTail
   .LSysEnter:
-        call psysinfo
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        movl  %ecx,_psysinfo
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+        call  _psysinfo 
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+        call  psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        pop   %esi
-        pop   %ebx
+  	pop   %esi
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -209,26 +315,55 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysRes
   Var param3 located at ebp+20
   Var param4 located at ebp+16
   Var param5 located at ebp+12 }
+var
+  _psysinfo: LongWord;
 asm
         push  %ebx
+        push  %edx
         push  %esi
         push  %edi
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
-//      movl  param2,%ecx
-        movl  param3,%edx
-        movl  param4,%esi
-        movl  param5,%edi
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
         jne   .LSysEnter
-        int   $0x80
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
+        int $0x80
         jmp   .LTail
   .LSysEnter:
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        movl  %ecx,_psysinfo
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
+        call  _psysinfo 
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
         call psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        pop   %edi
-        pop   %esi
-        pop   %ebx
+  	pop   %edi
+  	pop   %esi
+	pop   %edx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax
@@ -245,29 +380,60 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6: TSysParam):T
   Var param4 located at ebp+16
   Var param5 located at ebp+12
   Var param6 located at ebp+8 }
+var
+  _psysinfo: LongWord;
 asm
         push  %ebx
+	push  %edx
         push  %esi
         push  %edi
-        push  %ebp
-//      movl  sysnr,%eax
-        movl  %edx,%ebx
-//      movl  param2,%ecx
-        movl  param3,%edx
-        movl  param4,%esi
-        movl  param5,%edi
-        movl  param6,%ebp
+	push  %ebp
+        push  %ecx
+  {$ifdef FPC_PIC}
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  sysenter_supported@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        cmp   $0, %ecx
+  {$else FPC_PIC}
         cmp   $0, sysenter_supported
+  {$endif FPC_PIC}
         jne   .LSysEnter
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
+	movl  param6,%ebp	// param6
         int   $0x80
         jmp   .LTail
   .LSysEnter:
+  {$ifdef FPC_PIC}
+        movl  psysinfo@GOT(%ebx),%ecx
+        movl  (%ecx),%ecx
+        movl  %ecx,_psysinfo
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
+	movl  param6,%ebp	// param6
+        call  _psysinfo 
+  {$else FPC_PIC}
+        movl  %edx,%ebx		// param1
+	pop   %ecx		// param2
+        movl  param3,%edx	// param3
+        movl  param4,%esi	// param4
+	movl  param5,%edi	// param5
+	movl  param6,%ebp	// param6
         call psysinfo
+  {$endif FPC_PIC}
   .LTail:
-        pop   %ebp
-        pop   %edi
-        pop   %esi
-        pop   %ebx
+	pop   %ebp
+  	pop   %edi
+  	pop   %esi
+	pop   %edx
+	pop   %ebx
         cmpl  $-4095,%eax
         jb    .LSyscOK
         negl  %eax

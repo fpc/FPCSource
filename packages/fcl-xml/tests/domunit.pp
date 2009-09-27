@@ -41,6 +41,7 @@ type
     procedure TearDown; override;
     procedure GC(obj: TObject);
     procedure Load(out doc; const uri: string);
+    procedure LoadStringData(out Doc; const data: string);
     function getResourceURI(const res: WideString): WideString;
     function ContentTypeIs(const t: string): Boolean;
     function GetImplementation: TDOMImplementation;
@@ -97,6 +98,7 @@ procedure TDOMTestBase.SetUp;
 begin
   FParser := TDOMParser.Create;
   FParser.Options.PreserveWhitespace := True;
+  //FParser.Options.ExpandEntities := True;
   FAutoFree := TObjectList.Create(True);
 end;
 
@@ -202,8 +204,7 @@ begin
       CheckFile(Base2, Result) then
         Exit;
   end;
-  if not CheckFile(Base, Result) then
-    Result := '';
+  CheckFile(Base, Result);
 end;
 
 function TDOMTestBase.getImplAttr(const name: string): Boolean;
@@ -313,6 +314,19 @@ end;
 function TDOMTestBase.GetTestFilesURI: string;
 begin
   result := '';
+end;
+
+procedure TDOMTestBase.LoadStringData(out Doc; const data: string);
+var
+  src: TXMLInputSource;
+begin
+  src := TXMLInputSource.Create(data);
+  try
+    FParser.Parse(src, TXMLDocument(Doc));
+    GC(Doc);
+  finally
+    src.Free;
+  end;
 end;
 
 end.
