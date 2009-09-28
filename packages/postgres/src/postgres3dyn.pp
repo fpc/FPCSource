@@ -269,7 +269,7 @@ begin
     pointer(PQexec) := GetProcedureAddress(Postgres3LibraryHandle,'PQexec');
     pointer(PQexecParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecParams');
     pointer(PQexecPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecPrepared');
-    pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQPrepare');
+    pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQprepare');
     pointer(PQsendQuery) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQuery');
     pointer(PQsendQueryParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryParams');
     pointer(PQsendQueryPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryPrepared');
