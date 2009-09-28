@@ -111,6 +111,7 @@ type
       procedure DocTableItem(Entered: boolean); virtual;
       procedure DocHorizontalRuler; virtual;
       function CanonicalizeURL(const Base,Relative:String):string; virtual;
+      procedure Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); virtual;
     public
       function  GetSectionColor(Section: THTMLSection; var Color: byte): boolean; virtual;
     private
@@ -133,6 +134,7 @@ type
       CurHeadLevel: integer;
       PAlign: TParagraphAlign;
       LinkIndexes: array[0..MaxTopicLinks] of sw_integer;
+      FileIDLinkIndexes: array[0..MaxTopicLinks] of sw_integer;
       LinkPtr: sw_integer;
       LastTextChar: char;
 {      Anchor: TAnchor;}
@@ -148,8 +150,9 @@ type
     PCHMTopicRenderer = ^TCHMTopicRenderer;
     TCHMTopicRenderer = object(THTMLTopicRenderer)
       function CanonicalizeURL(const Base,Relative:String):string; virtual;
+      procedure Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); virtual;
       end;
-      
+
     PCustomHTMLHelpFile = ^TCustomHTMLHelpFile;
     TCustomHTMLHelpFile = object(THelpFile)
       constructor Init(AID: word);
@@ -165,7 +168,7 @@ type
       CurFileName: string;
       TopicLinks: PTopicLinkCollection;
     end;
-   
+
     PHTMLHelpFile = ^THTMLHelpFile;
     THTMLHelpFile = object(TCustomHTMLHelpFile)
       constructor Init(AFileName: string; AID: word; ATOCEntry: string);
@@ -178,7 +181,7 @@ type
     PCHMHelpFile = ^TCHMHelpFile;
     TCHMHelpFile = object(TCustomHTMLHelpFile)
       constructor Init(AFileName: string; AID: word);
-      destructor  Done; virtual; 
+      destructor  Done; virtual;
     public
       function    LoadIndex: boolean; virtual;
       function    ReadTopic(T: PTopic): boolean; virtual;
@@ -624,6 +627,7 @@ end;
 
 procedure THTMLTopicRenderer.DocAnchor(Entered: boolean);
 var HRef,Name: string;
+    lfileid,llinkid : sw_integer;
 begin
   if Entered and InAnchor then DocAnchor(false);
   if Entered then
@@ -651,11 +655,13 @@ begin
 {$IFDEF WDEBUG}
               DebugMessageS({$i %file%},' Adding Link1 "'+HRef+'"'+' "'+url+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
-              
+
               if pos('#',HRef)=1 then
                 Href:=NameAndExtOf(GetFilename)+Href;
               HRef:=canonicalizeURL(URL,HRef);
-              LinkIndexes[LinkPtr]:=TopicLinks^.AddItem(HRef);
+              Resolve(Href,lfileid,llinkid);
+              LinkIndexes[LinkPtr]:=llinkid;
+              FileIDLinkIndexes[LinkPtr]:=lfileid;
 {$IFDEF WDEBUG}
               DebugMessageS({$i %file%},' Adding Link2 "'+HRef+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
@@ -717,10 +723,20 @@ begin
     end;
 end;
 
-Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
 // uses info from filesystem (curdir) -> overriden for CHM.
 begin
  CanonicalizeURL:=CompleteURL(Base,relative);
+end;
+
+procedure THTMLTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); 
+begin
+{$IFDEF WDEBUG}
+              DebugMessageS({$i %file%},' htmlresolve "'+HRef+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
+
+  Afileid:=Topic^.FileId;
+  ALinkId:=TopicLinks^.AddItem(HRef);
 end;
 
 procedure THTMLTopicRenderer.DocParagraph(Entered: boolean);
@@ -1302,11 +1318,17 @@ begin
           for I:=0 to Min(Topic^.LinkCount-1,High(LinkIndexes)-1) do
             begin
               {$IFDEF WDEBUG}
-                DebugMessageS({$i %file%},' Indexing links ('+inttostr(i)+')'+topiclinks^.at(linkindexes[i])^,{$i %line%},'1',0,0);
+                DebugMessageS({$i %file%},' Indexing links ('+inttostr(i)+')'+topiclinks^.at(linkindexes[i])^+' '+inttostr(i)+' '+inttostr(linkindexes[i]),{$i %line%},'1',0,0);
               {$endif WDEBUG}
-              Topic^.Links^[I].FileID:=Topic^.FileID;
-              Topic^.Links^[I].Context:=EncodeHTMLCtx(Topic^.FileID,LinkIndexes[I]+1);
+              Topic^.Links^[I].FileID:=FileIDLinkIndexes[i];
+              Topic^.Links^[I].Context:=EncodeHTMLCtx(FileIDLinkIndexes[i],LinkIndexes[I]+1);
             end;
+         {$IFDEF WDEBUG}
+          if Topic^.Linkcount>High(linkindexes) then
+           DebugMessageS({$i %file%},' Maximum links exceeded ('+inttostr(Topic^.LinkCount)+') '+URL,{$i %line%},'1',0,0);
+         {$endif WDEBUG}
+
+
           { --- topic text --- }
           GetMem(TP,TextPtr);
           Move(Topic^.Text^,TP^,TextPtr);
@@ -1322,13 +1344,40 @@ begin
   BuildTopic:=OK;
 end;
 
-Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string; 
+Function  TCHMTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
 begin
- if copy(relative,1,7)<>'ms-its:' then 
+ if copy(relative,1,6)='http:/' then // external links don't need to be fixed since we can't load them.
+   begin
+     CanonicalizeUrl:=relative;
+     exit;
+   end;
+ if copy(relative,1,7)<>'ms-its:' then
    CanonicalizeUrl:=combinepaths(relative,base)
   else
-   CanonicalizeUrl:=relative; 
+   CanonicalizeUrl:=relative;
 end;
+
+procedure TCHMTopicRenderer.Resolve( href: ansistring; var AFileId,ALinkId : sw_integer); 
+var resolved:boolean;
+begin
+{$IFDEF WDEBUG}
+  DebugMessageS({$i %file%},' chmresolve "'+HRef+'"',{$i %line%},'1',0,0);
+{$ENDIF WDEBUG}
+  resolved:=false; AFileID:=0; ALinkID:=0;	
+  href:=stringreplace(href,'%20',' '); 
+  if copy(href,1,7)='ms-its:' then
+    resolved:=CHMResolve(Href,AFileId,ALinkID);
+  if not resolved then
+    begin
+    {$IFDEF WDEBUG}
+       DebugMessageS({$i %file%},' chmresolve not resolved "'+HRef+'"',{$i %line%},'1',0,0);
+    {$ENDIF WDEBUG}
+
+      Afileid:=Topic^.FileId;
+      ALinkId:=TopicLinks^.AddItem(HRef);
+    end;
+end;
+
 
 constructor TCustomHTMLHelpFile.Init(AID: word);
 begin
@@ -1390,7 +1439,7 @@ begin
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},'(Topicinfo) Link before formatpath "'+link+'"',{$i %line%},'1',0,0);
 {$ENDIF WDEBUG}
-          
+
           Link:=FormatLink(Link);
 {$IFDEF WDEBUG}
           DebugMessageS({$i %file%},'(Topicinfo) Link after formatpath "'+link+'"',{$i %line%},'1',0,0);
@@ -1584,21 +1633,21 @@ end;
 
 constructor TChmHelpFile.Init(AFileName: string; AID: word);
 begin
-  if inherited Init(AID)=false then 
+  if inherited Init(AID)=false then
     Fail;
   Dispose(renderer,done);
   renderer:=New(PCHMTopicRenderer, Init);
-  DefaultFileName:=AFileName; 
+  DefaultFileName:=AFileName;
   if (DefaultFileName='') or not ExistsFile(DefaultFilename) then
   begin
     Done;
     Fail;
   end
   else
-    chmw:=TCHMWrapper.Create(DefaultFileName);
+    chmw:=TCHMWrapper.Create(DefaultFileName,AID,TopicLinks);
 end;
 
-function    TChmHelpFile.LoadIndex: boolean; 
+function    TChmHelpFile.LoadIndex: boolean;
 begin
   loadindex:=false;
   if assigned(chmw) then
@@ -1705,6 +1754,9 @@ begin
           begin
             Bookmark:=copy(Link,P+1,length(Link));
             Link:=copy(Link,1,P-1);
+            {$IFDEF WDEBUG}
+              debugMessageS({$i %file%},' Removed label: "'+Link+'"',{$i %line%},'1',0,0);
+            {$endif WDEBUG}
           end;
 {          if CurFileName='' then Name:=Link else
           Name:=CompletePath(CurFileName,Link);}
