@@ -11,99 +11,6 @@ require("objp_parser.php");
  * @author Ryan Joseph
  **/
 
-/* VERSION HISTORY
-
-• Objective-P:
-0.4		- Support for UIKit has been added
-		- Objective-C 2.0 properties are parsed
-		- NSString constants with AVAILABLE_MAC_OS_X_VERSION macros are parsed correctly
-0.3		- Pass by reference arguments are translated as pointers instead of var
-		- Variable length arguments are parsed with the varargs keyword instead of array of const
-0.2		- Support for parsing instance variables is added
-
-• PasCocoaKit
-1.3		- The parser is broken into subclasses in order to support the new FPC syntax.
-		
-1.2		- struct_register_types makes a new wrapper that sends structs based on CPU architecture
-		- var parameters are parsed correctly 
-		- getters and setters can now be overriden (still not constructors however)
-		- enums without defined values are parsed
-		- params named "somethingPtr" are parsed as pointers instead of "var"
-		- #defines (integer values only)
-		- fixed a bug missing CFString constants
-		- added static accessor withObject
-		- fixed bug with constructors not using NSObject "Handles" from parameter list
-		- custom implementations for NSSet, NSString, NSDictionary constructors
-		- IBActions now replace with void, like the C macro
-		- Methods with (void *) as the return type are no longer parsed as procedures.
-		
-1.1:	- NSDelegatesAll now creates a .pas reference file
-		- Methods in NSDelegatesAll are no longer declared abstract virtual to avoid compiler performance issues
-		- super methods were deprecated in favor of "implemented super" methods
-		- all non-delegate categories (which appear in NSDelegatesAll.inc) are merged into NSObject.inc
-*/
-
-/* TO-DO
-	- NSAfflineTransform and NSAttributedString are making duplicates because they exist in AppKit And Foundation
-		- the fix now is to delete the parts that are conflicting but leave them in the master file
-	- NSGeometry, NSRange, NSHashTable, NSMapTable have conflicts with record/type order use, AddTypeDef instead
-	- NSObjCRuntime, NSZone has errors parsing external functions
-		- these are removed from the parse all command for now
-	- NSExceptions didn't parse: typedef void NSUncaughtExceptionHandler(NSException *exception);
-	- 	did not get captured by the regex:
-		FOUNDATION_EXPORT NSString *NSStringFromRange(NSRange range); 
-		√ FOUNDATION_EXPORT NSString * const NSParseErrorException; 
-		√ FOUNDATION_EXPORT NSString * const NSCharacterConversionException;
-	- 	compound enums on a single line
-		enum {NSNotFound = NSIntegerMax};
-		enum _NSComparisonResult {NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending};
-		typedef struct {NSUInteger _pi; NSUInteger _si; void *_bs;} NSHashEnumerator;
-	
-	• SERIOUS
-	
-	* - Make functions in NS*** collection classes to return a CFType equivalent
-				function CFType: CFTypeRef; at the top of each class
-	
-	* Var params are not initialized to nil inside the methods!
-	
-	* Some methods are broken up into different lines and not parsed! I'm sure we losts hundreds of methods
-	  look in NSBezierPath.h for examples
-	
-		- (void)appendBezierPathWithArcWithCenter:(NSPoint)center radius:(CGFloat)radius
-					       startAngle:(CGFloat)startAngle
-						 endAngle:(CGFloat)endAngle;
-		
-				
-	- erroneous var params in plain C functions
-		function NSSelectorFromString(var aSelectorName: CFStringRef): SEL; cdecl; external name 'NSSelectorFromString';
-		FOUNDATION_EXPORT SEL NSSelectorFromString(NSString *aSelectorName);
-		
-	- nested enums
-		NSXMLNodePreserveQuotes = (NSXMLNodeUseSingleQuotes | NSXMLNodeUseDoubleQuotes),	
-		NSWorkspaceLaunchDefault = NSWorkspaceLaunchAsync | NSWorkspaceLaunchAllowingClassicStartup
-	
-	- comma was at the START of the line so it didn't get parsed
-		    NSRegularControlSize,
-		    NSSmallControlSize
-		#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_3
-		    , NSMiniControlSize
-	
-	- constant strings with AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER are not parsed 
-	APPKIT_EXTERN NSString *NSDocFormatTextDocumentType	AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER;
-	APPKIT_EXTERN NSString *NSWordMLTextDocumentType	AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER;
-	APPKIT_EXTERN NSString *NSWebArchiveTextDocumentType	AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER;
-	
-	- How should we handle inout and out? Are these passed by referenced?
-	- Should we include const in the params?
-	- How should be handle inline array types? NSRect[4] -> type theMethodType1 = array[1..4] of NSRect
-	
-	
-*/
-
-/**
- * PRIMARY INPUT PARAMETERS
- */
-
 // These files have duplicates in AppKit and Foundation so we ignore the foundation versions and everything is merged into AppKit
 $duplicate_headers = array("foundation/NSAttributedString.inc", "foundation/NSAffineTransform.inc");
 
@@ -198,7 +105,7 @@ function HandleCommandLineOptions ($argv) {
 }
 
 // ??? TESTING
-$testing = true;
+$testing = false;
 
 if ($testing) {
 	$GLOBALS["argv"][] = "-iphone";
