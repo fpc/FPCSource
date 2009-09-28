@@ -8,7 +8,7 @@ program protocoltest;
 
 type
   MyProtocolA = objcprotocol
-    function newMethod: longint; message 'newMethod';
+    function newMethod: longint; message 'n';
   end;
 
   MyProtocolB = objcprotocol(MyProtocolA)
@@ -24,7 +24,7 @@ type
   end;
 
   TMyObjectB = objcclass(NSObject,MyProtocolA)
-    function newMethod: longint; message 'newMethod';
+    function newMethod: longint; message 'n';
     class function newClassMethod: longint; message 'newClassMethod';
   end;
 

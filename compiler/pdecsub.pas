@@ -1385,16 +1385,18 @@ begin
         Message(parser_e_ill_msg_param);
     end;
   pt:=comp_expr(true);
-  if pt.nodetype=stringconstn then
+  { message is 1-character long }
+  if is_constcharnode(pt) then 
+    begin
+      include(pd.procoptions,po_msgstr);
+      tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.uvalue and $FF)));
+    end
+  else if pt.nodetype=stringconstn then
     begin
       include(pd.procoptions,po_msgstr);
       if (tstringconstnode(pt).len>255) then
         Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
-      { check whether the selector name is valid in case of Objective-C }
-      if is_objc_class_or_protocol(tprocdef(pd)._class) and
-         not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
-        Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
     end
   else
    if is_constintnode(pt) and
@@ -1409,6 +1411,11 @@ begin
     end
   else
     Message(parser_e_ill_msg_expr);
+  { check whether the selector name is valid in case of Objective-C }
+  if (po_msgstr in pd.procoptions) and
+     is_objc_class_or_protocol(tprocdef(pd)._class) and
+     not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
+    Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
 end;
 

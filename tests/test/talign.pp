@@ -1,3 +1,5 @@
+{ %norun }
+
 { This is just a small file used to verify the alignment of different
   structures. Only the assembler output should be checked.
 }
@@ -13,12 +15,17 @@ type
   tmyotherclass = class(tmyclass)
   public
     procedure tito(var Msg); message 'hello';
+    procedure tita(var Msg); message 'h';
     procedure titi(var Msg); message 12;
   published
     procedure published_method;
   end;
 
   procedure tmyotherclass.tito(var Msg);
+   begin
+   end;
+
+  procedure tmyotherclass.tita(var Msg);
    begin
    end;
 
