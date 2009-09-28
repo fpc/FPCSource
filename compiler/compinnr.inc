@@ -76,7 +76,6 @@ const
    in_ror_x_x           = 66;
    in_rol_x             = 67;
    in_rol_x_x           = 68;
-   in_objc_selector_x   = 69;
 
 
 { Internal constant functions }

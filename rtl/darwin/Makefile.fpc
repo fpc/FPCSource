@@ -16,7 +16,7 @@ units=$(SYSTEMUNIT) unixtype ctypes objpas macpas strings sysctl baseunix unixut
       errors ipc terminfo termio video crt mouse keyboard console \
       variants dateutils convutils stdconvs \
       sysconst cthreads strutils rtlconsts cwstring bsd fmtbcd \
-      fpintres fpextres clocale objc1
+      fpintres fpextres clocale
 implicitunits=exeinfo
 
 rsts=math varutils typinfo classes variants dateutils sysconst rtlconsts
@@ -135,8 +135,6 @@ dateutils$(PPUEXT): $(SYSTEMUNIT)$(PPUEXT) objpas$(PPUEXT) sysutils$(PPUEXT) mat
 strings$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/strings.pp $(INC)/stringsi.inc\
                    $(PROCINC)/strings.inc $(PROCINC)/stringss.inc\
                    $(SYSTEMUNIT)$(PPUEXT)
-
-objc1$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/objc1.pp
 
 #
 # System Dependent Units

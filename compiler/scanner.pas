@@ -447,18 +447,6 @@ implementation
         for i:=m_class to high(tmodeswitch) do
           if s=modeswitchstr[i] then
             begin
-              { Objective-C is currently only supported for 32 bit Darwin targets
-                (and Objective-C 2.0 will be required for 64 bit ones)
-                Not yet tested for ARM either.
-              }
-              if doinclude and
-                 (i=m_objectivec1) and
-                 not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
-                begin
-                  Message1(option_unsupported_target_for_feature,'Objective-C 1.0');
-                  break;
-                end;
-
               if changeInit then
                 current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;
@@ -472,7 +460,6 @@ implementation
 
               if changeInit then
                 init_settings.modeswitches:=current_settings.modeswitches;
-
               break;
             end;
       end;

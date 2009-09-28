@@ -63,8 +63,6 @@ interface
         al_dwarf_line,
         al_picdata,
         al_resourcestrings,
-        { Objective-C related sections }
-        al_objc_data,
         al_end
       );
 
@@ -78,8 +76,7 @@ interface
          sp_longstr,
          sp_ansistr,
          sp_widestr,
-         sp_unicodestr,
-         sp_objcselector
+         sp_unicodestr
       );
       
     const
@@ -102,7 +99,6 @@ interface
         'al_dwarf_line',
         'al_picdata',
         'al_resourcestrings',
-        'al_objc_data',
         'al_end'
       );
 

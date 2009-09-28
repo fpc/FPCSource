@@ -109,8 +109,7 @@ interface
           guidconstn,       { A GUID COM Interface constant }
           rttin,            { Rtti information so they can be accessed in result/firstpass}
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
-          dataconstn,       { node storing some binary data }
-          objcselectorn
+          dataconstn        { node storing some binary data }
        );
 
        tnodetypeset = set of tnodetype;
@@ -191,8 +190,7 @@ interface
           'guidconstn',
           'rttin',
           'loadparentfpn',
-          'dataconstn',
-          'objcselectorn');
+          'dataconstn');
 
     type
        { all boolean field of ttree are now collected in flags }

@@ -688,24 +688,6 @@ implementation
               statement_syssym := inline_setlength;
             end;
 
-          in_objc_selector_x:
-            begin
-              if (m_objectivec1 in current_settings.modeswitches) then
-                begin
-                  consume(_LKLAMMER);
-                  in_args:=true;
-                  { don't turn procsyms into calls (getaddr = true) }
-                  p1:=factor(true);
-                  p2:=geninlinenode(l,false,p1);
-                  consume(_RKLAMMER);
-                  statement_syssym:=p2;
-                end
-              else
-                begin
-                  Message1(sym_e_id_not_found, orgpattern);
-                  statement_syssym:=cerrornode.create;
-                end;
-            end;
           in_length_x:
             begin
               consume(_LKLAMMER);
