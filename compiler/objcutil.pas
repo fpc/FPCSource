@@ -94,9 +94,8 @@ begin
   else
     begin
       { no special characters other than ':'
-        (already checked character 0, so start checking from 1)
       }
-      for i:=1 to len-1 do
+      for i:=0 to len-1 do
         if (value_str[i] = ':') then
           gotcolon:=true
         else if not(value_str[i] in ['_','A'..'Z','a'..'z','0'..'9',':']) then
