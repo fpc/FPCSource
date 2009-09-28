@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSMenu.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMENU_PAS_H}
@@ -32,16 +32,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSMENU_PAS_T}
-{$define NSMENU_PAS_T}
-
-{ External string constants }
-var
-  NSMenuWillSendActionNotification: NSString; external name '_NSMenuWillSendActionNotification';
-  NSMenuDidSendActionNotification: NSString; external name '_NSMenuDidSendActionNotification';
-  NSMenuDidAddItemNotification: NSString; external name '_NSMenuDidAddItemNotification';
-  NSMenuDidRemoveItemNotification: NSString; external name '_NSMenuDidRemoveItemNotification';
-  NSMenuDidChangeItemNotification: NSString; external name '_NSMenuDidChangeItemNotification';
+{$ifndef NSMENU_PAS_S}
+{$define NSMENU_PAS_S}
 
 {$endif}
 {$endif}

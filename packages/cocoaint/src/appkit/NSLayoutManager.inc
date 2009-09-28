@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSLayoutManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSLAYOUTMANAGER_PAS_H}
@@ -31,6 +31,8 @@ const
 
 const
   NSTypesetterLatestBehavior = -1;
+  NSTypesetterOriginalBehavior = 0;
+  NSTypesetterBehavior_10_2_WithCompatibility = 1;
   NSTypesetterBehavior_10_2 = 2;
   NSTypesetterBehavior_10_3 = 3;
   NSTypesetterBehavior_10_4 = 4;
@@ -58,8 +60,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSLAYOUTMANAGER_PAS_T}
-{$define NSLAYOUTMANAGER_PAS_T}
+{$ifndef NSLAYOUTMANAGER_PAS_S}
+{$define NSLAYOUTMANAGER_PAS_S}
 
 {$endif}
 {$endif}

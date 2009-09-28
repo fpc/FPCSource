@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSRuleEditor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSRULEEDITOR_PAS_H}
@@ -17,7 +17,10 @@ type
 { Constants }
 
 const
-  NSRuleEditorNestingModeSimple = 0;
+  NSRuleEditorNestingModeSingle = 0;
+  NSRuleEditorNestingModeList = 1;
+  NSRuleEditorNestingModeCompound = 2;
+  NSRuleEditorNestingModeSimple = 3;
 
 const
   NSRuleEditorRowTypeSimple = 0;
@@ -46,8 +49,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSRULEEDITOR_PAS_T}
-{$define NSRULEEDITOR_PAS_T}
+{$ifndef NSRULEEDITOR_PAS_S}
+{$define NSRULEEDITOR_PAS_S}
 
 { External string constants }
 var
@@ -121,7 +124,7 @@ var
   public
     class function alloc: NSRuleEditor; message 'alloc';
 
-    procedure setDelegate(sender:id); message 'setDelegate:';
+    procedure setDelegate(sender: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setFormattingStringsFilename(stringsFilename: NSString); message 'setFormattingStringsFilename:';
     function formattingStringsFilename: NSString; message 'formattingStringsFilename';

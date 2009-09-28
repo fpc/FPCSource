@@ -3,6 +3,7 @@
 {$include UIResponder.inc}
 {$include UIView.inc}
 {$include UIWindow.inc}
+{$include UIDevice.inc}
 {$include UIApplication.inc}
 {$include UIControl.inc}
 {$include UIActivityIndicatorView.inc}
@@ -11,7 +12,6 @@
 {$include UIButton.inc}
 {$include UIColor.inc}
 {$include UIDatePicker.inc}
-{$include UIDevice.inc}
 {$include UIEvent.inc}
 {$include UIFont.inc}
 {$include UIGeometry.inc}

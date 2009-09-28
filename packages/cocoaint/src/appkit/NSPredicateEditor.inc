@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSPredicateEditor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPREDICATEEDITOR_PAS_H}
@@ -32,8 +32,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPREDICATEEDITOR_PAS_T}
-{$define NSPREDICATEEDITOR_PAS_T}
+{$ifndef NSPREDICATEEDITOR_PAS_S}
+{$define NSPREDICATEEDITOR_PAS_S}
 
 {$endif}
 {$endif}

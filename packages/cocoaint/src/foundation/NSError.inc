@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSError.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSERROR_PAS_H}
@@ -32,8 +32,24 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSERROR_PAS_T}
-{$define NSERROR_PAS_T}
+{$ifndef NSERROR_PAS_S}
+{$define NSERROR_PAS_S}
+
+{ External string constants }
+var
+  NSCocoaErrorDomain: NSString; external name '_NSCocoaErrorDomain';
+  NSPOSIXErrorDomain: NSString; external name '_NSPOSIXErrorDomain';
+  NSOSStatusErrorDomain: NSString; external name '_NSOSStatusErrorDomain';
+  NSMachErrorDomain: NSString; external name '_NSMachErrorDomain';
+  NSUnderlyingErrorKey: NSString; external name '_NSUnderlyingErrorKey';
+  NSLocalizedDescriptionKey: NSString; external name '_NSLocalizedDescriptionKey';
+  NSLocalizedFailureReasonErrorKey: NSString; external name '_NSLocalizedFailureReasonErrorKey';
+  NSLocalizedRecoverySuggestionErrorKey: NSString; external name '_NSLocalizedRecoverySuggestionErrorKey';
+  NSLocalizedRecoveryOptionsErrorKey: NSString; external name '_NSLocalizedRecoveryOptionsErrorKey';
+  NSRecoveryAttempterErrorKey: NSString; external name '_NSRecoveryAttempterErrorKey';
+  NSStringEncodingErrorKey: NSString; external name '_NSStringEncodingErrorKey';
+  NSURLErrorKey: NSString; external name '_NSURLErrorKey';
+  NSFilePathErrorKey: NSString; external name '_NSFilePathErrorKey';
 
 {$endif}
 {$endif}

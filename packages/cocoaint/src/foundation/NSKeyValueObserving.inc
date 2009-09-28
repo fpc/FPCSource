@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSKeyValueObserving.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,8 +50,16 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSKEYVALUEOBSERVING_PAS_T}
-{$define NSKEYVALUEOBSERVING_PAS_T}
+{$ifndef NSKEYVALUEOBSERVING_PAS_S}
+{$define NSKEYVALUEOBSERVING_PAS_S}
+
+{ External string constants }
+var
+  NSKeyValueChangeKindKey: NSString; external name '_NSKeyValueChangeKindKey';
+  NSKeyValueChangeNewKey: NSString; external name '_NSKeyValueChangeNewKey';
+  NSKeyValueChangeOldKey: NSString; external name '_NSKeyValueChangeOldKey';
+  NSKeyValueChangeIndexesKey: NSString; external name '_NSKeyValueChangeIndexesKey';
+  NSKeyValueChangeNotificationIsPriorKey: NSString; external name '_NSKeyValueChangeNotificationIsPriorKey';
 
 {$endif}
 {$endif}

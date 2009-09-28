@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSImage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSIMAGE_PAS_H}
@@ -22,6 +22,12 @@ const
   NSImageLoadStatusInvalidData = 2;
   NSImageLoadStatusUnexpectedEOF = 3;
   NSImageLoadStatusReadError = 4;
+
+const
+  NSImageCacheDefault = 0;
+  NSImageCacheAlways = 1;
+  NSImageCacheBySize = 2;
+  NSImageCacheNever = 3;
 
 { Types }
 type
@@ -46,8 +52,55 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSIMAGE_PAS_T}
-{$define NSIMAGE_PAS_T}
+{$ifndef NSIMAGE_PAS_S}
+{$define NSIMAGE_PAS_S}
+
+{ External string constants }
+var
+  NSImageNameQuickLookTemplate: NSString; external name '_NSImageNameQuickLookTemplate';
+  NSImageNameBluetoothTemplate: NSString; external name '_NSImageNameBluetoothTemplate';
+  NSImageNameIChatTheaterTemplate: NSString; external name '_NSImageNameIChatTheaterTemplate';
+  NSImageNameSlideshowTemplate: NSString; external name '_NSImageNameSlideshowTemplate';
+  NSImageNameActionTemplate: NSString; external name '_NSImageNameActionTemplate';
+  NSImageNameSmartBadgeTemplate: NSString; external name '_NSImageNameSmartBadgeTemplate';
+  NSImageNameIconViewTemplate: NSString; external name '_NSImageNameIconViewTemplate';
+  NSImageNameListViewTemplate: NSString; external name '_NSImageNameListViewTemplate';
+  NSImageNameColumnViewTemplate: NSString; external name '_NSImageNameColumnViewTemplate';
+  NSImageNameFlowViewTemplate: NSString; external name '_NSImageNameFlowViewTemplate';
+  NSImageNamePathTemplate: NSString; external name '_NSImageNamePathTemplate';
+  NSImageNameInvalidDataFreestandingTemplate: NSString; external name '_NSImageNameInvalidDataFreestandingTemplate';
+  NSImageNameLockLockedTemplate: NSString; external name '_NSImageNameLockLockedTemplate';
+  NSImageNameLockUnlockedTemplate: NSString; external name '_NSImageNameLockUnlockedTemplate';
+  NSImageNameGoRightTemplate: NSString; external name '_NSImageNameGoRightTemplate';
+  NSImageNameGoLeftTemplate: NSString; external name '_NSImageNameGoLeftTemplate';
+  NSImageNameRightFacingTriangleTemplate: NSString; external name '_NSImageNameRightFacingTriangleTemplate';
+  NSImageNameLeftFacingTriangleTemplate: NSString; external name '_NSImageNameLeftFacingTriangleTemplate';
+  NSImageNameAddTemplate: NSString; external name '_NSImageNameAddTemplate';
+  NSImageNameRemoveTemplate: NSString; external name '_NSImageNameRemoveTemplate';
+  NSImageNameRevealFreestandingTemplate: NSString; external name '_NSImageNameRevealFreestandingTemplate';
+  NSImageNameFollowLinkFreestandingTemplate: NSString; external name '_NSImageNameFollowLinkFreestandingTemplate';
+  NSImageNameEnterFullScreenTemplate: NSString; external name '_NSImageNameEnterFullScreenTemplate';
+  NSImageNameExitFullScreenTemplate: NSString; external name '_NSImageNameExitFullScreenTemplate';
+  NSImageNameStopProgressTemplate: NSString; external name '_NSImageNameStopProgressTemplate';
+  NSImageNameStopProgressFreestandingTemplate: NSString; external name '_NSImageNameStopProgressFreestandingTemplate';
+  NSImageNameRefreshTemplate: NSString; external name '_NSImageNameRefreshTemplate';
+  NSImageNameRefreshFreestandingTemplate: NSString; external name '_NSImageNameRefreshFreestandingTemplate';
+  NSImageNameBonjour: NSString; external name '_NSImageNameBonjour';
+  NSImageNameDotMac: NSString; external name '_NSImageNameDotMac';
+  NSImageNameComputer: NSString; external name '_NSImageNameComputer';
+  NSImageNameFolderBurnable: NSString; external name '_NSImageNameFolderBurnable';
+  NSImageNameFolderSmart: NSString; external name '_NSImageNameFolderSmart';
+  NSImageNameNetwork: NSString; external name '_NSImageNameNetwork';
+  NSImageNameMultipleDocuments: NSString; external name '_NSImageNameMultipleDocuments';
+  NSImageNameUserAccounts: NSString; external name '_NSImageNameUserAccounts';
+  NSImageNamePreferencesGeneral: NSString; external name '_NSImageNamePreferencesGeneral';
+  NSImageNameAdvanced: NSString; external name '_NSImageNameAdvanced';
+  NSImageNameInfo: NSString; external name '_NSImageNameInfo';
+  NSImageNameFontPanel: NSString; external name '_NSImageNameFontPanel';
+  NSImageNameColorPanel: NSString; external name '_NSImageNameColorPanel';
+  NSImageNameUser: NSString; external name '_NSImageNameUser';
+  NSImageNameUserGroup: NSString; external name '_NSImageNameUserGroup';
+  NSImageNameEveryone: NSString; external name '_NSImageNameEveryone';
 
 {$endif}
 {$endif}

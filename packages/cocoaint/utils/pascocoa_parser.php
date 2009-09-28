@@ -984,7 +984,7 @@ end;";
 			
 			// multiple parameters
 			if ($type == "...") {
-				$param_string .= "multipleParams: array of Pointer";
+				$param_string .= "varargs: array of const";
 				break;
 			}
 			
@@ -1088,6 +1088,7 @@ end;";
 		$variable_arguments = false;
 		
 		if (count($params) > 0) {
+			//print_r($params);
 			foreach ($params as $value) {
 				$value = trim($value);
 				$valid = false;
@@ -1119,11 +1120,9 @@ end;";
 					}
 					
 					$valid = true;
-				} elseif (eregi("\(([a-zA-Z_]+).*\)([a-zA-Z_]+).*\.\.\.", $value, $captures)) { // array of objects
+				} elseif (eregi("\(([a-zA-Z_]+).*\)([a-zA-Z_]+).*\.\.\.", $value, $captures)) { // variable arguments
 					$name = $captures[2];
-					
-					$type = "$captures[1]";
-					//$type = $this->objc_object_array;
+					$type = $captures[1];
 					$variable_arguments = true;
 					$valid = true;
 				} elseif (eregi("\((.*)\)[[:space:]]*([a-zA-Z_]+)", $value, $captures)) { // standard parameter
@@ -2546,8 +2545,10 @@ end;";
 				
 				foreach ($type_array as $type) $this->PrintOutput(1, $type);
 			}
-			*/					
+			*/	
+							
 			// Named Enumerations
+			/*
 			if ($key == "named_enums") {
 				$this->PrintOutput(0, "");
 				$this->PrintOutput(0, "{ Sets }");
@@ -2557,6 +2558,7 @@ end;";
 					$this->PrintOutput(1, $type);
 				}
 			}
+			*/
 			
 			// Enumerations
 			if ($key == "enums") {
@@ -2570,7 +2572,7 @@ end;";
 			}
 			
 			// Typedefs		
-			if ($key == "typedef") {
+			if (($key == "typedef") || ($key == "named_enums")) {
 				$this->PrintOutput(0, "");
 				$this->PrintOutput(0, "{ Types }");
 				$this->PrintOutput(0, "type");
@@ -3198,7 +3200,8 @@ end;";
 				}
 				
 				// parse enum fields
-				if ($got_enum) {
+				if (($got_enum) || ($got_named_enum)) {
+					//print($line."\n");
 					
 					// insert macros
 					//if ($macro = $this->InsertMacroBlocks($line, $this->inside_macro_block)) $this->dump[$file_name]["types"]["enums"][$block_count][] = $macro;
@@ -3220,10 +3223,15 @@ end;";
 						$captures[2] = trim($captures[2], ", ");
 						$captures[2] = str_replace("<<", " shl ", $captures[2]);
 						$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$captures[2].";";
-					} elseif (ereg("^[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*(,|};)+", $line, $captures)) { // non-value
-						$captures[1] = trim($captures[1], ", ");
-						$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$auto_increment.";";
-						$auto_increment ++;
+					} elseif (ereg("^[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*[,}]*[[:space:]]*$", $line, $captures)) { // non-value
+						
+						// omit lines which started nested structures.
+						// bad practice but the single-line regex parser can't handle them
+						if (!eregi("[=|]+", $line)) {
+							$captures[1] = trim($captures[1], ", ");
+							$this->dump[$file_name]["types"]["enums"][$block_count][] = $captures[1]." = ".$auto_increment.";";
+							$auto_increment ++;
+						}
 					}
 									
 					// found the end
@@ -3237,27 +3245,15 @@ end;";
 					$auto_increment = 0;
 				}
 				
+				// terminate named enum
 				if ($got_named_enum) {
-					
-					// insert macros
-					//if ($macro = $this->InsertMacroBlocks($line, $this->inside_macro_block)) $this->dump[$file_name]["types"]["named_enums"][] = $macro;
-					
-					if (ereg("^[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]*(,|};)+", $line, $captures)) {
-						$named_enum .= $captures[1]." = $auto_increment, ";
-						$auto_increment += 1;
-					} elseif (ereg("^[[:space:]]*([a-zA-Z0-9_]+)[[:space:]]+=[[:space:]]+([-0-9a-zA-Z_]+)", $line, $captures)) {
-						$named_enum .= $captures[1]." = ".$captures[2].", ";
-						$auto_increment = (int) $captures[2];
-					}
-				
-					// found the end
 					if (ereg("^}[[:space:]]*([a-zA-Z0-9_]+);", $line, $captures)) {
 						$got_named_enum = false;
 						
 						$named_enum = trim($named_enum, ", \n");
 						
-						$this->dump[$file_name]["types"]["named_enums"][] = $captures[1]." = (".$named_enum.");";
-						$this->dump["global_types"][$captures[1]] = "{NAMED ENUM}";
+						$this->dump[$file_name]["types"]["named_enums"][] = "$captures[1] = culong;";
+						$this->dump["global_types"][$captures[1]] = $captures[1];
 					}
 				}
 				
@@ -3266,6 +3262,7 @@ end;";
 					$got_named_enum = true;
 					$named_enum = "";
 					$auto_increment = 0;
+					$block_count ++;
 				}
 				
 				// ==== external string constant ===
@@ -3400,7 +3397,16 @@ end;";
 					
 					// found property
 					if (eregi($this->regex_objc_property, $line, $captures)) {
-							$this->ParsePropertyMethod($current_protocol, "protocols", $file_name, $captures);
+							$property = $this->ParseClassProperty($current_protocol, $captures);
+							
+							if ($property["setter"]) {
+								$this->current_header["protocols"][$current_protocol]["methods"][$method["objc_method"]] = $property["setter"];
+							}
+							
+							if ($property["getter"]) {
+								$this->current_header["protocols"][$current_protocol]["methods"][$method["objc_method"]] = $property["getter"];
+							}
+							
 							continue;
 					}
 					
@@ -3450,7 +3456,20 @@ end;";
 					
 					// found property
 					if (eregi($this->regex_objc_property, $line, $captures)) {
-							$this->ParsePropertyMethod($current_category, "categories", $file_name, $captures);
+							$property = $this->ParseClassProperty($current_category, $captures);
+							
+							if ($property["setter"]) {
+								if ($this->AddMethodToClass($property["setter"], $this->current_class)) {
+									$this->dump[$category_owner]["classes"][$current_class]["categories"][$current_category]["methods"][] = $property["setter"];
+								}
+							}
+							
+							if ($property["getter"]) {
+								if ($this->AddMethodToClass($property["getter"], $this->current_class)) {
+									$this->dump[$category_owner]["classes"][$current_class]["categories"][$current_category]["methods"][] = $property["getter"];
+								}
+							}
+
 							continue;
 					}
 					
@@ -3473,7 +3492,6 @@ end;";
 							// add base categories to NSObject
 							if (in_array($current_category, $this->base_categories)) {
 								if ($this->AddMethodToClass($method, $this->dump["NSObject.h"]["classes"]["NSObject"])) {
-									//print($method["name"]."\n");
 									$this->dump["NSObject.h"]["classes"]["NSObject"]["categories"][$current_category]["methods"][] = $method;
 								}
 							}
@@ -3622,8 +3640,9 @@ end;";
 	}
 	
 	// Parse a property into accessor methods
-	function ParsePropertyMethod ($class, $kind, $file_name, $parts) {
+	function ParseClassProperty ($class, $parts) {
 		$property["parameters"] = explode(",", $parts[1]);
+		$method = array();
 		
 		// property name
 		if (eregi("([a-zA-Z0-9]+)$", $parts[2], $captures)) $property["name"] = ucwords($captures[1]);
@@ -3634,45 +3653,35 @@ end;";
 		
 		// setter
 		if (!in_array("readonly", $property["parameters"])) {
-			$method = array();
+			$method["setter"] = array();
 			
 			$name = $property["name"];
 			if (!$this->GetPropertyName("setter", $property["parameters"], $name)) {
 				$name = "set$name";
 			}
 			
-			$method["def"] = "procedure $name (_pinput: $type);";
-			//print($method["def"]."\n");	
-			$method["objc_method"] = "$name:";
-			$method["class"] = $class;
-			$method["name"] = "set$name";
-			$method["kind"] = "procedure";
-
-			if ($this->AddMethodToClass($method, $this->dump[$file_name][$kind][$class])) {
-				$this->dump[$file_name][$kind][$class]["methods"][] = $method;
-			}
+			$method["setter"]["def"] = "procedure $name (newValue: $type);";
+			$method["setter"]["objc_method"] = "$name:";
+			$method["setter"]["class"] = $class;
+			$method["setter"]["name"] = $name;
+			$method["setter"]["kind"] = "procedure";
 		}
 		
 		// getter
-		$method = array();
+		$method["getter"] = array();
 		
 		$name = $property["name"];
 		if (!$this->GetPropertyName("getter", $property["parameters"], $name)) {
-			$name = "get$name";
+			$name = strtolower(substr($name, 0, 1)) . substr($name, 1);
 		}
 		
-		$method["def"] = "function $name: $type;";
-		//print($method["def"]."\n");	
-		$method["objc_method"] = $name;
-		$method["class"] = $class;
-		$method["name"] = "get$name";
-		$method["kind"] = "function";
+		$method["getter"]["def"] = "function $name: $type;";
+		$method["getter"]["objc_method"] = $name;
+		$method["getter"]["class"] = $class;
+		$method["getter"]["name"] = $name;
+		$method["getter"]["kind"] = "function";
 		
-		if ($this->AddMethodToClass($method, $this->dump[$file_name][$kind][$class])) {
-			$this->dump[$file_name][$kind][$class]["methods"][] = $method;
-		}
-		
-		//print_r($property);
+		return $method;
 	}
 	
 	// Main entry to parse a header
@@ -3752,7 +3761,21 @@ end;";
 					
 					// found property
 					if (eregi($this->regex_objc_property, $line, $captures)) {
-							$this->ParsePropertyMethod($current, "classes", $file_name, $captures);
+							$property = $this->ParseClassProperty($current, $captures);
+							
+							if ($property["setter"]) {
+								if ($this->AddMethodToClass($property["setter"], $this->dump[$file_name]["classes"][$current])) {
+									$this->dump[$file_name]["classes"][$current]["methods"][] = $property["setter"];
+								}
+							}
+							
+							if ($property["getter"]) {
+								if ($this->AddMethodToClass($property["getter"], $this->dump[$file_name]["classes"][$current])) {
+									$this->dump[$file_name]["classes"][$current]["methods"][] = $property["getter"];
+								}
+							}
+							
+							continue;
 					}
 					
 					// found method

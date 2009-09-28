@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSFileManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSFILEMANAGER_PAS_H}
@@ -37,12 +37,19 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSFILEMANAGER_PAS_T}
-{$define NSFILEMANAGER_PAS_T}
+{$ifndef NSFILEMANAGER_PAS_S}
+{$define NSFILEMANAGER_PAS_S}
 
 { External string constants }
 var
   NSFileType: NSString; external name '_NSFileType';
+  NSFileTypeDirectory: NSString; external name '_NSFileTypeDirectory';
+  NSFileTypeRegular: NSString; external name '_NSFileTypeRegular';
+  NSFileTypeSymbolicLink: NSString; external name '_NSFileTypeSymbolicLink';
+  NSFileTypeSocket: NSString; external name '_NSFileTypeSocket';
+  NSFileTypeCharacterSpecial: NSString; external name '_NSFileTypeCharacterSpecial';
+  NSFileTypeBlockSpecial: NSString; external name '_NSFileTypeBlockSpecial';
+  NSFileTypeUnknown: NSString; external name '_NSFileTypeUnknown';
   NSFileSize: NSString; external name '_NSFileSize';
   NSFileModificationDate: NSString; external name '_NSFileModificationDate';
   NSFileReferenceCount: NSString; external name '_NSFileReferenceCount';

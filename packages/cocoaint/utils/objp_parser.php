@@ -143,19 +143,6 @@ class TObjPParser extends TPasCocoaParser {
 
 	// replace objc type
 	$return_type = $this->ConvertReturnType($return_type_clean);
-	/*
-	$return_type = $this->ReplaceObjcType($return_type_clean);
-	
-	// if the type was not converted remove the * and process further
-	$return_type = trim($return_type, "* ");
-	$return_type = $this->ReplaceObjcType($return_type);
-	$return_type = $this->ReplaceTollFreeBridgeType($return_type);
-	
-	// format the return type again to make sure it's clean
-	$return_type = $this->FormatObjcType($return_type, $null_modifier);
-	*/
-	// add varargs keyword to the return type
-	if ($variable_arguments) $return_type = "$return_type; varargs";
 
 	$virtual = "";
 	$class_prefix = "";
@@ -187,9 +174,13 @@ class TObjPParser extends TPasCocoaParser {
 
 	// make method templates
 	if ($kind != "function") {
+		if ($variable_arguments) $modifier .= " varargs;";
+		
 		$method = "$class_prefix$kind $name$params_with_modifiers;$modifier$virtual";
 		$method_template = "[KIND] [PREFIX]$name"."[PARAMS];$modifier";
 	} else {
+		if ($variable_arguments) $return_type = "$return_type; varargs";
+
 		$method = $class_prefix."function $name$params_with_modifiers: $return_type;$modifier$virtual";
 		$method_template = "[KIND] [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
 		$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
@@ -234,7 +225,23 @@ class TObjPParser extends TPasCocoaParser {
 
 	return $struct;
 	}
-								
+	
+	function InsertPatches ($header) {
+		$path = "$this->root/patches/".$header["name_clean"].".patch";
+		if ($handle = @fopen($path, "r")) {
+			$text = ReadTextFile($path);
+			$this->PrintOutput(0, $text);
+			fclose($handle);
+		}
+	}
+	
+	function HeaderContainsPatch ($header) {
+		if ($handle = @fopen("$this->root/patches/".$header["name_clean"].".patch", "r")) {
+			fclose($handle);
+			return true;
+		}
+	}
+	
 	// Prints all classes from the header in Objective-P FPC format
 	function PrintHeader ($header) {
 		global $version;
@@ -280,29 +287,6 @@ class TObjPParser extends TPasCocoaParser {
 		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_R}");
 		$this->PrintOutput(0, "{\$define $macro"."_PAS_R}");
 		
-
-		// Records from instance variables
-		// NOTE: These are inline records now
-		/*
-		foreach ($header["classes"] as $class) {
-			if ($class["ivars_structs"]) {
-				foreach ($class["ivars_structs"] as $ivar_struct) {
-					//print_r($ivar_struct);
-					
-					$this->PrintOutput(1, "type");
-					$this->PrintOutput(2, $class["name"]."_".$ivar_struct["name"]." = record");
-
-					// print fields
-					if ($ivar_struct["fields"]) {
-						foreach ($ivar_struct["fields"] as $field) $this->PrintOutput(3, $field);
-					}
-
-					$this->PrintOutput(2, "end;");
-				}
-			}
-		}
-		*/
-		
 		// Records from types
 		$this->PrintRecords($header);
 		
@@ -321,12 +305,24 @@ class TObjPParser extends TPasCocoaParser {
 
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$ifdef EXTERNAL_SYMBOLS}");
-		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_T}");
-		$this->PrintOutput(0, "{\$define $macro"."_PAS_T}");
+		$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_S}");
+		$this->PrintOutput(0, "{\$define $macro"."_PAS_S}");
 		$this->PrintExternalSymbols($header);
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$endif}");
 		$this->PrintOutput(0, "{\$endif}");
+		
+		// insert user patches
+		if ($this->HeaderContainsPatch($header)) {
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$ifdef USER_PATCHES}");
+			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_PATCH}");
+			$this->PrintOutput(0, "{\$define $macro"."_PAS_PATCH}");
+			$this->InsertPatches($header);
+			$this->PrintOutput(0, "");
+			$this->PrintOutput(0, "{\$endif}");
+			$this->PrintOutput(0, "{\$endif}");
+		}
 
 		if (($header["classes"]) || ($header["protocols"])) {
 			$this->PrintOutput(0, "");
@@ -351,7 +347,8 @@ class TObjPParser extends TPasCocoaParser {
 			$this->PrintOutput(0, "{\$define $macro"."_PAS_C}");
 
 			foreach ($header["classes"] as $class) {
-				if (in_array($class["name"], $this->cocoa_classes)) $this->PrintClass($class);
+				//if (in_array($class["name"], $this->cocoa_classes))
+				$this->PrintClass($class);
 			}
 
 			$this->PrintOutput(0, "");
@@ -390,6 +387,7 @@ class TObjPParser extends TPasCocoaParser {
 
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{ ".$class["name"]." }");
+		//print_r($class["methods"]);
 		
 		// print super class or protocol which the class conforms to
 		if ($class["conforms"]) {

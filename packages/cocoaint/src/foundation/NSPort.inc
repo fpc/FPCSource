@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSPort.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPORT_PAS_H}
@@ -46,8 +46,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPORT_PAS_T}
-{$define NSPORT_PAS_T}
+{$ifndef NSPORT_PAS_S}
+{$define NSPORT_PAS_S}
 
 { External string constants }
 var

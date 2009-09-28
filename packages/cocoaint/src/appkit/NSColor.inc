@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSColor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOLOR_PAS_H}
@@ -36,12 +36,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOLOR_PAS_T}
-{$define NSCOLOR_PAS_T}
-
-{ External string constants }
-var
-  NSSystemColorsDidChangeNotification: NSString; external name '_NSSystemColorsDidChangeNotification';
+{$ifndef NSCOLOR_PAS_S}
+{$define NSCOLOR_PAS_S}
 
 {$endif}
 {$endif}

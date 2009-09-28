@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableColumn.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTABLECOLUMN_PAS_H}
@@ -13,6 +13,11 @@ type
 {$ifdef TYPES}
 {$ifndef NSTABLECOLUMN_PAS_T}
 {$define NSTABLECOLUMN_PAS_T}
+
+{ Constants }
+
+const
+  NSTableColumnNoResizing = 0;
 
 {$endif}
 {$endif}
@@ -32,8 +37,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTABLECOLUMN_PAS_T}
-{$define NSTABLECOLUMN_PAS_T}
+{$ifndef NSTABLECOLUMN_PAS_S}
+{$define NSTABLECOLUMN_PAS_S}
 
 {$endif}
 {$endif}

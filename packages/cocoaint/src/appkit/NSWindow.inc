@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSWINDOW_PAS_H}
@@ -39,6 +39,16 @@ const
 const
   NSDisplayWindowRunLoopOrdering = 600000;
   NSResetCursorRectsRunLoopOrdering = 700000;
+
+const
+  NSWindowSharingNone = 0;
+  NSWindowSharingReadOnly = 1;
+  NSWindowSharingReadWrite = 2;
+
+const
+  NSWindowBackingLocationDefault = 0;
+  NSWindowBackingLocationVideoMemory = 1;
+  NSWindowBackingLocationMainMemory = 2;
 
 const
   NSWindowCollectionBehaviorDefault = 0;
@@ -83,27 +93,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSWINDOW_PAS_T}
-{$define NSWINDOW_PAS_T}
-
-{ External string constants }
-var
-  NSWindowDidBecomeKeyNotification: NSString; external name '_NSWindowDidBecomeKeyNotification';
-  NSWindowDidBecomeMainNotification: NSString; external name '_NSWindowDidBecomeMainNotification';
-  NSWindowDidChangeScreenNotification: NSString; external name '_NSWindowDidChangeScreenNotification';
-  NSWindowDidDeminiaturizeNotification: NSString; external name '_NSWindowDidDeminiaturizeNotification';
-  NSWindowDidExposeNotification: NSString; external name '_NSWindowDidExposeNotification';
-  NSWindowDidMiniaturizeNotification: NSString; external name '_NSWindowDidMiniaturizeNotification';
-  NSWindowDidMoveNotification: NSString; external name '_NSWindowDidMoveNotification';
-  NSWindowDidResignKeyNotification: NSString; external name '_NSWindowDidResignKeyNotification';
-  NSWindowDidResignMainNotification: NSString; external name '_NSWindowDidResignMainNotification';
-  NSWindowDidResizeNotification: NSString; external name '_NSWindowDidResizeNotification';
-  NSWindowDidUpdateNotification: NSString; external name '_NSWindowDidUpdateNotification';
-  NSWindowWillCloseNotification: NSString; external name '_NSWindowWillCloseNotification';
-  NSWindowWillMiniaturizeNotification: NSString; external name '_NSWindowWillMiniaturizeNotification';
-  NSWindowWillMoveNotification: NSString; external name '_NSWindowWillMoveNotification';
-  NSWindowWillBeginSheetNotification: NSString; external name '_NSWindowWillBeginSheetNotification';
-  NSWindowDidEndSheetNotification: NSString; external name '_NSWindowDidEndSheetNotification';
+{$ifndef NSWINDOW_PAS_S}
+{$define NSWINDOW_PAS_S}
 
 {$endif}
 {$endif}

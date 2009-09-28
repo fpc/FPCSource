@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGraphics.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -118,27 +118,8 @@ procedure NSShowAnimationEffect(animationEffect: NSAnimationEffect; centerLocati
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSGRAPHICS_PAS_T}
-{$define NSGRAPHICS_PAS_T}
-
-{ External string constants }
-var
-  NSCalibratedWhiteColorSpace: NSString; external name '_NSCalibratedWhiteColorSpace';
-  NSCalibratedBlackColorSpace: NSString; external name '_NSCalibratedBlackColorSpace';
-  NSCalibratedRGBColorSpace: NSString; external name '_NSCalibratedRGBColorSpace';
-  NSDeviceWhiteColorSpace: NSString; external name '_NSDeviceWhiteColorSpace';
-  NSDeviceBlackColorSpace: NSString; external name '_NSDeviceBlackColorSpace';
-  NSDeviceRGBColorSpace: NSString; external name '_NSDeviceRGBColorSpace';
-  NSDeviceCMYKColorSpace: NSString; external name '_NSDeviceCMYKColorSpace';
-  NSNamedColorSpace: NSString; external name '_NSNamedColorSpace';
-  NSPatternColorSpace: NSString; external name '_NSPatternColorSpace';
-  NSCustomColorSpace: NSString; external name '_NSCustomColorSpace';
-  NSDeviceResolution: NSString; external name '_NSDeviceResolution';
-  NSDeviceColorSpaceName: NSString; external name '_NSDeviceColorSpaceName';
-  NSDeviceBitsPerSample: NSString; external name '_NSDeviceBitsPerSample';
-  NSDeviceIsScreen: NSString; external name '_NSDeviceIsScreen';
-  NSDeviceIsPrinter: NSString; external name '_NSDeviceIsPrinter';
-  NSDeviceSize: NSString; external name '_NSDeviceSize';
+{$ifndef NSGRAPHICS_PAS_S}
+{$define NSGRAPHICS_PAS_S}
 
 { External symbols }
 var

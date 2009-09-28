@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleEventManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSAPPLEEVENTMANAGER_PAS_H}
@@ -36,8 +36,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSAPPLEEVENTMANAGER_PAS_T}
-{$define NSAPPLEEVENTMANAGER_PAS_T}
+{$ifndef NSAPPLEEVENTMANAGER_PAS_S}
+{$define NSAPPLEEVENTMANAGER_PAS_S}
 
 {$endif}
 {$endif}

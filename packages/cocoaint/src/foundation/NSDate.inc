@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSDate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDATE_PAS_H}
@@ -40,8 +40,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDATE_PAS_T}
-{$define NSDATE_PAS_T}
+{$ifndef NSDATE_PAS_S}
+{$define NSDATE_PAS_S}
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSStream.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSTREAM_PAS_H}
@@ -59,8 +59,24 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSTREAM_PAS_T}
-{$define NSSTREAM_PAS_T}
+{$ifndef NSSTREAM_PAS_S}
+{$define NSSTREAM_PAS_S}
+
+{ External string constants }
+var
+  NSStreamSocketSecurityLevelKey: NSString; external name '_NSStreamSocketSecurityLevelKey';
+  NSStreamSocketSecurityLevelNone: NSString; external name '_NSStreamSocketSecurityLevelNone';
+  NSStreamSocketSecurityLevelNegotiatedSSL: NSString; external name '_NSStreamSocketSecurityLevelNegotiatedSSL';
+  NSStreamSOCKSProxyConfigurationKey: NSString; external name '_NSStreamSOCKSProxyConfigurationKey';
+  NSStreamSOCKSProxyHostKey: NSString; external name '_NSStreamSOCKSProxyHostKey';
+  NSStreamSOCKSProxyPortKey: NSString; external name '_NSStreamSOCKSProxyPortKey';
+  NSStreamSOCKSProxyVersionKey: NSString; external name '_NSStreamSOCKSProxyVersionKey';
+  NSStreamSOCKSProxyUserKey: NSString; external name '_NSStreamSOCKSProxyUserKey';
+  NSStreamSOCKSProxyPasswordKey: NSString; external name '_NSStreamSOCKSProxyPasswordKey';
+  NSStreamDataWrittenToMemoryStreamKey: NSString; external name '_NSStreamDataWrittenToMemoryStreamKey';
+  NSStreamFileCurrentOffsetKey: NSString; external name '_NSStreamFileCurrentOffsetKey';
+  NSStreamSocketSSLErrorDomain: NSString; external name '_NSStreamSocketSSLErrorDomain';
+  NSStreamSOCKSErrorDomain: NSString; external name '_NSStreamSOCKSErrorDomain';
 
 {$endif}
 {$endif}

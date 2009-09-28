@@ -1,20 +1,42 @@
 { Parsed from Foundation.framework NSPathUtilities.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 
 {$ifdef TYPES}
 {$ifndef NSPATHUTILITIES_PAS_T}
 {$define NSPATHUTILITIES_PAS_T}
 
+{ Constants }
+
+const
+  NSApplicationDirectory = 1;
+  NSDemoApplicationDirectory = 0;
+  NSDeveloperApplicationDirectory = 1;
+  NSAdminApplicationDirectory = 2;
+  NSLibraryDirectory = 3;
+  NSDeveloperDirectory = 4;
+  NSUserDirectory = 5;
+  NSDocumentationDirectory = 6;
+  NSDocumentDirectory = 7;
+  NSCoreServiceDirectory = 8;
+  NSDesktopDirectory = 12;
+  NSCachesDirectory = 13;
+  NSApplicationSupportDirectory = 14;
+  NSDownloadsDirectory = 15;
+  NSAllApplicationsDirectory = 100;
+  NSAllLibrariesDirectory = 101;
+
+const
+  NSUserDomainMask = 1;
+  NSLocalDomainMask = 2;
+  NSNetworkDomainMask = 4;
+  NSSystemDomainMask = 8;
+  NSAllDomainsMask = $0ffff;
+
 { Types }
 type
   NSSearchPathDirectory = NSUInteger;
   NSSearchPathDomainMask = NSUInteger;
-
-{ Constants }
-
-const
-  NSAllDomainsMask = $0ffff;
 
 {$endif}
 {$endif}
@@ -43,8 +65,8 @@ function NSSearchPathForDirectoriesInDomains(directory: NSSearchPathDirectory; d
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPATHUTILITIES_PAS_T}
-{$define NSPATHUTILITIES_PAS_T}
+{$ifndef NSPATHUTILITIES_PAS_S}
+{$define NSPATHUTILITIES_PAS_S}
 
 {$endif}
 {$endif}

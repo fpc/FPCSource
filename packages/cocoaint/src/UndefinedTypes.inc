@@ -19,7 +19,7 @@ type
 
 { Variable argument list - disabled for Pascal }
 type
- va_list_rec=record
+ va_list_rec = record
  end;
  va_list = ^va_list_rec;
 
@@ -47,7 +47,8 @@ const
   NSIntegerMax = high(clong);
   NSIntegerMin = low(clong);
   NSUIntegerMax = high(culong);
- 
+  NSNotFound = NSUIntegerMax;
+
 const
  NX_TABLET_POINTER_UNKNOWN = 0;
  NX_TABLET_POINTER_PEN = 1;

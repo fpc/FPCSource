@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSButtonCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBUTTONCELL_PAS_H}
@@ -17,12 +17,14 @@ type
 { Constants }
 
 const
+  NSMomentaryLightButton = 0;
   NSPushOnPushOffButton = 1;
   NSToggleButton = 2;
   NSSwitchButton = 3;
   NSRadioButton = 4;
   NSMomentaryChangeButton = 5;
   NSOnOffButton = 6;
+  NSMomentaryPushInButton = 7;
   NSMomentaryPushButton = 0;
   NSMomentaryLight = 7;
 
@@ -148,8 +150,8 @@ _BCFlags2 = __BCFlags2;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBUTTONCELL_PAS_T}
-{$define NSBUTTONCELL_PAS_T}
+{$ifndef NSBUTTONCELL_PAS_S}
+{$define NSBUTTONCELL_PAS_S}
 
 {$endif}
 {$endif}

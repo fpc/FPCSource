@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBrowser.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBROWSER_PAS_H}
@@ -113,8 +113,12 @@ _Brflags = __Brflags;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBROWSER_PAS_T}
-{$define NSBROWSER_PAS_T}
+{$ifndef NSBROWSER_PAS_S}
+{$define NSBROWSER_PAS_S}
+
+{ External string constants }
+var
+  NSBrowserColumnConfigurationDidChangeNotification: NSString; external name '_NSBrowserColumnConfigurationDidChangeNotification';
 
 {$endif}
 {$endif}

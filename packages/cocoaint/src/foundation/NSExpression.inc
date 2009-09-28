@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSExpression.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSEXPRESSION_PAS_H}
@@ -17,8 +17,16 @@ type
 { Constants }
 
 const
+  NSConstantValueExpressionType = 0;
+  NSEvaluatedObjectExpressionType = 0;
+  NSVariableExpressionType = 1;
+  NSKeyPathExpressionType = 2;
+  NSFunctionExpressionType = 3;
+  NSUnionSetExpressionType = 4;
+  NSIntersectSetExpressionType = 5;
+  NSMinusSetExpressionType = 6;
   NSSubqueryExpressionType = 13;
-  NSAggregateExpressionType = 0;
+  NSAggregateExpressionType = 7;
 
 { Types }
 type
@@ -42,8 +50,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSEXPRESSION_PAS_T}
-{$define NSEXPRESSION_PAS_T}
+{$ifndef NSEXPRESSION_PAS_S}
+{$define NSEXPRESSION_PAS_S}
 
 {$endif}
 {$endif}

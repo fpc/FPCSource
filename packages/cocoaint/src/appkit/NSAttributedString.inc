@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAttributedString.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSATTRIBUTEDSTRING_PAS_H}
@@ -56,29 +56,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSATTRIBUTEDSTRING_PAS_T}
-{$define NSATTRIBUTEDSTRING_PAS_T}
-
-{ External string constants }
-var
-  NSFontAttributeName: NSString; external name '_NSFontAttributeName';
-  NSParagraphStyleAttributeName: NSString; external name '_NSParagraphStyleAttributeName';
-  NSForegroundColorAttributeName: NSString; external name '_NSForegroundColorAttributeName';
-  NSUnderlineStyleAttributeName: NSString; external name '_NSUnderlineStyleAttributeName';
-  NSSuperscriptAttributeName: NSString; external name '_NSSuperscriptAttributeName';
-  NSBackgroundColorAttributeName: NSString; external name '_NSBackgroundColorAttributeName';
-  NSAttachmentAttributeName: NSString; external name '_NSAttachmentAttributeName';
-  NSLigatureAttributeName: NSString; external name '_NSLigatureAttributeName';
-  NSBaselineOffsetAttributeName: NSString; external name '_NSBaselineOffsetAttributeName';
-  NSKernAttributeName: NSString; external name '_NSKernAttributeName';
-  NSLinkAttributeName: NSString; external name '_NSLinkAttributeName';
-  NSCharacterShapeAttributeName: NSString; external name '_NSCharacterShapeAttributeName';
-  NSGlyphInfoAttributeName: NSString; external name '_NSGlyphInfoAttributeName';
-  NSPlainTextDocumentType: NSString; external name '_NSPlainTextDocumentType';
-  NSRTFTextDocumentType: NSString; external name '_NSRTFTextDocumentType';
-  NSRTFDTextDocumentType: NSString; external name '_NSRTFDTextDocumentType';
-  NSMacSimpleTextDocumentType: NSString; external name '_NSMacSimpleTextDocumentType';
-  NSHTMLTextDocumentType: NSString; external name '_NSHTMLTextDocumentType';
+{$ifndef NSATTRIBUTEDSTRING_PAS_S}
+{$define NSATTRIBUTEDSTRING_PAS_S}
 
 { External symbols }
 var

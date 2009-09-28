@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -82,12 +82,20 @@ procedure NSLogv(formatPointer: NSString; args: va_list); cdecl; external name '
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOBJCRUNTIME_PAS_T}
-{$define NSOBJCRUNTIME_PAS_T}
+{$ifndef NSOBJCRUNTIME_PAS_S}
+{$define NSOBJCRUNTIME_PAS_S}
 
 { External symbols }
 var
   NSFoundationVersionNumber: double; external name '_NSFoundationVersionNumber';
+
+{$endif}
+{$endif}
+
+{$ifdef USER_PATCHES}
+{$ifndef NSOBJCRUNTIME_PAS_PATCH}
+{$define NSOBJCRUNTIME_PAS_PATCH}
+procedure NSLog(fmt:NSString); cdecl; varargs; external;
 
 {$endif}
 {$endif}

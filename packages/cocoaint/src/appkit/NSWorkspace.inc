@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWorkspace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSWORKSPACE_PAS_H}
@@ -55,29 +55,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSWORKSPACE_PAS_T}
-{$define NSWORKSPACE_PAS_T}
-
-{ External string constants }
-var
-  NSWorkspaceDidLaunchApplicationNotification: NSString; external name '_NSWorkspaceDidLaunchApplicationNotification';
-  NSWorkspaceDidMountNotification: NSString; external name '_NSWorkspaceDidMountNotification';
-  NSWorkspaceDidPerformFileOperationNotification: NSString; external name '_NSWorkspaceDidPerformFileOperationNotification';
-  NSWorkspaceDidTerminateApplicationNotification: NSString; external name '_NSWorkspaceDidTerminateApplicationNotification';
-  NSWorkspaceDidUnmountNotification: NSString; external name '_NSWorkspaceDidUnmountNotification';
-  NSWorkspaceWillLaunchApplicationNotification: NSString; external name '_NSWorkspaceWillLaunchApplicationNotification';
-  NSWorkspaceWillPowerOffNotification: NSString; external name '_NSWorkspaceWillPowerOffNotification';
-  NSWorkspaceWillUnmountNotification: NSString; external name '_NSWorkspaceWillUnmountNotification';
-  NSWorkspaceMoveOperation: NSString; external name '_NSWorkspaceMoveOperation';
-  NSWorkspaceCopyOperation: NSString; external name '_NSWorkspaceCopyOperation';
-  NSWorkspaceLinkOperation: NSString; external name '_NSWorkspaceLinkOperation';
-  NSWorkspaceCompressOperation: NSString; external name '_NSWorkspaceCompressOperation';
-  NSWorkspaceDecompressOperation: NSString; external name '_NSWorkspaceDecompressOperation';
-  NSWorkspaceEncryptOperation: NSString; external name '_NSWorkspaceEncryptOperation';
-  NSWorkspaceDecryptOperation: NSString; external name '_NSWorkspaceDecryptOperation';
-  NSWorkspaceDestroyOperation: NSString; external name '_NSWorkspaceDestroyOperation';
-  NSWorkspaceRecycleOperation: NSString; external name '_NSWorkspaceRecycleOperation';
-  NSWorkspaceDuplicateOperation: NSString; external name '_NSWorkspaceDuplicateOperation';
+{$ifndef NSWORKSPACE_PAS_S}
+{$define NSWORKSPACE_PAS_S}
 
 {$endif}
 {$endif}

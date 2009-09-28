@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSAppleScript.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSAPPLESCRIPT_PAS_H}
@@ -32,8 +32,16 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSAPPLESCRIPT_PAS_T}
-{$define NSAPPLESCRIPT_PAS_T}
+{$ifndef NSAPPLESCRIPT_PAS_S}
+{$define NSAPPLESCRIPT_PAS_S}
+
+{ External string constants }
+var
+  NSAppleScriptErrorMessage: NSString; external name '_NSAppleScriptErrorMessage';
+  NSAppleScriptErrorNumber: NSString; external name '_NSAppleScriptErrorNumber';
+  NSAppleScriptErrorAppName: NSString; external name '_NSAppleScriptErrorAppName';
+  NSAppleScriptErrorBriefMessage: NSString; external name '_NSAppleScriptErrorBriefMessage';
+  NSAppleScriptErrorRange: NSString; external name '_NSAppleScriptErrorRange';
 
 {$endif}
 {$endif}

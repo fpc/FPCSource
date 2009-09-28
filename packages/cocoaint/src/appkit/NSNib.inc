@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSNib.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSNIB_PAS_H}
@@ -32,13 +32,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSNIB_PAS_T}
-{$define NSNIB_PAS_T}
-
-{ External string constants }
-var
-  NSNibOwner: NSString; external name '_NSNibOwner';
-  NSNibTopLevelObjects: NSString; external name '_NSNibTopLevelObjects';
+{$ifndef NSNIB_PAS_S}
+{$define NSNIB_PAS_S}
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSAccessibility.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -35,8 +35,8 @@ procedure NSAccessibilityPostNotification(element: id; notificationPointer: NSSt
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSACCESSIBILITY_PAS_T}
-{$define NSACCESSIBILITY_PAS_T}
+{$ifndef NSACCESSIBILITY_PAS_S}
+{$define NSACCESSIBILITY_PAS_S}
 
 { External string constants }
 var
@@ -102,14 +102,34 @@ var
   NSAccessibilityColumnsAttribute: NSString; external name '_NSAccessibilityColumnsAttribute';
   NSAccessibilityVisibleColumnsAttribute: NSString; external name '_NSAccessibilityVisibleColumnsAttribute';
   NSAccessibilitySelectedColumnsAttribute: NSString; external name '_NSAccessibilitySelectedColumnsAttribute';
+  NSAccessibilityAscendingSortDirectionValue: NSString; external name '_NSAccessibilityAscendingSortDirectionValue';
+  NSAccessibilityDescendingSortDirectionValue: NSString; external name '_NSAccessibilityDescendingSortDirectionValue';
+  NSAccessibilityUnknownSortDirectionValue: NSString; external name '_NSAccessibilityUnknownSortDirectionValue';
   NSAccessibilityDisclosingAttribute: NSString; external name '_NSAccessibilityDisclosingAttribute';
   NSAccessibilityDisclosedRowsAttribute: NSString; external name '_NSAccessibilityDisclosedRowsAttribute';
   NSAccessibilityDisclosedByRowAttribute: NSString; external name '_NSAccessibilityDisclosedByRowAttribute';
+  NSAccessibilityLeftTabStopMarkerTypeValue: NSString; external name '_NSAccessibilityLeftTabStopMarkerTypeValue';
+  NSAccessibilityRightTabStopMarkerTypeValue: NSString; external name '_NSAccessibilityRightTabStopMarkerTypeValue';
+  NSAccessibilityCenterTabStopMarkerTypeValue: NSString; external name '_NSAccessibilityCenterTabStopMarkerTypeValue';
+  NSAccessibilityDecimalTabStopMarkerTypeValue: NSString; external name '_NSAccessibilityDecimalTabStopMarkerTypeValue';
+  NSAccessibilityHeadIndentMarkerTypeValue: NSString; external name '_NSAccessibilityHeadIndentMarkerTypeValue';
+  NSAccessibilityTailIndentMarkerTypeValue: NSString; external name '_NSAccessibilityTailIndentMarkerTypeValue';
+  NSAccessibilityFirstLineIndentMarkerTypeValue: NSString; external name '_NSAccessibilityFirstLineIndentMarkerTypeValue';
+  NSAccessibilityUnknownMarkerTypeValue: NSString; external name '_NSAccessibilityUnknownMarkerTypeValue';
+  NSAccessibilityInchesUnitValue: NSString; external name '_NSAccessibilityInchesUnitValue';
+  NSAccessibilityCentimetersUnitValue: NSString; external name '_NSAccessibilityCentimetersUnitValue';
+  NSAccessibilityPointsUnitValue: NSString; external name '_NSAccessibilityPointsUnitValue';
+  NSAccessibilityPicasUnitValue: NSString; external name '_NSAccessibilityPicasUnitValue';
+  NSAccessibilityUnknownUnitValue: NSString; external name '_NSAccessibilityUnknownUnitValue';
   NSAccessibilityPressAction: NSString; external name '_NSAccessibilityPressAction';
   NSAccessibilityIncrementAction: NSString; external name '_NSAccessibilityIncrementAction';
   NSAccessibilityDecrementAction: NSString; external name '_NSAccessibilityDecrementAction';
   NSAccessibilityConfirmAction: NSString; external name '_NSAccessibilityConfirmAction';
   NSAccessibilityPickAction: NSString; external name '_NSAccessibilityPickAction';
+  NSAccessibilityCancelAction: NSString; external name '_NSAccessibilityCancelAction';
+  NSAccessibilityRaiseAction: NSString; external name '_NSAccessibilityRaiseAction';
+  NSAccessibilityShowMenuAction: NSString; external name '_NSAccessibilityShowMenuAction';
+  NSAccessibilityDeleteAction: NSString; external name '_NSAccessibilityDeleteAction';
   NSAccessibilityMainWindowChangedNotification: NSString; external name '_NSAccessibilityMainWindowChangedNotification';
   NSAccessibilityFocusedWindowChangedNotification: NSString; external name '_NSAccessibilityFocusedWindowChangedNotification';
   NSAccessibilityFocusedUIElementChangedNotification: NSString; external name '_NSAccessibilityFocusedUIElementChangedNotification';
@@ -122,8 +142,20 @@ var
   NSAccessibilityWindowResizedNotification: NSString; external name '_NSAccessibilityWindowResizedNotification';
   NSAccessibilityWindowMiniaturizedNotification: NSString; external name '_NSAccessibilityWindowMiniaturizedNotification';
   NSAccessibilityWindowDeminiaturizedNotification: NSString; external name '_NSAccessibilityWindowDeminiaturizedNotification';
+  NSAccessibilityDrawerCreatedNotification: NSString; external name '_NSAccessibilityDrawerCreatedNotification';
+  NSAccessibilitySheetCreatedNotification: NSString; external name '_NSAccessibilitySheetCreatedNotification';
   NSAccessibilityUIElementDestroyedNotification: NSString; external name '_NSAccessibilityUIElementDestroyedNotification';
   NSAccessibilityValueChangedNotification: NSString; external name '_NSAccessibilityValueChangedNotification';
+  NSAccessibilityTitleChangedNotification: NSString; external name '_NSAccessibilityTitleChangedNotification';
+  NSAccessibilityResizedNotification: NSString; external name '_NSAccessibilityResizedNotification';
+  NSAccessibilityMovedNotification: NSString; external name '_NSAccessibilityMovedNotification';
+  NSAccessibilityCreatedNotification: NSString; external name '_NSAccessibilityCreatedNotification';
+  NSAccessibilityHelpTagCreatedNotification: NSString; external name '_NSAccessibilityHelpTagCreatedNotification';
+  NSAccessibilitySelectedTextChangedNotification: NSString; external name '_NSAccessibilitySelectedTextChangedNotification';
+  NSAccessibilityRowCountChangedNotification: NSString; external name '_NSAccessibilityRowCountChangedNotification';
+  NSAccessibilitySelectedChildrenChangedNotification: NSString; external name '_NSAccessibilitySelectedChildrenChangedNotification';
+  NSAccessibilitySelectedRowsChangedNotification: NSString; external name '_NSAccessibilitySelectedRowsChangedNotification';
+  NSAccessibilitySelectedColumnsChangedNotification: NSString; external name '_NSAccessibilitySelectedColumnsChangedNotification';
   NSAccessibilityUnknownRole: NSString; external name '_NSAccessibilityUnknownRole';
   NSAccessibilityButtonRole: NSString; external name '_NSAccessibilityButtonRole';
   NSAccessibilityRadioButtonRole: NSString; external name '_NSAccessibilityRadioButtonRole';
@@ -164,6 +196,14 @@ var
   NSAccessibilityColorWellRole: NSString; external name '_NSAccessibilityColorWellRole';
   NSAccessibilityGrowAreaRole: NSString; external name '_NSAccessibilityGrowAreaRole';
   NSAccessibilitySheetRole: NSString; external name '_NSAccessibilitySheetRole';
+  NSAccessibilityHelpTagRole: NSString; external name '_NSAccessibilityHelpTagRole';
+  NSAccessibilityMatteRole: NSString; external name '_NSAccessibilityMatteRole';
+  NSAccessibilityRulerRole: NSString; external name '_NSAccessibilityRulerRole';
+  NSAccessibilityRulerMarkerRole: NSString; external name '_NSAccessibilityRulerMarkerRole';
+  NSAccessibilitySortButtonRole: NSString; external name '_NSAccessibilitySortButtonRole';
+  NSAccessibilityLinkRole: NSString; external name '_NSAccessibilityLinkRole';
+  NSAccessibilityDisclosureTriangleRole: NSString; external name '_NSAccessibilityDisclosureTriangleRole';
+  NSAccessibilityGridRole: NSString; external name '_NSAccessibilityGridRole';
   NSAccessibilityUnknownSubrole: NSString; external name '_NSAccessibilityUnknownSubrole';
   NSAccessibilityCloseButtonSubrole: NSString; external name '_NSAccessibilityCloseButtonSubrole';
   NSAccessibilityZoomButtonSubrole: NSString; external name '_NSAccessibilityZoomButtonSubrole';
@@ -172,6 +212,19 @@ var
   NSAccessibilityTableRowSubrole: NSString; external name '_NSAccessibilityTableRowSubrole';
   NSAccessibilityOutlineRowSubrole: NSString; external name '_NSAccessibilityOutlineRowSubrole';
   NSAccessibilitySecureTextFieldSubrole: NSString; external name '_NSAccessibilitySecureTextFieldSubrole';
+  NSAccessibilityStandardWindowSubrole: NSString; external name '_NSAccessibilityStandardWindowSubrole';
+  NSAccessibilityDialogSubrole: NSString; external name '_NSAccessibilityDialogSubrole';
+  NSAccessibilitySystemDialogSubrole: NSString; external name '_NSAccessibilitySystemDialogSubrole';
+  NSAccessibilityFloatingWindowSubrole: NSString; external name '_NSAccessibilityFloatingWindowSubrole';
+  NSAccessibilitySystemFloatingWindowSubrole: NSString; external name '_NSAccessibilitySystemFloatingWindowSubrole';
+  NSAccessibilityIncrementArrowSubrole: NSString; external name '_NSAccessibilityIncrementArrowSubrole';
+  NSAccessibilityDecrementArrowSubrole: NSString; external name '_NSAccessibilityDecrementArrowSubrole';
+  NSAccessibilityIncrementPageSubrole: NSString; external name '_NSAccessibilityIncrementPageSubrole';
+  NSAccessibilityDecrementPageSubrole: NSString; external name '_NSAccessibilityDecrementPageSubrole';
+  NSAccessibilitySearchFieldSubrole: NSString; external name '_NSAccessibilitySearchFieldSubrole';
+  NSAccessibilityTextAttachmentSubrole: NSString; external name '_NSAccessibilityTextAttachmentSubrole';
+  NSAccessibilityTextLinkSubrole: NSString; external name '_NSAccessibilityTextLinkSubrole';
+  NSAccessibilityTimelineSubrole: NSString; external name '_NSAccessibilityTimelineSubrole';
 
 {$endif}
 {$endif}

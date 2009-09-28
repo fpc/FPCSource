@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextList.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTLIST_PAS_H}
@@ -37,8 +37,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTEXTLIST_PAS_T}
-{$define NSTEXTLIST_PAS_T}
+{$ifndef NSTEXTLIST_PAS_S}
+{$define NSTEXTLIST_PAS_S}
 
 {$endif}
 {$endif}

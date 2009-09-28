@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSComboBox.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOMBOBOX_PAS_H}
@@ -32,15 +32,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOMBOBOX_PAS_T}
-{$define NSCOMBOBOX_PAS_T}
-
-{ External string constants }
-var
-  NSComboBoxWillPopUpNotification: NSString; external name '_NSComboBoxWillPopUpNotification';
-  NSComboBoxWillDismissNotification: NSString; external name '_NSComboBoxWillDismissNotification';
-  NSComboBoxSelectionDidChangeNotification: NSString; external name '_NSComboBoxSelectionDidChangeNotification';
-  NSComboBoxSelectionIsChangingNotification: NSString; external name '_NSComboBoxSelectionIsChangingNotification';
+{$ifndef NSCOMBOBOX_PAS_S}
+{$define NSCOMBOBOX_PAS_S}
 
 {$endif}
 {$endif}

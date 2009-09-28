@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextAttachment.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTATTACHMENT_PAS_H}
@@ -38,8 +38,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTEXTATTACHMENT_PAS_T}
-{$define NSTEXTATTACHMENT_PAS_T}
+{$ifndef NSTEXTATTACHMENT_PAS_S}
+{$define NSTEXTATTACHMENT_PAS_S}
 
 {$endif}
 {$endif}

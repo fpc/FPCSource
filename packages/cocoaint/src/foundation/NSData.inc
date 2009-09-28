@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSData.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSDATA_PAS_H}
@@ -14,6 +14,15 @@ type
 {$ifdef TYPES}
 {$ifndef NSDATA_PAS_T}
 {$define NSDATA_PAS_T}
+
+{ Constants }
+
+const
+  NSMappedRead = 1;
+  NSUncachedRead = 2;
+
+const
+  NSAtomicWrite = 1;
 
 {$endif}
 {$endif}
@@ -33,8 +42,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDATA_PAS_T}
-{$define NSDATA_PAS_T}
+{$ifndef NSDATA_PAS_S}
+{$define NSDATA_PAS_S}
 
 {$endif}
 {$endif}

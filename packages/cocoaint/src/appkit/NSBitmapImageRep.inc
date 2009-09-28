@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBitmapImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBITMAPIMAGEREP_PAS_H}
@@ -35,6 +35,14 @@ const
   NSJPEG2000FileType = 5;
 
 const
+  NSImageRepLoadStatusUnknownType = -1;
+  NSImageRepLoadStatusReadingHeader = -2;
+  NSImageRepLoadStatusWillNeedAllData = -3;
+  NSImageRepLoadStatusInvalidData = -4;
+  NSImageRepLoadStatusUnexpectedEOF = -5;
+  NSImageRepLoadStatusCompleted = -6;
+
+const
   NSAlphaFirstBitmapFormat = 1  shl  0;
   NSAlphaNonpremultipliedBitmapFormat = 1  shl  1;
   NSFloatingPointSamplesBitmapFormat = 1  shl  2;
@@ -64,8 +72,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBITMAPIMAGEREP_PAS_T}
-{$define NSBITMAPIMAGEREP_PAS_T}
+{$ifndef NSBITMAPIMAGEREP_PAS_S}
+{$define NSBITMAPIMAGEREP_PAS_S}
 
 {$endif}
 {$endif}
@@ -110,7 +118,7 @@ type
     function initWithCGImage(CGImage_: CGImageRef): id; message 'initWithCGImage:';
     function initWithCIImage(ciImage: CIImagePointer): id; message 'initWithCIImage:';
     class function imageRepsWithData(data: NSData): NSArray; message 'imageRepsWithData:';
-    class function imageRepWithData_initWithData(data: NSData): id; message 'imageRepWithData:';
+    class function imageRepWithData(data: NSData): id; message 'imageRepWithData:';
     function initWithData(data: NSData): id; message 'initWithData:';
     function bitmapData: Pointer; message 'bitmapData';
     procedure getBitmapDataPlanes(data: pchar); message 'getBitmapDataPlanes:';

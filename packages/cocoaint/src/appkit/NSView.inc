@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSVIEW_PAS_H}
@@ -113,18 +113,14 @@ _VFlags = __VFlags;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSVIEW_PAS_T}
-{$define NSVIEW_PAS_T}
+{$ifndef NSVIEW_PAS_S}
+{$define NSVIEW_PAS_S}
 
 { External string constants }
 var
   NSFullScreenModeAllScreens: NSString; external name '_NSFullScreenModeAllScreens';
   NSFullScreenModeSetting: NSString; external name '_NSFullScreenModeSetting';
   NSFullScreenModeWindowLevel: NSString; external name '_NSFullScreenModeWindowLevel';
-  NSViewFrameDidChangeNotification: NSString; external name '_NSViewFrameDidChangeNotification';
-  NSViewFocusDidChangeNotification: NSString; external name '_NSViewFocusDidChangeNotification';
-  NSViewBoundsDidChangeNotification: NSString; external name '_NSViewBoundsDidChangeNotification';
-  NSViewGlobalFrameDidChangeNotification: NSString; external name '_NSViewGlobalFrameDidChangeNotification';
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSGlyphInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSGLYPHINFO_PAS_H}
@@ -13,6 +13,16 @@ type
 {$ifdef TYPES}
 {$ifndef NSGLYPHINFO_PAS_T}
 {$define NSGLYPHINFO_PAS_T}
+
+{ Constants }
+
+const
+  NSIdentityMappingCharacterCollection = 0;
+  NSAdobeCNS1CharacterCollection = 1;
+  NSAdobeGB1CharacterCollection = 2;
+  NSAdobeJapan1CharacterCollection = 3;
+  NSAdobeJapan2CharacterCollection = 4;
+  NSAdobeKorea1CharacterCollection = 5;
 
 { Types }
 type
@@ -36,8 +46,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSGLYPHINFO_PAS_T}
-{$define NSGLYPHINFO_PAS_T}
+{$ifndef NSGLYPHINFO_PAS_S}
+{$define NSGLYPHINFO_PAS_S}
 
 {$endif}
 {$endif}

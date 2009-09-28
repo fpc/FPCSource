@@ -1,21 +1,30 @@
 { Parsed from Foundation.framework NSDecimal.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 
 {$ifdef TYPES}
 {$ifndef NSDECIMAL_PAS_T}
 {$define NSDECIMAL_PAS_T}
 
+{ Constants }
+
+const
+  NSRoundPlain = 0;
+  NSRoundDown = 1;
+  NSRoundUp = 2;
+  NSRoundBankers = 3;
+
+const
+  NSCalculationNoError = 0;
+  NSCalculationLossOfPrecision = 0;
+  NSCalculationUnderflow = 1;
+  NSCalculationOverflow = 2;
+  NSCalculationDivideByZero = 3;
+
 { Types }
 type
   NSRoundingMode = NSUInteger;
   NSCalculationError = NSUInteger;
-
-{ Constants }
-
-const
-  NSCalculationNoError = 0;
-  NSCalculationDivideByZero = 0;
 
 {$endif}
 {$endif}
@@ -28,7 +37,7 @@ const
 type
   NSDecimal = record
     _exponent: 0..((1 shl 8)-1);
-    _length: cuint;
+    _length: 0..((1 shl 4)-1);
     _isNegative: 0..1;
     _isCompact: 0..1;
     _reserved: 0..((1 shl 18)-1);
@@ -61,8 +70,8 @@ function NSDecimalString(dcmPointer: NSDecimal; locale: id): NSString; cdecl; ex
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSDECIMAL_PAS_T}
-{$define NSDECIMAL_PAS_T}
+{$ifndef NSDECIMAL_PAS_S}
+{$define NSDECIMAL_PAS_S}
 
 {$endif}
 {$endif}

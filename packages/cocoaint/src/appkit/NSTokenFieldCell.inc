@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTokenFieldCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOKENFIELDCELL_PAS_H}
@@ -13,6 +13,13 @@ type
 {$ifdef TYPES}
 {$ifndef NSTOKENFIELDCELL_PAS_T}
 {$define NSTOKENFIELDCELL_PAS_T}
+
+{ Constants }
+
+const
+  NSDefaultTokenStyle = 0;
+  NSPlainTextTokenStyle = 1;
+  NSRoundedTokenStyle = 2;
 
 { Types }
 type
@@ -36,8 +43,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTOKENFIELDCELL_PAS_T}
-{$define NSTOKENFIELDCELL_PAS_T}
+{$ifndef NSTOKENFIELDCELL_PAS_S}
+{$define NSTOKENFIELDCELL_PAS_S}
 
 {$endif}
 {$endif}

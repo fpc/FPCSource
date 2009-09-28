@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSInterfaceStyle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -9,6 +9,7 @@
 { Constants }
 
 const
+  NSNoInterfaceStyle = 0;
   NSNextStepInterfaceStyle = 1;
   NSWindows95InterfaceStyle = 2;
   NSMacintoshInterfaceStyle = 3;
@@ -38,12 +39,8 @@ function NSInterfaceStyleForKey(keyPointer: NSString; responderPointer: NSRespon
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSINTERFACESTYLE_PAS_T}
-{$define NSINTERFACESTYLE_PAS_T}
-
-{ External string constants }
-var
-  NSInterfaceStyleDefault: NSString; external name '_NSInterfaceStyleDefault';
+{$ifndef NSINTERFACESTYLE_PAS_S}
+{$define NSINTERFACESTYLE_PAS_S}
 
 {$endif}
 {$endif}

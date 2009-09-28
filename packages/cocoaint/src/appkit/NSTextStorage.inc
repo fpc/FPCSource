@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTextStorage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXTSTORAGE_PAS_H}
@@ -38,13 +38,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTEXTSTORAGE_PAS_T}
-{$define NSTEXTSTORAGE_PAS_T}
-
-{ External string constants }
-var
-  NSTextStorageWillProcessEditingNotification: NSString; external name '_NSTextStorageWillProcessEditingNotification';
-  NSTextStorageDidProcessEditingNotification: NSString; external name '_NSTextStorageDidProcessEditingNotification';
+{$ifndef NSTEXTSTORAGE_PAS_S}
+{$define NSTEXTSTORAGE_PAS_S}
 
 {$endif}
 {$endif}
@@ -78,7 +73,7 @@ var
   public
     class function alloc: NSTextStorage; message 'alloc';
 
-    procedure addLayoutManager_setTextStorage(obj: NSLayoutManager); message 'addLayoutManager:';
+    procedure addLayoutManager(obj: NSLayoutManager); message 'addLayoutManager:';
     procedure removeLayoutManager(obj: NSLayoutManager); message 'removeLayoutManager:';
     function layoutManagers: NSArray; message 'layoutManagers';
     procedure edited_range_changeInLength(editedMask_: NSUInteger; range: NSRange; delta: NSInteger); message 'edited:range:changeInLength:';

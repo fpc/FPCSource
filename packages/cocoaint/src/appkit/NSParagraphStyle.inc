@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSParagraphStyle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSPARAGRAPHSTYLE_PAS_H}
@@ -26,7 +26,11 @@ const
 
 const
   NSLineBreakByWordWrapping = 0;
-  NSLineBreakByTruncatingMiddle = 0;
+  NSLineBreakByCharWrapping = 0;
+  NSLineBreakByClipping = 1;
+  NSLineBreakByTruncatingHead = 2;
+  NSLineBreakByTruncatingTail = 3;
+  NSLineBreakByTruncatingMiddle = 4;
 
 { Types }
 type
@@ -51,8 +55,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSPARAGRAPHSTYLE_PAS_T}
-{$define NSPARAGRAPHSTYLE_PAS_T}
+{$ifndef NSPARAGRAPHSTYLE_PAS_S}
+{$define NSPARAGRAPHSTYLE_PAS_S}
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbar.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOOLBAR_PAS_H}
@@ -37,13 +37,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTOOLBAR_PAS_T}
-{$define NSTOOLBAR_PAS_T}
-
-{ External string constants }
-var
-  NSToolbarWillAddItemNotification: NSString; external name '_NSToolbarWillAddItemNotification';
-  NSToolbarDidRemoveItemNotification: NSString; external name '_NSToolbarDidRemoveItemNotification';
+{$ifndef NSTOOLBAR_PAS_S}
+{$define NSTOOLBAR_PAS_S}
 
 {$endif}
 {$endif}

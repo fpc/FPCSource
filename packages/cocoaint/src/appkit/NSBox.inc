@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSBox.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSBOX_PAS_H}
@@ -25,6 +25,13 @@ const
   NSAtBottom = 5;
   NSBelowBottom = 6;
 
+const
+  NSBoxPrimary = 0;
+  NSBoxSecondary = 1;
+  NSBoxSeparator = 2;
+  NSBoxOldStyle = 3;
+  NSBoxCustom = 4;
+
 { Types }
 type
   NSTitlePosition = NSUInteger;
@@ -48,8 +55,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSBOX_PAS_T}
-{$define NSBOX_PAS_T}
+{$ifndef NSBOX_PAS_S}
+{$define NSBOX_PAS_S}
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMapTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMAPTABLE_PAS_H}
@@ -17,6 +17,7 @@ type
 { Constants }
 
 const
+  NSMapTableStrongMemory = 0;
   NSMapTableZeroingWeakMemory = NSPointerFunctionsZeroingWeakMemory;
   NSMapTableCopyIn = NSPointerFunctionsCopyIn;
   NSMapTableObjectPointerPersonality = NSPointerFunctionsObjectPointerPersonality;
@@ -83,16 +84,18 @@ function NSCreateMapTable(keyCallBacks: NSMapTableKeyCallBacks; valueCallBacks: 
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSMAPTABLE_PAS_T}
-{$define NSMAPTABLE_PAS_T}
+{$ifndef NSMAPTABLE_PAS_S}
+{$define NSMAPTABLE_PAS_S}
 
 { External symbols }
 var
+  NSIntegerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSIntegerMapKeyCallBacks';
   NSNonOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonOwnedPointerMapKeyCallBacks';
   NSNonOwnedPointerOrNullMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonOwnedPointerOrNullMapKeyCallBacks';
   NSNonRetainedObjectMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSNonRetainedObjectMapKeyCallBacks';
   NSObjectMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSObjectMapKeyCallBacks';
   NSOwnedPointerMapKeyCallBacks: NSMapTableKeyCallBacks; external name '_NSOwnedPointerMapKeyCallBacks';
+  NSIntegerMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSIntegerMapValueCallBacks';
   NSNonOwnedPointerMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSNonOwnedPointerMapValueCallBacks';
   NSObjectMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSObjectMapValueCallBacks';
   NSNonRetainedObjectMapValueCallBacks: NSMapTableValueCallBacks; external name '_NSNonRetainedObjectMapValueCallBacks';

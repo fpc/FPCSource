@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSHashTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSHASHTABLE_PAS_H}
@@ -17,6 +17,7 @@ type
 { Constants }
 
 const
+  NSHashTableStrongMemory = 0;
   NSHashTableZeroingWeakMemory = NSPointerFunctionsZeroingWeakMemory;
   NSHashTableCopyIn = NSPointerFunctionsCopyIn;
   NSHashTableObjectPointerPersonality = NSPointerFunctionsObjectPointerPersonality;
@@ -73,11 +74,12 @@ function NSCreateHashTable(callBacks: NSHashTableCallBacks; capacity: NSUInteger
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSHASHTABLE_PAS_T}
-{$define NSHASHTABLE_PAS_T}
+{$ifndef NSHASHTABLE_PAS_S}
+{$define NSHASHTABLE_PAS_S}
 
 { External symbols }
 var
+  NSIntegerHashCallBacks: NSHashTableCallBacks; external name '_NSIntegerHashCallBacks';
   NSNonOwnedPointerHashCallBacks: NSHashTableCallBacks; external name '_NSNonOwnedPointerHashCallBacks';
   NSNonRetainedObjectHashCallBacks: NSHashTableCallBacks; external name '_NSNonRetainedObjectHashCallBacks';
   NSObjectHashCallBacks: NSHashTableCallBacks; external name '_NSObjectHashCallBacks';

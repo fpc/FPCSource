@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCELL_PAS_H}
@@ -59,6 +59,17 @@ const
   NSImageOverlaps = 6;
 
 const
+  NSScaleProportionally = 0;
+  NSScaleToFit = 0;
+  NSScaleNone = 1;
+
+const
+  NSImageScaleProportionallyDown = 0;
+  NSImageScaleAxesIndependently = 0;
+  NSImageScaleNone = 1;
+  NSImageScaleProportionallyUpOrDown = 2;
+
+const
   NSMixedState = -1;
   NSOffState = 0;
   NSOnState = 1;
@@ -71,6 +82,7 @@ const
   NSChangeBackgroundCellMask = 8;
 
 const
+  NSDefaultControlTint = 0;
   NSBlueControlTint = 1;
   NSGraphiteControlTint = 6;
   NSClearControlTint = 7;
@@ -84,6 +96,12 @@ const
   NSCellHitContentArea = 1  shl  0;
   NSCellHitEditableTextArea = 1  shl  1;
   NSCellHitTrackableArea = 1  shl  2;
+
+const
+  NSBackgroundStyleLight = 0;
+  NSBackgroundStyleDark = 0;
+  NSBackgroundStyleRaised = 1;
+  NSBackgroundStyleLowered = 2;
 
 { Types }
 type
@@ -172,12 +190,8 @@ procedure NSDrawNinePartImage(frame: NSRect; topLeftCornerPointer: NSImage; topE
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCELL_PAS_T}
-{$define NSCELL_PAS_T}
-
-{ External string constants }
-var
-  NSControlTintDidChangeNotification: NSString; external name '_NSControlTintDidChangeNotification';
+{$ifndef NSCELL_PAS_S}
+{$define NSCELL_PAS_S}
 
 {$endif}
 {$endif}
@@ -334,9 +348,9 @@ var
     function attributedStringValue: NSAttributedString; message 'attributedStringValue';
     procedure setAttributedStringValue(obj: NSAttributedString); message 'setAttributedStringValue:';
     function allowsEditingTextAttributes: Boolean; message 'allowsEditingTextAttributes';
-    procedure setAllowsEditingTextAttributes_setImportsGraphics(flag: Boolean); message 'setAllowsEditingTextAttributes:';
+    procedure setAllowsEditingTextAttributes(flag: Boolean); message 'setAllowsEditingTextAttributes:';
     function importsGraphics: Boolean; message 'importsGraphics';
-    procedure setImportsGraphics_setAllowsEditingTextAttributes(flag: Boolean); message 'setImportsGraphics:';
+    procedure setImportsGraphics(flag: Boolean); message 'setImportsGraphics:';
 
     { Category: NSCellMixedState }
     procedure setAllowsMixedState(flag: Boolean); message 'setAllowsMixedState:';

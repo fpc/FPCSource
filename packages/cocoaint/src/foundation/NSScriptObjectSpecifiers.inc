@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSScriptObjectSpecifiers.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_H}
@@ -28,6 +28,12 @@ type
 
 const
   NSNoSpecifierError = 0;
+  NSNoTopLevelContainersSpecifierError = 0;
+  NSContainerSpecifierError = 1;
+  NSUnknownKeySpecifierError = 2;
+  NSInvalidIndexSpecifierError = 3;
+  NSInternalSpecifierError = 4;
+  NSOperationNotSupportedForKeySpecifierError = 5;
 
 const
   NSPositionAfter = 0;
@@ -45,6 +51,7 @@ const
   NSEverySubelement = 1;
   NSMiddleSubelement = 2;
   NSRandomSubelement = 3;
+  NSNoSubelement = 4;
 
 { Types }
 type
@@ -70,8 +77,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_T}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_T}
+{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_S}
+{$define NSSCRIPTOBJECTSPECIFIERS_PAS_S}
 
 {$endif}
 {$endif}

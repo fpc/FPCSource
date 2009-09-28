@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSTableView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTABLEVIEW_PAS_H}
@@ -25,8 +25,10 @@ type
 const
   NSTableViewNoColumnAutoresizing = 0;
   NSTableViewUniformColumnAutoresizingStyle = 0;
-  NSTableViewLastColumnOnlyAutoresizingStyle = 1;
-  NSTableViewFirstColumnOnlyAutoresizingStyle = 2;
+  NSTableViewSequentialColumnAutoresizingStyle = 1;
+  NSTableViewReverseSequentialColumnAutoresizingStyle = 2;
+  NSTableViewLastColumnOnlyAutoresizingStyle = 3;
+  NSTableViewFirstColumnOnlyAutoresizingStyle = 4;
 
 const
   NSTableViewGridNone = 0;
@@ -55,7 +57,7 @@ type
     allowsMultipleSelection: 0..1;
     allowsColumnSelection: 0..1;
     selectionType: 0..((1 shl 2)-1);
-    changingLayout: cuint;
+    changingLayout: 0..1;
     compareWidthWithSuperview: 0..((1 shl 2)-1);
     delegateWillDisplayCell: 0..1;
     delegateShouldEditTableColumn: 0..1;
@@ -79,7 +81,7 @@ type
     delegateShouldEditTableColumn: 0..1;
     delegateWillDisplayCell: 0..1;
     compareWidthWithSuperview: 0..((1 shl 2)-1);
-    changingLayout: cuint;
+    changingLayout: 0..1;
     selectionType: 0..((1 shl 2)-1);
     allowsColumnSelection: 0..1;
     allowsMultipleSelection: 0..1;
@@ -103,15 +105,8 @@ _TvFlags = __TvFlags;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTABLEVIEW_PAS_T}
-{$define NSTABLEVIEW_PAS_T}
-
-{ External string constants }
-var
-  NSTableViewSelectionDidChangeNotification: NSString; external name '_NSTableViewSelectionDidChangeNotification';
-  NSTableViewColumnDidMoveNotification: NSString; external name '_NSTableViewColumnDidMoveNotification';
-  NSTableViewColumnDidResizeNotification: NSString; external name '_NSTableViewColumnDidResizeNotification';
-  NSTableViewSelectionIsChangingNotification: NSString; external name '_NSTableViewSelectionIsChangingNotification';
+{$ifndef NSTABLEVIEW_PAS_S}
+{$define NSTABLEVIEW_PAS_S}
 
 {$endif}
 {$endif}

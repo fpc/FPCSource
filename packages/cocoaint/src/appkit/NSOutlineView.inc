@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOutlineView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOUTLINEVIEW_PAS_H}
@@ -84,19 +84,8 @@ _OVFlags = __OvFlags;
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOUTLINEVIEW_PAS_T}
-{$define NSOUTLINEVIEW_PAS_T}
-
-{ External string constants }
-var
-  NSOutlineViewSelectionDidChangeNotification: NSString; external name '_NSOutlineViewSelectionDidChangeNotification';
-  NSOutlineViewColumnDidMoveNotification: NSString; external name '_NSOutlineViewColumnDidMoveNotification';
-  NSOutlineViewColumnDidResizeNotification: NSString; external name '_NSOutlineViewColumnDidResizeNotification';
-  NSOutlineViewSelectionIsChangingNotification: NSString; external name '_NSOutlineViewSelectionIsChangingNotification';
-  NSOutlineViewItemWillExpandNotification: NSString; external name '_NSOutlineViewItemWillExpandNotification';
-  NSOutlineViewItemDidExpandNotification: NSString; external name '_NSOutlineViewItemDidExpandNotification';
-  NSOutlineViewItemWillCollapseNotification: NSString; external name '_NSOutlineViewItemWillCollapseNotification';
-  NSOutlineViewItemDidCollapseNotification: NSString; external name '_NSOutlineViewItemDidCollapseNotification';
+{$ifndef NSOUTLINEVIEW_PAS_S}
+{$define NSOUTLINEVIEW_PAS_S}
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCoder.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCODER_PAS_H}
@@ -35,8 +35,8 @@ function NXReadNSObjectFromCoder(decoderPointer: NSCoder): NSObject; cdecl; exte
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCODER_PAS_T}
-{$define NSCODER_PAS_T}
+{$ifndef NSCODER_PAS_S}
+{$define NSCODER_PAS_S}
 
 {$endif}
 {$endif}
@@ -69,12 +69,12 @@ function NXReadNSObjectFromCoder(decoderPointer: NSCoder): NSObject; cdecl; exte
     procedure encodeBycopyObject(anObject: id); message 'encodeBycopyObject:';
     procedure encodeByrefObject(anObject: id); message 'encodeByrefObject:';
     procedure encodeConditionalObject(object_: id); message 'encodeConditionalObject:';
-    procedure encodeValuesOfObjCTypes(types: PChar); message 'encodeValuesOfObjCTypes:';
+    procedure encodeValuesOfObjCTypes(types: PChar); varargs; message 'encodeValuesOfObjCTypes:';
     procedure encodeArrayOfObjCType_count_at(type_: PChar; count: NSUInteger; array_: Pointer); message 'encodeArrayOfObjCType:count:at:';
     procedure encodeBytes_length(byteaddr: Pointer; length: NSUInteger); message 'encodeBytes:length:';
     function decodeObject: id; message 'decodeObject';
     function decodePropertyList: id; message 'decodePropertyList';
-    procedure decodeValuesOfObjCTypes(types: PChar); message 'decodeValuesOfObjCTypes:';
+    procedure decodeValuesOfObjCTypes(types: PChar); varargs; message 'decodeValuesOfObjCTypes:';
     procedure decodeArrayOfObjCType_count_at(itemType: PChar; count: NSUInteger; array_: Pointer); message 'decodeArrayOfObjCType:count:at:';
     function decodeBytesWithReturnedLength(lengthp: NSUIntegerPointer): Pointer; message 'decodeBytesWithReturnedLength:';
     procedure setObjectZone(zone_: NSZonePointer); message 'setObjectZone:';

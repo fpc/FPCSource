@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSLocale.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSLOCALE_PAS_H}
@@ -32,8 +32,33 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSLOCALE_PAS_T}
-{$define NSLOCALE_PAS_T}
+{$ifndef NSLOCALE_PAS_S}
+{$define NSLOCALE_PAS_S}
+
+{ External string constants }
+var
+  NSCurrentLocaleDidChangeNotification: NSString; external name '_NSCurrentLocaleDidChangeNotification';
+  NSLocaleIdentifier: NSString; external name '_NSLocaleIdentifier';
+  NSLocaleLanguageCode: NSString; external name '_NSLocaleLanguageCode';
+  NSLocaleCountryCode: NSString; external name '_NSLocaleCountryCode';
+  NSLocaleScriptCode: NSString; external name '_NSLocaleScriptCode';
+  NSLocaleVariantCode: NSString; external name '_NSLocaleVariantCode';
+  NSLocaleExemplarCharacterSet: NSString; external name '_NSLocaleExemplarCharacterSet';
+  NSLocaleCalendar: NSString; external name '_NSLocaleCalendar';
+  NSLocaleCollationIdentifier: NSString; external name '_NSLocaleCollationIdentifier';
+  NSLocaleUsesMetricSystem: NSString; external name '_NSLocaleUsesMetricSystem';
+  NSLocaleMeasurementSystem: NSString; external name '_NSLocaleMeasurementSystem';
+  NSLocaleDecimalSeparator: NSString; external name '_NSLocaleDecimalSeparator';
+  NSLocaleGroupingSeparator: NSString; external name '_NSLocaleGroupingSeparator';
+  NSLocaleCurrencySymbol: NSString; external name '_NSLocaleCurrencySymbol';
+  NSLocaleCurrencyCode: NSString; external name '_NSLocaleCurrencyCode';
+  NSGregorianCalendar: NSString; external name '_NSGregorianCalendar';
+  NSBuddhistCalendar: NSString; external name '_NSBuddhistCalendar';
+  NSChineseCalendar: NSString; external name '_NSChineseCalendar';
+  NSHebrewCalendar: NSString; external name '_NSHebrewCalendar';
+  NSIslamicCalendar: NSString; external name '_NSIslamicCalendar';
+  NSIslamicCivilCalendar: NSString; external name '_NSIslamicCivilCalendar';
+  NSJapaneseCalendar: NSString; external name '_NSJapaneseCalendar';
 
 {$endif}
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSToolbarItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTOOLBARITEM_PAS_H}
@@ -13,6 +13,14 @@ type
 {$ifdef TYPES}
 {$ifndef NSTOOLBARITEM_PAS_T}
 {$define NSTOOLBARITEM_PAS_T}
+
+{ Constants }
+
+const
+  NSToolbarItemVisibilityPriorityStandard = 0;
+  NSToolbarItemVisibilityPriorityLow = -1000;
+  NSToolbarItemVisibilityPriorityHigh = 1000;
+  NSToolbarItemVisibilityPriorityUser = 2000;
 
 {$endif}
 {$endif}
@@ -32,18 +40,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTOOLBARITEM_PAS_T}
-{$define NSTOOLBARITEM_PAS_T}
-
-{ External string constants }
-var
-  NSToolbarSeparatorItemIdentifier: NSString; external name '_NSToolbarSeparatorItemIdentifier';
-  NSToolbarSpaceItemIdentifier: NSString; external name '_NSToolbarSpaceItemIdentifier';
-  NSToolbarFlexibleSpaceItemIdentifier: NSString; external name '_NSToolbarFlexibleSpaceItemIdentifier';
-  NSToolbarShowColorsItemIdentifier: NSString; external name '_NSToolbarShowColorsItemIdentifier';
-  NSToolbarShowFontsItemIdentifier: NSString; external name '_NSToolbarShowFontsItemIdentifier';
-  NSToolbarCustomizeToolbarItemIdentifier: NSString; external name '_NSToolbarCustomizeToolbarItemIdentifier';
-  NSToolbarPrintItemIdentifier: NSString; external name '_NSToolbarPrintItemIdentifier';
+{$ifndef NSTOOLBARITEM_PAS_S}
+{$define NSTOOLBARITEM_PAS_S}
 
 {$endif}
 {$endif}

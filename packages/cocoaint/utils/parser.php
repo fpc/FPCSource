@@ -201,64 +201,72 @@ function HandleCommandLineOptions ($argv) {
 $testing = true;
 
 if ($testing) {
-	$GLOBALS["argv"][] = "-root=/Developer/pascocoa/objp";
+	$GLOBALS["argv"][] = "-iphone";
+	$GLOBALS["argv"][] = "-root=/Developer/ObjectivePascal";
 	//$GLOBALS["argv"][] = "-delegates";
 	//$GLOBALS["argv"][] = "-reference";
-	$GLOBALS["argv"][] = "-all";
+	//$GLOBALS["argv"][] = "-all";
 	//$GLOBALS["argv"][] = "-noprint";
+	//$GLOBALS["argv"][] = "-show";
 	//$GLOBALS["argv"][] = "-only=\"UIWindow.h\"";
 	$GLOBALS["argv"][] = "-frameworks=\"appkit,foundation\"";
 
-	//$GLOBALS["argv"][] = "-framework_path=\"/Users/ryanjoseph/Desktop/iphone\"";
-	//$GLOBALS["argv"][] = "-header=\"uikit/UIImage.h\"";
+	$GLOBALS["argv"][] = "-framework_path=\"/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS2.2.1.sdk/System/Library/Frameworks\"";
+	$GLOBALS["argv"][] = "-header=\"uikit/UIView.h\"";
 	
-	$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
-	//$GLOBALS["argv"][] = "-header=\"foundation/NSKeyValueObserving.h\"";
-	$GLOBALS["argv"][] = "-header=\"appkit/NSBrowser.h\"";
+	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
+	//$GLOBALS["argv"][] = "-header=\"foundation/NSXMLNodeOptions.h\"";
+	//$GLOBALS["argv"][] = "-header=\"appkit/NSBrowser.h\"";
+	
 	$GLOBALS["argv"][] = "-ignore=\"NSGeometry.h,NSRange.h\"";
 	$GLOBALS["argv"][] = "-objp";
 
 	// Objective-P
 	/* Notes for master compile (-all):
 
-	- Errors:
-	1) NSWorkspace.h has a duplicate NSWorkspaceLaunchAllowingClassicStartup constant
-	2) NSObjcRuntime.h contains a bad external function:
-		function __attribute__(: (format(__NSString__; : 1; : 2))): void NSLog(NSStringRef *format, ...); cdecl; external name '__attribute__';
-	3) NSMenuItemCell.h has a duplicate (case sensitive name not allowed in Pascal) field that must be changed by hand.
-    
-	- Extra hand parsing. These units parse but contain unions which need to be fixed by hand.
+	• CocoaAll.pas:
+		1) NSWorkspace.h has a duplicate NSWorkspaceLaunchAllowingClassicStartup constant
+		2) NSObjcRuntime.h contains a bad external function:
+			function __attribute__(: (format(__NSString__; : 1; : 2))): void NSLog(NSStringRef *format, ...); cdecl; external name '__attribute__';
+			procedure NSLog(fmt:NSString); cdecl; varargs; external;
+		3) NSMenuItemCell.h has a duplicate (case sensitive name not allowed in Pascal) field that must be changed by hand.
+
+		- Extra hand parsing. These units parse but contain unions which need to be fixed by hand.
 	
-	• NSEvent.h
-	• NSIndexSet.h:
+		• NSEvent.h
+		• NSIndexSet.h:
 	
-	_internal: record
-	 case byte of
-	   0: (_singleRange:
-	         record
-	           _range: NSRange;
-	         end;
-	      );
-	   1: (_multipleRanges:
-	         record
-	           _data: pointer;
-	           _reserved: pointer;
-	         end;
-	      );
-	end;
-	4) These methods have problems in the params. This is a Objc convention where an absent type is always "id"
-		- (void)performClick:sender;
-		- (void)setDelegate:delegate;
-		NSControl.inc(136,15) Error: Mismatch between number of declared parameters and number of colons in message string.
-		NSRuleEditor.inc(124,15) Error: Mismatch between number of declared parameters and number of colons in message string.
-	6) NSInteger types are wrong in NSObjcRuntime (should be long)
-	  NSInteger = clong;
-	  NSUInteger = culong;
-	
-	- NEW:
-	
-		NSXMLNodeOptions has duplicate enums from nested enum
-	
+		_internal: record
+		 case byte of
+		   0: (_singleRange:
+		         record
+		           _range: NSRange;
+		         end;
+		      );
+		   1: (_multipleRanges:
+		         record
+		           _data: pointer;
+		           _reserved: pointer;
+		         end;
+		      );
+		end;
+		4) These methods have problems in the params. This is a Objc convention where an absent type is always "id"
+			- (void)performClick:sender;
+			- (void)setDelegate:delegate;
+			NSControl.inc(136,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+			NSRuleEditor.inc(124,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+		5) NSInteger types are wrong in NSObjcRuntime (should be long)
+		  NSInteger = clong;
+		  NSUInteger = culong;
+		  NSNotFound = high(NSInteger);
+	    6) Many description and classDescription identifiers are not protected in name space and cause errors
+
+	• iPhoneAll.pas
+		1) UIAccelerometer: FPC bug causes methods with a single character message to fail. Remove the 3 methods affected
+			UIAccelerometer.inc(67,49) Error: Illegal expression after message directive
+		2) There's no way to know that UITextInputTraits is actually UITextInputTraitsProtocol due to name changes for Pascal syntax
+			UITextField.inc(91,32) Error: Identifier not found "UITextInputTraits"
+		
 	- General notes:
 	1) NSObject.h is parsed for the merged category methods that should be inserted manually into the real root class
 	2) NSRange.h was ignored because it contains custom code and can be maintained by hand very easily
@@ -293,7 +301,7 @@ if (count($GLOBALS["argv"]) == 1) {
 // get the command line options
 if (count($GLOBALS["argv"]) > 1) {
 	HandleCommandLineOptions($GLOBALS["argv"]);
-	print_r($options);
+	//print_r($options);
 }
 
 // Make the output directory
@@ -331,7 +339,9 @@ if ($options["objp"]) {
 
 // Process single headers
 if ($options["header"] && !$options["all"]) {
-	$parser->ProcessFile($options["framework_path"]."/".$options["header"]["framework"].".framework/Headers/".$options["header"]["name"], true);
+	$path = $options["framework_path"]."/".$options["header"]["framework"].".framework/Headers/".$options["header"]["name"];
+	print("* Processing $path...\n");
+	$parser->ProcessFile($path, true);
 }
 
 //$parser->PrintIvarSizeComparison("/Users/ryanjoseph/Desktop/objp/IvarSize.p");

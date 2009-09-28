@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.3 - Fri Sep 18 9:46:45 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOBJECT_PAS_H}

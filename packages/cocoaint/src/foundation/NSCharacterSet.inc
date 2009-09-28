@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSCharacterSet.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCHARACTERSET_PAS_H}
@@ -38,8 +38,8 @@ const
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCHARACTERSET_PAS_T}
-{$define NSCHARACTERSET_PAS_T}
+{$ifndef NSCHARACTERSET_PAS_S}
+{$define NSCHARACTERSET_PAS_S}
 
 {$endif}
 {$endif}

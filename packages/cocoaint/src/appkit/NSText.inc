@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSText.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSTEXT_PAS_H}
@@ -27,6 +27,18 @@ const
   NSDeleteCharacter = $007f;
   NSLineSeparatorCharacter = $2028;
   NSParagraphSeparatorCharacter = $2029;
+
+const
+  NSLeftTextAlignment = 0;
+  NSRightTextAlignment = 1;
+  NSCenterTextAlignment = 2;
+  NSJustifiedTextAlignment = 3;
+  NSNaturalTextAlignment = 4;
+
+const
+  NSWritingDirectionNatural = -1;
+  NSWritingDirectionLeftToRight = 0;
+  NSWritingDirectionRightToLeft = 1;
 
 const
   NSIllegalTextMovement = 0;
@@ -63,14 +75,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSTEXT_PAS_T}
-{$define NSTEXT_PAS_T}
-
-{ External string constants }
-var
-  NSTextDidBeginEditingNotification: NSString; external name '_NSTextDidBeginEditingNotification';
-  NSTextDidEndEditingNotification: NSString; external name '_NSTextDidEndEditingNotification';
-  NSTextDidChangeNotification: NSString; external name '_NSTextDidChangeNotification';
+{$ifndef NSTEXT_PAS_S}
+{$define NSTEXT_PAS_S}
 
 {$endif}
 {$endif}

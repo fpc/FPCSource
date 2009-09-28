@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSComparisonPredicate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSCOMPARISONPREDICATE_PAS_H}
@@ -21,13 +21,25 @@ const
   NSDiacriticInsensitivePredicateOption = $02;
 
 const
-  NSMatchesPredicateOperatorType = 0;
-  NSLikePredicateOperatorType = 1;
-  NSBeginsWithPredicateOperatorType = 2;
-  NSEndsWithPredicateOperatorType = 3;
-  NSCustomSelectorPredicateOperatorType = 4;
+  NSDirectPredicateModifier = 0;
+  NSAllPredicateModifier = 0;
+  NSAnyPredicateModifier = 1;
+
+const
+  NSLessThanPredicateOperatorType = 0;
+  NSLessThanOrEqualToPredicateOperatorType = 0;
+  NSGreaterThanPredicateOperatorType = 1;
+  NSGreaterThanOrEqualToPredicateOperatorType = 2;
+  NSEqualToPredicateOperatorType = 3;
+  NSNotEqualToPredicateOperatorType = 4;
+  NSMatchesPredicateOperatorType = 5;
+  NSLikePredicateOperatorType = 6;
+  NSBeginsWithPredicateOperatorType = 7;
+  NSEndsWithPredicateOperatorType = 8;
+  NSInPredicateOperatorType = 9;
+  NSCustomSelectorPredicateOperatorType = 10;
   NSContainsPredicateOperatorType = 99;
-  NSBetweenPredicateOperatorType = 5;
+  NSBetweenPredicateOperatorType = 11;
 
 { Types }
 type
@@ -52,8 +64,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSCOMPARISONPREDICATE_PAS_T}
-{$define NSCOMPARISONPREDICATE_PAS_T}
+{$ifndef NSCOMPARISONPREDICATE_PAS_S}
+{$define NSCOMPARISONPREDICATE_PAS_S}
 
 {$endif}
 {$endif}

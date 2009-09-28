@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:45 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSEXCEPTION_PAS_H}
@@ -37,8 +37,8 @@ procedure NSSetUncaughtExceptionHandler(Pointer_: NSUncaughtExceptionHandler); c
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSEXCEPTION_PAS_T}
-{$define NSEXCEPTION_PAS_T}
+{$ifndef NSEXCEPTION_PAS_S}
+{$define NSEXCEPTION_PAS_S}
 
 { External string constants }
 var
@@ -89,7 +89,7 @@ var
     procedure raise_; message 'raise';
 
     { Category: NSExceptionRaisingConveniences }
-    class procedure raise_format(name_: NSString; format: NSString); message 'raise:format:';
+    class procedure raise_format(name_: NSString; format: NSString); varargs; message 'raise:format:';
     class procedure raise_format_arguments(name_: NSString; format: NSString; argList: va_list); message 'raise:format:arguments:';
   end; external;
 
@@ -102,8 +102,8 @@ var
     class function alloc: NSAssertionHandler; message 'alloc';
 
     class function currentHandler: NSAssertionHandler; message 'currentHandler';
-    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; format: NSString); message 'handleFailureInMethod:object:file:lineNumber:description:';
-    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; format: NSString); message 'handleFailureInFunction:file:lineNumber:description:';
+    procedure handleFailureInMethod_object_file_lineNumber_description(selector: SEL; object_: id; fileName: NSString; line: NSInteger; format: NSString); varargs; message 'handleFailureInMethod:object:file:lineNumber:description:';
+    procedure handleFailureInFunction_file_lineNumber_description(functionName: NSString; fileName: NSString; line: NSInteger; format: NSString); varargs; message 'handleFailureInFunction:file:lineNumber:description:';
   end; external;
 
 {$endif}

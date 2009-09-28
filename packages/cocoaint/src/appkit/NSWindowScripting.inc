@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSWindowScripting.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:48 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -24,8 +24,8 @@
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSWINDOWSCRIPTING_PAS_T}
-{$define NSWINDOWSCRIPTING_PAS_T}
+{$ifndef NSWINDOWSCRIPTING_PAS_S}
+{$define NSWINDOWSCRIPTING_PAS_S}
 
 {$endif}
 {$endif}

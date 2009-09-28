@@ -1,4 +1,4 @@
-1) "cd" to the directory which contains parser.php
+1) cd to the directory which contains parser.php
 2) php parser.php -cocoa -root="/usr/local/lib/fpc/2.5.1/units/i386-darwin/cocoaint/src"
 	
 	Note: -root is the path to the directory which contains the base appkit and foundation folders. These folders come in the FPC distribution with some hand parsed headers and the master include units for each framework.

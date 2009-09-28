@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:46 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSMETADATA_PAS_H}
@@ -35,8 +35,19 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSMETADATA_PAS_T}
-{$define NSMETADATA_PAS_T}
+{$ifndef NSMETADATA_PAS_S}
+{$define NSMETADATA_PAS_S}
+
+{ External string constants }
+var
+  NSMetadataQueryDidStartGatheringNotification: NSString; external name '_NSMetadataQueryDidStartGatheringNotification';
+  NSMetadataQueryGatheringProgressNotification: NSString; external name '_NSMetadataQueryGatheringProgressNotification';
+  NSMetadataQueryDidFinishGatheringNotification: NSString; external name '_NSMetadataQueryDidFinishGatheringNotification';
+  NSMetadataQueryDidUpdateNotification: NSString; external name '_NSMetadataQueryDidUpdateNotification';
+  NSMetadataQueryResultContentRelevanceAttribute: NSString; external name '_NSMetadataQueryResultContentRelevanceAttribute';
+  NSMetadataQueryUserHomeScope: NSString; external name '_NSMetadataQueryUserHomeScope';
+  NSMetadataQueryLocalComputerScope: NSString; external name '_NSMetadataQueryLocalComputerScope';
+  NSMetadataQueryNetworkScope: NSString; external name '_NSMetadataQueryNetworkScope';
 
 {$endif}
 {$endif}

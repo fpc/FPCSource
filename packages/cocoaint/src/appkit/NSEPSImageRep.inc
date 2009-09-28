@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSEPSImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSEPSIMAGEREP_PAS_H}
@@ -32,8 +32,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSEPSIMAGEREP_PAS_T}
-{$define NSEPSIMAGEREP_PAS_T}
+{$ifndef NSEPSIMAGEREP_PAS_S}
+{$define NSEPSIMAGEREP_PAS_S}
 
 {$endif}
 {$endif}
@@ -57,7 +57,7 @@ type
   public
     class function alloc: NSEPSImageRep; message 'alloc';
 
-    class function imageRepWithData_initWithData(epsData: NSData): id; message 'imageRepWithData:';
+    class function imageRepWithData(epsData: NSData): id; message 'imageRepWithData:';
     function initWithData(epsData: NSData): id; message 'initWithData:';
     procedure prepareGState; message 'prepareGState';
     function EPSRepresentation: NSData; message 'EPSRepresentation';

@@ -1,5 +1,5 @@
 { Parsed from Appkit.framework NSOpenGL.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.2 - Thu Sep 17 14:52:47 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
 
 {$ifdef HEADER}
 {$ifndef NSOPENGL_PAS_H}
@@ -20,15 +20,13 @@ type
 const
   NSOPENGL_CURRENT_VERSION = 1;
 
-{ Sets }
-
-type
-  NSOpenGLGlobalOption = (NSOpenGLGOFormatCacheSize = 501, NSOpenGLGOClearFormatCache = 502, NSOpenGLGORetainRenderers = 503, NSOpenGLGOResetLibrary = 504);
-
-type
-  NSOpenGLContextParameter = (NSOpenGLCPSwapRectangle = 200, NSOpenGLCPSwapRectangleEnable = 201, NSOpenGLCPRasterizationEnable = 221, NSOpenGLCPSwapInterval = 222, NSOpenGLCPSurfaceOrder = 235, NSOpenGLCPSurfaceOpacity = 236, NSOpenGLCPStateValidation = 301);
-
 { Constants }
+
+const
+  NSOpenGLGOFormatCacheSize = 501;
+  NSOpenGLGOClearFormatCache = 502;
+  NSOpenGLGORetainRenderers = 503;
+  NSOpenGLGOResetLibrary = 504;
 
 const
   NSOpenGLPFAAllRenderers = 1;
@@ -67,6 +65,20 @@ const
   NSOpenGLPFAAllowOfflineRenderers = 96;
   NSOpenGLPFAVirtualScreenCount = 128;
 
+const
+  NSOpenGLCPSwapRectangle = 200;
+  NSOpenGLCPSwapRectangleEnable = 201;
+  NSOpenGLCPRasterizationEnable = 221;
+  NSOpenGLCPSwapInterval = 222;
+  NSOpenGLCPSurfaceOrder = 235;
+  NSOpenGLCPSurfaceOpacity = 236;
+  NSOpenGLCPStateValidation = 301;
+
+{ Types }
+type
+  NSOpenGLGlobalOption = culong;
+  NSOpenGLContextParameter = culong;
+
 { Types }
 type
   NSOpenGLPixelFormatAttribute = cardinal;
@@ -93,8 +105,8 @@ type
 {$endif}
 
 {$ifdef EXTERNAL_SYMBOLS}
-{$ifndef NSOPENGL_PAS_T}
-{$define NSOPENGL_PAS_T}
+{$ifndef NSOPENGL_PAS_S}
+{$define NSOPENGL_PAS_S}
 
 {$endif}
 {$endif}
