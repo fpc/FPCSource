@@ -91,9 +91,62 @@ type
 
   end;
 
+  TTOCIdxHeader = record
+    BlockSize: DWord; // 4096
+    EntriesOffset: DWord;
+    EntriesCount: DWord;
+    TopicsOffset: DWord;
+    EmptyBytes: array[0..4079] of byte;
+  end;
+
+const
+  TOC_ENTRY_HAS_NEW      = 2;
+  TOC_ENTRY_HAS_CHILDREN = 4;
+  TOC_ENTRY_HAS_LOCAL    = 8;
+
+type
+  PTOCEntryPageBookInfo = ^TTOCEntryPageBookInfo;
+  TTOCEntryPageBookInfo = record
+    Unknown1: Word; //  = 0
+    EntryIndex: Word; // multiple entry info's can have this value but the TTocEntry it points to points back to the first item with this number. Wierd.
+    Props: DWord; // BitField. See TOC_ENTRY_*
+    TopicsIndexOrStringsOffset: DWord; // if TOC_ENTRY_HAS_LOCAL is in props it's the Topics Index
+                                       // else it's the Offset In Strings of the Item Text
+    ParentPageBookInfoOffset: DWord;
+    NextPageBookOffset: DWord; // same level of tree only
+
+    // Only if TOC_ENTRY_HAS_CHILDREN is set are these written
+    FirstChildOffset: DWord;
+    Unknown3: DWord; // = 0
+  end;
+
+  TTocEntry = record
+    PageBookInfoOffset: DWord;
+    IncrementedInt: DWord; // first is $29A
+    TopicsIndex: DWord; // Index of Entry in #TOPICS file
+  end;
+
+  TTopicEntry = record
+    TocOffset,
+    StringsOffset,
+    URLTableOffset: DWord;
+    InContents: Word;// 2 = in contents 6 = not in contents
+    Unknown: Word; // 0,2,4,8,10,12,16,32
+  end;
+
+
+  function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 
 implementation
 uses chmbase;
+
+function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
+begin
+  if (TOC_ENTRY_HAS_CHILDREN and ARecord^.Props) > 0 then
+    Result := 28
+  else
+    Result := 20;
+end;
 
 { TDirectoryChunk }
 

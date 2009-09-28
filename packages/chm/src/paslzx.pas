@@ -593,7 +593,7 @@ begin
             i := bits.read(16, inpos);
             j := bits.read(16, inpos);
         end;
-        pState^.intel_filesize := (i shl 16) or j; ///* or 0 if not encoded */
+        pState^.intel_filesize := LongInt((i shl 16) or j); ///* or 0 if not encoded */
         pState^.header_read := 1;
     end;
 

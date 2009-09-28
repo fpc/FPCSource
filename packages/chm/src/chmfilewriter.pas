@@ -41,6 +41,7 @@ type
     FDefaultPage: String;
     FFiles: TStrings;
     FIndexFileName: String;
+    FMakeBinaryTOC: Boolean;
     FMakeSearchable: Boolean;
     FFileName: String;
     FOnProgress: TChmProgressCB;
@@ -64,6 +65,7 @@ type
     property Files: TStrings read FFiles write FFiles;
     property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks;
     property TableOfContentsFileName: String read FTableOfContentsFileName write FTableOfContentsFileName;
+    property MakeBinaryTOC: Boolean read FMakeBinaryTOC write FMakeBinaryTOC;
     property Title: String read FTitle write FTitle;
     property IndexFileName: String read FIndexFileName write FIndexFileName;
     property MakeSearchable: Boolean read FMakeSearchable write FMakeSearchable;
@@ -75,7 +77,7 @@ type
 
 implementation
 
-uses XmlCfg;
+uses XmlCfg, chmsitemap;
 
 { TChmProject }
 
@@ -98,6 +100,7 @@ var
   IndexStream: TFileStream;
   TOCStream: TFileStream;
   Writer: TChmWriter;
+  TOCSitemap: TChmSiteMap;
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
@@ -109,6 +112,14 @@ begin
   if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
     TOCStream := TFileStream.Create(TableOfContentsFileName, fmOpenRead);
     Writer.AppendTOC(TOCStream);
+    if MakeBinaryTOC then
+    begin
+      TOCStream.Position := 0;
+      TOCSitemap := TChmSiteMap.Create(stTOC);
+      TOCSitemap.LoadFromStream(TOCStream);
+      Writer.AppendBinaryTOCFromSiteMap(TOCSitemap);
+      TOCSitemap.Free;
+    end;
     TOCStream.Free;
   end;
 
@@ -142,6 +153,7 @@ begin
   end;
   IndexFileName := Cfg.GetValue('Files/IndexFile/Value','');
   TableOfContentsFileName := Cfg.GetValue('Files/TOCFile/Value','');
+  MakeBinaryTOC := Cfg.GetValue('Files/MakeBinaryTOC/Value', True);
   
   AutoFollowLinks := Cfg.GetValue('Settings/AutoFollowLinks/Value', False);
   MakeSearchable := Cfg.GetValue('Settings/MakeSearchable/Value', False);
@@ -168,6 +180,7 @@ begin
   end;
   Cfg.SetValue('Files/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Files/TOCFile/Value', TableOfContentsFileName);
+  Cfg.SetValue('Files/MakeBinaryTOC/Value',MakeBinaryTOC);
 
   Cfg.SetValue('Settings/AutoFollowLinks/Value', AutoFollowLinks);
   Cfg.SetValue('Settings/MakeSearchable/Value', MakeSearchable);
@@ -189,6 +202,7 @@ var
   Writer: TChmWriter;
   TOCStream,
   IndexStream: TFileStream;
+
 begin
   IndexStream := nil;
   TOCStream := nil;
@@ -207,6 +221,7 @@ begin
   Writer.Title := Title;
   Writer.DefaultFont := DefaultFont;
   Writer.FullTextSearch := MakeSearchable;
+  Writer.HasBinaryTOC := MakeBinaryTOC;
   
   // and write!
   Writer.Execute;

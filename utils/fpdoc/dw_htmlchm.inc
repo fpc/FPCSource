@@ -232,7 +232,8 @@ begin
       TOC.Items.Item[i].Children.Item[j].Children.Sort(TListSortCompare(@TOCSort));
     end;
   end;
-  
+
+  fchm.AppendBinaryTOCFromSiteMap(Toc);  
   TOC.SaveToStream(Stream);
   TOC.Free;
 
@@ -444,6 +445,7 @@ begin
   FChm.TempRawStream := FTempUncompressed;
   FChm.OnGetFileData := @RetrieveOtherFiles;
   FChm.OnLastFile := @LastFileAdded;
+  fchm.hasbinarytoc:=true;
   
   ProcessOptions;
 

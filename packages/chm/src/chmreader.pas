@@ -28,7 +28,7 @@ unit chmreader;
 interface
 
 uses
-  Classes, SysUtils, chmbase, paslzx, chmFIftiMain;
+  Classes, SysUtils, chmbase, paslzx, chmFIftiMain, chmsitemap;
   
 type
 
@@ -109,12 +109,14 @@ type
     procedure ReadCommonData;
     function  ReadStringsEntry(APosition: DWord): String;
     function  ReadURLSTR(APosition: DWord): String;
+    function  CheckCommonStreams: Boolean;
   public
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
   public
     function GetContextUrl(Context: THelpContext): String;
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
+    function GetTOCSitemap: TChmSiteMap;
     function HasContextList: Boolean;
     property DefaultPage: String read fDefaultPage;
     property IndexFile: String read fIndexFile;
@@ -164,6 +166,7 @@ const
   function ChmErrorToStr(Error: Integer): String;
 
 implementation
+uses ChmTypes;
 
 function ChmErrorToStr(Error: Integer): String;
 begin
@@ -457,22 +460,31 @@ function TChmReader.ReadURLSTR ( APosition: DWord ) : String;
 var
   URLStrURLOffset: DWord;
 begin
+  if not CheckCommonStreams then
+    Exit;
+
+  fURLTBLStream.Position := APosition;
+  fURLTBLStream.ReadDWord; // unknown
+  fURLTBLStream.ReadDWord; // TOPIC index #
+  fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
+  fURLSTRStream.ReadDWord;
+  fURLSTRStream.ReadDWord;
+  if fURLSTRStream.Position < fURLSTRStream.Size-1 then
+    Result := '/'+PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
+end;
+
+function TChmReader.CheckCommonStreams: Boolean;
+begin
+  if fTOPICSStream = nil then
+    fTOPICSStream := GetObject('/#TOPICS');
   if fURLSTRStream = nil then
     fURLSTRStream := GetObject('/#URLSTR');
   if fURLTBLStream = nil then
     fURLTBLStream := GetObject('/#URLTBL');
-  if (fURLTBLStream <> nil) and (fURLSTRStream <> nil) then
-  begin
 
-    fURLTBLStream.Position := APosition;
-    fURLTBLStream.ReadDWord; // unknown
-    fURLTBLStream.ReadDWord; // TOPIC index #
-    fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
-    fURLSTRStream.ReadDWord;
-    fURLSTRStream.ReadDWord;
-    if fURLSTRStream.Position < fURLSTRStream.Size-1 then
-      Result := '/'+PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
-  end;
+  Result :=     (fTOPICSStream <> nil)
+            and (fURLSTRStream <> nil)
+            and (fURLTBLStream <> nil);
 end;
 
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
@@ -848,9 +860,7 @@ begin
   Result := '';
   ATitle := '';
   //WriteLn('Getting topic# ',ATopicID);
-  if fTOPICSStream = nil then
-    fTOPICSStream := GetObject('/#TOPICS');
-  if fTOPICSStream = nil then
+  if not CheckCommonStreams then
     Exit;
   fTOPICSStream.Position := ATopicID * 16;
   if fTOPICSStream.Position = ATopicID * 16 then
@@ -863,6 +873,92 @@ begin
      //WriteLn('Got a title: ', ATitle);
     Result := ReadURLSTR(TopicURLTBLOffset);
   end;
+end;
+
+function TChmReader.GetTOCSitemap: TChmSiteMap;
+    function AddTOCItem(TOC: TStream; AItemOffset: DWord; SiteMapITems: TChmSiteMapItems): DWord;
+    var
+      Props: DWord;
+      Item: TChmSiteMapItem;
+      NextEntry: DWord;
+      TopicsIndex: DWord;
+      Title: String;
+    begin
+      Toc.Position:= AItemOffset + 4;
+      Item := SiteMapITems.NewItem;
+      Props := LEtoN(TOC.ReadDWord);
+      if (Props and TOC_ENTRY_HAS_LOCAL) = 0 then
+        Item.Text:= ReadStringsEntry(LEtoN(TOC.ReadDWord))
+      else
+      begin
+        TopicsIndex := LEtoN(TOC.ReadDWord);
+        Item.Local := LookupTopicByID(TopicsIndex, Title);
+        Item.Text := Title;
+
+      end;
+      TOC.ReadDWord;
+      Result := LEtoN(TOC.ReadDWord);
+      if Props and TOC_ENTRY_HAS_CHILDREN > 0 then
+      begin
+        NextEntry := LEtoN(TOC.ReadDWord);
+        repeat
+          NextEntry := AddTOCItem(TOC, NextEntry, Item.Children);
+        until NextEntry = 0;
+      end;
+
+    end;
+
+var
+  TOC: TStream;
+  TOPICSOffset: DWord;
+  EntriesOffset: DWord;
+  EntryCount: DWord;
+  EntryInfoOffset: DWord;
+  NextItem: DWord;
+begin
+   Result := nil;
+   // First Try Binary
+   TOC := GetObject('/#TOCIDX');
+   if TOC = nil then
+   begin
+     // Second Try text toc
+     TOC := GetObject(TOCFile);
+     if TOC <> nil then
+     begin
+       Result := TChmSiteMap.Create(stTOC);
+       Result.LoadFromStream(TOC);
+       Toc.Free;
+     end;
+     Exit;
+   end;
+
+   // TOPICS URLSTR URLTBL must all exist to read binary toc
+   // if they don't then try text file
+   if not CheckCommonStreams then
+   begin
+     TOC.Free;
+     TOC := GetObject(TOCFile);
+     if TOC <> nil then
+     begin
+       Result := TChmSiteMap.Create(stTOC);
+       Result.LoadFromStream(TOC);
+       Toc.Free;
+     end;
+     Exit;
+   end;
+
+   // Binary Toc Exists
+   Result := TChmSiteMap.Create(stTOC);
+
+   EntryInfoOffset := NtoLE(TOC.ReadDWord);
+   EntriesOffset   := NtoLE(TOC.ReadDWord);
+   EntryCount      := NtoLE(TOC.ReadDWord);
+   TOPICSOffset    := NtoLE(TOC.ReadDWord);
+
+   NextItem := EntryInfoOffset;
+   repeat
+     NextItem := AddTOCItem(Toc, NextItem, Result.Items);
+   until NextItem = 0;
 end;
 
 function TChmReader.HasContextList: Boolean;
@@ -985,7 +1081,7 @@ begin
       Exit;
     end;
     // if FirstBlock is odd (1,3,5,7 etc) we have to read the even block before it first.
-    if (FirstBlock <> 0) and (FirstBlock mod 2 > 0) then begin
+    if FirstBlock and 1 = 1 then begin
       fStream.Position := fHeaderSuffix.Offset + fCachedEntry.ContentOffset + (ResetTable[FirstBLock-1]);
       ReadCount := ResetTable[FirstBlock] - ResetTable[FirstBlock-1];
       BlockWriteLength:=BlockSize;
@@ -1035,7 +1131,7 @@ begin
       end;
       
       // if the next block is an even numbered block we have to reset the decompressor state
-      if (X < LastBlock) and (X mod 2 > 0) then LZXreset(LZXState);
+      if (X < LastBlock) and (X and 1 = 1) then LZXreset(LZXState);
 
     end;
     FreeMem(OutBuf);
@@ -1142,7 +1238,7 @@ AChm: TChmReader;
 AIndex: Integer;
 begin
   if not FileExists(AFileName) then exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead);
+  AStream := TFileStream.Create(AFileName, fmOpenRead, fmShareDenyWrite);
   AChm := TChmReader.Create(AStream, True);
   AIndex := AddObject(AFileName, AChm);
   fLastChm := AChm;
