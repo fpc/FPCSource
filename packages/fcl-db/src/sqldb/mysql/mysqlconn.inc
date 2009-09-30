@@ -338,17 +338,19 @@ begin
 end;
 
 procedure TConnectionName.DoInternalConnect;
+var ClientVerStr: string;
 begin
   InitialiseMysql;
+  ClientVerStr := copy(strpas(mysql_get_client_info()),1,3);
 {$IFDEF mysql50}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
+  if (ClientVerStr<>'5.0') and (ClientVerStr<>'5.1') then
     Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
 {$ELSE}
   {$IFDEF mysql41}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'4.1' then
+  if ClientVerStr<>'4.1' then
     Raise EInOutError.CreateFmt(SErrNotversion41,[strpas(mysql_get_client_info())]);
   {$ELSE}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'4.0' then
+  if ClientVerStr<>'4.0' then
     Raise EInOutError.CreateFmt(SErrNotversion40,[strpas(mysql_get_client_info())]);
   {$ENDIF}
 {$ENDIF}
