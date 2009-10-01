@@ -825,7 +825,7 @@ end;
             vf:=tfieldvarsym(objccls.symtable.SymList[i]);
             { TODO: package visibility (private_extern) -- must not be exported
                either}
-            if (vf.visibility<>vis_private) then
+            if not(vf.visibility in [vis_private,vis_strictprivate]) then
               exportname(prefix+vf.RealName,0);
           end;
     end;
