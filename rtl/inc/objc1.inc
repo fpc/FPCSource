@@ -60,6 +60,7 @@ type
 
   objc_object = record
     isa: pobjc_class;
+    superclass: pobjc_class;
   end;
   id = ^objc_object;
   pobjc_object = id;

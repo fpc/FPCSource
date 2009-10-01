@@ -64,7 +64,7 @@ implementation
       verbose,systems,
       symtable,symconst,symsym,
       defutil,paramgr,
-      nbas,nmem,ncal,nld,ncon,
+      nbas,nmem,ncal,nld,ncon,ncnv,
       export;
 
 
@@ -119,7 +119,9 @@ end;
 
     function objcsuperclassnode(def: tdef): tnode;
       var
-        para: tcallparanode;
+        para       : tcallparanode;
+        class_type : tdef;
+        vs         : tsym;
       begin
         { only valid for Objective-C classes and classrefs }
         if not is_objcclass(def) and
@@ -137,15 +139,20 @@ end;
 
 {$if defined(onlymacosx10_6) or defined(arm) }
         { For the non-fragile ABI, the superclass send2 method itself loads the
-          superclass. For the fragile ABI, we have to do this ourselves. 
+          superclass. For the fragile ABI, we have to do this ourselves.
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
-            (but on also all iPhone SDK revisions we support) }
+            (but also on all iPhone SDK revisions we support) }
         if not(target_info.system in system_objc_nfabi) then
 {$endif onlymacosx10_6 or arm}
           begin
-            para:=ccallparanode.create(result,nil);
-            result:=ccallnode.createinternfromunit('OBJC','CLASS_GETSUPERCLASS',para);
+            class_type:=search_named_unit_globaltype('OBJC','OBJC_OBJECT').typedef;
+            result:=ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(result,voidpointertype)),class_type);
+            vs:=tsym(tabstractrecorddef(class_type).symtable.Find('SUPERCLASS'));
+            if not assigned(vs) or
+               (vs.typ<>fieldvarsym) then
+              internalerror(200909301);
+            result:=csubscriptnode.create(vs,result);
           end;
         typecheckpass(result);
       end;
