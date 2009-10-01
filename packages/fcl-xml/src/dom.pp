@@ -260,6 +260,7 @@ type
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
     function CompareName(const name: DOMString): Integer; virtual;
+    property Flags: TNodeFlags read FFlags;
   end;
 
   TDOMNodeClass = class of TDOMNode;

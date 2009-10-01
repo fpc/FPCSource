@@ -37,7 +37,7 @@ procedure WriteXML(Element: TDOMNode; AStream: TStream); overload;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, xmlutils;
 
 type
   TSpecialCharCallback = procedure(c: WideChar) of object;
@@ -51,6 +51,8 @@ type
     FBufPos: PChar;
     FCapacity: Integer;
     FLineBreak: string;
+    FNSHelper: TNSSupport;
+    FScratch: TFPList;
     procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
@@ -62,6 +64,8 @@ type
       const SpecialCharCallback: TSpecialCharCallback);
     procedure AttrSpecialCharCallback(c: WideChar);
     procedure TextNodeSpecialCharCallback(c: WideChar);
+    procedure WriteNSDef(B: TBinding);
+    procedure NamespaceFixup(Element: TDOMElement);
   protected
     procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
@@ -159,10 +163,14 @@ begin
   // Later on, this may be put under user control
   // for now, take OS setting
   FLineBreak := sLineBreak;
+  FNSHelper := TNSSupport.Create;
+  FScratch := TFPList.Create;
 end;
 
 destructor TXMLWriter.Destroy;
 begin
+  FScratch.Free;
+  FNSHelper.Free;
   if FBufPos > FBuffer then
     write(FBuffer^, FBufPos-FBuffer);
 
@@ -362,6 +370,80 @@ begin
   end;
 end;
 
+procedure TXMLWriter.WriteNSDef(B: TBinding);
+begin
+  wrtChars(' xmlns', 6);
+  if B.Prefix^.Key <> '' then
+  begin
+    wrtChr(':');
+    wrtStr(B.Prefix^.Key);
+  end;
+  wrtChars('="', 2);
+  ConvWrite(B.uri, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+  wrtChr('"');
+end;
+
+procedure TXMLWriter.NamespaceFixup(Element: TDOMElement);
+var
+  B: TBinding;
+  i: Integer;
+  attr: TDOMNode;
+  s: DOMString;
+  action: TAttributeAction;
+begin
+  FScratch.Count := 0;
+  if Element.hasAttributes then
+  begin
+    for i := 0 to Element.Attributes.Length-1 do
+    begin
+      attr := Element.Attributes[i];
+      if nfLevel2 in attr.Flags then
+      begin
+        if TDOMNode_NS(attr).NSI.NSIndex = 2 then
+        begin
+          if TDOMNode_NS(attr).NSI.PrefixLen = 0 then
+            s := ''
+          else
+            s := attr.localName;
+          FNSHelper.DefineBinding(s, attr.nodeValue, B);
+          if Assigned(B) then  // drop redundant namespace declarations
+            VisitAttribute(attr);
+        end
+        else
+          FScratch.Add(attr);
+      end
+      else if TDOMAttr(attr).Specified then // Level 1 attribute
+        VisitAttribute(attr);
+    end;
+  end;
+
+  FNSHelper.DefineBinding(Element.Prefix, Element.namespaceURI, B);
+  if Assigned(B) then
+    WriteNSDef(B);
+
+  for i := 0 to FScratch.Count-1 do
+  begin
+    attr := TDOMNode(FScratch[i]);
+    action := FNSHelper.CheckAttribute(attr.Prefix, attr.namespaceURI, B);
+    if action = aaBoth then
+      WriteNSDef(B);
+
+    if action in [aaPrefix, aaBoth] then
+    begin
+      // use prefix from the binding, it might have been changed
+      wrtChr(' ');
+      wrtStr(B.Prefix^.Key);
+      wrtChr(':');
+      wrtStr(attr.localName);
+      wrtChars('="', 2);
+      // TODO: not correct w.r.t. entities
+      ConvWrite(attr.nodeValue, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+      wrtChr('"');
+    end
+    else   // action = aaUnchanged, output unmodified
+      VisitAttribute(attr);
+  end;
+end;
 
 procedure TXMLWriter.VisitElement(node: TDOMNode);
 var
@@ -371,10 +453,13 @@ var
 begin
   if not FInsideTextNode then
     wrtIndent;
+  FNSHelper.StartElement;
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
-  // FIX: Accessing Attributes was causing them to be created for every element :(
-  if node.HasAttributes then
+
+  if nfLevel2 in node.Flags then
+    NamespaceFixup(TDOMElement(node))
+  else if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
     begin
       child := node.Attributes.Item[i];
@@ -402,6 +487,7 @@ begin
     wrtStr(TDOMElement(Node).TagName);
     wrtChr('>');
   end;
+  FNSHelper.EndElement;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);

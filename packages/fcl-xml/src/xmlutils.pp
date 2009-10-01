@@ -20,7 +20,7 @@ unit xmlutils;
 interface
 
 uses
-  SysUtils;
+  SysUtils, Classes;
 
 function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
@@ -40,6 +40,7 @@ function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 type
 {$ifndef fpc}
   PtrInt = LongInt;
+  TFPList = TList;
 {$endif}  
 
   PPHashItem = ^PHashItem;
@@ -98,6 +99,36 @@ type
     procedure Init(NumSlots: Integer);
     function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
+  end;
+
+  TBinding = class
+  public
+    uri: WideString;
+    next: TBinding;
+    prevPrefixBinding: TObject;
+    Prefix: PHashItem;
+  end;
+
+  TAttributeAction = (aaUnchanged, aaPrefix, aaBoth);
+
+  TNSSupport = class(TObject)
+  private
+    FNesting: Integer;
+    FPrefixSeqNo: Integer;
+    FFreeBindings: TBinding;
+    FBindings: TFPList;
+    FBindingStack: array of TBinding;
+    FPrefixes: THashTable;
+    FDefaultPrefix: THashItem;
+    function GetBinding(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
+    function CheckAttribute(const Prefix, nsURI: WideString;
+      out Binding: TBinding): TAttributeAction;
+    procedure StartElement;
+    procedure EndElement;
   end;
 
 {$i names.inc}
@@ -624,6 +655,144 @@ begin
   end;
   result := False;
 end;
+
+{ TNSSupport }
+
+constructor TNSSupport.Create;
+begin
+  inherited Create;
+  FPrefixes := THashTable.Create(16, False);
+  FBindings := TFPList.Create;
+  SetLength(FBindingStack, 16);
+end;
+
+destructor TNSSupport.Destroy;
+var
+  I: Integer;
+begin
+  for I := FBindings.Count-1 downto 0 do
+    TObject(FBindings.List^[I]).Free;
+  FBindings.Free;
+  FPrefixes.Free;
+  inherited Destroy;
+end;
+
+function TNSSupport.GetBinding(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+begin
+  { try to reuse an existing binding }
+  result := FFreeBindings;
+  if Assigned(result) then
+    FFreeBindings := result.Next
+  else { no free bindings, create a new one }
+  begin
+    result := TBinding.Create;
+    FBindings.Add(result);
+  end;
+
+  { link it into chain of bindings at the current element level }
+  result.Next := FBindingStack[FNesting];
+  FBindingStack[FNesting] := result;
+
+  { bind }
+  result.uri := nsURI;
+  result.Prefix := aPrefix;
+  result.PrevPrefixBinding := aPrefix^.Data;
+  aPrefix^.Data := result; // ** null binding not used here **
+end;
+
+procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
+  out Binding: TBinding);
+var
+  Pfx: PHashItem;
+begin
+  Pfx := @FDefaultPrefix;
+  if (nsURI <> '') and (Prefix <> '') then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
+  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
+    Binding := GetBinding(nsURI, Pfx)
+  else
+    Binding := nil;
+end;
+
+function TNSSupport.CheckAttribute(const Prefix, nsURI: WideString;
+  out Binding: TBinding): TAttributeAction;
+var
+  Pfx: PHashItem;
+  I: Integer;
+  b: TBinding;
+  buf: array[0..31] of WideChar;
+  p: PWideChar;
+begin
+  Binding := nil;
+  Pfx := nil;
+  if Prefix <> '' then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
+  Result := aaUnchanged;
+  // no prefix, not bound, or bound to wrong URI
+  if (Pfx = nil) or (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
+  begin
+    // see if there's another prefix bound to the target URI
+    // TODO: should use something faster than linear search
+    for i := FNesting downto 0 do
+    begin
+      b := FBindingStack[i];
+      while Assigned(b) do
+      begin
+        if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
+        begin
+          Binding := b;   // found one -> override the attribute's prefix
+          Result := aaPrefix;
+          Exit;
+        end;
+        b := b.Next;
+      end;
+    end;
+    // no prefix, or bound (to wrong URI) -> must use generated prefix instead
+    if (Pfx = nil) or Assigned(Pfx^.Data) then
+    repeat
+      Inc(FPrefixSeqNo);
+      i := FPrefixSeqNo;    // This is just 'NS'+IntToStr(FPrefixSeqNo);
+      p := @Buf[high(Buf)]; // done without using strings
+      while i <> 0 do
+      begin
+        p^ := WideChar(i mod 10+ord('0'));
+        dec(p);
+        i := i div 10;
+      end;
+      p^ := 'S'; dec(p);
+      p^ := 'N';
+      Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
+    until Pfx^.Data = nil;
+    Binding := GetBinding(nsURI, Pfx);
+    Result := aaBoth;
+  end;
+end;
+
+procedure TNSSupport.StartElement;
+begin
+  Inc(FNesting);
+  if FNesting >= Length(FBindingStack) then
+    SetLength(FBindingStack, FNesting * 2);
+end;
+
+procedure TNSSupport.EndElement;
+var
+  b, temp: TBinding;
+begin
+  temp := FBindingStack[FNesting];
+  while Assigned(temp) do
+  begin
+    b := temp;
+    temp := b.next;
+    b.next := FFreeBindings;
+    FFreeBindings := b;
+    b.Prefix^.Data := b.prevPrefixBinding;
+  end;
+  FBindingStack[FNesting] := nil;
+  if FNesting > 0 then
+    Dec(FNesting);
+end;
+
 
 initialization
 
