@@ -19,7 +19,7 @@ type
    function getss: shortstring ; message 'getss';
    function getsspara(l1,l2: longint): shortstring ; message 'getss:l1:';
    function getsingle(l1,l2: longint): single; message 'getsingle:l1:';
-   function getdouble(l1,l2: longint): double; message 'getdouble:l1:';
+   function getdouble(l1,l2: longint; d: double): double; message 'getdouble:l1:l2:';
 
    function getbool: boolean; message 'getbool';
  end;
@@ -48,10 +48,12 @@ begin
 end;
 
 
-function MyObject.getdouble(l1,l2: longint): double;
+function MyObject.getdouble(l1,l2: longint; d: double): double;
 begin
+  writeln(d);
   if (l1<>1) or
-     (l2<>2) then
+     (l2<>2) or
+     (d<>1.5) then
     halt(3);
   result:=fdouble;
 end;
@@ -78,7 +80,7 @@ begin
    halt(5);
  if m.getsingle(1,2)<>123.625 then
    halt(6);
- if m.getdouble(1,2)<>9876.0625 then
+ if m.getdouble(1,2,1.5)<>9876.0625 then
    halt(7);
 
  m.fbool:=true;

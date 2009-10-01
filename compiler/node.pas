@@ -111,7 +111,6 @@ interface
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
           dataconstn,       { node storing some binary data }
           objcselectorn,    { node for an Objective-C message selector }
-          objcmessagesendn, { node for message sent to an Objective-C instance (similar to a method call) }
           objcprotocoln     { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
        );
 
@@ -195,7 +194,6 @@ interface
           'loadparentfpn',
           'dataconstn',
           'objcselectorn',
-          'objcmessagesendn',
           'objcprotocoln');
 
     type
