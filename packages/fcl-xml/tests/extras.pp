@@ -18,7 +18,7 @@ unit extras;
 interface
 
 uses
-  SysUtils, Classes, DOM, xmlread, domunit, testregistry;
+  SysUtils, Classes, DOM, xmlread, xmlwrite, domunit, testregistry;
 
 implementation
 
@@ -29,6 +29,9 @@ type
     procedure attr_ownership02;
     procedure attr_ownership03;
     procedure attr_ownership04;
+    procedure nsFixup1;
+    procedure nsFixup2;
+    procedure nsFixup3;
   end;
 
 { TDOMTestExtra }
@@ -113,7 +116,114 @@ begin
   AssertEquals('ownerElement2', el, attr2.OwnerElement);
 end;
 
+const
+  nsURI1 = 'http://www.example.com/ns1';
+  nsURI2 = 'http://www.example.com/ns2';
 
+// verify the namespace fixup with two nested elements
+// (same localName, different nsURI, and no prefixes)
+procedure TDOMTestExtra.nsFixup1;
+var
+  domImpl: TDOMImplementation;
+  origDoc: TDOMDocument;
+  parsedDoc: TDOMDocument;
+  docElem: TDOMElement;
+  el: TDOMElement;
+  stream: TStringStream;
+  list: TDOMNodeList;
+begin
+  FParser.Options.Namespaces := True;
+  domImpl := GetImplementation;
+  origDoc := domImpl.createDocument(nsURI1, 'test', nil);
+  docElem := origDoc.documentElement;
+  el := origDoc.CreateElementNS(nsURI2, 'test');
+  docElem.AppendChild(el);
+
+  stream := TStringStream.Create('');
+  GC(stream);
+  writeXML(origDoc, stream);
+  LoadStringData(parsedDoc, stream.DataString);
+
+  docElem := parsedDoc.documentElement;
+  assertEquals('docElemLocalName', 'test', docElem.localName);
+  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+
+  list := docElem.GetElementsByTagNameNS(nsURI2, '*');
+  assertEquals('ns2_elementCount', 1, list.Length);
+  el := TDOMElement(list[0]);
+  assertEquals('ns2_nodeName', 'test', el.nodeName);
+end;
+
+// verify the namespace fixup with two nested elements
+// (same localName, different nsURI, different prefixes)
+procedure TDOMTestExtra.nsFixup2;
+var
+  domImpl: TDOMImplementation;
+  origDoc: TDOMDocument;
+  parsedDoc: TDOMDocument;
+  docElem: TDOMElement;
+  el: TDOMElement;
+  stream: TStringStream;
+  list: TDOMNodeList;
+begin
+  FParser.Options.Namespaces := True;
+  domImpl := GetImplementation;
+  origDoc := domImpl.createDocument(nsURI1, 'a:test', nil);
+  docElem := origDoc.documentElement;
+  el := origDoc.CreateElementNS(nsURI2, 'b:test');
+  docElem.AppendChild(el);
+
+  stream := TStringStream.Create('');
+  GC(stream);
+  writeXML(origDoc, stream);
+  LoadStringData(parsedDoc, stream.DataString);
+
+  docElem := parsedDoc.documentElement;
+  assertEquals('docElemLocalName', 'test', docElem.localName);
+  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+
+  list := docElem.GetElementsByTagNameNS(nsURI2, '*');
+  assertEquals('ns2_elementCount', 1, list.Length);
+  el := TDOMElement(list[0]);
+  assertEquals('ns2_nodeName', 'b:test', el.nodeName);
+end;
+
+// verify the namespace fixup with two nested elements and an attribute
+// attribute's prefix must change to that of document element
+procedure TDOMTestExtra.nsFixup3;
+var
+  domImpl: TDOMImplementation;
+  origDoc: TDOMDocument;
+  parsedDoc: TDOMDocument;
+  docElem: TDOMElement;
+  el: TDOMElement;
+  stream: TStringStream;
+  list: TDOMNodeList;
+  attr: TDOMAttr;
+begin
+  FParser.Options.Namespaces := True;
+  domImpl := GetImplementation;
+  origDoc := domImpl.createDocument(nsURI1, 'a:test', nil);
+  docElem := origDoc.documentElement;
+  el := origDoc.CreateElementNS(nsURI2, 'b:test');
+  docElem.AppendChild(el);
+  el.SetAttributeNS(nsURI1, 'test:attr', 'test value');
+
+  stream := TStringStream.Create('');
+  GC(stream);
+  writeXML(origDoc, stream);
+  LoadStringData(parsedDoc, stream.DataString);
+
+  docElem := parsedDoc.documentElement;
+  assertEquals('docElemLocalName', 'test', docElem.localName);
+  assertEquals('docElemNS', nsURI1, docElem.namespaceURI);
+
+  list := docElem.GetElementsByTagNameNS(nsURI2, '*');
+  assertEquals('ns2_elementCount', 1, list.Length);
+  el := TDOMElement(list[0]);
+  attr := el.GetAttributeNodeNS(nsURI1, 'attr');
+  assertEquals('attr_nodeName', 'a:attr', attr.nodeName);
+end;
 
 
 initialization
