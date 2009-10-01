@@ -1,24 +1,6 @@
 { Parsed from Foundation.framework NSScriptObjectSpecifiers.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_H}
-{$define NSSCRIPTOBJECTSPECIFIERS_PAS_H}
-type
-  NSScriptObjectSpecifierPointer = Pointer;
-  NSIndexSpecifierPointer = Pointer;
-  NSMiddleSpecifierPointer = Pointer;
-  NSNameSpecifierPointer = Pointer;
-  NSPositionalSpecifierPointer = Pointer;
-  NSPropertySpecifierPointer = Pointer;
-  NSRandomSpecifierPointer = Pointer;
-  NSRangeSpecifierPointer = Pointer;
-  NSRelativeSpecifierPointer = Pointer;
-  NSUniqueIDSpecifierPointer = Pointer;
-  NSWhoseSpecifierPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSCRIPTOBJECTSPECIFIERS_PAS_T}
@@ -85,16 +67,27 @@ type
 
 {$ifdef FORWARD}
   NSScriptObjectSpecifier = objcclass;
+  NSScriptObjectSpecifierPointer = ^NSScriptObjectSpecifier;
   NSIndexSpecifier = objcclass;
+  NSIndexSpecifierPointer = ^NSIndexSpecifier;
   NSMiddleSpecifier = objcclass;
+  NSMiddleSpecifierPointer = ^NSMiddleSpecifier;
   NSNameSpecifier = objcclass;
+  NSNameSpecifierPointer = ^NSNameSpecifier;
   NSPositionalSpecifier = objcclass;
+  NSPositionalSpecifierPointer = ^NSPositionalSpecifier;
   NSPropertySpecifier = objcclass;
+  NSPropertySpecifierPointer = ^NSPropertySpecifier;
   NSRandomSpecifier = objcclass;
+  NSRandomSpecifierPointer = ^NSRandomSpecifier;
   NSRangeSpecifier = objcclass;
+  NSRangeSpecifierPointer = ^NSRangeSpecifier;
   NSRelativeSpecifier = objcclass;
+  NSRelativeSpecifierPointer = ^NSRelativeSpecifier;
   NSUniqueIDSpecifier = objcclass;
+  NSUniqueIDSpecifierPointer = ^NSUniqueIDSpecifier;
   NSWhoseSpecifier = objcclass;
+  NSWhoseSpecifierPointer = ^NSWhoseSpecifier;
 
 {$endif}
 

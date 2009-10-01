@@ -1,15 +1,6 @@
 { Parsed from Foundation.framework NSNetServices.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSNETSERVICES_PAS_H}
-{$define NSNETSERVICES_PAS_H}
-type
-  NSNetServicePointer = Pointer;
-  NSNetServiceBrowserPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSNETSERVICES_PAS_T}
@@ -66,7 +57,9 @@ var
 
 {$ifdef FORWARD}
   NSNetService = objcclass;
+  NSNetServicePointer = ^NSNetService;
   NSNetServiceBrowser = objcclass;
+  NSNetServiceBrowserPointer = ^NSNetServiceBrowser;
 
 {$endif}
 

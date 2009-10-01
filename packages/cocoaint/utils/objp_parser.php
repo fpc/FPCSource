@@ -256,6 +256,7 @@ class TObjPParser extends TPasCocoaParser {
 
 		$macro = strtoupper(substr($header["name"], 0, (strripos($header["name"], "."))));
 		
+		/*
 		if ($header["classes"]) {
 			$this->PrintOutput(0, "{\$ifdef HEADER}");
 			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_H}");
@@ -272,6 +273,7 @@ class TObjPParser extends TPasCocoaParser {
 			$this->PrintOutput(0, "{\$endif}");
 			$this->PrintOutput(0, "{\$endif}");
 		}
+		*/
 		
 		$this->PrintOutput(0, "");
 		$this->PrintOutput(0, "{\$ifdef TYPES}");
@@ -316,11 +318,11 @@ class TObjPParser extends TPasCocoaParser {
 		if ($this->HeaderContainsPatch($header)) {
 			$this->PrintOutput(0, "");
 			$this->PrintOutput(0, "{\$ifdef USER_PATCHES}");
-			$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_PATCH}");
-			$this->PrintOutput(0, "{\$define $macro"."_PAS_PATCH}");
+			//$this->PrintOutput(0, "{\$ifndef $macro"."_PAS_PATCH}");
+			//$this->PrintOutput(0, "{\$define $macro"."_PAS_PATCH}");
 			$this->InsertPatches($header);
 			$this->PrintOutput(0, "");
-			$this->PrintOutput(0, "{\$endif}");
+			//$this->PrintOutput(0, "{\$endif}");
 			$this->PrintOutput(0, "{\$endif}");
 		}
 
@@ -333,7 +335,10 @@ class TObjPParser extends TPasCocoaParser {
 			}
 			
 			if ($header["classes"]) {
-				foreach ($header["classes"] as $class) $this->PrintOutput(1, $class["name"]." = objcclass;");
+				foreach ($header["classes"] as $class) {
+					$this->PrintOutput(1, $class["name"]." = objcclass;");
+					$this->PrintOutput(1, $class["name"]."Pointer = ^".$class["name"].";");
+				}
 			}
 			
 			$this->PrintOutput(0, "");

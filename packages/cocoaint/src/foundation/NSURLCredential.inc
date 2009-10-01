@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSURLCredential.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSURLCREDENTIAL_PAS_H}
-{$define NSURLCREDENTIAL_PAS_H}
-type
-  NSURLCredentialPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSURLCREDENTIAL_PAS_T}
@@ -51,6 +43,7 @@ type
 
 {$ifdef FORWARD}
   NSURLCredential = objcclass;
+  NSURLCredentialPointer = ^NSURLCredential;
 
 {$endif}
 

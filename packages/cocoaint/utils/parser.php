@@ -105,10 +105,10 @@ function HandleCommandLineOptions ($argv) {
 }
 
 // ??? TESTING
-$testing = false;
+$testing = true;
 
 if ($testing) {
-	$GLOBALS["argv"][] = "-iphone";
+	$GLOBALS["argv"][] = "-cocoa";
 	$GLOBALS["argv"][] = "-root=/Developer/ObjectivePascal";
 	//$GLOBALS["argv"][] = "-delegates";
 	//$GLOBALS["argv"][] = "-reference";
@@ -118,12 +118,12 @@ if ($testing) {
 	//$GLOBALS["argv"][] = "-only=\"UIWindow.h\"";
 	$GLOBALS["argv"][] = "-frameworks=\"appkit,foundation\"";
 
-	$GLOBALS["argv"][] = "-framework_path=\"/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS2.2.1.sdk/System/Library/Frameworks\"";
-	$GLOBALS["argv"][] = "-header=\"uikit/UIView.h\"";
+	//$GLOBALS["argv"][] = "-framework_path=\"/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS2.2.1.sdk/System/Library/Frameworks\"";
+	//$GLOBALS["argv"][] = "-header=\"uikit/UIView.h\"";
 	
-	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
-	//$GLOBALS["argv"][] = "-header=\"foundation/NSXMLNodeOptions.h\"";
-	//$GLOBALS["argv"][] = "-header=\"appkit/NSBrowser.h\"";
+	$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
+	$GLOBALS["argv"][] = "-header=\"foundation/NSBundle.h\"";
+	//$GLOBALS["argv"][] = "-header=\"appkit/NSBundle.h\"";
 	
 	$GLOBALS["argv"][] = "-ignore=\"NSGeometry.h,NSRange.h\"";
 	$GLOBALS["argv"][] = "-objp";
@@ -132,6 +132,19 @@ if ($testing) {
 	/* Notes for master compile (-all):
 
 	• CocoaAll.pas:
+	
+		Compiling /Developer/ObjectivePascal/CocoaAll.pas
+		1) NSWorkspace.inc(35,46) Error: Duplicate identifier "NSWorkspaceLaunchAllowingClassicStartup"
+		2) NSClassDescription.inc(60,55) Error: Duplicate identifier "description"
+		3) NSScriptObjectSpecifiers.inc(194,44) Error: Duplicate identifier "classDescription"
+		4) NSScriptSuiteRegistry.inc(75,40) Error: Duplicate identifier "classDescription"
+		5) NSControl.inc(136,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+		6) NSWorkspace.inc(135,189) Error: Duplicate identifier "description"
+		7) NSMenuItemCell.inc(64,9) Error: Duplicate identifier "reserved"
+		8) NSRuleEditor.inc(127,15) Error: Mismatch between number of declared parameters and number of colons in message string.
+		9) NSObjCRuntime.inc(79,24) Fatal: Syntax error, "identifier" expected but ":" found
+		Fatal: Compilation aborted	
+	
 		1) NSWorkspace.h has a duplicate NSWorkspaceLaunchAllowingClassicStartup constant
 		2) NSObjcRuntime.h contains a bad external function:
 			function __attribute__(: (format(__NSString__; : 1; : 2))): void NSLog(NSStringRef *format, ...); cdecl; external name '__attribute__';

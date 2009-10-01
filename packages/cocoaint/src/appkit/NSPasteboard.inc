@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSPasteboard.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSPASTEBOARD_PAS_H}
-{$define NSPASTEBOARD_PAS_H}
-type
-  NSPasteboardPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSPASTEBOARD_PAS_T}
@@ -41,11 +33,39 @@ function NSGetFileTypes(pboardTypesPointer: NSArray): NSArray; cdecl; external n
 {$ifndef NSPASTEBOARD_PAS_S}
 {$define NSPASTEBOARD_PAS_S}
 
+{ External string constants }
+var
+  NSStringPboardType: NSString; external name '_NSStringPboardType';
+  NSFilenamesPboardType: NSString; external name '_NSFilenamesPboardType';
+  NSPostScriptPboardType: NSString; external name '_NSPostScriptPboardType';
+  NSTIFFPboardType: NSString; external name '_NSTIFFPboardType';
+  NSRTFPboardType: NSString; external name '_NSRTFPboardType';
+  NSTabularTextPboardType: NSString; external name '_NSTabularTextPboardType';
+  NSFontPboardType: NSString; external name '_NSFontPboardType';
+  NSRulerPboardType: NSString; external name '_NSRulerPboardType';
+  NSFileContentsPboardType: NSString; external name '_NSFileContentsPboardType';
+  NSColorPboardType: NSString; external name '_NSColorPboardType';
+  NSRTFDPboardType: NSString; external name '_NSRTFDPboardType';
+  NSHTMLPboardType: NSString; external name '_NSHTMLPboardType';
+  NSPICTPboardType: NSString; external name '_NSPICTPboardType';
+  NSURLPboardType: NSString; external name '_NSURLPboardType';
+  NSPDFPboardType: NSString; external name '_NSPDFPboardType';
+  NSVCardPboardType: NSString; external name '_NSVCardPboardType';
+  NSFilesPromisePboardType: NSString; external name '_NSFilesPromisePboardType';
+  NSInkTextPboardType: NSString; external name '_NSInkTextPboardType';
+  NSMultipleTextSelectionPboardType: NSString; external name '_NSMultipleTextSelectionPboardType';
+  NSGeneralPboard: NSString; external name '_NSGeneralPboard';
+  NSFontPboard: NSString; external name '_NSFontPboard';
+  NSRulerPboard: NSString; external name '_NSRulerPboard';
+  NSFindPboard: NSString; external name '_NSFindPboard';
+  NSDragPboard: NSString; external name '_NSDragPboard';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSPasteboard = objcclass;
+  NSPasteboardPointer = ^NSPasteboard;
 
 {$endif}
 

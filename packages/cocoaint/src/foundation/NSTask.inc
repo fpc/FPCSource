@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSTask.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTASK_PAS_H}
-{$define NSTASK_PAS_H}
-type
-  NSTaskPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTASK_PAS_T}
@@ -44,6 +36,7 @@ var
 
 {$ifdef FORWARD}
   NSTask = objcclass;
+  NSTaskPointer = ^NSTask;
 
 {$endif}
 

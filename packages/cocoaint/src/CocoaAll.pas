@@ -4,13 +4,13 @@ unit CocoaAll;
 {$modeswitch objectivec1}
 {$define NSGEOMETRY_TYPES_SAME_AS_CGGEOMETRY_TYPES}
 
-{NOTE: This is to prevent against a huge list of "never used" private variable notes}
-{$notes off}
-
 interface
 
 uses 
   ctypes, MacOSAll;
+  
+{$linkframework Cocoa}
+{$define INTERFACE}
 
 {$include UndefinedTypes.inc}
 
@@ -57,10 +57,13 @@ type
 {$include appkit/AppKit.inc}
 {$undef EXTERNAL_SYMBOLS}
 
+{$define USER_PATCHES}
+{$include foundation/Foundation.inc}
+{$include appkit/AppKit.inc}
+{$undef USER_PATCHES}
+
 {define IBOutlet := }
 {define IBAction := }
-
-{$notes on}
 
 { Inline functions }
 function NSSTR (inString: PChar): NSString;
@@ -86,8 +89,17 @@ function NSPointToCGPoint (aPoint: NSPoint): CGPoint;
 function NSSizeFromCGSize(aSize: CGSize): NSSize;
 function NSSizeToCGSize(aSize: NSSize): CGSize;
 
+{$undef INTERFACE}
+
 implementation
+{$define IMPLEMENTATION}
 
 {$include InlineFunctions.inc}
 
+{$define USER_PATCHES}
+{$include foundation/Foundation.inc}
+{$include appkit/AppKit.inc}
+{$undef USER_PATCHES}
+
+{$undef IMPLEMENTATION}
 end.

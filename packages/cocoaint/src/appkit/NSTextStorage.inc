@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSTextStorage.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTEXTSTORAGE_PAS_H}
-{$define NSTEXTSTORAGE_PAS_H}
-type
-  NSTextStoragePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTEXTSTORAGE_PAS_T}
@@ -41,11 +33,17 @@ const
 {$ifndef NSTEXTSTORAGE_PAS_S}
 {$define NSTEXTSTORAGE_PAS_S}
 
+{ External string constants }
+var
+  NSTextStorageWillProcessEditingNotification: NSString; external name '_NSTextStorageWillProcessEditingNotification';
+  NSTextStorageDidProcessEditingNotification: NSString; external name '_NSTextStorageDidProcessEditingNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSTextStorage = objcclass;
+  NSTextStoragePointer = ^NSTextStorage;
 
 {$endif}
 

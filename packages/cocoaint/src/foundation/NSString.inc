@@ -1,17 +1,6 @@
 { Parsed from Foundation.framework NSString.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSTRING_PAS_H}
-{$define NSSTRING_PAS_H}
-type
-  NSStringPointer = Pointer;
-  NSMutableStringPointer = Pointer;
-  NSSimpleCStringPointer = Pointer;
-  NSConstantStringPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSTRING_PAS_T}
@@ -103,9 +92,13 @@ var
 
 {$ifdef FORWARD}
   NSString = objcclass;
+  NSStringPointer = ^NSString;
   NSMutableString = objcclass;
+  NSMutableStringPointer = ^NSMutableString;
   NSSimpleCString = objcclass;
+  NSSimpleCStringPointer = ^NSSimpleCString;
   NSConstantString = objcclass;
+  NSConstantStringPointer = ^NSConstantString;
 
 {$endif}
 

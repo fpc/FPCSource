@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSBitmapImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSBITMAPIMAGEREP_PAS_H}
-{$define NSBITMAPIMAGEREP_PAS_H}
-type
-  NSBitmapImageRepPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSBITMAPIMAGEREP_PAS_T}
@@ -80,6 +72,7 @@ type
 
 {$ifdef FORWARD}
   NSBitmapImageRep = objcclass;
+  NSBitmapImageRepPointer = ^NSBitmapImageRep;
 
 {$endif}
 

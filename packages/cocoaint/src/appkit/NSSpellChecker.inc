@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSSpellChecker.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSPELLCHECKER_PAS_H}
-{$define NSSPELLCHECKER_PAS_H}
-type
-  NSSpellCheckerPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSPELLCHECKER_PAS_T}
@@ -40,6 +32,7 @@ type
 
 {$ifdef FORWARD}
   NSSpellChecker = objcclass;
+  NSSpellCheckerPointer = ^NSSpellChecker;
 
 {$endif}
 

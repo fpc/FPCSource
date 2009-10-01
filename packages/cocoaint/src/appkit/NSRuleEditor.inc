@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSRuleEditor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSRULEEDITOR_PAS_H}
-{$define NSRULEEDITOR_PAS_H}
-type
-  NSRuleEditorPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSRULEEDITOR_PAS_T}
@@ -68,6 +60,7 @@ var
 
 {$ifdef FORWARD}
   NSRuleEditor = objcclass;
+  NSRuleEditorPointer = ^NSRuleEditor;
 
 {$endif}
 
@@ -124,7 +117,7 @@ var
   public
     class function alloc: NSRuleEditor; message 'alloc';
 
-    procedure setDelegate(sender: id); message 'setDelegate:';
+    procedure setDelegate(_delegate: id); message 'setDelegate:';
     function delegate: id; message 'delegate';
     procedure setFormattingStringsFilename(stringsFilename: NSString); message 'setFormattingStringsFilename:';
     function formattingStringsFilename: NSString; message 'formattingStringsFilename';

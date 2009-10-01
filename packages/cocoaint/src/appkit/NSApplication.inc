@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSApplication.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSAPPLICATION_PAS_H}
-{$define NSAPPLICATION_PAS_H}
-type
-  NSApplicationPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSAPPLICATION_PAS_T}
@@ -98,11 +90,31 @@ procedure NSUnregisterServicesProvider(namePointer: NSString); cdecl; external n
 var
   NSAppKitVersionNumber: double; external name '_NSAppKitVersionNumber';
 
+{ External string constants }
+var
+  NSModalPanelRunLoopMode: NSString; external name '_NSModalPanelRunLoopMode';
+  NSEventTrackingRunLoopMode: NSString; external name '_NSEventTrackingRunLoopMode';
+  NSApplicationDidBecomeActiveNotification: NSString; external name '_NSApplicationDidBecomeActiveNotification';
+  NSApplicationDidHideNotification: NSString; external name '_NSApplicationDidHideNotification';
+  NSApplicationDidFinishLaunchingNotification: NSString; external name '_NSApplicationDidFinishLaunchingNotification';
+  NSApplicationDidResignActiveNotification: NSString; external name '_NSApplicationDidResignActiveNotification';
+  NSApplicationDidUnhideNotification: NSString; external name '_NSApplicationDidUnhideNotification';
+  NSApplicationDidUpdateNotification: NSString; external name '_NSApplicationDidUpdateNotification';
+  NSApplicationWillBecomeActiveNotification: NSString; external name '_NSApplicationWillBecomeActiveNotification';
+  NSApplicationWillHideNotification: NSString; external name '_NSApplicationWillHideNotification';
+  NSApplicationWillFinishLaunchingNotification: NSString; external name '_NSApplicationWillFinishLaunchingNotification';
+  NSApplicationWillResignActiveNotification: NSString; external name '_NSApplicationWillResignActiveNotification';
+  NSApplicationWillUnhideNotification: NSString; external name '_NSApplicationWillUnhideNotification';
+  NSApplicationWillUpdateNotification: NSString; external name '_NSApplicationWillUpdateNotification';
+  NSApplicationWillTerminateNotification: NSString; external name '_NSApplicationWillTerminateNotification';
+  NSApplicationDidChangeScreenParametersNotification: NSString; external name '_NSApplicationDidChangeScreenParametersNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSApplication = objcclass;
+  NSApplicationPointer = ^NSApplication;
 
 {$endif}
 

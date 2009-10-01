@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSSpellServer.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSPELLSERVER_PAS_H}
-{$define NSSPELLSERVER_PAS_H}
-type
-  NSSpellServerPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSPELLSERVER_PAS_T}
@@ -46,6 +38,7 @@ var
 
 {$ifdef FORWARD}
   NSSpellServer = objcclass;
+  NSSpellServerPointer = ^NSSpellServer;
 
 {$endif}
 

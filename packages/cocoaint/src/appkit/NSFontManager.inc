@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSFontManager.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSFONTMANAGER_PAS_H}
-{$define NSFONTMANAGER_PAS_H}
-type
-  NSFontManagerPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSFONTMANAGER_PAS_T}
@@ -74,6 +66,7 @@ const
 
 {$ifdef FORWARD}
   NSFontManager = objcclass;
+  NSFontManagerPointer = ^NSFontManager;
 
 {$endif}
 

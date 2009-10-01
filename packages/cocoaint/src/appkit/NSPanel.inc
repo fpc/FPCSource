@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSPANEL_PAS_H}
-{$define NSPANEL_PAS_H}
-type
-  NSPanelPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSPANEL_PAS_T}
@@ -77,6 +69,7 @@ procedure NSReleaseAlertPanel(panel: id); cdecl; external name 'NSReleaseAlertPa
 
 {$ifdef FORWARD}
   NSPanel = objcclass;
+  NSPanelPointer = ^NSPanel;
 
 {$endif}
 

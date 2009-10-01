@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSWorkspace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSWORKSPACE_PAS_H}
-{$define NSWORKSPACE_PAS_H}
-type
-  NSWorkspacePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSWORKSPACE_PAS_T}
@@ -58,11 +50,37 @@ const
 {$ifndef NSWORKSPACE_PAS_S}
 {$define NSWORKSPACE_PAS_S}
 
+{ External string constants }
+var
+  NSWorkspaceDidLaunchApplicationNotification: NSString; external name '_NSWorkspaceDidLaunchApplicationNotification';
+  NSWorkspaceDidMountNotification: NSString; external name '_NSWorkspaceDidMountNotification';
+  NSWorkspaceDidPerformFileOperationNotification: NSString; external name '_NSWorkspaceDidPerformFileOperationNotification';
+  NSWorkspaceDidTerminateApplicationNotification: NSString; external name '_NSWorkspaceDidTerminateApplicationNotification';
+  NSWorkspaceDidUnmountNotification: NSString; external name '_NSWorkspaceDidUnmountNotification';
+  NSWorkspaceWillLaunchApplicationNotification: NSString; external name '_NSWorkspaceWillLaunchApplicationNotification';
+  NSWorkspaceWillPowerOffNotification: NSString; external name '_NSWorkspaceWillPowerOffNotification';
+  NSWorkspaceWillUnmountNotification: NSString; external name '_NSWorkspaceWillUnmountNotification';
+  NSWorkspaceWillSleepNotification: NSString; external name '_NSWorkspaceWillSleepNotification';
+  NSWorkspaceDidWakeNotification: NSString; external name '_NSWorkspaceDidWakeNotification';
+  NSWorkspaceSessionDidBecomeActiveNotification: NSString; external name '_NSWorkspaceSessionDidBecomeActiveNotification';
+  NSWorkspaceSessionDidResignActiveNotification: NSString; external name '_NSWorkspaceSessionDidResignActiveNotification';
+  NSWorkspaceMoveOperation: NSString; external name '_NSWorkspaceMoveOperation';
+  NSWorkspaceCopyOperation: NSString; external name '_NSWorkspaceCopyOperation';
+  NSWorkspaceLinkOperation: NSString; external name '_NSWorkspaceLinkOperation';
+  NSWorkspaceCompressOperation: NSString; external name '_NSWorkspaceCompressOperation';
+  NSWorkspaceDecompressOperation: NSString; external name '_NSWorkspaceDecompressOperation';
+  NSWorkspaceEncryptOperation: NSString; external name '_NSWorkspaceEncryptOperation';
+  NSWorkspaceDecryptOperation: NSString; external name '_NSWorkspaceDecryptOperation';
+  NSWorkspaceDestroyOperation: NSString; external name '_NSWorkspaceDestroyOperation';
+  NSWorkspaceRecycleOperation: NSString; external name '_NSWorkspaceRecycleOperation';
+  NSWorkspaceDuplicateOperation: NSString; external name '_NSWorkspaceDuplicateOperation';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSWorkspace = objcclass;
+  NSWorkspacePointer = ^NSWorkspace;
 
 {$endif}
 

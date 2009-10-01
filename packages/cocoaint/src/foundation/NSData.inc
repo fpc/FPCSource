@@ -1,15 +1,6 @@
 { Parsed from Foundation.framework NSData.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSDATA_PAS_H}
-{$define NSDATA_PAS_H}
-type
-  NSDataPointer = Pointer;
-  NSMutableDataPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSDATA_PAS_T}
@@ -50,7 +41,9 @@ const
 
 {$ifdef FORWARD}
   NSData = objcclass;
+  NSDataPointer = ^NSData;
   NSMutableData = objcclass;
+  NSMutableDataPointer = ^NSMutableData;
 
 {$endif}
 

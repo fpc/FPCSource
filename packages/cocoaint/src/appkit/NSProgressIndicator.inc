@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSProgressIndicator.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSPROGRESSINDICATOR_PAS_H}
-{$define NSPROGRESSINDICATOR_PAS_H}
-type
-  NSProgressIndicatorPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSPROGRESSINDICATOR_PAS_T}
@@ -59,6 +51,7 @@ const
 
 {$ifdef FORWARD}
   NSProgressIndicator = objcclass;
+  NSProgressIndicatorPointer = ^NSProgressIndicator;
 
 {$endif}
 

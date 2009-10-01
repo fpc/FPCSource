@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSImageRep.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSIMAGEREP_PAS_H}
-{$define NSIMAGEREP_PAS_H}
-type
-  NSImageRepPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSIMAGEREP_PAS_T}
@@ -40,11 +32,16 @@ const
 {$ifndef NSIMAGEREP_PAS_S}
 {$define NSIMAGEREP_PAS_S}
 
+{ External string constants }
+var
+  NSImageRepRegistryDidChangeNotification: NSString; external name '_NSImageRepRegistryDidChangeNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSImageRep = objcclass;
+  NSImageRepPointer = ^NSImageRep;
 
 {$endif}
 

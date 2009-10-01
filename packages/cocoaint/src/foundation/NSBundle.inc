@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSBundle.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSBUNDLE_PAS_H}
-{$define NSBUNDLE_PAS_H}
-type
-  NSBundlePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSBUNDLE_PAS_T}
@@ -51,8 +43,29 @@ var
 {$endif}
 {$endif}
 
+{$ifdef USER_PATCHES}
+{ifndef NSBUNDLE_PAS_PATCH}
+{define NSBUNDLE_PAS_PATCH}
+
+{$ifdef INTERFACE}
+function NSLocalizedString(key : NSString): NSString; inline;
+{$endif}
+
+{$ifdef IMPLEMENTATION}
+function NSLocalizedString(key : NSString): NSString;
+var
+ kEmptyString: NSString;
+begin
+  Result := NSBundle.mainBundle.localizedStringForKey_value_table(key, kEmptyString, nil);
+end;
+{$endif}
+
+{endif}
+{$endif}
+
 {$ifdef FORWARD}
   NSBundle = objcclass;
+  NSBundlePointer = ^NSBundle;
 
 {$endif}
 

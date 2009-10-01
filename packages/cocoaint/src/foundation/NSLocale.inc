@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSLocale.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSLOCALE_PAS_H}
-{$define NSLOCALE_PAS_H}
-type
-  NSLocalePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSLOCALE_PAS_T}
@@ -65,6 +57,7 @@ var
 
 {$ifdef FORWARD}
   NSLocale = objcclass;
+  NSLocalePointer = ^NSLocale;
 
 {$endif}
 

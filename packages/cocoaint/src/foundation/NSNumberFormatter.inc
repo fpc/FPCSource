@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSNumberFormatter.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSNUMBERFORMATTER_PAS_H}
-{$define NSNUMBERFORMATTER_PAS_H}
-type
-  NSNumberFormatterPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSNUMBERFORMATTER_PAS_T}
@@ -77,6 +69,7 @@ type
 
 {$ifdef FORWARD}
   NSNumberFormatter = objcclass;
+  NSNumberFormatterPointer = ^NSNumberFormatter;
 
 {$endif}
 

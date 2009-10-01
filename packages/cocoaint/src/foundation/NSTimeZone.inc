@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSTimeZone.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTIMEZONE_PAS_H}
-{$define NSTIMEZONE_PAS_H}
-type
-  NSTimeZonePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTIMEZONE_PAS_T}
@@ -56,6 +48,7 @@ var
 
 {$ifdef FORWARD}
   NSTimeZone = objcclass;
+  NSTimeZonePointer = ^NSTimeZone;
 
 {$endif}
 

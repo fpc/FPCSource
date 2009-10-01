@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSXMLDTDNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSXMLDTDNODE_PAS_H}
-{$define NSXMLDTDNODE_PAS_H}
-type
-  NSXMLDTDNodePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSXMLDTDNODE_PAS_T}
@@ -68,6 +60,7 @@ type
 
 {$ifdef FORWARD}
   NSXMLDTDNode = objcclass;
+  NSXMLDTDNodePointer = ^NSXMLDTDNode;
 
 {$endif}
 

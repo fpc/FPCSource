@@ -1,15 +1,6 @@
 { Parsed from Foundation.framework NSNotification.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSNOTIFICATION_PAS_H}
-{$define NSNOTIFICATION_PAS_H}
-type
-  NSNotificationPointer = Pointer;
-  NSNotificationCenterPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSNOTIFICATION_PAS_T}
@@ -41,7 +32,9 @@ type
 
 {$ifdef FORWARD}
   NSNotification = objcclass;
+  NSNotificationPointer = ^NSNotification;
   NSNotificationCenter = objcclass;
+  NSNotificationCenterPointer = ^NSNotificationCenter;
 
 {$endif}
 

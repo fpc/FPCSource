@@ -1,16 +1,6 @@
 { Parsed from Foundation.framework NSStream.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSTREAM_PAS_H}
-{$define NSSTREAM_PAS_H}
-type
-  NSStreamPointer = Pointer;
-  NSInputStreamPointer = Pointer;
-  NSOutputStreamPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSTREAM_PAS_T}
@@ -83,8 +73,11 @@ var
 
 {$ifdef FORWARD}
   NSStream = objcclass;
+  NSStreamPointer = ^NSStream;
   NSInputStream = objcclass;
+  NSInputStreamPointer = ^NSInputStream;
   NSOutputStream = objcclass;
+  NSOutputStreamPointer = ^NSOutputStream;
 
 {$endif}
 

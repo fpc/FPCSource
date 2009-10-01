@@ -4,13 +4,12 @@ unit Foundation;
 {$modeswitch objectivec1}
 {$define NSGEOMETRY_TYPES_SAME_AS_CGGEOMETRY_TYPES}
 
-{NOTE: This is to prevent against a huge list of "never used" private variable notes}
-{$notes off}
-
 interface
 
 uses 
   ctypes, MacOSAll;
+  
+{$linkframework Foundation}
 
 {$include UndefinedTypes.inc}
 
@@ -49,10 +48,9 @@ type
 {$include foundation/Foundation.inc}
 {$undef EXTERNAL_SYMBOLS}
 
-{define IBOutlet := }
-{define IBAction := }
-
-{$notes on}
+{$define USER_PATCHES}
+{$include foundation/Foundation.inc}
+{$undef USER_PATCHES}
 
 { Inline functions }
 function NSSTR (inString: PChar): NSString;

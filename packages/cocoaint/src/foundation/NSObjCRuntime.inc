@@ -1,5 +1,5 @@
 { Parsed from Foundation.framework NSObjCRuntime.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,8 +50,8 @@ const
 
 { Types }
 type
-  NSInteger = clong;
-  NSUInteger = culong;
+  NSInteger = cint;
+  NSUInteger = cuint;
   NSComparisonResult = NSInteger;
 
 {$endif}
@@ -95,7 +95,9 @@ var
 {$ifdef USER_PATCHES}
 {$ifndef NSOBJCRUNTIME_PAS_PATCH}
 {$define NSOBJCRUNTIME_PAS_PATCH}
+{$ifdef INTERFACE}
 procedure NSLog(fmt:NSString); cdecl; varargs; external;
+{$endif}
 
 {$endif}
 {$endif}

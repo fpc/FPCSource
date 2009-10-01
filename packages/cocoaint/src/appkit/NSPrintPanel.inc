@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSPrintPanel.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSPRINTPANEL_PAS_H}
-{$define NSPRINTPANEL_PAS_H}
-type
-  NSPrintPanelPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSPRINTPANEL_PAS_T}
@@ -50,12 +42,19 @@ type
 {$ifndef NSPRINTPANEL_PAS_S}
 {$define NSPRINTPANEL_PAS_S}
 
+{ External string constants }
+var
+  NSPrintPhotoJobStyleHint: NSString; external name '_NSPrintPhotoJobStyleHint';
+  NSPrintPanelAccessorySummaryItemNameKey: NSString; external name '_NSPrintPanelAccessorySummaryItemNameKey';
+  NSPrintPanelAccessorySummaryItemDescriptionKey: NSString; external name '_NSPrintPanelAccessorySummaryItemDescriptionKey';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSPrintPanelAccessorizingProtocol = objcprotocol;
   NSPrintPanel = objcclass;
+  NSPrintPanelPointer = ^NSPrintPanel;
 
 {$endif}
 

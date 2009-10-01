@@ -1,15 +1,6 @@
 { Parsed from Foundation.framework NSConnection.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSCONNECTION_PAS_H}
-{$define NSCONNECTION_PAS_H}
-type
-  NSConnectionPointer = Pointer;
-  NSDistantObjectRequestPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSCONNECTION_PAS_T}
@@ -48,7 +39,9 @@ var
 
 {$ifdef FORWARD}
   NSConnection = objcclass;
+  NSConnectionPointer = ^NSConnection;
   NSDistantObjectRequest = objcclass;
+  NSDistantObjectRequestPointer = ^NSDistantObjectRequest;
 
 {$endif}
 

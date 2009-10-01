@@ -1,17 +1,6 @@
 { Parsed from Foundation.framework NSMetadata.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSMETADATA_PAS_H}
-{$define NSMETADATA_PAS_H}
-type
-  NSMetadataQueryPointer = Pointer;
-  NSMetadataItemPointer = Pointer;
-  NSMetadataQueryAttributeValueTuplePointer = Pointer;
-  NSMetadataQueryResultGroupPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSMETADATA_PAS_T}
@@ -54,9 +43,13 @@ var
 
 {$ifdef FORWARD}
   NSMetadataQuery = objcclass;
+  NSMetadataQueryPointer = ^NSMetadataQuery;
   NSMetadataItem = objcclass;
+  NSMetadataItemPointer = ^NSMetadataItem;
   NSMetadataQueryAttributeValueTuple = objcclass;
+  NSMetadataQueryAttributeValueTuplePointer = ^NSMetadataQueryAttributeValueTuple;
   NSMetadataQueryResultGroup = objcclass;
+  NSMetadataQueryResultGroupPointer = ^NSMetadataQueryResultGroup;
 
 {$endif}
 

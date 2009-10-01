@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSTrackingArea.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTRACKINGAREA_PAS_H}
-{$define NSTRACKINGAREA_PAS_H}
-type
-  NSTrackingAreaPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTRACKINGAREA_PAS_T}
@@ -62,6 +54,7 @@ type
 
 {$ifdef FORWARD}
   NSTrackingArea = objcclass;
+  NSTrackingAreaPointer = ^NSTrackingArea;
 
 {$endif}
 

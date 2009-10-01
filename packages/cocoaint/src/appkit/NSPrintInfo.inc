@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSPrintInfo.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSPRINTINFO_PAS_H}
-{$define NSPRINTINFO_PAS_H}
-type
-  NSPrintInfoPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSPRINTINFO_PAS_T}
@@ -51,11 +43,62 @@ type
 {$ifndef NSPRINTINFO_PAS_S}
 {$define NSPRINTINFO_PAS_S}
 
+{ External string constants }
+var
+  NSPrintSpoolJob: NSString; external name '_NSPrintSpoolJob';
+  NSPrintPreviewJob: NSString; external name '_NSPrintPreviewJob';
+  NSPrintSaveJob: NSString; external name '_NSPrintSaveJob';
+  NSPrintCancelJob: NSString; external name '_NSPrintCancelJob';
+  NSPrintPaperName: NSString; external name '_NSPrintPaperName';
+  NSPrintPaperSize: NSString; external name '_NSPrintPaperSize';
+  NSPrintOrientation: NSString; external name '_NSPrintOrientation';
+  NSPrintScalingFactor: NSString; external name '_NSPrintScalingFactor';
+  NSPrintLeftMargin: NSString; external name '_NSPrintLeftMargin';
+  NSPrintRightMargin: NSString; external name '_NSPrintRightMargin';
+  NSPrintTopMargin: NSString; external name '_NSPrintTopMargin';
+  NSPrintBottomMargin: NSString; external name '_NSPrintBottomMargin';
+  NSPrintHorizontallyCentered: NSString; external name '_NSPrintHorizontallyCentered';
+  NSPrintVerticallyCentered: NSString; external name '_NSPrintVerticallyCentered';
+  NSPrintHorizontalPagination: NSString; external name '_NSPrintHorizontalPagination';
+  NSPrintVerticalPagination: NSString; external name '_NSPrintVerticalPagination';
+  NSPrintPrinter: NSString; external name '_NSPrintPrinter';
+  NSPrintCopies: NSString; external name '_NSPrintCopies';
+  NSPrintAllPages: NSString; external name '_NSPrintAllPages';
+  NSPrintFirstPage: NSString; external name '_NSPrintFirstPage';
+  NSPrintLastPage: NSString; external name '_NSPrintLastPage';
+  NSPrintMustCollate: NSString; external name '_NSPrintMustCollate';
+  NSPrintReversePageOrder: NSString; external name '_NSPrintReversePageOrder';
+  NSPrintJobDisposition: NSString; external name '_NSPrintJobDisposition';
+  NSPrintSavePath: NSString; external name '_NSPrintSavePath';
+  NSPrintPagesAcross: NSString; external name '_NSPrintPagesAcross';
+  NSPrintPagesDown: NSString; external name '_NSPrintPagesDown';
+  NSPrintTime: NSString; external name '_NSPrintTime';
+  NSPrintDetailedErrorReporting: NSString; external name '_NSPrintDetailedErrorReporting';
+  NSPrintFaxNumber: NSString; external name '_NSPrintFaxNumber';
+  NSPrintPrinterName: NSString; external name '_NSPrintPrinterName';
+  NSPrintHeaderAndFooter: NSString; external name '_NSPrintHeaderAndFooter';
+  NSPrintFormName: NSString; external name '_NSPrintFormName';
+  NSPrintJobFeatures: NSString; external name '_NSPrintJobFeatures';
+  NSPrintManualFeed: NSString; external name '_NSPrintManualFeed';
+  NSPrintPagesPerSheet: NSString; external name '_NSPrintPagesPerSheet';
+  NSPrintPaperFeed: NSString; external name '_NSPrintPaperFeed';
+  NSPrintFaxCoverSheetName: NSString; external name '_NSPrintFaxCoverSheetName';
+  NSPrintFaxHighResolution: NSString; external name '_NSPrintFaxHighResolution';
+  NSPrintFaxModem: NSString; external name '_NSPrintFaxModem';
+  NSPrintFaxReceiverNames: NSString; external name '_NSPrintFaxReceiverNames';
+  NSPrintFaxReceiverNumbers: NSString; external name '_NSPrintFaxReceiverNumbers';
+  NSPrintFaxReturnReceipt: NSString; external name '_NSPrintFaxReturnReceipt';
+  NSPrintFaxSendTime: NSString; external name '_NSPrintFaxSendTime';
+  NSPrintFaxTrimPageEnds: NSString; external name '_NSPrintFaxTrimPageEnds';
+  NSPrintFaxUseCoverSheet: NSString; external name '_NSPrintFaxUseCoverSheet';
+  NSPrintFaxJob: NSString; external name '_NSPrintFaxJob';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSPrintInfo = objcclass;
+  NSPrintInfoPointer = ^NSPrintInfo;
 
 {$endif}
 

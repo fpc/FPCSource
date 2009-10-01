@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSVIEW_PAS_H}
-{$define NSVIEW_PAS_H}
-type
-  NSViewPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSVIEW_PAS_T}
@@ -121,12 +113,18 @@ var
   NSFullScreenModeAllScreens: NSString; external name '_NSFullScreenModeAllScreens';
   NSFullScreenModeSetting: NSString; external name '_NSFullScreenModeSetting';
   NSFullScreenModeWindowLevel: NSString; external name '_NSFullScreenModeWindowLevel';
+  NSViewFrameDidChangeNotification: NSString; external name '_NSViewFrameDidChangeNotification';
+  NSViewFocusDidChangeNotification: NSString; external name '_NSViewFocusDidChangeNotification';
+  NSViewBoundsDidChangeNotification: NSString; external name '_NSViewBoundsDidChangeNotification';
+  NSViewGlobalFrameDidChangeNotification: NSString; external name '_NSViewGlobalFrameDidChangeNotification';
+  NSViewDidUpdateTrackingAreasNotification: NSString; external name '_NSViewDidUpdateTrackingAreasNotification';
 
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSView = objcclass;
+  NSViewPointer = ^NSView;
 
 {$endif}
 

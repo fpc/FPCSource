@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSUserDefaults.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSUSERDEFAULTS_PAS_H}
-{$define NSUSERDEFAULTS_PAS_H}
-type
-  NSUserDefaultsPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSUSERDEFAULTS_PAS_T}
@@ -47,6 +39,7 @@ var
 
 {$ifdef FORWARD}
   NSUserDefaults = objcclass;
+  NSUserDefaultsPointer = ^NSUserDefaults;
 
 {$endif}
 

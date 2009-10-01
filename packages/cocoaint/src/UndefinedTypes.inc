@@ -1,6 +1,10 @@
 type
   __NSAppleEventManagerSuspension = Pointer;
-  CGFloat = Float32;
+ {$ifdef cpu64}
+  CGFloat = single;
+ {$else}
+  CGFloat = double;
+ {$endif}
   UTF = UInt32;
   NSPointerFunctionsOptions = UInt16;
   URefCon = UInt32;
@@ -34,8 +38,7 @@ type
  NSIntegerPointer = pclong;
  NSUIntegerPointer = pculong;
  NSZonePointer = ^NSZone;
- NSTimeIntervalPointer = ^Float32;
-
+ NSTimeIntervalPointer = ^double;
 
 { An array of objects }
 type
@@ -47,7 +50,7 @@ const
   NSIntegerMax = high(clong);
   NSIntegerMin = low(clong);
   NSUIntegerMax = high(culong);
-  NSNotFound = NSUIntegerMax;
+  NSNotFound = NSIntegerMax;
 
 const
  NX_TABLET_POINTER_UNKNOWN = 0;

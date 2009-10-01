@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSTextView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTEXTVIEW_PAS_H}
-{$define NSTEXTVIEW_PAS_H}
-type
-  NSTextViewPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTEXTVIEW_PAS_T}
@@ -71,11 +63,22 @@ type
 {$ifndef NSTEXTVIEW_PAS_S}
 {$define NSTEXTVIEW_PAS_S}
 
+{ External string constants }
+var
+  NSFindPanelSearchOptionsPboardType: NSString; external name '_NSFindPanelSearchOptionsPboardType';
+  NSFindPanelCaseInsensitiveSearch: NSString; external name '_NSFindPanelCaseInsensitiveSearch';
+  NSFindPanelSubstringMatch: NSString; external name '_NSFindPanelSubstringMatch';
+  NSAllRomanInputSourcesLocaleIdentifier: NSString; external name '_NSAllRomanInputSourcesLocaleIdentifier';
+  NSTextViewWillChangeNotifyingTextViewNotification: NSString; external name '_NSTextViewWillChangeNotifyingTextViewNotification';
+  NSTextViewDidChangeSelectionNotification: NSString; external name '_NSTextViewDidChangeSelectionNotification';
+  NSTextViewDidChangeTypingAttributesNotification: NSString; external name '_NSTextViewDidChangeTypingAttributesNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSTextView = objcclass;
+  NSTextViewPointer = ^NSTextView;
 
 {$endif}
 

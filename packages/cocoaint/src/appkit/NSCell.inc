@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSCell.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSCELL_PAS_H}
-{$define NSCELL_PAS_H}
-type
-  NSCellPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSCELL_PAS_T}
@@ -193,11 +185,16 @@ procedure NSDrawNinePartImage(frame: NSRect; topLeftCornerPointer: NSImage; topE
 {$ifndef NSCELL_PAS_S}
 {$define NSCELL_PAS_S}
 
+{ External string constants }
+var
+  NSControlTintDidChangeNotification: NSString; external name '_NSControlTintDidChangeNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSCell = objcclass;
+  NSCellPointer = ^NSCell;
 
 {$endif}
 

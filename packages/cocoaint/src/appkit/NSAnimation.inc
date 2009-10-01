@@ -1,15 +1,6 @@
 { Parsed from Appkit.framework NSAnimation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:08 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSANIMATION_PAS_H}
-{$define NSANIMATION_PAS_H}
-type
-  NSAnimationPointer = Pointer;
-  NSViewAnimationPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSANIMATION_PAS_T}
@@ -55,13 +46,20 @@ type
 {$ifndef NSANIMATION_PAS_S}
 {$define NSANIMATION_PAS_S}
 
+{ External string constants }
+var
+  NSAnimationTriggerOrderIn: NSString; external name '_NSAnimationTriggerOrderIn';
+  NSAnimationTriggerOrderOut: NSString; external name '_NSAnimationTriggerOrderOut';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSAnimatablePropertyContainerProtocol = objcprotocol;
   NSAnimation = objcclass;
+  NSAnimationPointer = ^NSAnimation;
   NSViewAnimation = objcclass;
+  NSViewAnimationPointer = ^NSViewAnimation;
 
 {$endif}
 

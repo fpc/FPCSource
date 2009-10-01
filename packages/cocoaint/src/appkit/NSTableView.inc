@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSTableView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTABLEVIEW_PAS_H}
-{$define NSTABLEVIEW_PAS_H}
-type
-  NSTableViewPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTABLEVIEW_PAS_T}
@@ -108,11 +100,19 @@ _TvFlags = __TvFlags;
 {$ifndef NSTABLEVIEW_PAS_S}
 {$define NSTABLEVIEW_PAS_S}
 
+{ External string constants }
+var
+  NSTableViewSelectionDidChangeNotification: NSString; external name '_NSTableViewSelectionDidChangeNotification';
+  NSTableViewColumnDidMoveNotification: NSString; external name '_NSTableViewColumnDidMoveNotification';
+  NSTableViewColumnDidResizeNotification: NSString; external name '_NSTableViewColumnDidResizeNotification';
+  NSTableViewSelectionIsChangingNotification: NSString; external name '_NSTableViewSelectionIsChangingNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSTableView = objcclass;
+  NSTableViewPointer = ^NSTableView;
 
 {$endif}
 

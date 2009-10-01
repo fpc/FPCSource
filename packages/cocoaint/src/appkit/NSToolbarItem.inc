@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSToolbarItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSTOOLBARITEM_PAS_H}
-{$define NSTOOLBARITEM_PAS_H}
-type
-  NSToolbarItemPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSTOOLBARITEM_PAS_T}
@@ -43,11 +35,22 @@ const
 {$ifndef NSTOOLBARITEM_PAS_S}
 {$define NSTOOLBARITEM_PAS_S}
 
+{ External string constants }
+var
+  NSToolbarSeparatorItemIdentifier: NSString; external name '_NSToolbarSeparatorItemIdentifier';
+  NSToolbarSpaceItemIdentifier: NSString; external name '_NSToolbarSpaceItemIdentifier';
+  NSToolbarFlexibleSpaceItemIdentifier: NSString; external name '_NSToolbarFlexibleSpaceItemIdentifier';
+  NSToolbarShowColorsItemIdentifier: NSString; external name '_NSToolbarShowColorsItemIdentifier';
+  NSToolbarShowFontsItemIdentifier: NSString; external name '_NSToolbarShowFontsItemIdentifier';
+  NSToolbarCustomizeToolbarItemIdentifier: NSString; external name '_NSToolbarCustomizeToolbarItemIdentifier';
+  NSToolbarPrintItemIdentifier: NSString; external name '_NSToolbarPrintItemIdentifier';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSToolbarItem = objcclass;
+  NSToolbarItemPointer = ^NSToolbarItem;
 
 {$endif}
 

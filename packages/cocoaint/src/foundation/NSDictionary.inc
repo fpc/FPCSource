@@ -1,15 +1,6 @@
 { Parsed from Foundation.framework NSDictionary.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSDICTIONARY_PAS_H}
-{$define NSDICTIONARY_PAS_H}
-type
-  NSDictionaryPointer = Pointer;
-  NSMutableDictionaryPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSDICTIONARY_PAS_T}
@@ -41,7 +32,9 @@ type
 
 {$ifdef FORWARD}
   NSDictionary = objcclass;
+  NSDictionaryPointer = ^NSDictionary;
   NSMutableDictionary = objcclass;
+  NSMutableDictionaryPointer = ^NSMutableDictionary;
 
 {$endif}
 

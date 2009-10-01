@@ -4,9 +4,6 @@ unit iPhoneAll;
 {$modeswitch objectivec1}
 {$define NSGEOMETRY_TYPES_SAME_AS_CGGEOMETRY_TYPES}
 
-{NOTE: This is to prevent against a huge list of "never used" private variable notes}
-{$notes off}
-
 interface
 
 {$linkframework CoreFoundation}
@@ -18,6 +15,8 @@ uses
   CFBase,CFArray,CFBag,CFCharacterSet,CFData,CFDate,CFDictionary,CFNumber,CFPropertyList,CFSet,CFString,CFStringEncodingExt,CFTimeZone,CFTree,CFURL,CFXMLNode,CFXMLParser,CFMachPort,CFMessagePort,CFRunLoop,CFSocket,CFBinaryHeap,CFBitVector,CFBundle,CFByteOrders,CFPlugIn,CFPreferences,CFURLAccess,CFUUID,CFLocale,CFStream,CFDateFormatter,CFNumberFormatter,CFCalendar,CFUserNotification,CFNotificationCenter,CFAttributedString,
   CGBase,CGAffineTransforms,CGBitmapContext,CGColor,CGColorSpace,CGContext,CGDataConsumer,CGDataProvider,CGDirectDisplay,CGDirectPalette,CGDisplayConfiguration,CGDisplayFades,CGErrors,CGEvent,CGEventSource,CGEventTypes,CGFont,CGFunction,CGGLContext,CGGeometry,CGImage,CGLayer,CGPDFArray,CGPDFContentStream,CGPDFContext,CGPDFDictionary,CGPDFDocument,CGPDFObject,CGPDFOperatorTable,CGPDFPage,CGPDFScanner,CGPDFStream,CGPDFString,CGPSConverter,CGPath,CGPattern,CGRemoteOperation,CGSession,CGShading,CGWindowLevels,
   MacTypes, AEDataModel, Icons;
+  
+{$define INTERFACE}
 
 {$include UndefinedTypes.inc}
 
@@ -73,7 +72,14 @@ type
 {$include uikit/UIKit.inc}
 {$undef EXTERNAL_SYMBOLS}
 
-{$notes on}
+{$define USER_PATCHES}
+{$include foundation/Foundation.inc}
+{$include appkit/AppKit.inc}
+{$include uikit/UIKit.inc}
+{$undef USER_PATCHES}
+
+{define IBOutlet := }
+{define IBAction := }
 
 { Inline functions }
 function NSSTR (inString: PChar): NSString;
@@ -99,8 +105,17 @@ function NSPointToCGPoint (aPoint: NSPoint): CGPoint;
 function NSSizeFromCGSize(aSize: CGSize): NSSize;
 function NSSizeToCGSize(aSize: NSSize): CGSize;
 
+{$undef INTERFACE}
 implementation
+{$define IMPLEMENTATION}
 
 {$include InlineFunctions.inc}
 
+{$define USER_PATCHES}
+{$include foundation/Foundation.inc}
+{$include appkit/AppKit.inc}
+{$include uikit/UIKit.inc}
+{$undef USER_PATCHES}
+
+{$undef IMPLEMENTATION}
 end.

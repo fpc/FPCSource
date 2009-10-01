@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSColorSpace.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSCOLORSPACE_PAS_H}
-{$define NSCOLORSPACE_PAS_H}
-type
-  NSColorSpacePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSCOLORSPACE_PAS_T}
@@ -56,6 +48,7 @@ type
 
 {$ifdef FORWARD}
   NSColorSpace = objcclass;
+  NSColorSpacePointer = ^NSColorSpace;
 
 {$endif}
 

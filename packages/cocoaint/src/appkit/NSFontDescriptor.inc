@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSFontDescriptor.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSFONTDESCRIPTOR_PAS_H}
-{$define NSFONTDESCRIPTOR_PAS_H}
-type
-  NSFontDescriptorPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSFONTDESCRIPTOR_PAS_T}
@@ -67,11 +59,38 @@ const
 {$ifndef NSFONTDESCRIPTOR_PAS_S}
 {$define NSFONTDESCRIPTOR_PAS_S}
 
+{ External string constants }
+var
+  NSFontFamilyAttribute: NSString; external name '_NSFontFamilyAttribute';
+  NSFontNameAttribute: NSString; external name '_NSFontNameAttribute';
+  NSFontFaceAttribute: NSString; external name '_NSFontFaceAttribute';
+  NSFontSizeAttribute: NSString; external name '_NSFontSizeAttribute';
+  NSFontVisibleNameAttribute: NSString; external name '_NSFontVisibleNameAttribute';
+  NSFontMatrixAttribute: NSString; external name '_NSFontMatrixAttribute';
+  NSFontVariationAttribute: NSString; external name '_NSFontVariationAttribute';
+  NSFontCharacterSetAttribute: NSString; external name '_NSFontCharacterSetAttribute';
+  NSFontCascadeListAttribute: NSString; external name '_NSFontCascadeListAttribute';
+  NSFontTraitsAttribute: NSString; external name '_NSFontTraitsAttribute';
+  NSFontFixedAdvanceAttribute: NSString; external name '_NSFontFixedAdvanceAttribute';
+  NSFontFeatureSettingsAttribute: NSString; external name '_NSFontFeatureSettingsAttribute';
+  NSFontSymbolicTrait: NSString; external name '_NSFontSymbolicTrait';
+  NSFontWeightTrait: NSString; external name '_NSFontWeightTrait';
+  NSFontWidthTrait: NSString; external name '_NSFontWidthTrait';
+  NSFontSlantTrait: NSString; external name '_NSFontSlantTrait';
+  NSFontVariationAxisIdentifierKey: NSString; external name '_NSFontVariationAxisIdentifierKey';
+  NSFontVariationAxisMinimumValueKey: NSString; external name '_NSFontVariationAxisMinimumValueKey';
+  NSFontVariationAxisMaximumValueKey: NSString; external name '_NSFontVariationAxisMaximumValueKey';
+  NSFontVariationAxisDefaultValueKey: NSString; external name '_NSFontVariationAxisDefaultValueKey';
+  NSFontVariationAxisNameKey: NSString; external name '_NSFontVariationAxisNameKey';
+  NSFontFeatureTypeIdentifierKey: NSString; external name '_NSFontFeatureTypeIdentifierKey';
+  NSFontFeatureSelectorIdentifierKey: NSString; external name '_NSFontFeatureSelectorIdentifierKey';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSFontDescriptor = objcclass;
+  NSFontDescriptorPointer = ^NSFontDescriptor;
 
 {$endif}
 

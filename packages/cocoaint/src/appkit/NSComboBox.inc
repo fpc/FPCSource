@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSComboBox.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSCOMBOBOX_PAS_H}
-{$define NSCOMBOBOX_PAS_H}
-type
-  NSComboBoxPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSCOMBOBOX_PAS_T}
@@ -35,11 +27,19 @@ type
 {$ifndef NSCOMBOBOX_PAS_S}
 {$define NSCOMBOBOX_PAS_S}
 
+{ External string constants }
+var
+  NSComboBoxWillPopUpNotification: NSString; external name '_NSComboBoxWillPopUpNotification';
+  NSComboBoxWillDismissNotification: NSString; external name '_NSComboBoxWillDismissNotification';
+  NSComboBoxSelectionDidChangeNotification: NSString; external name '_NSComboBoxSelectionDidChangeNotification';
+  NSComboBoxSelectionIsChangingNotification: NSString; external name '_NSComboBoxSelectionIsChangingNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSComboBox = objcclass;
+  NSComboBoxPointer = ^NSComboBox;
 
 {$endif}
 

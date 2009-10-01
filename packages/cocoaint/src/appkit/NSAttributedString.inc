@@ -1,15 +1,6 @@
 { Parsed from Appkit.framework NSAttributedString.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSATTRIBUTEDSTRING_PAS_H}
-{$define NSATTRIBUTEDSTRING_PAS_H}
-type
-  NSAttributedStringPointer = Pointer;
-  NSMutableAttributedStringPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSATTRIBUTEDSTRING_PAS_T}
@@ -59,6 +50,82 @@ const
 {$ifndef NSATTRIBUTEDSTRING_PAS_S}
 {$define NSATTRIBUTEDSTRING_PAS_S}
 
+{ External string constants }
+var
+  NSFontAttributeName: NSString; external name '_NSFontAttributeName';
+  NSParagraphStyleAttributeName: NSString; external name '_NSParagraphStyleAttributeName';
+  NSForegroundColorAttributeName: NSString; external name '_NSForegroundColorAttributeName';
+  NSUnderlineStyleAttributeName: NSString; external name '_NSUnderlineStyleAttributeName';
+  NSSuperscriptAttributeName: NSString; external name '_NSSuperscriptAttributeName';
+  NSBackgroundColorAttributeName: NSString; external name '_NSBackgroundColorAttributeName';
+  NSAttachmentAttributeName: NSString; external name '_NSAttachmentAttributeName';
+  NSLigatureAttributeName: NSString; external name '_NSLigatureAttributeName';
+  NSBaselineOffsetAttributeName: NSString; external name '_NSBaselineOffsetAttributeName';
+  NSKernAttributeName: NSString; external name '_NSKernAttributeName';
+  NSLinkAttributeName: NSString; external name '_NSLinkAttributeName';
+  NSStrokeWidthAttributeName: NSString; external name '_NSStrokeWidthAttributeName';
+  NSStrokeColorAttributeName: NSString; external name '_NSStrokeColorAttributeName';
+  NSUnderlineColorAttributeName: NSString; external name '_NSUnderlineColorAttributeName';
+  NSStrikethroughStyleAttributeName: NSString; external name '_NSStrikethroughStyleAttributeName';
+  NSStrikethroughColorAttributeName: NSString; external name '_NSStrikethroughColorAttributeName';
+  NSShadowAttributeName: NSString; external name '_NSShadowAttributeName';
+  NSObliquenessAttributeName: NSString; external name '_NSObliquenessAttributeName';
+  NSExpansionAttributeName: NSString; external name '_NSExpansionAttributeName';
+  NSCursorAttributeName: NSString; external name '_NSCursorAttributeName';
+  NSToolTipAttributeName: NSString; external name '_NSToolTipAttributeName';
+  NSCharacterShapeAttributeName: NSString; external name '_NSCharacterShapeAttributeName';
+  NSGlyphInfoAttributeName: NSString; external name '_NSGlyphInfoAttributeName';
+  NSMarkedClauseSegmentAttributeName: NSString; external name '_NSMarkedClauseSegmentAttributeName';
+  NSSpellingStateAttributeName: NSString; external name '_NSSpellingStateAttributeName';
+  NSPlainTextDocumentType: NSString; external name '_NSPlainTextDocumentType';
+  NSRTFTextDocumentType: NSString; external name '_NSRTFTextDocumentType';
+  NSRTFDTextDocumentType: NSString; external name '_NSRTFDTextDocumentType';
+  NSMacSimpleTextDocumentType: NSString; external name '_NSMacSimpleTextDocumentType';
+  NSHTMLTextDocumentType: NSString; external name '_NSHTMLTextDocumentType';
+  NSDocFormatTextDocumentType: NSString; external name '_NSDocFormatTextDocumentType';
+  NSWordMLTextDocumentType: NSString; external name '_NSWordMLTextDocumentType';
+  NSWebArchiveTextDocumentType: NSString; external name '_NSWebArchiveTextDocumentType';
+  NSOfficeOpenXMLTextDocumentType: NSString; external name '_NSOfficeOpenXMLTextDocumentType';
+  NSOpenDocumentTextDocumentType: NSString; external name '_NSOpenDocumentTextDocumentType';
+  NSPaperSizeDocumentAttribute: NSString; external name '_NSPaperSizeDocumentAttribute';
+  NSLeftMarginDocumentAttribute: NSString; external name '_NSLeftMarginDocumentAttribute';
+  NSRightMarginDocumentAttribute: NSString; external name '_NSRightMarginDocumentAttribute';
+  NSTopMarginDocumentAttribute: NSString; external name '_NSTopMarginDocumentAttribute';
+  NSBottomMarginDocumentAttribute: NSString; external name '_NSBottomMarginDocumentAttribute';
+  NSViewSizeDocumentAttribute: NSString; external name '_NSViewSizeDocumentAttribute';
+  NSViewZoomDocumentAttribute: NSString; external name '_NSViewZoomDocumentAttribute';
+  NSViewModeDocumentAttribute: NSString; external name '_NSViewModeDocumentAttribute';
+  NSDocumentTypeDocumentAttribute: NSString; external name '_NSDocumentTypeDocumentAttribute';
+  NSReadOnlyDocumentAttribute: NSString; external name '_NSReadOnlyDocumentAttribute';
+  NSConvertedDocumentAttribute: NSString; external name '_NSConvertedDocumentAttribute';
+  NSCocoaVersionDocumentAttribute: NSString; external name '_NSCocoaVersionDocumentAttribute';
+  NSBackgroundColorDocumentAttribute: NSString; external name '_NSBackgroundColorDocumentAttribute';
+  NSHyphenationFactorDocumentAttribute: NSString; external name '_NSHyphenationFactorDocumentAttribute';
+  NSDefaultTabIntervalDocumentAttribute: NSString; external name '_NSDefaultTabIntervalDocumentAttribute';
+  NSCharacterEncodingDocumentAttribute: NSString; external name '_NSCharacterEncodingDocumentAttribute';
+  NSTitleDocumentAttribute: NSString; external name '_NSTitleDocumentAttribute';
+  NSCompanyDocumentAttribute: NSString; external name '_NSCompanyDocumentAttribute';
+  NSCopyrightDocumentAttribute: NSString; external name '_NSCopyrightDocumentAttribute';
+  NSSubjectDocumentAttribute: NSString; external name '_NSSubjectDocumentAttribute';
+  NSAuthorDocumentAttribute: NSString; external name '_NSAuthorDocumentAttribute';
+  NSKeywordsDocumentAttribute: NSString; external name '_NSKeywordsDocumentAttribute';
+  NSCommentDocumentAttribute: NSString; external name '_NSCommentDocumentAttribute';
+  NSEditorDocumentAttribute: NSString; external name '_NSEditorDocumentAttribute';
+  NSCreationTimeDocumentAttribute: NSString; external name '_NSCreationTimeDocumentAttribute';
+  NSModificationTimeDocumentAttribute: NSString; external name '_NSModificationTimeDocumentAttribute';
+  NSExcludedElementsDocumentAttribute: NSString; external name '_NSExcludedElementsDocumentAttribute';
+  NSTextEncodingNameDocumentAttribute: NSString; external name '_NSTextEncodingNameDocumentAttribute';
+  NSPrefixSpacesDocumentAttribute: NSString; external name '_NSPrefixSpacesDocumentAttribute';
+  NSDocumentTypeDocumentOption: NSString; external name '_NSDocumentTypeDocumentOption';
+  NSDefaultAttributesDocumentOption: NSString; external name '_NSDefaultAttributesDocumentOption';
+  NSCharacterEncodingDocumentOption: NSString; external name '_NSCharacterEncodingDocumentOption';
+  NSTextEncodingNameDocumentOption: NSString; external name '_NSTextEncodingNameDocumentOption';
+  NSBaseURLDocumentOption: NSString; external name '_NSBaseURLDocumentOption';
+  NSTimeoutDocumentOption: NSString; external name '_NSTimeoutDocumentOption';
+  NSWebPreferencesDocumentOption: NSString; external name '_NSWebPreferencesDocumentOption';
+  NSWebResourceLoadDelegateDocumentOption: NSString; external name '_NSWebResourceLoadDelegateDocumentOption';
+  NSTextSizeMultiplierDocumentOption: NSString; external name '_NSTextSizeMultiplierDocumentOption';
+
 { External symbols }
 var
   NSUnderlineByWordMask: NSUInteger; external name '_NSUnderlineByWordMask';
@@ -69,7 +136,9 @@ var
 
 {$ifdef FORWARD}
   NSAttributedString = objcclass;
+  NSAttributedStringPointer = ^NSAttributedString;
   NSMutableAttributedString = objcclass;
+  NSMutableAttributedStringPointer = ^NSMutableAttributedString;
 
 {$endif}
 

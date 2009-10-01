@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSWindow.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:53 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSWINDOW_PAS_H}
-{$define NSWINDOW_PAS_H}
-type
-  NSWindowPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSWINDOW_PAS_T}
@@ -96,11 +88,32 @@ type
 {$ifndef NSWINDOW_PAS_S}
 {$define NSWINDOW_PAS_S}
 
+{ External string constants }
+var
+  NSWindowDidBecomeKeyNotification: NSString; external name '_NSWindowDidBecomeKeyNotification';
+  NSWindowDidBecomeMainNotification: NSString; external name '_NSWindowDidBecomeMainNotification';
+  NSWindowDidChangeScreenNotification: NSString; external name '_NSWindowDidChangeScreenNotification';
+  NSWindowDidDeminiaturizeNotification: NSString; external name '_NSWindowDidDeminiaturizeNotification';
+  NSWindowDidExposeNotification: NSString; external name '_NSWindowDidExposeNotification';
+  NSWindowDidMiniaturizeNotification: NSString; external name '_NSWindowDidMiniaturizeNotification';
+  NSWindowDidMoveNotification: NSString; external name '_NSWindowDidMoveNotification';
+  NSWindowDidResignKeyNotification: NSString; external name '_NSWindowDidResignKeyNotification';
+  NSWindowDidResignMainNotification: NSString; external name '_NSWindowDidResignMainNotification';
+  NSWindowDidResizeNotification: NSString; external name '_NSWindowDidResizeNotification';
+  NSWindowDidUpdateNotification: NSString; external name '_NSWindowDidUpdateNotification';
+  NSWindowWillCloseNotification: NSString; external name '_NSWindowWillCloseNotification';
+  NSWindowWillMiniaturizeNotification: NSString; external name '_NSWindowWillMiniaturizeNotification';
+  NSWindowWillMoveNotification: NSString; external name '_NSWindowWillMoveNotification';
+  NSWindowWillBeginSheetNotification: NSString; external name '_NSWindowWillBeginSheetNotification';
+  NSWindowDidEndSheetNotification: NSString; external name '_NSWindowDidEndSheetNotification';
+  NSWindowDidChangeScreenProfileNotification: NSString; external name '_NSWindowDidChangeScreenProfileNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSWindow = objcclass;
+  NSWindowPointer = ^NSWindow;
 
 {$endif}
 

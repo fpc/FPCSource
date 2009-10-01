@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSRunLoop.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSRUNLOOP_PAS_H}
-{$define NSRUNLOOP_PAS_H}
-type
-  NSRunLoopPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSRUNLOOP_PAS_T}
@@ -45,6 +37,7 @@ var
 
 {$ifdef FORWARD}
   NSRunLoop = objcclass;
+  NSRunLoopPointer = ^NSRunLoop;
 
 {$endif}
 

@@ -65,6 +65,14 @@ class TPasCocoaParser {
 														"header_pattern" => "^(.*)\.h",
 														"enabled" => false,
 														),
+														
+								"coredata" => array(	"root" => "/coredata/CoreData.inc", 
+														"bridge" => "/bridgesupport/coredata.xml",
+														"headers" => "/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/CoreData.framework/Headers",
+														"include_pattern" => "{[$]+include (.*).inc}",
+														"header_pattern" => "^(.*)\.h",
+														"enabled" => false,
+														),
 								);
 	
 	var $maximum_method_length = 111; 	// WE GET THIS ERROR: NSDelegatesAll.pas(6109,296) Error: Identifier not found "NSDelegateController_NSLayoutManagerDelegate_layoutManager_shouldUseTemporaryAttributes_forDrawingToScreen_atCharacterIndex_effectiveRange"
@@ -144,6 +152,9 @@ class TPasCocoaParser {
 	var $garbage_collector_hints = array("__strong", "__weak");
 
 	var $null_macros = array("IBOutlet", "IBAction");
+	
+	// External NSString macros. These should be moved into the frameworks array
+	var $external_string_macros = "APPKIT_EXTERN|FOUNDATION_EXPORT|UIKIT_EXTERN|COREDATA_EXTERN";
 
 	// Types which have known pointers declared in the headers
 	var $pointer_types = array(	// MacOSAll types
@@ -3266,8 +3277,8 @@ end;";
 				}
 				
 				// ==== external string constant ===
-				if (ereg("^[APPKIT_EXTERN|FOUNDATION_EXPORT|UIKIT_EXTERN]+[[:space:]]+NSString[[:space:]]+\*[[:space:]]*(const)*[[:space:]]+([a-zA-Z_]+);", $line, $captures)) {
-					$name = $captures[2];
+				if (eregi("^($this->external_string_macros)+[[:space:]]+NSString[[:space:]]+\*[[:space:]]*(const)*[[:space:]]*([a-zA-Z_]+);", $line, $captures)) {
+					$name = $captures[3];
 					
 					if (in_array($name, $this->ignore_symbol)) continue;
 					
@@ -3275,10 +3286,10 @@ end;";
 				}
 				
 				// ==== external symbol ===
-				if (ereg("^[APPKIT_EXTERN|FOUNDATION_EXPORT|UIKIT_EXTERN]+[[:space:]]+([a-zA-Z_ ]+)[[:space:]]+([a-zA-Z_]+);", $line, $captures)) {
-					$name = $captures[2];
-					$type = $captures[1];
-					
+				if (eregi("^($this->external_string_macros)+[[:space:]]+([a-zA-Z_ ]+)[[:space:]]+([a-zA-Z_]+);", $line, $captures)) {
+					$name = $captures[3];
+					$type = $captures[2];
+
 					// ignore symbols
 					if (in_array($name, $this->ignore_symbol)) continue;
 					
@@ -3290,20 +3301,20 @@ end;";
 				
 				
 				// ==== external procedures ===
-				if (ereg("^[APPKIT_EXTERN|FOUNDATION_EXPORT|UIKIT_EXTERN]+[[:space:]]+(.*)[[:space:]]+(\*)*([a-zA-Z0-9_]+)\((.*)\)", $line, $captures)) {
+				if (ereg("^($this->external_string_macros)+[[:space:]]+(.*)[[:space:]]+(\*)*([a-zA-Z0-9_]+)\((.*)\)", $line, $captures)) {
 					
-					$result = $this->ConvertReturnType($captures[1]);
-					$name = $captures[3];
+					$result = $this->ConvertReturnType($captures[2]);
+					$name = $captures[4];
 					$params = "";
-					$captures[1] = trim($captures[1], " 	");
-					$captures[4] = trim($captures[4], " 	");
+					$captures[2] = trim($captures[2], " 	");
+					$captures[5] = trim($captures[5], " 	");
 
 					// ignore symbols
 					if (in_array($name, $this->ignore_symbol)) continue;
 					
-					if ($captures[4] != "void") $params = "(".$this->ConvertCParamsPascal($captures[4]).")";
+					if ($captures[5] != "void") $params = "(".$this->ConvertCParamsPascal($captures[5]).")";
 					
-					if ($captures[1] == "void") {
+					if ($captures[2] == "void") {
 						$this->dump[$file_name]["types"]["functions"][] = "procedure $name$params; cdecl; external name '$name';";
 					} else {
 						$this->dump[$file_name]["types"]["functions"][] = "function $name$params: $result; cdecl; external name '$name';";

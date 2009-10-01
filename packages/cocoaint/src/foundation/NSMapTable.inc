@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSMapTable.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSMAPTABLE_PAS_H}
-{$define NSMAPTABLE_PAS_H}
-type
-  NSMapTablePointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSMAPTABLE_PAS_T}
@@ -106,6 +98,7 @@ var
 
 {$ifdef FORWARD}
   NSMapTable = objcclass;
+  NSMapTablePointer = ^NSMapTable;
 
 {$endif}
 

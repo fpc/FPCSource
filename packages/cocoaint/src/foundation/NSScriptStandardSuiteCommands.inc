@@ -1,23 +1,6 @@
 { Parsed from Foundation.framework NSScriptStandardSuiteCommands.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSCRIPTSTANDARDSUITECOMMANDS_PAS_H}
-{$define NSSCRIPTSTANDARDSUITECOMMANDS_PAS_H}
-type
-  NSCloneCommandPointer = Pointer;
-  NSCloseCommandPointer = Pointer;
-  NSCountCommandPointer = Pointer;
-  NSCreateCommandPointer = Pointer;
-  NSDeleteCommandPointer = Pointer;
-  NSExistsCommandPointer = Pointer;
-  NSGetCommandPointer = Pointer;
-  NSMoveCommandPointer = Pointer;
-  NSQuitCommandPointer = Pointer;
-  NSSetCommandPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSCRIPTSTANDARDSUITECOMMANDS_PAS_T}
@@ -60,15 +43,25 @@ type
 
 {$ifdef FORWARD}
   NSCloneCommand = objcclass;
+  NSCloneCommandPointer = ^NSCloneCommand;
   NSCloseCommand = objcclass;
+  NSCloseCommandPointer = ^NSCloseCommand;
   NSCountCommand = objcclass;
+  NSCountCommandPointer = ^NSCountCommand;
   NSCreateCommand = objcclass;
+  NSCreateCommandPointer = ^NSCreateCommand;
   NSDeleteCommand = objcclass;
+  NSDeleteCommandPointer = ^NSDeleteCommand;
   NSExistsCommand = objcclass;
+  NSExistsCommandPointer = ^NSExistsCommand;
   NSGetCommand = objcclass;
+  NSGetCommandPointer = ^NSGetCommand;
   NSMoveCommand = objcclass;
+  NSMoveCommandPointer = ^NSMoveCommand;
   NSQuitCommand = objcclass;
+  NSQuitCommandPointer = ^NSQuitCommand;
   NSSetCommand = objcclass;
+  NSSetCommandPointer = ^NSSetCommand;
 
 {$endif}
 

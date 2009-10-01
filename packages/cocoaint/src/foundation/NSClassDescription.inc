@@ -1,14 +1,6 @@
 { Parsed from Foundation.framework NSClassDescription.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSCLASSDESCRIPTION_PAS_H}
-{$define NSCLASSDESCRIPTION_PAS_H}
-type
-  NSClassDescriptionPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSCLASSDESCRIPTION_PAS_T}
@@ -35,11 +27,16 @@ type
 {$ifndef NSCLASSDESCRIPTION_PAS_S}
 {$define NSCLASSDESCRIPTION_PAS_S}
 
+{ External string constants }
+var
+  NSClassDescriptionNeededForClassNotification: NSString; external name '_NSClassDescriptionNeededForClassNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSClassDescription = objcclass;
+  NSClassDescriptionPointer = ^NSClassDescription;
 
 {$endif}
 

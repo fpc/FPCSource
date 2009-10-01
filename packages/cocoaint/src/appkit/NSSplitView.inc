@@ -1,14 +1,6 @@
 { Parsed from Appkit.framework NSSplitView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Mon Sep 28 15:49:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:07 ICT 2009 }
 
-{$ifdef HEADER}
-{$ifndef NSSPLITVIEW_PAS_H}
-{$define NSSPLITVIEW_PAS_H}
-type
-  NSSplitViewPointer = Pointer;
-
-{$endif}
-{$endif}
 
 {$ifdef TYPES}
 {$ifndef NSSPLITVIEW_PAS_T}
@@ -45,11 +37,17 @@ type
 {$ifndef NSSPLITVIEW_PAS_S}
 {$define NSSPLITVIEW_PAS_S}
 
+{ External string constants }
+var
+  NSSplitViewWillResizeSubviewsNotification: NSString; external name '_NSSplitViewWillResizeSubviewsNotification';
+  NSSplitViewDidResizeSubviewsNotification: NSString; external name '_NSSplitViewDidResizeSubviewsNotification';
+
 {$endif}
 {$endif}
 
 {$ifdef FORWARD}
   NSSplitView = objcclass;
+  NSSplitViewPointer = ^NSSplitView;
 
 {$endif}
 
