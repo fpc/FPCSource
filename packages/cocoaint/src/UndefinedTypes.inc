@@ -1,9 +1,9 @@
 type
   __NSAppleEventManagerSuspension = Pointer;
  {$ifdef cpu64}
-  CGFloat = single;
- {$else}
   CGFloat = double;
+ {$else}
+  CGFloat = single;
  {$endif}
   UTF = UInt32;
   NSPointerFunctionsOptions = UInt16;
