@@ -88,6 +88,9 @@ implementation
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
+                  if assigned(aclass) and
+                     not is_visible_for_object(sym,aclass) then
+                    Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
                       begin
