@@ -267,178 +267,178 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=cocoaint
 override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-os2)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-beos)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-netware)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-emx)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-wince)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-wince)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-gba)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-nds)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
-override TARGET_UNITS+=CocoaAll
+override TARGET_UNITS+=CocoaAll WebKit CoreData
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)
@@ -2259,3 +2259,5 @@ makefiles: fpc_makefiles
 ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
+WebKit$(PPUEXT): CocoaAll$(PPUEXT)
+CoreData$(PPUEXT): CocoaAll$(PPUEXT)
