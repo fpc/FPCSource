@@ -8,16 +8,10 @@
 
 { Records }
 type
-  _NSRange = packed record
-    location: UInt32;
-    length: UInt32;
+  NSRange = record
+    location: NSUInteger;
+    length: NSUInteger;
   end;
-  
-{$ifdef NSGEOMETRY_TYPES_SAME_AS_CGGEOMETRY_TYPES}
-NSRange = CFRange;
-{$else}
-NSRange = _NSRange;
-{$endif}
 
 NSRangePointer = ^NSRange;
 

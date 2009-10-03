@@ -109,6 +109,7 @@ class TPasCocoaParser {
 	var $class_pointer_suffix = "Pointer";					// Pointers to NS*** classes are suffxed with this
 	var $register_selectors = true;							// Register selectors automatically inside the wrappers
 	var $show_added_messages = false;						// show messages when methods are added to a class
+	var $show_class_hierarchy = false;
 	var $objects_are_wrappers = false;						// Treat all objects (id) like wrappers. i.e aObject.Handle;
 	var $replace_hinted_params = false;						// replace comment hints with hinted type - (void * /* CMProfileRef */)colorSyncProfile;
 	var $master_delegate_class = "NSDelegateController";	// Name of the master delegate class
@@ -184,9 +185,13 @@ class TPasCocoaParser {
 								);	
 	
 	// default protected keywords by class/category
+	// these may be useful if super classes were not parsed before
 	var $default_protected = array(	"*"=>array("description", "classDescription"),
 									"NSDeprecated"=>array("accessoryView"),
 									"NSToolbarSupport"=>array("toolbar"),
+									"DOMNode"=>array("version"),
+									"WebView"=>array("frame"),
+									"DOMImplementation"=>array("version"),
 									);
 	
 	// Send methods that have a custom design
@@ -915,10 +920,11 @@ end;";
 		
 		if (count($params) > 1) {
 			foreach ($params as $value) {
+				$value = trim($value, " 	");
 				if (eregi("([a-zA-Z0-9_]+)$", $value, $captures)) $name .= $captures[1].":";
 			}
 		} else {
-			if (eregi("([a-zA-Z0-9_]+)(;)*$", $method, $captures)) $name = $captures[1];
+			if (eregi("([a-zA-Z0-9_]+)[[:space:]]*(;)*$", $method, $captures)) $name = $captures[1];
 		}
 		
 		return $name;
@@ -1229,9 +1235,6 @@ end;";
 		return $name;
 	}	
 	
-	function ChangeConstructorKind () {
-	}
-	
 	// Converts an Objective-C method to Pascal format 
 	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params) {
 		
@@ -1483,10 +1486,10 @@ end;";
 	
 	// returns if a keyword is protected in a class hierarchy
 	function IsKeywordProtected ($keyword, $in_class) {
-		$this->GetClassHierarchy($in_class, $hierarchy);
+		$keywords = $this->GetClassHierarchy($in_class, $hierarchy);
 		
 		foreach ($hierarchy as $key) {
-			if (@in_array($keyword, $this->dump["master"][$key]["protected_keywords"])) {
+			if (@in_array($keyword, $keywords)) { //$this->dump["master"][$key]["protected_keywords"]
 				return true;
 			}
 		}
@@ -3671,6 +3674,9 @@ end;";
 				$name = "set$name";
 			}
 			
+			// protect method name from keywords
+			if ($this->IsKeywordReserved($name)) $name .= "_";
+			
 			$method["setter"]["def"] = "procedure $name (newValue: $type);";
 			$method["setter"]["objc_method"] = "$name:";
 			$method["setter"]["class"] = $class;
@@ -3685,6 +3691,9 @@ end;";
 		if (!$this->GetPropertyName("getter", $property["parameters"], $name)) {
 			$name = strtolower(substr($name, 0, 1)) . substr($name, 1);
 		}
+		
+		// protect method name from keywords
+		if ($this->IsKeywordReserved($name)) $name .= "_";
 		
 		$method["getter"]["def"] = "function $name: $type;";
 		$method["getter"]["objc_method"] = $name;
@@ -3859,6 +3868,17 @@ end;";
 					
 					// add category methods to protected keywords
 					if ($category_methods) $this->current_class["protected_keywords"] = array_merge($this->current_class["protected_keywords"], $category_methods);
+					
+					// print class hierarchy
+					if ($this->show_class_hierarchy) {
+						$this->GetClassHierarchy($this->current_class, $hierarchy);
+						$hierarchy_string = "";
+						foreach ($hierarchy as $value) {
+							$hierarchy_string .= "$value->";
+						}
+						$hierarchy_string = trim($hierarchy_string, "->");
+						print("	- $current: $hierarchy_string\n");
+					}
 					
 					$this->class_count ++;
 					//print_r($this->dump[$file_name]["classes"][$current]);

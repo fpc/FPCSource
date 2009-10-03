@@ -53,6 +53,9 @@ const
   NSNotFound = NSIntegerMax;
 
 const
+ UINT_MAX = high(culong);
+
+const
  NX_TABLET_POINTER_UNKNOWN = 0;
  NX_TABLET_POINTER_PEN = 1;
  NX_TABLET_POINTER_CURSOR = 2;

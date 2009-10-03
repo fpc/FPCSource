@@ -84,6 +84,10 @@ function HandleCommandLineOptions ($argv) {
 			case 'cocoa':
 				$options[$key] = true;
 				break;
+				
+			case 'webkit':
+				$options[$key] = true;
+				break;
 
 			case 'ignore':
 				$ignore_headers = explode(",", trim($value, "\""));
@@ -108,21 +112,24 @@ function HandleCommandLineOptions ($argv) {
 $testing = true;
 
 if ($testing) {
-	$GLOBALS["argv"][] = "-cocoa";
+	$GLOBALS["argv"][] = "-webkit";
 	$GLOBALS["argv"][] = "-root=/Developer/ObjectivePascal";
-	//$GLOBALS["argv"][] = "-delegates";
+	$GLOBALS["argv"][] = "-delegates";
 	//$GLOBALS["argv"][] = "-reference";
 	//$GLOBALS["argv"][] = "-all";
-	//$GLOBALS["argv"][] = "-noprint";
+	$GLOBALS["argv"][] = "-noprint";
 	//$GLOBALS["argv"][] = "-show";
 	//$GLOBALS["argv"][] = "-only=\"UIWindow.h\"";
-	$GLOBALS["argv"][] = "-frameworks=\"appkit,foundation\"";
+	//$GLOBALS["argv"][] = "-frameworks=\"appkit,foundation\"";
 
 	//$GLOBALS["argv"][] = "-framework_path=\"/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS2.2.1.sdk/System/Library/Frameworks\"";
 	//$GLOBALS["argv"][] = "-header=\"uikit/UIView.h\"";
 	
-	$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
-	$GLOBALS["argv"][] = "-header=\"foundation/NSBundle.h\"";
+	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
+	//$GLOBALS["argv"][] = "-header=\"webkit/DOMDocument.h\"";
+	
+	//$GLOBALS["argv"][] = "-framework_path=\"/System/Library/Frameworks\"";
+	//$GLOBALS["argv"][] = "-header=\"foundation/NSBundle.h\"";
 	//$GLOBALS["argv"][] = "-header=\"appkit/NSBundle.h\"";
 	
 	$GLOBALS["argv"][] = "-ignore=\"NSGeometry.h,NSRange.h\"";
@@ -150,26 +157,6 @@ if ($testing) {
 			function __attribute__(: (format(__NSString__; : 1; : 2))): void NSLog(NSStringRef *format, ...); cdecl; external name '__attribute__';
 			procedure NSLog(fmt:NSString); cdecl; varargs; external;
 		3) NSMenuItemCell.h has a duplicate (case sensitive name not allowed in Pascal) field that must be changed by hand.
-
-		- Extra hand parsing. These units parse but contain unions which need to be fixed by hand.
-	
-		• NSEvent.h
-		• NSIndexSet.h:
-	
-		_internal: record
-		 case byte of
-		   0: (_singleRange:
-		         record
-		           _range: NSRange;
-		         end;
-		      );
-		   1: (_multipleRanges:
-		         record
-		           _data: pointer;
-		           _reserved: pointer;
-		         end;
-		      );
-		end;
 		4) These methods have problems in the params. This is a Objc convention where an absent type is always "id"
 			- (void)performClick:sender;
 			- (void)setDelegate:delegate;
@@ -186,6 +173,19 @@ if ($testing) {
 			UIAccelerometer.inc(67,49) Error: Illegal expression after message directive
 		2) There's no way to know that UITextInputTraits is actually UITextInputTraitsProtocol due to name changes for Pascal syntax
 			UITextField.inc(91,32) Error: Identifier not found "UITextInputTraits"
+	
+	• WebKit.pas
+		1) Extra duplicate type in DOMObject.inc
+			DOMObjectInternal = Pointer;
+		  	DOMObjectInternal = DOMObjectInternal;
+		  
+		2) DOMDocument has method with reserved keyword name "implementation"
+			function implementation: DOMImplementation; message 'implementation';
+		 
+		3) DOMEvent has method with reserved keyword name "type"   
+			function type: NSString; message 'type';
+		
+		* reserved keywords are not protected in method names. This is messing up WebKit parsing badly
 		
 	- General notes:
 	1) NSObject.h is parsed for the merged category methods that should be inserted manually into the real root class
@@ -248,6 +248,12 @@ if ($options["cocoa"]) {
 	$options["objp"] = true;
 	$options["frameworks"] = array("appkit","foundation");
 	$ignore_headers = array("NSGeometry.h","NSRange.h");
+}
+
+if ($options["webkit"]) {
+	$options["all"] = true;
+	$options["objp"] = true;
+	$options["frameworks"] = array("webkit");
 }
 
 // create the parser instance

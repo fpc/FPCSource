@@ -14,7 +14,7 @@ class TObjPParser extends TPasCocoaParser {
 	
 	var $reserved_keywords = array(	"const", "object", "string", "array", "var", "set", "interface", "classname", "unit",
 									"self", "type", "raise", "property", "to", "for", "with", "function", "procedure", "result",
-									"pointer", "create", "new", "dispose", "label", "packed", "record", "char", "class",
+									"pointer", "create", "new", "dispose", "label", "packed", "record", "char", "class", "implementation",
 									
 									// identifiers from NSObject
 									"zone", 
@@ -82,148 +82,146 @@ class TObjPParser extends TPasCocoaParser {
 	// Converts an Objective-C method to Pascal format 
 	function ConvertObjcMethodToPascal ($class, $source, $parts, $protected_keywords, $has_params) {
 		
-	// replace "hinted" params comment with hinted type
-	if ($this->replace_hinted_params) {
+		// remove deprecated macros from method source
+		$source = eregi_replace("[[:space:]]*DEPRECATED_IN_MAC_OS_X_VERSION_[0-9]+_[0-9]+_AND_LATER", "", $source);
+		
+		// replace "hinted" params comment with hinted type
+		if ($this->replace_hinted_params) {
 
-		// param string
-		if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[4], $captures)) {
-			// ??? change the parameter to the hinted type
-			//$parts[4] = eregi_replace("(/\*.*\*/)", $captures[2], $parts[4]);
-			//$parts[4] = trim($parts[4], " ");
+			// param string
+			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[4], $captures)) {
+				// ??? change the parameter to the hinted type
+				//$parts[4] = eregi_replace("(/\*.*\*/)", $captures[2], $parts[4]);
+				//$parts[4] = trim($parts[4], " ");
+			}
+
+			// return type
+			if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[2], $captures)) $parts[2] = $captures[2];
+
+			//print_r($parts);
+
+		} else { // remmove comments from params and return type
+			$parts[4] = eregi_replace("(/\*.*\*/)", "", $parts[4]);
+			$parts[4] = trim($parts[4], " ");
+
+			$parts[2] = eregi_replace("(/\*.*\*/)", "", $parts[2]);
+			$parts[2] = trim($parts[2], " ");
 		}
 
-		// return type
-		if (eregi("(/\*[[:space:]]*(.*)[[:space:]]*\*/)", $parts[2], $captures)) $parts[2] = $captures[2];
+		$return_type_clean = $parts[2];
 
-		//print_r($parts);
+		// perform preformatting before attempting to protect keywords
+		$parts[2] = $this->FormatObjcType($parts[2], $modifiers);
+		$parts[4] = $this->FormatObjcParams($parts[4]);
 
-	} else { // remmove comments from params and return type
-		$parts[4] = eregi_replace("(/\*.*\*/)", "", $parts[4]);
-		$parts[4] = trim($parts[4], " ");
-
-		$parts[2] = eregi_replace("(/\*.*\*/)", "", $parts[2]);
-		$parts[2] = trim($parts[2], " ");
-	}
-
-	$return_type_clean = $parts[2];
-
-	// perform preformatting before attempting to protect keywords
-	$parts[2] = $this->FormatObjcType($parts[2], $modifiers);
-	$parts[4] = $this->FormatObjcParams($parts[4]);
-
-	// protect keywords in the parameter and return type
-	if (count($protected_keywords) > 0) {
-		foreach ($protected_keywords as $keyword) {
-			$parts[4] = istr_replace_word($keyword, $keyword."_", $parts[4]);
-			$parts[2] = istr_replace_word($keyword, $keyword."_", $parts[2]);
+		// protect keywords in the parameter and return type
+		if (count($protected_keywords) > 0) {
+			foreach ($protected_keywords as $keyword) {
+				$parts[4] = istr_replace_word($keyword, $keyword."_", $parts[4]);
+				$parts[2] = istr_replace_word($keyword, $keyword."_", $parts[2]);
+			}
 		}
-	}
 
-	if ($has_params) {
-		$name = $this->ConvertObjcMethodName($source);
+		if ($has_params) {
+			$name = $this->ConvertObjcMethodName($source);
 
-		// merge default protected keywords for the class/category
-		if ($this->default_protected[$class]) $protected_keywords = array_merge($this->default_protected[$class], $protected_keywords);
+			// merge default protected keywords for the class/category
+			if ($this->default_protected["*"]) $protected_keywords = array_merge($this->default_protected["*"], $protected_keywords);
+			if ($this->default_protected[$class]) $protected_keywords = array_merge($this->default_protected[$class], $protected_keywords);
 
-		$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords, $variable_arguments);
-		$params = "(".$param_array["string"].")";
-		$params_with_modifiers = "(".$param_array["string_with_modifiers"].")";
-	} else {
-		$params = "";
-		$params_with_modifiers = "";
-		$name = $parts[3];
-		$param_array = null;
-		$variable_arguments = false;
-	}
+			$param_array = $this->ConvertObjcParamsToPascal($parts[4], $protected_keywords, $variable_arguments);
+			$params = "(".$param_array["string"].")";
+			$params_with_modifiers = "(".$param_array["string_with_modifiers"].")";
+		} else {
+			$params = "";
+			$params_with_modifiers = "";
+			$name = $parts[3];
+			$param_array = null;
+			$variable_arguments = false;
+		}
 
-	//print("$params_with_modifiers\n");
+		// protect method name from keywords
+		if ($this->IsKeywordReserved($name)) $name .= "_";
 
-	// protect method name from keywords
-	if ($this->IsKeywordReserved($name)) $name .= "_";
+		// replace objc type
+		$return_type = $this->ConvertReturnType($return_type_clean);
 
-	// replace objc type
-	$return_type = $this->ConvertReturnType($return_type_clean);
+		$virtual = "";
+		$class_prefix = "";
 
-	$virtual = "";
-	$class_prefix = "";
+		// determine the type based on return value
+		if (ereg($this->regex_procedure_type, $return_type_clean)) {
+			$kind = "procedure";
+		} else {
+			$kind = "function";
+		}
 
-	// determine the type based on return value
-	if (ereg($this->regex_procedure_type, $return_type_clean)) {
-		$kind = "procedure";
-	} else {
-		$kind = "function";
-	}
-
-	// determine if this is a class method
-	if ($parts[1] == "+") {
-		$class_prefix = "class ";
+		// determine if this is a class method
+		if ($parts[1] == "+") {
+			$class_prefix = "class ";
 		
-		// These methods probably return the an allocated instance of the class, a typical convenience method.
-		// ??? Ack! $class may be the category or protocol name
-		//if ($return_type == $this->objc_id) $return_type = $class; 
-	}
+			// These methods probably return the an allocated instance of the class, a typical convenience method.
+			// ??? Ack! $class may be the category or protocol name
+			//if ($return_type == $this->objc_id) $return_type = $class; 
+		}
 
-	// Determine if the method needs a particular modifier
-	// ??? THIS IS NOT COMPILING???
-	//if (ereg($this->objc_object_array, $params)) $modifier = " cdecl;";
+		// Replace SEL with the string equivalent
+		if ($this->register_selectors) {
+			$params_with_modifiers = str_replace_word("SEL", $this->sel_string, $params_with_modifiers);
+		}
 
-	// Replace SEL with the string equivalent
-	if ($this->register_selectors) {
-		$params_with_modifiers = str_replace_word("SEL", $this->sel_string, $params_with_modifiers);
-	}
-
-	// make method templates
-	if ($kind != "function") {
-		if ($variable_arguments) $modifier .= " varargs;";
+		// make method templates
+		if ($kind != "function") {
+			if ($variable_arguments) $modifier .= " varargs;";
 		
-		$method = "$class_prefix$kind $name$params_with_modifiers;$modifier$virtual";
-		$method_template = "[KIND] [PREFIX]$name"."[PARAMS];$modifier";
-	} else {
-		if ($variable_arguments) $return_type = "$return_type; varargs";
+			$method = "$class_prefix$kind $name$params_with_modifiers;$modifier$virtual";
+			$method_template = "[KIND] [PREFIX]$name"."[PARAMS];$modifier";
+		} else {
+			if ($variable_arguments) $return_type = "$return_type; varargs";
 
-		$method = $class_prefix."function $name$params_with_modifiers: $return_type;$modifier$virtual";
-		$method_template = "[KIND] [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
+			$method = $class_prefix."function $name$params_with_modifiers: $return_type;$modifier$virtual";
+			$method_template = "[KIND] [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
+			$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
+		}
+
+		$method_template_procedure = "procedure [PREFIX]$name"."[PARAMS];$modifier";
 		$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
-	}
 
-	$method_template_procedure = "procedure [PREFIX]$name"."[PARAMS];$modifier";
-	$method_template_function = "function [PREFIX]$name"."[PARAMS]: [RETURN];$modifier";
-
-	// ??? DEBUGGING
-	//print("$method\n");
-
-	// build structure
-	$struct["def"] = $method;
-	$struct["template"] = $method_template;
-	$struct["template_function"] = $method_template_function;
-	$struct["template_procedure"] = $method_template_procedure;
-	$struct["objc_method"] = $this->CopyObjcMethodName($source);
-	$struct["class_prefix"] = $class_prefix;
-	//$struct["def_objc"] = eregi("(.*);", $source, $captures[1]);
-	if ($return_type == "void") $return_type = "";
-	$struct["return"] = $return_type;
+		// ??? DEBUGGING
+		//print("$method\n");
+		
+		// build structure
+		$struct["def"] = $method;
+		$struct["template"] = $method_template;
+		$struct["template_function"] = $method_template_function;
+		$struct["template_procedure"] = $method_template_procedure;
+		$struct["objc_method"] = $this->CopyObjcMethodName($source);
+		$struct["class_prefix"] = $class_prefix;
+		//$struct["def_objc"] = eregi("(.*);", $source, $captures[1]);
+		if ($return_type == "void") $return_type = "";
+		$struct["return"] = $return_type;
 	
-	if (in_array($return_type, $this->cocoa_classes)) $struct["returns_wrapper"] = true;
-	$struct["param_string_clean"] = trim($params, "()");
-	$struct["param_string_clean_with_modifiers"] = trim($params_with_modifiers, "()");
-	$struct["param_string"] = $params;
-	$struct["param_string_with_modifiers"] = $params_with_modifiers;
-	$struct["param_array"] = $param_array["pairs"];
-	$struct["param_list"] = $param_array["list"];
-	$struct["class"] = $class;
-	$struct["name"] = $name;
-	$struct["kind"] = $kind;
+		if (in_array($return_type, $this->cocoa_classes)) $struct["returns_wrapper"] = true;
+		$struct["param_string_clean"] = trim($params, "()");
+		$struct["param_string_clean_with_modifiers"] = trim($params_with_modifiers, "()");
+		$struct["param_string"] = $params;
+		$struct["param_string_with_modifiers"] = $params_with_modifiers;
+		$struct["param_array"] = $param_array["pairs"];
+		$struct["param_list"] = $param_array["list"];
+		$struct["class"] = $class;
+		$struct["name"] = $name;
+		$struct["kind"] = $kind;
 
-	if ($struct["param_array"] != null) $struct["has_params"] = true;
+		if ($struct["param_array"] != null) $struct["has_params"] = true;
 
-	// FPC bug work around
-	if (strlen($name) > $this->maximum_method_length) {
-		$struct["can_override"] = false;
-		print("	# WARNING: method $name can't override because the name is too long\n");
-		$this->warning_count ++;
-	}
+		// FPC bug work around
+		if (strlen($name) > $this->maximum_method_length) {
+			$struct["can_override"] = false;
+			print("	# WARNING: method $name can't override because the name is too long\n");
+			$this->warning_count ++;
+		}
 
-	return $struct;
+		return $struct;
 	}
 	
 	function InsertPatches ($header) {
