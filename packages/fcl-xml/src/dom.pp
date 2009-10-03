@@ -255,7 +255,9 @@ type
     property Prefix: DOMString read GetPrefix write SetPrefix;
     // DOM level 3
     property TextContent: DOMString read GetTextContent write SetTextContent;
+    function LookupPrefix(const nsURI: DOMString): DOMString;
     function LookupNamespaceURI(const APrefix: DOMString): DOMString;
+    function IsDefaultNamespace(const nsURI: DOMString): Boolean;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
@@ -576,6 +578,7 @@ type
     function GetNodeType: Integer; override;
     function GetAttributes: TDOMNamedNodeMap; override;
     procedure AttachDefaultAttrs;
+    function InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
     procedure RestoreDefaultAttr(AttrDef: TDOMAttr);
   public
     destructor Destroy; override;
@@ -1141,10 +1144,17 @@ function GetAncestorElement(n: TDOMNode): TDOMElement;
 var
   parent: TDOMNode;
 begin
-  parent := n.ParentNode;
-  while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
-    parent := parent.ParentNode;
-  Result := TDOMElement(parent);
+  case n.nodeType of
+    DOCUMENT_NODE:
+      result := TDOMDocument(n).documentElement;
+    ATTRIBUTE_NODE:
+      result := TDOMAttr(n).OwnerElement;
+  else
+    parent := n.ParentNode;
+    while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
+      parent := parent.ParentNode;
+    Result := TDOMElement(parent);
+  end;  
 end;
 
 // TODO: specs prescribe to return default namespace if APrefix=null,
@@ -1159,40 +1169,74 @@ begin
   Result := '';
   if Self = nil then
     Exit;
-  case NodeType of
-    ELEMENT_NODE:
+  if nodeType = ELEMENT_NODE then
+  begin
+    if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
     begin
-      if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
-      begin
-        result := Self.NamespaceURI;
-        Exit;
-      end;
-      if HasAttributes then
-      begin
-        Map := Attributes;
-        for I := 0 to Map.Length-1 do
-        begin
-          Attr := TDOMAttr(Map[I]);
-          // should ignore level 1 atts here
-          if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
-             ((Attr.localName = 'xmlns') and (APrefix = '')) then
-          begin
-            result := Attr.NodeValue;
-            Exit;
-          end;
-        end
-      end;
-      result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+      result := Self.NamespaceURI;
+      Exit;
     end;
-    DOCUMENT_NODE:
-      result := TDOMDocument(Self).documentElement.LookupNamespaceURI(APrefix);
+    if HasAttributes then
+    begin
+      Map := Attributes;
+      for I := 0 to Map.Length-1 do
+      begin
+        Attr := TDOMAttr(Map[I]);
+        // should ignore level 1 atts here
+        if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
+           ((Attr.localName = 'xmlns') and (APrefix = '')) then
+        begin
+          result := Attr.NodeValue;
+          Exit;
+        end;
+      end
+    end;
+  end;  
+  result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+end;
 
-    ATTRIBUTE_NODE:
-      result := TDOMAttr(Self).OwnerElement.LookupNamespaceURI(APrefix);
-
+function TDOMNode.LookupPrefix(const nsURI: DOMString): DOMString;
+begin
+  Result := '';
+  if (nsURI = '') or (Self = nil) then
+    Exit;
+  if nodeType = ELEMENT_NODE then
+    result := TDOMElement(Self).InternalLookupPrefix(nsURI, TDOMElement(Self))
   else
-    Result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+    result := GetAncestorElement(Self).LookupPrefix(nsURI);
+end;
+
+function TDOMNode.IsDefaultNamespace(const nsURI: DOMString): Boolean;
+var
+  Attr: TDOMAttr;
+  Map: TDOMNamedNodeMap;
+  I: Integer;
+begin
+  Result := False;
+  if Self = nil then
+    Exit;
+  if nodeType = ELEMENT_NODE then
+  begin
+    if TDOMElement(Self).FNSI.PrefixLen = 0 then
+    begin
+      result := (nsURI = namespaceURI);
+      Exit;
+    end  
+    else if HasAttributes then
+    begin
+      Map := Attributes;
+      for I := 0 to Map.Length-1 do
+      begin
+        Attr := TDOMAttr(Map[I]);
+        if Attr.LocalName = 'xmlns' then
+        begin
+          result := (Attr.Value = nsURI);
+          Exit;
+        end;
+      end;
+    end;
   end;
+  result := GetAncestorElement(Self).IsDefaultNamespace(nsURI);
 end;
 
 //------------------------------------------------------------------------------
@@ -2676,6 +2720,36 @@ begin
         RestoreDefaultAttr(attrdef);
     end;
   end;
+end;
+
+function TDOMElement.InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
+var
+  I: Integer;
+  Attr: TDOMAttr;
+begin
+  result := '';
+  if Self = nil then
+    Exit;
+  if (nfLevel2 in FFlags) and (namespaceURI = nsURI) and (FNSI.PrefixLen > 0) then
+  begin
+    Result := Prefix;
+    if Original.LookupNamespaceURI(result) = nsURI then
+      Exit;
+  end;
+  if Assigned(FAttributes) then
+  begin
+    for I := 0 to FAttributes.Length-1 do
+    begin
+      Attr := TDOMAttr(FAttributes[I]);
+      if (Attr.Prefix = 'xmlns') and (Attr.Value = nsURI) then
+      begin
+        result := Attr.LocalName;
+        if Original.LookupNamespaceURI(result) = nsURI then
+          Exit;
+      end;
+    end;
+  end;
+  result := GetAncestorElement(Self).InternalLookupPrefix(nsURI, Original);
 end;
 
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
