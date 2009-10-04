@@ -9,7 +9,7 @@ version=2.5.1
 [target]
 units=buildwinutilsbase
 implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
-               shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp
+               shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp winutils
 
 examples=examples
 
