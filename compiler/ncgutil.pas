@@ -160,7 +160,7 @@ implementation
     regvars,dbgbase,
     pass_1,pass_2,
     nbas,ncon,nld,nmem,nutils,
-    tgobj,cgobj
+    tgobj,cgobj,cgcpu
 {$ifdef powerpc}
     , cpupi
 {$endif}
@@ -2103,6 +2103,10 @@ implementation
         item := TCmdStrListItem(current_procinfo.procdef.aliasnames.first);
         while assigned(item) do
           begin
+{$ifdef arm}
+            if current_settings.cputype in cpu_thumb2 then
+              list.concat(tai_thumb_func.create);
+{$endif arm}
             { "double link" all procedure entry symbols via .reference }
             { directives on darwin, because otherwise the linker       }
             { sometimes strips the procedure if only on of the symbols }
@@ -2123,7 +2127,6 @@ implementation
             previtem:=item;
             item := TCmdStrListItem(item.next);
           end;
-
         current_procinfo.procdef.procstarttai:=tai(list.last);
       end;
 
@@ -2271,6 +2274,7 @@ implementation
 
     procedure gen_external_stub(list:TAsmList;pd:tprocdef;const externalname:string);
       begin
+        create_codegen;
         { add the procedure to the al_procedures }
         maybe_new_object_file(list);
         new_section(list,sec_code,lower(pd.mangledname),current_settings.alignment.procalign);
@@ -2281,6 +2285,7 @@ implementation
           list.concat(Tai_symbol.createname(pd.mangledname,AT_FUNCTION,0));
 
         cg.g_external_wrapper(list,pd,externalname);
+        destroy_codegen;
       end;
 
 {****************************************************************************
@@ -2811,12 +2816,14 @@ implementation
         i   : longint;
         def : tdef;
       begin
+        create_codegen;
         for i:=0 to st.DefList.Count-1 do
           begin
             def:=tdef(st.DefList[i]);
             if is_class(def) then
               gen_intf_wrapper(list,tobjectdef(def));
           end;
+        destroy_codegen;
       end;
 
 

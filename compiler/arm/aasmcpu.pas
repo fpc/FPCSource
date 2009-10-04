@@ -103,6 +103,8 @@ uses
       { co proc. ld/st operations }
       OT_AM5       = $00080000;
       OT_AMMASK    = $000f0000;
+      { IT instruction }
+      OT_CONDITION = $00100000;
 
       OT_MEMORYAM2 = OT_MEMORY or OT_AM2;
       OT_MEMORYAM3 = OT_MEMORY or OT_AM3;
@@ -159,6 +161,7 @@ uses
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
          procedure loadregset(opidx:longint;const s:tcpuregisterset);
+         procedure loadconditioncode(opidx:longint;const cond:tasmcond);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -179,6 +182,9 @@ uses
          constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister;_op4 : tshifterop);
          { SFM/LFM }
          constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
+
+         { ITxxx }
+         constructor op_cond(op: tasmop; cond: tasmcond);
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -227,6 +233,10 @@ uses
 
       tai_align = class(tai_align_abstract)
         { nothing to add }
+      end;
+
+      tai_thumb_func = class(tai)
+        constructor create;
       end;
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
@@ -286,6 +296,19 @@ implementation
                if assigned(add_reg_instruction_hook) and (i in regset^) then
                  add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
              end;
+         end;
+      end;
+
+
+    procedure taicpu.loadconditioncode(opidx:longint;const cond:tasmcond);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_conditioncode then
+             clearop(opidx);
+           cc:=cond;
+           typ:=top_conditioncode;
          end;
       end;
 
@@ -399,6 +422,14 @@ implementation
          loadreg(0,_op1);
          loadconst(1,_op2);
          loadref(2,_op3);
+      end;
+
+
+    constructor taicpu.op_cond(op: tasmop; cond: tasmcond);
+      begin
+        inherited create(op);
+        ops:=0;
+        condition := cond;
       end;
 
 
@@ -574,6 +605,20 @@ implementation
             else
               { check for pre/post indexed }
               result := operand_read;
+          //Thumb2
+          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV,A_MOVT:
+            if opnr in [0] then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_LDREX:
+            if opnr in [0] then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_STREX:
+            if opnr in [0,1,2] then
+              result:=operand_write;
           else
             internalerror(200403151);
         end;
@@ -2515,6 +2560,12 @@ static char *CC[] =
 
 *)
 {$endif dummy}
+
+  constructor tai_thumb_func.create;
+    begin
+      inherited create;
+      typ:=ait_thumb_func;
+    end;
 
 begin
   cai_align:=tai_align;

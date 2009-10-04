@@ -51,6 +51,8 @@ tcgalpha = class(tcg)
   procedure g_restore_frame_pointer(list : TAsmList);override;
 end;
 
+procedure create_codegen;
+
 implementation
 
 uses
@@ -156,5 +158,10 @@ procedure tcgalpha.g_restore_frame_pointer(list : TAsmList);
 begin
 end;
 
+
+procedure create_codegen;
+  begin
+    cg:=tcgalpha.create;
+  end;
 
 end.

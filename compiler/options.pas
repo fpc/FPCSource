@@ -82,8 +82,7 @@ uses
   comphook,
   symtable,scanner,rabase,
   wpobase,
-  i_bsd
-  ;
+  i_bsd;
 
 const
   page_size = 24;

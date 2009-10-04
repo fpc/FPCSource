@@ -16,18 +16,38 @@
 
 function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;
   asm
+    {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    stmia	r0!, {v1-v6, sl, fp}
+    mov	   r2, sp
+    stmia	r0!, {r2, lr}
+
+    mov     r0,#0
+    mov     pc,lr
+    {$else}
     stmia   r0,{v1-v6, sl, fp, sp, lr}
     mov     r0,#0
     mov     pc,lr
+    {$endif}
   end;
 
 
 procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
   asm
-     mov     ip, r0
-     movs    r0, r1
-     moveq   r0, #1
-     ldmia   ip,{v1-v6, sl, fp, sp, pc}
+    {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    mov     ip, r0
+    movs    r0, r1
+    it eq
+    moveq   r0, #1
+    ldmia   ip,{v1-v6, sl, fp}
+    ldr		 sp, [ip]
+    add		 ip, ip, #4
+    ldr		 pc, [ip]
+    {$else}
+    mov     ip, r0
+    movs    r0, r1
+    moveq   r0, #1
+    ldmia   ip,{v1-v6, sl, fp, sp, pc}
+    {$endif}
   end;
 
 

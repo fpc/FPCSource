@@ -63,6 +63,8 @@ unit cgcpu;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
+      
+    procedure create_codegen;
 
   implementation
 
@@ -851,7 +853,10 @@ unit cgcpu;
         end;
       end;
 
-begin
-  cg := tcg386.create;
-  cg64 := tcg64f386.create;
+    procedure create_codegen;
+      begin
+        cg := tcg386.create;
+        cg64 := tcg64f386.create;
+      end;
+      
 end.

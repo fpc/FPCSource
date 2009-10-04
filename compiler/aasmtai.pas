@@ -76,6 +76,9 @@ interface
 {$ifdef m68k}
           ait_labeled_instruction,
 {$endif m68k}
+{$ifdef arm}
+          ait_thumb_func,
+{$endif arm}
           { used to split into tiny assembler files }
           ait_cutobject,
           ait_regalloc,
@@ -160,6 +163,9 @@ interface
 {$ifdef m68k}
           'labeled_instr',
 {$endif m68k}
+{$ifdef arm}
+          'thumb_func',
+{$endif arm}
           'cut',
           'regalloc',
           'tempalloc',
@@ -173,6 +179,7 @@ interface
        { ARM only }
        ,top_regset
        ,top_shifterop
+       ,top_conditioncode
 {$endif arm}
 {$ifdef m68k}
        { m68k only }
@@ -208,6 +215,7 @@ interface
       {$ifdef arm}
           top_regset : (regset:^tcpuregisterset);
           top_shifterop : (shifterop : pshifterop);
+          top_conditioncode: (cc: TAsmCond);
       {$endif arm}
       {$ifdef m68k}
           top_regset : (regset:^tcpuregisterset);
@@ -231,6 +239,9 @@ interface
                      ait_stab,ait_function_name,
                      ait_cutobject,ait_marker,ait_align,ait_section,ait_comment,
                      ait_const,
+{$ifdef arm}
+                     ait_thumb_func,
+{$endif arm}
                      ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_real_128bit,
                      ait_symbol
                     ];

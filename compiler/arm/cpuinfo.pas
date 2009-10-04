@@ -34,9 +34,17 @@ Type
       (cpu_none,
        cpu_armv3,
        cpu_armv4,
-       cpu_armv5
+       cpu_armv5,
+       cpu_armv7m,
+       cpu_cortexm3
       );
 
+Const
+   cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv5];
+   cpu_thumb = [];
+   cpu_thumb2 = [cpu_armv7m,cpu_cortexm3];
+
+Type
    tfputype =
      (fpu_none,
       fpu_soft,
@@ -59,7 +67,10 @@ Type
       ct_at91sam7s256,
       ct_at91sam7se256,
       ct_at91sam7x256,
-      ct_at91sam7xc256
+      ct_at91sam7xc256,
+		
+      { STMicroelectronics }
+      ct_stm32f103re
      );
 
 Const
@@ -83,10 +94,12 @@ Const
      pocall_softfloat
    ];
 
-   cputypestr : array[tcputype] of string[5] = ('',
+   cputypestr : array[tcputype] of string[8] = ('',
      'ARMV3',
      'ARMV4',
-     'ARMV5'
+     'ARMV5',
+     'ARMV7M',
+     'CORTEXM3'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
@@ -106,7 +119,8 @@ Const
       'AT91SAM7S256',
       'AT91SAM7SE256',
       'AT91SAM7X256',
-      'AT91SAM7XC256'
+      'AT91SAM7XC256',
+      'STM32F103RE'
      );
 
    controllerunitstr : array[tcontrollertype] of string[20] =
@@ -117,7 +131,8 @@ Const
       'AT91SAM7x256',
       'AT91SAM7x256',
       'AT91SAM7x256',
-      'AT91SAM7x256'
+      'AT91SAM7x256',
+      'STM32F103'
      );
 
    { Supported optimizations, only used for information }

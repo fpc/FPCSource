@@ -247,7 +247,7 @@ implementation
                        if tabsolutevarsym(symtableentry).absseg then
                          location.reference.segment:=NR_FS;
 {$endif i386}
-                       location.reference.offset:=tabsolutevarsym(symtableentry).addroffset;
+                       location.reference.offset:=aint(tabsolutevarsym(symtableentry).addroffset);
                      end;
                    toasm :
                      location.reference.symbol:=current_asmdata.RefAsmSymbol(tabsolutevarsym(symtableentry).mangledname);

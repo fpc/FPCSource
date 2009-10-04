@@ -43,6 +43,7 @@ unit cgcpu;
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
       end;
 
+    procedure create_codegen;
 
   implementation
 
@@ -245,7 +246,10 @@ unit cgcpu;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
-
-begin
-  cg:=tcgx86_64.create;
+      
+    procedure create_codegen;
+      begin
+        cg:=tcgx86_64.create;
+      end;
+      
 end.

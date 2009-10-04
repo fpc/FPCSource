@@ -115,6 +115,7 @@ unit cgcpu;
        procedure a_op64_reg_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64);override;
      end;
 
+  procedure create_codegen;
 
 const
   TOpCG2AsmOpConstLo: Array[topcg] of TAsmOp = (A_NONE,A_MR,A_ADDI,A_ANDI_,A_DIVWU,
@@ -1870,7 +1871,10 @@ const
       end;
 
 
-begin
-  cg := tcgppc.create;
-  cg64 :=tcg64fppc.create;
+    procedure create_codegen;
+      begin
+        cg := tcgppc.create;
+        cg64 :=tcg64fppc.create;
+      end;
+      
 end.

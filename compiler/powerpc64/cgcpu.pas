@@ -140,6 +140,8 @@ type
     procedure profilecode_savepara(para : tparavarsym; list : TAsmList);
     procedure profilecode_restorepara(para : tparavarsym; list : TAsmList);
   end;
+  
+  procedure create_codegen;
 
 const
   TShiftOpCG2AsmOpConst : array[boolean, OP_SAR..OP_SHR] of TAsmOp = (
@@ -2158,6 +2160,10 @@ begin
   cg.a_load_ref_reg(list, OS_INT, OS_INT, ref, reg);
 end;
 
+
+procedure create_codegen;
 begin
   cg := tcgppc.create;
+end;
+
 end.

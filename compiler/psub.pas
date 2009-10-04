@@ -82,7 +82,7 @@ implementation
        globtype,tokens,verbose,comphook,constexp,
        systems,
        { aasm }
-       cpubase,aasmbase,aasmtai,aasmdata,
+       cpuinfo,cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
        symconst,symbase,symsym,symtype,symtable,defutil,
        paramgr,
@@ -101,7 +101,7 @@ implementation
        scanner,import,gendef,
        pbase,pstatmnt,pdecl,pdecsub,pexports,
        { codegen }
-       tgobj,cgbase,cgobj,dbgbase,
+       tgobj,cgbase,cgobj,cgcpu,dbgbase,
        ncgutil,regvars,
        optbase,
        opttail,
@@ -819,6 +819,8 @@ implementation
         { only do secondpass if there are no errors }
         if (ErrorCount=0) then
           begin
+            create_codegen;
+
             { set the start offset to the start of the temp area in the stack }
             tg:=ttgobj.create;
 
@@ -1136,6 +1138,7 @@ implementation
             { stop tempgen and ra }
             tg.free;
             cg.done_register_allocators;
+            destroy_codegen;
             tg:=nil;
           end;
 
