@@ -47,6 +47,11 @@ begin
   
   if FCSSFile <> '' then
   begin
+    if not FileExists(FCSSFile) Then
+      begin
+        Writeln(stderr,'Can''t find CSS file "',FCSSFILE,'"');
+        halt(1);
+      end;
     TempStream := TMemoryStream.Create;
     TempStream.LoadFromFile(FCSSFile);
     TempStream.Position := 0;
