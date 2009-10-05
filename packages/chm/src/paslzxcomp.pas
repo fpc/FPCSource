@@ -1151,6 +1151,7 @@ begin
   freemem(lzxd^.prev_main_treelengths);
   freemem(lzxd^.main_tree);
   freemem(lzxd^.main_freq_table);
+  freemem(lzxd^.block_codes);
   dispose(lzxd);
   Exit(0);
 end;
