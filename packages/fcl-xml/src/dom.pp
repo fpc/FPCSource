@@ -216,6 +216,7 @@ type
     function GetPrefix: DOMString; virtual;
     procedure SetPrefix(const Value: DOMString); virtual;
     function GetOwnerDocument: TDOMDocument; virtual;
+    function GetBaseURI: DOMString;
     procedure SetReadOnly(Value: Boolean);
     procedure Changing;
   public
@@ -258,6 +259,7 @@ type
     function LookupPrefix(const nsURI: DOMString): DOMString;
     function LookupNamespaceURI(const APrefix: DOMString): DOMString;
     function IsDefaultNamespace(const nsURI: DOMString): Boolean;
+    property baseURI: DOMString read GetBaseURI;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
@@ -453,6 +455,8 @@ type
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
+    function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
+    function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; override;
     property DocType: TDOMDocumentType read GetDocType;
     property Impl: TDOMImplementation read FImplementation;
     property DocumentElement: TDOMElement read GetDocumentElement;
@@ -1237,6 +1241,22 @@ begin
     end;
   end;
   result := GetAncestorElement(Self).IsDefaultNamespace(nsURI);
+end;
+
+function TDOMNode.GetBaseURI: DOMString;
+begin
+  case NodeType of
+  // !! Incomplete !!
+    DOCUMENT_NODE:
+      result := TDOMDocument(Self).FDocumentURI;
+    PROCESSING_INSTRUCTION_NODE:
+      if Assigned(ParentNode) then
+        result := ParentNode.GetBaseURI
+      else
+        result := OwnerDocument.DocumentURI;
+  else
+    result := '';
+  end;
 end;
 
 //------------------------------------------------------------------------------
@@ -2210,6 +2230,32 @@ end;
 function TDOMDocument.GetOwnerDocument: TDOMDocument;
 begin
   Result := nil;
+end;
+
+function TDOMDocument.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
+var
+  nType: Integer;
+begin
+  nType := NewChild.NodeType;
+  if ((nType = ELEMENT_NODE) and Assigned(DocumentElement)) or
+     ((nType = DOCUMENT_TYPE_NODE) and Assigned(DocType)) then
+       raise EDOMHierarchyRequest.Create('Document.InsertBefore');
+  Result := inherited InsertBefore(NewChild, RefChild);
+end;
+
+function TDOMDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
+var
+  nType: Integer;
+begin
+  nType := NewChild.NodeType;
+  if ((nType = ELEMENT_NODE) and (OldChild = DocumentElement)) or   // root can be replaced by another element
+     ((nType = DOCUMENT_TYPE_NODE) and (OldChild = DocType)) then   // and so can be DTD
+  begin
+    inherited InsertBefore(NewChild, OldChild);
+    Result := RemoveChild(OldChild);
+  end
+  else
+    Result := inherited ReplaceChild(NewChild, OldChild);
 end;
 
 function TDOMDocument.GetDocumentElement: TDOMElement;

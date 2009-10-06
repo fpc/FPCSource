@@ -94,7 +94,7 @@ type
   private
     FStream: TStream;
     FStringData: string;
-//    FBaseURI: WideString;
+    FBaseURI: WideString;
     FSystemID: WideString;
     FPublicID: WideString;
 //    FEncoding: string;
@@ -103,7 +103,7 @@ type
     constructor Create(const AStringData: string); overload;
     property Stream: TStream read FStream;
     property StringData: string read FStringData;
-//    property BaseURI: WideString read FBaseURI write FBaseURI;
+    property BaseURI: WideString read FBaseURI write FBaseURI;
     property SystemID: WideString read FSystemID write FSystemID;
     property PublicID: WideString read FPublicID write FPublicID;
 //    property Encoding: string read FEncoding write FEncoding;
@@ -435,7 +435,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const AbsSysID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
     procedure AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
@@ -744,7 +744,7 @@ begin
   ADoc := nil;
   with TXMLReader.Create(Self) do
   try
-    if ResolveEntity(URI, '', Src) then
+    if ResolveEntity(URI, '', '', Src) then
       ProcessXML(Src)
     else
       DoErrorPos(esFatal, 'The specified URI could not be resolved', NullLocation);
@@ -1164,7 +1164,7 @@ begin
     else if SrcIn.FStringData <> '' then
       SrcOut := TXMLStreamInputSource.Create(TStringStream.Create(SrcIn.FStringData), True)
     else if (SrcIn.SystemID <> '') then
-      ResolveEntity(SrcIn.SystemID, SrcIn.PublicID, SrcOut);
+      ResolveEntity(SrcIn.SystemID, SrcIn.PublicID, SrcIn.BaseURI, SrcOut);
   end;
   if (SrcOut = nil) and (FSource = nil) then
     DoErrorPos(esFatal, 'No input source specified', NullLocation);
@@ -1176,7 +1176,7 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const AbsSysID, PublicID: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
   Filename: string;
   Stream: TStream;
@@ -1732,7 +1732,7 @@ var
 begin
   if (AEntity.SystemID <> '') and not AEntity.FResolved then
   begin
-    Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, Src);
+    Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, '', Src);
     if not Result then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
@@ -2180,7 +2180,7 @@ begin
   if (FDocType.SystemID <> '') then
   begin
     ResolveRelativeURI(FSource.SystemID, FDocType.SystemID, DoctypeURI);
-    if ResolveEntity(DocTypeURI, FDocType.PublicID, Src) then
+    if ResolveEntity(DocTypeURI, FDocType.PublicID, '', Src) then
     begin
       Initialize(Src);
       try
