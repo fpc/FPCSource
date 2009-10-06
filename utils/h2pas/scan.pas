@@ -512,11 +512,9 @@ begin
                                       if not stripcomment then
                                        write(outfile,' }');
                                       c:=get_char;
-                                      if (c=newline) then
-                                      begin
+                                      if c=newline then
                                         writeln(outfile);
-                                        unget_char(c);
-                                      end;
+                                      unget_char(c);
                                       flush(outfile);
                                       exit;
                                     end
