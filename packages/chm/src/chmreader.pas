@@ -116,7 +116,8 @@ type
   public
     function GetContextUrl(Context: THelpContext): String;
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
-    function GetTOCSitemap: TChmSiteMap;
+    function GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
+    function GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
     function HasContextList: Boolean;
     property DefaultPage: String read fDefaultPage;
     property IndexFile: String read fIndexFile;
@@ -875,7 +876,28 @@ begin
   end;
 end;
 
-function TChmReader.GetTOCSitemap: TChmSiteMap;
+function TChmReader.GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
+var Index : TMemoryStream;
+begin
+   Result := nil;
+   // First Try Binary
+   Index := nil; // GetObject('/$WWKeywordLinks/BTree');
+   if (Index = nil) or ForceXML then
+   begin
+     if Assigned(Index) Then Index.Free;
+     // Second Try text Index
+     Index := GetObject(IndexFile);
+     if Index <> nil then
+     begin
+       Result := TChmSiteMap.Create(stIndex);
+       Result.LoadFromStream(Index);
+       Index.Free;
+     end;
+     Exit;
+   end;
+end;
+
+function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
     function AddTOCItem(TOC: TStream; AItemOffset: DWord; SiteMapITems: TChmSiteMapItems): DWord;
     var
       Props: DWord;
@@ -919,8 +941,9 @@ begin
    Result := nil;
    // First Try Binary
    TOC := GetObject('/#TOCIDX');
-   if TOC = nil then
+   if (TOC = nil) or ForceXML then
    begin
+     if Assigned(TOC) Then Toc.Free;
      // Second Try text toc
      TOC := GetObject(TOCFile);
      if TOC <> nil then
