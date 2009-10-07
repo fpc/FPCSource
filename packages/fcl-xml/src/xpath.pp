@@ -524,7 +524,7 @@ var
 begin
   Val(s, Result, Code);
 {$push}
-{$r-}
+{$r-,q-}
   if Code <> 0 then
     Result := NaN;
 {$pop}
@@ -762,7 +762,7 @@ begin
           NumberResult := Op1 / Op2;
         opMod: if IsNan(Op1) or IsNan(Op2) then
 {$push}
-{$r-}
+{$r-,q-}
           NumberResult := NaN
 {$pop}
         else
