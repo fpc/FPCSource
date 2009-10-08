@@ -16,6 +16,7 @@ unit xmlutils;
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
+{$ifopt Q+}{$define overflow_check}{$endif}
 
 interface
 
@@ -51,7 +52,7 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
-  THashItemArray = array[0..0] of PHashItem;
+  THashItemArray = array[0..MaxInt div sizeof(Pointer)-1] of PHashItem;
   PHashItemArray = ^THashItemArray;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
@@ -87,7 +88,7 @@ type
     lname: PWideChar;
     lnameLen: Integer;
   end;
-  TExpHashEntryArray = array[0..0] of TExpHashEntry;
+  TExpHashEntryArray = array[0..MaxInt div sizeof(TExpHashEntry)-1] of TExpHashEntry;
   PExpHashEntryArray = ^TExpHashEntryArray;
 
   TDblHashArray = class(TObject)
@@ -376,7 +377,9 @@ begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
+{$ifdef overflow_check}{$q-}{$endif}
     Result := Result * $F4243 xor ord(Key^);
+{$ifdef overflow_check}{$q+}{$endif}
     Inc(Key);
     Dec(KeyLen);
   end;
@@ -471,7 +474,7 @@ var
   h: LongWord;
 begin
   h := Hash(0, Key, KeyLength);
-  Entry := @FBucket[h mod FBucketCount];
+  Entry := @FBucket^[h mod FBucketCount];
   while Assigned(Entry^) and not ((Entry^^.HashValue = h) and KeyCompare(Entry^^.Key, Key, KeyLength) ) do
     Entry := @Entry^^.Next;
   Found := Assigned(Entry^);
@@ -513,7 +516,7 @@ begin
     e := FBucket^[i];
     while Assigned(e) do
     begin
-      chain := @p[e^.HashValue mod NewCapacity];
+      chain := @p^[e^.HashValue mod NewCapacity];
       n := e^.Next;
       e^.Next := chain^;
       chain^ := e;
@@ -529,7 +532,7 @@ function THashTable.Remove(Entry: PHashItem): Boolean;
 var
   chain: PPHashItem;
 begin
-  chain := @FBucket[Entry^.HashValue mod FBucketCount];
+  chain := @FBucket^[Entry^.HashValue mod FBucketCount];
   while Assigned(chain^) do
   begin
     if chain^ = Entry then
@@ -556,7 +559,7 @@ var
 begin
   for i := 0 to FBucketCount-1 do
   begin
-    chain := @FBucket[i];
+    chain := @FBucket^[i];
     while Assigned(chain^) do
     begin
       if chain^^.Data = aData then

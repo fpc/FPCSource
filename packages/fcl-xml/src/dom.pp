@@ -101,7 +101,7 @@ type
   TDOMAttrDef = class;
   TNodePool = class;
   PNodePoolArray = ^TNodePoolArray;
-  TNodePoolArray = array[0..0] of TNodePool;
+  TNodePoolArray = array[0..MaxInt div sizeof(Pointer)-1] of TNodePool;
 
 {$ifndef fpc}
   TFPList = TList;
