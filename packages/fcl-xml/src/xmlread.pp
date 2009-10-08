@@ -382,7 +382,7 @@ type
     procedure StandaloneError(LineOffs: Integer = 0);
     procedure CallErrorHandler(E: EXMLReadError);
     function  FindOrCreateElDef: TDOMElementDef;
-    function  SkipUntilSeq(const Delim: TSetOfChar; const More: array of WideChar): Boolean;
+    function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
     procedure CheckMaxChars;
   protected
     FCursor: TDOMNode_WithChildren;
@@ -1951,11 +1951,9 @@ begin
   end;
 end;
 
-function TXMLReader.SkipUntilSeq(const Delim: TSetOfChar; const More: array of WideChar): Boolean;
+function TXMLReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
 var
-  I: Integer;
   wc: WideChar;
-  Match: Boolean;
 begin
   Result := False;
   FValue.Length := 0;
@@ -1965,18 +1963,12 @@ begin
     if wc <> #0 then
     begin
       FSource.NextChar;
-      if (FValue.Length > High(More)) then
+      if (FValue.Length > ord(c2 <> #0)) then
       begin
-        Match := True;
-        for I := High(More) downto Low(More) do
-          if FValue.Buffer[FValue.Length - (High(More)+1) + I] <> More[I] then
-          begin
-            Match := False;
-            Break;
-          end;
-        if Match then
+        if (FValue.Buffer[FValue.Length-1] = c1) and
+          ((c2 = #0) or ((c2 <> #0) and (FValue.Buffer[FValue.Length-2] = c2))) then
         begin
-          Dec(FValue.Length, High(More)+1);
+          Dec(FValue.Length, ord(c2 <> #0) + 1);
           Result := True;
           Exit;
         end;
@@ -1986,15 +1978,10 @@ begin
   until wc = #0;
 end;
 
-const
-  CommentEnd: array[0..0] of WideChar = ('-');
-  PIEnd:      array[0..0] of WideChar = ('?');
-  CDEnd:      array[0..1] of WideChar = (']',']');
-
 procedure TXMLReader.ParseComment;    // [15]
 begin
   ExpectString('--');
-  if SkipUntilSeq([#0, '-'], CommentEnd) then
+  if SkipUntilSeq([#0, '-'], '-') then
   begin
     ExpectChar('>');
     DoComment(FValue.Buffer, FValue.Length);
@@ -2026,7 +2013,7 @@ begin
   if FSource.FBuf^ <> '?' then
     SkipS(True);
 
-  if SkipUntilSeq(GT_Delim, PIEnd) then
+  if SkipUntilSeq(GT_Delim, '?') then
   begin
     SetString(Value, FValue.Buffer, FValue.Length);
     // SAX: ContentHandler.ProcessingInstruction(Name, Value);
@@ -2726,11 +2713,10 @@ begin
             else if FSource.Matches(']]>') then
               Dec(IgnoreLevel)
             else if wc <> #0 then
-              FSource.NextChar;
-          until (IgnoreLevel=0) or (wc = #0);
-// Since PE's are not recognized in ignore sections, reaching EOF is fatal.
-          if wc = #0 then
-            Break;
+              FSource.NextChar
+            else // PE's aren't recognized in ignore section, cannot ContextPop()
+              DoErrorPos(esFatal, 'IGNORE section is not closed', IgnoreLoc);
+          until IgnoreLevel=0;
         end;
       end
       else
@@ -2759,14 +2745,8 @@ begin
     end;
   until False;
   FRecognizePE := False;
-  if (IncludeLevel > 0) or (IgnoreLevel > 0) then
-  begin
-    if IncludeLevel > 0 then
-      FTokenStart := IncludeLoc
-    else
-      FTokenStart := IgnoreLoc;
-    FatalError('Conditional section is not closed', -1);
-  end;
+  if IncludeLevel > 0 then
+    DoErrorPos(esFatal, 'INCLUDE section is not closed', IncludeLoc);
   if (FSource.DTDSubsetType = dsInternal) and (FSource.FBuf^ = ']') then
     Exit;
   if FSource.FBuf^ <> #0 then
@@ -2789,7 +2769,7 @@ begin
   ExpectString('[CDATA[');
   if FState <> rsRoot then
     FatalError('Illegal at document level');
-  if SkipUntilSeq(GT_Delim, CDEnd) then
+  if SkipUntilSeq(GT_Delim, ']', ']') then
     DoCDSect(FValue.Buffer, FValue.Length)
   else
     FatalError('Unterminated CDATA section', -1);
