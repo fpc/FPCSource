@@ -3403,7 +3403,14 @@ In case not, the value returned can be arbitrary.
                  if m_fpc in current_settings.modeswitches then
                   begin
                     readnumber;
-                    token:=_INTCONST;
+                    if length(pattern)=1 then
+                      begin
+                        readstring;
+                        token:=_ID;
+                        idtoken:=_ID;
+                      end
+                    else
+                      token:=_INTCONST;
                     goto exit_label;
                   end
                  else if m_mac in current_settings.modeswitches then
