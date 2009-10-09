@@ -3339,7 +3339,7 @@ begin
   end
   else
   begin
-    if PAnsiChar(FCurrBlock) = PAnsiChar(FCurrExtent) + sizeof(TExtent) then
+    if PAnsiChar(FCurrBlock) < PAnsiChar(FCurrExtent) + sizeof(TExtent) then
       AddExtent(FCurrExtentSize * 2);
     Result := FCurrBlock;
     Dec(PAnsiChar(FCurrBlock), FElementSize);
