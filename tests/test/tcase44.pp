@@ -4,9 +4,9 @@
 {$H-}
 var
   my_str: string;
-  my_str_wide: string;
-  my_str_ansi: string;
-  my_str_uni: string;
+  my_str_wide: widestring;
+  my_str_ansi: ansistring;
+  my_str_uni: unicodestring;
   i: integer;
 
 begin

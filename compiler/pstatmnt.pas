@@ -183,8 +183,8 @@ implementation
                end;
              hl1:=0;
              hl2:=0;
-             sl1:='';
-             sl2:='';
+             sl1:=nil;
+             sl2:=nil;
              if (p.nodetype=rangen) then
                begin
                  { type check for string case statements }
@@ -197,7 +197,7 @@ implementation
                    if (
                      (is_wide_or_unicode_string(casedef) and (
                        comparewidestrings(pcompilerwidestring(sl1), pcompilerwidestring(sl2)) > 0)) or
-                     ((not is_wide_or_unicode_string(casedef)) and (strcomp(sl1, sl2) > 0))) then
+                     ((not is_wide_or_unicode_string(casedef)) and (compare_strings(sl1, sl2) > 0))) then
                      CGMessage(parser_e_case_lower_less_than_upper_bound);
                  end
                  { type checking for ordinal case statements }
@@ -245,6 +245,29 @@ implementation
                    end;
                end;
              p.free;
+             if caseofstring then
+               begin
+                 if is_wide_or_unicode_string(casedef) then
+                   begin
+                     if assigned(sl1) then
+                       donewidestring(pcompilerwidestring(sl1));
+                     if assigned(sl2) then
+                       donewidestring(pcompilerwidestring(sl2));
+                   end
+                 else
+                   begin
+                     if assigned(sl1) then
+                       begin
+                         freemem(sl1);
+                         sl1 := nil;
+                       end;
+                     if assigned(sl2) then
+                       begin
+                         freemem(sl2);
+                         sl2 := nil;
+                       end;
+                   end;
+               end;
              if token=_COMMA then
                consume(_COMMA)
              else
