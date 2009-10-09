@@ -1772,42 +1772,42 @@ declaration :
        shift(3);
        if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
-         (* write new type name *)
-         TN:=TypeName($1^.p2^.p);
-         PN:=PointerName($1^.p2^.p);
-         (* define a Pointer type also for structs *)
-         if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
-            assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
-          writeln(outfile,aktspace,PN,' = ^',TN,';');
-         write(outfile,aktspace,TN,' = ');
-         shift(2);
-         hp:=$1;
-         write_type_specifier(outfile,hp);
-         popshift;
-         (* enum_to_const can make a switch to const *)
-         if block_type=bt_type then
-          writeln(outfile,';');
-         writeln(outfile);
-         flush(outfile);
-         popshift;
-         if must_write_packed_field then
-           write_packed_fields_info(outfile,hp,TN);
-         if assigned(hp) then
-           dispose(hp,done)
+           (* write new type name *)
+           TN:=TypeName($1^.p2^.p);
+           PN:=PointerName($1^.p2^.p);
+           (* define a Pointer type also for structs *)
+           if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+              assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
+            writeln(outfile,aktspace,PN,' = ^',TN,';');
+           write(outfile,aktspace,TN,' = ');
+           shift(2);
+           hp:=$1;
+           write_type_specifier(outfile,hp);
+           popshift;
+           (* enum_to_const can make a switch to const *)
+           if block_type=bt_type then
+            writeln(outfile,';');
+           writeln(outfile);
+           flush(outfile);
+           popshift;
+           if must_write_packed_field then
+             write_packed_fields_info(outfile,hp,TN);
+           if assigned(hp) then
+             dispose(hp,done)
          end
        else
          begin
-         TN:=TypeName(yyv[yysp-1]^.str);
-         PN:=PointerName(yyv[yysp-1]^.str);
-         if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
-         if PackRecords then
-            writeln(outfile, aktspace, TN, ' = packed record')
-         else
-            writeln(outfile, aktspace, TN, ' = record');
-         writeln(outfile, aktspace, '    {undefined structure}');
-         writeln(outfile, aktspace, '  end;');
-         writeln(outfile);
-         popshift;
+           TN:=TypeName(yyv[yysp-1]^.str);
+           PN:=PointerName(yyv[yysp-1]^.str);
+           if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
+           if PackRecords then
+              writeln(outfile, aktspace, TN, ' = packed record')
+           else
+              writeln(outfile, aktspace, TN, ' = record');
+           writeln(outfile, aktspace, '    {undefined structure}');
+           writeln(outfile, aktspace, '  end;');
+           writeln(outfile);
+           popshift;
          end;
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
@@ -1887,7 +1887,9 @@ declaration :
               writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
-         end;
+         end
+       else
+         writeln(outfile);
        no_pop:=assigned($3) and ($3^.str='no_pop');
        shift(3);
        (* Get the name to write the type definition for, try
@@ -1904,7 +1906,6 @@ declaration :
         end;
        (* write type definition *)
        is_procvar:=false;
-       writeln(outfile);
        TN:=TypeName(ph^.p);
        PN:=PointerName(ph^.p);
        if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
@@ -1913,7 +1914,7 @@ declaration :
        (* write new type name *)
        write(outfile,aktspace,TN,' = ');
        shift(2);
-       write_type_specifier(outfile,$2);
+       write_p_a_def(outfile,$4^.p1^.p1,$2);
        popshift;
        (* if no_pop it is normal fpc calling convention *)
        if is_procvar and
@@ -1963,10 +1964,11 @@ declaration :
               writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
-         end;
+         end
+       else
+         writeln(outfile);
        shift(3);
        (* write as pointer *)
-       writeln(outfile);
        writeln(outfile,'(* generic typedef  *)');
        writeln(outfile,aktspace,$2^.p,' = pointer;');
        flush(outfile);

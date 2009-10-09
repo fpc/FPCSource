@@ -1970,7 +1970,9 @@ begin
          writeln(outfile);
          writeln(outfile,aktspace,'type');
          block_type:=bt_type;
-         end;
+         end
+         else
+         writeln(outfile);
          no_pop:=assigned(yyv[yysp-2]) and (yyv[yysp-2]^.str='no_pop');
          shift(3);
          (* Get the name to write the type definition for, try
@@ -1987,7 +1989,6 @@ begin
          end;
          (* write type definition *)
          is_procvar:=false;
-         writeln(outfile);
          TN:=TypeName(ph^.p);
          PN:=PointerName(ph^.p);
          if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
@@ -1996,7 +1997,7 @@ begin
          (* write new type name *)
          write(outfile,aktspace,TN,' = ');
          shift(2);
-         write_type_specifier(outfile,yyv[yysp-3]);
+         write_p_a_def(outfile,yyv[yysp-1]^.p1^.p1,yyv[yysp-3]);
          popshift;
          (* if no_pop it is normal fpc calling convention *)
          if is_procvar and
@@ -2047,10 +2048,11 @@ begin
          writeln(outfile);
          writeln(outfile,aktspace,'type');
          block_type:=bt_type;
-         end;
+         end
+         else
+         writeln(outfile);
          shift(3);
          (* write as pointer *)
-         writeln(outfile);
          writeln(outfile,'(* generic typedef  *)');
          writeln(outfile,aktspace,yyv[yysp-1]^.p,' = pointer;');
          flush(outfile);
