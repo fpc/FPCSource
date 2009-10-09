@@ -1025,18 +1025,10 @@ end;
 
 
 Procedure SetString (Out S : WideString; Buf : PChar; Len : SizeInt);
-var
-  BufLen: SizeInt;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    begin
-      BufLen := IndexByte(Buf^, Len+1, 0);
-      If (BufLen>0) and (BufLen < Len) then
-        Len := BufLen;
-      widestringmanager.Ansi2WideMoveProc(Buf,S,Len);
-      //PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
-    end;
+    widestringmanager.Ansi2WideMoveProc(Buf,S,Len);
 end;
 
 
