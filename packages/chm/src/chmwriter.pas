@@ -20,9 +20,10 @@
 }
 unit chmwriter;
 {$MODE OBJFPC}{$H+}
+{ $DEFINE LZX_USETHREADS}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, Avl_Tree;
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
 
 type
 
@@ -128,6 +129,14 @@ Type
     function  GetData(Count: LongInt; Buffer: PByte): LongInt;
     function  WriteCompressedData(Count: Longint; Buffer: Pointer): LongInt;
     procedure MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
+    // end callbacks
+    {$IFDEF LZX_USETHREADS}
+    // callbacks for lzx compress threads
+    function  LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer; Buffer: Pointer): Integer;
+    function  LTIsEndOfFile(Sender: TLZXCompressor): Boolean;
+    procedure LTChunkDone(Sender: TLZXCompressor; CompressedSize: Integer; UncompressedSize: Integer; Buffer: Pointer);
+    procedure LTMarkFrame(Sender: TLZXCompressor; CompressedTotal: Integer; UncompressedTotal: Integer);
+    {$ENDIF}
     // end callbacks
   public
     constructor Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
@@ -1091,6 +1100,33 @@ begin
   // We have to trim the last entry off when we are done because there is no next block in that case
 end;
 
+{$IFDEF LZX_USETHREADS}
+function TChmWriter.LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer;
+  Buffer: Pointer): Integer;
+begin
+  Result := GetData(WantedByteCount, Buffer);
+  //WriteLn('Wanted ', WantedByteCount, ' got ', Result);
+end;
+
+function TChmWriter.LTIsEndOfFile(Sender: TLZXCompressor): Boolean;
+begin
+  Result := AtEndOfData;
+end;
+
+procedure TChmWriter.LTChunkDone(Sender: TLZXCompressor;
+  CompressedSize: Integer; UncompressedSize: Integer; Buffer: Pointer);
+begin
+  WriteCompressedData(CompressedSize, Buffer);
+end;
+
+procedure TChmWriter.LTMarkFrame(Sender: TLZXCompressor;
+  CompressedTotal: Integer; UncompressedTotal: Integer);
+begin
+  MarkFrame(UncompressedTotal, CompressedTotal);
+  //WriteLn('Mark Frame C = ', CompressedTotal, ' U = ', UncompressedTotal);
+end;
+{$ENDIF}
+
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
 
   var
@@ -1487,9 +1523,14 @@ end;
 
 procedure TChmWriter.StartCompressingStream;
 var
+  {$IFNDEF LZX_USETHREADS}
   LZXdata: Plzx_data;
   WSize: LongInt;
+  {$ELSE}
+  Compressor: TLZXCompressor;
+  {$ENDIF}
 begin
+ {$IFNDEF LZX_USETHREADS}
   lzx_init(@LZXdata, LZX_WINDOW_SIZE, @_GetData, Self, @_AtEndOfData,
               @_WriteCompressedData, Self, @_MarkFrame, Self);
 
@@ -1503,6 +1544,16 @@ begin
   MarkFrame(LZXdata^.len_uncompressed_input, LZXdata^.len_compressed_output);
 
   lzx_finish(LZXdata, nil);
+  {$ELSE}
+  Compressor := TLZXCompressor.Create(10);
+  Compressor.OnChunkDone  :=@LTChunkDone;
+  Compressor.OnGetData    :=@LTGetData;
+  Compressor.OnIsEndOfFile:=@LTIsEndOfFile;
+  Compressor.OnMarkFrame  :=@LTMarkFrame;
+  Compressor.Execute(True);
+  //Sleep(20000);
+  Compressor.Free;
+  {$ENDIF}
 end;
 
 end.

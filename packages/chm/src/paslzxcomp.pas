@@ -710,11 +710,11 @@ begin
     end
     else begin
       mask_bits := (1 shl shift_bits) - 1;
-      lzxd^.bit_buf := lzxd^.bit_buf shl shift_bits;
-      lzxd^.bit_buf := lzxd^.bit_buf or (bits shr rshift_bits) and mask_bits;
+      lzxd^.bit_buf := word(lzxd^.bit_buf shl shift_bits);
+      lzxd^.bit_buf := word(lzxd^.bit_buf or (bits shr rshift_bits) and mask_bits);
     end;
 {$IFDEF ENDIAN_BIG}
-    lzxd^.bit_buf := ((lzxd^.bit_buf and $FF)shl 8) or (lzxd^.bit_buf shr 8);
+    lzxd^.bit_buf := word(((lzxd^.bit_buf and $FF)shl 8) or (lzxd^.bit_buf shr 8));
 {$ENDIF}
     lzxd^.put_bytes(lzxd^.out_arg, sizeof(lzxd^.bit_buf), @lzxd^.bit_buf);
     Inc(lzxd^.len_compressed_output, sizeof(lzxd^.bit_buf));
@@ -726,8 +726,8 @@ begin
   //   otherwise move bits in */
   shift_bits := nbits;
   mask_bits := (1 shl shift_bits) - 1;
-  lzxd^.bit_buf := lzxd^.bit_buf shl shift_bits;
-  lzxd^.bit_buf := lzxd^.bit_buf or bits and mask_bits;
+  lzxd^.bit_buf := word(lzxd^.bit_buf shl shift_bits);
+  lzxd^.bit_buf := word(lzxd^.bit_buf or bits and mask_bits);
   Inc(cur_bits, nbits);
 
   lzxd^.bits_in_buf := cur_bits;
@@ -892,8 +892,8 @@ begin
 	  Inc(freqs[19]);
 	  //* right, MS lies again.  Code is NOT
 	  //   prev_len + len (mod 17), it's prev_len - len (mod 17)*/
-	  codep^ := prevlengths[i-cur_run] - last_len;
-	  if (codep^ > 16) then Inc(codep^, 17);
+	  codep^ := byte(prevlengths[i-cur_run] - last_len);
+	  if (codep^ > 16) then codep^ := byte(codep^ + 17); //Inc(codep^, 17);
 	  Inc(freqs[codep^]);
           Inc(codep);
 	  runp^ := 0; //* not necessary */
@@ -901,8 +901,8 @@ begin
 	  Dec(cur_run, excess+4);
         end;
 	while (cur_run > 0) do begin
-	  codep^ := prevlengths[i-cur_run] - last_len;
-	  if (codep^ > 16) then Inc(codep^, 17);
+	  codep^ := byte(prevlengths[i-cur_run] - last_len);
+	  if (codep^ > 16) then codep^ := byte(codep^ + 17); //Inc(codep^, byte(17));
 	  runp^ := 0; //* not necessary */
           Inc(runp);
 	  Dec(cur_run);

@@ -56,7 +56,7 @@ begin
         end;
     T:=P.Targets.AddUnit('chmtypes.pas');
       with T.Dependencies do
-        begin
+       begin
           AddUnit('chmbase');
         end;
     T:=P.Targets.AddUnit('htmlindexer.pas');
@@ -73,6 +73,11 @@ begin
           AddUnit('chmspecialfiles');
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
+        end;
+    T:=P.Targets.AddUnit('lzxcompressthread');
+      with T.Dependencies do
+        begin
+          AddUnit('paslzxcomp');
         end;
     T:=P.Targets.AddUnit('fasthtmlparser.pas');
     T:=P.Targets.AddUnit('htmlutil.pas');

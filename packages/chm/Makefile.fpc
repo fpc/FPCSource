@@ -9,7 +9,7 @@ version=2.5.1
 [target]
 units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \
       chmspecialfiles chmsitemap chmwriter chmfilewriter chmreader htmlindexer \
-      chmfiftimain
+      chmfiftimain lzxcompressthread
 programs=chmcmd chmls
 examples=
 
