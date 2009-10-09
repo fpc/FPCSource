@@ -2472,11 +2472,12 @@ var
   begin
     Head := 1;
     L := Length(s);
-    while (Head <= L) and IsXmlWhiteSpace(s[Head]) do
-      Inc(Head);
 
     while Head <= L do
     begin
+      while (Head <= L) and IsXmlWhiteSpace(s[Head]) do
+        Inc(Head);
+
       Tail := Head;
       while (Tail <= L) and not IsXmlWhiteSpace(s[Tail]) do
         Inc(Tail);
@@ -2486,8 +2487,6 @@ var
         ns.Add(Element);
 
       Head := Tail;
-      while IsXmlWhiteSpace(s[Head]) do
-        Inc(Head);
     end;
   end;
 
@@ -2686,9 +2685,10 @@ begin
       n2 := floor(0.5 + e2);
   end;
   i := Max(n1, 1);
-  n2 := n2 + n1 - i;
   if empty then
-    n2 := -1;
+    n2 := -1
+  else if n2 < MaxInt then
+    n2 := n2 + (n1 - i);
   Result := TXPathStringVariable.Create(Copy(s, i, n2));
 end;
 
