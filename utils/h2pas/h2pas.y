@@ -315,7 +315,7 @@ program h2pas;
          flag_index:=0;
          writeln(outfile);
          writeln(outfile,aktspace,'const');
-         shift(3);
+         shift(2);
          while not eof(tempfile) do
            begin
               readln(tempfile,line);
@@ -358,7 +358,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,';');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,name,':=(a.flag',flag_index);
                         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
                         popshift;
@@ -381,7 +381,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,');');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,'a.flag',flag_index,':=');
                         write(implemfile,'a.flag',flag_index,' or ');
                         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
@@ -559,8 +559,6 @@ program h2pas;
                end;
              t_funcname :
                begin
-                  if not compactmode then
-                   shift(2);
                   if if_nb>0 then
                     begin
                        writeln(outfile,aktspace,'var');
@@ -577,7 +575,7 @@ program h2pas;
                        if_nb:=0;
                     end;
                   writeln(outfile,aktspace,'begin');
-                  shift(3);
+                  shift(2);
                   write(outfile,aktspace);
                   write_all_ifexpr(outfile,p^.p2);
                   write_expr(outfile,p^.p1);
@@ -1055,7 +1053,7 @@ program h2pas;
                         writeln(outfile,'packed record')
                       else
                         writeln(outfile,'record');
-                      shift(3);
+                      shift(2);
                       hp1:=p^.p1;
 
                       (* walk through all members *)
@@ -1188,7 +1186,7 @@ program h2pas;
                         writeln(outfile,'record');
                       shift(2);
                       writeln(outfile,aktspace,'case longint of');
-                      shift(3);
+                      shift(2);
                       l:=0;
                       hp1:=p^.p1;
 
@@ -1545,7 +1543,7 @@ declaration :
                end;
              block_type:=bt_var;
 
-             shift(3);
+             shift(2);
 
              IsExtern:=assigned($1)and($1^.str='extern');
              (* walk through all declarations *)
@@ -1728,7 +1726,7 @@ declaration :
                end;
              block_type:=bt_var;
 
-             shift(3);
+             shift(2);
 
              IsExtern:=assigned($1)and($1^.str='extern');
              (* walk through all declarations *)
@@ -1769,7 +1767,7 @@ declaration :
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
-       shift(3);
+       shift(2);
        if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
            (* write new type name *)
@@ -1824,7 +1822,7 @@ declaration :
        TN:=TypeName($4^.p);
        if Uppercase(tn)<>Uppercase(pn) then
         begin
-          shift(3);
+          shift(2);
           writeln(outfile,aktspace,PN,' = ',TN,';');
           popshift;
         end;
@@ -1844,7 +1842,7 @@ declaration :
             block_type:=bt_type;
          end;
        no_pop:=assigned($4) and ($4^.str='no_pop');
-       shift(3);
+       shift(2);
        (* walk through all declarations *)
        hp:=$5;
        if assigned(hp) then
@@ -1891,7 +1889,7 @@ declaration :
        else
          writeln(outfile);
        no_pop:=assigned($3) and ($3^.str='no_pop');
-       shift(3);
+       shift(2);
        (* Get the name to write the type definition for, try
           to use the tag name first *)
        if assigned($2^.p2) then
@@ -1967,7 +1965,7 @@ declaration :
          end
        else
          writeln(outfile);
-       shift(3);
+       shift(2);
        (* write as pointer *)
        writeln(outfile,'(* generic typedef  *)');
        writeln(outfile,aktspace,$2^.p,' = pointer;');
@@ -2007,6 +2005,9 @@ define_dec :
              writeln(implemfile,aktspace,'{ return type might be wrong }   ');
            end;
         end;
+       if block_type<>bt_func then
+         writeln(outfile);
+
        block_type:=bt_func;
        write(outfile,aktspace,'function ',$2^.p);
        write(implemfile,aktspace,'function ',$2^.p);
@@ -2072,11 +2073,12 @@ define_dec :
          begin
             if block_type<>bt_const then
               begin
-                 writeln(outfile);
-                 writeln(outfile,aktspace,'const');
+                if block_type<>bt_func then
+                  writeln(outfile);
+                writeln(outfile,aktspace,'const');
               end;
             block_type:=bt_const;
-            shift(3);
+            shift(2);
             write(outfile,aktspace,$2^.p);
             write(outfile,' = ');
             flush(outfile);
@@ -2090,6 +2092,8 @@ define_dec :
          end
        else
          begin
+            if block_type<>bt_func then
+              writeln(outfile);
             if not stripinfo then
              begin
                writeln (outfile,aktspace,'{ was #define dname def_expr }');
@@ -2101,11 +2105,9 @@ define_dec :
             shift(2);
             if not assigned($4^.p3) then
               begin
-                 writeln(outfile,' : longint;');
-                 writeln(outfile,aktspace,'  { return type might be wrong }');
+                 writeln(outfile,' : longint; { return type might be wrong }');
                  flush(outfile);
-                 writeln(implemfile,' : longint;');
-                 writeln(implemfile,aktspace,'  { return type might be wrong }');
+                 writeln(implemfile,' : longint; { return type might be wrong }');
               end
             else
               begin
