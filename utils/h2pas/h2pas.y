@@ -2806,6 +2806,10 @@ unary_expr:
      {
      $$:=new(presobject,init_preop('-',$2));
      }|
+     _PLUS unary_expr
+     {
+     $$:=new(presobject,init_preop('+',$2));
+     }|
      _AND unary_expr %prec R_AND
      {
      $$:=new(presobject,init_preop('@',$2));
