@@ -253,24 +253,6 @@ threadvar
      stdcall;external KernelDLL name 'SetCurrentDirectoryA';
    function GetCurrentDirectory(bufsize : longint;name : pchar) : longbool;
      stdcall;external KernelDLL name 'GetCurrentDirectoryA';
-
-   var
-     SetFilePointerEx : function(hFile : THandle;
-       liDistanceToMove : int64;lpNewFilePointer : pint64;
-       dwMoveMethod : DWord) : ByteBool;stdcall;
-
-  procedure SetupProcVars;
-    var
-      hinstLib : THandle;
-    begin
-      SetFilePointerEx:=nil;
-      hinstLib:=LoadLibrary(KernelDLL);
-      if hinstLib<>0 then
-        begin
-          pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
-          FreeLibrary(hinstLib);
-        end;
-    end;
 {$endif WINCE}
 
    Procedure Errno2InOutRes;

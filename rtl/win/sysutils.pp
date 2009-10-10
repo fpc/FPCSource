@@ -278,14 +278,14 @@ end;
 
 
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
+var
+  rslt: Int64Rec;
 begin
-  if assigned(SetFilePointerEx) then
-    begin
-      if not(SetFilePointerEx(Handle, FOffset, @result, Origin)) then
-        Result:=-1;
-    end
-  else
-    Result:=longint(SetFilePointer(Handle, FOffset, nil, Origin));
+  rslt := Int64Rec(FOffset);
+  rslt.lo := SetFilePointer(Handle, rslt.lo, @rslt.hi, Origin);
+  if (rslt.lo = $FFFFFFFF) and (GetLastError <> 0) then
+    rslt.hi := $FFFFFFFF;
+  Result := Int64(rslt);
 end;
 
 
@@ -1215,27 +1215,12 @@ procedure InitWin32Widestrings;
   end;
 
 
-procedure SetupProcVars;
-  var
-    hinstLib : THandle;
-  begin
-    SetFilePointerEx:=nil;
-    hinstLib:=LoadLibrary(KernelDLL);
-    if hinstLib<>0 then
-      begin
-        pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
-        FreeLibrary(hinstLib);
-      end;
-  end;
-
-
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
-  SetupProcVars;
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then

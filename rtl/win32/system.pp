@@ -175,7 +175,6 @@ var
     end;
 
 begin
-  SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
