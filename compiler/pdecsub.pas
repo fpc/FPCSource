@@ -1376,7 +1376,7 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) then
     Message(parser_e_no_object_reintroduce);
 end;
 
