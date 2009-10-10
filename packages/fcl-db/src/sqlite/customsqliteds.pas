@@ -658,7 +658,7 @@ begin
   else
     FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
 
-  if State <> dsCalcFields then
+  if not (State in [dsCalcFields, dsInternalCalc]) then
     FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
   else
     FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
@@ -1220,11 +1220,20 @@ end;
 function TCustomSqliteDataset.Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant;
 var
   TempItem: PDataRecord;
+  SaveState: TDataSetState;
 begin
   CheckBrowseMode;
   TempItem := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, [], False);
   if TempItem <> nil then
-    Result := TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
+  begin
+    SaveState := SetTempState(dsInternalCalc);
+    try
+      CalculateFields(PChar(@TempItem));
+      Result := FieldByName(ResultFields).Value;
+    finally
+      RestoreState(SaveState);
+    end;
+  end
   else
     Result := Null;
 end;  
