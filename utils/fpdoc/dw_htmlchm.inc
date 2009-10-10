@@ -240,7 +240,7 @@ begin
     end;
   end;
 
-  if not nobintoc then
+  if not fnobintoc then
     fchm.AppendBinaryTOCFromSiteMap(Toc);  
   TOC.SaveToStream(Stream);
   TOC.Free;
@@ -416,7 +416,7 @@ begin
 
     // save
     Index.SaveToStream(Stream);
-    if not nobinindex then
+    if not fnobinindex then
       fchm.AppendBinaryindexFromSitemap(index,false);
     Index.Free;
     Stream.Position :=0 ;
@@ -455,8 +455,8 @@ begin
   FChm.TempRawStream := FTempUncompressed;
   FChm.OnGetFileData := @RetrieveOtherFiles;
   FChm.OnLastFile := @LastFileAdded;
-  fchm.hasbinarytoc:=not nobinarytoc;;
-  fchm.hasbinaryindex:=not nobinaryindex;
+  fchm.hasbinarytoc:=not fnobintoc;;
+  fchm.hasbinaryindex:=not fnobinindex;
   ProcessOptions;
 
   FileStream := TMemoryStream.Create;
