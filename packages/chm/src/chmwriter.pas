@@ -1816,7 +1816,7 @@ begin
       for i:=0 to Indexblocknr-1 do
         begin
           Entrybytes:=ScanIndexBlock(@blockn[i][0]);
-          writeln('after scan ,',i, ' bytes: ',entrybytes,' blocknr:',blocknr,' indexblocknr:',indexblocknr,' to:',blocknr+i);
+//          writeln('after scan ,',i, ' bytes: ',entrybytes,' blocknr:',blocknr,' indexblocknr:',indexblocknr,' to:',blocknr+i);
           MoveIndexEntry(i,Entrybytes,blocknr+i);
           indexStream.Write(blockn[i][0],defblocksize);
         end;
