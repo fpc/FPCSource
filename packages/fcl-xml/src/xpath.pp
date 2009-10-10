@@ -34,8 +34,7 @@ resourcestring
   SVarNoConversion = 'Conversion from %s to %s not possible';
 
   { Scanner errors }
-  SScannerQuotStringIsOpen = 'Ending ''"'' for string not found';
-  SScannerAposStringIsOpen = 'Ending "''" for string not found';
+  SScannerUnclosedString = 'String literal was not closed';
   SScannerInvalidChar = 'Invalid character';
   SScannerMalformedQName = 'Expected "*" or local part after colon';
   SScannerExpectedVarName = 'Expected variable name after "$"';
@@ -1674,6 +1673,8 @@ function TXPathScanner.GetToken: TXPathToken;
     Result := tkNumber;
   end;
 
+var
+  Delim: WideChar;
 begin
   // Skip whitespace
   while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
@@ -1681,6 +1682,7 @@ begin
 
   FTokenStart := FCurData;
   FTokenLength := 0;
+  Result := tkInvalid;
 
   case FCurData[0] of
     #0:
@@ -1690,21 +1692,19 @@ begin
       begin
         Inc(FCurData);
         Result := tkNotEqual;
-      end
-      else
-        Error(SScannerInvalidChar);
-    '"':
+      end;
+    '"', '''':
       begin
-        FTokenLength := 0;
+        Delim := FCurData^;
         Inc(FCurData);
         FTokenStart := FCurData;
-        while FCurData[0] <> '"' do
+        while FCurData[0] <> Delim do
         begin
           if FCurData[0] = #0 then
-            Error(SScannerQuotStringIsOpen);
+            Error(SScannerUnclosedString);
           Inc(FCurData);
-          Inc(FTokenLength);
         end;
+        FTokenLength := FCurData-FTokenStart;
         Result := tkString;
       end;
     '$':
@@ -1716,20 +1716,6 @@ begin
         else
           Error(SScannerExpectedVarName);
         Exit;
-      end;
-    '''':
-      begin
-        FTokenLength := 0;
-        Inc(FCurData);
-        FTokenStart := FCurData;
-        while FCurData[0] <> '''' do
-        begin
-          if FCurData[0] = #0 then
-            Error(SScannerAposStringIsOpen);
-          Inc(FCurData);
-          Inc(FTokenLength);
-        end;
-        Result := tkString;
       end;
     '(':
       Result := tkLeftBracket;
@@ -1766,8 +1752,7 @@ begin
       begin
         Inc(FCurData);
         Result := tkColonColon;
-      end else
-        Error(SScannerInvalidChar);  // single colons are handled as part of identifier
+      end;
     '<':
       if FCurData[1] = '=' then
       begin
@@ -1809,13 +1794,13 @@ begin
       end
       else
         Error(SScannerMalformedQName);
-    end
-    else
-      Error(SScannerInvalidChar);
+    end;
   end;
 
+  if Result = tkInvalid then
+    Error(SScannerInvalidChar);
   // We have processed at least one character now; eat it:
-  if Result <> tkEndOfStream then
+  if Result > tkEndOfStream then
     Inc(FCurData);
 end;
 
