@@ -102,13 +102,28 @@ var
   IndexStream: TFileStream;
   TOCStream: TFileStream;
   Writer: TChmWriter;
-  TOCSitemap: TChmSiteMap;
+  TOCSitemap  : TChmSiteMap;
+  IndexSiteMap: TChmSiteMap;
 begin
   // Assign the TOC and index files
   Writer := TChmWriter(Sender);
+  {$ifdef chmindex}
+    Writeln('binindex filename ',IndexFileName);
+  {$endif}
   if (IndexFileName <> '') and FileExists(IndexFileName) then begin
     IndexStream := TFileStream.Create(IndexFileName, fmOpenRead);
     Writer.AppendIndex(IndexStream);
+    if MakeBinaryIndex then
+    begin
+      {$ifdef chmindex}
+        Writeln('into binindex ');
+      {$endif}
+      IndexStream.Position := 0;
+      IndexSitemap := TChmSiteMap.Create(stIndex);
+      indexSitemap.LoadFromStream(IndexStream);
+      Writer.AppendBinaryIndexFromSiteMap(IndexSitemap,False);
+      IndexSitemap.Free;	
+    end;
     IndexStream.Free;
   end;
   if (TableOfContentsFileName <> '') and FileExists(TableOfContentsFileName) then begin
