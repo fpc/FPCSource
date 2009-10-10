@@ -987,6 +987,7 @@ packages/cocoaint/Makefile.fpc svneol=native#text/plain
 packages/cocoaint/src/CocoaAll.pas svneol=native#text/plain
 packages/cocoaint/src/CoreData.pas svneol=native#text/plain
 packages/cocoaint/src/Foundation.pas svneol=native#text/plain
+packages/cocoaint/src/IBMacros.pp svneol=native#text/plain
 packages/cocoaint/src/InlineFunctions.inc svneol=native#text/plain
 packages/cocoaint/src/IvarSize.pas svneol=native#text/plain
 packages/cocoaint/src/NSDelegatesAll.pas svneol=native#text/plain

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebHistoryItem.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -27,6 +27,10 @@
 {$ifndef WEBHISTORYITEM_PAS_S}
 {$define WEBHISTORYITEM_PAS_S}
 
+{ External string constants }
+var
+  WebHistoryItemChangedNotification: NSString; external name '_WebHistoryItemChangedNotification';
+
 {$endif}
 {$endif}
 
@@ -48,12 +52,12 @@
   public
     class function alloc: WebHistoryItem; message 'alloc';
 
-    function initWithURLString_title_lastVisitedTimeInterval(URLString_: NSStringPointer; title_: NSStringPointer; time: NSTimeInterval): id; message 'initWithURLString:title:lastVisitedTimeInterval:';
+    function initWithURLString_title_lastVisitedTimeInterval(URLString_: NSString; title_: NSString; time: NSTimeInterval): id; message 'initWithURLString:title:lastVisitedTimeInterval:';
     function originalURLString: NSString; message 'originalURLString';
     function URLString: NSString; message 'URLString';
     function title: NSString; message 'title';
     function lastVisitedTimeInterval: NSTimeInterval; message 'lastVisitedTimeInterval';
-    procedure setAlternateTitle(alternateTitle_: NSStringPointer); message 'setAlternateTitle:';
+    procedure setAlternateTitle(alternateTitle_: NSString); message 'setAlternateTitle:';
     function alternateTitle: NSString; message 'alternateTitle';
     function icon: NSImage; message 'icon';
   end; external;

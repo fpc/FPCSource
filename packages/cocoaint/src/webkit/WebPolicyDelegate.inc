@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPolicyDelegate.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -40,6 +40,14 @@ type
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef WEBPOLICYDELEGATE_PAS_S}
 {$define WEBPOLICYDELEGATE_PAS_S}
+
+{ External string constants }
+var
+  WebActionNavigationTypeKey: NSString; external name '_WebActionNavigationTypeKey';
+  WebActionElementKey: NSString; external name '_WebActionElementKey';
+  WebActionButtonKey: NSString; external name '_WebActionButtonKey';
+  WebActionModifierFlagsKey: NSString; external name '_WebActionModifierFlagsKey';
+  WebActionOriginalURLKey: NSString; external name '_WebActionOriginalURLKey';
 
 {$endif}
 {$endif}

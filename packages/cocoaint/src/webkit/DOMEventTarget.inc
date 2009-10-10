@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEventTarget.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -40,11 +40,11 @@
   
 { DOMEventTarget Protocol }
   DOMEventTargetProtocol = objcprotocol
-    procedure addEventListener_listener_useCapture(type_: NSStringPointer; listener: id; useCapture: Boolean); message 'addEventListener:listener:useCapture:';
-    procedure removeEventListener_listener_useCapture(type_: NSStringPointer; listener: id; useCapture: Boolean); message 'removeEventListener:listener:useCapture:';
+    procedure addEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:listener:useCapture:';
+    procedure removeEventListener_listener_useCapture(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:listener:useCapture:';
     function dispatchEvent(event: DOMEvent): Boolean; message 'dispatchEvent:';
-    procedure addEventListener(type_: NSStringPointer; listener: id; useCapture: Boolean); message 'addEventListener:type:listener:';
-    procedure removeEventListener(type_: NSStringPointer; listener: id; useCapture: Boolean); message 'removeEventListener:type:listener:';
+    procedure addEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'addEventListener:type:listener:';
+    procedure removeEventListener(type_: NSString; listener: id; useCapture: Boolean); message 'removeEventListener:type:listener:';
   end; external name 'DOMEventTarget';
 {$endif}
 {$endif}

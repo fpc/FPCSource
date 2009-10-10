@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSPrimitiveValue.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -79,7 +79,7 @@ const
     function primitiveType: cushort; message 'primitiveType';
     procedure setFloatValue_floatValue(unitType: cushort; floatValue: single); message 'setFloatValue:floatValue:';
     function getFloatValue(unitType: cushort): single; message 'getFloatValue:';
-    procedure setStringValue_stringValue(stringType: cushort; stringValue: NSStringPointer); message 'setStringValue:stringValue:';
+    procedure setStringValue_stringValue(stringType: cushort; stringValue: NSString); message 'setStringValue:stringValue:';
     function getStringValue: NSString; message 'getStringValue';
     function getCounterValue: DOMCounter; message 'getCounterValue';
     function getRectValue: DOMRect; message 'getRectValue';
@@ -87,7 +87,7 @@ const
 
     { Category: DOMCSSPrimitiveValueDeprecated }
     procedure setFloatValue(unitType: cushort; floatValue: single); message 'setFloatValue:unitType:';
-    procedure setStringValue(stringType: cushort; stringValue: NSStringPointer); message 'setStringValue:stringType:';
+    procedure setStringValue(stringType: cushort; stringValue: NSString); message 'setStringValue:stringType:';
   end; external;
 
 {$endif}

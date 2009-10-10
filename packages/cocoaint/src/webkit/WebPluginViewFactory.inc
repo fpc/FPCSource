@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPluginViewFactory.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -27,6 +27,13 @@
 {$ifndef WEBPLUGINVIEWFACTORY_PAS_S}
 {$define WEBPLUGINVIEWFACTORY_PAS_S}
 
+{ External string constants }
+var
+  WebPlugInBaseURLKey: NSString; external name '_WebPlugInBaseURLKey';
+  WebPlugInAttributesKey: NSString; external name '_WebPlugInAttributesKey';
+  WebPlugInContainerKey: NSString; external name '_WebPlugInContainerKey';
+  WebPlugInContainingElementKey: NSString; external name '_WebPlugInContainingElementKey';
+
 {$endif}
 {$endif}
 
@@ -40,7 +47,7 @@
   
 { WebPlugInViewFactory Protocol }
   WebPlugInViewFactoryProtocol = objcprotocol
-    class function plugInViewWithArguments(arguments: NSDictionaryPointer): NSView; message 'plugInViewWithArguments:';
+    class function plugInViewWithArguments(arguments: NSDictionary): NSView; message 'plugInViewWithArguments:';
   end; external name 'WebPlugInViewFactory';
 {$endif}
 {$endif}

@@ -2,7 +2,6 @@ unit CocoaAll;
 
 {$mode objfpc}
 {$modeswitch objectivec1}
-{$define NSGEOMETRY_TYPES_SAME_AS_CGGEOMETRY_TYPES}
 
 interface
 
@@ -61,9 +60,6 @@ type
 {$include foundation/Foundation.inc}
 {$include appkit/AppKit.inc}
 {$undef USER_PATCHES}
-
-{define IBOutlet := }
-{define IBAction := }
 
 { Inline functions }
 function NSSTR (inString: PChar): NSString;

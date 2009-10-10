@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -45,6 +45,10 @@ const
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef DOMEXCEPTION_PAS_S}
 {$define DOMEXCEPTION_PAS_S}
+
+{ External string constants }
+var
+  DOMException: NSString; external name '_DOMException';
 
 {$endif}
 {$endif}

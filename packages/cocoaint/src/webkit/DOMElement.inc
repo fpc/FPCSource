@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMElement.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -57,34 +57,34 @@
     function clientHeight: cint; message 'clientHeight';
     function scrollWidth: cint; message 'scrollWidth';
     function scrollHeight: cint; message 'scrollHeight';
-    function getAttribute(name: NSStringPointer): NSString; message 'getAttribute:';
-    procedure setAttribute_value(name: NSStringPointer; value: NSStringPointer); message 'setAttribute:value:';
-    procedure removeAttribute(name: NSStringPointer); message 'removeAttribute:';
-    function getAttributeNode(name: NSStringPointer): DOMAttr; message 'getAttributeNode:';
+    function getAttribute(name: NSString): NSString; message 'getAttribute:';
+    procedure setAttribute_value(name: NSString; value: NSString); message 'setAttribute:value:';
+    procedure removeAttribute(name: NSString); message 'removeAttribute:';
+    function getAttributeNode(name: NSString): DOMAttr; message 'getAttributeNode:';
     function setAttributeNode(newAttr: DOMAttr): DOMAttr; message 'setAttributeNode:';
     function removeAttributeNode(oldAttr: DOMAttr): DOMAttr; message 'removeAttributeNode:';
-    function getElementsByTagName(name: NSStringPointer): DOMNodeList; message 'getElementsByTagName:';
-    function getAttributeNS_localName(namespaceURI_: NSStringPointer; localName_: NSStringPointer): NSString; message 'getAttributeNS:localName:';
-    procedure setAttributeNS_qualifiedName_value(namespaceURI_: NSStringPointer; qualifiedName: NSStringPointer; value: NSStringPointer); message 'setAttributeNS:qualifiedName:value:';
-    procedure removeAttributeNS_localName(namespaceURI_: NSStringPointer; localName_: NSStringPointer); message 'removeAttributeNS:localName:';
-    function getElementsByTagNameNS_localName(namespaceURI_: NSStringPointer; localName_: NSStringPointer): DOMNodeList; message 'getElementsByTagNameNS:localName:';
-    function getAttributeNodeNS_localName(namespaceURI_: NSStringPointer; localName_: NSStringPointer): DOMAttr; message 'getAttributeNodeNS:localName:';
+    function getElementsByTagName(name: NSString): DOMNodeList; message 'getElementsByTagName:';
+    function getAttributeNS_localName(namespaceURI_: NSString; localName_: NSString): NSString; message 'getAttributeNS:localName:';
+    procedure setAttributeNS_qualifiedName_value(namespaceURI_: NSString; qualifiedName: NSString; value: NSString); message 'setAttributeNS:qualifiedName:value:';
+    procedure removeAttributeNS_localName(namespaceURI_: NSString; localName_: NSString); message 'removeAttributeNS:localName:';
+    function getElementsByTagNameNS_localName(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:localName:';
+    function getAttributeNodeNS_localName(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:localName:';
     function setAttributeNodeNS(newAttr: DOMAttr): DOMAttr; message 'setAttributeNodeNS:';
-    function hasAttribute(name: NSStringPointer): Boolean; message 'hasAttribute:';
-    function hasAttributeNS_localName(namespaceURI_: NSStringPointer; localName_: NSStringPointer): Boolean; message 'hasAttributeNS:localName:';
+    function hasAttribute(name: NSString): Boolean; message 'hasAttribute:';
+    function hasAttributeNS_localName(namespaceURI_: NSString; localName_: NSString): Boolean; message 'hasAttributeNS:localName:';
     procedure focus; message 'focus';
     procedure blur; message 'blur';
     procedure scrollIntoView(alignWithTop: Boolean); message 'scrollIntoView:';
     procedure scrollIntoViewIfNeeded(centerIfNeeded: Boolean); message 'scrollIntoViewIfNeeded:';
 
     { Category: DOMElementDeprecated }
-    procedure setAttribute(name: NSStringPointer; value: NSStringPointer); message 'setAttribute:name:';
-    function getAttributeNS(namespaceURI_: NSStringPointer; localName_: NSStringPointer): NSString; message 'getAttributeNS:namespaceURI:';
-    procedure setAttributeNS(namespaceURI_: NSStringPointer; qualifiedName: NSStringPointer; value: NSStringPointer); message 'setAttributeNS:namespaceURI:qualifiedName:';
-    procedure removeAttributeNS(namespaceURI_: NSStringPointer; localName_: NSStringPointer); message 'removeAttributeNS:namespaceURI:';
-    function getElementsByTagNameNS(namespaceURI_: NSStringPointer; localName_: NSStringPointer): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:';
-    function getAttributeNodeNS(namespaceURI_: NSStringPointer; localName_: NSStringPointer): DOMAttr; message 'getAttributeNodeNS:namespaceURI:';
-    function hasAttributeNS(namespaceURI_: NSStringPointer; localName_: NSStringPointer): Boolean; message 'hasAttributeNS:namespaceURI:';
+    procedure setAttribute(name: NSString; value: NSString); message 'setAttribute:name:';
+    function getAttributeNS(namespaceURI_: NSString; localName_: NSString): NSString; message 'getAttributeNS:namespaceURI:';
+    procedure setAttributeNS(namespaceURI_: NSString; qualifiedName: NSString; value: NSString); message 'setAttributeNS:namespaceURI:qualifiedName:';
+    procedure removeAttributeNS(namespaceURI_: NSString; localName_: NSString); message 'removeAttributeNS:namespaceURI:';
+    function getElementsByTagNameNS(namespaceURI_: NSString; localName_: NSString): DOMNodeList; message 'getElementsByTagNameNS:namespaceURI:';
+    function getAttributeNodeNS(namespaceURI_: NSString; localName_: NSString): DOMAttr; message 'getAttributeNodeNS:namespaceURI:';
+    function hasAttributeNS(namespaceURI_: NSString; localName_: NSString): Boolean; message 'hasAttributeNS:namespaceURI:';
 
     { Category: DOMElementAppKitExtensions }
     function image: NSImage; message 'image';

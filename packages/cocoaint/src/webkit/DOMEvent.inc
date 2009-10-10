@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMEvent.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -62,10 +62,10 @@ const
     function timeStamp: DOMTimeStamp; message 'timeStamp';
     procedure stopPropagation; message 'stopPropagation';
     procedure preventDefault; message 'preventDefault';
-    procedure initEvent_canBubbleArg_cancelableArg(eventTypeArg: NSStringPointer; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:canBubbleArg:cancelableArg:';
+    procedure initEvent_canBubbleArg_cancelableArg(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:canBubbleArg:cancelableArg:';
 
     { Category: DOMEventDeprecated }
-    procedure initEvent(eventTypeArg: NSStringPointer; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:';
+    procedure initEvent(eventTypeArg: NSString; canBubbleArg: Boolean; cancelableArg: Boolean); message 'initEvent:eventTypeArg:canBubbleArg:';
   end; external;
 
 {$endif}

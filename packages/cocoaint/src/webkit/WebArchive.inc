@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebArchive.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -27,6 +27,10 @@
 {$ifndef WEBARCHIVE_PAS_S}
 {$define WEBARCHIVE_PAS_S}
 
+{ External string constants }
+var
+  WebArchivePboardType: NSString; external name '_WebArchivePboardType';
+
 {$endif}
 {$endif}
 
@@ -48,8 +52,8 @@
   public
     class function alloc: WebArchive; message 'alloc';
 
-    function initWithMainResource_subresources_subframeArchives(mainResource_: WebResource; subresources_: NSArrayPointer; subframeArchives_: NSArrayPointer): id; message 'initWithMainResource:subresources:subframeArchives:';
-    function initWithData(data_: NSDataPointer): id; message 'initWithData:';
+    function initWithMainResource_subresources_subframeArchives(mainResource_: WebResource; subresources_: NSArray; subframeArchives_: NSArray): id; message 'initWithMainResource:subresources:subframeArchives:';
+    function initWithData(data_: NSData): id; message 'initWithData:';
     function mainResource: WebResource; message 'mainResource';
     function subresources: NSArray; message 'subresources';
     function subframeArchives: NSArray; message 'subframeArchives';

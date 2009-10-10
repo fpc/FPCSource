@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebView.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -27,6 +27,28 @@
 {$ifndef WEBVIEW_PAS_S}
 {$define WEBVIEW_PAS_S}
 
+{ External string constants }
+var
+  WebElementDOMNodeKey: NSString; external name '_WebElementDOMNodeKey';
+  WebElementFrameKey: NSString; external name '_WebElementFrameKey';
+  WebElementImageAltStringKey: NSString; external name '_WebElementImageAltStringKey';
+  WebElementImageKey: NSString; external name '_WebElementImageKey';
+  WebElementImageRectKey: NSString; external name '_WebElementImageRectKey';
+  WebElementImageURLKey: NSString; external name '_WebElementImageURLKey';
+  WebElementIsSelectedKey: NSString; external name '_WebElementIsSelectedKey';
+  WebElementLinkURLKey: NSString; external name '_WebElementLinkURLKey';
+  WebElementLinkTargetFrameKey: NSString; external name '_WebElementLinkTargetFrameKey';
+  WebElementLinkTitleKey: NSString; external name '_WebElementLinkTitleKey';
+  WebElementLinkLabelKey: NSString; external name '_WebElementLinkLabelKey';
+  WebViewProgressStartedNotification: NSString; external name '_WebViewProgressStartedNotification';
+  WebViewProgressEstimateChangedNotification: NSString; external name '_WebViewProgressEstimateChangedNotification';
+  WebViewProgressFinishedNotification: NSString; external name '_WebViewProgressFinishedNotification';
+  WebViewDidBeginEditingNotification: NSString; external name '_WebViewDidBeginEditingNotification';
+  WebViewDidChangeNotification: NSString; external name '_WebViewDidChangeNotification';
+  WebViewDidEndEditingNotification: NSString; external name '_WebViewDidEndEditingNotification';
+  WebViewDidChangeTypingStyleNotification: NSString; external name '_WebViewDidChangeTypingStyleNotification';
+  WebViewDidChangeSelectionNotification: NSString; external name '_WebViewDidChangeSelectionNotification';
+
 {$endif}
 {$endif}
 
@@ -48,14 +70,14 @@
   public
     class function alloc: WebView; message 'alloc';
 
-    class function canShowMIMEType(MIMEType: NSStringPointer): Boolean; message 'canShowMIMEType:';
-    class function canShowMIMETypeAsHTML(MIMEType: NSStringPointer): Boolean; message 'canShowMIMETypeAsHTML:';
+    class function canShowMIMEType(MIMEType: NSString): Boolean; message 'canShowMIMEType:';
+    class function canShowMIMETypeAsHTML(MIMEType: NSString): Boolean; message 'canShowMIMETypeAsHTML:';
     class function MIMETypesShownAsHTML: NSArray; message 'MIMETypesShownAsHTML';
-    class procedure setMIMETypesShownAsHTML(MIMETypes: NSArrayPointer); message 'setMIMETypesShownAsHTML:';
+    class procedure setMIMETypesShownAsHTML(MIMETypes: NSArray); message 'setMIMETypesShownAsHTML:';
     class function URLFromPasteboard(pasteboard: NSPasteboardPointer): NSURL; message 'URLFromPasteboard:';
     class function URLTitleFromPasteboard(pasteboard: NSPasteboardPointer): NSString; message 'URLTitleFromPasteboard:';
-    class procedure registerURLSchemeAsLocal(scheme: NSStringPointer); message 'registerURLSchemeAsLocal:';
-    function initWithFrame_frameName_groupName(frame_: NSRect; frameName: NSStringPointer; groupName_: NSStringPointer): id; message 'initWithFrame:frameName:groupName:';
+    class procedure registerURLSchemeAsLocal(scheme: NSString); message 'registerURLSchemeAsLocal:';
+    function initWithFrame_frameName_groupName(frame_: NSRect; frameName: NSString; groupName_: NSString): id; message 'initWithFrame:frameName:groupName:';
     procedure close; message 'close';
     procedure setShouldCloseWithWindow(close_: Boolean); message 'setShouldCloseWithWindow:';
     function shouldCloseWithWindow: Boolean; message 'shouldCloseWithWindow';
@@ -78,40 +100,40 @@
     function goToBackForwardItem(item: WebHistoryItem): Boolean; message 'goToBackForwardItem:';
     procedure setTextSizeMultiplier(multiplier: single); message 'setTextSizeMultiplier:';
     function textSizeMultiplier: single; message 'textSizeMultiplier';
-    procedure setApplicationNameForUserAgent(applicationName: NSStringPointer); message 'setApplicationNameForUserAgent:';
+    procedure setApplicationNameForUserAgent(applicationName: NSString); message 'setApplicationNameForUserAgent:';
     function applicationNameForUserAgent: NSString; message 'applicationNameForUserAgent';
-    procedure setCustomUserAgent(userAgentString: NSStringPointer); message 'setCustomUserAgent:';
+    procedure setCustomUserAgent(userAgentString: NSString); message 'setCustomUserAgent:';
     function customUserAgent: NSString; message 'customUserAgent';
-    function userAgentForURL(URL: NSURLPointer): NSString; message 'userAgentForURL:';
+    function userAgentForURL(URL: NSURL): NSString; message 'userAgentForURL:';
     function supportsTextEncoding: Boolean; message 'supportsTextEncoding';
-    procedure setCustomTextEncodingName(encodingName: NSStringPointer); message 'setCustomTextEncodingName:';
+    procedure setCustomTextEncodingName(encodingName: NSString); message 'setCustomTextEncodingName:';
     function customTextEncodingName: NSString; message 'customTextEncodingName';
-    procedure setMediaStyle(mediaStyle_: NSStringPointer); message 'setMediaStyle:';
+    procedure setMediaStyle(mediaStyle_: NSString); message 'setMediaStyle:';
     function mediaStyle: NSString; message 'mediaStyle';
-    function stringByEvaluatingJavaScriptFromString(script: NSStringPointer): NSString; message 'stringByEvaluatingJavaScriptFromString:';
+    function stringByEvaluatingJavaScriptFromString(script: NSString): NSString; message 'stringByEvaluatingJavaScriptFromString:';
     function windowScriptObject: WebScriptObject; message 'windowScriptObject';
     procedure setPreferences(prefs: WebPreferences); message 'setPreferences:';
     function preferences: WebPreferences; message 'preferences';
-    procedure setPreferencesIdentifier(anIdentifier: NSStringPointer); message 'setPreferencesIdentifier:';
+    procedure setPreferencesIdentifier(anIdentifier: NSString); message 'setPreferencesIdentifier:';
     function preferencesIdentifier: NSString; message 'preferencesIdentifier';
     procedure setHostWindow(hostWindow_: NSWindowPointer); message 'setHostWindow:';
     function hostWindow: NSWindow; message 'hostWindow';
-    function searchFor_direction_caseSensitive_wrap(string_: NSStringPointer; forward: Boolean; caseFlag: Boolean; wrapFlag: Boolean): Boolean; message 'searchFor:direction:caseSensitive:wrap:';
-    class procedure registerViewClass_representationClass_forMIMEType(viewClass: Pobjc_class; representationClass: Pobjc_class; MIMEType: NSStringPointer); message 'registerViewClass:representationClass:forMIMEType:';
-    procedure setGroupName(groupName_: NSStringPointer); message 'setGroupName:';
+    function searchFor_direction_caseSensitive_wrap(string_: NSString; forward: Boolean; caseFlag: Boolean; wrapFlag: Boolean): Boolean; message 'searchFor:direction:caseSensitive:wrap:';
+    class procedure registerViewClass_representationClass_forMIMEType(viewClass: Pobjc_class; representationClass: Pobjc_class; MIMEType: NSString); message 'registerViewClass:representationClass:forMIMEType:';
+    procedure setGroupName(groupName_: NSString); message 'setGroupName:';
     function groupName: NSString; message 'groupName';
     function estimatedProgress: double; message 'estimatedProgress';
     function isLoading: Boolean; message 'isLoading';
     function elementAtPoint(point: NSPoint): NSDictionary; message 'elementAtPoint:';
     function pasteboardTypesForSelection: NSArray; message 'pasteboardTypesForSelection';
-    procedure writeSelectionWithPasteboardTypes_toPasteboard(types: NSArrayPointer; pasteboard: NSPasteboardPointer); message 'writeSelectionWithPasteboardTypes:toPasteboard:';
-    function pasteboardTypesForElement(element: NSDictionaryPointer): NSArray; message 'pasteboardTypesForElement:';
-    procedure writeElement_withPasteboardTypes_toPasteboard(element: NSDictionaryPointer; types: NSArrayPointer; pasteboard: NSPasteboardPointer); message 'writeElement:withPasteboardTypes:toPasteboard:';
+    procedure writeSelectionWithPasteboardTypes_toPasteboard(types: NSArray; pasteboard: NSPasteboardPointer); message 'writeSelectionWithPasteboardTypes:toPasteboard:';
+    function pasteboardTypesForElement(element: NSDictionary): NSArray; message 'pasteboardTypesForElement:';
+    procedure writeElement_withPasteboardTypes_toPasteboard(element: NSDictionary; types: NSArray; pasteboard: NSPasteboardPointer); message 'writeElement:withPasteboardTypes:toPasteboard:';
     procedure moveDragCaretToPoint(point: NSPoint); message 'moveDragCaretToPoint:';
     procedure removeDragCaret; message 'removeDragCaret';
     procedure setDrawsBackground(drawsBackround: Boolean); message 'setDrawsBackground:';
     function drawsBackground: Boolean; message 'drawsBackground';
-    procedure setMainFrameURL(URLString: NSStringPointer); message 'setMainFrameURL:';
+    procedure setMainFrameURL(URLString: NSString); message 'setMainFrameURL:';
     function mainFrameURL: NSString; message 'mainFrameURL';
     function mainFrameDocument: DOMDocument; message 'mainFrameDocument';
     function mainFrameTitle: NSString; message 'mainFrameTitle';
@@ -133,7 +155,7 @@
     procedure toggleSmartInsertDelete(sender: id); message 'toggleSmartInsertDelete:';
 
     { Category: WebViewCSS }
-    function computedStyleForElement_pseudoElement(element: DOMElement; pseudoElement: NSStringPointer): DOMCSSStyleDeclaration; message 'computedStyleForElement:pseudoElement:';
+    function computedStyleForElement_pseudoElement(element: DOMElement; pseudoElement: NSString): DOMCSSStyleDeclaration; message 'computedStyleForElement:pseudoElement:';
 
     { Category: WebViewEditing }
     function editableDOMRangeForPoint(point: NSPoint): DOMRange; message 'editableDOMRangeForPoint:';
@@ -153,12 +175,12 @@
     function undoManager: NSUndoManager; message 'undoManager';
     procedure setEditingDelegate(delegate: id); message 'setEditingDelegate:';
     function editingDelegate: id; message 'editingDelegate';
-    function styleDeclarationWithText(text: NSStringPointer): DOMCSSStyleDeclaration; message 'styleDeclarationWithText:';
+    function styleDeclarationWithText(text: NSString): DOMCSSStyleDeclaration; message 'styleDeclarationWithText:';
 
     { Category: WebViewUndoableEditing }
     procedure replaceSelectionWithNode(node: DOMNode); message 'replaceSelectionWithNode:';
-    procedure replaceSelectionWithText(text: NSStringPointer); message 'replaceSelectionWithText:';
-    procedure replaceSelectionWithMarkupString(markupString: NSStringPointer); message 'replaceSelectionWithMarkupString:';
+    procedure replaceSelectionWithText(text: NSString); message 'replaceSelectionWithText:';
+    procedure replaceSelectionWithMarkupString(markupString: NSString); message 'replaceSelectionWithMarkupString:';
     procedure replaceSelectionWithArchive(archive: WebArchive); message 'replaceSelectionWithArchive:';
     procedure deleteSelection; message 'deleteSelection';
     procedure applyStyle(style: DOMCSSStyleDeclaration); message 'applyStyle:';

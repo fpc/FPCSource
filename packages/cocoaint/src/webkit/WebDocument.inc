@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -53,7 +53,7 @@
   
 { WebDocumentSearching Protocol }
   WebDocumentSearchingProtocol = objcprotocol
-    function searchFor_direction_caseSensitive_wrap(string_: NSStringPointer; forward: Boolean; caseFlag: Boolean; wrapFlag: Boolean): Boolean; message 'searchFor:direction:caseSensitive:wrap:';
+    function searchFor_direction_caseSensitive_wrap(string_: NSString; forward: Boolean; caseFlag: Boolean; wrapFlag: Boolean): Boolean; message 'searchFor:direction:caseSensitive:wrap:';
   end; external name 'WebDocumentSearching';
   
 { WebDocumentText Protocol }
@@ -70,8 +70,8 @@
 { WebDocumentRepresentation Protocol }
   WebDocumentRepresentationProtocol = objcprotocol
     procedure setDataSource(dataSource: WebDataSource); message 'setDataSource:';
-    procedure receivedData_withDataSource(data: NSDataPointer; dataSource: WebDataSource); message 'receivedData:withDataSource:';
-    procedure receivedError_withDataSource(error: NSErrorPointer; dataSource: WebDataSource); message 'receivedError:withDataSource:';
+    procedure receivedData_withDataSource(data: NSData; dataSource: WebDataSource); message 'receivedData:withDataSource:';
+    procedure receivedError_withDataSource(error: NSError; dataSource: WebDataSource); message 'receivedError:withDataSource:';
     procedure finishedLoadingWithDataSource(dataSource: WebDataSource); message 'finishedLoadingWithDataSource:';
     function canProvideDocumentSource: Boolean; message 'canProvideDocumentSource';
     function documentSource: NSString; message 'documentSource';

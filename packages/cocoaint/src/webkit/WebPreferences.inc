@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebPreferences.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -38,6 +38,10 @@ type
 {$ifndef WEBPREFERENCES_PAS_S}
 {$define WEBPREFERENCES_PAS_S}
 
+{ External string constants }
+var
+  WebPreferencesChangedNotification: NSString; external name '_WebPreferencesChangedNotification';
+
 {$endif}
 {$endif}
 
@@ -60,20 +64,20 @@ type
     class function alloc: WebPreferences; message 'alloc';
 
     class function standardPreferences: WebPreferences; message 'standardPreferences';
-    function initWithIdentifier(anIdentifier: NSStringPointer): id; message 'initWithIdentifier:';
+    function initWithIdentifier(anIdentifier: NSString): id; message 'initWithIdentifier:';
     function identifier: NSString; message 'identifier';
     function standardFontFamily: NSString; message 'standardFontFamily';
-    procedure setStandardFontFamily(family: NSStringPointer); message 'setStandardFontFamily:';
+    procedure setStandardFontFamily(family: NSString); message 'setStandardFontFamily:';
     function fixedFontFamily: NSString; message 'fixedFontFamily';
-    procedure setFixedFontFamily(family: NSStringPointer); message 'setFixedFontFamily:';
+    procedure setFixedFontFamily(family: NSString); message 'setFixedFontFamily:';
     function serifFontFamily: NSString; message 'serifFontFamily';
-    procedure setSerifFontFamily(family: NSStringPointer); message 'setSerifFontFamily:';
+    procedure setSerifFontFamily(family: NSString); message 'setSerifFontFamily:';
     function sansSerifFontFamily: NSString; message 'sansSerifFontFamily';
-    procedure setSansSerifFontFamily(family: NSStringPointer); message 'setSansSerifFontFamily:';
+    procedure setSansSerifFontFamily(family: NSString); message 'setSansSerifFontFamily:';
     function cursiveFontFamily: NSString; message 'cursiveFontFamily';
-    procedure setCursiveFontFamily(family: NSStringPointer); message 'setCursiveFontFamily:';
+    procedure setCursiveFontFamily(family: NSString); message 'setCursiveFontFamily:';
     function fantasyFontFamily: NSString; message 'fantasyFontFamily';
-    procedure setFantasyFontFamily(family: NSStringPointer); message 'setFantasyFontFamily:';
+    procedure setFantasyFontFamily(family: NSString); message 'setFantasyFontFamily:';
     function defaultFontSize: cint; message 'defaultFontSize';
     procedure setDefaultFontSize(size: cint); message 'setDefaultFontSize:';
     function defaultFixedFontSize: cint; message 'defaultFixedFontSize';
@@ -83,11 +87,11 @@ type
     function minimumLogicalFontSize: cint; message 'minimumLogicalFontSize';
     procedure setMinimumLogicalFontSize(size: cint); message 'setMinimumLogicalFontSize:';
     function defaultTextEncodingName: NSString; message 'defaultTextEncodingName';
-    procedure setDefaultTextEncodingName(encoding: NSStringPointer); message 'setDefaultTextEncodingName:';
+    procedure setDefaultTextEncodingName(encoding: NSString); message 'setDefaultTextEncodingName:';
     function userStyleSheetEnabled: Boolean; message 'userStyleSheetEnabled';
     procedure setUserStyleSheetEnabled(flag: Boolean); message 'setUserStyleSheetEnabled:';
     function userStyleSheetLocation: NSURL; message 'userStyleSheetLocation';
-    procedure setUserStyleSheetLocation(URL: NSURLPointer); message 'setUserStyleSheetLocation:';
+    procedure setUserStyleSheetLocation(URL: NSURL); message 'setUserStyleSheetLocation:';
     function isJavaEnabled: Boolean; message 'isJavaEnabled';
     procedure setJavaEnabled(flag: Boolean); message 'setJavaEnabled:';
     function isJavaScriptEnabled: Boolean; message 'isJavaScriptEnabled';

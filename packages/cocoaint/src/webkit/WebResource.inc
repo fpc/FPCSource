@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebResource.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -48,7 +48,7 @@
   public
     class function alloc: WebResource; message 'alloc';
 
-    function initWithData_URL_MIMEType_textEncodingName_frameName(data_: NSDataPointer; URL_: NSURLPointer; MIMEType_: NSStringPointer; textEncodingName_: NSStringPointer; frameName_: NSStringPointer): id; message 'initWithData:URL:MIMEType:textEncodingName:frameName:';
+    function initWithData_URL_MIMEType_textEncodingName_frameName(data_: NSData; URL_: NSURL; MIMEType_: NSString; textEncodingName_: NSString; frameName_: NSString): id; message 'initWithData:URL:MIMEType:textEncodingName:frameName:';
     function data: NSData; message 'data';
     function URL: NSURL; message 'URL';
     function MIMEType: NSString; message 'MIMEType';

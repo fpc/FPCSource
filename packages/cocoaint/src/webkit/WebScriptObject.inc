@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebScriptObject.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,15 +50,15 @@
   public
     class function alloc: WebScriptObject; message 'alloc';
 
-    class function throwException(exceptionMessage: NSStringPointer): Boolean; message 'throwException:';
+    class function throwException(exceptionMessage: NSString): Boolean; message 'throwException:';
     function JSObject: JSObjectRef; message 'JSObject';
-    function callWebScriptMethod_withArguments(name: NSStringPointer; args: NSArrayPointer): id; message 'callWebScriptMethod:withArguments:';
-    function evaluateWebScript(script: NSStringPointer): id; message 'evaluateWebScript:';
-    procedure removeWebScriptKey(name: NSStringPointer); message 'removeWebScriptKey:';
+    function callWebScriptMethod_withArguments(name: NSString; args: NSArray): id; message 'callWebScriptMethod:withArguments:';
+    function evaluateWebScript(script: NSString): id; message 'evaluateWebScript:';
+    procedure removeWebScriptKey(name: NSString); message 'removeWebScriptKey:';
     function stringRepresentation: NSString; message 'stringRepresentation';
     function webScriptValueAtIndex(index: cuint): id; message 'webScriptValueAtIndex:';
     procedure setWebScriptValueAtIndex_value(index: cuint; value: id); message 'setWebScriptValueAtIndex:value:';
-    procedure setException(description_: NSStringPointer); message 'setException:';
+    procedure setException(description_: NSString); message 'setException:';
   end; external;
 
 { WebUndefined }

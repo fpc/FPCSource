@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNamedNodeMap.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -47,17 +47,17 @@
     class function alloc: DOMNamedNodeMap; message 'alloc';
 
     function length: cuint; message 'length';
-    function getNamedItem(name: NSStringPointer): DOMNode; message 'getNamedItem:';
+    function getNamedItem(name: NSString): DOMNode; message 'getNamedItem:';
     function setNamedItem(node: DOMNode): DOMNode; message 'setNamedItem:';
-    function removeNamedItem(name: NSStringPointer): DOMNode; message 'removeNamedItem:';
+    function removeNamedItem(name: NSString): DOMNode; message 'removeNamedItem:';
     function item(index: cuint): DOMNode; message 'item:';
-    function getNamedItemNS_localName(namespaceURI: NSStringPointer; localName: NSStringPointer): DOMNode; message 'getNamedItemNS:localName:';
+    function getNamedItemNS_localName(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:localName:';
     function setNamedItemNS(node: DOMNode): DOMNode; message 'setNamedItemNS:';
-    function removeNamedItemNS_localName(namespaceURI: NSStringPointer; localName: NSStringPointer): DOMNode; message 'removeNamedItemNS:localName:';
+    function removeNamedItemNS_localName(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:localName:';
 
     { Category: DOMNamedNodeMapDeprecated }
-    function getNamedItemNS(namespaceURI: NSStringPointer; localName: NSStringPointer): DOMNode; message 'getNamedItemNS:namespaceURI:';
-    function removeNamedItemNS(namespaceURI: NSStringPointer; localName: NSStringPointer): DOMNode; message 'removeNamedItemNS:namespaceURI:';
+    function getNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'getNamedItemNS:namespaceURI:';
+    function removeNamedItemNS(namespaceURI: NSString; localName: NSString): DOMNode; message 'removeNamedItemNS:namespaceURI:';
   end; external;
 
 {$endif}

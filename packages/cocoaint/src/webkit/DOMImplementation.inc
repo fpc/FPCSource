@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMImplementation.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -46,17 +46,17 @@
   public
     class function alloc: DOMImplementation; message 'alloc';
 
-    function hasFeature_version(feature: NSStringPointer; version_: NSStringPointer): Boolean; message 'hasFeature:version:';
-    function createDocumentType_publicId_systemId(qualifiedName: NSStringPointer; publicId: NSStringPointer; systemId: NSStringPointer): DOMDocumentType; message 'createDocumentType:publicId:systemId:';
-    function createDocument_qualifiedName_doctype(namespaceURI: NSStringPointer; qualifiedName: NSStringPointer; doctype: DOMDocumentType): DOMDocument; message 'createDocument:qualifiedName:doctype:';
-    function createCSSStyleSheet_media(title: NSStringPointer; media: NSStringPointer): DOMCSSStyleSheet; message 'createCSSStyleSheet:media:';
-    function createHTMLDocument(title: NSStringPointer): DOMHTMLDocument; message 'createHTMLDocument:';
+    function hasFeature_version(feature: NSString; version_: NSString): Boolean; message 'hasFeature:version:';
+    function createDocumentType_publicId_systemId(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:publicId:systemId:';
+    function createDocument_qualifiedName_doctype(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:qualifiedName:doctype:';
+    function createCSSStyleSheet_media(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:media:';
+    function createHTMLDocument(title: NSString): DOMHTMLDocument; message 'createHTMLDocument:';
 
     { Category: DOMImplementationDeprecated }
-    function hasFeature(feature: NSStringPointer; version_: NSStringPointer): Boolean; message 'hasFeature:feature:';
-    function createDocumentType(qualifiedName: NSStringPointer; publicId: NSStringPointer; systemId: NSStringPointer): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:';
-    function createDocument(namespaceURI: NSStringPointer; qualifiedName: NSStringPointer; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:';
-    function createCSSStyleSheet(title: NSStringPointer; media: NSStringPointer): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:';
+    function hasFeature(feature: NSString; version_: NSString): Boolean; message 'hasFeature:feature:';
+    function createDocumentType(qualifiedName: NSString; publicId: NSString; systemId: NSString): DOMDocumentType; message 'createDocumentType:qualifiedName:publicId:';
+    function createDocument(namespaceURI: NSString; qualifiedName: NSString; doctype: DOMDocumentType): DOMDocument; message 'createDocument:namespaceURI:qualifiedName:';
+    function createCSSStyleSheet(title: NSString; media: NSString): DOMCSSStyleSheet; message 'createCSSStyleSheet:title:';
   end; external;
 
 {$endif}

@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMHTMLDocument.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -62,14 +62,14 @@
     function cookie: NSString; message 'cookie';
     procedure open; message 'open';
     procedure close; message 'close';
-    procedure write(text: NSStringPointer); message 'write:';
-    procedure writeln(text: NSStringPointer); message 'writeln:';
-    function getElementsByName(elementName: NSStringPointer): DOMNodeList; message 'getElementsByName:';
-    function getElementById(elementId: NSStringPointer): DOMElement; message 'getElementById:';
+    procedure write(text: NSString); message 'write:';
+    procedure writeln(text: NSString); message 'writeln:';
+    function getElementsByName(elementName: NSString): DOMNodeList; message 'getElementsByName:';
+    function getElementById(elementId: NSString): DOMElement; message 'getElementById:';
 
     { Category: DOMHTMLDocumentExtensions }
-    function createDocumentFragmentWithMarkupString_baseURL(markupString: NSStringPointer; baseURL: NSURLPointer): DOMDocumentFragment; message 'createDocumentFragmentWithMarkupString:baseURL:';
-    function createDocumentFragmentWithText(text: NSStringPointer): DOMDocumentFragment; message 'createDocumentFragmentWithText:';
+    function createDocumentFragmentWithMarkupString_baseURL(markupString: NSString; baseURL: NSURL): DOMDocumentFragment; message 'createDocumentFragmentWithMarkupString:baseURL:';
+    function createDocumentFragmentWithText(text: NSString): DOMDocumentFragment; message 'createDocumentFragmentWithText:';
   end; external;
 
 {$endif}

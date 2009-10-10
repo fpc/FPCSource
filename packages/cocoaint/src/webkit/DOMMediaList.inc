@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMMediaList.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,8 +50,8 @@
     function mediaText: NSString; message 'mediaText';
     function length: cuint; message 'length';
     function item(index: cuint): NSString; message 'item:';
-    procedure deleteMedium(oldMedium: NSStringPointer); message 'deleteMedium:';
-    procedure appendMedium(newMedium: NSStringPointer); message 'appendMedium:';
+    procedure deleteMedium(oldMedium: NSString); message 'deleteMedium:';
+    procedure appendMedium(newMedium: NSString); message 'appendMedium:';
   end; external;
 
 {$endif}

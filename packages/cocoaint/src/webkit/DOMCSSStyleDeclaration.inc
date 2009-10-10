@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMCSSStyleDeclaration.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -50,17 +50,17 @@
     function cssText: NSString; message 'cssText';
     function length: cuint; message 'length';
     function parentRule: DOMCSSRule; message 'parentRule';
-    function getPropertyValue(propertyName: NSStringPointer): NSString; message 'getPropertyValue:';
-    function getPropertyCSSValue(propertyName: NSStringPointer): DOMCSSValue; message 'getPropertyCSSValue:';
-    function removeProperty(propertyName: NSStringPointer): NSString; message 'removeProperty:';
-    function getPropertyPriority(propertyName: NSStringPointer): NSString; message 'getPropertyPriority:';
-    procedure setProperty_value_priority(propertyName: NSStringPointer; value: NSStringPointer; priority: NSStringPointer); message 'setProperty:value:priority:';
+    function getPropertyValue(propertyName: NSString): NSString; message 'getPropertyValue:';
+    function getPropertyCSSValue(propertyName: NSString): DOMCSSValue; message 'getPropertyCSSValue:';
+    function removeProperty(propertyName: NSString): NSString; message 'removeProperty:';
+    function getPropertyPriority(propertyName: NSString): NSString; message 'getPropertyPriority:';
+    procedure setProperty_value_priority(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:value:priority:';
     function item(index: cuint): NSString; message 'item:';
-    function getPropertyShorthand(propertyName: NSStringPointer): NSString; message 'getPropertyShorthand:';
-    function isPropertyImplicit(propertyName: NSStringPointer): Boolean; message 'isPropertyImplicit:';
+    function getPropertyShorthand(propertyName: NSString): NSString; message 'getPropertyShorthand:';
+    function isPropertyImplicit(propertyName: NSString): Boolean; message 'isPropertyImplicit:';
 
     { Category: DOMCSSStyleDeclarationDeprecated }
-    procedure setProperty(propertyName: NSStringPointer; value: NSStringPointer; priority: NSStringPointer); message 'setProperty:propertyName:value:';
+    procedure setProperty(propertyName: NSString; value: NSString; priority: NSString); message 'setProperty:propertyName:value:';
   end; external;
 
 {$endif}

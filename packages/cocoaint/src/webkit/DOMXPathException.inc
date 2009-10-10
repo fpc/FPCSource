@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMXPathException.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:52 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:19:00 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -26,6 +26,10 @@
 {$ifdef EXTERNAL_SYMBOLS}
 {$ifndef DOMXPATHEXCEPTION_PAS_S}
 {$define DOMXPATHEXCEPTION_PAS_S}
+
+{ External string constants }
+var
+  DOMXPathException: NSString; external name '_DOMXPathException';
 
 {$endif}
 {$endif}

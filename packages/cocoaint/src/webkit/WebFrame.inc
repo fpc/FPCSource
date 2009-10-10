@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework WebFrame.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -48,22 +48,22 @@
   public
     class function alloc: WebFrame; message 'alloc';
 
-    function initWithName_webFrameView_webView(name_: NSStringPointer; view: WebFrameView; webView_: webView_Pointer): id; message 'initWithName:webFrameView:webView:';
+    function initWithName_webFrameView_webView(name_: NSString; view: WebFrameView; webView_: webView_Pointer): id; message 'initWithName:webFrameView:webView:';
     function name: NSString; message 'name';
     function webView: WebView; message 'webView';
     function frameView: WebFrameView; message 'frameView';
     function DOMDocument: DOMDocument; message 'DOMDocument';
     function frameElement: DOMHTMLElement; message 'frameElement';
-    procedure loadRequest(request: NSURLRequestPointer); message 'loadRequest:';
-    procedure loadData_MIMEType_textEncodingName_baseURL(data: NSDataPointer; MIMEType: NSStringPointer; encodingName: NSStringPointer; URL: NSURLPointer); message 'loadData:MIMEType:textEncodingName:baseURL:';
-    procedure loadHTMLString_baseURL(string_: NSStringPointer; URL: NSURLPointer); message 'loadHTMLString:baseURL:';
-    procedure loadAlternateHTMLString_baseURL_forUnreachableURL(string_: NSStringPointer; baseURL: NSURLPointer; unreachableURL: NSURLPointer); message 'loadAlternateHTMLString:baseURL:forUnreachableURL:';
+    procedure loadRequest(request: NSURLRequest); message 'loadRequest:';
+    procedure loadData_MIMEType_textEncodingName_baseURL(data: NSData; MIMEType: NSString; encodingName: NSString; URL: NSURL); message 'loadData:MIMEType:textEncodingName:baseURL:';
+    procedure loadHTMLString_baseURL(string_: NSString; URL: NSURL); message 'loadHTMLString:baseURL:';
+    procedure loadAlternateHTMLString_baseURL_forUnreachableURL(string_: NSString; baseURL: NSURL; unreachableURL: NSURL); message 'loadAlternateHTMLString:baseURL:forUnreachableURL:';
     procedure loadArchive(archive: WebArchive); message 'loadArchive:';
     function dataSource: WebDataSource; message 'dataSource';
     function provisionalDataSource: WebDataSource; message 'provisionalDataSource';
     procedure stopLoading; message 'stopLoading';
     procedure reload; message 'reload';
-    function findFrameNamed(name_: NSStringPointer): WebFrame; message 'findFrameNamed:';
+    function findFrameNamed(name_: NSString): WebFrame; message 'findFrameNamed:';
     function parentFrame: WebFrame; message 'parentFrame';
     function childFrames: NSArray; message 'childFrames';
     function windowObject: WebScriptObject; message 'windowObject';

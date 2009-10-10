@@ -1,5 +1,5 @@
 { Parsed from Webkit.framework DOMNode.h }
-{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 3 15:33:51 ICT 2009 }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Sat Oct 10 8:18:59 ICT 2009 }
 
 
 {$ifdef TYPES}
@@ -87,7 +87,7 @@ const
     function hasChildNodes: Boolean; message 'hasChildNodes';
     function cloneNode(deep: Boolean): DOMNode; message 'cloneNode:';
     procedure normalize; message 'normalize';
-    function isSupported_version(feature: NSStringPointer; version_: NSStringPointer): Boolean; message 'isSupported:version:';
+    function isSupported_version(feature: NSString; version_: NSString): Boolean; message 'isSupported:version:';
     function hasAttributes: Boolean; message 'hasAttributes';
     function isSameNode(other: DOMNode): Boolean; message 'isSameNode:';
     function isEqualNode(other: DOMNode): Boolean; message 'isEqualNode:';
@@ -95,7 +95,7 @@ const
     { Category: DOMNodeDeprecated }
     function insertBefore(newChild: DOMNode; refChild: DOMNode): DOMNode; message 'insertBefore:newChild:';
     function replaceChild(newChild: DOMNode; oldChild: DOMNode): DOMNode; message 'replaceChild:newChild:';
-    function isSupported(feature: NSStringPointer; version_: NSStringPointer): Boolean; message 'isSupported:feature:';
+    function isSupported(feature: NSString; version_: NSString): Boolean; message 'isSupported:feature:';
 
     { Category: DOMNodeExtensions }
     function boundingBox: NSRect; message 'boundingBox';
