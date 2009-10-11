@@ -251,6 +251,7 @@ type
     Axis: TAxis;
     NodeTestType: TNodeTestType;
     NodeTestString: DOMString;
+    NSTestString: DOMString;
     Predicates: TXPathNodeArray;
     constructor Create(aAxis: TAxis; aTest: TNodeTestType);
     destructor Destroy; override;
@@ -344,6 +345,8 @@ type
   end;
 
 
+  TXPathNSResolver = TDOMNode {!!! experimental};
+
 { XPath lexical scanner }
 
   TXPathScanner = class
@@ -354,6 +357,7 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     FPrefixLength: Integer;
+    FResolver: TXPathNSResolver;
     procedure Error(const Msg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
     procedure ParseStep(Dest: TStep);          // [4]
@@ -470,8 +474,9 @@ type
   public
     { CompleteExpresion specifies wether the parser should check for gargabe
       after the recognised part. True => Throw exception if there is garbage }
-    constructor Create(AScanner: TXPathScanner; CompleteExpression: Boolean);
-    destructor destroy;override;
+    constructor Create(AScanner: TXPathScanner; CompleteExpression: Boolean;
+      AResolver: TXPathNSResolver = nil);
+    destructor Destroy; override;
     function Evaluate(AContextNode: TDOMNode): TXPathVariable;
     function Evaluate(AContextNode: TDOMNode;
       AEnvironment: TXPathEnvironment): TXPathVariable;
@@ -479,7 +484,7 @@ type
 
 
 function EvaluateXPathExpression(const AExpressionString: DOMString;
-  AContextNode: TDOMNode): TXPathVariable;
+  AContextNode: TDOMNode; AResolver: TXPathNSResolver = nil): TXPathVariable;
 
 
 // ===================================================================
@@ -1095,7 +1100,14 @@ var
           (Node.NodeType <> ELEMENT_NODE) then
           exit;
       ntName:
-        if Node.NodeName <> NodeTestString then
+        if NSTestString <> '' then
+        begin
+          if Node.namespaceURI <> NSTestString then
+            exit;
+          if (NodeTestString <> '') and (Node.localName <> NodeTestString) then
+            exit;
+        end
+        else if Node.NodeName <> NodeTestString then
           exit;
       ntTextNode:
         if not Node.InheritsFrom(TDOMCharacterData) then
@@ -1908,7 +1920,12 @@ begin
     else if CurToken = tkNSNameTest then // [37] NameTest, second case
     begin
       NextToken;
-      // TODO: resolve the prefix and set Dest properties
+      if Assigned(FResolver) then
+        Dest.NSTestString := FResolver.lookupNamespaceURI(CurTokenString);
+      if Dest.NSTestString = '' then
+        // !! localization disrupted by DOM exception specifics
+        raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+      Dest.NodeTestType := ntName;
     end
     else if CurToken = tkIdentifier then
     begin
@@ -1949,14 +1966,17 @@ begin
       end
       else  // [37] NameTest, third case
       begin
-        // !!!: Doesn't support namespaces yet
-        // (this will have to wait until the DOM unit supports them)
         Dest.NodeTestType := ntName;
-        Dest.NodeTestString := CurTokenString;
         if FPrefixLength > 0 then
         begin
-          // TODO: resolve the prefix and set Dest properties
-        end;
+          if Assigned(FResolver) then
+            Dest.NSTestString := FResolver.lookupNamespaceURI(Copy(CurTokenString, 1, FPrefixLength));
+          if Dest.NSTestString = '' then
+            raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+          Dest.NodeTestString := Copy(CurTokenString, FPrefixLength+2, MaxInt);
+        end
+        else
+          Dest.NodeTestString := CurTokenString;
         NextToken;
       end;
     end
@@ -2547,17 +2567,27 @@ end;
 
 function TXPathEnvironment.xpName(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
+  n: TDOMNode;
   NodeSet: TNodeSet;
+  s: DOMString;
 begin
-// TODO: arg is optional, omission case must be handled
-  if Args.Count <> 1 then
+  if Args.Count > 1 then
     EvaluationError(SEvalInvalidArgCount);
-  NodeSet := TXPathVariable(Args[0]).AsNodeSet;
-  if NodeSet.Count = 0 then
-    Result := TXPathStringVariable.Create('')
+  n := nil;
+  if Args.Count = 0 then
+    n := Context.ContextNode
   else
-    // !!!: Probably not really correct regarding namespaces...
-    Result := TXPathStringVariable.Create(TDOMNode(NodeSet[0]).NodeName);
+  begin
+    NodeSet := TXPathVariable(Args[0]).AsNodeSet;
+    if NodeSet.Count > 0 then
+      n := TDOMNode(NodeSet[0]);
+  end;
+  // TODO: probably this isn't correct. XPath name() isn't the same as DOM nodeName.
+  if Assigned(n) then
+    s := n.nodeName
+  else
+    s := '';
+  Result := TXPathStringVariable.Create(s);
 end;
 
 function TXPathEnvironment.xpString(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
@@ -2838,9 +2868,10 @@ end;
 { TXPathExpression }
 
 constructor TXPathExpression.Create(AScanner: TXPathScanner;
-  CompleteExpression: Boolean);
+  CompleteExpression: Boolean; AResolver: TXPathNSResolver);
 begin
   inherited Create;
+  AScanner.FResolver := AResolver;
   FRootNode := AScanner.ParseOrExpr;
   if CompleteExpression and (AScanner.CurToken <> tkEndOfStream) then
     EvaluationError(SParserGarbageAfterExpression);
@@ -2886,14 +2917,14 @@ begin
 end;
 
 function EvaluateXPathExpression(const AExpressionString: DOMString;
-  AContextNode: TDOMNode): TXPathVariable;
+  AContextNode: TDOMNode; AResolver: TXPathNSResolver): TXPathVariable;
 var
   Scanner: TXPathScanner;
   Expression: TXPathExpression;
 begin
   Scanner := TXPathScanner.Create(AExpressionString);
   try
-    Expression := TXPathExpression.Create(Scanner, True);
+    Expression := TXPathExpression.Create(Scanner, True, AResolver);
     try
       Result := Expression.Evaluate(AContextNode);
     finally
