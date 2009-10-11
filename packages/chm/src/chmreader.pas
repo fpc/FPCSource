@@ -938,7 +938,9 @@ begin
        Result := TChmSiteMap.Create(stIndex);
        Result.LoadFromStream(Index);
        Index.Free;
-     end;
+     end
+    else
+      result:=nil;
 end;
 
 procedure createentry(Name:ansistring;CharIndex:integer;Topic,Title:ansistring);
