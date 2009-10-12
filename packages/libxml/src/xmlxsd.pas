@@ -363,7 +363,9 @@ begin
       tzUser:
         begin
           if Timezone^.Hour >= 0 then
-            Result := Result + '+';
+            Result := Result + '+'
+          else
+            Result := Result + '-';
           Result := Result + Format('%2.2d:%2.2u', [Timezone^.Hour, Timezone^.Minute]);
         end;
     end;
@@ -390,7 +392,9 @@ begin
       tzUser:
         begin
           if Timezone^.Hour >= 0 then
-            Result := Result + '+';
+            Result := Result + '+'
+          else
+            Result := Result + '-';
           Result := Result + Format('%2.2d:%2.2u', [Timezone^.Hour, Timezone^.Minute]);
         end;
     end;
