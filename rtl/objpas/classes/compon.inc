@@ -250,6 +250,8 @@ begin
       FComponentState := FComponentState - [csFreeNotification];
       end;
     end;
+{ disabled this code: do we really have to notify the child components also? Each observer
+  should register itself to it's subject! }
   {If assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);}
@@ -413,22 +415,16 @@ Destructor TComponent.Destroy;
 
 Var
   I : Integer;
-  C : TComponent;
-
+  L : TList;
 begin
   Destroying;
   If Assigned(FFreeNotifies) then
     begin
-    I := FFreeNotifies.Count-1;
-    While I >= 0 do
-      begin
-        C:=TComponent(FFreeNotifies.Items[I]);
-        FFreeNotifies.Delete(I);
-        C.RemoveNotification(self);
-        C.Notification(self,opRemove);
-        I:=FFreeNotifies.Count-1;
-      end;
-    FreeAndNil(FFreeNotifies);
+    L := FFreeNotifies;
+    FFreenotifies:=Nil;
+    for I := L.Count - 1 downto 0 do
+      TComponent(FFreeNotifies.Items[I]).Notification(self,opRemove);
+    L.Free;
     end;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
