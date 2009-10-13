@@ -516,8 +516,11 @@ begin
   if not FInsideTextNode then wrtIndent;
   wrtStr('<?');
   wrtStr(TDOMProcessingInstruction(node).Target);
-  wrtChr(' ');
-  wrtStr(TDOMProcessingInstruction(node).Data);
+  if TDOMProcessingInstruction(node).Data <> '' then
+  begin
+    wrtChr(' ');
+    wrtStr(TDOMProcessingInstruction(node).Data);
+  end;
   wrtStr('?>');
 end;
 
