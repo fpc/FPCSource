@@ -27,20 +27,14 @@ end;
 function TComponent.IsImplementorOf (const Intf:IInterface):boolean;
 var ref : IInterfaceComponentReference;
 begin
- result:=assigned(intf) and supports(intf,IInterfaceComponentReference,ref);
- if result then
-   result:=ref.getcomponent=self;
+ result:=assigned(intf) and supports(intf,IInterfaceComponentReference,ref) and (ref.getcomponent=self);
 end;
 
 procedure TComponent.ReferenceInterface(const intf:IInterface;op:TOperation);
 var ref : IInterfaceComponentReference;
-    comp : TComponent;
 begin
  if assigned(intf) and supports(intf,IInterfaceComponentReference,ref) then
-   begin
-    comp:=ref.getcomponent;
-    comp.notification(self,op); 
-   end;
+    ref.getcomponent.notification(self,op);
 end;
 
 Function  TComponent.GetComponentCount: Integer;
@@ -57,7 +51,7 @@ Function  TComponent.GetComponentIndex: Integer;
 
 begin
   If Assigned(FOwner) and Assigned(FOwner.FComponents) then
-    Result:=FOWner.FComponents.IndexOf(Self)
+    Result:=FOwner.FComponents.IndexOf(Self)
   else
     Result:=-1;
 end;
@@ -91,7 +85,7 @@ Procedure TComponent.Remove(AComponent: TComponent);
 
 begin
   AComponent.FOwner:=Nil;
-  If assigned(FCOmponents) then
+  If assigned(FComponents) then
     begin
     FComponents.Remove(AComponent);
     IF FComponents.Count=0 then
@@ -113,7 +107,7 @@ begin
       begin
       FFreeNotifies.Free;
       FFreeNotifies:=nil;
-      Exclude(FComponentState,csFreeNotification);
+      FComponentState := FComponentState - [csFreeNotification];
       end;
     end;
 end;
@@ -124,7 +118,7 @@ Procedure TComponent.SetComponentIndex(Value: Integer);
 Var Temp,Count : longint;
 
 begin
-  If Not assigned(Fowner) then exit;
+  If Not assigned(FOwner) then exit;
   Temp:=getcomponentindex;
   If temp<0 then exit;
   If value<0 then value:=0;
@@ -230,34 +224,35 @@ end;
 Procedure TComponent.Loaded;
 
 begin
-  Exclude(FComponentState,csLoading);
+  FComponentState := FComponentState - [csLoading];
 end;
 
 Procedure TComponent.Loading;
 
 begin
-  Include(FComponentState,csLoading);
+  FComponentState := FComponentState + [csLoading];
 end;
 
 
 Procedure TComponent.Notification(AComponent: TComponent;
   Operation: TOperation);
 
-Var Runner : Longint;
+//Var Runner : Longint;
 
 begin
   If (Operation=opRemove) and Assigned(FFreeNotifies) then
     begin
     FFreeNotifies.Remove(AComponent);
-            If FFreeNotifies.Count=0 then
+    If FFreeNotifies.Count=0 then
       begin
       FFreeNotifies.Free;
       FFreenotifies:=Nil;
+      FComponentState := FComponentState - [csFreeNotification];
       end;
     end;
-  If assigned(FComponents) then
+  {If assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
+      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);}
 end;
 
 
@@ -279,9 +274,9 @@ Var Runner : Longint;
 
 begin
   If Value then
-    Include(FComponentState,csAncestor)
+    FComponentState := FComponentState + [csAncestor]
   else
-    Exclude(FCOmponentState,csAncestor);
+    FComponentState := FComponentState - [csAncestor];
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).SetAncestor(Value);
@@ -294,9 +289,9 @@ Var Runner : Longint;
 
 begin
   If Value then
-    Include(FComponentState,csDesigning)
+    FComponentState := FComponentState + [csDesigning]
   else
-    Exclude(FComponentState,csDesigning);
+    FComponentState := FComponentState - [csDesigning];
   if Assigned(FComponents) and SetChildren then
     For Runner:=0 To FComponents.Count - 1 do
       TComponent(FComponents.items[Runner]).SetDesigning(Value);
@@ -306,18 +301,18 @@ Procedure TComponent.SetDesignInstance(Value: Boolean);
 
 begin
   If Value then
-    Include(FComponentState,csDesignInstance)
+    FComponentState := FComponentState + [csDesignInstance]
   else
-    Exclude(FComponentState,csDesignInstance);
+    FComponentState := FComponentState - [csDesignInstance];
 end;
 
 Procedure TComponent.SetInline(Value: Boolean);
 
 begin
   If Value then
-    Include(FComponentState,csInline)
+    FComponentState := FComponentState + [csInline]
   else
-    Exclude(FComponentState,csInline);
+    FComponentState := FComponentState - [csInline];
 end;
 
 
@@ -354,14 +349,14 @@ end;
 Procedure TComponent.Updating;
 
 begin
-  Include (FComponentState,csUpdating);
+  FComponentState := FComponentState + [csUpdating];
 end;
 
 
 Procedure TComponent.Updated;
 
 begin
-  Exclude(FComponentState,csUpdating);
+  FComponentState := FComponentState - [csUpdating];
 end;
 
 
@@ -424,31 +419,20 @@ begin
   Destroying;
   If Assigned(FFreeNotifies) then
     begin
-    I:=FFreeNotifies.Count-1;
-    While (I>=0) do
+    I := FFreeNotifies.Count-1;
+    While I >= 0 do
       begin
-      C:=TComponent(FFreeNotifies.Items[I]);
-      // Delete, so one component is not notified twice, if it is owned.
-      FFreeNotifies.Delete(I);
-      C.Notification (self,opRemove);
-      If (FFreeNotifies=Nil) then
-        I:=0
-      else if (I>FFreeNotifies.Count) then
-        I:=FFreeNotifies.Count;
-      dec(i);
+        C:=TComponent(FFreeNotifies.Items[I]);
+        FFreeNotifies.Delete(I);
+        C.RemoveNotification(self);
+        C.Notification(self,opRemove);
+        I:=FFreeNotifies.Count-1;
       end;
     FreeAndNil(FFreeNotifies);
     end;
   DestroyComponents;
   If FOwner<>Nil Then FOwner.RemoveComponent(Self);
   inherited destroy;
-end;
-
-
-Procedure TComponent.BeforeDestruction;
-begin
-  if not(csDestroying in FComponentstate) then
-    Destroying;
 end;
 
 
@@ -472,7 +456,7 @@ Var Runner : longint;
 
 begin
   If csDestroying in FComponentstate Then Exit;
-  include (FComponentState,csDestroying);
+  FComponentState := FComponentState + [csDestroying];
   If Assigned(FComponents) then
     for Runner:=0 to FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).Destroying;
@@ -515,8 +499,11 @@ begin
     AComponent.Notification(Self,opRemove)
   else
     begin
-    If not (Assigned(FFreeNotifies)) then
-      FFreeNotifies:=TList.Create;
+    If not Assigned(FFreeNotifies) then
+      begin
+        FFreeNotifies:=TList.Create;
+        FComponentState := FComponentState + [csFreeNotification];
+      end;
     If FFreeNotifies.IndexOf(AComponent)=-1 then
       begin
       FFreeNotifies.Add(AComponent);
@@ -588,9 +575,9 @@ end;
 procedure TComponent.SetSubComponent(ASubComponent: Boolean);
 begin
   if ASubComponent then
-    Include(FComponentStyle, csSubComponent)
+    FComponentStyle := FComponentStyle + [csSubComponent]
   else
-    Exclude(FComponentStyle, csSubComponent);
+    FComponentStyle := FComponentStyle - [csSubComponent];
 end;
 
 
