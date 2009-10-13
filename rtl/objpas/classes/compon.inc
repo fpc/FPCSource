@@ -18,10 +18,10 @@
 Function  TComponent.GetComponent(AIndex: Integer): TComponent;
 
 begin
-  If not assigned(FComponents) then
-    Result:=Nil
+  If assigned(FComponents) then
+    Result:=TComponent(FComponents.Items[Aindex])
   else
-    Result:=TComponent(FComponents.Items[Aindex]);
+    Result:=Nil;
 end;
 
 function TComponent.IsImplementorOf (const Intf:IInterface):boolean;
@@ -40,10 +40,10 @@ end;
 Function  TComponent.GetComponentCount: Integer;
 
 begin
-  If not assigned(FComponents) then
-    result:=0
+  If assigned(FComponents) then
+    Result:=FComponents.Count
   else
-    Result:=FComponents.Count;
+    result:=0
 end;
 
 
@@ -423,7 +423,7 @@ begin
     L := FFreeNotifies;
     FFreenotifies:=Nil;
     for I := L.Count - 1 downto 0 do
-      TComponent(FFreeNotifies.Items[I]).Notification(self,opRemove);
+      TComponent(L.Items[I]).Notification(self,opRemove);
     L.Free;
     end;
   DestroyComponents;
