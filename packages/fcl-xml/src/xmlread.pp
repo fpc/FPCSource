@@ -366,7 +366,7 @@ type
     FDisallowDoctype: Boolean;
     FMaxChars: Cardinal;
 
-    procedure RaiseExpectedQmark;
+    procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     function DoParseAttValue(Delim: WideChar): Boolean;
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
@@ -408,7 +408,6 @@ type
     function  ExpectName: WideString;                                   // [5]
     procedure SkipQuotedLiteral(out Literal: WideString; required: Boolean = True);
     procedure ExpectAttValue;                                           // [10]
-    procedure SkipPubidLiteral(out Literal: WideString);                // [12]
     procedure ParseComment;                                             // [15]
     procedure ParsePI;                                                  // [16]
     procedure ParseCDSect;                                              // [18]
@@ -1213,11 +1212,6 @@ begin
   FSource.Initialize;
 end;
 
-procedure TXMLReader.RaiseExpectedQmark;
-begin
-  FatalError('Expected single or double quote');
-end;
-
 procedure TXMLReader.FatalError(Expected: WideChar);
 begin
 // FIX: don't output what is found - anything may be found, including exploits...
@@ -1391,6 +1385,18 @@ begin
     if FSource.FBuf >= FSource.FBufEnd then
       FSource.Reload;
   end;  
+end;
+
+procedure TXMLReader.SkipQuote(out Delim: WideChar; required: Boolean);
+begin
+  Delim := #0;
+  if (FSource.FBuf^ = '''') or (FSource.FBuf^ = '"') then
+  begin
+    Delim := FSource.FBuf^;
+    FSource.NextChar;  // skip quote
+  end
+  else if required then
+    FatalError('Expected single or double quote');
 end;
 
 const
@@ -1903,10 +1909,7 @@ procedure TXMLReader.ExpectAttValue;    // [10]
 var
   Delim: WideChar;
 begin
-  if (FSource.FBuf^ <> '''') and (FSource.FBuf^ <> '"') then
-    RaiseExpectedQmark;
-  Delim := FSource.FBuf^;
-  FSource.NextChar;  // skip quote
+  SkipQuote(Delim);
   StoreLocation(FTokenStart);
   if not DoParseAttValue(Delim) then
     FatalError('Literal has no closing quote',-1);
@@ -1916,10 +1919,9 @@ procedure TXMLReader.SkipQuotedLiteral(out Literal: WideString; required: Boolea
 var
   Delim: WideChar;
 begin
-  if (FSource.FBuf^ = '''') or (FSource.FBuf^ = '"') then
+  SkipQuote(Delim, required);
+  if Delim <> #0 then
   begin
-    Delim := FSource.FBuf^;
-    FSource.NextChar;  // skip quote
     StoreLocation(FTokenStart);
     FValue.Length := 0;
     if Delim = '''' then
@@ -1930,24 +1932,6 @@ begin
       FatalError('Literal has no closing quote', -1);
     FSource.NextChar;
     SetString(Literal, FValue.Buffer, FValue.Length);
-  end
-  else if required then
-    RaiseExpectedQMark;
-end;
-
-procedure TXMLReader.SkipPubidLiteral(out Literal: WideString);         // [12]
-var
-  I: Integer;
-  wc: WideChar;
-begin
-  SkipQuotedLiteral(Literal);
-  for I := 1 to Length(Literal) do
-  begin
-    wc := Literal[I];
-    if (wc > #255) or not (Char(ord(wc)) in PubidChars) then
-      FatalError('Illegal Public ID literal', -1);
-    if (wc = #10) or (wc = #13) then
-      Literal[I] := #32;
   end;
 end;
 
@@ -3301,6 +3285,9 @@ end;
 
 function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
   SysIdOptional: Boolean): Boolean;
+var
+  I: Integer;
+  wc: WideChar;
 begin
   if FSource.Matches('SYSTEM') then
   begin
@@ -3311,7 +3298,15 @@ begin
   else if FSource.Matches('PUBLIC') then
   begin
     ExpectWhitespace;
-    SkipPubidLiteral(PubID);
+    SkipQuotedLiteral(PubID);
+    for I := 1 to Length(PubID) do
+    begin
+      wc := PubID[I];
+      if (wc > #255) or not (Char(ord(wc)) in PubidChars) then
+        FatalError('Illegal Public ID literal', -1);
+      if (wc = #10) or (wc = #13) then
+        PubID[I] := #32;
+    end;
     NormalizeSpaces(PubID);
     if SysIdOptional then
       SkipWhitespace
