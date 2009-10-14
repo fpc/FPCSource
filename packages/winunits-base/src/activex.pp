@@ -53,6 +53,8 @@ type
    CY		       = CURRENCY;
    DATE	               = DOUBLE;
    BSTR	               = POLESTR;
+   TOleDate	       = DATE;
+   POleDate	       = ^TOleDate;	
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -1201,6 +1203,9 @@ TYPE
                                     End;
    TBind_Opts                   = tagBIND_OPTS;
    PBind_Opts                   = ^TBind_Opts;
+   TBindOpts		        = tagBIND_OPTS;
+   PBindOpts			= ^TBindOpts;
+   Bind_Opts			= tagBind_opts;
 
    tagBIND_OPTS2_CPP            = Record
                                     dwTrackFlags,
@@ -1560,6 +1565,7 @@ TYPE
   TYPEATTR                       = tagTYPEATTR;
 
   LPTYPEATTR                     = ^TYPEATTR;
+  PTYPEAttr			 = LPTYPEATTR;
 
   tagTLIBATTR                    = Record
                                      GUID        : guid;
