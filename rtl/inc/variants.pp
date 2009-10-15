@@ -86,6 +86,8 @@ function VarToStr(const V: Variant): string;
 function VarToStrDef(const V: Variant; const ADefault: string): string;
 function VarToWideStr(const V: Variant): WideString;
 function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
+function VarToUnicodeStr(const V: Variant): UnicodeString;
+function VarToUnicodeStrDef(const V: Variant; const ADefault: UnicodeString): UnicodeString;
 
 {$ifndef FPUNONE}
 function VarToDateTime(const V: Variant): TDateTime;
@@ -2942,6 +2944,23 @@ begin
 end;
 
 
+function VarToUnicodeStr(const V: Variant): UnicodeString;
+
+begin
+  Result:=VarToUnicodeStrDef(V,'');
+end;
+
+
+function VarToUnicodeStrDef(const V: Variant; const ADefault: UnicodeString): UnicodeString;
+
+begin
+  If TVarData(V).vType<>varNull then
+    Result:=V
+  else
+    Result:=ADefault;
+end;
+
+
 {$ifndef FPUNONE}
 
 function VarToDateTime(const V: Variant): TDateTime;
@@ -4281,6 +4300,8 @@ begin
        Result := GetStrProp(Instance, PropInfo);
      tkWString:
        Result := GetWideStrProp(Instance, PropInfo);
+     tkUString:
+       Result := GetUnicodeStrProp(Instance, PropInfo);
      tkVariant:
        Result := GetVariantProp(Instance, PropInfo);
      tkInt64:
@@ -4355,6 +4376,8 @@ begin
          SetStrProp(Instance, PropInfo, VarToStr(Value));
        tkWString:
          SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
+       tkUString:
+         SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
        tkVariant:
          SetVariantProp(Instance, PropInfo, Value);
        tkInt64:
