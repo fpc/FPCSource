@@ -121,13 +121,16 @@ type
     FBindingStack: array of TBinding;
     FPrefixes: THashTable;
     FDefaultPrefix: THashItem;
-    function GetBinding(const nsURI: WideString; aPrefix: PHashItem): TBinding;
   public
     constructor Create;
     destructor Destroy; override;
     procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
     function CheckAttribute(const Prefix, nsURI: WideString;
       out Binding: TBinding): TAttributeAction;
+    function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
+    function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+    function BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+    function DefaultNSBinding: TBinding;
     procedure StartElement;
     procedure EndElement;
   end;
@@ -662,11 +665,17 @@ end;
 { TNSSupport }
 
 constructor TNSSupport.Create;
+var
+  b: TBinding;
 begin
   inherited Create;
   FPrefixes := THashTable.Create(16, False);
   FBindings := TFPList.Create;
   SetLength(FBindingStack, 16);
+
+  { provide implicit binding for the 'xml' prefix }
+  // TODO: move stduri_xml, etc. to this unit, so they are reused.
+  DefineBinding('xml', 'http://www.w3.org/XML/1998/namespace', b);
 end;
 
 destructor TNSSupport.Destroy;
@@ -680,7 +689,7 @@ begin
   inherited Destroy;
 end;
 
-function TNSSupport.GetBinding(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+function TNSSupport.BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
 begin
   { try to reuse an existing binding }
   result := FFreeBindings;
@@ -703,6 +712,11 @@ begin
   aPrefix^.Data := result; // ** null binding not used here **
 end;
 
+function TNSSupport.DefaultNSBinding: TBinding;
+begin
+  result := TBinding(FDefaultPrefix.Data);
+end;
+
 procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
   out Binding: TBinding);
 var
@@ -712,7 +726,7 @@ begin
   if (nsURI <> '') and (Prefix <> '') then
     Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
   if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
-    Binding := GetBinding(nsURI, Pfx)
+    Binding := BindPrefix(nsURI, Pfx)
   else
     Binding := nil;
 end;
@@ -766,9 +780,24 @@ begin
       p^ := 'N';
       Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
     until Pfx^.Data = nil;
-    Binding := GetBinding(nsURI, Pfx);
+    Binding := BindPrefix(nsURI, Pfx);
     Result := aaBoth;
   end;
+end;
+
+function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out
+  Prefix: PHashItem): Boolean;
+begin
+  Prefix := FPrefixes.FindOrAdd(P, Len);
+  Result := Assigned(Prefix^.Data) and (TBinding(Prefix^.Data).uri <> '');
+end;
+
+function TNSSupport.GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+begin
+  if Assigned(P) and (Len > 0) then
+    Result := FPrefixes.FindOrAdd(P, Len)
+  else
+    Result := @FDefaultPrefix;
 end;
 
 procedure TNSSupport.StartElement;

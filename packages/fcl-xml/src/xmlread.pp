@@ -307,14 +307,6 @@ type
 
   TCheckNameFlags = set of (cnOptional, cnToken);
   
-  TBinding = class
-  public
-    uri: WideString;
-    next: TBinding;
-    prevPrefixBinding: TObject;
-    Prefix: PHashItem;
-  end;
-
   TPrefixedAttr = record
     Attr: TDOMAttr;
     PrefixLen: Integer;  // to avoid recalculation
@@ -345,12 +337,9 @@ type
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
-    FPrefixes: THashTable;
-    FBindings: TFPList;
-    FDefaultPrefix: THashItem;
+
+    FNSHelper: TNSSupport;
     FWorkAtts: array of TPrefixedAttr;
-    FBindingStack: array of TBinding;
-    FFreeBindings: TBinding;
     FNsAttHash: TDblHashArray;
     FStdPrefix_xml: PHashItem;
     FStdPrefix_xmlns: PHashItem;
@@ -437,8 +426,7 @@ type
     function ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
-    procedure AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
-    procedure EndNamespaceScope(var Chain: TBinding);
+    procedure AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
 
     procedure PushVC(aElement: TDOMElement; aElDef: TDOMElementDef);
     procedure PopVC;
@@ -1403,8 +1391,6 @@ const
   PrefixDefault: array[0..4] of WideChar = ('x','m','l','n','s');
 
 constructor TXMLReader.Create;
-var
-  b: TBinding;
 begin
   inherited Create;
   BufAllocate(FName, 128);
@@ -1412,20 +1398,12 @@ begin
   FIDRefs := TFPList.Create;
   FNotationRefs := TFPList.Create;
 
-  FPrefixes := THashTable.Create(16, False);
-  FBindings := TFPList.Create;
+  FNSHelper := TNSSupport.Create;
+
   FNsAttHash := TDblHashArray.Create;
   SetLength(FWorkAtts, 16);
-  SetLength(FBindingStack, 16);
-  FStdPrefix_xml := FPrefixes.FindOrAdd(@PrefixDefault, 3);
-  FStdPrefix_xmlns := FPrefixes.FindOrAdd(@PrefixDefault, 5);
-  { implicit binding for the 'xml' prefix }
-  b := TBinding.Create;
-  FBindings.Add(b);
-  FStdPrefix_xml^.Data := b;
-  b.uri := stduri_xml;
-  b.Prefix := FStdPrefix_xml;
-
+  FStdPrefix_xml := FNSHelper.GetPrefix(@PrefixDefault, 3);
+  FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
   // Set char rules to XML 1.0
   FNamePages := @NamePages;
   SetLength(FValidator, 16);
@@ -1447,8 +1425,6 @@ begin
 end;
 
 destructor TXMLReader.Destroy;
-var
-  I: Integer;
 begin
   if Assigned(FEntityValue.Buffer) then
     FreeMem(FEntityValue.Buffer);
@@ -1461,10 +1437,8 @@ begin
   ClearRefs(FNotationRefs);
   ClearRefs(FIDRefs);
   FNsAttHash.Free;
-  for I := FBindings.Count-1 downto 0 do
-    TObject(FBindings.List^[I]).Free;
-  FPrefixes.Free;
-  FBindings.Free;
+  FNSHelper.Free;
+
   FNotationRefs.Free;
   FIDRefs.Free;
   inherited Destroy;
@@ -2989,7 +2963,7 @@ begin
     ValidationError('Element ''%s'' is missing required sub-elements', [NewElem.NSI.QName^.Key], ErrOffset);
 
   if FNamespaces then
-    EndNamespaceScope(FBindingStack[FNesting]);
+    FNSHelper.EndElement;
   PopVC;
 end;
 
@@ -3137,12 +3111,13 @@ begin
 end;
 
 
-procedure TXMLReader.AddBinding(Attr: TDOMAttr; Prefix: PHashItem; var Chain: TBinding);
+procedure TXMLReader.AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
 var
   nsUri: DOMString;
-  b: TBinding;
+  Prefix: PHashItem;
 begin
   nsUri := Attr.NodeValue;
+  Prefix := FNSHelper.GetPrefix(PrefixPtr, PrefixLen);
   { 'xml' is allowed to be bound to the correct namespace }
   if ((nsUri = stduri_xml) <> (Prefix = FStdPrefix_xml)) or
    (Prefix = FStdPrefix_xmlns) or
@@ -3154,45 +3129,10 @@ begin
       FatalError('Illegal usage of reserved namespace URI ''%s''', [nsUri]);
   end;
 
-  { try reusing an existing binding }
-  b := FFreeBindings;
-  if Assigned(b) then
-    FFreeBindings := b.Next
-  else { no free bindings, create a new one }
-  begin
-    b := TBinding.Create;
-    FBindings.Add(b);
-  end;
+  if (nsUri = '') and not (FXML11 or (Prefix^.Key = '')) then
+    FatalError('Illegal undefining of namespace');  { position - ? }
 
-  b.uri := nsUri;
-  b.prefix := Prefix;
-  b.PrevPrefixBinding := Prefix^.Data;
-  if nsUri = '' then
-  begin
-    if (FXML11 or (Prefix = @FDefaultPrefix)) then // prefix being unbound
-      Prefix^.Data := nil
-    else
-      FatalError('Illegal undefining of namespace');  { position - ? }
-  end
-  else
-    Prefix^.Data := b;
-
-  b.Next := Chain;
-  Chain := b;
-end;
-
-procedure TXMLReader.EndNamespaceScope(var Chain: TBinding);
-var
-  b: TBinding;
-begin
-  while Assigned(Chain) do
-  begin
-    b := Chain;
-    Chain := b.next;
-    b.next := FFreeBindings;
-    FFreeBindings := b;
-    b.Prefix^.Data := b.prevPrefixBinding;
-  end;  
+  FNSHelper.BindPrefix(nsURI, Prefix);
 end;
 
 procedure TXMLReader.ProcessNamespaceAtts(Element: TDOMElement);
@@ -3204,8 +3144,8 @@ var
   PrefixCount: Integer;
   b: TBinding;
 begin
-  if FNesting = Length(FBindingStack) then
-    SetLength(FBindingStack, FNesting * 2);
+  FNSHelper.StartElement;
+
   PrefixCount := 0;
   if Element.HasAttributes then
   begin
@@ -3224,13 +3164,12 @@ begin
         begin
           // TODO: check all consequences of having zero PrefixLength
           Attr.SetNSI(stduri_xmlns, 0);
-          AddBinding(Attr, @FDefaultPrefix, FBindingStack[FNesting]);
+          AddBinding(Attr, nil, 0);
         end
         else if AttrName^.Key[6] = ':' then
         begin
-          Prefix := FPrefixes.FindOrAdd(@AttrName^.Key[7], Length(AttrName^.Key)-6);
           Attr.SetNSI(stduri_xmlns, 6);
-          AddBinding(Attr, Prefix, FBindingStack[FNesting]);
+          AddBinding(Attr, @AttrName^.Key[7], Length(AttrName^.Key)-6);
         end;
       end
       else
@@ -3251,11 +3190,11 @@ begin
     FNsAttHash.Init(PrefixCount);
     for I := 0 to PrefixCount-1 do
     begin
-      AttrName := FWorkAtts[I].Attr.NSI.QName;    
-      Prefix := FPrefixes.FindOrAdd(PWideChar(AttrName^.Key), FWorkAtts[I].PrefixLen-1);
-      b := TBinding(Prefix^.Data);
-      if b = nil then
+      AttrName := FWorkAtts[I].Attr.NSI.QName;
+      if not FNSHelper.IsPrefixBound(PWideChar(AttrName^.Key), FWorkAtts[I].PrefixLen-1, Prefix) then
         FatalError('Unbound prefix "%s"', [Prefix^.Key]);
+
+      b := TBinding(Prefix^.Data);
       { detect duplicates }
       J := FWorkAtts[I].PrefixLen+1;
 
@@ -3270,17 +3209,17 @@ begin
   J := Pos(WideChar(':'), Element.NSI.QName^.Key);
   if J > 1 then
   begin
-    Prefix := FPrefixes.FindOrAdd(PWideChar(Element.NSI.QName^.Key), J-1);
-    if Prefix^.Data = nil then
+    if not FNSHelper.IsPrefixBound(PWideChar(Element.NSI.QName^.Key), J-1, Prefix) then
       FatalError('Unbound prefix "%s"', [Prefix^.Key]);
     b := TBinding(Prefix^.Data);
+    Element.SetNSI(b.uri, J);
   end
-  else if Assigned(FDefaultPrefix.Data) then
-    b := TBinding(FDefaultPrefix.Data)
   else
-    Exit;
-  // convert Element into namespaced one (by hack for the time being)
-  Element.SetNSI(b.uri, J);
+  begin
+    b := FNSHelper.DefaultNSBinding;
+    if Assigned(b) then
+      Element.SetNSI(b.uri, 0);
+  end;
 end;
 
 function TXMLReader.ParseExternalID(out SysID, PubID: WideString;     // [75]
