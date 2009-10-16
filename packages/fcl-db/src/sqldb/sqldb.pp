@@ -1504,17 +1504,23 @@ begin
                qry := FUpdateQry;
                end;
     ukInsert : begin
-               if not assigned(FInsertQry) and (trim(FInsertSQL.Text)<> '') then
-                 InitialiseModifyQuery(FInsertQry,FInsertSQL.Text)
-               else
-                 InitialiseModifyQuery(FInsertQry,InsertRecQuery);
+               if not assigned(FInsertQry) then
+                 begin
+                 if (trim(FInsertSQL.Text)<> '') then
+                   InitialiseModifyQuery(FInsertQry,FInsertSQL.Text)
+                 else
+                   InitialiseModifyQuery(FInsertQry,InsertRecQuery);
+                 end;
                qry := FInsertQry;
                end;
     ukDelete : begin
-               if not assigned(FDeleteQry) and (trim(FDeleteSQL.Text)<> '') then
-                 InitialiseModifyQuery(FDeleteQry,FDeleteSQL.Text)
-               else
-                 InitialiseModifyQuery(FDeleteQry,DeleteRecQuery);
+               if not assigned(FDeleteQry) then
+                 begin
+                 if (trim(FDeleteSQL.Text)<> '') then
+                   InitialiseModifyQuery(FDeleteQry,FDeleteSQL.Text)
+                 else
+                   InitialiseModifyQuery(FDeleteQry,DeleteRecQuery);
+                 end;
                qry := FDeleteQry;
                end;
   end;
