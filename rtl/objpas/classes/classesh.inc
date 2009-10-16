@@ -1557,6 +1557,7 @@ type
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
     procedure DestroyComponents;
     procedure Destroying;
     function ExecuteAction(Action: TBasicAction): Boolean; dynamic;

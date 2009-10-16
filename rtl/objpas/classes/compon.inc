@@ -237,7 +237,7 @@ end;
 Procedure TComponent.Notification(AComponent: TComponent;
   Operation: TOperation);
 
-//Var Runner : Longint;
+Var Runner : Longint;
 
 begin
   If (Operation=opRemove) and Assigned(FFreeNotifies) then
@@ -250,11 +250,9 @@ begin
       Exclude(FComponentState, csFreeNotification);
       end;
     end;
-{ disabled this code: do we really have to notify the child components also? Each observer
-  should register itself to it's subject! }
-  {If assigned(FComponents) then
+  If assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
-      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);}
+      TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
 end;
 
 
@@ -411,13 +409,20 @@ begin
 end;
 
 
+Procedure TComponent.BeforeDestruction;
+
+begin
+  Destroying;
+  inherited BeforeDestruction;
+end;
+
+
 Destructor TComponent.Destroy;
 
 Var
   I : Integer;
   L : TList;
 begin
-  Destroying;
   If Assigned(FFreeNotifies) then
     begin
     L := FFreeNotifies;
