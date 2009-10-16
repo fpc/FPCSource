@@ -107,7 +107,7 @@ begin
       begin
       FFreeNotifies.Free;
       FFreeNotifies:=nil;
-      FComponentState := FComponentState - [csFreeNotification];
+      Exclude(FComponentState, csFreeNotification);
       end;
     end;
 end;
@@ -224,13 +224,13 @@ end;
 Procedure TComponent.Loaded;
 
 begin
-  FComponentState := FComponentState - [csLoading];
+  Exclude(FComponentState, csLoading);
 end;
 
 Procedure TComponent.Loading;
 
 begin
-  FComponentState := FComponentState + [csLoading];
+  Include(FComponentState, csLoading);
 end;
 
 
@@ -247,7 +247,7 @@ begin
       begin
       FFreeNotifies.Free;
       FFreenotifies:=Nil;
-      FComponentState := FComponentState - [csFreeNotification];
+      Exclude(FComponentState, csFreeNotification);
       end;
     end;
 { disabled this code: do we really have to notify the child components also? Each observer
@@ -276,9 +276,9 @@ Var Runner : Longint;
 
 begin
   If Value then
-    FComponentState := FComponentState + [csAncestor]
+    Include(FComponentState, csAncestor)
   else
-    FComponentState := FComponentState - [csAncestor];
+    Exclude(FComponentState, csAncestor);
   if Assigned(FComponents) then
     For Runner:=0 To FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).SetAncestor(Value);
@@ -291,9 +291,9 @@ Var Runner : Longint;
 
 begin
   If Value then
-    FComponentState := FComponentState + [csDesigning]
+    Include(FComponentState, csDesigning)
   else
-    FComponentState := FComponentState - [csDesigning];
+    Exclude(FComponentState, csDesigning);
   if Assigned(FComponents) and SetChildren then
     For Runner:=0 To FComponents.Count - 1 do
       TComponent(FComponents.items[Runner]).SetDesigning(Value);
@@ -303,18 +303,18 @@ Procedure TComponent.SetDesignInstance(Value: Boolean);
 
 begin
   If Value then
-    FComponentState := FComponentState + [csDesignInstance]
+    Exclude(FComponentState, csDesignInstance)
   else
-    FComponentState := FComponentState - [csDesignInstance];
+    Include(FComponentState, csDesignInstance);
 end;
 
 Procedure TComponent.SetInline(Value: Boolean);
 
 begin
   If Value then
-    FComponentState := FComponentState + [csInline]
+    Exclude(FComponentState, csInline)
   else
-    FComponentState := FComponentState - [csInline];
+    Include(FComponentState, csInline);
 end;
 
 
@@ -351,14 +351,14 @@ end;
 Procedure TComponent.Updating;
 
 begin
-  FComponentState := FComponentState + [csUpdating];
+  Include(FComponentState, csUpdating);
 end;
 
 
 Procedure TComponent.Updated;
 
 begin
-  FComponentState := FComponentState - [csUpdating];
+  Exclude(FComponentState, csUpdating);
 end;
 
 
@@ -452,7 +452,7 @@ Var Runner : longint;
 
 begin
   If csDestroying in FComponentstate Then Exit;
-  FComponentState := FComponentState + [csDestroying];
+  Include(FComponentState, csDestroying);
   If Assigned(FComponents) then
     for Runner:=0 to FComponents.Count-1 do
       TComponent(FComponents.Items[Runner]).Destroying;
@@ -498,7 +498,7 @@ begin
     If not Assigned(FFreeNotifies) then
       begin
         FFreeNotifies:=TList.Create;
-        FComponentState := FComponentState + [csFreeNotification];
+        Include(FComponentState, csFreeNotification);
       end;
     If FFreeNotifies.IndexOf(AComponent)=-1 then
       begin
@@ -571,9 +571,9 @@ end;
 procedure TComponent.SetSubComponent(ASubComponent: Boolean);
 begin
   if ASubComponent then
-    FComponentStyle := FComponentStyle + [csSubComponent]
+    Include(FComponentStyle, csSubComponent)
   else
-    FComponentStyle := FComponentStyle - [csSubComponent];
+    Exclude(FComponentStyle, csSubComponent);
 end;
 
 
