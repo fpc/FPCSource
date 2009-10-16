@@ -57,3 +57,5 @@ Procedure SetLength(Var S : AStringType; Len : Integer);
 Procedure SetLength(Var A : DynArrayType; Len : Integer);
 Function Length(S : AStringType) : Integer;
 Function Length(A : DynArrayType) : Integer;
+Procedure WriteStr(Var S : String; Args : Arguments);
+Procedure ReadStr(Var S : String; Args : Arguments);
