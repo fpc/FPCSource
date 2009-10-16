@@ -21,7 +21,7 @@ unit comobj;
 {define DEBUG_COM}
 
     uses
-      Windows,Types,Variants,Sysutils,ActiveX,contnrs;
+      Windows,Types,Variants,Sysutils,ActiveX,classes;
 
     type
       EOleError = class(Exception);
@@ -74,7 +74,7 @@ unit comobj;
 
       TComClassManager = class(TObject)
       private
-        fClassFactoryList: TObjectList;
+        fClassFactoryList: TList;
       public
         constructor Create;
         destructor Destroy; override;
@@ -462,12 +462,18 @@ implementation
 
     constructor TComClassManager.Create;
       begin
-        fClassFactoryList := TObjectList.create(true);
+        fClassFactoryList := TList.create({true});
       end;
 
 
     destructor TComClassManager.Destroy;
+      var i : integer;
       begin
+        if fClassFactoryList.count>0 Then
+           begin
+             for i:=fClassFactoryList.count-1 downto 0 do
+                tobject(fClassFactoryList[i]).Free;
+           end;
         fClassFactoryList.Free;
       end;
 
