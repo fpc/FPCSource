@@ -18,8 +18,10 @@ unit comobj;
 
   interface
 
+{define DEBUG_COM}
+
     uses
-      Windows,Types,Variants,Sysutils,ActiveX;
+      Windows,Types,Variants,Sysutils,ActiveX,contnrs;
 
     type
       EOleError = class(Exception);
@@ -68,9 +70,16 @@ unit comobj;
 
       TFactoryProc = procedure(Factory: TComObjectFactory) of object;
 
+      { TComClassManager }
+
       TComClassManager = class(TObject)
+      private
+        fClassFactoryList: TObjectList;
+      public
         constructor Create;
         destructor Destroy; override;
+        procedure AddObjectFactory(factory: TComObjectFactory);
+        procedure RemoveObjectFactory(factory: TComObjectFactory);
         procedure ForEachFactory(ComServer: TComServerObject; FactoryProc: TFactoryProc);
         function GetFactoryFromClass(ComClass: TClass): TComObjectFactory;
         function GetFactoryFromClassID(const ClassID: TGUID): TComObjectFactory;
@@ -125,7 +134,8 @@ unit comobj;
 
       TComObjectFactory = class(TObject, IUnknown, IClassFactory, IClassFactory2)
       private
-        Next: TComObjectFactory;
+        FRefCount : Integer;
+        //Next: TComObjectFactory;
         FComServer: TComServerObject;
         FComClass: TClass;
         FClassID: TGUID;
@@ -134,7 +144,7 @@ unit comobj;
         FErrorIID: TGUID;
         FInstancing: TClassInstancing;
         FLicString: WideString;
-        FRegister: Longint;
+        //FRegister: Longint;
         FShowErrors: Boolean;
         FSupportsLicensing: Boolean;
         FThreadingModel: TThreadingModel;
@@ -242,7 +252,7 @@ unit comobj;
 implementation
 
     uses
-      ComConst,Ole2;
+      ComConst,Ole2, Registry;
 
     var
       Uninitializing : boolean;
@@ -452,34 +462,83 @@ implementation
 
     constructor TComClassManager.Create;
       begin
-        RunError(217);
+        fClassFactoryList := TObjectList.create(true);
       end;
 
 
     destructor TComClassManager.Destroy;
       begin
-        RunError(217);
+        fClassFactoryList.Free;
       end;
 
+    procedure TComClassManager.AddObjectFactory(factory: TComObjectFactory);
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('AddObjectFactory: ', GUIDToString(factory.FClassID), ' ', factory.FClassName);
+{$endif}
+        fClassFactoryList.Add(factory);
+      end;
+
+    procedure TComClassManager.RemoveObjectFactory(
+          factory: TComObjectFactory);
+      begin
+        fClassFactoryList.Remove(factory);
+      end;
 
     procedure TComClassManager.ForEachFactory(ComServer: TComServerObject;
       FactoryProc: TFactoryProc);
+      var
+        i: Integer;
+        obj: TComObjectFactory;
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('ForEachFactory');
+{$endif}
+        for i := 0 to fClassFactoryList.Count - 1 do
+        begin
+          obj := TComObjectFactory(fClassFactoryList[i]);
+          if obj.ComServer = ComServer then
+            FactoryProc(obj);
+        end;
       end;
 
 
     function TComClassManager.GetFactoryFromClass(ComClass: TClass
       ): TComObjectFactory;
+      var
+        i: Integer;
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('GetFactoryFromClass: ', ComClass.ClassName);
+{$endif}
+        for i := 0 to fClassFactoryList.Count - 1 do
+        begin
+          Result := TComObjectFactory(fClassFactoryList[i]);
+          if ComClass = Result.ComClass then
+            Exit();
+        end;
+        Result := nil;
       end;
 
 
     function TComClassManager.GetFactoryFromClassID(const ClassID: TGUID
       ): TComObjectFactory;
+      var
+        i: Integer;
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('GetFactoryFromClassID: ', GUIDToString(ClassId));
+{$endif}
+        for i := 0 to fClassFactoryList.Count - 1 do
+        begin
+          Result := TComObjectFactory(fClassFactoryList[i]);
+          if IsEqualGUID(ClassID, Result.ClassID) then
+            Exit();
+        end;
+{$ifdef DEBUG_COM}
+        WriteLn('GetFactoryFromClassID not found: ', GUIDToString(ClassId));
+{$endif}
+        Result := nil;
       end;
 
 
@@ -622,43 +681,66 @@ implementation
 
     function TComObjectFactory.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
       begin
-        RunError(217);
+        if GetInterface(IID,Obj) then
+          Result:=S_OK
+        else
+          Result:=E_NOINTERFACE;
       end;
 
 
     function TComObjectFactory._AddRef: Integer; stdcall;
       begin
-        RunError(217);
+        Result:=InterlockedIncrement(FRefCount);
       end;
 
 
     function TComObjectFactory._Release: Integer; stdcall;
       begin
-        RunError(217);
+        Result:=InterlockedDecrement(FRefCount);
+        if Result=0 then
+          Self.Destroy;
       end;
 
 
     function TComObjectFactory.CreateInstance(const UnkOuter: IUnknown;
       const IID: TGUID; out Obj): HResult; stdcall;
+      var
+        comObject: TComObject;
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('CreateInstance: ', GUIDToString(IID));
+{$endif}
+        comObject := CreateComObject(UnkOuter);
+        if comObject.GetInterface(IID, Obj) then
+          Result := S_OK
+        else
+          Result := E_NOINTERFACE;
       end;
 
 
     function TComObjectFactory.LockServer(fLock: BOOL): HResult; stdcall;
       begin
+{$ifdef DEBUG_COM}
+        WriteLn('LockServer: ', fLock);
+{$endif}
         RunError(217);
       end;
 
 
     function TComObjectFactory.GetLicInfo(var licInfo: TLicInfo): HResult; stdcall;
       begin
+{$ifdef DEBUG_COM}
+        WriteLn('GetLicInfo');
+{$endif}
         RunError(217);
       end;
 
 
     function TComObjectFactory.RequestLicKey(dwResrved: DWORD; out bstrKey: WideString): HResult; stdcall;
       begin
+{$ifdef DEBUG_COM}
+        WriteLn('RequestLicKey');
+{$endif}
         RunError(217);
       end;
 
@@ -667,6 +749,9 @@ implementation
       const unkReserved: IUnknown; const iid: TIID; const bstrKey: WideString; out
       vObject): HResult; stdcall;
       begin
+{$ifdef DEBUG_COM}
+        WriteLn('CreateInstanceLic');
+{$endif}
         RunError(217);
       end;
 
@@ -676,20 +761,35 @@ implementation
       Description: string; Instancing: TClassInstancing;
       ThreadingModel: TThreadingModel);
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('TComObjectFactory.Create');
+{$endif}
+        FRefCount := 1;
+        FClassID := ClassID;
+        FThreadingModel := ThreadingModel;
+        FDescription := Description;
+        FClassName := Name;
+        FComServer := ComServer;
+        FComClass := ComClass;
+        FInstancing := Instancing;;
+        ComClassManager.AddObjectFactory(Self);
       end;
 
 
     destructor TComObjectFactory.Destroy;
       begin
-        RunError(217);
+        ComClassManager.RemoveObjectFactory(Self);
+        //RunError(217);
       end;
 
 
     function TComObjectFactory.CreateComObject(const Controller: IUnknown
       ): TComObject;
       begin
-        RunError(217);
+{$ifdef DEBUG_COM}
+        WriteLn('TComObjectFactory.CreateComObject');
+{$endif}
+        Result := TComClass(FComClass).Create();
       end;
 
 
@@ -699,9 +799,70 @@ implementation
       end;
 
 
+(* Copy from Sample.RGS (http://www.codeproject.com/KB/atl/RegistryMap.aspx)
+HKCR
+{
+    %PROGID%.%VERSION% = s '%DESCRIPTION%'
+    {
+        CLSID = s '%CLSID%'
+    }
+    %PROGID% = s '%DESCRIPTION%'
+    {
+        CLSID = s '%CLSID%'
+        CurVer = s '%PROGID%.%VERSION%'
+    }
+    NoRemove CLSID
+    {
+        ForceRemove %CLSID% = s '%DESCRIPTION%'
+        {
+            ProgID = s '%PROGID%.%VERSION%'
+            VersionIndependentProgID = s '%PROGID%'
+            ForceRemove 'Programmable'
+            InprocServer32 = s '%MODULE%'
+            {
+                val ThreadingModel = s '%THREADING%'
+            }
+            'TypeLib' = s '%LIBID%'
+        }
+    }
+}
+*)
+
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
+      var
+        reg: TRegistry;
       begin
         RunError(217);
+
+        //todo: finish this
+        if Register then
+        begin
+          reg := TRegistry.Create;
+          reg.RootKey := HKEY_CLASSES_ROOT;
+          reg.OpenKey(FClassName + '.1', True);
+          reg.WriteString('', Description);
+          reg.WriteString('CLSID', GUIDToString(ClassID));
+          reg.CloseKey;
+
+          reg.OpenKey(FClassName, True);
+          reg.WriteString('', Description);
+          reg.WriteString('CLSID', GUIDToString(ClassID));
+          reg.WriteString('CurVer', FClassName + '.1');
+          reg.CloseKey;
+
+          reg.OpenKey('CLSID\' + GUIDToString(ClassID), True);
+          reg.WriteString('', Description);
+          reg.WriteString('ProgID', FClassName);
+          reg.WriteString('VersionIndependentProgID', FClassName);
+          reg.WriteString('InprocServer32', 'MODULENAME');
+          reg.CloseKey;
+
+          reg.Free;
+
+        end;
+        //This should be in typedcomobject
+        //reg.WriteString('TypeLib', FClassName);
+
       end;
 
 
@@ -1087,8 +1248,14 @@ implementation
 
     constructor TTypedComObjectFactory.Create(AComServer: TComServerObject; TypedComClass: TTypedComClass; const AClassID: TGUID;
       AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
+      var
+        TypedName, TypedDescription: WideString;
       begin
-        RunError(217);
+        //TDB get name and description from typelib (check if this is a valid guid)
+        OleCheck(AComServer.GetTypeLib.GetTypeInfoOfGuid(AClassID, FClassInfo));
+        //bug FPC 0010569 - http://msdn2.microsoft.com/en-us/library/ms221396(VS.85).aspx
+        OleCheck(FClassInfo.GetDocumentation(-1, TypedName, TypedDescription, PLongWord(nil)^, PWideString(nil)^));
+        inherited Create(AComServer, TypedComClass, AClassID, TypedName, TypedDescription, AInstancing, AThreadingModel);
       end;
 
 
@@ -1100,6 +1267,9 @@ implementation
 
     procedure TTypedComObjectFactory.UpdateRegistry(Register: Boolean);
       begin
+        inherited UpdateRegistry(Register);
+        // 'TypeLib' = s '%LIBID%' missing ??? or does TComServer register it ?
+        //un/register typed library
         RunError(217);
       end;
 
@@ -1142,5 +1312,4 @@ finalization
   if Initialized then
     CoUninitialize;
 end.
-
 

@@ -5059,6 +5059,7 @@ packages/winunits-base/src/comconst.pp svneol=native#text/plain
 packages/winunits-base/src/commctrl.pp svneol=native#text/plain
 packages/winunits-base/src/commdlg.pp svneol=native#text/plain
 packages/winunits-base/src/comobj.pp svneol=native#text/plain
+packages/winunits-base/src/comserv.pp svneol=native#text/plain
 packages/winunits-base/src/dwmapi.pp svneol=native#text/plain
 packages/winunits-base/src/flatsb.pp svneol=native#text/plain
 packages/winunits-base/src/htmlhelp.pp svneol=native#text/plain
