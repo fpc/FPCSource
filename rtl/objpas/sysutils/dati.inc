@@ -326,7 +326,7 @@ end ;
     if S does not represent a valid date value
     an EConvertError will be raised   }
 
-function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
+function IntStrToDate(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
 
 const SInvalidDateFormat = '"%s" is not a valid date format';
 var
@@ -340,9 +340,12 @@ var
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
 begin
-  if s = '' then
-    Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
-
+  ErrorMsg:='';
+  if (Len=0) then
+    begin
+    ErrorMsg:=Format(SInvalidDateFormat,['']);
+    exit;
+    end;
   YearMoreThenTwoDigits := False;
   if separator = #0 then
         separator := DateSeparator;
@@ -378,7 +381,10 @@ begin
      end;
    end;
   if Which<>3 then
-   Raise EConvertError.Create('Illegal format string');
+    begin
+    ErrorMsg:=Format(SErrIllegalDateFormatString,[useformat]);
+    Exit;
+    end;
 { Get actual values }
   for i := 1 to 3 do
     values[i] := 0;
@@ -400,16 +406,25 @@ begin
       begin
         inc(n);
         if n>3 then
-         Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
+          begin
+          ErrorMsg:=Format(SInvalidDateFormat,[s]);
+          exit;
+          end;
          // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
         if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
         if c<>0 then
-         Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
+          begin
+          ErrorMsg:=Format(SInvalidDateFormat,[s]);
+          Exit;
+          end;
         s1 := '';
       end
      else if not (s[i] in ['0'..'9']) then
-      Raise EConvertError.CreateFmt(SInvalidDateFormat,[s]);
+       begin
+       ErrorMsg:=Format(SInvalidDateFormat,[s]);
+       Exit;
+       end;
    end ;
   // Fill in values.
   getLocalTime(LocalTime);
@@ -450,6 +465,17 @@ begin
   Result := EncodeDate(y, m, d);
 end ;
 
+function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
+
+Var
+  MSg : AnsiString;
+
+begin
+  Result:=IntStrToDate(Msg,S,Len,useFormat,Separator);
+  If (Msg<>'') then
+    EConvertError.Create(Msg);
+end;
+
 function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;
 begin
     result := StrToDate(@S[1],Length(s),UseFormat,separator);
@@ -484,7 +510,7 @@ end;
     if S does not represent a valid time value an
     EConvertError will be raised   }
 
-function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
+function IntStrToTime(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; separator : char = #0): TDateTime;
 var
    Current: integer; PM: integer;
 
@@ -528,7 +554,7 @@ var
       else if (CurrentChar = Separator) or (CurrentChar = ' ') then
          Inc(Current)
       else
-        raise EConvertError.Create('Invalid Time format');
+        ErrorMsg:=Format(SErrInvalidTimeFormat,[StrPas(S)]);
       end ;
    end ;
 
@@ -545,11 +571,15 @@ begin
     timevalues[i]:=0;
   i := 0;
   TimeValues[i] := GetElement;
+  If ErrorMsg<>'' then 
+    Exit;
   while (i < 5) and (TimeValues[i] <> -1) do 
     begin
      i := i + 1;
      Inc(Current);
      TimeValues[i] := GetElement;
+     If ErrorMsg<>'' then
+        Exit;
    end ;
   If (i<5) and (TimeValues[I]=-1) then
     TimeValues[I]:=0;
@@ -565,6 +595,17 @@ begin
     end;
   result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
 end ;
+
+function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
+
+Var
+  Msg : AnsiString;
+
+begin
+  Result:=IntStrToTime(Msg,S,Len,Separator);
+  If (Msg<>'') then 
+    Raise EConvertError.Create(Msg);
+end;
 
 function StrToTime(const s: ShortString; separator : char): TDateTime;
 begin
@@ -904,92 +945,84 @@ begin
 end;
 {$endif unix}
 
-// ieuw. These should  be written to work without exceptions?
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;
 begin
     result := TryStrToDate(S, Value, #0);
 end;
 
-function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToDate(s, separator);
-    except
-      on EConvertError do
-        result:=false
-    end;
-  end;
-
 function TryStrToDate(const S: ShortString; out Value: TDateTime;
                     const useformat : string; separator : char = #0): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToDate(s, useformat, separator);
-    except
-      on EConvertError do
-        result:=false
-    end;
-  end;
-
-function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;
+                    
+Var
+  Msg : Ansistring;
+                      
 begin
-    result := TryStrToDate(S, Value, #0);
+  Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,separator);
+  Result:=(Msg='');
 end;
-
-function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToDate(s, separator);
-    except
-      on EConvertError do
-        result:=false
-    end;
-  end;
 
 function TryStrToDate(const S: AnsiString; out Value: TDateTime;
                     const useformat : string; separator : char = #0): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToDate(s, useformat, separator);
-    except
-      on EConvertError do
-        result:=false
+                    
+Var
+  Msg : Ansistring;                    
+                    
+begin
+  Result:=Length(S)<>0;
+  If Result then
+    begin
+    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat);
+    Result:=(Msg='');
     end;
-  end;
+end;
+
+
+function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
+begin
+  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);
+end;
+
+
+function TryStrToDate(const S: AnsiString; out Value: TDateTime): Boolean;
+begin
+  Result:=TryStrToDate(S,Value,ShortDateFormat,#0);
+end;
+
+function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
+
+begin
+  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);  
+end;
+
 
 
 // function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 
 function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToTime(s, separator);
-    except
-      on EConvertError do
-        result:=false
-    end;
-  end;
+
+Var
+  Msg : AnsiString;
+begin
+  Value:=IntStrToTime(Msg,@S[1],Length(S),Separator);
+  result:=(Msg='');
+end;
 
 function TryStrToTime(const S: ShortString; out Value: TDateTime): Boolean;
 begin
-    result := TryStrToTime(S,Value,#0);
+  Result := TryStrToTime(S,Value,#0);
 end;
 
 function TryStrToTime(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
-  begin
-    result:=true;
-    try
-      value:=StrToTime(s, separator);
-    except
-      on EConvertError do
-        result:=false
+Var
+  Msg : AnsiString;
+begin
+  Result:=Length(S)<>0;
+  If Result then
+    begin
+    Value:=IntStrToTime(Msg,@S[1],Length(S),Separator);
+    Result:=(Msg='');
     end;
-  end;
+end;
 
 function TryStrToTime(const S: AnsiString; out Value: TDateTime): Boolean;
 begin
