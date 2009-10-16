@@ -135,6 +135,7 @@ begin
   FParser.Options.Namespaces := True;
   domImpl := GetImplementation;
   origDoc := domImpl.createDocument(nsURI1, 'test', nil);
+  GC(origDoc);
   docElem := origDoc.documentElement;
   el := origDoc.CreateElementNS(nsURI2, 'test');
   docElem.AppendChild(el);
@@ -169,6 +170,7 @@ begin
   FParser.Options.Namespaces := True;
   domImpl := GetImplementation;
   origDoc := domImpl.createDocument(nsURI1, 'a:test', nil);
+  GC(origDoc);
   docElem := origDoc.documentElement;
   el := origDoc.CreateElementNS(nsURI2, 'b:test');
   docElem.AppendChild(el);
@@ -204,6 +206,7 @@ begin
   FParser.Options.Namespaces := True;
   domImpl := GetImplementation;
   origDoc := domImpl.createDocument(nsURI1, 'a:test', nil);
+  GC(origDoc);
   docElem := origDoc.documentElement;
   el := origDoc.CreateElementNS(nsURI2, 'b:test');
   docElem.AppendChild(el);

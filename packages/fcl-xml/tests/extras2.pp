@@ -252,6 +252,7 @@ begin
   FParser.Options.Namespaces := True;
   domImpl := GetImplementation;
   origDoc := domImpl.createDocument(namespaceURI, 'test', nil);
+  GC(origDoc);
   docElem := origDoc.documentElement;
   docElem.setAttributeNS(namespaceURI, 'attr', 'test value');
 
@@ -288,6 +289,7 @@ begin
   FParser.Options.Namespaces := True;
   domImpl := GetImplementation;
   origDoc := domImpl.createDocument(namespaceURI, 'test', nil);
+  GC(origDoc);
   docElem := origDoc.documentElement;
   docElem.setAttributeNS(namespaceURI, 'test:attr', 'test value');
 
