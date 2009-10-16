@@ -660,8 +660,11 @@ begin
         Result:=PX_get_data_long(FDoc,Buf,flen,@longv)>0;
         If Result then
           begin
-          PX_SdnToGregorian(longv+1721425,@Y,@M,@D);
-          PDateTime(Buffer)^:=EncodeDate(Y,M,D);
+          // 1721425 is the number of the days between the start of the
+          // julian calendar (4714 BC) and jan-00-0000 (Paradox base date)
+          // 2415019 is the number of the days between the start of the
+          // julian calendar (4714 BC) and dec-30-1899 (TDateTime base date)
+          PDateTime(Buffer)^:=Longv+1721425-2415019;
           end;
         end;
       pxfShort:
