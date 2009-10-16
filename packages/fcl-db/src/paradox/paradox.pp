@@ -417,6 +417,7 @@ Var
   pxf : Ppxfield_t;
 
 begin
+  FieldDefs.Clear;
   pxf:=PX_get_fields(FDoc);
   ACount:= PX_get_num_fields(FDoc);
   ReallocMem(FOffsets,ACount*SizeOf(Integer));
@@ -549,6 +550,9 @@ end;
 procedure TParadox.InternalClose;
 
 begin
+  BindFields(False);
+  if DefaultFields then
+    DestroyFields;
   FreeAndNil(FParser);
   FreeMem(FOffsets);
   FOffSets:=Nil;
