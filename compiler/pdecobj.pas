@@ -218,6 +218,24 @@ implementation
         p.free;
       end;
 
+    procedure parse_object_options;
+      begin
+        if current_objectdef.objecttype = odt_class then
+          begin
+            while true do
+              begin
+                if try_to_consume(_ABSTRACT) then
+                  include(current_objectdef.objectoptions,oo_is_abstract)
+                else
+                if try_to_consume(_SEALED) then
+                  include(current_objectdef.objectoptions,oo_is_sealed)
+                else
+                  break;
+              end;
+            if [oo_is_abstract, oo_is_sealed] * current_objectdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
+              Message(parser_e_abstract_and_sealed_conflict);
+          end;
+      end;
 
     procedure parse_parent_classes;
       var
@@ -260,7 +278,10 @@ implementation
                             end
                           else
                             Message(parser_e_mix_of_classes_and_objects);
-                       end;
+                       end
+                     else
+                       if oo_is_sealed in childof.objectoptions then
+                         Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin
@@ -716,6 +737,9 @@ implementation
           end
         else
           begin
+            { parse list of options (abstract / sealed) }
+            parse_object_options;
+
             { parse list of parent classes }
             parse_parent_classes;
 

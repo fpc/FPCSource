@@ -1254,6 +1254,9 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
+  if oo_is_sealed in tprocdef(pd)._class.objectoptions then
+    Message(parser_e_sealed_class_cannot_have_abstract_methods)
+  else
   if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_abstractmethod)
   else

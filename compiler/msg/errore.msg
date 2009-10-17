@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03252 is the last used one
+# 03255 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1189,6 +1189,12 @@ parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definiti
 % refer to the same type definition in the procedure headers of the interface and implementation of a unit
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
+parser_e_abstract_and_sealed_conflict=03253_E_ABSTRACT and SEALED conflict
+% ABSTRACT and SEALED can not be used together in one declaration
+parser_e_sealed_descendant=03254_E_Can not create a descendant of the sealed class "$1"
+% Sealed means that class can not be derived by another class.
+parser_e_sealed_class_cannot_have_abstract_methods=03255_E_SEALED class can not have an ABSTRACT method
+% Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
 % \end{description}
 #
 # Type Checking

@@ -304,6 +304,8 @@ type
   { options for objects and classes }
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
