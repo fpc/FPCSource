@@ -124,7 +124,7 @@ type
 
     function ParseType(Parent: TPasElement; Prefix : String): TPasType;overload;
     function ParseType(Parent: TPasElement): TPasType;overload;
-    function ParseComplexType: TPasType;
+    function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
     function ParseExpression: String;
@@ -516,20 +516,20 @@ begin
   end;
 end;
 
-function TPasParser.ParseComplexType: TPasType;
+function TPasParser.ParseComplexType(Parent : TPasElement = Nil): TPasType;
 begin
   NextToken;
   case CurToken of
     tkProcedure:
       begin
-        Result := TPasProcedureType(CreateElement(TPasProcedureType, '', nil));
+        Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
         UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
-        Result := Engine.CreateFunctionType('', 'Result', nil, False,
+        Result := Engine.CreateFunctionType('', 'Result', Parent, False,
 	  Scanner.CurFilename, Scanner.CurRow);
         ParseProcedureOrFunctionHeader(Result,
           TPasFunctionType(Result), ptFunction, True);
@@ -538,7 +538,7 @@ begin
     else
     begin
       UngetToken;
-      Result := ParseType(nil);
+      Result := ParseType(Parent);
       exit;
     end;
   end;
@@ -1198,7 +1198,7 @@ begin
       ExpectIdentifier;
     end;
 
-    VarType := ParseComplexType;
+    VarType := ParseComplexType(Parent);
 
     H:=CheckHint(Nil,False);
     NextToken;
