@@ -325,6 +325,8 @@ implementation
           { handle deprecated message }
           if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
             begin
+              if deprecatedmsg<>nil then
+                internalerror(200910181);
               deprecatedmsg:=stringdup(pattern);
               consume(token);
               include(symopt,sp_has_deprecated_msg);
