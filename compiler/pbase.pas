@@ -90,7 +90,7 @@ interface
 
     function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
 
-    function try_consume_hintdirective(var symopt:tsymoptions):boolean;
+    function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
 
     { just for an accurate position of the end of a procedure (PM) }
     var
@@ -194,7 +194,7 @@ implementation
         try_consume_unitsym(srsym,srsymtable,t);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
-          check_hints(srsym,srsym.symoptions)
+          check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
         else
           begin
             identifier_not_found(orgpattern);
@@ -227,7 +227,7 @@ implementation
         try_consume_unitsym(srsym,srsymtable,t);
         { if nothing found give error and return errorsym }
         if assigned(srsym) then
-          check_hints(srsym,srsym.symoptions)
+          check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
         else
           begin
             identifier_not_found(orgpattern);
@@ -282,12 +282,15 @@ implementation
       end;
 
 
-    function try_consume_hintdirective(var symopt:tsymoptions):boolean;
+    function try_consume_hintdirective(var symopt:tsymoptions; var deprecatedmsg:pshortstring):boolean;
+      var
+        last_is_deprecated:boolean;
       begin
         try_consume_hintdirective:=false;
         if not(m_hintdirective in current_settings.modeswitches) then
          exit;
         repeat
+          last_is_deprecated:=false;
           case idtoken of
             _LIBRARY :
               begin
@@ -298,6 +301,7 @@ implementation
               begin
                 include(symopt,sp_hint_deprecated);
                 try_consume_hintdirective:=true;
+                last_is_deprecated:=true;
               end;
             _EXPERIMENTAL :
               begin
@@ -318,6 +322,13 @@ implementation
               break;
           end;
           consume(Token);
+          { handle deprecated message }
+          if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
+            begin
+              deprecatedmsg:=stringdup(pattern);
+              consume(token);
+              include(symopt,sp_has_deprecated_msg);
+            end;
         until false;
       end;
 

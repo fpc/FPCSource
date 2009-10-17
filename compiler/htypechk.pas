@@ -160,7 +160,7 @@ interface
 
     function allowenumop(nt:tnodetype):boolean;
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
@@ -2605,12 +2605,15 @@ implementation
       end;
 
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
         if not assigned(srsym) then
           internalerror(200602051);
         if sp_hint_deprecated in symoptions then
-          Message1(sym_w_deprecated_symbol,srsym.realname);
+          if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
+            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
+          else
+            Message1(sym_w_deprecated_symbol,srsym.realname);
         if sp_hint_experimental in symoptions then
           Message1(sym_w_experimental_symbol,srsym.realname);
         if sp_hint_platform in symoptions then

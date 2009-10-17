@@ -1511,7 +1511,7 @@ type_e_string_expr_expected=04089_E_String expression expected
 #
 # Symtable
 #
-# 05065 is the last used one
+# 05066 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1686,6 +1686,11 @@ sym_w_library_symbol=05065_W_Symbol "$1" is belongs to a library
 % This means that a symbol (a variable, routine, etc...) which is
 % declared as \var{library} is used. Library symbols may not be
 % available in other libraries.
+sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{deprecated} is used. Deprecated symbols may no longer
+% be available in newer versions of the unit / library. Use of this symbol
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator

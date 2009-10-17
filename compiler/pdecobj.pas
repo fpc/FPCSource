@@ -110,7 +110,7 @@ implementation
           end;
         { hint directives, these can be separated by semicolons here,
           that needs to be handled here with a loop (PFV) }
-        while try_consume_hintdirective(p.symoptions) do
+        while try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
           Consume(_SEMICOLON);
       end;
 
@@ -400,12 +400,19 @@ implementation
         procedure maybe_parse_hint_directives(pd:tprocdef);
         var
           dummysymoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
         begin
           dummysymoptions:=[];
-          while try_consume_hintdirective(dummysymoptions) do
+          deprecatedmsg:=nil;
+          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
             Consume(_SEMICOLON);
           if assigned(pd) then
-            pd.symoptions:=pd.symoptions+dummysymoptions;
+            begin
+              pd.symoptions:=pd.symoptions+dummysymoptions;
+              pd.deprecatedmsg:=deprecatedmsg;
+            end
+          else
+            stringdispose(deprecatedmsg);
         end;
 
       var
