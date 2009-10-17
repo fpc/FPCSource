@@ -40,7 +40,9 @@ implementation
 uses SysUtils, xmlutils;
 
 type
-  TSpecialCharCallback = procedure(c: WideChar) of object;
+  TXMLWriter = class;
+  TSpecialCharCallback = procedure(Sender: TXMLWriter; const s: DOMString;
+    var idx: Integer);
 
   PAttrFixup = ^TAttrFixup;
   TAttrFixup = record
@@ -71,8 +73,6 @@ type
     procedure wrtQuotedLiteral(const ws: WideString);
     procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
-    procedure AttrSpecialCharCallback(c: WideChar);
-    procedure TextNodeSpecialCharCallback(c: WideChar);
     procedure WriteNSDef(B: TBinding);
     procedure NamespaceFixup(Element: TDOMElement);
   protected
@@ -329,7 +329,7 @@ begin
     if (s[EndPos] < #255) and (Char(ord(s[EndPos])) in SpecialChars) then
     begin
       wrtChars(@s[StartPos], EndPos - StartPos);
-      SpecialCharCallback(s[EndPos]);
+      SpecialCharCallback(Self, s, EndPos);
       StartPos := EndPos + 1;
     end;
     Inc(EndPos);
@@ -344,29 +344,31 @@ const
   ltStr = '&lt;';
   gtStr = '&gt;';
 
-procedure TXMLWriter.AttrSpecialCharCallback(c: WideChar);
+procedure AttrSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
 begin
-  case c of
-    '"': wrtStr(QuotStr);
-    '&': wrtStr(AmpStr);
-    '<': wrtStr(ltStr);
+  case s[idx] of
+    '"': Sender.wrtStr(QuotStr);
+    '&': Sender.wrtStr(AmpStr);
+    '<': Sender.wrtStr(ltStr);
     // Escape whitespace using CharRefs to be consistent with W3 spec § 3.3.3
-    #9: wrtStr('&#x9;');
-    #10: wrtStr('&#xA;');
-    #13: wrtStr('&#xD;');
+    #9: Sender.wrtStr('&#x9;');
+    #10: Sender.wrtStr('&#xA;');
+    #13: Sender.wrtStr('&#xD;');
   else
-    wrtChr(c);
+    Sender.wrtChr(s[idx]);
   end;
 end;
 
-procedure TXMLWriter.TextnodeSpecialCharCallback(c: WideChar);
+procedure TextnodeSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
 begin
-  case c of
-    '<': wrtStr(ltStr);
-    '>': wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
-    '&': wrtStr(AmpStr);
+  case s[idx] of
+    '<': Sender.wrtStr(ltStr);
+    '>': Sender.wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
+    '&': Sender.wrtStr(AmpStr);
   else
-    wrtChr(c);
+    Sender.wrtChr(s[idx]);
   end;
 end;
 
@@ -396,7 +398,7 @@ begin
     wrtStr(B.Prefix^.Key);
   end;
   wrtChars('="', 2);
-  ConvWrite(B.uri, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+  ConvWrite(B.uri, AttrSpecialChars, @AttrSpecialCharCallback);
   wrtChr('"');
 end;
 
@@ -531,7 +533,7 @@ begin
 
       wrtChars('="', 2);
       // TODO: not correct w.r.t. entities
-      ConvWrite(attr.nodeValue, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+      ConvWrite(attr.nodeValue, AttrSpecialChars, @AttrSpecialCharCallback);
       wrtChr('"');
     end;
   end;
@@ -584,16 +586,21 @@ end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
 begin
-  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback);
 end;
 
 procedure TXMLWriter.VisitCDATA(node: TDOMNode);
 begin
   if not FInsideTextNode then
     wrtIndent;
-  wrtChars('<![CDATA[', 9);
-  wrtStr(TDOMCharacterData(node).Data);
-  wrtChars(']]>', 3);
+  if FCanonical then
+    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback)
+  else
+  begin
+    wrtChars('<![CDATA[', 9);
+    wrtStr(TDOMCharacterData(node).Data);
+    wrtChars(']]>', 3);
+  end;
 end;
 
 procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
@@ -681,7 +688,7 @@ begin
       ENTITY_REFERENCE_NODE:
         VisitEntityRef(Child);
       TEXT_NODE:
-        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, @AttrSpecialCharCallback);
     end;
     Child := Child.NextSibling;
   end;
