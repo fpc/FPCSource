@@ -42,9 +42,16 @@ uses SysUtils, xmlutils;
 type
   TSpecialCharCallback = procedure(c: WideChar) of object;
 
+  PAttrFixup = ^TAttrFixup;
+  TAttrFixup = record
+    Attr: TDOMNode;
+    Prefix: PHashItem;
+  end;
+
   TXMLWriter = class(TObject)
   private
     FInsideTextNode: Boolean;
+    FCanonical: Boolean;
     FIndent: WideString;
     FIndentCount: Integer;
     FBuffer: PChar;
@@ -52,7 +59,9 @@ type
     FCapacity: Integer;
     FLineBreak: string;
     FNSHelper: TNSSupport;
+    FAttrFixups: TFPList;
     FScratch: TFPList;
+    FNSDefs: TFPList;
     procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
@@ -165,10 +174,18 @@ begin
   FLineBreak := sLineBreak;
   FNSHelper := TNSSupport.Create;
   FScratch := TFPList.Create;
+  FNSDefs := TFPList.Create;
+  FAttrFixups := TFPList.Create;
 end;
 
 destructor TXMLWriter.Destroy;
+var
+  I: Integer;
 begin
+  for I := FAttrFixups.Count-1 downto 0 do
+    Dispose(PAttrFixup(FAttrFixups.List^[I]));
+  FAttrFixups.Free;
+  FNSDefs.Free;
   FScratch.Free;
   FNSHelper.Free;
   if FBufPos > FBuffer then
@@ -383,65 +400,140 @@ begin
   wrtChr('"');
 end;
 
+// clone of system.FPC_WIDESTR_COMPARE which cannot be called directly
+function Compare(const s1, s2: DOMString): integer;
+var
+  maxi, temp: integer;
+begin
+  Result := 0;
+  if pointer(S1) = pointer(S2) then
+    exit;
+  maxi := Length(S1);
+  temp := Length(S2);
+  if maxi > temp then
+    maxi := temp;
+  Result := CompareWord(S1[1], S2[1], maxi);
+  if Result = 0 then
+    Result := Length(S1)-Length(S2);
+end;
+
+function SortNSDefs(Item1, Item2: Pointer): Integer;
+begin
+  Result := Compare(TBinding(Item1).Prefix^.Key, TBinding(Item2).Prefix^.Key);
+end;
+
+function SortAtts(Item1, Item2: Pointer): Integer;
+var
+  p1: PAttrFixup absolute Item1;
+  p2: PAttrFixup absolute Item2;
+  s1, s2: DOMString;
+begin
+  Result := Compare(p1^.Attr.namespaceURI, p2^.Attr.namespaceURI);
+  if Result = 0 then
+  begin
+    // TODO: Must fix the parser so it doesn't produce Level 1 attributes
+    if nfLevel2 in p1^.Attr.Flags then
+      s1 := p1^.Attr.localName
+    else
+      s1 := p1^.Attr.nodeName;
+    if nfLevel2 in p2^.Attr.Flags then
+      s2 := p2^.Attr.localName
+    else
+      s2 := p2^.Attr.nodeName;
+    Result := Compare(s1, s2);
+  end;
+end;
+
 procedure TXMLWriter.NamespaceFixup(Element: TDOMElement);
 var
   B: TBinding;
-  i: Integer;
-  attr: TDOMNode;
+  i, j: Integer;
+  node: TDOMNode;
   s: DOMString;
   action: TAttributeAction;
+  p: PAttrFixup;
 begin
   FScratch.Count := 0;
+  FNSDefs.Count := 0;
   if Element.hasAttributes then
   begin
+    j := 0;
     for i := 0 to Element.Attributes.Length-1 do
     begin
-      attr := Element.Attributes[i];
-      if nfLevel2 in attr.Flags then
+      node := Element.Attributes[i];
+      if TDOMNode_NS(node).NSI.NSIndex = 2 then
       begin
-        if TDOMNode_NS(attr).NSI.NSIndex = 2 then
+        if TDOMNode_NS(node).NSI.PrefixLen = 0 then
+          s := ''
+        else
+          s := node.localName;
+        FNSHelper.DefineBinding(s, node.nodeValue, B);
+        if Assigned(B) then  // drop redundant namespace declarations
+          FNSDefs.Add(B);
+      end
+      else if TDOMAttr(node).Specified then
+      begin
+        // obtain a TAttrFixup record (allocate if needed)
+        if j >= FAttrFixups.Count then
         begin
-          if TDOMNode_NS(attr).NSI.PrefixLen = 0 then
-            s := ''
-          else
-            s := attr.localName;
-          FNSHelper.DefineBinding(s, attr.nodeValue, B);
-          if Assigned(B) then  // drop redundant namespace declarations
-            VisitAttribute(attr);
+          New(p);
+          FAttrFixups.Add(p);
         end
         else
-          FScratch.Add(attr);
-      end
-      else if TDOMAttr(attr).Specified then // Level 1 attribute
-        VisitAttribute(attr);
+          p := PAttrFixup(FAttrFixups.List^[j]);
+        // add it to the working list
+        p^.Attr := node;
+        p^.Prefix := nil;
+        FScratch.Add(p);
+        Inc(j);
+      end;
     end;
   end;
 
   FNSHelper.DefineBinding(Element.Prefix, Element.namespaceURI, B);
   if Assigned(B) then
-    WriteNSDef(B);
+    FNSDefs.Add(B);
 
   for i := 0 to FScratch.Count-1 do
   begin
-    attr := TDOMNode(FScratch[i]);
-    action := FNSHelper.CheckAttribute(attr.Prefix, attr.namespaceURI, B);
+    node := PAttrFixup(FScratch.List^[i])^.Attr;
+    action := FNSHelper.CheckAttribute(node.Prefix, node.namespaceURI, B);
     if action = aaBoth then
-      WriteNSDef(B);
+      FNSDefs.Add(B);
 
     if action in [aaPrefix, aaBoth] then
+      PAttrFixup(FScratch.List^[i])^.Prefix := B.Prefix;
+  end;
+
+  if FCanonical then
+  begin
+    FNSDefs.Sort(@SortNSDefs);
+    FScratch.Sort(@SortAtts);
+  end;
+
+  // now, at last, dump all this stuff.
+  for i := 0 to FNSDefs.Count-1 do
+    WriteNSDef(TBinding(FNSDefs.List^[I]));
+
+  for i := 0 to FScratch.Count-1 do
+  begin
+    wrtChr(' ');
+    with PAttrFixup(FScratch.List^[I])^ do
     begin
-      // use prefix from the binding, it might have been changed
-      wrtChr(' ');
-      wrtStr(B.Prefix^.Key);
-      wrtChr(':');
-      wrtStr(attr.localName);
+      if Assigned(Prefix) then
+      begin
+        wrtStr(Prefix^.Key);
+        wrtChr(':');
+        wrtStr(Attr.localName);
+      end
+      else
+        wrtStr(Attr.nodeName);
+
       wrtChars('="', 2);
       // TODO: not correct w.r.t. entities
       ConvWrite(attr.nodeValue, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
       wrtChr('"');
-    end
-    else   // action = aaUnchanged, output unmodified
-      VisitAttribute(attr);
+    end;
   end;
 end;
 
