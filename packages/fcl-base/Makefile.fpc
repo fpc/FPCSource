@@ -6,11 +6,6 @@
 name=fcl-base
 version=2.5.1
 
-[require]
-packages_win32=winunits-base winunits-jedi
-packages_win64=winunits-base winunits-jedi
-packages_darwin=univint
-
 [target]
 units=contnrs inifiles rtfpars idea base64 gettext \
       iostream cachecls avl_tree uriparser \
@@ -19,14 +14,14 @@ units=contnrs inifiles rtfpars idea base64 gettext \
       maskutils fpexprpars ascii85
 units_beos=syncobjs
 units_haiku=syncobjs
-units_freebsd=syncobjs daemonapp fptimer
-units_darwin=syncobjs daemonapp fptimer
-units_solaris=syncobjs daemonapp fptimer
-units_netbsd=daemonapp fptimer
-units_openbsd=daemonapp fptimer
-units_linux=syncobjs daemonapp fptimer
-units_win32=fileinfo syncobjs daemonapp ServiceManager fptimer
-units_win64=fileinfo syncobjs daemonapp ServiceManager fptimer
+units_freebsd=syncobjs fptimer
+units_darwin=syncobjs fptimer
+units_solaris=syncobjs fptimer
+units_netbsd=  fptimer
+units_openbsd= fptimer
+units_linux=syncobjs   fptimer
+units_win32=fileinfo syncobjs  fptimer
+units_win64=fileinfo syncobjs  fptimer
 units_wince=fileinfo syncobjs fptimer
 # syncobjs requires GetLastOSError function
 units_netware=syncobjs

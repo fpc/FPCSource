@@ -6,6 +6,9 @@
 name=winunits-base
 version=2.5.1
 
+[require]
+packages=fcl-registry fcl-base
+
 [target]
 units=buildwinutilsbase
 implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
