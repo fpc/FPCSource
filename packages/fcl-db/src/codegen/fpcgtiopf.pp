@@ -340,7 +340,7 @@ begin
   EndMethod(Strings,S);
   // AcceptVisitor
   S:=BeginAcceptVisitor(Strings,C,ObjectClassName);
-  AddLn(Strings,'Result:=Result and (Visited.ObjectState in [posCreate,posdelete,posUpdate]);');
+  AddLn(Strings,'Result:=Result and (Visited.ObjectState in [posCreate,posDelete,posUpdate]);');
   DecIndent;
   EndMethod(Strings,S);
   S:=BeginSetupParams(Strings,C,ObjectClassName,True);
@@ -431,7 +431,7 @@ begin
   // Common setup case
   If (V in [voCreate,voUpdate]) and (UseCommonSetupParams) then
     A:=Format('TUpdateCreate%sVisitor',[StripType(ObjectClassName)])
-  else If (V in [voCreate,voDelete,voUpdate,voCommonSetupParams]) then
+  else If (V in [voCreate,voDelete,voUpdate,voCommonSetupParams,voSingleSaveVisitor]) then
     A:='TtiVisitorUpdate'
   else
     A:='TtiVisitorSelect';
@@ -1226,7 +1226,7 @@ begin
 end;
 
 Initialization
-  RegisterCodeGenerator('tiOPF','tiOPF class and visitors for the data',TTiOPFCodeGenerator);
+  RegisterCodeGenerator('tiOPF','tiOPF classes and hard-coded visitors for the data',TTiOPFCodeGenerator);
 
 Finalization
   UnRegisterCodeGenerator(TTiOPFCodeGenerator);
