@@ -552,6 +552,6 @@ end;
 
 function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
 begin
-  fpsetrlimit:=do_syscall(syscall_nr_getrlimit,TSysParam(Resource),TSysParam(rlim));
+  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
 end;
 

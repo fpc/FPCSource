@@ -106,3 +106,6 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
     Function  FpGetEnv     (name : pChar): pChar;
     function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 
+    function FpGetRLimit(resource:cint;rlim:PRLimit):cint; external name 'FPC_SYSC_GETRLIMIT';
+    function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; external name 'FPC_SYSC_SETRLIMIT';
+
