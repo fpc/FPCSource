@@ -227,6 +227,11 @@ implementation
             { compare parameter types only, no specifiers yet }
             hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[])>=te_equal);
 
+            { check that we are not trying to override a final method }
+            if (po_finalmethod in vmtpd.procoptions) and 
+               hasequalpara and (po_overridingmethod in pd.procoptions) and is_class(_class) then
+              MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
+            else
             { old definition has virtual
               new definition has no virtual or override }
             if (po_virtualmethod in vmtpd.procoptions) and
