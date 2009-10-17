@@ -8203,6 +8203,7 @@ tests/test/texception7.pp svneol=native#text/plain
 tests/test/texception8.pp svneol=native#text/plain
 tests/test/texception9.pp svneol=native#text/plain
 tests/test/tfillchr.pp svneol=native#text/plain
+tests/test/tfinal1.pp svneol=native#text/pascal
 tests/test/tfpu1.pp svneol=native#text/plain
 tests/test/tfpu2.pp svneol=native#text/plain
 tests/test/tfpu3.pp svneol=native#text/plain
