@@ -1354,6 +1354,8 @@ procedure readobjectdefoptions;
 type
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
@@ -1376,6 +1378,8 @@ type
 const
   symopt : array[1..ord(high(tobjectoption))] of tsymopt=(
      (mask:oo_is_forward;         str:'IsForward'),
+     (mask:oo_is_abstract;        str:'IsAbstract'),
+     (mask:oo_is_sealed;          str:'IsSealed'),
      (mask:oo_has_virtual;        str:'HasVirtual'),
      (mask:oo_has_private;        str:'HasPrivate'),
      (mask:oo_has_protected;      str:'HasProtected'),
