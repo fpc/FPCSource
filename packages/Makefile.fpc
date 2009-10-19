@@ -100,6 +100,12 @@ fcl-extra_debug: univint_debug
 fcl-extra_smart: univint_smart
 fcl-extra_release: univint_release
 fcl-extra_shared: univint_shared
+
+fcl-base_all: univint_all
+fcl-base_debug: univint_debug
+fcl-base_smart: univint_smart
+fcl-base_release: univint_release
+fcl-base_shared: univint_shared
 endif
 
 fcl-xml_all: fcl-base_all
