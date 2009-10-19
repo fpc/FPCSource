@@ -1701,18 +1701,30 @@ implementation
         st             : tsymtable;
         i              : longint;
         vmtindexnr     : pint;
+        incurrentunit  : boolean;
       begin
         { only write debug info for procedures defined in the current module,
           except in case of methods (gcc-compatible)
         }
-        if not assigned(def.procstarttai) and
+        st:=def.owner;
+        while not(st.symtabletype in [globalsymtable,staticsymtable]) do
+          st:=st.defowner.owner;
+        incurrentunit:=st.iscurrentunit;
+
+        if not incurrentunit and
           (def.owner.symtabletype<>objectsymtable) then
+          exit;
+
+        { happens for init procdef of units without init section }
+        if incurrentunit and
+           not assigned(def.procstarttai) then
           exit;
 
         { Procdefs are not handled by the regular def writing code, so
           dbg_state is not set/checked for them. Do it here.  }
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
+        defnumberlist.Add(def);
 
         { Write methods and only in the scope of their parent objectdefs.  }
         if (def.owner.symtabletype=objectsymtable) then
@@ -1779,7 +1791,7 @@ implementation
         { we can only write the start/end if this procedure is implemented in
           this module
         }
-        if assigned(def.procstarttai) then
+        if incurrentunit then
           begin
             { mark end of procedure }
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
@@ -1819,8 +1831,8 @@ implementation
           end;
         { local type defs and vars should not be written
           inside the main proc }
-        if assigned(def.procstarttai)
-           and assigned(def.localst) and
+        if incurrentunit and
+           assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.localst);
 
@@ -1828,7 +1840,7 @@ implementation
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
         { only try to write the localst if the routine is implemented here }
-        if assigned(def.procstarttai) and
+        if incurrentunit and
            assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           begin
