@@ -12,6 +12,29 @@
  **********************************************************************}
 
 {****************************************************************************}
+{*                        TComponentEnumerator                              *}
+{****************************************************************************}
+
+constructor TComponentEnumerator.Create(AComponent: TComponent);
+begin
+  inherited Create;
+  FComponent := AComponent;
+  FPosition := -1;
+end;
+
+function TComponentEnumerator.GetCurrent: TComponent;
+begin
+  Result := FComponent.Components[FPosition];
+end;
+
+function TComponentEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FComponent.ComponentCount;
+end;
+
+
+{****************************************************************************}
 {*                             TComponent                                   *}
 {****************************************************************************}
 
@@ -206,6 +229,12 @@ begin
   Result:=Self;
 end;
 
+
+Function  TComponent.GetEnumerator: TComponentEnumerator;
+
+begin
+  Result:=TComponentEnumerator.Create(Self);
+end;
 
 Function  TComponent.GetNamePath: string;
 

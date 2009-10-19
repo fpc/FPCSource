@@ -118,6 +118,29 @@ begin
 end;
 
 {****************************************************************************}
+{*                          TCollectionEnumerator                           *}
+{****************************************************************************}
+
+constructor TCollectionEnumerator.Create(ACollection: TCollection);
+begin
+  inherited Create;
+  FCollection := ACollection;
+  FPosition := -1;
+end;
+
+function TCollectionEnumerator.GetCurrent: TCollectionItem;
+begin
+  Result := FCollection.Items[FPosition];
+end;
+
+function TCollectionEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FCollection.Count;
+end;
+
+
+{****************************************************************************}
 {*                             TCollection                                  *}
 {****************************************************************************}
 
@@ -195,6 +218,12 @@ end;
 function TCollection.GetItemAttr(Index, ItemIndex: Integer): string;
 begin
   Result:=TCollectionItem(FItems.Items[ItemIndex]).DisplayName;
+end;
+
+
+function TCollection.GetEnumerator: TCollectionEnumerator;
+begin
+  Result := TCollectionEnumerator.Create(Self);
 end;
 
 
