@@ -88,10 +88,7 @@ var
   nodeValue: DOMString;
   length: Integer;
 begin
-// canonical form: PreserveWhitespace, Namespaces, NamespaceDeclarations = True;
-//                 Entities, CDSections = False;
-  FParser.Options.PreserveWhitespace := True;
-  FParser.Options.Namespaces := True;
+  FParser.Options.CanonicalForm := True;
   LoadStringData(doc, canonicform01);
   begin
     node := TDOMNode(doc).firstChild;
@@ -152,10 +149,7 @@ var
   nodeValue: DOMString;
   length: Integer;
 begin
-// canonical form: PreserveWhitespace, Namespaces, NamespaceDeclarations = True;
-//                 Entities, CDSections = False;
-  FParser.Options.PreserveWhitespace := True;
-  FParser.Options.Namespaces := True;
+  FParser.Options.CanonicalForm := True;
   FParser.Options.IgnoreComments := True;
   LoadStringData(doc, canonicform01);
   begin
@@ -198,8 +192,7 @@ var
   divEl: TDOMElement;
   node: TDOMNode;
 begin
-  FParser.Options.PreserveWhitespace := True;
-  FParser.Options.Namespaces := True;
+  FParser.Options.CanonicalForm := True;
   LoadStringData(doc, canonicform03);
 
   divList := doc.getElementsByTagName('div');
@@ -220,8 +213,7 @@ var
   attrSpecified: Boolean;
   attrValue: DOMString;
 begin
-  FParser.Options.PreserveWhitespace := True;
-  FParser.Options.Namespaces := True;
+  FParser.Options.CanonicalForm := True;
   LoadStringData(doc, canonicform03);
 
   elemList := doc.getElementsByTagName('acronym');

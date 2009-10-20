@@ -67,7 +67,10 @@ type
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
     FDisallowDoctype: Boolean;
+    FCanonical: Boolean;
     FMaxChars: Cardinal;
+    function GetCanonical: Boolean;
+    procedure SetCanonical(aValue: Boolean);
   public
     property Validate: Boolean read FValidate write FValidate;
     property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
@@ -78,6 +81,7 @@ type
     property Namespaces: Boolean read FNamespaces write FNamespaces;
     property DisallowDoctype: Boolean read FDisallowDoctype write FDisallowDoctype;
     property MaxChars: Cardinal read FMaxChars write FMaxChars;
+    property CanonicalForm: Boolean read GetCanonical write SetCanonical;
   end;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
@@ -337,6 +341,7 @@ type
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
+    FOwnsDoctype: Boolean;
 
     FNSHelper: TNSSupport;
     FWorkAtts: array of TPrefixedAttr;
@@ -353,6 +358,7 @@ type
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
     FDisallowDoctype: Boolean;
+    FCanonical: Boolean;
     FMaxChars: Cardinal;
 
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
@@ -681,6 +687,30 @@ function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
 begin
   Result := (ABuf.Length = Length(Arg)) and
     CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
+end;
+
+{ TDOMParseOptions }
+
+function TDOMParseOptions.GetCanonical: Boolean;
+begin
+  Result := FCanonical and FExpandEntities and FCDSectionsAsText and
+  { (not normalizeCharacters) and } FNamespaces and
+  { namespaceDeclarations and } FPreserveWhitespace;
+end;
+
+procedure TDOMParseOptions.SetCanonical(aValue: Boolean);
+begin
+  FCanonical := aValue;
+  if aValue then
+  begin
+    FExpandEntities := True;
+    FCDSectionsAsText := True;
+    FNamespaces := True;
+    FPreserveWhitespace := True;
+    { normalizeCharacters := False; }
+    { namespaceDeclarations := True; }
+    { wellFormed := True; }
+  end;
 end;
 
 { TXMLInputSource }
@@ -1421,6 +1451,7 @@ begin
   FResolveExternals := FCtrl.Options.ResolveExternals;
   FNamespaces := FCtrl.Options.Namespaces;
   FDisallowDoctype := FCtrl.Options.DisallowDoctype;
+  FCanonical := FCtrl.Options.CanonicalForm;
   FMaxChars := FCtrl.Options.MaxChars;
 end;
 
@@ -1438,6 +1469,8 @@ begin
   ClearRefs(FIDRefs);
   FNsAttHash.Free;
   FNSHelper.Free;
+  if FOwnsDoctype then
+    FDocType.Free;
 
   FNotationRefs.Free;
   FIDRefs.Free;
@@ -2100,7 +2133,10 @@ begin
     SkipS;
   finally
     // DONE: append node after its name has been set; always append to avoid leak
-    Doc.AppendChild(FDocType);
+    if FCanonical then
+      FOwnsDoctype := True
+    else
+      Doc.AppendChild(FDocType);
     FCursor := nil;
   end;
 
