@@ -6,6 +6,9 @@
 name=fcl-base
 version=2.5.1
 
+[require]
+packages_darwin=univint
+
 [target]
 units=contnrs inifiles rtfpars idea base64 gettext \
       iostream cachecls avl_tree uriparser \
