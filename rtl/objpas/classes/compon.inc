@@ -301,18 +301,18 @@ Procedure TComponent.SetDesignInstance(Value: Boolean);
 
 begin
   If Value then
-    Exclude(FComponentState, csDesignInstance)
+    Include(FComponentState, csDesignInstance)
   else
-    Include(FComponentState, csDesignInstance);
+    Exclude(FComponentState, csDesignInstance);
 end;
 
 Procedure TComponent.SetInline(Value: Boolean);
 
 begin
   If Value then
-    Exclude(FComponentState, csInline)
+    Include(FComponentState, csInline)
   else
-    Include(FComponentState, csInline);
+    Exclude(FComponentState, csInline);
 end;
 
 
