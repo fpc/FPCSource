@@ -195,10 +195,8 @@ type
     LFPos: PWideChar;
     FXML11Rules: Boolean;
     FSystemID: WideString;
-    FPublicID: WideString;
     FCharCount: Cardinal;
     function GetSystemID: WideString;
-    function GetPublicID: WideString;
   protected
     function Reload: Boolean; virtual;
   public
@@ -212,7 +210,6 @@ type
     function SetEncoding(const AEncoding: string): Boolean; virtual;
     function Matches(const arg: WideString): Boolean;
     property SystemID: WideString read GetSystemID write FSystemID;
-    property PublicID: WideString read GetPublicID write FPublicID;
   end;
 
   TXMLDecodingSource = class(TXMLCharSource)
@@ -429,7 +426,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
     procedure AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
@@ -836,16 +833,6 @@ begin
   Result := True; // always succeed
 end;
 
-function TXMLCharSource.GetPublicID: WideString;
-begin
-  if FPublicID <> '' then
-    Result := FPublicID
-  else if Assigned(FParent) then
-    Result := FParent.PublicID
-  else
-    Result := '';
-end;
-
 function TXMLCharSource.GetSystemID: WideString;
 begin
   if FSystemID <> '' then
@@ -1193,14 +1180,17 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
+  AbsSysID: WideString;
   Filename: string;
   Stream: TStream;
   fd: THandle;
 begin
   Source := nil;
   Result := False;
+  if not ResolveRelativeURI(BaseURI, SystemID, AbsSysID) then
+    Exit;
   { TODO: alternative resolvers
     These may be 'internal' resolvers or a handler set by application.
     Internal resolvers should probably produce a TStream
@@ -1216,7 +1206,6 @@ begin
       Stream := THandleOwnerStream.Create(fd);
       Source := TXMLStreamInputSource.Create(Stream, True);
       Source.SystemID := AbsSysID;    // <- Revisit: Really need absolute sysID?
-      Source.PublicID := PublicID;
     end;
   end;
   Result := Assigned(Source);
@@ -1270,9 +1259,15 @@ end;
 procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
 var
   E: EXMLReadError;
+  sysid: WideString;
 begin
   if Assigned(FSource) then
-    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, ErrPos.Line, ErrPos.LinePos, descr])
+  begin
+    sysid := FSource.FSystemID;
+    if (sysid = '') and Assigned(FSource.FEntity) then
+      sysid := TDOMEntityEx(FSource.FEntity).FURI;
+    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [sysid, ErrPos.Line, ErrPos.LinePos, descr]);
+  end
   else
     E := EXMLReadError.Create(descr);
   E.FSeverity := Severity;
@@ -1745,7 +1740,7 @@ var
 begin
   if (AEntity.SystemID <> '') and not AEntity.FResolved then
   begin
-    Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, '', Src);
+    Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src);
     if not Result then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
@@ -1756,10 +1751,11 @@ begin
   else
   begin
     Src := TXMLCharSource.Create(AEntity.FReplacementText);
-    // needed in case of prefetched external PE
-    Src.SystemID := AEntity.FURI;
     Src.FLineNo := AEntity.FStartLocation.Line;
     Src.LFPos := Src.FBuf - AEntity.FStartLocation.LinePos;
+    // needed in case of prefetched external PE
+    if AEntity.SystemID <> '' then
+      Src.SystemID := AEntity.FURI;
   end;
 
   AEntity.FOnStack := True;
@@ -1897,6 +1893,7 @@ begin
       PEnt.FCharCount := FValue.Length;
       PEnt.FStartLocation.Line := 1;
       PEnt.FStartLocation.LinePos := 1;
+      PEnt.FURI := FSource.SystemID;    // replace base URI with absolute one
     finally
       ContextPop;
       PEnt.FResolved := True;
@@ -2114,7 +2111,6 @@ end;
 procedure TXMLReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
-  DoctypeURI: WideString;
 begin
   if FState >= rsDTD then
     FatalError('Markup declaration is not allowed here');
@@ -2160,8 +2156,7 @@ begin
 
   if (FDocType.SystemID <> '') then
   begin
-    ResolveRelativeURI(FSource.SystemID, FDocType.SystemID, DoctypeURI);
-    if ResolveEntity(DocTypeURI, FDocType.PublicID, '', Src) then
+    if ResolveEntity(FDocType.SystemID, FDocType.PublicID, FSource.SystemID, Src) then
     begin
       Initialize(Src);
       try
@@ -2587,6 +2582,8 @@ begin
     CheckNCName;
     ExpectWhitespace;
 
+    // remember where the entity is declared
+    Entity.FURI := FSource.SystemID;
     if (FSource.FBuf^ = '"') or (FSource.FBuf^ = '''') then
     begin
       NDataAllowed := False;
@@ -2598,14 +2595,8 @@ begin
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
       Entity.FCharCount := FEntityValue.Length;
     end
-    else
-    begin
-      if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
-        FatalError('Expected entity value or external ID');
-      { need to resolve entity's SystemID relative to the current source,
-        which may differ from the source at the point of inclusion }
-      ResolveRelativeURI(FSource.SystemID, Entity.SystemID, Entity.FURI);
-    end;
+    else if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
+      FatalError('Expected entity value or external ID');
 
     if NDataAllowed then                // [76]
     begin
