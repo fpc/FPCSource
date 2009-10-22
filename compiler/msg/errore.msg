@@ -1501,6 +1501,8 @@ type_e_ordinal_or_string_expr_expected=04088_E_Ordinal or string expression expe
 % The expression must be an ordinal or string type.
 type_e_string_expr_expected=04089_E_String expression expected
 % The expression must be a string type.
+type_w_zero_to_nil=04090_W_Converting 0 to NIL
+% Use NIL rather than 0 when initialising a pointer. 
 % \end{description}
 #
 # Symtable
