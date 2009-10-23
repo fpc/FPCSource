@@ -473,7 +473,7 @@ Var
 begin
   Result:=IntStrToDate(Msg,S,Len,useFormat,Separator);
   If (Msg<>'') then
-    EConvertError.Create(Msg);
+    Raise EConvertError.Create(Msg);
 end;
 
 function StrToDate(const S: ShortString; const useformat : string; separator : char = #0): TDateTime;
