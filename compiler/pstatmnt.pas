@@ -363,13 +363,316 @@ implementation
 {$endif not cpu64bitaddr}
         end;
 
+        function for_loop_create(hloopvar: tnode): tnode;
+        var
+           hp,
+           hblock,
+           hto,hfrom : tnode;
+           backward : boolean;
+           loopvarsym : tabstractvarsym;
+        begin
+           { Check loop variable }
+           loopvarsym:=nil;
+
+           { variable must be an ordinal, int64 is not allowed for 32bit targets }
+           if not(is_ordinal(hloopvar.resultdef))
+  {$ifndef cpu64bitaddr}
+              or is_64bitint(hloopvar.resultdef)
+  {$endif not cpu64bitaddr}
+              then
+             MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+
+           hp:=hloopvar;
+           while assigned(hp) and
+                 (
+                  { record/object fields and array elements are allowed }
+                  { in tp7 mode only                                    }
+                  (
+                   (m_tp7 in current_settings.modeswitches) and
+                   (
+                    ((hp.nodetype=subscriptn) and
+                     ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
+                      is_object(tsubscriptnode(hp).left.resultdef))
+                    ) or
+                    { constant array index }
+                    (
+                     (hp.nodetype=vecn) and
+                     is_constintnode(tvecnode(hp).right)
+                    )
+                   )
+                  ) or
+                  { equal typeconversions }
+                  (
+                   (hp.nodetype=typeconvn) and
+                   (ttypeconvnode(hp).convtype=tc_equal)
+                  )
+                 ) do
+             begin
+               { Use the recordfield for loopvarsym }
+               if not assigned(loopvarsym) and
+                  (hp.nodetype=subscriptn) then
+                 loopvarsym:=tsubscriptnode(hp).vs;
+               hp:=tunarynode(hp).left;
+             end;
+
+           if assigned(hp) and
+              (hp.nodetype=loadn) then
+             begin
+               case tloadnode(hp).symtableentry.typ of
+                 staticvarsym,
+                 localvarsym,
+                 paravarsym :
+                   begin
+                     { we need a simple loadn:
+                         1. The load must be in a global symtable or
+                             in the same level as the para of the current proc.
+                         2. value variables (no const,out or var)
+                         3. No threadvar, readonly or typedconst
+                     }
+                     if (
+                         (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                         (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                        ) and
+                        (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
+                        ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
+                       begin
+                         { Assigning for-loop variable is only allowed in tp7 and macpas }
+                         if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
+                           begin
+                             if not assigned(loopvarsym) then
+                               loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                             include(loopvarsym.varoptions,vo_is_loop_counter);
+                           end;
+                       end
+                     else
+                       begin
+                         { Typed const is allowed in tp7 }
+                         if not(m_tp7 in current_settings.modeswitches) or
+                            not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
+                           MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                       end;
+                   end;
+                 else
+                   MessagePos(hp.fileinfo,type_e_illegal_count_var);
+               end;
+             end
+           else
+             MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
+
+           hfrom:=comp_expr(true);
+
+           if try_to_consume(_DOWNTO) then
+             backward:=true
+           else
+             begin
+               consume(_TO);
+               backward:=false;
+             end;
+
+           hto:=comp_expr(true);
+           consume(_DO);
+
+           { Check if the constants fit in the range }
+           check_range(hfrom);
+           check_range(hto);
+
+           { first set the varstate for from and to, so
+             uses of loopvar in those expressions will also
+             trigger a warning when it is not used yet. This
+             needs to be done before the instruction block is
+             parsed to have a valid hloopvar }
+           typecheckpass(hfrom);
+           set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
+           typecheckpass(hto);
+           set_varstate(hto,vs_read,[vsf_must_be_valid]);
+           typecheckpass(hloopvar);
+           { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
+           { for some subnodes                                                  }
+           set_varstate(hloopvar,vs_written,[]);
+           set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+
+           { ... now the instruction block }
+           hblock:=statement;
+
+           { variable is not used for loop counter anymore }
+           if assigned(loopvarsym) then
+             exclude(loopvarsym.varoptions,vo_is_loop_counter);
+
+           result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+        end;
+         
+        function create_type_loop(hloopvar, hloopbody, expr: tnode): tnode;
+        begin
+          result:=cfornode.create(hloopvar,
+               cinlinenode.create(in_low_x,false,expr.getcopy),
+               cinlinenode.create(in_high_x,false,expr.getcopy),
+               hloopbody,
+               false);
+        end; 
+
+        function create_string_loop(hloopvar, hloopbody, expr: tnode): tnode;
+        var
+          loopstatement, loopbodystatement: tstatementnode;
+          loopvar: ttempcreatenode;
+          stringindex, loopbody, forloopnode: tnode;
+        begin
+          { result is a block of statements }
+          result:=internalstatements(loopstatement);
+
+          { create a loop counter: signed integer with size of string length }
+          loopvar := ctempcreatenode.create(
+            sinttype,
+            sizeof(tstringdef(expr.resultdef).len),
+            tt_persistent,true);
+
+          addstatement(loopstatement,loopvar);
+
+          stringindex:=ctemprefnode.create(loopvar);
+
+          loopbody:=internalstatements(loopbodystatement);
+          // for-in loop variable := string_expression[index]
+          addstatement(loopbodystatement,
+              cassignmentnode.create(hloopvar, cvecnode.create(expr.getcopy,stringindex)));
+
+          { add the actual statement to the loop }
+          addstatement(loopbodystatement,hloopbody);
+         
+          forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+             genintconstnode(1),
+             cinlinenode.create(in_length_x,false,expr.getcopy),
+             loopbody,
+             false);
+
+          addstatement(loopstatement,forloopnode);
+          { free the loop counter }
+          addstatement(loopstatement,ctempdeletenode.create(loopvar));
+        end;
+
+
+        function create_array_loop(hloopvar, hloopbody, expr: tnode): tnode;
+        var
+          loopstatement, loopbodystatement: tstatementnode;
+          loopvar: ttempcreatenode;
+          arrayindex, loopbody, forloopnode: tnode;
+        begin
+          { result is a block of statements }
+          result:=internalstatements(loopstatement);
+
+          { create a loop counter }
+          loopvar := ctempcreatenode.create(
+            tarraydef(expr.resultdef).rangedef,
+            tarraydef(expr.resultdef).rangedef.size,
+            tt_persistent,true);
+
+          addstatement(loopstatement,loopvar);
+
+          arrayindex:=ctemprefnode.create(loopvar);
+
+          loopbody:=internalstatements(loopbodystatement);
+          // for-in loop variable := array_expression[index]
+          addstatement(loopbodystatement,
+              cassignmentnode.create(hloopvar,cvecnode.create(expr.getcopy,arrayindex)));
+
+          { add the actual statement to the loop }
+          addstatement(loopbodystatement,hloopbody);
+          
+          forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+             cinlinenode.create(in_low_x,false,expr.getcopy),
+             cinlinenode.create(in_high_x,false,expr.getcopy),
+             loopbody,
+             false);
+
+          addstatement(loopstatement,forloopnode);
+          { free the loop counter }
+          addstatement(loopstatement,ctempdeletenode.create(loopvar));
+        end;
+
+        function create_set_loop(hloopvar, hloopbody, expr: tnode): tnode;
+        var
+          loopstatement, loopbodystatement: tstatementnode;
+          loopvar, setvar: ttempcreatenode;
+          loopbody, forloopnode: tnode;
+        begin
+          { result is a block of statements }
+          result:=internalstatements(loopstatement);
+
+          { create a temp variable for expression }
+          setvar := ctempcreatenode.create(
+            expr.resultdef,
+            expr.resultdef.size,
+            tt_persistent,true);
+
+          addstatement(loopstatement,setvar);
+          addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(setvar),expr.getcopy));
+
+          { create a loop counter }
+          loopvar := ctempcreatenode.create(
+            tsetdef(expr.resultdef).elementdef,
+            tsetdef(expr.resultdef).elementdef.size,
+            tt_persistent,true);
+
+          addstatement(loopstatement,loopvar);
+
+          // if loopvar in set then
+          // begin
+          //   hloopvar := loopvar
+          //   for-in loop body
+          // end
+
+          loopbody:=cifnode.create(
+                cinnode.create(ctemprefnode.create(loopvar),ctemprefnode.create(setvar)),
+                internalstatements(loopbodystatement),
+                nil
+          );
+
+          addstatement(loopbodystatement,cassignmentnode.create(hloopvar,ctemprefnode.create(loopvar)));
+          { add the actual statement to the loop }
+          addstatement(loopbodystatement,hloopbody);
+          
+          forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+             cinlinenode.create(in_low_x,false,ctemprefnode.create(setvar)),
+             cinlinenode.create(in_high_x,false,ctemprefnode.create(setvar)),
+             loopbody,
+             false);
+
+          addstatement(loopstatement,forloopnode);
+          { free the loop counter }
+          addstatement(loopstatement,ctempdeletenode.create(loopvar));
+          { free the temp variable for expression }
+          addstatement(loopstatement,ctempdeletenode.create(setvar));
+        end;
+
+        function for_in_loop_create(hloopvar: tnode): tnode;
+        var
+          expr, hloopbody: tnode;
+        begin
+          expr := comp_expr(true);
+
+          consume(_DO);
+
+          set_varstate(hloopvar,vs_written,[]);
+          set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+
+          hloopbody:=statement;
+ 
+          if expr.nodetype=typen then
+            result:=create_type_loop(hloopvar, hloopbody, expr)
+          else
+          begin
+            { loop is made for an expression }
+            case expr.resultdef.typ of
+              stringdef: result:=create_string_loop(hloopvar, hloopbody, expr);
+              arraydef: result:=create_array_loop(hloopvar, hloopbody, expr);
+              setdef: result:=create_set_loop(hloopvar, hloopbody, expr);
+            else
+              result:=nil;
+            end;
+          end;
+          expr.free;
+        end;
+
       var
-         hp,
-         hloopvar,
-         hblock,
-         hto,hfrom : tnode;
-         backward : boolean;
-         loopvarsym : tabstractvarsym;
+         hloopvar: tnode;
       begin
          { parse loop header }
          consume(_FOR);
@@ -377,136 +680,14 @@ implementation
          hloopvar:=factor(false);
          valid_for_loopvar(hloopvar,true);
 
-         { Check loop variable }
-         loopvarsym:=nil;
 
-         { variable must be an ordinal, int64 is not allowed for 32bit targets }
-         if not(is_ordinal(hloopvar.resultdef))
-{$ifndef cpu64bitaddr}
-            or is_64bitint(hloopvar.resultdef)
-{$endif not cpu64bitaddr}
-            then
-           MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
-
-         hp:=hloopvar;
-         while assigned(hp) and
-               (
-                { record/object fields and array elements are allowed }
-                { in tp7 mode only                                    }
-                (
-                 (m_tp7 in current_settings.modeswitches) and
-                 (
-                  ((hp.nodetype=subscriptn) and
-                   ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
-                    is_object(tsubscriptnode(hp).left.resultdef))
-                  ) or
-                  { constant array index }
-                  (
-                   (hp.nodetype=vecn) and
-                   is_constintnode(tvecnode(hp).right)
-                  )
-                 )
-                ) or
-                { equal typeconversions }
-                (
-                 (hp.nodetype=typeconvn) and
-                 (ttypeconvnode(hp).convtype=tc_equal)
-                )
-               ) do
-           begin
-             { Use the recordfield for loopvarsym }
-             if not assigned(loopvarsym) and
-                (hp.nodetype=subscriptn) then
-               loopvarsym:=tsubscriptnode(hp).vs;
-             hp:=tunarynode(hp).left;
-           end;
-
-         if assigned(hp) and
-            (hp.nodetype=loadn) then
-           begin
-             case tloadnode(hp).symtableentry.typ of
-               staticvarsym,
-               localvarsym,
-               paravarsym :
-                 begin
-                   { we need a simple loadn:
-                       1. The load must be in a global symtable or
-                           in the same level as the para of the current proc.
-                       2. value variables (no const,out or var)
-                       3. No threadvar, readonly or typedconst
-                   }
-                   if (
-                       (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                       (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-                      ) and
-                      (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
-                      ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
-                     begin
-                       { Assigning for-loop variable is only allowed in tp7 and macpas }
-                       if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
-                         begin
-                           if not assigned(loopvarsym) then
-                             loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
-                           include(loopvarsym.varoptions,vo_is_loop_counter);
-                         end;
-                     end
-                   else
-                     begin
-                       { Typed const is allowed in tp7 }
-                       if not(m_tp7 in current_settings.modeswitches) or
-                          not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                     end;
-                 end;
-               else
-                 MessagePos(hp.fileinfo,type_e_illegal_count_var);
-             end;
-           end
+         if try_to_consume(_ASSIGNMENT) then
+           result:=for_loop_create(hloopvar)
          else
-           MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
-
-         consume(_ASSIGNMENT);
-
-         hfrom:=comp_expr(true);
-
-         if try_to_consume(_DOWNTO) then
-           backward:=true
+         if try_to_consume(_IN) then
+           result:=for_in_loop_create(hloopvar)
          else
-           begin
-             consume(_TO);
-             backward:=false;
-           end;
-
-         hto:=comp_expr(true);
-         consume(_DO);
-
-         { Check if the constants fit in the range }
-         check_range(hfrom);
-         check_range(hto);
-
-         { first set the varstate for from and to, so
-           uses of loopvar in those expressions will also
-           trigger a warning when it is not used yet. This
-           needs to be done before the instruction block is
-           parsed to have a valid hloopvar }
-         typecheckpass(hfrom);
-         set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
-         typecheckpass(hto);
-         set_varstate(hto,vs_read,[vsf_must_be_valid]);
-         typecheckpass(hloopvar);
-         { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
-         { for some subnodes                                                  }
-         set_varstate(hloopvar,vs_written,[]);
-         set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
-
-         { ... now the instruction block }
-         hblock:=statement;
-
-         { variable is not used for loop counter anymore }
-         if assigned(loopvarsym) then
-           exclude(loopvarsym.varoptions,vo_is_loop_counter);
-
-         result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+           consume(_ASSIGNMENT); // fail
       end;
 
 
