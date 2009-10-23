@@ -395,10 +395,11 @@ implementation
         old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
-        explicit_paraloc : boolean;
         locationstr : string;
         paranr : integer;
         dummytype : ttypesym;
+        explicit_paraloc,
+        need_array: boolean;
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
@@ -497,7 +498,16 @@ implementation
            begin
              consume(_COLON);
              { check for an open array }
-             if token=_ARRAY then
+             need_array:=false;
+             { bitpacked open array are not yet supported }
+             if (token=_PACKED) and
+                not(cs_bitpacking in current_settings.localswitches) then
+               begin
+                 consume(_PACKED);
+                 need_array:=true;
+               end;
+             if (token=_ARRAY) or
+                need_array then
               begin
                 consume(_ARRAY);
                 consume(_OF);

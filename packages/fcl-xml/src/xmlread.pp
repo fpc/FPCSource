@@ -67,7 +67,10 @@ type
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
     FDisallowDoctype: Boolean;
+    FCanonical: Boolean;
     FMaxChars: Cardinal;
+    function GetCanonical: Boolean;
+    procedure SetCanonical(aValue: Boolean);
   public
     property Validate: Boolean read FValidate write FValidate;
     property PreserveWhitespace: Boolean read FPreserveWhitespace write FPreserveWhitespace;
@@ -78,6 +81,7 @@ type
     property Namespaces: Boolean read FNamespaces write FNamespaces;
     property DisallowDoctype: Boolean read FDisallowDoctype write FDisallowDoctype;
     property MaxChars: Cardinal read FMaxChars write FMaxChars;
+    property CanonicalForm: Boolean read GetCanonical write SetCanonical;
   end;
 
   // NOTE: DOM 3 LS ACTION_TYPE enumeration starts at 1
@@ -191,10 +195,8 @@ type
     LFPos: PWideChar;
     FXML11Rules: Boolean;
     FSystemID: WideString;
-    FPublicID: WideString;
     FCharCount: Cardinal;
     function GetSystemID: WideString;
-    function GetPublicID: WideString;
   protected
     function Reload: Boolean; virtual;
   public
@@ -208,7 +210,6 @@ type
     function SetEncoding(const AEncoding: string): Boolean; virtual;
     function Matches(const arg: WideString): Boolean;
     property SystemID: WideString read GetSystemID write FSystemID;
-    property PublicID: WideString read GetPublicID write FPublicID;
   end;
 
   TXMLDecodingSource = class(TXMLCharSource)
@@ -337,6 +338,7 @@ type
     FDTDStartPos: PWideChar;
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
+    FOwnsDoctype: Boolean;
 
     FNSHelper: TNSSupport;
     FWorkAtts: array of TPrefixedAttr;
@@ -353,6 +355,7 @@ type
     FResolveExternals: Boolean;
     FNamespaces: Boolean;
     FDisallowDoctype: Boolean;
+    FCanonical: Boolean;
     FMaxChars: Cardinal;
 
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
@@ -423,7 +426,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
     procedure AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
@@ -683,6 +686,30 @@ begin
     CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
 end;
 
+{ TDOMParseOptions }
+
+function TDOMParseOptions.GetCanonical: Boolean;
+begin
+  Result := FCanonical and FExpandEntities and FCDSectionsAsText and
+  { (not normalizeCharacters) and } FNamespaces and
+  { namespaceDeclarations and } FPreserveWhitespace;
+end;
+
+procedure TDOMParseOptions.SetCanonical(aValue: Boolean);
+begin
+  FCanonical := aValue;
+  if aValue then
+  begin
+    FExpandEntities := True;
+    FCDSectionsAsText := True;
+    FNamespaces := True;
+    FPreserveWhitespace := True;
+    { normalizeCharacters := False; }
+    { namespaceDeclarations := True; }
+    { wellFormed := True; }
+  end;
+end;
+
 { TXMLInputSource }
 
 constructor TXMLInputSource.Create(AStream: TStream);
@@ -804,16 +831,6 @@ end;
 function TXMLCharSource.SetEncoding(const AEncoding: string): Boolean;
 begin
   Result := True; // always succeed
-end;
-
-function TXMLCharSource.GetPublicID: WideString;
-begin
-  if FPublicID <> '' then
-    Result := FPublicID
-  else if Assigned(FParent) then
-    Result := FParent.PublicID
-  else
-    Result := '';
 end;
 
 function TXMLCharSource.GetSystemID: WideString;
@@ -1163,14 +1180,17 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const AbsSysID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
+  AbsSysID: WideString;
   Filename: string;
   Stream: TStream;
   fd: THandle;
 begin
   Source := nil;
   Result := False;
+  if not ResolveRelativeURI(BaseURI, SystemID, AbsSysID) then
+    Exit;
   { TODO: alternative resolvers
     These may be 'internal' resolvers or a handler set by application.
     Internal resolvers should probably produce a TStream
@@ -1186,7 +1206,6 @@ begin
       Stream := THandleOwnerStream.Create(fd);
       Source := TXMLStreamInputSource.Create(Stream, True);
       Source.SystemID := AbsSysID;    // <- Revisit: Really need absolute sysID?
-      Source.PublicID := PublicID;
     end;
   end;
   Result := Assigned(Source);
@@ -1240,9 +1259,15 @@ end;
 procedure TXMLReader.DoErrorPos(Severity: TErrorSeverity; const descr: string; const ErrPos: TLocation);
 var
   E: EXMLReadError;
+  sysid: WideString;
 begin
   if Assigned(FSource) then
-    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [FSource.SystemID, ErrPos.Line, ErrPos.LinePos, descr])
+  begin
+    sysid := FSource.FSystemID;
+    if (sysid = '') and Assigned(FSource.FEntity) then
+      sysid := TDOMEntityEx(FSource.FEntity).FURI;
+    E := EXMLReadError.CreateFmt('In ''%s'' (line %d pos %d): %s', [sysid, ErrPos.Line, ErrPos.LinePos, descr]);
+  end
   else
     E := EXMLReadError.Create(descr);
   E.FSeverity := Severity;
@@ -1421,6 +1446,7 @@ begin
   FResolveExternals := FCtrl.Options.ResolveExternals;
   FNamespaces := FCtrl.Options.Namespaces;
   FDisallowDoctype := FCtrl.Options.DisallowDoctype;
+  FCanonical := FCtrl.Options.CanonicalForm;
   FMaxChars := FCtrl.Options.MaxChars;
 end;
 
@@ -1438,6 +1464,8 @@ begin
   ClearRefs(FIDRefs);
   FNsAttHash.Free;
   FNSHelper.Free;
+  if FOwnsDoctype then
+    FDocType.Free;
 
   FNotationRefs.Free;
   FIDRefs.Free;
@@ -1712,7 +1740,7 @@ var
 begin
   if (AEntity.SystemID <> '') and not AEntity.FResolved then
   begin
-    Result := ResolveEntity(AEntity.FURI, AEntity.PublicID, '', Src);
+    Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src);
     if not Result then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here 
@@ -1723,10 +1751,11 @@ begin
   else
   begin
     Src := TXMLCharSource.Create(AEntity.FReplacementText);
-    // needed in case of prefetched external PE
-    Src.SystemID := AEntity.FURI;
     Src.FLineNo := AEntity.FStartLocation.Line;
     Src.LFPos := Src.FBuf - AEntity.FStartLocation.LinePos;
+    // needed in case of prefetched external PE
+    if AEntity.SystemID <> '' then
+      Src.SystemID := AEntity.FURI;
   end;
 
   AEntity.FOnStack := True;
@@ -1864,6 +1893,7 @@ begin
       PEnt.FCharCount := FValue.Length;
       PEnt.FStartLocation.Line := 1;
       PEnt.FStartLocation.LinePos := 1;
+      PEnt.FURI := FSource.SystemID;    // replace base URI with absolute one
     finally
       ContextPop;
       PEnt.FResolved := True;
@@ -1994,10 +2024,10 @@ var
   IsXML11: Boolean;
 begin
   SkipS(True);
-  // VersionInfo: optional in TextDecl, required in XmlDecl
+  // [24] VersionInfo: optional in TextDecl, required in XmlDecl
   if (not TextDecl) or (FSource.FBuf^ = 'v') then
   begin
-    ExpectString('version');                              // [24]
+    ExpectString('version');
     ExpectEq;
     SkipQuotedLiteral(TmpStr);
     IsXML11 := False;
@@ -2011,19 +2041,17 @@ begin
     begin
       if doc.InheritsFrom(TXMLDocument) then
         TXMLDocument(doc).XMLVersion := TmpStr;
-      if IsXML11 then
-        XML11_BuildTables;
     end
     else   // parsing external entity
       if IsXML11 and not FXML11 then
         FatalError('XML 1.0 document cannot invoke XML 1.1 entities', -1);
 
-    if FSource.FBuf^ <> '?' then
+    if TextDecl or (FSource.FBuf^ <> '?') then
       SkipS(True);
   end;
 
-  // EncodingDecl: required in TextDecl, optional in XmlDecl
-  if TextDecl or (FSource.FBuf^ = 'e') then                    // [80]
+  // [80] EncodingDecl: required in TextDecl, optional in XmlDecl
+  if TextDecl or (FSource.FBuf^ = 'e') then
   begin
     ExpectString('encoding');
     ExpectEq;
@@ -2040,10 +2068,10 @@ begin
       TXMLDocument(doc).Encoding := TmpStr;
 
     if FSource.FBuf^ <> '?' then
-      SkipS(True);
+      SkipS(not TextDecl);
   end;
 
-  // SDDecl: forbidden in TextDecl, optional in XmlDecl
+  // [32] SDDecl: forbidden in TextDecl, optional in XmlDecl
   if (not TextDecl) and (FSource.FBuf^ = 's') then
   begin
     ExpectString('standalone');
@@ -2057,6 +2085,10 @@ begin
   end;
 
   ExpectString('?>');
+  { Switch to 1.1 rules only after declaration is parsed completely. This is to
+    ensure that NEL and LSEP within declaration are rejected (rmt-056, rmt-057) }
+  if (not TextDecl) and IsXML11 then
+    XML11_BuildTables;
 end;
 
 procedure TXMLReader.DTDReloadHook;
@@ -2081,7 +2113,6 @@ end;
 procedure TXMLReader.ParseDoctypeDecl;    // [28]
 var
   Src: TXMLCharSource;
-  DoctypeURI: WideString;
 begin
   if FState >= rsDTD then
     FatalError('Markup declaration is not allowed here');
@@ -2100,7 +2131,10 @@ begin
     SkipS;
   finally
     // DONE: append node after its name has been set; always append to avoid leak
-    Doc.AppendChild(FDocType);
+    if FCanonical then
+      FOwnsDoctype := True
+    else
+      Doc.AppendChild(FDocType);
     FCursor := nil;
   end;
 
@@ -2124,8 +2158,7 @@ begin
 
   if (FDocType.SystemID <> '') then
   begin
-    ResolveRelativeURI(FSource.SystemID, FDocType.SystemID, DoctypeURI);
-    if ResolveEntity(DocTypeURI, FDocType.PublicID, '', Src) then
+    if ResolveEntity(FDocType.SystemID, FDocType.PublicID, FSource.SystemID, Src) then
     begin
       Initialize(Src);
       try
@@ -2551,6 +2584,8 @@ begin
     CheckNCName;
     ExpectWhitespace;
 
+    // remember where the entity is declared
+    Entity.FURI := FSource.SystemID;
     if (FSource.FBuf^ = '"') or (FSource.FBuf^ = '''') then
     begin
       NDataAllowed := False;
@@ -2562,14 +2597,8 @@ begin
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
       Entity.FCharCount := FEntityValue.Length;
     end
-    else
-    begin
-      if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
-        FatalError('Expected entity value or external ID');
-      { need to resolve entity's SystemID relative to the current source,
-        which may differ from the source at the point of inclusion }
-      ResolveRelativeURI(FSource.SystemID, Entity.SystemID, Entity.FURI);
-    end;
+    else if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
+      FatalError('Expected entity value or external ID');
 
     if NDataAllowed then                // [76]
     begin

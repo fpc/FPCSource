@@ -1110,13 +1110,14 @@ var
         else if Node.NodeName <> NodeTestString then
           exit;
       ntTextNode:
-        if not Node.InheritsFrom(TDOMCharacterData) then
+        if not Node.InheritsFrom(TDOMText) then
           exit;
       ntCommentNode:
         if Node.NodeType <> COMMENT_NODE then
           exit;
       ntPINode:
-        if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
+        if (Node.NodeType <> PROCESSING_INSTRUCTION_NODE) or
+         ((NodeTestString <> '') and (Node.nodeName <> NodeTestString)) then
           exit;
     end;
     if ResultNodes.IndexOf(Node) < 0 then
@@ -1947,7 +1948,6 @@ begin
           NextToken;   { skip '('; we know it's there }
           if NextToken = tkString then
           begin
-            // TODO: Handle processing-instruction('name') constructs
             Dest.NodeTestString := CurTokenString;
             NextToken;
           end;

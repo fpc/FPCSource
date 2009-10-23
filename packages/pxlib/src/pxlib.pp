@@ -369,7 +369,9 @@ var
   PX_put_data_byte : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:cchar);cdecl;
   PX_put_data_bcd : procedure(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar);cdecl;
   PX_put_data_blob : function(pxdoc:Ppxdoc_t; data:pcchar; len:cint; value:pcchar; valuelen:cint):cint;cdecl;
+{$ifndef windows}
   PX_SdnToGregorian : procedure(sdn:clong; pYear:pcint; pMonth:pcint; pDay:pcint);cdecl;
+{$endif}
   PX_GregorianToSdn : function(year:cint; month:cint; day:cint):clong;cdecl;
   PX_make_time : function(pxdoc:Ppxdoc_t; hour:cint; minute:cint; second:cint):Ppxval_t;cdecl;
   PX_make_date : function(pxdoc:Ppxdoc_t; year:cint; month:cint; day:cint):Ppxval_t;cdecl;
@@ -472,7 +474,9 @@ begin
   PX_put_data_byte:=nil;
   PX_put_data_bcd:=nil;
   PX_put_data_blob:=nil;
+{$ifndef windows}
   PX_SdnToGregorian:=nil;
+{$endif}  
   PX_GregorianToSdn:=nil;
   PX_make_time:=nil;
   PX_make_date:=nil;
@@ -563,7 +567,9 @@ begin
   pointer(PX_put_data_byte):=GetProcAddress(hlib,'PX_put_data_byte');
   pointer(PX_put_data_bcd):=GetProcAddress(hlib,'PX_put_data_bcd');
   pointer(PX_put_data_blob):=GetProcAddress(hlib,'PX_put_data_blob');
+{$ifndef windows}
   pointer(PX_SdnToGregorian):=GetProcAddress(hlib,'PX_SdnToGregorian');
+{$endif windows}  
   pointer(PX_GregorianToSdn):=GetProcAddress(hlib,'PX_GregorianToSdn');
   pointer(PX_make_time):=GetProcAddress(hlib,'PX_make_time');
   pointer(PX_make_date):=GetProcAddress(hlib,'PX_make_date');

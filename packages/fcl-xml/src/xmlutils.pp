@@ -110,7 +110,11 @@ type
     Prefix: PHashItem;
   end;
 
-  TAttributeAction = (aaUnchanged, aaPrefix, aaBoth);
+  TAttributeAction = (
+    aaUnchanged,
+    aaPrefix,         // only override the prefix
+    aaBoth            // override prefix and emit namespace definition
+  );
 
   TNSSupport = class(TObject)
   private
@@ -494,8 +498,7 @@ begin
   else
   begin
     New(Result);
-    // SetString for WideStrings trims on zero chars
-    // need to investigate and report
+    // SetString for WideStrings trims on zero chars [fixed, #14740]
     SetLength(Result^.Key, KeyLength);
     Move(Key^, Pointer(Result^.Key)^, KeyLength*sizeof(WideChar));
     Result^.HashValue := h;
@@ -709,7 +712,7 @@ begin
   result.uri := nsURI;
   result.Prefix := aPrefix;
   result.PrevPrefixBinding := aPrefix^.Data;
-  aPrefix^.Data := result; // ** null binding not used here **
+  aPrefix^.Data := result;
 end;
 
 function TNSSupport.DefaultNSBinding: TBinding;
@@ -742,47 +745,49 @@ var
 begin
   Binding := nil;
   Pfx := nil;
-  if Prefix <> '' then
-    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
   Result := aaUnchanged;
-  // no prefix, not bound, or bound to wrong URI
-  if (Pfx = nil) or (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
+  if Prefix <> '' then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix))
+  else if nsURI = '' then
+    Exit;
+  { if the prefix is already bound to correct URI, we're done }
+  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = nsURI) then
+    Exit;
+
+  { see if there's another prefix bound to the target URI }
+  // TODO: should use something faster than linear search
+  for i := FNesting downto 0 do
   begin
-    // see if there's another prefix bound to the target URI
-    // TODO: should use something faster than linear search
-    for i := FNesting downto 0 do
+    b := FBindingStack[i];
+    while Assigned(b) do
     begin
-      b := FBindingStack[i];
-      while Assigned(b) do
+      if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
       begin
-        if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
-        begin
-          Binding := b;   // found one -> override the attribute's prefix
-          Result := aaPrefix;
-          Exit;
-        end;
-        b := b.Next;
+        Binding := b;   // found one -> override the attribute's prefix
+        Result := aaPrefix;
+        Exit;
       end;
+      b := b.Next;
     end;
-    // no prefix, or bound (to wrong URI) -> must use generated prefix instead
-    if (Pfx = nil) or Assigned(Pfx^.Data) then
-    repeat
-      Inc(FPrefixSeqNo);
-      i := FPrefixSeqNo;    // This is just 'NS'+IntToStr(FPrefixSeqNo);
-      p := @Buf[high(Buf)]; // done without using strings
-      while i <> 0 do
-      begin
-        p^ := WideChar(i mod 10+ord('0'));
-        dec(p);
-        i := i div 10;
-      end;
-      p^ := 'S'; dec(p);
-      p^ := 'N';
-      Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
-    until Pfx^.Data = nil;
-    Binding := BindPrefix(nsURI, Pfx);
-    Result := aaBoth;
   end;
+  { no prefix, or bound (to wrong URI) -> use generated prefix instead }
+  if (Pfx = nil) or Assigned(Pfx^.Data) then
+  repeat
+    Inc(FPrefixSeqNo);
+    i := FPrefixSeqNo;    // This is just 'NS'+IntToStr(FPrefixSeqNo);
+    p := @Buf[high(Buf)]; // done without using strings
+    while i <> 0 do
+    begin
+      p^ := WideChar(i mod 10+ord('0'));
+      dec(p);
+      i := i div 10;
+    end;
+    p^ := 'S'; dec(p);
+    p^ := 'N';
+    Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
+  until Pfx^.Data = nil;
+  Binding := BindPrefix(nsURI, Pfx);
+  Result := aaBoth;
 end;
 
 function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out

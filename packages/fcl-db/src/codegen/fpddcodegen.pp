@@ -1279,6 +1279,8 @@ begin
     begin
     Addln(Strings,'Unit '+CodeOptions.UnitName+';');
     Addln(Strings);
+    Addln(Strings, '{$mode objfpc}{$H+}');
+    Addln(Strings);
     Addln(Strings,'Interface');
     Addln(Strings);
     S:=GetInterfaceUsesClause;

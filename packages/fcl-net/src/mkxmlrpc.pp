@@ -738,7 +738,7 @@ begin
         // Create dispatcher method
         ProcMember := TPasProcedure.Create('Dispatch', ServerClass);
         ProcMember.Visibility := visProtected;
-        ProcMember.IsOverride := True;
+        ProcMember.AddModifier(pmOverride);
         ProcMember.ProcType := TPasProcedureType.Create('', ProcMember);
         ProcMember.ProcType.CreateArgument('AParser', 'TXMLRPCParser').
           Visibility := visPublic;
