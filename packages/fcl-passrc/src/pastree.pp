@@ -76,6 +76,8 @@ type
   TPasMemberVisibility = (visDefault, visPrivate, visProtected, visPublic,
     visPublished, visAutomated);
 
+  TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
+
   TPasMemberVisibilities = set of TPasMemberVisibility;
   TPasMemberHint = (hDeprecated,hLibrary,hPlatform);
   TPasMemberHints = set of TPasMemberHint; 
@@ -445,7 +447,19 @@ type
     Overloads: TList;           // List of TPasProcedure nodes
   end;
 
+  TProcedureModifier = (pmVirtual, pmDynamic, pmAbstract, pmOverride,
+                        pmExported, pmOverload, pmMessage, pmReintroduce,
+                        pmStatic,pmInline,pmAssembler,pmVarargs,
+                        pmCompilerProc,pmExternal,pmExtdecl);
+  TProcedureModifiers = Set of TProcedureModifier;
+  TProcedureMessageType = (pmtInteger,pmtString);
+                        
   TPasProcedure = class(TPasProcedureBase)
+  Private
+    FCallingConvention : TCallingConvention;
+    FModifiers : TProcedureModifiers;
+    FMessageName : String;
+    FMessageType : TProcedureMessageType;
   public
     destructor Destroy; override;
     function ElementTypeName: string; override;
@@ -453,9 +467,21 @@ type
     function GetDeclaration(full: Boolean): string; override;
     procedure GetModifiers(List: TStrings);
   public
-    ProcType: TPasProcedureType;
-    IsVirtual, IsDynamic, IsAbstract, IsOverride,
-      IsOverload, IsMessage, isReintroduced, isStatic: Boolean;
+    ProcType : TPasProcedureType;
+    Procedure AddModifier(AModifier : TProcedureModifier);
+    Function IsVirtual : Boolean;
+    Function IsDynamic : Boolean;
+    Function IsAbstract : Boolean;
+    Function IsOverride : Boolean;
+    Function IsExported : Boolean;
+    Function IsOverload : Boolean;
+    Function IsMessage: Boolean;
+    Function IsReintroduced : Boolean;
+    Function IsStatic : Boolean;
+    Property Modifiers : TProcedureModifiers Read FModifiers Write FModifiers;
+    Property CallingConvention : TCallingConvention Read FCallingConvention Write FCallingConvention;
+    Property MessageName : String Read FMessageName Write FMessageName;
+    property MessageType : TProcedureMessageType Read FMessageType Write FMessageType;
   end;
 
   TPasFunction = class(TPasProcedure)
@@ -1555,6 +1581,58 @@ begin
   DoAdd(IsReintroduced,' Reintroduce');
   DoAdd(IsStatic,' Static');
   DoAdd(IsMessage,' Message');
+end;
+
+Procedure TPasProcedure.AddModifier(AModifier : TProcedureModifier);
+
+begin
+  Include(FModifiers,AModifier);
+end;
+
+Function TPasProcedure.IsVirtual : Boolean;
+begin
+  Result:=pmVirtual in FModifiers;
+end;
+
+Function TPasProcedure.IsDynamic : Boolean;
+begin
+  Result:=pmDynamic in FModifiers;
+end;
+
+Function TPasProcedure.IsAbstract : Boolean;
+begin
+  Result:=pmAbstract in FModifiers;
+end;
+
+Function TPasProcedure.IsOverride : Boolean;
+begin
+  Result:=pmOverride in FModifiers;
+end;
+
+Function TPasProcedure.IsExported : Boolean;
+begin
+  Result:=pmExported in FModifiers;
+end;
+
+Function TPasProcedure.IsOverload : Boolean;
+begin
+  Result:=pmOverload in FModifiers;
+end;
+
+Function TPasProcedure.IsMessage: Boolean;
+begin
+  Result:=pmMessage in FModifiers;
+end;
+
+Function TPasProcedure.IsReintroduced : Boolean;
+begin
+  Result:=pmReintroduce in FModifiers;
+end;
+
+Function TPasProcedure.IsStatic : Boolean;
+
+begin
+  Result:=pmStatic in FModifiers;
 end;
 
 function TPasProcedure.GetDeclaration (full : boolean) : string;
