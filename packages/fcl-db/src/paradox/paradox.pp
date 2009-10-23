@@ -633,7 +633,7 @@ var
   No,pft,flen : integer;
   pxf          : PPx_field;
   Value        : Pchar;
-  Y,M,D        : cint;
+  D            : clong;
   longv        : Clong;
   R            : Double;
   c            : Char;
@@ -656,7 +656,9 @@ begin
         If result then
           begin
           Move(Value^,Buffer^,flen);
-          doc^.free(doc,value);
+          If (Flen<=Field.DataSize) then
+            Pchar(Buffer)[flen]:=#0;
+          FDoc^.free(FDoc,value);
           end;
         end;
       pxfDate:
@@ -695,7 +697,7 @@ begin
         begin
         Result:=(PX_get_data_byte(FDoc,Buf,flen,@C)>0);
         If result then
-          PBoolean(Buffer)^:=(C<>#0);
+          PWordBool(Buffer)^:=(C<>#0);
         end;
       pxfBytes:
         begin
@@ -728,9 +730,9 @@ begin
           begin
           R:=R/1000.0;
           longv:=trunc(R /86400);
-          PX_SdnToGregorian(longv+1721425,@Y,@M,@D);
+          D:=Longv+1721425-2415019;
           longv:=(Trunc(r) mod 86400);
-          PDateTime(Buffer)^:=EncodeDate(Y,M,d)+(Longv/MSecsPerday);
+          PDateTime(Buffer)^:=D+(Longv/MSecsPerday);
           end;
         end;
       pxfBCD:
