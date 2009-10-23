@@ -563,11 +563,32 @@ implementation
         function create_array_loop(hloopvar, hloopbody, expr: tnode): tnode;
         var
           loopstatement, loopbodystatement: tstatementnode;
-          loopvar: ttempcreatenode;
-          arrayindex, loopbody, forloopnode: tnode;
+          loopvar, arrayvar: ttempcreatenode;
+          arrayindex, lowbound, highbound, loopbody, forloopnode: tnode;
         begin
           { result is a block of statements }
           result:=internalstatements(loopstatement);
+
+          if not is_open_array(expr.resultdef) then
+          begin
+            { create a temp variable for expression }
+            arrayvar := ctempcreatenode.create(
+              expr.resultdef,
+              expr.resultdef.size,
+              tt_persistent,true);
+
+            lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
+            highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+
+            addstatement(loopstatement,arrayvar);
+            addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expr.getcopy));
+          end
+          else
+          begin
+            arrayvar:=nil;
+            lowbound:=cinlinenode.create(in_low_x,false,expr.getcopy);
+            highbound:=cinlinenode.create(in_high_x,false,expr.getcopy);
+          end;
 
           { create a loop counter }
           loopvar := ctempcreatenode.create(
@@ -576,6 +597,7 @@ implementation
             tt_persistent,true);
 
           addstatement(loopstatement,loopvar);
+
 
           arrayindex:=ctemprefnode.create(loopvar);
 
@@ -588,14 +610,17 @@ implementation
           addstatement(loopbodystatement,hloopbody);
           
           forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-             cinlinenode.create(in_low_x,false,expr.getcopy),
-             cinlinenode.create(in_high_x,false,expr.getcopy),
+             lowbound,
+             highbound,
              loopbody,
              false);
 
           addstatement(loopstatement,forloopnode);
           { free the loop counter }
           addstatement(loopstatement,ctempdeletenode.create(loopvar));
+          { free the temp variable for expression if needed }
+          if arrayvar<>nil then
+            addstatement(loopstatement,ctempdeletenode.create(arrayvar));
         end;
 
         function create_set_loop(hloopvar, hloopbody, expr: tnode): tnode;
