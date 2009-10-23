@@ -513,16 +513,25 @@ implementation
         function create_string_loop(hloopvar, hloopbody, expr: tnode): tnode;
         var
           loopstatement, loopbodystatement: tstatementnode;
-          loopvar: ttempcreatenode;
+          loopvar, stringvar: ttempcreatenode;
           stringindex, loopbody, forloopnode: tnode;
         begin
           { result is a block of statements }
           result:=internalstatements(loopstatement);
 
+          { create a temp variable for expression }
+          stringvar := ctempcreatenode.create(
+            expr.resultdef,
+            expr.resultdef.size,
+            tt_persistent,true);
+
+          addstatement(loopstatement,stringvar);
+          addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(stringvar),expr.getcopy));
+
           { create a loop counter: signed integer with size of string length }
           loopvar := ctempcreatenode.create(
             sinttype,
-            sizeof(tstringdef(expr.resultdef).len),
+            sinttype.size,
             tt_persistent,true);
 
           addstatement(loopstatement,loopvar);
@@ -532,20 +541,22 @@ implementation
           loopbody:=internalstatements(loopbodystatement);
           // for-in loop variable := string_expression[index]
           addstatement(loopbodystatement,
-              cassignmentnode.create(hloopvar, cvecnode.create(expr.getcopy,stringindex)));
+              cassignmentnode.create(hloopvar, cvecnode.create(ctemprefnode.create(stringvar),stringindex)));
 
           { add the actual statement to the loop }
           addstatement(loopbodystatement,hloopbody);
          
           forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
              genintconstnode(1),
-             cinlinenode.create(in_length_x,false,expr.getcopy),
+             cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar)),
              loopbody,
              false);
 
           addstatement(loopstatement,forloopnode);
           { free the loop counter }
           addstatement(loopstatement,ctempdeletenode.create(loopvar));
+          { free the temp variable for expression }
+          addstatement(loopstatement,ctempdeletenode.create(stringvar));
         end;
 
 
