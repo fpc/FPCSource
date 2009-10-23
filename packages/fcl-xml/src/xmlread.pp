@@ -2024,10 +2024,10 @@ var
   IsXML11: Boolean;
 begin
   SkipS(True);
-  // VersionInfo: optional in TextDecl, required in XmlDecl
+  // [24] VersionInfo: optional in TextDecl, required in XmlDecl
   if (not TextDecl) or (FSource.FBuf^ = 'v') then
   begin
-    ExpectString('version');                              // [24]
+    ExpectString('version');
     ExpectEq;
     SkipQuotedLiteral(TmpStr);
     IsXML11 := False;
@@ -2041,19 +2041,17 @@ begin
     begin
       if doc.InheritsFrom(TXMLDocument) then
         TXMLDocument(doc).XMLVersion := TmpStr;
-      if IsXML11 then
-        XML11_BuildTables;
     end
     else   // parsing external entity
       if IsXML11 and not FXML11 then
         FatalError('XML 1.0 document cannot invoke XML 1.1 entities', -1);
 
-    if FSource.FBuf^ <> '?' then
+    if TextDecl or (FSource.FBuf^ <> '?') then
       SkipS(True);
   end;
 
-  // EncodingDecl: required in TextDecl, optional in XmlDecl
-  if TextDecl or (FSource.FBuf^ = 'e') then                    // [80]
+  // [80] EncodingDecl: required in TextDecl, optional in XmlDecl
+  if TextDecl or (FSource.FBuf^ = 'e') then
   begin
     ExpectString('encoding');
     ExpectEq;
@@ -2070,10 +2068,10 @@ begin
       TXMLDocument(doc).Encoding := TmpStr;
 
     if FSource.FBuf^ <> '?' then
-      SkipS(True);
+      SkipS(not TextDecl);
   end;
 
-  // SDDecl: forbidden in TextDecl, optional in XmlDecl
+  // [32] SDDecl: forbidden in TextDecl, optional in XmlDecl
   if (not TextDecl) and (FSource.FBuf^ = 's') then
   begin
     ExpectString('standalone');
@@ -2087,6 +2085,10 @@ begin
   end;
 
   ExpectString('?>');
+  { Switch to 1.1 rules only after declaration is parsed completely. This is to
+    ensure that NEL and LSEP within declaration are rejected (rmt-056, rmt-057) }
+  if (not TextDecl) and IsXML11 then
+    XML11_BuildTables;
 end;
 
 procedure TXMLReader.DTDReloadHook;
