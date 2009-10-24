@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='amunits';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Nils Sjoholm';
     P.License := 'LGPL with modification';

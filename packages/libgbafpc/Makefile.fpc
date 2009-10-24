@@ -4,7 +4,7 @@
 
 [package]
 name=libgbafpc
-version=2.2.4a
+version=2.4.0rc1
 
 [target]
 loaders=core_asm

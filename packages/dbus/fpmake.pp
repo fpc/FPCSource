@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='dbus';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Library: Red Hat, header: Unknown (but probably Sebastian Guenther)';
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';

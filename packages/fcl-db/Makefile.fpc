@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-db
-version=2.2.2
+version=2.4.0rc1
 
 [target]
 dirs=src/sdf src/memds src/sqldb src/base 

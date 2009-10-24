@@ -18,7 +18,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='ptc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
     P.IncludePath.Add('src/dos',[go32v2]);

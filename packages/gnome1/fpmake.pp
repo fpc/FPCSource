@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='gnome1';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     P.OSes:=AllUnixOSes;
 
     P.Author := 'Library: Gnome project, header: FPC team';

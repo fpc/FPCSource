@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libc';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Peter Vreman and Michael van Canneyt (?)';
     P.License := 'LGPL with modification, ';

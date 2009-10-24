@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='chm';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Andrew Haines';
     P.License := 'LGPL with modification, ';
@@ -27,7 +27,7 @@ begin
     P.NeedLibC:= false;
 
     D:=P.Dependencies.Add('fcl-xml');
-    D.Version:='2.2.2-0';
+    D.Version:='2.4.0rc1';
     
     P.SourcePath.Add('src');
 

@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fpvectorial';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     P.Author := 'Felipe Monteiro de Carvalho, Pedro Sol Pegorini L de Lima';
     P.License := 'LGPL with static linking modification ';
     P.HomepageURL := 'www.freepascal.org';

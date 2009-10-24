@@ -17,7 +17,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='winunits-jedi';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     P.OSes:=[win32,win64];
     P.Author := 'Marcel van Brakel, Jedi-apilib team';
     P.License := 'LGPL with modification/MPL dual licensed ';

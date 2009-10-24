@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='opengl';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     P.OSes:=AllUnixOSes+[Win32,Win64];
 
     P.Dependencies.Add('x11',AllUnixOSes);

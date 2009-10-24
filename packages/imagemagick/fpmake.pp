@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='imagemagick';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Library: ImageMagick Studio LLC , header: Felipe Monteiro de Carvalho';
     P.License := 'Library: Imagemagick license, header: LGPL with modification, ';

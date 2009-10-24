@@ -4,7 +4,7 @@
 
 [package]
 name=oracle
-version=2.2.2
+version=2.4.0rc1
 
 [target]
 units=oci ocidyn oratypes oraoci

@@ -4,7 +4,7 @@
 
 [package]
 name=palmunits
-version=2.2.2
+version=2.4.0rc1
 
 [target]
 units=aboutbox alarmmgr applaunchcmd attentionmgr bitmap category chars clipboard \

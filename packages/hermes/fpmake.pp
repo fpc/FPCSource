@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='hermes';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
 
     P.Author := 'Library: Peter Mattis, Spencer Kimball and Josh MacDonald, header: Nikolay Nikolov';
     P.License := 'Library: GPL2, header: LGPL with modification, ';

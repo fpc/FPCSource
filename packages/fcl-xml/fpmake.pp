@@ -17,11 +17,11 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='fcl-xml';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.0rc1';
     D:=P.Dependencies.Add('paszlib');
-      D.Version:='2.2.2-0';
+      D.Version:='2.4.0rc1';
     D:=P.Dependencies.Add('fcl-base');
-      D.Version:='2.2.2-0';
+      D.Version:='2.4.0rc1';
 
     P.Author := 'Sebastian Guenther, Sergei Gorelkin and FPC development team';
     P.License := 'LGPL with modification, ';
