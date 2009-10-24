@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03255 is the last used one
+# 03257 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1195,6 +1195,12 @@ parser_e_sealed_descendant=03254_E_Can not create a descendant of the sealed cla
 % Sealed means that class can not be derived by another class.
 parser_e_sealed_class_cannot_have_abstract_methods=03255_E_SEALED class can not have an ABSTRACT method
 % Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
+parser_e_only_virtual_methods_final=03256_E_Only virtual methods can be final
+% You are declaring a method as final, when it is not declared to be
+% virtual.
+parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: "$1"
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
 % \end{description}
 #
 # Type Checking
