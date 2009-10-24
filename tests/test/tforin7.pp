@@ -1,20 +1,21 @@
-program tforin5;
+program tforin7;
 
 {$APPTYPE CONSOLE}
 
 type
-  TMyList = class
-  end;
-
   { TMyListEnumerator }
 
-  TMyListEnumerator = class
+  TMyListEnumerator = object
   private
     FCurrent: Integer;
   public
     constructor Create;
-    function MoveNext: Boolean;
-    property Current: Integer read FCurrent;
+    destructor Destroy;
+    function StepNext: Boolean; enumerator MoveNext;
+    property Value: Integer read FCurrent; enumerator Current;
+  end;
+
+  TMyList = class
   end;
 
 { TMyListEnumerator }
@@ -24,7 +25,12 @@ begin
   FCurrent := 0;
 end;
 
-function TMyListEnumerator.MoveNext: Boolean;
+destructor TMyListEnumerator.Destroy;
+begin
+  inherited;
+end;
+
+function TMyListEnumerator.StepNext: Boolean;
 begin
   inc(FCurrent);
   Result := FCurrent <= 3;
@@ -32,7 +38,7 @@ end;
 
 operator enumerator (AList: TMyList): TMyListEnumerator;
 begin
-  Result := TMyListEnumerator.Create;
+  Result.Create;
 end;
 
 var

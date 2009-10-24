@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03257 is the last used one
+# 03263 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1201,6 +1201,18 @@ parser_e_only_virtual_methods_final=03256_E_Only virtual methods can be final
 parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: "$1"
 % You are trying to \var{override} a virtual method of a parent class that does
 % not exist.
+parser_e_invalid_enumerator_identifier=03258_E_Invalid enumerator identifier: "$1"
+% Only "MoveNext" and "Current" enumerator identifiers are supported.
+parser_e_enumerator_identifier_required=03259_E_Enumerator identifier required
+% "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
+parser_e_enumerator_movenext_is_not_valid=03260_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type.
+% "MoveNext" enumerator pattern method must be a function with Boolean return type
+parser_e_enumerator_current_is_not_valid=03261_E_Enumerator Current pattern property is not valid. Property must have a getter.
+% "Current" enumerator pattern property must have a getter
+parser_e_only_one_enumerator_movenext=03262_E_Only one enumerator MoveNext method is allowed per class/object
+% Class or Object can have only one enumerator MoveNext declaration.
+parser_e_only_one_enumerator_current=03263_E_Only one enumerator Current property is allowed per class/object
+% Class or Object can have only one enumerator Current declaration.
 % \end{description}
 #
 # Type Checking

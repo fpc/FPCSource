@@ -345,6 +345,12 @@ const
   parser_e_sealed_class_cannot_have_abstract_methods=03255;
   parser_e_only_virtual_methods_final=03256;
   parser_e_final_can_no_be_overridden=03257;
+  parser_e_invalid_enumerator_identifier=03258;
+  parser_e_enumerator_identifier_required=03259;
+  parser_e_enumerator_movenext_is_not_valid=03260;
+  parser_e_enumerator_current_is_not_valid=03261;
+  parser_e_only_one_enumerator_movenext=03262;
+  parser_e_only_one_enumerator_current=03263;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -803,9 +809,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52261;
+  MsgTxtSize = 52689;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,258,91,70,50,108,22,202,62,
+    24,87,264,91,70,50,108,22,202,62,
     48,20,1,1,1,1,1,1,1,1
   );

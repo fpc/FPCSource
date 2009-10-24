@@ -99,6 +99,7 @@ interface
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           function find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
@@ -654,6 +655,23 @@ implementation
                     result:=pd;
                     exit;
                   end;
+              end;
+          end;
+      end;
+
+    function tprocsym.find_procdef_byoptions(ops: tprocoptions): Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if ops * pd.procoptions = ops then
+              begin
+                result:=pd;
+                exit;
               end;
           end;
       end;
