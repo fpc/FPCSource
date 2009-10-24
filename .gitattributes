@@ -8213,6 +8213,7 @@ tests/test/tforin1.pp svneol=native#text/pascal
 tests/test/tforin2.pp svneol=native#text/pascal
 tests/test/tforin3.pp svneol=native#text/pascal
 tests/test/tforin4.pp svneol=native#text/pascal
+tests/test/tforin5.pp svneol=native#text/pascal
 tests/test/tfpu1.pp svneol=native#text/plain
 tests/test/tfpu2.pp svneol=native#text/plain
 tests/test/tfpu3.pp svneol=native#text/plain

@@ -710,6 +710,7 @@ implementation
             enum_get_params:=ccallparanode.create(expr.getcopy,nil);
             enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
             tcallnode(enum_get).procdefinition:=enumerator_get;
+            addsymref(enumerator_get.procsym);
           end
           else
             enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
