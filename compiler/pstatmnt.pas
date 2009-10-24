@@ -769,16 +769,27 @@ implementation
                 ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
                   enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
             end;
-          end;
-
-          { if getenumerator <> nil then do the loop }
-          addstatement(loopstatement,
-            cifnode.create(
+            { if getenumerator <> nil then do the loop }
+            whileloopnode:=cifnode.create(
               caddnode.create(unequaln, ctemprefnode.create(enumvar), cnilnode.create),
               whileloopnode,
               nil
-              )
-            );
+              );
+          end;
+
+          addstatement(loopstatement, whileloopnode);
+
+          if is_object(enumerator_get.returndef) then
+          begin
+            // call the object destructor too
+            enumerator_destructor:=tobjectdef(enumerator_get.returndef).Finddestructor;
+            if assigned(enumerator_destructor) then
+            begin
+              addstatement(loopstatement,
+                ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+            end;
+          end;
 
           { free the temp variable for enumerator }
           addstatement(loopstatement,ctempdeletenode.create(enumvar));
