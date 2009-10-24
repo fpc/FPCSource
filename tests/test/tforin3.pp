@@ -1,4 +1,4 @@
-program Project18;
+program tforin3;
 
 {$APPTYPE CONSOLE}
 

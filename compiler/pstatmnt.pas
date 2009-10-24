@@ -569,7 +569,7 @@ implementation
           { result is a block of statements }
           result:=internalstatements(loopstatement);
 
-          if not is_open_array(expr.resultdef) then
+          if (node_complexity(expr) > 1) and not is_open_array(expr.resultdef) then
           begin
             { create a temp variable for expression }
             arrayvar := ctempcreatenode.create(
@@ -598,13 +598,16 @@ implementation
 
           addstatement(loopstatement,loopvar);
 
-
           arrayindex:=ctemprefnode.create(loopvar);
 
           loopbody:=internalstatements(loopbodystatement);
           // for-in loop variable := array_expression[index]
-          addstatement(loopbodystatement,
-              cassignmentnode.create(hloopvar,cvecnode.create(expr.getcopy,arrayindex)));
+          if assigned(arrayvar) then
+            addstatement(loopbodystatement,
+                cassignmentnode.create(hloopvar,cvecnode.create(ctemprefnode.create(arrayvar),arrayindex)))
+          else
+            addstatement(loopbodystatement,
+                cassignmentnode.create(hloopvar,cvecnode.create(expr.getcopy,arrayindex)));
 
           { add the actual statement to the loop }
           addstatement(loopbodystatement,hloopbody);
