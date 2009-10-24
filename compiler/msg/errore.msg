@@ -1513,7 +1513,7 @@ type_w_zero_to_nil=04090_W_Converting 0 to NIL
 #
 # Symtable
 #
-# 05066 is the last used one
+# 05069 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1693,6 +1693,16 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
+sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
+% This means that compiler can not find an apropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% GetEnumerator method to the class or object definition.
+sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator "$1"
+% This means that compiler can not find a public MoveNext method with the Boolean return type in
+% the enumerator class or object definition.
+sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
+% This means that compiler can not find a public Current property in  the enumerator class or object 
+% definition.
 % \end{description}
 #
 # Codegenerator

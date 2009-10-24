@@ -678,9 +678,113 @@ implementation
           addstatement(loopstatement,ctempdeletenode.create(setvar));
         end;
 
+        function create_enumerator_loop(hloopvar, hloopbody, expr: tnode;
+           enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
+        var
+          loopstatement, loopbodystatement: tstatementnode;
+          enumvar: ttempcreatenode;
+          loopbody, whileloopnode,
+          enum_get, enum_move, enum_current, enum_get_params: tnode;
+          propaccesslist: tpropaccesslist;
+          enumerator_is_class: boolean;
+          enumerator_destructor: tprocdef;
+        begin
+          { result is a block of statements }
+          result:=internalstatements(loopstatement);
+
+          enumerator_is_class := is_class(enumerator_get.returndef);
+
+          { create a temp variable for enumerator }
+          enumvar := ctempcreatenode.create(
+            enumerator_get.returndef,
+            enumerator_get.returndef.size,
+            tt_persistent,true);
+
+          addstatement(loopstatement,enumvar);
+
+          if enumerator_get.proctypeoption=potype_operator then
+          begin
+            enum_get_params:=ccallparanode.create(expr.getcopy,nil);
+            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
+            tcallnode(enum_get).procdefinition:=enumerator_get;
+          end
+          else
+            enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
+
+          addstatement(loopstatement,
+            cassignmentnode.create(
+              ctemprefnode.create(enumvar),
+              enum_get
+            ));
+
+          loopbody:=internalstatements(loopbodystatement);
+          { for-in loop variable := enumerator.current }
+          if getpropaccesslist(enumerator_current,palt_read,propaccesslist) then
+          begin
+             case propaccesslist.firstsym^.sym.typ of
+               fieldvarsym :
+                 begin
+                    { generate access code }
+                    enum_current:=ctemprefnode.create(enumvar);
+                    propaccesslist_to_node(enum_current,enumerator_current.owner,propaccesslist);
+                    include(enum_current.flags,nf_isproperty);
+                 end;
+               procsym :
+                 begin
+                    { generate the method call }
+                    enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[]);
+                    include(enum_current.flags,nf_isproperty);
+                 end
+               else
+                 begin
+                    enum_current:=cerrornode.create;
+                    Message(type_e_mismatch);
+                 end;
+            end;
+          end
+          else
+            enum_current:=cerrornode.create;
+
+          addstatement(loopbodystatement,
+              cassignmentnode.create(hloopvar, enum_current));
+
+          { add the actual statement to the loop }
+          addstatement(loopbodystatement,hloopbody);
+
+          enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), []);
+          whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false);
+
+          if enumerator_is_class then
+          begin
+            { insert a try-finally and call the destructor for the enumerator in the finally section }
+            enumerator_destructor:=tobjectdef(enumerator_get.returndef).Finddestructor;
+            if assigned(enumerator_destructor) then
+            begin
+              whileloopnode:=ctryfinallynode.create(
+                whileloopnode, // try node
+                ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
+                  enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+            end;
+          end;
+
+          { if getenumerator <> nil then do the loop }
+          addstatement(loopstatement,
+            cifnode.create(
+              caddnode.create(unequaln, ctemprefnode.create(enumvar), cnilnode.create),
+              whileloopnode,
+              nil
+              )
+            );
+
+          { free the temp variable for enumerator }
+          addstatement(loopstatement,ctempdeletenode.create(enumvar));
+        end;
+
         function for_in_loop_create(hloopvar: tnode): tnode;
         var
           expr, hloopbody: tnode;
+          pd, movenext: tprocdef;
+          current: tpropertysym;
         begin
           expr := comp_expr(true);
 
@@ -696,12 +800,44 @@ implementation
           else
           begin
             { loop is made for an expression }
-            case expr.resultdef.typ of
-              stringdef: result:=create_string_loop(hloopvar, hloopbody, expr);
-              arraydef: result:=create_array_loop(hloopvar, hloopbody, expr);
-              setdef: result:=create_set_loop(hloopvar, hloopbody, expr);
+            // search for operator first
+            pd:=search_enumerator_operator(expr.resultdef);
+            // if there is no operator then search for class/object enumerator method
+            if (pd=nil) and (expr.resultdef.typ=objectdef) then
+              pd:=tobjectdef(expr.resultdef).search_enumerator_get;
+            if pd<>nil then
+            begin
+              // seach movenext and current symbols
+              movenext:=tobjectdef(pd.returndef).search_enumerator_move;
+              if movenext = nil then
+              begin
+                result:=cerrornode.create;
+                Message1(sym_e_no_enumerator_move,pd.returndef.GetTypeName);
+              end
+              else
+              begin
+                current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+                if current = nil then
+                begin
+                  result:=cerrornode.create;
+                  Message1(sym_e_no_enumerator_current,pd.returndef.GetTypeName);
+                end
+                else
+                  result:=create_enumerator_loop(hloopvar, hloopbody, expr, pd, movenext, current);
+              end;
+            end
             else
-              result:=nil;
+            begin
+              case expr.resultdef.typ of
+                stringdef: result:=create_string_loop(hloopvar, hloopbody, expr);
+                arraydef: result:=create_array_loop(hloopvar, hloopbody, expr);
+                setdef: result:=create_set_loop(hloopvar, hloopbody, expr);
+              else
+                begin
+                  result:=cerrornode.create;
+                  Message1(sym_e_no_enumerator,expr.resultdef.GetTypeName);
+                end;
+              end;
             end;
           end;
           expr.free;

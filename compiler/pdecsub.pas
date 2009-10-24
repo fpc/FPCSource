@@ -1069,17 +1069,22 @@ implementation
                end
               else
                begin
+                 { Use the dummy NOTOKEN that is also declared
+                   for the overloaded_operator[] }
+                 optoken:=NOTOKEN;
                  case token of
                    _CARET:
                      Message1(parser_e_overload_operator_failed,'**');
+                   _ID:
+                     if idtoken = _ENUMERATOR then
+                       optoken := _OP_ENUMERATOR
+                     else
+                       Message1(parser_e_overload_operator_failed,'');
                    _UNEQUAL:
                      Message1(parser_e_overload_operator_failed,'=');
                    else
                      Message1(parser_e_overload_operator_failed,'');
                  end;
-                 { Use the dummy NOTOKEN that is also declared
-                   for the overloaded_operator[] }
-                 optoken:=NOTOKEN;
                end;
               consume(token);
               parse_proc_head(aclass,potype_operator,pd);

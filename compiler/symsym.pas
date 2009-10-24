@@ -79,6 +79,8 @@ interface
           constructor create;
        end;
 
+       { tprocsym }
+
        tprocsym = class(tstoredsym)
        protected
           FProcdefList   : TFPObjectList;
@@ -99,6 +101,7 @@ interface
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
+          function find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -655,7 +658,6 @@ implementation
           end;
       end;
 
-
     function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
         i  : longint;
@@ -751,6 +753,60 @@ implementation
                         bestpd:=pd;
                         besteq:=eq;
                       end;
+                  end;
+              end;
+          end;
+        result:=bestpd;
+      end;
+
+      function Tprocsym.find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
+      var
+        paraidx,
+        i  : longint;
+        bestpd,
+        hpd,
+        pd : tprocdef;
+        convtyp : tconverttype;
+        eq      : tequaltype;
+      begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil.}
+        result:=nil;
+        bestpd:=nil;
+        besteq:=te_incompatible;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            paraidx:=0;
+            { ignore vs_hidden parameters }
+            while (paraidx<pd.paras.count) and
+                  assigned(pd.paras[paraidx]) and
+                  (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
+              inc(paraidx);
+            if (paraidx<pd.paras.count) and
+               assigned(pd.paras[paraidx]) then
+              begin
+                eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+
+                { alias? if yes, only l1 choice,
+                  if you mess with this code, check tw4093 }
+                if (eq=te_exact) and
+                   (typedef<>tparavarsym(pd.paras[paraidx]).vardef) and
+                   ((df_unique in typedef.defoptions) or
+                   (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
+                  eq:=te_convert_l1;
+
+                if eq=te_exact then
+                  begin
+                    besteq:=eq;
+                    result:=pd;
+                    exit;
+                  end;
+                if eq>besteq then
+                  begin
+                    bestpd:=pd;
+                    besteq:=eq;
                   end;
               end;
           end;
