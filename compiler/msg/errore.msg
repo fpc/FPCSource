@@ -1513,7 +1513,7 @@ type_w_zero_to_nil=04090_W_Converting 0 to NIL
 #
 # Symtable
 #
-# 05064 is the last used one
+# 05065 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1684,6 +1684,10 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
+sym_w_library_symbol=05065_W_Symbol "$1" is belongs to a library
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{library} is used. Library symbols may not be
+% available in other libraries.
 % \end{description}
 #
 # Codegenerator

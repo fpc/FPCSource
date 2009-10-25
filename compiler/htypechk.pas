@@ -2615,6 +2615,8 @@ implementation
           Message1(sym_w_experimental_symbol,srsym.realname);
         if sp_hint_platform in symoptions then
           Message1(sym_w_non_portable_symbol,srsym.realname);
+        if sp_hint_library in symoptions then
+          Message1(sym_w_library_symbol,srsym.realname);
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;
