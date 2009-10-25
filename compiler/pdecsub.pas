@@ -2092,7 +2092,7 @@ const
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_ENUMERATOR;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object];
       handler  : @pd_enumerator;
       pocall   : pocall_none;
       pooption : [po_enumerator_movenext];
