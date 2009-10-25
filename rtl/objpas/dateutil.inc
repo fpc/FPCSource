@@ -1857,7 +1857,7 @@ Function CompareDate(const A, B: TDateTime): TValueRelationship;
 begin
   If SameDate(A,B) then
     Result:=EQualsValue
-  else if Trunc(A)<Trunc(B) then
+  else if A<B then
     Result:=LessThanValue
   else
     Result:=GreaterThanValue;
