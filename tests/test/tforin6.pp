@@ -1,5 +1,8 @@
 program tforin6;
 
+// test Object enumerator implementation
+
+{$mode objfpc}{$H+}
 {$APPTYPE CONSOLE}
 
 type

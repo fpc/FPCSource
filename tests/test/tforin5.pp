@@ -1,5 +1,8 @@
 program tforin5;
 
+// test operator Enumerator support for classes
+
+{$mode objfpc}{$H+}
 {$APPTYPE CONSOLE}
 
 type

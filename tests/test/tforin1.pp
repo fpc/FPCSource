@@ -1,5 +1,7 @@
 program tforin1;
 
+// test for-in loop for the basic types: Enumeration, Range, Array, String and Set
+
 {$mode objfpc}{$H+}
 {$apptype console}
 uses

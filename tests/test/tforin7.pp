@@ -1,5 +1,8 @@
 program tforin7;
 
+// test 'enumerator MoveNext' and 'enumrator Current' directives
+
+{$mode objfpc}{$H+}
 {$APPTYPE CONSOLE}
 
 type

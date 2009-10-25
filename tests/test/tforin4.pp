@@ -1,5 +1,8 @@
 program tforin4;
 
+// test that for-in loop allows array modifications inside the loop body
+
+{$mode objfpc}{$H+}
 {$APPTYPE CONSOLE}
 
 type

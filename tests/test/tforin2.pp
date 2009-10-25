@@ -1,5 +1,7 @@
 program tforin2;
 
+// test operator Enumerator for the string type and built-in into RTL TStrings enumerator
+
 {$mode objfpc}{$H+}
 {$apptype console}
 uses

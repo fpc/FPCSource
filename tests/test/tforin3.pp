@@ -1,8 +1,9 @@
 program tforin3;
 
-{$APPTYPE CONSOLE}
+// check for-in loop if GetEnumerator returns nil
 
-// check the GetEnumerator nil return
+{$mode objfpc}{$H+}
+{$APPTYPE CONSOLE}
 
 type
 
