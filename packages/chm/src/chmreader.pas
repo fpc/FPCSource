@@ -930,7 +930,6 @@ var Index   : TMemoryStream;
 function  AbortAndTryTextual:tchmsitemap;
 
 begin
-     Result := nil;
      if Assigned(Index) Then Index.Free;
      // Second Try text Index
      Index := GetObject(IndexFile);
