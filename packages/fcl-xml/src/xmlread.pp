@@ -883,7 +883,11 @@ begin
   if (FBufEnd >= FBuf + Length(arg)) or Reload then
     Result := CompareMem(Pointer(arg), FBuf, Length(arg)*sizeof(WideChar));
   if Result then
+  begin
     Inc(FBuf, Length(arg));
+    if FBuf >= FBufEnd then
+      Reload;
+  end;
 end;
 
 { TXMLDecodingSource }
@@ -2018,10 +2022,16 @@ begin
     FatalError('Unterminated processing instruction', -1);
 end;
 
+const
+  verStr: array[Boolean] of WideString = ('1.0', '1.1');
+
 procedure TXMLReader.ParseXmlOrTextDecl(TextDecl: Boolean);
 var
   TmpStr: WideString;
   IsXML11: Boolean;
+  Delim: WideChar;
+  buf: array[0..31] of WideChar;
+  I: Integer;
 begin
   SkipS(True);
   // [24] VersionInfo: optional in TextDecl, required in XmlDecl
@@ -2029,18 +2039,26 @@ begin
   begin
     ExpectString('version');
     ExpectEq;
-    SkipQuotedLiteral(TmpStr);
-    IsXML11 := False;
-    if TmpStr = '1.1' then     // Checking for bad chars is implied
-      IsXML11 := True
-    else if TmpStr <> '1.0' then
-    { should be no whitespace in these literals, but that isn't checked now }
+    SkipQuote(Delim);
+    StoreLocation(FTokenStart);
+    I := 0;
+    while (I < 3) and (FSource.FBuf^ <> Delim) do
+    begin
+      buf[I] := FSource.FBuf^;
+      Inc(I);
+      FSource.NextChar;
+    end;
+    if (I <> 3) or (buf[0] <> '1') or (buf[1] <> '.') or
+      ((buf[2] <> '0') and (buf[2] <> '1')) then
       FatalError('Illegal version number', -1);
+
+    ExpectChar(Delim);
+    IsXML11 := buf[2] = '1';
 
     if not TextDecl then
     begin
       if doc.InheritsFrom(TXMLDocument) then
-        TXMLDocument(doc).XMLVersion := TmpStr;
+        TXMLDocument(doc).XMLVersion := verStr[IsXML11];  // buf[0..2] works with FPC only
     end
     else   // parsing external entity
       if IsXML11 and not FXML11 then
@@ -2055,13 +2073,22 @@ begin
   begin
     ExpectString('encoding');
     ExpectEq;
-    SkipQuotedLiteral(TmpStr);
+    SkipQuote(Delim);
+    I := 0;
+    while (I < 30) and (FSource.FBuf^ <> Delim) and (FSource.FBuf^ < #127) and
+      ((Char(ord(FSource.FBuf^)) in ['A'..'Z', 'a'..'z']) or
+      ((I > 0) and (Char(ord(FSource.FBuf^)) in ['0'..'9', '.', '-', '_']))) do
+    begin
+      buf[I] := FSource.FBuf^;
+      Inc(I);
+      FSource.NextChar;
+    end;
+    if not CheckForChar(Delim) then
+      FatalError('Illegal encoding name', i);
 
-    if not IsValidXmlEncoding(TmpStr) then
-      FatalError('Illegal encoding name', -1);
-
+    SetString(TmpStr, buf, i);
     if not FSource.SetEncoding(TmpStr) then  // <-- Wide2Ansi conversion here
-      FatalError('Encoding ''%s'' is not supported', [TmpStr], -1);
+      FatalError('Encoding ''%s'' is not supported', [TmpStr], i+1);
     // getting here means that specified encoding is supported
     // TODO: maybe assign the 'preferred' encoding name?
     if not TextDecl and doc.InheritsFrom(TXMLDocument) then
@@ -2076,11 +2103,13 @@ begin
   begin
     ExpectString('standalone');
     ExpectEq;
-    SkipQuotedLiteral(TmpStr);
-    if TmpStr = 'yes' then
+    SkipQuote(Delim);
+    StoreLocation(FTokenStart);
+    if FSource.Matches('yes') then
       FStandalone := True
-    else if TmpStr <> 'no' then
+    else if not FSource.Matches('no') then
       FatalError('Only "yes" or "no" are permitted as values of "standalone"', -1);
+    ExpectChar(Delim);
     SkipS;
   end;
 
