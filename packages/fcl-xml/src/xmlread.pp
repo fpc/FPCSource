@@ -3227,7 +3227,7 @@ begin
       { detect duplicates }
       J := FWorkAtts[I].PrefixLen+1;
 
-      if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J) then
+      if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
         FatalError('Duplicate prefixed attribute');
 
       // convert Attr into namespaced one (by hack for the time being)
