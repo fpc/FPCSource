@@ -978,7 +978,7 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat);
+    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,Separator);
     Result:=(Msg='');
     end;
 end;
