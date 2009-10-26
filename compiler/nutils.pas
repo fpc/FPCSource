@@ -344,6 +344,10 @@ implementation
       var
         pd : tprocdef;
       begin
+        result:=nil;
+        { is not assigned while parsing a property }
+        if not assigned(current_procinfo) then
+          exit;
         { we can't use searchsym here, because the
           symtablestack is not fully setup when pass1
           is run for nested procedures }
