@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, comobj, ActiveX;
 
-{define DEBUG_COM}
+{$define DEBUG_COM}
 
 //according to doc
 // * ComServer Variable

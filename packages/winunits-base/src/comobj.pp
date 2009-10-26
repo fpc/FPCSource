@@ -18,7 +18,7 @@ unit comobj;
 
   interface
 
-{define DEBUG_COM}
+{$define DEBUG_COM}
 
     uses
       Windows,Types,Variants,Sysutils,ActiveX,classes;
