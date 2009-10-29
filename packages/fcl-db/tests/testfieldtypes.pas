@@ -926,7 +926,7 @@ end;
 
 procedure TTestFieldTypes.TestEmptyUpdateQuery;
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update fpdev set name=''nothing'' where (1=0)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set name=''nothing'' where (1=0)');
 end;
 
 procedure TTestFieldTypes.TestStringLargerThen8192;
@@ -1238,7 +1238,7 @@ begin
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     Connection.ExecuteDirect('insert into FPDEV2(ID,"NAME-TEST") values (1,''test1'')');
-    Query.SQL.Text := 'select * from fpdev2';
+    Query.SQL.Text := 'select * from FPDEV2';
     Query.Open;
     AssertEquals(1,Query.FieldByName('ID').AsInteger);
     AssertEquals('test1',Query.FieldByName('NAME-TEST').AsString);
