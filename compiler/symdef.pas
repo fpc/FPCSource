@@ -2769,7 +2769,7 @@ implementation
            begin
              b:=ppufile.getbyte;
              if b<>sizeof(funcretloc[callerside]) then
-               internalerror(200411154);
+               internalerror(200411155);
              ppufile.getdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
            end;
 
