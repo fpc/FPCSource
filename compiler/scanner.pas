@@ -391,6 +391,14 @@ implementation
            if (cs_support_exceptions in current_settings.globalswitches) then
              include(current_settings.modeswitches,m_except);
 
+           { Default strict string var checking in TP/Delphi modes }
+           if ([m_delphi,m_tp7] * current_settings.modeswitches <> []) then
+             begin
+               include(current_settings.localswitches,cs_strict_var_strings);
+               if changeinit then
+                 include(init_settings.localswitches,cs_strict_var_strings);
+             end;
+
             { Undefine old symbol }
             if (m_delphi in oldmodeswitches) then
               undef_system_macro('FPC_DELPHI')

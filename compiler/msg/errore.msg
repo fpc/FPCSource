@@ -1280,7 +1280,7 @@ type_w_convert_real_2_comp=04014_W_Automatic type conversion from floating type 
 type_h_use_div_for_int=04015_H_use DIV instead to get an integer result
 % When hints are on, then an integer division with the '/' operator will
 % produce this message, because the result will then be of type real.
-type_e_strict_var_string_violation=04016_E_string types doesn't match, because of $V+ mode
+type_e_strict_var_string_violation=04016_E_String types have to match exactly in $V+ mode
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
 type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ or pred on enums with assignments not possible
