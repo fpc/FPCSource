@@ -779,8 +779,9 @@ begin
     VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
     if AParams[ParNr].IsNull then
       begin
-      If Assigned(VSQLVar^.SQLInd) then
-        VSQLVar^.SQLInd^ := -1;
+      If not Assigned(VSQLVar^.SQLInd) then
+        DatabaseErrorFmt(SNullParamNotAllowed,[AParams[ParNr].Name],Self);
+      VSQLVar^.SQLInd^ := -1;
       end
     else
       begin
