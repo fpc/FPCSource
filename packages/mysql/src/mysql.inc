@@ -22,12 +22,9 @@
 interface
 
 uses
-{$IFDEF LOAD_DYNAMICALLY}
-      sysutils,
-{$ENDIF}
-     dynlibs,ctypes;
+  dynlibs, ctypes;
 
-{$IFDEF Unix}
+{$IFDEF UNIX}
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.'+sharedsuffix;
@@ -41,7 +38,7 @@ uses
   {$ENDIF}
 
 {$ENDIF}
-{$IFDEF Windows}
+{$IFDEF WINDOWS}
   {$DEFINE extdecl:=stdcall}
   const
     mysqllib = 'libmysql.dll';
