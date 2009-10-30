@@ -13,8 +13,8 @@ interface
 
 uses
   ctypes, dynlibs;
-{$IFDEF LOAD_DYNAMICALLY}
-{$ELSE}
+
+{$IFNDEF LOAD_DYNAMICALLY}
   {$IFDEF darwin}
     {$linklib sqlite3}
   {$ENDIF}
@@ -5729,7 +5729,7 @@ var
 function InitialiseSqlite: Integer; deprecated;
 function InitialiseSqlite(const LibraryName: String): Integer; deprecated;
 function TryInitialiseSqlite(const LibraryName: string): Integer; deprecated;
-{$ENDIF LOAD_DYNAMICALLY}
+{$ENDIF}
 
 implementation
 
@@ -5912,7 +5912,7 @@ end;
 
 function InitializeSqlite: Integer;
 begin
-  Result := InitializeSqlite(sqlite3lib);
+  Result := InitializeLibrary(SqliteLibrary, sqlite3lib);
 end;
 
 function InitializeSqlite(const LibraryName: String): Integer;
