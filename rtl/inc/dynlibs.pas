@@ -101,7 +101,7 @@ procedure RaiseLibraryException(var Handler: TLibHandler);
 
 function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer;
   const ErrorSym: PPLibSymbol = nil): Boolean;
-procedure ClearLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer);
+procedure ClearLibrarySymbols(const Symbols: PLibSymbol; const Count: Integer);
 
 
 // these are for easier crossplatform construction of dll names in dynloading libs.
@@ -266,6 +266,7 @@ begin
   begin
     if Assigned(Handler.Unloading) then
       Handler.Unloading(User, @Handler);
+    ClearLibrarySymbols(Handler.Symbols, Handler.SymCount);
     UnloadLibrary(Handler.Handle);
     Handler.Handle := NilHandle;
     Handler.Filename := '';
@@ -311,7 +312,7 @@ begin
   Result := True;
 end;
 
-procedure ClearLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer);
+procedure ClearLibrarySymbols(const Symbols: PLibSymbol; const Count: Integer);
 var
   P,L: PLibSymbol;
 begin
