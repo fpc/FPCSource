@@ -896,4 +896,41 @@ function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
   runerror(217);
 end;
+
+constructor TProxyStream.Create(const Stream: IStream);
+begin
+  FStream := Stream;
+end;
+
+function TProxyStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  Check(FStream.Read(@Buffer, Count, @Result));
+end;
+
+function TProxyStream.Seek(Offset: Longint; Origin: Word): Longint;
+var
+  Pos: Int64;
+begin
+  Check(FStream.Seek(Offset, Origin, Pos));
+  Result := Pos;
+end;
+
+function TProxyStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  Check(FStream.Write(@Buffer, Count, @Result));
+end;
+
+function TProxyStream.GetIStream: IStream;
+begin
+  Result := FStream;
+end; 
+
+procedure TProxyStream.Check(err:integer);
+var e : EInOutError;
+begin 
+  e:= EInOutError.Create('Proxystream.Check');
+  e.Errorcode:=err;
+  raise e;
+end;
+
 {$warnings on}

@@ -46,6 +46,10 @@ unit comobj;
 
       EOleRegistrationError = class(EOleError);
 
+      TOleStream = Class(TProxyStream)
+                  procedure Check(err:integer);override;
+		end;
+
       TComServerObject = class(TObject)
       protected
         function CountObject(Created: Boolean): Integer; virtual; abstract;
@@ -1278,6 +1282,11 @@ HKCR
         //un/register typed library
         RunError(217);
       end;
+
+procedure TOleStream.Check(err:integer);
+begin
+  OleCheck(err);
+end;
 
 
 const
