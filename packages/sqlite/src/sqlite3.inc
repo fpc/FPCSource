@@ -12,22 +12,19 @@
 interface
 
 uses
-  ctypes,
+  ctypes, dynlibs;
 {$IFDEF LOAD_DYNAMICALLY}
-  SysUtils, RtlConsts, DynLibs;
 {$ELSE}
-  DynLibs;
-
-{$IFDEF darwin}
-{$linklib sqlite3}
-{$ENDIF}
+  {$IFDEF darwin}
+    {$linklib sqlite3}
+  {$ENDIF}
 {$ENDIF}
 
 const
 {$IFDEF WINDOWS}
-  Sqlite3Lib = 'sqlite3.dll';
+  sqlite3lib = 'sqlite3.dll';
 {$ELSE}
-  Sqlite3Lib = 'libsqlite3.'+sharedsuffix;
+  sqlite3lib = 'libsqlite3.'+sharedsuffix;
 {$ENDIF}
 
 {$IFDEF LOAD_DYNAMICALLY}
@@ -137,8 +134,8 @@ const
 **          a pointer to the [sqlite3_version] string constant.
 *)
 //SQLITE_EXTERN const char sqlite3_version[];
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion_number{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion{$IFDEF D}: function{$ENDIF}(): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_libversion_number{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 function sqlite3_version(): pchar;
 
 (*
@@ -165,7 +162,7 @@ function sqlite3_version(): pchar;
 **          SQLite was compiled with its mutexes enabled or zero
 **          if SQLite was compiled with mutexes disabled.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_threadsafe{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_threadsafe{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Database Connection Handle {F12000}
@@ -279,7 +276,7 @@ type
 ** {U12016} The parameter to [sqlite3_close()] must not have been previously
 **          closed.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_close{$IFDEF D}: function{$ENDIF}(ref: psqlite3): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_close{$IFDEF D}: function{$ENDIF}(ref: psqlite3): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** The type for a callback function.
@@ -390,7 +387,7 @@ type
   cb: sqlite3_callback;                      (* Callback function *)
   user: pointer;                             (* 1st argument to callback *)
   errmsg: ppchar                             (* Error msg written here *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Result Codes {F10210}
@@ -885,7 +882,7 @@ const
 **          [database connection] D if the F parameter
 **          is true, or disable them if F is false.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_extended_result_codes{$IFDEF D}: function{$ENDIF}(db: psqlite3; onoff: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_extended_result_codes{$IFDEF D}: function{$ENDIF}(db: psqlite3; onoff: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Last Insert Rowid {F12220}
@@ -942,7 +939,7 @@ const
 **          unpredictable and might not equal either the old or the new
 **          last insert rowid.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_last_insert_rowid{$IFDEF D}: function{$ENDIF}(db: psqlite3): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_last_insert_rowid{$IFDEF D}: function{$ENDIF}(db: psqlite3): sqlite3_int64; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Count The Number Of Rows Modified {F12240}
@@ -1008,7 +1005,7 @@ const
 **          while [sqlite3_changes()] is running then the value returned
 **          is unpredictable and unmeaningful.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_changes{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_changes{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Total Number Of Rows Modified {F12260}
@@ -1049,7 +1046,7 @@ const
 **          while [sqlite3_total_changes()] is running then the value
 **          returned is unpredictable and unmeaningful.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_total_changes{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_total_changes{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Interrupt A Long-Running Query {F12270}
@@ -1090,7 +1087,7 @@ const
 ** {U12279} If the database connection closes while [sqlite3_interrupt()]
 **          is running then bad things will likely happen.
 *)
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_interrupt{$IFDEF D}: procedure{$ENDIF}(db: psqlite3); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_interrupt{$IFDEF D}: procedure{$ENDIF}(db: psqlite3); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Determine If An SQL Statement Is Complete {F10510}
@@ -1125,8 +1122,8 @@ const
 ** {U10513} The input to sqlite3_complete16() must be a zero-terminated
 **          UTF-16 string in native byte order.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_complete{$IFDEF D}: function{$ENDIF}(sql: pchar): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_complete16{$IFDEF D}: function{$ENDIF}(sql: pchar): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_complete{$IFDEF D}: function{$ENDIF}(sql: pchar): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_complete16{$IFDEF D}: function{$ENDIF}(sql: pchar): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Register A Callback To Handle SQLITE_BUSY Errors {F12310}
@@ -1217,7 +1214,7 @@ const
 type
   busyhandler_callback = function(user: pointer; cnt: cint): cint; cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_busy_handler{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: busyhandler_callback; user: pointer): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_busy_handler{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: busyhandler_callback; user: pointer): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Set A Busy Timeout {F12340}
@@ -1253,7 +1250,7 @@ type
 **          lock clears or until the cumulative sleep time reported back
 **          by xSleep() exceeds N milliseconds.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_busy_timeout{$IFDEF D}: function{$ENDIF}(db: psqlite3; ms: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_busy_timeout{$IFDEF D}: function{$ENDIF}(db: psqlite3; ms: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Convenience Routines For Running Queries {F12370}
@@ -1355,9 +1352,9 @@ type
   nrow: pcint;           (* Number of result rows written here *)
   ncolumn: pcint;        (* Number of result columns written here *)
   errmsg: ppchar         (* Error msg written here *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_free_table{$IFDEF D}: procedure{$ENDIF}(result: ppchar); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_free_table{$IFDEF D}: procedure{$ENDIF}(result: ppchar); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Formatted String Printing Functions {F17400}
@@ -1598,9 +1595,9 @@ type
 **           [sqlite3_free()] or [sqlite3_realloc()].
 **
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_malloc{$IFDEF D}: function{$ENDIF}(size: cint): pointer;cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_realloc{$IFDEF D}: function{$ENDIF}(ptr: pointer; size: cint): pointer;cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_free{$IFDEF D}: procedure{$ENDIF}(ptr: pointer);cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_malloc{$IFDEF D}: function{$ENDIF}(size: cint): pointer;cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_realloc{$IFDEF D}: function{$ENDIF}(ptr: pointer; size: cint): pointer;cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_free{$IFDEF D}: procedure{$ENDIF}(ptr: pointer);cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Memory Allocator Statistics {F17370}
@@ -1631,8 +1628,8 @@ type
 **          by [sqlite3_memory_highwater(1)] is the highwater mark
 **          prior to the reset.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_used{$IFDEF D}: function{$ENDIF}(): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_highwater{$IFDEF D}: function{$ENDIF}(resetFlag: cint): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_used{$IFDEF D}: function{$ENDIF}(): sqlite3_int64; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_highwater{$IFDEF D}: function{$ENDIF}(resetFlag: cint): sqlite3_int64; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Pseudo-Random Number Generator {F17390}
@@ -1657,7 +1654,7 @@ type
 ** {F17392} The [sqlite3_randomness(N,P)] interface writes N bytes of
 **          high-quality pseudo-randomness into buffer P.
 *)
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_randomness{$IFDEF D}: procedure{$ENDIF}(N: cint; P: pointer); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_randomness{$IFDEF D}: procedure{$ENDIF}(N: cint; P: pointer); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Compile-Time Authorization Callbacks {F12500}
@@ -1783,7 +1780,7 @@ type
   db: psqlite3;
   cb: xAuth;
   pUserData: pointer
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Authorizer Return Codes {F12590}
@@ -1940,8 +1937,8 @@ type
   xTrace = procedure(user: pointer; s: pchar); cdecl;
   xProfile = procedure(user: pointer; s: char; i: sqlite3_uint64); cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_trace{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xTrace; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_profile{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xProfile; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_trace{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xTrace; user: pointer): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_profile{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: xProfile; user: pointer): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Query Progress Callbacks {F12910}
@@ -1990,7 +1987,7 @@ type
 type
   progress_callback = function(user: pointer): cint; cdecl;
 
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_progress_handler{$IFDEF D}: procedure{$ENDIF}(db: psqlite3; i: cint; cb: progress_callback; user: pointer); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_progress_handler{$IFDEF D}: procedure{$ENDIF}(db: psqlite3; i: cint; cb: progress_callback; user: pointer); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Opening A New Database Connection {F12700}
@@ -2134,19 +2131,19 @@ type
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_open{$IFDEF D}: function{$ENDIF}(
   filename: pchar;        (* Database filename (UTF-8) *)
   ppDb: ppsqlite3         (* OUT: SQLite db handle *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_open16{$IFDEF D}: function{$ENDIF}(
   filename: pwidechar;    (* Database filename (UTF-16) *)
   ppDb: ppsqlite3         (* OUT: SQLite db handle *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_open_v2{$IFDEF D}: function{$ENDIF}(
   filename: pchar;        (* Database filename (UTF-8) *)
   ppDb: ppsqlite3;        (* OUT: SQLite db handle *)
   flags: cint;            (* Flags *)
   zVfs: pchar             (* Name of VFS module to use *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Error Codes And Messages {F12800}
@@ -2192,9 +2189,9 @@ type
 **          do not change the values returned by
 **          [sqlite3_errcode()], [sqlite3_errmsg()], or [sqlite3_errmsg16()].
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errcode{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errmsg{$IFDEF D}: function{$ENDIF}(db: psqlite3): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errmsg16{$IFDEF D}: function{$ENDIF}(db: psqlite3): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errcode{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errmsg{$IFDEF D}: function{$ENDIF}(db: psqlite3): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_errmsg16{$IFDEF D}: function{$ENDIF}(db: psqlite3): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: SQL Statement Object {F13000}
@@ -2273,7 +2270,7 @@ type
 **          value of the limit on the size of construct C in
 **          in [database connection] D as it was prior to the call.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_limit{$IFDEF D}: function{$ENDIF}(db: psqlite3; id: cint; newVal: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_limit{$IFDEF D}: function{$ENDIF}(db: psqlite3; id: cint; newVal: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Run-Time Limit Categories {F12790}
@@ -2449,7 +2446,7 @@ const
   nByte: cint;              (* Maximum length of zSql in bytes. *)
   ppStmt: ppsqlite3_stmt;   (* OUT: Statement handle *)
   pzTail: ppchar            (* OUT: Pointer to unused portion of zSql *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_prepare_v2{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;             (* Database handle *)
@@ -2457,7 +2454,7 @@ const
   nByte: cint;              (* Maximum length of zSql in bytes. *)
   ppStmt: ppsqlite3_stmt;   (* OUT: Statement handle *)
   pzTail: ppchar            (* OUT: Pointer to unused portion of zSql *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_prepare16{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;             (* Database handle *)
@@ -2465,7 +2462,7 @@ const
   nByte: cint;              (* Maximum length of zSql in bytes. *)
   ppStmt: ppsqlite3_stmt;   (* OUT: Statement handle *)
   pzTail: ppwidechar        (* OUT: Pointer to unused portion of zSql *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_prepare16_v2{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;             (* Database handle *)
@@ -2473,7 +2470,7 @@ const
   nByte: cint;              (* Maximum length of zSql in bytes. *)
   ppStmt: ppsqlite3_stmt;   (* OUT: Statement handle *)
   pzTail: ppwidechar        (* OUT: Pointer to unused portion of zSql *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPIREF: Retrieving Statement SQL {F13100}
@@ -2500,7 +2497,7 @@ const
 ** {F13103} The string returned by [sqlite3_sql(S)] is valid until the
 **          [prepared statement] S is deleted using [sqlite3_finalize(S)].
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_sql{$IFDEF D}: function{$ENDIF}(pStmt: psqlite3_stmt): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_sql{$IFDEF D}: function{$ENDIF}(pStmt: psqlite3_stmt): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Dynamically Typed Value Object  {F15000}
@@ -2706,15 +2703,15 @@ type
 **          be either a [protected sqlite3_value] object or an
 **          [unprotected sqlite3_value] object.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_blob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pointer; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_double{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cdouble): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_int{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_int64{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: sqlite3_int64): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_null{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_text{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pchar; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_text16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pwidechar; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_value{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_zeroblob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_blob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pointer; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_double{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cdouble): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_int{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_int64{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: sqlite3_int64): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_null{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_text{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pchar; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_text16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: pwidechar; L: cint; D: sqlite3_destructor_type): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_value{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_zeroblob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint; V: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Number Of SQL Parameters {F13600}
@@ -2741,7 +2738,7 @@ type
 **          [prepared statement] S, or 0 if S
 **          contains no SQL parameters.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Name Of A Host Parameter {F13620}
@@ -2775,7 +2772,7 @@ type
 **          NULL if there is no SQL parameter with index N or if the
 **          parameter with index N is an anonymous parameter "?".
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Index Of A Parameter With A Given Name {F13640}
@@ -2798,7 +2795,7 @@ type
 **          S whose name matches the UTF-8 string N, or 0 if there is
 **          no match.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_index{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; zName: pchar): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_bind_parameter_index{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; zName: pchar): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Reset All Bindings On A Prepared Statement {F13660}
@@ -2814,7 +2811,7 @@ type
 **          SQL parameter bindings in [prepared statement] S
 **          back to NULL.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_clear_bindings{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_clear_bindings{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Number Of Columns In A Result Set {F13710}
@@ -2831,7 +2828,7 @@ type
 **          [prepared statement] S, or 0 if S does not generate
 **          a result set.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Column Names In A Result Set {F13720}
@@ -2890,8 +2887,8 @@ type
 **          an AS clause, the name of that column is the indentifier
 **          to the right of the AS keyword.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Source Of Data In A Query Result {F13740}
@@ -2993,12 +2990,12 @@ type
 **          the same [prepared statement] and result column
 **          at the same time then the results are undefined.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_database_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_database_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_table_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_table_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_origin_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_origin_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_database_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_database_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_table_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_table_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_origin_name{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_origin_name16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Declared Datatype Of A Query Result {F13760}
@@ -3051,8 +3048,8 @@ type
 **           calls to [sqlite3_column_decltype(S,N)] or
 **           [sqlite3_column_decltype16(S,N)] return NULL.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_decltype{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_decltype16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_decltype{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_decltype16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; N: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Evaluate An SQL Statement {F13200}
@@ -3151,7 +3148,7 @@ type
 **           [sqlite3_prepare16()] then the function returns either
 **           [SQLITE_ERROR], [SQLITE_BUSY], or [SQLITE_MISUSE].
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_step{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_step{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Number of columns in a result set {F13770}
@@ -3172,7 +3169,7 @@ type
 **           or [sqlite3_reset|reset], the [sqlite3_data_count(S)]
 **           routine returns zero.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_data_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_data_count{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Fundamental Datatypes {F10265}
@@ -3414,16 +3411,16 @@ const
 **          Nth column in the current row of the result set for
 **          [prepared statement] S.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_blob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_bytes{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_bytes16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_double{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cdouble; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_int{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_int64{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_text{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_text16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_type{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_value{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): psqlite3_value; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_blob{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_bytes{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_bytes16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_double{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cdouble; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_int{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_int64{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): sqlite3_int64; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_text{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_text16{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_type{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_column_value{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; iCol: cint): psqlite3_value; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Destroy A Prepared Statement Object {F13300}
@@ -3453,7 +3450,7 @@ const
 **          [prepared statement] S returned an error,
 **          then [sqlite3_finalize(S)] returns that same error.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_finalize{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_finalize{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Reset A Prepared Statement Object {F13330}
@@ -3480,7 +3477,7 @@ const
 ** {F11338} The [sqlite3_reset(S)] interface does not change the values
 **          of any [sqlite3_bind_blob|bindings] on [prepared statement] S.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_reset{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_reset{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Create Or Redefine SQL Functions {F16100}
@@ -3621,7 +3618,7 @@ type
   funccb: xFunc;
   stepcb: xStep;
   finalcb: xFinal
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_create_function16{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;
@@ -3632,7 +3629,7 @@ type
   funccb: xFunc;
   stepcb: xStep;
   finalcb: xFinal
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Text Encodings {F10267}
@@ -3661,12 +3658,12 @@ const
 type
   memory_alarm_cb = function(user: pointer; i64: sqlite3_int64; i: cint): pointer; cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_aggregate_count{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_expired{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_transfer_bindings{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; stmt2: psqlite3_stmt): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_global_recover{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_thread_cleanup{$IFDEF D}: procedure{$ENDIF}(); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_alarm{$IFDEF D}: function{$ENDIF}(cb: memory_alarm_cb; user: pointer; i64: sqlite3_int64): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_aggregate_count{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_expired{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_transfer_bindings{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt; stmt2: psqlite3_stmt): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_global_recover{$IFDEF D}: function{$ENDIF}(): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_thread_cleanup{$IFDEF D}: procedure{$ENDIF}(); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_memory_alarm{$IFDEF D}: function{$ENDIF}(cb: memory_alarm_cb; user: pointer; i64: sqlite3_int64): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 {$ENDIF}
 
 (*
@@ -3778,18 +3775,18 @@ type
 **          [SQLITE_BLOB] as appropriate for
 **          the [protected sqlite3_value] object V after the conversion attempt.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_blob{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_double{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cdouble; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16le{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16be{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_type{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_numeric_type{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_blob{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_double{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cdouble; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pchar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16le{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16be{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_type{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_numeric_type{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Obtain Aggregate Function Context {F16210}
@@ -3836,7 +3833,7 @@ type
 **          or [sqlite3_finalize()] for the [prepared statement] containing
 **          the aggregate function associated with context C.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_aggregate_context{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context; nBytes: cint): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_aggregate_context{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context; nBytes: cint): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: User Data For Functions {F16240}
@@ -3858,7 +3855,7 @@ type
 **          registered the SQL function associated with
 **          [sqlite3_context] C.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_user_data{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_user_data{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Database Connection For Functions {F16250}
@@ -3877,7 +3874,7 @@ type
 **          registered the SQL function associated with
 **          [sqlite3_context] C.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_context_db_handle{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): psqlite3; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_context_db_handle{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context): psqlite3; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Function Auxiliary Data {F16270}
@@ -3953,8 +3950,8 @@ type
 type
   set_auxdata_cb = function(p: pointer): pointer; cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_get_auxdata{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context; N: cint): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_set_auxdata{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; N: cint; P: pointer; cb: set_auxdata_cb); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_get_auxdata{$IFDEF D}: function{$ENDIF}(ctx: psqlite3_context; N: cint): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_set_auxdata{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; N: cint; P: pointer; cb: set_auxdata_cb); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 
 (*
@@ -4160,22 +4157,22 @@ type
 **          SQLite will invoke the destructor D with V as its only argument
 **          when it has finished with the V value.
 *)
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_blob{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pointer; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_double{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cdouble); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pchar; N: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error16{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_toobig{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_nomem{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_code{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int64{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: sqlite3_int64); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_null{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pchar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16le{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16be{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_value{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: psqlite3_value); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_zeroblob{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_blob{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pointer; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_double{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cdouble); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pchar; N: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error16{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_toobig{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_nomem{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_code{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int64{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: sqlite3_int64); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_null{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pchar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16le{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16be{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_value{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: psqlite3_value); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_zeroblob{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Define New Collating Sequences {F16600}
@@ -4280,7 +4277,7 @@ type
   eTextRep: cint;
   user: pointer;
   xcomparecb: xCompare
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_create_collation_v2{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;
@@ -4289,7 +4286,7 @@ type
   user: pointer;
   xcomparecb: xCompare;
   xdestroycb: xDestroy
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_create_collation16{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;
@@ -4297,7 +4294,7 @@ type
   eTextRep: cint;
   user: pointer;
   xcomparecb: xCompare
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Collation Needed Callbacks {F16700}
@@ -4354,13 +4351,13 @@ type
   db: psqlite3;
   user: pointer;
   cb: collation_needed_cb
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_collation_needed16{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;
   user: pointer;
   cb: collation_needed_cb
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** Specify the key for an encrypted database.  This routine should be
@@ -4372,7 +4369,7 @@ type
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_key{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;                   (* Database to be rekeyed *)
   pKey: pointer; nKey: cint       (* The key *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** Change the key on an open database.  If the current database is not
@@ -4385,7 +4382,7 @@ type
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_rekey{$IFDEF D}: function{$ENDIF}(
   db: psqlite3;                   (* Database to be rekeyed *)
   pKey: pointer; nKey: cint       (* The new key *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Suspend Execution For A Short Time {F10530}
@@ -4413,7 +4410,7 @@ type
 **          milliseconds of sleep actually requested of the operating
 **          system; which might be larger than the parameter M.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_sleep{$IFDEF D}: function{$ENDIF}(M: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_sleep{$IFDEF D}: function{$ENDIF}(M: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Name Of The Folder Holding Temporary Files {F10310}
@@ -4431,7 +4428,7 @@ type
 *)
 {$ifndef win32}
 var
-  sqlite3_temp_directory: pchar; cvar; external {Sqlite3Lib};
+  sqlite3_temp_directory: pchar; cvar; external {sqlite3lib};
 {$endif}
 
 (*
@@ -4470,7 +4467,7 @@ var
 **          connection while this routine is running; then the return value
 **          is undefined.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_get_autocommit{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_get_autocommit{$IFDEF D}: function{$ENDIF}(db: psqlite3): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Find The Database Handle Of A Prepared Statement {F13120}
@@ -4489,7 +4486,7 @@ var
 **          to the [database connection] associated with
 **          [prepared statement] S.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_db_handle{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): psqlite3; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_db_handle{$IFDEF D}: function{$ENDIF}(stmt: psqlite3_stmt): psqlite3; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 
 (*
@@ -4563,8 +4560,8 @@ var
 type
   commit_callback = function(user: pointer): cint; cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_commit_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: commit_callback; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_rollback_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: sqlite3_destructor_type; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_commit_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: commit_callback; user: pointer): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_rollback_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: sqlite3_destructor_type; user: pointer): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Data Change Notification Callbacks {F12970}
@@ -4630,7 +4627,7 @@ type
 type
   update_callback = procedure(user: pointer; event: cint; database, table: pchar; rowid: sqlite3_int64); cdecl;
 
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_update_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: update_callback; user: pointer): pointer; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_update_hook{$IFDEF D}: function{$ENDIF}(db: psqlite3; cb: update_callback; user: pointer): pointer; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Enable Or Disable Shared Pager Cache {F10330}
@@ -4676,7 +4673,7 @@ type
 **
 ** {F10339} Shared cache is disabled by default.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_enable_shared_cache{$IFDEF D}: function{$ENDIF}(B: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_enable_shared_cache{$IFDEF D}: function{$ENDIF}(B: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Attempt To Free Heap Memory {F17340}
@@ -4699,7 +4696,7 @@ type
 **          of bytes actually freed; which might be more or less
 **          than the amount requested.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_release_memory{$IFDEF D}: function{$ENDIF}(N: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_release_memory{$IFDEF D}: function{$ENDIF}(N: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Impose A Limit On Heap Size {F17350}
@@ -4761,7 +4758,7 @@ type
 ** {F16358} Each call to [sqlite3_soft_heap_limit(N)] overrides the
 **          values set by all prior calls.
 *)
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_soft_heap_limit{$IFDEF D}: procedure{$ENDIF}(N: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_soft_heap_limit{$IFDEF D}: procedure{$ENDIF}(N: cint); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Extract Metadata About A Column Of A Table {F12850}
@@ -4837,7 +4834,7 @@ type
   pNotNull: pcint;          (* OUTPUT: True if NOT NULL constracint exists *)
   pPrimaryKey: pcint;       (* OUTPUT: True if column part of PK *)
   pAutoinc: pcint           (* OUTPUT: True if column is auto-increment *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Load An Extension {F12600}
@@ -4867,7 +4864,7 @@ type
   zFile: pchar;          (* Name of the shared library containing extension *)
   zProc: pchar;          (* Entry point.  Derived from zFile if 0 *)
   pzErrMsg: ppchar       (* Put error message here if not 0 *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Enable Or Disable Extension Loading {F12620}
@@ -4882,7 +4879,7 @@ type
 ** with onoff==1 to turn extension loading on
 ** and call it with onoff==0 to turn it back off again. {END}
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_enable_load_extension{$IFDEF D}: function{$ENDIF}(db: psqlite3; onoff: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_enable_load_extension{$IFDEF D}: function{$ENDIF}(db: psqlite3; onoff: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Make Arrangements To Automatically Load An Extension {F12640}
@@ -4910,7 +4907,7 @@ type
 ** This interface is experimental and is subject to change or
 ** removal in future releases of SQLite.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_auto_extension{$IFDEF D}: function{$ENDIF}(xEntrypoint: pointer): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_auto_extension{$IFDEF D}: function{$ENDIF}(xEntrypoint: pointer): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 
 (*
@@ -4926,7 +4923,7 @@ type
 ** This interface is experimental and is subject to change or
 ** removal in future releases of SQLite.
 *)
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_reset_auto_extension{$IFDEF D}: procedure{$ENDIF}(); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_reset_auto_extension{$IFDEF D}: procedure{$ENDIF}(); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 
 (*
@@ -5091,7 +5088,7 @@ const
   zName: pchar;               (* Name of the module *)
   module: psqlite3_module;    (* Methods for the module *)
   user: pointer               (* Client data for xCreate/xConnect *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Register A Virtual Table Implementation {F18210}
@@ -5106,7 +5103,7 @@ const
   module: psqlite3_module;    (* Methods for the module *)
   user: pointer;              (* Client data for xCreate/xConnect *)
   xdestroycb: xDestroy        (* Module destructor function *)
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Virtual Table Instance Object {F18010}
@@ -5164,7 +5161,7 @@ type
 ** to declare the format (the names and datatypes of the columns) of
 ** the virtual tables they implement.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_declare_vtab{$IFDEF D}: function{$ENDIF}(db: psqlite3; zCreateTable: pchar): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_declare_vtab{$IFDEF D}: function{$ENDIF}(db: psqlite3; zCreateTable: pchar): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Overload A Function For A Virtual Table {F18300}
@@ -5184,7 +5181,7 @@ type
 ** This API should be considered part of the virtual table interface;
 ** which is experimental and subject to change.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_overload_function{$IFDEF D}: function{$ENDIF}(db: psqlite3; zFuncName: pchar; nArg: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_overload_function{$IFDEF D}: function{$ENDIF}(db: psqlite3; zFuncName: pchar; nArg: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** The interface to the virtual-table mechanism defined above (back up
@@ -5273,7 +5270,7 @@ type
   iRow: sqlite3_int64;
   flags: cint;
   ppBlob: ppsqlite3_blob
-): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Close A BLOB Handle {F17830}
@@ -5311,7 +5308,7 @@ type
 **          [sqlite3_blob_close(P)] returns something other than [SQLITE_OK].
 **
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_close{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_close{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Return The Size Of An Open BLOB {F17840}
@@ -5325,7 +5322,7 @@ type
 **          in bytes of the BLOB that the [sqlite3_blob] object P
 **          refers to.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_bytes{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_bytes{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Read Data From A BLOB Incrementally {F17850}
@@ -5370,7 +5367,7 @@ type
 **          information approprate for that error; where D is the
 **          database handle that was used to open blob handle P.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_read{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob; Z: pointer; N: cint; iOffset: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_read{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob; Z: pointer; N: cint; iOffset: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Write Data cinto A BLOB Incrementally {F17870}
@@ -5424,7 +5421,7 @@ type
 **          [sqlite3_errmsg(D)]; and [sqlite3_errmsg16(D)] will return
 **          information approprate for that error.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_write{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob; Z: pointer; N: cint; iOffset: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_blob_write{$IFDEF D}: function{$ENDIF}(blob: psqlite3_blob; Z: pointer; N: cint; iOffset: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF:  Virtual File System Objects {F11200}
@@ -5483,9 +5480,9 @@ type
 **          [sqlite3_vfs] object P so that it is no longer returned by
 **          subsequent calls to [sqlite3_vfs_find()].
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_find{$IFDEF D}: function{$ENDIF}(zVfsName: pchar): psqlite3_vfs; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_register{$IFDEF D}: function{$ENDIF}(vfs: psqlite3_vfs; makeDflt: cint): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_unregister{$IFDEF D}: function{$ENDIF}(vfs: psqlite3_vfs): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_find{$IFDEF D}: function{$ENDIF}(zVfsName: pchar): psqlite3_vfs; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_register{$IFDEF D}: function{$ENDIF}(vfs: psqlite3_vfs; makeDflt: cint): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_vfs_unregister{$IFDEF D}: function{$ENDIF}(vfs: psqlite3_vfs): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Mutexes {F17000}
@@ -5596,11 +5593,11 @@ type
 **
 ** See also: [sqlite3_mutex_held()] and [sqlite3_mutex_notheld()].
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_alloc{$IFDEF D}: function{$ENDIF}(n: cint): psqlite3_mutex; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_free{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_enter{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_try{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_leave{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_alloc{$IFDEF D}: function{$ENDIF}(n: cint): psqlite3_mutex; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_free{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_enter{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_try{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_mutex_leave{$IFDEF D}: procedure{$ENDIF}(mtx: psqlite3_mutex); cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Mutex Verifcation Routines {F17080}
@@ -5633,8 +5630,8 @@ type
 ** the appropriate thing to do.  {F17086} The sqlite3_mutex_notheld()
 ** interface should also return 1 when given a NULL pointer.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_held{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_notheld{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_held{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_mutex_notheld{$IFDEF D}: function{$ENDIF}(mtx: psqlite3_mutex): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Mutex Types {F17001}
@@ -5676,7 +5673,7 @@ const
 **
 ** See also: [SQLITE_FCNTL_LOCKSTATE]
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_file_control{$IFDEF D}: function{$ENDIF}(db: psqlite3; zDbName: pchar; op: cint; p: pointer): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_file_control{$IFDEF D}: function{$ENDIF}(db: psqlite3; zDbName: pchar; op: cint; p: pointer): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Testing interface {F11400}
@@ -5695,7 +5692,7 @@ const
 ** Unlike most of the SQLite API; this function is not guaranteed to
 ** operate consistently from one release to the next.
 *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_test_control{$IFDEF D}: function{$ENDIF}(op: cint; args: array of const): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_test_control{$IFDEF D}: function{$ENDIF}(op: cint; args: array of const): cint; cdecl;{$IFDEF S}external sqlite3lib;{$ENDIF}
 
 (*
 ** CAPI3REF: Testing interface Operation Codes {F11410}
@@ -5915,7 +5912,7 @@ end;
 
 function InitializeSqlite: Integer;
 begin
-  Result := InitializeSqlite(Sqlite3Lib);
+  Result := InitializeSqlite(sqlite3lib);
 end;
 
 function InitializeSqlite(const LibraryName: String): Integer;
