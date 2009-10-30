@@ -1526,8 +1526,61 @@ function TryInitialiseMysql(const LibraryName: string; argc: cint = -1; argv: PP
 
 implementation
 
-{$IFDEF LOAD_DYNAMICALLY}
 
+function net_new_transaction(net : st_net) : st_net;
+begin
+  net.pkt_nr := 0;
+  result := net;
+end;
+
+function IS_PRI_KEY(n : longint) : boolean;
+begin
+  IS_PRI_KEY:=(n and PRI_KEY_FLAG)<>0;
+end;
+
+function IS_NOT_NULL(n : longint) : boolean;
+begin
+ IS_NOT_NULL:=(n and NOT_NULL_FLAG)<>0;
+end;
+
+function IS_BLOB(n : longint) : boolean;
+begin
+ IS_BLOB:=(n and BLOB_FLAG)<>0;
+end;
+
+function IS_NUM_FIELD(f : pst_mysql_field) : boolean;
+begin
+   IS_NUM_FIELD:=((f^.flags) and NUM_FLAG)<>0;
+end;
+
+function IS_NUM(t : enum_field_types) : boolean;
+begin
+{$IFDEF mysql50}
+  IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR) or (t=FIELD_TYPE_NEWDECIMAL);
+{$ELSE}
+  IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR);
+{$ENDIF}
+end;
+
+function INTERNAL_NUM_FIELD(f : Pst_mysql_field) : boolean;
+begin
+  INTERNAL_NUM_FIELD := (f^.ftype <= FIELD_TYPE_INT24) and ((f^.ftype <> FIELD_TYPE_TIMESTAMP)
+  or (f^.length = 14) or (f^.length=8)) or (f^.ftype=FIELD_TYPE_YEAR);
+end;
+
+function mysql_reload(mysql : PMySQL) : cint;
+begin
+  mysql_reload:=mysql_refresh(mysql,REFRESH_GRANT);
+end;
+
+function simple_command(mysql,command,arg,length,skip_check : longint) : longint;
+begin
+  //simple_command:=mysql^.(methods^.advanced_command)(mysqlcommandNullS0arglengthskip_check);
+  result := -1;
+end;
+
+
+{$IFDEF LOAD_DYNAMICALLY}
 const
   mysql_symbols: array[0..91] of TLibSymbol = (
   // Only the procedure that are given in the c-library documentation are loaded, to
@@ -1705,62 +1758,6 @@ begin
   Result := TryInitializeMysql(LibraryName, argc, argv, groups);
 end;
 
-{$ENDIF}
-
-
-function net_new_transaction(net : st_net) : st_net;
-begin
-  net.pkt_nr := 0;
-  result := net;
-end;
-
-function IS_PRI_KEY(n : longint) : boolean;
-begin
-  IS_PRI_KEY:=(n and PRI_KEY_FLAG)<>0;
-end;
-
-function IS_NOT_NULL(n : longint) : boolean;
-begin
- IS_NOT_NULL:=(n and NOT_NULL_FLAG)<>0;
-end;
-
-function IS_BLOB(n : longint) : boolean;
-begin
- IS_BLOB:=(n and BLOB_FLAG)<>0;
-end;
-
-function IS_NUM_FIELD(f : pst_mysql_field) : boolean;
-begin
-   IS_NUM_FIELD:=((f^.flags) and NUM_FLAG)<>0;
-end;
-
-function IS_NUM(t : enum_field_types) : boolean;
-begin
-{$IFDEF mysql50}
-  IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR) or (t=FIELD_TYPE_NEWDECIMAL);
-{$ELSE}
-  IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR);
-{$ENDIF}
-end;
-
-function INTERNAL_NUM_FIELD(f : Pst_mysql_field) : boolean;
-begin
-  INTERNAL_NUM_FIELD := (f^.ftype <= FIELD_TYPE_INT24) and ((f^.ftype <> FIELD_TYPE_TIMESTAMP)
-  or (f^.length = 14) or (f^.length=8)) or (f^.ftype=FIELD_TYPE_YEAR);
-end;
-
-function mysql_reload(mysql : PMySQL) : cint;
-begin
-  mysql_reload:=mysql_refresh(mysql,REFRESH_GRANT);
-end;
-
-function simple_command(mysql,command,arg,length,skip_check : longint) : longint;
-begin
-  //simple_command:=mysql^.(methods^.advanced_command)(mysqlcommandNullS0arglengthskip_check);
-  result := -1;
-end;
-
-{$IFDEF LOAD_DYNAMICALLY}
 initialization
   MysqlLibrary := LibraryHandler('mysql', @mysql_symbols, Length(mysql_symbols), @mysql_initialize, @mysql_finalize);
 {$ENDIF}
