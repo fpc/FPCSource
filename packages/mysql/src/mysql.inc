@@ -28,21 +28,19 @@ uses
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.'+sharedsuffix;
-
   {$IF DEFINED(mysql50)}
-    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.15';
+    mysqlvlib = mysqllib+'.15';
   {$ELSEIF DEFINED(mysql41)}
-    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.14';
+    mysqlvlib = mysqllib+'.14';
   {$ELSE}
-    mysqlvlib = 'libmysqlclient.'+sharedsuffix+'.12';
+    mysqlvlib = mysqllib+'.12';
   {$ENDIF}
-
 {$ENDIF}
 {$IFDEF WINDOWS}
   {$DEFINE extdecl:=stdcall}
   const
     mysqllib = 'libmysql.dll';
-    mysqlvlib = 'libmysql.dll';
+    mysqlvlib = mysqllib;
 {$ENDIF}
 
 {$IFDEF mysql50}
