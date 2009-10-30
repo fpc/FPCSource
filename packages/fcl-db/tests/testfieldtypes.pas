@@ -932,6 +932,7 @@ end;
 
 procedure TTestFieldTypes.TestNonNullableParams;
 var ASQLQuery : TSQLQuery;
+    Passed: Boolean;
 begin
   // Check for an exception when a null value is stored into a non-nullable
   // field using a parameter
@@ -946,7 +947,15 @@ begin
   ASQLQuery.Params[0].Clear;
   ASQLQuery.Params[1].AsInteger := 1;
   AssertTrue(ASQLQuery.Params[0].IsNull);
-  AssertException(EDatabaseError, @ASQLQuery.ExecSQL);
+  Passed:=False;
+  try
+    @ASQLQuery.ExecSQL;
+  except
+    on E: Exception do
+      if E.ClassType.InheritsFrom(EDatabaseError) then
+        Passed := true;
+  end;
+  AssertTrue(Passed);
 end;
 
 procedure TTestFieldTypes.TestStringLargerThen8192;
