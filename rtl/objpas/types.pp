@@ -134,7 +134,9 @@ type
 const
   GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
-{$ifndef Windows}
+{$ifndef Wince}
+  // in Wince these are in unit windows. Under 32/64 in ActiveX.
+  // for now duplicate them. Not that bad for untyped constants.
   STGTY_STORAGE   = 1;
   STGTY_STREAM    = 2;
   STGTY_LOCKBYTES = 3;
@@ -197,7 +199,8 @@ const
   STATFLAG_DEFAULT   	      = 0;
   STATFLAG_NONAME    	      = 1;
   STATFLAG_NOOPEN    	      = 2; 
-
+{$endif}
+{$ifndef Windows}
 type
   PCLSID = PGUID;
   TCLSID = TGUID;

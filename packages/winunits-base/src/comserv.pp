@@ -21,7 +21,7 @@ interface
 uses
   Classes, SysUtils, comobj, ActiveX;
 
-{$define DEBUG_COM}
+{ $define DEBUG_COM}
 
 //according to doc
 // * ComServer Variable
@@ -44,6 +44,9 @@ type
   private
     fCountObject: Integer;
     fCountFactory: Integer;
+    fTypeLib: ITypeLib;
+    fServerName,
+    fServerFileName: String;
   protected
     function CountObject(Created: Boolean): Integer; override;
     function CountFactory(Created: Boolean): Integer; override;
@@ -60,6 +63,7 @@ type
     procedure UnregisterServerFactory(Factory: TComObjectFactory);
   public
     constructor Create;
+    destructor Destroy; override;
     function CanUnloadNow: Boolean;
     procedure RegisterServer;
     procedure UnRegisterServer;
@@ -89,6 +93,9 @@ function DllRegisterServer: HResult; stdcall;
 function DllUnregisterServer: HResult; stdcall;
 
 implementation
+
+uses
+  Windows;
 
 function DllCanUnloadNow: HResult; stdcall;
 begin
@@ -168,6 +175,43 @@ begin
   end;
 end;
 
+function GetModuleFileName: String;
+const
+  MAX_PATH_SIZE = 2048;
+begin
+  SetLength(Result, MAX_PATH_SIZE);
+  SetLength(Result, Windows.GetModuleFileName(HInstance, @Result[1], MAX_PATH_SIZE));
+end;
+
+function GetModuleName: String;
+begin
+  Result := ExtractFileName(GetModuleFileName);
+  Result := Copy(Result, 1,LastDelimiter('.', Result)-1);
+end;
+
+procedure RegisterTypeLib(TypeLib: ITypeLib; const ModuleName: string);
+var
+  FullPath: WideString;
+begin
+  FullPath := ModuleName;
+  //according to MSDN helpdir can be null
+  OleCheck(ActiveX.RegisterTypeLib(TypeLib, @FullPath[1], nil));
+end;
+
+procedure UnRegisterTypeLib(TypeLib: ITypeLib);
+var
+  ptla: PTLibAttr;
+begin
+  //http://www.experts-exchange.com/Programming/Misc/Q_20634807.html
+  OleCheck(TypeLib.GetLibAttr(ptla));
+  try
+    OleCheck(ActiveX.UnRegisterTypeLib(ptla^.guid, ptla^.wMajorVerNum, ptla^.wMinorVerNum, ptla^.lcid, ptla^.syskind));
+  finally
+    TypeLib.ReleaseTLibAttr(ptla);
+  end;
+end;
+
+
 { TComServer }
 
 function TComServer.CountObject(Created: Boolean): Integer;
@@ -193,7 +237,7 @@ end;
 
 function TComServer.GetServerFileName: string;
 begin
-  RunError(217);
+  Result := fServerFileName;
 end;
 
 function TComServer.GetServerKey: string;
@@ -203,7 +247,7 @@ end;
 
 function TComServer.GetServerName: string;
 begin
-  RunError(217);
+  Result := fServerName;
 end;
 
 function TComServer.GetStartSuspended: Boolean;
@@ -213,7 +257,7 @@ end;
 
 function TComServer.GetTypeLib: ITypeLib;
 begin
-  RunError(217);
+  Result := fTypeLib;
 end;
 
 procedure TComServer.SetHelpFileName(const Value: string);
@@ -228,13 +272,41 @@ end;
 
 procedure TComServer.UnregisterServerFactory(Factory: TComObjectFactory);
 begin
-  Factory.UpdateRegistry(false);
+  Factory.UpdateRegistry(False);
 end;
 
 constructor TComServer.Create;
+var
+  name: WideString;
 begin
+  inherited Create;
+{$ifdef DEBUG_COM}
+  WriteLn('TComServer.Create');
+{$endif}
   fCountFactory := 0;
   fCountObject := 0;
+
+  fServerFileName := GetModuleFileName();
+
+  name := fServerFileName;
+  if not(Succeeded(LoadTypeLib(@name[1], fTypeLib))) then
+    fTypeLib := nil;
+
+  if FTypeLib <> nil then
+  begin
+    fTypeLib.GetDocumentation(-1, @name, nil, nil, nil);
+    fServerName := name;
+  end
+  else
+    fServerName := GetModuleName;
+end;
+
+destructor TComServer.Destroy;
+begin
+  inherited Destroy;
+{$ifdef DEBUG_COM}
+  WriteLn('TComServer.Destroy');
+{$endif}
 end;
 
 function TComServer.CanUnloadNow: Boolean;
@@ -244,11 +316,17 @@ end;
 
 procedure TComServer.RegisterServer;
 begin
+  if fTypeLib <> nil then
+    RegisterTypeLib(fTypeLib, fServerFileName);
+
   ComClassManager.ForEachFactory(self, @RegisterServerFactory);
 end;
 
 procedure TComServer.UnRegisterServer;
 begin
+  if fTypeLib <> nil then
+    UnRegisterTypeLib(fTypeLib);
+
   ComClassManager.ForEachFactory(self, @UnregisterServerFactory);
 end;
 

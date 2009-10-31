@@ -18,8 +18,8 @@ unit comobj;
 
   interface
 
-{$define DEBUG_COM}
-
+{ $define DEBUG_COM}
+{ $define DUMMY_REG}
     uses
       Windows,Types,Variants,Sysutils,ActiveX,classes;
 
@@ -136,6 +136,8 @@ unit comobj;
       TClassInstancing = (ciInternal, ciSingleInstance, ciMultiInstance);
       TThreadingModel = (tmSingle, tmApartment, tmFree, tmBoth, tmNeutral);
 
+      { TComObjectFactory }
+
       TComObjectFactory = class(TObject, IUnknown, IClassFactory, IClassFactory2)
       private
         FRefCount : Integer;
@@ -144,6 +146,7 @@ unit comobj;
         FComClass: TClass;
         FClassID: TGUID;
         FClassName: string;
+        FClassVersion : String;
         FDescription: string;
         FErrorIID: TGUID;
         FInstancing: TClassInstancing;
@@ -171,12 +174,16 @@ unit comobj;
         constructor Create(ComServer: TComServerObject; ComClass: TComClass;
           const ClassID: TGUID; const Name, Description: string;
           Instancing: TClassInstancing; ThreadingModel: TThreadingModel = tmSingle);
+        constructor Create(ComServer: TComServerObject; ComClass: TComClass;
+          const ClassID: TGUID; const Name, Version, Description: string;
+          Instancing: TClassInstancing; ThreadingModel: TThreadingModel = tmSingle);
         destructor Destroy; override;
         function CreateComObject(const Controller: IUnknown): TComObject; virtual;
         procedure RegisterClassObject;
         procedure UpdateRegistry(Register: Boolean); virtual;
         property ClassID: TGUID read FClassID;
         property ClassName: string read FClassName;
+        property ClassVersion: string read FClassVersion;
         property ComClass: TClass read FComClass;
         property ComServer: TComServerObject read FComServer;
         property Description: string read FDescription;
@@ -210,6 +217,48 @@ unit comobj;
         property ClassInfo : ITypeInfo read FClassInfo;
       end;
 
+      { TAutoObject }
+
+      TAutoObject = class(TTypedComObject, IDispatch)
+      protected
+        { IDispatch }
+        function GetTypeInfoCount(out count : longint) : HResult;stdcall;
+        function GetTypeInfo(Index,LocaleID : longint; out TypeInfo): HResult;stdcall;
+        function GetIDsOfNames(const iid: TGUID; names: Pointer; NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult;stdcall;
+        function Invoke(DispID: LongInt;const iid : TGUID; LocaleID : longint; Flags: Word;var params; VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
+      public
+
+      end;
+
+      TAutoClass = class of TAutoObject;
+
+      { TAutoObjectFactory }
+      TAutoObjectFactory = class(TTypedComObjectFactory)
+      public
+        constructor Create(AComServer: TComServerObject; AutoClass: TAutoClass; const AClassID: TGUID;
+          AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
+      end;
+
+      { TAutoIntfObject }
+
+      //example of how to implement IDispatch: http://www.opensource.apple.com/source/vim/vim-34/vim/src/if_ole.cpp
+      TAutoIntfObject = class(TInterfacedObject, IDispatch, ISupportErrorInfo)
+      private
+        fTypeInfo: ITypeInfo;
+        fInterfacePointer: Pointer;
+      protected
+        { IDispatch }
+        function GetTypeInfoCount(out count : longint) : HResult;stdcall;
+        function GetTypeInfo(Index,LocaleID : longint; out TypeInfo): HResult;stdcall;
+        function GetIDsOfNames(const iid: TGUID; names: Pointer; NameCount, LocaleID: LongInt; DispIDs: Pointer) : HResult;stdcall;
+        function Invoke(DispID: LongInt;const iid : TGUID; LocaleID : longint; Flags: Word;var params; VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
+
+        { ISupportErrorInfo }
+        function  InterfaceSupportsErrorInfo(CONST riid: TIID):HResult;StdCall;
+      public
+        function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult; override;
+        constructor Create(TypeLib: ITypeLib; const Guid: TGuid);
+      end;
 
     function CreateClassID : ansistring;
 
@@ -256,7 +305,7 @@ unit comobj;
 implementation
 
     uses
-      ComConst,Ole2, Registry;
+      ComConst, Ole2, Registry, RtlConsts;
 
     var
       Uninitializing : boolean;
@@ -374,7 +423,6 @@ implementation
         OleCheck(CoCreateInstance(id,nil,CLSCTX_INPROC_SERVER or CLSCTX_LOCAL_SERVER,IDispatch,result));
      end;
 
-
    function GetActiveOleObject(const ClassName : string) : IDispatch;
 {$ifndef wince}
      var
@@ -391,6 +439,79 @@ implementation
      end;
 {$endif wince}
 
+    procedure CreateRegKey(const Key, ValueName, Value: string);
+{$ifndef DUMMY_REG}
+      var
+        Reg: TRegistry;
+{$endif}
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('CreateRegKey: ', Key, ': ', ValueName, ': ', Value );
+{$endif}
+{$ifndef DUMMY_REG}
+        Reg := TRegistry.Create;
+        try
+          Reg.RootKey := HKEY_CLASSES_ROOT;
+          if Reg.OpenKey(Key, True) then
+          begin
+            try
+              Reg.WriteString(ValueName, Value);
+            finally
+              Reg.CloseKey;
+            end;
+          end
+          else
+            raise ERegistryException.CreateResFmt(@SRegCreateFailed, [Key]);
+        finally
+          Reg.Free;
+        end;
+{$endif}
+{$ifdef DEBUG_COM}
+        WriteLn('CreateRegKey exit: ', Key, ': ', ValueName, ': ', Value );
+{$endif}
+      end;
+
+    procedure DeleteRegKey(const Key: string);
+{$ifndef DUMMY_REG}
+      var
+        Reg: TRegistry;
+{$endif}
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('DeleteRegKey: ', Key);
+{$endif}
+{$ifndef DUMMY_REG}
+        Reg := TRegistry.Create;
+        try
+          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.DeleteKey(Key);
+        finally
+          Reg.Free;
+        end;
+{$endif}
+      end;
+
+    function GetRegStringValue(const Key, ValueName: string): string;
+      var
+        Reg: TRegistry;
+      begin
+        Reg := TRegistry.Create();
+        try
+          Reg.RootKey := HKEY_CLASSES_ROOT;
+          if Reg.OpenKeyReadOnly(Key) then
+          begin
+            try
+              Result := Reg.ReadString(ValueName)
+            finally
+              Reg.CloseKey;
+            end;
+          end
+          else
+            Result := '';
+        finally
+          Reg.Free;
+        end;
+      end;
 
    procedure OleError(Code: HResult);
      begin
@@ -685,7 +806,7 @@ implementation
 
     function TComObjectFactory.GetProgID: string;
       begin
-        RunError(217);
+        Result := FComServer.GetServerName + '.' + FClassName;
       end;
 
 
@@ -771,6 +892,13 @@ implementation
       Description: string; Instancing: TClassInstancing;
       ThreadingModel: TThreadingModel);
       begin
+        Create(ComServer, ComClass, ClassID, Name, '', Description, Instancing, ThreadingModel);
+      end;
+
+    constructor TComObjectFactory.Create(ComServer: TComServerObject;
+      ComClass: TComClass; const ClassID: TGUID; const Name, Version, Description: string; Instancing: TClassInstancing;
+      ThreadingModel: TThreadingModel);
+    begin
 {$ifdef DEBUG_COM}
         WriteLn('TComObjectFactory.Create');
 {$endif}
@@ -779,6 +907,7 @@ implementation
         FThreadingModel := ThreadingModel;
         FDescription := Description;
         FClassName := Name;
+        FClassVersion := Version;
         FComServer := ComServer;
         FComClass := ComClass;
         FInstancing := Instancing;;
@@ -805,6 +934,9 @@ implementation
 
     procedure TComObjectFactory.RegisterClassObject;
       begin
+      {$ifdef DEBUG_COM}
+        WriteLn('TComObjectFactory.RegisterClassObject');
+      {$endif}
         RunError(217);
       end;
 
@@ -841,38 +973,69 @@ HKCR
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
         reg: TRegistry;
-      begin
-        RunError(217);
+        classidguid: String;
 
-        //todo: finish this
+        function ThreadModelToString(model: TThreadingModel): String;
+        begin
+          case model of
+            tmSingle: Result := '';
+            tmApartment: Result := 'Apartment';
+            tmFree: Result := 'Free';
+            tmBoth: Result := 'Both';
+            tmNeutral: Result := 'Neutral';
+          end;
+        end;
+
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('UpdateRegistry begin');
+{$endif}
+        if Instancing = ciInternal then Exit;
+
         if Register then
         begin
-          reg := TRegistry.Create;
-          reg.RootKey := HKEY_CLASSES_ROOT;
-          reg.OpenKey(FClassName + '.1', True);
-          reg.WriteString('', Description);
-          reg.WriteString('CLSID', GUIDToString(ClassID));
-          reg.CloseKey;
+          classidguid := GUIDToString(ClassID);
+          CreateRegKey('CLSID\' + classidguid, '', Description);
+          if ClassVersion <> '' then
+          begin
+            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID + '.' + ClassVersion);
+            CreateRegKey('CLSID\' + classidguid + '\VersionIndependentProgID', '', ProgID + '.' + ClassVersion);
+          end
+          else
+            CreateRegKey('CLSID\' + classidguid + '\ProgID', '', ProgID);
 
-          reg.OpenKey(FClassName, True);
-          reg.WriteString('', Description);
-          reg.WriteString('CLSID', GUIDToString(ClassID));
-          reg.WriteString('CurVer', FClassName + '.1');
-          reg.CloseKey;
+          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', '', FComServer.ServerFileName);
 
-          reg.OpenKey('CLSID\' + GUIDToString(ClassID), True);
-          reg.WriteString('', Description);
-          reg.WriteString('ProgID', FClassName);
-          reg.WriteString('VersionIndependentProgID', FClassName);
-          reg.WriteString('InprocServer32', 'MODULENAME');
-          reg.CloseKey;
+          //tmSingle, tmApartment, tmFree, tmBoth, tmNeutral
+          CreateRegKey('CLSID\' + classidguid + '\InprocServer32', 'ThreadingModel', ThreadModelToString(ThreadingModel));
 
-          reg.Free;
+          CreateRegKey(ProgID, '', Description);
+          CreateRegKey(ProgID + '\CLSID', '', GUIDToString(ClassID));
+          if ClassVersion <> '' then
+          begin
+            CreateRegKey(ProgID + '\CurVer', '', ProgID + '.' + ClassVersion);
+            CreateRegKey(ProgID + '.' + ClassVersion, '', Description);
+            CreateRegKey(ProgID + '.' + ClassVersion + '\CLSID', '', GUIDToString(ClassID));
+          end;
 
+        end else
+        begin
+          classidguid := GUIDToString(ClassID);
+          DeleteRegKey('CLSID\' + classidguid + '\InprocServer32');
+          DeleteRegKey('CLSID\' + classidguid + '\VersionIndependentProgID');
+          DeleteRegKey('CLSID\' + classidguid + '\ProgID');
+          DeleteRegKey('CLSID\' + classidguid);
+          DeleteRegKey(ProgID + '\CLSID');
+          DeleteRegKey(ProgID);
+          if ClassVersion <> '' then
+          begin
+            DeleteRegKey(ProgID + '.' + ClassVersion + '\CLSID');
+            DeleteRegKey(ProgID + '.' + ClassVersion);
+          end;
         end;
-        //This should be in typedcomobject
-        //reg.WriteString('TypeLib', FClassName);
-
+{$ifdef DEBUG_COM}
+        WriteLn('UpdateRegistry end');
+{$endif}
       end;
 
 
@@ -1259,13 +1422,28 @@ HKCR
     constructor TTypedComObjectFactory.Create(AComServer: TComServerObject; TypedComClass: TTypedComClass; const AClassID: TGUID;
       AInstancing: TClassInstancing; AThreadingModel: TThreadingModel = tmSingle);
       var
-        TypedName, TypedDescription: WideString;
+        TypedName, TypedDescription, TypedVersion: WideString;
+        ppTypeAttr: lpTYPEATTR;
       begin
         //TDB get name and description from typelib (check if this is a valid guid)
         OleCheck(AComServer.GetTypeLib.GetTypeInfoOfGuid(AClassID, FClassInfo));
+
         //bug FPC 0010569 - http://msdn2.microsoft.com/en-us/library/ms221396(VS.85).aspx
-        OleCheck(FClassInfo.GetDocumentation(-1, TypedName, TypedDescription, PLongWord(nil)^, PWideString(nil)^));
-        inherited Create(AComServer, TypedComClass, AClassID, TypedName, TypedDescription, AInstancing, AThreadingModel);
+        OleCheck(FClassInfo.GetDocumentation(-1, @TypedName, @TypedDescription, nil, nil));
+        FClassInfo.GetTypeAttr(ppTypeAttr);
+        try
+          TypedVersion := '';
+          if (ppTypeAttr^.wMajorVerNum <> 0) or (ppTypeAttr^.wMinorVerNum <> 0) then
+          begin
+            TypedVersion := IntToStr(ppTypeAttr^.wMajorVerNum);
+            if ppTypeAttr^.wMinorVerNum <> 0 then
+              TypedVersion := TypedVersion + '.' + IntToStr(ppTypeAttr^.wMinorVerNum)
+          end;
+        finally
+          FClassInfo.ReleaseTypeAttr(ppTypeAttr);
+        end;
+
+        inherited Create(AComServer, TypedComClass, AClassID, TypedName, TypedVersion, TypedDescription, AInstancing, AThreadingModel);
       end;
 
 
@@ -1276,11 +1454,198 @@ HKCR
 
 
     procedure TTypedComObjectFactory.UpdateRegistry(Register: Boolean);
+         var
+        ptla: PTLibAttr;
       begin
-        inherited UpdateRegistry(Register);
-        // 'TypeLib' = s '%LIBID%' missing ??? or does TComServer register it ?
-        //un/register typed library
-        RunError(217);
+        if Instancing = ciInternal then
+          Exit;
+
+        if Register then
+        begin
+          inherited UpdateRegistry(Register);
+
+          //http://www.experts-exchange.com/Programming/Misc/Q_20634807.html
+          //There seems to also be Version according to Process Monitor
+          //http://technet.microsoft.com/en-us/sysinternals/bb896645.aspx
+          if FComServer.TypeLib = nil then
+            raise Exception.Create('TypeLib is not set!');
+
+          OleCheck(FComServer.TypeLib.GetLibAttr(ptla));
+          try
+            CreateRegKey('CLSID\' + GUIDToString(ClassID) + '\TypeLib', '', GUIDToString(ptla^.GUID));
+          finally
+            FComServer.TypeLib.ReleaseTLibAttr(ptla);
+          end;
+        end else
+        begin
+          DeleteRegKey('CLSID\' + GUIDToString(ClassID) + '\TypeLib');
+          inherited UpdateRegistry(Register);
+        end;
+      end;
+
+   { TAutoIntfObject }
+
+    function TAutoIntfObject.GetTypeInfoCount(out count: longint): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.GetTypeInfoCount');
+{$endif}
+        count := 1;
+        Result := S_OK;
+      end;
+
+    function TAutoIntfObject.GetTypeInfo(Index, LocaleID: longint; out TypeInfo
+      ): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.GetTypeInfo: ', Index);
+{$endif}
+        if Index <> 0 then
+          Result := DISP_E_BADINDEX
+        else
+        begin
+          ITypeInfo(TypeInfo) := fTypeInfo;
+          Result := S_OK;
+        end;
+      end;
+
+    function TAutoIntfObject.GetIDsOfNames(const iid: TGUID; names: Pointer;
+      NameCount, LocaleID: LongInt; DispIDs: Pointer): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.GetIDsOfNames: ', GUIDToString(iid));
+{$endif}
+        //return typeinfo->GetIDsOfNames(names, n, dispids);
+        Result := fTypeInfo.GetIDsOfNames(names, NameCount, lpDISPID(DispIDs)^);
+      end;
+
+    function TAutoIntfObject.Invoke(DispID: LongInt; const iid: TGUID;
+      LocaleID: longint; Flags: Word; var params; VarResult, ExcepInfo,
+      ArgErr: pointer): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', GUIDToString(iid));
+        //WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', TDispParams(params).rgvarg^, ': ', GUIDToString(iid));
+{$endif}
+        if not IsEqualGUID(iid, GUID_NULL) then
+          Result := DISP_E_UNKNOWNINTERFACE
+        else
+      //  Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+      //  Result := fTypeInfo.Invoke(IDispatch(Self), DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+          Result := fTypeInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+      end;
+
+    function TAutoIntfObject.InterfaceSupportsErrorInfo(const riid: TIID): HResult;
+      StdCall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.InterfaceSupportsErrorInfo: ', GUIDToString(riid));
+{$endif}
+        if assigned(GetInterfaceEntry(riid)) then
+          Result:=S_OK
+        else
+          Result:=S_FALSE;
+      end;
+
+    function TAutoIntfObject.SafeCallException(ExceptObject: TObject;
+      ExceptAddr: Pointer): HResult;
+      var
+        //Message: string;
+        Handled: Integer;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.SafeCallException');
+{$endif}
+        Handled:=0;
+        Result:=0;
+        //TODO: DO WE NEED THIS ?
+        //if assigned(ServerExceptionHandler) then
+        //  begin
+        //    if ExceptObject is Exception then
+        //      Message:=Exception(ExceptObject).Message;
+        //
+        //    ServerExceptionHandler.OnException(ClassName,ExceptObject.ClassName,
+        //      Message,PtrInt(ExceptAddr),WideString(GUIDToString(FFactory.ErrorIID)),
+        //      FFactory.ProgID,Handled,Result);
+        //  end;
+        if Handled=0 then
+          Result:=HandleSafeCallException(ExceptObject,ExceptAddr,StringToGuid('{7C538328-8A75-4EC4-A02E-FB3B27FAA411}'),
+            '','');
+      end;
+
+    constructor TAutoIntfObject.Create(TypeLib: ITypeLib; const Guid: TGuid);
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.Create: ', GUIDToString(Guid));
+{$endif}
+        OleCheck(TypeLib.GetTypeInfoOfGuid(Guid, fTypeInfo));
+        OleCheck(QueryInterface(Guid, fInterfacePointer));
+      end;
+
+    { TAutoObject }
+
+    function TAutoObject.GetTypeInfoCount(out count: longint): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoObject.GetTypeInfoCount');
+{$endif}
+        count := 1;
+        Result := S_OK;
+      end;
+
+    function TAutoObject.GetTypeInfo(Index, LocaleID: longint; out TypeInfo
+      ): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.GetTypeInfo: ', Index);
+{$endif}
+        if Index <> 0 then
+          Result := DISP_E_BADINDEX
+        else
+        begin
+          ITypeInfo(TypeInfo) := TAutoObjectFactory(Factory).ClassInfo;
+          Result := S_OK;
+        end;
+      end;
+
+    function TAutoObject.GetIDsOfNames(const iid: TGUID; names: Pointer; NameCount,
+      LocaleID: LongInt; DispIDs: Pointer): HResult; stdcall;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.GetIDsOfNames: ', GUIDToString(iid));
+{$endif}
+        //return typeinfo->GetIDsOfNames(names, n, dispids);
+        Result := TAutoObjectFactory(Factory).ClassInfo.GetIDsOfNames(names, NameCount, lpDISPID(DispIDs)^);
+      end;
+
+    function TAutoObject.Invoke(DispID: LongInt; const iid: TGUID;
+      LocaleID: longint; Flags: Word; var params; VarResult, ExcepInfo,
+      ArgErr: pointer): HResult; stdcall;
+      var
+        fInterfacePointer: Pointer;
+      begin
+{$ifdef DEBUG_COM}
+        WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', GUIDToString(iid));
+        //WriteLn('TAutoIntfObject.Invoke: ', DispID, ': ', Flags, ': ', TDispParams(params).cArgs, ': ', TDispParams(params).rgvarg^, ': ', GUIDToString(iid));
+{$endif}
+        if not IsEqualGUID(iid, GUID_NULL) then
+          Result := DISP_E_UNKNOWNINTERFACE
+        else
+        begin
+      //  Function  Invoke(pvInstance: Pointer; memid: MEMBERID; wFlags: WORD; VAR pDispParams: DISPPARAMS; OUT pVarResult: VARIANT; OUT pExcepInfo: EXCEPINFO; OUT puArgErr: UINT):HResult;StdCall;
+      //  Result := fTypeInfo.Invoke(IDispatch(Self), DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+          OleCheck(QueryInterface(TAutoObjectFactory(Factory).ClassID, fInterfacePointer));
+          Result := TAutoObjectFactory(Factory).ClassInfo.Invoke(fInterfacePointer, DispID, Flags, TDispParams(params), PVariant(VarResult)^, PExcepInfo(ExcepInfo)^, PUINT(ArgErr)^);
+        end;
+      end;
+
+    { TAutoObjectFactory }
+
+    constructor TAutoObjectFactory.Create(AComServer: TComServerObject;
+      AutoClass: TAutoClass; const AClassID: TGUID; AInstancing: TClassInstancing;
+      AThreadingModel: TThreadingModel);
+      begin
+        inherited Create(AComServer, AutoClass, AClassID, AInstancing, AThreadingModel);
       end;
 
 procedure TOleStream.Check(err:integer);
