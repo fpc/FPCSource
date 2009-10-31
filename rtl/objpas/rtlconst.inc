@@ -40,7 +40,7 @@ ResourceString
   SBoldItalicFont               = 'Bold Italic';
   SBucketListLocked             = 'List is locked during an active ForEach.';
   SCancelButton                 = 'Cancel';
-  SCannotCreateDir              = 'Das Verzeichnis kann nicht erstellt werden';
+  SCannotCreateDir              = 'Cannot create directory';
   SCannotCreateName             = 'Cannot use standard name for and unknown component';
   SCannotCreateSocket           = 'Unable to create new socket';
   SCannotDragForm               = 'Forms cannot be dragged';
