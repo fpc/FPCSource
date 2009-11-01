@@ -134,7 +134,7 @@ type
     * \retval ::XQP0019_INTERNAL_ERROR
     * \retval An XQuery static or type error (e.g. XPST*, XPTY* )
     *)
-    prepare: function(impl: XQC_Implementation; query_string: pcchar; context: XQC_StaticContext;
+    prepare: function(impl: XQC_Implementation; query_string: pchar; context: XQC_StaticContext;
       handler: XQC_ErrorHandler; out query: XQC_Query): XQUERY_ERROR; extdecl;
 
     (**
@@ -436,7 +436,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    declare_ns: function(context: XQC_StaticContext; const prefix: pcchar; const uri: ppchar): XQUERY_ERROR; extdecl;
+    declare_ns: function(context: XQC_StaticContext; const prefix: pchar; const uri: ppchar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -449,7 +449,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_ns_by_prefix: function(context: XQC_StaticContext; const prefix: pcchar; out result_ns: ppchar): XQUERY_ERROR; extdecl;
+    get_ns_by_prefix: function(context: XQC_StaticContext; const prefix: pchar; out result_ns: ppchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -461,7 +461,7 @@ type
   	 * \retval ::XQC_NO_ERROR
   	 * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_default_element_and_type_ns: function(context: XQC_StaticContext; const uri: pcchar): XQUERY_ERROR; extdecl;
+    set_default_element_and_type_ns: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -473,7 +473,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_default_element_and_type_ns: function(context: XQC_StaticContext; out uri: pcchar): XQUERY_ERROR; extdecl;
+    get_default_element_and_type_ns: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -485,7 +485,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    set_default_function_ns: function(context: XQC_StaticContext; const uri: pcchar): XQUERY_ERROR; extdecl;
+    set_default_function_ns: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -497,7 +497,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_default_function_ns: function(context: XQC_StaticContext; out uri: pcchar): XQUERY_ERROR; extdecl;
+    get_default_function_ns: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -522,7 +522,7 @@ type
      * \retval ::XQST0038
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    add_collation: function(context: XQC_StaticContext; const uri: pcchar): XQUERY_ERROR; extdecl;
+    add_collation: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -536,7 +536,7 @@ type
      * \retval ::XQST0038
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_default_collation: function(context: XQC_StaticContext; const uri: pcchar): XQUERY_ERROR; extdecl;
+    set_default_collation: function(context: XQC_StaticContext; const uri: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -546,7 +546,7 @@ type
      * \param context The XQC_StaticContext that this function pointer is a member of
      * \param[out] uri The URI of the default collation that is currently set in the given context.
      *)
-    get_default_collation: function(context: XQC_StaticContext; out uri: pcchar): XQUERY_ERROR; extdecl;
+    get_default_collation: function(context: XQC_StaticContext; out uri: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -731,7 +731,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    set_base_uri: function(context: XQC_StaticContext; const base_uri: pcchar): XQUERY_ERROR; extdecl;
+    set_base_uri: function(context: XQC_StaticContext; const base_uri: pchar): XQUERY_ERROR; extdecl;
 
 
    (**
@@ -745,7 +745,7 @@ type
     * \retval ::XQC_NO_ERROR
     * \retval ::XQC_INTERNAL_ERROR
     *)
-    get_base_uri: function(context: XQC_StaticContext; out base_uri: pcchar): XQUERY_ERROR; extdecl;
+    get_base_uri: function(context: XQC_StaticContext; out base_uri: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -768,7 +768,7 @@ type
      * \retval ::API0019_FUNCTION_ALREADY_REGISTERED,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    register_external_function: function(context: XQC_StaticContext; const uri, localname: pcchar; init: external_function_init;
+    register_external_function: function(context: XQC_StaticContext; const uri, localname: pchar; init: external_function_init;
       next: external_function_next; release: external_function_release; global_user_data: pointer): XQUERY_ERROR; extdecl;
 
 
@@ -820,7 +820,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_context_document: function(context: XQC_DynamicContext; const doc_uri: pcchar; document: pfile): XQUERY_ERROR; extdecl;
+    set_context_document: function(context: XQC_DynamicContext; const doc_uri: pchar; document: pfile): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -833,7 +833,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_item: function(context: XQC_DynamicContext; const qname: pcchar; value: XQC_Item): XQUERY_ERROR; extdecl;
+    set_variable_item: function(context: XQC_DynamicContext; const qname: pchar; value: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -846,7 +846,7 @@ type
      * \retval ::XQC_NO_ERROR
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_sequence: function(context: XQC_DynamicContext; const qname: pcchar; value: XQC_Sequence): XQUERY_ERROR; extdecl;
+    set_variable_sequence: function(context: XQC_DynamicContext; const qname: pchar; value: XQC_Sequence): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -862,7 +862,7 @@ type
      * \retval ::XQP0017_LOADER_PARSING_ERROR,
      * \retval ::XQC_INTERNAL_ERROR
      *)
-    set_variable_document: function(context: XQC_DynamicContext; const var_qname, doc_uri: pcchar; document: pfile): XQUERY_ERROR; extdecl;
+    set_variable_document: function(context: XQC_DynamicContext; const var_qname, doc_uri: pchar; document: pfile): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -934,7 +934,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    string_value: function(item: XQC_Item; out string_value: pcchar): XQUERY_ERROR; extdecl;
+    string_value: function(item: XQC_Item; out string_value: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -949,7 +949,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    prefix: function(item: XQC_Item; out prefix: pcchar): XQUERY_ERROR; extdecl;
+    prefix: function(item: XQC_Item; out prefix: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -964,7 +964,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    ns: function(item: XQC_Item; out ns: pcchar): XQUERY_ERROR; extdecl;
+    ns: function(item: XQC_Item; out ns: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -979,7 +979,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0024_FUNCTION_NOT_IMPLEMENTED_FOR_ITEMTYPE
      *)
-    localname: function(item: XQC_Item; out local_name: pcchar): XQUERY_ERROR; extdecl;
+    localname: function(item: XQC_Item; out local_name: pchar): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1062,7 +1062,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_string: function(factory: XQC_ItemFactory; const str: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_string: function(factory: XQC_ItemFactory; const str: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1077,7 +1077,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_anyuri: function(factory: XQC_ItemFactory; const str: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_anyuri: function(factory: XQC_ItemFactory; const str: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1093,7 +1093,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_qname2: function(factory: XQC_ItemFactory; const uri, localname: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_qname2: function(factory: XQC_ItemFactory; const uri, localname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1110,7 +1110,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_qname3: function(factory: XQC_ItemFactory; const uri, prefix, localname: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_qname3: function(factory: XQC_ItemFactory; const uri, prefix, localname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1140,7 +1140,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_ncname: function(factory: XQC_ItemFactory; const ncname: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_ncname: function(factory: XQC_ItemFactory; const ncname: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1156,7 +1156,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_base64binary: function(factory: XQC_ItemFactory; const binary_data: pcchar; length: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_base64binary: function(factory: XQC_ItemFactory; const binary_data: pchar; length: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1186,7 +1186,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_decimal_char: function(factory: XQC_ItemFactory; const value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_decimal_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1216,7 +1216,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_integer_char: function(factory: XQC_ItemFactory; const integer_value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_integer_char: function(factory: XQC_ItemFactory; const integer_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1291,7 +1291,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_date_char: function(factory: XQC_ItemFactory; const date_value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_date_char: function(factory: XQC_ItemFactory; const date_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1346,7 +1346,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_datetime_char: function(factory: XQC_ItemFactory; const datetime_value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_datetime_char: function(factory: XQC_ItemFactory; const datetime_value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1375,7 +1375,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_double_char: function(factory: XQC_ItemFactory; const value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_double_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1411,7 +1411,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_float: function(factory: XQC_ItemFactory; const value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_float: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1504,7 +1504,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_hexbinary: function(factory: XQC_ItemFactory; const hex_data: pcchar; size: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_hexbinary: function(factory: XQC_ItemFactory; const hex_data: pchar; size: csize_t; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -1579,7 +1579,7 @@ type
      * \retval ::XQP0019_INTERNAL_ERROR
      * \retval ::XQP0025_COULD_NOT_CREATE_ITEM
      *)
-    create_time_char: function(factory: XQC_ItemFactory; const value: pcchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
+    create_time_char: function(factory: XQC_ItemFactory; const value: pchar; out item: XQC_Item): XQUERY_ERROR; extdecl;
 
 
     (**
@@ -2046,7 +2046,7 @@ type
      * \param components The column number in the line in the query where the error occured.
      *)
     error: procedure(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name, description,
-      query_uri: pcchar; line, column: cuint); extdecl;
+      query_uri: pchar; line, column: cuint); extdecl;
 
 
     (**
@@ -2069,7 +2069,12 @@ type
  * \retval ::XQC_NO_ERROR
  * \retval ::XQP0019_INTERNAL_ERROR
  *)
-{$IFDEF S}function{$ELSE}var{$ENDIF}zorba_implementation{$IFDEF D}: function{$ENDIF}(impl: XQC_Implementation_Ref; store: Pointer): XQUERY_ERROR; extdecl;{$IFDEF S}external zorbalib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}zorba_implementation{$IFDEF D}: function{$ENDIF}(out impl: XQC_Implementation; store: Pointer): XQUERY_ERROR; extdecl;{$IFDEF S}external zorbalib;{$ENDIF}
+
+
+(* simplestorec.h *)
+{$IFDEF S}function{$ELSE}var{$ENDIF}create_simple_store{$IFDEF D}: function{$ENDIF}: Pointer; extdecl;{$IFDEF S}external zorbalib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}shutdown_simple_store{$IFDEF D}: procedure{$ENDIF}(store: Pointer); extdecl;{$IFDEF S}external zorbalib;{$ENDIF}
 
 
 
@@ -2086,7 +2091,9 @@ implementation
 
 {$IFDEF LOAD_DYNAMICALLY}
 const
-  zorba_symbols: array[0..4] of TLibSymbol = (
+  zorba_symbols: array[0..6] of TLibSymbol = (
+    (pvar:@create_simple_store; name:'create_simple_store'; weak:false),
+    (pvar:@shutdown_simple_store; name:'shutdown_simple_store'; weak:false),
     (pvar:@zorba_implementation; name:'zorba_implementation'; weak:false),
     (pvar:@Zorba_CompilerHints_default; name:'Zorba_CompilerHints_default'; weak:false),
     (pvar:@Zorba_SerializerOptions_default; name:'Zorba_SerializerOptions_default'; weak:false),
