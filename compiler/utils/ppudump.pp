@@ -744,7 +744,7 @@ begin
 end;
 
 
-procedure readsymoptions;
+procedure readsymoptions(space : string);
 type
   { symbol options }
   tsymoption=(sp_none,
@@ -757,7 +757,8 @@ type
     sp_has_overloaded,
     sp_internal,  { internal symbol, not reported as unused }
     sp_implicitrename,
-    sp_generic_para
+    sp_generic_para,
+    sp_has_deprecated_msg
   );
   tsymoptions=set of tsymoption;
   tsymopt=record
@@ -765,18 +766,19 @@ type
     str  : string[30];
   end;
 const
-  symopts=10;
+  symopts=11;
   symopt : array[1..symopts] of tsymopt=(
-     (mask:sp_static;         str:'Static'),
-     (mask:sp_hint_deprecated;str:'Hint Deprecated'),
-     (mask:sp_hint_platform;  str:'Hint Platform'),
-     (mask:sp_hint_library;   str:'Hint Library'),
-     (mask:sp_hint_unimplemented;str:'Hint Unimplemented'),
-     (mask:sp_hint_experimental;str:'Hint Experimental'),
-     (mask:sp_has_overloaded; str:'Has overloaded'),
-     (mask:sp_internal;       str:'Internal'),
-     (mask:sp_implicitrename; str:'Implicit Rename'),
-     (mask:sp_generic_para;   str:'Generic Parameter')
+     (mask:sp_static;             str:'Static'),
+     (mask:sp_hint_deprecated;    str:'Hint Deprecated'),
+     (mask:sp_hint_platform;      str:'Hint Platform'),
+     (mask:sp_hint_library;       str:'Hint Library'),
+     (mask:sp_hint_unimplemented; str:'Hint Unimplemented'),
+     (mask:sp_hint_experimental;  str:'Hint Experimental'),
+     (mask:sp_has_overloaded;     str:'Has overloaded'),
+     (mask:sp_internal;           str:'Internal'),
+     (mask:sp_implicitrename;     str:'Implicit Rename'),
+     (mask:sp_generic_para;       str:'Generic Parameter'),
+     (mask:sp_has_deprecated_msg; str:'Has Deprecated Message')
   );
 var
   symoptions : tsymoptions;
@@ -798,6 +800,8 @@ begin
        end;
    end;
   writeln;
+  if sp_has_deprecated_msg in symoptions then
+    writeln(space,'Deprecated : ', ppufile.getstring);
 end;
 
 
@@ -809,7 +813,7 @@ begin
   readposinfo;
   writeln(space,'   Visibility : ',Visibility2Str(ppufile.getbyte));
   write  (space,'   SymOptions : ');
-  readsymoptions;
+  readsymoptions(space+'   ');
 end;
 
 
@@ -1866,7 +1870,7 @@ begin
              readposinfo;
              writeln(space,'       Visibility : ',Visibility2Str(ppufile.getbyte));
              write  (space,'       SymOptions : ');
-             readsymoptions;
+             readsymoptions(space+'       ');
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }

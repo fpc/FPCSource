@@ -101,6 +101,8 @@ interface
          refs       : longint;
          reflist    : TLinkedList;
          visibility : tvisibility;
+         { deprecated optionally can have a message }
+         deprecatedmsg: pshortstring;
          isdbgwritten : boolean;
          constructor create(st:tsymtyp;const aname:string);
          destructor  destroy;override;
@@ -334,10 +336,12 @@ implementation
          fileinfo:=current_tokenpos;
          isdbgwritten := false;
          visibility:=vis_public;
+         deprecatedmsg:=nil;
       end;
 
     destructor  Tsym.destroy;
       begin
+        stringdispose(deprecatedmsg);
         if assigned(RefList) then
           RefList.Free;
         inherited Destroy;

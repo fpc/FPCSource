@@ -463,6 +463,7 @@ interface
 {$endif}
           visibility : tvisibility;
           symoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
           { symbol owning this definition }
           procsym : tsym;
           procsymderef : tderef;
@@ -2931,6 +2932,7 @@ implementation
          import_name:=nil;
          import_nr:=0;
          inlininginfo:=nil;
+         deprecatedmsg:=nil;
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
@@ -2954,6 +2956,10 @@ implementation
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           deprecatedmsg:=stringdup(ppufile.getstring)
+         else
+           deprecatedmsg:=nil;
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.getderef(libsymderef);
@@ -3054,6 +3060,7 @@ implementation
          stringdispose(resultname);
          stringdispose(import_dll);
          stringdispose(import_name);
+         stringdispose(deprecatedmsg);
          if (po_msgstr in procoptions) then
            stringdispose(messageinf.str);
          if assigned(_mangledname) then
@@ -3091,6 +3098,8 @@ implementation
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           ppufile.putstring(deprecatedmsg^);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.putderef(libsymderef);

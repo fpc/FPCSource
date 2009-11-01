@@ -1588,7 +1588,7 @@ implementation
 
          { hint directives, these can be separated by semicolons here,
            that needs to be handled here with a loop (PFV) }
-         while try_consume_hintdirective(pd.symoptions) do
+         while try_consume_hintdirective(pd.symoptions,pd.deprecatedmsg) do
           Consume(_SEMICOLON);
 
          { Set calling convention }
