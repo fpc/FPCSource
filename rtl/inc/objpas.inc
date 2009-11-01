@@ -711,6 +711,47 @@
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
 
+      class function TObject.UnitName : string;
+        type
+          // from the typinfo unit
+          TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+            ClassType: TClass;
+            ParentInfo: Pointer;
+            PropCount: SmallInt;
+            UnitName: ShortString;
+          end;
+          PClassTypeInfo = ^TClassTypeInfo;
+        var
+          classtypeinfo: PClassTypeInfo;
+        begin
+          classtypeinfo:=ClassInfo;
+          if Assigned(classtypeinfo) then
+          begin
+            // offset PTypeInfo by Length(Name) + 2 (ShortString length byte + SizeOf(Kind))
+            inc(Pointer(classtypeinfo), PByte(Pointer(classtypeinfo)+1)^ + 2);
+            {$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+            classtypeinfo:=align(classtypeinfo,sizeof(classtypeinfo));
+            {$endif}
+            result:=classtypeinfo^.UnitName;
+          end
+          else
+            result:='';
+        end;
+
+      function TObject.Equals(Obj: TObject) : boolean;
+        begin
+          result:=Obj=Self;
+        end;
+
+      function TObject.GetHashCode: PtrInt;
+        begin
+          result:=PtrInt(Self);
+        end;
+
+      function TObject.ToString: string;
+        begin
+          result:=ClassName;
+        end;
 {****************************************************************************
                                TINTERFACEDOBJECT
 ****************************************************************************}

@@ -872,18 +872,18 @@ end;
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 var
-  UnitName: String;
+  AUnitName: String;
   Element: TPasElement;
 begin
   while True do
   begin
-    UnitName := ExpectIdentifier;
+    AUnitName := ExpectIdentifier;
 
-    Element := Engine.FindModule(UnitName);
+    Element := Engine.FindModule(AUnitName);
     if Assigned(Element) then
       Element.AddRef
     else
-      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, UnitName,
+      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
         ASection));
     ASection.UsesList.Add(Element);
 
