@@ -5716,9 +5716,8 @@ const
   SQLITE_TESTCTRL_BITVEC_TEST              = 8;
 
 {$IFDEF LOAD_DYNAMICALLY}
-function InitializeSqlite: Integer;
-function InitializeSqlite(const LibraryName: String): Integer;
-function TryInitializeSqlite(const LibraryName: string): Integer;
+function InitializeSqlite(const LibraryName: String = ''): Integer;
+function TryInitializeSqlite(const LibraryName: string = ''): Integer;
 function ReleaseSqlite: Integer;
 
 var
@@ -5910,11 +5909,6 @@ begin
   Result := TryInitializeLibrary(SqliteLibrary, LibraryName);
 end;
 
-function InitializeSqlite: Integer;
-begin
-  Result := InitializeLibrary(SqliteLibrary, sqlite3lib);
-end;
-
 function InitializeSqlite(const LibraryName: String): Integer;
 begin
   Result := InitializeLibrary(SqliteLibrary, LibraryName);
@@ -5927,7 +5921,7 @@ end;
 
 function InitialiseSqlite: Integer;
 begin
-  Result := InitializeSqlite;
+  Result := InitializeSqlite('');
 end;
 
 function InitialiseSqlite(const LibraryName: String): Integer;
@@ -5941,7 +5935,7 @@ begin
 end;
 
 initialization
-  SqliteLibrary := LibraryHandler('sqlite', @sqlite3_symbols, Length(sqlite3_symbols));
+  SqliteLibrary := LibraryHandler('sqlite', [sqlite3lib], @sqlite3_symbols, Length(sqlite3_symbols));
 {$ENDIF}
 
 end.
