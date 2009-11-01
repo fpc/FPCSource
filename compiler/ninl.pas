@@ -1121,7 +1121,7 @@ implementation
         { check if codepara is valid }
         if assigned(codepara) and
            (
-            (codepara.resultdef.typ <> orddef)
+            not is_integer(codepara.resultdef)
 {$ifndef cpu64bitaddr}
             or is_64bitint(codepara.resultdef)
 {$endif not cpu64bitaddr}
@@ -1132,7 +1132,9 @@ implementation
           end;
 
         { check if dest para is valid }
-        if not(destpara.resultdef.typ in [orddef,floatdef,enumdef]) then
+        if not is_integer(destpara.resultdef) and
+           not is_currency(destpara.resultdef) and
+           not(destpara.resultdef.typ in [floatdef,enumdef]) then
           begin
             CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
             exit;
