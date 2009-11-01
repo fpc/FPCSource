@@ -160,6 +160,9 @@ begin
     CommandToList(Cmd,S);
     if poNewConsole in P.Options then
       begin
+      {$ifdef darwin}
+      S.Insert(0,'open');
+      {$else}
       S.Insert(0,'-e');
       If (P.ApplicationName<>'') then
         begin
@@ -172,6 +175,7 @@ begin
         S.Insert(0,'-geometry');
         end;
       S.Insert(0,'xterm');
+      {$endif}
       end;
     if (P.ApplicationName<>'') then
       begin
