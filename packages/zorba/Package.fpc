@@ -1,0 +1,6 @@
+[package]
+name=zorba
+version=0.9.9
+[require]
+packages=rtl 
+packages_linux_x86_64=
