@@ -8188,6 +8188,7 @@ tests/test/tclass5.pp svneol=native#text/plain
 tests/test/tclass6.pp svneol=native#text/plain
 tests/test/tclass7.pp svneol=native#text/plain
 tests/test/tclass8.pp svneol=native#text/plain
+tests/test/tclassinfo1.pp svneol=native#text/pascal
 tests/test/tclrprop.pp svneol=native#text/plain
 tests/test/tcmp.pp svneol=native#text/plain
 tests/test/tcmp0.pp svneol=native#text/plain

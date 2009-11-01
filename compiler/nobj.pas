@@ -1315,10 +1315,7 @@ implementation
             { pointer to field table }
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(fieldtablelabel));
             { pointer to type info of published section }
-            if (oo_can_have_published in _class.objectoptions) then
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)))
-            else
-              current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(nil));
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,fullrtti)));
             { inittable for con-/destruction }
             if _class.members_need_inittable then
               current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(RTTIWriter.get_rtti_label(_class,initrtti)))
