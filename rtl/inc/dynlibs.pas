@@ -58,11 +58,11 @@ Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
     mysql.inc of mysql package (advanced)
 }
 
-Type
+type
   PLibHandler = ^TLibHandler;
 
-  TLibEventLoading = function(User: Pointer; Handler: PLibHandler; out ErrorMsg: String): Boolean;
-  TLibEventUnloading = procedure(User: Pointer; Handler: PLibHandler);
+  TLibEventLoading = function(User: Pointer; Handler: PLibHandler): Boolean;
+  TLibEventUnloading = procedure(Handler: PLibHandler);
 
   PPLibSymbol = ^PLibSymbol;
   PLibSymbol = ^TLibSymbol;
@@ -73,32 +73,41 @@ Type
   end;
 
   TLibHandler = record
-    AbstractName : String;
-    Handle       : TLibHandle;
-    Filename     : String;
-    Loading      : TLibEventLoading;
-    Unloading    : TLibEventUnloading;
-    SymCount     : Integer;
-    Symbols      : PLibSymbol;
-    ErrorMsg     : String;
-    RefCount     : Integer;
+    InterfaceName: String;                { abstract name of the library }
+    Defaults     : array of String;       { list of default library filenames }
+    Filename     : String;                { handle of the current loaded library }
+    Handle       : TLibHandle;            { filename of the current loaded library }
+    Loading      : TLibEventLoading;      { loading event, called after the unit is loaded }
+    Unloading    : TLibEventUnloading;    { unloading event, called before the unit is unloaded }
+    SymCount     : Integer;               { number of symbols }
+    Symbols      : PLibSymbol;            { symbol address- and namelist }
+    ErrorMsg     : String;                { last error message }
+    RefCount     : Integer;               { reference counter }
   end;
 
 
-function LibraryHandler(const AbstractName: String; const Symbols: PLibSymbol; const SymCount: Integer;
-  const AfterLoading: TLibEventLoading = nil; const BeforeUnloading: TLibEventUnloading = nil): TLibHandler;
-function TryInitializeLibrary(var Handler: TLibHandler; const Filenames: array of String;
-  const User: Pointer = nil; const Weak: Boolean = False): Integer;
-function TryInitializeLibrary(var Handler: TLibHandler; const Filename: String;
-  const User: Pointer = nil; const Weak: Boolean = False): Integer;
-function InitializeLibrary(var Handler: TLibHandler; const Filenames: array of String;
-  const User: Pointer = nil; const Weak: Boolean = False): Integer;
-function InitializeLibrary(var Handler: TLibHandler; const Filename: String;
-  const User: Pointer = nil; const Weak: Boolean = False): Integer;
-function ReleaseLibrary(var Handler: TLibHandler; User: Pointer = nil): Integer;
+{ handler definition }
+function LibraryHandler(const InterfaceName: String; const DefaultLibraries: array of String;
+  const Symbols: PLibSymbol; const SymCount: Integer; const AfterLoading: TLibEventLoading = nil;
+  const BeforeUnloading: TLibEventUnloading = nil): TLibHandler;
+
+{ initialization/finalization }
+function TryInitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+function TryInitializeLibrary(var Handler: TLibHandler; const LibraryName: String = '';
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+function InitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+function InitializeLibrary(var Handler: TLibHandler; const LibraryName: String = '';
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+function ReleaseLibrary(var Handler: TLibHandler): Integer;
+
+{ errors }
+procedure AppendLibraryError(var Handler: TLibHandler; const Msg: String);
 function GetLastLibraryError(var Handler: TLibHandler): String;
 procedure RaiseLibraryException(var Handler: TLibHandler);
 
+{ symbol load/clear }
 function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer;
   const ErrorSym: PPLibSymbol = nil): Boolean;
 procedure ClearLibrarySymbols(const Symbols: PLibSymbol; const Count: Integer);
@@ -157,50 +166,35 @@ Begin
 {$endif}
 End;
 
-function LibraryHandler(const AbstractName: String; const Symbols: PLibSymbol; const SymCount: Integer;
-  const AfterLoading: TLibEventLoading; const BeforeUnloading: TLibEventUnloading): TLibHandler;
-begin
-  Result.AbstractName := AbstractName;
-  Result.Handle       := NilHandle;
-  Result.Filename     := '';
-  Result.Loading      := AfterLoading;
-  Result.Unloading    := BeforeUnloading;
-  Result.SymCount     := SymCount;
-  Result.Symbols      := Symbols;
-  Result.ErrorMsg     := '';
-  Result.RefCount     := 0;
-end;
-
-function TryInitializeLibrary(var Handler: TLibHandler; const Filenames: array of String;
-  const User: Pointer; const Weak: Boolean): Integer;
+function LibraryHandler(const InterfaceName: String; const DefaultLibraries: array of String;
+  const Symbols: PLibSymbol; const SymCount: Integer; const AfterLoading: TLibEventLoading;
+  const BeforeUnloading: TLibEventUnloading): TLibHandler;
 var
   I: Integer;
 begin
-  if Length(Filenames) <= 0 then
-  begin
-    Handler.ErrorMsg := SVarInvalid;
-    Result := -1;
-    Exit;
-  end;
+  Result.InterfaceName := InterfaceName;
+  Result.Filename      := '';
+  Result.Handle        := NilHandle;
+  Result.Loading       := AfterLoading;
+  Result.Unloading     := BeforeUnloading;
+  Result.SymCount      := SymCount;
+  Result.Symbols       := Symbols;
+  Result.ErrorMsg      := '';
+  Result.RefCount      := 0;
 
-  for I := 0 to High(Filenames) do
-  begin
-    Result := TryInitializeLibrary(Handler, Filenames[I], User, Weak);
-    if Result > 0 then
-      Exit;
-  end;
+  SetLength(Result.Defaults, Length(DefaultLibraries));
+  for I := 0 to High(DefaultLibraries) do
+    Result.Defaults[I] := DefaultLibraries[I];
 end;
 
-function TryInitializeLibrary(var Handler: TLibHandler; const Filename: String;
-  const User: Pointer; const Weak: Boolean): Integer;
+function TryInitializeLibraryInternal(var Handler: TLibHandler; const LibraryName: String;
+  const User: Pointer; const NoSymbolErrors: Boolean): Integer;
 var
   ErrSym: PLibSymbol;
 begin
-  Handler.ErrorMsg := '';
-
-  if (Handler.Filename <> '') and (Handler.Filename <> Filename) then
+  if (Handler.Filename <> '') and (Handler.Filename <> LibraryName) then
   begin
-    Handler.ErrorMsg := Format(SLibraryAlreadyLoaded, [Handler.AbstractName, Handler.Filename]);
+    AppendLibraryError(Handler, Format(SLibraryAlreadyLoaded, [Handler.InterfaceName, Handler.Filename]));
     Result := -1;
     Exit;
   end;
@@ -208,56 +202,99 @@ begin
   Result := InterlockedIncrement(Handler.RefCount);
   if Result = 1 then
   begin
-    Handler.Handle := LoadLibrary(Filename);
+    Handler.Handle := LoadLibrary(LibraryName);
     if Handler.Handle = NilHandle then
     begin
-      Handler.ErrorMsg := Format(SLibraryNotLoaded, [Handler.AbstractName, Filename]);
+      AppendLibraryError(Handler, Format(SLibraryNotLoaded, [Handler.InterfaceName, LibraryName]));
       Handler.RefCount := 0;
       Result := -1;
       Exit;
     end;
 
-    Handler.Filename := Filename;
+    Handler.Filename := LibraryName;
 
-    if not LoadLibrarySymbols(Handler.Handle, Handler.Symbols, Handler.SymCount, @ErrSym) and not Weak then
+    if not LoadLibrarySymbols(Handler.Handle, Handler.Symbols, Handler.SymCount, @ErrSym) and not NoSymbolErrors then
     begin
-      UnloadLibrary(Handler.Handle);
-      Handler.Handle := NilHandle;
-      Handler.Filename := '';
-      Handler.ErrorMsg := Format(SLibraryUnknownSym, [ErrSym^.name, Handler.AbstractName, Filename]);
-      Handler.RefCount := 0;
-      Result := -1;
-      Exit;
-    end;
-
-    if Assigned(Handler.Loading) and not Handler.Loading(User, @Handler, Handler.ErrorMsg) then
-    begin
+      AppendLibraryError(Handler, Format(SLibraryUnknownSym, [ErrSym^.name, Handler.InterfaceName, LibraryName]));
       UnloadLibrary(Handler.Handle);
       Handler.Handle := NilHandle;
       Handler.Filename := '';
       Handler.RefCount := 0;
       Result := -1;
       Exit;
-    end else
-      Handler.ErrorMsg := '';
+    end;
+
+    if Assigned(Handler.Loading) and not Handler.Loading(User, @Handler) then
+    begin
+      UnloadLibrary(Handler.Handle);
+      Handler.Handle := NilHandle;
+      Handler.Filename := '';
+      Handler.RefCount := 0;
+      Result := -1;
+      Exit;
+    end;
   end;
 end;
 
-function InitializeLibrary(var Handler: TLibHandler; const Filenames: array of String;
-  const User: Pointer; const Weak: Boolean): Integer;
+function TryInitializeLibrary(var Handler: TLibHandler; const LibraryName: String;
+  const User: Pointer; const NoSymbolErrors: Boolean): Integer;
 begin
-  Result := TryInitializeLibrary(Handler, Filenames, User, Weak);
-  RaiseLibraryException(Handler);
+  if LibraryName <> '' then
+  begin
+    Handler.ErrorMsg := '';
+    Result := TryInitializeLibraryInternal(Handler, LibraryName, User, NoSymbolErrors);
+  end else
+    Result := TryInitializeLibrary(Handler, Handler.Defaults, User, NoSymbolErrors);
 end;
 
-function InitializeLibrary(var Handler: TLibHandler; const Filename: String;
-  const User: Pointer; const Weak: Boolean): Integer;
+function TryInitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
+  const User: Pointer; const NoSymbolErrors: Boolean): Integer;
+var
+  I: Integer;
 begin
-  Result := TryInitializeLibrary(Handler, Filename, User, Weak);
-  RaiseLibraryException(Handler);
+  Handler.ErrorMsg := '';
+
+  if Length(LibraryNames) <= 0 then
+  begin
+    if Length(Handler.Defaults) > 0 then
+    begin
+      Result := TryInitializeLibrary(Handler, Handler.Defaults, User, NoSymbolErrors);
+      Exit;
+    end;
+
+    AppendLibraryError(Handler, SVarInvalid);
+    Result := -1;
+    Exit;
+  end;
+
+  for I := 0 to High(LibraryNames) do
+  begin
+    Result := TryInitializeLibraryInternal(Handler, LibraryNames[I], User, NoSymbolErrors);
+    if Result > 0 then
+    begin
+      Handler.ErrorMsg := '';
+      Exit;
+    end;
+  end;
 end;
 
-function ReleaseLibrary(var Handler: TLibHandler; User: Pointer): Integer;
+function InitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
+  const User: Pointer; const NoSymbolErrors: Boolean): Integer;
+begin
+  Result := TryInitializeLibrary(Handler, LibraryNames, User, NoSymbolErrors);
+  if Result < 0 then
+    RaiseLibraryException(Handler);
+end;
+
+function InitializeLibrary(var Handler: TLibHandler; const LibraryName: String;
+  const User: Pointer; const NoSymbolErrors: Boolean): Integer;
+begin
+  Result := TryInitializeLibrary(Handler, LibraryName, User, NoSymbolErrors);
+  if Result < 0 then
+    RaiseLibraryException(Handler);
+end;
+
+function ReleaseLibrary(var Handler: TLibHandler): Integer;
 begin
   Handler.ErrorMsg := '';
 
@@ -265,7 +302,7 @@ begin
   if Result = 0 then
   begin
     if Assigned(Handler.Unloading) then
-      Handler.Unloading(User, @Handler);
+      Handler.Unloading(@Handler);
     ClearLibrarySymbols(Handler.Symbols, Handler.SymCount);
     UnloadLibrary(Handler.Handle);
     Handler.Handle := NilHandle;
@@ -273,6 +310,14 @@ begin
   end else
     if Result < 0 then
       Handler.RefCount := 0;
+end;
+
+procedure AppendLibraryError(var Handler: TLibHandler; const Msg: String);
+begin
+  if Handler.ErrorMsg <> '' then
+    Handler.ErrorMsg := Handler.ErrorMsg + LineEnding + Msg
+  else
+    Handler.ErrorMsg := Msg;
 end;
 
 function GetLastLibraryError(var Handler: TLibHandler): String;
@@ -287,7 +332,9 @@ var
 begin
   Msg := GetLastLibraryError(Handler);
   if Msg <> '' then
-    raise EInOutError.Create(Msg);
+    raise EInOutError.Create(Msg)
+  else
+    raise EInOutError.Create(SUnknown);
 end;
 
 function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer;
