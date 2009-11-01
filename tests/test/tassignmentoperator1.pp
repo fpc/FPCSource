@@ -1,3 +1,4 @@
+{ %fail }
 program tassignmentoperator1;
 
 {$mode objfpc}
