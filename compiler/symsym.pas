@@ -779,8 +779,8 @@ implementation
 
       function Tprocsym.find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
       var
-        paraidx,
-        i  : longint;
+        paraidx, realparamcount,
+        i, j : longint;
         bestpd,
         hpd,
         pd : tprocdef;
@@ -802,8 +802,13 @@ implementation
                   assigned(pd.paras[paraidx]) and
                   (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
               inc(paraidx);
+            realparamcount:=0;
+            for j := 0 to pd.paras.Count-1 do
+              if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                inc(realparamcount);
             if (paraidx<pd.paras.count) and
-               assigned(pd.paras[paraidx]) then
+               assigned(pd.paras[paraidx]) and
+               (realparamcount = 1) then
               begin
                 eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
