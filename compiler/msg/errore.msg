@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03257 is the last used one
+# 03258 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1201,6 +1201,8 @@ parser_e_only_virtual_methods_final=03256_E_Only virtual methods can be final
 parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: "$1"
 % You are trying to \var{override} a virtual method of a parent class that does
 % not exist.
+parser_e_multiple_messages=03258_E_Only one message can be used per method.
+% It is not possible to associate multiple messages with a single method.
 % \end{description}
 #
 # Type Checking

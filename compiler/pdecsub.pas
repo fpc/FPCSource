@@ -1368,6 +1368,8 @@ begin
     internalerror(2003042613);
   if not is_class(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
+  if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
+    Message(parser_e_multiple_messages);
   { check parameter type }
   paracnt:=0;
   pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
