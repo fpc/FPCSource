@@ -8123,6 +8123,7 @@ tests/test/tarray6.pp svneol=native#text/plain
 tests/test/tarray7.pp svneol=native#text/plain
 tests/test/tasmread.pp svneol=native#text/plain
 tests/test/tasout.pp svneol=native#text/plain
+tests/test/tassignmentoperator1.pp svneol=native#text/pascal
 tests/test/tbopr.pp svneol=native#text/plain
 tests/test/tbrtlevt.pp svneol=native#text/plain
 tests/test/tcase1.pp svneol=native#text/plain
