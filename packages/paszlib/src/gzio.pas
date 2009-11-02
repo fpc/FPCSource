@@ -133,7 +133,9 @@ var
 {$IFNDEF NO_DEFLATE}
   gzheader : array [0..9] of byte;
 {$ENDIF}
-
+  doseek,
+  exists,
+  writing : boolean;
 begin
 
   if (path='') or (mode='') then begin
@@ -169,6 +171,7 @@ begin
     case mode[i] of
       'r'      : s^.mode := 'r';
       'w'      : s^.mode := 'w';
+      'a'      : s^.mode := 'a';
       '0'..'9' : level := Ord(mode[i])-Ord('0');
       'f'      : strategy := Z_FILTERED;
       'h'      : strategy := Z_HUFFMAN_ONLY;
@@ -180,7 +183,9 @@ begin
     exit;
   end;
 
-  if (s^.mode='w') then begin
+  writing:=( s^.mode='a') or (s^.mode='w');
+
+  if writing then begin
 {$IFDEF NO_DEFLATE}
     err := Z_STREAM_ERROR;
 {$ELSE}
@@ -217,25 +222,33 @@ begin
   {$IFOPT I+} {$I-} {$define IOcheck} {$ENDIF}
   Assign (s^.gzfile, path);
   {$ifdef unix}
-  if (fpstat(path,info)<0) and (s^.mode='w') then
+    exists:=not (fpstat(path,info)<0);
+  {$else}
+    GetFAttr(s^.gzfile, Attr);
+    exists:=(DosError= 0)
+  {$endif}
+  
+  doseek:=false;
+  if not exists or (s^.mode='w') then
     ReWrite (s^.gzfile,1)  
   else
-    Reset (s^.gzfile,1);
-  {$else}
-  GetFAttr(s^.gzfile, Attr);
-  if (DosError <> 0) and (s^.mode='w') then
-    ReWrite (s^.gzfile,1)
-  else
-    Reset (s^.gzfile,1);
-  {$endif}
+    begin
+      Reset (s^.gzfile,1);  
+      if s^.mode='a' then
+        doseek:=true;      // seek AFTER I/O check.
+    end;
+    
   {$IFDEF IOCheck} {$I+} {$ENDIF}
   if (IOResult <> 0) then begin
     destroy(s);
     gzopen := gzFile(nil);
     exit;
   end;
-
-  if (s^.mode = 'w') then begin { Write a very simple .gz header }
+  // append binary file.
+  if doseek then
+     seek(s^.gzfile,filesize(s^.gzfile));
+  s^.mode='w';   // difference append<->write doesn't matter anymore
+  if writing then begin { Write a very simple .gz header }
 {$IFNDEF NO_DEFLATE}
     gzheader [0] := gz_magic [0];
     gzheader [1] := gz_magic [1];
