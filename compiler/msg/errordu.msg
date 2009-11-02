@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 13334
+#   Based on errore.msg of SVN revision 14001
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2009 by the Free Pascal Development team
@@ -370,7 +370,7 @@ scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird me
 #
 # Parser
 #
-# 03252 is the last used one
+# 03258 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1194,11 +1194,25 @@ parser_e_no_local_para_def=03252_E_Parameter können keine lokalen Typdeklaratio
 % refer to the same type definition in the procedure headers of the interface and implementation of a unit
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
+parser_e_abstract_and_sealed_conflict=03253_E_Konflikt zwischen ABSTRACT und SEALED 
+% ABSTRACT and SEALED can not be used together in one declaration
+parser_e_sealed_descendant=03254_E_Kann keinen Nachfahren der SEALED Klasse "$1" erzeugen
+% Sealed means that class can not be derived by another class.
+parser_e_sealed_class_cannot_have_abstract_methods=03255_E_Eine SEALED Klasse kann keine ABSTRACT Methode haben
+% Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
+parser_e_only_virtual_methods_final=03256_E_Nur virtuelle Methoden können final sein.
+% You are declaring a method as final, when it is not declared to be
+% virtual.
+parser_e_final_can_no_be_overridden=03257_E_Die finale Methode kann nicht überschrieben werden: "$1"
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
+parser_e_multiple_messages=03258_E_Pro Methode kann nur eine Nachricht verwendet werden.
+% It is not possible to associate multiple messages with a single method.
 % \end{description}
 #
 # Type Checking
 #
-# 04087 is the last used one
+# 04090 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1273,7 +1287,7 @@ type_w_convert_real_2_comp=04014_W_Automatische Typumwandlung von Fliesskommatyp
 type_h_use_div_for_int=04015_H_Verwenden sie DIV um ein Integer-Ergebnis zu erhalten
 % When hints are on, then an integer division with the '/' operator will
 % produce this message, because the result will then be of type real.
-type_e_strict_var_string_violation=04016_E_Stringtypen passen nicht zueinander, da in "$V+"-Modus
+type_e_strict_var_string_violation=04016_E_Stringtypen müssen im "$V+"-Modus exakt übereinstimmen
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
 type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_Succ oder Pred kann nicht auf Aufzählungen mit Zuweisungen angewendet werden
@@ -1496,11 +1510,17 @@ type_e_no_type_info=04087_E_Für diesen Typ steht keine Typ-Information zu Verf�
 % Type information is not generated for some types, such as enumerations with gaps
 % in their value range (this includes enumerations whose lower bound is different
 % from zero).
+type_e_ordinal_or_string_expr_expected=04088_E_Ausdruck mit ordinalem Typ oder Zeichenkette erwartet
+% The expression must be an ordinal or string type.
+type_e_string_expr_expected=04089_E_Ausdruck mit Zeichenkette erwartet
+% The expression must be a string type.
+type_w_zero_to_nil=04090_W_Konvertiere 0 zu NIL
+% Use NIL rather than 0 when initialising a pointer. 
 % \end{description}
 #
 # Symtable
 #
-# 05064 is the last used one
+# 05066 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1671,6 +1691,15 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" ist experimentell
 sym_w_forward_not_resolved=05064_W_Forward Deklaration "$1" wird nicht aufgelöst und deshalb als extern angenommen
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
+sym_w_library_symbol=05065_W_Symbol "$1" gehört zu einer Bibliothek
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{library} is used. Library symbols may not be
+% available in other libraries.
+sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" ist veraltet: "$2"
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{deprecated} is used. Deprecated symbols may no longer
+% be available in newer versions of the unit / library. Use of this symbol
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator
@@ -2057,7 +2086,7 @@ asmr_e_need_pic_ref=07107_E_Erzeuge eigentlich PIC, aber die Referenz ist nicht 
 #
 # Assembler/binary writers
 #
-# 08020 is the last used one
+# 08021 is the last used one
 #
 asmw_f_too_many_asm_files=08000_F_Zu viele Assembler-Dateien
 % With smartlinking enabled, there are too many assembler
@@ -2211,7 +2240,7 @@ execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 #
 # Internal linker messages
 #
-# 09200 is the last used one
+# 09201 is the last used one
 #
 # BeginOfTeX
 % \section{Linker messages}
@@ -2422,17 +2451,17 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 unit_u_unload_resunit=10060_U_Entlade die Resource-Unit $1 (wird nicht benötigt) 
 % When you use the \var{-vu} flag, the compiler warns that it is unloading the 
 % resource handling unit, since no resources are used.
-% \end{description}
 unit_e_different_wpo_file=10061_E_Unit $1 wurde mit einer anderen Feedback-Eingabe ($2, $3) für die Gesamtprogramm-Optimierung (wpo) übersetzt. Bitte erneut ohne wpo oder mit der gleichen wpo-Feedback-Eingabe-Datei übersetzen
 % When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
 % this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
 % any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
+% \end{description}
 # EndOfTeX
 
 #
 #  Options
 #
-# 11046 is the last used one
+# 11047 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2552,7 +2581,9 @@ option_unsupported_target_for_feature=11045_F_Das Feature "$1" wird für die aus
 option_dwarf_smart_linking=11046_N_DWARF Debug-Information kann auf dieser Zielplattform nicht zusammen mit Smartlinking benutzt werden, es wird auf statisches Linken umgeschaltet
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
-
+option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplattform ignoriert
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is ignored for the currently selected target platform.
 %\end{description}
 # EndOfTeX
 
