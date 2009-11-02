@@ -166,6 +166,18 @@ type
 {$IFNDEF FPC_TESTGENERICS}
 
   TListAssignOp = (laCopy, laAnd, laOr, laXor, laSrcUnique, laDestUnique);
+  TFPList = class;
+
+  TFPListEnumerator = class
+  private
+    FList: TFPList;
+    FPosition: Integer;
+  public
+    constructor Create(AList: TFPList);
+    function GetCurrent: Pointer;
+    function MoveNext: Boolean;
+    property Current: Pointer read GetCurrent;
+  end;
 
   TFPList = class(TObject)
   private
@@ -197,6 +209,7 @@ type
     function Expand: TFPList; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Extract(Item: Pointer): Pointer;
     function First: Pointer;
+    function GetEnumerator: TFPListEnumerator;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer); {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function Last: Pointer;
@@ -228,8 +241,20 @@ type
 {$endif}
 
 { TList class}
-  TListNotification = (lnAdded, lnExtracted, lnDeleted);
 
+  TListNotification = (lnAdded, lnExtracted, lnDeleted);
+  TList = class;
+
+  TListEnumerator = class
+  private
+    FList: TList;
+    FPosition: Integer;
+  public
+    constructor Create(AList: TList);
+    function GetCurrent: Pointer;
+    function MoveNext: Boolean;
+    property Current: Pointer read GetCurrent;
+  end;
 
   TList = class(TObject)
   private
@@ -264,6 +289,7 @@ type
     function Expand: TList;
     function Extract(item: Pointer): Pointer;
     function First: Pointer;
+    function GetEnumerator: TListEnumerator;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
     function Last: Pointer;
@@ -424,6 +450,17 @@ type
     property DisplayName: string read GetDisplayName write SetDisplayName;
   end;
 
+  TCollectionEnumerator = class
+  private
+    FCollection: TCollection;
+    FPosition: Integer;
+  public
+    constructor Create(ACollection: TCollection);
+    function GetCurrent: TCollectionItem;
+    function MoveNext: Boolean;
+    property Current: TCollectionItem read GetCurrent;
+  end;
+
   TCollectionItemClass = class of TCollectionItem;
   TCollectionNotification = (cnAdded, cnExtracting, cnDeleting);
   TCollectionSortCompare = function (Item1, Item2: TCollectionItem): Integer;
@@ -463,6 +500,7 @@ type
     procedure Clear;
     procedure EndUpdate; virtual;
     procedure Delete(Index: Integer);
+    function GetEnumerator: TCollectionEnumerator;
     function GetNamePath: string; override;
     function Insert(Index: Integer): TCollectionItem;
     function FindItemID(ID: Integer): TCollectionItem;
@@ -490,6 +528,19 @@ type
   IStringsAdapter = interface ['{739C2F34-52EC-11D0-9EA6-0020AF3D82DA}']
     procedure ReferenceStrings(S: TStrings);
     procedure ReleaseStrings;
+  end;
+
+{ TStringsEnumerator class }
+
+  TStringsEnumerator = class
+  private
+    FStrings: TStrings;
+    FPosition: Integer;
+  public
+    constructor Create(AStrings: TStrings);
+    function GetCurrent: String;
+    function MoveNext: Boolean;
+    property Current: String read GetCurrent;
   end;
 
 { TStrings class }
@@ -551,6 +602,7 @@ type
     procedure EndUpdate;
     function Equals(TheStrings: TStrings): Boolean;
     procedure Exchange(Index1, Index2: Integer); virtual;
+    function GetEnumerator: TStringsEnumerator;
     function GetText: PChar; virtual;
     function IndexOf(const S: string): Integer; virtual;
     function IndexOfName(const Name: string): Integer; virtual;
@@ -1495,6 +1547,17 @@ type
     procedure Notification(AnObject: TPersistent; Operation: TOperation);
   end;
 
+  TComponentEnumerator = class
+  private
+    FComponent: TComponent;
+    FPosition: Integer;
+  public
+    constructor Create(AComponent: TComponent);
+    function GetCurrent: TComponent;
+    function MoveNext: Boolean;
+    property Current: TComponent read GetCurrent;
+  end;
+
   TBasicAction = class;
 
   { TComponent }
@@ -1579,6 +1642,7 @@ type
     procedure FreeNotification(AComponent: TComponent);
     procedure RemoveFreeNotification(AComponent: TComponent);
     procedure FreeOnRelease;
+    function GetEnumerator: TComponentEnumerator;
     function GetNamePath: string; override;
     function GetParentComponent: TComponent; dynamic;
     function HasParent: Boolean; dynamic;
@@ -1686,6 +1750,19 @@ type
     property Items[index : Integer] : IUnknown read Get write Put;default;
   end;
 
+  TInterfaceList = class;
+
+  TInterfaceListEnumerator = class
+  private
+    FList: TInterfaceList;
+    FPosition: Integer;
+  public
+    constructor Create(AList: TInterfaceList);
+    function GetCurrent: IUnknown;
+    function MoveNext: Boolean;
+    property Current: IUnknown read GetCurrent;
+  end;
+
   TInterfaceList = class(TInterfacedObject,IInterfaceList)
   private
     FList : TThreadList;
@@ -1704,6 +1781,7 @@ type
     procedure Delete(index : Integer);
     procedure Exchange(index1,index2 : Integer);
     function First : IUnknown;
+    function GetEnumerator: TInterfaceListEnumerator;
     function IndexOf(item : IUnknown) : Integer;
     function Add(item : IUnknown) : Integer;
     procedure Insert(i : Integer;item : IUnknown);

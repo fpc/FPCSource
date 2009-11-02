@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03258 is the last used one
+# 03264 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1203,6 +1203,18 @@ parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: 
 % not exist.
 parser_e_multiple_messages=03258_E_Only one message can be used per method.
 % It is not possible to associate multiple messages with a single method.
+parser_e_invalid_enumerator_identifier=03259_E_Invalid enumerator identifier: "$1"
+% Only "MoveNext" and "Current" enumerator identifiers are supported.
+parser_e_enumerator_identifier_required=03260_E_Enumerator identifier required
+% "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
+parser_e_enumerator_movenext_is_not_valid=03261_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type.
+% "MoveNext" enumerator pattern method must be a function with Boolean return type
+parser_e_enumerator_current_is_not_valid=03262_E_Enumerator Current pattern property is not valid. Property must have a getter.
+% "Current" enumerator pattern property must have a getter
+parser_e_only_one_enumerator_movenext=03263_E_Only one enumerator MoveNext method is allowed per class/object
+% Class or Object can have only one enumerator MoveNext declaration.
+parser_e_only_one_enumerator_current=03264_E_Only one enumerator Current property is allowed per class/object
+% Class or Object can have only one enumerator Current declaration.
 % \end{description}
 #
 # Type Checking
@@ -1515,7 +1527,7 @@ type_w_zero_to_nil=04090_W_Converting 0 to NIL
 #
 # Symtable
 #
-# 05066 is the last used one
+# 05069 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1695,6 +1707,16 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
+sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
+% This means that compiler can not find an apropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% GetEnumerator method to the class or object definition.
+sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator "$1"
+% This means that compiler can not find a public MoveNext method with the Boolean return type in
+% the enumerator class or object definition.
+sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
+% This means that compiler can not find a public Current property in  the enumerator class or object 
+% definition.
 % \end{description}
 #
 # Codegenerator

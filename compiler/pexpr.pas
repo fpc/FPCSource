@@ -1017,25 +1017,6 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
-
-         function getpropaccesslist(pap:tpropaccesslisttypes):boolean;
-         var
-           hpropsym : tpropertysym;
-         begin
-           result:=false;
-           { find property in the overriden list }
-           hpropsym:=propsym;
-           repeat
-             propaccesslist:=hpropsym.propaccesslist[pap];
-             if not propaccesslist.empty then
-               begin
-                 result:=true;
-                 exit;
-               end;
-             hpropsym:=hpropsym.overridenpropsym;
-           until not assigned(hpropsym);
-         end;
-
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1058,7 +1039,7 @@ implementation
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              if getpropaccesslist(palt_write) then
+              if getpropaccesslist(propsym,palt_write,propaccesslist) then
                 begin
                    case propaccesslist.firstsym^.sym.typ of
                      procsym :
@@ -1108,7 +1089,7 @@ implementation
            end
          else
            begin
-              if getpropaccesslist(palt_read) then
+              if getpropaccesslist(propsym,palt_read,propaccesslist) then
                 begin
                    case propaccesslist.firstsym^.sym.typ of
                      fieldvarsym :

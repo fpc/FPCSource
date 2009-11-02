@@ -86,6 +86,7 @@ interface
       containing no code }
     function has_no_code(n : tnode) : boolean;
 
+    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
@@ -926,6 +927,25 @@ implementation
           foreachnodestatic(pm_preprocess,n,@callsimplify,nil);
         until not(treechanged);
       end;
+
+
+    function getpropaccesslist(propsym:tpropertysym; pap:tpropaccesslisttypes;out propaccesslist:tpropaccesslist):boolean;
+    var
+      hpropsym : tpropertysym;
+    begin
+      result:=false;
+      { find property in the overriden list }
+      hpropsym:=propsym;
+      repeat
+        propaccesslist:=hpropsym.propaccesslist[pap];
+        if not propaccesslist.empty then
+          begin
+            result:=true;
+            exit;
+          end;
+        hpropsym:=hpropsym.overridenpropsym;
+      until not assigned(hpropsym);
+    end;
 
 
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);

@@ -10,6 +10,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{****************************************************************************}
+{*                        TStringsEnumerator                                *}
+{****************************************************************************}
+
+constructor TStringsEnumerator.Create(AStrings: TStrings);
+begin
+  inherited Create;
+  FStrings := AStrings;
+  FPosition := -1;
+end;
+
+function TStringsEnumerator.GetCurrent: String;
+begin
+  Result := FStrings[FPosition];
+end;
+
+function TStringsEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FStrings.Count;
+end;
+
 {****************************************************************************}
 {*                             TStrings                                     *}
 {****************************************************************************}
@@ -665,6 +688,11 @@ begin
   end;
 end;
 
+
+function TStrings.GetEnumerator: TStringsEnumerator;
+begin
+  Result:=TStringsEnumerator.Create(Self);
+end;
 
 
 Function TStrings.GetText: PChar;

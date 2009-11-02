@@ -246,6 +246,18 @@
        end;
        {$M-}
 
+       { enumerator support }
+       IEnumerator = interface(IInterface)
+         function GetCurrent: TObject;
+         function MoveNext: Boolean;
+         procedure Reset;
+         property Current: TObject read GetCurrent;
+       end;
+
+       IEnumerable = interface(IInterface)
+         function GetEnumerator: IEnumerator;
+       end;
+
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
           ['{00020400-0000-0000-C000-000000000046}']

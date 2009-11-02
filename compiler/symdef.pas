@@ -296,6 +296,10 @@ interface
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
+          { enumerator support }
+          function search_enumerator_get: tprocdef;
+          function search_enumerator_move: tprocdef;
+          function search_enumerator_current: tsym;
           { WPO }
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
@@ -4262,6 +4266,118 @@ implementation
         classref_created_in_current_module:=false;
       end;
 
+    function tobjectdef.search_enumerator_get: tprocdef;
+     var
+        objdef : tobjectdef;
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        hashedid.id:='GETENUMERATOR';
+        while assigned(objdef) do
+          begin
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=procsym) then
+              begin
+                for i := 0 to Tprocsym(sym).ProcdefList.Count - 1 do
+                begin
+                  pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+                  if (pd.proctypeoption = potype_function) and
+                     (pd.returndef.typ = objectdef) and
+                     (pd.visibility >= vis_public) then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
+                end;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
+
+    function tobjectdef.search_enumerator_move: tprocdef;
+     var
+        objdef : tobjectdef;
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        // first search for po_enumerator_movenext method modifier
+        // then search for public function MoveNext: Boolean
+        hashedid.id:='MOVENEXT';
+        while assigned(objdef) do
+          begin
+            for i:=0 to objdef.symtable.SymList.Count-1 do
+              begin
+                sym:=TSym(objdef.symtable.SymList[i]);
+                if (sym.typ=procsym) then
+                begin
+                  pd:=Tprocsym(sym).find_procdef_byoptions([po_enumerator_movenext]);
+                  if assigned(pd) then
+                    begin
+                      result:=pd;
+                      exit;
+                    end;
+                end;
+              end;
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=procsym) then
+              begin
+                for i := 0 to Tprocsym(sym).ProcdefList.Count - 1 do
+                begin
+                  pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+                  if (pd.proctypeoption = potype_function) and
+                     is_boolean(pd.returndef) and
+                     (pd.visibility >= vis_public) then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
+                end;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
+
+    function tobjectdef.search_enumerator_current: tsym;
+     var
+        objdef : tobjectdef;
+        sym: tsym;
+        i: integer;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        hashedid.id:='CURRENT';
+        // first search for ppo_enumerator_current property modifier
+        // then search for public property Current
+        while assigned(objdef) do
+          begin
+            for i:=0 to objdef.symtable.SymList.Count-1 do
+              begin
+                sym:=TSym(objdef.symtable.SymList[i]);
+                if (sym.typ=propertysym) and (ppo_enumerator_current in tpropertysym(sym).propoptions) then
+                begin
+                  result:=sym;
+                  exit;
+                end;
+              end;
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=propertysym) and
+               (sym.visibility >= vis_public) and not tpropertysym(sym).propaccesslist[palt_read].empty then
+              begin
+                result:=sym;
+                exit;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
 
     procedure tobjectdef.register_created_classref_type;
       begin

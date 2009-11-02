@@ -1069,17 +1069,22 @@ implementation
                end
               else
                begin
+                 { Use the dummy NOTOKEN that is also declared
+                   for the overloaded_operator[] }
+                 optoken:=NOTOKEN;
                  case token of
                    _CARET:
                      Message1(parser_e_overload_operator_failed,'**');
+                   _ID:
+                     if idtoken = _ENUMERATOR then
+                       optoken := _OP_ENUMERATOR
+                     else
+                       Message1(parser_e_overload_operator_failed,'');
                    _UNEQUAL:
                      Message1(parser_e_overload_operator_failed,'=');
                    else
                      Message1(parser_e_overload_operator_failed,'');
                  end;
-                 { Use the dummy NOTOKEN that is also declared
-                   for the overloaded_operator[] }
-                 optoken:=NOTOKEN;
                end;
               consume(token);
               parse_proc_head(aclass,potype_operator,pd);
@@ -1283,6 +1288,32 @@ begin
     include(pd.procoptions,po_finalmethod)
   else
     Message(parser_e_only_virtual_methods_final);
+end;
+
+procedure pd_enumerator(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910250);
+  if (token = _ID) then
+  begin
+    if pattern='MOVENEXT' then
+    begin
+      if oo_has_enumerator_movenext in tprocdef(pd)._class.objectoptions then
+        message(parser_e_only_one_enumerator_movenext);
+      if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) then
+      begin
+        include(tprocdef(pd)._class.objectoptions, oo_has_enumerator_movenext);
+        include(pd.procoptions,po_enumerator_movenext);
+      end
+      else
+        Message(parser_e_enumerator_movenext_is_not_valid)
+    end
+    else
+      Message1(parser_e_invalid_enumerator_identifier, pattern);
+    consume(token);
+  end
+  else
+    Message(parser_e_enumerator_identifier_required);
 end;
 
 procedure pd_virtual(pd:tabstractprocdef);
@@ -1677,7 +1708,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=41;
+  num_proc_directives=42;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -2061,6 +2092,15 @@ const
       { allowed for external cpp classes }
       mutexclpotype : [{potype_constructor,potype_destructor}];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
+    ),(
+      idtok:_ENUMERATOR;
+      pd_flags : [pd_interface,pd_object];
+      handler  : @pd_enumerator;
+      pocall   : pocall_none;
+      pooption : [po_enumerator_movenext];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     )
    );
 

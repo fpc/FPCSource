@@ -53,6 +53,7 @@ type
     _OP_SHR,
     _OP_XOR,
     _ASSIGNMENT,
+    _OP_ENUMERATOR,
     { special chars }
     _CARET,
     _UNEQUAL,
@@ -232,6 +233,7 @@ type
     _WRITEONLY,
     _DEPRECATED,
     _DESTRUCTOR,
+    _ENUMERATOR,
     _IMPLEMENTS,
     _INTERNPROC,
     _OLDFPCCALL,
@@ -260,7 +262,7 @@ const
   { last operator which can be overloaded, the first_overloaded should
     be declared directly after NOTOKEN }
   first_overloaded = succ(NOTOKEN);
-  last_overloaded  = _ASSIGNMENT;
+  last_overloaded  = _OP_ENUMERATOR;
 
 type
   tokenrec=record
@@ -307,6 +309,7 @@ const
       (str:'shr'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:':='            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'enumerator'    ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'<>'            ;special:true ;keyword:m_none;op:NOTOKEN),
@@ -486,6 +489,7 @@ const
       (str:'WRITEONLY'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'ENUMERATOR'    ;special:false;keyword:m_none;op:_OP_ENUMERATOR),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OLDFPCCALL'    ;special:false;keyword:m_none;op:NOTOKEN),
