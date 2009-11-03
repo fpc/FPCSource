@@ -205,6 +205,8 @@ type
 
     PWatch = ^TWatch;
     TWatch =  Object(TObject)
+      expr : pstring;
+      last_value,current_value : pchar;
       constructor Init(s : string);
       constructor Load(var S: TStream);
       procedure   Store(var S: TStream);
@@ -212,8 +214,6 @@ type
       procedure Get_new_value;
       procedure Force_new_value;
       destructor done;virtual;
-      expr : pstring;
-      last_value,current_value : pchar;
     private
       GDBRunCount : longint;
     end;
