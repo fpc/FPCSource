@@ -371,7 +371,8 @@ Var
   R : Dword;
 
 begin
-  fexitcode:=waitprocess(handle);
+  if FRunning then
+    fexitcode:=waitprocess(handle);
   Result:=(fexitcode>=0);
   FRunning:=False;
 end;
