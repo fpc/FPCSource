@@ -230,7 +230,10 @@ begin
   
   doseek:=false;
   if ((s^.mode='a') and not exists) or (s^.mode='w') then
+    begin
+   
     ReWrite (s^.gzfile,1)  
+    end
   else
     begin
       Reset (s^.gzfile,1);  
@@ -247,7 +250,9 @@ begin
   // append binary file.
   if doseek then
      seek(s^.gzfile,filesize(s^.gzfile));
-  s^.mode:='w';   // difference append<->write doesn't matter anymore
+
+  if s^.mode='a' then
+    s^.mode:='w';   // difference append<->write doesn't matter anymore
   if writing then begin { Write a very simple .gz header }
 {$IFNDEF NO_DEFLATE}
     gzheader [0] := gz_magic [0];
