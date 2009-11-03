@@ -225,7 +225,7 @@ begin
     exists:=not (fpstat(path,info)<0);
   {$else}
     GetFAttr(s^.gzfile, Attr);
-    exists:=(DosError= 0)
+    exists:=(DosError= 0);
   {$endif}
   
   doseek:=false;
