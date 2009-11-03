@@ -95,7 +95,6 @@ interface
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
 {$endif def GDB_V607}
 
-<<<<<<< .mine
 { 6.8.x }
 {$ifdef GDB_V608}
   {$info using gdb 6.8.x}
@@ -130,18 +129,6 @@ interface
 {$endif def GDB_V7}
 
 
-=======
-{ 6.8.x }
-{$ifdef GDB_V608}
-  {$info using gdb 6.8.x}
-  {$define GDB_V6}
-  {$define GDB_HAS_DB_COMMANDS}
-  {$define GDB_NEEDS_NO_ERROR_INIT}
-  {$define GDB_USES_EXPAT_LIB}
-  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V608}
-
->>>>>>> .r14018
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
   {$define GDB_HAS_DB_COMMANDS}
