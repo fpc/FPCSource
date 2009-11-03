@@ -326,9 +326,16 @@ end ;
     if S does not represent a valid date value
     an EConvertError will be raised   }
 
-function IntStrToDate(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
+function IntStrToDate(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; const useformat : string; const defs:TFormatSettings; separator : char = #0): TDateTime;
 
 const SInvalidDateFormat = '"%s" is not a valid date format';
+
+procedure FixErrorMsg(const errm :ansistring;const errmarg : ansistring);
+
+begin
+  errormsg:=format(errm,[errmarg]);
+end;
+
 var
    df:string;
    d,m,y,ly:word;
@@ -340,15 +347,15 @@ var
    LocalTime:tsystemtime;
    YearMoreThenTwoDigits : boolean;
 begin
-  ErrorMsg:='';
+  ErrorMsg:='';   Result:=0;
   if (Len=0) then
     begin
-    ErrorMsg:=Format(SInvalidDateFormat,['']);
-    exit;
+      FixErrorMsg(SInvalidDateFormat,'');
+      exit;
     end;
   YearMoreThenTwoDigits := False;
   if separator = #0 then
-        separator := DateSeparator;
+    separator := defs.DateSeparator;
   df := UpperCase(useFormat);
   { Determine order of D,M,Y }
   yp:=0;
@@ -382,8 +389,8 @@ begin
    end;
   if Which<>3 then
     begin
-    ErrorMsg:=Format(SErrIllegalDateFormatString,[useformat]);
-    Exit;
+      FixErrorMsg(SErrIllegalDateFormatString,useformat);
+      Exit;
     end;
 { Get actual values }
   for i := 1 to 3 do
@@ -406,24 +413,24 @@ begin
       begin
         inc(n);
         if n>3 then
-          begin
-          ErrorMsg:=Format(SInvalidDateFormat,[s]);
-          exit;
+          begin 
+            FixErrorMsg(SInvalidDateFormat,s);
+            exit;
           end;
          // Check if the year has more then two digits (if n=yp, then we are evaluating the year.)
         if (n=yp) and (length(s1)>2) then YearMoreThenTwoDigits := True;
         val(s1, values[n], c);
         if c<>0 then
           begin
-          ErrorMsg:=Format(SInvalidDateFormat,[s]);
-          Exit;
+            FixErrorMsg(SInvalidDateFormat,s);
+            Exit;
           end;
         s1 := '';
       end
      else if not (s[i] in ['0'..'9']) then
        begin
-       ErrorMsg:=Format(SInvalidDateFormat,[s]);
-       Exit;
+         FixErrorMsg(SInvalidDateFormat,s);
+         Exit;
        end;
    end ;
   // Fill in values.
@@ -457,13 +464,13 @@ begin
   end;
   if (y >= 0) and (y < 100) and not YearMoreThenTwoDigits then
     begin
-    ly := ly - TwoDigitYearCenturyWindow;
+    ly := ly - defs.TwoDigitYearCenturyWindow;
     Inc(Y, ly div 100 * 100);
-    if (TwoDigitYearCenturyWindow > 0) and (Y < ly) then
+    if (defs.TwoDigitYearCenturyWindow > 0) and (Y < ly) then
       Inc(Y, 100);
     end;
   Result := EncodeDate(y, m, d);
-end ;
+end;
 
 function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
 
@@ -471,7 +478,7 @@ Var
   MSg : AnsiString;
 
 begin
-  Result:=IntStrToDate(Msg,S,Len,useFormat,Separator);
+  Result:=IntStrToDate(Msg,S,Len,useFormat,DefaultFormatSettings,Separator);
   If (Msg<>'') then
     Raise EConvertError.Create(Msg);
 end;
@@ -510,7 +517,7 @@ end;
     if S does not represent a valid time value an
     EConvertError will be raised   }
 
-function IntStrToTime(Out ErrorMsg : AnsiString; const S: PChar; Len : integer; separator : char = #0): TDateTime;
+function IntStrToTime(Out ErrorMsg : AnsiString; const S: PChar; Len : integer;const defs:TFormatSettings; separator : char = #0): TDateTime;
 var
    Current: integer; PM: integer;
 
@@ -541,12 +548,12 @@ var
               Inc(Current);
             val(StrPas(S+j, 1 + current - j), result, c);
           end
-       else if ((TimeAMString<>'') and (CurrentChar = TimeAMString[1])) or (S[Current] in ['a', 'A']) then
+       else if ((defs.TimeAMString<>'') and (CurrentChar = defs.TimeAMString[1])) or (S[Current] in ['a', 'A']) then
           begin
             pm:=1;
             Current := 1 + Len;
           end
-       else if ((TimePMString<>'') and (CurrentChar = TimePMString[1])) or (S[Current] in ['p', 'P']) then
+       else if ((defs.TimePMString<>'') and (CurrentChar = defs.TimePMString[1])) or (S[Current] in ['p', 'P']) then
          begin
            Current := 1 + Len;
            PM := 2;
@@ -564,7 +571,7 @@ var
 
 begin
   if separator = #0 then
-        separator := TimeSeparator;
+        separator := defs.TimeSeparator;
   Current := 0;
   PM := 0;
   for i:=0 to 4 do
@@ -602,7 +609,7 @@ Var
   Msg : AnsiString;
 
 begin
-  Result:=IntStrToTime(Msg,S,Len,Separator);
+  Result:=IntStrToTime(Msg,S,Len,DefaultFormatSettings,Separator);
   If (Msg<>'') then 
     Raise EConvertError.Create(Msg);
 end;
@@ -964,7 +971,7 @@ Var
   Msg : Ansistring;
                       
 begin
-  Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,separator);
+  Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,defaultformatsettings,separator);
   Result:=(Msg='');
 end;
 
@@ -978,11 +985,10 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,Separator);
+    Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,DefaultFormatSettings,Separator);
     Result:=(Msg='');
     end;
 end;
-
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
 begin
@@ -1001,16 +1007,25 @@ begin
   Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);  
 end;
 
-
-
-// function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+Var
+  Msg : Ansistring;                    
+                    
+begin
+  Result:=Length(S)<>0;
+  If Result then
+    begin
+      Value:=IntStrToDate(Msg,@S[1],Length(S),FormatSettings.ShortDateFormat,FormatSettings,#0);
+      Result:=(Msg='');
+    end;
+end;
 
 function TryStrToTime(const S: ShortString; out Value: TDateTime; separator : char): Boolean;
 
 Var
   Msg : AnsiString;
 begin
-  Value:=IntStrToTime(Msg,@S[1],Length(S),Separator);
+  Value:=IntStrToTime(Msg,@S[1],Length(S),DefaultFormatSettings,Separator);
   result:=(Msg='');
 end;
 
@@ -1026,8 +1041,8 @@ begin
   Result:=Length(S)<>0;
   If Result then
     begin
-    Value:=IntStrToTime(Msg,@S[1],Length(S),Separator);
-    Result:=(Msg='');
+      Value:=IntStrToTime(Msg,@S[1],Length(S),DefaultFormatSettings,Separator);
+      Result:=(Msg='');
     end;
 end;
 
@@ -1036,8 +1051,16 @@ begin
     result := TryStrToTime(S,Value,#0);
 end;
 
-// function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
-
+function TryStrToTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+Var msg : AnsiString;
+begin
+  Result:=Length(S)<>0;
+  If Result then
+    begin
+      Value:=IntStrToTime(Msg,@S[1],Length(S),FormatSettings,#0);
+      Result:=(Msg='');
+    end;
+end;
 
 function TryStrToDateTime(const S: ShortString; out Value: TDateTime): Boolean;
   begin
@@ -1061,8 +1084,31 @@ function TryStrToDateTime(const S: AnsiString; out Value: TDateTime): Boolean;
     end;
   end;
 
-// function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
-
+function TryStrToDateTime(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
+var
+  I: integer;
+  dtdate, dttime :TDateTime;
+begin
+  result:=true;
+  I:=Pos(FormatSettings.TimeSeparator,S);
+  If (I>0) then
+    begin
+      While (I>0) and (S[I]<>' ') do
+        Dec(I);
+      If I>0 then
+        begin
+          if not TryStrToDate(Copy(S,1,I-1),dtdate,Formatsettings) then
+            exit;
+          if not TryStrToTime(Copy(S,i+1, Length(S)-i),dttime,Formatsettings) then
+            exit;
+          Value:=ComposeDateTime(dtdate,dttime);
+        end
+      else
+         result:=TryStrToTime(s,Value,Formatsettings);
+    end
+  else
+    result:=TryStrToDate(s,Value,Formatsettings);
+end;
 
 function StrToDateDef(const S: ShortString; const Defvalue : TDateTime): TDateTime;
 begin
