@@ -653,6 +653,17 @@ end;
 
 
 
+Function TStrings.Equals(Obj: TObject): Boolean;
+
+begin
+  if Obj is TStrings then
+    Result := Equals(TStrings(Obj))
+  else
+    Result := inherited Equals(Obj);
+end;
+
+
+
 Function TStrings.Equals(TheStrings: TStrings): Boolean;
 
 Var Runner,Nr : Longint;

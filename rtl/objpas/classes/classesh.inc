@@ -360,7 +360,8 @@ type
       procedure NotBits(BitSet : TBits);
       function  Get(Bit : longint) : boolean;
       procedure Grow(NBit : longint);
-      function  Equals(BitSet : TBits) : Boolean;
+      function  Equals(Obj : TObject): Boolean; override; overload;
+      function  Equals(BitSet : TBits) : Boolean; overload;
       procedure SetIndex(Index : longint);
       function  FindFirstBit(State : boolean) : longint;
       function  FindNextBit : longint;
@@ -600,7 +601,8 @@ type
     procedure Clear; virtual; abstract;
     procedure Delete(Index: Integer); virtual; abstract;
     procedure EndUpdate;
-    function Equals(TheStrings: TStrings): Boolean;
+    function Equals(Obj: TObject): Boolean; override; overload;
+    function Equals(TheStrings: TStrings): Boolean; overload;
     procedure Exchange(Index1, Index2: Integer); virtual;
     function GetEnumerator: TStringsEnumerator;
     function GetText: PChar; virtual;

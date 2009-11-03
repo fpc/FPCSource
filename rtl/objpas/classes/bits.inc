@@ -232,6 +232,14 @@ begin
       FBits^[loop] := FBits^[loop] xor bitset.FBits^[loop];
 end;
 
+function TBits.Equals(Obj : TObject): Boolean;
+begin
+  if Obj is TBits then
+    Result := Equals(TBits(Obj))
+  else
+    Result := inherited Equals(Obj);
+end;
+
 function TBits.equals(bitset : TBits) : Boolean;
 var
    n : longint;
