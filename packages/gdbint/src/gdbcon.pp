@@ -23,6 +23,7 @@ type
     progname,
     progdir,
     progargs   : pchar;
+    start_break_number,
     in_command,
     init_count : longint;
     constructor Init;
@@ -245,6 +246,7 @@ end;
 procedure TGDBController.StartTrace;
 begin
   Command('tbreak PASCALMAIN');
+  start_break_number:=last_breakpoint_number;
   Run;
 end;
 
