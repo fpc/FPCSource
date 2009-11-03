@@ -2783,6 +2783,7 @@ end;
 
 {$ifdef GDB_HAS_SYSROOT}
 var gdb_sysroot  : pchar; cvar;public;
+    gdb_datadir  : pchar; cvar;public;
     gdb_sysrootc : char;
     return_child_result : longbool;cvar;public;
     return_child_result_value : longint;cvar;public;
@@ -2797,6 +2798,7 @@ begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
+  gdb_datadir := @gdb_sysrootc;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
   debug_file_directory := '/usr/local/lib';
