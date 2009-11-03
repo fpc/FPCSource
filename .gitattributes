@@ -1793,6 +1793,7 @@ packages/fv/src/views.pas svneol=native#text/plain
 packages/fv/src/w32smsg.inc svneol=native#text/plain
 packages/gdbint/Makefile svneol=native#text/plain
 packages/gdbint/Makefile.fpc svneol=native#text/plain
+packages/gdbint/examples/mingw.pas svneol=native#text/plain
 packages/gdbint/examples/symify.pp svneol=native#text/plain
 packages/gdbint/examples/testgdb.pp svneol=native#text/plain
 packages/gdbint/fpmake.pp svneol=native#text/plain
