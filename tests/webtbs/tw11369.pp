@@ -4,7 +4,7 @@
 
 // The curterm6 case in the manual warrants a separate bug report
 
-{$if defined(darwin) or defined(os2) or defined(emx) or defined(palmos) or defined(symbian) or defined(watcom) or defined(wdosx) or defined(win32) or defined(wince)}
+{$if defined(darwin) or defined(os2) or defined(emx) or defined(palmos) or defined(symbian) or defined(watcom) or defined(wdosx) or defined(win32) or defined(wince) or defined(go32v2)}
 {$define underscoreprefix}
 {$endif}
 
