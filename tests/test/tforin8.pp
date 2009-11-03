@@ -55,7 +55,7 @@ var
 begin
   List := TMyList.Create;
   for i in List do
-    WriteLn(Integer(i));
+    WriteLn(PtrUInt(i));
   List := nil;
 end.
 
