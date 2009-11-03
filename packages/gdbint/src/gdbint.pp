@@ -2140,7 +2140,7 @@ begin
 end;
 
 
-function QueryHook(question : pchar; args : array of const) : longint; cdecl;
+function QueryHook(question : pchar; arg : pchar) : longint; cdecl;
 begin
   if not assigned(curr_gdb) then
     QueryHook:=0
@@ -2149,7 +2149,7 @@ begin
       if curr_gdb^.reset_command and (pos('Kill',question)>0) then
         QueryHook:=1
       else if pos('%s',question)>0 then
-        QueryHook:=curr_gdb^.Query(question, args[0].vpchar)
+        QueryHook:=curr_gdb^.Query(question, arg)
       else
         QueryHook:=curr_gdb^.Query(question, nil);
     end;
