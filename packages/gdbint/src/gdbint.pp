@@ -15,6 +15,7 @@ unit GdbInt;
 
 {$mode objfpc}
 
+{$define COMPILING_GDBINT_UNIT}
 {$ifdef USE_GDBLIBINC}
   {$i gdblib.inc}
 {$else not USE_GDBLIBINC}
