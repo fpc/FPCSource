@@ -116,47 +116,6 @@ begin
   nextChar('}');
   Result := e;
 end;
-(*
-   if ((Length(S)<>38) or (s[1]<>'{')) then
-    Exit(False);
-  dest:=PByte(@Guid);
-  src:=PChar(s);
-  inc(src);
-  for i:=0 to 3 do
-    if not HexByte(src+(3-i)*2, dest[i]) then Exit(False);
-  inc(src, 8);
-  inc(dest, 4);
-  if src[0]<>'-' then
-    Exit(False);
-  inc(src);
-  for i:=0 to 1 do
-   begin
-     dest^:=HexByte(src+2);
-     inc(dest);
-     dest^:=HexByte(src);
-     inc(dest);
-     inc(src, 4);
-     if src[0]<>'-' then
-       Exit(False);
-     inc(src);
-   end;
-  dest^:=HexByte(src);
-  inc(dest);
-  inc(src, 2);
-  dest^:=HexByte(src);
-  inc(dest);
-  inc(src, 2);
-  if src[0]<>'-' then
-    Exit(False);
-  inc(src);
-  for i:=0 to 5 do
-   begin
-     dest^:=HexByte(src);
-     inc(dest);
-     inc(src, 2);
-   end;
-   Result := True;
-end;*)
 
 
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
