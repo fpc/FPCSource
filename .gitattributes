@@ -8240,6 +8240,7 @@ tests/test/tforin19.pp svneol=native#text/pascal
 tests/test/tforin2.pp svneol=native#text/pascal
 tests/test/tforin20.pp svneol=native#text/pascal
 tests/test/tforin21.pp svneol=native#text/pascal
+tests/test/tforin22.pp svneol=native#text/pascal
 tests/test/tforin3.pp svneol=native#text/pascal
 tests/test/tforin4.pp svneol=native#text/pascal
 tests/test/tforin5.pp svneol=native#text/pascal

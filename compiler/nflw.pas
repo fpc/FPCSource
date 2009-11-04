@@ -584,6 +584,8 @@ begin
       if movenext = nil then
       begin
         result:=cerrornode.create;
+        hloopvar.free;
+        hloopbody.free;
         Message1(sym_e_no_enumerator_move,pd.returndef.GetTypeName);
       end
       else
@@ -592,6 +594,8 @@ begin
         if current = nil then
         begin
           result:=cerrornode.create;
+          hloopvar.free;
+          hloopbody.free;
           Message1(sym_e_no_enumerator_current,pd.returndef.GetTypeName);
         end
         else
@@ -607,6 +611,8 @@ begin
       else
         begin
           result:=cerrornode.create;
+          hloopvar.free;
+          hloopbody.free;
           Message1(sym_e_no_enumerator,expr.resultdef.GetTypeName);
         end;
       end;
