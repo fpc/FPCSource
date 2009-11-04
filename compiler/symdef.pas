@@ -299,6 +299,10 @@ interface
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
+          { enumerator support }
+          function search_enumerator_get: tprocdef;
+          function search_enumerator_move: tprocdef;
+          function search_enumerator_current: tsym;
           { WPO }
           procedure register_created_object_type;override;
           procedure register_maybe_created_object_type;
@@ -470,6 +474,7 @@ interface
 {$endif}
           visibility : tvisibility;
           symoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
           { symbol owning this definition }
           procsym : tsym;
           procsymderef : tderef;
@@ -2803,7 +2808,7 @@ implementation
            begin
              b:=ppufile.getbyte;
              if b<>sizeof(funcretloc[callerside]) then
-               internalerror(200411154);
+               internalerror(200411155);
              ppufile.getdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
            end;
 
@@ -2966,6 +2971,7 @@ implementation
          import_name:=nil;
          import_nr:=0;
          inlininginfo:=nil;
+         deprecatedmsg:=nil;
 {$ifdef i386}
           fpu_used:=maxfpuregs;
 {$endif i386}
@@ -2990,6 +2996,10 @@ implementation
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
          optional:=boolean(ppufile.getbyte);
+         if sp_has_deprecated_msg in symoptions then
+           deprecatedmsg:=stringdup(ppufile.getstring)
+         else
+           deprecatedmsg:=nil;
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.getderef(libsymderef);
@@ -3090,6 +3100,7 @@ implementation
          stringdispose(resultname);
          stringdispose(import_dll);
          stringdispose(import_name);
+         stringdispose(deprecatedmsg);
          if (po_msgstr in procoptions) then
            stringdispose(messageinf.str);
          if assigned(_mangledname) then
@@ -3128,6 +3139,8 @@ implementation
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
          ppufile.putbyte(byte(optional));
+         if sp_has_deprecated_msg in symoptions then
+           ppufile.putstring(deprecatedmsg^);
 {$ifdef powerpc}
          { library symbol for AmigaOS/MorphOS }
          ppufile.putderef(libsymderef);
@@ -4418,6 +4431,119 @@ implementation
         classref_created_in_current_module:=false;
       end;
 
+    function tobjectdef.search_enumerator_get: tprocdef;
+     var
+        objdef : tobjectdef;
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        hashedid.id:='GETENUMERATOR';
+        while assigned(objdef) do
+          begin
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=procsym) then
+              begin
+                for i := 0 to Tprocsym(sym).ProcdefList.Count - 1 do
+                begin
+                  pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+                  if (pd.proctypeoption = potype_function) and
+                     is_class_or_interface_or_object(pd.returndef) and
+                     (pd.visibility >= vis_public) then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
+                end;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
+
+    function tobjectdef.search_enumerator_move: tprocdef;
+     var
+        objdef : tobjectdef;
+        sym : tsym;
+        i : integer;
+        pd : tprocdef;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        // first search for po_enumerator_movenext method modifier
+        // then search for public function MoveNext: Boolean
+        hashedid.id:='MOVENEXT';
+        while assigned(objdef) do
+          begin
+            for i:=0 to objdef.symtable.SymList.Count-1 do
+              begin
+                sym:=TSym(objdef.symtable.SymList[i]);
+                if (sym.typ=procsym) then
+                begin
+                  pd:=Tprocsym(sym).find_procdef_byoptions([po_enumerator_movenext]);
+                  if assigned(pd) then
+                    begin
+                      result:=pd;
+                      exit;
+                    end;
+                end;
+              end;
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=procsym) then
+              begin
+                for i := 0 to Tprocsym(sym).ProcdefList.Count - 1 do
+                begin
+                  pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
+                  if (pd.proctypeoption = potype_function) and
+                     is_boolean(pd.returndef) and
+                     (pd.minparacount = 0) and
+                     (pd.visibility >= vis_public) then
+                  begin
+                    result:=pd;
+                    exit;
+                  end;
+                end;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
+
+    function tobjectdef.search_enumerator_current: tsym;
+     var
+        objdef : tobjectdef;
+        sym: tsym;
+        i: integer;
+        hashedid : THashedIDString;
+     begin
+        result:=nil;
+        objdef:=self;
+        hashedid.id:='CURRENT';
+        // first search for ppo_enumerator_current property modifier
+        // then search for public property Current
+        while assigned(objdef) do
+          begin
+            for i:=0 to objdef.symtable.SymList.Count-1 do
+              begin
+                sym:=TSym(objdef.symtable.SymList[i]);
+                if (sym.typ=propertysym) and (ppo_enumerator_current in tpropertysym(sym).propoptions) then
+                begin
+                  result:=sym;
+                  exit;
+                end;
+              end;
+            sym:=tsym(objdef.symtable.FindWithHash(hashedid));
+            if assigned(sym) and (sym.typ=propertysym) and
+               (sym.visibility >= vis_public) and not tpropertysym(sym).propaccesslist[palt_read].empty then
+              begin
+                result:=sym;
+                exit;
+              end;
+            objdef:=objdef.childof;
+          end;
+      end;
 
     procedure tobjectdef.register_created_classref_type;
       begin
@@ -4681,6 +4807,11 @@ implementation
     function TImplementedInterface.getcopy:TImplementedInterface;
       begin
         Result:=TImplementedInterface.Create(nil);
+        {$warning: this is completely wrong on so many levels...}
+        { 1) the procdefs list will be freed once for each copy
+          2) since the procdefs list owns its elements, those will also be freed for each copy
+          3) idem for the name mappings
+        }
         Move(pointer(self)^,pointer(result)^,InstanceSize);
       end;
 

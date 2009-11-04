@@ -351,6 +351,11 @@ unit cgx86;
         add_hreg: boolean;
 {$endif not  x86_64}
       begin
+        { make_simple_ref() may have already been called earlier, and in that
+          case make sure we don't perform the PIC-simplifications twice }
+        if (ref.refaddr in [addr_pic,addr_pic_no_got]) then
+          exit;
+
 {$ifdef x86_64}
         { Only 32bit is allowed }
         if ((ref.offset<low(longint)) or (ref.offset>high(longint))) then
@@ -397,7 +402,7 @@ unit cgx86;
                     if (ref.base<>NR_NO) or
                        (ref.index<>NR_NO) then
                       begin
-                        reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                        reference_reset_symbol(href,ref.symbol,0,ref.alignment);
                         hreg:=getaddressregister(list);
                         href.refaddr:=addr_pic_no_got;
                         href.base:=NR_RIP;
@@ -413,7 +418,7 @@ unit cgx86;
                   end
                 else
                   begin
-                    reference_reset_symbol(href,ref.symbol,0,sizeof(pint));
+                    reference_reset_symbol(href,ref.symbol,0,ref.alignment);
                     hreg:=getaddressregister(list);
                     href.refaddr:=addr_pic;
                     href.base:=NR_RIP;

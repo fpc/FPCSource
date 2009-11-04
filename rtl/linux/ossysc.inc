@@ -568,13 +568,18 @@ begin
  fpgettimeofday:=do_syscall(syscall_nr_gettimeofday,TSysParam(tp),TSysParam(tzp));
 end;
 
-{$ifndef NO_SYSCALL_GETRLIMIT}
+
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
+{$ifndef NO_SYSCALL_GETRLIMIT}
   FpGetRLimit := do_syscall(syscall_nr_getrlimit,
     TSysParam(resource), TSysParam(rlim));
-end;
+{$else}
+  FpGetRLimit := do_syscall(syscall_nr_ugetrlimit,
+    TSysParam(resource), TSysParam(rlim));
 {$endif}
+end;
+
 
 {$ifdef HAS_UGETRLIMIT}
 function fpugetrlimit(resource : cInt; rlim : PRLimit) : cInt;
@@ -591,4 +596,9 @@ begin
   fpprctl := do_syscall(syscall_nr_prctl, option, arg);
 end;
 {$endif}
+
+function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
+begin
+  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
+end;
 

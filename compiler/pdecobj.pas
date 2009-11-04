@@ -108,9 +108,34 @@ implementation
               end;
             consume(_SEMICOLON);
           end;
+        { parse possible enumerator modifier }
+        if try_to_consume(_ENUMERATOR) then
+          begin
+            if (token = _ID) then
+            begin
+              if pattern='CURRENT' then
+              begin
+                if oo_has_enumerator_current in current_objectdef.objectoptions then
+                  message(parser_e_only_one_enumerator_current);
+                if not p.propaccesslist[palt_read].empty then
+                begin
+                  include(current_objectdef.objectoptions,oo_has_enumerator_current);
+                  include(p.propoptions,ppo_enumerator_current);
+                end
+                else
+                  Message(parser_e_enumerator_current_is_not_valid) // property has no reader
+              end
+              else
+                Message1(parser_e_invalid_enumerator_identifier, pattern);
+              consume(token);
+            end
+            else
+              Message(parser_e_enumerator_identifier_required);
+            consume(_SEMICOLON);
+          end;
         { hint directives, these can be separated by semicolons here,
           that needs to be handled here with a loop (PFV) }
-        while try_consume_hintdirective(p.symoptions) do
+        while try_consume_hintdirective(p.symoptions,p.deprecatedmsg) do
           Consume(_SEMICOLON);
       end;
 
@@ -257,6 +282,24 @@ implementation
         p.free;
       end;
 
+    procedure parse_object_options;
+      begin
+        if current_objectdef.objecttype = odt_class then
+          begin
+            while true do
+              begin
+                if try_to_consume(_ABSTRACT) then
+                  include(current_objectdef.objectoptions,oo_is_abstract)
+                else
+                if try_to_consume(_SEALED) then
+                  include(current_objectdef.objectoptions,oo_is_sealed)
+                else
+                  break;
+              end;
+            if [oo_is_abstract, oo_is_sealed] * current_objectdef.objectoptions = [oo_is_abstract, oo_is_sealed] then
+              Message(parser_e_abstract_and_sealed_conflict);
+          end;
+      end;
 
     procedure parse_parent_classes;
       var
@@ -299,7 +342,10 @@ implementation
                             end
                           else
                             Message(parser_e_mix_of_classes_and_objects);
-                       end;
+                       end
+                     else
+                       if oo_is_sealed in childof.objectoptions then
+                         Message1(parser_e_sealed_descendant,childof.typename);
                    odt_interfacecorba,
                    odt_interfacecom:
                      begin
@@ -450,12 +496,19 @@ implementation
         procedure maybe_parse_hint_directives(pd:tprocdef);
         var
           dummysymoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
         begin
           dummysymoptions:=[];
-          while try_consume_hintdirective(dummysymoptions) do
+          deprecatedmsg:=nil;
+          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
             Consume(_SEMICOLON);
           if assigned(pd) then
-            pd.symoptions:=pd.symoptions+dummysymoptions;
+            begin
+              pd.symoptions:=pd.symoptions+dummysymoptions;
+              pd.deprecatedmsg:=deprecatedmsg;
+            end
+          else
+            stringdispose(deprecatedmsg);
         end;
 
       var
@@ -821,6 +874,9 @@ implementation
           end
         else
           begin
+            { parse list of options (abstract / sealed) }
+            parse_object_options;
+
             { parse list of parent classes }
             parse_parent_classes;
 

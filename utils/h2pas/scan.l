@@ -503,11 +503,9 @@ D [0-9]
                                       if not stripcomment then
                                        write(outfile,' }');
                                       c:=get_char;
-                                      if (c=newline) then
-                                      begin
+                                      if c=newline then
                                         writeln(outfile);
-                                        unget_char(c);
-                                      end;
+                                      unget_char(c);
                                       flush(outfile);
                                       exit;
                                     end
@@ -618,14 +616,14 @@ D [0-9]
                         end
                         else
                           skip_until_eol;
-{D}+[Uu]?[Ll]?          if NotInCPlusBlock then
+{D}+[Uu]?[Ll]?[Ll]?     if NotInCPlusBlock then
                         begin
                            while yytext[length(yytext)] in ['L','U','l','u'] do
                              Delete(yytext,length(yytext),1);
                            return(NUMBER);
                         end
                          else skip_until_eol;
-"0x"[0-9A-Fa-f]*[Uu]?[Ll]?
+"0x"[0-9A-Fa-f]*[Uu]?[Ll]?[Ll]?
                         if NotInCPlusBlock then
                         begin
                            (* handle pre- and postfixes *)

@@ -13,14 +13,25 @@
  **********************************************************************}
 unit GdbInt;
 
-{$i gdbver.inc}
+{$mode objfpc}
+
+{$ifdef USE_GDBLIBINC}
+  {$i gdblib.inc}
+{$else not USE_GDBLIBINC}
+  {$i gdbver.inc}
+{$endif not USE_GDBLIBINC}
+
+{ Possible optional conditionals:
+  GDB_DISABLE_INTL              To explicitly not use libintl
+  GDB_CORE_ADDR_FORCE_64BITS    To force 64 bits for CORE_ADDR
+  Verbose                       To test gdbint
+  DebugCommand                  To debug Command method
+}
 
 interface
 
 {$smartlink off}
 
-{.$define Verbose}
-{.$define DebugCommand}
 {$define NotImplemented}
 
 { Is create_breakpoint_hook deprecated? }
@@ -72,7 +83,7 @@ interface
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V605}
+{$endif def GDB_V606}
 
 { 6.7.x }
 {$ifdef GDB_V607}
@@ -82,7 +93,41 @@ interface
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V605}
+{$endif def GDB_V607}
+
+{ 6.8.x }
+{$ifdef GDB_V608}
+  {$info using gdb 6.8.x}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_HAS_BP_NONE}
+{$endif def GDB_V608}
+
+
+{ 7.0.x }
+{$ifdef GDB_V700}
+  {$info using gdb 7.0.x}
+  {$define GDB_V7}
+{$endif def GDB_V700}
+
+{$ifdef GDB_V7}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_USES_LIBDECNUMBER}
+  {$define GDB_USES_LIBINTL}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+  {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+  {$define GDB_HAS_BP_NONE}
+{$endif def GDB_V7}
+
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
@@ -91,12 +136,18 @@ interface
   {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
 
+
+{$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define DO_NOT_USE_CBPH}
+{$endif}
+
 { GDB has a simulator for powerpc CPU
   it is integrated into GDB by default }
 {$ifdef cpupowerpc}
   {$define GDB_HAS_SIM}
 {$endif cpupowerpc}
 
+{$ifdef NotImplemented}
 {$ifdef go32v2}
   {$undef NotImplemented}
   {$LINKLIB gdb}
@@ -108,7 +159,15 @@ interface
   {$LINKLIB opcodes}
   {$LINKLIB history}
   {$LINKLIB iberty}
-  {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
@@ -151,7 +210,10 @@ interface
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB iberty}
-  {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+     { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
@@ -197,7 +259,9 @@ interface
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB iberty}
-  {$LINKLIB intl}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
@@ -257,7 +321,9 @@ interface
   {$LINKLIB iberty}
   {$LINKLIB ncurses}
   { $ LINKLIB m} // include in libroot under BeOS
-  {$LINKLIB intl}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
@@ -266,6 +332,8 @@ interface
   {$LINKLIB debug}
   {$LINKLIB gcc}
 {$endif beos}
+
+{$endif NotImplemented}
 
 {$ifdef go32v2}
   {$define supportexceptions}
@@ -317,6 +385,9 @@ const
 
 type
 {$if defined(CPUSPARC) and defined(LINUX)}
+  {$define GDB_CORE_ADDR_FORCE_64BITS}
+{$endif}
+{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
   CORE_ADDR = qword;
 {$else}
   CORE_ADDR = ptrint; { might be target dependent PM }
@@ -486,6 +557,8 @@ type
     procedure EndSession(code:longint);
     procedure DebuggerScreen;
     procedure UserScreen;
+    procedure FlushAll; virtual;
+    function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
     procedure DoStartSession;virtual;
@@ -611,7 +684,11 @@ type
        language_fortran,language_m2,language_asm,
        language_scm,language_pascal,language_objc);
 
-     bptype = (bp_breakpoint,bp_hardware_breakpoint,
+     bptype = (
+{$ifdef GDB_HAS_BP_NONE}
+       bp_none,
+{$endif GDB_HAS_BP_NONE}
+       bp_breakpoint,bp_hardware_breakpoint,
        bp_until,bp_finish,bp_watchpoint,bp_hardware_watchpoint,
        bp_read_watchpoint,bp_access_watchpoint,
        bp_longjmp,bp_longjmp_resume,bp_step_resume,
@@ -690,6 +767,11 @@ type
           line : longint;
           pc : CORE_ADDR;
           _end : CORE_ADDR;
+          { Added fields, not used in gdbint,
+            but necessary to allocated enough space to
+            avoid stack memory corruption PM }
+          explicit_pc : longint;
+          explicit_line : longint;
        end;
 
      symtabs_and_lines = record
@@ -1145,11 +1227,15 @@ var
 { external variables }
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook : pointer;cvar;external;
-  {$else}
-  create_breakpoint_hook : pointer;cvar;external;
-  {$endif}
+  deprecated_query_hook : pointer;cvar;public;
+
+  {$ifndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook : pointer;cvar;external;
+    {$else}
+    create_breakpoint_hook : pointer;cvar;external;
+    {$endif}
+  {$endif ndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.01 but doesn't hurst otherwise }
@@ -1196,7 +1282,11 @@ procedure gdb_init;cdecl;external;
 {$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
 procedure target_kill;cdecl;external;
+{$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+procedure target_close(pt : ptarget_ops; i:longint);cdecl;external;
+{$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_close(i:longint);cdecl;external;
+{$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 
 
 {*****************************************************************************
@@ -1535,6 +1625,20 @@ procedure annotate_ignore_count_change;cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|annotate_ignore_count_change()|');
+{$endif}
+end;
+
+procedure annotate_new_thread;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|annotate_new_thread()|');
+{$endif}
+end;
+
+procedure annotate_thread_changed;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|annotate_thread_changed()|');
 {$endif}
 end;
 
@@ -2041,6 +2145,21 @@ begin
 end;
 
 
+function QueryHook(question : pchar; arg : pchar) : longint; cdecl;
+begin
+  if not assigned(curr_gdb) then
+    QueryHook:=0
+  else
+    begin
+      if curr_gdb^.reset_command and (pos('Kill',question)>0) then
+        QueryHook:=1
+      else if pos('%s',question)>0 then
+        QueryHook:=curr_gdb^.Query(question, arg)
+      else
+        QueryHook:=curr_gdb^.Query(question, nil);
+    end;
+end;
+
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
 var
   sym : symtab_and_line;
@@ -2074,6 +2193,37 @@ begin
    end;
 end;
 
+{$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+
+type
+  breakpoint_created_function_type = procedure (bpnum : longint); cdecl;
+  pobserver = pointer;
+var
+  breakpoint_created_observer : pobserver = nil;
+
+function observer_attach_breakpoint_created(create_func : breakpoint_created_function_type) : pobserver;cdecl;external;
+procedure observer_detach_breakpoint_created(pob : pobserver);cdecl;external;
+
+var breakpoint_chain : pbreakpoint ;cvar;external;
+
+
+procedure notify_breakpoint_created(bpnum : longint);cdecl;
+var
+  pb : pbreakpoint;
+begin
+  pb:=breakpoint_chain;
+  while assigned(pb) do
+    begin
+      if pb^.number=bpnum then
+        begin
+          CreateBreakPointHook(pb^);
+          exit;
+        end
+      else
+        pb:=pb^.next;
+    end;
+end;
+{$endif def GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
 
 {*****************************************************************************
                                  tgdbinterface
@@ -2121,11 +2271,17 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
-  {$else}
-  create_breakpoint_hook:=@CreateBreakPointHook;
+  {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    breakpoint_created_observer:=observer_attach_breakpoint_created(@notify_breakpoint_created);
+  {$else not GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
+    {$else}
+    create_breakpoint_hook:=@CreateBreakPointHook;
+    {$endif}
   {$endif}
+  deprecated_query_hook :=@QueryHook;
+
   signal_string:=nil;
   signal_name:=nil;
 end;
@@ -2136,16 +2292,33 @@ procedure tgdbinterface.gdb_done;
 begin
   if debuggee_started then
     begin
-      current_target.to_kill;
-      current_target.to_close(1);
+      target_kill;
+{$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      target_close(@current_target,1);
+{$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      target_close(1);
+{$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
     end;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook:=nil;
-  {$else}
-  create_breakpoint_hook:=nil;
+  {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    observer_detach_breakpoint_created(breakpoint_created_observer);
+    breakpoint_created_observer:=nil;
+  {$else not GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook:=nil;
+    {$else}
+    create_breakpoint_hook:=nil;
+    {$endif}
   {$endif}
 end;
 
+procedure tgdbinterface.FlushAll;
+begin
+end;
+
+function tgdbinterface.Query(question : pchar; args : pchar) : longint;
+begin
+  Query:=0;
+end;
 
 function tgdbinterface.error:boolean;
 begin
@@ -2519,6 +2692,12 @@ var
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
 {$endif def go32v2}
+var
+  current_directory : pchar; cvar; external;
+  gdb_dirbuf : array[0..0] of char; cvar; external;
+  CurrentDir : AnsiString;
+const
+  DIRBUF_SIZE = 1024;
 
 procedure InitLibGDB;
 {$ifdef supportexceptions}
@@ -2564,7 +2743,12 @@ begin
 //  gdb_stdtargin := gdb_stdin;
   gdb_stdtargerr := gdb_stderr;
 {$endif}
-
+  GetDir(0, CurrentDir);
+  if length(CurrentDir)<DIRBUF_SIZE then
+    strpcopy(@gdb_dirbuf,CurrentDir)
+  else
+    gdb_dirbuf[0]:=#0;
+  current_directory:=@gdb_dirbuf[0];
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
 {$ifdef GDB_V6}
@@ -2604,6 +2788,7 @@ end;
 
 {$ifdef GDB_HAS_SYSROOT}
 var gdb_sysroot  : pchar; cvar;public;
+    gdb_datadir  : pchar; cvar;public;
     gdb_sysrootc : char;
     return_child_result : longbool;cvar;public;
     return_child_result_value : longint;cvar;public;
@@ -2618,6 +2803,7 @@ begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
+  gdb_datadir := @gdb_sysrootc;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
   debug_file_directory := '/usr/local/lib';

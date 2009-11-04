@@ -125,9 +125,9 @@ interface
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
-          constructor createinternfromunit(const unitname, procname: string; params: tnode);
+          constructor createinternfromunit(const fromunit, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
-          constructor createinternresfromunit(const unitname, procname: string; params: tnode; res:tdef);
+          constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -946,14 +946,14 @@ implementation
        end;
 
 
-     constructor tcallnode.createinternfromunit(const unitname, procname: string; params: tnode);
+     constructor tcallnode.createinternfromunit(const fromunit, procname: string; params: tnode);
        var
          srsym: tsym;
          srsymtable: tsymtable;
        begin
-         if not searchsym_in_named_module(unitname,procname,srsym,srsymtable) or
+         if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
             (srsym.typ<>procsym) then
-           Message1(cg_f_unknown_compilerproc,unitname+'.'+procname);
+           Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
          create(params,tprocsym(srsym),srsymtable,nil,[]);
        end;
 
@@ -974,11 +974,11 @@ implementation
       end;
 
 
-    constructor tcallnode.createinternresfromunit(const unitname, procname: string; params: tnode; res:tdef);
+    constructor tcallnode.createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
       var
         pd : tprocdef;
       begin
-        createinternfromunit(unitname,procname,params);
+        createinternfromunit(fromunit,procname,params);
         typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
@@ -2645,7 +2645,7 @@ implementation
 
           { check for hints (deprecated etc) }
           if (procdefinition.typ = procdef) then
-            check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions);
+            check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions,tprocdef(procdefinition).deprecatedmsg);
 
           { add needed default parameters }
           if assigned(procdefinition) and

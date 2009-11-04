@@ -555,7 +555,12 @@ begin
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen+2)
         else
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
-        if (sqltype and 1) = 1 then New(SQLInd);
+        // Always force the creation of slqind for parameters. It could be
+        // that a database-trigger takes care of inserting null-values, so
+        // it should always be possible to pass null-parameters. If that fails,
+        // the database-server will generate the appropiate error.
+        sqltype := sqltype or 1;
+        new(sqlind);
         end;
       {$R+}
       end
@@ -778,13 +783,10 @@ begin
     ParNr := ParamBinding[SQLVarNr];
     VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
     if AParams[ParNr].IsNull then
-      begin
-      If Assigned(VSQLVar^.SQLInd) then
-        VSQLVar^.SQLInd^ := -1;
-      end
+      VSQLVar^.SQLInd^ := -1
     else
       begin
-      if assigned(VSQLVar^.SQLInd) then VSQLVar^.SQLInd^ := 0;
+      VSQLVar^.SQLInd^ := 0;
 
       case (VSQLVar^.sqltype and not 1) of
         SQL_LONG :

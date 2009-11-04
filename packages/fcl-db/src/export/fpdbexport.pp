@@ -72,8 +72,10 @@ Type
     FTimeFormat : String;
     FDateTimeFormat : String;
     FDecimalSeparator: Char;
+    FUseDisplayText : Boolean;
   Protected
     Procedure InitSettings; virtual;
+    Property UseDisplayText : Boolean Read FUseDisplayText Write FUseDisplayText;
     Property IntegerFormat : String Read FIntegerFormat Write FIntegerFormat;
     Property DecimalSeparator : Char Read FDecimalSeparator Write FDecimalSeparator;
     Property CurrencySymbol : String Read FCurrencySymbol Write FCurrencySymbol;
@@ -587,8 +589,10 @@ begin
     begin
     If (FormatSettings.IntegerFormat)<>'' then
       Result:=Format(FormatSettings.IntegerFormat,[F.AsInteger])
+    else if FormatSettings.UseDisplayText then
+      Result:=F.DisplayText
     else
-      Result:=F.AsString;
+      Result:=F.AsString;  
     end
   else if (F.DataType=ftBoolean) then
     begin
@@ -597,12 +601,17 @@ begin
     else
       Result:=FormatSettings.BooleanFalse;
     If (Result='') then
-      Result:=F.AsString;
+      if FormatSettings.UseDisplayText then
+        Result:=F.DisplayText
+      else
+        Result:=F.AsString;  
     end
   else if (F.DataType=ftDate) then
     begin
     If (FormatSettings.DateFormat<>'') then
       Result:=FormatDateTime(FormatSettings.DateFormat,F.AsDateTime)
+    else if FormatSettings.UseDisplayText then
+      Result:=F.DisplayText
     else
       Result:=F.AsString;
     end
@@ -610,16 +619,20 @@ begin
     begin
     If (FormatSettings.TimeFormat<>'') then
       Result:=FormatDateTime(FormatSettings.TimeFormat,F.AsDateTime)
+    else if FormatSettings.UseDisplayText then
+      Result:=F.DisplayText
     else
-      Result:=F.AsString;
+      Result:=F.AsString;  
     end
   else if (F.DataType in [ftDateTime,ftTimeStamp]) then
     begin
     If (FormatSettings.DateTimeFormat<>'') then
       Result:=FormatDateTime(FormatSettings.DateTimeFormat,F.AsDateTime)
+    else if FormatSettings.UseDisplayText then
+      Result:=F.DisplayText
     else
       Result:=F.AsString;
-    end
+    end 
   else if (F.DataType=ftCurrency) then
     begin
     If (FormatSettings.CurrencySymbol<>'') then
@@ -628,11 +641,15 @@ begin
       FS.CurrencyString:=FormatSettings.CurrencySymbol;
       Result:=CurrToStrF(F.AsCurrency,ffCurrency,FormatSettings.CurrencyDigits,FS);
       end
-    else
-      Result:=F.AsString
+    else  if FormatSettings.UseDisplayText then
+      Result:=F.DisplayText
+    else 
+      Result:=F.AsString;
     end
+  else if FormatSettings.UseDisplayText then
+    Result:=F.DisplayText
   else
-    Result:=F.AsString;
+    Result:=F.AsString;  
 end;
 
 procedure TCustomDatasetExporter.ExportError(Msg: String);
@@ -852,6 +869,7 @@ begin
     FTimeFormat:=FS.FTimeFormat;
     FDateTimeFormat:=FS.FDateTimeFormat;
     FDecimalSeparator:=FS.FDecimalSeparator;
+    FUseDisplayText:=FS.FUseDisplayText;
     end
   else
     inherited Assign(Source);

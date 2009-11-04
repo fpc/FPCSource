@@ -645,6 +645,32 @@ Unit raarmgas;
           end;
 
 
+        function is_ConditionCode(hs: string): boolean;
+          var icond: tasmcond;
+          begin
+            is_ConditionCode := false;
+            
+            if actopcode in [A_IT,A_ITE,A_ITT,
+                             A_ITEE,A_ITTE,A_ITET,A_ITTT,
+                             A_ITEEE,A_ITTEE,A_ITETE,A_ITTTE,A_ITEET,A_ITTET,A_ITETT,A_ITTTT] then
+              begin
+                { search for condition, conditions are always 2 chars }
+                if length(hs)>1 then
+                  begin
+                    for icond:=low(tasmcond) to high(tasmcond) do
+                      begin
+                        if copy(hs,1,2)=uppercond2str[icond] then
+                          begin
+                            //actcondition:=icond;
+                            oper.opr.typ := OPR_COND;
+                            oper.opr.cc := icond;
+                            exit(true);
+                          end;
+                      end;
+                  end;
+              end;
+          end;
+
       var
         tempreg : tregister;
         ireg : tsuperregister;
@@ -687,6 +713,12 @@ Unit raarmgas;
           *)
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
+              { Condition code? }
+              if is_conditioncode(actasmpattern) then
+              begin
+                consume(AS_ID);
+              end
+              else
               { Local Label ? }
               if is_locallabel(actasmpattern) then
                begin
@@ -970,6 +1002,7 @@ Unit raarmgas;
           end;
         if actopcode=A_NONE then
           exit;
+			 
         { search for condition, conditions are always 2 chars }
         if length(hs)>1 then
           begin

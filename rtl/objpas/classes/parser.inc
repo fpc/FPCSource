@@ -261,7 +261,7 @@ begin
       else break;
     end;
   if ascii then
-    fToken:=toString
+    fToken:=Classes.toString
   else
     fToken:=toWString;
   fLastTokenStr:=fLastTokenWStr;

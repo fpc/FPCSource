@@ -14,7 +14,10 @@
   limitations under the License.
 
   ImageMagick MagickWand API.
-  
+}
+{
+  Based on ImageMagick 6.2
+
   Converted from c by: Felipe Monteiro de Carvalho Dez/2005
 
 	Bug-fixed by Ángel Eduardo García Hernández

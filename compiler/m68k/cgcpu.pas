@@ -130,6 +130,7 @@ unit cgcpu;
          S_FS,S_FD,S_FX,S_NO,S_NO,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
+    procedure create_codegen;
 
   implementation
 
@@ -1738,8 +1739,12 @@ unit cgcpu;
         end;
     end; { end case }
   end;
+  
+  
+procedure create_codegen;
+  begin
+    cg := tcg68k.create;
+    cg64 :=tcg64f68k.create;
+  end;
 
-begin
-  cg := tcg68k.create;
-  cg64 :=tcg64f68k.create;
 end.

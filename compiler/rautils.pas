@@ -87,6 +87,7 @@ type
 {$ifdef arm}
       OPR_REGSET    : (regset : tcpuregisterset);
       OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COND      : (cc : tasmcond);
 {$endif arm}
   end;
 
@@ -1062,6 +1063,8 @@ end;
                 ai.loadregset(i-1,regset);
               OPR_SHIFTEROP:
                 ai.loadshifterop(i-1,shifterop);
+              OPR_COND:
+                ai.loadconditioncode(i-1,cc);
 {$endif ARM}
               { ignore wrong operand }
               OPR_NONE:

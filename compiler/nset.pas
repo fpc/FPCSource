@@ -766,7 +766,7 @@ implementation
               condit := caddnode.create(
                 equaln, left.getcopy, cstringconstnode.createstr(labtree^._low_str));
 
-              if (strcomp(labtree^._low_str, labtree^._high_str) <> 0) then
+              if (compare_strings(labtree^._low_str, labtree^._high_str) <> 0) then
                 begin
                   condit.nodetype := gten;
                   condit := caddnode.create(
@@ -791,10 +791,17 @@ implementation
          init_block:=nil;
          expectloc:=LOC_VOID;
 
+         { evalutes the case expression }
+         firstpass(left);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
+         if codegenerror then
+           exit;
+
          { Load caseexpr into temp var if complex. }
          { No need to do this for ordinal, because }
          { in that case caseexpr is generated once }
-         if (labels^.label_type = ltConstString) and (not valid_for_addr(left, false)) then
+         if (labels^.label_type = ltConstString) and (not valid_for_addr(left, false)) and
+           (blocks.count > 0) then
            begin
              init_block := internalstatements(stmt);
              tempcaseexpr :=
@@ -810,12 +817,6 @@ implementation
              left := ctemprefnode.create(tempcaseexpr);
              typecheckpass(left);
            end;
-
-         { evalutes the case expression }
-         firstpass(left);
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
-         if codegenerror then
-           exit;
 
          { first case }
          for i:=0 to blocks.count-1 do
@@ -1065,7 +1066,7 @@ implementation
           if (str_type in [cst_widestring, cst_unicodestring]) then
             result := comparewidestrings(pcompilerwidestring(l), pcompilerwidestring(h))
           else
-            result := strcomp(l, h);
+            result := compare_strings(l, h);
         end;
 
       var

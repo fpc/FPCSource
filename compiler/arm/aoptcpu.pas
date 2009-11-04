@@ -36,6 +36,12 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
   End;
+  
+  
+  TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
+    { uses the same constructor as TAopObj }
+    procedure PeepHoleOptPass2;override;
+  End;
 
 Implementation
 
@@ -320,6 +326,12 @@ Implementation
           end;
           p := tai(p.next)
         end;
+    end;
+
+
+  procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
+    begin
+      { TODO: Add optimizer code }
     end;
 
 begin

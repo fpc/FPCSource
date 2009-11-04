@@ -337,5 +337,7 @@ syscall_nr_getdirentries                =196;
  syscall_nr_kse_thr_interrupt           = 382;
  syscall_nr_kse_release                 = 383;
  syscall_nr_kse_switchin                = 440;
+ syscall_nr_getrlimit                   = 194;
+ syscall_nr_setrlimit                   = 195;
 
 

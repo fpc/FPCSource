@@ -160,6 +160,7 @@ implementation
          hdef : tdef;
          sym : tsym;
          dummysymoptions : tsymoptions;
+         deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          skipequal : boolean;
@@ -181,12 +182,16 @@ implementation
                    sym:=readconstant(orgname,filepos);
                    { Support hint directives }
                    dummysymoptions:=[];
-                   try_consume_hintdirective(dummysymoptions);
+                   deprecatedmsg:=nil;
+                   try_consume_hintdirective(dummysymoptions,deprecatedmsg);
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
+                       sym.deprecatedmsg:=deprecatedmsg;
                        symtablestack.top.insert(sym);
-                     end;
+                     end
+                   else
+                     stringdispose(deprecatedmsg);
                    consume(_SEMICOLON);
                 end;
 
@@ -475,7 +480,7 @@ implementation
               case hdef.typ of
                 pointerdef :
                   begin
-                    try_consume_hintdirective(newtype.symoptions);
+                    try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
                     if try_to_consume(_FAR) then
                      begin
@@ -488,25 +493,25 @@ implementation
                     { in case of type renaming, don't parse proc directives }
                     if istyperenaming then
                       begin
-                        try_consume_hintdirective(newtype.symoptions);
+                        try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                         consume(_SEMICOLON);
                       end
                     else
                      begin
                        if not check_proc_directive(true) then
                          begin
-                           try_consume_hintdirective(newtype.symoptions);
+                           try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                            consume(_SEMICOLON);
                          end;
                        parse_var_proc_directives(tsym(newtype));
                        handle_calling_convention(tprocvardef(hdef));
-                       if try_consume_hintdirective(newtype.symoptions) then
+                       if try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg) then
                          consume(_SEMICOLON);
                      end;
                   end;
                 objectdef :
                   begin
-                    try_consume_hintdirective(newtype.symoptions);
+                    try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
 
                     { we have to know whether the class or protocol is
@@ -534,16 +539,15 @@ implementation
                     }
                     if is_objc_class_or_protocol(hdef) then
                       tobjectdef(hdef).finish_objc_data;
-
                   end;
                 recorddef :
                   begin
-                    try_consume_hintdirective(newtype.symoptions);
+                    try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
                   end;
                 else
                   begin
-                    try_consume_hintdirective(newtype.symoptions);
+                    try_consume_hintdirective(newtype.symoptions,newtype.deprecatedmsg);
                     consume(_SEMICOLON);
                   end;
               end;
@@ -618,6 +622,7 @@ implementation
          orgname : TIDString;
          p : tnode;
          dummysymoptions : tsymoptions;
+         deprecatedmsg : pshortstring;
          storetokenpos,filepos : tfileposinfo;
          old_block_type : tblock_type;
          sp : pchar;
@@ -666,12 +671,16 @@ implementation
                    current_tokenpos:=storetokenpos;
                    { Support hint directives }
                    dummysymoptions:=[];
-                   try_consume_hintdirective(dummysymoptions);
+                   deprecatedmsg:=nil;
+                   try_consume_hintdirective(dummysymoptions,deprecatedmsg);
                    if assigned(sym) then
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
+                       sym.deprecatedmsg:=deprecatedmsg;
                        symtablestack.top.insert(sym);
-                     end;
+                     end
+                   else
+                     stringdispose(deprecatedmsg);
                    consume(_SEMICOLON);
                    p.free;
                 end;

@@ -33,6 +33,16 @@ type
     rtBool:   (b: Boolean);
   end;
 
+  TTestRec3 = record
+    data: string;                // UTF-8 encoded
+    re: string;
+    expr: DOMString;
+  case rt: TResultType of
+    rtString, rtNodeStr: (s: DOMPChar);   // cannot use DOMString here
+    rtNumber: (n: Extended);
+    rtBool:   (b: Boolean);
+  end;
+
 {$warnings off}
 const
   BaseTests: array[0..4] of TTestRec = (
@@ -542,7 +552,7 @@ const
   '<b ns1:attrib2="test"/>'#10+
   '</doc>';
 
-  StringTests: array[0..84] of TTestRec = (             // numbers refer to xalan/string/stringXX
+  StringTests: array[0..74] of TTestRec = (             // numbers refer to xalan/string/stringXX
     (expr: 'string(0)';       rt: rtString; s: '0'),
     (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
@@ -572,8 +582,6 @@ const
     (expr: 'starts-with("abc", "")';         rt: rtBool; b: True),     // #48
     (expr: 'starts-with("", "")';            rt: rtBool; b: True),     // #49
     (expr: 'starts-with(true(), "tr")';      rt: rtBool; b: True),     // #50
-
-
 
     (expr: 'contains("tititototata","titi")'; rt: rtBool; b: True),
     (expr: 'contains("tititototata","toto")'; rt: rtBool; b: True),
@@ -625,18 +633,6 @@ const
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
     (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx'),   // #96
 
-    (data: str30; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
-    (data: str30; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
-    (data: str30; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
-    (data: str30; expr: 'name(baz1:a)'; rt: rtString; s: 'ns1:a'),  // #33
-    (data: str30; expr: 'name(baz2:b)'; rt: rtString; s: 'b'),      // #34
-    (data: str30; expr: 'name(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''),            // #35
-    (data: str30; expr: 'name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'ns1:attrib2'), // #36
-
-    (data: str30; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
-    (data: str30; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
-    (data: str30; expr: 'local-name()'; rt: rtString; s: 'doc'),      // namespace26
-    
     // tests for number->string conversions at boundary conditions
     (expr: 'string(123456789012345678)';     rt: rtString; s: '123456789012345680'),    // #132.1
     (expr: 'string(-123456789012345678)';    rt: rtString; s: '-123456789012345680'),   // #132.2
@@ -650,7 +646,23 @@ const
     (expr: 'string(-.0000000000000000000000000000000000000000123456789)'; rt: rtString; // #135.2
       s: '-0.0000000000000000000000000000000000000000123456789')
   );
-  
+
+  res1 = '<foo xmlns:baz1="http://xsl.lotus.com/ns1" xmlns:baz2="http://xsl.lotus.com/ns2"/>';
+
+  nameTests: array[0..9] of TTestRec3 = (
+    (data: str30; re: res1; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
+    (data: str30; re: res1; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
+    (data: str30; re: res1; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
+    (data: str30; re: res1; expr: 'name(baz1:a)'; rt: rtString; s: 'ns1:a'),  // #33
+    (data: str30; re: res1; expr: 'name(baz2:b)'; rt: rtString; s: 'b'),      // #34
+    (data: str30; re: res1; expr: 'name(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''),            // #35
+    (data: str30; re: res1; expr: 'name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'ns1:attrib2'), // #36
+
+    (data: str30; re: res1; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
+    (data: str30; re: res1; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
+    (data: str30; re: res1; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
+  );
+
   ax114='<doc>'+
   '<foo att1="c">'+
   '  <foo att1="b">'+
@@ -814,8 +826,47 @@ begin
   end;
 end;
 
+procedure DoSuite3(const tests: array of TTestRec3);
+var
+  i: Integer;
+  doc: TXMLDocument;
+  rslt: TXPathVariable;
+  nsdoc: TXMLDocument;
+  temp: TTestRec;
 begin
-  DecimalSeparator := '.';
+  for i := 0 to High(tests) do
+  begin
+    doc := ParseString(tests[i].data);
+    try
+      nsdoc := ParseString(tests[i].re);
+      try
+        try
+          rslt := EvaluateXPathExpression(tests[i].expr, doc.DocumentElement, nsdoc.DocumentElement);
+          try
+            temp.data := tests[i].data;
+            temp.expr := tests[i].expr;
+            temp.rt := tests[i].rt;
+            temp.n := tests[i].n;
+            CheckResult(temp, rslt);
+          finally
+            rslt.Free;
+          end;
+        except
+          writeln;
+          writeln('Failed: ', tests[i].expr);
+          SysUtils.ShowException(ExceptObject, ExceptAddr);
+          Inc(FailCount);
+        end;
+      finally
+        nsdoc.Free;
+      end;
+    finally
+      doc.Free;
+    end;
+  end;
+end;
+
+begin
   DoSuite(BaseTests);
   DoSuite(CompareTests);
   DoSuite(NodesetCompareTests);  
@@ -824,6 +875,8 @@ begin
   DoSuite(FunctionTests);
   DoSuite(StringTests);
   DoSuite(AxesTests);
+
+  DoSuite3(nameTests);
 
   writeln;
   writeln('Total failed tests: ', FailCount);

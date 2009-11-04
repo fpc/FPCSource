@@ -172,7 +172,11 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$i arm.inc}  { Case dependent, don't change }
+  {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    {$i thumb2.inc}  { Case dependent, don't change }
+  {$else}
+    {$i arm.inc}  { Case dependent, don't change }
+  {$endif}
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 

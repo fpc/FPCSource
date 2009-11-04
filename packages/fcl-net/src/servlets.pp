@@ -35,8 +35,10 @@ type
   TServletRequest = class
   private
     FInputStream: TStream;
-    FScheme, FPathInfo: String;
+    FScheme: String;
   protected
+    FPathInfo: String;
+
     function GetContentLength: Integer; virtual; abstract;
     function GetContentType: String; virtual; abstract;
     function GetProtocol: String; virtual; abstract;

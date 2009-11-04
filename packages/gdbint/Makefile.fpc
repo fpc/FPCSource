@@ -14,7 +14,7 @@ examples=examples/testgdb examples/symify
 [compiler]
 objectdir=$(GDBLIBDIR)
 librarydir=$(GDBLIBDIR)
-includedir=src
+includedir=$(GDBLIBDIR) src
 sourcedir=src tests
 
 [require]
@@ -56,6 +56,16 @@ ifeq ($(LIBGDBFILE),)
 GDBFOUND=0
 else
 GDBFOUND=1
+# Detect if gdblib.inc is available
+override LIBGDBINC:=$(firstword $(wildcard $(addsuffix /gdblib.inc,$(GDBLIBDIR))))
+ifeq ($(LIBGDBINC),)
+GDBLIBINCFOUND=0
+GDBLIBINCCOND=
+else
+GDBLIBINCFOUND=1
+GDBLIBINCCOND=-dUSE_GDBLIBINC
+endif
+
 endif
 
 
@@ -91,10 +101,10 @@ gdbint$(PPUEXT): gdbint.pp gdbver.inc
 # MingW?
 ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
 	@$(ECHO) Using GDB $(GDBVER)
-        $(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
+        $(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -Fisrc -Fusrc src/gdbint.pp
 else
 	@$(ECHO) Using GDB $(GDBVER) (MingW)
-	$(COMPILER) -d$(GDBVER) -dUSE_MINGW_GDB -Fisrc -Fusrc src/gdbint.pp
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -dUSE_MINGW_GDB -Fisrc -Fusrc src/gdbint.pp
 endif
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
 endif
@@ -106,7 +116,7 @@ gdbver.inc:
         $(CPPROG) src/gdbver_nogdb.inc src/gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
 endif
 
 else
@@ -116,10 +126,16 @@ gdbver.inc:
         $(CPPROG) src/gdbver_nogdb.inc src/gdbver.inc
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) Different target os or cpu, using default GDB $(GDBVER)
-	$(COMPILER) -d$(GDBVER) -Fisrc -Fusrc src/gdbint.pp
+	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
 endif
 
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+        $(COMPILER) src/gdbcon.pp
+else
+        $(COMPILER) -dUSE_MINGW_GDB src/gdbcon.pp
+endif
+	$(EXECPPAS)
 
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)
@@ -143,7 +159,21 @@ simple: $(DBGCOM)
 	ppc386 -dUSE_LIBGDB -fisrc -fusrc gdbint
 	ppc386 testgdb
 
-testgdb$(EXEEXT): testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+examples/testgdb$(EXEEXT): examples/testgdb.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+	$(COMPILER) -FEexamples  examples/testgdb.pp
+else
+	$(COMPILER) -FEexamples -dUSE_MINGW_GDB examples/testgdb.pp
+endif
+	$(EXECPPAS)
+
+examples/symify$(EXEEXT): examples/symify.pp gdbint$(PPUEXT) gdbcon$(PPUEXT) $(DBGCOM)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+        $(COMPILER) -FEexamples  examples/symify.pp
+else
+        $(COMPILER) -FEexamples -dUSE_MINGW_GDB examples/symify.pp
+endif
+	$(EXECPPAS)
 
 # Allow test for example
 .PHONY: test

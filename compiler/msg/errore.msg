@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03263 is the last used one
+# 03275 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1189,55 +1189,80 @@ parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definiti
 % refer to the same type definition in the procedure headers of the interface and implementation of a unit
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
-parser_e_objc_requires_msgstr=03253_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
+parser_e_abstract_and_sealed_conflict=03253_E_ABSTRACT and SEALED conflict
+% ABSTRACT and SEALED can not be used together in one declaration
+parser_e_sealed_descendant=03254_E_Can not create a descendant of the sealed class "$1"
+% Sealed means that class can not be derived by another class.
+parser_e_sealed_class_cannot_have_abstract_methods=03255_E_SEALED class can not have an ABSTRACT method
+% Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
+parser_e_only_virtual_methods_final=03256_E_Only virtual methods can be final
+% You are declaring a method as final, when it is not declared to be
+% virtual.
+parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: "$1"
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
+parser_e_multiple_messages=03258_E_Only one message can be used per method.
+% It is not possible to associate multiple messages with a single method.
+parser_e_invalid_enumerator_identifier=03259_E_Invalid enumerator identifier: "$1"
+% Only "MoveNext" and "Current" enumerator identifiers are supported.
+parser_e_enumerator_identifier_required=03260_E_Enumerator identifier required
+% "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
+parser_e_enumerator_movenext_is_not_valid=03261_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type and no required arguments.
+% "MoveNext" enumerator pattern method must be a function with Boolean return type and no required arguments
+parser_e_enumerator_current_is_not_valid=03262_E_Enumerator Current pattern property is not valid. Property must have a getter.
+% "Current" enumerator pattern property must have a getter
+parser_e_only_one_enumerator_movenext=03263_E_Only one enumerator MoveNext method is allowed per class/object
+% Class or Object can have only one enumerator MoveNext declaration.
+parser_e_only_one_enumerator_current=03264_E_Only one enumerator Current property is allowed per class/object
+% Class or Object can have only one enumerator Current declaration.
+parser_e_objc_requires_msgstr=03265_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
 % Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
 % While bindings to other languages automatically generate such names based on the identifier you use (by replacing
 % all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
 % colons.
-parser_e_objc_no_constructor_destructor=03254_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
+parser_e_objc_no_constructor_destructor=03266_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
 % The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
 % purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
 % guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
 % inherited ``constructors''). For these reasons, we have opted to follow the standard Objective-C patterns for
 % instance creation/destruction.
-parser_e_message_string_too_long=03255_E_Message name is too long (max. 255 characters)
+parser_e_message_string_too_long=03267_E_Message name is too long (max. 255 characters)
 % Due to compiler implementation reasons, message names are currently limited to 255 characters.
-parser_e_objc_message_name_too_long=03256_E_Objective-C message symbol name for "$1" is too long
+parser_e_objc_message_name_too_long=03268_E_Objective-C message symbol name for "$1" is too long
 % Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
 % code) are currently limited to 255 characters.
-parser_h_no_objc_parent=03257_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
+parser_h_no_objc_parent=03269_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
 % If no parent class is specified for an Object Pascal class, then it automatically derives from TObject.
 % Objective-C classes however do not automatically derive from NSObject, because one can have multiple
 % root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
 % Therefore, you have to explicitly define a parent class (such as NSObject) if you want to derive your
 % Objective-C class from it.
-parser_e_no_objc_published=03258_E_Objective-C classes cannot have published sections.
+parser_e_no_objc_published=03270_E_Objective-C classes cannot have published sections.
 % In Object Pascal, ``published'' determines whether or not RTTI is generated. Since the Objective-C runtime always needs
 % RTTI for everything, this specified does not make sense for Objective-C classes.
-parser_f_need_objc=03259_F_This module requires an Objective-C mode switch to be compiled
+parser_f_need_objc=03271_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03260_E_Inherited methods can only be overridden in Objective-C, add ``override''.
-parser_h_should_use_override_objc=03261_H_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_e_must_use_override_objc=03272_E_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_h_should_use_override_objc=03273_H_Inherited methods can only be overridden in Objective-C, add ``override''.
 % It is not possible to ``reintroduce'' methods in Objective-C like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the ``override'' directive to be specified when implementing overriding
 % Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
 % does not have any ``override''-style keyword (since it's the default and only behaviour in that language),
 % which makes it hard for automated header conversion tools to include it everywhere.
-parser_e_objc_message_name_changed=03262_E_Message name "$1" in inherited class is different from message name "$2" in current class.
+parser_e_objc_message_name_changed=03274_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
 % giving them a different message name breaks the ``override'' semantics.
-parser_e_no_objc_unique=03263_E_It is not yet possible to make unique copies of Objective-C types
+parser_e_no_objc_unique=03275_E_It is not yet possible to make unique copies of Objective-C types
 % Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
 % obtain the desired effect using \var{type x = objcclass(y) end;} instead.
-%\end{description}
-
+% \end{description}
 #
 # Type Checking
 #
-# 04091 is the last used one
+# 04093 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1312,7 +1337,7 @@ type_w_convert_real_2_comp=04014_W_Automatic type conversion from floating type 
 type_h_use_div_for_int=04015_H_use DIV instead to get an integer result
 % When hints are on, then an integer division with the '/' operator will
 % produce this message, because the result will then be of type real.
-type_e_strict_var_string_violation=04016_E_string types doesn't match, because of $V+ mode
+type_e_strict_var_string_violation=04016_E_String types have to match exactly in $V+ mode
 % When compiling in \var{\{\$V+\}} mode, the string you pass as a parameter
 % should be of the exact same type as the declared parameter of the procedure.
 type_e_succ_and_pred_enums_with_assign_not_possible=04017_E_succ or pred on enums with assignments not possible
@@ -1539,16 +1564,18 @@ type_e_ordinal_or_string_expr_expected=04088_E_Ordinal or string expression expe
 % The expression must be an ordinal or string type.
 type_e_string_expr_expected=04089_E_String expression expected
 % The expression must be a string type.
-type_e_protocol_type_expected=04090_E_Objective-C protocol type expected, but got "$1"
+type_w_zero_to_nil=04090_W_Converting 0 to NIL
+% Use NIL rather than 0 when initialising a pointer. 
+type_e_protocol_type_expected=04091_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
-type_e_objc_type_unsupported=04091_E_The type "$1" is not supported for interaction with the Objective-C runtime.
+type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C runtime.
 % Objective-C makes extensive use of run time type information (RTTI). This format
 % is defined by the maintainers of the run time and can therefore not be adapted
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
 % directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
-type_e_class_or_objcclass_type_expected=04092_E_Class or objcclass type expected, but got "$1"
+type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
 % It is only possible to create class reference types of \var{class} and
 % \var{objcclass} types
 %
@@ -1556,7 +1583,7 @@ type_e_class_or_objcclass_type_expected=04092_E_Class or objcclass type expected
 #
 # Symtable
 #
-# 05064 is the last used one
+# 05070 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1727,7 +1754,26 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
-sym_e_objc_para_mismatch=05065_E_Mismatch between number of declared parameters and number of colons in message string.
+sym_w_library_symbol=05065_W_Symbol "$1" is belongs to a library
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{library} is used. Library symbols may not be
+% available in other libraries.
+sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{deprecated} is used. Deprecated symbols may no longer
+% be available in newer versions of the unit / library. Use of this symbol
+% should be avoided as much as possible.
+sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
+% This means that compiler can not find an apropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% GetEnumerator method to the class or object definition.
+sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator "$1"
+% This means that compiler can not find a public MoveNext method with the Boolean return type in
+% the enumerator class or object definition.
+sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
+% This means that compiler can not find a public Current property in  the enumerator class or object 
+% definition.
+sym_e_objc_para_mismatch=05070_E_Mismatch between number of declared parameters and number of colons in message string.
 % In Objective-C, a message name automatically contains as many colons as parameters.
 % In order to prevent mistakes when specifying the message name in FPC, the compiler
 % checks whether this is also the case here. Note that in case of messages taking a

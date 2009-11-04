@@ -545,3 +545,13 @@ begin
   fpreadlink:=do_syscall(syscall_nr_readlink, TSysParam(name),TSysParam(linkname),maxlen);
 end;
 
+function FpGetRLimit(resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_GETRLIMIT'];
+begin
+  fpgetrlimit:=do_syscall(syscall_nr_getrlimit,TSysParam(Resource),TSysParam(rlim));
+end;
+
+function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
+begin
+  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
+end;
+

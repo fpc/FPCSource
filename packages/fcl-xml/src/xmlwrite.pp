@@ -37,20 +37,33 @@ procedure WriteXML(Element: TDOMNode; AStream: TStream); overload;
 
 implementation
 
-uses SysUtils;
+uses SysUtils, xmlutils;
 
 type
-  TSpecialCharCallback = procedure(c: WideChar) of object;
+  TXMLWriter = class;
+  TSpecialCharCallback = procedure(Sender: TXMLWriter; const s: DOMString;
+    var idx: Integer);
+
+  PAttrFixup = ^TAttrFixup;
+  TAttrFixup = record
+    Attr: TDOMNode;
+    Prefix: PHashItem;
+  end;
 
   TXMLWriter = class(TObject)
   private
     FInsideTextNode: Boolean;
+    FCanonical: Boolean;
     FIndent: WideString;
     FIndentCount: Integer;
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
     FLineBreak: string;
+    FNSHelper: TNSSupport;
+    FAttrFixups: TFPList;
+    FScratch: TFPList;
+    FNSDefs: TFPList;
     procedure wrtChars(Src: PWideChar; Length: Integer);
     procedure IncIndent;
     procedure DecIndent; {$IFDEF HAS_INLINE} inline; {$ENDIF}
@@ -60,8 +73,8 @@ type
     procedure wrtQuotedLiteral(const ws: WideString);
     procedure ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
       const SpecialCharCallback: TSpecialCharCallback);
-    procedure AttrSpecialCharCallback(c: WideChar);
-    procedure TextNodeSpecialCharCallback(c: WideChar);
+    procedure WriteNSDef(B: TBinding);
+    procedure NamespaceFixup(Element: TDOMElement);
   protected
     procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
@@ -159,10 +172,22 @@ begin
   // Later on, this may be put under user control
   // for now, take OS setting
   FLineBreak := sLineBreak;
+  FNSHelper := TNSSupport.Create;
+  FScratch := TFPList.Create;
+  FNSDefs := TFPList.Create;
+  FAttrFixups := TFPList.Create;
 end;
 
 destructor TXMLWriter.Destroy;
+var
+  I: Integer;
 begin
+  for I := FAttrFixups.Count-1 downto 0 do
+    Dispose(PAttrFixup(FAttrFixups.List^[I]));
+  FAttrFixups.Free;
+  FNSDefs.Free;
+  FScratch.Free;
+  FNSHelper.Free;
   if FBufPos > FBuffer then
     write(FBuffer^, FBufPos-FBuffer);
 
@@ -304,7 +329,7 @@ begin
     if (s[EndPos] < #255) and (Char(ord(s[EndPos])) in SpecialChars) then
     begin
       wrtChars(@s[StartPos], EndPos - StartPos);
-      SpecialCharCallback(s[EndPos]);
+      SpecialCharCallback(Self, s, EndPos);
       StartPos := EndPos + 1;
     end;
     Inc(EndPos);
@@ -319,29 +344,31 @@ const
   ltStr = '&lt;';
   gtStr = '&gt;';
 
-procedure TXMLWriter.AttrSpecialCharCallback(c: WideChar);
+procedure AttrSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
 begin
-  case c of
-    '"': wrtStr(QuotStr);
-    '&': wrtStr(AmpStr);
-    '<': wrtStr(ltStr);
+  case s[idx] of
+    '"': Sender.wrtStr(QuotStr);
+    '&': Sender.wrtStr(AmpStr);
+    '<': Sender.wrtStr(ltStr);
     // Escape whitespace using CharRefs to be consistent with W3 spec § 3.3.3
-    #9: wrtStr('&#x9;');
-    #10: wrtStr('&#xA;');
-    #13: wrtStr('&#xD;');
+    #9: Sender.wrtStr('&#x9;');
+    #10: Sender.wrtStr('&#xA;');
+    #13: Sender.wrtStr('&#xD;');
   else
-    wrtChr(c);
+    Sender.wrtChr(s[idx]);
   end;
 end;
 
-procedure TXMLWriter.TextnodeSpecialCharCallback(c: WideChar);
+procedure TextnodeSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
 begin
-  case c of
-    '<': wrtStr(ltStr);
-    '>': wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
-    '&': wrtStr(AmpStr);
+  case s[idx] of
+    '<': Sender.wrtStr(ltStr);
+    '>': Sender.wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
+    '&': Sender.wrtStr(AmpStr);
   else
-    wrtChr(c);
+    Sender.wrtChr(s[idx]);
   end;
 end;
 
@@ -362,6 +389,155 @@ begin
   end;
 end;
 
+procedure TXMLWriter.WriteNSDef(B: TBinding);
+begin
+  wrtChars(' xmlns', 6);
+  if B.Prefix^.Key <> '' then
+  begin
+    wrtChr(':');
+    wrtStr(B.Prefix^.Key);
+  end;
+  wrtChars('="', 2);
+  ConvWrite(B.uri, AttrSpecialChars, @AttrSpecialCharCallback);
+  wrtChr('"');
+end;
+
+// clone of system.FPC_WIDESTR_COMPARE which cannot be called directly
+function Compare(const s1, s2: DOMString): integer;
+var
+  maxi, temp: integer;
+begin
+  Result := 0;
+  if pointer(S1) = pointer(S2) then
+    exit;
+  maxi := Length(S1);
+  temp := Length(S2);
+  if maxi > temp then
+    maxi := temp;
+  Result := CompareWord(S1[1], S2[1], maxi);
+  if Result = 0 then
+    Result := Length(S1)-Length(S2);
+end;
+
+function SortNSDefs(Item1, Item2: Pointer): Integer;
+begin
+  Result := Compare(TBinding(Item1).Prefix^.Key, TBinding(Item2).Prefix^.Key);
+end;
+
+function SortAtts(Item1, Item2: Pointer): Integer;
+var
+  p1: PAttrFixup absolute Item1;
+  p2: PAttrFixup absolute Item2;
+  s1, s2: DOMString;
+begin
+  Result := Compare(p1^.Attr.namespaceURI, p2^.Attr.namespaceURI);
+  if Result = 0 then
+  begin
+    // TODO: Must fix the parser so it doesn't produce Level 1 attributes
+    if nfLevel2 in p1^.Attr.Flags then
+      s1 := p1^.Attr.localName
+    else
+      s1 := p1^.Attr.nodeName;
+    if nfLevel2 in p2^.Attr.Flags then
+      s2 := p2^.Attr.localName
+    else
+      s2 := p2^.Attr.nodeName;
+    Result := Compare(s1, s2);
+  end;
+end;
+
+procedure TXMLWriter.NamespaceFixup(Element: TDOMElement);
+var
+  B: TBinding;
+  i, j: Integer;
+  node: TDOMNode;
+  s: DOMString;
+  action: TAttributeAction;
+  p: PAttrFixup;
+begin
+  FScratch.Count := 0;
+  FNSDefs.Count := 0;
+  if Element.hasAttributes then
+  begin
+    j := 0;
+    for i := 0 to Element.Attributes.Length-1 do
+    begin
+      node := Element.Attributes[i];
+      if TDOMNode_NS(node).NSI.NSIndex = 2 then
+      begin
+        if TDOMNode_NS(node).NSI.PrefixLen = 0 then
+          s := ''
+        else
+          s := node.localName;
+        FNSHelper.DefineBinding(s, node.nodeValue, B);
+        if Assigned(B) then  // drop redundant namespace declarations
+          FNSDefs.Add(B);
+      end
+      else if TDOMAttr(node).Specified then
+      begin
+        // obtain a TAttrFixup record (allocate if needed)
+        if j >= FAttrFixups.Count then
+        begin
+          New(p);
+          FAttrFixups.Add(p);
+        end
+        else
+          p := PAttrFixup(FAttrFixups.List^[j]);
+        // add it to the working list
+        p^.Attr := node;
+        p^.Prefix := nil;
+        FScratch.Add(p);
+        Inc(j);
+      end;
+    end;
+  end;
+
+  FNSHelper.DefineBinding(Element.Prefix, Element.namespaceURI, B);
+  if Assigned(B) then
+    FNSDefs.Add(B);
+
+  for i := 0 to FScratch.Count-1 do
+  begin
+    node := PAttrFixup(FScratch.List^[i])^.Attr;
+    action := FNSHelper.CheckAttribute(node.Prefix, node.namespaceURI, B);
+    if action = aaBoth then
+      FNSDefs.Add(B);
+
+    if action in [aaPrefix, aaBoth] then
+      PAttrFixup(FScratch.List^[i])^.Prefix := B.Prefix;
+  end;
+
+  if FCanonical then
+  begin
+    FNSDefs.Sort(@SortNSDefs);
+    FScratch.Sort(@SortAtts);
+  end;
+
+  // now, at last, dump all this stuff.
+  for i := 0 to FNSDefs.Count-1 do
+    WriteNSDef(TBinding(FNSDefs.List^[I]));
+
+  for i := 0 to FScratch.Count-1 do
+  begin
+    wrtChr(' ');
+    with PAttrFixup(FScratch.List^[I])^ do
+    begin
+      if Assigned(Prefix) then
+      begin
+        wrtStr(Prefix^.Key);
+        wrtChr(':');
+        wrtStr(Attr.localName);
+      end
+      else
+        wrtStr(Attr.nodeName);
+
+      wrtChars('="', 2);
+      // TODO: not correct w.r.t. entities
+      ConvWrite(attr.nodeValue, AttrSpecialChars, @AttrSpecialCharCallback);
+      wrtChr('"');
+    end;
+  end;
+end;
 
 procedure TXMLWriter.VisitElement(node: TDOMNode);
 var
@@ -371,10 +547,13 @@ var
 begin
   if not FInsideTextNode then
     wrtIndent;
+  FNSHelper.StartElement;
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
-  // FIX: Accessing Attributes was causing them to be created for every element :(
-  if node.HasAttributes then
+
+  if nfLevel2 in node.Flags then
+    NamespaceFixup(TDOMElement(node))
+  else if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
     begin
       child := node.Attributes.Item[i];
@@ -402,20 +581,26 @@ begin
     wrtStr(TDOMElement(Node).TagName);
     wrtChr('>');
   end;
+  FNSHelper.EndElement;
 end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
 begin
-  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, {$IFDEF FPC}@{$ENDIF}TextnodeSpecialCharCallback);
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback);
 end;
 
 procedure TXMLWriter.VisitCDATA(node: TDOMNode);
 begin
   if not FInsideTextNode then
     wrtIndent;
-  wrtChars('<![CDATA[', 9);
-  wrtStr(TDOMCharacterData(node).Data);
-  wrtChars(']]>', 3);
+  if FCanonical then
+    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback)
+  else
+  begin
+    wrtChars('<![CDATA[', 9);
+    wrtStr(TDOMCharacterData(node).Data);
+    wrtChars(']]>', 3);
+  end;
 end;
 
 procedure TXMLWriter.VisitEntityRef(node: TDOMNode);
@@ -430,8 +615,11 @@ begin
   if not FInsideTextNode then wrtIndent;
   wrtStr('<?');
   wrtStr(TDOMProcessingInstruction(node).Target);
-  wrtChr(' ');
-  wrtStr(TDOMProcessingInstruction(node).Data);
+  if TDOMProcessingInstruction(node).Data <> '' then
+  begin
+    wrtChr(' ');
+    wrtStr(TDOMProcessingInstruction(node).Data);
+  end;
   wrtStr('?>');
 end;
 
@@ -500,7 +688,7 @@ begin
       ENTITY_REFERENCE_NODE:
         VisitEntityRef(Child);
       TEXT_NODE:
-        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, {$IFDEF FPC}@{$ENDIF}AttrSpecialCharCallback);
+        ConvWrite(TDOMCharacterData(Child).Data, AttrSpecialChars, @AttrSpecialCharCallback);
     end;
     Child := Child.NextSibling;
   end;

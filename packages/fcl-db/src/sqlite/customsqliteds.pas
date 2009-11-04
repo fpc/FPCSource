@@ -161,7 +161,6 @@ type
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
     procedure ClearCalcFields(Buffer: PChar); override;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     procedure DoBeforeClose; override;
     procedure DoAfterInsert; override;
     procedure DoBeforeInsert; override;
@@ -191,19 +190,20 @@ type
     procedure SetExpectedAppends(AValue: Integer);
     procedure SetExpectedUpdates(AValue: Integer);
     procedure SetExpectedDeletes(AValue: Integer);
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); override;
     procedure SetRecNo(Value: Integer); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; override;
     function Locate(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean; override;
     function LocateNext(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean;
     function Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); override;
     // Additional procedures
     function ApplyUpdates: Boolean;
     procedure ClearUpdates(RecordStates: TRecordStateSet = [rsAdded, rsDeleted, rsUpdated]);
@@ -658,7 +658,7 @@ begin
   else
     FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
 
-  if State <> dsCalcFields then
+  if not (State in [dsCalcFields, dsInternalCalc]) then
     FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
   else
     FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
@@ -1220,11 +1220,20 @@ end;
 function TCustomSqliteDataset.Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant;
 var
   TempItem: PDataRecord;
+  SaveState: TDataSetState;
 begin
   CheckBrowseMode;
   TempItem := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, [], False);
   if TempItem <> nil then
-    Result := TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
+  begin
+    SaveState := SetTempState(dsInternalCalc);
+    try
+      CalculateFields(PChar(@TempItem));
+      Result := FieldByName(ResultFields).Value;
+    finally
+      RestoreState(SaveState);
+    end;
+  end
   else
     Result := Null;
 end;  

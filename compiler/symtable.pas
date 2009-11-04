@@ -203,6 +203,7 @@ interface
     function  search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    function  search_enumerator_operator(type_def:Tdef):Tprocdef;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
@@ -256,7 +257,7 @@ interface
           'sym_diff','starstar',
           'as','is','in','or',
           'and','div','mod','not','shl','shr','xor',
-          'assign');
+          'assign','enumerator');
 
 
 
@@ -1940,6 +1941,44 @@ implementation
       end;
 
 
+    function search_enumerator_operator(type_def:Tdef): Tprocdef;
+      var
+        sym : Tprocsym;
+        hashedid : THashedIDString;
+        curreq,
+        besteq : tequaltype;
+        currpd,
+        bestpd : tprocdef;
+        stackitem : psymtablestackitem;
+      begin
+        hashedid.id:='enumerator';
+        besteq:=te_incompatible;
+        bestpd:=nil;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            sym:=Tprocsym(stackitem^.symtable.FindWithHash(hashedid));
+            if sym<>nil then
+              begin
+                if sym.typ<>procsym then
+                  internalerror(200910241);
+                { if the source type is an alias then this is only the second choice,
+                  if you mess with this code, check tw4093 }
+                currpd:=sym.find_procdef_enumerator_operator(type_def,curreq);
+                if curreq>besteq then
+                  begin
+                    besteq:=curreq;
+                    bestpd:=currpd;
+                    if (besteq=te_exact) then
+                      break;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        result:=bestpd;
+    end;
+
+
     function search_system_type(const s: TIDString): ttypesym;
       var
         sym : tsym;
@@ -1993,7 +2032,6 @@ implementation
          end;
         search_class_member:=nil;
       end;
-
 
     function search_macro(const s : string):tsym;
       var

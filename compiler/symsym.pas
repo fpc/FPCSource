@@ -79,6 +79,8 @@ interface
           constructor create;
        end;
 
+       { tprocsym }
+
        tprocsym = class(tstoredsym)
        protected
           FProcdefList   : TFPObjectList;
@@ -97,8 +99,10 @@ interface
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
+          function find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -362,6 +366,10 @@ implementation
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           deprecatedmsg:=stringdup(ppufile.getstring)
+         else
+           deprecatedmsg:=nil;
       end;
 
 
@@ -372,6 +380,8 @@ implementation
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           ppufile.putstring(deprecatedmsg^);
       end;
 
 
@@ -651,6 +661,22 @@ implementation
           end;
       end;
 
+    function tprocsym.find_procdef_byoptions(ops: tprocoptions): Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if ops * pd.procoptions = ops then
+              begin
+                result:=pd;
+                exit;
+              end;
+          end;
+      end;
 
     function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
@@ -688,8 +714,8 @@ implementation
 
     function Tprocsym.Find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
-        paraidx,
-        i  : longint;
+        paraidx, realparamcount,
+        i, j : longint;
         bestpd,
         hpd,
         pd : tprocdef;
@@ -723,8 +749,13 @@ implementation
                       assigned(pd.paras[paraidx]) and
                       (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
                   inc(paraidx);
+                realparamcount:=0;
+                for j := 0 to pd.paras.Count-1 do
+                  if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                    inc(realparamcount);
                 if (paraidx<pd.paras.count) and
-                   assigned(pd.paras[paraidx]) then
+                   assigned(pd.paras[paraidx]) and
+                   (realparamcount = 1) then
                   begin
                     eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
@@ -747,6 +778,66 @@ implementation
                         bestpd:=pd;
                         besteq:=eq;
                       end;
+                  end;
+              end;
+          end;
+        result:=bestpd;
+      end;
+
+      function Tprocsym.find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
+      var
+        paraidx, realparamcount,
+        i, j : longint;
+        bestpd,
+        hpd,
+        pd : tprocdef;
+        convtyp : tconverttype;
+        eq      : tequaltype;
+      begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil.}
+        result:=nil;
+        bestpd:=nil;
+        besteq:=te_incompatible;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            paraidx:=0;
+            { ignore vs_hidden parameters }
+            while (paraidx<pd.paras.count) and
+                  assigned(pd.paras[paraidx]) and
+                  (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
+              inc(paraidx);
+            realparamcount:=0;
+            for j := 0 to pd.paras.Count-1 do
+              if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                inc(realparamcount);
+            if (paraidx<pd.paras.count) and
+               assigned(pd.paras[paraidx]) and
+               (realparamcount = 1) and
+               is_class_or_interface_or_object(pd.returndef)  then
+              begin
+                eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+
+                { alias? if yes, only l1 choice,
+                  if you mess with this code, check tw4093 }
+                if (eq=te_exact) and
+                   (typedef<>tparavarsym(pd.paras[paraidx]).vardef) and
+                   ((df_unique in typedef.defoptions) or
+                   (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
+                  eq:=te_convert_l1;
+
+                if eq=te_exact then
+                  begin
+                    besteq:=eq;
+                    result:=pd;
+                    exit;
+                  end;
+                if eq>besteq then
+                  begin
+                    bestpd:=pd;
+                    besteq:=eq;
                   end;
               end;
           end;

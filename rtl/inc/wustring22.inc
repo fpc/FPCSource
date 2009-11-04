@@ -1434,18 +1434,10 @@ end;
 
 
 Procedure SetString (Out S : WideString; Buf : PWideChar; Len : SizeInt);
-var
-  BufLen: SizeInt;
 begin
   SetLength(S,Len);
   If (Buf<>Nil) and (Len>0) then
-    begin
-      BufLen := IndexWord(Buf^, Len+1, 0);
-      If (BufLen>0) and (BufLen < Len) then
-        Len := BufLen;
-      Move (Buf[0],S[1],Len*sizeof(WideChar));
-      PWideChar(Pointer(S)+Len*sizeof(WideChar))^:=#0;
-    end;
+    Move (Buf[0],S[1],Len*sizeof(WideChar));
 end;
 
 

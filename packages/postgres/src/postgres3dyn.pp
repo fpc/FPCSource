@@ -212,6 +212,8 @@ var
 Procedure InitialisePostgres3;
 Procedure ReleasePostgres3;
 
+function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
+
 var Postgres3LibraryHandle : TLibHandle;
 
 implementation

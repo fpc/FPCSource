@@ -44,14 +44,13 @@ type
   { TSqlite3Dataset }
 
   TSqlite3Dataset = class(TCustomSqliteDataset)
-  private
-    function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
-    function InternalGetHandle: Pointer; override;
-    procedure InternalCloseHandle; override;
-    procedure BuildLinkedList; override;
   protected
+    procedure BuildLinkedList; override;
     function GetRowsAffected:Integer; override;
+    procedure InternalCloseHandle; override;
+    function InternalGetHandle: Pointer; override;
     procedure RetrieveFieldDefs; override;
+    function SqliteExec(ASQL: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; override;
   public
     procedure ExecuteDirect(const ASQL: String); override;
     function QuickQuery(const ASQL: String; const AStrList: TStrings; FillObjects: Boolean): String; override;

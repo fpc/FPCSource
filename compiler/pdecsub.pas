@@ -423,10 +423,11 @@ implementation
         old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
-        explicit_paraloc : boolean;
         locationstr : string;
         paranr : integer;
         dummytype : ttypesym;
+        explicit_paraloc,
+        need_array: boolean;
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
@@ -525,7 +526,16 @@ implementation
            begin
              consume(_COLON);
              { check for an open array }
-             if token=_ARRAY then
+             need_array:=false;
+             { bitpacked open array are not yet supported }
+             if (token=_PACKED) and
+                not(cs_bitpacking in current_settings.localswitches) then
+               begin
+                 consume(_PACKED);
+                 need_array:=true;
+               end;
+             if (token=_ARRAY) or
+                need_array then
               begin
                 consume(_ARRAY);
                 consume(_OF);
@@ -1089,17 +1099,22 @@ implementation
                end
               else
                begin
+                 { Use the dummy NOTOKEN that is also declared
+                   for the overloaded_operator[] }
+                 optoken:=NOTOKEN;
                  case token of
                    _CARET:
                      Message1(parser_e_overload_operator_failed,'**');
+                   _ID:
+                     if idtoken = _ENUMERATOR then
+                       optoken := _OP_ENUMERATOR
+                     else
+                       Message1(parser_e_overload_operator_failed,'');
                    _UNEQUAL:
                      Message1(parser_e_overload_operator_failed,'=');
                    else
                      Message1(parser_e_overload_operator_failed,'');
                  end;
-                 { Use the dummy NOTOKEN that is also declared
-                   for the overloaded_operator[] }
-                 optoken:=NOTOKEN;
                end;
               consume(token);
               parse_proc_head(aclass,potype_operator,pd);
@@ -1284,12 +1299,53 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
+  if oo_is_sealed in tprocdef(pd)._class.objectoptions then
+    Message(parser_e_sealed_class_cannot_have_abstract_methods)
+  else
   if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_abstractmethod)
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
   tprocdef(pd).forwarddef:=false;
+end;
+
+procedure pd_final(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910170);
+  if (po_virtualmethod in pd.procoptions) then
+    include(pd.procoptions,po_finalmethod)
+  else
+    Message(parser_e_only_virtual_methods_final);
+end;
+
+procedure pd_enumerator(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910250);
+  if (token = _ID) then
+  begin
+    if pattern='MOVENEXT' then
+    begin
+      if oo_has_enumerator_movenext in tprocdef(pd)._class.objectoptions then
+        message(parser_e_only_one_enumerator_movenext);
+      pd.calcparas;
+      if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
+         (pd.minparacount = 0) then
+      begin
+        include(tprocdef(pd)._class.objectoptions, oo_has_enumerator_movenext);
+        include(pd.procoptions,po_enumerator_movenext);
+      end
+      else
+        Message(parser_e_enumerator_movenext_is_not_valid)
+    end
+    else
+      Message1(parser_e_invalid_enumerator_identifier, pattern);
+    consume(token);
+  end
+  else
+    Message(parser_e_enumerator_identifier_required);
 end;
 
 procedure pd_virtual(pd:tabstractprocdef);
@@ -1376,6 +1432,8 @@ begin
   if not is_class(tprocdef(pd)._class) and
      not is_objc_class_or_protocol(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
+  if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
+    Message(parser_e_multiple_messages);
   { check parameter type }
   if not is_objc_class_or_protocol(tprocdef(pd)._class) then
     begin
@@ -1424,7 +1482,7 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) then
     Message(parser_e_no_object_reintroduce);
 end;
 
@@ -1700,7 +1758,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=40;
+  num_proc_directives=42;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1812,6 +1870,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_FINAL;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      handler  : @pd_final;
+      pocall   : pocall_none;
+      pooption : [po_finalmethod];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
@@ -2075,6 +2142,15 @@ const
       { allowed for external cpp classes }
       mutexclpotype : [{potype_constructor,potype_destructor}];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
+    ),(
+      idtok:_ENUMERATOR;
+      pd_flags : [pd_interface,pd_object];
+      handler  : @pd_enumerator;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     )
    );
 
@@ -2801,6 +2877,11 @@ const
                    fwpd.fileinfo:=currpd.fileinfo;
                    if assigned(fwpd.funcretsym) then
                      fwpd.funcretsym.fileinfo:=currpd.fileinfo;
+                   if assigned(currpd.deprecatedmsg) then
+                     begin
+                       stringdispose(fwpd.deprecatedmsg);
+                       fwpd.deprecatedmsg:=stringdup(currpd.deprecatedmsg^);
+                     end;
                    { import names }
                    if assigned(currpd.import_dll) then
                      begin

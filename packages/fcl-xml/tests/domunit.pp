@@ -323,7 +323,7 @@ begin
   src := TXMLInputSource.Create(data);
   try
     FParser.Parse(src, TXMLDocument(Doc));
-    GC(Doc);
+    GC(TObject(Doc));
   finally
     src.Free;
   end;

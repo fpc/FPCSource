@@ -54,6 +54,11 @@
        vmtAfterConstruction    = vmtMethodStart+sizeof(pointer)*5;
        vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
        vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
+       vmtDispatch             = vmtMethodStart+sizeof(pointer)*8;
+       vmtDispatchStr          = vmtMethodStart+sizeof(pointer)*9;
+       vmtEquals               = vmtMethodStart+sizeof(pointer)*10;
+       vmtGetHashCode          = vmtMethodStart+sizeof(pointer)*11;
+       vmtToString             = vmtMethodStart+sizeof(pointer)*12;
 
        { IInterface }
        S_OK          = 0;
@@ -113,6 +118,11 @@
          vAfterConstruction: Pointer;
          vBeforeDestruction: Pointer;
          vDefaultHandlerStr: Pointer;
+         vDispatch: Pointer;
+         vDispatchStr: Pointer;
+         vEquals: Pointer;
+         vGetHashCode: Pointer;
+         vToString: Pointer;
        end;
 
        PGuid = ^TGuid;
@@ -192,9 +202,6 @@
           class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
-          { message handling routines }
-          procedure Dispatch(var message);
-          procedure DispatchStr(var message);
 
           class function MethodAddress(const name : shortstring) : pointer;
           class function MethodName(address : pointer) : shortstring;
@@ -207,6 +214,10 @@
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
 
+          { message handling routines }
+          procedure Dispatch(var message);virtual;
+          procedure DispatchStr(var message);virtual;
+
           { interface functions }
           function GetInterface(const iid : tguid; out obj) : boolean;
           function GetInterface(const iidstr : shortstring;out obj) : boolean;
@@ -214,6 +225,12 @@
           class function GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
           class function GetInterfaceEntryByStr(const iidstr : shortstring) : pinterfaceentry;
           class function GetInterfaceTable : pinterfacetable;
+
+          { new since Delphi 2009 }
+          class function UnitName : string;
+          function Equals(Obj: TObject) : boolean;virtual;
+          function GetHashCode: PtrInt;virtual;
+          function ToString: string;virtual;
        end;
 
        IUnknown = interface
@@ -228,6 +245,18 @@
        IInvokable = interface(IInterface)
        end;
        {$M-}
+
+       { enumerator support }
+       IEnumerator = interface(IInterface)
+         function GetCurrent: TObject;
+         function MoveNext: Boolean;
+         procedure Reset;
+         property Current: TObject read GetCurrent;
+       end;
+
+       IEnumerable = interface(IInterface)
+         function GetEnumerator: IEnumerator;
+       end;
 
        { for native dispinterface support }
        IDispatch = interface(IUnknown)

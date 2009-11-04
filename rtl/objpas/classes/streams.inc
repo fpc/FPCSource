@@ -624,7 +624,7 @@ procedure TMemoryStream.LoadFromFile(const FileName: string);
 Var S : TFileStream;
 
 begin
-  S:=TFileStream.Create (FileName,fmOpenRead);
+  S:=TFileStream.Create (FileName,fmOpenRead or fmShareDenyWrite);
   Try
     LoadFromStream(S);
   finally
@@ -833,22 +833,49 @@ end;
   
 {$warnings off}
 function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; stdcall;
+var
+  readcount: Longint;
 begin
-  runerror(217);
-end;
+  if pv = nil then
+  begin
+    Result := E_INVALIDARG;
+    Exit;
+  end;
 
+  readcount := FStream.Read(pv^, cb);
+  if pcbRead <> nil then pcbRead^ := readcount;
+  Result := S_OK;
+end;
 
 function TStreamAdapter.Write(pv: Pointer; cb: DWORD; pcbWritten: PDWORD): HResult; stdcall;
+var
+  writecount: Longint;
 begin
-  runerror(217);
-end;
+  if pv = nil then
+  begin
+    Result := E_INVALIDARG;
+    Exit;
+  end;
 
+  writecount := FStream.Write(pv^, cb);
+  if pcbWritten <> nil then pcbWritten^ := writecount;
+  Result := S_OK;
+end;
 
 function TStreamAdapter.Seek(dlibMove: Largeint; dwOrigin: Longint; out libNewPosition: Largeint): HResult; stdcall;
+var
+  newpos: Int64;
 begin
-  runerror(217);
+  case dwOrigin of
+    STREAM_SEEK_SET: newpos := FStream.Seek(dlibMove, soBeginning);
+    STREAM_SEEK_CUR: newpos := FStream.Seek(dlibMove, soCurrent);
+    STREAM_SEEK_END: newpos := FStream.Seek(dlibMove, soEnd);
+    else begin Result := E_INVALIDARG; exit; end;
+  end;
+  if @libNewPosition <> nil then
+    libNewPosition := newpos;
+  Result := S_OK;
 end;
-
 
 function TStreamAdapter.SetSize(libNewSize: Largeint): HResult; stdcall;
 begin
@@ -888,12 +915,65 @@ end;
 
 function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; stdcall;
 begin
-  runerror(217);
-end;
+  if grfStatFlag in [STATFLAG_DEFAULT,STATFLAG_NOOPEN,STATFLAG_NONAME] then
+  begin
+    if @statstg <> nil then
+    begin
+      fillchar(statstg, sizeof(TStatStg),#0);
+      
+      { //TODO handle pwcsName
+        if grfStatFlag = STATFLAG_DEFAULT then
+          runerror(217) //Result :={$ifdef windows} STG_E_INVALIDFLAG{$else}E_INVALID_FLAG{$endif}
+      }
 
+      statstg.dwType := STGTY_STREAM;
+      statstg.cbSize := FStream.Size;
+      statstg.grfLocksSupported := LOCK_WRITE;
+    end;
+    Result := S_OK;
+  end else
+    Result := STG_E_INVALIDFLAG
+end; 
 
 function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
   runerror(217);
 end;
+
+constructor TProxyStream.Create(const Stream: IStream);
+begin
+  FStream := Stream;
+end;
+
+function TProxyStream.Read(var Buffer; Count: Longint): Longint;
+begin
+  Check(FStream.Read(@Buffer, Count, @Result));
+end;
+
+function TProxyStream.Seek(Offset: Longint; Origin: Word): Longint;
+var
+  Pos: Int64;
+begin
+  Check(FStream.Seek(Offset, Origin, Pos));
+  Result := Pos;
+end;
+
+function TProxyStream.Write(const Buffer; Count: Longint): Longint;
+begin
+  Check(FStream.Write(@Buffer, Count, @Result));
+end;
+
+function TProxyStream.GetIStream: IStream;
+begin
+  Result := FStream;
+end; 
+
+procedure TProxyStream.Check(err:integer);
+var e : EInOutError;
+begin 
+  e:= EInOutError.Create('Proxystream.Check');
+  e.Errorcode:=err;
+  raise e;
+end;
+
 {$warnings on}

@@ -160,7 +160,7 @@ implementation
          len:=strlen(p)+1;
          getmem(strnew,len);
          if strnew<>nil then
-           strmove(strnew,p,len);
+           move(p^,strnew^,len);
       end;
 
     procedure strdispose(p : pchar);

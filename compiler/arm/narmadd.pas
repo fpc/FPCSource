@@ -257,6 +257,8 @@ interface
             location_reset(location,LOC_FLAGS,OS_NO);
             location.resflags:=getresflags(unsigned);
             current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(A_CMP,left.location.register64.reghi,right.location.register64.reghi));
+            if current_settings.cputype in cpu_thumb2 then
+              current_asmdata.CurrAsmList.concat(taicpu.op_cond(A_IT, C_EQ));
             current_asmdata.CurrAsmList.concat(setcondition(taicpu.op_reg_reg(A_CMP,left.location.register64.reglo,right.location.register64.reglo),C_EQ));
           end
         else

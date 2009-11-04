@@ -441,10 +441,12 @@ implementation
           else
             begin
               location.value:=swapendian(Pcardinal(value_set)^);
-              location.value:= reverse_byte (location.value         and $ff)         or
-                              (reverse_byte((location.value shr  8) and $ff) shl  8) or
-                              (reverse_byte((location.value shr 16) and $ff) shl 16) or
-                              (reverse_byte((location.value shr 24) and $ff) shl 24);
+              location.value:=aint(
+                                 reverse_byte (location.value         and $ff)         or
+                                (reverse_byte((location.value shr  8) and $ff) shl  8) or
+                                (reverse_byte((location.value shr 16) and $ff) shl 16) or
+                                (reverse_byte((location.value shr 24) and $ff) shl 24)
+                              );
             end;
           if (target_info.endian=endian_big) then
             location.value:=location.value shr (32-resultdef.size*8);

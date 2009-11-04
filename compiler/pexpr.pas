@@ -1028,25 +1028,6 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
-
-         function getpropaccesslist(pap:tpropaccesslisttypes):boolean;
-         var
-           hpropsym : tpropertysym;
-         begin
-           result:=false;
-           { find property in the overriden list }
-           hpropsym:=propsym;
-           repeat
-             propaccesslist:=hpropsym.propaccesslist[pap];
-             if not propaccesslist.empty then
-               begin
-                 result:=true;
-                 exit;
-               end;
-             hpropsym:=hpropsym.overridenpropsym;
-           until not assigned(hpropsym);
-         end;
-
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1069,7 +1050,7 @@ implementation
          { if not(afterassignment) and not(in_args) then }
          if token=_ASSIGNMENT then
            begin
-              if getpropaccesslist(palt_write) then
+              if getpropaccesslist(propsym,palt_write,propaccesslist) then
                 begin
                    case propaccesslist.firstsym^.sym.typ of
                      procsym :
@@ -1119,7 +1100,7 @@ implementation
            end
          else
            begin
-              if getpropaccesslist(palt_read) then
+              if getpropaccesslist(propsym,palt_read,propaccesslist) then
                 begin
                    case propaccesslist.firstsym^.sym.typ of
                      fieldvarsym :
@@ -1212,7 +1193,7 @@ implementation
                           static_name:=lower(sym.owner.name^)+'_'+sym.name;
                           searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
                           if assigned(sym) then
-                            check_hints(sym,sym.symoptions);
+                            check_hints(sym,sym.symoptions,sym.deprecatedmsg);
                           p1.free;
                           p1:=nil;
                           { static syms are always stored as absolutevarsym to handle scope and storage properly }
@@ -1338,7 +1319,7 @@ implementation
                   end;
                { if nothing found give error and return errorsym }
                if assigned(srsym) then
-                 check_hints(srsym,srsym.symoptions)
+                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg)
                else
                  begin
                    identifier_not_found(orgstoredpattern);
@@ -1457,7 +1438,7 @@ implementation
                                  { search also in inherited methods }
                                  searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
                                  if assigned(srsym) then
-                                   check_hints(srsym,srsym.symoptions);
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                  consume(_ID);
                                  do_member_read(tobjectdef(hdef),false,srsym,p1,again,[]);
                                end
@@ -1477,7 +1458,7 @@ implementation
                               srsym:=search_class_member(tobjectdef(hdef),pattern);
                               if assigned(srsym) then
                                 begin
-                                  check_hints(srsym,srsym.symoptions);
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                   if not(getaddr) and not(sp_static in srsym.symoptions) then
                                     Message(sym_e_only_static_in_static)
                                   else
@@ -1507,7 +1488,7 @@ implementation
                                 srsym:=search_class_member(tobjectdef(hdef),pattern);
                                 if assigned(srsym) then
                                  begin
-                                   check_hints(srsym,srsym.symoptions);
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                    consume(_ID);
                                    do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[]);
                                  end
@@ -2007,7 +1988,7 @@ implementation
                               if assigned(srsym) and
                                  (srsym.typ=fieldvarsym) then
                                 begin
-                                  check_hints(srsym,srsym.symoptions);
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                   p1:=csubscriptnode.create(srsym,p1)
                                 end
                               else
@@ -2063,7 +2044,7 @@ implementation
                                searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
-                                   check_hints(srsym,srsym.symoptions);
+                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                    consume(_ID);
                                    do_member_read(classh,getaddr,srsym,p1,again,[]);
                                  end
@@ -2087,7 +2068,7 @@ implementation
                                searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
-                                    check_hints(srsym,srsym.symoptions);
+                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                     consume(_ID);
                                     do_member_read(classh,getaddr,srsym,p1,again,[]);
                                  end
@@ -2280,7 +2261,7 @@ implementation
                      end;
                     if assigned(srsym) then
                      begin
-                       check_hints(srsym,srsym.symoptions);
+                       check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                        { load the procdef from the inherited class and
                          not from self }
                        case srsym.typ of

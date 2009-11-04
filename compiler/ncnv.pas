@@ -786,9 +786,6 @@ implementation
 
     function ttypeconvnode.typecheck_cord_to_pointer : tnode;
 
-      var
-        t : tnode;
-
       begin
         result:=nil;
         if left.nodetype=ordconstn then
@@ -807,8 +804,14 @@ implementation
                 internalerror(2001020801);
               {$endif} {$endif}
             {$endif}
-            t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
-            result:=t;
+            
+            if not(nf_explicit in flags) then
+              if (tordconstnode(left).value.svalue=0) then
+                CGMessage(type_w_zero_to_nil)
+              else
+                { in Delphi mode, these aren't caught in compare_defs_ext }
+                IncompatibleTypes(left.resultdef,resultdef);
+            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
           end
          else
           internalerror(200104023);
@@ -1700,12 +1703,8 @@ implementation
               te_convert_l3,
               te_convert_l4,
               te_convert_l5:
-                begin
-                  result := simplify;
-                  if assigned(result) then
-                    exit;
-                  { nothing to do }
-                end;
+                { nothing to do }
+                ;
 
               te_convert_operator :
                 begin
@@ -1919,9 +1918,14 @@ implementation
               CGMessage(type_w_pointer_to_longint_conv_not_portable);
           end;
 
-        result := simplify;
-        if assigned(result) then
-          exit;
+        { tc_cord_2_pointer still requires a type check, which
+          simplify does not do }
+        if (convtype<>tc_cord_2_pointer) then
+          begin
+            result := simplify;
+            if assigned(result) then
+              exit;
+          end;
 
         { now call the resultdef helper to do constant folding }
         result:=typecheck_call_helper(convtype);

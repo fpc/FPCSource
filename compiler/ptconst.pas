@@ -1401,7 +1401,7 @@ implementation
         read_typed_const_data(valuelist,sym.vardef);
 
         { Parse hints }
-        try_consume_hintdirective(sym.symoptions);
+        try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
 
         consume(_SEMICOLON);
 

@@ -34,8 +34,7 @@ resourcestring
   SVarNoConversion = 'Conversion from %s to %s not possible';
 
   { Scanner errors }
-  SScannerQuotStringIsOpen = 'Ending ''"'' for string not found';
-  SScannerAposStringIsOpen = 'Ending "''" for string not found';
+  SScannerUnclosedString = 'String literal was not closed';
   SScannerInvalidChar = 'Invalid character';
   SScannerMalformedQName = 'Expected "*" or local part after colon';
   SScannerExpectedVarName = 'Expected variable name after "$"';
@@ -252,6 +251,7 @@ type
     Axis: TAxis;
     NodeTestType: TNodeTestType;
     NodeTestString: DOMString;
+    NSTestString: DOMString;
     Predicates: TXPathNodeArray;
     constructor Create(aAxis: TAxis; aTest: TNodeTestType);
     destructor Destroy; override;
@@ -345,6 +345,8 @@ type
   end;
 
 
+  TXPathNSResolver = TDOMNode {!!! experimental};
+
 { XPath lexical scanner }
 
   TXPathScanner = class
@@ -355,6 +357,7 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     FPrefixLength: Integer;
+    FResolver: TXPathNSResolver;
     procedure Error(const Msg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
     procedure ParseStep(Dest: TStep);          // [4]
@@ -471,8 +474,9 @@ type
   public
     { CompleteExpresion specifies wether the parser should check for gargabe
       after the recognised part. True => Throw exception if there is garbage }
-    constructor Create(AScanner: TXPathScanner; CompleteExpression: Boolean);
-    destructor destroy;override;
+    constructor Create(AScanner: TXPathScanner; CompleteExpression: Boolean;
+      AResolver: TXPathNSResolver = nil);
+    destructor Destroy; override;
     function Evaluate(AContextNode: TDOMNode): TXPathVariable;
     function Evaluate(AContextNode: TDOMNode;
       AEnvironment: TXPathEnvironment): TXPathVariable;
@@ -480,7 +484,7 @@ type
 
 
 function EvaluateXPathExpression(const AExpressionString: DOMString;
-  AContextNode: TDOMNode): TXPathVariable;
+  AContextNode: TDOMNode; AResolver: TXPathNSResolver = nil): TXPathVariable;
 
 
 // ===================================================================
@@ -524,7 +528,7 @@ var
 begin
   Val(s, Result, Code);
 {$push}
-{$r-}
+{$r-,q-}
   if Code <> 0 then
     Result := NaN;
 {$pop}
@@ -762,7 +766,7 @@ begin
           NumberResult := Op1 / Op2;
         opMod: if IsNan(Op1) or IsNan(Op2) then
 {$push}
-{$r-}
+{$r-,q-}
           NumberResult := NaN
 {$pop}
         else
@@ -1096,16 +1100,24 @@ var
           (Node.NodeType <> ELEMENT_NODE) then
           exit;
       ntName:
-        if Node.NodeName <> NodeTestString then
+        if NSTestString <> '' then
+        begin
+          if Node.namespaceURI <> NSTestString then
+            exit;
+          if (NodeTestString <> '') and (Node.localName <> NodeTestString) then
+            exit;
+        end
+        else if Node.NodeName <> NodeTestString then
           exit;
       ntTextNode:
-        if not Node.InheritsFrom(TDOMCharacterData) then
+        if not Node.InheritsFrom(TDOMText) then
           exit;
       ntCommentNode:
         if Node.NodeType <> COMMENT_NODE then
           exit;
       ntPINode:
-        if Node.NodeType <> PROCESSING_INSTRUCTION_NODE then
+        if (Node.NodeType <> PROCESSING_INSTRUCTION_NODE) or
+         ((NodeTestString <> '') and (Node.nodeName <> NodeTestString)) then
           exit;
     end;
     if ResultNodes.IndexOf(Node) < 0 then
@@ -1674,6 +1686,8 @@ function TXPathScanner.GetToken: TXPathToken;
     Result := tkNumber;
   end;
 
+var
+  Delim: WideChar;
 begin
   // Skip whitespace
   while (FCurData[0] < #255) and (char(ord(FCurData[0])) in [#9, #10, #13, ' ']) do
@@ -1681,6 +1695,7 @@ begin
 
   FTokenStart := FCurData;
   FTokenLength := 0;
+  Result := tkInvalid;
 
   case FCurData[0] of
     #0:
@@ -1690,21 +1705,19 @@ begin
       begin
         Inc(FCurData);
         Result := tkNotEqual;
-      end
-      else
-        Error(SScannerInvalidChar);
-    '"':
+      end;
+    '"', '''':
       begin
-        FTokenLength := 0;
+        Delim := FCurData^;
         Inc(FCurData);
         FTokenStart := FCurData;
-        while FCurData[0] <> '"' do
+        while FCurData[0] <> Delim do
         begin
           if FCurData[0] = #0 then
-            Error(SScannerQuotStringIsOpen);
+            Error(SScannerUnclosedString);
           Inc(FCurData);
-          Inc(FTokenLength);
         end;
+        FTokenLength := FCurData-FTokenStart;
         Result := tkString;
       end;
     '$':
@@ -1716,20 +1729,6 @@ begin
         else
           Error(SScannerExpectedVarName);
         Exit;
-      end;
-    '''':
-      begin
-        FTokenLength := 0;
-        Inc(FCurData);
-        FTokenStart := FCurData;
-        while FCurData[0] <> '''' do
-        begin
-          if FCurData[0] = #0 then
-            Error(SScannerAposStringIsOpen);
-          Inc(FCurData);
-          Inc(FTokenLength);
-        end;
-        Result := tkString;
       end;
     '(':
       Result := tkLeftBracket;
@@ -1766,8 +1765,7 @@ begin
       begin
         Inc(FCurData);
         Result := tkColonColon;
-      end else
-        Error(SScannerInvalidChar);  // single colons are handled as part of identifier
+      end;
     '<':
       if FCurData[1] = '=' then
       begin
@@ -1809,13 +1807,13 @@ begin
       end
       else
         Error(SScannerMalformedQName);
-    end
-    else
-      Error(SScannerInvalidChar);
+    end;
   end;
 
+  if Result = tkInvalid then
+    Error(SScannerInvalidChar);
   // We have processed at least one character now; eat it:
-  if Result <> tkEndOfStream then
+  if Result > tkEndOfStream then
     Inc(FCurData);
 end;
 
@@ -1923,7 +1921,12 @@ begin
     else if CurToken = tkNSNameTest then // [37] NameTest, second case
     begin
       NextToken;
-      // TODO: resolve the prefix and set Dest properties
+      if Assigned(FResolver) then
+        Dest.NSTestString := FResolver.lookupNamespaceURI(CurTokenString);
+      if Dest.NSTestString = '' then
+        // !! localization disrupted by DOM exception specifics
+        raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+      Dest.NodeTestType := ntName;
     end
     else if CurToken = tkIdentifier then
     begin
@@ -1945,7 +1948,6 @@ begin
           NextToken;   { skip '('; we know it's there }
           if NextToken = tkString then
           begin
-            // TODO: Handle processing-instruction('name') constructs
             Dest.NodeTestString := CurTokenString;
             NextToken;
           end;
@@ -1964,14 +1966,17 @@ begin
       end
       else  // [37] NameTest, third case
       begin
-        // !!!: Doesn't support namespaces yet
-        // (this will have to wait until the DOM unit supports them)
         Dest.NodeTestType := ntName;
-        Dest.NodeTestString := CurTokenString;
         if FPrefixLength > 0 then
         begin
-          // TODO: resolve the prefix and set Dest properties
-        end;
+          if Assigned(FResolver) then
+            Dest.NSTestString := FResolver.lookupNamespaceURI(Copy(CurTokenString, 1, FPrefixLength));
+          if Dest.NSTestString = '' then
+            raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+          Dest.NodeTestString := Copy(CurTokenString, FPrefixLength+2, MaxInt);
+        end
+        else
+          Dest.NodeTestString := CurTokenString;
         NextToken;
       end;
     end
@@ -2472,11 +2477,12 @@ var
   begin
     Head := 1;
     L := Length(s);
-    while (Head <= L) and IsXmlWhiteSpace(s[Head]) do
-      Inc(Head);
 
     while Head <= L do
     begin
+      while (Head <= L) and IsXmlWhiteSpace(s[Head]) do
+        Inc(Head);
+
       Tail := Head;
       while (Tail <= L) and not IsXmlWhiteSpace(s[Tail]) do
         Inc(Tail);
@@ -2486,8 +2492,6 @@ var
         ns.Add(Element);
 
       Head := Tail;
-      while IsXmlWhiteSpace(s[Head]) do
-        Inc(Head);
     end;
   end;
 
@@ -2563,17 +2567,27 @@ end;
 
 function TXPathEnvironment.xpName(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
 var
+  n: TDOMNode;
   NodeSet: TNodeSet;
+  s: DOMString;
 begin
-// TODO: arg is optional, omission case must be handled
-  if Args.Count <> 1 then
+  if Args.Count > 1 then
     EvaluationError(SEvalInvalidArgCount);
-  NodeSet := TXPathVariable(Args[0]).AsNodeSet;
-  if NodeSet.Count = 0 then
-    Result := TXPathStringVariable.Create('')
+  n := nil;
+  if Args.Count = 0 then
+    n := Context.ContextNode
   else
-    // !!!: Probably not really correct regarding namespaces...
-    Result := TXPathStringVariable.Create(TDOMNode(NodeSet[0]).NodeName);
+  begin
+    NodeSet := TXPathVariable(Args[0]).AsNodeSet;
+    if NodeSet.Count > 0 then
+      n := TDOMNode(NodeSet[0]);
+  end;
+  // TODO: probably this isn't correct. XPath name() isn't the same as DOM nodeName.
+  if Assigned(n) then
+    s := n.nodeName
+  else
+    s := '';
+  Result := TXPathStringVariable.Create(s);
 end;
 
 function TXPathEnvironment.xpString(Context: TXPathContext; Args: TXPathVarList): TXPathVariable;
@@ -2686,9 +2700,10 @@ begin
       n2 := floor(0.5 + e2);
   end;
   i := Max(n1, 1);
-  n2 := n2 + n1 - i;
   if empty then
-    n2 := -1;
+    n2 := -1
+  else if n2 < MaxInt then
+    n2 := n2 + (n1 - i);
   Result := TXPathStringVariable.Create(Copy(s, i, n2));
 end;
 
@@ -2853,9 +2868,10 @@ end;
 { TXPathExpression }
 
 constructor TXPathExpression.Create(AScanner: TXPathScanner;
-  CompleteExpression: Boolean);
+  CompleteExpression: Boolean; AResolver: TXPathNSResolver);
 begin
   inherited Create;
+  AScanner.FResolver := AResolver;
   FRootNode := AScanner.ParseOrExpr;
   if CompleteExpression and (AScanner.CurToken <> tkEndOfStream) then
     EvaluationError(SParserGarbageAfterExpression);
@@ -2901,14 +2917,14 @@ begin
 end;
 
 function EvaluateXPathExpression(const AExpressionString: DOMString;
-  AContextNode: TDOMNode): TXPathVariable;
+  AContextNode: TDOMNode; AResolver: TXPathNSResolver): TXPathVariable;
 var
   Scanner: TXPathScanner;
   Expression: TXPathExpression;
 begin
   Scanner := TXPathScanner.Create(AExpressionString);
   try
-    Expression := TXPathExpression.Create(Scanner, True);
+    Expression := TXPathExpression.Create(Scanner, True, AResolver);
     try
       Result := Expression.Evaluate(AContextNode);
     finally

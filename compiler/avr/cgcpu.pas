@@ -110,6 +110,8 @@ unit cgcpu;
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
+      
+    procedure create_codegen;
 
     const
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
@@ -829,7 +831,10 @@ unit cgcpu;
       end;
 
 
-begin
-  cg:=tcgavr.create;
-  cg64:=tcg64favr.create;
+    procedure create_codegen;
+      begin
+        cg:=tcgavr.create;
+        cg64:=tcg64favr.create;
+      end;
+      
 end.

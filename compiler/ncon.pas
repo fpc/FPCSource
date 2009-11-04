@@ -192,6 +192,7 @@ interface
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
     function get_string_value(p : tnode; is_wide : boolean = false) : TConstString;
+    function compare_strings(str1, str2: pchar) : longint;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -254,11 +255,12 @@ implementation
                 if (not is_wide) then
                   begin
                     if ordValRecord.signed then
-                      stringVal := char(ordValRecord.svalue) + ''#0
+                      stringVal := char(ordValRecord.svalue)
                     else
-                      stringVal := char(ordValRecord.uvalue) + ''#0;
-                    getmem(pCharVal, length(stringVal));
+                      stringVal := char(ordValRecord.uvalue);
+                    getmem(pCharVal, length(stringVal) + 1);
                     strpcopy(pCharVal, stringVal);
+                    pCharVal[length(stringVal)] := #0;
                     get_string_value := pCharVal;
                   end
                 else
@@ -316,6 +318,25 @@ implementation
             get_string_value[0] := #0;
           end;
       end;
+
+
+    function compare_strings(str1, str2: pchar) : longint;
+      var
+        minlen, len1, len2: integer;
+      begin
+        len1 := length(str1);
+        len2 := length(str2);
+        if len1 < len2 then
+          minlen := len1
+        else
+          minlen := len2;
+
+        minlen := comparebyte(str1^, str2^, minlen);
+        if minlen = 0 then
+          minlen := len1 - len2;
+        Result := minlen;
+      end;
+
 
     function is_constresourcestringnode(p : tnode) : boolean;
       begin

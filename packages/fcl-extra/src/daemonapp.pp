@@ -360,7 +360,6 @@ Type
     procedure SetupLogger;
     procedure StopLogger;
     Procedure DoRun; override;
-    Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property SysData : TObject Read FSysData Write FSysData;
   Public
     Procedure ShowException(E : Exception); override;
@@ -370,6 +369,7 @@ Type
     procedure RunDaemons;
     procedure UnInstallDaemons;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
+    Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property Logger : TEventLog Read FLogger;
     Property GUIMainLoop : TGuiLoopEvent Read FGUIMainLoop Write FGuiMainLoop;
     Property GuiHandle : THandle Read FGUIHandle Write FGUIHandle;
@@ -418,6 +418,7 @@ Var
   SStatus : Array[1..5] of string =
     ('Stop','Pause','Continue','Interrogate','Shutdown');
   DefaultDaemonOptions : TDaemonOptions =  [doAllowStop,doAllowPause];
+  AppClass      : TCustomDaemonApplicationClass;
   
 implementation
 
@@ -429,7 +430,6 @@ Var
   MapperClass   : TCustomDaemonMapperClass;
   DesignMapper  : TCustomDaemonMapper;
   DaemonClasses : TStringList;
-  AppClass      : TCustomDaemonApplicationClass;
   
 {$ifdef svcdebug}
 Var

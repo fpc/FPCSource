@@ -108,9 +108,9 @@ interface
         (tok:_LTE     ;nod:lten;op_overloading_supported:true),      { binary overloading supported }
         (tok:_SYMDIF  ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
         (tok:_STARSTAR;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
-        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),     { binary overloading NOT supported }
-        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),     { binary overloading NOT supported }
-        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),     { binary overloading NOT supported }
+        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),    { binary overloading NOT supported }
+        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),    { binary overloading NOT supported }
+        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),    { binary overloading NOT supported }
         (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),     { binary overloading supported }
         (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_OP_DIV    ;nod:divn;op_overloading_supported:true),    { binary overloading supported }
@@ -120,7 +120,7 @@ interface
         (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
-        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
+        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)  { binary overloading NOT supported  overload = instead }
       );
 
       { true, if we are parsing stuff which allows array constructors }
@@ -160,7 +160,7 @@ interface
 
     function allowenumop(nt:tnodetype):boolean;
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
@@ -420,6 +420,13 @@ implementation
                       }
                       (not is_shortstring(pf.returndef) or
                        (tstringdef(pf.returndef).len=255));
+                  end
+                else
+                { enumerator is a special case too }
+                if optoken=_OP_ENUMERATOR then
+                  begin
+                    result:=
+                      is_class_or_interface_or_object(pf.returndef);
                   end
                 else
                   begin
@@ -2605,16 +2612,21 @@ implementation
       end;
 
 
-    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions);
+    procedure check_hints(const srsym: tsym; const symoptions: tsymoptions; const deprecatedmsg : pshortstring);
       begin
         if not assigned(srsym) then
           internalerror(200602051);
         if sp_hint_deprecated in symoptions then
-          Message1(sym_w_deprecated_symbol,srsym.realname);
+          if (sp_has_deprecated_msg in symoptions) and (deprecatedmsg <> nil) then
+            Message2(sym_w_deprecated_symbol_with_msg,srsym.realname,deprecatedmsg^)
+          else
+            Message1(sym_w_deprecated_symbol,srsym.realname);
         if sp_hint_experimental in symoptions then
           Message1(sym_w_experimental_symbol,srsym.realname);
         if sp_hint_platform in symoptions then
           Message1(sym_w_non_portable_symbol,srsym.realname);
+        if sp_hint_library in symoptions then
+          Message1(sym_w_library_symbol,srsym.realname);
         if sp_hint_unimplemented in symoptions then
           Message1(sym_w_non_implemented_symbol,srsym.realname);
       end;

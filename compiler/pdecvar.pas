@@ -88,6 +88,9 @@ implementation
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
+                  if assigned(aclass) and
+                     not is_visible_for_object(sym,aclass) then
+                    Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
                       begin
@@ -1137,6 +1140,7 @@ implementation
          allowdefaultvalue,
          hasdefaultvalue : boolean;
          hintsymoptions  : tsymoptions;
+         deprecatedmsg   : pshortstring;
          old_block_type  : tblock_type;
       begin
          old_block_type:=block_type;
@@ -1214,12 +1218,16 @@ implementation
 
              { try to parse the hint directives }
              hintsymoptions:=[];
-             try_consume_hintdirective(hintsymoptions);
+             deprecatedmsg:=nil;
+             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
                  vs.symoptions := vs.symoptions + hintsymoptions;
+                 if deprecatedmsg<>nil then
+                   vs.deprecatedmsg:=stringdup(deprecatedmsg^);
                end;
+             stringdispose(deprecatedmsg);
 
              { Handling of Delphi typed const = initialized vars }
              if allowdefaultvalue and
@@ -1315,6 +1323,7 @@ implementation
          offset : longint;
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
+         deprecatedmsg : pshortstring;
          semicoloneaten: boolean;
          is_first_field: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
@@ -1402,7 +1411,8 @@ implementation
 
              { try to parse the hint directives }
              hintsymoptions:=[];
-             try_consume_hintdirective(hintsymoptions);
+             deprecatedmsg:=nil;
+             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
 
              { mark first field }
              if (is_first_field) then
@@ -1418,7 +1428,10 @@ implementation
                  fieldvs.vardef:=hdef;
                  { insert any additional hint directives }
                  fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
+                 if deprecatedmsg<>nil then
+                   fieldvs.deprecatedmsg:=stringdup(deprecatedmsg^);
                end;
+               stringdispose(deprecatedmsg);
 
              { Records and objects can't have default values }
              { for a record there doesn't need to be a ; before the END or )    }

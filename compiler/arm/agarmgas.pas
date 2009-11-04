@@ -38,6 +38,7 @@ unit agarmgas;
       TARMGNUAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
+        procedure WriteExtraHeader; override;
       end;
 
      TArmInstrWriter=class(TCPUInstrWriter)
@@ -79,6 +80,18 @@ unit agarmgas;
         result:=inherited MakeCmdLine;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
+
+        if current_settings.cputype = cpu_cortexm3 then
+          result:='-mcpu=cortex-m3 -mthumb -mthumb-interwork '+result;
+        if current_settings.cputype = cpu_armv7m then
+          result:='-march=armv7m -mthumb -mthumb-interwork '+result;
+      end;
+
+    procedure TArmGNUAssembler.WriteExtraHeader;
+      begin
+        inherited WriteExtraHeader;
+        if current_settings.cputype in cpu_thumb2 then
+          AsmWriteLn(#9'.syntax unified');
       end;
 
 {****************************************************************************}
@@ -189,6 +202,8 @@ unit agarmgas;
                   end;
               getopstr:=getopstr+'}';
             end;
+			    top_conditioncode:
+			      getopstr:=cond2str[o.cc];
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
@@ -215,7 +230,15 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-      s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
+      if current_settings.cputype in cpu_thumb2 then
+        begin
+          if taicpu(hp).ops = 0 then
+            s:=#9+gas_op2str[op]+' '+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
+          else
+            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]; // Conditional infixes are deprecated in unified syntax
+        end
+      else
+        s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
       if taicpu(hp).ops<>0 then
         begin
           sep:=#9;

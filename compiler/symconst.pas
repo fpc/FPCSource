@@ -151,7 +151,8 @@ type
     sp_internal,  { internal symbol, not reported as unused }
     sp_implicitrename,
     sp_hint_experimental,
-    sp_generic_para
+    sp_generic_para,
+    sp_has_deprecated_msg
   );
   tsymoptions=set of tsymoption;
 
@@ -231,6 +232,7 @@ type
     po_classmethod,       { class method }
     po_virtualmethod,     { Procedure is a virtual method }
     po_abstractmethod,    { Procedure is an abstract method }
+    po_finalmethod,       { Procedure is a final method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
@@ -281,7 +283,9 @@ type
     { weakly linked (i.e., may or may not exist at run time) }
     po_weakexternal,
     { Objective-C method }
-    po_objc
+    po_objc,
+    { enumerator support }
+    po_enumerator_movenext
   );
   tprocoptions=set of tprocoption;
 
@@ -311,6 +315,8 @@ type
   { options for objects and classes }
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
@@ -324,6 +330,8 @@ type
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
     oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current,
     oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
     oo_is_anonymous       { the class is only formally defined in this module (objcclass x = class; external;) }
   );
@@ -346,7 +354,8 @@ type
     ppo_defaultproperty,
     ppo_stored,
     ppo_hasparameters,
-    ppo_implements
+    ppo_implements,
+    ppo_enumerator_current
   );
   tpropertyoptions=set of tpropertyoption;
 

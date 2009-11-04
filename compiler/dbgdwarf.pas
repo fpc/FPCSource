@@ -299,6 +299,7 @@ interface
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);override;
 
         function symname(sym:tsym): String; virtual;
+        procedure append_visibility(vis: tvisibility);
 
         procedure enum_membersyms_callback(p:TObject;arg:pointer);
 
@@ -1733,14 +1734,30 @@ implementation
         cc             : Tdwarf_calling_convention;
         st             : tsymtable;
         vmtindexnr     : pint;
+        incurrentunit  : boolean;
       begin
-        if not assigned(def.procstarttai) then
+        { only write debug info for procedures defined in the current module,
+          except in case of methods (gcc-compatible)
+        }
+        st:=def.owner;
+        while not(st.symtabletype in [globalsymtable,staticsymtable]) do
+          st:=st.defowner.owner;
+        incurrentunit:=st.iscurrentunit;
+
+        if not incurrentunit and
+          (def.owner.symtabletype<>objectsymtable) then
+          exit;
+
+        { happens for init procdef of units without init section }
+        if incurrentunit and
+           not assigned(def.procstarttai) then
           exit;
 
         { Procdefs are not handled by the regular def writing code, so
           dbg_state is not set/checked for them. Do it here.  }
         if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
           exit;
+        defnumberlist.Add(def);
 
         { Write methods and only in the scope of their parent objectdefs.  }
         if (def.owner.symtabletype=objectsymtable) then
@@ -1808,21 +1825,31 @@ implementation
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtindexnr));
           end;
 
+        { accessibility: public/private/protected }
+        if (def.owner.symtabletype=objectsymtable) then
+          append_visibility(def.visibility);
+
         { Return type.  }
         if not(is_void(tprocdef(def).returndef)) then
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(def).returndef));
 
-        { mark end of procedure }
-        current_asmdata.getlabel(procendlabel,alt_dbgtype);
-        current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
+        { we can only write the start/end if this procedure is implemented in
+          this module
+        }
+        if incurrentunit then
+          begin
+            { mark end of procedure }
+            current_asmdata.getlabel(procendlabel,alt_dbgtype);
+            current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
 
-        if (target_info.system = system_powerpc64_linux) then
-          procentry := '.' + def.mangledname
-        else
-          procentry := def.mangledname;
+            if (target_info.system = system_powerpc64_linux) then
+              procentry := '.' + def.mangledname
+            else
+              procentry := def.mangledname;
 
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
-        append_labelentry(DW_AT_high_pc,procendlabel);
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
+            append_labelentry(DW_AT_high_pc,procendlabel);
+          end;
 
         { Don't write the funcretsym explicitly, it's also in the
           localsymtable and/or parasymtable.
@@ -1843,14 +1870,17 @@ implementation
           end;
         { local type defs and vars should not be written
           inside the main proc }
-        if assigned(def.localst) and
+        if incurrentunit and
+           assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.localst);
 
         { last write the types from this procdef }
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
-        if assigned(def.localst) and
+        { only try to write the localst if the routine is implemented here }
+        if incurrentunit and
+           assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           begin
             write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
@@ -1999,10 +2029,17 @@ implementation
                 paravarsym,
                 localvarsym:
                   begin
-                    dreg:=dwarf_reg(sym.localloc.reference.base);
-                    templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                    templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
-                    blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+                    { Happens when writing debug info for paras of procdefs not
+                      implemented in the current module. Can't add a general check
+                      for LOC_INVALID above, because staticvarsyms may also have it.
+                    }
+                    if sym.localloc.loc<> LOC_INVALID then
+                      begin
+                        dreg:=dwarf_reg(sym.localloc.reference.base);
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
+                        templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
+                        blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+                      end;
                   end
                 else
                   internalerror(200601288);
@@ -2022,7 +2059,23 @@ implementation
         else
           tag:=DW_TAG_variable;
 
-        if not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
+        { must be parasym of externally implemented procdef, but
+          the parasymtable can con also contain e.g. absolutevarsyms
+          -> check symtabletype}
+        if (sym.owner.symtabletype=parasymtable) and
+           (sym.localloc.loc=LOC_INVALID) then
+          begin
+            if (sym.owner.symtabletype<>parasymtable) then
+              internalerror(2009101001);
+            append_entry(tag,false,[
+              DW_AT_name,DW_FORM_string,name+#0
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              ])
+          end
+        else if not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
                                  LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
            ((sym.owner.symtabletype = globalsymtable) or
             (sp_static in sym.symoptions) or
@@ -2168,6 +2221,8 @@ implementation
           end;
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(fieldoffset));
+        if (sym.owner.symtabletype=objectsymtable) then
+          append_visibility(sym.visibility);
 
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
         finish_entry;
@@ -2176,6 +2231,14 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
       begin
+        { These are default values of parameters. These should be encoded
+          via DW_AT_default_value, not as a separate sym. Moreover, their
+          type is not available when writing the debug info for external
+          procedures.
+        }
+        if (sym.owner.symtabletype=parasymtable) then
+          exit;
+
         append_entry(DW_TAG_constant,false,[
           DW_AT_name,DW_FORM_string,symname(sym)+#0
           ]);
@@ -2763,6 +2826,21 @@ implementation
           result:=tobjectdef(ttypesym(sym).typedef).objextname^
         else
           result:=sym.name;
+      end;
+
+
+    procedure tdebuginfodwarf.append_visibility(vis: tvisibility);
+      begin
+        case vis of
+          vis_private,
+          vis_strictprivate:
+            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_private)]);
+          vis_protected,
+          vis_strictprotected:
+            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_protected)]);
+          vis_public:
+            { default };
+        end;
       end;
 
 

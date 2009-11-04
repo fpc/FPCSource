@@ -106,6 +106,8 @@ interface
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
+      
+    procedure create_codegen;
 
     const
       TOpCG2AsmOp : array[topcg] of TAsmOp=(
@@ -1535,7 +1537,10 @@ implementation
       end;
 
 
-begin
-  cg:=TCgSparc.Create;
-  cg64:=TCg64Sparc.Create;
+    procedure create_codegen;
+      begin
+        cg:=TCgSparc.Create;
+        cg64:=TCg64Sparc.Create;
+      end;
+      
 end.

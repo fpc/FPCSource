@@ -124,7 +124,7 @@ type
 
     function ParseType(Parent: TPasElement; Prefix : String): TPasType;overload;
     function ParseType(Parent: TPasElement): TPasType;overload;
-    function ParseComplexType: TPasType;
+    function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
     function ParseExpression: String;
@@ -516,20 +516,20 @@ begin
   end;
 end;
 
-function TPasParser.ParseComplexType: TPasType;
+function TPasParser.ParseComplexType(Parent : TPasElement = Nil): TPasType;
 begin
   NextToken;
   case CurToken of
     tkProcedure:
       begin
-        Result := TPasProcedureType(CreateElement(TPasProcedureType, '', nil));
+        Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
         UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
-        Result := Engine.CreateFunctionType('', 'Result', nil, False,
+        Result := Engine.CreateFunctionType('', 'Result', Parent, False,
 	  Scanner.CurFilename, Scanner.CurRow);
         ParseProcedureOrFunctionHeader(Result,
           TPasFunctionType(Result), ptFunction, True);
@@ -538,7 +538,7 @@ begin
     else
     begin
       UngetToken;
-      Result := ParseType(nil);
+      Result := ParseType(Parent);
       exit;
     end;
   end;
@@ -872,18 +872,18 @@ end;
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
 var
-  UnitName: String;
+  AUnitName: String;
   Element: TPasElement;
 begin
   while True do
   begin
-    UnitName := ExpectIdentifier;
+    AUnitName := ExpectIdentifier;
 
-    Element := Engine.FindModule(UnitName);
+    Element := Engine.FindModule(AUnitName);
     if Assigned(Element) then
       Element.AddRef
     else
-      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, UnitName,
+      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
         ASection));
     ASection.UsesList.Add(Element);
 
@@ -1198,7 +1198,7 @@ begin
       ExpectIdentifier;
     end;
 
-    VarType := ParseComplexType;
+    VarType := ParseComplexType(Parent);
 
     H:=CheckHint(Nil,False);
     NextToken;
@@ -1523,73 +1523,77 @@ begin
       Tok:=UpperCase(CurTokenString);
       If (Tok='CDECL') then
         begin
- {       El['calling-conv'] := 'cdecl';}
+        TPasProcedure(Parent).CallingConvention:=ccCDecl;
+        ExpectToken(tkSemicolon);
+        end 
+      else If (Tok='EXPORT') then
+        begin
+        TPasProcedure(Parent).AddModifier(pmExported);
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='PASCAL') then
         begin
-{        El['calling-conv'] := 'pascal';}
+        TPasProcedure(Parent).CallingConvention:=ccPascal;
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='STDCALL') then
         begin
-{        El['calling-conv'] := 'stdcall';}
+        TPasProcedure(Parent).CallingConvention:=ccStdCall;
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='OLDFPCCALL') then
         begin
-{        El['calling-conv'] := 'oldfpccall';}
+        TPasProcedure(Parent).CallingConvention:=ccOldFPCCall;
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='EXTDECL') then
         begin
-{        El['calling-conv'] := 'extdecl';}
+        TPasProcedure(Parent).AddModifier(pmExternal);
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='REGISTER') then
         begin
-{        El['calling-conv'] := 'register';}
+        TPasProcedure(Parent).CallingConvention:=ccRegister;
         ExpectToken(tkSemicolon);
         end 
       else if (Tok='COMPILERPROC') then
         begin
-{      El['calling-conv'] := 'compilerproc';}
+        TPasProcedure(Parent).AddModifier(pmCompilerProc);
         ExpectToken(tkSemicolon);
         end
       else if (Tok='VARARGS') then
         begin
-{      'varargs': needs CDECL & EXTERNAL }
+        TPasProcedure(Parent).AddModifier(pmVarArgs);
         ExpectToken(tkSemicolon);
         end
       else if (tok='DEPRECATED') then  
         begin
-{       El['calling-conv'] := 'deprecated';}
         element.hints:=element.hints+[hDeprecated];
         ExpectToken(tkSemicolon);
         end
       else if (tok='PLATFORM') then  
         begin
-{       El['calling-conv'] := 'deprecated';}
         element.hints:=element.hints+[hPlatform];
         ExpectToken(tkSemicolon);
         end
       else if (tok='LIBRARY') then  
         begin
-{       El['calling-conv'] := 'deprecated';}
         element.hints:=element.hints+[hLibrary];
         ExpectToken(tkSemicolon);
         end
       else if (tok='OVERLOAD') then
         begin
-        TPasProcedure(Parent).IsOverload := True;
+        TPasProcedure(Parent).AddModifier(pmOverload);
         ExpectToken(tkSemicolon);
         end 
       else if (tok='INLINE') then
         begin
+        TPasProcedure(Parent).AddModifier(pmInline);
         ExpectToken(tkSemicolon);
         end 
       else if (tok='ASSEMBLER') then
         begin
+        TPasProcedure(Parent).AddModifier(pmAssembler);
         ExpectToken(tkSemicolon);
         end 
       else if (tok = 'EXTERNAL') then  
@@ -1621,7 +1625,8 @@ begin
       end  
     else if (CurToken = tkInline) then
       begin
-{      TPasProcedure(Parent).IsInline := True;}
+      if Parent is TPasProcedure then
+        TPasProcedure(Parent).AddModifier(pmInline);
       ExpectToken(tkSemicolon);
       end 
     else if (CurToken = tkSquaredBraceOpen) then
@@ -2018,38 +2023,46 @@ var
       begin
         s := UpperCase(CurTokenString);
         if s = 'VIRTUAL' then
-          Proc.IsVirtual := True
+          Proc.AddModifier(pmVirtual)
         else if s = 'DYNAMIC' then
-          Proc.IsDynamic := True
+          Proc.AddModifier(pmDynamic)
         else if s = 'ABSTRACT' then
-          Proc.IsAbstract := True
+          Proc.AddModifier(pmAbstract)
         else if s = 'OVERRIDE' then
-          Proc.IsOverride := True
+          Proc.AddModifier(pmOverride)
         else if s = 'REINTRODUCE' then
-          Proc.IsReintroduced := True
+          Proc.AddModifier(pmReintroduce)
         else if s = 'OVERLOAD' then
-          Proc.IsOverload := True
+          Proc.AddModifier(pmOverload)
         else if s = 'STATIC' then
-          Proc.IsStatic := True
+          Proc.AddModifier(pmStatic)
         else if s = 'MESSAGE' then begin
-          Proc.IsMessage := True;
+          Proc.AddModifier(pmMessage);
           repeat
             NextToken;
+            If CurToken<>tkSemicolon then
+              begin
+              Proc.MessageName:=CurtokenString;
+              If (CurToken=tkString) then
+                Proc.Messagetype:=pmtString;
+              end;  
           until CurToken = tkSemicolon;
           UngetToken;
         end 
 	else if s = 'CDECL' then
-{      El['calling-conv'] := 'cdecl';}
+	  Proc.CallingConvention:=ccCDecl
 	else if s = 'PASCAL' then
-{      El['calling-conv'] := 'cdecl';}
+	  Proc.CallingConvention:=ccPascal
         else if s = 'STDCALL' then
-{      El['calling-conv'] := 'stdcall';}
+          Proc.CallingConvention:=ccStdCall
         else if s = 'OLDFPCCALL' then
-{      El['calling-conv'] := 'oldfpccall';}
+          Proc.CallingConvention:=ccOldFPCCall
         else if s = 'EXTDECL' then
-{      El['calling-conv'] := 'extdecl';}
+          Proc.AddModifier(pmExtdecl)
         else if s = 'DEPRECATED' then
-{      El['calling-conv'] := 'deprecated';}
+         Proc.Hints:=Proc.Hints+[hDeprecated]
+        else if s = 'EXPORT' then
+          Proc.AddModifier(pmExported)
         else
         begin
           UngetToken;

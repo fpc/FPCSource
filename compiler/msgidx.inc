@@ -340,17 +340,29 @@ const
   parser_n_ignore_lower_visibility=03250;
   parser_e_field_not_allowed_here=03251;
   parser_e_no_local_para_def=03252;
-  parser_e_objc_requires_msgstr=03253;
-  parser_e_objc_no_constructor_destructor=03254;
-  parser_e_message_string_too_long=03255;
-  parser_e_objc_message_name_too_long=03256;
-  parser_h_no_objc_parent=03257;
-  parser_e_no_objc_published=03258;
-  parser_f_need_objc=03259;
-  parser_e_must_use_override_objc=03260;
-  parser_h_should_use_override_objc=03261;
-  parser_e_objc_message_name_changed=03262;
-  parser_e_no_objc_unique=03263;
+  parser_e_abstract_and_sealed_conflict=03253;
+  parser_e_sealed_descendant=03254;
+  parser_e_sealed_class_cannot_have_abstract_methods=03255;
+  parser_e_only_virtual_methods_final=03256;
+  parser_e_final_can_no_be_overridden=03257;
+  parser_e_multiple_messages=03258;
+  parser_e_invalid_enumerator_identifier=03259;
+  parser_e_enumerator_identifier_required=03260;
+  parser_e_enumerator_movenext_is_not_valid=03261;
+  parser_e_enumerator_current_is_not_valid=03262;
+  parser_e_only_one_enumerator_movenext=03263;
+  parser_e_only_one_enumerator_current=03264;
+  parser_e_objc_requires_msgstr=03265;
+  parser_e_objc_no_constructor_destructor=03266;
+  parser_e_message_string_too_long=03267;
+  parser_e_objc_message_name_too_long=03268;
+  parser_h_no_objc_parent=03269;
+  parser_e_no_objc_published=03270;
+  parser_f_need_objc=03271;
+  parser_e_must_use_override_objc=03272;
+  parser_h_should_use_override_objc=03273;
+  parser_e_objc_message_name_changed=03274;
+  parser_e_no_objc_unique=03275;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -431,9 +443,10 @@ const
   type_e_no_type_info=04087;
   type_e_ordinal_or_string_expr_expected=04088;
   type_e_string_expr_expected=04089;
-  type_e_protocol_type_expected=04090;
-  type_e_objc_type_unsupported=04091;
-  type_e_class_or_objcclass_type_expected=04092;
+  type_w_zero_to_nil=04090;
+  type_e_protocol_type_expected=04091;
+  type_e_objc_type_unsupported=04092;
+  type_e_class_or_objcclass_type_expected=04093;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -485,7 +498,12 @@ const
   sym_h_abstract_method_list=05062;
   sym_w_experimental_symbol=05063;
   sym_w_forward_not_resolved=05064;
-  sym_e_objc_para_mismatch=05065;
+  sym_w_library_symbol=05065;
+  sym_w_deprecated_symbol_with_msg=05066;
+  sym_e_no_enumerator=05067;
+  sym_e_no_enumerator_move=05068;
+  sym_e_no_enumerator_current=05069;
+  sym_e_objc_para_mismatch=05070;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -808,9 +826,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 53113;
+  MsgTxtSize = 54143;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,264,93,66,51,108,22,202,62,
+    24,87,276,94,71,51,108,22,202,62,
     48,20,1,1,1,1,1,1,1,1
   );

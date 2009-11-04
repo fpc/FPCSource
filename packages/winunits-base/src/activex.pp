@@ -29,6 +29,8 @@ type
    POleStr = Types.POleStr;
    PPOleStr = Types.PPOleStr;
    TBStr = POleStr;
+   TBStrList = array[0..(high(integer) div sizeof(TBSTR))-1] of TBstr;
+   PBStrList = ^TBStrList;
    PBStr = ^TBStr;
    TOleEnum = type LongWord;
    LargeInt = Types.LargeInt;
@@ -53,6 +55,8 @@ type
    CY		       = CURRENCY;
    DATE	               = DOUBLE;
    BSTR	               = POLESTR;
+   TOleDate	       = DATE;
+   POleDate	       = ^TOleDate;	
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
@@ -1201,6 +1205,9 @@ TYPE
                                     End;
    TBind_Opts                   = tagBIND_OPTS;
    PBind_Opts                   = ^TBind_Opts;
+   TBindOpts		        = tagBIND_OPTS;
+   PBindOpts			= ^TBindOpts;
+   Bind_Opts			= tagBind_opts;
 
    tagBIND_OPTS2_CPP            = Record
                                     dwTrackFlags,
@@ -1448,6 +1455,7 @@ TYPE
    pTYPEDESC                    = ^TYPEDESC;
    tagTYPEKIND                  = Dword;
    TYPEKIND                     = tagTYPEKIND;
+   TTYPEKIND			= TYPEKIND;
    INVOKEKIND                   = Dword;
    tagTYPEDESC                  = Record
                                     Case Integer OF
@@ -1500,6 +1508,7 @@ TYPE
                                     End;
   VARDESC                       = tagVARDESC;
   LPVARDESC                     = ^VARDESC;
+  pVARDESC			= LPVARDESC;
   tagDISPPARAMS                 = Record
                                    rgvarg            : lpVARIANTARG;
                                    rgdispidNamedArgs : lpDISPID;
@@ -1560,6 +1569,7 @@ TYPE
   TYPEATTR                       = tagTYPEATTR;
 
   LPTYPEATTR                     = ^TYPEATTR;
+  PTYPEAttr			 = LPTYPEATTR;
 
   tagTLIBATTR                    = Record
                                      GUID        : guid;
@@ -1575,6 +1585,7 @@ TYPE
   PTLIBAttr			 = LPTLIBATTR;
 
   LPFUNCDESC                     = ^FUNCDESC;
+  PFUNCDESC			 = LPFUNCDESC;
 
   tagFUNCDESC                    = Record
                                      memid             : MEMBERID;
@@ -2816,11 +2827,11 @@ TYPE
      {$ifndef Call_as}
       Function  GetFuncDesc(index: UINT; OUT ppFuncDesc: lpFUNCDESC):HResult;StdCall;
       Function  GetVarDesc(index: UINT; OUT ppVarDesc: lpVARDESC):HResult;StdCall;
-      Function  GetNames(memid: MEMBERID; OUT rgBstrNames: WideString; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
+      Function  GetNames(memid: MEMBERID;  rgBstrNames: PBStrList; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
      {$else}
       Function  GetFuncDesc(index: UINT; OUT ppFuncDesc: LPFUNCDESC; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
       Function  GetVarDesc(index: UINT; OUT ppVarDesc: LPVARDESC; OUT pDummy: CLEANLOCALSTORAGE):HResult;StdCall;
-      Function  GetNames(memid: MEMBERID; OUT rgBstrNames: WideString; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
+      Function  GetNames(memid: MEMBERID;  rgBstrNames: PBStrList; cMaxNames: UINT; OUT pcNames: UINT):HResult;StdCall;
      {$endif}
      Function  GetRefTypeOfImplType(index: UINT; OUT pRefType: HREFTYPE):HResult;StdCall;
      Function  GetImplTypeFlags(index: UINT; OUT pImplTypeFlags: WINT):HResult;StdCall;
@@ -2835,9 +2846,10 @@ TYPE
      Function  LocalInvoke ():HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-     Function  GetDocumentation(memid: MEMBERID; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+     //Function  GetDocumentation(memid: MEMBERID; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+	 Function  GetDocumentation(memid: MEMBERID; pBstrName: PWideString; pBstrDocString: PWideString; pdwHelpContext: PDWORD; pBstrHelpFile: PWideString):HResult;StdCall;
      {$else}
-     Function  GetDocumentation(memid: MEMBERID; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
+	 Function  GetDocumentation(memid: MEMBERID; refPtrFlags: DWORD; OUT pBstrName: WideString; OUT pBstrDocString: WideString; OUT pdwHelpContext: DWORD; OUT pBstrHelpFile: WideString):HResult;StdCall;
      {$endif}
 
      {$ifndef Call_as}
@@ -2866,18 +2878,18 @@ TYPE
      Function  GetContainingTypeLib(OUT ppTLib: ITypeLib; OUT pIndex: UINT):HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-      Procedure ReleaseTypeAttr(Const pTypeAttr: TypeAttr); StdCall;
+      Procedure ReleaseTypeAttr( pTypeAttr: pTypeAttr); StdCall;
      {$else}
       Function  ReleaseTypeAttr():HResult;StdCall;
      {$endif}
 
      {$ifndef Call_as}
-      Procedure ReleaseFuncDesc(const pFuncDesc : FUNCDESC); StdCall;
+      Procedure ReleaseFuncDesc( pFuncDesc : lpFUNCDESC); StdCall;
      {$else}
       Function  LocalReleaseFuncDesc():HResult;StdCall;
      {$endif}
      {$ifndef Call_as}
-      Procedure ReleaseVarDesc(Const pVarDesc : VarDesc);
+      Procedure ReleaseVarDesc( pVarDesc : lpVarDesc); stdcall;
      {$else}
       Function  LocalReleaseVarDesc():HResult;StdCall;
      {$endif}

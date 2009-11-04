@@ -27,7 +27,7 @@ interface
 
     uses
       cclasses,
-      dbgbase,
+      dbgbase,cgbase,
       symtype,symdef,symsym,symtable,symbase,
       aasmtai,aasmdata;
 
@@ -74,6 +74,7 @@ interface
         procedure method_add_stabstr(p:TObject;arg:pointer);
         procedure field_write_defs(p:TObject;arg:pointer);
         function  get_enum_defstr(def: tenumdef; lowerbound: longint): ansistring;
+        function  get_appendsym_paravar_reg(sym:tparavarsym;const typ,stabstr:string;reg: tregister): ansistring;
       protected
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
         procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
@@ -112,7 +113,7 @@ implementation
       SysUtils,cutils,cfileutl,
       systems,globals,globtype,verbose,constexp,
       symconst,defutil,
-      cpuinfo,cpubase,cgbase,paramgr,
+      cpuinfo,cpubase,paramgr,
       aasmbase,procinfo,
       finput,fmodule,ppu;
 
@@ -1276,12 +1277,30 @@ implementation
       end;
 
 
+    function TDebugInfoStabs.get_appendsym_paravar_reg(sym:tparavarsym;const typ,stabstr:string;reg: tregister): ansistring;
+      var
+        ltyp: string[1];
+        regidx : Tregisterindex;
+      begin
+        result:='';
+        if typ='p' then
+          ltyp:='R'
+        else
+          ltyp:='a';
+        regidx:=findreg_by_number(reg);
+        { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
+        { this is the register order for GDB}
+        if regidx<>0 then
+          result:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_RSYM},0,${line},$2',[ltyp+stabstr,tostr(longint(regstabs_table[regidx]))]);
+      end;
+
+
     procedure TDebugInfoStabs.appendsym_paravar(list:TAsmList;sym:tparavarsym);
       var
         ss : ansistring;
+        c  : string[1];
         st : string;
         regidx : Tregisterindex;
-        c : char;
       begin
         ss:='';
         { set loc to LOC_REFERENCE to get somewhat usable debugging info for -Or }
@@ -1344,23 +1363,36 @@ implementation
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER :
                 begin
-                  if c='p' then
-                    c:='R'
-                  else
-                    c:='a';
-                  st:=c+st;
-                  regidx:=findreg_by_number(sym.localloc.register);
-                  { "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi", "eip", "ps", "cs", "ss", "ds", "es", "fs", "gs", }
-                  { this is the register order for GDB}
-                  if regidx<>0 then
-                    ss:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_RSYM},0,${line},$2',[st,tostr(longint(regstabs_table[regidx]))]);
+                  ss:=get_appendsym_paravar_reg(sym,c,st,sym.localloc.register);
                 end;
               LOC_REFERENCE :
                 begin
-                  st:=c+st;
+                  { When the *value* of a parameter (so not its address!) is
+                    copied into a local variable, you have to generate two
+                    stabs: one for the parmeter, and one for the local copy.
+                    Not doing this breaks debugging under e.g. SPARC. Doc:
+                    http://sourceware.org/gdb/current/onlinedocs/stabs_4.html#SEC26
+                  }
+                  if (c='p') and
+                     not is_open_string(sym.vardef) and
+                     ((sym.paraloc[calleeside].location^.loc<>sym.localloc.loc) or
+                      ((sym.localloc.loc in [LOC_REFERENCE,LOC_CREFERENCE]) and
+                       ((sym.paraloc[calleeside].location^.reference.index<>sym.localloc.reference.base) or
+                        (sym.paraloc[calleeside].location^.reference.offset<>sym.localloc.reference.offset))) or
+                      ((sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
+                       (sym.localloc.register<>sym.paraloc[calleeside].location^.register))) then
+                    begin
+                      if not(sym.paraloc[calleeside].location^.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+                        ss:=get_appendsym_paravar_reg(sym,c,st,sym.paraloc[calleeside].location^.register)
+                      else
+                        ss:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[c+st,tostr(sym.paraloc[calleeside].location^.reference.offset)]);
+                      write_sym_stabstr(list,sym,ss);
+                      { second stab has no parameter specifier }
+                      c:='';
+                    end;
                   { offset to ebp => will not work if the framepointer is esp
                     so some optimizing will make things harder to debug }
-                  ss:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[st,tostr(sym.localloc.reference.offset)])
+                  ss:=sym_stabstr_evaluate(sym,'"${name}:$1",${N_TSYM},0,${line},$2',[c+st,tostr(sym.localloc.reference.offset)])
                 end;
               else
                 internalerror(2003091814);

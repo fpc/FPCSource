@@ -245,6 +245,17 @@ begin
           Add('}');
           Add('_stack_top = 0x20FFFC;');
         end;
+      ct_stm32f103re:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add('    flash : ORIGIN = 0x08000000, LENGTH = 512K');
+          Add('    ram : ORIGIN = 0x20000000, LENGTH = 64K');
+          Add('}');
+          Add('_stack_top = 0x2000FFFC;');
+        end;
 
     else
       internalerror(200902011);

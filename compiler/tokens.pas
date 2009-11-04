@@ -53,6 +53,7 @@ type
     _OP_SHR,
     _OP_XOR,
     _ASSIGNMENT,
+    _OP_ENUMERATOR,
     { special chars }
     _CARET,
     _UNEQUAL,
@@ -149,6 +150,7 @@ type
     _CONST,
     _FALSE,
     _FAR16,
+    _FINAL,
     _INDEX,
     _LABEL,
     _LOCAL,
@@ -170,6 +172,7 @@ type
     _REPEAT,
     _RESULT,
     _RETURN,
+    _SEALED,
     _STATIC,
     _STORED,
     _STRICT,
@@ -233,6 +236,7 @@ type
     _WRITEONLY,
     _DEPRECATED,
     _DESTRUCTOR,
+    _ENUMERATOR,
     _IMPLEMENTS,
     _INTERNPROC,
     _OLDFPCCALL,
@@ -262,7 +266,7 @@ const
   { last operator which can be overloaded, the first_overloaded should
     be declared directly after NOTOKEN }
   first_overloaded = succ(NOTOKEN);
-  last_overloaded  = _ASSIGNMENT;
+  last_overloaded  = _OP_ENUMERATOR;
 
 type
   tokenrec=record
@@ -309,6 +313,7 @@ const
       (str:'shr'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'xor'           ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:':='            ;special:true ;keyword:m_none;op:NOTOKEN),
+      (str:'enumerator'    ;special:true ;keyword:m_none;op:NOTOKEN),
     { Special chars }
       (str:'^'             ;special:true ;keyword:m_none;op:NOTOKEN),
       (str:'<>'            ;special:true ;keyword:m_none;op:NOTOKEN),
@@ -405,6 +410,7 @@ const
       (str:'CONST'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FALSE'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FAR16'         ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'FINAL'         ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INDEX'         ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LABEL'         ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'LOCAL'         ;special:false;keyword:m_none;op:NOTOKEN),
@@ -426,6 +432,7 @@ const
       (str:'REPEAT'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'RESULT'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'RETURN'        ;special:false;keyword:m_mac;op:NOTOKEN),
+      (str:'SEALED'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'STATIC'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'STORED'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'STRICT'        ;special:false;keyword:m_none;op:NOTOKEN),
@@ -489,6 +496,7 @@ const
       (str:'WRITEONLY'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'ENUMERATOR'    ;special:false;keyword:m_none;op:_OP_ENUMERATOR),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INTERNPROC'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OLDFPCCALL'    ;special:false;keyword:m_none;op:NOTOKEN),

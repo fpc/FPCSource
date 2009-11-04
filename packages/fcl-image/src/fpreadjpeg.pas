@@ -15,7 +15,6 @@
   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
   ToDo:
-    - grayscale
     - palette
 }
 unit FPReadJPEG;
@@ -225,27 +224,21 @@ var
     x: Integer;
     y: Integer;
     c: word;
-  begin
-    InitReadingPixels;
-
-    Continue:=true;
-    Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
-    if not Continue then exit;
-
-    jpeg_start_decompress(@FInfo);
-
-    Img.SetSize(FInfo.output_width,FInfo.output_height);
-
-    // read one line per call
-    GetMem(SampArray,SizeOf(JSAMPROW));
-    GetMem(SampRow,FInfo.output_width*FInfo.output_components);
-    SampArray^[0]:=SampRow;
-    try
+    Status,Scan: integer;
+    ReturnValue,RestartLoop: Boolean;
+    procedure OutputScanLines();
+    var
+      x: integer;
+    begin
       Color.Alpha:=alphaOpaque;
       y:=0;
       while (FInfo.output_scanline < FInfo.output_height) do begin
+        // read one line per call
         LinesRead := jpeg_read_scanlines(@FInfo, SampArray, 1);
-        if LinesRead<1 then break;
+        if LinesRead<1 then begin
+          ReturnValue:=false;
+          break;
+        end;
         if (FInfo.jpeg_color_space = JCS_CMYK) then
         for x:=0 to FInfo.output_width-1 do begin
           Color.Red:=SampRow^[x*4+0];
@@ -274,12 +267,100 @@ var
         end;
         inc(y);
       end;
+    end;
+  begin
+    InitReadingPixels;
+
+    Continue:=true;
+    Progress(psStarting, 0, False, Rect(0,0,0,0), '', Continue);
+    if not Continue then exit;
+
+    jpeg_start_decompress(@FInfo);
+
+    Img.SetSize(FInfo.output_width,FInfo.output_height);
+
+    GetMem(SampArray,SizeOf(JSAMPROW));
+    GetMem(SampRow,FInfo.output_width*FInfo.output_components);
+    SampArray^[0]:=SampRow;
+    try
+      case FProgressiveEncoding of
+        false:
+          begin
+            ReturnValue:=true;
+            OutputScanLines();
+            if FInfo.buffered_image then jpeg_finish_output(@FInfo);
+          end;
+        true:
+          begin
+            while true do begin
+              (* The RestartLoop variable drops a placeholder for suspension
+                 mode, or partial jpeg decode, return and continue. In case
+                 of support this suspension, the RestartLoop:=True should be
+                 changed by an Exit and in the routine enter detects that it
+                 is being called from a suspended state to not
+                 reinitialize some buffer *)
+              RestartLoop:=false;
+              repeat
+                status := jpeg_consume_input(@FInfo);
+              until (status=JPEG_SUSPENDED) or (status=JPEG_REACHED_EOI);
+              ReturnValue:=true;
+              if FInfo.output_scanline = 0 then begin
+                Scan := FInfo.input_scan_number;
+                (* if we haven't displayed anything yet (output_scan_number==0)
+                  and we have enough data for a complete scan, force output
+                  of the last full scan *)
+                if (FInfo.output_scan_number = 0) and (Scan > 1) and
+                  (status <> JPEG_REACHED_EOI) then Dec(Scan);
+
+                if not jpeg_start_output(@FInfo, Scan) then begin
+                  RestartLoop:=true; (* I/O suspension *)
+                end;
+              end;
+
+              if not RestartLoop then begin
+                if (FInfo.output_scanline = $ffffff) then
+                  FInfo.output_scanline := 0;
+
+                OutputScanLines();
+
+                if ReturnValue=false then begin
+                  if (FInfo.output_scanline = 0) then begin
+                     (* didn't manage to read any lines - flag so we don't call
+                        jpeg_start_output() multiple times for the same scan *)
+                     FInfo.output_scanline := $ffffff;
+                  end;
+                  RestartLoop:=true; (* I/O suspension *)
+                end;
+
+                if not RestartLoop then begin
+                  if (FInfo.output_scanline = FInfo.output_height) then begin
+                    if not jpeg_finish_output(@FInfo) then begin
+                      RestartLoop:=true; (* I/O suspension *)
+                    end;
+
+                    if not RestartLoop then begin
+                      if (jpeg_input_complete(@FInfo) and
+                         (FInfo.input_scan_number = FInfo.output_scan_number)) then
+                        break;
+
+                      FInfo.output_scanline := 0;
+                    end;
+                  end;
+                end;
+              end;
+              if RestartLoop then begin
+                (* Suspension mode, but as not supported by this implementation
+                   it will simple break the loop to avoid endless looping. *)
+                break;
+              end;
+            end;
+          end;
+      end;
     finally
       FreeMem(SampRow);
       FreeMem(SampArray);
     end;
 
-    if FInfo.buffered_image then jpeg_finish_output(@FInfo);
     jpeg_finish_decompress(@FInfo);
 
     Progress(psEnding, 100, false, Rect(0,0,0,0), '', Continue);

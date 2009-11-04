@@ -744,7 +744,7 @@ begin
 end;
 
 
-procedure readsymoptions;
+procedure readsymoptions(space : string);
 type
   { symbol options }
   tsymoption=(sp_none,
@@ -757,7 +757,8 @@ type
     sp_has_overloaded,
     sp_internal,  { internal symbol, not reported as unused }
     sp_implicitrename,
-    sp_generic_para
+    sp_generic_para,
+    sp_has_deprecated_msg
   );
   tsymoptions=set of tsymoption;
   tsymopt=record
@@ -765,18 +766,19 @@ type
     str  : string[30];
   end;
 const
-  symopts=10;
+  symopts=11;
   symopt : array[1..symopts] of tsymopt=(
-     (mask:sp_static;         str:'Static'),
-     (mask:sp_hint_deprecated;str:'Hint Deprecated'),
-     (mask:sp_hint_platform;  str:'Hint Platform'),
-     (mask:sp_hint_library;   str:'Hint Library'),
-     (mask:sp_hint_unimplemented;str:'Hint Unimplemented'),
-     (mask:sp_hint_experimental;str:'Hint Experimental'),
-     (mask:sp_has_overloaded; str:'Has overloaded'),
-     (mask:sp_internal;       str:'Internal'),
-     (mask:sp_implicitrename; str:'Implicit Rename'),
-     (mask:sp_generic_para;   str:'Generic Parameter')
+     (mask:sp_static;             str:'Static'),
+     (mask:sp_hint_deprecated;    str:'Hint Deprecated'),
+     (mask:sp_hint_platform;      str:'Hint Platform'),
+     (mask:sp_hint_library;       str:'Hint Library'),
+     (mask:sp_hint_unimplemented; str:'Hint Unimplemented'),
+     (mask:sp_hint_experimental;  str:'Hint Experimental'),
+     (mask:sp_has_overloaded;     str:'Has overloaded'),
+     (mask:sp_internal;           str:'Internal'),
+     (mask:sp_implicitrename;     str:'Implicit Rename'),
+     (mask:sp_generic_para;       str:'Generic Parameter'),
+     (mask:sp_has_deprecated_msg; str:'Has Deprecated Message')
   );
 var
   symoptions : tsymoptions;
@@ -798,6 +800,8 @@ begin
        end;
    end;
   writeln;
+  if sp_has_deprecated_msg in symoptions then
+    writeln(space,'Deprecated : ', ppufile.getstring);
 end;
 
 
@@ -809,7 +813,7 @@ begin
   readposinfo;
   writeln(space,'   Visibility : ',Visibility2Str(ppufile.getbyte));
   write  (space,'   SymOptions : ');
-  readsymoptions;
+  readsymoptions(space+'   ');
 end;
 
 
@@ -1074,6 +1078,7 @@ type
     po_classmethod,       { class method }
     po_virtualmethod,     { Procedure is a virtual method }
     po_abstractmethod,    { Procedure is an abstract method }
+    po_finalmethod,       { Procedure is a final method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
@@ -1122,7 +1127,9 @@ type
     po_kylixlocal,
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal
+    po_weakexternal,
+    po_objc,
+    po_enumerator_movenext
   );
   tprocoptions=set of tprocoption;
 
@@ -1169,6 +1176,7 @@ const
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
      (mask:po_abstractmethod;  str:'AbstractMethod'),
+     (mask:po_finalmethod;     str:'FinalMethod'),
      (mask:po_staticmethod;    str:'StaticMethod'),
      (mask:po_overridingmethod;str:'OverridingMethod'),
      (mask:po_methodpointer;   str:'MethodPointer'),
@@ -1205,7 +1213,9 @@ const
      (mask:po_has_importname;  str:'HasImportName'),
      (mask:po_kylixlocal;      str:'KylixLocal'),
      (mask:po_dispid;          str:'DispId'),
-     (mask:po_weakexternal;    str:'WeakExternal')
+     (mask:po_weakexternal;    str:'WeakExternal'),
+     (mask:po_objc;            str:'ObjC'),
+     (mask:po_enumerator_movenext; str:'EnumeratorMoveNext')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1354,6 +1364,8 @@ procedure readobjectdefoptions;
 type
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
@@ -1366,7 +1378,9 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1376,6 +1390,8 @@ type
 const
   symopt : array[1..ord(high(tobjectoption))] of tsymopt=(
      (mask:oo_is_forward;         str:'IsForward'),
+     (mask:oo_is_abstract;        str:'IsAbstract'),
+     (mask:oo_is_sealed;          str:'IsSealed'),
      (mask:oo_has_virtual;        str:'HasVirtual'),
      (mask:oo_has_private;        str:'HasPrivate'),
      (mask:oo_has_protected;      str:'HasProtected'),
@@ -1388,7 +1404,9 @@ const
      (mask:oo_has_msgint;         str:'HasMsgInt'),
      (mask:oo_can_have_published; str:'CanHavePublished'),
      (mask:oo_has_default_property;str:'HasDefaultProperty'),
-     (mask:oo_has_valid_guid;     str:'HasValidGUID')
+     (mask:oo_has_valid_guid;     str:'HasValidGUID'),
+     (mask:oo_has_enumerator_movenext; str:'HasEnumeratorMoveNext'),
+     (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent')
   );
 var
   symoptions : tobjectoptions;
@@ -1860,7 +1878,7 @@ begin
              readposinfo;
              writeln(space,'       Visibility : ',Visibility2Str(ppufile.getbyte));
              write  (space,'       SymOptions : ');
-             readsymoptions;
+             readsymoptions(space+'       ');
              if tsystemcpu(ppufile.header.cpu)=cpu_powerpc then
                begin
                  { library symbol for AmigaOS/MorphOS }

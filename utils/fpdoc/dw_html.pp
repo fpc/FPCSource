@@ -113,7 +113,7 @@ type
 
     Procedure CreateAllocator; virtual;
     function ResolveLinkID(const Name: String): DOMString;
-    function ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
+    function ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
     function ResolveLinkWithinPackage(AElement: TPasElement;
       ASubpageIndex: Integer): String;
 
@@ -794,12 +794,12 @@ end;
   - AppendHyperlink (for unresolved parse tree element links)
 }
 
-function THTMLWriter.ResolveLinkIDInUnit(const Name,UnitName: String): DOMString;
+function THTMLWriter.ResolveLinkIDInUnit(const Name,AUnitName: String): DOMString;
 
 begin
   Result:=ResolveLinkID(Name);
-  If (Result='') and (UnitName<>'')  then
-    Result:=ResolveLinkID(UnitName+'.'+Name);
+  If (Result='') and (AUnitName<>'')  then
+    Result:=ResolveLinkID(AUnitName+'.'+Name);
 end;
 
 function THTMLWriter.ResolveLinkID(const Name: String): DOMString;

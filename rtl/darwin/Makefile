@@ -2469,7 +2469,7 @@ unix$(PPUEXT) : unixtype$(PPUEXT) baseunix$(PPUEXT) unixutil$(PPUEXT) strings$(P
 		 unxconst.inc $(UNIXINC)/timezone.inc \
 		 unxfunc.inc baseunix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 unixutil$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT)
-dynlibs$(PPUEXT) : dl$(PPUEXT) objpas$(PPUEXT)
+dynlibs$(PPUEXT) : dl$(PPUEXT) objpas$(PPUEXT) rtlconsts$(PPUEXT) sysutils$(PPUEXT) sysconst$(PPUEXT)
 ctypes$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) unixtype$(PPUEXT)
 dos$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) strings$(PPUEXT) unix$(PPUEXT) $(UNIXINC)/dos.pp $(INC)/filerec.inc $(INC)/textrec.inc strings$(PPUEXT) \
 	       unix$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)

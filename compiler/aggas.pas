@@ -34,7 +34,6 @@ interface
       aasmbase,aasmtai,aasmdata,aasmcpu,
       assemble;
 
-
     type
       TCPUInstrWriter = class;
       {# This is a derived class which is used to write
@@ -1075,6 +1074,12 @@ implementation
                else
                  AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
+{$ifdef arm}
+           ait_thumb_func:
+             begin
+               AsmWriteLn(#9'.thumb_func');
+             end;
+{$endif arm}
 
            ait_symbol_end :
              begin
