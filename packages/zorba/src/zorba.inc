@@ -84,9 +84,9 @@ type
 
 
 // external functions
-  external_function_init = procedure(user_data: PPointer; global_user_data: Pointer); extdecl;
+  external_function_init = procedure(out user_data: Pointer; global_user_data: Pointer); extdecl;
 
-  external_function_next = function(args: XQC_Sequence; argc: cint; result: XQC_Item_Ref;
+  external_function_next = function(args: XQC_Sequence; argc: cint; out result: XQC_Item;
     user_data: Pointer; global_user_data: Pointer): XQUERY_ERROR; extdecl;
 
   external_function_release = procedure(user_data: Pointer; global_user_data: Pointer); extdecl;
@@ -2052,7 +2052,7 @@ type
     (**
      * Can be used for user specific purposes.
      *)
-    user_data: pointer;
+    data: pointer;
   end;
 
 
