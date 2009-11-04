@@ -71,39 +71,59 @@ end;
 
 
 function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
-
-  function HexChar(c: Char): Byte;
-  begin
-    case c of
-      '0'..'9':
-        Result:=Byte(c) - Byte('0');
-      'a'..'f':
-        Result:=(Byte(c) - Byte('a')) + 10;
-      'A'..'F':
-        Result:=(Byte(c) - Byte('A')) + 10;
-      else
-        raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-        Result:=0;
-    end;
-  end;
-
-  function HexByte(p: PChar): Byte;
-  begin
-    Result:=(HexChar(p[0]) shl 4) + HexChar(p[1]);
-  end;
-
 var
-  i: integer;
-  src: PChar;
-  dest: PByte;
+  e: Boolean;
+  p: PChar;
+
+  function rb: Byte;
+  begin
+    case p^ of
+      '0'..'9': Result := Byte(p^) - Byte('0');
+      'a'..'f': Result := Byte(p^) - Byte('a') + 10;
+      'A'..'F': Result := Byte(p^) - Byte('A') + 10;
+      else e := False;
+    end;
+    Inc(p);
+  end;
+
+  procedure nextChar(c: Char); inline;
+  begin
+    if p^ <> c then
+      e := False;
+    Inc(p);
+  end;
+
 begin
-  if ((Length(S)<>38) or (s[1]<>'{')) then
+  if Length(S)<>38 then Exit(False);
+  e := True;
+  p := PChar(S);
+  nextChar('{');
+  Guid.D1 := rb shl 28 or rb shl 24 or rb shl 20 or rb shl 16 or rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D2 := rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D3 := rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D4[0] := rb shl 4 or rb;
+  Guid.D4[1] := rb shl 4 or rb;
+  nextChar('-');
+  Guid.D4[2] := rb shl 4 or rb;
+  Guid.D4[3] := rb shl 4 or rb;
+  Guid.D4[4] := rb shl 4 or rb;
+  Guid.D4[5] := rb shl 4 or rb;
+  Guid.D4[6] := rb shl 4 or rb;
+  Guid.D4[7] := rb shl 4 or rb;
+  nextChar('}');
+  Result := e;
+end;
+(*
+   if ((Length(S)<>38) or (s[1]<>'{')) then
     Exit(False);
   dest:=PByte(@Guid);
   src:=PChar(s);
   inc(src);
   for i:=0 to 3 do
-    dest[i]:=HexByte(src+(3-i)*2);
+    if not HexByte(src+(3-i)*2, dest[i]) then Exit(False);
   inc(src, 8);
   inc(dest, 4);
   if src[0]<>'-' then
@@ -136,7 +156,7 @@ begin
      inc(src, 2);
    end;
    Result := True;
-end;
+end;*)
 
 
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
