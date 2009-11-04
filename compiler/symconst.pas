@@ -285,7 +285,9 @@ type
     { Objective-C method }
     po_objc,
     { enumerator support }
-    po_enumerator_movenext
+    po_enumerator_movenext,
+    { optional Objective-C protocol method }
+    po_optional
   );
   tprocoptions=set of tprocoption;
 

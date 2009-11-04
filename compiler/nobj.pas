@@ -489,7 +489,7 @@ implementation
                   end
                 else
                   if (ImplIntf.IType=etStandard) and
-                     not(tprocdef(def).optional) then
+                     not(po_optional in tprocdef(def).procoptions) then
                     Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;

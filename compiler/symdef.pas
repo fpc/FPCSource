@@ -464,7 +464,6 @@ interface
        public
           messageinf : tmessageinf;
           dispid : longint;
-          extnumber      : word;
 {$ifndef EXTDEBUG}
           { where is this function defined and what were the symbol
             flags, needed here because there
@@ -472,7 +471,6 @@ interface
             EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
 {$endif}
-          visibility : tvisibility;
           symoptions : tsymoptions;
           deprecatedmsg : pshortstring;
           { symbol owning this definition }
@@ -493,31 +491,31 @@ interface
 {$endif powerpc or m68k}
           { name of the result variable to insert in the localsymtable }
           resultname : pshortstring;
-          { true, if the procedure is only declared
-            (forward procedure) }
-          forwarddef,
-          { true if the procedure is declared in the interface }
-          interfacedef : boolean;
-          { true if the procedure has a forward declaration }
-          hasforward,
-          { true if the procedure is an optional method in an Objective-C protocol }
-          optional : boolean;
           { import info }
           import_dll,
           import_name : pshortstring;
-          import_nr   : word;
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-{$ifdef i386}
-          fpu_used     : byte;
-{$endif i386}
           { position in aasmoutput list }
           procstarttai,
           procendtai   : tai;
+          import_nr    : word;
+          extnumber    : word;
+{$ifdef i386}
+          fpu_used     : byte;
+{$endif i386}
+          visibility   : tvisibility;
+          { true, if the procedure is only declared
+            (forward procedure) }
+          forwarddef,
+          { true if the procedure is declared in the interface }
+          interfacedef : boolean;
+          { true if the procedure has a forward declaration }
+          hasforward  : boolean;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -2965,7 +2963,6 @@ implementation
          forwarddef:=true;
          interfacedef:=false;
          hasforward:=false;
-         optional:=false;
          _class := nil;
          import_dll:=nil;
          import_name:=nil;
@@ -2995,7 +2992,6 @@ implementation
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
-         optional:=boolean(ppufile.getbyte);
          if sp_has_deprecated_msg in symoptions then
            deprecatedmsg:=stringdup(ppufile.getstring)
          else
@@ -3138,7 +3134,6 @@ implementation
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
-         ppufile.putbyte(byte(optional));
          if sp_has_deprecated_msg in symoptions then
            ppufile.putstring(deprecatedmsg^);
 {$ifdef powerpc}

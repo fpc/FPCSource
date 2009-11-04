@@ -966,11 +966,11 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
       begin
         proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
         if (po_classmethod in proc.procoptions) then
-          if not proc.optional then
+          if not(po_optional in proc.procoptions) then
             reqclsmlist.Add(proc)
           else
             optclsmlist.Add(proc)
-        else if not proc.optional then
+        else if not(po_optional in proc.procoptions) then
           reqinstmlist.Add(proc)
         else
           optinstmlist.Add(proc);

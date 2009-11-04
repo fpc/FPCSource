@@ -917,7 +917,8 @@ implementation
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
         pd.visibility:=symtablestack.top.currentvisibility;
-        pd.optional:=symtablestack.top.currentlyoptional;
+        if symtablestack.top.currentlyoptional then
+          include(pd.procoptions,po_optional);
 
         { parse parameters }
         if token=_LKLAMMER then
