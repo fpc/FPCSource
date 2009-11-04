@@ -767,6 +767,11 @@ type
           line : longint;
           pc : CORE_ADDR;
           _end : CORE_ADDR;
+          { Added fields, not used in gdbint,
+            but necessary to allocated enough space to
+            avoid stack memory corruption PM }
+          explicit_pc : longint;
+          explicit_line : longint;
        end;
 
      symtabs_and_lines = record
