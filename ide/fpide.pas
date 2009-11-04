@@ -565,6 +565,17 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_debugger_redirection = 'Debuggee ~R~edirection';
                 label_debugger_useanothertty = '~U~se Another tty for Debuggee';
 
+                { Remote options dialog }
+                dialog_remote = 'Remote setup';
+                label_remote_machine = 'Remote machine ~n~ame';
+                label_remote_port = 'Remote ~p~ort number';
+                label_remote_dir = 'Remote ~d~irectory';
+                label_remote_config = 'Remote config ~o~ptions';
+                label_remote_ident = 'Remote ~i~dent';
+                label_remote_command = 'Remote ~c~ommand';
+                label_remote_scp = 'Scp executable';
+                label_remote_ssh = 'Ssh executable';
+
                 {Directories dialog.}
                 dialog_directories = 'Directories';
 
