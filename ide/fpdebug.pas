@@ -51,6 +51,7 @@ type
      HasExe   : boolean;
      RunCount : longint;
      WindowWidth : longint;
+     TBreakNumber : longint;
      FPCBreakErrorNumber : longint;
 {$ifdef SUPPORT_REMOTE}
      isRemoteDebugging:boolean;
@@ -65,6 +66,9 @@ type
     procedure DoBreakSession;virtual;}
     procedure DoEndSession(code:longint);virtual;
     procedure DoUserSignal;virtual;
+    procedure FlushAll; virtual;
+    function Query(question : pchar; args : pchar) : longint; virtual;
+
     procedure AnnotateError;
     procedure InsertBreakpoints;
     procedure RemoveBreakpoints;
@@ -334,8 +338,10 @@ uses
 {$ifdef DOS}
   fpusrscr,
 {$endif DOS}
+
   App,Strings,
   FVConsts,
+  MsgBox,
 {$ifdef Windows}
   Windebug,
 {$endif Windows}
@@ -603,7 +609,8 @@ procedure UpdateDebugViews;
 
   begin
 {$ifdef SUPPORT_REMOTE}
-     PushStatus(msg_getting_info_on+RemoteMachine);
+     if isRemoteDebugging then
+       PushStatus(msg_getting_info_on+RemoteMachine);
 {$endif SUPPORT_REMOTE}
      DeskTop^.Lock;
      If assigned(StackWindow) then
@@ -620,7 +627,8 @@ procedure UpdateDebugViews;
        VectorWindow^.Update;
      DeskTop^.UnLock;
 {$ifdef SUPPORT_REMOTE}
-     PopStatus;
+     if isRemoteDebugging then
+       PopStatus;
 {$endif SUPPORT_REMOTE}
   end;
 
@@ -648,6 +656,10 @@ begin
     begin
       LoadFile(f);
       HasExe:=true;
+      { Procedure HandleErrorAddrFrame
+         (Errno : longint;addr,frame : longint);
+         [public,alias:'FPC_BREAK_ERROR'];
+      Command('b HANDLEERRORADDRFRAME'); }
       Command('b FPC_BREAK_ERROR');
       FPCBreakErrorNumber:=last_breakpoint_number;
 {$ifdef FrameNameKnown}
@@ -826,6 +838,8 @@ begin
            PopStatus;
            exit;
         end;
+      s:=IDEApp.GetRemoteExecString;
+      MessageBox(#3'Start in remote'#13#3+s,nil,mfOKbutton);
       PopStatus;
     end
   else
@@ -940,6 +954,76 @@ begin
   if assigned(GDBWindow) then
     GDBWindow^.WriteString(S);
 end;
+
+function TDebugController.Query(question : pchar; args : pchar) : longint;
+var
+  c : char;
+  WasModal : boolean;
+  ModalView : PView;
+  res : longint;
+begin
+  if not assigned(Application) then
+    begin
+      system.Write(question);
+      repeat
+        system.write('(y or n)');
+        system.read(c);
+        system.writeln(c);
+      until (lowercase(c)='y') or (lowercase(c)='n');
+      if lowercase(c)='y' then
+        query:=1
+      else
+        query:=0;
+      exit;
+    end;
+  if assigned(Application^.Current) and
+     ((Application^.Current^.State and sfModal)<>0) then
+    begin
+      WasModal:=true;
+      ModalView:=Application^.Current;
+      ModalView^.SetState(sfModal, false);
+      ModalView^.Hide;
+    end
+  else
+    WasModal:=false;
+  PushStatus(Question);
+  res:=MessageBox(Question,nil,mfyesbutton+mfnobutton);
+  PopStatus;
+  if res=cmYes then
+    Query:=1
+  else
+    Query:=0;
+  if WasModal then
+    begin
+      ModalView^.Show;
+      ModalView^.SetState(sfModal, true);
+      ModalView^.Draw;
+    end;
+end;
+
+procedure TDebugController.FlushAll;
+begin
+  if assigned(GDBWindow) then
+    begin
+      If StrLen(GetError)>0 then
+        begin
+          GDBWindow^.WriteErrorText(GetError);
+          if in_command=0 then
+            gdberrorbuf.reset;
+        end;
+
+      If StrLen(GetOutput)>0 then
+        begin
+          GDBWindow^.WriteOutputText(GetOutput);
+          { Keep output for command results }
+          if in_command=0 then
+            gdboutputbuf.reset;
+        end;
+    end
+  else
+    Inherited FlushAll;
+end;
+
 
 procedure TDebugController.CommandEnd(const s:string);
 begin
@@ -1269,7 +1353,13 @@ begin
        end
       else if not assigned(PB) then
         begin
-          WarningBox(#3'Stopped by breakpoint '+IntToStr(BreakIndex),nil);
+          if (BreakIndex<>start_break_number) and
+             (BreakIndex<>TbreakNumber) then
+            WarningBox(#3'Stopped by breakpoint '+IntToStr(BreakIndex),nil);
+          if BreakIndex=start_break_number then
+            start_break_number:=0;
+          if BreakIndex=TbreakNumber then
+            TbreakNumber:=0;
         end
       { For watch we should get old and new value !! }
       else if (Not assigned(GDBWindow) or not GDBWindow^.GetState(sfActive)) and
@@ -1377,14 +1467,15 @@ begin
   if NoSwitch then
     begin
 {$ifdef SUPPORT_REMOTE}
-      PushStatus(msg_runningremotely+RemoteMachine);
-{$else not SUPPORT_REMOTE}
+      if isRemoteDebugging then
+        PushStatus(msg_runningremotely+RemoteMachine)
+      else
+{$endif SUPPORT_REMOTE}
 {$ifdef Unix}
       PushStatus(msg_runninginanotherwindow+DebuggeeTTY);
 {$else not Unix}
       PushStatus(msg_runninginanotherwindow);
 {$endif Unix}
-{$endif not SUPPORT_REMOTE}
     end
   else
     begin
@@ -3508,15 +3599,17 @@ end;
 
 function GetGDBTargetShortName : string;
 begin
+{$ifndef CROSSGDB}
+GetGDBTargetShortName:=source_info.shortname;
+{$else CROSSGDB}
 {$ifdef SUPPORT_REMOTE}
 {$ifdef PALMOSGDB}
 GetGDBTargetShortName:='palmos';
 {$else}
 GetGDBTargetShortName:='linux';
 {$endif PALMOSGDB}
-{$else not SUPPORT_REMOTE}
-GetGDBTargetShortName:=source_info.shortname
 {$endif not SUPPORT_REMOTE}
+{$endif CROSSGDB}
 end;
 
 procedure InitDebugger;
@@ -3556,6 +3649,7 @@ begin
 {$endif}
 
   NeedRecompileExe:=false;
+{$ifndef SUPPORT_REMOTE}
   if UpCaseStr(TargetSwitches^.GetCurrSelParam)<>UpCaseStr(GetGDBTargetShortName) then
     begin
      ClearFormatParams;
@@ -3575,6 +3669,7 @@ begin
          IDEApp.UpdateTarget;
        end;
     end;
+{$endif ndef SUPPORT_REMOTE}
   if not NeedRecompileExe then
     NeedRecompileExe:=(not ExistsFile(ExeFile)) or (CompilationPhase<>cpDone) or
      (PrevMainFile<>MainFile) or NeedRecompile(cRun,false);
