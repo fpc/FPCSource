@@ -813,7 +813,8 @@ implementation
                 inc(realparamcount);
             if (paraidx<pd.paras.count) and
                assigned(pd.paras[paraidx]) and
-               (realparamcount = 1) then
+               (realparamcount = 1) and
+               is_class_or_interface_or_object(pd.returndef)  then
               begin
                 eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 

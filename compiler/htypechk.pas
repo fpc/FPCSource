@@ -425,16 +425,8 @@ implementation
                 { enumerator is a special case too }
                 if optoken=_OP_ENUMERATOR then
                   begin
-                    //eq:=check_that_return_type_is_ok_for_enumerator;
                     result:=
-                      { don't allow overloading assigning to custom shortstring
-                        types, because we also don't want to differentiate based
-                        on different shortstring types (e.g.,
-                        "operator :=(const v: variant) res: shorstring" also
-                        has to work for assigning a variant to a string[80])
-                      }
-                      (not is_shortstring(pf.returndef) or
-                       (tstringdef(pf.returndef).len=255));
+                      is_class_or_interface_or_object(pf.returndef);
                   end
                 else
                   begin

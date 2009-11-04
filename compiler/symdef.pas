@@ -4286,7 +4286,7 @@ implementation
                 begin
                   pd := tprocdef(Tprocsym(sym).ProcdefList[i]);
                   if (pd.proctypeoption = potype_function) and
-                     (pd.returndef.typ = objectdef) and
+                     is_class_or_interface_or_object(pd.returndef) and
                      (pd.visibility >= vis_public) then
                   begin
                     result:=pd;
