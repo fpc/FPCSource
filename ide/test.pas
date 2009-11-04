@@ -45,13 +45,13 @@ type
       end;
 
       TClass = class
-        constructor Create;
         name : string;
+        constructor Create;
       end;
 
       TClass2 = class(TClass)
-        constructor Create;
         X : longint;
+        constructor Create;
       end;
 
       EnumTyp = (enum1,enum2,enum3);
