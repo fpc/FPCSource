@@ -954,7 +954,7 @@ function xmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDo
 function xmlReadFile(filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlReadFd(fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
-function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
