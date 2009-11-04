@@ -10,6 +10,10 @@
 
  **********************************************************************}
 
+{$ifdef USE_GDBLIBINC}
+  {$include gdblib.inc}
+{$endif USE_GDBLIBINC}
+
 { --- Special OS settings --- }
 {$ifdef Go32V2}
   {$define SUPPORTVESA}
