@@ -5,6 +5,7 @@
 program tforin11;
 
 {$mode objfpc}{$H+}
+{$apptype console}
 
 var
   s: String;

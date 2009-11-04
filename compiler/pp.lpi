@@ -44,7 +44,7 @@
     <Version Value="8"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="C:\programming\fpc_features\bin\i386-win32\pp.exe"/>
+      <Filename Value="..\bin\i386-win32\pp.exe"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="i386\"/>

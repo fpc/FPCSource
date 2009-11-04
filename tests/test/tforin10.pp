@@ -5,6 +5,7 @@
 program tforin10;
 
 {$mode objfpc}{$H+}
+{$apptype console}
 
 type
   TSomeClass = class

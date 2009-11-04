@@ -304,9 +304,12 @@ var
   loopstatement, loopbodystatement: tstatementnode;
   loopvar, arrayvar: ttempcreatenode;
   arrayindex, lowbound, highbound, loopbody, forloopnode: tnode;
+  is_string: boolean;
 begin
   { result is a block of statements }
   result:=internalstatements(loopstatement);
+
+  is_string := ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
 
   if (node_complexity(expr) > 1) and not is_open_array(expr.resultdef) then
   begin
@@ -316,8 +319,16 @@ begin
       expr.resultdef.size,
       tt_persistent,true);
 
-    lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
-    highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+    if is_string then
+    begin
+      lowbound:=genintconstnode(1);
+      highbound:=cinlinenode.create(in_length_x,false,ctemprefnode.create(arrayvar))
+    end
+    else
+    begin
+      lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
+      highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+    end;
 
     addstatement(loopstatement,arrayvar);
     addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expr.getcopy));
@@ -325,8 +336,16 @@ begin
   else
   begin
     arrayvar:=nil;
-    lowbound:=cinlinenode.create(in_low_x,false,expr.getcopy);
-    highbound:=cinlinenode.create(in_high_x,false,expr.getcopy);
+    if is_string then
+    begin
+      lowbound:=genintconstnode(1);
+      highbound:=cinlinenode.create(in_length_x,false,expr.getcopy);
+    end
+    else
+    begin
+      lowbound:=cinlinenode.create(in_low_x,false,expr.getcopy);
+      highbound:=cinlinenode.create(in_high_x,false,expr.getcopy);
+    end;
   end;
 
   { create a loop counter }
