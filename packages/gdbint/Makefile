@@ -2998,6 +2998,12 @@ gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
 endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
+ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
+	$(COMPILER) gdbcon.pp
+else
+	$(COMPILER) -dUSE_MINGW_GDB gdbcon.pp
+endif
+	$(EXECPPAS)
 ifeq ($(OS_TARGET),go32v2)
 DBGCOM=dbgcom$(OEXT)
 else
