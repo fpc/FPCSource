@@ -1036,7 +1036,7 @@ begin
                 PPIsSkipping := false
               else if PPSkipMode = ppSkipElseBranch then
                 PPIsSkipping := true;
-            end else if Directive = 'ENDIF' then
+            end else if ((Directive = 'ENDIF') or (Directive='IFEND')) then
             begin
               if PPSkipStackIndex = 0 then
                 Error(SErrInvalidPPEndif);
