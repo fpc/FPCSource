@@ -390,6 +390,15 @@ var
   loopvar, setvar: ttempcreatenode;
   loopbody, forloopnode: tnode;
 begin
+  // first check is set is empty and if it so then skip other processing
+  if not Assigned(tsetdef(expr.resultdef).elementdef) then
+  begin
+    result:=cnothingnode.create;
+    // free unused nodes
+    hloopvar.free;
+    hloopbody.free;
+    exit;
+  end;
   { result is a block of statements }
   result:=internalstatements(loopstatement);
 
