@@ -3136,16 +3136,16 @@ VAR Tracking: Boolean; I, P, S, ClickPart, Iv: Sw_Integer;
      Part := -1;                                      { Preset failure }
      If Extent.Contains(Mouse) Then Begin             { Contains mouse }
        If (Size.X = 1) Then Begin                     { Vertical scrollbar }
-         Mark := Mouse.Y - 1;                { Calc position }
+         Mark := Mouse.Y;                             { Calc position }
        End Else Begin                                 { Horizontal bar }
-         Mark := Mouse.X - 1;                 { Calc position }
+         Mark := Mouse.X;                             { Calc position }
        End;
        If (Mark >= P) AND (Mark < P+1) Then           { Within thumbnail }
          Part := sbIndicator;                         { Indicator part }
        If (Part <> sbIndicator) Then Begin            { Not indicator part }
          If (Mark < 1) Then Part := sbLeftArrow Else  { Left arrow part }
          If (Mark < P) Then Part := sbPageLeft Else   { Page left part }
-         If (Mark < S) Then Part := sbPageRight Else  { Page right part }
+         If (Mark < S-1) Then Part := sbPageRight Else  { Page right part }
            Part := sbRightArrow;                      { Right arrow part }
          If (Size.X = 1) Then Inc(Part, 4);           { Correct for vertical }
        End;
@@ -3205,14 +3205,14 @@ BEGIN
          MakeLocal(Event.Where, Mouse);                 { Localize mouse }
          Extent.A.X := 0;                             { Zero x extent value }
          Extent.A.Y := 0;                             { Zero y extent value }
-         Extent.B.X := Size.X;                     { Set extent x value }
-         Extent.B.Y := Size.Y;                     { set extent y value }
+         Extent.B.X := Size.X;                        { Set extent x value }
+         Extent.B.Y := Size.Y;                        { set extent y value }
          P := GetPos;                                 { Current position }
          S := GetSize;                                { Initial size }
          ClickPart := GetPartCode;                    { Get part code }
          If (ClickPart <> sbIndicator) Then Begin     { Not thumb nail }
            Repeat
-             MakeLocal(Event.Where, Mouse);                 { Localize mouse }
+             MakeLocal(Event.Where, Mouse);           { Localize mouse }
              If GetPartCode = ClickPart Then
                SetValue(Value+ScrollStep(ClickPart)); { Same part repeat }
            Until NOT MouseEvent(Event, evMouseAuto);  { Until auto done }
@@ -3220,12 +3220,12 @@ BEGIN
          End Else Begin                               { Thumb nail move }
            Iv := Value;                               { Initial value }
            Repeat
-             MakeLocal(Event.Where, Mouse);                 { Localize mouse }
+             MakeLocal(Event.Where, Mouse);           { Localize mouse }
              Tracking := Extent.Contains(Mouse);      { Check contains }
              If Tracking Then Begin                   { Tracking mouse }
                If (Size.X=1) Then
-                 I := Mouse.Y-1 Else         { Calc vert position }
-                 I := Mouse.X-1;              { Calc horz position }
+                 I := Mouse.Y Else                    { Calc vert position }
+                 I := Mouse.X;                        { Calc horz position }
                If (I < 0) Then I := 0;                { Check underflow }
                If (I > S) Then I := S;                { Check overflow }
              End Else I := GetPos;                    { Get position }
