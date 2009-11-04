@@ -1300,7 +1300,9 @@ begin
     begin
       if oo_has_enumerator_movenext in tprocdef(pd)._class.objectoptions then
         message(parser_e_only_one_enumerator_movenext);
-      if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) then
+      pd.calcparas;
+      if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
+         (pd.minparacount = 0) then
       begin
         include(tprocdef(pd)._class.objectoptions, oo_has_enumerator_movenext);
         include(pd.procoptions,po_enumerator_movenext);
@@ -2097,7 +2099,7 @@ const
       pd_flags : [pd_interface,pd_object];
       handler  : @pd_enumerator;
       pocall   : pocall_none;
-      pooption : [po_enumerator_movenext];
+      pooption : [];
       mutexclpocall : [pocall_internproc];
       mutexclpotype : [];
       mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]

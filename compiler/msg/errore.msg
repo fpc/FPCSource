@@ -1207,8 +1207,8 @@ parser_e_invalid_enumerator_identifier=03259_E_Invalid enumerator identifier: "$
 % Only "MoveNext" and "Current" enumerator identifiers are supported.
 parser_e_enumerator_identifier_required=03260_E_Enumerator identifier required
 % "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
-parser_e_enumerator_movenext_is_not_valid=03261_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type.
-% "MoveNext" enumerator pattern method must be a function with Boolean return type
+parser_e_enumerator_movenext_is_not_valid=03261_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type and no required arguments.
+% "MoveNext" enumerator pattern method must be a function with Boolean return type and no required arguments
 parser_e_enumerator_current_is_not_valid=03262_E_Enumerator Current pattern property is not valid. Property must have a getter.
 % "Current" enumerator pattern property must have a getter
 parser_e_only_one_enumerator_movenext=03263_E_Only one enumerator MoveNext method is allowed per class/object
