@@ -2999,9 +2999,9 @@ gdbint$(PPUEXT): gdbint.pp gdbver.inc
 endif
 gdbcon$(PPUEXT): gdbcon.pp gdbint$(PPUEXT)
 ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
-	$(COMPILER) gdbcon.pp
+	$(COMPILER) src/gdbcon.pp
 else
-	$(COMPILER) -dUSE_MINGW_GDB gdbcon.pp
+	$(COMPILER) -dUSE_MINGW_GDB src/gdbcon.pp
 endif
 	$(EXECPPAS)
 ifeq ($(OS_TARGET),go32v2)
