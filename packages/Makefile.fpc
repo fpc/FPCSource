@@ -24,7 +24,7 @@ dirs_haiku=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc pos
 dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                gdbint libpng x11 gdbm tcl syslog libcurl opengl cairo  bfd aspell svgalib \
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
-               users iconvenc gmp fcl-extra
+               users iconvenc gmp fcl-extra libxml
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                 libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra
 dirs_i386_darwin=graph univint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl
