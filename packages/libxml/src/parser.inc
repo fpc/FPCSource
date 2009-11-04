@@ -618,7 +618,7 @@
  * Returns 1 if true
  *)
   hasExternalSubsetSAXFunc = function(ctx: pointer): cint; EXTDECL;
-
+{$ENDIF}
 
 (************************************************************************
  *									*
@@ -630,8 +630,11 @@
  *
  * Special constant found in SAX2 blocks initialized fields
  *)
-{$DEFINE XML_SAX2_MAGIC := $DEEDBEAF}
+{$IFDEF CONST}
+  XML_SAX2_MAGIC = $DEEDBEAF;
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * startElementNsSAX2Func:
  * @ctx:  the user data (XML parser context)
