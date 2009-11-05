@@ -15,6 +15,8 @@ unit GdbInt;
 
 {$mode objfpc}
 
+{$define NotImplemented}
+
 {$define COMPILING_GDBINT_UNIT}
 {$ifdef USE_GDBLIBINC}
   {$i gdblib.inc}
@@ -33,7 +35,6 @@ interface
 
 {$smartlink off}
 
-{$define NotImplemented}
 
 { Is create_breakpoint_hook deprecated? }
 { Seem not so for 6.1 }
@@ -291,7 +292,9 @@ interface
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
     {$LINKLIB libdecnumber.a}
-    {$undef GDB_HAS_DEBUG_FILE_DIRECTORY}
+    {$ifdef GDB_USES_EXPAT_LIB}
+      {$LINKLIB expat}
+    {$endif GDB_USES_EXPAT_LIB}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
     {$LINKLIB libncurses.a}
