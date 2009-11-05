@@ -23,7 +23,6 @@
     <RunParams>
       <local>
         <FormatVersion Value="1"/>
-        <CommandLineParams Value="-MObjFPC -Scgi -O1 -gl -vewnhi -l -FuC:\programming\mytest\fpctest\enumerators\ -Fu. -FUC:\programming\mytest\fpctest\enumerators\lib\i386-win32\ -oproject1.exe C:\programming\mytest\fpctest\enumerators\tforin1.pp"/>
         <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
@@ -44,7 +43,7 @@
     <Version Value="8"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="..\bin\i386-win32\pp.exe"/>
+      <Filename Value="i386\pp"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="i386\"/>
@@ -61,7 +60,6 @@
     <Linking>
       <Debugging>
         <GenerateDebugInfo Value="True"/>
-        <UseHeaptrc Value="True"/>
       </Debugging>
     </Linking>
     <Other>
