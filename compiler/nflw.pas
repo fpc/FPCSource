@@ -568,7 +568,17 @@ var
   current: tpropertysym;
 begin
   if expr.nodetype=typen then
-    result:=create_type_for_in_loop(hloopvar, hloopbody, expr)
+  begin
+    if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
+    begin
+      result:=cerrornode.create;
+      hloopvar.free;
+      hloopbody.free;
+      Message1(parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
+    end
+    else 
+      result:=create_type_for_in_loop(hloopvar, hloopbody, expr);
+  end
   else
   begin
     { loop is made for an expression }

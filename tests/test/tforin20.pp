@@ -1,3 +1,4 @@
+{ %FAIL}
 {$mode objfpc}
 {$apptype console}
 type T = (a1, b1=5);

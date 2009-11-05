@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03264 is the last used one
+# 03265 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1215,6 +1215,8 @@ parser_e_only_one_enumerator_movenext=03263_E_Only one enumerator MoveNext metho
 % Class or Object can have only one enumerator MoveNext declaration.
 parser_e_only_one_enumerator_current=03264_E_Only one enumerator Current property is allowed per class/object
 % Class or Object can have only one enumerator Current declaration.
+parser_e_for_in_loop_cannot_be_used_for_the_type=03265_E_For in loop can not be used for the type "$1"
+% For in loop can be used not for all types. For example it can not be used for the enumerations with jumps.
 % \end{description}
 #
 # Type Checking
