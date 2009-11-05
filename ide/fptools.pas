@@ -1329,6 +1329,7 @@ var Pass: sw_integer;
 begin
   W:=FirstEditorWindow;
   Err:=0;
+  AbortTool:=false;
   for Pass:=0 to 3 do
     begin
       ParseParams(Pass);
