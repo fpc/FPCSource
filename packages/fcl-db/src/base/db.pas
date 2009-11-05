@@ -992,6 +992,19 @@ type
     property Items[Index: Longint]: TCheckConstraint read GetItem write SetItem; default;
   end;
 
+  { TFieldsEnumerator }
+
+  TFieldsEnumerator = class
+  private
+    FPosition: Integer;
+    FFields: TFields;
+    function GetCurrent: TField;
+  public
+    constructor Create(AFields: TFields);
+    function MoveNext: Boolean;
+    property Current: TField read GetCurrent;
+  end;
+
 { TFields }
 
   Tfields = Class(TObject)
@@ -1019,6 +1032,7 @@ type
       Function FindField (Const Value : String) : TField;
       Function FieldByName (Const Value : String) : TField;
       Function FieldByNumber(FieldNo : Integer) : TField;
+      Function GetEnumerator: TFieldsEnumerator;
       Procedure GetFieldNames (Values : TStrings);
       Function IndexOf(Field : TField) : Longint;
       procedure Remove(Value : TField);
