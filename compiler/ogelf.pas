@@ -569,7 +569,7 @@ implementation
 
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
 {$ifdef userodata}
           '.text','.data','.data','.rodata','.bss','.threadvar',
 {$else userodata}
@@ -609,9 +609,18 @@ implementation
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[length('.objc_meth_var_types')] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -653,7 +662,16 @@ implementation
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep : string[3];

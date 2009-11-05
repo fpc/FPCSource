@@ -93,6 +93,15 @@ implementation
         '',
         '',
         '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         ''
       );
 
@@ -102,6 +111,15 @@ implementation
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',
         '','','','',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         '',
         '',
         '',
@@ -705,6 +723,8 @@ implementation
              end;
            ait_symbol :
              begin
+               if tai_symbol(hp).has_value then
+                 internalerror(2009090802);
                if tai_symbol(hp).is_global then
                  AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
                AsmWrite(tai_symbol(hp).sym.name);

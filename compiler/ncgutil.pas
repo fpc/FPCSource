@@ -2845,6 +2845,9 @@ implementation
             end;
           end
         else
+          { This is also valid for Objective-C classes: vmt_offset is 0 there,
+            and the first "field" of an Objective-C class instance is a pointer
+            to its "meta-class".  }
           begin
             case selfloc.loc of
               LOC_REGISTER:
@@ -2876,7 +2879,8 @@ implementation
 
         { test validity of VMT }
         if not(is_interface(objdef)) and
-           not(is_cppclass(objdef)) then
+           not(is_cppclass(objdef)) and
+           not(is_objc_class_or_protocol(objdef)) then
            cg.g_maybe_testvmt(list,vmtreg,objdef);
       end;
 

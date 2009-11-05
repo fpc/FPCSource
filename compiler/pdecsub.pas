@@ -39,7 +39,9 @@ interface
         pd_notobjintf,   { directive can not be used interface declaration }
         pd_notprocvar,   { directive can not be used procvar declaration }
         pd_dispinterface,{ directive can be used with dispinterface methods }
-        pd_cppobject     { directive can be used with cppclass }
+        pd_cppobject,    { directive can be used with cppclass }
+        pd_objcclass,    { directive can be used with objcclass }
+        pd_objcprot      { directive can be used with objcprotocol }
       );
       tpdflags=set of tpdflag;
 
@@ -75,6 +77,7 @@ implementation
        { pass 1 }
        fmodule,node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       objcutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,pdecl
@@ -159,8 +162,32 @@ implementation
         vs       : tparavarsym;
         hdef     : tdef;
         vsp      : tvarspez;
+        aliasvs  : tabsolutevarsym;
+        sl       : tpropaccesslist;
       begin
-        if (pd.typ=procvardef) and
+        if (pd.typ=procdef) and
+           is_objc_class_or_protocol(tprocdef(pd)._class) then
+          begin
+            { insert Objective-C self and selector parameters }
+            vs:=tparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+            { make accessible to code }
+            sl:=tpropaccesslist.create;
+            sl.addsym(sl_load,vs);
+            aliasvs:=tabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
+            include(aliasvs.varoptions,vo_is_msgsel);
+            tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
+
+            if (po_classmethod in pd.procoptions) then
+              { compatible with what gcc does }
+              hdef:=objc_idtype
+            else
+              hdef:=tprocdef(pd)._class;
+
+            vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+          end
+        else if (pd.typ=procvardef) and
            pd.is_methodpointer then
           begin
             { Generate self variable }
@@ -301,7 +328,8 @@ implementation
                  if is_open_string(vardef) then
                     MessagePos(fileinfo,parser_w_cdecl_no_openstring);
                  if not(po_external in pd.procoptions) and
-                    (pd.typ<>procvardef) then
+                    (pd.typ<>procvardef) and
+                    not is_objc_class_or_protocol(tprocdef(pd)._class) then
                    if is_array_of_const(vardef) then
                      MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
                    else
@@ -889,6 +917,8 @@ implementation
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
         pd.visibility:=symtablestack.top.currentvisibility;
+        if symtablestack.top.currentlyoptional then
+          include(pd.procoptions,po_optional);
 
         { parse parameters }
         if token=_LKLAMMER then
@@ -938,6 +968,7 @@ implementation
            if is_interface(aclass) then
              Message(parser_e_no_static_method_in_interfaces)
            else
+             { class methods are also allowed for Objective-C protocols }
              isclassmethod:=true;
          end;
         case token of
@@ -1381,7 +1412,7 @@ procedure pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
-  if not(is_class_or_interface(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_objc(tprocdef(pd)._class)) then
     Message(parser_e_no_object_override);
 end;
 
@@ -1399,23 +1430,36 @@ var
 begin
   if pd.typ<>procdef then
     internalerror(2003042613);
-  if not is_class(tprocdef(pd)._class) then
+  if not is_class(tprocdef(pd)._class) and
+     not is_objc_class_or_protocol(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
   if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
     Message(parser_e_multiple_messages);
   { check parameter type }
-  paracnt:=0;
-  pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
-  if paracnt<>1 then
-    Message(parser_e_ill_msg_param);
+  if not is_objc_class_or_protocol(tprocdef(pd)._class) then
+    begin
+      paracnt:=0;
+      pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
+      if paracnt<>1 then
+        Message(parser_e_ill_msg_param);
+    end;
   pt:=comp_expr(true);
-  if pt.nodetype=stringconstn then
+  { message is 1-character long }
+  if is_constcharnode(pt) then 
     begin
       include(pd.procoptions,po_msgstr);
+      tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.uvalue and $FF)));
+    end
+  else if pt.nodetype=stringconstn then
+    begin
+      include(pd.procoptions,po_msgstr);
+      if (tstringconstnode(pt).len>255) then
+        Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
     end
   else
-   if is_constintnode(pt) then
+   if is_constintnode(pt) and
+      is_class(tprocdef(pd)._class) then
     begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
@@ -1426,6 +1470,11 @@ begin
     end
   else
     Message(parser_e_ill_msg_expr);
+  { check whether the selector name is valid in case of Objective-C }
+  if (po_msgstr in pd.procoptions) and
+     is_objc_class_or_protocol(tprocdef(pd)._class) and
+     not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
+    Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
 end;
 
@@ -1906,7 +1955,7 @@ const
       mutexclpo     : [po_external,po_exports]
     ),(
       idtok:_MESSAGE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass, pd_objcprot];
       handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
@@ -1951,7 +2000,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -2064,7 +2113,7 @@ const
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
-      pd_flags : [pd_interface,pd_implemen,pd_procvar];
+      pd_flags : [pd_interface,pd_implemen,pd_procvar,pd_objcclass, pd_objcprot];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
@@ -2151,7 +2200,7 @@ const
            end;
          end;
 
-        { C directive is MAC only, because it breaks too much existing code
+        { C directive is MacPas only, because it breaks too much existing code
           on other platforms (PFV) }
         if (idtoken=_C) and
            not(m_mac in current_settings.modeswitches) then
@@ -2170,7 +2219,7 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if ((pdflags * [pd_procvar,pd_object])=[]) and
+            if ((pdflags * [pd_procvar,pd_object,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
@@ -2228,10 +2277,22 @@ const
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
+
            { check if method and directive not for interface }
            if is_dispinterface(tprocdef(pd)._class) and
              not(pd_dispinterface in proc_direcdata[p].pd_flags) then
             exit;
+
+           { check if method and directive not for objcclass }
+           if is_objcclass(tprocdef(pd)._class) and
+             not(pd_objcclass in proc_direcdata[p].pd_flags) then
+            exit;
+
+           { check if method and directive not for objcprotocol }
+           if is_objcprotocol(tprocdef(pd)._class) and
+             not(pd_objcprot in proc_direcdata[p].pd_flags) then
+            exit;
+
          end;
 
         { consume directive, and turn flag on }
@@ -2422,7 +2483,19 @@ const
     procedure handle_calling_convention(pd:tabstractprocdef);
       begin
         { set the default calling convention if none provided }
-        if not(po_hascallingconvention in pd.procoptions) then
+        if (pd.typ=procdef) and
+           (is_objc_class_or_protocol(tprocdef(pd)._class) or
+            is_cppclass(tprocdef(pd)._class)) then
+          begin
+            { none of the explicit calling conventions should be allowed }
+            if (po_hascallingconvention in pd.procoptions) then
+              internalerror(2009032501);
+            if is_cppclass(tprocdef(pd)._class) then
+              pd.proccalloption:=pocall_cppdecl
+            else
+              pd.proccalloption:=pocall_cdecl;
+          end
+        else if not(po_hascallingconvention in pd.procoptions) then
           pd.proccalloption:=current_settings.defproccall
         else
           begin
@@ -2469,7 +2542,10 @@ const
               { if external is available, then cdecl must also be available,
                 procvars don't need external }
               if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef)) and
+                     (pd.typ=procvardef) or
+                     { for objcclasses this is checked later, because the entire
+                       class may be external.  }
+                     is_objc_class_or_protocol(tprocdef(pd)._class)) and
                  not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end

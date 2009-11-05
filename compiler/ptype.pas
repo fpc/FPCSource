@@ -113,7 +113,8 @@ implementation
                         inc(ttypesym(srsym).refs);
                         { we need a class type for classrefdef }
                         if (def.typ=classrefdef) and
-                           not(is_class(ttypesym(srsym).typedef)) then
+                           not(is_class(ttypesym(srsym).typedef)) and
+                           not(is_objcclass(ttypesym(srsym).typedef)) then
                           MessagePos1(def.typesym.fileinfo,type_e_class_type_expected,ttypesym(srsym).typedef.typename);
                       end
                      else
@@ -302,7 +303,7 @@ implementation
             { Reparse the original type definition }
             if not err then
               begin
-                { Firsta new typesym so we can reuse this specialization and
+                { First a new typesym so we can reuse this specialization and
                   references to this specialization can be handled }
                 srsym:=ttypesym.create(specializename,generrordef);
                 specializest.insert(srsym);
@@ -357,7 +358,7 @@ implementation
             (current_objectdef.objname^=pattern) and
             (
              (testcurobject=2) or
-             is_class_or_interface(current_objectdef)
+             is_class_or_interface_or_objc(current_objectdef)
             )then
            begin
              consume(_ID);
@@ -545,7 +546,7 @@ implementation
               (current_objectdef.objname^=pattern) and
               (
                (testcurobject=2) or
-               is_class_or_interface(current_objectdef)
+               is_class_or_interface_or_objc(current_objectdef)
               )then
              begin
                consume(_ID);
@@ -971,7 +972,8 @@ implementation
                   begin
                     consume(_OF);
                     single_type(hdef,(block_type=bt_type),false);
-                    if is_class(hdef) then
+                    if is_class(hdef) or
+                       is_objcclass(hdef) then
                       def:=tclassrefdef.create(hdef)
                     else
                       if hdef.typ=forwarddef then
@@ -980,7 +982,7 @@ implementation
                           current_module.checkforwarddefs.add(def);
                         end
                     else
-                      Message1(type_e_class_type_expected,hdef.typename);
+                      Message1(type_e_class_or_objcclass_type_expected,hdef.typename);
                   end
                 else
                   def:=object_dec(odt_class,name,genericdef,genericlist,nil);
@@ -989,6 +991,14 @@ implementation
               begin
                 consume(token);
                 def:=object_dec(odt_cppclass,name,genericdef,genericlist,nil);
+              end;
+            _OBJCCLASS :
+              begin
+                if not(m_objectivec1 in current_settings.modeswitches) then
+                  Message(parser_f_need_objc);
+
+                consume(token);
+                def:=object_dec(odt_objcclass,name,genericdef,genericlist,nil);
               end;
             _INTERFACE :
               begin
@@ -1002,6 +1012,14 @@ implementation
                 else {it_interfacecorba}
                   def:=object_dec(odt_interfacecorba,name,genericdef,genericlist,nil);
               end;
+            _OBJCPROTOCOL :
+               begin
+                if not(m_objectivec1 in current_settings.modeswitches) then
+                  Message(parser_f_need_objc);
+
+                consume(token);
+                def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil);
+               end;
             _OBJECT :
               begin
                 consume(token);
@@ -1102,15 +1120,17 @@ implementation
             { Init }
             if (
                 assigned(def.typesym) and
-                (st.symtabletype=globalsymtable)
+                (st.symtabletype=globalsymtable) and
+                not is_objc_class_or_protocol(def)
                ) or
                def.needs_inittable or
                (ds_init_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,initrtti);
             { RTTI }
             if (
-                  assigned(def.typesym) and
-                  (st.symtabletype=globalsymtable)
+                assigned(def.typesym) and
+                (st.symtabletype=globalsymtable) and
+                not is_objc_class_or_protocol(def)
                ) or
                (ds_rtti_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,fullrtti);

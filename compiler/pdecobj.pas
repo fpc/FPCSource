@@ -185,6 +185,23 @@ implementation
       end;
 
 
+    procedure setobjcclassmethodoptions;
+      var
+        i   : longint;
+        def : tdef;
+      begin
+        for i:=0 to current_objectdef.symtable.DefList.count-1 do
+          begin
+            def:=tdef(current_objectdef.symtable.DefList[i]);
+            if assigned(def) and
+               (def.typ=procdef) then
+              begin
+                include(tprocdef(def).procoptions,po_virtualmethod);
+              end;
+          end;
+      end;
+
+
     procedure handleImplementedInterface(intfdef : tobjectdef);
       begin
         if not is_interface(intfdef) then
@@ -205,7 +222,23 @@ implementation
       end;
 
 
-    procedure readImplementedInterfaces;
+    procedure handleImplementedProtocol(intfdef : tobjectdef);
+      begin
+        if not is_objcprotocol(intfdef) then
+          begin
+             Message1(type_e_protocol_type_expected,intfdef.typename);
+             exit;
+          end;
+        if current_objectdef.find_implemented_interface(intfdef)<>nil then
+          Message1(sym_e_duplicate_id,intfdef.objname^)
+        else
+          begin
+            current_objectdef.ImplementedInterfaces.Add(TImplementedInterface.Create(intfdef));
+          end;
+      end;
+
+
+    procedure readImplementedInterfacesAndProtocols(intf: boolean);
       var
         hdef : tdef;
       begin
@@ -214,10 +247,16 @@ implementation
              id_type(hdef,false);
              if (hdef.typ<>objectdef) then
                begin
-                  Message1(type_e_interface_type_expected,hdef.typename);
+                  if intf then
+                    Message1(type_e_interface_type_expected,hdef.typename)
+                  else
+                    Message1(type_e_protocol_type_expected,hdef.typename);
                   continue;
                end;
-             handleImplementedInterface(tobjectdef(hdef));
+             if intf then
+               handleImplementedInterface(tobjectdef(hdef))
+             else
+               handleImplementedProtocol(tobjectdef(hdef));
           end;
       end;
 
@@ -318,6 +357,25 @@ implementation
                    odt_cppclass:
                      if not(is_cppclass(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
+                   odt_objcclass:
+                     if not(is_objcclass(childof)) then
+                       begin
+                         if is_objcprotocol(childof) then
+                           begin
+                             intfchildof:=childof;
+                             childof:=nil;
+                             CGMessage(parser_h_no_objc_parent);
+                           end
+                         else
+                           Message(parser_e_mix_of_classes_and_objects);
+                       end;
+                   odt_objcprotocol:
+                     begin
+                       if not(is_objcprotocol(childof)) then
+                         Message(parser_e_mix_of_classes_and_objects);
+                       intfchildof:=childof;
+                       childof:=nil;
+                     end;
                    odt_object:
                      if not(is_object(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
@@ -346,6 +404,8 @@ implementation
               odt_interfacecom:
                 if current_objectdef<>interface_iunknown then
                   childof:=interface_iunknown;
+              odt_objcclass:
+                CGMessage(parser_h_no_objc_parent);
             end;
           end;
 
@@ -366,11 +426,14 @@ implementation
 
         if hasparentdefined then
           begin
-            if current_objectdef.objecttype=odt_class then
+            if current_objectdef.objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
               begin
                 if assigned(intfchildof) then
-                  handleImplementedInterface(intfchildof);
-                readImplementedInterfaces;
+                  if current_objectdef.objecttype=odt_class then
+                    handleImplementedInterface(intfchildof)
+                  else
+                    handleImplementedProtocol(intfchildof);
+                readImplementedInterfacesAndProtocols(current_objectdef.objecttype=odt_class);
               end;
             consume(_RKLAMMER);
           end;
@@ -413,11 +476,19 @@ implementation
 
     procedure parse_object_members;
 
+      procedure chkobjc(pd: tprocdef);
+        begin
+          if is_objc_class_or_protocol(pd._class) then
+            begin
+              include(pd.procoptions,po_objc);
+            end;
+        end;
+
+
         procedure chkcpp(pd:tprocdef);
         begin
            if is_cppclass(pd._class) then
             begin
-              pd.proccalloption:=pocall_cppdecl;
               pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
             end;
         end;
@@ -449,7 +520,7 @@ implementation
         fields_allowed: boolean;
       begin
         { empty class declaration ? }
-        if (current_objectdef.objecttype=odt_class) and
+        if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
            (token=_SEMICOLON) then
           exit;
 
@@ -483,11 +554,19 @@ implementation
               end;
             _ID :
               begin
-                case idtoken of
+                if is_objcprotocol(current_objectdef) and
+                   ((idtoken=_REQUIRED) or
+                    (idtoken=_OPTIONAL)) then
+                  begin
+                    current_objectdef.symtable.currentlyoptional:=(idtoken=_OPTIONAL);
+                    consume(idtoken)
+                  end
+                else case idtoken of
                   _PRIVATE :
                     begin
-                      if is_interface(current_objectdef) then
-                         Message(parser_e_no_access_specifier_in_interfaces);
+                      if is_interface(current_objectdef) or
+                         is_objcprotocol(current_objectdef) then
+                        Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PRIVATE);
                        current_objectdef.symtable.currentvisibility:=vis_private;
                        include(current_objectdef.objectoptions,oo_has_private);
@@ -495,7 +574,8 @@ implementation
                      end;
                    _PROTECTED :
                      begin
-                       if is_interface(current_objectdef) then
+                       if is_interface(current_objectdef) or
+                          is_objcprotocol(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PROTECTED);
                        current_objectdef.symtable.currentvisibility:=vis_protected;
@@ -504,7 +584,8 @@ implementation
                      end;
                    _PUBLIC :
                      begin
-                       if is_interface(current_objectdef) then
+                       if is_interface(current_objectdef) or
+                          is_objcprotocol(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
                        current_objectdef.symtable.currentvisibility:=vis_public;
@@ -515,15 +596,21 @@ implementation
                        { we've to check for a pushlished section in non-  }
                        { publishable classes later, if a real declaration }
                        { this is the way, delphi does it                  }
-                       if is_interface(current_objectdef) then
+                       if is_interface(current_objectdef) or
+                          is_objcprotocol(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
+                       { Objective-C classes do not support "published",
+                         as basically everything is published.  }
+                       if is_objc_class_or_protocol(current_objectdef) then
+                         Message(parser_e_no_objc_published);
                        consume(_PUBLISHED);
                        current_objectdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
                      end;
                    _STRICT :
                      begin
-                       if is_interface(current_objectdef) then
+                       if is_interface(current_objectdef) or
+                          is_objcprotocol(current_objectdef) then
                           Message(parser_e_no_access_specifier_in_interfaces);
                         consume(_STRICT);
                         if token=_ID then
@@ -553,7 +640,8 @@ implementation
                       begin
                         if object_member_blocktype=bt_general then
                           begin
-                            if is_interface(current_objectdef) then
+                            if is_interface(current_objectdef) or
+                               is_objcprotocol(current_objectdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_objectdef.symtable.currentvisibility=vis_published) and
@@ -613,6 +701,7 @@ implementation
                       include(current_objectdef.objectoptions,oo_has_virtual);
 
                     chkcpp(pd);
+                    chkobjc(pd);
                   end;
 
                 maybe_parse_hint_directives(pd);
@@ -631,6 +720,10 @@ implementation
 
                 if is_interface(current_objectdef) then
                   Message(parser_e_no_con_des_in_interfaces);
+
+                { Objective-C does not know the concept of a constructor }
+                if is_objc_class_or_protocol(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
@@ -665,6 +758,10 @@ implementation
 
                 if (current_objectdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
+
+                { Objective-C does not know the concept of a destructor }
+                if is_objc_class_or_protocol(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
@@ -751,6 +848,14 @@ implementation
                       class_tobject:=current_objectdef;
                 end;
               end;
+            if (current_module.modulename^='OBJCBASE') then
+              begin
+                case current_objectdef.objecttype of
+                  odt_objcclass:
+                    if (current_objectdef.objname^='Protocol') then
+                      objc_protocoltype:=current_objectdef;
+                end;
+              end;
           end;
 
         { set published flag in $M+ mode, it can also be inherited and will
@@ -796,11 +901,15 @@ implementation
         { for implemented classes with a vmt check if there is a constructor }
         if (oo_has_vmt in current_objectdef.objectoptions) and
            not(oo_is_forward in current_objectdef.objectoptions) and
-           not(oo_has_constructor in current_objectdef.objectoptions) then
+           not(oo_has_constructor in current_objectdef.objectoptions) and
+           not is_objc_class_or_protocol(current_objectdef) then
           Message1(parser_w_virtual_without_constructor,current_objectdef.objrealname^);
 
-        if is_interface(current_objectdef) then
-          setinterfacemethodoptions;
+        if is_interface(current_objectdef) or
+           is_objcprotocol(current_objectdef) then
+          setinterfacemethodoptions
+        else if is_objcclass(current_objectdef) then
+          setobjcclassmethodoptions;
 
         { return defined objectdef }
         result:=current_objectdef;

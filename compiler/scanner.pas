@@ -461,9 +461,9 @@ implementation
               }
               if doinclude and
                  (i=m_objectivec1) and
-                 not(target_info.system in [system_powerpc_darwin,system_i386_darwin]) then
+                 not(target_info.system in system_objc_supported) then
                 begin
-                  Message1(option_unsupported_target_for_feature,'Objective-C 1.0');
+                  Message1(option_unsupported_target_for_feature,'Objective-C');
                   break;
                 end;
 
@@ -471,9 +471,18 @@ implementation
                 current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;
               if doinclude then
-                include(current_settings.modeswitches,i)
+                begin
+                  include(current_settings.modeswitches,i);
+                  if (i=m_objectivec1) then
+                    include(current_settings.modeswitches,m_class);
+                end
               else
-                exclude(current_settings.modeswitches,i);
+                begin
+                  exclude(current_settings.modeswitches,i);
+                  if (i=m_objectivec1) and
+                     ([m_delphi,m_objfpc]*current_settings.modeswitches=[]) then
+                    exclude(current_settings.modeswitches,m_class);
+                end;
 
               { set other switches depending on changed mode switch }
               HandleModeSwitches(changeinit);

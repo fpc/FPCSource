@@ -373,11 +373,12 @@ implementation
                 ttypenode(p1).allowed:=true;
               { Allow classrefdef, which is required for
                 Typeof(self) in static class methods }
-              if (p1.resultdef.typ = objectdef) or
-                 (assigned(current_procinfo) and
-                  ((po_classmethod in current_procinfo.procdef.procoptions) or
-                   (po_staticmethod in current_procinfo.procdef.procoptions)) and
-                  (p1.resultdef.typ=classrefdef)) then
+              if not(is_objc_class_or_protocol(p1.resultdef)) and
+                 ((p1.resultdef.typ = objectdef) or
+                  (assigned(current_procinfo) and
+                   ((po_classmethod in current_procinfo.procdef.procoptions) or
+                    (po_staticmethod in current_procinfo.procdef.procoptions)) and
+                   (p1.resultdef.typ=classrefdef))) then
                statement_syssym:=geninlinenode(in_typeof_x,false,p1)
               else
                begin
@@ -427,31 +428,41 @@ implementation
                end;
             end;
 
-          in_typeinfo_x :
+          in_typeinfo_x,
+          in_objc_encode_x :
             begin
-              consume(_LKLAMMER);
-              in_args:=true;
-              p1:=comp_expr(true);
-              { When reading a class type it is parsed as loadvmtaddrn,
-                typeinfo only needs the type so we remove the loadvmtaddrn }
-              if p1.nodetype=loadvmtaddrn then
+              if (l=in_typeinfo_x) or
+                 (m_objectivec1 in current_settings.modeswitches) then
                 begin
-                  p2:=tloadvmtaddrnode(p1).left;
-                  tloadvmtaddrnode(p1).left:=nil;
-                  p1.free;
-                  p1:=p2;
+                  consume(_LKLAMMER);
+                  in_args:=true;
+                  p1:=comp_expr(true);
+                  { When reading a class type it is parsed as loadvmtaddrn,
+                    typeinfo only needs the type so we remove the loadvmtaddrn }
+                  if p1.nodetype=loadvmtaddrn then
+                    begin
+                      p2:=tloadvmtaddrnode(p1).left;
+                      tloadvmtaddrnode(p1).left:=nil;
+                      p1.free;
+                      p1:=p2;
+                    end;
+                  if p1.nodetype=typen then
+                    ttypenode(p1).allowed:=true;
+    {              else
+                    begin
+                       p1.destroy;
+                       p1:=cerrornode.create;
+                       Message(parser_e_illegal_parameter_list);
+                    end;}
+                  consume(_RKLAMMER);
+                  p2:=geninlinenode(l,false,p1);
+                  statement_syssym:=p2;
+                end
+              else
+                begin
+                  Message1(sym_e_id_not_found, orgpattern);
+                  statement_syssym:=cerrornode.create;
                 end;
-              if p1.nodetype=typen then
-                ttypenode(p1).allowed:=true;
-{              else
-                begin
-                   p1.destroy;
-                   p1:=cerrornode.create;
-                   Message(parser_e_illegal_parameter_list);
-                end;}
-              consume(_RKLAMMER);
-              p2:=geninlinenode(in_typeinfo_x,false,p1);
-              statement_syssym:=p2;
             end;
 
           in_unaligned_x :
@@ -489,7 +500,7 @@ implementation
                    procvardef,
                    classrefdef : ;
                    objectdef :
-                     if not is_class_or_interface(p1.resultdef) then
+                     if not is_class_or_interface_or_objc(p1.resultdef) then
                        begin
                          Message(parser_e_illegal_parameter_list);
                          err:=true;
@@ -1463,7 +1474,8 @@ implementation
                        else
                         begin
                           { class reference ? }
-                          if is_class(hdef) then
+                          if is_class(hdef) or
+                             is_objcclass(hdef) then
                            begin
                              if getaddr and (token=_POINT) then
                               begin
@@ -2575,6 +2587,21 @@ implementation
                     postfixoperators(p1,again);
                   end;
                end;
+           _OBJCPROTOCOL:
+             begin
+               { The @protocol keyword is used in two ways in Objective-C:
+                   1) to declare protocols (~ Object Pascal interfaces)
+                   2) to obtain the metaclass (~ Object Pascal) "class of")
+                      of a declared protocol
+                 This code is for handling the second case. Because of 1),
+                 we cannot simply use a system unit symbol.
+               }
+               consume(_OBJCPROTOCOL);
+               consume(_LKLAMMER);
+               p1:=factor(false);
+               consume(_RKLAMMER);
+               p1:=cinlinenode.create(in_objc_protocol_x,false,p1);
+             end;
 
              else
                begin

@@ -241,7 +241,9 @@ interface
           childofderef   : tderef;
 
           objname,
-          objrealname    : pshortstring;
+          objrealname,
+          { for Objective-C: protocols and classes can have the same name there }
+          objextname     : pshortstring;
           objectoptions  : tobjectoptions;
           { to be able to have a variable vmt position }
           { and no vmt field for objects without virtuals }
@@ -288,6 +290,7 @@ interface
           procedure prepareguid;
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
+          function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : string;
           procedure check_forwards;
           function  is_related(d : tdef) : boolean;override;
@@ -305,6 +308,9 @@ interface
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
           procedure register_vmt_call(index:longint);
+          { ObjC }
+          procedure make_all_methods_external;
+          procedure finish_objc_data;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -313,6 +319,7 @@ interface
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
+          function  rtti_mangledname(rt:trttitype):string;override;
           procedure register_created_object_type;override;
           procedure reset;override;
        end;
@@ -457,7 +464,6 @@ interface
        public
           messageinf : tmessageinf;
           dispid : longint;
-          extnumber      : word;
 {$ifndef EXTDEBUG}
           { where is this function defined and what were the symbol
             flags, needed here because there
@@ -465,7 +471,6 @@ interface
             EXTDEBUG has fileinfo in tdef (PFV) }
           fileinfo : tfileposinfo;
 {$endif}
-          visibility : tvisibility;
           symoptions : tsymoptions;
           deprecatedmsg : pshortstring;
           { symbol owning this definition }
@@ -486,29 +491,31 @@ interface
 {$endif powerpc or m68k}
           { name of the result variable to insert in the localsymtable }
           resultname : pshortstring;
-          { true, if the procedure is only declared
-            (forward procedure) }
-          forwarddef,
-          { true if the procedure is declared in the interface }
-          interfacedef : boolean;
-          { true if the procedure has a forward declaration }
-          hasforward : boolean;
           { import info }
           import_dll,
           import_name : pshortstring;
-          import_nr   : word;
           { info for inlining the subroutine, if this pointer is nil,
             the procedure can't be inlined }
           inlininginfo : pinlininginfo;
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-{$ifdef i386}
-          fpu_used     : byte;
-{$endif i386}
           { position in aasmoutput list }
           procstarttai,
           procendtai   : tai;
+          import_nr    : word;
+          extnumber    : word;
+{$ifdef i386}
+          fpu_used     : byte;
+{$endif i386}
+          visibility   : tvisibility;
+          { true, if the procedure is only declared
+            (forward procedure) }
+          forwarddef,
+          { true if the procedure is declared in the interface }
+          interfacedef : boolean;
+          { true if the procedure has a forward declaration }
+          hasforward  : boolean;
           constructor create(level:byte);
           constructor ppuload(ppufile:tcompilerppufile);
           destructor  destroy;override;
@@ -524,6 +531,7 @@ interface
           procedure setmangledname(const s : string);
           function  fullprocname(showhidden:boolean):string;
           function  cplusplusmangledname : string;
+          function  objcmangledname : string;
           function  is_methodpointer:boolean;override;
           function  is_addressonly:boolean;override;
        end;
@@ -667,6 +675,14 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
+       { Objective-C base types }
+       objc_metaclasstype,
+       objc_superclasstype,
+       objc_idtype,
+       objc_seltype         : tpointerdef;
+       { base type of @protocol(protocolname) Objective-C statements }
+       objc_protocoltype    : tobjectdef;
+
     const
 {$ifdef i386}
        pbestrealtype : ^tdef = @s80floattype;
@@ -715,10 +731,17 @@ interface
     function is_object(def: tdef): boolean;
     function is_class(def: tdef): boolean;
     function is_cppclass(def: tdef): boolean;
+    function is_objcclass(def: tdef): boolean;
+    function is_objcclassref(def: tdef): boolean;
+    function is_objcprotocol(def: tdef): boolean;
+    function is_objc_class_or_protocol(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
+    function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
+    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
 
+    procedure loadobjctypes;
 
 {$ifdef x86}
     function use_sse(def : tdef) : boolean;
@@ -1112,7 +1135,7 @@ implementation
           procvardef :
             is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);
           objectdef:
-            is_intregable:=(is_class(self) or is_interface(self)) and not needs_inittable;
+            is_intregable:=(is_class_or_interface_or_objc(self)) and not needs_inittable;
           setdef:
             is_intregable:=is_smallset(self);
           recorddef:
@@ -2075,6 +2098,15 @@ implementation
     function tclassrefdef.is_publishable : boolean;
       begin
          result:=true;
+      end;
+
+
+    function tclassrefdef.rtti_mangledname(rt: trttitype): string;
+      begin
+        if (tobjectdef(pointeddef).objecttype<>odt_objcclass) then
+          result:=inherited rtti_mangledname(rt)
+        else
+          result:=tobjectdef(pointeddef).rtti_mangledname(objcmetartti);
       end;
 
 
@@ -3513,6 +3545,27 @@ implementation
       end;
 
 
+    function  tprocdef.objcmangledname : string;
+      begin
+        if not (po_msgstr in procoptions) then
+          internalerror(2009030901);
+        { we may very well need longer strings to handle these... }
+        if ((255-length(tobjectdef(procsym.owner.defowner).objextname^)
+             -length('+"[ ]"')-length(messageinf.str^)) < 0) then
+          Message1(parser_e_objc_message_name_too_long,messageinf.str^);
+        if not(po_classmethod in procoptions) then
+          result:='"-['
+        else
+          result:='"+[';
+        { quotes are necessary because the +/- otherwise confuse the assembler
+          into expecting a number
+        }
+        result:=
+          result+tobjectdef(procsym.owner.defowner).objextname^+' '+
+          messageinf.str^+']"';
+      end;
+
+
     procedure tprocdef.setmangledname(const s : string);
       begin
         { This is not allowed anymore, the forward declaration
@@ -3695,7 +3748,7 @@ implementation
         if objecttype in [odt_interfacecorba,odt_interfacecom,odt_dispinterface] then
           prepareguid;
         { setup implemented interfaces }
-        if objecttype in [odt_class,odt_interfacecorba] then
+        if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
           ImplementedInterfaces:=TFPObjectList.Create(true)
         else
           ImplementedInterfaces:=nil;
@@ -3715,6 +3768,10 @@ implementation
          objecttype:=tobjecttyp(ppufile.getbyte);
          objrealname:=stringdup(ppufile.getstring);
          objname:=stringdup(upper(objrealname^));
+         objextname:=stringdup(ppufile.getstring);
+         { only used for external Objective-C classes/protocols }
+         if (objextname^='') then
+           stringdispose(objextname);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
          tObjectSymtable(symtable).datasize:=ppufile.getaint;
          tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
@@ -3745,7 +3802,7 @@ implementation
            end;
 
          { load implemented interfaces }
-         if objecttype in [odt_class,odt_interfacecorba] then
+         if objecttype in [odt_class,odt_objcclass,odt_objcprotocol] then
            begin
              ImplementedInterfaces:=TFPObjectList.Create(true);
              implintfcount:=ppufile.getlongint;
@@ -3776,6 +3833,10 @@ implementation
             (objecttype=odt_interfacecom) and
             (objname^='IUNKNOWN') then
            interface_iunknown:=self;
+         if (childof=nil) and
+            (objecttype=odt_objcclass) and
+            (objname^='PROTOCOL') then
+           objc_protocoltype:=self;
          writing_class_record_dbginfo:=false;
        end;
 
@@ -3789,6 +3850,7 @@ implementation
            end;
          stringdispose(objname);
          stringdispose(objrealname);
+         stringdispose(objextname);
          stringdispose(iidstr);
          if assigned(ImplementedInterfaces) then
            begin
@@ -3827,6 +3889,8 @@ implementation
           tobjectdef(result).objname:=stringdup(objname^);
         if assigned(objrealname) then
           tobjectdef(result).objrealname:=stringdup(objrealname^);
+        if assigned(objextname) then
+          tobjectdef(result).objextname:=stringdup(objextname^);
         tobjectdef(result).objectoptions:=objectoptions;
         include(tobjectdef(result).defoptions,df_copied_def);
         tobjectdef(result).vmt_offset:=vmt_offset;
@@ -3859,6 +3923,10 @@ implementation
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
          ppufile.putstring(objrealname^);
+         if assigned(objextname) then
+           ppufile.putstring(objextname^)
+         else
+           ppufile.putstring('');
          ppufile.putaint(tObjectSymtable(symtable).datasize);
          ppufile.putbyte(tObjectSymtable(symtable).fieldalignment);
          ppufile.putbyte(tObjectSymtable(symtable).recordalignment);
@@ -4046,7 +4114,7 @@ implementation
         { inherit options and status }
         objectoptions:=objectoptions+(c.objectoptions*inherited_objectoptions);
         { add the data of the anchestor class/object }
-        if (objecttype in [odt_class,odt_object]) then
+        if (objecttype in [odt_class,odt_object,odt_objcclass]) then
           begin
             tObjectSymtable(symtable).datasize:=tObjectSymtable(symtable).datasize+tObjectSymtable(c.symtable).datasize;
             { inherit recordalignment }
@@ -4068,7 +4136,7 @@ implementation
      var
        vs: tfieldvarsym;
      begin
-        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
           exit;
         if (oo_has_vmt in objectoptions) then
           internalerror(12345)
@@ -4097,7 +4165,7 @@ implementation
 
    procedure tobjectdef.check_forwards;
      begin
-        if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface]) then
+        if not(objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcprotocol]) then
           tstoredsymtable(symtable).check_forwards;
         if (oo_is_forward in objectoptions) then
           begin
@@ -4108,11 +4176,36 @@ implementation
      end;
 
 
+   { true if prot implements d (or if they are equal) }
+   function is_related_protocol(prot: tobjectdef; d : tdef) : boolean;
+     var
+       i  : longint;
+     begin
+       { objcprotocols have multiple inheritance, all protocols from which
+         the current protocol inherits are stored in implementedinterfaces }
+       result:=prot=d;
+       if result then
+         exit;
+
+       for i:=0 to prot.ImplementedInterfaces.count-1 do
+         begin
+           result:=is_related_protocol(tobjectdef(prot.ImplementedInterfaces[i]),d);
+           if result then
+             exit;
+         end;
+     end;
+
+
    { true, if self inherits from d (or if they are equal) }
    function tobjectdef.is_related(d : tdef) : boolean;
      var
         hp : tobjectdef;
      begin
+        if (objecttype=odt_objcprotocol) then
+          begin
+            is_related:=is_related_protocol(self,d);
+            exit
+          end;
         hp:=self;
         while assigned(hp) do
           begin
@@ -4163,7 +4256,7 @@ implementation
 
     function tobjectdef.size : aint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
           result:=sizeof(pint)
         else
           result:=tObjectSymtable(symtable).datasize;
@@ -4172,7 +4265,7 @@ implementation
 
     function tobjectdef.alignment:shortint;
       begin
-        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface] then
+        if objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol] then
           alignment:=sizeof(pint)
         else
           alignment:=tObjectSymtable(symtable).recordalignment;
@@ -4186,6 +4279,9 @@ implementation
         odt_class:
           { the +2*sizeof(pint) is size and -size }
           vmtmethodoffset:=(index+10)*sizeof(pint)+2*sizeof(pint);
+        odt_objcclass,
+        odt_objcprotocol:
+          vmtmethodoffset:=0;
         odt_interfacecom,odt_interfacecorba:
           vmtmethodoffset:=index*sizeof(pint);
         else
@@ -4218,11 +4314,75 @@ implementation
               needs_inittable:=is_related(interface_iunknown);
             odt_object:
               needs_inittable:=tObjectSymtable(symtable).needs_init_final;
-            odt_cppclass:
+            odt_cppclass,
+            odt_objcclass,
+            odt_objcprotocol:
               needs_inittable:=false;
             else
               internalerror(200108267);
          end;
+      end;
+
+
+    function tobjectdef.rtti_mangledname(rt: trttitype): string;
+      begin
+        if not(objecttype in [odt_objcclass,odt_objcprotocol]) then
+          result:=inherited rtti_mangledname(rt)
+        else
+          begin
+            if not(target_info.system in system_objc_nfabi) then
+              begin
+                result:=target_asm.labelprefix;
+                case objecttype of
+                  odt_objcclass:
+                    begin
+                      case rt of
+                        objcclassrtti:
+                          result:=result+'_OBJC_CLASS_';
+                        objcmetartti:
+                          result:=result+'_OBJC_METACLASS_';
+                        else
+                         internalerror(2009092302);
+                      end;
+                    end;
+                  odt_objcprotocol:
+                    result:=result+'_OBJC_PROTOCOL_';
+                end;
+              end
+            else
+              begin
+                case objecttype of
+                  odt_objcclass:
+                    begin
+                      case rt of
+                        objcclassrtti:
+                          result:='_OBJC_CLASS_$_';
+                        objcmetartti:
+                          result:='_OBJC_METACLASS_$_';
+                        objcclassrortti:
+                          result:=lower(target_asm.labelprefix)+'_OBJC_CLASS_RO_$_';
+                        objcmetarortti:
+                          result:=lower(target_asm.labelprefix)+'_OBJC_METACLASS_RO_$_';
+                        else
+                         internalerror(2009092303);
+                      end;
+                    end;
+                  odt_objcprotocol:
+                    begin
+                      result:=lower(target_asm.labelprefix);
+                      case rt of
+                        objcclassrtti:
+                          result:=result+'_OBJC_PROTOCOL_$_';
+                        objcmetartti:
+                          result:=result+'_OBJC_LABEL_PROTOCOL_$_';
+                        else
+                          internalerror(2009092501);
+                      end;
+                    end;
+                end;
+              end;
+            result:=result+objextname^;
+          end;
       end;
 
 
@@ -4419,6 +4579,99 @@ implementation
       begin
         if (is_object(self) or is_class(self)) then
           current_module.wpoinfo.addcalledvmtentry(self,index);
+      end;
+
+
+    procedure make_procdef_external(data: tobject; arg: pointer);
+      var
+        def: tdef absolute data;
+      begin
+        if (def.typ = procdef) then
+          begin
+            include(tprocdef(def).procoptions,po_external);
+            tprocdef(def).forwarddef:=false;
+          end;
+      end;
+
+
+    procedure tobjectdef.make_all_methods_external;
+      begin
+         self.symtable.deflist.foreachcall(@make_procdef_external,nil);
+      end;
+
+
+    procedure check_and_finish_msg(data: tobject; arg: pointer);
+      var
+        def: tdef absolute data;
+        pd: tprocdef absolute data;
+        i,
+        paracount: longint;
+      begin
+        if (def.typ=procdef) then
+          begin
+            { we have to wait until now to set the mangled name because it
+              depends on the (possibly external) class name, which is defined
+              at the very end.  }
+            if (po_msgstr in pd.procoptions) then
+              begin
+                { Mangled name is already set in case this is a copy of
+                  another type.  }
+                if not(po_has_mangledname in pd.procoptions) then
+                  begin
+                    { check whether the number of formal parameters is correct }
+                    paracount:=0;
+                    for i:=1 to length(pd.messageinf.str^) do
+                      if pd.messageinf.str^[i]=':' then
+                        inc(paracount);
+                    for i:=0 to pd.paras.count-1 do
+                      if not(vo_is_hidden_para in tparavarsym(pd.paras[i]).varoptions) and
+                         not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
+                        dec(paracount);
+                    if (paracount<>0) then
+                      MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
+
+                    pd.setmangledname(pd.objcmangledname);
+                  end
+                else
+                  { all checks already done }
+                  exit;
+              end
+            else
+              MessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
+            if not(oo_is_external in pd._class.objectoptions) then
+              begin
+                if (po_varargs in pd.procoptions) then
+                  MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external)
+                else
+                  begin
+                    { check for "array of const" parameters }
+                    for i:=0 to pd.parast.symlist.count-1 do
+                      begin
+                        if (tsym(pd.parast.symlist[i]).typ=paravarsym) and
+                           is_array_of_const(tparavarsym(pd.parast.symlist[i]).vardef) then
+                          MessagePos(pd.fileinfo,parser_e_varargs_need_cdecl_and_external);
+                      end;
+                  end;
+              end;
+          end;
+      end;
+
+
+    procedure mark_private_fields_used(data: tobject; arg: pointer);
+      var
+        sym: tsym absolute data;
+      begin
+        if (sym.typ=fieldvarsym) and
+           (tfieldvarsym(sym).visibility in [vis_private,vis_strictprivate]) then
+          sym.IncRefCount;
+      end;
+
+
+    procedure tobjectdef.finish_objc_data;
+      begin
+        self.symtable.DefList.foreachcall(@check_and_finish_msg,nil);
+        if (oo_is_external in objectoptions) then
+          self.symtable.SymList.ForEachCall(@mark_private_fields_used,nil);
       end;
 
 
@@ -4707,12 +4960,57 @@ implementation
       end;
 
 
+    function is_objcclass(def: tdef): boolean;
+      begin
+        is_objcclass:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_objcclass);
+      end;
+
+
+    function is_objcclassref(def: tdef): boolean;
+      begin
+        is_objcclassref:=
+          assigned(def) and
+          (def.typ=classrefdef) and
+          is_objcclass(tclassrefdef(def).pointeddef);
+      end;
+
+
+    function is_objcprotocol(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype=odt_objcprotocol);
+      end;
+
+
+    function is_objc_class_or_protocol(def: tdef): boolean;
+      begin
+         result:=
+           assigned(def) and
+           (def.typ=objectdef) and
+           (tobjectdef(def).objecttype in [odt_objcclass,odt_objcprotocol]);
+      end;
+
+
     function is_class_or_interface(def: tdef): boolean;
       begin
         result:=
           assigned(def) and
           (def.typ=objectdef) and
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba]);
+      end;
+
+
+    function is_class_or_interface_or_objc(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_objcclass,odt_objcprotocol]);
       end;
 
 
@@ -4734,7 +5032,26 @@ implementation
       end;
 
 
+    function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol]);
+      end;
+
+
+    procedure loadobjctypes;
+      begin
+        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS').typedef);
+        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER').typedef);
+        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID').typedef);
+        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL').typedef);
+      end;
+
+
 {$ifdef x86}
+
     function use_sse(def : tdef) : boolean;
       begin
         use_sse:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or

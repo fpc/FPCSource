@@ -37,22 +37,36 @@ type
   tobjcselectornode = class(tunarynode)
    public
     constructor create(formethod: tnode);
-    function pass_typecheck:tnode;override;
-    function pass_1 : tnode;override;
+    function pass_typecheck: tnode;override;
+    function pass_1: tnode;override;
   end;
   tobjcselectornodeclass = class of tobjcselectornode;
 
+  tobjcprotocolnode = class(tunarynode)
+   public
+    constructor create(forprotocol: tnode);
+    function pass_typecheck: tnode;override;
+    function pass_1: tnode;override;
+  end;
+  tobjcprotocolnodeclass = class of tobjcprotocolnode;
+
 var
   cobjcselectornode : tobjcselectornodeclass;
+  cobjcprotocolnode : tobjcprotocolnodeclass;
 
 implementation
 
 uses
   sysutils,
-  cclasses,
+  globtype,cclasses,systems,
   verbose,pass_1,
-  defutil,symtable,symdef,symconst,
-  ncnv,ncon,ncal,nmem;
+  defutil,
+  symtype,symtable,symdef,symconst,symsym,
+  paramgr,
+  nutils,
+  nbas,nld,ncnv,ncon,ncal,nmem,
+  objcutil,
+  cgbase;
 
 
 {*****************************************************************************
@@ -65,51 +79,10 @@ constructor tobjcselectornode.create(formethod: tnode);
   end;
 
 
-function validselectorname(value_str: pchar; len: longint): boolean;
-  var
-    i         : longint;
-    gotcolon  : boolean;
-begin
-  result:=false;
-  { empty name is not allowed }
-  if (len=0) then
-    exit;
-
-  gotcolon:=false;
-
-  { if the first character is a colon, all of them must be colons }
-  if (value_str[0] = ':') then
-    begin
-      for i:=1 to len-1 do
-        if (value_str[i]<>':') then
-          exit;
-    end
-  else
-    begin
-      { no special characters other than ':'
-        (already checked character 0, so start checking from 1)
-      }
-      for i:=1 to len-1 do
-        if (value_str[i] = ':') then
-          gotcolon:=true
-        else if not(value_str[i] in ['_','A'..'Z','a'..'z','0'..'9',':']) then
-          exit;
-
-      { if there is at least one colon, the final character must
-        also be a colon (in case it's only one character that is
-        a colon, this was already checked before the above loop)
-      }
-      if gotcolon and
-         (value_str[len-1] <> ':') then
-        exit;
-    end;
-
-
-  result:=true;
-end;
-
-
 function tobjcselectornode.pass_typecheck: tnode;
+  var
+    len: longint;
+    s: shortstring;
   begin
     result:=nil;
     typecheckpass(left);
@@ -130,24 +103,63 @@ function tobjcselectornode.pass_typecheck: tnode;
         end;
       stringconstn:
         begin
-          if not validselectorname(tstringconstnode(left).value_str,
-                                   tstringconstnode(left).len) then
+          if not objcvalidselectorname(tstringconstnode(left).value_str,
+                                       tstringconstnode(left).len) then
             begin
-              CGMessage(type_e_invalid_objc_selector_name);
+              len:=tstringconstnode(left).len;
+              if (len>255) then
+                len:=255;
+              setlength(s,len);
+              move(tstringconstnode(left).value_str^,s[1],len);
+              CGMessage1(type_e_invalid_objc_selector_name,s);
               exit;
             end;
         end
       else
         CGMessage(type_e_expected_objc_method);
     end;
-    resultdef:=search_system_type('SEL').typedef;
+    resultdef:=objc_seltype;
   end;
 
 
 function tobjcselectornode.pass_1: tnode;
   begin
     result:=nil;
+    expectloc:=LOC_CREFERENCE;
   end;
+
+
+{*****************************************************************************
+                            TOBJPROTOCOLNODE
+*****************************************************************************}
+
+constructor tobjcprotocolnode.create(forprotocol: tnode);
+  begin
+    inherited create(objcprotocoln,forprotocol);
+  end;
+
+
+function tobjcprotocolnode.pass_typecheck: tnode;
+  begin
+    result:=nil;
+    typecheckpass(left);
+    if (left.nodetype<>typen) then
+      MessagePos(left.fileinfo,type_e_type_id_expected)
+    else if not is_objcprotocol(left.resultdef) then
+      MessagePos2(left.fileinfo,type_e_incompatible_types,left.resultdef.typename,'ObjCProtocol');
+    resultdef:=objc_protocoltype;
+  end;
+
+
+function tobjcprotocolnode.pass_1: tnode;
+  begin
+    result:=ccallnode.createinternresfromunit('OBJC','OBJC_GETPROTOCOL',
+      ccallparanode.create(cstringconstnode.createstr(tobjectdef(left.resultdef).objextname^),nil),
+      resultdef
+    );
+    typecheckpass(result);
+  end;
+
 
 end.
 

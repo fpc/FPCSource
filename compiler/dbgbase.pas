@@ -28,6 +28,7 @@ interface
     uses
       cclasses,
       systems,
+      parabase,
       symconst,symbase,symdef,symtype,symsym,symtable,
       fmodule,
       aasmtai,aasmdata;
@@ -70,6 +71,7 @@ interface
         procedure appendsym_absolute(list:TAsmList;sym:tabsolutevarsym);virtual;
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);virtual;
         { symtable }
+        procedure write_symtable_parasyms(list:TAsmList;paras: tparalist);
         procedure write_symtable_syms(list:TAsmList;st:TSymtable);
         procedure write_symtable_defs(list:TAsmList;st:TSymtable);
         procedure write_symtable_procdefs(list:TAsmList;st:TSymtable);
@@ -413,6 +415,21 @@ implementation
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
+      end;
+
+
+    procedure TDebugInfo.write_symtable_parasyms(list:TAsmList;paras: tparalist);
+      var
+        i   : longint;
+        sym : tsym;
+      begin
+        for i:=0 to paras.Count-1 do
+          begin
+            sym:=tsym(paras[i]);
+            if (sym.visibility<>vis_hidden) and
+               (not sym.isdbgwritten) then
+              appendsym(list,sym);
+          end;
       end;
 
 

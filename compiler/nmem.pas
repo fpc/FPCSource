@@ -167,22 +167,45 @@ implementation
 
 
     function tloadvmtaddrnode.pass_1 : tnode;
+      var
+        vs: tsym;
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
-           firstpass(left)
-         else if not(nf_ignore_for_wpo in flags) and
-             (not assigned(current_procinfo) or
-              (po_inline in current_procinfo.procdef.procoptions) or
-              wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
            begin
-             { keep track of which classes might be instantiated via a classrefdef }
-             if (left.resultdef.typ=classrefdef) then
-               tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
-             else if (left.resultdef.typ=objectdef) then
-               tobjectdef(left.resultdef).register_maybe_created_object_type
+             { make sure that the isa field is loaded correctly in case
+               of the non-fragile ABI }
+             if is_objcclass(left.resultdef) and
+                (left.nodetype<>typen) then
+               begin
+                 vs:=search_class_member(tobjectdef(left.resultdef),'ISA');
+                 if not assigned(vs) or
+                    (tsym(vs).typ<>fieldvarsym) then
+                   internalerror(2009092502);
+                 result:=csubscriptnode.create(tfieldvarsym(vs),left);
+                 inserttypeconv_internal(result,resultdef);
+                 { reused }
+                 left:=nil;
+               end
+             else
+               firstpass(left)
            end
+         else if not is_objcclass(left.resultdef) and
+                 not is_objcclassref(left.resultdef) then
+           begin
+             if not(nf_ignore_for_wpo in flags) and
+                (not assigned(current_procinfo) or
+                 (po_inline in current_procinfo.procdef.procoptions) or
+                  wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+             begin
+               { keep track of which classes might be instantiated via a classrefdef }
+               if (left.resultdef.typ=classrefdef) then
+                 tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
+               else if (left.resultdef.typ=objectdef) then
+                 tobjectdef(left.resultdef).register_maybe_created_object_type
+             end
+           end;
       end;
 
 
@@ -625,8 +648,8 @@ implementation
          if codegenerror then
           exit;
 
-         { classes must be dereferenced implicit }
-         if is_class_or_interface(left.resultdef) then
+         { classes must be dereferenced implicitly }
+         if is_class_or_interface_or_objc(left.resultdef) then
            expectloc:=LOC_REFERENCE
          else
            begin

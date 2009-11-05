@@ -46,7 +46,8 @@ interface
          cnf_dispose_call,
          cnf_member_call,        { called with implicit methodpointer tree }
          cnf_uses_varargs,       { varargs are used in the declaration }
-         cnf_create_failed       { exception thrown in constructor -> don't call beforedestruction }
+         cnf_create_failed,      { exception thrown in constructor -> don't call beforedestruction }
+         cnf_objc_processed      { the procedure name has been set to the appropriate objc_msgSend* variant -> don't process again }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -73,7 +74,8 @@ interface
           procedure check_inlining;
           function  pass1_normal:tnode;
           procedure register_created_object_types;
-
+       protected
+          procedure objc_convert_to_message_send;virtual;
 
        private
           { inlining support }
@@ -87,6 +89,10 @@ interface
           function  pass1_inline:tnode;
        protected
           pushedparasize : longint;
+          { Objective-C support: force the call node to call the routine with
+            this name rather than the name of symtableprocentry (don't store
+            to ppu, is set while processing the node) }
+          fobjcforcedprocname: pshortstring;
        public
           { the symbol containing the definition of the procedure }
           { to call                                               }
@@ -119,7 +125,9 @@ interface
           constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags);virtual;
           constructor create_procvar(l,r:tnode);
           constructor createintern(const name: string; params: tnode);
+          constructor createinternfromunit(const fromunit, procname: string; params: tnode);
           constructor createinternres(const name: string; params: tnode; res:tdef);
+          constructor createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
           constructor createinternreturn(const name: string; params: tnode; returnnode : tnode);
           destructor destroy;override;
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
@@ -148,6 +156,8 @@ interface
           { checks if there are any parameters which end up at the stack, i.e.
             which have LOC_REFERENCE and set pi_has_stackparameter if this applies }
           procedure check_stack_parameters;
+          { force the name of the to-be-called routine to a particular string,
+            used for Objective-C message sending.  }
           property parameters : tnode read left write left;
        private
           AbstractMethodsList : TFPHashList;
@@ -208,7 +218,8 @@ implementation
       verbose,globals,
       symconst,defutil,defcmp,
       htypechk,pass_1,
-      ncnv,nld,ninl,nadd,ncon,nmem,nset,
+      ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
+      objcutil,
       procinfo,cpuinfo,
       cgbase,
       wpobase
@@ -935,12 +946,40 @@ implementation
        end;
 
 
+     constructor tcallnode.createinternfromunit(const fromunit, procname: string; params: tnode);
+       var
+         srsym: tsym;
+         srsymtable: tsymtable;
+       begin
+         if not searchsym_in_named_module(fromunit,procname,srsym,srsymtable) or
+            (srsym.typ<>procsym) then
+           Message1(cg_f_unknown_compilerproc,fromunit+'.'+procname);
+         create(params,tprocsym(srsym),srsymtable,nil,[]);
+       end;
+
+
     constructor tcallnode.createinternres(const name: string; params: tnode; res:tdef);
       var
         pd : tprocdef;
       begin
         createintern(name,params);
-        typedef := res;
+        typedef:=res;
+        include(callnodeflags,cnf_typedefset);
+        pd:=tprocdef(symtableprocentry.ProcdefList[0]);
+        { both the normal and specified resultdef either have to be returned via a }
+        { parameter or not, but no mixing (JM)                                      }
+        if paramanager.ret_in_param(typedef,pd.proccalloption) xor
+          paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
+          internalerror(200108291);
+      end;
+
+
+    constructor tcallnode.createinternresfromunit(const fromunit, procname: string; params: tnode; res:tdef);
+      var
+        pd : tprocdef;
+      begin
+        createinternfromunit(fromunit,procname,params);
+        typedef:=res;
         include(callnodeflags,cnf_typedefset);
         pd:=tprocdef(symtableprocentry.ProcdefList[0]);
         { both the normal and specified resultdef either have to be returned via a }
@@ -966,6 +1005,7 @@ implementation
          funcretnode.free;
          if assigned(varargsparas) then
            varargsparas.free;
+         stringdispose(fobjcforcedprocname);
          inherited destroy;
       end;
 
@@ -1245,7 +1285,7 @@ implementation
               (hp.nodetype=typeconvn) and
               (ttypeconvnode(hp).convtype=tc_equal) do
           hp:=tunarynode(hp).left;
-        result:=(hp.nodetype in [typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn]);
+        result:=(hp.nodetype in [typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn,addrn]);
         if result and
            not(may_be_in_reg) then
           case hp.nodetype of
@@ -1469,12 +1509,17 @@ implementation
         selftree:=nil;
 
         { When methodpointer was a callnode we must load it first into a
-          temp to prevent the processing callnode twice }
+          temp to prevent processing the callnode twice }
         if (methodpointer.nodetype=calln) then
           internalerror(200405121);
 
+        { Objective-C: objc_convert_to_message_send() already did all necessary
+          transformation on the methodpointer }
+        if (procdefinition.typ=procdef) and
+           (po_objc in tprocdef(procdefinition).procoptions) then
+          selftree:=methodpointer.getcopy
         { inherited }
-        if (cnf_inherited in callnodeflags) then
+        else if (cnf_inherited in callnodeflags) then
           begin
             selftree:=load_self_node;
            { we can call an inherited class static/method from a regular method
@@ -1638,6 +1683,146 @@ implementation
              end;
           end;
        end;
+
+
+    procedure tcallnode.objc_convert_to_message_send;
+      var
+        block,
+        selftree      : tnode;
+        statements    : tstatementnode;
+        field         : tfieldvarsym;
+        temp          : ttempcreatenode;
+        selfrestype,
+        objcsupertype : tdef;
+        srsym         : tsym;
+        srsymtable    : tsymtable;
+        msgsendname   : string;
+      begin
+        { typecheck pass must already have run on the call node,
+          because pass1 calls this method
+        }
+
+        { default behaviour: call objc_msgSend and friends;
+          64 bit targets for Mac OS X can override this as they
+          can call messages via an indirect function call similar to
+          dynamically linked functions, ARM maybe as well (not checked)
+
+          Which variant of objc_msgSend is used depends on the
+          result type, and on whether or not it's an inherited call.
+        }
+
+        { make sure we don't perform this transformation twice in case
+          firstpass would be called multiple times }
+        include(callnodeflags,cnf_objc_processed);
+
+        { A) set the appropriate objc_msgSend* variant to call }
+
+        { record returned via implicit pointer }
+        if paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
+          begin
+            if not(cnf_inherited in callnodeflags) then
+              msgsendname:='OBJC_MSGSEND_STRET'
+{$if defined(onlymacosx10_6) or defined(arm) }
+            else if (target_info.system in system_objc_nfabi) then
+              msgsendname:='OBJC_MSGSENDSUPER2_STRET'
+{$endif onlymacosx10_6 or arm}
+            else
+              msgsendname:='OBJC_MSGSENDSUPER_STRET'
+          end
+{$ifdef i386}
+        { special case for fpu results on i386 for non-inherited calls }
+        { TODO: also for x86_64 "extended" results }
+        else if (resultdef.typ=floatdef) and
+                not(cnf_inherited in callnodeflags) then
+          msgsendname:='OBJC_MSGSEND_FPRET'
+{$endif}
+        { default }
+        else if not(cnf_inherited in callnodeflags) then
+          msgsendname:='OBJC_MSGSEND'
+{$if defined(onlymacosx10_6) or defined(arm) }
+        else if (target_info.system in system_objc_nfabi) then
+          msgsendname:='OBJC_MSGSENDSUPER2'
+{$endif onlymacosx10_6 or arm}
+        else
+          msgsendname:='OBJC_MSGSENDSUPER';
+
+        { get the mangled name }
+        if not searchsym_in_named_module('OBJC',msgsendname,srsym,srsymtable) or
+           (srsym.typ<>procsym) or
+           (tprocsym(srsym).ProcdefList.count<>1) then
+          Message1(cg_f_unknown_compilerproc,'objc.'+msgsendname);
+        fobjcforcedprocname:=stringdup(tprocdef(tprocsym(srsym).ProcdefList[0]).mangledname);
+
+        { B) Handle self }
+        { 1) in case of sending a message to a superclass, self is a pointer to
+             an objc_super record
+        }
+        if (cnf_inherited in callnodeflags) then
+          begin
+             block:=internalstatements(statements);
+             objcsupertype:=search_named_unit_globaltype('OBJC','OBJC_SUPER').typedef;
+             if (objcsupertype.typ<>recorddef) then
+               internalerror(2009032901);
+             { temp for the for the objc_super record }
+             temp:=ctempcreatenode.create(objcsupertype,objcsupertype.size,tt_persistent,false);
+             addstatement(statements,temp);
+             { initialize objc_super record }
+             selftree:=load_self_node;
+
+             { we can call an inherited class static/method from a regular method
+               -> self node must change from instance pointer to vmt pointer)
+             }
+             if (po_classmethod in procdefinition.procoptions) and
+                (selftree.resultdef.typ<>classrefdef) then
+               begin
+                 selftree:=cloadvmtaddrnode.create(selftree);
+                 typecheckpass(selftree);
+               end;
+             selfrestype:=selftree.resultdef;
+             field:=tfieldvarsym(trecorddef(objcsupertype).symtable.find('RECEIVER'));
+             if not assigned(field) then
+               internalerror(2009032902);
+            { first the destination object/class instance }
+             addstatement(statements,
+               cassignmentnode.create(
+                 csubscriptnode.create(field,ctemprefnode.create(temp)),
+                 selftree
+               )
+             );
+             { and secondly, the class type in which the selector must be looked
+               up (the parent class in case of an instance method, the parent's
+               metaclass in case of a class method) }
+             field:=tfieldvarsym(trecorddef(objcsupertype).symtable.find('_CLASS'));
+             if not assigned(field) then
+               internalerror(2009032903);
+             addstatement(statements,
+               cassignmentnode.create(
+                 csubscriptnode.create(field,ctemprefnode.create(temp)),
+                 objcsuperclassnode(selftree.resultdef)
+               )
+             );
+             { result of this block is the address of this temp }
+             addstatement(statements,ctypeconvnode.create_internal(
+               caddrnode.create_internal(ctemprefnode.create(temp)),selfrestype)
+             );
+             { replace the method pointer with the address of this temp }
+             methodpointer.free;
+             methodpointer:=block;
+             typecheckpass(block);
+          end
+        else
+        { 2) regular call (not inherited) }
+          begin
+            { a) If we're calling a class method, use a class ref.  }
+            if (po_classmethod in procdefinition.procoptions) and
+               ((methodpointer.nodetype=typen) or
+                (methodpointer.resultdef.typ<>classrefdef)) then
+              begin
+                methodpointer:=cloadvmtaddrnode.create(methodpointer);
+                firstpass(methodpointer);
+              end;
+          end;
+      end;
 
 
     function tcallnode.gen_vmt_tree:tnode;
@@ -1999,7 +2184,12 @@ implementation
                  if vo_is_overflow_check in para.parasym.varoptions then
                    begin
                      para.left:=cordconstnode.create(Ord(cs_check_overflow in current_settings.localswitches),booltype,false);
-                   end;
+                   end
+                else
+                  if vo_is_msgsel in para.parasym.varoptions then
+                    begin
+                      para.left:=cobjcselectornode.create(cstringconstnode.createstr(tprocdef(procdefinition).messageinf.str^));
+                    end;
               end;
             if not assigned(para.left) then
               internalerror(200709084);
@@ -2815,14 +3005,29 @@ implementation
       begin
          result:=nil;
 
-         { Check if the call can be inlined, sets the cnf_do_inline flag }
-         check_inlining;
+         { convert Objective-C calls into a message call }
+         if (procdefinition.typ=procdef) and
+            (po_objc in tprocdef(procdefinition).procoptions) then
+           begin
+             if not(cnf_objc_processed in callnodeflags) then
+               objc_convert_to_message_send;
+           end
+         else
+           begin
+             { The following don't apply to obj-c: obj-c methods can never be
+               inlined because they're always virtual and the destination can
+               change at run, and for the same reason we also can't perform
+               WPO on them (+ they have no constructors) }
 
-         { must be called before maybe_load_in_temp(methodpointer), because
-           it converts the methodpointer into a temp in case it's a call
-           (and we want to know the original call)
-         }
-         register_created_object_types;
+             { Check if the call can be inlined, sets the cnf_do_inline flag }
+             check_inlining;
+
+             { must be called before maybe_load_in_temp(methodpointer), because
+               it converts the methodpointer into a temp in case it's a call
+               (and we want to know the original call)
+             }
+             register_created_object_types;
+           end;
 
          { Maybe optimize the loading of the methodpointer using a temp. When the methodpointer
            is a calln this is even required to not execute the calln twice.

@@ -105,6 +105,11 @@ const
   paranr_self = 2;
   paranr_result = 3;
   paranr_vmt = 4;
+
+  { the implicit parameters for Objective-C methods need to come
+    after the hidden result parameter }
+  paranr_objc_self = 4;
+  paranr_objc_cmd = 5;
   { Required to support variations of syscalls on MorphOS }
   paranr_syscall_basesysv = 9;
   paranr_syscall_sysvbase = high(word)-4;
@@ -280,7 +285,9 @@ type
     { Objective-C method }
     po_objc,
     { enumerator support }
-    po_enumerator_movenext
+    po_enumerator_movenext,
+    { optional Objective-C protocol method }
+    po_optional
   );
   tprocoptions=set of tprocoption;
 
@@ -293,7 +300,9 @@ type
     odt_interfacecom_function,
     odt_interfacecorba,
     odt_cppclass,
-    odt_dispinterface
+    odt_dispinterface,
+    odt_objcclass,
+    odt_objcprotocol
   );
 
   { Variations in interfaces implementation }
@@ -324,7 +333,9 @@ type
     oo_has_default_property,
     oo_has_valid_guid,
     oo_has_enumerator_movenext,
-    oo_has_enumerator_current
+    oo_has_enumerator_current,
+    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
+    oo_is_anonymous       { the class is only formally defined in this module (objcclass x = class; external;) }
   );
   tobjectoptions=set of tobjectoption;
 
@@ -373,7 +384,11 @@ type
     vo_is_range_check,
     vo_is_overflow_check,
     vo_is_typinfo_para,
-    vo_is_weak_external
+    vo_is_weak_external,
+    { Objective-C message selector parameter }
+    vo_is_msgsel,
+    { first field of a record or variant part of a record }
+    vo_is_first_field
   );
   tvaroptions=set of tvaroption;
 
@@ -448,7 +463,10 @@ type
 
   { RTTI information to store }
   trttitype = (
-    fullrtti,initrtti
+    fullrtti,initrtti,
+    { Objective-C }
+    objcmetartti,objcmetarortti,
+    objcclassrtti,objcclassrortti
   );
 
   { The order is from low priority to high priority,

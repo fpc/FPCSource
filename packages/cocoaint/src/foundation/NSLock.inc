@@ -1,0 +1,122 @@
+{ Parsed from Foundation.framework NSLock.h }
+{ Version FrameworkParser: 1.3. PasCocoa 0.3, Objective-P 0.4 - Thu Oct 1 18:54:06 ICT 2009 }
+
+
+{$ifdef TYPES}
+{$ifndef NSLOCK_PAS_T}
+{$define NSLOCK_PAS_T}
+
+{$endif}
+{$endif}
+
+{$ifdef RECORDS}
+{$ifndef NSLOCK_PAS_R}
+{$define NSLOCK_PAS_R}
+
+{$endif}
+{$endif}
+
+{$ifdef FUNCTIONS}
+{$ifndef NSLOCK_PAS_F}
+{$define NSLOCK_PAS_F}
+
+{$endif}
+{$endif}
+
+{$ifdef EXTERNAL_SYMBOLS}
+{$ifndef NSLOCK_PAS_S}
+{$define NSLOCK_PAS_S}
+
+{$endif}
+{$endif}
+
+{$ifdef FORWARD}
+  NSLockingProtocol = objcprotocol;
+  NSLock = objcclass;
+  NSLockPointer = ^NSLock;
+  NSConditionLock = objcclass;
+  NSConditionLockPointer = ^NSConditionLock;
+  NSRecursiveLock = objcclass;
+  NSRecursiveLockPointer = ^NSRecursiveLock;
+  NSCondition = objcclass;
+  NSConditionPointer = ^NSCondition;
+
+{$endif}
+
+{$ifdef CLASSES}
+{$ifndef NSLOCK_PAS_C}
+{$define NSLOCK_PAS_C}
+
+{ NSLock }
+  NSLock = objcclass(NSObject, NSLockingProtocol)
+  private
+    __priv: Pointer;
+    
+  public
+    class function alloc: NSLock; message 'alloc';
+
+    function tryLock: Boolean; message 'tryLock';
+    function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
+    procedure setName(n: NSString); message 'setName:';
+  end; external;
+
+{ NSConditionLock }
+  NSConditionLock = objcclass(NSObject, NSLockingProtocol)
+  private
+    __priv: Pointer;
+    
+  public
+    class function alloc: NSConditionLock; message 'alloc';
+
+    function initWithCondition(condition_: NSInteger): id; message 'initWithCondition:';
+    function condition: NSInteger; message 'condition';
+    procedure lockWhenCondition(condition_: NSInteger); message 'lockWhenCondition:';
+    function tryLock: Boolean; message 'tryLock';
+    function tryLockWhenCondition(condition_: NSInteger): Boolean; message 'tryLockWhenCondition:';
+    procedure unlockWithCondition(condition_: NSInteger); message 'unlockWithCondition:';
+    function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
+    function lockWhenCondition_beforeDate(condition_: NSInteger; limit: NSDate): Boolean; message 'lockWhenCondition:beforeDate:';
+    procedure setName(n: NSString); message 'setName:';
+  end; external;
+
+{ NSRecursiveLock }
+  NSRecursiveLock = objcclass(NSObject, NSLockingProtocol)
+  private
+    __priv: Pointer;
+    
+  public
+    class function alloc: NSRecursiveLock; message 'alloc';
+
+    function tryLock: Boolean; message 'tryLock';
+    function lockBeforeDate(limit: NSDate): Boolean; message 'lockBeforeDate:';
+    procedure setName(n: NSString); message 'setName:';
+  end; external;
+
+{ NSCondition }
+  NSCondition = objcclass(NSObject, NSLockingProtocol)
+  private
+    __priv: Pointer;
+    
+  public
+    class function alloc: NSCondition; message 'alloc';
+
+    procedure wait; message 'wait';
+    function waitUntilDate(limit: NSDate): Boolean; message 'waitUntilDate:';
+    procedure signal; message 'signal';
+    procedure broadcast; message 'broadcast';
+    procedure setName(n: NSString); message 'setName:';
+  end; external;
+
+{$endif}
+{$endif}
+{$ifdef PROTOCOLS}
+{$ifndef NSLOCK_PAS_P}
+{$define NSLOCK_PAS_P}
+  
+{ NSLocking Protocol }
+  NSLockingProtocol = objcprotocol
+    procedure lock; message 'lock';
+    procedure unlock; message 'unlock';
+  end; external name 'NSLocking';
+{$endif}
+{$endif}

@@ -110,7 +110,8 @@ interface
           rttin,            { Rtti information so they can be accessed in result/firstpass}
           loadparentfpn,    { Load the framepointer of the parent for nested procedures }
           dataconstn,       { node storing some binary data }
-          objcselectorn
+          objcselectorn,    { node for an Objective-C message selector }
+          objcprotocoln     { node for an Objective-C @protocol() expression (returns metaclass associated with protocol) }
        );
 
        tnodetypeset = set of tnodetype;
@@ -192,7 +193,8 @@ interface
           'rttin',
           'loadparentfpn',
           'dataconstn',
-          'objcselectorn');
+          'objcselectorn',
+          'objcprotocoln');
 
     type
        { all boolean field of ttree are now collected in flags }

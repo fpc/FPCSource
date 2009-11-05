@@ -479,7 +479,7 @@ implementation
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
 
-       coffsecnames : array[TAsmSectiontype] of string[20] = ('',
+       coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text','.data','.data','.data','.bss','.tls',
           '.text',
           '.pdata',
@@ -515,7 +515,16 @@ implementation
           '.objc_property',
           '.objc_image_info',
           '.objc_cstring_object',
-          '.objc_sel_fixup'
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
 
 const go32v2stub : array[0..2047] of byte=(

@@ -1128,8 +1128,12 @@ type
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
     po_weakexternal,
+    { Objective-C method }
     po_objc,
-    po_enumerator_movenext
+    { enumerator support }
+    po_enumerator_movenext,
+    { optional Objective-C protocol method }
+    po_optional
   );
   tprocoptions=set of tprocoption;
 
@@ -1215,7 +1219,8 @@ const
      (mask:po_dispid;          str:'DispId'),
      (mask:po_weakexternal;    str:'WeakExternal'),
      (mask:po_objc;            str:'ObjC'),
-     (mask:po_enumerator_movenext; str:'EnumeratorMoveNext')
+     (mask:po_enumerator_movenext; str:'EnumeratorMoveNext'),
+     (mask:po_optional;        str: 'Optional')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1380,7 +1385,9 @@ type
     oo_has_default_property,
     oo_has_valid_guid,
     oo_has_enumerator_movenext,
-    oo_has_enumerator_current
+    oo_has_enumerator_current,
+    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
+    oo_is_anonymous       { the class is only formally defined in this module (objcclass x = class; external;) }
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1406,8 +1413,9 @@ const
      (mask:oo_has_default_property;str:'HasDefaultProperty'),
      (mask:oo_has_valid_guid;     str:'HasValidGUID'),
      (mask:oo_has_enumerator_movenext; str:'HasEnumeratorMoveNext'),
-     (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent')
-  );
+     (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent'),
+     (mask:oo_is_external;        str:'External'),
+     (mask:oo_is_anonymous;       str:'Anonymous'));
 var
   symoptions : tobjectoptions;
   i      : longint;
@@ -1785,9 +1793,13 @@ type
     odt_class,
     odt_object,
     odt_interfacecom,
+    odt_interfacecom_property,
+    odt_interfacecom_function,
     odt_interfacecorba,
     odt_cppclass,
-    odt_dispinterface
+    odt_dispinterface,
+    odt_objcclass,
+    odt_objcprotocol
   );
   tvarianttype = (
     vt_normalvariant,vt_olevariant
@@ -1997,9 +2009,13 @@ begin
                odt_interfacecom   : writeln('interfacecom');
                odt_interfacecorba : writeln('interfacecorba');
                odt_cppclass       : writeln('cppclass');
+               odt_dispinterface  : writeln('dispinterface');
+               odt_objcclass      : writeln('objcclass');
+               odt_objcprotocol   : writeln('objcprotocol');
                else                 writeln('!! Warning: Invalid object type ',b);
              end;
              writeln(space,'    Name of Class : ',getstring);
+             writeln(space,'    External name : ',getstring);
              writeln(space,'         DataSize : ',getaint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
@@ -2027,7 +2043,7 @@ begin
                  writeln(space,'      Visibility: ',Visibility2Str(getbyte));
                end;
 
-             if tobjecttyp(b) in [odt_class,odt_interfacecorba] then
+             if tobjecttyp(b) in [odt_class,odt_interfacecorba,odt_objcclass,odt_objcprotocol] then
               begin
                 l:=getlongint;
                 writeln(space,'  Impl Intf Count : ',l);

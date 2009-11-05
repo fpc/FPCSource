@@ -73,7 +73,11 @@ implementation
 
 
     const
-       rttidefstate : array[trttitype] of tdefstate = (ds_rtti_table_written,ds_init_table_written);
+       rttidefstate : array[trttitype] of tdefstate =
+         (ds_rtti_table_written,ds_init_table_written,
+         { Objective-C related, does not pass here }
+         symconst.ds_none,symconst.ds_none,
+         symconst.ds_none,symconst.ds_none);
 
     type
        TPropNameListItem = class(TFPHashObject)

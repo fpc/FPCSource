@@ -1,0 +1,52 @@
+{ %target=darwin }
+{ %cpu=powerpc,powerpc64,i386,x86_64,arm }
+{ %NEEDLIBRARY }
+
+{$mode objfpc}
+{$modeswitch objectivec1}
+
+const
+{$ifdef windows}
+  libname='tobjcl1.dll';
+{$else}
+  libname='tobjcl1';
+  {$linklib tobjcl1}
+{$endif}
+
+type
+  MyLibObjCClass = objcclass(NSObject)
+   public
+    fa: byte;
+    function publicfun: byte; message 'publicfun';
+   protected
+    fb: byte;
+    function protectedfun: byte; message 'protectedfun';
+   private
+    fc: byte;
+    function privatefun: byte; message 'privatefun';
+  end; external;
+
+  MyDerivedClass = objcclass(MyLibObjCClass)
+    l: longint;
+    function callprotectedfun: byte; message 'callprotectedfun';
+  end;
+
+
+function MyDerivedClass.callprotectedfun: byte;
+  begin
+    result:=protectedfun;
+  end;
+
+
+var
+  a: MyLibObjCClass;
+begin
+  a:=NSObject(MyDerivedClass.alloc).init;
+  a.fa:=55;
+  a.fb:=66;
+  if a.publicfun<>55 then
+    halt(1);
+  if MyDerivedClass(a).callprotectedfun<>66 then
+    halt(2);
+  a.release;
+end.

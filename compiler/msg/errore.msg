@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03265 is the last used one
+# 03275 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -911,12 +911,12 @@ parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in
 % Constructor and destructor declarations aren't allowed in interfaces.
 % In the most cases method \var{QueryInterface} of \var{IUnknown} can
 % be used to create a new interface.
-parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACES
+parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACEs and OBJCPROTOCOLs
 % The access specifiers \var{public}, \var{private}, \var{protected} and
-% \var{published} can't be used in interfaces because all methods
-% of an interface must be public.
-parser_e_no_vars_in_interfaces=03173_E_An interface can't contain fields
-% Declarations of fields aren't allowed in interfaces. An interface
+% \var{published} can't be used in interfaces and Objective-C protocols because all methods
+% of an interface/protocol must be public.
+parser_e_no_vars_in_interfaces=03173_E_An interface or Objective-C protocol cannot contain fields
+% Declarations of fields are not allowed in interfaces and Objective-C protocols. An interface/protocol
 % can contain only methods and properties with method read/write specifiers.
 parser_e_no_local_proc_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
@@ -1217,11 +1217,54 @@ parser_e_only_one_enumerator_current=03264_E_Only one enumerator Current propert
 % Class or Object can have only one enumerator Current declaration.
 parser_e_for_in_loop_cannot_be_used_for_the_type=03265_E_For in loop can not be used for the type "$1"
 % For in loop can be used not for all types. For example it can not be used for the enumerations with jumps.
+parser_e_objc_requires_msgstr=03266_E_Objective-C messages require their Objective-C selector name to be specified using the "message" directive.
+% Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
+% While bindings to other languages automatically generate such names based on the identifier you use (by replacing
+% all underscores with colons), this is unsafe since nothing prevents an Objective-C method name to contain actual
+% colons.
+parser_e_objc_no_constructor_destructor=03267_E_Objective-C does not have formal constructors nor destructors. Use the alloc, initXXX and dealloc messages.
+% The Objective-C language does not have any constructors or destructors. While there are some messages with a similar
+% purpose (such as \var{init} and \var{dealloc}), these cannot be identified using automatic parsers and do not
+% guarantee anything like Pascal constructors/destructors (e.g., you have to take care of only calling ``designated''
+% inherited ``constructors''). For these reasons, we have opted to follow the standard Objective-C patterns for
+% instance creation/destruction.
+parser_e_message_string_too_long=03268_E_Message name is too long (max. 255 characters)
+% Due to compiler implementation reasons, message names are currently limited to 255 characters.
+parser_e_objc_message_name_too_long=03269_E_Objective-C message symbol name for "$1" is too long
+% Due to compiler implementation reasons, mangled message names (i.e., the symbol names used in the assembler
+% code) are currently limited to 255 characters.
+parser_h_no_objc_parent=03270_H_Defining a new Objective-C root class. To derive from another root class (e.g., NSObject), specify it as the parent class.
+% If no parent class is specified for an Object Pascal class, then it automatically derives from TObject.
+% Objective-C classes however do not automatically derive from NSObject, because one can have multiple
+% root classes in Objective-C. For example, in the Cocoa framework both NSObject and NSProxy are root classes.
+% Therefore, you have to explicitly define a parent class (such as NSObject) if you want to derive your
+% Objective-C class from it.
+parser_e_no_objc_published=03271_E_Objective-C classes cannot have published sections.
+% In Object Pascal, ``published'' determines whether or not RTTI is generated. Since the Objective-C runtime always needs
+% RTTI for everything, this specified does not make sense for Objective-C classes.
+parser_f_need_objc=03272_F_This module requires an Objective-C mode switch to be compiled
+% This error indicates the use of Objective-C language features without an Objective-C mode switch
+% active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
+parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add ``override''.
+parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add ``override''.
+% It is not possible to ``reintroduce'' methods in Objective-C like in Object Pascal. Methods with the same
+% name always map to the same virtual method entry. In order to make this clear in the source code,
+% the compiler always requires the ``override'' directive to be specified when implementing overriding
+% Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
+% does not have any ``override''-style keyword (since it's the default and only behaviour in that language),
+% which makes it hard for automated header conversion tools to include it everywhere.
+parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class is different from message name "$2" in current class.
+% An overriding Objective-C method cannot have a different message name than an inherited method. The reason
+% is that these message names uniquely define the message to the Objective-C runtime, which means that
+% giving them a different message name breaks the ``override'' semantics.
+parser_e_no_objc_unique=03276_E_It is not yet possible to make unique copies of Objective-C types
+% Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
+% obtain the desired effect using \var{type x = objcclass(y) end;} instead.
 % \end{description}
 #
 # Type Checking
 #
-# 04087 is the last used one
+# 04093 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1505,7 +1548,7 @@ type_w_pointer_to_signed=04082_W_Converting pointers to signed integers may resu
 type_interface_has_no_guid=04083_E_Interface type $1 has no valid GUID
 % When applying the as-operator to an interface or class, the desired interface (i.e. the right operand of the
 % as-operator) must have a valid GUID.
-type_e_invalid_objc_selector_name=04084_E_Invalid selector name
+type_e_invalid_objc_selector_name=04084_E_Invalid selector name "$1"
 % An Objective-C selector cannot be empty, must be a valid identifier or a single colon,
 % and if it contains at least one colon it must also end in one.
 type_e_expected_objc_method_but_got=04085_E_Expected Objective-C method, but got $1
@@ -1525,11 +1568,24 @@ type_e_string_expr_expected=04089_E_String expression expected
 % The expression must be a string type.
 type_w_zero_to_nil=04090_W_Converting 0 to NIL
 % Use NIL rather than 0 when initialising a pointer. 
+type_e_protocol_type_expected=04091_E_Objective-C protocol type expected, but got "$1"
+% The compiler expected a protocol type name, but found something else.
+type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C runtime.
+% Objective-C makes extensive use of run time type information (RTTI). This format
+% is defined by the maintainers of the run time and can therefore not be adapted
+% to all possible Object Pascal types. In particular, types that depend on
+% reference counting by the compiler (such as ansistrings and certain kinds of
+% interfaces) cannot be used as fields of Objective-C classes, cannot be
+% directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
+type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
+% It is only possible to create class reference types of \var{class} and
+% \var{objcclass} types
+%
 % \end{description}
 #
 # Symtable
 #
-# 05069 is the last used one
+# 05070 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1719,6 +1775,13 @@ sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator 
 sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
 % This means that compiler can not find a public Current property in  the enumerator class or object 
 % definition.
+sym_e_objc_para_mismatch=05070_E_Mismatch between number of declared parameters and number of colons in message string.
+% In Objective-C, a message name automatically contains as many colons as parameters.
+% In order to prevent mistakes when specifying the message name in FPC, the compiler
+% checks whether this is also the case here. Note that in case of messages taking a
+% variable number of arguments translated to FPC via an \var{array of const} parameter,
+% this final \var{array of const} parameter is not counted. Neither are the hidden
+% \var{self} and \var{_cmd} parameters.
 % \end{description}
 #
 # Codegenerator
@@ -1851,6 +1914,11 @@ cg_e_goto_label_not_found=06049_E_Goto label "$1" not defined or optimized away
 % The label used in the goto definition is not defined or optimized away by the
 % unreachable code elemination.
 % \end{description}
+cg_f_unknown_type_in_unit=06050_F_Cannot find type "$1" in unit "$2". Check if you use the correct run time library.
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
 # EndOfTeX
 
 #

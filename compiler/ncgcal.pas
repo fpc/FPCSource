@@ -1024,9 +1024,12 @@ implementation
 {$endif vtentry}
 
              name_to_call:='';
+             if assigned(fobjcforcedprocname) then
+               name_to_call:=fobjcforcedprocname^;
              { When methodpointer is typen we don't need (and can't) load
                a pointer. We can directly call the correct procdef (PFV) }
-             if (po_virtualmethod in procdefinition.procoptions) and
+             if (name_to_call='') and
+                (po_virtualmethod in procdefinition.procoptions) and
                 assigned(methodpointer) and
                 (methodpointer.nodetype<>typen) and
                 not wpoinfomanager.can_be_devirtualized(methodpointer.resultdef,procdefinition,name_to_call) then

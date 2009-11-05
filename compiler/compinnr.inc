@@ -77,6 +77,8 @@ const
    in_rol_x             = 67;
    in_rol_x_x           = 68;
    in_objc_selector_x   = 69;
+   in_objc_protocol_x   = 70;
+   in_objc_encode_x     = 71;
 
 
 { Internal constant functions }

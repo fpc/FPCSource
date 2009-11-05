@@ -151,10 +151,12 @@ interface
 
       tfieldvarsym = class(tabstractvarsym)
           fieldoffset   : aint;   { offset in record/object }
+          objcoffsetmangledname: pshortstring; { mangled name of offset, calculated as needed }
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:string;override;
+          destructor destroy;override;
       end;
 
       tabstractnormalvarsym = class(tabstractvarsym)
@@ -1189,8 +1191,25 @@ implementation
             else
               internalerror(2007012501);
           end
+        else if is_objcclass(tdef(owner.defowner)) then
+          begin
+            if assigned(objcoffsetmangledname) then
+              result:=objcoffsetmangledname^
+            else
+              begin
+                result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
+                objcoffsetmangledname:=stringdup(result);
+              end;
+          end
         else
           result:=inherited mangledname;
+      end;
+
+
+    destructor tfieldvarsym.destroy;
+      begin
+        stringdispose(objcoffsetmangledname);
+        inherited destroy;
       end;
 
 

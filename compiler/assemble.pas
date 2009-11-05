@@ -992,7 +992,12 @@ Implementation
                  Tai_section(hp).sec:=ObjData.CurrObjSec;
                end;
              ait_symbol :
-               ObjData.SymbolDefine(Tai_symbol(hp).sym);
+               begin
+                 { needs extra support in the internal assembler }
+                 if tai_symbol(hp).has_value then
+                   internalerror(2009090804);
+                 ObjData.SymbolDefine(Tai_symbol(hp).sym);
+               end;
              ait_label :
                ObjData.SymbolDefine(Tai_label(hp).labsym);
              ait_string :

@@ -403,6 +403,12 @@ interface
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_arm_darwin];
 
+       { systems supporting Objective-C }
+       system_objc_supported = systems_darwin;
+
+       { systems using the non-fragile Objective-C ABI }
+       system_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin];
+
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
                            system_alpha_embedded,system_powerpc_embedded,

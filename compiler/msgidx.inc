@@ -353,6 +353,17 @@ const
   parser_e_only_one_enumerator_movenext=03263;
   parser_e_only_one_enumerator_current=03264;
   parser_e_for_in_loop_cannot_be_used_for_the_type=03265;
+  parser_e_objc_requires_msgstr=03266;
+  parser_e_objc_no_constructor_destructor=03267;
+  parser_e_message_string_too_long=03268;
+  parser_e_objc_message_name_too_long=03269;
+  parser_h_no_objc_parent=03270;
+  parser_e_no_objc_published=03271;
+  parser_f_need_objc=03272;
+  parser_e_must_use_override_objc=03273;
+  parser_h_should_use_override_objc=03274;
+  parser_e_objc_message_name_changed=03275;
+  parser_e_no_objc_unique=03276;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -434,6 +445,9 @@ const
   type_e_ordinal_or_string_expr_expected=04088;
   type_e_string_expr_expected=04089;
   type_w_zero_to_nil=04090;
+  type_e_protocol_type_expected=04091;
+  type_e_objc_type_unsupported=04092;
+  type_e_class_or_objcclass_type_expected=04093;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -490,6 +504,7 @@ const
   sym_e_no_enumerator=05067;
   sym_e_no_enumerator_move=05068;
   sym_e_no_enumerator_current=05069;
+  sym_e_objc_para_mismatch=05070;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -517,6 +532,7 @@ const
   cg_f_unknown_system_type=06047;
   cg_h_inherited_ignored=06048;
   cg_e_goto_label_not_found=06049;
+  cg_f_unknown_type_in_unit=06050;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -811,9 +827,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52817;
+  MsgTxtSize = 54197;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,266,91,70,50,108,22,202,62,
+    24,87,277,94,71,51,108,22,202,62,
     48,20,1,1,1,1,1,1,1,1
   );
