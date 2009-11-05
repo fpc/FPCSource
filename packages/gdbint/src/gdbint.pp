@@ -125,7 +125,6 @@ interface
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
-  {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V7}
 
@@ -1282,8 +1281,8 @@ procedure gdb_init(argv0 : pchar);cdecl;external;
 procedure gdb_init;cdecl;external;
 {$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
-procedure target_kill;cdecl;external;
 {$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+procedure target_kill;cdecl;external;
 procedure target_close(pt : ptarget_ops; i:longint);cdecl;external;
 {$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_close(i:longint);cdecl;external;
@@ -2293,10 +2292,11 @@ procedure tgdbinterface.gdb_done;
 begin
   if debuggee_started then
     begin
-      target_kill;
 {$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      target_kill;
       target_close(@current_target,1);
 {$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      current_target.to_kill;
       target_close(1);
 {$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
     end;
