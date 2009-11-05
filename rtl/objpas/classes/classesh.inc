@@ -25,7 +25,7 @@
 
 type
    { extra types to compile with FPC }
-   HRSRC = longint;
+   HRSRC =  TFPResourceHandle {$ifndef ver2_2} deprecated {$endif};
    TComponentName = string;
    THandle = System.THandle;
 
@@ -917,7 +917,7 @@ type
 {$ifdef UNICODE}
   TResourceStream = class(TCustomMemoryStream)
   private
-    Res: HRSRC;
+    Res: TFPResourceHandle;
     Handle: THandle;
     procedure Initialize(Instance: THandle; Name, ResType: PWideChar);
   public
@@ -928,7 +928,7 @@ type
 {$else}
   TResourceStream = class(TCustomMemoryStream)
   private
-    Res: HRSRC;
+    Res: TFPResourceHandle;
     Handle: THandle;
     procedure Initialize(Instance: THandle; Name, ResType: PChar);
   public
