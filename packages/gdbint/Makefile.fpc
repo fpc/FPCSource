@@ -117,6 +117,7 @@ gdbver.inc:
 gdbint$(PPUEXT): gdbint.pp gdbver.inc
 	@$(ECHO) libgdb.a not found, using default GDB $(GDBVER)
 	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND)  -Fisrc -Fusrc src/gdbint.pp
+        $(DEL) src/gdbver.inc
 endif
 
 else
