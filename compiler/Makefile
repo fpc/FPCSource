@@ -348,19 +348,15 @@ CPUSUF=arm
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
+REVINC:=$(wildcard revision.inc)
+ifneq ($(REVINC),)
+override LOCALOPT+=-dREVINC
 SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
 endif
-endif
-REVINC:=$(wildcard revision.inc)
-ifneq ($(REVINC),)
-override LOCALOPT+=-dREVINC
-else
-ifneq ($(REVSTR),)
-override LOCALOPT+=-dREVINC
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG

@@ -151,6 +151,12 @@ NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 
 
+# Check if revision.inc is present
+REVINC:=$(wildcard revision.inc)
+ifneq ($(REVINC),)
+# File revision.inc is present
+#Use it to compile version.pas unit
+override LOCALOPT+=-dREVINC
 # Automatically update revision.inc if
 # svnversion executable is available
 SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
@@ -159,14 +165,6 @@ ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
 endif
-endif
-
-REVINC:=$(wildcard revision.inc)
-ifneq ($(REVINC),)
-override LOCALOPT+=-dREVINC
-else
-ifneq ($(REVSTR),)
-override LOCALOPT+=-dREVINC
 endif
 endif
 
