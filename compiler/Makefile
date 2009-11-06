@@ -348,10 +348,10 @@ CPUSUF=arm
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
-SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
@@ -3333,6 +3333,20 @@ insdat: insdatx86 insdatarm
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
 	cd arm && ../utils/mkarmreg$(SRCEXEEXT)
+revision.inc : FORCE
+ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+	$(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+else
+	$(MAKE) revision.inc REVSTR="exported"
+endif
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
 	     $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)

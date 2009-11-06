@@ -151,6 +151,7 @@ NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
 
 
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 # Check if revision.inc is present
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
@@ -159,7 +160,6 @@ ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
 # Automatically update revision.inc if
 # svnversion executable is available
-SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
@@ -379,6 +379,22 @@ insdat: insdatx86 insdatarm
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
         cd arm && ../utils/mkarmreg$(SRCEXEEXT)
+
+# revision.inc rule
+revision.inc : FORCE
+ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+        $(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+else
+	$(MAKE) revision.inc REVSTR="exported"
+endif
 
 # Make only the compiler
 # ECHOREDIR sometimes does not remove double quotes
