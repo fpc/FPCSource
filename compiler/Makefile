@@ -3333,7 +3333,7 @@ insdat: insdatx86 insdatarm
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
 	cd arm && ../utils/mkarmreg$(SRCEXEEXT)
-revision.inc : FORCE
+revision.inc :
 ifneq ($(REVSTR),)
 ifdef USEZIPWRAPPER
 ifneq ($(ECHOREDIR),echo)
@@ -3345,7 +3345,7 @@ else
 	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
 endif
 else
-	$(MAKE) revision.inc REVSTR="exported"
+	$(MAKE) revision.inc REVINC=force
 endif
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \

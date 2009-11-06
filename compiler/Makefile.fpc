@@ -381,7 +381,7 @@ regdatarm : arm/armreg.dat
         cd arm && ../utils/mkarmreg$(SRCEXEEXT)
 
 # revision.inc rule
-revision.inc : FORCE
+revision.inc :
 ifneq ($(REVSTR),)
 ifdef USEZIPWRAPPER
 ifneq ($(ECHOREDIR),echo)
@@ -393,7 +393,7 @@ else
         $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
 endif
 else
-	$(MAKE) revision.inc REVSTR="exported"
+	$(MAKE) revision.inc REVINC=force
 endif
 
 # Make only the compiler
