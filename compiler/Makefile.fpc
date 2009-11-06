@@ -164,6 +164,11 @@ ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
+else
+ifeq ($(REVINC),force)
+REVSTR:=exported
+export REVSTR
+endif
 endif
 endif
 endif
@@ -395,6 +400,12 @@ endif
 else
 	$(MAKE) revision.inc REVINC=force
 endif
+
+.PHONY : revision
+
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
 
 # Make only the compiler
 # ECHOREDIR sometimes does not remove double quotes

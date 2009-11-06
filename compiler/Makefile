@@ -356,6 +356,11 @@ ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
+else
+ifeq ($(REVINC),force)
+REVSTR:=exported
+export REVSTR
+endif
 endif
 endif
 endif
@@ -3347,6 +3352,10 @@ endif
 else
 	$(MAKE) revision.inc REVINC=force
 endif
+.PHONY : revision
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
 	     $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
