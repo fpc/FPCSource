@@ -577,7 +577,7 @@ begin
       result:=cerrornode.create;
       hloopvar.free;
       hloopbody.free;
-      Message1(parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
+      MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
     end
     else 
       result:=create_type_for_in_loop(hloopvar, hloopbody, expr);
@@ -599,7 +599,7 @@ begin
         result:=cerrornode.create;
         hloopvar.free;
         hloopbody.free;
-        Message1(sym_e_no_enumerator_move,pd.returndef.GetTypeName);
+        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
       end
       else
       begin
@@ -609,7 +609,7 @@ begin
           result:=cerrornode.create;
           hloopvar.free;
           hloopbody.free;
-          Message1(sym_e_no_enumerator_current,pd.returndef.GetTypeName);
+          MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
         end
         else
           result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
@@ -626,7 +626,7 @@ begin
           result:=cerrornode.create;
           hloopvar.free;
           hloopbody.free;
-          Message1(sym_e_no_enumerator,expr.resultdef.GetTypeName);
+          MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
         end;
       end;
     end;
