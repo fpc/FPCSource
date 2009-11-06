@@ -348,13 +348,18 @@ CPUSUF=arm
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
+ifeq ($(REVSTR),)
+ifneq ($(SVNVERSION),)
+REVSTR:=$(shell $(SVNVERSION) -c .)
+export REVSTR
+override LOCALOPT+=-dREVINC
+endif
+endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
-override LOCALOPT+=-dREVINC
 ifeq ($(REVSTR),)
-SVNVERSION:=$(wildcard svnversion$(SRCEXEEXT))
-REVSTR:=$(shell svnversion .)
-export REVSTR
+override LOCALOPT+=-dREVINC
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG
@@ -3335,7 +3340,16 @@ $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
 	     $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
 	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+	$(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+	$(COMPILER) version.pas
 endif
 	$(COMPILER) pp.pas
 	$(EXECPPAS)
