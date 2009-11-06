@@ -353,12 +353,13 @@ ifeq ($(REVSTR),)
 ifneq ($(SVNVERSION),)
 REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
-override LOCALOPT+=-dREVINC
 endif
 endif
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
-ifeq ($(REVSTR),)
+override LOCALOPT+=-dREVINC
+else
+ifneq ($(REVSTR),)
 override LOCALOPT+=-dREVINC
 endif
 endif
