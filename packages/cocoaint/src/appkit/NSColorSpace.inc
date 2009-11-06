@@ -66,7 +66,7 @@ type
         replacedDuringUnarchiving: 0..1;
         int: 0..((1 shl 20)-1);
         {$ifdef cpu64}
-        int: 0..((1 shl 32)-1);
+        int2: 0..((1 shl 32)-1);
         {$endif}
       end;
     ___cgColorSpace: Pointer;

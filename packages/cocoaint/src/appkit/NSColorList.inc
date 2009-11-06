@@ -64,7 +64,7 @@ var
         isProfileBased: 0..1;
         int: 0..((1 shl 24)-1);
         {$ifdef cpu64}
-        int: 0..((1 shl 32)-1);
+        int2: 0..((1 shl 32)-1);
         {$endif}
       end;
     __clAuxiliaryStorage: id;

@@ -62,7 +62,7 @@ var
         int: 0..((1 shl 7)-1);
         disabled: 0..((1 shl 16)-1);
         {$ifdef cpu64}
-        int: 0..((1 shl 32)-1);
+        int2: 0..((1 shl 32)-1);
         {$endif}
       end;
     __layoutManagers: NSMutableArray;
