@@ -154,7 +154,7 @@ REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
 ifeq ($(REVSTR),)
-SVNVERSION:=$(wildcard svnversion$(EXEEXT))
+SVNVERSION:=$(wildcard svnversion$(SRCEXEEXT))
 REVSTR:=$(shell svnversion .)
 export REVSTR
 endif
