@@ -345,6 +345,17 @@
 
      tagTOKEN_TYPE = TOKEN_TYPE;
 
+    _FINDEX_INFO_LEVELS = (FindExInfoStandard,FindExInfoBasic,FindExInfoMaxInfoLevel);
+    _FINDEX_SEARCH_OPS  = (FindExSearchNameMatch, FindExSearchLimitToDirectories,
+ 			   FindExSearchLimitToDevices, FindExSearchMaxSearchOp);
+    TFINDEX_INFO_LEVELS = _FINDEX_INFO_LEVELS;
+    FINDEX_INFO_LEVELS  = _FINDEX_INFO_LEVELS;
+    PFINDEX_INFO_LEVELS = ^TFINDEX_INFO_LEVELS;
+    TFINDEX_SEARCH_OPS  = _FINDEX_SEARCH_OPS;
+    FINDEX_SEARCH_OPS   = _FINDEX_SEARCH_OPS;
+    PFINDEX_SEARCH_OPS  = ^TFINDEX_SEARCH_OPS;
+
+
  {
    Macros
  }

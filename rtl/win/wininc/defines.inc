@@ -5644,6 +5644,9 @@ const
   DMDO_180        = 2;
   DMDO_270        = 3;
 
+  FIND_FIRST_EX_CASE_SENSITIVE   = $00000001;
+  FIND_FIRST_EX_LARGE_FETCH      = $00000002;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
