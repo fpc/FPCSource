@@ -566,7 +566,10 @@ function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
 var
   pd, movenext: tprocdef;
   current: tpropertysym;
+  storefilepos: tfileposinfo;
 begin
+  storefilepos:=current_filepos;
+  current_filepos:=hloopvar.fileinfo;
   if expr.nodetype=typen then
   begin
     if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
@@ -628,6 +631,7 @@ begin
       end;
     end;
   end;
+  current_filepos:=storefilepos;
 end;
 
 {****************************************************************************
